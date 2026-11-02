@@ -56,6 +56,7 @@ population_problems <- function(spec) {
     check_pairwise(spec),
     check_friedman(spec),
     check_jonckheere(spec),
+    check_sd_ratio(spec),
     check_within_covariance(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
@@ -202,12 +203,25 @@ spower_only <- function(spec) {
 # and the Jonckheere-Terpstra test (groups in order) and Friedman's test,
 # simulated by powerkit's own experiments with Spower.
 rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman", "jonckheere_terpstra"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "kruskal_wallis", "friedman", "jonckheere_terpstra"))
 }
 
 # The Jonckheere-Terpstra test of a trend across groups in order (PMCMRplus's
 # jonckheereTest()), on the one-way between-participants template.
 jonckheere_test <- function(spec) identical(spec$target_test$method, "jonckheere_terpstra")
+
+# The Brunner-Munzel test (brunnermunzel's brunnermunzel.test()), on the
+# independent-groups template: a rank test that allows the groups to
+# differ in spread as well as location.
+brunner_munzel_test <- function(spec) identical(spec$target_test$method, "brunner_munzel")
+
+# The ratio of the groups' SDs is an input to the Brunner-Munzel test only.
+check_sd_ratio <- function(spec) {
+  if (is.null(spec$population$sd_ratio) || brunner_munzel_test(spec)) {
+    return(character())
+  }
+  "'population > sd_ratio' is only used by the Brunner-Munzel test ('target_test > method' \"brunner_munzel\"); remove it."
+}
 
 # The Cochran-Armitage test of a trend in proportions (stats::prop.trend.test()).
 proportion_trend <- function(spec) identical(spec$template, "proportion_trend")
@@ -601,7 +615,7 @@ check_score_shape_allowed <- function(spec) {
   }
   paste0(
     "'population > score_shape' is only used by the rank tests (Wilcoxon, ",
-    "Mann-Whitney, Kruskal-Wallis, Jonckheere-Terpstra, Friedman) and the rank correlations (Spearman, ",
+    "Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Jonckheere-Terpstra, Friedman) and the rank correlations (Spearman, ",
     "Kendall); the t-tests, ANOVA and Pearson's r assume normal scores. Remove it, ",
     "or choose a rank test in 'target_test > method'."
   )

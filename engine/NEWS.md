@@ -66,6 +66,13 @@
 
 A batch of new features, built as one round.
 
+* The Brunner-Munzel test is a test version of `independent_t`
+  (`target_test.method = "brunner_munzel"`), simulated by Spower with
+  powerkit's experiment `p_brunner_munzel()` around brunnermunzel's
+  `brunnermunzel.test()`. A new population field, `sd_ratio`, sets group
+  2's SD relative to group 1's; d is over the average of the two
+  variances. Validation chunk `rank` adds its checks. New Imports:
+  brunnermunzel.
 * Reliability and agreement (E69, design `reliability`): tests that an
   ICC exceeds a null value (ICC.Sample.Size's `calculateIccPower()`,
   one-way random effects, one- or two-sided), that Cronbach's alpha does

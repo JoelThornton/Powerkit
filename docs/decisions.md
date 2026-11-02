@@ -4603,6 +4603,31 @@ only.
   groups only, so there is no convention to differ from.
 
 
+## 2026-11-02 · The Brunner-Munzel test (E2's test version)
+
+- **What:** the two-group card's test version offers the Brunner-Munzel
+  test, simulated by Spower with an experiment of powerkit's own,
+  `p_brunner_munzel()`, which draws both groups in the chosen shape
+  (normal, skewed or heavy-tailed) and calls brunnermunzel's
+  `brunnermunzel.test()`. Goals: power and sample size, as for the
+  other rank tests.
+- **Why:** the Mann-Whitney test assumes the groups differ only in level;
+  when their spreads differ too its Type I error rate drifts from alpha,
+  most with unequal groups. The Brunner-Munzel test tests the same
+  quantity (the chance a score in one group exceeds one in the other)
+  without that assumption. No package has a power formula for it, so it
+  is simulated, like the other rank tests. brunnermunzel is on CRAN and
+  needs no other package.
+- **Inputs:** Cohen's d over the average of the two variances, the SD
+  ratio (default 1) and the shape; `conventions.md`, "Not departures, but
+  worth stating".
+- **Validation** (`test-validation-brunner-munzel.R`, chunk `rank`): the
+  statistic written out from its published definition matches the
+  package's p-values; Spower's power agrees with a plain loop of the same
+  experiment; with no effect the rejection rate stays near alpha with
+  unequal spreads and group sizes. A published worked example is a
+  placeholder for the maintainer.
+
 ## 2026-11-02 · Time to event: the log-rank test and Cox regression (E43)
 
 - **What:** E43 now runs, as design `survival` with two templates. Two

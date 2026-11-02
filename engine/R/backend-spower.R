@@ -29,7 +29,9 @@ spower_backend <- function(spec, seed = NULL) {
       # p_glm() tests the coefficients with car::lht().
       if (identical(spec$template, "factorial")) "car",
       # p_jonckheere() calls PMCMRplus's jonckheereTest().
-      if (jonckheere_test(spec)) "PMCMRplus"
+      if (jonckheere_test(spec)) "PMCMRplus",
+      # p_brunner_munzel() calls brunnermunzel's brunnermunzel.test().
+      if (brunner_munzel_test(spec)) "brunnermunzel"
     ),
     methods = "simulation",
     default_method = "simulation",
@@ -284,6 +286,17 @@ rank_test_inputs <- function(spec, first_group) {
       args = function(n) list(n = n / k, k = k, means = means, gen_fun = gen)
     ))
   }
+  # The Brunner-Munzel test: powerkit's own experiment, p_brunner_munzel(),
+  # on two groups of the chosen shape that may differ in spread
+  # (brunner_munzel_scores()).
+  if (brunner_munzel_test(spec)) {
+    shape <- pop$score_shape %||% "normal"
+    sd_ratio <- pop$sd_ratio %||% 1
+    return(list(
+      experiment = "p_brunner_munzel", own = TRUE, rank = "brunner_munzel", draw = draw,
+      args = function(n) list(n = first_group(n), n2_n1 = ratio, d = pop$d, sd_ratio = sd_ratio, shape = shape)
+    ))
+  }
   wilcox <- function(args) {
     c(args, list(parent1 = shifted, parent2 = if (identical(args$type, "paired")) {
       function(n, d) rep(0, n)
@@ -327,6 +340,10 @@ score_shape_words <- function(shape) {
 rank_test_description <- function(test, template, alternative) {
   if (identical(template, "oneway_within")) {
     return("Spower::Spower(p_friedman()) (stats::friedman.test())")
+  }
+  if (identical(test$experiment, "p_brunner_munzel")) {
+    return(sprintf("Spower::Spower(p_brunner_munzel(%s)) (brunnermunzel::brunnermunzel.test())",
+      if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", spower_alternative(template, alternative))))
   }
   if (identical(test$experiment, "p_jonckheere")) {
     return(sprintf("Spower::Spower(p_jonckheere(%s)) (PMCMRplus::jonckheereTest())",
@@ -381,6 +398,39 @@ p_friedman <- function(n, means, r, shape) {
 # groups are passed as x and g: jonckheereTest() given a list of groups
 # ignores its `alternative` argument and is always two-sided
 # (docs/upstream-questions.md).
+# The two groups of the Brunner-Munzel test: n in group 1 and n * n2_n1 in
+# group 2, in the chosen shape; group 2's SD is sd_ratio times group 1's,
+# with the two SDs scaled so that sqrt((SD1^2 + SD2^2) / 2) is 1, and its
+# mean d higher (d is in those pooled SD units).
+brunner_munzel_scores <- function(n, n2_n1, d, sd_ratio, shape) {
+  draw <- score_shape_sampler(shape)
+  sd1 <- sqrt(2 / (1 + sd_ratio^2))
+  list(first = sd1 * draw(n), second = d + sd_ratio * sd1 * draw(round(n * n2_n1)))
+}
+
+# The check run's row for the SD ratio, compared on the log scale with a
+# standard error that allows for the scores' kurtosis (the variance of a
+# log SD is about (kurtosis - 1) / (4 n)), since heavy-tailed scores make
+# an SD vary far more than normal ones do.
+sd_ratio_row <- function(first, second, specified) {
+  kurtosis <- function(x) mean((x - mean(x))^4) / stats::var(x)^2
+  se_log <- sqrt((kurtosis(first) - 1) / (4 * length(first)) + (kurtosis(second) - 1) / (4 * length(second)))
+  ratio <- stats::sd(second) / stats::sd(first)
+  data.frame(
+    parameter = "SD of group 2 over SD of group 1", specified = specified, recovered = ratio,
+    ok = abs(log(ratio) - log(specified)) <= 5 * se_log
+  )
+}
+
+# Spower experiment for the Brunner-Munzel test: its p-value on
+# brunner_munzel_scores(). brunnermunzel.test(x, y) estimates
+# P(X < Y) + P(X = Y) / 2, and "less" is the alternative in which group 2
+# (y) tends to be higher (its help; checked in test-backend-rank.R).
+p_brunner_munzel <- function(n, n2_n1, d, sd_ratio, shape, alternative = "two.sided") {
+  g <- brunner_munzel_scores(n, n2_n1, d, sd_ratio, shape)
+  brunnermunzel::brunnermunzel.test(g$first, g$second, alternative = alternative)$p.value
+}
+
 p_jonckheere <- function(n, k, means, gen_fun, n.ratios = rep(1, k), alternative = "two.sided") {
   groups <- gen_fun(n, k, n.ratios, means)
   g <- factor(rep(seq_len(k), lengths(groups)))
@@ -683,6 +733,17 @@ rank_check_run <- function(spec, args, seed) {
       check_run_rows(sprintf("SD in %s (SD units)", unlist(spec$variables$A$levels)), rep(1, ncol(y)), apply(y, 2, stats::sd),
         rep(1 / sqrt(2 * (nrow(y) - 1)), ncol(y))),
       r_row
+    ))
+  }
+  if (brunner_munzel_test(spec)) {
+    g <- call_backend("Spower", with_seed(seed, brunner_munzel_scores(args$n, args$n2_n1, args$d, args$sd_ratio, args$shape)))
+    # The scores are drawn with a pooled SD of exactly 1, so the difference
+    # in means is d itself; its SE uses each group's own SD.
+    sd1 <- sqrt(2 / (1 + args$sd_ratio^2))
+    se_d <- sqrt(sd1^2 / length(g$first) + (args$sd_ratio * sd1)^2 / length(g$second))
+    return(rbind(
+      check_run_rows("d (group 2 minus group 1, in the pooled SD the scores are drawn with)", pop$d, mean(g$second) - mean(g$first), se_d),
+      sd_ratio_row(g$first, g$second, args$sd_ratio)
     ))
   }
   if (identical(spec$template, "oneway_between")) {

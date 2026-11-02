@@ -1664,6 +1664,18 @@ Wired into the app on 18 October 2026 (E25, E26).*
   direction, so a two-sided test at the null value gives alpha / 2.
   Tests: `test-backend-reliability.R`; `test-validation-reliability.R`
   [powerkit, `docs/decisions.md`].
+- **The Brunner-Munzel test (E2's test version): the effect when the
+  spreads differ.** G\*Power has no Brunner-Munzel test, so nothing is
+  departed from. Its point is that the groups may differ in spread, so the
+  form asks for the ratio of the SDs (group 2 over group 1) as well as
+  Cohen's d, and d is the mean difference over sqrt((SD1^2 + SD2^2) / 2),
+  the average-variance standardiser, so that the same d means the same
+  mean difference whatever the ratio. With a ratio of 1 the data are those
+  of the Mann-Whitney version. Spower simulates both groups in the chosen
+  shape and tests them with brunnermunzel's `brunnermunzel.test()` (the
+  t approximation, not the permuted test). Tests:
+  `test-backend-brunner-munzel.R`; `test-validation-brunner-munzel.R`
+  [powerkit, `docs/decisions.md`].
 
 ### 8. MANOVA: simulated, where G\*Power uses a formula
 

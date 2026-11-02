@@ -1599,11 +1599,11 @@ pairwise_test_name <- function(spec) {
     if (identical(spec$template, "oneway_within")) "paired t-test" else "t-test", pair[1], pair[2], choose(k, 2), adjust)
 }
 
-# The rank tests (Wilcoxon signed-rank, Mann-Whitney, Kruskal-Wallis,
-# Friedman): a test version on E1, E2, E3, E18 and E54, simulated by the
-# engine with Spower.
+# The rank tests (Wilcoxon signed-rank, Mann-Whitney, Brunner-Munzel,
+# Kruskal-Wallis, Friedman): a test version on E1, E2, E3, E18 and E54,
+# simulated by the engine with Spower.
 is_rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "kruskal_wallis", "friedman"))
 }
 
 # The trend tests across groups in order: Jonckheere-Terpstra (E64) and
@@ -1639,6 +1639,10 @@ rank_test_name <- function(spec) {
   shape <- score_shape_text(spec$population$score_shape)
   if (identical(spec$template, "paired_t")) shape <- sub("scores", "differences", shape)
   if (identical(spec$template, "oneway_within")) shape <- sub("scores", "deviations from each person's own level", shape)
+  if (identical(spec$target_test$method, "brunner_munzel")) {
+    ratio <- spec$population$sd_ratio %||% 1
+    return(sprintf("a Brunner-Munzel test, simulated assuming %s, with group 2's SD %s times group 1's", shape, format(ratio)))
+  }
   sprintf("%s, simulated assuming %s", test, shape)
 }
 

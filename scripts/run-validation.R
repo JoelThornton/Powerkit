@@ -97,7 +97,7 @@ validation_chunks <- function() {
     basic = c("test-validation-basic-tests.R", "test-validation-justified-alpha.R", "test-validation-critical-effect.R"),
     variances = "test-validation-variance-tests.R",
     manova = c("test-validation-manova.R", "test-validation-hotelling-one.R"),
-    rank = c("test-validation-rank-tests.R", "test-validation-friedman.R"),
+    rank = c("test-validation-rank-tests.R", "test-validation-friedman.R", "test-validation-brunner-munzel.R"),
     bayes = c("test-validation-bayes-factor.R", "test-validation-bayes-sequential.R", "test-validation-bayes-binomial.R",
       "test-validation-bayes-correlation.R", "test-validation-bayes-proportions.R",
       "test-validation-bayes-anova.R",
@@ -151,7 +151,7 @@ validation_chunks <- function() {
 # estimate (which is then corrected by how fast tests actually run).
 # Direct-call tests run two simulations, so count double.
 validation_minutes <- function() {
-  c(basic = 0.3, variances = 2, manova = 3, rank = 2, bayes = 2, meta = 12, dyadic = 10, survival = 4, reliability = 2, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60,
+  c(basic = 0.3, variances = 2, manova = 3, rank = 3, bayes = 2, meta = 12, dyadic = 10, survival = 4, reliability = 2, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60,
     process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120, modmed_binary = 120, modmed_difference = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,

@@ -450,7 +450,15 @@ sim_rank_code <- function(spec, n) {
       c(
         "simulated <- data.frame(",
         sprintf("  %s = rep(%s, %s),", sim_label(spec, "X"), r_code(sim_levels(spec, "X")), r_code(groups)),
-        sprintf("  %s = c(draw(%d), %s + draw(%d))", y, groups[1], r_code(pop$d), groups[2]),
+        if (brunner_munzel_test(spec)) {
+          # Group 2's SD sd_ratio times group 1's, scaled so the pooled SD is 1
+          # (brunner_munzel_scores()).
+          sd1 <- sqrt(2 / (1 + (pop$sd_ratio %||% 1)^2))
+          sprintf("  %s = c(%s * draw(%d), %s + %s * draw(%d))", y, r_code(sd1), groups[1], r_code(pop$d),
+            r_code((pop$sd_ratio %||% 1) * sd1), groups[2])
+        } else {
+          sprintf("  %s = c(draw(%d), %s + draw(%d))", y, groups[1], r_code(pop$d), groups[2])
+        },
         ")"
       )
     },
