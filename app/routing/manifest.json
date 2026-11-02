@@ -522,6 +522,30 @@
         "Built": "R 4.5.0; ; 2026-09-21 04:00:10 UTC; unix"
       }
     },
+    "PearsonDS": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "PearsonDS",
+        "Type": "Package",
+        "Title": "Pearson Distribution System",
+        "Version": "1.3.2",
+        "Date": "2025-03-24",
+        "Authors@R": "c(person(\"Martin\",\"Becker\", role = c(\"aut\",\"cre\"),\n    email = \"martin.becker@mx.uni-saarland.de\",\n    comment=c(ORCID=\"0000-0003-2336-9751\")),\n    person(\"Stefan\",\"Klößner\", role = c(\"aut\"),\n    email = \"S.Kloessner@mx.uni-saarland.de\",\n    comment=c(ORCID=\"0000-0002-6558-7370\")),\n    person(\"Joel\",\"Heinrich\", role = c(\"ctb\")))",
+        "Maintainer": "Martin Becker <martin.becker@mx.uni-saarland.de>",
+        "Description": "Implementation of the Pearson distribution system, including full\n  support for the (d,p,q,r)-family of functions for probability distributions \n  and fitting via method of moments and maximum likelihood method.",
+        "Suggests": "gsl",
+        "License": "GPL (>= 2)",
+        "LazyLoad": "yes",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-03-24 15:09:05 UTC; mabe003",
+        "Author": "Martin Becker [aut, cre] (<https://orcid.org/0000-0003-2336-9751>),\n  Stefan Klößner [aut] (<https://orcid.org/0000-0002-6558-7370>),\n  Joel Heinrich [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-03-24 16:20:05 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 20:45:23 UTC; unix"
+      }
+    },
     "PowerTOST": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1158,6 +1182,32 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-04-21 05:10:34 UTC",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 21:34:50 UTC; unix"
+      }
+    },
+    "WebPower": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "WebPower",
+        "Title": "Basic and Advanced Statistical Power Analysis",
+        "Version": "0.9.4",
+        "Date": "2023-10-13",
+        "Authors@R": "c(person(\"Zhiyong\", \"Zhang\", role = c(\"aut\", \"cre\"),\n                     email = \"johnnyzhz@gmail.com\"),\n              person(\"Yujiao\", \"Mai\", role = \"aut\"),\n              person(\"Miao\", \"Yang\", role = \"ctb\",\n                     email = \"Miao.Yang.100@nd.edu\"),\n \t      person(\"Ziqian\", \"Xu\", role = \"ctb\"),\n \t      person(\"Conor\", \"McNamara\", role = \"ctb\"))",
+        "Author": "Zhiyong Zhang [aut, cre],\n  Yujiao Mai [aut],\n  Miao Yang [ctb],\n  Ziqian Xu [ctb],\n  Conor McNamara [ctb]",
+        "Maintainer": "Zhiyong Zhang <johnnyzhz@gmail.com>",
+        "Depends": "R (>= 3.2.5), MASS, grDevices, graphics, lme4, lavaan,\nparallel, PearsonDS",
+        "Imports": "dplyr, stats",
+        "License": "GPL (>= 3)",
+        "Description": "This is a collection of tools for conducting both basic and advanced statistical power analysis including correlation, proportion, t-test, one-way ANOVA, two-way ANOVA, linear regression, logistic regression, Poisson regression, mediation analysis, longitudinal data analysis, structural equation modeling and multilevel modeling. It also serves as the engine for conducting power analysis online at <https://webpower.psychstat.org>.",
+        "URL": "https://webpower.psychstat.org",
+        "Encoding": "UTF-8",
+        "LazyLoad": "yes",
+        "LazyData": "yes",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-10-13 16:34:44 UTC; ziqianxu",
+        "Repository": "RSPM",
+        "Date/Publication": "2023-10-13 20:20:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-23 23:43:41 UTC; unix"
       }
     },
     "abind": {
@@ -5785,7 +5835,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, BayesFactor, bfpwr, car, digest, effectsize,\nInteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, PMCMRplus, POMADE, presize, lme4, lmerTest,\nmanymome, MBESS, gsl, metafor, metapower, parallel, psych,\npower4mome, pwr, powertools, pwrss, PUMP, semPower, simr,\nSimDesign, Spower (>= 0.7), stats, SuppDists, Superpower,\nTOSTER, utils",
+        "Imports": "afex, BayesFactor, bfpwr, car, digest, effectsize,\nInteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, PMCMRplus, POMADE, presize, lme4, lmerTest,\nmanymome, MBESS, gsl, metafor, metapower, parallel, psych,\npower4mome, pwr, powertools, pwrss, PUMP, semPower, simr,\nSimDesign, Spower (>= 0.7), stats, SuppDists, Superpower,\nTOSTER, utils, WebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5795,19 +5845,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "bd7d84d17234b46f0dac90a7c97313b91229db7d",
-        "RemoteSha": "bd7d84d17234b46f0dac90a7c97313b91229db7d",
+        "RemoteRef": "208ef568aa0dadf9201a95e78125a725edc240f5",
+        "RemoteSha": "208ef568aa0dadf9201a95e78125a725edc240f5",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "bd7d84d17234b46f0dac90a7c97313b91229db7d",
-        "GithubSHA1": "bd7d84d17234b46f0dac90a7c97313b91229db7d",
+        "GithubRef": "208ef568aa0dadf9201a95e78125a725edc240f5",
+        "GithubSHA1": "208ef568aa0dadf9201a95e78125a725edc240f5",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-02 04:21:22 UTC; runner",
+        "Packaged": "2026-11-02 05:05:02 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-02 04:21:38 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-02 05:05:15 UTC; unix"
       }
     },
     "powertools": {
@@ -7698,7 +7748,7 @@
       "checksum": "82fd0dc41c8ada7d18e8c2120ce97313"
     },
     "forms.yaml": {
-      "checksum": "956196d5cd0463e417bc723d604762e3"
+      "checksum": "639a1d68bd593f29dbc0f8fb402c093e"
     },
     "methods-map.yaml": {
       "checksum": "772d45d6ccbc57e89e312004b5ae079d"
@@ -7725,7 +7775,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "d9cc4b6cff9fb501f311a7d8f77519f2"
+      "checksum": "98f1b8bc03d4339caeb977ed6ab3965c"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -7752,7 +7802,7 @@
       "checksum": "619c128970bd157c9ab610aae34ce7ee"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "1e8d526e464336541012aa3106692852"
+      "checksum": "00f0511a28f69f4a02f8444f0ef791a3"
     },
     "tests/testthat/setup.R": {
       "checksum": "4669f0c43aa31677e2f6ec24355ccdc9"
@@ -7782,10 +7832,10 @@
       "checksum": "c83b5d0a62eccfac1e080e29de6bb9d6"
     },
     "tests/testthat/test-repo-consistency.R": {
-      "checksum": "35c8b74ce1e61eecd1ad4b094e1c1f7a"
+      "checksum": "2f7d37efeda4a374d8cd69d894551782"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "f68e2f8dbd815e9f9b9576b357f16e8e"
+      "checksum": "5e725426fc10ed3fd8ea9b85bb128cac"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "0e8e7bb7ab7c8bd3ec368a1efbc819c4"
@@ -7809,7 +7859,7 @@
       "checksum": "929b76a01029c06cbe8e19210c479077"
     },
     "tree.yaml": {
-      "checksum": "f62d828ae095a283e802cdc6550281ab"
+      "checksum": "9686a0e7dbf151adc7e5a3acd072abef"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -7824,7 +7874,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "b5c6e5eef9a584df31a95803566a578f"
+      "checksum": "b53fd72984332b2edaaf0565ac15877e"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
