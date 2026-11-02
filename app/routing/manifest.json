@@ -5795,19 +5795,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "c8033a18a987f17a2b05eb3b310b9c1a0e454cb6",
-        "RemoteSha": "c8033a18a987f17a2b05eb3b310b9c1a0e454cb6",
+        "RemoteRef": "2ab72a98cd9fea1c3749d5c6aa02a1ea3a4cbb9f",
+        "RemoteSha": "2ab72a98cd9fea1c3749d5c6aa02a1ea3a4cbb9f",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "c8033a18a987f17a2b05eb3b310b9c1a0e454cb6",
-        "GithubSHA1": "c8033a18a987f17a2b05eb3b310b9c1a0e454cb6",
+        "GithubRef": "2ab72a98cd9fea1c3749d5c6aa02a1ea3a4cbb9f",
+        "GithubSHA1": "2ab72a98cd9fea1c3749d5c6aa02a1ea3a4cbb9f",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-02 01:29:04 UTC; runner",
+        "Packaged": "2026-11-02 01:48:39 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-02 01:29:12 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-02 01:48:54 UTC; unix"
       }
     },
     "powertools": {
@@ -7698,7 +7698,7 @@
       "checksum": "82fd0dc41c8ada7d18e8c2120ce97313"
     },
     "forms.yaml": {
-      "checksum": "5d9d7ba7f040acd4c6ead044ec1aa96f"
+      "checksum": "6c3e9b2c3a3681ef1308b79eee04b014"
     },
     "methods-map.yaml": {
       "checksum": "772d45d6ccbc57e89e312004b5ae079d"
@@ -7752,7 +7752,7 @@
       "checksum": "619c128970bd157c9ab610aae34ce7ee"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "045e519a766913870e2e6054fc8f5e85"
+      "checksum": "c478285fcf14ab6643b975ab68a4c2ff"
     },
     "tests/testthat/setup.R": {
       "checksum": "4669f0c43aa31677e2f6ec24355ccdc9"
@@ -7809,7 +7809,7 @@
       "checksum": "929b76a01029c06cbe8e19210c479077"
     },
     "tree.yaml": {
-      "checksum": "cdbb922dc3a9335de07aee5f97a196e4"
+      "checksum": "b4438ce00188bf956039ddf93fc57f51"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -7824,7 +7824,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "c604ea3af2b15641ab41fe9e70f27a19"
+      "checksum": "8f1a6175da1435e32335a35f371aee75"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
