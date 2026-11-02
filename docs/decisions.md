@@ -4603,6 +4603,35 @@ only.
   groups only, so there is no convention to differ from.
 
 
+## 2026-11-02 · The aligned rank transform ANOVA (E7, E21 and E22's test version)
+
+- **What:** the two-factor between-participants cards (2 x 2 with equal
+  or unequal cells, and larger designs) offer the aligned rank transform
+  ANOVA as a test version, simulated by Spower with an experiment of
+  powerkit's own, `p_art()`: each cell's scores in the chosen shape
+  (normal, skewed or heavy-tailed), with the cell means, SDs and sizes
+  entered, then ARTool's `art()` and `artlm()` and car's
+  `Anova(type = 3)` for the effect tested. Goals: power and sample size.
+- **Why:** the aligned rank transform (Wobbrock, Findlater, Gergle and
+  Higgins, 2011, cited by ARTool's `citation()`) is the rank-based test
+  researchers use for interactions in factorial designs, which the
+  Kruskal-Wallis test cannot test. ARTool is its reference
+  implementation on CRAN. No package has a power formula for it, so it is
+  simulated like the other rank tests. Reading the one effect through
+  `artlm()` takes about a third of the time of the full `anova()` table
+  and gives the same p-value.
+- **Scope:** between-participants factors only. Designs with a
+  within-participants factor need correlated scores of a chosen shape;
+  they are left for a later step (`next.md`).
+- **Validation** (`test-validation-art.R`, chunk `aligned_rank`): the
+  procedure written out from its published definition (subtract the cell
+  means, add back the estimated effect, rank, and read that effect's F
+  test in the full factorial ANOVA of the ranks) matches ARTool's
+  p-values on balanced data, and powerkit's power agrees with a plain loop
+  of it; the interaction's rejection rate stays near alpha with skewed
+  scores and both main effects present. A published worked example is a
+  placeholder for the maintainer.
+
 ## 2026-11-02 · The Brunner-Munzel test (E2's test version)
 
 - **What:** the two-group card's test version offers the Brunner-Munzel

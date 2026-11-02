@@ -79,6 +79,7 @@ on:
           - dyadic
           - survival
           - reliability
+          - aligned_rank
           - process_4
           - process_4_binary
           - process_6

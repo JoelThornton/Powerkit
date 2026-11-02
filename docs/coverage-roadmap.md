@@ -537,8 +537,10 @@ until it goes through
   one curve against a benchmark.
 - **Welch's one-way ANOVA** for unequal variances, beside A23's omnibus F: in the app as E18's test version since 29 October 2026 (Spower, by simulation).
 - **From a review of the tests psychologists most often report (29
-  October 2026; `next.md` items 26 to 29):** the Brunner-Munzel test,
-  the aligned rank transform for factorial designs, Quade's
+  October 2026; `next.md` items 26 to 29):** the Brunner-Munzel test
+  (E2's test version since 2 November 2026), the aligned rank transform
+  for factorial designs (E7, E21 and E22's test version since 2 November
+  2026, between-participants factors), Quade's
   non-parametric ANCOVA, PERMANOVA; pairwise follow-ups after an ANOVA
   (Tukey's HSD, Games-Howell, Dunnett, simple effects; see C1); robust
   (HC3 or HC4) and quantile regression; McDonald's omega, Fleiss' kappa

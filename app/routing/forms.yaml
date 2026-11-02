@@ -731,8 +731,19 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {main_effect_A: "Factor A", main_effect_B: "Factor B", interaction: "The interaction"}}
+      - input: "The F test or the aligned rank transform"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+          - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
+             shown_if: {field: test_version, is: aligned_rank_transform},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
+             help: "Every cell has the same shape, with its own mean and SD. A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
+         shown_if: {field: test_version, is: anova_f},
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
 
@@ -784,6 +795,16 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {main_effect_A: "Factor A", main_effect_B: "Factor B", interaction: "The interaction"}}
+      - input: "The F test or the aligned rank transform"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+          - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
+             shown_if: {field: test_version, is: aligned_rank_transform},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
+             help: "Every cell has the same shape, with its own mean and SD. A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
       - input: "The size of each group"
         fields:
           # options > cell_ratio: relative sizes, so expected group sizes
@@ -2056,8 +2077,19 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does one factor's effect depend on the other?", main_effect_A: "The first factor, averaged over the second", main_effect_B: "The second factor, averaged over the first"}}
+      - input: "The F test or the aligned rank transform"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+          - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
+             shown_if: {field: test_version, is: aligned_rank_transform},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
+             help: "Every cell has the same shape, with its own mean and SD. A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
+         shown_if: {field: test_version, is: anova_f},
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
 

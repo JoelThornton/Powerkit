@@ -9,6 +9,22 @@
     ]
   },
   "Packages": {
+    "ARTool": {
+      "Package": "ARTool",
+      "Version": "0.11.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "car",
+        "dplyr",
+        "emmeans",
+        "lme4",
+        "magrittr",
+        "plyr"
+      ],
+      "Hash": "4f85c41da8afaff0588e26ab9f98db2c"
+    },
     "Deriv": {
       "Package": "Deriv",
       "Version": "4.3.5",

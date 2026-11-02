@@ -2146,6 +2146,7 @@
                       "t_test",
                       "friedman",
                       "jonckheere_terpstra",
+                      "aligned_rank_transform",
                       "bayes_factor"
                     ]
                   }
@@ -2365,6 +2366,14 @@
             "sd": {
               "$ref": "#/definitions/cell_sd"
             },
+            "score_shape": {
+              "description": "The aligned rank transform only ('target_test > method' \"aligned_rank_transform\"): the shape of the scores in every cell, in SD units; cells differ by their means and SDs. 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
+            },
             "eta_squared": {
               "description": "With metric 'eta_squared': the partial eta-squared of the effect tested (target_test > effect; for one factor, its eta-squared), treated as the population value, as G*Power and pwrss take it. powerkit then computes power with pwrss's F test (power.f.ancova()) instead of from group means. A published estimate tends to be larger than the true effect; omega-squared, if reported, is less biased.",
               "type": "number",
@@ -2406,7 +2415,11 @@
         "target_test": {
           "properties": {
             "method": {
-              "const": "anova_f"
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower.",
+              "enum": [
+                "anova_f",
+                "aligned_rank_transform"
+              ]
             }
           }
         }
@@ -2802,6 +2815,14 @@
               "type": "number",
               "exclusiveMinimum": 0
             },
+            "score_shape": {
+              "description": "The aligned rank transform only ('target_test > method' \"aligned_rank_transform\"): the shape of the scores in every cell, in SD units; cells differ by their means and SDs. 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
+            },
             "eta_squared": {
               "description": "With metric 'eta_squared': the partial eta-squared of the effect tested (target_test > effect; for one factor, its eta-squared), treated as the population value, as G*Power and pwrss take it. powerkit then computes power with pwrss's F test (power.f.ancova()) instead of from group means. A published estimate tends to be larger than the true effect; omega-squared, if reported, is less biased.",
               "type": "number",
@@ -2850,7 +2871,11 @@
               ]
             },
             "method": {
-              "const": "anova_f"
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower.",
+              "enum": [
+                "anova_f",
+                "aligned_rank_transform"
+              ]
             }
           }
         }

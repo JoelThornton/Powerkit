@@ -66,6 +66,12 @@
 
 A batch of new features, built as one round.
 
+* The aligned rank transform ANOVA is a test version of `2x2_between` and
+  `factorial_between` (`target_test.method = "aligned_rank_transform"`,
+  with `population.score_shape`), simulated by Spower with powerkit's
+  experiment `p_art()` around ARTool's `art()` and `artlm()` and car's
+  `Anova(type = 3)`. Equal or unequal cells, one SD or one per cell.
+  New validation chunk `aligned_rank`. New Imports: ARTool.
 * The Brunner-Munzel test is a test version of `independent_t`
   (`target_test.method = "brunner_munzel"`), simulated by Spower with
   powerkit's experiment `p_brunner_munzel()` around brunnermunzel's

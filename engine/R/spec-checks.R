@@ -200,11 +200,18 @@ spower_only <- function(spec) {
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
 # Mann-Whitney test (two groups), the Kruskal-Wallis test (three or more
 # groups), simulated with Spower's p_wilcox.test() and p_kruskal.test(),
-# and the Jonckheere-Terpstra test (groups in order) and Friedman's test,
-# simulated by powerkit's own experiments with Spower.
+# and the Jonckheere-Terpstra test (groups in order), Friedman's test, the
+# Brunner-Munzel test and the aligned rank transform ANOVA, simulated by
+# powerkit's own experiments with Spower.
 rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "kruskal_wallis", "friedman", "jonckheere_terpstra"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "kruskal_wallis", "friedman", "jonckheere_terpstra",
+    "aligned_rank_transform"))
 }
+
+# The aligned rank transform ANOVA (ARTool's art() and artlm()), on the
+# two-factor between-participants templates: a rank-based test of each
+# main effect and the interaction.
+aligned_rank_test <- function(spec) identical(spec$target_test$method, "aligned_rank_transform")
 
 # The Jonckheere-Terpstra test of a trend across groups in order (PMCMRplus's
 # jonckheereTest()), on the one-way between-participants template.
@@ -615,7 +622,7 @@ check_score_shape_allowed <- function(spec) {
   }
   paste0(
     "'population > score_shape' is only used by the rank tests (Wilcoxon, ",
-    "Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Jonckheere-Terpstra, Friedman) and the rank correlations (Spearman, ",
+    "Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Jonckheere-Terpstra, Friedman, the aligned rank transform) and the rank correlations (Spearman, ",
     "Kendall); the t-tests, ANOVA and Pearson's r assume normal scores. Remove it, ",
     "or choose a rank test in 'target_test > method'."
   )
@@ -3097,7 +3104,7 @@ check_eta_squared_anova <- function(spec) {
   method <- spec$target_test$method %||% if (ancova) "ancova_f" else "anova_f"
   if (!identical(method, if (ancova) "ancova_f" else "anova_f")) {
     test <- switch(method, welch_f = "Welch's F test", kruskal_wallis = "The Kruskal-Wallis test", friedman = "Friedman's test",
-      jonckheere_terpstra = "The Jonckheere-Terpstra test", bayes_factor = "The Bayes factor ANOVA",
+      jonckheere_terpstra = "The Jonckheere-Terpstra test", aligned_rank_transform = "The aligned rank transform", bayes_factor = "The Bayes factor ANOVA",
       t_test = "Pairwise comparisons, which need to know which groups differ,", sprintf("The test '%s'", method))
     return(sprintf(paste0(
       "Partial eta-squared works only with the ANOVA F test. %s needs the mean in each group or condition and the SD: ",
