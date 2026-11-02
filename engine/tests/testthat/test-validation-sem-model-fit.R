@@ -86,3 +86,33 @@ test_that("SEM model fit: power and N match semPower called directly (direct cal
   )$requiredN
   expect_equal(engine_n_required(spec)$n, direct_n)
 })
+
+# The tests of close and not-close fit (WebPower's wp.sem.rmsea();
+# MacCallum, Browne & Sugawara, 1996) ----------------------------------------
+#
+# Source: to be chosen by the maintainer: a published power or required N
+#   for the test of close fit (H0 RMSEA at most 0.05) or not-close fit (H0
+#   RMSEA at least 0.05), for example from MacCallum, Browne and Sugawara
+#   (1996), doi 10.1037/1082-989X.1.2.130. Record the table and page here.
+#   Note their N convention: the noncentrality uses N - 1, as WebPower's.
+
+sem_close_validation_spec <- function(method, rmsea, rmsea_null, df, alpha, n) {
+  spec <- sem_fit_validation_spec(rmsea, df, alpha, seed = 1L, n = n)
+  spec$target_test$method <- method
+  spec$population$rmsea_null <- rmsea_null
+  spec
+}
+
+test_that("the test of close or not-close fit matches a published example (published)", {
+  skip_unless_full_validation()
+  method <- TODO_PUBLISHED_VALUE # "chi_square_close_fit" or "chi_square_not_close_fit"
+  rmsea <- TODO_PUBLISHED_VALUE
+  rmsea_null <- TODO_PUBLISHED_VALUE
+  df <- TODO_PUBLISHED_VALUE
+  alpha <- TODO_PUBLISHED_VALUE
+  n <- TODO_PUBLISHED_VALUE
+  published_power <- TODO_PUBLISHED_VALUE
+  skip_if_todo(method, rmsea, rmsea_null, df, alpha, n, published_power)
+  result <- engine_function("run_spec")(sem_close_validation_spec(method, rmsea, rmsea_null, df, alpha, n))
+  expect_equal(result$curve$power, published_power, tolerance = 0.005)
+})

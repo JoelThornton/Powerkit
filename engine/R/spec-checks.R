@@ -1183,6 +1183,10 @@ check_sem <- function(spec) {
   if (identical(spec$template, "factor_correlation")) {
     return(character())
   }
+  fit_problem <- check_sem_fit_test(spec)
+  if (length(fit_problem)) {
+    return(fit_problem)
+  }
   shape <- !is.null(pop$indicators) || !is.null(pop$factors)
   if (!is.null(pop$df) && shape) {
     return(paste0(
@@ -1219,6 +1223,31 @@ check_sem <- function(spec) {
   character()
 }
 
+# The tests of close and not-close fit: the population RMSEA on the side
+# of rmsea_null that the alternative hypothesis states.
+check_sem_fit_test <- function(spec) {
+  pop <- spec$population
+  method <- spec$target_test$method %||% "chi_square_exact_fit"
+  null <- pop$rmsea_null %||% 0.05
+  if (identical(method, "chi_square_exact_fit")) {
+    if (!is.null(pop$rmsea_null)) {
+      return("'population > rmsea_null' is used only by the tests of close and not-close fit; remove it, or choose one of those tests.")
+    }
+    return(character())
+  }
+  if (identical(method, "chi_square_close_fit") && pop$rmsea <= null) {
+    return(sprintf(paste0(
+      "The test of close fit asks whether the model's RMSEA is above %s, so the population RMSEA must be above it (you gave %s). ",
+      "To show that a model fits closely, choose the test of not-close fit instead."), format_number(null), format_number(pop$rmsea)))
+  }
+  if (identical(method, "chi_square_not_close_fit") && pop$rmsea >= null) {
+    return(sprintf(paste0(
+      "The test of not-close fit asks whether the model's RMSEA is below %s, so the population RMSEA must be below it (you gave %s). ",
+      "To detect misfit, choose the test of close or exact fit instead."), format_number(null), format_number(pop$rmsea)))
+  }
+  character()
+}
+
 # Invariance: the values that set the difference belong to the level
 # tested, and at least one item must stay invariant (if every item
 # differed alike, the difference would be one in the factor itself).
@@ -1236,7 +1265,23 @@ check_sem_invariance <- function(spec) {
     return("'population > stability' is only used for invariance over occasions ('population > over' 'occasions'); remove it.")
   }
   if (over_time && !is.null(spec$options$allocation_ratio)) {
-    return("Invariance over occasions measures the same people twice, so there are no groups to split: remove 'options > allocation_ratio'.")
+    return("Invariance over occasions measures the same people every time, so there are no groups to split: remove 'options > allocation_ratio'.")
+  }
+  if (over_time && !is.null(pop$n_groups)) {
+    return("'population > n_groups' is only used for invariance across groups; over occasions, give 'population > n_occasions'.")
+  }
+  if (!over_time && !is.null(pop$n_occasions)) {
+    return("'population > n_occasions' is only used for invariance over occasions ('population > over' 'occasions'); across groups, give 'population > n_groups'.")
+  }
+  if ((pop$n_groups %||% 2) > 2 && !identical(as.numeric(spec$options$allocation_ratio %||% 1), 1)) {
+    return("With three or more groups, the groups are equal in size: remove 'options > allocation_ratio' (or set it to 1), which is for two groups.")
+  }
+  several <- (pop$factors %||% 1) > 1
+  if (several && is.null(pop$factor_correlation)) {
+    return("With two or more factors, give the correlation between them ('population > factor_correlation').")
+  }
+  if (!several && !is.null(pop$factor_correlation)) {
+    return("'population > factor_correlation' is only used with two or more factors ('population > factors'); remove it.")
   }
   if (metric && (is.null(pop$loading_group2) || !is.null(pop$intercept_difference))) {
     return(paste0(
@@ -1253,8 +1298,8 @@ check_sem_invariance <- function(spec) {
   if (pop$noninvariant >= pop$indicators) {
     return(sprintf(
       paste0(
-        "%s of %s items differ between the groups. At least one item must be the same in both ",
-        "groups: if every item differed alike, the difference would be one in the factor itself, ",
+        "%s of %s items differ between the groups. At least one item must be the same in every ",
+        "group: if every item differed alike, the difference would be one in the factor itself, ",
         "which invariance testing can't tell apart."
       ),
       format_number(pop$noninvariant), format_number(pop$indicators)
@@ -2567,7 +2612,12 @@ minimum_n <- function(spec) {
       spec$template,
       model_fit = if (is.null(spec$population$indicators)) 2 else spec$population$indicators + 1,
       # Each group needs more people than items.
-      invariance = (if (identical(spec$population$over, "occasions")) 1 else 2) * (spec$population$indicators + 1),
+      # Over occasions, more people than items across all the occasions.
+      invariance = if (identical(spec$population$over, "occasions")) {
+        (spec$population$n_occasions %||% 2) * (spec$population$factors %||% 1) * spec$population$indicators + 1
+      } else {
+        (spec$population$n_groups %||% 2) * ((spec$population$factors %||% 1) * spec$population$indicators + 1)
+      },
       factor_correlation = sum(unlist(spec$population$indicators)) + 1,
       latent_regression = spec$population$indicators * (length(spec$population$slopes) + 1) + 1
     ),
@@ -2638,6 +2688,10 @@ group_split <- function(spec) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
+  if (identical(spec$template, "invariance") && !identical(spec$population$over, "occasions") && (spec$population$n_groups %||% 2) > 2) {
+    k <- spec$population$n_groups
+    return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
+  }
   if (identical(spec$template, "proportion_trend")) {
     k <- length(spec$variables$X$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
@@ -2679,7 +2733,7 @@ group_split <- function(spec) {
   }
   if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent",
                            "noninf_independent", "noninf_two_proportions") ||
-      (identical(spec$template, "invariance") && !identical(spec$population$over, "occasions"))) {
+      (identical(spec$template, "invariance") && !identical(spec$population$over, "occasions") && (spec$population$n_groups %||% 2) == 2)) {
     ratio <- spec$options$allocation_ratio %||% 1
     return(list(
       rule = sprintf("split into two whole groups in the ratio 1 : %s", format_number(ratio)),

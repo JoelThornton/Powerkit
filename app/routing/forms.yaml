@@ -2722,11 +2722,11 @@ forms:
       - input: "What you want to test"
         fields:
           - {id: question, label: "What you want to test", type: select, path: template, required: true,
-             choices: {model_fit: "Whether the model fits (the test of exact fit, by RMSEA)",
-                       invariance: "Whether a questionnaire measures the same thing in two groups (measurement invariance)",
+             choices: {model_fit: "Whether the model fits (the test of exact, close or not-close fit, by RMSEA)",
+                       invariance: "Whether a questionnaire measures the same thing in different groups or on different occasions (measurement invariance)",
                        factor_correlation: "Whether two factors are correlated",
                        latent_regression: "Whether latent variables predict another (a path in a structural model)"},
-             sets: {model_fit: [{path: population.metric, value: rmsea}, {path: target_test.effect, value: model_fit}, {path: target_test.method, value: chi_square_exact_fit}],
+             sets: {model_fit: [{path: population.metric, value: rmsea}, {path: target_test.effect, value: model_fit}],
                     invariance: [{path: population.metric, value: invariance}, {path: target_test.effect, value: invariance}, {path: target_test.method, value: chi_square_difference}],
                     factor_correlation: [{path: population.metric, value: factor_correlation}, {path: target_test.effect, value: factor_correlation}, {path: target_test.method, value: chi_square_difference}],
                     latent_regression: [{path: population.metric, value: standardised_slopes}, {path: target_test.effect, value: latent_slope}, {path: target_test.method, value: chi_square_difference}]}}
@@ -2746,41 +2746,66 @@ forms:
           - {id: df, writeup_label: "degrees of freedom", label: "The model's degrees of freedom", type: number, path: population.df, required: true, min: 1, integer: true,
              shown_if: [{field: question, is: model_fit}, {field: model_kind, is: df}],
              help: "lavaan, Mplus and other SEM software report this when they fit the model (in lavaan, fitMeasures(fit, \"df\")). You can fit it to made-up data to get the number."}
-      - input: "Model fit: the misfit to detect, as the model's RMSEA in the population"
+      - input: "Model fit: the test, and the model's RMSEA in the population"
         shown_if: {field: question, is: model_fit}
         fields:
-          - {id: rmsea, writeup_label: "RMSEA", label: "RMSEA of the misfit to detect", type: number, path: population.rmsea, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: fit_test, label: "Which test of fit", type: select, path: target_test.method, required: true,
              shown_if: {field: question, is: model_fit},
-             help: "How wrong the model would have to be for you to want the test to notice. 0 would be a model that fits exactly; larger values are worse fit. Many studies use 0.05. A smaller value needs many more people."}
-      - input: "Measurement invariance: the items, their loadings, and how the second group or occasion differs"
+             choices: {chi_square_exact_fit: "Exact fit: the chi-square test reported by SEM software, to detect any misfit",
+                       chi_square_close_fit: "Close fit (MacCallum and colleagues): to detect misfit worse than a small RMSEA",
+                       chi_square_not_close_fit: "Not-close fit (MacCallum and colleagues): to show the model fits closely"},
+             default: chi_square_exact_fit, default_source: "the chi-square test of exact fit, which semPower computes and SEM software reports",
+             help: "Exact fit asks whether the model is exactly right, which almost no model is. Close fit asks whether its RMSEA is above a small value (0.05); not-close fit asks whether it is below it, so a significant result supports the model (MacCallum, Browne and Sugawara, 1996)."}
+          - {id: rmsea, writeup_label: "RMSEA", label: "The model's RMSEA in the population", type: number, path: population.rmsea, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: question, is: model_fit},
+             help: "For exact or close fit: how wrong the model would have to be for you to want the test to notice (0 would be a model that fits exactly; larger values are worse fit; many studies use 0.05 for exact fit and 0.08 for close fit). For not-close fit: how well you expect the model to fit, below the null value (for example 0.01 or 0.02). Values near the null value need many more people."}
+          - {id: rmsea_null, writeup_label: "RMSEA of the null hypothesis", label: "RMSEA that separates close from not-close fit", type: number, path: population.rmsea_null, required: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: question, is: model_fit}, {field: fit_test, is_one_of: [chi_square_close_fit, chi_square_not_close_fit]}],
+             default: 0.05, default_source: "0.05, the null value commonly used for these tests (for example in semTools' findRMSEApower() help, rmsea0 = .05)"}
+      - input: "Measurement invariance: the groups or occasions, the items and their loadings, and how the last group or occasion differs"
         shown_if: {field: question, is: invariance}
         fields:
           - {id: over, label: "Across what", type: select, path: population.over, required: true,
              shown_if: {field: question, is: invariance},
-             choices: {groups: "Two groups of different people", occasions: "The same people on two occasions (longitudinal)"},
-             default: groups, default_source: "two groups, as in semPower.powerMI() (semPower.powerLI() for occasions, semPower 2.2.0)"}
+             choices: {groups: "Groups of different people", occasions: "The same people on several occasions (longitudinal)"},
+             default: groups, default_source: "groups, as in semPower.powerMI() (semPower.powerLI() for occasions, semPower 2.2.0)"}
+          - {id: mi_groups, writeup_label: "groups", label: "Number of groups", type: number, path: population.n_groups, required: true, min: 2, max: 10, integer: true,
+             default: 2, default_source: "two groups, as in semPower.powerMI()'s examples (semPower 2.2.0)",
+             shown_if: [{field: question, is: invariance}, {field: over, is_not: occasions}],
+             help: "With three or more groups, they are taken to be the same size."}
+          - {id: mi_occasions, writeup_label: "occasions", label: "Number of occasions", type: number, path: population.n_occasions, required: true, min: 2, max: 10, integer: true,
+             default: 2, default_source: "two occasions, as in semPower.powerLI()'s examples (semPower 2.2.0)",
+             shown_if: [{field: question, is: invariance}, {field: over, is: occasions}]}
+          - {id: mi_factors, writeup_label: "factors", label: "Number of factors the questionnaire measures", type: number, path: population.factors, required: true, min: 1, max: 5, integer: true,
+             default: 1, default_source: "one factor, as in semPower.powerMI()'s examples (semPower 2.2.0)",
+             shown_if: {field: question, is: invariance},
+             help: "Each factor has its own items, the same number for each. Invariance is tested for all the factors together."}
+          - {id: mi_factor_correlation, writeup_label: "correlation between the factors", label: "Correlation between the factors (two or more factors only)", type: number, path: population.factor_correlation, optional: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: question, is: invariance},
+             help: "Leave it empty with one factor. With several, the correlation between any two of them, for example 0.3."}
           - {id: level, label: "What you want to test", type: select, path: population.level, required: true,
              shown_if: {field: question, is: invariance},
-             choices: {metric: "Metric invariance: do the items load equally in both groups?",
+             choices: {metric: "Metric invariance: do the items load equally everywhere?",
                        scalar: "Scalar invariance: do the items have the same intercepts (so means can be compared)?"}}
-          - {id: mi_indicators, writeup_label: "items", label: "Number of items measuring the factor", type: number, path: population.indicators, required: true, min: 3, integer: true,
+          - {id: mi_indicators, writeup_label: "items", label: "Number of items measuring each factor", type: number, path: population.indicators, required: true, min: 3, integer: true,
              shown_if: {field: question, is: invariance}}
-          - {id: mi_loading, writeup_label: "loading", label: "Standardised loading of the items in group 1 (or on the first occasion)", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: mi_loading, writeup_label: "loading", label: "Standardised loading of the items", type: number, path: population.loading, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: invariance},
-             help: "A typical value for your items, for example 0.7. The items that don't differ have this loading in group 2 (or on the second occasion) too."}
-          - {id: noninvariant, writeup_label: "items that differ", label: "How many items differ in group 2 (or on the second occasion)", type: number, path: population.noninvariant, required: true, min: 1, integer: true,
+             help: "A typical value for your items, for example 0.7. Every item has this loading in every group and on every occasion, apart from the items that differ in the last one."}
+          - {id: noninvariant, writeup_label: "items that differ", label: "How many of the first factor's items differ in the last group (or on the last occasion)", type: number, path: population.noninvariant, required: true, min: 1, integer: true,
              shown_if: {field: question, is: invariance},
-             help: "At least one item must be the same in both groups."}
-          - {id: loading_group2, writeup_label: "loading in group 2", label: "Their standardised loading in group 2 (or on the second occasion)", type: number, path: population.loading_group2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "At least one item must be the same everywhere. The other groups or occasions, and the other factors, are invariant."}
+          - {id: loading_group2, writeup_label: "loading in the last group", label: "Their standardised loading in the last group (or on the last occasion)", type: number, path: population.loading_group2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: [{field: question, is: invariance}, {field: level, is: metric}],
-             help: "The smallest difference worth detecting: for example 0.5 where group 1's is 0.7."}
-          - {id: intercept_difference, writeup_label: "intercept shift", label: "How far their intercepts are shifted in group 2 (or on the second occasion), in item SDs", type: number, path: population.intercept_difference, effect: true,
+             help: "The smallest difference worth detecting: for example 0.5 where the others' is 0.7."}
+          - {id: intercept_difference, writeup_label: "intercept shift", label: "How far their intercepts are shifted in the last group (or on the last occasion), in item SDs", type: number, path: population.intercept_difference, effect: true,
              shown_if: [{field: question, is: invariance}, {field: level, is: scalar}],
-             help: "The smallest shift worth detecting, for example 0.3 (higher in group 2) or -0.3 (lower)."}
-          - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
+             help: "The smallest shift worth detecting, for example 0.3 (higher in the last group) or -0.3 (lower)."}
+          - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1 (two groups only)", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in semPower's examples (semPower.powerMI(), semPower 2.2.0)",
-             shown_if: [{field: question, is: invariance}, {field: over, is_not: occasions}]}
-          - {id: stability, writeup_label: "correlation between occasions", label: "Correlation of the factor between the two occasions", type: number, path: population.stability, required: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: [{field: question, is: invariance}, {field: over, is_not: occasions}],
+             help: "Leave it at 1 with three or more groups: they are taken to be the same size."}
+          - {id: stability, writeup_label: "correlation between occasions", label: "Correlation of a factor between any two occasions", type: number, path: population.stability, required: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: [{field: question, is: invariance}, {field: over, is: occasions}],
              help: "How stable people's standing on the factor is from one occasion to the next, for example 0.6."}
       - input: "Two factors: the items and loading of each, and their correlation"

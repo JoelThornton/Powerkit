@@ -3877,6 +3877,32 @@
         "R"
       ],
       "Hash": "472dda0e78c33b2867842b046fa22f11"
+    },
+    "PearsonDS": {
+      "Package": "PearsonDS",
+      "Version": "1.3.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "3dcf23a530e31862fb30a25122d49a0a"
+    },
+    "WebPower": {
+      "Package": "WebPower",
+      "Version": "0.9.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "MASS",
+        "PearsonDS",
+        "R",
+        "dplyr",
+        "grDevices",
+        "graphics",
+        "lavaan",
+        "lme4",
+        "parallel",
+        "stats"
+      ],
+      "Hash": "942547bd48c3a1bfc0f7d88304df4707"
     }
   }
 }

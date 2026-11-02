@@ -79,6 +79,7 @@ export_script <- function(spec, result, file = NULL) {
     POMADE = pomade_script(spec, result),
     powertools = powertools_script(spec, result),
     semPower = sempower_script(spec, result),
+    WebPower = sempower_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result), three_level = three_level_script(spec, result),
       item_predictor = item_predictor_script(spec, result),
       crossed_conditions = crossed_conditions_script(spec, result), simr_script(spec, result)),
@@ -408,12 +409,7 @@ design_description <- function(spec) {
       "structural equation model: chi-square test of exact fit, power to reject a model with RMSEA %s on %s degrees of freedom",
       spec$population$rmsea, sem_df(spec)
     ),
-    "sem/invariance" = sprintf(
-      "measurement invariance across two groups: chi-square difference test of %s invariance, one factor of %s items (loading %s), %s of them %s in the second group",
-      spec$population$level, spec$population$indicators, spec$population$loading, spec$population$noninvariant,
-      if (identical(spec$population$level, "metric")) sprintf("with loading %s", spec$population$loading_group2)
-      else sprintf("with intercepts shifted by %s SD", spec$population$intercept_difference)
-    ),
+    "sem/invariance" = sem_invariance_description(spec),
     "sem/factor_correlation" = sprintf(
       "correlation between two factors (%s and %s items, loadings %s and %s): chi-square difference test of r = %s against 0",
       spec$population$indicators[[1]], spec$population$indicators[[2]], spec$population$loadings[[1]],
