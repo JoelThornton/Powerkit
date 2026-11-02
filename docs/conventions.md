@@ -544,6 +544,15 @@ likelihood ratio; not a departure.
 | BayesFactor | `contingencyTableBF()`: Gunel and Dickey's Bayes factors for four sampling plans | — | `priorConcentration` 1; the sampling plan has no default |
 | **powerkit** | `contingencyTableBF()` with JASP's sampling plan (independent multinomial, group sizes fixed), in its closed form for a 2 x 2 table so that every possible table can be scored (equal to `contingencyTableBF()` to ten digits, tested and in the check run); power summed exactly over the tables; one-sided by JASP's rule with the posterior probability calculated exactly (E5, from 1 November 2026) [powerkit] | Each group's expected proportion, exactly, or a beta design prior on each with its mean and an SD (`population > p_sd`) | Prior concentration 1 by default, JASP's and BayesFactor's; Departure 15 is the design prior's default; Known difference 13 for the one-sided test. "greater" means group 2's proportion is the higher, as for the z test |
 
+## Bayes factor one-way ANOVA (E18)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian ANOVA; analysis only, no planning) | BayesFactor's `anovaBF()`: the model with the factor against the null model; a Cauchy prior on the standardised group effects (Rouder, Morey, Speckman and Province, 2012, the reference in `anovaBF()`'s help) | — | "r scale fixed effects" 0.5 by default (jaspAnova, `inst/qml/common/bayesian/AdditionalOptions.qml`) |
+| BayesFactor | `anovaBF()` on the data; `oneWayAOV.Fstat()` from the F statistic of a balanced one-way design, the same Bayes factor | — | `rscaleFixed` "medium", 1/2, by default [BayesFactor help] |
+| **powerkit** | BayesFactor's `oneWayAOV.Fstat()`, which rises with F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (k - 1 and n - k df, noncentrality f^2 n, as for the F test), with no simulation (E18, from 2 November 2026) [powerkit] | The group means and one SD (Cohen's f) | r scale 0.5 by default, JASP's and BayesFactor's; equal groups. `oneWayAOV.Fstat()` equals `anovaBF()` on the data (tested, and in every run's check run). Not a departure |
+
 ## Sequential Bayes factor designs (Labs)
 
 | Tool | Test | Effect size | Settings |

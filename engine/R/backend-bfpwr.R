@@ -148,6 +148,14 @@ bayes_summary <- function(spec, n) {
       bfcor_null_side(inputs, n)
     ))
   }
+  if (bfanova_test(spec)) {
+    inputs <- bfanova_inputs(spec)
+    return(c(
+      list(evidence_threshold = inputs$threshold, prior_scale = inputs$prior_scale,
+        effect_sd = 0, n = n, hypotheses = bfanova_hypotheses_words(inputs)),
+      bfanova_null_side(inputs, n)
+    ))
+  }
   if (bfprop_test(spec)) {
     inputs <- bfprop_inputs(spec)
     return(c(
@@ -202,6 +210,9 @@ bfpwr_script <- function(spec, result) {
   }
   if (bfprop_test(spec)) {
     return(bfprop_script(spec, result))
+  }
+  if (bfanova_test(spec)) {
+    return(bfanova_script(spec, result))
   }
   inputs <- bfpwr_inputs(spec)
   effect_name <- if (identical(inputs$type, "paired")) "d_z" else "d"
@@ -260,6 +271,9 @@ bayes_design_description <- function(spec, label, levels) {
   }
   if (bfprop_test(spec)) {
     return(bfprop_design_description(spec, label, levels))
+  }
+  if (bfanova_test(spec)) {
+    return(bfanova_design_description(spec, label, levels))
   }
   inputs <- bfpwr_inputs(spec)
   test <- switch(

@@ -235,6 +235,7 @@ test_text <- function(spec) {
     return(sprintf("%s at alpha = %s", sem_test_name(spec), alpha_text(spec$target_test$alpha)))
   }
   alt <- spec$target_test$alternative %||% "two_sided"
+  if (is_bayes_anova(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
   if (is_bayes_test(spec)) {
     side <- switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
     return(sprintf("%s (%s; %s)", bayes_test_name(spec), side, bayes_settings_text(spec)))
@@ -1592,9 +1593,18 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_concentration %||% 1, 3)),
       if (isTRUE(all.equal(tt$prior_concentration %||% 1, 1))) ", as in JASP" else ""))
   }
+  if (is_bayes_anova(spec)) {
+    return(sprintf("strong evidence: BF10 of at least %s; Cauchy prior on the group effects, r scale %s%s",
+      format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.5, 3)),
+      if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else ""))
+  }
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
+
+# The Bayes factor one-way ANOVA (BayesFactor's oneWayAOV.Fstat()): no
+# direction, and JASP's r scale of 0.5 by default.
+is_bayes_anova <- function(spec) is_bayes_test(spec) && identical(spec$template, "oneway_between")
 
 is_bayes_binomial <- function(spec) is_bayes_test(spec) && identical(spec$template, "one_proportion")
 is_bayes_correlation <- function(spec) is_bayes_test(spec) && identical(spec$template, "correlation")
@@ -1610,7 +1620,8 @@ bayes_test_name <- function(spec) {
     two_proportions = "a Bayes factor test of two proportions",
     one_sample_t = "a one-sample Bayes factor t-test",
     paired_t = "a paired-samples Bayes factor t-test",
-    independent_t = "an independent-samples Bayes factor t-test")
+    independent_t = "an independent-samples Bayes factor t-test",
+    oneway_between = "a Bayes factor one-way ANOVA")
 }
 
 # Results in Bayes factor terms: what the chance is a chance of, and what
@@ -2138,6 +2149,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     tt <- spec$target_test
     test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and prior concentration %s, as in JASP, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_concentration %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_anova(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+      format(signif(tt$prior_scale %||% 0.5, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else "",
+      result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",

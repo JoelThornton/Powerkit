@@ -66,6 +66,14 @@
 
 A batch of new features, built as one round.
 
+* A Bayes factor one-way ANOVA (E18, `target_test > method`
+  "bayes_factor" on `oneway_between`): BayesFactor's ANOVA Bayes factor
+  (`oneWayAOV.Fstat()`, equal to `anovaBF()` on the data), with JASP's
+  r scale of 0.5 for the group effects by default (`prior_scale`). BF10
+  rises with F, so power is exact: the chance from the noncentral F that
+  F passes the value where BF10 reaches the threshold. The no-effect side
+  (strong evidence for no effect, misleading evidence) is reported as for
+  the other Bayes factor tests, and the R script reproduces the result.
 * The Labs picture of power covers a chi-square test
   (`power_picture_chisq()`: pwr's `pwr.chisq.test()`, the central and
   noncentral chi-square with noncentrality w^2 N, the smallest significant
