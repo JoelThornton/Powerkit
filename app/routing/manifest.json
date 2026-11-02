@@ -5795,19 +5795,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "e7cbbbf406d3768dbf9bc6a05beac8794a81bad3",
-        "RemoteSha": "e7cbbbf406d3768dbf9bc6a05beac8794a81bad3",
+        "RemoteRef": "c8033a18a987f17a2b05eb3b310b9c1a0e454cb6",
+        "RemoteSha": "c8033a18a987f17a2b05eb3b310b9c1a0e454cb6",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "e7cbbbf406d3768dbf9bc6a05beac8794a81bad3",
-        "GithubSHA1": "e7cbbbf406d3768dbf9bc6a05beac8794a81bad3",
+        "GithubRef": "c8033a18a987f17a2b05eb3b310b9c1a0e454cb6",
+        "GithubSHA1": "c8033a18a987f17a2b05eb3b310b9c1a0e454cb6",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-02 01:01:19 UTC; runner",
+        "Packaged": "2026-11-02 01:29:04 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-02 01:01:34 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-02 01:29:12 UTC; unix"
       }
     },
     "powertools": {
@@ -7725,7 +7725,7 @@
       "checksum": "b11efefe5ae9fee970dc3dc11433e11a"
     },
     "R/results.R": {
-      "checksum": "aae9a9a8027162fc99504eac43ad3419"
+      "checksum": "9e7b3bd005194cbf8d9bcc91d1a9005d"
     },
     "R/simulations.R": {
       "checksum": "cd34671ee6905bb7e4597d314c6f58de"
@@ -7785,7 +7785,7 @@
       "checksum": "35c8b74ce1e61eecd1ad4b094e1c1f7a"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "7e0468d4a02f6dc9ced2a5b6d17571f4"
+      "checksum": "c061218e7d888384a3c019d5679c3f43"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "2a9c0c21bca82d4693a2ae65ad7de215"
@@ -7824,7 +7824,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "a4c888c2e079974a7ee51ac4c993d2eb"
+      "checksum": "c604ea3af2b15641ab41fe9e70f27a19"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
