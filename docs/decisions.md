@@ -4405,6 +4405,52 @@ Item 3 of `next.md`, with answers matching JASP's by default.
   default; tables larger than 2 x 2 (the chi-square card, E6) are left
   for later.
 
+## 2026-11-02 · SEM: the tests of close and not-close fit (E37)
+
+Part of item 3 of `next.md`; the method was decided on 1 November 2026
+(MacCallum, Browne and Sugawara, 1996).
+
+- **Package.** semPower tests exact fit only. WebPower's `wp.sem.rmsea()`
+  computes both of MacCallum and colleagues' tests (its help cites them),
+  so powerkit calls it rather than writing the formula. Its noncentrality,
+  (N − 1) × df × RMSEA², is semPower's, so at a null RMSEA of 0 its test
+  of close fit equals semPower's test of exact fit (checked to 1e-8).
+- **Choices.** The card asks which test: exact fit (the default, the test
+  SEM software reports), close fit (H0: RMSEA at most 0.05, to detect
+  misfit beyond it) or not-close fit (H0: RMSEA at least 0.05; a
+  significant result supports close fit). The null value 0.05 is the one
+  commonly used with these tests and can be changed. Exact fit stays the
+  default because it is the test researchers report; the card explains
+  why close and not-close fit are often more useful.
+- **Validation.** No published example is transcribed yet (a placeholder
+  is left for the maintainer in `test-validation-sem-model-fit.R`).
+
+## 2026-11-02 · SEM: invariance with more groups, occasions and factors (E37)
+
+The rest of the SEM queue item, decided on 1 November 2026 (semPower).
+
+- **Package.** semPower's `semPower.powerMI()` (groups) and
+  `semPower.powerLI()` (occasions) take any number of groups, occasions
+  and factors, so powerkit passes them on (`population > n_groups`,
+  `n_occasions`, `factors`, `factor_correlation`). Power at each n is
+  still semPower's F0 through `semPower.postHoc()`, as before; the tests
+  check it against the functions called directly with the arguments
+  written out, and the restriction's df against (units − 1) × factors ×
+  (items − 1).
+- **What differs.** The first factor's last items differ in the last
+  group or on the last occasion; every other group, occasion and factor
+  is invariant. This is the smallest departure from invariance a study
+  would want to detect, and the one the two-group card already used.
+- **Correlations.** Across groups, the factors correlate by
+  `factor_correlation`. Over occasions, a factor correlates `stability`
+  with itself between any two occasions, and two factors on different
+  occasions correlate by the product (the Kronecker product of the
+  occasions' and the factors' correlation matrices, which is always a
+  valid matrix and needs no extra inputs). A model with stabilities that
+  fall with the lag between occasions isn't offered yet.
+- **Group sizes.** Three or more groups are equal in size; the
+  allocation ratio stays for two groups.
+
 ## 2026-11-02 · Bayes factor test of a contingency table (E6)
 
 Part of item 2 of `next.md` (larger contingency tables), with answers

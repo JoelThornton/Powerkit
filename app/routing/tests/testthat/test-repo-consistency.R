@@ -213,7 +213,9 @@ test_that("every design the engine computes is named by a card or listed as wait
 test_that("every item in the queue says whether it is ready to start", {
   lines <- strsplit(read_doc("next.md"), "\n", fixed = TRUE)[[1]]
   items <- grep("^\\| [0-9]+ \\|", lines, value = TRUE)
-  expect_gte(length(items), 10)
+  # At least one row, so a change to the table's layout can't pass unread;
+  # the queue itself shrinks as items land.
+  expect_gte(length(items), 1)
   states <- vapply(strsplit(items, "|", fixed = TRUE), function(cells) {
     trimws(cells[[length(cells)]])
   }, "")

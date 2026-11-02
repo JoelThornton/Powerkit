@@ -60,7 +60,8 @@ Imports:
     SuppDists,
     Superpower,
     TOSTER,
-    utils
+    utils,
+    WebPower
 Suggests:
     lavaan,
     MASS,
