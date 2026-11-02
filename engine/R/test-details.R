@@ -7,7 +7,8 @@
 # critical counts binom.alpha with the test's actual alpha). pwr returns
 # none of them, so for the pwr tests pwrss's own version of the same test
 # supplies them, and only when its power equals pwr's at that n (the same
-# test, not an approximation of it).
+# test, not an approximation of it). semPower's semPower.postHoc() returns
+# the chi-square test's df, critical value (chiCrit) and noncentrality (ncp).
 
 # Read the details from a pwrss result, or NULL when it has none.
 pwrss_details <- function(out, fun) {
@@ -94,5 +95,20 @@ pwrss_twin <- function(spec, inputs, n) {
       w = args$w, df = args$df, n = args$N, alpha = alpha, ceil.n = FALSE, verbose = 0
     )),
     NULL
+  )
+}
+
+
+# Details from semPower's semPower.postHoc() output: the likelihood-ratio
+# chi-square test's df, critical value and noncentrality, as it reports them.
+sempower_details <- function(out, fun) {
+  if (is.null(out$chiCrit) || is.null(out$df)) return(NULL)
+  list(
+    statistic = "chi-square",
+    df = as.numeric(out$df),
+    critical = as.numeric(out$chiCrit),
+    ncp = if (is.null(out$ncp)) NA_real_ else sum(as.numeric(out$ncp)),
+    actual_alpha = NA_real_,
+    source = fun
   )
 }

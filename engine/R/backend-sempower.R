@@ -61,6 +61,7 @@ sempower_backend <- function(spec, seed = NULL) {
     bracket_power = power_at,
     simulate = NULL,
     sensitivity = NULL,
+    details = function(n) sempower_details(sempower_post_hoc(spec, n, df), "semPower::semPower.postHoc"),
     check_run = function() sempower_check_run(spec, df)
   )
 }
@@ -94,13 +95,14 @@ sem_df <- function(spec) {
   call_backend("semPower", quietly(semPower::semPower.getDf(syntax)))
 }
 
-sempower_power <- function(spec, n, df) {
-  out <- call_backend("semPower", quietly(semPower::semPower.postHoc(
+sempower_post_hoc <- function(spec, n, df) {
+  call_backend("semPower", quietly(semPower::semPower.postHoc(
     effect = spec$population$rmsea, effect.measure = "RMSEA",
     alpha = spec$target_test$alpha, N = n, df = df
   )))
-  out$power
 }
+
+sempower_power <- function(spec, n, df) sempower_post_hoc(spec, n, df)$power
 
 # Check run: no simulated data, so the check confirms semPower receives
 # the RMSEA and df, and that the noncentrality it uses at an example N of
@@ -129,14 +131,14 @@ sempower_check_run <- function(spec, df) {
 sempower_restriction_backend <- function(spec) {
   base <- sem_restriction_fit(spec)
   weights <- sem_group_weights(spec)
-  power_at <- function(n) {
-    out <- call_backend("semPower", quietly(semPower::semPower.postHoc(
+  post_hoc <- function(n) {
+    call_backend("semPower", quietly(semPower::semPower.postHoc(
       effect = if (length(weights) > 1) as.list(base$fmin_groups) else base$fmin,
       effect.measure = "F0", alpha = spec$target_test$alpha,
       N = if (length(weights) > 1) as.list(n * weights) else n, df = base$df
     )))
-    out$power
   }
+  power_at <- function(n) post_hoc(n)$power
   list(
     name = "semPower",
     packages = c("semPower", "lavaan"),
@@ -150,6 +152,7 @@ sempower_restriction_backend <- function(spec) {
     bracket_power = power_at,
     simulate = NULL,
     sensitivity = NULL,
+    details = function(n) sempower_details(post_hoc(n), sem_function(spec)),
     check_run = function() sem_restriction_check_run(spec, base, power_at)
   )
 }

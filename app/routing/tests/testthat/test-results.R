@@ -2374,6 +2374,49 @@ test_that("the result's sections are linked along its top, and the write-up can 
   expect_lt(regexpr("writeup_short", html), regexpr("download_script", html))
 })
 
+test_that("the t-tests and the correlation state their critical effect size as an observed value, with its source", {
+  run <- engine_function("run_spec")
+  skip_if(is.null(run), "engine not available")
+  spec <- list(spec_version = "0.1", design = "basic_test", template = "independent_t",
+    variables = list(X = list(type = "binary", label = "Group", levels = list("A", "B")), Y = list(type = "continuous", label = "Score")),
+    effect_justification = list(type = "smallest_effect_of_interest", source = "Test only."),
+    population = list(metric = "standardised", d = 0.5),
+    target_test = list(effect = "mean_difference", method = "student_t", alpha = 0.05, alternative = "two_sided"),
+    goal = list(type = "power", n = 64L), options = list(seed = 1L))
+  result <- run(spec)
+  note <- critical_effect_note(spec, result)
+  expect_match(note, "N = 64", fixed = TRUE)
+  expect_match(note, "Cohen's d beyond ±0.50", fixed = TRUE)
+  expect_match(note, "Perugini et al., 2025", fixed = TRUE)
+  expect_match(note, "not the effect assumed for power", fixed = TRUE)
+  expect_match(critical_effect_sentence(result), "is an observed Cohen's d beyond ±0.50.", fixed = TRUE)
+  one_sided <- list(critical_effect = list(effect_name = "r", value = 0.21, alternative = "less", alpha = 0.05, n = 60))
+  expect_match(critical_effect_sentence(one_sided), "r below −0.21", fixed = TRUE)
+  expect_null(critical_effect_note(spec, list()))
+})
+
+test_that("technical details cover semPower's chi-square and the correlation's t test, and say why a Bayes factor has none", {
+  sem <- list(goal_type = "power", curve = data.frame(n = 400, power = 0.9, mcse = 0), provenance = list(method = "exact", backend = "semPower"),
+    details = list(statistic = "chi-square", df = 51, critical = 68.67, ncp = 50.9, actual_alpha = NA, source = "semPower::semPower.postHoc"))
+  html <- as.character(technical_details_ui(sem))
+  expect_match(html, "Test statistic: Chi-square.", fixed = TRUE)
+  expect_match(html, "Critical value: Chi-square = 68.7.", fixed = TRUE)
+  expect_match(html, "Noncentrality parameter: 50.9.", fixed = TRUE)
+  cor <- sem
+  cor$provenance$backend <- "pwr"
+  cor$details <- list(statistic = "t", df = 78, critical = c(-1.99, 1.99), ncp = NA_real_, actual_alpha = NA,
+    source = "Perugini et al.'s (2025) formula", note = "The critical r is ±0.220. pwr's power ... Fisher's z.")
+  html <- as.character(technical_details_ui(cor))
+  expect_match(html, "Critical value: t = ±1.99 (two-sided).", fixed = TRUE)
+  expect_match(html, "The critical r is", fixed = TRUE)
+  expect_false(grepl("Noncentrality parameter", html, fixed = TRUE))
+  bayes <- sem
+  bayes$details <- NULL
+  bayes$bayes <- list(threshold = 10)
+  bayes$provenance$backend <- "bfpwr"
+  expect_match(as.character(technical_details_ui(bayes)), "a Bayes factor design decides by the Bayes factor", fixed = TRUE)
+})
+
 test_that("moderated mediation with a yes/no X says the test was found slightly liberal, and nothing else does", {
   binary_x <- list(design = "moderated_mediation", variables = list(X = list(type = "binary"), W = list(type = "continuous")))
   note <- binary_x_modmed_note(binary_x)

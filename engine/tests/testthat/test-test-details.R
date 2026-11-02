@@ -39,8 +39,8 @@ test_that("an exact test of one proportion gives its critical counts and actual 
 })
 
 test_that("details are left out where no package reports them", {
-  # pwr's correlation test has no identical pwrss version.
-  expect_null(run_spec(spec_at("correlation.json", list(type = "power", n = 80)))$details)
+  # TOSTER's power_t_TOST() returns power and the bounds only.
+  expect_null(run_spec(spec_at("tost_independent.json", list(type = "power", n = 100)))$details)
   # A sensitivity analysis: the effect is the answer.
   expect_null(run_spec(spec_at("paired_t.json", list(type = "sensitivity", n = 40, power = 0.8)))$details)
   # A simulated result.
@@ -64,3 +64,31 @@ test_that("a simulated sample size reports the power reached there, with its int
   expect_gt(exact, est$power_lower)
   expect_lt(exact, est$power_upper)
 })
+
+test_that("semPower's chi-square details reproduce its power, for model fit and a restriction", {
+  for (file in c("sem_model_fit.json", "sem_invariance.json")) {
+    result <- run_spec(spec_at(file, list(type = "power", n = 400)))
+    d <- result$details
+    expect_identical(d$statistic, "chi-square", label = file)
+    expect_equal(d$critical, stats::qchisq(0.95, d$df), label = file)
+    power <- stats::pchisq(d$critical, d$df, d$ncp, lower.tail = FALSE)
+    expect_equal(power, result$curve$power, tolerance = 1e-6, label = file)
+  }
+})
+
+test_that("a correlation's details are the t test's critical t, which with Fisher's z give pwr's power", {
+  result <- run_spec(spec_at("correlation.json", list(type = "power", n = 80)))
+  d <- result$details
+  expect_identical(d$statistic, "t")
+  expect_equal(d$df, 78)
+  expect_equal(d$critical, stats::qt(c(0.025, 0.975), 78))
+  expect_true(is.na(d$ncp))
+  # pwr.r.test()'s own steps (two-sided) from that critical t.
+  r <- -0.2
+  rc <- sqrt(d$critical[2]^2 / (d$critical[2]^2 + 78))
+  zr <- atanh(r) + r / (2 * 79)
+  power <- stats::pnorm((zr - atanh(rc)) * sqrt(77)) + stats::pnorm((-zr - atanh(rc)) * sqrt(77))
+  expect_equal(power, result$curve$power, tolerance = 1e-8)
+  expect_match(d$note, "Fisher's z", fixed = TRUE)
+})
+

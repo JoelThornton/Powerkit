@@ -94,7 +94,7 @@ if (!exists("%||%", mode = "function")) {
 
 validation_chunks <- function() {
   list(
-    basic = c("test-validation-basic-tests.R", "test-validation-justified-alpha.R"),
+    basic = c("test-validation-basic-tests.R", "test-validation-justified-alpha.R", "test-validation-critical-effect.R"),
     variances = "test-validation-variance-tests.R",
     manova = c("test-validation-manova.R", "test-validation-hotelling-one.R"),
     rank = c("test-validation-rank-tests.R", "test-validation-friedman.R"),

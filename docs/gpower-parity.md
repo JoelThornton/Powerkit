@@ -83,10 +83,9 @@ sensitivity (manual, section 1.1, p. 2).
 The result screen's "Technical details" (29 October 2026) show the
 statistic, df, critical value and noncentrality wherever the package
 reports them (pwrss and the generic tests, for example), and say so where
-it doesn't. Since 31 October 2026 the project rules allow a published
-closed-form result where no package gives one (`CLAUDE.md`), so the
-remaining designs, such as pwr's t-tests, can have them too: `next.md`,
-"Critical effect size, and technical details for the remaining designs".
+it doesn't: semPower's chi-square tests too since 1 November 2026, and the
+correlation's critical t from Perugini et al.'s (2025) closed form, the
+same critical t pwr uses. TOSTER and powertools return none.
 
 ## E1: one-sample t-test
 
