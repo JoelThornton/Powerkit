@@ -578,9 +578,14 @@ rank_design_description <- function(spec, label, levels) {
     paired_t = sprintf(
       "Wilcoxon signed-rank test of %s between the conditions of %s (%s)", label("Y"), label("X"), levels("X")
     ),
-    independent_t = sprintf(
-      "Mann-Whitney (Wilcoxon rank-sum) test of %s between the groups of %s (%s)", label("Y"), label("X"), levels("X")
-    ),
+    independent_t = if (brunner_munzel_test(spec)) {
+      sprintf(
+        "Brunner-Munzel test of %s between the groups of %s (%s), group 2's SD %s times group 1's",
+        label("Y"), label("X"), levels("X"), format_number(spec$population$sd_ratio %||% 1)
+      )
+    } else {
+      sprintf("Mann-Whitney (Wilcoxon rank-sum) test of %s between the groups of %s (%s)", label("Y"), label("X"), levels("X"))
+    },
     oneway_between = sprintf(
       "%s test of %s across the %d groups of %s (%s)%s",
       if (jonckheere_test(spec)) "Jonckheere-Terpstra" else "Kruskal-Wallis",
@@ -1811,7 +1816,8 @@ rank_script_inputs <- function(spec) {
       sprintf(
         "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
         r_code(spec$options$allocation_ratio %||% 1), lv("X", 2), lv("X", 1)
-      )
+      ),
+      if (brunner_munzel_test(spec)) sprintf("sd_ratio <- %s # SD of group 2 over SD of group 1", r_code(pop$sd_ratio %||% 1))
     ),
     oneway_between = c(
       sprintf(
@@ -1859,7 +1865,20 @@ rank_derived_lines <- function(spec) {
       "zero <- function(n, d) rep(0, n)",
       "d_spower <- -dz"
     ),
-    independent_t = c(
+    independent_t = if (brunner_munzel_test(spec)) c(
+      "# The experiment, as powerkit runs it: group 1's scores and group 2's,",
+      "# in the chosen shape, group 2's SD sd_ratio times group 1's (the two",
+      "# scaled so that sqrt((SD1^2 + SD2^2) / 2) is 1) and its mean d higher;",
+      "# then the p-value of brunnermunzel's Brunner-Munzel test.",
+      "# brunnermunzel.test(x, y) estimates P(X < Y): \"less\" is the",
+      "# alternative in which group 2 tends to be higher.",
+      "p_brunner_munzel <- function(n, n2_n1, d, sd_ratio, alternative = \"two.sided\") {",
+      "  sd1 <- sqrt(2 / (1 + sd_ratio^2))",
+      "  first <- sd1 * draw_scores(n)",
+      "  second <- d + sd_ratio * sd1 * draw_scores(round(n * n2_n1))",
+      "  brunnermunzel::brunnermunzel.test(first, second, alternative = alternative)$p.value",
+      "}"
+    ) else c(
       "shifted <- function(n, d) d + draw_scores(n) # group 1, shifted by d",
       "unshifted <- function(n, d) draw_scores(n) # group 2",
       "d_spower <- -d # Spower compares group 1 with group 2, so d (group 2 minus group 1) changes sign"
@@ -1914,7 +1933,12 @@ rank_experiment_lines <- function(spec, inputs, one_sided) {
       "parent1 = shifted,",
       "parent2 = zero"
     ),
-    independent_t = c(
+    independent_t = if (brunner_munzel_test(spec)) c(
+      "n = n_group1, # size of group 1",
+      "n2_n1 = allocation_ratio, # size of group 2 relative to group 1",
+      "d = d, # Cohen's d (group 2 minus group 1)",
+      "sd_ratio = sd_ratio"
+    ) else c(
       "n = n_group1, # size of group 1",
       "d = d_spower, # -d (see above)",
       "type = \"two.sample\",",

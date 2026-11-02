@@ -141,7 +141,9 @@ fully validated. Validation runs are recorded in
   participants (1 November 2026).
 - **Rank tests** are simulated for normal, skewed or heavy-tailed scores:
   the Wilcoxon, Mann-Whitney and Kruskal-Wallis tests, Friedman's test (E54,
-  31 October 2026) and Spearman's and Kendall's correlations (E4).
+  31 October 2026), Spearman's and Kendall's correlations (E4) and, since
+  2 November 2026, the Brunner-Munzel test (E2), for groups whose spreads
+  may differ.
 - **Pairwise comparisons** after a one-way ANOVA (E18, E54): the power of a
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).

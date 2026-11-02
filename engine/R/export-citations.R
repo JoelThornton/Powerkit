@@ -113,6 +113,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       },
       if ("PMCMRplus" %in% used) {
         list(s("PMCMRplus", "whose jonckheereTest() is the Jonckheere-Terpstra test powerkit's experiment runs"))
+      },
+      if ("brunnermunzel" %in% used) {
+        list(s("brunnermunzel", "whose brunnermunzel.test() is the Brunner-Munzel test powerkit's experiment runs"))
       }
     ),
     Superpower = list(

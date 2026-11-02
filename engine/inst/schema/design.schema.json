@@ -1499,6 +1499,11 @@
                 "heavy_tailed"
               ]
             },
+            "sd_ratio": {
+              "description": "Brunner-Munzel test only: group 2's SD over group 1's (default 1, equal spread). The scores keep their shape; d stays the difference in means over the pooled SD, taken here as sqrt((SD1^2 + SD2^2) / 2).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
             "effect_sd": {
               "description": "Bayes factor t-tests only: how uncertain the expected effect is, as the SD of a normal design prior centred on the effect (d) in the same SD units. 0 (the default) plans for exactly that effect, as power analysis usually does.",
               "type": "number",
@@ -1575,6 +1580,7 @@
                 "student_t",
                 "welch_t",
                 "mann_whitney",
+                "brunner_munzel",
                 "bayes_factor",
                 "minimum_effect"
               ]

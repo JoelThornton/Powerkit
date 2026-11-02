@@ -1746,6 +1746,31 @@ test_that("pairwise comparisons after a one-way ANOVA: the pair and the adjustme
   expect_match(calc$result$provenance$backend_function, "p_adjust = \"bonferroni\"", fixed = TRUE)
 })
 
+test_that("the Brunner-Munzel test (E2's test version) asks for the SD ratio and reaches the engine", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  expect_true(field_applies(by_id("sd_ratio"), list(method = "brunner_munzel")))
+  expect_false(field_applies(by_id("sd_ratio"), list(method = "mann_whitney")))
+  expect_true(field_applies(by_id("score_shape"), list(method = "brunner_munzel")))
+  values <- modifyList(form_examples$E2, list(method = "brunner_munzel", score_shape = "skewed", sd_ratio = "2", goal = "power", n = "60"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_identical(spec$target_test$method, "brunner_munzel")
+  expect_equal(spec$population$sd_ratio, 2)
+  expect_match(rank_test_name(spec), "a Brunner-Munzel test, simulated assuming skewed scores", fixed = TRUE)
+  expect_match(rank_test_name(spec), "group 2's SD 2 times group 1's", fixed = TRUE)
+  # G*Power has no Brunner-Munzel test, so Known difference 5 (its
+  # Mann-Whitney formula) does not apply.
+  expect_length(known_difference_keys(forms, "E2", spec), 0)
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E2"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "Brunner-Munzel", fixed = TRUE)
+})
+
 test_that("Friedman's test on E54 and shaped scores for the rank correlations on E4 reach the engine and the write-up", {
   fields <- form_fields(form_groups(forms, "E54"))
   values <- modifyList(form_examples$E54, list(test_version = "friedman", score_shape = "skewed", method = NULL, goal = "power", n = "30"))

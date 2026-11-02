@@ -15,6 +15,7 @@ library(psych)     # safeguard power's confidence interval
 library(afex)        # mixed designs with unequal groups (aov_car())
 library(BayesFactor) # the correlation Bayes factor (correlationBF())
 library(bfpwr)
+library(brunnermunzel) # the Brunner-Munzel test (brunnermunzel.test())
 library(car)
 library(Hmisc)     # the log-rank test (cpower())
 library(ICC.Sample.Size) # power to show an ICC exceeds a value (calculateIccPower())

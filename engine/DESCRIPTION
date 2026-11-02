@@ -28,6 +28,7 @@ Imports:
     afex,
     BayesFactor,
     bfpwr,
+    brunnermunzel,
     car,
     digest,
     effectsize,
