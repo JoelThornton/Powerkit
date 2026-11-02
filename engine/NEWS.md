@@ -66,6 +66,11 @@
 
 A batch of new features, built as one round.
 
+* Moderated mediation with parallel mediators (E40) takes a yes/no X or W,
+  as the single-mediator card (E17) does, and the simulated data set for
+  moderated mediation now draws a yes/no W with `rbinary_rs()` too (it
+  drew W as a score).
+
 * Mixed designs with unequal groups (`options > group_ratio` on
   `2x2_mixed` and `mixed`): no Superpower function takes unequal groups
   when a factor is within participants, so power is simulated with Spower.

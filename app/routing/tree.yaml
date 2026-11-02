@@ -1490,9 +1490,9 @@ endpoints:
     card_points:
       - "Two mediators side by side, with W changing either the link from X to each mediator (PROCESS model 7) or the link from each mediator to the outcome (PROCESS model 14)."
       - "The test is the index of moderated mediation for the mediator you choose: whether that mediator's indirect effect depends on W."
-      - "X, W and the mediators are scores; a yes/no X or W, or a mediator chain, isn't covered yet."
+      - "X and W can each be a score or yes/no (two groups); the mediators are scores, and a mediator chain isn't covered yet."
       - "Simulated with power4mome, as for one mediator: the full run can take a while, so the app gives a quick preview and an R script for the full analysis."
-    inputs: ["Which link W changes", "Standardised paths for each mediator, including the interactions with W", "Correlations between the mediators' residuals, and of X with W", "Which mediator's index of moderated mediation the hypothesis is about"]
+    inputs: ["Which link W changes, and which variables are yes/no", "Standardised paths for each mediator, including the interactions with W", "Correlations between the mediators' residuals, and of X with W", "Which mediator's index of moderated mediation the hypothesis is about"]
     tier: later
     alternatives: ["conditional indirect effects at chosen values of W", "one mediator at a time, if the mediators are unrelated"]
   E41:

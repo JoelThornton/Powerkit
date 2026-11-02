@@ -1081,8 +1081,13 @@ sim_power4mome_code <- function(spec, n, seed) {
       nrep = 1L, model = inputs$model, pop_es = inputs$pop_es, n = n,
       do_the_test = FALSE, iseed = seed, parallel = FALSE, progress = FALSE
     )),
-    if (!is.null(inputs$x_prob)) sprintf(
-      "  , x_fun = list(X = list(power4mome::rbinary_rs, p1 = %s))", r_code(inputs$x_prob)
+    # A yes/no X or W (E17) is drawn by rbinary_rs(), as the backend draws it.
+    if (!is.null(inputs$x_prob) || !is.null(inputs$w_prob)) sprintf(
+      "  , x_fun = list(%s)",
+      paste(c(
+        if (!is.null(inputs$x_prob)) sprintf("X = list(power4mome::rbinary_rs, p1 = %s)", r_code(inputs$x_prob)),
+        if (!is.null(inputs$w_prob)) sprintf("W = list(power4mome::rbinary_rs, p1 = %s)", r_code(inputs$w_prob))
+      ), collapse = ", ")
     ),
     ")",
     "pooled <- as.data.frame(power4mome::pool_sim_data(sim))",
