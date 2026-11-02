@@ -5947,19 +5947,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "d65a765a2d9f7a886fbc00faca8bd6da53f6cd50",
-        "RemoteSha": "d65a765a2d9f7a886fbc00faca8bd6da53f6cd50",
+        "RemoteRef": "6e57322d2f370081d99333b65cdff4de231436dc",
+        "RemoteSha": "6e57322d2f370081d99333b65cdff4de231436dc",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "d65a765a2d9f7a886fbc00faca8bd6da53f6cd50",
-        "GithubSHA1": "d65a765a2d9f7a886fbc00faca8bd6da53f6cd50",
+        "GithubRef": "6e57322d2f370081d99333b65cdff4de231436dc",
+        "GithubSHA1": "6e57322d2f370081d99333b65cdff4de231436dc",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-02 09:48:54 UTC; runner",
+        "Packaged": "2026-11-02 10:35:02 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-02 09:49:07 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-02 10:35:18 UTC; unix"
       }
     },
     "powertools": {
