@@ -37,9 +37,11 @@ fully validated. Validation runs are recorded in
   1 November. Bayes factor versions: the three t-tests
   and, since 1 November 2026, the test of one proportion (E25; bfpwr,
   JASP's prior and one-sided test by default) and the correlation (E4;
-  BayesFactor, JASP's Bayes factor and prior width by default) and two proportions (E5; BayesFactor's contingency table Bayes factor, JASP's default). **Twelve are simulated with a
-  preview first**, then a full run in the app or an R script: E10-E14 and
-  E40 (mediation and moderated mediation, power4mome), E16 (mediation
+  BayesFactor, JASP's Bayes factor and prior width by default) and two proportions (E5; BayesFactor's contingency table Bayes factor, JASP's default). **Fourteen are simulated with a
+  preview first**, then a full run in the app or an R script: E10-E14,
+  E17 (a yes/no X or W), E38 (W on both links or the direct path, both
+  1 November 2026) and E40
+  (mediation and moderated mediation, power4mome), E16 (mediation
   with a yes/no X), E33 (participants and items, simr; the conditions within or, since 31 October 2026, between participants), E63 (the same with three or more conditions, 31 October 2026; both with a score or, since 1 November, a yes/no answer on each trial), E68 (three levels, people in groups in larger groups, 1 November 2026), E67 (a predictor measured on each item, 1 November 2026) and E62 (a
   two-level model with predictors at each level and their cross-level
   interaction, simr; reached from the new question C1 for people within
@@ -147,9 +149,16 @@ fully validated. Validation runs are recorded in
   and Bayesian planning for the Bayes factor t-tests from bfpwr, at a
   fixed N or, since 0.28.0, sequential: checked as the data come in,
   stopping when the evidence is strong).
-- **Next for moderated mediation:** W on both links or the direct path
-  (E38, models 8, 58 and 59) and a yes/no X or W (E17) are Ready
-  (`next.md`, items 6 and 7, decided 1 November 2026).
+- **Moderated mediation with W on both links or the direct path** (E38,
+  PROCESS models 8, 58 and 59, 1 November 2026): the difference between
+  the conditional indirect effects at two values of W, simulated with
+  power4mome and powerkit's test (manymome's `cond_indirect_diff()`); a
+  preview in the app, the full run from an R script. A yes/no X or W in
+  models 7 and 14 (E17, 1 November 2026) the same way, drawn by
+  power4mome's `rbinary_rs()` and checked against a separately written
+  simulation; with a yes/no X and no moderation its Type I error is about
+  6.7%, against 5.3% for the separate simulation, stated on the results
+  screen until power4mome answers (`upstream-questions.md`).
 - **Waiting on others:** Spower's faults are ready to raise upstream
   (`docs/upstream/spower-var-test.R`).
 

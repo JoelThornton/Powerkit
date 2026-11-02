@@ -4180,6 +4180,46 @@ needed first.
   cards still marked "validation in progress" move from the queue to
   "Waiting on the maintainer, not a PR" in `next.md`.
 
+## 2026-11-01 · Moderated mediation with W on both links or the direct path (E38)
+
+- **The effect tested:** the difference between the conditional indirect
+  effects at two values of W, by default one SD below and above its mean,
+  for models 8, 58 and 59 alike (decided 1 November 2026, this page,
+  "Moderated mediation decisions"). For model 8 it is the index of
+  moderated mediation times the distance between the two values.
+- **Its test:** manymome's `cond_indirect_effects()` and
+  `cond_indirect_diff()` with power4mome's Monte Carlo draws, through a
+  powerkit test function in the shape power4mome's own take; the
+  confidence-interval rule, as for the other moderated mediation cards
+  (Departure 8).
+- **One mediator:** models 8, 58 and 59 with parallel mediators are left
+  for later; nobody has asked for them.
+- **The fitted model for 58 and 59** leaves out power4mome's residual
+  covariance of M with W, which lavaan can't estimate when W predicts M
+  (`upstream-questions.md`, power4mome).
+
+## 2026-11-01 · Moderated mediation with a yes/no X or W (E17)
+
+- **Answered by checking, not by asking power4mome's author:** the
+  separately written simulation standardises a yes/no variable by its
+  population mean and SD and forms the product from the standardised
+  variables; powerkit's power agrees with it (the standardisation). The
+  Monte Carlo interval with a yes/no X is slightly liberal: with no
+  moderation it rejected in about 6.7% of 3,000 simulated studies at
+  alpha .05, against 5.3% for the separate simulation
+  (`upstream-questions.md`, power4mome, question 6).
+- **Released with the excess stated** (maintainer, 1 November 2026): the
+  card stays "validation in progress" and the results screen says, for a
+  yes/no X, that the test was found slightly liberal and the power shown
+  may be a little high, until power4mome answers. The power checks agree,
+  and the excess is small.
+- **A yes/no W is tested as the difference between its two groups'
+  conditional indirect effects**, because manymome's `index_of_mome()`
+  treats a two-valued moderator as categorical; for models 7 and 14 that
+  is the index times a constant, so the decision is the same.
+- **A yes/no X or W must be uncorrelated with the other predictor**, as
+  the card already said: `rbinary_rs()` draws it on its own.
+
 ## 2026-11-01 · Several effects per study in a meta-analysis (E61, POMADE)
 
 - **POMADE's defaults:** the correlated and hierarchical effects (CHE)

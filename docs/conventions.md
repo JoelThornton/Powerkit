@@ -465,6 +465,22 @@ log-odds scale in place of the shares of variance. The test is glmer's
 Wald z test, simr's default for a two-condition predictor, or the
 likelihood ratio; not a departure.
 
+## Moderated mediation with W on both links or the direct path (E38)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No mediation | — | — |
+| power4mome | `power4test()` on any lavaan model; no ready-made test of the difference between conditional indirect effects [power4mome help] | Standardised paths | Fits with lavaan; adds covariances among the exogenous variables and products |
+| **powerkit** | power4mome's `power4test()` with powerkit's `test_cond_indirect_diff()`, manymome's `cond_indirect_diff()`: the indirect effect at W = w_values[2] minus that at w_values[1], tested by its Monte Carlo confidence interval (E38, from 1 November 2026) [powerkit] | Standardised paths, the interactions XW -> M, MW -> Y and XW -> Y as the model has them | One mediator; W standardised, so its values are SDs from its mean (-1 and 1 by default). For models 58 and 59 the fitted model leaves out power4mome's residual covariance of M with W (not estimable when W predicts M). Departures 6 (lavaan, not OLS) and 8 (the CI rule) apply as for models 7 and 14 |
+
+## Moderated mediation with a yes/no X or W (E17)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| PROCESS | The index of moderated mediation with a 0/1 variable as it is coded | Unstandardised coefficients | — |
+| power4mome | `x_fun` with `rbinary_rs()`: a yes/no variable rescaled to mean 0 and SD 1 [power4mome help] | Standardised paths | — |
+| **powerkit** | power4mome with `rbinary_rs()` for X, W or both (E17, from 1 November 2026); with a yes/no W, the difference between the two groups' conditional indirect effects, the index times the distance between W's two rescaled values (manymome treats a two-valued W as categorical) [powerkit] | Standardised paths, per SD of a yes/no variable | A yes/no X or W uncorrelated with the other predictor. Departures 6 and 8 apply as for models 7 and 14 |
+
 ## Meta-analysis with several effects per study (E61, POMADE)
 
 | Tool | Test | Effect size | Settings |

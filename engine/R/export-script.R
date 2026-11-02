@@ -532,7 +532,16 @@ design_description <- function(spec) {
     "moderated_mediation/process_14" = sprintf(
       "second-stage moderated mediation (PROCESS model 14): %s (W) moderates %s -> %s (Y); index of moderated mediation for X = %s%s",
       label("W"), mediator_words(spec, label), label("Y"), label("X"), tested_mediator_words(spec, label)
-    )
+    ),
+    "moderated_mediation/process_8" = ,
+    "moderated_mediation/process_58" = ,
+    "moderated_mediation/process_59" = {
+      w <- as.numeric(unlist(spec$target_test$w_values %||% list(-1, 1)))
+      sprintf("moderated mediation (PROCESS model %s): %s (W) moderates %s; the indirect effect of %s (X) on %s (Y) through %s at W = %s minus that at W = %s (SDs from W's mean)",
+        sub("process_", "", spec$template, fixed = TRUE), label("W"),
+        switch(spec$template, process_8 = "X -> M and the direct path X -> Y", process_58 = "X -> M and M -> Y", process_59 = "X -> M, M -> Y and X -> Y"),
+        label("X"), label("Y"), label("M"), format(w[2]), format(w[1]))
+    }
   )
 }
 
@@ -2429,7 +2438,10 @@ power4mome_script <- function(spec, result) {
   roles <- c("x", "m", "y", "w")
   roles <- roles[roles %in% names(args)]
   role_lines <- vapply(roles, function(r) sprintf("%s = %s,", r, r_code(args[[r]])), character(1))
-  tested <- if (spec$design == "mediation") {
+  difference <- identical(inputs$test_name, "test_cond_indirect_diff")
+  tested <- if (difference) {
+    sprintf("# the indirect effect at W = %s minus that at W = %s", format(args$w_to), format(args$w_from))
+  } else if (spec$design == "mediation") {
     sprintf("# the indirect effect tested: %s", spec$target_test$path)
   } else if (!is.null(spec$target_test$path)) {
     sprintf("# the index of moderated mediation through %s", modmed_mediator(spec))
@@ -2466,6 +2478,20 @@ power4mome_script <- function(spec, result) {
         power4mome_covariance_comment(spec)
       )
     ),
+    if (!is.null(inputs$fit_model)) r_multiline_string(
+      "fit_model", strsplit(inputs$fit_model, "\n", fixed = TRUE)[[1]],
+      c("# The model fitted to each data set, given explicitly: power4mome's own adds",
+        "# a residual covariance of M with W, which can't be estimated when W also",
+        "# predicts M, so it is left out here.")
+    ),
+    if (difference) c(
+      "",
+      "# The test: the difference between the conditional indirect effects at two",
+      "# values of W, from manymome (power4mome has no test for it). This is",
+      "# powerkit's function, in the shape power4mome's own test functions take.",
+      sprintf("test_cond_indirect_diff <- %s", paste(deparse(test_cond_indirect_diff, width.cutoff = 100L), collapse = "\n")),
+      ""
+    ),
     sprintf(
       "ci_draws <- %s # %s per confidence interval (power4mome's R)",
       r_code(inputs$ci_draws), if (monte_carlo) "Monte Carlo draws" else "bootstrap resamples"
@@ -2489,10 +2515,14 @@ power4mome_script <- function(spec, result) {
     "    model = model,",
     "    pop_es = pop_es,",
     "    n = batch_n, # sample size",
-    if (!is.null(inputs$x_prob)) sprintf(
-      "    x_fun = list(X = list(rbinary_rs, p1 = %s)), # X is yes/no: %s in its second level, rescaled to SD 1",
-      r_code(inputs$x_prob), r_code(inputs$x_prob)
+    if (!is.null(inputs$x_prob) || !is.null(inputs$w_prob)) sprintf(
+      "    x_fun = list(%s), # yes/no: %s, rescaled to mean 0 and SD 1",
+      paste(c(if (!is.null(inputs$x_prob)) sprintf("X = list(rbinary_rs, p1 = %s)", r_code(inputs$x_prob)),
+        if (!is.null(inputs$w_prob)) sprintf("W = list(rbinary_rs, p1 = %s)", r_code(inputs$w_prob))), collapse = ", "),
+      paste(c(if (!is.null(inputs$x_prob)) sprintf("%s of X in its second level", r_code(inputs$x_prob)),
+        if (!is.null(inputs$w_prob)) sprintf("%s of W in its second level", r_code(inputs$w_prob))), collapse = " and ")
     ),
+    if (!is.null(inputs$fit_model)) "    fit_model_args = list(model = fit_model),",
     "    R = ci_draws,",
     sprintf(
       "    ci_type = %s, # %s", r_code(inputs$ci_type),
@@ -2502,6 +2532,7 @@ power4mome_script <- function(spec, result) {
     "    test_args = list(",
     paste0("      ", role_lines[1], " ", tested),
     if (length(role_lines) > 1) paste0("      ", role_lines[-1]),
+    if (difference) sprintf("      w_from = %s, w_to = %s, # the two values of W (in SDs)", r_code(args$w_from), r_code(args$w_to)),
     sprintf("      mc_ci = %s,", r_code(args$mc_ci)),
     sprintf("      boot_ci = %s,", r_code(args$boot_ci)),
     "      level = 1 - alpha, # confidence level",
