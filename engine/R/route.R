@@ -132,7 +132,9 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       spower_backend(spec, seed)
     },
-    "basic_test/chi_square_independence" = if (basic_test_method(spec) == "exact") {
+    "basic_test/chi_square_independence" = if (bayes_factor_test(spec)) {
+      bftable_backend(spec, seed)
+    } else if (basic_test_method(spec) == "exact") {
       pwr_backend(spec, seed)
     } else {
       spower_backend(spec, seed)

@@ -429,16 +429,19 @@ check_bayes_factor <- function(spec) {
         "remove it, or set 'target_test > method' to 'bayes_factor'."
       ))
     }
-    if (!is.null(spec$target_test$prior_concentration)) {
+    if (!is.null(spec$target_test$prior_concentration) || !is.null(spec$target_test$sampling_plan)) {
       return(paste0(
-        "'target_test > prior_concentration' is only used by the Bayes factor test of two proportions; ",
+        "'target_test > prior_concentration' and 'sampling_plan' are only used by the Bayes factor tests of proportions and tables; ",
         "remove it, or set 'target_test > method' to 'bayes_factor'."
       ))
     }
     return(character())
   }
+  if (bftable_test(spec)) {
+    return(check_bayes_table(spec))
+  }
   if (!bfprop_test(spec) && !is.null(spec$target_test$prior_concentration)) {
-    return("'target_test > prior_concentration' belongs to the Bayes factor test of two proportions; remove it.")
+    return("'target_test > prior_concentration' belongs to the Bayes factor tests of proportions and tables; remove it.")
   }
   if (bfbin_test(spec)) {
     return(check_bayes_binomial(spec))

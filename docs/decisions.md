@@ -4405,6 +4405,35 @@ Item 3 of `next.md`, with answers matching JASP's by default.
   default; tables larger than 2 x 2 (the chi-square card, E6) are left
   for later.
 
+## 2026-11-02 · Bayes factor test of a contingency table (E6)
+
+Part of item 2 of `next.md` (larger contingency tables), with answers
+matching JASP's by default.
+
+- **What JASP does.** Its Bayesian contingency tables call BayesFactor's
+  `contingencyTableBF()` with "Indep. multinomial, rows fixed" and prior
+  concentration 1 by default (jaspFrequencies'
+  `ContingencyTablesBayesian.qml`, read for the two-proportion test on
+  1 November). Poisson, joint multinomial and columns fixed are offered for
+  any table; hypergeometric for 2 x 2 tables only, so it is not offered
+  here.
+- **Power.** No package computes it, and the exact sum over every table is
+  out of reach beyond very small samples (a 3 x 2 table of 200 people has
+  billions of tables), unlike the 2 x 2 table with fixed group sizes. So
+  it is simulated: each study's table is drawn from the multinomial with
+  the cell probabilities and the total n, the design the chi-square card
+  assumes, scored by `contingencyTableBF()` itself (about 3 ms a table),
+  with Spower running the replications. The no-association side (the same
+  margins, cells their products) is simulated with the same number of
+  studies.
+- **Validation.** `test-validation-bayes-table.R` (chunk `bayes`) sums the
+  exact power and both no-association outcomes over every table at small
+  n (a 2 x 2 table of 40 with rows fixed, a 3 x 2 table of 20 with the
+  joint multinomial plan) and compares the simulation with them (passed
+  at 1,000 studies).
+- **Not built.** A design prior on the cell probabilities, and the
+  hypergeometric plan.
+
 ## 2026-11-02 · Joint power for multisite trials
 
 Part of item 1 of `next.md` (nested designs).

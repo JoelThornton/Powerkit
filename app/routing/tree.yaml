@@ -972,9 +972,11 @@ endpoints:
     plain_name: "Test whether two sets of categories are related"
     search_words: "crosstab contingency table"
     template: "basic_test / chi_square_independence"
-    backend: "pwr: pwr.chisq.test() (Spower simulation if you choose it)"
-    method: "Formula (no simulation)"
-    inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w"]
+    backend: "pwr: pwr.chisq.test() (Spower simulation if you choose it); BayesFactor's contingencyTableBF() for the Bayes factor, simulated with Spower"
+    method: "Formula (no simulation); simulation for the Bayes factor"
+    inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w", "The chi-square test or a Bayes factor"]
+    card_points:
+      - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: powerkit simulates the chance of strong evidence, with JASP's default sampling plan and prior."
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP

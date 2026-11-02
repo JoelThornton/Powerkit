@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-02"
+    title: "A Bayes factor for tables of any size"
+    text: >-
+      The chi-square card now has a Bayes factor version, the one JASP's
+      Bayesian contingency tables compute, with JASP's default sampling
+      plan and prior. It gives the chance of strong evidence that the two
+      sets of categories are related, simulated from your table.
+  - date: "2026-11-02"
     title: "Joint power for multisite trials"
     text: >-
       When your study plan compares the same two conditions within each

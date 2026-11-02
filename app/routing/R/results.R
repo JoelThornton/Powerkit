@@ -235,7 +235,7 @@ test_text <- function(spec) {
     return(sprintf("%s at alpha = %s", sem_test_name(spec), alpha_text(spec$target_test$alpha)))
   }
   alt <- spec$target_test$alternative %||% "two_sided"
-  if (is_bayes_anova(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
+  if (is_bayes_anova(spec) || is_bayes_table(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
   if (is_bayes_test(spec)) {
     side <- switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
     return(sprintf("%s (%s; %s)", bayes_test_name(spec), side, bayes_settings_text(spec)))
@@ -1593,6 +1593,12 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_concentration %||% 1, 3)),
       if (isTRUE(all.equal(tt$prior_concentration %||% 1, 1))) ", as in JASP" else ""))
   }
+  if (is_bayes_table(spec)) {
+    plan <- tt$sampling_plan %||% "rows_fixed"
+    return(sprintf("strong evidence: BF10 of at least %s; contingency table Bayes factor, %s, prior concentration %s%s",
+      format(tt$evidence_threshold %||% 10), bayes_plan_words[[plan]], format(signif(tt$prior_concentration %||% 1, 3)),
+      if (identical(plan, "rows_fixed") && isTRUE(all.equal(tt$prior_concentration %||% 1, 1))) ", as in JASP" else ""))
+  }
   if (is_bayes_anova(spec)) {
     return(sprintf("strong evidence: BF10 of at least %s; Cauchy prior on the group effects, r scale %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.5, 3)),
@@ -1605,6 +1611,17 @@ bayes_settings_text <- function(spec) {
 # The Bayes factor one-way ANOVA (BayesFactor's oneWayAOV.Fstat()): no
 # direction, and JASP's r scale of 0.5 by default.
 is_bayes_anova <- function(spec) is_bayes_test(spec) && identical(spec$template, "oneway_between")
+
+# The Bayes factor test of a table (BayesFactor's contingencyTableBF(),
+# simulated): no direction, JASP's sampling plan by default.
+is_bayes_table <- function(spec) is_bayes_test(spec) && identical(spec$template, "chi_square_independence")
+
+bayes_plan_words <- list(
+  rows_fixed = "the first variable's totals fixed",
+  columns_fixed = "the second variable's totals fixed",
+  joint_multinomial = "only the total fixed (joint multinomial)",
+  poisson = "no total fixed (Poisson)"
+)
 
 is_bayes_binomial <- function(spec) is_bayes_test(spec) && identical(spec$template, "one_proportion")
 is_bayes_correlation <- function(spec) is_bayes_test(spec) && identical(spec$template, "correlation")
@@ -1621,7 +1638,8 @@ bayes_test_name <- function(spec) {
     one_sample_t = "a one-sample Bayes factor t-test",
     paired_t = "a paired-samples Bayes factor t-test",
     independent_t = "an independent-samples Bayes factor t-test",
-    oneway_between = "a Bayes factor one-way ANOVA")
+    oneway_between = "a Bayes factor one-way ANOVA",
+    chi_square_independence = "a Bayes factor test of association")
 }
 
 # Results in Bayes factor terms: what the chance is a chance of, and what
@@ -1647,7 +1665,10 @@ bayes_sentence <- function(spec, result) {
       "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the study's assurance:",
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
       "(O'Hagan, Stevens and Campbell, 2005)."), format(b$effect_sd)),
-    if (b$evidence_for_null > 0) sprintf(
+    if (!is.null(b$null_nrep)) sprintf(
+      "If there were no association, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an association %s of the time (from %s simulated studies with no association).",
+      whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence), whole(b$null_nrep)
+    ) else if (b$evidence_for_null > 0) sprintf(
       "If there were no effect, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an effect %s of the time.",
       whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence)
     ) else sprintf(
@@ -2149,6 +2170,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     tt <- spec$target_test
     test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and prior concentration %s, as in JASP, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_concentration %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_table(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("a Bayes factor test of association (a contingency table Bayes factor with %s and prior concentration %s, testing %s, computed with BayesFactor and simulated with Spower; strong evidence defined as BF10 ≥ %s)",
+      bayes_plan_words[[tt$sampling_plan %||% "rows_fixed"]], format(signif(tt$prior_concentration %||% 1, 3)),
+      result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_anova(spec)) {
     tt <- spec$target_test
     test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",

@@ -128,9 +128,19 @@ bfpwr_null_side <- function(inputs, n) {
 
 # The Bayes factor settings and the no-effect side, for the result
 # (run_spec()); NULL for every other test.
-bayes_summary <- function(spec, n) {
+bayes_summary <- function(spec, n, backend = NULL, nrep = NULL, seed = NULL) {
   if (!bayes_factor_test(spec) || is.null(n) || is.na(n)) {
     return(NULL)
+  }
+  if (bftable_test(spec)) {
+    # Simulated: the no-association side with as many studies as the
+    # power, under the run's seed.
+    inputs <- bftable_inputs(spec)
+    return(c(
+      list(evidence_threshold = inputs$threshold, prior_concentration = inputs$a, sampling_plan = inputs$plan,
+        effect_sd = 0, n = n, hypotheses = bftable_hypotheses_words(inputs)),
+      backend$null_side(n, nrep, seed %||% 1L)
+    ))
   }
   if (bfbin_test(spec)) {
     inputs <- bfbin_inputs(spec)
@@ -208,6 +218,9 @@ bfpwr_script <- function(spec, result) {
   if (bfcor_test(spec)) {
     return(bfcor_script(spec, result))
   }
+  if (bftable_test(spec)) {
+    return(bftable_script(spec, result))
+  }
   if (bfprop_test(spec)) {
     return(bfprop_script(spec, result))
   }
@@ -257,7 +270,7 @@ bayes_goal_inputs <- function(spec) {
       sample_size = sprintf("target_power <- %s # target probability that BF10 reaches the threshold", r_code(goal$power)),
       power = sprintf("n_total <- %s # total sample size (every participant analysed)", r_code(goal$n))
     ),
-    "# bfpwr's calculations draw no random numbers, so powerkit's seed isn't used."
+    "# The calculation draws no random numbers, so powerkit's seed isn't used."
   )
 }
 
@@ -268,6 +281,9 @@ bayes_design_description <- function(spec, label, levels) {
   }
   if (bfcor_test(spec)) {
     return(bfcor_design_description(spec, label))
+  }
+  if (bftable_test(spec)) {
+    return(bftable_design_description(spec, label, levels))
   }
   if (bfprop_test(spec)) {
     return(bfprop_design_description(spec, label, levels))

@@ -13,7 +13,7 @@ form_examples <- list(
   E5 = c(list(X_label = "Reminder", X_level1 = "No reminder", X_level2 = "Text reminder", Y_label = "Attended",
               p1 = "0.6", p2 = "0.7", allocation_ratio = "1", method = "z_test", alternative = "two_sided"), closing_ok),
   E6 = c(list(X_label = "Attachment style", X_levels = "Secure, Anxious, Avoidant", Y_label = "Relationship status",
-              Y_levels = "Single, In a relationship", probabilities = "0.3, 0.25\n0.12, 0.08\n0.15, 0.1"), closing_ok),
+              Y_levels = "Single, In a relationship", probabilities = "0.3, 0.25\n0.12, 0.08\n0.15, 0.1", method = "pearson_chi_square"), closing_ok),
   E7 = c(list(A_label = "Feedback", A_level1 = "None", A_level2 = "Praise", B_label = "Task difficulty",
               B_level1 = "Easy", B_level2 = "Hard", Y_label = "Persistence (minutes)", metric = "raw",
               m11 = "10", m12 = "10", m21 = "10", m22 = "13", sd_mode = "one", sd = "6", effect = "interaction", method = "exact"), closing_ok),
