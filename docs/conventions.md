@@ -1676,6 +1676,17 @@ Wired into the app on 18 October 2026 (E25, E26).*
   t approximation, not the permuted test). Tests:
   `test-backend-brunner-munzel.R`; `test-validation-brunner-munzel.R`
   [powerkit, `docs/decisions.md`].
+- **The aligned rank transform (E7, E21 and E22's test version): ARTool's
+  Type III tests.** G\*Power has no aligned rank transform, so nothing is
+  departed from. Each cell's scores are its mean plus its SD times a draw
+  of the chosen shape, as the cell means and SDs are entered for the
+  ANOVA. The test is ARTool's: `art()` aligns and ranks the scores for
+  each effect, and the effect's F test is the Type III row its `anova()`
+  reports (sum-to-zero contrasts), which powerkit reads through
+  `artlm()` and car's `Anova(type = 3)` for the one effect tested; a test
+  shows the two agree, with equal and unequal cells. Tests:
+  `test-backend-art.R`; `test-validation-art.R` [powerkit,
+  `docs/decisions.md`].
 
 ### 8. MANOVA: simulated, where G\*Power uses a formula
 

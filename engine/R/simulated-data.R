@@ -474,6 +474,29 @@ sim_rank_code <- function(spec, n) {
         ")"
       )
     },
+    # The aligned rank transform: each cell's scores its mean plus its SD
+    # times a draw of the chosen shape (art_scores()), n times its share.
+    "2x2_between" = ,
+    factorial_between = {
+      cells <- art_cells(spec)
+      a <- sim_levels(spec, "A")
+      b <- sim_levels(spec, "B")
+      grid <- expand.grid(b = seq_along(b), a = seq_along(a))
+      index <- cbind(grid$a, grid$b)
+      sizes <- round(n / sum(cells$n.ratios) * cells$n.ratios[index])
+      c(
+        sprintf("cells <- data.frame(A = %s, B = %s)", r_code(a[grid$a]), r_code(b[grid$b])),
+        sprintf("cells$mean <- %s # each cell's mean", r_code(cells$means[index])),
+        sprintf("cells$sd <- %s # each cell's SD", r_code(cells$sds[index])),
+        sprintf("cells$size <- %s # each cell's number of people", r_code(sizes)),
+        "rows <- cells[rep(seq_len(nrow(cells)), cells$size), ]",
+        "simulated <- data.frame(",
+        sprintf("  %s = rows$A,", sim_label(spec, "A")),
+        sprintf("  %s = rows$B,", sim_label(spec, "B")),
+        sprintf("  %s = rows$mean + rows$sd * draw(nrow(rows))", y),
+        ")"
+      )
+    },
     # Friedman's test: one row per participant, one column per condition;
     # each score the condition's mean, the person's level and a deviation in
     # the chosen shape (friedman_scores()).

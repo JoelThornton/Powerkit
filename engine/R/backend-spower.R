@@ -31,7 +31,9 @@ spower_backend <- function(spec, seed = NULL) {
       # p_jonckheere() calls PMCMRplus's jonckheereTest().
       if (jonckheere_test(spec)) "PMCMRplus",
       # p_brunner_munzel() calls brunnermunzel's brunnermunzel.test().
-      if (brunner_munzel_test(spec)) "brunnermunzel"
+      if (brunner_munzel_test(spec)) "brunnermunzel",
+      # p_art() calls ARTool's art() and artlm(), then car's Anova().
+      if (aligned_rank_test(spec)) c("ARTool", "car")
     ),
     methods = "simulation",
     default_method = "simulation",
@@ -264,6 +266,20 @@ rank_test_inputs <- function(spec, first_group) {
       args = function(n) list(n = n, means = means, r = pop$r, shape = shape)
     ))
   }
+  # The aligned rank transform ANOVA: powerkit's own experiment, p_art(),
+  # on the cells of a two-factor between-participants design
+  # (art_scores()). The experiment's n is one share of the total: each
+  # cell has n times its share (options > cell_ratio; 1 each for equal
+  # cells).
+  if (aligned_rank_test(spec)) {
+    cells <- art_cells(spec)
+    shape <- pop$score_shape %||% "normal"
+    term <- art_term(spec$target_test$effect)
+    return(list(
+      experiment = "p_art", own = TRUE, rank = "art", draw = draw,
+      args = function(n) list(n = n / sum(cells$n.ratios), means = cells$means, sds = cells$sds, n.ratios = cells$n.ratios, shape = shape, term = term)
+    ))
+  }
   if (identical(spec$template, "oneway_between")) {
     k <- length(spec$variables$A$levels)
     means <- as.numeric(unlist(pop$means)) / pop$sd
@@ -338,6 +354,9 @@ score_shape_words <- function(shape) {
 }
 
 rank_test_description <- function(test, template, alternative) {
+  if (identical(test$experiment, "p_art")) {
+    return("Spower::Spower(p_art()) (ARTool::art(), ARTool::artlm(), car::Anova(type = 3))")
+  }
   if (identical(template, "oneway_within")) {
     return("Spower::Spower(p_friedman()) (stats::friedman.test())")
   }
@@ -429,6 +448,55 @@ sd_ratio_row <- function(first, second, specified) {
 p_brunner_munzel <- function(n, n2_n1, d, sd_ratio, shape, alternative = "two.sided") {
   g <- brunner_munzel_scores(n, n2_n1, d, sd_ratio, shape)
   brunnermunzel::brunnermunzel.test(g$first, g$second, alternative = alternative)$p.value
+}
+
+# The cells of a two-factor between-participants design for the aligned
+# rank transform, as a x b matrices (rows: A's levels): the means and SDs
+# in the outcome's units (one SD is used in every cell) and each cell's
+# share of the sample (options > cell_ratio, or 1 each).
+art_cells <- function(spec) {
+  pop <- spec$population
+  to_matrix <- function(x) do.call(rbind, lapply(x, function(row) as.numeric(unlist(row))))
+  means <- to_matrix(pop$means)
+  sds <- if (is.list(pop$sd) || length(pop$sd) > 1) to_matrix(pop$sd) else matrix(pop$sd, nrow(means), ncol(means))
+  ratios <- if (is.null(spec$options$cell_ratio)) matrix(1, nrow(means), ncol(means)) else to_matrix(spec$options$cell_ratio)
+  list(means = means, sds = sds, n.ratios = ratios)
+}
+
+# The term of ARTool's model for the effect tested.
+art_term <- function(effect) {
+  switch(effect, main_effect_A = "A", main_effect_B = "B", interaction = "A:B")
+}
+
+# Scores for the aligned rank transform: n times its share in each cell,
+# each the cell's mean plus its SD times a draw of the chosen shape (SD 1).
+# Cells are drawn row by row (A's first level with each of B's levels in
+# turn, then A's second level, ...); the exported script draws in the same
+# order.
+art_scores <- function(n, means, sds, n.ratios, shape) {
+  draw <- score_shape_sampler(shape)
+  cells <- expand.grid(b = seq_len(ncol(means)), a = seq_len(nrow(means)))
+  rows <- lapply(seq_len(nrow(cells)), function(i) {
+    a <- cells$a[i]
+    b <- cells$b[i]
+    size <- round(n * n.ratios[a, b])
+    data.frame(A = a, B = b, Y = means[a, b] + sds[a, b] * draw(size))
+  })
+  data <- do.call(rbind, rows)
+  data$A <- factor(data$A, levels = seq_len(nrow(means)))
+  data$B <- factor(data$B, levels = seq_len(ncol(means)))
+  data
+}
+
+# Spower experiment for the aligned rank transform ANOVA: ARTool's art()
+# aligns and ranks the scores for every effect, artlm() gives the linear
+# model for the effect tested (sum-to-zero contrasts, its default), and
+# car's Anova() its Type III F test, the row anova() on art()'s model
+# reports (checked in test-backend-art.R).
+p_art <- function(n, means, sds, n.ratios, shape, term) {
+  data <- art_scores(n, means, sds, n.ratios, shape)
+  model <- ARTool::art(Y ~ A * B, data = data)
+  car::Anova(ARTool::artlm(model, term), type = 3)[term, "Pr(>F)"]
 }
 
 p_jonckheere <- function(n, k, means, gen_fun, n.ratios = rep(1, k), alternative = "two.sided") {
@@ -734,6 +802,18 @@ rank_check_run <- function(spec, args, seed) {
         rep(1 / sqrt(2 * (nrow(y) - 1)), ncol(y))),
       r_row
     ))
+  }
+  if (aligned_rank_test(spec)) {
+    data <- call_backend("Spower", with_seed(seed, art_scores(args$n, args$means, args$sds, args$n.ratios, args$shape)))
+    a_levels <- unlist(spec$variables$A$levels)
+    b_levels <- unlist(spec$variables$B$levels)
+    cells <- expand.grid(b = seq_along(b_levels), a = seq_along(a_levels))
+    labels <- sprintf("mean of %s, %s", a_levels[cells$a], b_levels[cells$b])
+    index <- cbind(cells$a, cells$b)
+    by_cell <- split(data$Y, list(data$A, data$B))
+    recovered <- vapply(seq_len(nrow(cells)), function(i) mean(by_cell[[paste(cells$a[i], cells$b[i], sep = ".")]]), numeric(1))
+    sizes <- vapply(seq_len(nrow(cells)), function(i) length(by_cell[[paste(cells$a[i], cells$b[i], sep = ".")]]), numeric(1))
+    return(check_run_rows(labels, args$means[index], recovered, args$sds[index] / sqrt(sizes)))
   }
   if (brunner_munzel_test(spec)) {
     g <- call_backend("Spower", with_seed(seed, brunner_munzel_scores(args$n, args$n2_n1, args$d, args$sd_ratio, args$shape)))

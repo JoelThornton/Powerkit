@@ -572,6 +572,13 @@ tested_mediator_words <- function(spec, label) {
 
 rank_design_description <- function(spec, label, levels) {
   v <- spec$variables
+  if (aligned_rank_test(spec)) {
+    test <- sprintf(
+      "aligned rank transform ANOVA of %s: the %s, %s (%s) by %s (%s), both between participants",
+      label("Y"), anova_effect_name(spec), label("A"), levels("A"), label("B"), levels("B")
+    )
+    return(sprintf("%s, simulated with %s", test, score_shape_words(spec$population$score_shape)))
+  }
   test <- switch(
     spec$template,
     one_sample_t = sprintf("one-sample Wilcoxon signed-rank test of %s", label("Y")),
@@ -1458,6 +1465,13 @@ spower_script_inputs <- function(spec) {
 }
 
 spower_group_size_lines <- function(spec) {
+  if (aligned_rank_test(spec)) {
+    return(c(
+      "  # The experiment's n is one share of the total: each cell has n times",
+      "  # its share in cell_ratio.",
+      "  n_share <- batch_n / sum(cell_ratio)"
+    ))
+  }
   if (jonckheere_test(spec) || spec$template == "proportion_trend") {
     return(c(
       "  # The experiment's n is one share of the total: each group has n times",
@@ -1802,6 +1816,20 @@ rank_script_inputs <- function(spec) {
     "score_shape <- %s # the shape of the scores: %s",
     r_code(pop$score_shape %||% "normal"), score_shape_words(pop$score_shape)
   )
+  if (aligned_rank_test(spec)) {
+    cells <- art_cells(spec)
+    a <- nrow(cells$means)
+    rows <- sprintf("one row per level of %s (%s), one column per level of %s (%s)",
+      comment_text(v$A$label), paste(comment_text(unlist(v$A$levels)), collapse = ", "),
+      comment_text(v$B$label), paste(comment_text(unlist(v$B$levels)), collapse = ", "))
+    return(c(
+      sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE) # cell means: %s", r_code(as.numeric(t(cells$means))), a, rows),
+      sprintf("sds <- matrix(%s, nrow = %d, byrow = TRUE) # each cell's SD, in the same layout", r_code(as.numeric(t(cells$sds))), a),
+      sprintf("cell_ratio <- matrix(%s, nrow = %d, byrow = TRUE) # each cell's share of the sample", r_code(as.numeric(t(cells$n.ratios))), a),
+      sprintf("term <- %s # the effect tested: %s", r_code(art_term(spec$target_test$effect)), anova_effect_name(spec)),
+      shape
+    ))
+  }
   effect <- switch(
     spec$template,
     one_sample_t = sprintf(
@@ -1852,6 +1880,29 @@ rank_derived_lines <- function(spec) {
     "  )",
     "}"
   )
+  if (aligned_rank_test(spec)) {
+    return(c(draw, "",
+      "# The experiment, as powerkit runs it: n times its share in each cell,",
+      "# each score the cell's mean plus its SD times a draw of the chosen shape,",
+      "# the cells drawn row by row (the first level of A with each level of B in",
+      "# turn, then the second level of A, ...). ARTool's art() aligns and ranks",
+      "# the scores for every effect, artlm() gives the model for the effect",
+      "# tested, and car's Anova() its Type III F test (the row anova() on",
+      "# art()'s model reports).",
+      "p_art <- function(n, means, sds, n.ratios, term) {",
+      "  cells <- expand.grid(b = seq_len(ncol(means)), a = seq_len(nrow(means)))",
+      "  data <- do.call(rbind, lapply(seq_len(nrow(cells)), function(i) {",
+      "    a <- cells$a[i]",
+      "    b <- cells$b[i]",
+      "    data.frame(A = a, B = b, Y = means[a, b] + sds[a, b] * draw_scores(round(n * n.ratios[a, b])))",
+      "  }))",
+      "  data$A <- factor(data$A, levels = seq_len(nrow(means)))",
+      "  data$B <- factor(data$B, levels = seq_len(ncol(means)))",
+      "  model <- ARTool::art(Y ~ A * B, data = data)",
+      "  car::Anova(ARTool::artlm(model, term), type = 3)[term, \"Pr(>F)\"]",
+      "}"
+    ))
+  }
   rest <- switch(
     spec$template,
     one_sample_t = c(
@@ -1918,6 +1969,16 @@ rank_derived_lines <- function(spec) {
 }
 
 rank_experiment_lines <- function(spec, inputs, one_sided) {
+  if (aligned_rank_test(spec)) {
+    args <- ensure_commas(c(
+      "n = n_share, # one share of the total",
+      "means = means, # cell means",
+      "sds = sds, # cell SDs",
+      "n.ratios = cell_ratio, # each cell's share",
+      "term = term"
+    ))
+    return(c(sprintf("%s(", inputs$experiment), paste0("  ", args), "),"))
+  }
   args <- switch(
     spec$template,
     one_sample_t = c(

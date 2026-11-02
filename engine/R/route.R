@@ -36,7 +36,8 @@ route_spec <- function(spec, seed = NULL) {
       # The Bayes factor ANOVA, exactly, via BayesFactor.
       bfanova_backend(spec, seed)
     } else if (rank_test(spec) || welch_anova(spec)) {
-      # The Kruskal-Wallis test and Welch's F, simulated with Spower.
+      # The Kruskal-Wallis test, Welch's F and the aligned rank transform
+      # (2 x 2 between), simulated with Spower.
       spower_backend(spec, seed)
     } else {
       superpower_backend(spec, seed)
@@ -47,7 +48,12 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       superpower_backend(spec, seed)
     },
-    "factorial_anova/factorial_between" = ,
+    "factorial_anova/factorial_between" = if (rank_test(spec)) {
+      # The aligned rank transform ANOVA, simulated with Spower.
+      spower_backend(spec, seed)
+    } else {
+      superpower_backend(spec, seed)
+    },
     "factorial_anova/factorial_within" = ,
     "factorial_anova/factorial_three" = superpower_backend(spec, seed),
     "factorial_anova/oneway_ancova" = ,

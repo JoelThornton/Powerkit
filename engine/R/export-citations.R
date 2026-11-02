@@ -116,6 +116,12 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       },
       if ("brunnermunzel" %in% used) {
         list(s("brunnermunzel", "whose brunnermunzel.test() is the Brunner-Munzel test powerkit's experiment runs"))
+      },
+      if ("ARTool" %in% used) {
+        list(
+          s("ARTool", "whose art() and artlm() are the aligned rank transform powerkit's experiment runs"),
+          s("car", "whose Anova() gives the aligned rank transform's Type III F test")
+        )
       }
     ),
     Superpower = list(

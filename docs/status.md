@@ -143,7 +143,8 @@ fully validated. Validation runs are recorded in
   the Wilcoxon, Mann-Whitney and Kruskal-Wallis tests, Friedman's test (E54,
   31 October 2026), Spearman's and Kendall's correlations (E4) and, since
   2 November 2026, the Brunner-Munzel test (E2), for groups whose spreads
-  may differ.
+  may differ, and the aligned rank transform ANOVA (E7, E21, E22: two
+  between-participants factors).
 - **Pairwise comparisons** after a one-way ANOVA (E18, E54): the power of a
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).

@@ -1771,6 +1771,40 @@ test_that("the Brunner-Munzel test (E2's test version) asks for the SD ratio and
   expect_match(w[["short"]], "Brunner-Munzel", fixed = TRUE)
 })
 
+test_that("the aligned rank transform (E7, E21 and E22's test version) builds Spower specs and names its test", {
+  by_id <- function(fields, id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  for (ep in c("E7", "E21", "E22")) {
+    fields <- form_fields(form_groups(forms, ep))
+    expect_true(field_applies(by_id(fields, "score_shape"), list(test_version = "aligned_rank_transform")), info = ep)
+    expect_false(field_applies(by_id(fields, "score_shape"), list(test_version = "anova_f")), info = ep)
+    values <- modifyList(form_examples[[ep]], list(test_version = "aligned_rank_transform", score_shape = "skewed", method = NULL, goal = "power", n = "80"))
+    expect_equal(form_problems(fields, values), character(), info = ep)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_identical(spec$target_test$method, "aligned_rank_transform", info = ep)
+    expect_identical(spec$population$score_shape, "skewed", info = ep)
+    expect_null(spec$options$method, info = ep)
+    expect_match(rank_test_name(spec), "an aligned rank transform ANOVA of", fixed = TRUE, info = ep)
+    # Superpower's departures (the exact dataset, the interaction's exact F
+    # test) don't apply.
+    expect_false(any(c("1", "3") %in% names(departures_for(forms, ep, spec))), info = ep)
+    # The ANOVA itself has no shape question.
+    plain <- build_spec(forms, ep, fields, form_examples[[ep]])
+    expect_null(plain$population$score_shape, info = ep)
+  }
+  expect_true(field_applies(by_id(form_fields(form_groups(forms, "E7")), "method"), list(test_version = "anova_f")))
+  expect_false(field_applies(by_id(form_fields(form_groups(forms, "E7")), "method"), list(test_version = "aligned_rank_transform")))
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E7"))
+  values <- modifyList(form_examples$E7, list(test_version = "aligned_rank_transform", score_shape = "skewed", method = NULL, goal = "power", n = "80"))
+  spec <- build_spec(forms, "E7", fields, values)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E7"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "aligned rank transform", fixed = TRUE)
+})
+
 test_that("Friedman's test on E54 and shaped scores for the rank correlations on E4 reach the engine and the write-up", {
   fields <- form_fields(form_groups(forms, "E54"))
   values <- modifyList(form_examples$E54, list(test_version = "friedman", score_shape = "skewed", method = NULL, goal = "power", n = "30"))

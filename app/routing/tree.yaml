@@ -983,17 +983,19 @@ endpoints:
     tier: MVP
     alternatives: ["the chi-square test with or without a continuity correction (2 x 2 tables)", "Fisher's exact test", "a likelihood-ratio (G) test"]
   E7:
+    rank_test: "the aligned rank transform"
+    rank_test_simulated: true
     doc_name: "2 x 2 between-participants ANOVA (main effect or interaction)"
     plain_name: "Two factors crossed, different people in each of the four groups"
     search_words: "factorial two way anova"
     template: "factorial_anova / 2x2_between"
-    backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen)"
+    backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
-    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test or the aligned rank transform"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-between.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
     tier: MVP
-    alternatives: ["tests of the simple effects", "a planned contrast"]
+    alternatives: ["tests of the simple effects", "a planned contrast", "the aligned rank transform, if you analyse ranks"]
   E8:
     doc_name: "2 x 2 mixed ANOVA (incl. group × time)"
     plain_name: "One factor between people, one within (including group x time)"
@@ -1209,11 +1211,13 @@ endpoints:
     tier: v2
     alternatives: ["planned contrasts, such as the interaction's linear trend", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
   E21:
+    rank_test: "the aligned rank transform"
+    rank_test_simulated: true
     doc_name: "Larger factorial ANOVA, different people in every cell (2 x 3, 3 x 3, ...)"
     plain_name: "Factorial designs bigger than 2 x 2, with different people in every group"
     search_words: "factorial two way anova 2x3 3x3"
     template: "factorial_anova / factorial_between"
-    backend: "Superpower: ANOVA_design(\"kb*mb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
+    backend: "Superpower: ANOVA_design(\"kb*mb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
     status: runs_validation_in_progress
     validation: {file: test-validation-anova-factorial.R, note: "Matches Superpower's ANOVA_exact() called directly in the engine's tests, for both main effects and the interaction. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
@@ -1221,15 +1225,17 @@ endpoints:
       - "Two factors crossed, with different people in every combination (cell), and at least one factor with three or more levels, such as feedback (none or praise) by task difficulty (easy, medium or hard)."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
       - "powerkit assumes the same number of people and the same SD in every cell. For three factors, use the three-factor ANOVA."
-    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect", "The F test or the aligned rank transform"]
     tier: v2
-    alternatives: ["planned contrasts, such as a linear trend in one factor at each level of the other", "simple effects, one factor at each level of the other"]
+    alternatives: ["planned contrasts, such as a linear trend in one factor at each level of the other", "simple effects, one factor at each level of the other", "the aligned rank transform, if you analyse ranks"]
   E22:
+    rank_test: "the aligned rank transform"
+    rank_test_simulated: true
     doc_name: "2 x 2 ANOVA with unequal group sizes"
     plain_name: "A 2 x 2 design where the groups differ in size"
     search_words: "unbalanced two way anova"
     template: "factorial_anova / 2x2_between, options > cell_ratio"
-    backend: "Superpower: ANOVA_power() with one n per cell (simulation)"
+    backend: "Superpower: ANOVA_power() with one n per cell (simulation); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: Simulation
     status: runs_validation_in_progress
     validation: {file: test-validation-anova-unequal.R, note: "Agrees with pwrss's Shieh formula with one covariate that explains nothing (the independent check chosen for unequal cells) and with Superpower called directly, in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
@@ -1238,10 +1244,10 @@ endpoints:
       - "You give the four expected means, the SD and each group's size (or their ratio, such as 2, 2, 1, 1); the total is split in that ratio."
       - "Effects are tested with Type III sums of squares, as Superpower, SPSS and jamovi do by default; with unequal groups, main effects can differ from a Type II analysis."
       - "Simulated, so the answer carries a little random error. Both factors are between participants here; for unequal groups with a factor measured in everyone, use the mixed ANOVA card."
-    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The size of each group"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test or the aligned rank transform", "The size of each group"]
     refs: "decision N3; docs/conventions.md, 'Superpower and unequal group sizes'"
     tier: v2
-    alternatives: ["tests of the simple effects", "a planned contrast"]
+    alternatives: ["tests of the simple effects", "a planned contrast", "the aligned rank transform, if you analyse ranks"]
   E23:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
     plain_name: "Compare groups adjusting for a covariate (e.g. the before score)"

@@ -13,6 +13,7 @@ library(psych)     # safeguard power's confidence interval
 
 # Backends
 library(afex)        # mixed designs with unequal groups (aov_car())
+library(ARTool) # the aligned rank transform ANOVA (art(), artlm())
 library(BayesFactor) # the correlation Bayes factor (correlationBF())
 library(bfpwr)
 library(brunnermunzel) # the Brunner-Munzel test (brunnermunzel.test())
