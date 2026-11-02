@@ -33,7 +33,9 @@ spower_backend <- function(spec, seed = NULL) {
       # p_brunner_munzel() calls brunnermunzel's brunnermunzel.test().
       if (brunner_munzel_test(spec)) "brunnermunzel",
       # p_art() calls ARTool's art() and artlm(), then car's Anova().
-      if (aligned_rank_test(spec)) c("ARTool", "car")
+      if (aligned_rank_test(spec)) c("ARTool", "car"),
+      # p_negative_binomial() fits MASS's glm.nb().
+      if (negative_binomial_test(spec)) "MASS"
     ),
     methods = "simulation",
     default_method = "simulation",
@@ -191,6 +193,20 @@ spower_inputs <- function(spec) {
     # coding), whose coefficients reproduce the cell proportions exactly,
     # and tests the effect's coefficients jointly (car::lht(), the Wald
     # chi-square test, as car::Anova(type = 3) would).
+    # Negative binomial regression of a count: powerkit's own experiment,
+    # p_negative_binomial(), draws the predictor, any other predictor and
+    # the counts (negative_binomial_data()) and returns the Wald z test of
+    # the predictor's coefficient in MASS's glm.nb().
+    single_predictor_count = list(
+      experiment = "p_negative_binomial", own = TRUE,
+      args = function(n) {
+        list(
+          n = n, rate_ratio = pop$rate_ratio, base_rate = pop$base_rate, dispersion = pop$dispersion,
+          exposure = pop$mean_exposure %||% 1, binary = identical(spec$variables$X$type, "binary"),
+          x_prob = pop$x_prob %||% 0.5, r2_other = pop$r2_other_predictors %||% 0
+        )
+      }
+    ),
     factorial = {
       design <- logistic_factorial_design(spec)
       list(
@@ -209,6 +225,9 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+  } else if (identical(template, "single_predictor_count")) {
+    sprintf("Spower::Spower(p_negative_binomial(%s)) (MASS::glm.nb(), the Wald z test of the predictor)",
+      if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
   } else if (identical(template, "proportion_trend")) {
     sprintf("Spower::Spower(p_cochran_armitage(%s)) (stats::prop.trend.test(), the Cochran-Armitage test)",
       if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
@@ -499,6 +518,43 @@ p_art <- function(n, means, sds, n.ratios, shape, term) {
   car::Anova(ARTool::artlm(model, term), type = 3)[term, "Pr(>F)"]
 }
 
+# Data for negative binomial regression: n people; the predictor x is a
+# standard normal score, or a yes/no group (0, 1) with round(n * x_prob) in
+# the second group, placed at random. With another predictor (r2_other
+# above 0), z is drawn so that x's R-squared on z is r2_other, and has no
+# effect of its own on the count, as the Poisson formula assumes. Each
+# count is negative binomial with mean exposure * base_rate *
+# rate_ratio^x and variance mu + dispersion * mu^2 (stats::rnbinom() with
+# size = 1 / dispersion). Drawn in this order: x, z, the counts.
+negative_binomial_data <- function(n, rate_ratio, base_rate, dispersion, exposure, binary, x_prob, r2_other) {
+  x <- if (binary) sample(rep(c(0, 1), c(n - round(n * x_prob), round(n * x_prob)))) else stats::rnorm(n)
+  data <- data.frame(x = x)
+  if (r2_other > 0) {
+    standard <- if (binary) (x - mean(x)) / stats::sd(x) else x
+    data$z <- sqrt(r2_other) * standard + sqrt(1 - r2_other) * stats::rnorm(n)
+  }
+  mu <- exposure * base_rate * rate_ratio^x
+  data$y <- stats::rnbinom(n, size = 1 / dispersion, mu = mu)
+  data$exposure <- exposure
+  data
+}
+
+# Spower experiment for negative binomial regression: MASS's glm.nb() of
+# the counts on x (and z), with log(exposure) as offset, and the Wald z
+# test of x's coefficient; one-sided in the direction asked ("greater":
+# the rate rises with x).
+p_negative_binomial <- function(n, rate_ratio, base_rate, dispersion, exposure, binary, x_prob, r2_other, alternative = "two.sided") {
+  data <- negative_binomial_data(n, rate_ratio, base_rate, dispersion, exposure, binary, x_prob, r2_other)
+  formula <- if (r2_other > 0) y ~ x + z + offset(log(exposure)) else y ~ x + offset(log(exposure))
+  fit <- MASS::glm.nb(formula, data = data)
+  z <- stats::coef(summary(fit))["x", "z value"]
+  switch(alternative,
+    two.sided = 2 * stats::pnorm(-abs(z)),
+    greater = stats::pnorm(z, lower.tail = FALSE),
+    less = stats::pnorm(z)
+  )
+}
+
 p_jonckheere <- function(n, k, means, gen_fun, n.ratios = rep(1, k), alternative = "two.sided") {
   groups <- gen_fun(n, k, n.ratios, means)
   g <- factor(rep(seq_len(k), lengths(groups)))
@@ -622,6 +678,29 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "factorial")) {
     return(logistic_factorial_check_run(spec, args, seed))
+  }
+  # Negative binomial regression: one large data set, fitted as each
+  # simulated one is; the rate ratio, base rate and dispersion recovered.
+  if (identical(spec$template, "single_predictor_count")) {
+    data <- call_backend("Spower", with_seed(seed, do.call(negative_binomial_data, args[setdiff(names(args), "alternative")])))
+    formula <- if (args$r2_other > 0) y ~ x + z + offset(log(exposure)) else y ~ x + offset(log(exposure))
+    # glm.nb() warns when theta grows without bound (almost no
+    # overdispersion); the rows below still show it.
+    fit <- call_backend("MASS", suppressWarnings(MASS::glm.nb(formula, data = data)))
+    est <- stats::coef(summary(fit))
+    rows <- rbind(
+      check_run_rows("rate ratio for X (checked on the log scale)", log(args$rate_ratio), est["x", "Estimate"], est["x", "Std. Error"]),
+      check_run_rows("base rate (checked on the log scale)", log(args$base_rate), est["(Intercept)", "Estimate"], est["(Intercept)", "Std. Error"]),
+      check_run_rows("dispersion k (1 / theta, checked on the log scale)", log(args$dispersion), -log(fit$theta), fit$SE.theta / fit$theta)
+    )
+    rows$specified[1:3] <- c(args$rate_ratio, args$base_rate, args$dispersion)
+    rows$recovered[1:3] <- exp(c(est["x", "Estimate"], est["(Intercept)", "Estimate"], -log(fit$theta)))
+    if (args$r2_other > 0) {
+      r2 <- stats::cor(data$x, data$z)^2
+      rows <- rbind(rows, data.frame(parameter = "R-squared of X on the other predictor", specified = args$r2_other, recovered = r2,
+        ok = abs(r2 - args$r2_other) <= 5 * 2 * sqrt(args$r2_other) * (1 - args$r2_other) / sqrt(nrow(data))))
+    }
+    return(rows)
   }
   # A trend in proportions: each group's proportion from one large draw.
   if (identical(spec$template, "proportion_trend")) {

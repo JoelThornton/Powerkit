@@ -4425,7 +4425,11 @@
             "properties": {
               "path": false,
               "method": {
-                "const": "wald_z"
+                "enum": [
+                  "wald_z",
+                  "negative_binomial"
+                ],
+                "description": "'wald_z': Poisson regression's Wald z test (pwrss's power.z.poisson()). 'negative_binomial': negative binomial regression's Wald z test, for counts more spread out than a Poisson distribution allows (population > dispersion), simulated with Spower (MASS's glm.nb())."
               }
             }
           }
@@ -5775,6 +5779,11 @@
             },
             "base_rate": {
               "description": "Expected number of events per unit of exposure when X is at its mean (a score) or in X's first level (a yes/no group).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "dispersion": {
+              "description": "Negative binomial regression only ('target_test > method' \"negative_binomial\"): the overdispersion k, so that a count with expected value mu has variance mu + k mu^2 (MASS's theta is 1 / k). 0 would be a Poisson distribution.",
               "type": "number",
               "exclusiveMinimum": 0
             },

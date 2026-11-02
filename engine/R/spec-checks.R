@@ -57,6 +57,7 @@ population_problems <- function(spec) {
     check_friedman(spec),
     check_jonckheere(spec),
     check_sd_ratio(spec),
+    check_dispersion(spec),
     check_within_covariance(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
@@ -127,6 +128,7 @@ uses_simulation <- function(spec) {
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
   bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
+    !negative_binomial_test(spec) &&
     !pairwise_comparison(spec) &&
     !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
@@ -194,7 +196,7 @@ simulation_available <- function(spec) {
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
   identical(spec$template, "paired_variances") || identical(spec$template, "manova") && !manova_two_groups(spec) || rank_test(spec) || welch_anova(spec) ||
-    rank_correlation(spec) || proportion_trend(spec)
+    rank_correlation(spec) || proportion_trend(spec) || negative_binomial_test(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
@@ -212,6 +214,26 @@ rank_test <- function(spec) {
 # two-factor between-participants templates: a rank-based test of each
 # main effect and the interaction.
 aligned_rank_test <- function(spec) identical(spec$target_test$method, "aligned_rank_transform")
+
+# Negative binomial regression of a count (MASS's glm.nb()), on the count
+# template: simulated with Spower by powerkit's own experiment.
+negative_binomial_test <- function(spec) identical(spec$target_test$method, "negative_binomial")
+
+# The overdispersion is an input to negative binomial regression only, and
+# it needs one.
+check_dispersion <- function(spec) {
+  given <- !is.null(spec$population$dispersion)
+  if (negative_binomial_test(spec) && !given) {
+    return(paste0(
+      "Negative binomial regression needs 'population > dispersion': the overdispersion k, with a count's variance ",
+      "mu + k mu^2 (for example 0.5; MASS's theta is 1 / k)."
+    ))
+  }
+  if (given && !negative_binomial_test(spec)) {
+    return("'population > dispersion' is only used by negative binomial regression ('target_test > method' \"negative_binomial\"); remove it.")
+  }
+  character()
+}
 
 # The Jonckheere-Terpstra test of a trend across groups in order (PMCMRplus's
 # jonckheereTest()), on the one-way between-participants template.

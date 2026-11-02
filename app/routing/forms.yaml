@@ -2752,6 +2752,15 @@ forms:
           - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)",
              shown_if: {field: X_type, is: binary}}
+      - input: "Poisson or negative binomial regression"
+        fields:
+          - {id: count_model, label: "Model for the counts", type: select, path: target_test.method, required: true,
+             choices: {wald_z: "Poisson regression (the counts vary as much as their average)", negative_binomial: "Negative binomial regression (the counts vary more than that), simulated"},
+             default: wald_z, default_source: "Poisson regression, the test G*Power and pwrss's power.z.poisson() compute",
+             help: "Counts of events often vary more between people than a Poisson distribution allows (some people have many, most few). If your earlier data show a variance well above the mean, choose negative binomial regression."}
+          - {id: dispersion, label: "Overdispersion k (variance = mean + k × mean²)", type: number, path: population.dispersion, required: true, min_exclusive: 0,
+             shown_if: {field: count_model, is: negative_binomial},
+             help: "From earlier data: k = (variance - mean) / mean². 0 would be Poisson; 0.5 or 1 is common for counts such as visits or symptoms. In MASS's glm.nb() output it is 1 / theta."}
       - input: "How much the other predictors overlap with this one"
         fields:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,

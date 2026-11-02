@@ -1805,6 +1805,27 @@ test_that("the aligned rank transform (E7, E21 and E22's test version) builds Sp
   expect_match(w[["short"]], "aligned rank transform", fixed = TRUE)
 })
 
+test_that("negative binomial regression (E28's model choice) asks for the overdispersion and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E28"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  expect_true(field_applies(by_id("dispersion"), list(count_model = "negative_binomial")))
+  expect_false(field_applies(by_id("dispersion"), list(count_model = "wald_z")))
+  plain <- build_spec(forms, "E28", fields, form_examples$E28)
+  expect_null(plain$population$dispersion)
+  values <- modifyList(form_examples$E28, list(count_model = "negative_binomial", dispersion = "0.5", goal = "power", n = "300"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E28", fields, values)
+  expect_identical(spec$target_test$method, "negative_binomial")
+  expect_equal(spec$population$dispersion, 0.5)
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E28"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "negative binomial regression", fixed = TRUE)
+})
+
 test_that("Friedman's test on E54 and shaped scores for the rank correlations on E4 reach the engine and the write-up", {
   fields <- form_fields(form_groups(forms, "E54"))
   values <- modifyList(form_examples$E54, list(test_version = "friedman", score_shape = "skewed", method = NULL, goal = "power", n = "30"))

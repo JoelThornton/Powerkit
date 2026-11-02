@@ -66,6 +66,11 @@
 
 A batch of new features, built as one round.
 
+* Negative binomial regression is a test version of
+  `single_predictor_count` (`target_test.method = "negative_binomial"`,
+  with the overdispersion in `population.dispersion`), simulated by
+  Spower with powerkit's experiment `p_negative_binomial()` around MASS's
+  `glm.nb()`. New validation chunk `negative_binomial`.
 * The aligned rank transform ANOVA is a test version of `2x2_between` and
   `factorial_between` (`target_test.method = "aligned_rank_transform"`,
   with `population.score_shape`), simulated by Spower with powerkit's

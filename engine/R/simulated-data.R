@@ -681,6 +681,11 @@ sim_glm_code <- function(spec, n) {
       "y <- %s[stats::rbinom(%d, 1, stats::plogis(stats::qlogis(%s) + log(%s) * x)) + 1]",
       r_code(sim_levels(spec, "Y")), n, r_code(pop$base_prob), r_code(pop$odds_ratio)
     )
+  } else if (negative_binomial_test(spec)) {
+    sprintf(
+      "y <- stats::rnbinom(%d, size = 1 / %s, mu = %s * %s * %s^x) # events over the mean exposure, overdispersion %s",
+      n, r_code(pop$dispersion), r_code(pop$mean_exposure %||% 1), r_code(pop$base_rate), r_code(pop$rate_ratio), format_number(pop$dispersion)
+    )
   } else {
     sprintf(
       "y <- stats::rpois(%d, %s * %s * %s^x) # events over the mean exposure",

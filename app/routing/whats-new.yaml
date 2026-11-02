@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-02"
+    title: "Counts that vary more than Poisson regression allows"
+    text: >-
+      The count outcome card now offers negative binomial regression, for
+      counts such as visits or symptoms where some people have many and
+      most have few. Give the overdispersion from earlier data (the form
+      shows how to work it out) and powerkit simulates the study.
+  - date: "2026-11-02"
     title: "A rank-based two-factor ANOVA"
     text: >-
       The two-factor ANOVA cards, with different people in every

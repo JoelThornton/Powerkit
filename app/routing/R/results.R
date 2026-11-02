@@ -2208,6 +2208,9 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  if (identical(spec$target_test$method, "negative_binomial")) {
+    name <- sprintf("a negative binomial regression (the Wald z test of one predictor, overdispersion k = %s), simulated", format(spec$population$dispersion))
+  }
   if (is_rank_test(spec)) name <- rank_test_name(spec)
   if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)
   if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"

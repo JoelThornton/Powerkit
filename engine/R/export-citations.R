@@ -122,6 +122,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
           s("ARTool", "whose art() and artlm() are the aligned rank transform powerkit's experiment runs"),
           s("car", "whose Anova() gives the aligned rank transform's Type III F test")
         )
+      },
+      if ("MASS" %in% used) {
+        list(s("MASS", "whose glm.nb() fits the negative binomial regression powerkit's experiment runs"))
       }
     ),
     Superpower = list(

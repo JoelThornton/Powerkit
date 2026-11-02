@@ -359,8 +359,8 @@ design_description <- function(spec) {
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
     "poisson_regression/single_predictor_count" = sprintf(
-      "Poisson regression of %s (a count) on %s%s: Wald z test of %s",
-      label("Y"), label("X"),
+      "%s regression of %s (a count) on %s%s: Wald z test of %s",
+      if (negative_binomial_test(spec)) "negative binomial" else "Poisson", label("Y"), label("X"),
       if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
@@ -1430,6 +1430,17 @@ spower_script_inputs <- function(spec) {
         r_code(t(logistic_factorial_probabilities(spec))), nrow(logistic_factorial_probabilities(spec))
       )
     ),
+    single_predictor_count = c(
+      sprintf("rate_ratio <- %s # rate ratio for %s: %s", r_code(pop$rate_ratio), comment_text(v$X$label),
+        if (identical(v$X$type, "binary")) sprintf("the rate in %s over the rate in %s", lv("X", 2), lv("X", 1)) else "the multiple of the rate per SD of the predictor"),
+      sprintf("base_rate <- %s # expected events per unit of exposure %s", r_code(pop$base_rate),
+        if (identical(v$X$type, "binary")) sprintf("in %s", lv("X", 1)) else "at the predictor's mean"),
+      sprintf("dispersion <- %s # overdispersion k: a count with mean mu has variance mu + k mu^2 (MASS's theta = 1 / k)", r_code(pop$dispersion)),
+      sprintf("exposure <- %s # exposure per person (the time over which events are counted)", r_code(pop$mean_exposure %||% 1)),
+      sprintf("binary <- %s # %s", r_code(identical(v$X$type, "binary")), if (identical(v$X$type, "binary")) "the predictor is a yes/no group" else "the predictor is a score, standardised"),
+      sprintf("x_prob <- %s # proportion of people in the second group (a yes/no predictor only)", r_code(pop$x_prob %||% 0.5)),
+      sprintf("r2_other <- %s # R-squared of the predictor on the other predictors (0: none)", r_code(pop$r2_other_predictors %||% 0))
+    ),
     proportion_trend = c(
       sprintf(
         "proportions <- %s # proportion with %s = %s in each group, in order (%s)",
@@ -1605,6 +1616,16 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "proportions = proportions,",
       "scores = scores,",
       "n.ratios = group_ratio # each group's share"
+    ),
+    single_predictor_count = c(
+      "n = batch_n, # sample size",
+      "rate_ratio = rate_ratio,",
+      "base_rate = base_rate,",
+      "dispersion = dispersion,",
+      "exposure = exposure,",
+      "binary = binary,",
+      "x_prob = x_prob,",
+      "r2_other = r2_other"
     )
   )
   if (one_sided) {
@@ -1713,6 +1734,33 @@ spower_derived_lines <- function(spec) {
       "d_spower <- -sqrt(2) * dz"
     ),
     two_proportions = "group_ratios <- c(1, allocation_ratio) # group sizes relative to group 1",
+    single_predictor_count = c(
+      "# The experiment, as powerkit runs it: the predictor x (a standard normal",
+      "# score, or a yes/no group with round(n * x_prob) in the second group, in",
+      "# random order), then another predictor z if r2_other is above 0 (x's",
+      "# R-squared on z is r2_other; z has no effect of its own), then each count,",
+      "# negative binomial with mean exposure * base_rate * rate_ratio^x. MASS's",
+      "# glm.nb() is fitted with log(exposure) as offset, and the p-value is the",
+      "# Wald z test of x's coefficient (one-sided in the direction asked).",
+      "p_negative_binomial <- function(n, rate_ratio, base_rate, dispersion, exposure, binary, x_prob, r2_other,",
+      "                                alternative = \"two.sided\") {",
+      "  x <- if (binary) sample(rep(c(0, 1), c(n - round(n * x_prob), round(n * x_prob)))) else rnorm(n)",
+      "  data <- data.frame(x = x)",
+      "  if (r2_other > 0) {",
+      "    standard <- if (binary) (x - mean(x)) / sd(x) else x",
+      "    data$z <- sqrt(r2_other) * standard + sqrt(1 - r2_other) * rnorm(n)",
+      "  }",
+      "  data$y <- rnbinom(n, size = 1 / dispersion, mu = exposure * base_rate * rate_ratio^x)",
+      "  data$exposure <- exposure",
+      "  formula <- if (r2_other > 0) y ~ x + z + offset(log(exposure)) else y ~ x + offset(log(exposure))",
+      "  z <- coef(summary(MASS::glm.nb(formula, data = data)))[\"x\", \"z value\"]",
+      "  switch(alternative,",
+      "    two.sided = 2 * pnorm(-abs(z)),",
+      "    greater = pnorm(z, lower.tail = FALSE),",
+      "    less = pnorm(z)",
+      "  )",
+      "}"
+    ),
     proportion_trend = c(
       "# The experiment, as powerkit runs it: each group's count of yes out of n,",
       "# drawn from its proportion, and the p-value of the Cochran-Armitage test",

@@ -233,7 +233,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B27 | Cochran's Q | ML | E26 (its card says no ready-made tool) | No ready-made tool | — | none found. **Candidate, not checked:** DescTools' `CochranQTest()` is the test, not its power, so it would support a custom simulation only, and a published power method would still be needed (coverage.md) | Check the candidate against its own help files | [C6][] |
 | B28 | Factorial logistic regression | ML; UCLA | E47 | Wired (29 October 2026: two between-participants factors, equal cells, Spower's `p_glm(family = binomial())`, the Wald test of one effect with effect coding; matches Spower called directly and holds alpha; published value to transcribe) | Now: AP, PN | Could: AP, PN, S, Co, Cr | Spower `p_glm(family = binomial())` with factor terms | Phase 6 | [C7][], [A1][] |
 | B29 | Ordinal regression | ML; UCLA | E29 | Wired (29 October 2026: two groups, powertools' `propodds()`; matches Hmisc's `popower()`; published value to transcribe. More groups or a measured predictor: not yet) | Now: AP, PN | Hmisc `popower()` (proportional odds); powertools `propodds()`. Neither is a foundation tool | Choose a backend | [C17][] |
-| B30 | Negative binomial and zero-inflated counts | ML | E28 | Unknown (check whether Spower `p_glm()` accepts a negative-binomial family; zero-inflated: no candidate found) | — | MKpower `power.nb.test()` (negative binomial; not a foundation tool) | Check | — |
+| B30 | Negative binomial and zero-inflated counts | ML | E28 | Wired (validation not finished): negative binomial regression of one predictor, 2 November 2026, simulated (Spower with MASS `glm.nb()`, E28's model choice); zero-inflated counts not yet (no candidate found) | Now: AP, PN | **Engine: Spower, powerkit's experiment `p_negative_binomial()` around MASS `glm.nb()`**; MKpower `power.nb.test()` covers two groups only (not a foundation tool) | Zero-inflated: find a route | — |
 | B31 | Partial correlation | ML | none: reaches E4 or E24 *(inferred)* | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | Spower `p_glm()` (one coefficient with covariates); pwr `pwr.f2.test(u = 1)`. That this is the same test as a partial correlation is inferred | — | [D7][] |
 | B32 | Planned contrasts and trend analysis within ANOVA | ML; BG | E19 | Wired (in the app; checked against G\*Power's manual, values to transcribe) | Now: AP, PN (pwrss). Could: S | **Engine: pwrss `power.t.contrasts()`** (the t test of a weighted combination of one factor's means, with `k.covariates = 0`; template `oneway_contrast`). Superpower `emmeans_power()` and `ANOVA_exact(emm = TRUE, contrast_type = )` computes the same contrast through emmeans and agrees with it | Transcribe the manual's three contrasts (validation placeholders) | [B7][] |
 
@@ -427,14 +427,14 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 29 | 25 | 0 | 54 |
+| Wired (validation not finished) | 29 | 26 | 0 | 55 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 8 | 2 | 11 |
 | Foundation tool can do it, not planned | 5 | 8 | 0 | 13 |
 | No ready-made tool | 0 | 6 | 0 | 6 |
 | Partly working | 0 | 1 | 5 | 6 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
-| Unknown | 1 | 13 | 0 | 14 |
+| Unknown | 1 | 12 | 0 | 13 |
 | Out of scope | 0 | 0 | 0 | 0 |
 
 (Part D's four rows are out of scope by definition and aren't counted.)
