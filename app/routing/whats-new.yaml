@@ -22,6 +22,14 @@ entries:
       describes what your study can show, not the effect you expect, and
       goes into the methods paragraph too.
   - date: "2026-11-01"
+    title: "Mixed ANOVA with unequal groups"
+    text: >-
+      The mixed ANOVA cards (one factor between people, one measured in
+      everyone, such as group by time) now take groups of different sizes,
+      for example twice as many in treatment as in control. Their power is
+      then simulated, so it takes a little longer and carries a little
+      random error.
+  - date: "2026-11-01"
     title: "Moderated mediation with two groups"
     text: >-
       Moderated mediation now also works when the predictor is two groups,

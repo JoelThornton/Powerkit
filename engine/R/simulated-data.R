@@ -989,7 +989,8 @@ sim_mixed_code <- function(spec, n) {
 # condition, as SPSS, JASP and jamovi expect for repeated measures.
 sim_superpower_code <- function(spec, n) {
   inputs <- superpower_inputs(spec)
-  per_group <- if (is.null(inputs$cell_ratio)) ceiling(n / inputs$groups) else round(superpower_cell_n(inputs, n))
+  group_n <- if (!is.null(inputs$group_ratio)) mixed_group_n(n, inputs$group_ratio)
+  per_group <- if (!is.null(group_n)) max(group_n) else if (is.null(inputs$cell_ratio)) ceiling(n / inputs$groups) else round(superpower_cell_n(inputs, n))
   roles <- intersect(c("A", "B", "C"), names(spec$variables))
   factor_of <- c(A = "a", B = "b", C = "c")
   within <- vapply(roles, function(v) identical(spec$variables[[v]]$type, "within_factor"), logical(1))
@@ -1008,7 +1009,14 @@ sim_superpower_code <- function(spec, n) {
       "cell_n <- stats::setNames(design$n, unique(long$cond))",
       "long <- long[stats::ave(seq_along(long$cond), long$cond, FUN = seq_along) <= cell_n[long$cond], ]"
     ),
-    "level <- function(x) as.integer(sub(\"^.*[a-z]\", \"\", as.character(x)))"
+    "level <- function(x) as.integer(sub(\"^.*[a-z]\", \"\", as.character(x)))",
+    if (!is.null(group_n)) c(
+      "# ANOVA_design() builds every group at the largest size; keep each group's own n.",
+      sprintf("group_n <- %s", r_code(group_n)),
+      "people_a <- unique(long[c(\"subject\", \"a\")])",
+      "keep <- stats::ave(seq_len(nrow(people_a)), people_a$a, FUN = seq_along) <= group_n[level(people_a$a)]",
+      "long <- long[long$subject %in% people_a$subject[keep], ]"
+    )
   )
   between <- roles[!within]
   if (!any(within)) {

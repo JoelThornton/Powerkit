@@ -24,7 +24,7 @@ analysed_groups <- function(spec, n) {
       c(n1, n - n1)
     },
     "2x2_between" = if (unequal_cells(spec)) n * cell_ratio_vector(spec) / sum(cell_ratio_vector(spec)) else rep(n / 4, 4),
-    "2x2_mixed" = rep(n / 2, 2),
+    "2x2_mixed" = n * trend_group_shares(spec) / sum(trend_group_shares(spec)),
     factorial_between = ,
     factorial = ,
     factorial_ancova = {

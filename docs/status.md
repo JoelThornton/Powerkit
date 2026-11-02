@@ -164,10 +164,11 @@ fully validated. Validation runs are recorded in
 
 ## Known gaps on cards that run
 
-- Mixed designs with unequal groups reach the safety net (`next.md`,
-  "Repeated measures"). Every repeated-measures card takes an SD per cell and
-  correlations per pair, with a sphericity correction where one applies
-  (the mixed and two-factor within designs since 1 November 2026).
+- Mixed designs with unequal groups are simulated with Spower and afex
+  (1 November 2026); their validation chunk (`anova_mixed_unequal`) has
+  not had a full run on GitHub yet. Every repeated-measures card takes an
+  SD per cell and correlations per pair, with a sphericity correction
+  where one applies.
 - Simulated data sets are missing for the three-way regression
   interaction (no package generates its data from the correlations it
   takes), the meta-analysis, SEM, McNemar's test and the generic tests;

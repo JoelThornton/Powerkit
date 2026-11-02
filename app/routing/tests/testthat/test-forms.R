@@ -915,3 +915,17 @@ test_that("the participants-and-items card can plan the number of items for a fi
   expect_null(spec$population$items)
   if (!is.null(validate)) expect_s3_class(validate(spec), "powerkit_spec")
 })
+
+test_that("the mixed ANOVA forms take unequal groups and then leave out the exact method", {
+  v <- values_for("E8")
+  v$group_sizes <- "unequal"; v$g1 <- 1; v$g2 <- 2
+  spec <- build_spec(forms, "E8", fields_for("E8"), v)
+  expect_equal(unlist(spec$options$group_ratio), c(1, 2))
+  expect_null(spec$options$method)
+  v <- values_for("E55")
+  v$group_sizes <- "unequal"; v$group_ratio <- "2, 1"
+  spec <- build_spec(forms, "E55", fields_for("E55"), v)
+  expect_equal(unlist(spec$options$group_ratio), c(2, 1))
+  expect_null(spec$options$method)
+  expect_identical(build_spec(forms, "E55", fields_for("E55"), values_for("E55"))$options$method, "exact")
+})

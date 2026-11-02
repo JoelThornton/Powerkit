@@ -47,27 +47,36 @@ superpower_backend <- function(spec, seed = NULL) {
   # Unequal cells: ANOVA_exact() takes equal cells only, so they are
   # simulated (unequal_cells()).
   # So are pairwise comparisons: ANOVA_exact() doesn't adjust p-values.
-  unequal <- !is.null(inputs$cell_ratio)
+  unequal <- !is.null(inputs$cell_ratio) || !is.null(inputs$group_ratio)
   simulated_only <- unequal || !is.null(inputs$pairwise_row)
+  # Unequal groups in a mixed design: ANOVA_power() stops for them
+  # ("unequal n" is for between-participants designs only), so powerkit
+  # simulates with Spower and afex (p_mixed_anova()).
+  mixed_unequal <- !is.null(inputs$group_ratio)
   list(
     name = "Superpower",
-    packages = c("Superpower", "afex"),
+    packages = c("Superpower", "afex", if (mixed_unequal) "Spower"),
     methods = if (simulated_only) "simulation" else c("exact", "simulation"),
     default_method = if (simulated_only) "simulation" else "exact",
-    functions = c(exact = "Superpower::ANOVA_exact", simulation = if (is.null(inputs$pairwise_row)) {
+    functions = c(exact = "Superpower::ANOVA_exact", simulation = if (mixed_unequal) {
+      "Spower::Spower(p_mixed_anova()) (afex::aov_car(), Type III, on data from Superpower::ANOVA_design()'s means and covariances)"
+    } else if (is.null(inputs$pairwise_row)) {
       "Superpower::ANOVA_power"
     } else {
       sprintf("Superpower::ANOVA_power (pairwise t-tests, p_adjust = \"%s\")", inputs$p_adjust)
     }),
     # Unequal cells: the smallest total that splits into whole cells in the
     # ratio given (6 for 2 : 2 : 1 : 1), so every n searched is valid.
-    n_step = if (unequal) cell_ratio_step(inputs$cell_ratio) else inputs$groups,
+    n_step = if (unequal) cell_ratio_step(inputs$cell_ratio %||% inputs$group_ratio) else inputs$groups,
     exact_min_n = exact_min_n,
     exact_power = if (simulated_only) NULL else function(n) exact_at(n)$power,
     bracket_power = if (simulated_only) NULL else function(n) exact_at(n)$power,
     manova_power = function(n) exact_at(n)$manova_power,
     details = function(n) exact_at(n)$details,
     simulate = function(n, nrep, seed, cores) {
+      if (mixed_unequal) {
+        return(mixed_unequal_simulate(design_at(n, cells = ceiling(n / inputs$groups)), inputs, n, nrep, seed, cores))
+      }
       superpower_simulate(design_at(n), inputs, nrep, seed, cores)
     },
     # Sensitivity for the one-way designs (which effect pattern to scale)
@@ -78,7 +87,9 @@ superpower_backend <- function(spec, seed = NULL) {
     # The check reads the cell means and SDs back from ANOVA_exact()'s data
     # set, which needs equal cells; the cell sizes don't change them.
     check_run = function() {
-      superpower_check_run(spec, design_at(50 * inputs$groups, cells = 50), seed)
+      check <- superpower_check_run(spec, design_at(50 * inputs$groups, cells = 50), seed)
+      if (mixed_unequal) check <- rbind(check, mixed_unequal_check_run(design_at(50 * inputs$groups, cells = 50), inputs, seed))
+      check
     }
   )
 }
@@ -92,6 +103,9 @@ cell_ratio_step <- function(ratio) {
 # Superpower's n: the number in each between-participants group, one
 # number for equal groups or one per cell (options > cell_ratio).
 superpower_cell_n <- function(inputs, n) {
+  if (!is.null(inputs$group_ratio)) {
+    return(n * inputs$group_ratio / sum(inputs$group_ratio))
+  }
   if (is.null(inputs$cell_ratio)) {
     return(n / inputs$groups)
   }
@@ -156,7 +170,8 @@ superpower_inputs <- function(spec) {
       r = superpower_r(spec),
       alpha = spec$target_test$alpha,
       effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]],
-      correction = spec$target_test$correction %||% "none"
+      correction = spec$target_test$correction %||% "none",
+      group_ratio = if (!is.null(spec$options$group_ratio)) group_ratio_vector(spec)
     ))
   }
   if (spec$template %in% c("factorial_between", "factorial_within")) {
@@ -198,7 +213,9 @@ superpower_inputs <- function(spec) {
     sd = by_row(pop$sd),
     r = if (between) 0 else superpower_r(spec),
     alpha = spec$target_test$alpha,
-    effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]]
+    effect = c(main_effect_A = "a", main_effect_B = "b", interaction = "a:b")[[spec$target_test$effect]],
+    # Unequal groups in the 2 x 2 mixed design (options > group_ratio).
+    group_ratio = if (!between && !is.null(spec$options$group_ratio)) group_ratio_vector(spec)
   )
 }
 
@@ -667,4 +684,76 @@ superpower_check_three <- function(spec, data) {
   check <- do.call(rbind, rows)
   check$ok <- abs(check$recovered - check$specified) <= 1e-6 * pmax(1, abs(check$specified))
   check
+}
+
+# Mixed designs with unequal groups ------------------------------------------
+
+# The groups' sizes: n split in the ratio given (options > group_ratio).
+mixed_group_n <- function(n, ratio) as.integer(round(n * ratio / sum(ratio)))
+
+# Scores for a mixed design with unequal groups: in group g (A's level g),
+# n_g people, each with one score in every level of B, drawn from the
+# multivariate normal with that group's means and covariances
+# (SimDesign::rmvnorm(), as Spower's generators use). `mu` and `sigma` are
+# Superpower::ANOVA_design()'s, over every cell (a1_b1, ..., a1_bm, a2_b1,
+# ...); the people in different groups are independent, so only each
+# group's block of sigma is used. Long format, as afex takes it.
+mixed_unequal_scores <- function(n_groups, mu, sigma, m) {
+  rows <- lapply(seq_along(n_groups), function(g) {
+    cells <- (g - 1) * m + seq_len(m)
+    y <- SimDesign::rmvnorm(n_groups[g], mu[cells], sigma[cells, cells, drop = FALSE])
+    data.frame(
+      subject = rep(sprintf("g%d_s%d", g, seq_len(n_groups[g])), times = m),
+      a = factor(paste0("a", g), levels = paste0("a", seq_along(n_groups))),
+      b = factor(rep(paste0("b", seq_len(m)), each = n_groups[g]), levels = paste0("b", seq_len(m))),
+      y = as.vector(y)
+    )
+  })
+  do.call(rbind, rows)
+}
+
+# Spower experiment for a mixed design with unequal groups: the p-value of
+# `effect` ("a", "b" or "a:b") from afex::aov_car() with Type III sums of
+# squares (afex's default, which Superpower's simulation uses for unequal
+# cells), and the sphericity correction asked for ("none", "GG" or "HF",
+# as Superpower's `correction`).
+p_mixed_anova <- function(n, group_ratio, mu, sigma, m, effect, correction = "none") {
+  data <- mixed_unequal_scores(mixed_group_n(n, group_ratio), mu, sigma, m)
+  fit <- suppressMessages(afex::aov_car(y ~ a * b + Error(subject / b), data = data, type = 3,
+    anova_table = list(correction = correction, es = "none")))
+  fit$anova_table[effect, "Pr(>F)"]
+}
+
+# The Spower arguments for p_mixed_anova() at total n.
+mixed_unequal_args <- function(design, inputs, n) {
+  list(
+    n = n, group_ratio = inputs$group_ratio, mu = as.numeric(design$mu),
+    sigma = unname(as.matrix(design$sigmatrix)), m = length(design$mu) / inputs$groups,
+    effect = inputs$effect, correction = inputs$correction %||% "none"
+  )
+}
+
+# Rejections out of nrep, simulated in seeded batches.
+mixed_unequal_simulate <- function(design, inputs, n, nrep, seed, cores) {
+  args <- mixed_unequal_args(design, inputs, n)
+  simulate_in_chunks(nrep, seed, cores, function(k, chunk_seed) {
+    result <- spower_eval(as.name("p_mixed_anova"), args, k, inputs$alpha, chunk_seed)
+    round(result$power * k)
+  })
+}
+
+# Check run rows for unequal groups: each group's share of a large data set
+# drawn as the simulation draws them.
+mixed_unequal_check_run <- function(design, inputs, seed) {
+  n <- cell_ratio_step(inputs$group_ratio) * ceiling(check_run_n() / cell_ratio_step(inputs$group_ratio))
+  args <- mixed_unequal_args(design, inputs, n)
+  data <- with_seed(seed, mixed_unequal_scores(mixed_group_n(n, args$group_ratio), args$mu, args$sigma, args$m))
+  people <- unique(data[c("subject", "a")])
+  share <- as.numeric(table(people$a)) / nrow(people)
+  specified <- inputs$group_ratio / sum(inputs$group_ratio)
+  data.frame(
+    parameter = sprintf("share of people in group %d", seq_along(share)),
+    specified = specified, recovered = share,
+    ok = abs(share - specified) <= 1e-9
+  )
 }

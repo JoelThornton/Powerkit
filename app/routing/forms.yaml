@@ -811,10 +811,24 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {main_effect_A: "The between factor", main_effect_B: "The within factor", interaction: "The interaction"}}
+      - input: "The size of each group"
+        fields:
+          # options > group_ratio (decided 1 November 2026): unequal groups
+          # are simulated with Spower and afex, since Superpower takes equal
+          # groups only in a mixed design.
+          - {id: group_sizes, label: "Will the two groups be the same size?", type: select, required: true,
+             choices: {equal: "Yes, equal groups", unequal: "No: give their relative sizes"},
+             default: equal, default_source: "equal groups, as Superpower and G*Power's repeated-measures analysis take them",
+             help: "Unequal groups (for example twice as many in treatment as in control) usually lower the power of the group difference and the interaction. Their power is then found by simulation, which takes longer."}
+          - {id: g1, writeup_label: "relative size of between level 1", label: "Group size (or ratio): between level 1", type: number, path: options.group_ratio.1, required: true, min: 1, integer: true,
+             shown_if: {field: group_sizes, is: unequal}}
+          - {id: g2, writeup_label: "relative size of between level 2", label: "Group size (or ratio): between level 2", type: number, path: options.group_ratio.2, required: true, min: 1, integer: true,
+             shown_if: {field: group_sizes, is: unequal}}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
-         default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)"}
+         default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)",
+         shown_if: {field: group_sizes, is_not: unequal}}
 
   E9:
     methods_name: "a moderated regression (continuous × continuous interaction)"
@@ -1712,10 +1726,22 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does the change differ between groups?", main_effect_A: "The groups' difference, averaged over time or conditions", main_effect_B: "The change over time or conditions, averaged over groups"}}
+      - input: "The size of each group"
+        fields:
+          # options > group_ratio (decided 1 November 2026): unequal groups
+          # are simulated with Spower and afex.
+          - {id: group_sizes, label: "Will the groups be the same size?", type: select, required: true,
+             choices: {equal: "Yes, equal groups", unequal: "No: give their relative sizes"},
+             default: equal, default_source: "equal groups, as Superpower and G*Power's repeated-measures analysis take them",
+             help: "Unequal groups usually lower the power of the groups' difference and the interaction. Their power is then found by simulation, which takes longer."}
+          - {id: group_ratio, writeup_label: "relative group sizes", label: "Relative group sizes: one whole number for each group, in the same order", type: numbers, per_levels: A_levels, path: options.group_ratio, required: true,
+             shown_if: {field: group_sizes, is: unequal},
+             help: "For example 2, 1 puts twice as many people in the first group. The total sample size is split in this ratio."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
-         default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
+         default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)",
+         shown_if: {field: group_sizes, is_not: unequal}}
 
 
   # Three-factor ANOVA (28 October 2026): three crossed factors, any mix of
