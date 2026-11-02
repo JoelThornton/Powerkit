@@ -161,12 +161,11 @@ test_that("the check run catches a path put in the wrong place", {
   expect_setequal(check$parameter[!check$ok], c("X->M", "W->M"))
 })
 
-test_that("binary variables and measurement error aren't available yet", {
+test_that("a binary mediator and measurement error aren't available yet", {
   spec <- sim_spec("process_7")
   spec$variables$W$reliability <- NULL
-  error <- expect_error(run_quietly(spec), "binary.*aren't available yet", class = "powerkit_not_available")
-  expect_match(conditionMessage(error), "may give an inaccurate power estimate", fixed = TRUE)
-  expect_no_match(conditionMessage(error), "treat .* as continuous")
+  spec$variables$M <- list(type = "binary", label = "Threatened")
+  expect_error(validate_spec(spec), "must be 'continuous'", class = "powerkit_spec_error")
   spec <- continuous_and_reliable(sim_spec("process_7"))
   spec$variables$M$reliability <- 0.8
   expect_error(run_quietly(spec), "measurement error.*aren't available yet", class = "powerkit_not_available")

@@ -39,6 +39,34 @@
 
 A batch of new features, built as one round.
 
+* Moderated mediation with a yes/no X, W or both (E17, PROCESS models 7
+  and 14): each drawn by power4mome's `rbinary_rs()` (`population >
+  x_prob`, `w_prob`) and rescaled to mean 0 and SD 1, so paths stay per
+  SD, as for E16's X; a yes/no X or W must be uncorrelated with the other
+  predictor. With a yes/no W, manymome's `index_of_mome()` treats the
+  moderator as categorical and stops, so the test is the difference
+  between the two groups' conditional indirect effects (the index times
+  the distance between W's two rescaled values, from the same Monte Carlo
+  draws: the same decision). Checked against a simulation written
+  separately (a yes/no variable standardised by its population mean and
+  SD, OLS for each equation and its own Monte Carlo interval). With a
+  yes/no X the test is slightly liberal (about 6.7% at alpha .05 with no
+  moderation, against 5.3% for the separate simulation), and the results
+  screen says so. A yes/no mediator is still not available.
+* Moderated mediation with W on both links or the direct path (E38,
+  templates `process_8`, `process_58` and `process_59`, one mediator):
+  these models have no single index of moderated mediation, so the test
+  is of the difference between the conditional indirect effects at two
+  values of W (`target_test > effect` "conditional_indirect_difference",
+  `w_values`, by default -1 and 1 SD), by its Monte Carlo or bootstrap
+  confidence interval. Simulated with power4mome, with powerkit's test
+  function `test_cond_indirect_diff()` (manymome's
+  `cond_indirect_effects()` and `cond_indirect_diff()`). For models 58
+  and 59 the fitted model is given to power4mome explicitly, leaving out
+  the residual covariance of M with W that power4mome adds but lavaan
+  cannot estimate when W predicts M (docs/upstream-questions.md). Checked
+  against a simulation written separately (OLS for each equation and its
+  own Monte Carlo interval), with the Type I error at most alpha.
 * The Labs picture of power covers three more tests:
   `power_picture_paired()` (pwr's paired t-test, the central and
   noncentral t with n - 1 df), `power_picture_anova()` (pwr's one-way

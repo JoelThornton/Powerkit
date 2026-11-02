@@ -1324,6 +1324,19 @@ actual_power_sentence <- function(spec, result) {
   sprintf("%s, power is %.1f%%.", who, 100 * at_n)
 }
 
+# Moderated mediation with a yes/no X (E17): in powerkit's validation the
+# Monte Carlo test rejected a little more often than alpha with no
+# moderated mediation (test-validation-modmed-binary.R;
+# upstream-questions.md, power4mome), so the result says so.
+binary_x_modmed_note <- function(spec) {
+  if (!identical(spec$design, "moderated_mediation") || !identical(spec$variables$X$type, "binary")) return(NULL)
+  paste(
+    "With a yes/no X, powerkit's checks found this test slightly liberal: with no moderated mediation it was",
+    "significant in about 6.7% of simulated studies at alpha .05, against 5.3% for a separately written simulation,",
+    "so the power shown may be a little high. The question is with power4mome's authors."
+  )
+}
+
 # A yes/no predictor's correlation with Y, read as the difference between
 # its groups (E15): the engine works it out (implied_group_difference(),
 # psych::r2d() for equal groups); this only words it.
@@ -1830,7 +1843,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), group_difference_note(spec), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), group_difference_note(spec), binary_x_modmed_note(spec), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring

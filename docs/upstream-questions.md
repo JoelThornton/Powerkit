@@ -102,12 +102,29 @@ Questions about metapower 0.2.2, from its source (opened 31 October
    when there are more than one moderators"), for a lavaan fit and for
    `lm2list()` alike, while `cond_indirect_effects()` on the same fit
    gives the right formula, (b.M~X + b.X:W W) b.Y~M. Is the refusal
-   intended when X:W also appears in Y's equation? powerkit can't offer
-   model 8 until this is answered (`next.md`).
+   intended when X:W also appears in Y's equation? powerkit offers model 8
+   (E38) by testing the difference between the conditional indirect
+   effects at two values of W instead (`cond_indirect_diff()`).
 4. Two earlier questions are in `docs/decisions.md` (15 October 2026,
    "Published values: InteractionPoweR notes"): whether a binary X can be
    correlated with W, and whether the Monte Carlo CI test has been checked
    with a binary X.
+5. **A residual covariance that can't be estimated, with W on the M -> Y
+   link.** For a model with M ~ X + W + X:W and Y ~ ... + M:W (PROCESS
+   model 58 or 59), power4test()'s fitted model adds `M ~~ W`, a residual
+   covariance of M with one of its own predictors, which lavaan cannot
+   estimate ("Could not compute standard errors"), so every test fails.
+   powerkit gives the fitted model through `fit_model_args`, without that
+   line (1 November 2026). Is `M ~~ W` added on purpose for some models?
+6. **The Monte Carlo interval's Type I error with a yes/no X.** In PROCESS
+   model 7 with X drawn by `rbinary_rs()` (p = 0.5), W continuous, n = 250
+   and no moderation (X:W -> M = 0, M -> Y = 0.35), `test_index_of_mome()`
+   rejected in 7.5% of 1,000 and 6.3% of 2,000 simulated studies (about
+   6.7% together), against 4.9% and 5.8% (about 5.3%) for an interval
+   computed separately from OLS fits of the same model
+   (`test-validation-modmed-binary.R`). Is a slightly liberal test
+   expected here, for example from the normal-theory standard errors of
+   the lavaan fit when X is binary, and is there a recommended setting?
 
 ## Spower
 

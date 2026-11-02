@@ -96,6 +96,12 @@ form_examples <- list(
                proportions = "0.2, 0.25, 0.3, 0.35", scores = "0, 1, 2, 3", alternative = "two_sided"), closing_ok),
   E14 = c(list(X_label = "Abusive supervision", W_label = "Coping self-efficacy", M_label = "Emotional exhaustion",
                Y_label = "Job performance", p_X_M = "0.35", p_M_Y = "-0.25", p_W_Y = "0.15", p_MW_Y = "0.12",
+               p_X_Y = "-0.05", c_X_W = "-0.1"), closing_ok),
+  E17 = c(list(modmed_stage = "process_7", x_type = "binary", w_type = "continuous", X_label = "Condition", W_label = "Group identification",
+               M_label = "Perceived threat", Y_label = "Support for policy", p_X_M = "0.3", p_W_M = "0.1", p_XW_M = "0.2", p_M_Y = "0.35",
+               p_X_Y = "0.05"), closing_ok),
+  E38 = c(list(modmed_model = "process_58", X_label = "Abusive supervision", W_label = "Coping self-efficacy", M_label = "Emotional exhaustion",
+               Y_label = "Job performance", p_X_M = "0.35", p_M_Y = "-0.25", p_W_Y = "0.15", p_MW_Y = "0.1", p_W_M = "0.1", p_XW_M = "0.15", w_from = "-1", w_to = "1",
                p_X_Y = "-0.05", c_X_W = "-0.1"), closing_ok)
 )
 
