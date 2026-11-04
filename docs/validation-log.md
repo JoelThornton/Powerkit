@@ -1031,3 +1031,31 @@ with variance correction: total N 337, actual power 0.9500770.
   `renv.lock`.
 - **Result:** both tests pass, 0 fail, 0 skip. The normal-X test's
   required N is 337 and its power at N = 337 matches to 3 decimal places.
+
+## 2026-11-04 · moderated mediation, conditional-indirect differences (GitHub)
+
+- **Run:** [full-validation run 26](https://github.com/JoelThornton/Powerkit/actions/runs/41846071706),
+  chunk `modmed_difference`, `POWERKIT_FULL_VALIDATION=true`, four cores
+  assigned to each test. Checkout `51245b0d8930704c1edc48afb1182d937cbf60ac`,
+  powerkit 0.30.0. The script's summary printed `Commit: unknown`; the
+  checkout SHA here comes from the workflow metadata and checkout log.
+- **Environment:** R 4.5.3, x86_64-pc-linux-gnu; power4mome 0.2.1,
+  manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2; other packages from
+  `renv.lock` (Superpower 0.2.4.1, Spower 0.7, InteractionPoweR 0.2.4).
+- **Completed:** 3 PASS, 0 FAIL, 0 ERROR, 1 SKIP, 0 NOT RUN, of four tests.
+  The tests retain their existing 500-replication comparison and
+  1,000-replication null definitions. This is the opt-in method chunk,
+  not a 10,000-replication release validation of every design.
+
+| Check | Outcome |
+|---|---|
+| Model 58 versus independently generated data and OLS/Monte Carlo intervals | PASS: reference power 0.8300; powerkit 0.8220, MCSE 0.0171. Reference within [0.7381, 0.9059], the test's 99.9% Monte Carlo comparison interval including reference error and rounding. |
+| Model 8 versus the independent simulation | PASS: reference 0.7080; powerkit 0.6920, MCSE 0.0206. Reference within [0.5961, 0.7879]. |
+| Model 58 with neither moderated link | PASS: Type I error meets the existing upper-bound criterion at 1,000 replications. |
+| Published example for models 8/58/59 | SKIP: the existing `TODO_PUBLISHED_VALUE` inputs are not filled in. |
+
+The two 500-replication comparisons emitted the expected warning that
+these counts give limited numerical accuracy (roughly +/- 0.035 near
+80% power). No expected values were changed. This run supports the
+corrected population translation; it does not supply the missing
+published examples or establish full validation of every variant.

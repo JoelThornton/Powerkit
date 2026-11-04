@@ -14,6 +14,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Moderated-mediation evidence:** the opt-in conditional-indirect-difference
+  chunk completed with three passes and one published-value placeholder skip.
+  The validation journal records the independent simulation comparisons,
+  run revision and replication limits; this is scoped method evidence,
+  not release-wide validation.
+
 - **Labs and navigation:** research tools and educational tools have
   separate sections. The repeated-studies tool uses actual two-group
   normal-data t-tests and effect estimates, with simulation uncertainty,
