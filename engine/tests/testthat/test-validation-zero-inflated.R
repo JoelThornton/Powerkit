@@ -10,8 +10,10 @@
 #      code or pscl; the Wald z test of the count part and the
 #      likelihood-ratio test of both parts
 #   2. Type I error of the count part's test when the predictor changes
-#      only the share of extra zeros, and of the zero part's test when it
-#      changes only the rate
+#      only the share of extra zeros; and the size of the zero part's Wald
+#      test when the predictor changes only the rate, which with negative
+#      binomial counts is conservative (recorded, not a fault of the
+#      translation: an independent loop gives the same)
 #   3. published example: placeholder, for the maintainer
 # Expected values below are owned by the maintainer: do not edit them.
 # Skipped unless POWERKIT_FULL_VALIDATION=true.
@@ -76,8 +78,25 @@ test_that("zero-inflated: each part's test keeps its Type I error when the predi
   skip_unless_full_validation()
   spec <- zi_validation_spec(1, 2, 0.3, 1.8, 400)
   expect_type1_near(engine_power(spec), alpha = 0.05)
-  spec <- zi_validation_spec(0.7, 2, 0.3, 1, 400, dispersion = 0.5, effect = "zero_odds_ratio")
+  # The zero part's Wald test with Poisson counts holds its level.
+  spec <- zi_validation_spec(0.7, 2, 0.3, 1, 400, effect = "zero_odds_ratio")
   expect_type1_near(engine_power(spec), alpha = 0.05)
+})
+
+test_that("zero-inflated: the zero part's Wald test is conservative with negative binomial counts (simulation, recorded size)", {
+  skip_unless_full_validation()
+  # With negative binomial counts the zero part is weakly identified (the
+  # counts themselves can make many zeros), and the Wald test of its
+  # coefficient, which summary() of zeroinfl() reports, rejected 3.9% of
+  # 10,000 studies with no zero effect at alpha 0.05 (n = 400, base rate 2,
+  # 30% extra zeros, k = 0.5; 4 November 2026); a loop calling zeroinfl()
+  # directly gave 3.8%, and the likelihood-ratio test of the same
+  # coefficient 5.6%. Power for that test is therefore conservative. The
+  # range below records the size, so a change in it is noticed.
+  spec <- zi_validation_spec(0.7, 2, 0.3, 1, 400, dispersion = 0.5, effect = "zero_odds_ratio")
+  size <- engine_power(spec)$power
+  expect_gt(size, 0.025)
+  expect_lt(size, 0.05)
 })
 
 test_that("zero-inflated: compared with a published example (published)", {

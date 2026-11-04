@@ -14,7 +14,9 @@
   counts as not significant. New import: pscl (1.5.9, added to
   `renv.lock`). Validation chunk `zero_inflated`: the zero-inflated
   likelihood written out and maximised separately, and the Type I error of
-  each part's test when the predictor changes only the other part.
+  each part's test when the predictor changes only the other part. The zero
+  part's Wald test is conservative with negative binomial counts (3.9% at
+  alpha 0.05 in the check), and a test records its size.
 
 * Multinomial logistic regression (template `logistic_regression /
   multinomial`, card E70): an outcome in three or more unordered categories

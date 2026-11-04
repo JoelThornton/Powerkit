@@ -2860,7 +2860,7 @@ forms:
              choices: {rate_ratio: "The count part: does the predictor change the rate, among those who could have an event?", zero_odds_ratio: "The zero part: does the predictor change the share of extra zeros?", rate_and_zero: "Both parts together (a likelihood-ratio test, two-sided)"},
              default: rate_ratio, default_source: "the count part, the rate ratio the card asks for first",
              shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
-             help: "Both parts include the predictor, as pscl's zeroinfl() does by default; this chooses which test the power is for."}
+             help: "Both parts include the predictor, as pscl's zeroinfl() does by default; this chooses which test the power is for. With negative binomial counts the zero part's Wald test is conservative (about 4% false positives at alpha .05 in powerkit's checks), so its power is too."}
       - input: "How much the other predictors overlap with this one"
         fields:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
