@@ -1,5 +1,9 @@
 # powerkit 0.30.0
 
+* Feedback explicitly discloses optional entered answers and the browser
+  information accompanying Send. About credits include the precision and
+  robust-analysis packages already used by the app.
+
 * Precision planning is described as available, with its estimate selector
   visible among study inputs. Expected interval width is explained as an
   average rather than a median or a probability guarantee.

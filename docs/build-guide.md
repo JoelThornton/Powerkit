@@ -245,42 +245,25 @@ Work in small phases, each ending with passing tests. Give Claude Code this guid
 | 7. AI assistant | Words/diagram → suggested spec, user confirms | Suggestions never bypass the confirm screen |
 | 8. Hosting | Public deploy with queue and limits | Stable under 20 concurrent runs |
 
-*Where the phases stand (18 October 2026):* phases 0–2 are done; phase 3
-runs but its published-value tests wait for the maintainer; phase 4 is
-partly done (scripts and citations; the methods paragraph waits for G4);
-phase 5's prototype app runs every MVP design but hasn't been user tested.
-The maintainer has put usefulness for psychologists ahead of validation
-until release ([`status.md`](status.md), "Priorities"), so phase 3b below
-is deferred.
+*Where the phases stand (4 November 2026):* phases 0–2 are implemented.
+The mediation and interaction backends run, including supported binary X
+and W variants, but published validation remains incomplete. Exports include
+scripts, methods text and citations. The Shiny prototype is publicly hosted
+and includes precision planning and multiple v2 designs; this does not mean
+all phase completion criteria have passed. The five-user usability study,
+full published validation, clean reproduction across all supported routes,
+and the 20-concurrent-run hosting check are still outstanding. The AI
+assistant is not implemented. See [status.md](status.md) for current coverage
+and [validation-log.md](validation-log.md) for scoped evidence.
 
-**Phase 3b (not started, no code yet; deferred): binary X and W**
+**Phase 3b: supported binary X and W are implemented**
 
-*Timing (maintainer's decision, `docs/decisions.md`, 15 October 2026):* this phase comes next, after phase 3 closes and before phase 4, because phase 4's methods paragraphs and scripts need to cover binary variables.
-
-Section 2 lists continuous × binary interactions as MVP, and the example PROCESS model 7 spec in section 4 has a binary X, but the engine refuses a binary X or W in regression interactions and mediation designs ("not available yet"; treating the variable as continuous may give an inaccurate power estimate). This phase would add them, in three steps, each reviewed before the next.
-
-*a. Check backend support first (findings from the package sources, October 2026).*
-
-- **InteractionPoweR 0.2.4** makes a variable binary with `k.x1 = 2` / `k.x2 = 2` in `power_interaction()` and `generate_interaction()` (simulation only). It draws a normal variable, splits it into two equal groups and standardises the result; with `adjust.correlations = TRUE` (the default) the input correlations are adjusted so the observed binary data have the specified correlations. The group split is fixed at 50/50 (no option for unequal groups). The analytic `power_interaction_r2()` is documented as valid only for continuous, normally distributed variables, so it can't give the power for a binary X or W; powerkit uses it only to bracket N before simulating, and that use would need checking for binary variables.
-- **power4mome 0.2.1: backend convention.** power4mome supports a binary X or W through `power4test()`'s `x_fun` argument with `rbinary_rs()`: a 0/1 variable (probability `p1` of a 1) rescaled to population mean 0 and SD 1, so effects in `pop_es` are fully standardised. This is the convention powerkit follows for mediation and moderated mediation. Limits from its documentation: a variable generated with `x_fun` must have zero covariance with the other exogenous variables, and `x_fun` on an endogenous variable sets its error term, so a binary M or Y is not covered. manymome's conditional effects accept a dichotomous moderator. Remaining questions for Shu Fai Cheung (they don't block the convention):
-  1. Is there a supported way to have a binary X correlated with W (for example, a non-randomised group variable)?
-  2. Has power4mome's Monte Carlo CI test been checked with a binary X?
-
-*b. Decisions (the maintainer's, `docs/decisions.md`, 15 October 2026).*
-
-- **Effect sizes.** v1 uses fully standardised paths, following both backends: InteractionPoweR standardises binary variables after the split, and power4mome's `rbinary_rs()` rescales a 0/1 variable to mean 0 and SD 1. A "standardised path" from a 0/1 X therefore means per SD of X. Entering a condition effect as Cohen's d (Y standardised, X left as 0/1) comes later. It will be a departure, so it goes in `docs/conventions.md` with a test showing the size of any difference, is shown on the results screen and is stated in the methods paragraph.
-- **Group split.** 50/50 by default. Unequal groups are offered only where the backend supports them (power4mome, through `rbinary_rs()`'s `p1`). Interactions are always 50/50, because InteractionPoweR has no option for unequal groups, and the app says so.
-- **Correlated predictors.** power4mome requires a binary X or W (generated with `x_fun`) to be uncorrelated with the other predictors. That fits a randomised condition. A binary W correlated with X isn't supported, and the user is told so plainly instead of being given an approximation.
-
-*c. Validation targets.*
-
-- Direct-call agreement: powerkit against `power_interaction()` with `k.x1` / `k.x2`, and against `power4test()` with `x_fun = list(x = list(rbinary_rs, p1 = ...))`.
-- Type I error with a binary X or W.
-- Published: Donnelly, Jorgensen & Rudolph (2023), Behavior Research Methods, 55(7), 3892–3909, doi:10.3758/s13428-022-01996-0. Its X and W are binary. It reports power for a conditional indirect effect, at a level of W it doesn't state, not for the index of moderated mediation, and has no model 14 example, so it fits only if powerkit also offers conditional indirect effects as a target and the level of W can be recovered.
-- Published, interactions: an InteractionPoweR example with a binary variable, if the tutorial or package articles have one (to find).
-- Agreement between powerkit's binary-W interaction and its 2x2 ANOVA when both X and W are binary, as a cross-check between backends.
-
-Done when the remaining questions to Shu Fai Cheung are answered or set aside, and these tests pass. (The effect-size convention and the group split are decided; see b.)
+Binary predictors are no longer a future-only phase. The supported models,
+effect-size conventions, group allocation and restrictions on correlated
+binary predictors are documented in [conventions.md](conventions.md) and
+[upstream-questions.md](upstream-questions.md). Their historical method
+decisions remain in [decisions.md](decisions.md). Each variant still needs
+its own validation evidence; backend availability is not a validation claim.
 
 **Example phase prompt (phase 2)**
 

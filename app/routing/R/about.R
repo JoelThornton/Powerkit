@@ -21,9 +21,14 @@ about_foundation_tools <- list(
   list(package = "BayesFactor", role = "the Bayes factor test of a correlation (the same Bayes factor as JASP's)"),
   list(package = "metapower", role = "the planned meta-analysis's z test"),
   list(package = "simr", role = "participants responding to many items (mixed models)"),
-  list(package = "PUMP", role = "joint power for several outcomes in a study plan")
+  list(package = "PUMP", role = "joint power for several outcomes in a study plan"),
+  list(package = "MBESS", role = "precision planning for standardised mean differences and regression coefficients, including interval-width assurance"),
+  list(package = "presize", role = "precision planning for correlations, proportions, raw mean differences, odds ratios and intraclass correlations")
 )
 about_supporting_tools <- list(
+  list(package = "ARTool", role = "which fits aligned rank transform models"),
+  list(package = "brunnermunzel", role = "which runs the Brunner-Munzel rank test"),
+  list(package = "quantreg", role = "which fits quantile regression models"),
   list(package = "SimDesign", role = "which runs Spower's simulations"),
   list(package = "afex", role = "which fits Superpower's ANOVAs"),
   list(package = "MASS", role = "which Superpower uses to generate data"),
