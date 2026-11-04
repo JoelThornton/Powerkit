@@ -126,6 +126,15 @@ read_project <- function(x) {
     ))
   }
   result <- raw$result
+  # Earlier files kept precision and other goal-specific values only in the
+  # typed screen. Recover absent fields without overwriting recorded numbers.
+  if (!is.null(result) && !is.null(raw$screen)) {
+    screen <- tryCatch(decode_value(raw$screen), error = function(e) NULL)
+    if (is.list(screen) && identical(screen$provenance$spec_hash, spec_hash(spec))) {
+      complete <- result_record(screen)
+      for (name in setdiff(names(complete), names(result))) result[name] <- complete[name]
+    }
+  }
   if (!is.null(result)) {
     saved <- unlist(result$provenance$packages)
     for (pkg in setdiff(names(saved), "powerkit")) {
@@ -333,6 +342,14 @@ result_record <- function(result) {
     curve = result$curve,
     n_required = result$n_required,
     sensitivity = result$sensitivity,
+    precision = result$precision,
+    justified_alpha = result$justified_alpha,
+    bayes = result$bayes,
+    clusters = result$clusters,
+    sem = result$sem,
+    manova = result$manova,
+    details = result$details,
+    critical_effect = result$critical_effect,
     recruitment = result$recruitment,
     check_run_passed = all(result$check_run$ok),
     provenance = c(
@@ -355,5 +372,7 @@ saved_cores <- function(record) {
 
 # The numbers a reproduction must match.
 result_numbers <- function(record) {
-  record[c("curve", "n_required", "sensitivity", "recruitment")]
+  fields <- c("curve", "n_required", "sensitivity", "recruitment", "precision",
+    "justified_alpha", "bayes", "clusters", "sem", "manova", "details", "critical_effect")
+  record[intersect(fields, names(record))]
 }
