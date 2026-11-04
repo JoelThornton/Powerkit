@@ -57,7 +57,13 @@ jobs:
           set -euo pipefail
           # The page's link must be the one tested here.
           grep -qF "${{ matrix.installer }}" docs/run-it-yourself.md
-          curl -fsSL -o "$RUNNER_TEMP/r-installer" "${{ matrix.installer }}"
+          # Retry transient timeouts/server failures, keeping certificate
+          # verification and HTTP failure checking. Permanent errors such
+          # as a missing installer still fail. Curl backs off exponentially.
+          curl --fail --silent --show-error --location \
+            --connect-timeout 20 --max-time 300 \
+            --retry 3 --retry-max-time 600 \
+            --output "$RUNNER_TEMP/r-installer" "${{ matrix.installer }}"
           if [ "$RUNNER_OS" = "Windows" ]; then
             mv "$RUNNER_TEMP/r-installer" "$RUNNER_TEMP/r-installer.exe"
             "$RUNNER_TEMP/r-installer.exe" //VERYSILENT //SUPPRESSMSGBOXES //NORESTART "//DIR=C:\\R-4.5.3"
