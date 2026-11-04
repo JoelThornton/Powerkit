@@ -21,6 +21,23 @@ plan_n <- function(result) {
   if (wants_n && is.list(result$n_required)) result$n_required$n
 }
 
+# Ask the engine what N counts. If it cannot identify the structure, keep
+# the requirement separate rather than assuming it counts people.
+plan_sample <- function(spec, describe = engine_function("sample_structure")) {
+  unknown <- list(unit = "analysis units", note = "This count is kept separate because its sample structure could not be identified.", compatibility_key = NULL)
+  if (is.null(describe) || is.null(spec)) return(unknown)
+  tryCatch(describe(spec), error = function(e) unknown)
+}
+
+plan_entry_sample <- function(entry) entry$sample %||% plan_sample(entry$spec %||% entry$project$spec)
+
+plan_counts_compatible <- function(entries) {
+  if (!length(entries)) return(FALSE)
+  keys <- lapply(entries, function(entry) plan_entry_sample(entry)$compatibility_key)
+  all(vapply(keys, function(key) is.character(key) && length(key) == 1L && nzchar(key), logical(1))) &&
+    length(unique(unlist(keys))) == 1L
+}
+
 # One analysis in the plan, from a calculation shown on a result screen.
 plan_entry <- function(tree, endpoint, calc, route) {
   result <- calc$result
@@ -32,9 +49,7 @@ plan_entry <- function(tree, endpoint, calc, route) {
     headline = words[["headline"]],
     goal = goal,
     n = plan_n(result),
-    # Cluster trials count groups, not people, so their N isn't compared
-    # with the others'.
-    comparable = !identical(calc$spec$design, "cluster_trial"),
+    sample = plan_sample(calc$spec),
     spec = calc$spec,
     result = result,
     route = route
@@ -52,7 +67,7 @@ plan_entry_from_project <- function(tree, project) {
     headline = NULL,
     goal = goal,
     n = plan_n(result),
-    comparable = !identical(project$spec$design, "cluster_trial"),
+    sample = plan_sample(project$spec),
     project = project
   )
 }
@@ -134,22 +149,25 @@ study_plan_bar_ui <- function(entries, in_plan) {
 # The study plan screen: the largest sample size first, then each
 # analysis with its own N, which can be removed.
 study_plan_ui <- function(entries) {
-  comparable <- Filter(function(e) e$comparable && !is.null(e$n), entries)
+  known_n <- function(e) is.numeric(e$n) && length(e$n) == 1L && is.finite(e$n) && e$n > 0
+  comparable <- if (plan_counts_compatible(entries) && all(vapply(entries, known_n, logical(1)))) entries else list()
   largest <- if (length(comparable)) comparable[[which.max(vapply(comparable, function(e) e$n, numeric(1)))]]
   esc <- function(x) htmltools::htmlEscape(x)
   k <- length(entries)
   item <- function(e, i) {
     sets <- !is.null(largest) && identical(e, largest)
+    sample <- plan_entry_sample(e)
     tags$li(class = paste("plan-item", if (sets) "plan-item-sets"),
       div(class = "plan-item-body",
         tags$strong(class = "plan-item-name", e$label),
-        if (sets) tags$span(class = "plan-item-tag", "Sets the sample size"),
+        if (sets) tags$span(class = "plan-item-tag", "Largest comparable requirement"),
         if (!is.null(e$headline)) p(class = "small", e$headline)
         else if (!is.null(e$n)) p(class = "small", sprintf("Sample size from the saved result: %s.", whole(e$n)))
-        else p(class = "small", "Opened from a saved plan: open it as a project to see its result.")),
+        else p(class = "small", "Opened from a saved plan: open it as a project to see its result."),
+        p(class = "small", sample$note)),
       if (!is.null(e$n)) div(class = "plan-item-n",
         tags$span(class = "plan-item-n-value", whole(e$n)),
-        tags$span(class = "plan-item-n-unit", if (e$comparable) "needed" else "groups needed")),
+        tags$span(class = "plan-item-n-unit", paste(sample$unit, "needed"))),
       tags$button(type = "button", class = "btn btn-link btn-sm plan-remove",
         `aria-label` = sprintf("Remove %s from the plan", e$label),
         onclick = sprintf("Shiny.setInputValue('plan_remove', %d, {priority: 'event'})", i), "Remove"))
@@ -166,14 +184,14 @@ study_plan_ui <- function(entries) {
     if (!is.null(largest)) div(class = "result-hero plan-hero",
       div(class = "result-figure",
         tags$span(class = "result-figure-value", whole(largest$n)),
-        tags$span(class = "result-figure-label", "the sample size your study needs"),
+        tags$span(class = "result-figure-label", paste("largest requirement in", plan_entry_sample(largest)$unit)),
         tags$span(class = "result-figure-sub", if (k == 1) "from your one analysis so far" else sprintf("the largest of your %d analyses", k))),
       p(class = "plan-hero-text", HTML(sprintf(
-        "The largest sample size in your plan is <strong>N = %s</strong>, for %s. With that many, each analysis whose sample size is counted in people reaches the power (or precision) its card asked for.",
+        "The largest comparable requirement is <strong>N = %s</strong>, for %s. The recorded sample units and design structures match. A common recruitment plan also needs the same population, eligibility, allocation and measurement schedule; the maximum alone does not establish those.",
         whole(largest$n), esc(largest$label))))),
     if (k > 0) tags$ol(class = "study-plan-list", Map(item, entries, seq_along(entries))),
-    if (any(!vapply(entries, function(e) e$comparable, logical(1)))) p(class = "small",
-      "A cluster-randomised trial counts groups, not people, so its number is not compared with the others."),
+    if (k > 1 && !length(comparable)) p(class = "plan-note",
+      "These analyses have different or incomplete sample requirements. Their counts are kept separate; there is no single study-wide sample size here. Participants, pairs, items and studies cannot be compared just by taking the largest number. Matching units also need compatible allocation and measurement schedules."),
     if (joint_power_offered(entries)) joint_power_ui(entries)
     else if (k >= 2) p(class = "study-plan-joint plan-note",
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),

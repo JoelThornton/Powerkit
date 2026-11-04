@@ -833,52 +833,7 @@ add_recruitment_section <- function(lines, spec, result) {
   }
   at <- match("# Compare with powerkit's result ----", lines)
   analysed <- if (identical(spec$goal$type, "sample_size")) "n_required" else "n_total"
-  split <- switch(
-    spec$template,
-    independent_t = ,
-    two_proportions = ,
-    two_correlations = ,
-    ordinal_two_groups = ,
-    tost_independent = c(
-      sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(spec$options$allocation_ratio %||% 1)),
-      "groups_analysed <- c(round(n_analysed / (1 + ratio)), n_analysed - round(n_analysed / (1 + ratio)))"
-    ),
-    two_variances = ,
-    tost_two_proportions = "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
-    cluster_randomised = ,
-    multisite = c(
-      sprintf("cluster_size <- %s # participants analysed in each group", r_code(spec$population$cluster_size)),
-      "groups_analysed <- rep(cluster_size, n_analysed / cluster_size) # each group's analysed size"
-    ),
-    group_treatment = c(
-      sprintf("cluster_size <- %s # participants analysed in each group of the grouped condition", r_code(spec$population$cluster_size)),
-      "groups_analysed <- c(rep(cluster_size, n_analysed / cluster_size / 2), n_analysed / 2) # its groups, then the other condition"
-    ),
-    "2x2_between" = if (unequal_cells(spec)) {
-      sprintf("groups_analysed <- n_analysed * %1$s / sum(%1$s) # the four cells, in the ratio given", r_code(cell_ratio_vector(spec)))
-    } else {
-      "groups_analysed <- rep(n_analysed / 4, 4) # four equal cells"
-    },
-    factorial_between = ,
-    factorial = ,
-    factorial_ancova = sprintf(
-      "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal cells",
-      length(spec$variables$A$levels) * length(spec$variables$B$levels)
-    ),
-    "2x2_mixed" = if (unequal_groups(spec)) "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share" else "groups_analysed <- rep(n_analysed / 2, 2) # two equal groups",
-    oneway_between = if (jonckheere_test(spec)) "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share" else sprintf(
-      "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
-    ),
-    mixed = if (unequal_groups(spec)) "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share" else sprintf(
-      "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
-    ),
-    oneway_contrast = ,
-    oneway_ancova = sprintf(
-      "groups_analysed <- rep(n_analysed / %1$d, %1$d) # %1$d equal groups", length(spec$variables$A$levels)
-    ),
-    proportion_trend = "groups_analysed <- n_analysed * group_ratio / sum(group_ratio) # each group's share",
-    "groups_analysed <- n_analysed # one group"
-  )
+  split <- analysed_groups_code(spec)
   section <- c(
     "# Participants to recruit ----",
     "# n is the number analysed. To allow for attrition, each group's analysed",

@@ -13,13 +13,17 @@ skip_without_engine_plan <- function() {
 }
 
 fake_entry <- function(label, n, comparable = TRUE, headline = paste("You need", n)) {
-  list(endpoint = "E2", label = label, headline = headline, goal = "sample_size", n = n, comparable = comparable)
+  list(endpoint = "E2", label = label, headline = headline, goal = "sample_size", n = n,
+    sample = list(unit = "participants", note = "N counts participants.",
+      compatibility_key = if (comparable) "same-recorded-sample-structure" else "different-recorded-sample-structure"))
 }
 
-test_that("the plan names the largest sample size counted in people", {
+test_that("the plan keeps different sample structures separate", {
   html <- as.character(study_plan_ui(list(fake_entry("A t-test", 128), fake_entry("A correlation", 194), fake_entry("A cluster trial", 900, comparable = FALSE))))
-  expect_match(html, "<strong>N = 194</strong>, for A correlation", fixed = TRUE)
-  expect_match(html, "counts groups, not people", fixed = TRUE)
+  expect_no_match(html, "result-hero plan-hero", fixed = TRUE)
+  expect_match(html, "no single study-wide sample size", fixed = TRUE)
+  expect_no_match(html, "groups needed", fixed = TRUE)
+  expect_match(html, "participants needed", fixed = TRUE)
   expect_match(html, "powerkit doesn't calculate it for these designs yet", fixed = TRUE)
   expect_match(html, "Add another analysis", fixed = TRUE)
   expect_match(html, "Save study plan", fixed = TRUE)
@@ -115,7 +119,8 @@ test_that("the plan names each analysis in plain words, puts the largest N first
   html <- as.character(study_plan_ui(list(fake_entry("A t-test", 128), fake_entry("A correlation", 194))))
   expect_match(html, "result-hero plan-hero", fixed = TRUE)
   expect_match(html, "the largest of your 2 analyses", fixed = TRUE)
-  expect_match(html, "Sets the sample size", fixed = TRUE)
+  expect_match(html, "Largest comparable requirement", fixed = TRUE)
+  expect_match(html, "maximum alone does not establish", fixed = TRUE)
   expect_match(html, "plan_remove&#39;, 2,", fixed = TRUE)
   expect_match(html, "Remove A correlation from the plan", fixed = TRUE)
   expect_match(as.character(study_plan_ui(list())), "Add this to my study plan", fixed = TRUE)

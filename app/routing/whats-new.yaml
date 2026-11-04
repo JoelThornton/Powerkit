@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Keep the right sample units and whole groups"
+    text: >-
+      Study plans keep requirements in participants, pairs, items and studies
+      separate when they cannot be compared. Recruitment rounds each group
+      on its own, and sample-size searches retain the exact group allocation.
+  - date: "2026-11-04"
     title: "See what happens across 1,000 studies"
     text: >-
       Labs now separates research and educational tools. Repeat a two-group
