@@ -14,6 +14,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Planning guidance:** precision is reachable with its estimate choice
+  visible outside Settings. Expected width is an average, without a median
+  claim. Simulation choices describe their supplied populations and Welch's
+  equal-SD limitation. All-tests power explicitly requires independence;
+  a dependence-free sufficient target remains to be added.
+
 - **Sample counts:** plans distinguish participants, pairs, items and
   studies, and only show a largest comparable requirement for matching
   recorded sample structures. Group allocation metadata is shared by

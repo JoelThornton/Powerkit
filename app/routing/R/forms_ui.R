@@ -242,6 +242,9 @@ form_section <- function(g) {
   # The claim sits with the settings: most studies rest on one test.
   if (identical(g$title, "Your claim")) return("settings")
   if ("goal" %in% ids) return("goal")
+  # Choosing the estimate changes the scientific question, even when it
+  # starts at a default. Keep it visible before its conditional inputs.
+  if ("estimate" %in% ids) return("study")
   if ("guess" %in% ids) return("guess")
   if ("just_type" %in% ids || any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) return("effect")
   starts_set <- vapply(g$fields, function(f) !is.null(f[["default"]]) || isTRUE(f$optional), logical(1))
