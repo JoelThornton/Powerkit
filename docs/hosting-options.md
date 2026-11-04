@@ -86,6 +86,27 @@ These come from the app and engine as they are now, not from a provider.
   2026). `scripts/deploy-online.R` is the fallback: it deploys from R on
   the maintainer's computer (steps at the top of that file).
 
+#### Search discovery after deployment
+
+The app serves `www/robots.txt`, `www/sitemap.xml` and `www/guide.html` as
+public paths. The robots file allows public crawling and advertises the
+sitemap; the guide provides useful text without a Shiny WebSocket session.
+Only stable public pages belong in the sitemap, never session URLs, saved
+plans or invented routes.
+
+Connect Cloud blocks general crawlers by default. At deployment it probes
+`/robots.txt`; the app must answer HTTP 200 for its custom policy to be used.
+After merging, wait for the manifest workflow and automatic redeployment,
+then check the **public** `/robots.txt`, `/sitemap.xml` and `/guide.html`.
+The robots response must contain `Allow: /`, not the platform's default
+`Disallow: /`. If the old policy remains, redeploy through Connect Cloud and
+check its publishing logs. Reference: [Posit's robots guidance](https://docs.posit.co/connect-cloud/user/share/robots.html).
+
+Once these public checks pass, submit `sitemap.xml` in Google Search Console
+and request indexing of the home and guide pages using URL inspection.
+Crawling permission and a sitemap help discovery; they do not guarantee
+indexing or ranking. Reference: [Google's recrawl guidance](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl).
+
 #### Publishing from GitHub (once, on the Connect Cloud website)
 
 Button names are from Connect Cloud's documentation (found by search,

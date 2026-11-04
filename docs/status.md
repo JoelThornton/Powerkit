@@ -18,8 +18,8 @@ fully validated. Validation runs are recorded in
   separate sections. The repeated-studies tool uses actual two-group
   normal-data t-tests and effect estimates, with simulation uncertainty,
   conditional selection summaries and labelled CSV exports. Browser
-  history tracks individual tools and the menu; full browser interaction
-  verification remains outstanding. Numerical and screen tests pass.
+  history tracks individual tools and the menu; Chrome checks cover menu/tool Back and Forward, cross-tab restoration,
+  a completed run and the stale-settings warning. Numerical and screen tests pass.
 
 - **Sample-size search:** doubling checks the largest valid allocation at
   the configured limit. Boundary regressions cover valid allocation steps
@@ -30,6 +30,10 @@ fully validated. Validation runs are recorded in
   58/59 use full product moments and explicit population residual variances
   (Departure 19), checked against independent populations and the backend
   generator. Their broader validation remains separate from these checks.
+
+- **Search discovery:** the app includes a public robots policy, a sitemap
+  and a static guide. Deployment must be checked at the public URLs before
+  submitting the sitemap to Search Console; search indexing is not guaranteed.
 
 - **Saved-result integrity:** calculations capture their original form
   answers; changed or inconsistent restored answers require recalculation
