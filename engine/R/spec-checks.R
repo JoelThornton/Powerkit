@@ -2337,6 +2337,9 @@ check_target_path <- function(spec, model) {
 # b' S b; its residual variance (1 - R-squared) must be positive. Stops at
 # the first variable where it is not.
 implied_r_squared <- function(spec, model) {
+  if (isTRUE(spec$template %in% c("process_58", "process_59"))) {
+    return(path_product_moments(spec, model))
+  }
   paths <- spec$population$paths
   correlations <- correlation_lookup(spec)
   order <- c(model$exogenous, endogenous_order(model))

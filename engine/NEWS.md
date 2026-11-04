@@ -1,5 +1,13 @@
 # powerkit 0.30.0
 
+* Joint power refuses independent-group test versions that PUMP does not
+  reproduce. Exploratory curves retain the plan's minimum-effect margins,
+  design priors and other population assumptions.
+* Moderated mediation models 58 and 59 use full product moments for their
+  feasibility checks and explicit population residual variances, avoiding
+  power4mome 0.2.1's outdated-product standardisation. Reproduction scripts
+  use the same corrected population (Departure 19).
+
 * Public crawling is allowed by an app-owned robots file. A sitemap lists
   the home page and a static guide that does not need a Shiny connection.
   Publishing notes describe the deployment probe and public verification.

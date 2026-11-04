@@ -14,6 +14,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Scientific decision integrity:** joint power is limited to supported
+  tests; effect exploration preserves margins and design priors. Models
+  58/59 use full product moments and explicit population residual variances
+  (Departure 19), checked against independent populations and the backend
+  generator. Their broader validation remains separate from these checks.
+
 - **Search discovery:** the app includes a public robots policy, a sitemap
   and a static guide. Deployment must be checked at the public URLs before
   submitting the sitemap to Search Console; search indexing is not guaranteed.

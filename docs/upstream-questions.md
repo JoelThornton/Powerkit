@@ -90,6 +90,16 @@ Questions about metapower 0.2.2, from its source (opened 31 October
 
 ## power4mome
 
+**Population standardisation with a mediator in a later product (0.2.1).**
+`psi_std_monte_carlo()` calls `update_p_terms()` before replacing the
+mediator's error values with its generated values. In models 58 and 59,
+the following outcome equation can therefore use an outdated MW during
+standardisation. Powerkit now supplies residual variances from the full
+product moments and uses `standardized = FALSE` for these models, with a
+separate fitted model. The actual generator updates products after each
+equation. See Departure 19 and `test-path-product-moments.R`. Recheck this
+workaround when updating power4mome; no upstream resolution is assumed.
+
 1. **Reproducibility with a product term.** For a model with a product
    term (for example `m ~ x + w + x:w`), the population standardisation
    (`psi_std_monte_carlo()`, with `n_std` draws) appears to use the

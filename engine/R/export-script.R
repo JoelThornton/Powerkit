@@ -2806,6 +2806,7 @@ power4mome_script <- function(spec, result) {
     "    nrep = as.integer(batch_replications), # simulated data sets",
     "    model = model,",
     "    pop_es = pop_es,",
+    if (isFALSE(inputs$standardized)) "    standardized = FALSE, # residual variances are supplied explicitly",
     "    n = batch_n, # sample size",
     if (!is.null(inputs$x_prob) || !is.null(inputs$w_prob)) sprintf(
       "    x_fun = list(%s), # yes/no: %s, rescaled to mean 0 and SD 1",
