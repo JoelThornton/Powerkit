@@ -19,11 +19,15 @@ labs_tools <- list(
        text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect."),
   list(id = "picture", title = "Power visualiser",
        text = "For a two-group t-test or a correlation: move the sample size and the effect, choose alpha, and see the two distributions behind power (no effect, and the effect you set), with power, its complement and the smallest effect that would be significant."),
+  list(id = "variation", title = "1,000 studies",
+       text = "Repeat a two-group study 1,000 times. See how p-values and effect estimates vary, and how looking only at significant results can exaggerate the effect."),
   list(id = "bayes", title = "Bayesian planning",
        text = "For a Bayes factor t-test: choose the prior the Bayes factor will use and, separately, what you believe about the effect, and see how often a study of the size you set would give strong evidence for an effect, strong evidence for none, or neither."),
   list(id = "published", title = "Effect size converter",
        text = "Enter an effect as a paper reported it (for example t(58) = 2.5, an F or an odds ratio) and see it as the effect size a power analysis uses, with a safeguard value that allows for published effects being too large.")
 )
+labs_tool_sections <- list("Research tools" = c("map", "prereplication", "bayes", "published"),
+  "Educational tools" = c("picture", "variation"))
 labs_ref_key <- "Karhulahti2025_prereplication"
 
 # The paper's three questions, word for word (its "Pre-replication" section).
@@ -178,6 +182,17 @@ labs_box <- function(f, rows = 4) {
 }
 labs_boxes <- function(step) lapply(Filter(function(f) identical(f$step, step), labs_fields), labs_box)
 
+labs_tool_card <- function(tool) {
+  div(class = "labs-tool-card", h4(class = "h5", tool$title), p(tool$text),
+    tags$button(type = "button", class = "btn btn-primary", `data-labs-tool` = tool$id,
+      onclick = sprintf("pkLabsOpen('%s')", tool$id), paste("Open", tool$title)))
+}
+
+labs_menu_section <- function(section) {
+  tools <- Filter(function(tool) tool$id %in% labs_tool_sections[[section]], labs_tools)
+  tagList(h3(class = "h4 mt-4", section), div(class = "labs-menu", lapply(tools, labs_tool_card)))
+}
+
 labs_ui <- function(tree) {
   test_choices <- c("Choose one" = "", stats::setNames(labs_tests,
     vapply(labs_tests, function(e) tree$endpoints[[e]]$plain_name, character(1))))
@@ -186,9 +201,7 @@ labs_ui <- function(tree) {
     p(class = "lead", "Tools that may help you think about a study before you plan it. They are not part of the main route, nothing here is required, and they may change or disappear."),
     # First screen: the list of tools.
     conditionalPanel("!input.labs_tool",
-      div(class = "labs-menu", lapply(labs_tools, function(t) div(class = "labs-tool-card",
-        h3(class = "h5", t$title), p(t$text),
-        tags$button(type = "button", class = "btn btn-primary", onclick = sprintf("pkLabsOpen('%s')", t$id), paste("Open", t$title))))),
+      lapply(names(labs_tool_sections), labs_menu_section),
       p(class = "small text-muted", "More tools will be added here.")),
     conditionalPanel("input.labs_tool == 'map'",
       tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
@@ -196,6 +209,7 @@ labs_ui <- function(tree) {
         "The map is drawn from powerkit's design finder; it shows where each question leads, not which analysis is right for your study."),
       map_ui(tree)),
     picture_ui(),
+    study_variation_ui(),
     bayes_ui(),
     published_ui(),
     conditionalPanel("input.labs_tool == 'prereplication'",
@@ -346,7 +360,9 @@ labs_js <- "
     };
     // Which Labs tool is open, kept for the tab like the notes.
     window.pkLabsOpen = function(tool) {
-      Shiny.setInputValue('labs_tool', tool || '');
+      var known = Array.from(document.querySelectorAll('[data-labs-tool]')).map(function(el) { return el.getAttribute('data-labs-tool'); });
+      tool = known.indexOf(tool) >= 0 ? tool : '';
+      Shiny.setInputValue('labs_tool', tool || '', {priority: 'event'});
       window.pkLabsTool = tool || '';
       var s = store(); if (s) { try { if (tool) s.setItem('powerkit-labs-tool', tool); else s.removeItem('powerkit-labs-tool'); } catch (e) {} }
       var top = document.getElementById('labs-notes'); if (top) top.scrollIntoView();
@@ -359,7 +375,7 @@ labs_js <- "
       // A shared link (?page=labs&tool=...) opens that tool.
       var linked = new URLSearchParams(window.location.search).get('tool');
       if (linked && /^[a-z]+$/.test(linked)) t = linked;
-      if (t) { Shiny.setInputValue('labs_tool', t); window.pkLabsTool = t; if (t === 'map') window.pkMapWantFull = true; }
+      if (t) window.pkLabsOpen(t);
     });
     // The map can only measure itself once it is on screen.
     $(document).on('shown.bs.tab shiny:conditional', function() {

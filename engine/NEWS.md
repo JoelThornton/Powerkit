@@ -1,5 +1,14 @@
 # powerkit 0.30.0
 
+* Labs separates research and educational tools. The new 1,000 studies
+  tool generates fresh normal two-group data and runs actual pooled
+  t-tests, showing p-values, signed Cohen's d estimates, significance
+  selection, magnitude exaggeration and wrong directions. CSV exports
+  identify simulated results and preserve the population and run details.
+* Browser history distinguishes the Labs menu and each tool, restores the
+  selected tool on Back/Forward, and avoids intermediate restoration steps.
+  The page-link button explicitly describes what it shares.
+
 * Sample-size bracketing checks the largest valid allocation at its search
   limit before reporting failure. A limit is described as a search limit,
   rather than as proof that the effect cannot be detected in practice.

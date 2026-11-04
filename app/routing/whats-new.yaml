@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "See what happens across 1,000 studies"
+    text: >-
+      Labs now separates research and educational tools. Repeat a two-group
+      study 1,000 times to see the spread of p-values and effect estimates,
+      and how significant results can overestimate the true effect. Labs
+      also remembers individual tools when you go Back or Forward.
+  - date: "2026-11-04"
     title: "Sample-size searches check their upper limit"
     text: >-
       A search now checks the largest valid sample size within its limit

@@ -34,6 +34,7 @@ source(file.path("R", "project.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
+source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
@@ -657,7 +658,10 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("powerkit (prototype)"), tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
+  tags$head(tags$title("Powerkit: power analysis for psychology (prototype)"),
+    tags$meta(name = "description", content = "Plan sample size, statistical power and precision for psychology studies. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
+    tags$link(rel = "canonical", href = paste0(public_address, "/")),
+    tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
   tags$header(class = "topbar",
@@ -678,7 +682,9 @@ ui <- function(req) fluidPage(
       tabPanel("Updates", div(class = "pt-3", whats_new_tab)),
       tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
-    )
+    ),
+    tags$footer(class = "small text-muted mt-4", "Powerkit helps plan psychology studies. ",
+      tags$a(href = "guide.html", "Read the guide and current limitations"), ".")
   )
 )
 
@@ -1401,6 +1407,7 @@ server <- function(input, output, session) {
       div(class = "result-panel mt-2", role = "status", lapply(out$lines, p))
     })
   })
+  study_variation_server(input, output, session)
   # Labs: the picture of power, from the engine's power_picture() and its
   # siblings for the other tests.
   picture <- reactive({
@@ -1575,14 +1582,27 @@ server <- function(input, output, session) {
   # and Back or Forward restores the app as it was at that entry.
   nav <- new.env()
   nav$snaps <- list(); nav$pos <- 0L
+  nav_restore <- reactiveVal(NULL)
   nav_snapshot <- function() {
     snap <- lapply(nav_fields, function(f) state[[f]])
     names(snap) <- nav_fields
     snap$tab <- input$tabs
+    snap$labs_tool <- input$labs_tool %||% ""
     snap
   }
   observe({
-    key <- nav_key(state$screen, state$node, state$endpoint, length(state$history), input$tabs)
+    req(input$tabs)
+    key <- nav_key(state$screen, state$node, state$endpoint, length(state$history), input$tabs, input$labs_tool)
+    restoring <- nav_restore()
+    if (!is.null(restoring)) {
+      # Tab and tool updates travel back from the browser asynchronously.
+      # Do not record their intermediate states as new history entries.
+      if (identical(input$tabs, restoring$tab) &&
+          (!identical(input$tabs, labs_tab_title) || identical(input$labs_tool %||% "", restoring$tool))) {
+        nav_restore(NULL)
+      }
+      return()
+    }
     isolate({
       if (nav$pos > 0 && identical(nav$snaps[[nav$pos]]$key, key)) return()
       # Leaving an input screen: keep what was typed with its entry.
@@ -1595,7 +1615,8 @@ server <- function(input, output, session) {
       snap <- nav_snapshot(); snap$key <- key
       nav$snaps[[nav$pos + 1L]] <- snap
       nav$pos <- nav$pos + 1L
-      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L, page = page_slug(input$tabs)))
+      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L,
+        page = page_slug(input$tabs), tool = if (identical(input$tabs, labs_tab_title)) input$labs_tool %||% "" else ""))
     })
   })
   observeEvent(input$pk_nav_to, {
@@ -1606,8 +1627,10 @@ server <- function(input, output, session) {
     cancel_job()
     snap <- nav$snaps[[to]]
     nav$pos <- to
+    nav_restore(list(tab = snap$tab, tool = snap$labs_tool %||% ""))
     for (f in nav_fields) state[[f]] <- snap[[f]]
     state$calc <- NULL; state$long_spec <- NULL
+    session$sendCustomMessage("labs_open", snap$labs_tool %||% "")
     if (!identical(input$tabs, snap$tab) && !is.null(snap$tab)) updateTabsetPanel(session, "tabs", selected = snap$tab)
   })
   output$screen <- renderUI({
