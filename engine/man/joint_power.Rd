@@ -45,9 +45,9 @@ tests that are each run at their own level.
 }
 \details{
 PUMP tests the difference with a t-test that pools the two groups'
-variances; an independent t-test card in powerkit uses Welch's test, so
-each outcome's power can differ slightly from its card's (they agree
-with equal groups to within simulation error). PUMP draws each test
+variances. Independent-group specs must select Student's t-test;
+Welch, rank, Bayes factor and minimum-effect versions are not replaced
+by this test. PUMP draws each test
 statistic as a central t shifted by its noncentrality, as PowerUp!'s
 formulas do, where powertools uses the noncentral t; with few groups
 this gives a little less power than the card (docs/conventions.md, Known
