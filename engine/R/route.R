@@ -270,7 +270,12 @@ valid_n_step <- function(spec) {
   if (is.null(groups)) {
     return(1)
   }
-  Find(groups$valid, seq_len(1000)) %||% 1
+  allocation <- sample_allocation(spec)
+  step <- if (identical(allocation$kind, "weights")) integer_allocation_step(allocation$weights) else allocation$step
+  if (is.null(step) || !is.finite(step) || step < 1 || !isTRUE(groups$valid(step))) {
+    abort_run("This allocation cannot be represented as whole groups reliably. Use simple relative group sizes, such as 1 : 2 or 2 : 3.")
+  }
+  step
 }
 
 # Run `expr` for its value only: silence a backend's console output,

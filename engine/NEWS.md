@@ -1,5 +1,15 @@
 # powerkit 0.30.0
 
+* Study plans identify whether N counts participants, pairs, items or
+  studies and compare requirements only when their recorded sample
+  structures match. Cluster-trial totals are labelled as participants.
+* Recruitment and standalone scripts share one allocation description,
+  including non-inferiority, two-proportion equivalence, invariance,
+  MANOVA and nested designs. Each group's recruitment is rounded separately.
+* Exact allocation periods are derived from whole group weights instead
+  of a scan capped at 1,000. A ratio of 1.333 uses blocks of 2,333 people;
+  invalid fixed totals get nearby valid choices, with no fallback to step 1.
+
 * Labs separates research and educational tools. The new 1,000 studies
   tool generates fresh normal two-group data and runs actual pooled
   t-tests, showing p-values, signed Cohen's d estimates, significance

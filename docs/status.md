@@ -14,6 +14,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Sample counts:** plans distinguish participants, pairs, items and
+  studies, and only show a largest comparable requirement for matching
+  recorded sample structures. Group allocation metadata is shared by
+  recruitment and reproduction scripts. Exact search steps no longer
+  default to 1 when a whole allocation requires a large block.
+
 - **Labs and navigation:** research tools and educational tools have
   separate sections. The repeated-studies tool uses actual two-group
   normal-data t-tests and effect estimates, with simulation uncertainty,

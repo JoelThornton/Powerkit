@@ -2523,17 +2523,10 @@ check_n <- function(spec, n) {
   if (groups$valid(n)) {
     return(character())
   }
-  below <- if (n > minimum) seq(max(minimum, n - 1000), n - 1) else numeric()
-  nearby <- c(
-    utils::tail(Filter(groups$valid, below), 1),
-    utils::head(Filter(groups$valid, seq(n + 1, n + 1000)), 1)
-  )
-  if (length(nearby) == 0) {
-    return(sprintf(
-      "'options > allocation_ratio' (%s) can't split any nearby n into whole groups. Use a simple ratio such as 2 or 1.5.",
-      format_number(spec$options$allocation_ratio)
-    ))
-  }
+  step <- tryCatch(valid_n_step(spec), powerkit_run_error = function(e) e)
+  if (inherits(step, "powerkit_run_error")) return(conditionMessage(step))
+  nearby <- unique(c(step * floor(n / step), step * ceiling(n / step)))
+  nearby <- nearby[nearby >= minimum & nearby != n]
   sprintf(
     "'goal > n' must %s; %s doesn't. The nearest that do: %s.",
     groups$rule, format_number(n), paste(nearby, collapse = " and ")
@@ -2818,7 +2811,7 @@ group_split <- function(spec) {
       valid = function(n) n %% (2 * m) == 0
     ))
   }
-  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent",
+  if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "ordinal_two_groups", "tost_independent",
                            "noninf_independent", "noninf_two_proportions", "log_rank") ||
       (identical(spec$template, "invariance") && !identical(spec$population$over, "occasions") && (spec$population$n_groups %||% 2) == 2)) {
     ratio <- spec$options$allocation_ratio %||% 1

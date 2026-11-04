@@ -19,6 +19,23 @@ The routes and cards come from one data file,
 from [`app/routing/forms.yaml`](../app/routing/forms.yaml). A test checks that `tree.yaml`
 and `decision-tree.md` agree, so they can't drift apart.
 
+## Sample counts and study plans
+
+The engine describes what each N counts: participants, pairs of people,
+items or studies. Cluster-trial N counts participants, with whole clusters
+and sites retained. A study plan lists requirements separately when units,
+allocation, grouping identities, measurement structure or recorded attrition
+differ, or when a required sample size is missing. Matching recorded
+structures permits a comparison of counts; it does not prove that the
+analyses use the same population, eligibility or missing-data process.
+
+Recruitment and its reproduction code use the same group-allocation
+description. Each group's analysed count is divided by its retention
+proportion and rounded up. This remains a heuristic, not a model of
+missing-data mechanisms or loss of whole clusters. Exact allocations
+require whole group counts: 1.333 means 1,000 : 1,333, with a smallest
+total of 2,333; it is not silently treated as an approximate 4 : 3.
+
 ## Optional Labs tools
 
 Labs keeps research tools (the methods map, pre-replication notes,
