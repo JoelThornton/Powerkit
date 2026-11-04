@@ -1,16 +1,23 @@
 # Coverage matrix
 
-*Last updated: 17 October 2026.*
+*Historical foundation-tool comparison, 17 October 2026. Guidance clarified
+4 November 2026; the original evidence and row statuses are retained.*
+
+This is a dated research inventory, not the current app capability or
+validation list. Use [`status.md`](status.md), [`next.md`](next.md) and the
+current [`tree.yaml`](../app/routing/tree.yaml) and
+[`forms.yaml`](../app/routing/forms.yaml) for implementation and restrictions.
+Versions below describe the original comparison, not today's lockfile.
 
 This page lists the user-facing capabilities of the five tools powerkit
 builds on: Superpower, Spower, power4mome, InteractionPoweR and G\*Power.
-For each capability it gives powerkit's status. The goal behind it (build
+For each capability it gives powerkit's status at that assessment. The goal behind it (build
 guide, overview) is one place for psychologists to run the power analyses
 these tools offer, built on them, crediting them and validated against
 them.
 
-Each row comes from the tool's own documentation and source (the versions in
-`renv.lock`), not from memory. Where a GitHub development version differs,
+Each row comes from the tool's own documentation and source at the recorded
+comparison versions, not from memory. Where a GitHub development version differs,
 this is noted below.
 
 **The tiers are proposals for the maintainer to confirm.** Rows marked

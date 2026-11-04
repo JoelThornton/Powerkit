@@ -1,6 +1,7 @@
 # Coverage roadmap
 
-*Last updated: 30 October 2026.*
+*Planning inventory with dated design notes. Navigation/status guidance
+reviewed 4 November 2026; this is not a new validation of every row.*
 
 The master list of everything powerkit might cover: every test in
 G\*Power 3.1.9.7's Tests menu (Part A), designs beyond G\*Power (Part B),
@@ -9,10 +10,12 @@ It is a planning list, not a promise: nothing here is decided unless it
 says so. The decisions it needs are in
 [`judgement-calls.md`](judgement-calls.md), section G.
 
-[`coverage.md`](coverage.md) stays the capability-by-capability inventory
-of the foundation tools. This page is organised by what a user wants to
-test, and links each row to an end point in
-[`decision-tree.md`](decision-tree.md) (E1–E47).
+[`coverage.md`](coverage.md) preserves the historical foundation-tool
+comparison. This roadmap is organised by what a user wants to test.
+Current cards and variants are defined in [`tree.yaml`](../app/routing/tree.yaml)
+and [`forms.yaml`](../app/routing/forms.yaml); [`status.md`](status.md) and
+[`next.md`](next.md) distinguish implemented features from outstanding work.
+The [`decision-tree.md`](decision-tree.md) records the routing rationale.
 
 ## How to read the tables
 

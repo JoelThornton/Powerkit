@@ -5947,19 +5947,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "47f5404de7e5d45e9752ac2f03ff95bb38da3ccb",
-        "RemoteSha": "47f5404de7e5d45e9752ac2f03ff95bb38da3ccb",
+        "RemoteRef": "dd58ac4d1114c4ea5cbaea45ce8fea3f012ec10f",
+        "RemoteSha": "dd58ac4d1114c4ea5cbaea45ce8fea3f012ec10f",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "47f5404de7e5d45e9752ac2f03ff95bb38da3ccb",
-        "GithubSHA1": "47f5404de7e5d45e9752ac2f03ff95bb38da3ccb",
+        "GithubRef": "dd58ac4d1114c4ea5cbaea45ce8fea3f012ec10f",
+        "GithubSHA1": "dd58ac4d1114c4ea5cbaea45ce8fea3f012ec10f",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-04 20:59:11 UTC; runner",
+        "Packaged": "2026-11-04 23:41:42 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-04 20:59:21 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-04 23:41:56 UTC; unix"
       }
     },
     "powertools": {
@@ -7911,7 +7911,7 @@
       "checksum": "67eb2800cbbe955f630e138777a9c99d"
     },
     "R/about.R": {
-      "checksum": "c8d537ab2a7e49ca8780e524ca81a862"
+      "checksum": "058c7b41398bd541aec5caa8fa38c310"
     },
     "R/feedback.R": {
       "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
@@ -7968,7 +7968,7 @@
       "checksum": "84925e9295a1e04ae86ca6a500611274"
     },
     "tests/testthat/test-about.R": {
-      "checksum": "9137e923318e343a3123e4b99db50560"
+      "checksum": "03a3746b1b4ff6c00da7e6535f0c574a"
     },
     "tests/testthat/test-calculation-snapshot.R": {
       "checksum": "37f540ad65277e4afb87ee11dc11cc02"
@@ -8058,7 +8058,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "220533600a418d5c1b6df6bf4aeae870"
+      "checksum": "4f384d74ebbf83d28de38f4f088fa737"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

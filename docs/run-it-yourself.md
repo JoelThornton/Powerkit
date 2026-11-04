@@ -19,7 +19,8 @@ You will:
 
 The first time takes about 20 to 40 minutes, most of it waiting while
 packages download. After that it opens in under a minute. Everything runs
-on your computer; nothing you type is sent anywhere.
+on your computer. Sending feedback is optional and sends the information
+described on the Feedback tab.
 
 These steps are checked automatically on clean Windows and macOS machines
 (`.github/workflows/run-it-yourself.yaml`), so if they stop working we
