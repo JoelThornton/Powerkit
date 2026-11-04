@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Moderation when the outcome is yes or no"
+    text: >-
+      You can now plan a moderation study whose outcome is yes or no, such as
+      whether stress predicts seeking counselling more strongly for people
+      with less support. Give the odds ratios and the interaction, and
+      powerkit simulates the logistic regression.
+  - date: "2026-11-04"
     title: "PERMANOVA for several outcomes that aren't normal"
     text: >-
       When groups are compared on several outcomes at once, you can now plan

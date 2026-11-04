@@ -314,6 +314,7 @@ zero_effect_cases <- list(
   poisson_regression = function(s) within(s, population$rate_ratio <- 1),
   regression_coefficient = function(s) within(s, population$partial_r2 <- 0),
   multinomial_regression = function(s) within(s, population$probabilities_second <- population$probabilities),
+  logistic_interaction = function(s) within(s, population$odds_ratio_xw <- 1),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   # Equal means make every contrast zero, whatever its weights.

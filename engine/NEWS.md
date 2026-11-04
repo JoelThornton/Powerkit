@@ -1,5 +1,15 @@
 # powerkit 0.31.0
 
+* Moderation of a yes/no outcome (template `logistic_regression /
+  interaction`, card E32): logistic regression of Y on X, W and X x W,
+  each a score or a yes/no group, with the base proportion, the odds ratios
+  for X and W and the interaction as a ratio of odds ratios. powerkit's
+  experiment `p_logistic_interaction()` fits `glm()` and returns the Wald z
+  test of the product's coefficient, one-sided on request. Validation chunk
+  `logistic_interaction`: the Wald test's large-sample power from the
+  model's expected information, a separately written simulation, and Type I
+  error.
+
 * PERMANOVA as a test version on the MANOVA template (`target_test >
   method` "permanova", with `population > score_shape`): powerkit's
   experiment `p_permanova()` draws the groups' scores (multivariate normal,

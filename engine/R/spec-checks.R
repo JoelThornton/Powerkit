@@ -11,7 +11,8 @@ population_problems <- function(spec) {
     multiple_regression = check_multiple_regression,
     logistic_regression = function(spec) {
       switch(spec$template, factorial = check_logistic_factorial(spec),
-        multinomial = c(check_single_predictor_x(spec), check_multinomial(spec)), check_single_predictor_x(spec))
+        multinomial = c(check_single_predictor_x(spec), check_multinomial(spec)),
+        interaction = check_logistic_interaction(spec), check_single_predictor_x(spec))
     },
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
@@ -763,7 +764,7 @@ check_score_shape_allowed <- function(spec) {
 # designs, with powertools' formulas only).
 pwrss_only <- function(spec) {
   (spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial", "sem", "ordinal_regression") &&
-    !isTRUE(spec$template %in% c("factorial", "multinomial"))) ||
+    !isTRUE(spec$template %in% c("factorial", "multinomial", "interaction"))) ||
     spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
                          "oneway_ancova", "factorial_ancova", "oneway_contrast") ||
     spec$template %in% dependent_correlation_templates() ||
@@ -884,7 +885,7 @@ check_proportions_formula_allowed <- function(spec) {
 check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
-                 dependent_correlation_templates(), "single_predictor",
+                 dependent_correlation_templates(), "single_predictor", if (identical(spec$design, "logistic_regression")) "interaction",
                  "single_predictor_count", "one_variance", "two_variances",
                  "cluster_randomised", "multisite", "group_treatment", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
@@ -907,6 +908,8 @@ check_direction_allowed <- function(spec) {
     nonoverlapping_correlations = dependent_correlation_difference(spec),
     # "greater" means the odds go up with X (odds ratio above 1).
     single_predictor = log(pop$odds_ratio),
+    # "greater" means X's odds ratio rises with W (a ratio above 1).
+    interaction = log(pop$odds_ratio_xw),
     # "greater" means the event rate goes up with X (rate ratio above 1),
     # or, for the zero part of a zero-inflated model, the odds of an extra
     # zero do.
@@ -1223,6 +1226,26 @@ check_single_predictor_x <- function(spec) {
     ))
   }
   character()
+}
+
+# Moderation with a yes/no outcome: the proportions of a yes/no X and W
+# belong to yes/no variables, and the correlation between X and W to two
+# scores (powerkit draws a yes/no X or W on its own).
+check_logistic_interaction <- function(spec) {
+  pop <- spec$population
+  v <- spec$variables
+  problems <- character()
+  for (role in c("X", "W")) {
+    field <- paste0(tolower(role), "_prob")
+    if (!is.null(pop[[field]]) && !identical(v[[role]]$type, "binary")) {
+      problems <- c(problems, sprintf("'population > %s' is the proportion in the second group of a yes/no %s, but %s is a score; remove it, or make %s binary.",
+        field, role, var_label(spec, role), role))
+    }
+  }
+  if (!is.null(pop$r_xw) && (identical(v$X$type, "binary") || identical(v$W$type, "binary"))) {
+    problems <- c(problems, "'population > r_xw' (the correlation between X and W) is only used when both are scores: powerkit draws a yes/no X or W on its own. Remove it.")
+  }
+  problems
 }
 
 # Multinomial logistic regression: the outcome's categories, the shares in
@@ -2826,6 +2849,8 @@ minimum_n <- function(spec) {
       # intercept and X's slope for each category but the first), so that
       # most simulated data sets have someone in every category.
       multinomial = 10 * 2 * (length(spec$variables$Y$levels) - 1),
+      # Moderation: ten for each of the four coefficients.
+      interaction = 40,
       3
     ),
     # The zero-inflated models: thirty, so that most simulated data sets
@@ -3075,6 +3100,7 @@ target_effect_is_zero <- function(spec) {
         k <- multinomial_category(spec)
         if (is.null(k) || is.na(k)) max(abs(slopes)) else slopes[[k - 1]]
       },
+      interaction = log(pop$odds_ratio_xw),
       log(pop$odds_ratio)
     ),
     ordinal_regression = log(pop$odds_ratio),

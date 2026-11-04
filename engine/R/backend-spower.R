@@ -270,6 +270,20 @@ spower_inputs <- function(spec) {
     # outcome's category (multinomial_data()) and returns the likelihood-
     # ratio test of the predictor (all its coefficients) or the Wald z test
     # of one category against the first, from nnet's multinom().
+    # Moderation with a yes/no outcome: powerkit's own experiment,
+    # p_logistic_interaction(), draws X, W and the outcome
+    # (logistic_interaction_data()) and returns the Wald z test of the
+    # X x W coefficient in glm().
+    interaction = list(
+      experiment = "p_logistic_interaction", own = TRUE,
+      args = function(n) {
+        list(
+          n = n, base_prob = pop$base_prob, or_x = pop$odds_ratio_x, or_w = pop$odds_ratio_w, or_xw = pop$odds_ratio_xw,
+          x_binary = identical(spec$variables$X$type, "binary"), w_binary = identical(spec$variables$W$type, "binary"),
+          x_prob = pop$x_prob %||% 0.5, w_prob = pop$w_prob %||% 0.5, r = pop$r_xw %||% 0
+        )
+      }
+    ),
     multinomial = {
       coefficients <- multinomial_coefficients(spec)
       list(
@@ -304,6 +318,9 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+  } else if (identical(template, "interaction") && identical(spec$design, "logistic_regression")) {
+    sprintf("Spower::Spower(p_logistic_interaction(%s)) (stats::glm(family = binomial()), the Wald z test of the X x W coefficient)",
+      if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
   } else if (identical(template, "multinomial")) {
     if (identical(spec$target_test$method, "wald_z")) {
       sprintf("Spower::Spower(p_multinomial()) (nnet::multinom(), the Wald z test of X's coefficient for %s against %s)",
@@ -941,6 +958,58 @@ zero_inflated_check_run <- function(args, seed) {
   rows
 }
 
+# Moderation with a yes/no outcome --------------------------------------------
+#
+# Data: n people. Two scores X and W are standard normal with correlation
+# r; a yes/no X has round(n * x_prob) people in its second group (coded 1),
+# placed at random, and a yes/no W is 1 with probability w_prob, each drawn
+# on its own (a score partner is standard normal). The outcome is yes with
+# probability plogis(qlogis(base_prob) + log(or_x) x + log(or_w) w +
+# log(or_xw) x w). Drawn in this order: X, W, the outcomes.
+logistic_interaction_data <- function(n, base_prob, or_x, or_w, or_xw, x_binary, w_binary, x_prob, w_prob, r) {
+  if (!x_binary && !w_binary) {
+    x <- stats::rnorm(n)
+    w <- r * x + sqrt(1 - r^2) * stats::rnorm(n)
+  } else {
+    x <- if (x_binary) sample(rep(c(0, 1), c(n - round(n * x_prob), round(n * x_prob)))) else stats::rnorm(n)
+    w <- if (w_binary) as.numeric(stats::runif(n) < w_prob) else stats::rnorm(n)
+  }
+  eta <- stats::qlogis(base_prob) + log(or_x) * x + log(or_w) * w + log(or_xw) * x * w
+  data.frame(x = x, w = w, y = stats::rbinom(n, 1, stats::plogis(eta)))
+}
+
+# Spower experiment: glm() of the outcome on x * w, and the Wald z test of
+# the x:w coefficient (one-sided in the direction asked: "greater", X's
+# odds ratio rising with W).
+p_logistic_interaction <- function(n, base_prob, or_x, or_w, or_xw, x_binary, w_binary, x_prob, w_prob, r, alternative = "two.sided") {
+  data <- logistic_interaction_data(n, base_prob, or_x, or_w, or_xw, x_binary, w_binary, x_prob, w_prob, r)
+  fit <- suppressWarnings(stats::glm(y ~ x * w, family = stats::binomial(), data = data))
+  z <- stats::coef(summary(fit))["x:w", "z value"]
+  switch(alternative,
+    two.sided = 2 * stats::pnorm(-abs(z)),
+    greater = stats::pnorm(z, lower.tail = FALSE),
+    less = stats::pnorm(z)
+  )
+}
+
+# Check run: one large data set, fitted as each simulated one is; the four
+# coefficients recovered (the starting proportion and the three odds
+# ratios, on the logit scale).
+logistic_interaction_check_run <- function(args, seed) {
+  data <- call_backend("Spower", with_seed(seed, do.call(logistic_interaction_data, args[setdiff(names(args), "alternative")])))
+  est <- stats::coef(summary(stats::glm(y ~ x * w, family = stats::binomial(), data = data)))
+  specified <- c(stats::qlogis(args$base_prob), log(c(args$or_x, args$or_w, args$or_xw)))
+  rows <- check_run_rows(
+    c("proportion of yes at the starting point (checked on the log-odds scale)", "odds ratio for X (checked on the log scale)",
+      "odds ratio for W (checked on the log scale)", "ratio of odds ratios for X x W (checked on the log scale)"),
+    specified, est[, "Estimate"], est[, "Std. Error"]
+  )
+  rows$specified <- c(args$base_prob, args$or_x, args$or_w, args$or_xw)
+  rows$recovered <- c(stats::plogis(est[1, 1]), exp(est[-1, 1]))
+  rownames(rows) <- NULL
+  rows
+}
+
 # Multinomial logistic regression ---------------------------------------------
 #
 # The model: the log odds of category k against the first (the reference)
@@ -1202,6 +1271,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "multinomial")) {
     return(multinomial_check_run(spec, args, seed))
+  }
+  if (identical(spec$template, "interaction") && identical(spec$design, "logistic_regression")) {
+    return(logistic_interaction_check_run(args, seed))
   }
   if (permanova_test(spec) && !identical(args$shape, "normal")) {
     return(permanova_check_run(spec, args, seed))

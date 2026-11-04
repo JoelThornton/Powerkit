@@ -29,7 +29,7 @@ test_that("there is an example for every template", {
     "chi_square_gof", "two_correlations", "oneway_ancova", "paired_variances", "manova", "hotelling_one", "proportion_trend",
     "overlapping_correlations", "nonoverlapping_correlations",
     # Logistic regression (engine only), and multinomial logistic regression.
-    "single_predictor", "multinomial",
+    "single_predictor", "multinomial", "interaction",
     # Poisson regression (engine only).
     "single_predictor_count",
     # Clustered designs (powertools).

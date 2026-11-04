@@ -87,6 +87,7 @@ on:
           - robust_regression
           - multinomial
           - zero_inflated
+          - logistic_interaction
           - process_4
           - process_4_binary
           - process_6

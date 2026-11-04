@@ -190,6 +190,7 @@ Rows the maintainer listed (ML). "Unknown" where it isn't clear.
 | B5 | Three-way interaction | ML; BG | E31 | Wired (29 October 2026: InteractionPoweR's analytic `power_interaction_3way_r2()`, with reliabilities; matches it called directly; published value to transcribe) | Now: AP, PN | InteractionPoweR `power_interaction_3way_r2()` (analytic only), `cor.mat.3way()`; Superpower `power_threeway_between()` for three factors | coverage.md proposes v2 | — |
 | B6 | Simple slopes | ML | none: no card asks (E9's target is the interaction) | Foundation tool can do it, not planned | Could: PN | InteractionPoweR `power_interaction(detailed_results = TRUE)`, `plot_simple_slope()`, `simple.slopes.3way()` | — | [B7][] |
 | B7 | Curvilinear/quadratic effects | ML; Audit | none: reaches E4 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | candidate: Spower `p_glm()` with a squared term in `formula` (inferred: `p_glm()` takes any formula) | Decide the card | [C12][] |
+| B70 | Moderation of a yes/no outcome | ML | E32 | Wired (validation not finished): 4 November 2026, logistic regression with X x W, the Wald z test of the product, simulated (Spower with `stats::glm()`); X and W scores or yes/no groups | Now: AP, PN | **Engine: Spower, powerkit's experiment `p_logistic_interaction()` around `glm(family = binomial())`** | Count and categorical outcomes | — |
 
 ### Mediation
 
@@ -417,10 +418,10 @@ Stated so they aren't mistaken for gaps.
 
 ## Summary
 
-Counts are of the rows above. Parts A, B and C have 49, 69 and 12 rows.
+Counts are of the rows above. Parts A, B and C have 49, 70 and 12 rows.
 
 Every line below was counted from the rows themselves (26 October 2026),
-and they add up to all 130 rows. The table had been drifting: three
+and they add up to all the rows. The table had been drifting: three
 statuses the rows use ("Wired", "No ready-made tool" and "Partly
 working") were missing from it altogether, so its lines covered only 125
 rows, and four of the others were out by a few. The consistency test in
@@ -430,7 +431,7 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 30 | 26 | 0 | 56 |
+| Wired (validation not finished) | 30 | 27 | 0 | 57 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 8 | 2 | 11 |
 | Foundation tool can do it, not planned | 4 | 8 | 0 | 12 |

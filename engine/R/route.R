@@ -182,7 +182,9 @@ route_spec <- function(spec, seed = NULL) {
     "logistic_regression/factorial" = ,
     # Multinomial logistic regression, simulated with Spower (nnet's
     # multinom()).
-    "logistic_regression/multinomial" = spower_backend(spec, seed),
+    "logistic_regression/multinomial" = ,
+    # Moderation with a yes/no outcome, simulated with Spower (glm()).
+    "logistic_regression/interaction" = spower_backend(spec, seed),
     "regression_interaction/two_way" = if (interaction_r2_change(spec)) {
       # Given by its R-squared change, as G*Power takes it: pwrss's F test.
       pwrss_backend(spec, seed)

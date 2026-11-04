@@ -1806,6 +1806,24 @@ test_that("the aligned rank transform (E7, E21 and E22's test version) builds Sp
   expect_match(w[["short"]], "aligned rank transform", fixed = TRUE)
 })
 
+test_that("moderation of a yes/no outcome (E32) builds a logistic interaction spec and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E32"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  expect_false(field_applies(by_id("r_xw"), list(X_type = "binary", W_type = "continuous")))
+  values <- modifyList(form_examples$E32, list(W_type = "binary", W_level1 = "Men", W_level2 = "Women", w_prob = "0.5", r_xw = NULL, goal = "power", n = "400"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E32", fields, values)
+  expect_identical(spec$template, "interaction")
+  expect_null(spec$population$r_xw)
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E32"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "logistic regression with an interaction", fixed = TRUE)
+})
+
 test_that("PERMANOVA (E59's test version) takes the shape of the scores, reaches vegan and drops MANOVA's known difference", {
   fields <- form_fields(form_groups(forms, "E59"))
   values <- modifyList(form_examples$E59, list(manova_test = "permanova", score_shape = "skewed", goal = "power", n = "90"))
