@@ -17,7 +17,10 @@ for a sample size search), \code{goal}, \code{claim},
 Clopper-Pearson interval \code{lower} and \code{upper}, and \code{nrep}, the
 replications it could be analysed in), \code{joint} (\code{NULL} with one main
 analysis; otherwise its \code{rule}, \code{power}, \code{mcse}, \code{lower}, \code{upper} and
-\code{nrep}), \code{sample_size} (\code{NULL} unless the goal is a sample size:
+\code{nrep}). Both \code{analyses} and \code{joint} retain \code{attempted}, \code{valid},
+\code{failed}, \code{successful}, \code{conditional_power} and
+\code{successful_study_probability}; reported power uses valid decisions.
+\code{sample_size} (\code{NULL} unless the goal is a sample size:
 the \code{target}, the \code{rule} and \code{criterion} it was reached by,
 \code{n_required} with its 95\% interval \code{lower} and \code{upper}, the power
 \code{curve} and the \code{simulations} behind it), \code{implied} (what the population implies for each analysis,

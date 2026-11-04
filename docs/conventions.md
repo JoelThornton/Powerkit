@@ -1917,7 +1917,7 @@ that guarantee when fits fail; this rule does not fix missingness,
 model misspecification or convergence problems.
 ## Simulation outcomes and denominator conventions
 
-Simulation provenance records each evaluated sample size's attempted,
+Simulation provenance records each recorded sample size's attempted,
 valid, failed and successful decisions. Power4mome's reported rejection
 rate conditions on valid analyses; simr's rate includes failed decisions
 as unsuccessful attempts. These backend conventions are retained rather
