@@ -257,6 +257,12 @@ fully validated. Validation runs are recorded in
 
 ## Working environment
 
+- **Moderated-mediation evidence:** the opt-in conditional-indirect-difference
+  chunk completed with three passes and one published-value placeholder skip.
+  The validation journal records the independent simulation comparisons,
+  run revision and replication limits; this is scoped method evidence,
+  not release-wide validation.
+
 - **CI:** the engine's R CMD check on every push that changes the engine,
   `renv.lock` or the CI setup (skipped otherwise), with the engine's
   tests beside it in three parts on separate runners (test files four at

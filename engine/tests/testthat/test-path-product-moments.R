@@ -45,12 +45,14 @@ test_that("product moments agree with independently generated populations", {
 })
 
 test_that("models with a later mediator product bypass incorrect population rescaling", {
-  spec <- example_spec("process_58")
-  spec$options$nrep <- 1000L
-  inputs <- power4mome_inputs(validate_spec(spec))
-  expect_false(inputs$standardized)
-  expect_match(inputs$model, "M ~~ ", fixed = TRUE)
-  expect_match(inputs$model, "Y ~~ ", fixed = TRUE)
-  check <- power4mome_check_run(spec, inputs, seed = 11L)
-  expect_true(all(check$ok), info = paste(capture.output(print(check)), collapse = "\n"))
+  for (template in c("process_58", "process_59")) {
+    spec <- example_spec(template)
+    spec$options$nrep <- 1000L
+    inputs <- power4mome_inputs(validate_spec(spec))
+    expect_false(inputs$standardized, info = template)
+    expect_match(inputs$model, "M ~~ ", fixed = TRUE)
+    expect_match(inputs$model, "Y ~~ ", fixed = TRUE)
+    check <- power4mome_check_run(spec, inputs, seed = 11L)
+    expect_true(all(check$ok), info = paste(template, paste(capture.output(print(check)), collapse = "\n")))
+  }
 })
