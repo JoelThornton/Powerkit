@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Sample-size searches check their upper limit"
+    text: >-
+      A search now checks the largest valid sample size within its limit
+      before saying the target was not reached. Hitting that limit does
+      not mean that no larger study could reach your target.
+  - date: "2026-11-04"
     title: "Exploring effects keeps the same scientific question"
     text: >-
       Effect-size comparisons now keep your minimum-effect threshold and

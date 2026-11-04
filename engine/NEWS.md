@@ -1,5 +1,9 @@
 # powerkit 0.30.0
 
+* Sample-size bracketing checks the largest valid allocation at its search
+  limit before reporting failure. A limit is described as a search limit,
+  rather than as proof that the effect cannot be detected in practice.
+
 * Joint power refuses independent-group test versions that PUMP does not
   reproduce. Exploratory curves retain the plan's minimum-effect margins,
   design priors and other population assumptions.

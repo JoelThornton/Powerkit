@@ -129,20 +129,29 @@ coarse_nrep <- function() 100L
 # stops once the bracket is within that proportion of its upper end (for
 # noisy, simulated power, where finer bisection would be wasted).
 bracket_n <- function(power_at, target, n_min, step, n_max = 1e5, rel_tol = 0) {
+  # Search whole allocations only, including the last valid allocation
+  # below the limit when doubling would otherwise jump past it.
+  cap <- step * floor(n_max / step)
+  n_min <- step * ceiling(n_min / step)
+  if (n_min > cap) {
+    abort_run(sprintf("This design's smallest valid sample size (%s) exceeds the search limit of %s. Use a simpler allocation or check power at a specified sample size.",
+      format(n_min, big.mark = ","), format(n_max, big.mark = ",")))
+  }
   if (power_at(n_min) >= target) {
     return(n_min)
   }
   low <- n_min
   high <- n_min
-  while (power_at(high) < target) {
-    low <- high
-    high <- high * 2
-    if (high > n_max) {
+  repeat {
+    if (high == cap) {
       abort_run(sprintf(
-        "Even with %s participants the power stays below %s, so this effect is too small to detect in practice. Check the population values.",
-        format(n_max, big.mark = ","), target
+        "The target power of %s was not reached by the search limit (%s, the largest valid sample size checked). A larger sample may still reach it. Check your assumptions or assess power at a specified sample size.",
+        target, format(cap, big.mark = ",")
       ))
     }
+    low <- high
+    high <- min(high * 2, cap)
+    if (power_at(high) >= target) break
   }
   while (high - low > max(step, rel_tol * high)) {
     mid <- low + step * floor((high - low) / step / 2)
