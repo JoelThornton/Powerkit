@@ -14,6 +14,10 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Search discovery:** the app includes a public robots policy, a sitemap
+  and a static guide. Deployment must be checked at the public URLs before
+  submitting the sitemap to Search Console; search indexing is not guaranteed.
+
 - **Saved-result integrity:** calculations capture their original form
   answers; changed or inconsistent restored answers require recalculation
   before saving or joining a plan. Study-plan round trips preserve results
