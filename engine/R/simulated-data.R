@@ -503,6 +503,53 @@ sim_rank_code <- function(spec, n) {
         ")"
       )
     },
+    # The aligned rank transform with a within-participants factor: one row
+    # per score (long format, a participant number in the first column),
+    # each the cell's mean plus its SD times (sqrt(r) times the person's
+    # level plus sqrt(1 - r) times a deviation in the chosen shape), drawn
+    # as art_within_scores() draws them.
+    "2x2_mixed" = ,
+    mixed = ,
+    factorial_within = {
+      cells <- art_cells(spec)
+      a <- sim_levels(spec, "A")
+      b <- sim_levels(spec, "B")
+      within_both <- identical(spec$template, "factorial_within")
+      ratio <- if (mixed_unequal_groups(spec)) group_ratio_vector(spec) else rep(1, length(a))
+      r <- rep_len(art_within_r(spec), if (within_both) 1 else length(a))
+      c(
+        sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE) # cell means: rows %s, columns %s", r_code(as.numeric(t(cells$means))), length(a),
+          comment_text(spec$variables$A$label), comment_text(spec$variables$B$label)),
+        sprintf("sds <- matrix(%s, nrow = %d, byrow = TRUE) # each cell's SD", r_code(as.numeric(t(cells$sds))), length(a)),
+        sprintf("r <- %s # correlation between any two of a person's scores", r_code(r)),
+        if (within_both) {
+          c(
+            sprintf("level <- stats::rnorm(%d) # each person's own level", n),
+            "rows <- list()",
+            sprintf("for (a in 1:%d) for (b in 1:%d) {", length(a), length(b)),
+            sprintf("  rows[[length(rows) + 1]] <- data.frame(%s = 1:%d, %s = %s[a], %s = %s[b],", "Participant", n,
+              sim_label(spec, "A"), r_code(a), sim_label(spec, "B"), r_code(b)),
+            sprintf("    %s = means[a, b] + sds[a, b] * (sqrt(r) * level + sqrt(1 - r) * draw(%d)))", y, n),
+            "}"
+          )
+        } else {
+          c(
+            sprintf("sizes <- %s # people in each group", r_code(as.integer(round(n * ratio / sum(ratio))))),
+            "first <- c(0, cumsum(sizes))",
+            "rows <- list()",
+            sprintf("for (a in 1:%d) {", length(a)),
+            "  level <- stats::rnorm(sizes[a]) # each person's own level",
+            sprintf("  for (b in 1:%d) {", length(b)),
+            sprintf("    rows[[length(rows) + 1]] <- data.frame(Participant = first[a] + seq_len(sizes[a]), %s = %s[a], %s = %s[b],",
+              sim_label(spec, "A"), r_code(a), sim_label(spec, "B"), r_code(b)),
+            sprintf("      %s = means[a, b] + sds[a, b] * (sqrt(r[a]) * level + sqrt(1 - r[a]) * draw(sizes[a])))", y),
+            "  }",
+            "}"
+          )
+        },
+        "simulated <- do.call(rbind, rows)"
+      )
+    },
     # Friedman's test: one row per participant, one column per condition;
     # each score the condition's mean, the person's level and a deviation in
     # the chosen shape (friedman_scores()).

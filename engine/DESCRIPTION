@@ -52,6 +52,7 @@ Imports:
     metafor,
     metapower,
     parallel,
+    pbkrtest,
     psych,
     quantreg,
     power4mome,

@@ -81,6 +81,7 @@ on:
           - survival
           - reliability
           - aligned_rank
+          - aligned_rank_within
           - negative_binomial
           - robust_regression
           - multinomial

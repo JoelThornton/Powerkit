@@ -56,6 +56,7 @@ population_problems <- function(spec) {
     check_weights_allowed(spec),
     check_pairwise(spec),
     check_friedman(spec),
+    check_art_within(spec),
     check_jonckheere(spec),
     check_sd_ratio(spec),
     check_dispersion(spec),
@@ -216,6 +217,40 @@ rank_test <- function(spec) {
 # two-factor between-participants templates: a rank-based test of each
 # main effect and the interaction.
 aligned_rank_test <- function(spec) identical(spec$target_test$method, "aligned_rank_transform")
+
+# The aligned rank transform with a within-participants factor: the 2 x 2
+# and larger mixed designs and two within-participants factors.
+art_within <- function(spec) aligned_rank_test(spec) && isTRUE(spec$template %in% c("2x2_mixed", "mixed", "factorial_within"))
+
+# The aligned rank transform with a within-participants factor draws each
+# person's scores as Friedman's test does: their own level plus a
+# deviation, so one correlation for every pair of their scores (one per
+# group in a 2 x 2 mixed design), at least 0, and no sphericity
+# correction (the scores have it by construction); the cell means are
+# needed (not partial eta-squared).
+check_art_within <- function(spec) {
+  if (!art_within(spec)) {
+    return(character())
+  }
+  problems <- character()
+  rs <- as.numeric(unlist(spec$population$r))
+  if (length(rs) > 1 && !identical(spec$template, "2x2_mixed") && diff(range(rs)) > 1e-12) {
+    problems <- c(problems, paste0(
+      "The aligned rank transform with a within-participants factor draws each person's scores as their own level plus a deviation, ",
+      "so the correlation is the same for every pair of their scores: give one correlation in 'population > r'."
+    ))
+  }
+  if (length(rs) > 0 && any(rs < 0 | rs >= 1)) {
+    problems <- c(problems, paste0(
+      "For the aligned rank transform, the correlation between a person's scores ('population > r') must be at least 0 and below 1: ",
+      "powerkit draws each score as the person's own level plus a deviation, so the correlation is the share of the variance that is the person's."
+    ))
+  }
+  if (!is.null(spec$target_test$correction) && !identical(spec$target_test$correction, "none")) {
+    problems <- c(problems, "The aligned rank transform's scores have one correlation for every pair, so sphericity holds and there is no correction: remove 'target_test > correction'.")
+  }
+  problems
+}
 
 # Negative binomial regression of a count (MASS's glm.nb()), on the count
 # template: simulated with Spower by powerkit's own experiment.

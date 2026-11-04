@@ -4873,3 +4873,37 @@ only.
   report, so that power is conservative; the input screen says so, and a
   validation test records the size. Offering the likelihood-ratio test of
   the zero part instead is the alternative.
+
+## 2026-11-04 · The aligned rank transform with a within-participants factor (E8, E55 and E20)
+
+- **What:** the 2 x 2 mixed (E8), larger mixed (E55) and two-factor
+  within-participants (E20) cards offer the aligned rank transform ANOVA
+  as a test version, simulated by Spower with powerkit's experiment
+  `p_art_within()`. Goals: power and sample size.
+- **Why:** `next.md` item 5, Ready for this part since 31 October 2026.
+  Researchers use the aligned rank transform for factorial designs with
+  repeated measures as well as between-participants ones (ARTool's help
+  shows a split-plot example), and the between-participants version left
+  group-by-time designs without one.
+- **Data model:** correlated scores of a chosen shape, as Friedman's test
+  draws them (the queue item's wording): each score the cell's mean plus
+  its SD times (sqrt(r) times the person's own level plus sqrt(1 - r)
+  times a deviation of the chosen shape). So one correlation holds between
+  any two of a person's scores, one per group in the 2 x 2 mixed design;
+  the spec checks refuse different correlations per pair and a
+  correlation below 0, and a sphericity correction (which has nothing to
+  correct).
+- **Analysis:** ARTool's documented model for repeated measures is a random
+  intercept per person; with equal groups powerkit fits its error-term
+  equivalent (`Error(id)`), which gives identical p-values in a balanced
+  design and is several times faster; with unequal groups, the random
+  intercept model with car's Type III Kenward-Roger F tests, because
+  `aov()`'s sequential sums of squares would differ from Type III for the
+  within factor's main effect.
+- **Validation** (`test-validation-art-within.R`, chunk
+  `aligned_rank_within`): the procedure written out from its published
+  definition with an error term matches ARTool's p-values; powerkit agrees
+  with a plain loop of it for a 2 x 2 and a 2 x 3 mixed design and two
+  within-participants factors; the interaction's rejection rate stays near
+  alpha with skewed scores and both main effects present. A published
+  example is a placeholder for the maintainer.

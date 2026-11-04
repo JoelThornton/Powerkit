@@ -2487,6 +2487,14 @@
                 }
               ]
             },
+            "score_shape": {
+              "description": "The aligned rank transform only ('target_test > method' \"aligned_rank_transform\"): the shape of the scores in every cell, in SD units; cells differ by their means and SDs, and each person's scores are their own level plus a deviation of this shape, so that any two of their scores correlate r. 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
+            },
             "eta_squared": {
               "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
               "type": "number",
@@ -2558,7 +2566,11 @@
         "target_test": {
           "properties": {
             "method": {
-              "const": "anova_f"
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() with an error term for the participants, the model of a random intercept for each person; Type I F tests, which equal Type III in a balanced design), simulated with Spower; one correlation between every pair of a person's scores (per group, in a 2 x 2 mixed design), at least 0.",
+              "enum": [
+                "anova_f",
+                "aligned_rank_transform"
+              ]
             }
           }
         }
@@ -2661,6 +2673,14 @@
                 }
               ]
             },
+            "score_shape": {
+              "description": "The aligned rank transform only ('target_test > method' \"aligned_rank_transform\"): the shape of the scores in every cell, in SD units; cells differ by their means and SDs, and each person's scores are their own level plus a deviation of this shape, so that any two of their scores correlate r. 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
+            },
             "eta_squared": {
               "description": "With metric 'eta_squared': the partial eta-squared of the effect tested, as G*Power and pwrss take it; 'eta_source' says which definition. powerkit then computes power with pwrss's power.f.mixed.anova() instead of from means.",
               "type": "number",
@@ -2739,7 +2759,11 @@
               ]
             },
             "method": {
-              "const": "anova_f"
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() with an error term for the participants, the model of a random intercept for each person; Type I F tests, which equal Type III in a balanced design), simulated with Spower; one correlation between every pair of a person's scores (per group, in a 2 x 2 mixed design), at least 0.",
+              "enum": [
+                "anova_f",
+                "aligned_rank_transform"
+              ]
             },
             "correction": {
               "description": "Sphericity correction of the within-participants F tests' degrees of freedom: 'none' (Superpower's default), 'GG' (Greenhouse-Geisser) or 'HF' (Huynh-Feldt). With one SD and one correlation for every pair, sphericity holds and the corrections change nothing.",
@@ -2984,6 +3008,14 @@
                   }
                 }
               ]
+            },
+            "score_shape": {
+              "description": "The aligned rank transform only ('target_test > method' \"aligned_rank_transform\"): the shape of the scores in every cell, in SD units; cells differ by their means and SDs, and each person's scores are their own level plus a deviation of this shape, so that any two of their scores correlate r. 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1.",
+              "enum": [
+                "normal",
+                "skewed",
+                "heavy_tailed"
+              ]
             }
           }
         },
@@ -2997,7 +3029,11 @@
               ]
             },
             "method": {
-              "const": "anova_f"
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() with an error term for the participants, the model of a random intercept for each person; Type I F tests, which equal Type III in a balanced design), simulated with Spower; one correlation between every pair of a person's scores (per group, in a 2 x 2 mixed design), at least 0.",
+              "enum": [
+                "anova_f",
+                "aligned_rank_transform"
+              ]
             },
             "correction": {
               "description": "Sphericity correction of the within-participants F tests' degrees of freedom: 'none' (Superpower's default), 'GG' (Greenhouse-Geisser) or 'HF' (Huynh-Feldt). With one SD and one correlation for every pair, sphericity holds and the corrections change nothing.",

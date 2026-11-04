@@ -1806,6 +1806,30 @@ test_that("the aligned rank transform (E7, E21 and E22's test version) builds Sp
   expect_match(w[["short"]], "aligned rank transform", fixed = TRUE)
 })
 
+test_that("the aligned rank transform with a within-participants factor (E8, E55, E20) builds Spower specs and names the design", {
+  for (id in c("E8", "E55", "E20")) {
+    fields <- form_fields(form_groups(forms, id))
+    by_id <- function(f) Filter(function(x) identical(x$id, f), fields)[[1]]
+    expect_true(field_applies(by_id("score_shape"), list(test_version = "aligned_rank_transform")), label = id)
+    values <- modifyList(form_examples[[id]], list(test_version = "aligned_rank_transform", score_shape = "skewed", goal = "power", n = "60"))
+    expect_equal(form_problems(fields, values), character(), label = id)
+    spec <- build_spec(forms, id, fields, values)
+    expect_identical(spec$target_test$method, "aligned_rank_transform", label = id)
+    expect_null(spec$options$method, label = id)
+  }
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E8"))
+  values <- modifyList(form_examples$E8, list(test_version = "aligned_rank_transform", score_shape = "skewed", goal = "power", n = "60"))
+  spec <- build_spec(forms, "E8", fields, values)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E8"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "aligned rank transform ANOVA", fixed = TRUE)
+  expect_match(w[["short"]], "between participants", fixed = TRUE)
+})
+
 test_that("negative binomial regression (E28's model choice) asks for the overdispersion and reaches Spower", {
   fields <- form_fields(form_groups(forms, "E28"))
   by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]

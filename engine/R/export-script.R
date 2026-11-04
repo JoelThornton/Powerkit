@@ -605,6 +605,14 @@ tested_mediator_words <- function(spec, label) {
 
 rank_design_description <- function(spec, label, levels) {
   v <- spec$variables
+  if (art_within(spec)) {
+    test <- sprintf(
+      "aligned rank transform ANOVA of %s: the %s, %s (%s) by %s (%s), %s",
+      label("Y"), anova_effect_name(spec), label("A"), levels("A"), label("B"), levels("B"),
+      if (identical(spec$template, "factorial_within")) "both within participants" else "the first between participants, the second within"
+    )
+    return(sprintf("%s, simulated with %s", test, score_shape_words(spec$population$score_shape)))
+  }
   if (aligned_rank_test(spec)) {
     test <- sprintf(
       "aligned rank transform ANOVA of %s: the %s, %s (%s) by %s (%s), both between participants",
@@ -1513,6 +1521,9 @@ spower_script_inputs <- function(spec) {
 }
 
 spower_group_size_lines <- function(spec) {
+  if (art_within(spec)) {
+    return(character())
+  }
   if (aligned_rank_test(spec)) {
     return(c(
       "  # The experiment's n is one share of the total: each cell has n times",
@@ -2057,6 +2068,26 @@ rank_script_inputs <- function(spec) {
     "score_shape <- %s # the shape of the scores: %s",
     r_code(pop$score_shape %||% "normal"), score_shape_words(pop$score_shape)
   )
+  if (art_within(spec)) {
+    cells <- art_cells(spec)
+    a <- nrow(cells$means)
+    rows <- sprintf("one row per level of %s (%s), one column per level of %s (%s)",
+      comment_text(v$A$label), paste(comment_text(unlist(v$A$levels)), collapse = ", "),
+      comment_text(v$B$label), paste(comment_text(unlist(v$B$levels)), collapse = ", "))
+    within_both <- identical(spec$template, "factorial_within")
+    ratio <- if (mixed_unequal_groups(spec)) group_ratio_vector(spec) else rep(1, a)
+    return(c(
+      sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE) # cell means: %s", r_code(as.numeric(t(cells$means))), a, rows),
+      sprintf("sds <- matrix(%s, nrow = %d, byrow = TRUE) # each cell's SD, in the same layout", r_code(as.numeric(t(cells$sds))), a),
+      sprintf("r <- %s # correlation between any two of a person's scores%s", r_code(art_within_r(spec)), if (within_both) "" else " (one per group)"),
+      if (!within_both) sprintf("group_ratio <- %s # each group's share of the sample", r_code(ratio)),
+      sprintf("within_both <- %s # %s", r_code(within_both), if (within_both) "both factors within participants" else "the first factor between participants, the second within"),
+      sprintf("type3 <- %s # %s", r_code(mixed_unequal_groups(spec)),
+        if (mixed_unequal_groups(spec)) "unequal groups: a random intercept per person, Type III F tests" else "equal groups: the participants as an error term in aov()"),
+      sprintf("term <- %s # the effect tested: %s", r_code(art_term(spec$target_test$effect)), anova_effect_name(spec)),
+      shape
+    ))
+  }
   if (aligned_rank_test(spec)) {
     cells <- art_cells(spec)
     a <- nrow(cells$means)
@@ -2121,6 +2152,57 @@ rank_derived_lines <- function(spec) {
     "  )",
     "}"
   )
+  if (art_within(spec)) {
+    return(c(draw, "",
+      "# The experiment, as powerkit runs it: each score is the cell's mean plus",
+      "# its SD times (sqrt(r) times the person's own level plus sqrt(1 - r) times",
+      "# a deviation of the chosen shape), so any two of a person's scores",
+      "# correlate r. In a mixed design the groups have n split by group_ratio,",
+      "# and in each group in turn the people's levels are drawn, then the",
+      "# deviations in each level of B in turn; with both factors within, the",
+      "# levels of n people, then the deviations in each cell, row by row.",
+      "# ARTool's art() aligns and ranks the scores for every effect, with the",
+      "# participants as an error term (aov(), equal groups) or a random",
+      "# intercept for each person (car's Anova(type = 3) with Kenward-Roger F",
+      "# tests, unequal groups).",
+      "p_art_within <- function(n, means, sds, r, group_ratio = 1, term, within_both = FALSE, type3 = FALSE) {",
+      "  k <- nrow(means)",
+      "  m <- ncol(means)",
+      "  person_scores <- function(size, first_id, r, cells) {",
+      "    level <- rnorm(size)",
+      "    do.call(rbind, lapply(seq_len(nrow(cells)), function(i) {",
+      "      a <- cells$a[i]",
+      "      b <- cells$b[i]",
+      "      data.frame(id = first_id + seq_len(size), A = a, B = b,",
+      "        Y = means[a, b] + sds[a, b] * (sqrt(r) * level + sqrt(1 - r) * draw_scores(size)))",
+      "    }))",
+      "  }",
+      "  data <- if (within_both) {",
+      "    person_scores(n, 0, r[1], expand.grid(b = seq_len(m), a = seq_len(k)))",
+      "  } else {",
+      "    sizes <- as.integer(round(n * group_ratio / sum(group_ratio)))",
+      "    first <- c(0, cumsum(sizes))",
+      "    do.call(rbind, lapply(seq_len(k), function(a) {",
+      "      person_scores(sizes[a], first[a], r[min(a, length(r))], data.frame(a = a, b = seq_len(m)))",
+      "    }))",
+      "  }",
+      "  data$id <- factor(data$id)",
+      "  data$A <- factor(data$A, levels = seq_len(k))",
+      "  data$B <- factor(data$B, levels = seq_len(m))",
+      "  if (type3) {",
+      "    model <- ARTool::art(Y ~ A * B + (1 | id), data = data)",
+      "    return(car::Anova(ARTool::artlm(model, term), type = 3, test.statistic = \"F\")[term, \"Pr(>F)\"])",
+      "  }",
+      "  model <- ARTool::art(Y ~ A * B + Error(id), data = data)",
+      "  for (stratum in summary(ARTool::artlm(model, term))) {",
+      "    table <- stratum[[1]]",
+      "    at <- match(term, trimws(rownames(table)))",
+      "    if (!is.na(at)) return(table[at, \"Pr(>F)\"])",
+      "  }",
+      "  NA",
+      "}"
+    ))
+  }
   if (aligned_rank_test(spec)) {
     return(c(draw, "",
       "# The experiment, as powerkit runs it: n times its share in each cell,",
@@ -2210,6 +2292,20 @@ rank_derived_lines <- function(spec) {
 }
 
 rank_experiment_lines <- function(spec, inputs, one_sided) {
+  if (art_within(spec)) {
+    within_both <- identical(spec$template, "factorial_within")
+    args <- ensure_commas(c(
+      "n = batch_n, # participants",
+      "means = means, # cell means",
+      "sds = sds, # cell SDs",
+      "r = r,",
+      if (!within_both) "group_ratio = group_ratio,",
+      "term = term,",
+      "within_both = within_both,",
+      "type3 = type3"
+    ))
+    return(c(sprintf("%s(", inputs$experiment), paste0("  ", args), "),"))
+  }
   if (aligned_rank_test(spec)) {
     args <- ensure_commas(c(
       "n = n_share, # one share of the total",

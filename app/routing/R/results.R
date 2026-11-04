@@ -1650,7 +1650,14 @@ rank_test_name <- function(spec) {
     b <- spec$variables$B$label %||% "the second factor"
     effect <- switch(spec$target_test$effect, main_effect_A = sprintf("the main effect of %s", a), main_effect_B = sprintf("the main effect of %s", b),
       interaction = sprintf("the %s by %s interaction", a, b))
-    return(sprintf("an aligned rank transform ANOVA of %s (two between-participants factors), simulated assuming %s", effect, shape))
+    design <- switch(spec$template,
+      "2x2_mixed" = , mixed = sprintf("%s between participants, %s within", a, b),
+      factorial_within = "two within-participants factors",
+      "two between-participants factors")
+    within <- isTRUE(spec$template %in% c("2x2_mixed", "mixed", "factorial_within"))
+    return(sprintf("an aligned rank transform ANOVA of %s (%s), simulated assuming %s%s", effect, design,
+      if (within) sub("scores", "deviations from each person's own level", shape) else shape,
+      if (within) sprintf(" and a correlation of %s between a person's scores", paste(format(unique(unlist(spec$population$r))), collapse = " and ")) else ""))
   }
   if (identical(spec$target_test$method, "brunner_munzel")) {
     ratio <- spec$population$sd_ratio %||% 1

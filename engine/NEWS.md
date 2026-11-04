@@ -1,5 +1,17 @@
 # powerkit 0.31.0
 
+* The aligned rank transform ANOVA with a within-participants factor: the
+  2 x 2 mixed, larger mixed and two-factor within-participants templates
+  accept `target_test > method` "aligned_rank_transform" with
+  `population > score_shape`. powerkit's experiment `p_art_within()` draws
+  each person's scores as their own level plus a deviation of the chosen
+  shape (one correlation between any two of their scores, one per group in
+  the 2 x 2 mixed design) and analyses them with ARTool's `art()` and the
+  participants as an error term; with unequal groups, a random intercept
+  for each person and car's Type III F tests with Kenward-Roger df
+  (pbkrtest). Check run, exported script and simulated data (long format)
+  draw the same way. Validation chunk `aligned_rank_within`.
+
 * Zero-inflated Poisson and negative binomial regression as model choices
   for a count outcome (`poisson_regression / single_predictor_count`,
   `target_test > method` "zero_inflated_poisson" or
