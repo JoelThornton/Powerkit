@@ -62,7 +62,7 @@ plan_entry_from_project <- function(tree, project) {
 plan_analyses <- function(entries) {
   lapply(entries, function(e) {
     if (!is.null(e$project)) {
-      list(spec = e$project$spec, route = e$project$route)
+      e$project
     } else {
       list(spec = e$spec, result = e$result, route = e$route)
     }

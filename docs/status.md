@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 2 November 2026 (powerkit 0.29.0). This page says where the
+*Last updated: 4 November 2026 (powerkit 0.30.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -13,6 +13,14 @@ fully validated. Validation runs are recorded in
 `CLAUDE.md` and [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Saved-result integrity:** calculations capture their original form
+  answers; changed or inconsistent restored answers require recalculation
+  before saving or joining a plan. Study-plan round trips preserve results
+  and original provenance. Numerical records include precision and other
+  goal-specific outputs, recovering omitted fields from older typed screens.
+  Targeted regression checks accompany these changes; full validation is
+  still tracked separately below.
 
 - **The app** (`app/routing/`) is online at
   <https://joelthornton-powerkit.share.connect.posit.cloud> and updates

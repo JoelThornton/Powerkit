@@ -5,6 +5,13 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-04"
+    title: "Saved plans keep the right answers and results together"
+    text: >-
+      If you edit your answers after calculating, powerkit asks you to
+      calculate again before saving or adding the result to a plan.
+      Reopening and saving a study plan also keeps its results, including
+      precision estimates and their original calculation details.
   - date: "2026-11-02"
     title: "One regression coefficient, with robust standard errors or quantile regression"
     text: >-

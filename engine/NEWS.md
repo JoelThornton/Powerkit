@@ -1,3 +1,15 @@
+# powerkit 0.30.0
+
+* Saved calculations keep the answers used for that run. Editing a form
+  marks its result out of date and prevents saving or adding it to a study
+  plan until it is recalculated. Opened files are checked for inconsistent
+  form answers as well as spec/result hashes.
+* Re-saving a study plan preserves each analysis's saved result and original
+  provenance, including older files without a typed result screen.
+* Numerical project records and reproduction checks include precision,
+  justified alpha and other goal-specific outputs. Older records recover
+  missing fields from an intact saved result screen where available.
+
 # powerkit 0.29.0
 
 A batch of new features, built as one round (1 and 2 November 2026).

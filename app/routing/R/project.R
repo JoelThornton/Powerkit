@@ -25,6 +25,39 @@ project_route <- function(state, form_values) {
   )
 }
 
+# Compare editable answers with the snapshot used for a calculation. JSON
+# may restore a number as text, so compare its displayed value.
+calculation_matches_values <- function(calc, values) {
+  if (!identical(calc$status, "ok") || isFALSE(calc$form_consistent) || is.null(calc$route$form_values)) return(FALSE)
+  saved <- calc$route$form_values
+  ids <- sort(union(names(saved), names(values)))
+  normalise <- function(x) vapply(ids, function(id) {
+    paste(trimws(as.character(x[[id]] %||% "")), collapse = "\n")
+  }, character(1))
+  identical(normalise(saved), normalise(values))
+}
+
+# Check restored answers against the saved calculation too. Older files may
+# have been saved after editing a form without calculating again.
+project_form_matches_spec <- function(project, forms,
+                                      validate = engine_validator(), hash = engine_function("spec_hash")) {
+  if (is.null(validate) || is.null(hash)) return(FALSE)
+  route <- project$route
+  tryCatch({
+    fields <- form_fields(form_groups(forms, route$endpoint, route$form_k %||% 2L, route$start %||% list()))
+    built <- build_spec(forms, route$endpoint, fields, route$form_values %||% list())
+    built$options$seed <- built$options$seed %||% project$spec$options$seed
+    checked <- suppressWarnings(validate(built))
+    identical(hash(checked), hash(project$spec))
+  }, error = function(e) FALSE)
+}
+
+calculation_stale_ui <- function() {
+  div(class = "alert alert-warning", role = "status",
+    tags$strong("These answers need recalculating."),
+    " The result below may use different answers. Press \u201cCheck my answers\u201d again before saving or adding it to a plan.")
+}
+
 # What to put back into the app's state when a project is opened, or a
 # plain-English problem (a string) if it can't be reopened here.
 restore_from_project <- function(route, tree, forms) {
@@ -79,7 +112,8 @@ saved_calc <- function(project, saved = engine_function("saved_result")) {
   if (is.null(saved)) return(NULL)
   result <- tryCatch(saved(project), error = function(e) NULL)
   if (is.null(result)) return(NULL)
-  list(status = "ok", spec = unclass(project$spec), result = result, notes = character(), saved = TRUE)
+  list(status = "ok", spec = unclass(project$spec), result = result, route = project$route,
+    notes = character(), saved = TRUE)
 }
 
 project_file_name <- function(endpoint) {

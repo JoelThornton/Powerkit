@@ -905,7 +905,7 @@ server <- function(input, output, session) {
       goal <- calc$result$goal_type
       state$plan_results[[state$plan_id]] <- list(endpoint = state$endpoint, goal = goal,
         n = if (identical(goal, "sample_size")) calc$result$n_required$n)
-      keep_plan_values(isolate(current_form_values()))
+      keep_plan_values(calc$route$form_values %||% isolate(current_form_values()))
     }
   }, ignoreNULL = TRUE)
 
@@ -936,6 +936,7 @@ server <- function(input, output, session) {
   check_form <- function() {
     fields <- current_form_fields()
     values <- current_form_values()
+    calc_route <- project_route(reactiveValuesToList(state), values)
     start <- form_start()
     # The claim and whether the sample size is fixed are fields on the
     # input screen (from a plan or an older project, they start at what
@@ -974,7 +975,7 @@ server <- function(input, output, session) {
       output$form_result <- renderUI(calculating_background_ui(usual,
         sprintf("Running a rough preview (%s simulations)\u2026", whole(preview_nrep(forms)))))
       start_job("preview", preview_spec(spec, preview_nrep(forms)), usual,
-        list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice))
+        list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice, route = calc_route))
     } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint) && !identical(values$goal, "sensitivity_curve") &&
                runs_in_background(forms, state$endpoint, spec)) {
       # Long runs (E9): a separate R process, polled below, with an estimated
@@ -982,7 +983,7 @@ server <- function(input, output, session) {
       if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
       usual <- usual_seconds(forms, state$endpoint, spec$goal$type)
       output$form_result <- renderUI(calculating_background_ui(usual))
-      start_job("calc", spec, usual, list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice))
+      start_job("calc", spec, usual, list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice, route = calc_route))
     } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint)) {
       # Show "Calculating" first; the engine runs once that has reached the
       # browser (seconds for these end points).
@@ -990,6 +991,7 @@ server <- function(input, output, session) {
       ep_id <- state$endpoint
       session$onFlushed(function() {
         calc <- if (identical(values$goal, "sensitivity_curve")) run_sensitivity_curve(spec, seed = forms$default_seed) else run_calculation(spec, seed = forms$default_seed)
+        calc$route <- calc_route
         if (identical(calc$status, "ok")) calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values)
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
@@ -1100,6 +1102,7 @@ server <- function(input, output, session) {
       session$sendCustomMessage("focus_result", "ws_result")
       return()
     } else {
+      calc$route <- shown$route
       state$calc <- calc
       output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
     }
@@ -1212,9 +1215,16 @@ server <- function(input, output, session) {
     }
   )
   # The study plan any card can join (R/study-plan.R).
+  observe({
+    calc <- state$calc
+    if (is.null(calc) || !identical(state$screen, "form")) return()
+    current <- calculation_matches_values(calc, current_form_values())
+    session$onFlushed(function() session$sendCustomMessage("calculation_current", current), once = TRUE)
+  })
   output$study_plan_bar <- renderUI({
     calc <- state$calc
     if (is.null(calc) || !identical(calc$status, "ok")) return(NULL)
+    if (!calculation_matches_values(calc, current_form_values())) return(calculation_stale_ui())
     hash <- calc$result$provenance$spec_hash
     in_plan <- any(vapply(state$study_plan, function(e) identical(e$result$provenance$spec_hash, hash), logical(1)))
     study_plan_bar_ui(state$study_plan, in_plan)
@@ -1222,8 +1232,8 @@ server <- function(input, output, session) {
   observeEvent(input$plan_add, {
     calc <- state$calc
     if (is.null(calc) || !identical(calc$status, "ok")) return()
-    route <- project_route(reactiveValuesToList(state), current_form_values())
-    state$study_plan <- c(state$study_plan, list(plan_entry(tree, state$endpoint, calc, route)))
+    if (!calculation_matches_values(calc, current_form_values())) return()
+    state$study_plan <- c(state$study_plan, list(plan_entry(tree, state$endpoint, calc, calc$route)))
   })
   observeEvent(input$plan_view, { cancel_job(); state$screen <- "study_plan" })
   observeEvent(input$plan_clear, state$study_plan <- list())
@@ -1267,9 +1277,10 @@ server <- function(input, output, session) {
   output$download_project <- downloadHandler(
     filename = function() project_file_name(state$endpoint),
     content = function(file) {
+      req(calculation_matches_values(state$calc, current_form_values()))
       write <- engine_function("write_project")
       write(state$calc$spec, state$calc$result,
-        route = project_route(reactiveValuesToList(state), current_form_values()), file = file)
+        route = state$calc$route, file = file)
     }
   )
   observeEvent(input$open_project, {
@@ -1310,6 +1321,7 @@ server <- function(input, output, session) {
       output$form_result <- renderUI(project_opened_ui(project))
       return()
     }
+    calc$form_consistent <- project_form_matches_spec(project, forms)
     state$calc <- calc
     ep_id <- state$endpoint
     output$form_result <- renderUI(tagList(

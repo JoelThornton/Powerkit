@@ -28,6 +28,19 @@ write_study_plan <- function(analyses, file = NULL) {
     if (!is.list(a) || is.null(a$spec)) {
       abort_project("Each analysis in a study plan should be a list with a 'spec'.")
     }
+    # Preserve an opened project's original result and provenance, including
+    # older projects which have a numerical record but no typed screen.
+    if (inherits(a, "powerkit_project")) {
+      spec <- validate_spec(a$spec)
+      hash <- spec_hash(spec)
+      if (!is.null(a$result) && !identical(a$result$provenance$spec_hash, hash)) {
+        abort_project("A saved analysis's inputs no longer match its result. Calculate it again before saving the plan.")
+      }
+      return(list(format = project_format(), format_version = project_format_version(),
+        saved = a$saved, powerkit_version = a$powerkit_version, r_version = a$r_version,
+        spec = unclass(spec), spec_hash = hash, route = a$route,
+        result = a$result, screen = a$screen))
+    }
     jsonlite::parse_json(write_project(a$spec, a$result, a$route %||% list()), simplifyVector = FALSE)
   })
   plan <- list(

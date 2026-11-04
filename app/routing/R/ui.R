@@ -226,6 +226,13 @@ share_page_ui <- function() {
 # Each history entry carries its page in the address (?page=...); a link
 # with ?page= opens that page.
 nav_js <- "
+  Shiny.addCustomMessageHandler('calculation_current', function(current) {
+    document.querySelectorAll('#download_project, #plan_add').forEach(function(el) {
+      el.classList.toggle('disabled', !current);
+      el.setAttribute('aria-disabled', current ? 'false' : 'true');
+      if (el.tagName === 'BUTTON') el.disabled = !current;
+    });
+  });
   // Recently opened analyses, kept in this browser only.
   (function() {
     var KEY = 'powerkit-recent';
