@@ -16,3 +16,15 @@ test_that("failure counts retain both conditional and attempted-study denominato
   expect_equal(power4mome_counts(data.frame(pvalid = 0, reject = NA_real_), 20), c(0, 0, 20, 0))
   expect_error(simr_counts(list(x = 0, n = 20, pval = numeric())), "one decision")
 })
+
+test_that("whole-study decisions keep the same two denominators", {
+  r <- whole_study_rate(720, 900, 1000)
+  expect_equal(unname(r[c("attempted", "valid", "failed", "successful")]), c(1000, 900, 100, 720))
+  expect_equal(r[["power"]], 0.8)
+  expect_equal(r[["successful_study_probability"]], 0.72)
+  expect_equal(r[["mcse"]], sqrt(0.8 * 0.2 / 900))
+  failed <- whole_study_rate(0, 0, 1000)
+  expect_true(is.na(failed[["power"]]))
+  expect_equal(failed[["failed"]], 1000)
+  expect_equal(failed[["successful_study_probability"]], 0)
+})
