@@ -11,6 +11,19 @@ test_that("sample counts distinguish people, dyads, items and studies", {
   expect_match(cluster$note, "N counts participants", fixed = TRUE)
 })
 
+test_that("study counts retain participant and measurement structure within studies", {
+  first <- example_spec("meta_mean_effect")
+  second <- first
+  second$population$effect <- 0.4
+  expect_identical(sample_structure(first)$compatibility_key, sample_structure(second)$compatibility_key)
+  second$population$study_size <- 100
+  expect_false(identical(sample_structure(first)$compatibility_key, sample_structure(second)$compatibility_key))
+  first <- example_spec("meta_dependent_effects")
+  second <- first
+  second$population$effects_per_study <- 2
+  expect_false(identical(sample_structure(first)$compatibility_key, sample_structure(second)$compatibility_key))
+})
+
 test_that("a common count requires matching allocation, grouping and measurement structure", {
   first <- example_spec("independent_t")
   second <- first

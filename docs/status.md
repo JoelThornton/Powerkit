@@ -47,6 +47,8 @@ fully validated. Validation runs are recorded in
   recorded sample structures. Group allocation metadata is shared by
   recruitment and reproduction scripts. Exact search steps no longer
   default to 1 when a whole allocation requires a large block.
+  Meta-analysis comparisons also retain the number of participants and
+  dependent effects within each study.
 
 - **Labs and navigation:** research tools and educational tools have
   separate sections. The repeated-studies tool uses actual two-group

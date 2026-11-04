@@ -6,6 +6,11 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Keep meta-analysis study counts comparable"
+    text: >-
+      Study plans keep meta-analyses separate when they assume different
+      participant counts or numbers of dependent effects within each study.
+  - date: "2026-11-04"
     title: "Install the right tools for a downloaded analysis"
     text: >-
       When a full analysis needs to run on your computer, its instructions

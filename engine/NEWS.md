@@ -1,5 +1,8 @@
 # powerkit 0.30.0
 
+* Meta-analysis study-count comparisons retain participants per study and
+  dependent effects per study, so different study structures stay separate.
+
 * Script handoffs derive their package list and R requirement from the
   selected backend, including supporting packages. Mixed-model handoffs
   correctly name simr. `analysis_requirements()` exposes this metadata

@@ -29,7 +29,8 @@ sample_structure <- function(spec) {
   })
   names(variables) <- names(spec$variables)
   fixed <- c("cluster_size", "group_size", "groups_per_site", "assignment", "n_groups", "over",
-    "items", "participants", "item_design", "raters", "occasions", "n_times", "measurements")
+    "items", "participants", "item_design", "raters", "occasions", "n_times", "measurements",
+    "study_size", "effects_per_study")
   structure <- list(unit = unit, design = spec$design, template = spec$template,
     variables = variables, allocation = allocation,
     attrition = spec$options$attrition %||% 0,
