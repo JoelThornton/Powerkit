@@ -14,11 +14,6 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
-- **Clean-machine install checks:** the R installer download retries transient
-  failures with exponential backoff, a connection limit, an attempt limit
-  and a retry window. Download failures remain distinct from installer and
-  app-start verification failures.
-
 - **Labs and navigation:** research tools and educational tools have
   separate sections. The repeated-studies tool uses actual two-group
   normal-data t-tests and effect estimates, with simulation uncertainty,
@@ -253,4 +248,9 @@ fully validated. Validation runs are recorded in
   and writes the shell settings R needs to `~/.powerkit-env.sh`, sourced
   from the first line of `~/.bashrc`. devtools and roxygen2 aren't in the
   image; `CLAUDE.md` gives the commands to use instead.
+- **Clean-machine install checks:** the R installer download retries transient
+  failures with exponential backoff, a connection limit, an attempt limit
+  and a retry window. Download failures remain distinct from installer and
+  app-start verification failures.
+
 - **Open PRs:** GitHub is the list; this page doesn't duplicate it.
