@@ -27,7 +27,7 @@ test_that("unequal groups use powertools' n.ratio", {
   )
 })
 
-test_that("the required n is the first total whose power reaches the target", {
+test_that("the required n is the first valid whole-group total whose power reaches the target", {
   result <- run_spec(ordinal_spec(list(type = "sample_size", power = 0.8)))
   n <- result$n_required$n
   power_at <- function(n) {
@@ -35,7 +35,11 @@ test_that("the required n is the first total whose power reaches the target", {
     powertools::propodds(pC = c(0.1, 0.3, 0.4, 0.2), OR = 2, n1 = n1, n.ratio = (n - n1) / n1)
   }
   expect_gte(power_at(n), 0.8)
-  expect_lt(power_at(n - 1), 0.8)
+  expect_equal(n %% 2, 0)
+  expect_lt(power_at(n - 2), 0.8)
+  # n - 1 changes the requested equal allocation; it is not a valid
+  # competing sample size, even if its unbalanced formula has enough power.
+  expect_error(run_spec(ordinal_spec(list(type = "power", n = n - 1))), "nearest")
 })
 
 test_that("shares that don't fit the categories, or don't sum to 1, and no effect are refused", {
