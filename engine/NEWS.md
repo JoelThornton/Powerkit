@@ -8,8 +8,9 @@
   agreement with published examples.
 
 * Precision planning is described as available, with its estimate selector
-  visible among study inputs. Expected interval width is explained as an
-  average rather than a median or a probability guarantee.
+  visible among study inputs. MBESS's expected width is distinguished from
+  presize's width at the supplied values; neither is described as a median
+  or a probability guarantee.
 * Simulation method guidance states its supplied population assumptions;
   Welch's equal-population-SD limitation is visible at the method choice.
   Independence-based all-tests planning no longer claims to be conservative

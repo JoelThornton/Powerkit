@@ -2611,11 +2611,16 @@ precision_sentences <- function(spec, result) {
         format(pr$target_width), percent(pr$assurance))
     }
     more <- if (spec$template %in% c("two_groups", "one_group", "paired", "regression_coefficient")) "give a chance (assurance) that it is no wider, or plan a smaller width" else "plan a smaller width"
-    reading <- if (is.na(pr$assurance)) sprintf("The expected width is an average under your planning assumptions, not a guarantee for your study or a claim that half of intervals will be wider. For more certainty, %s.", more) else
+    reading <- if (!is.na(pr$assurance)) {
       "This is the chance (MBESS's assurance) that the interval is no wider than the width you set."
+    } else if (identical(result$provenance$backend, "MBESS")) {
+      sprintf("Expected width is an average across studies under your planning assumptions. Individual intervals vary; this does not set the chance of meeting your width target. For more certainty, %s.", more)
+    } else {
+      "This width is calculated from the values you specified. It does not set the chance that your realised interval will be narrow enough; compare smaller target widths or different planning values if you are unsure."
+    }
   } else {
     headline <- sprintf("With %s, the %s for %s would be about %s wide.", precision_people(spec, pr$n), interval, estimate, precision_number(pr$width))
-    reading <- "A narrower interval says more precisely how large the effect is; its width doesn't depend on whether the effect is significant."
+    reading <- "A narrower interval estimates the effect more precisely. Planning interval width answers a different question from whether a test will be significant."
   }
   c(headline = headline, reading = reading, detail = paste(expected, how))
 }
