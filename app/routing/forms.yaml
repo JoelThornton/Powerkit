@@ -251,6 +251,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "19": "Moderation of both mediation links: powerkit calculates residual variances from the full product moments and supplies them directly to power4mome. Its default standardisation can use the mediator's old values in the later product and generate the wrong outcome variance. Impossible combinations of paths are rejected before running."
   "1": "Required N for a 2 x 2 interaction: powerkit gives the smallest N at which the exact F test reaches the target power. Sommet et al.'s (2023) z approximation gives slightly smaller numbers: 4 participants fewer (one per cell) in their two published examples."
   "2": "Mixed design: powerkit uses Superpower's ANOVA_exact(), which reproduces the G*Power values Superpower's vignette reports, not ANOVA_exact2(). The two differ slightly (91.2% vs 90.5% in the vignette's example)."
   "3": "Superpower's exact dataset is built under this run's seed, so the result is identical each time with the same seed. The size of this difference is about 1e-15 in power, with no practical effect."
@@ -1650,7 +1651,7 @@ forms:
   E38:
     methods_name: "a moderated mediation model (the difference between conditional indirect effects)"
     tool: power4mome
-    departures: ["6", "8"]
+    departures: ["6", "8", "19"]
     directional: false
     base: {spec_version: "0.1", design: moderated_mediation, template: process_58,
            variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},

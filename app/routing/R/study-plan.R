@@ -81,6 +81,8 @@ plan_specs <- function(entries) lapply(entries, function(e) e$spec %||% e$projec
 joint_power_offered <- function(entries) {
   if (length(entries) < 2) return(FALSE)
   templates <- vapply(plan_specs(entries), function(s) s$template %||% "", character(1))
+  if (any(vapply(plan_specs(entries), function(s) identical(s$template, "independent_t") &&
+      !identical(s$target_test$method %||% "student_t", "student_t"), logical(1)))) return(FALSE)
   length(unique(templates)) == 1 && templates[[1]] %in% c("independent_t", "cluster_randomised", "multisite")
 }
 

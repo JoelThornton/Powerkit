@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Exploring effects keeps the same scientific question"
+    text: >-
+      Effect-size comparisons now keep your minimum-effect threshold and
+      Bayesian uncertainty. Joint power refuses test versions it cannot
+      reproduce, and moderated mediation with both links moderated checks
+      and generates the full population correctly.
+  - date: "2026-11-04"
     title: "Saved plans keep the right answers and results together"
     text: >-
       If you edit your answers after calculating, powerkit asks you to

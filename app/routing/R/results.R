@@ -1168,7 +1168,8 @@ explore_curve <- function(spec, result, effect, run = engine_function("run_spec"
   power <- vapply(ns, function(n) {
     s <- spec
     # The slider is in standardised units, whatever units the plan used.
-    s$population <- stats::setNames(list("standardised", effect), c("metric", e$field))
+    s$population$metric <- "standardised"
+    s$population[[e$field]] <- effect
     s <- without_safeguard(s)
     s$goal <- list(type = "power", n = as.integer(n))
     calc <- run_calculation(s, run, seed)
@@ -1221,7 +1222,8 @@ scenario_curves <- function(spec, result, conservative = NA, optimistic = NA, n 
   do.call(rbind, lapply(names(effects), function(k) {
     power <- vapply(ns, function(at) {
       s <- spec
-      s$population <- stats::setNames(list("standardised", effects[[k]]), c("metric", e$field))
+      s$population$metric <- "standardised"
+      s$population[[e$field]] <- effects[[k]]
       s <- without_safeguard(s)
       s$goal <- list(type = "power", n = as.integer(at))
       calc <- run_calculation(s, run, seed)
@@ -1239,7 +1241,8 @@ scenario_n <- function(spec, result, conservative = NA, optimistic = NA, run = e
   power <- spec$goal$power %||% 0.8
   vapply(effects, function(effect) {
     s <- spec
-    s$population <- stats::setNames(list("standardised", effect), c("metric", e$field))
+    s$population$metric <- "standardised"
+    s$population[[e$field]] <- effect
     s <- without_safeguard(s)
     s$goal <- list(type = "sample_size", power = power)
     calc <- run_calculation(s, run, seed)
@@ -1763,6 +1766,7 @@ bayes_sentence <- function(spec, result) {
 
 departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
+  if (!spec$template %in% c("process_58", "process_59")) keys <- setdiff(keys, "19")
   # Departure 1 is about the interaction's required N only.
   if (!identical(spec$target_test$effect, "interaction") || is_rank_test(spec)) keys <- setdiff(keys, "1")
   # Departures 9, 10 and 11 (a formula for basic tests; Fisher's z for a

@@ -14,6 +14,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Scientific decision integrity:** joint power is limited to supported
+  tests; effect exploration preserves margins and design priors. Models
+  58/59 use full product moments and explicit population residual variances
+  (Departure 19), checked against independent populations and the backend
+  generator. Their broader validation remains separate from these checks.
+
 - **Saved-result integrity:** calculations capture their original form
   answers; changed or inconsistent restored answers require recalculation
   before saving or joining a plan. Study-plan round trips preserve results

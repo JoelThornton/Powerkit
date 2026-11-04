@@ -1271,6 +1271,32 @@ preregistered test.
   the subgroup test against metafor called directly and its Type I
   error.
 
+### 19. Moderated mediation with a mediator in a later product: explicit population variances
+
+For PROCESS models 58 and 59, the mediator contains XW and also appears
+in MW. It is not jointly normal with W. Powerkit expands these products
+as polynomials in the independent population variables, evaluates their
+moments (Isserlis, 1918, doi:10.1093/biomet/12.1-2.134, for normal variables;
+the weighted two-point moments for standardised binary variables), and
+checks each equation's explained variance.
+
+Power4mome 0.2.1's `psi_std_monte_carlo()` updates products before replacing
+the mediator's old error values with its generated values. Its later
+equation can therefore use an incorrect product during standardisation.
+Its actual data generator updates products after replacing each outcome.
+Powerkit supplies the correct residual variances as fixed values in the
+population model and passes `standardized = FALSE`. The fitted analysis
+model still estimates residual variances; they are not fixed to known
+population values. Exported scripts use the same population.
+
+With M=.3X+.5XW+sqrt(.66)e, independent standard-normal X, W and e,
+Var(MW)=1.5 and Cov(MW,X)=.5. The predictor .4X+.4M+.5MW has variance
+1.111, so a standardised Y with an independent residual is impossible.
+The previous normal-product approximation gave .666 and accepted it.
+`test-path-product-moments.R` checks this boundary, independent populations
+with correlated X/W, and recovery from power4mome's actual generator.
+Departure 19 is shown on the affected result and in the methods text.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool

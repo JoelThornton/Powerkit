@@ -112,6 +112,17 @@ power4mome_inputs <- function(spec) {
   if (spec$design == "moderated_mediation") {
     pop_covariances <- c(sprintf("X ~~ W: %s", format_pop_value(lookup("X", "W"))), pop_covariances)
   }
+  explicit_variances <- spec$template %in% c("process_58", "process_59")
+  population_variances <- character()
+  if (explicit_variances) {
+    # power4mome 0.2.1's Monte Carlo standardisation updates a product
+    # before replacing its mediator. Supply the correct residual variances
+    # directly; its data generator updates products after each equation.
+    residuals <- 1 - implied_r_squared(spec, model)$r_squared
+    population_variances <- vapply(names(residuals), function(v) {
+      sprintf("%s ~~ %s*%s", v, format_pop_value(residuals[[v]]), v)
+    }, "")
+  }
 
   if (spec$design == "mediation") {
     nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
@@ -145,7 +156,8 @@ power4mome_inputs <- function(spec) {
   test_args$test_method <- "ci"
 
   list(
-    model = paste(c(regressions, covariances), collapse = "\n"),
+    model = paste(c(regressions, covariances, population_variances), collapse = "\n"),
+    standardized = !explicit_variances,
     # Models 58 and 59 (W on the M -> Y link): the fitted model is given
     # explicitly. power4mome's own adds a residual covariance of M with W,
     # which can't be estimated when W also predicts M (lavaan cannot
@@ -212,6 +224,7 @@ power4mome_call <- function(inputs, n, nrep, seed, ...) {
   fit <- if (!is.null(inputs$fit_model) && is.null(extra$fit_model_args)) list(fit_model_args = list(model = inputs$fit_model))
   args <- c(
     list(nrep = as.integer(nrep), model = inputs$model, pop_es = inputs$pop_es, n = n),
+    if (!is.null(inputs$standardized)) list(standardized = inputs$standardized),
     if (!is.null(inputs$x_prob) || !is.null(inputs$w_prob)) list(x_fun = c(
       if (!is.null(inputs$x_prob)) list(X = list(power4mome::rbinary_rs, p1 = inputs$x_prob)),
       if (!is.null(inputs$w_prob)) list(W = list(power4mome::rbinary_rs, p1 = inputs$w_prob))
@@ -254,8 +267,8 @@ power4mome_rejections <- function(inputs, n, nrep, seed) {
 # observed variable must have variance 1 (paths are standardised), and the
 # specified correlations (X with W; parallel mediators' residuals) must be
 # recovered. The variance check also confirms that power4mome treats a
-# product of two standardised variables as powerkit's validator does
-# (variance 1 + r^2, not standardised).
+# product of the observed variables, without separately standardising it.
+# A mediator in a later product need not have jointly normal moments.
 power4mome_check_run <- function(spec, inputs, seed) {
   n <- check_run_n()
   sim <- power4mome_call(inputs, n, 1, seed, do_the_test = FALSE)

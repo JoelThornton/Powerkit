@@ -1155,7 +1155,8 @@ sim_power4mome_code <- function(spec, n, seed) {
   c(
     "sim <- power4mome::power4test(",
     sim_args(list(
-      nrep = 1L, model = inputs$model, pop_es = inputs$pop_es, n = n,
+      nrep = 1L, model = inputs$model, pop_es = inputs$pop_es,
+      standardized = inputs$standardized %||% TRUE, n = n,
       do_the_test = FALSE, iseed = seed, parallel = FALSE, progress = FALSE
     )),
     # A yes/no X or W (E17) is drawn by rbinary_rs(), as the backend draws it.

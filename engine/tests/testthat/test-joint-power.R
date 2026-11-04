@@ -3,6 +3,7 @@
 
 jp_spec <- function(name, d) {
   spec <- example_spec(name)
+  if (identical(name, "independent_t")) spec$target_test$method <- "student_t"
   spec$population$d <- d
   validate_spec(spec)
 }

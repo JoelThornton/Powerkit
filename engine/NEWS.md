@@ -1,5 +1,13 @@
 # powerkit 0.30.0
 
+* Joint power refuses independent-group test versions that PUMP does not
+  reproduce. Exploratory curves retain the plan's minimum-effect margins,
+  design priors and other population assumptions.
+* Moderated mediation models 58 and 59 use full product moments for their
+  feasibility checks and explicit population residual variances, avoiding
+  power4mome 0.2.1's outdated-product standardisation. Reproduction scripts
+  use the same corrected population (Departure 19).
+
 * Saved calculations keep the answers used for that run. Editing a form
   marks its result out of date and prevents saving or adding it to a study
   plan until it is recalculated. Opened files are checked for inconsistent

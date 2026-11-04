@@ -80,6 +80,7 @@ test_that("the joint power from the engine is stated with each outcome's power a
   spec_for <- function(d) {
     spec <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), form_examples[["E2"]])
     spec$population <- list(metric = "standardised", d = d)
+    spec$target_test$method <- "student_t"
     spec
   }
   entries <- list(list(label = "Recall", spec = spec_for(0.4), n = 266), list(label = "Mood", spec = spec_for(0.3), n = 200))
