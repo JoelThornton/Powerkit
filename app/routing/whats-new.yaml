@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Save an unfinished draft"
+    text: >-
+      Save your answers even when information or an effect-size justification
+      is missing. Reopen the downloaded draft from the start screen to continue.
+      Drafts restore no calculated result and are separate from validated projects.
+  - date: "2026-11-04"
     title: "See when simulated studies fail"
     text: >-
       Results report how many simulated studies were attempted, analysable,

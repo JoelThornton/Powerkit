@@ -14,6 +14,11 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Unfinished drafts:** input screens can download partial answers without
+  a calculation or justification. The same file opener restores blanks and
+  editable values, clears any previous calculation and labels the draft as
+  unvalidated. Recovery is from the explicitly downloaded file, not autosave.
+
 - **Simulation outcomes:** every recorded sample-size point retains attempted,
   valid, failed and successful decisions. Power4mome's valid-fit denominator
   and simr's all-attempt denominator are preserved and identified; results

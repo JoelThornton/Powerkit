@@ -1,5 +1,9 @@
 # powerkit 0.30.0
 
+* Unfinished form answers can be saved and reopened as explicitly labelled
+  drafts, independently of validated project/result files. Blank answers
+  survive recovery and no previous result is restored as current.
+
 * Simulation records retain attempted, valid, failed and successful counts
   for fixed-N and sample-size searches. Results and methods distinguish
   conditional success among valid decisions from success per attempted study,

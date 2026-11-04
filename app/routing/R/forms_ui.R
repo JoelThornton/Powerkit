@@ -162,6 +162,8 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(paste0("Your values: ", ep$plain_name)),
     p(class = "lead", "Everything is needed unless it says optional."),
+    div(class = "mb-3", downloadButton("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary btn-sm"),
+      p(class = "hint", "Save your answers, including blanks. No calculation or effect-size justification is needed. Reopen the downloaded file from the start screen.")),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), ep$validation$note),
     carried,
