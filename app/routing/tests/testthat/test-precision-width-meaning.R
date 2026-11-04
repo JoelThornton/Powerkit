@@ -17,4 +17,8 @@ test_that("width explanations follow the backend's actual planning quantity", {
   expect_match(words[["headline"]], "80% of studies", fixed = TRUE)
   expect_match(words[["reading"]], "assurance", fixed = TRUE)
   expect_no_match(words[["reading"]], "average", fixed = TRUE)
+  proportion$goal <- list(type = "precision", n = 100L)
+  words <- precision_sentences(proportion, run(proportion))
+  expect_match(words[["reading"]], "different question", fixed = TRUE)
+  expect_no_match(words[["reading"]], "doesn't depend", fixed = TRUE)
 })

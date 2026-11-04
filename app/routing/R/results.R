@@ -2620,7 +2620,7 @@ precision_sentences <- function(spec, result) {
     }
   } else {
     headline <- sprintf("With %s, the %s for %s would be about %s wide.", precision_people(spec, pr$n), interval, estimate, precision_number(pr$width))
-    reading <- "A narrower interval says more precisely how large the effect is; its width doesn't depend on whether the effect is significant."
+    reading <- "A narrower interval estimates the effect more precisely. Planning interval width answers a different question from whether a test will be significant."
   }
   c(headline = headline, reading = reading, detail = paste(expected, how))
 }
