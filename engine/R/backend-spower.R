@@ -36,6 +36,8 @@ spower_backend <- function(spec, seed = NULL) {
       if (aligned_rank_test(spec)) c("ARTool", "car"),
       # p_negative_binomial() fits MASS's glm.nb().
       if (negative_binomial_test(spec)) "MASS",
+      # p_zero_inflated() fits pscl's zeroinfl().
+      if (zero_inflated_test(spec)) "pscl",
       # p_coefficient() tests with car's linearHypothesis() and hccm(), or
       # fits quantreg's rq().
       if (robust_regression(spec)) {
@@ -204,7 +206,24 @@ spower_inputs <- function(spec) {
     # p_negative_binomial(), draws the predictor, any other predictor and
     # the counts (negative_binomial_data()) and returns the Wald z test of
     # the predictor's coefficient in MASS's glm.nb().
-    single_predictor_count = list(
+    # Zero-inflated Poisson or negative binomial regression: powerkit's own
+    # experiment, p_zero_inflated(), draws the predictor, any other
+    # predictor, the counts and the extra zeros (zero_inflated_data()) and
+    # returns the test of the predictor in pscl's zeroinfl(): the Wald z
+    # test of its count coefficient or its zero coefficient, or the
+    # likelihood-ratio test of both.
+    single_predictor_count = if (zero_inflated_test(spec)) list(
+      experiment = "p_zero_inflated", own = TRUE,
+      args = function(n) {
+        list(
+          n = n, rate_ratio = pop$rate_ratio, base_rate = pop$base_rate, zero_prob = pop$zero_prob,
+          zero_odds_ratio = pop$zero_odds_ratio %||% 1, dispersion = pop$dispersion %||% 0,
+          exposure = pop$mean_exposure %||% 1, binary = identical(spec$variables$X$type, "binary"),
+          x_prob = pop$x_prob %||% 0.5, r2_other = pop$r2_other_predictors %||% 0,
+          part = spec$target_test$effect
+        )
+      }
+    ) else list(
       experiment = "p_negative_binomial", own = TRUE,
       args = function(n) {
         list(
@@ -277,6 +296,15 @@ spower_inputs <- function(spec) {
     } else {
       "Spower::Spower(p_multinomial()) (nnet::multinom(), the likelihood-ratio test of X, all categories together)"
     }
+  } else if (identical(template, "single_predictor_count") && zero_inflated_test(spec)) {
+    sprintf("Spower::Spower(p_zero_inflated(%s)) (pscl::zeroinfl(dist = \"%s\"), %s)",
+      if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative),
+      if (negative_binomial_counts(spec)) "negbin" else "poisson",
+      switch(spec$target_test$effect,
+        zero_odds_ratio = "the Wald z test of the predictor in the zero part",
+        rate_and_zero = "the likelihood-ratio test of the predictor in both parts",
+        "the Wald z test of the predictor in the count part"
+      ))
   } else if (identical(template, "single_predictor_count")) {
     sprintf("Spower::Spower(p_negative_binomial(%s)) (MASS::glm.nb(), the Wald z test of the predictor)",
       if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
@@ -652,6 +680,110 @@ score_shape_quantile <- function(shape, quantile) {
   )
 }
 
+# Zero-inflated count regression ---------------------------------------------
+#
+# Data for zero-inflated Poisson or negative binomial regression: n people,
+# the predictor x and any other predictor z drawn as for negative binomial
+# regression (negative_binomial_data()); then each person's count, Poisson
+# (dispersion 0) or negative binomial with mean exposure * base_rate *
+# rate_ratio^x; then whether they are an extra zero, with probability
+# plogis(qlogis(zero_prob) + log(zero_odds_ratio) * x), whose count is set
+# to 0. Drawn in this order: x, z, the counts, the extra zeros.
+zero_inflated_data <- function(n, rate_ratio, base_rate, zero_prob, zero_odds_ratio, dispersion, exposure, binary, x_prob, r2_other) {
+  x <- if (binary) sample(rep(c(0, 1), c(n - round(n * x_prob), round(n * x_prob)))) else stats::rnorm(n)
+  data <- data.frame(x = x)
+  if (r2_other > 0) {
+    standard <- if (binary) (x - mean(x)) / stats::sd(x) else x
+    data$z <- sqrt(r2_other) * standard + sqrt(1 - r2_other) * stats::rnorm(n)
+  }
+  mu <- exposure * base_rate * rate_ratio^x
+  counts <- if (dispersion > 0) stats::rnbinom(n, size = 1 / dispersion, mu = mu) else stats::rpois(n, mu)
+  extra <- stats::runif(n) < stats::plogis(stats::qlogis(zero_prob) + log(zero_odds_ratio) * x)
+  data$y <- ifelse(extra, 0, counts)
+  data$exposure <- exposure
+  data
+}
+
+# The model pscl's zeroinfl() fits: the count part on x (and z) with
+# log(exposure) as offset, and the zero part on the same predictors
+# (zeroinfl()'s default when one formula is given), or on none (the
+# reduced model for the joint test).
+zero_inflated_formula <- function(r2_other, with_x = TRUE) {
+  predictors <- paste(c(if (with_x) "x", if (r2_other > 0) "z"), collapse = " + ")
+  if (!nzchar(predictors)) predictors <- "1"
+  stats::as.formula(sprintf("y ~ %s + offset(log(exposure)) | %s", predictors, predictors))
+}
+
+# Spower experiment for zero-inflated count regression: pscl's zeroinfl()
+# of the counts, and the test of x. "rate_ratio": the Wald z test of x's
+# coefficient in the count part; "zero_odds_ratio": in the zero part
+# (one-sided in the direction asked: "greater", the rate or the odds of
+# an extra zero rising with x); "rate_and_zero": the likelihood-ratio test
+# of both against the model without x (2 df). A data set with no zeros or
+# no counts above 0, or whose fit fails, counts as not significant
+# (p = 1), as it would for the study.
+p_zero_inflated <- function(n, rate_ratio, base_rate, zero_prob, zero_odds_ratio, dispersion, exposure, binary, x_prob, r2_other,
+                            part = "rate_ratio", alternative = "two.sided") {
+  data <- zero_inflated_data(n, rate_ratio, base_rate, zero_prob, zero_odds_ratio, dispersion, exposure, binary, x_prob, r2_other)
+  if (all(data$y == 0) || all(data$y > 0)) {
+    return(1)
+  }
+  dist <- if (dispersion > 0) "negbin" else "poisson"
+  fit <- tryCatch(suppressWarnings(pscl::zeroinfl(zero_inflated_formula(r2_other), data = data, dist = dist)), error = function(e) NULL)
+  if (is.null(fit)) {
+    return(1)
+  }
+  if (identical(part, "rate_and_zero")) {
+    reduced <- tryCatch(suppressWarnings(pscl::zeroinfl(zero_inflated_formula(r2_other, with_x = FALSE), data = data, dist = dist)), error = function(e) NULL)
+    if (is.null(reduced)) {
+      return(1)
+    }
+    p <- stats::pchisq(2 * (as.numeric(stats::logLik(fit)) - as.numeric(stats::logLik(reduced))), df = 2, lower.tail = FALSE)
+    return(if (is.finite(p)) p else 1)
+  }
+  coefficients <- summary(fit)$coefficients[[if (identical(part, "zero_odds_ratio")) "zero" else "count"]]
+  z <- coefficients["x", "z value"]
+  if (!is.finite(z)) {
+    return(1)
+  }
+  switch(alternative,
+    two.sided = 2 * stats::pnorm(-abs(z)),
+    greater = stats::pnorm(z, lower.tail = FALSE),
+    less = stats::pnorm(z)
+  )
+}
+
+# Check run: one large data set, fitted as each simulated one is; the
+# rate ratio, base rate, share of extra zeros, their odds ratio and (for
+# negative binomial counts) the dispersion recovered.
+zero_inflated_check_run <- function(args, seed) {
+  data <- call_backend("Spower", with_seed(seed, do.call(zero_inflated_data, args[setdiff(names(args), c("alternative", "part"))])))
+  dist <- if (args$dispersion > 0) "negbin" else "poisson"
+  fit <- call_backend("pscl", suppressWarnings(pscl::zeroinfl(zero_inflated_formula(args$r2_other), data = data, dist = dist)))
+  s <- summary(fit)$coefficients
+  rows <- rbind(
+    check_run_rows("rate ratio for X (checked on the log scale)", log(args$rate_ratio), s$count["x", 1], s$count["x", 2]),
+    check_run_rows("base rate (checked on the log scale)", log(args$base_rate), s$count["(Intercept)", 1], s$count["(Intercept)", 2]),
+    check_run_rows("share of extra zeros at the starting point (checked on the log-odds scale)", stats::qlogis(args$zero_prob), s$zero["(Intercept)", 1], s$zero["(Intercept)", 2]),
+    check_run_rows("odds ratio for X of being an extra zero (checked on the log scale)", log(args$zero_odds_ratio), s$zero["x", 1], s$zero["x", 2])
+  )
+  rows$specified <- c(args$rate_ratio, args$base_rate, args$zero_prob, args$zero_odds_ratio)
+  rows$recovered <- c(exp(s$count["x", 1]), exp(s$count["(Intercept)", 1]), stats::plogis(s$zero["(Intercept)", 1]), exp(s$zero["x", 1]))
+  if (args$dispersion > 0) {
+    theta <- s$count["Log(theta)", ]
+    k <- check_run_rows("dispersion k (1 / theta, checked on the log scale)", log(args$dispersion), -theta[[1]], theta[[2]])
+    k$specified <- args$dispersion
+    k$recovered <- exp(-theta[[1]])
+    rows <- rbind(rows, k)
+  }
+  if (args$r2_other > 0) {
+    r2 <- stats::cor(data$x, data$z)^2
+    rows <- rbind(rows, data.frame(parameter = "R-squared of X on the other predictor", specified = args$r2_other, recovered = r2,
+      ok = abs(r2 - args$r2_other) <= 5 * 2 * sqrt(args$r2_other) * (1 - args$r2_other) / sqrt(nrow(data))))
+  }
+  rows
+}
+
 # Multinomial logistic regression ---------------------------------------------
 #
 # The model: the log odds of category k against the first (the reference)
@@ -913,6 +1045,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "multinomial")) {
     return(multinomial_check_run(spec, args, seed))
+  }
+  if (identical(spec$template, "single_predictor_count") && zero_inflated_test(spec)) {
+    return(zero_inflated_check_run(args, seed))
   }
   # Negative binomial regression: one large data set, fitted as each
   # simulated one is; the rate ratio, base rate and dispersion recovered.

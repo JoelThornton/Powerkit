@@ -217,7 +217,10 @@ fully validated. Validation runs are recorded in
   may differ, and the aligned rank transform ANOVA (E7, E21, E22: two
   between-participants factors).
 - **Negative binomial regression** (E28's model choice, 2 November 2026)
-  for overdispersed counts, simulated with Spower and MASS's `glm.nb()`.
+  for overdispersed counts, simulated with Spower and MASS's `glm.nb()`;
+  **zero-inflated Poisson and negative binomial regression** (4 November
+  2026) for counts with extra zeros, simulated with Spower and pscl's
+  `zeroinfl()` (the count part, the zero part or both).
 - **One regression coefficient** (E24's third question, 2 November 2026):
   the usual test by pwrss's formula, or with HC3 or HC4 standard errors
   (car) or by quantile regression (quantreg), simulated with Spower.

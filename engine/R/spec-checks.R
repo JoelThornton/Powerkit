@@ -59,6 +59,7 @@ population_problems <- function(spec) {
     check_jonckheere(spec),
     check_sd_ratio(spec),
     check_dispersion(spec),
+    check_zero_inflation(spec),
     check_within_covariance(spec),
     design_problems,
     # The target effect can only be computed once the design itself is sound.
@@ -129,7 +130,7 @@ uses_simulation <- function(spec) {
 # regression, and Welch's t-test on request).
 exact_available <- function(spec) {
   bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
-    !negative_binomial_test(spec) && !robust_regression(spec) &&
+    !simulated_count_test(spec) && !robust_regression(spec) &&
     !pairwise_comparison(spec) &&
     !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
@@ -197,7 +198,7 @@ simulation_available <- function(spec) {
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
   identical(spec$template, "paired_variances") || identical(spec$template, "manova") && !manova_two_groups(spec) || rank_test(spec) || welch_anova(spec) ||
-    rank_correlation(spec) || proportion_trend(spec) || negative_binomial_test(spec) || robust_regression(spec)
+    rank_correlation(spec) || proportion_trend(spec) || simulated_count_test(spec) || robust_regression(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
@@ -228,20 +229,79 @@ robust_regression <- function(spec) {
     isTRUE(spec$target_test$method %in% c("ols_hc3", "ols_hc4", "quantile_regression"))
 }
 
-# The overdispersion is an input to negative binomial regression only, and
-# it needs one.
+# Zero-inflated Poisson and negative binomial regression of a count (pscl's
+# zeroinfl()), on the count template: simulated with Spower by powerkit's
+# own experiment.
+zero_inflated_test <- function(spec) {
+  isTRUE(spec$target_test$method %in% c("zero_inflated_poisson", "zero_inflated_negative_binomial"))
+}
+
+# The count models simulated with Spower: negative binomial regression and
+# the zero-inflated models.
+simulated_count_test <- function(spec) negative_binomial_test(spec) || zero_inflated_test(spec)
+
+# The count part's distribution is negative binomial.
+negative_binomial_counts <- function(spec) {
+  isTRUE(spec$target_test$method %in% c("negative_binomial", "zero_inflated_negative_binomial"))
+}
+
+# The overdispersion is an input to the negative binomial models only, and
+# they need one.
 check_dispersion <- function(spec) {
   given <- !is.null(spec$population$dispersion)
-  if (negative_binomial_test(spec) && !given) {
+  if (negative_binomial_counts(spec) && !given) {
     return(paste0(
-      "Negative binomial regression needs 'population > dispersion': the overdispersion k, with a count's variance ",
-      "mu + k mu^2 (for example 0.5; MASS's theta is 1 / k)."
+      if (zero_inflated_test(spec)) "Zero-inflated negative binomial regression" else "Negative binomial regression",
+      " needs 'population > dispersion': the overdispersion k, with a count's variance ",
+      "mu + k mu^2 (for example 0.5; MASS's and pscl's theta is 1 / k)."
     ))
   }
-  if (given && !negative_binomial_test(spec)) {
-    return("'population > dispersion' is only used by negative binomial regression ('target_test > method' \"negative_binomial\"); remove it.")
+  if (given && !negative_binomial_counts(spec)) {
+    return(paste0(
+      "'population > dispersion' is only used by the negative binomial models ('target_test > method' ",
+      "\"negative_binomial\" or \"zero_inflated_negative_binomial\"); remove it."
+    ))
   }
   character()
+}
+
+# The zero-inflated models: the share of extra zeros (people who could
+# not have had an event) is an input to them only, and they need it; the
+# predictor's odds ratio for being an extra zero, and the tests of the
+# zero part, belong to them too. The joint test of both parts has no
+# direction.
+check_zero_inflation <- function(spec) {
+  if (!identical(spec$design, "poisson_regression")) {
+    return(character())
+  }
+  pop <- spec$population
+  effect <- spec$target_test$effect
+  if (!zero_inflated_test(spec)) {
+    problems <- character()
+    for (field in c("zero_prob", "zero_odds_ratio")) {
+      if (!is.null(pop[[field]])) {
+        problems <- c(problems, sprintf(
+          "'population > %s' is only used by the zero-inflated models ('target_test > method' \"zero_inflated_poisson\" or \"zero_inflated_negative_binomial\"); remove it.",
+          field
+        ))
+      }
+    }
+    if (!identical(effect, "rate_ratio")) {
+      problems <- c(problems, "Only the zero-inflated models have a zero part to test: with Poisson or negative binomial regression, 'target_test > effect' is \"rate_ratio\".")
+    }
+    return(problems)
+  }
+  problems <- character()
+  if (is.null(pop$zero_prob)) {
+    problems <- c(problems, paste0(
+      "The zero-inflated models need 'population > zero_prob': the share of people who are extra zeros, who could not have had an event ",
+      "(at X's mean, or in X's first group), on top of the zeros the counts themselves give."
+    ))
+  }
+  if (identical(effect, "rate_and_zero") && !identical(spec$target_test$alternative %||% "two_sided", "two_sided")) {
+    problems <- c(problems, "The joint test of both parts (\"rate_and_zero\") has no direction: make it two-sided, or test one part.")
+  }
+  problems
 }
 
 # The Jonckheere-Terpstra test of a trend across groups in order (PMCMRplus's
@@ -807,8 +867,10 @@ check_direction_allowed <- function(spec) {
     nonoverlapping_correlations = dependent_correlation_difference(spec),
     # "greater" means the odds go up with X (odds ratio above 1).
     single_predictor = log(pop$odds_ratio),
-    # "greater" means the event rate goes up with X (rate ratio above 1).
-    single_predictor_count = log(pop$rate_ratio),
+    # "greater" means the event rate goes up with X (rate ratio above 1),
+    # or, for the zero part of a zero-inflated model, the odds of an extra
+    # zero do.
+    single_predictor_count = if (identical(spec$target_test$effect, "zero_odds_ratio")) log(pop$zero_odds_ratio %||% 1) else log(pop$rate_ratio),
     # "greater" means the variance is the larger one: Y's against the fixed
     # value, or the first group's against the second.
     one_variance = pop$var - pop$var0,
@@ -2718,7 +2780,9 @@ minimum_n <- function(spec) {
       multinomial = 10 * 2 * (length(spec$variables$Y$levels) - 1),
       3
     ),
-    poisson_regression = 3,
+    # The zero-inflated models: thirty, so that most simulated data sets
+    # have enough zeros and counts to fit both parts.
+    poisson_regression = if (zero_inflated_test(spec)) 30 else 3,
     # powertools::propodds() needs at least 2 in group 1; 2 in each group.
     ordinal_regression = 4,
     # Enough participants to estimate a random intercept and slope.
@@ -2987,7 +3051,11 @@ target_effect_is_zero <- function(spec) {
     } else {
       pop$difference
     },
-    poisson_regression = log(pop$rate_ratio),
+    poisson_regression = switch(spec$target_test$effect %||% "rate_ratio",
+      zero_odds_ratio = log(pop$zero_odds_ratio %||% 1),
+      rate_and_zero = max(abs(log(c(pop$rate_ratio, pop$zero_odds_ratio %||% 1)))),
+      log(pop$rate_ratio)
+    ),
     cluster_trial = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
     # Never 0 in practice for model fit: the schema refuses it, as
     # semPower does.

@@ -1731,6 +1731,21 @@ Wired into the app on 18 October 2026 (E25, E26).*
   be fitted and counts as not significant, as it would for the study.
   Tests: `test-backend-multinomial.R`; `test-validation-multinomial.R`
   [powerkit, `docs/decisions.md`].
+- **Zero-inflated regression (E28's model choice): pscl's model with the
+  predictor in both parts.** G\*Power has no zero-inflated regression, so
+  nothing is departed from. Each person is an extra zero with probability
+  plogis(qlogis(zero_prob) + log(zero_odds_ratio) x), and otherwise has a
+  Poisson or negative binomial count with the base rate and rate ratio
+  given, so the rate describes the people who could have an event (the
+  count part), as in pscl's model; the predictor and any other predictor
+  are drawn as for negative binomial regression. Each simulated study is
+  fitted by pscl's `zeroinfl()` with the predictors in both parts (its
+  default formula), and the test is the Wald z test of the predictor in the
+  count part (the default) or the zero part, or the likelihood-ratio test
+  of both (2 df). A simulated study with no zeros or no counts above 0, or
+  whose fit fails, counts as not significant. Tests:
+  `test-backend-zero-inflated.R`; `test-validation-zero-inflated.R`
+  [powerkit, `docs/decisions.md`].
 - **The aligned rank transform (E7, E21 and E22's test version): ARTool's
   Type III tests.** G\*Power has no aligned rank transform, so nothing is
   departed from. Each cell's scores are its mean plus its SD times a draw

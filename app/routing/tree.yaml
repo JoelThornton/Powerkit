@@ -1339,18 +1339,20 @@ endpoints:
   E28:
     doc_name: "Count outcome (Poisson or negative binomial)"
     plain_name: "An outcome that counts how often something happened"
+    search_words: "zero-inflated zero inflated excess zeros hurdle zinb zip overdispersion"
     template: "poisson_regression / single_predictor_count"
-    backend: "pwrss: power.z.poisson() (the Wald z test of one predictor in a Poisson regression, by formula); Spower with MASS's glm.nb() for negative binomial regression (simulated)"
-    method: "Formula (no simulation); simulation for negative binomial regression"
+    backend: "pwrss: power.z.poisson() (the Wald z test of one predictor in a Poisson regression, by formula); Spower with MASS's glm.nb() for negative binomial regression and with pscl's zeroinfl() for zero-inflated regression (simulated)"
+    method: "Formula (no simulation); simulation for negative binomial and zero-inflated regression"
     status: runs_validation_in_progress
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests. Not yet checked against G*Power or a published example in the validation run."}
     card_points:
       - "Tests one predictor of a count (how many times something happened): a score, or a yes/no group. The rate ratio is per standard deviation for a score, or the second group against the first."
       - "Poisson regression assumes the counts vary as much as their average. For counts that vary more than that (some people with many events, most with few), choose negative binomial regression, which powerkit simulates for the overdispersion you give."
+      - "If some people could not have had an event at all, so there are more zeros than either model gives, choose a zero-inflated model: you add the share of extra zeros, and test the predictor's effect on the rate, on the extra zeros, or on both."
       - "Other predictors in the model enter only through how much they overlap with this one (R-squared)."
-    inputs: ["Your outcome, your predictor and what kind of predictor it is", "The rate ratio, the starting rate and the time over which events are counted", "Poisson or negative binomial regression", "How much the other predictors overlap with this one"]
+    inputs: ["Your outcome, your predictor and what kind of predictor it is", "The rate ratio, the starting rate and the time over which events are counted", "Poisson, negative binomial or zero-inflated regression", "How much the other predictors overlap with this one"]
     tier: v2
-    alternatives: ["a negative binomial regression, for counts that vary more than their average (a choice on the next screen)", "a zero-inflated model, for more zeros than either allows (not in powerkit yet)"]
+    alternatives: ["a negative binomial regression, for counts that vary more than their average (a choice on the next screen)", "a zero-inflated model, for more zeros than either allows (a choice on the next screen)", "a hurdle model, which treats every zero as a separate process (not in powerkit yet)"]
   E29:
     doc_name: "Ordinal outcome (ordered categories)"
     plain_name: "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"

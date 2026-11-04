@@ -4474,9 +4474,11 @@
               "method": {
                 "enum": [
                   "wald_z",
-                  "negative_binomial"
+                  "negative_binomial",
+                  "zero_inflated_poisson",
+                  "zero_inflated_negative_binomial"
                 ],
-                "description": "'wald_z': Poisson regression's Wald z test (pwrss's power.z.poisson()). 'negative_binomial': negative binomial regression's Wald z test, for counts more spread out than a Poisson distribution allows (population > dispersion), simulated with Spower (MASS's glm.nb())."
+                "description": "'wald_z': Poisson regression's Wald z test (pwrss's power.z.poisson()). 'negative_binomial': negative binomial regression's Wald z test, for counts more spread out than a Poisson distribution allows (population > dispersion), simulated with Spower (MASS's glm.nb()). 'zero_inflated_poisson' and 'zero_inflated_negative_binomial': zero-inflated regression, for counts with more zeros than the count distribution gives (population > zero_prob; the negative binomial one also needs population > dispersion), simulated with Spower (pscl's zeroinfl(), the predictor in both parts)."
               }
             }
           }
@@ -5867,7 +5869,7 @@
       }
     },
     "template_single_predictor_count": {
-      "description": "Poisson regression of a count outcome Y on one predictor X (a score or a yes/no group), optionally adjusted for other predictors: the Wald z test of X's coefficient.",
+      "description": "Poisson regression of a count outcome Y on one predictor X (a score or a yes/no group), optionally adjusted for other predictors: the Wald z test of X's coefficient. Also negative binomial regression and zero-inflated Poisson and negative binomial regression, simulated.",
       "properties": {
         "population": {
           "required": [
@@ -5891,7 +5893,16 @@
               "exclusiveMinimum": 0
             },
             "dispersion": {
-              "description": "Negative binomial regression only ('target_test > method' \"negative_binomial\"): the overdispersion k, so that a count with expected value mu has variance mu + k mu^2 (MASS's theta is 1 / k). 0 would be a Poisson distribution.",
+              "description": "The negative binomial models only ('target_test > method' \"negative_binomial\" or \"zero_inflated_negative_binomial\"): the overdispersion k, so that a count with expected value mu has variance mu + k mu^2 (MASS's and pscl's theta is 1 / k). 0 would be a Poisson distribution.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "zero_prob": {
+              "description": "The zero-inflated models only: the share of people who are extra zeros (who could not have had an event, such as people who never drink when counting drinks), at X's mean (a score) or in X's first level (a yes/no X), on top of the zeros the count distribution itself gives. The base rate and rate ratio describe everyone else (the count part).",
+              "$ref": "#/definitions/proportion"
+            },
+            "zero_odds_ratio": {
+              "description": "The zero-inflated models only: the odds ratio for X of being an extra zero, per standard deviation of X (a score) or for X's second level against the first (a yes/no X). 1 (X doesn't change the share of extra zeros) if omitted.",
               "type": "number",
               "exclusiveMinimum": 0
             },
@@ -5915,7 +5926,12 @@
         "target_test": {
           "properties": {
             "effect": {
-              "const": "rate_ratio"
+              "enum": [
+                "rate_ratio",
+                "zero_odds_ratio",
+                "rate_and_zero"
+              ],
+              "description": "'rate_ratio': the test of X's coefficient in the count model (the only effect for Poisson and negative binomial regression). The zero-inflated models also allow 'zero_odds_ratio', the Wald z test of X's coefficient in the zero part, and 'rate_and_zero', the likelihood-ratio test of X in both parts together (2 df, two-sided)."
             }
           }
         }

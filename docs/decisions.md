@@ -4829,3 +4829,37 @@ only.
   Poisson log-linear model in `glm()`; pwr's chi-square formula within
   0.02; Type I error. A published worked example is a placeholder for the
   maintainer.
+
+## 2026-11-04 · Zero-inflated count regression (E28's model choice)
+
+- **What:** the count card offers zero-inflated Poisson and negative
+  binomial regression beside Poisson and negative binomial regression.
+  Spower simulates powerkit's experiment `p_zero_inflated()`, which fits
+  pscl's `zeroinfl()`. Goals: power and sample size.
+- **Why:** `next.md` item 6 (decided 1 November 2026: by simulation with
+  Spower). Counts in psychology often include people who could not have
+  had an event (non-drinkers when counting drinks, people without a
+  symptom), and planning them with a model that ignores the extra zeros
+  misstates power. pscl (CRAN, GPL-2, depending only on MASS and base R)
+  is the reference implementation of these models in R; no package
+  powerkit uses has a power function for them.
+- **Inputs:** those of the Poisson or negative binomial model, which now
+  describe the count part, plus the share of extra zeros at the starting
+  point and the predictor's odds ratio for being an extra zero (1 by
+  default). The analysis model has the predictor in both parts, pscl's
+  default for one formula, whatever the true effect on the zeros.
+- **Tests:** the Wald z test of the predictor in the count part (the
+  default, the rate ratio the card asks for first) or the zero part, or
+  the likelihood-ratio test of both parts (2 df, two-sided).
+- **Failed fits:** a simulated study with no zeros or no counts above 0,
+  or whose fit fails, counts as not significant. The minimum n is 30.
+- **Validation** (`test-validation-zero-inflated.R`, chunk
+  `zero_inflated`): an independent simulation draws the counts as a
+  mixture (with a gamma frailty for negative binomial counts) and
+  maximises the zero-inflated likelihood written out with `optim()`; each
+  part's test keeps its Type I error when the predictor changes only the
+  other part. A published worked example is a placeholder for the
+  maintainer.
+- **Not covered:** hurdle models (pscl's `hurdle()`), in which every zero
+  comes from the binary part; a candidate for a later step if researchers
+  ask for it.

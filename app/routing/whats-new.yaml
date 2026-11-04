@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Plan for counts with extra zeros"
+    text: >-
+      The count outcome now offers zero-inflated Poisson and negative
+      binomial regression, for counts where some people could not have had
+      an event at all, such as drinks counted among people who include
+      non-drinkers. Give the share of extra zeros and test the predictor's
+      effect on the rate, on the extra zeros, or on both.
+  - date: "2026-11-04"
     title: "Plan a study whose outcome is one of several categories"
     text: >-
       A new analysis, multinomial logistic regression, plans a study in which

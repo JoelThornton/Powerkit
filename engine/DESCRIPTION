@@ -58,6 +58,7 @@ Imports:
     pwr,
     powertools,
     powerSurvEpi,
+    pscl,
     pwrss,
     PUMP,
     semPower,

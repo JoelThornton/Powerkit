@@ -1,5 +1,21 @@
 # powerkit 0.31.0
 
+* Zero-inflated Poisson and negative binomial regression as model choices
+  for a count outcome (`poisson_regression / single_predictor_count`,
+  `target_test > method` "zero_inflated_poisson" or
+  "zero_inflated_negative_binomial"): `population > zero_prob` is the
+  share of extra zeros at the starting point and `zero_odds_ratio` the
+  predictor's odds ratio for being one; `target_test > effect` tests the
+  count part ("rate_ratio"), the zero part ("zero_odds_ratio") or both
+  ("rate_and_zero", the likelihood-ratio test, 2 df). Spower simulates
+  powerkit's experiment `p_zero_inflated()`, which fits pscl's
+  `zeroinfl()` with the predictors in both parts, as its default formula
+  does. A data set with no zeros or no positive counts, or whose fit fails,
+  counts as not significant. New import: pscl (1.5.9, added to
+  `renv.lock`). Validation chunk `zero_inflated`: the zero-inflated
+  likelihood written out and maximised separately, and the Type I error of
+  each part's test when the predictor changes only the other part.
+
 * Multinomial logistic regression (template `logistic_regression /
   multinomial`, card E70): an outcome in three or more unordered categories
   on one predictor, a score or a yes/no group, with other predictors

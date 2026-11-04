@@ -2215,6 +2215,17 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  if (isTRUE(spec$target_test$method %in% c("zero_inflated_poisson", "zero_inflated_negative_binomial"))) {
+    name <- sprintf("a zero-inflated %s regression (%s, %s%% extra zeros%s), simulated",
+      if (identical(spec$target_test$method, "zero_inflated_poisson")) "Poisson" else "negative binomial",
+      switch(spec$target_test$effect,
+        zero_odds_ratio = "the Wald z test of one predictor in the zero part",
+        rate_and_zero = "the likelihood-ratio test of one predictor in both parts",
+        "the Wald z test of one predictor in the count part"
+      ),
+      format(100 * spec$population$zero_prob),
+      if (identical(spec$target_test$method, "zero_inflated_negative_binomial")) sprintf(", overdispersion k = %s", format(spec$population$dispersion)) else "")
+  }
   if (identical(spec$target_test$method, "negative_binomial")) {
     name <- sprintf("a negative binomial regression (the Wald z test of one predictor, overdispersion k = %s), simulated", format(spec$population$dispersion))
   }

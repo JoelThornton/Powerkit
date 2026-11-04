@@ -84,6 +84,7 @@ on:
           - negative_binomial
           - robust_regression
           - multinomial
+          - zero_inflated
           - process_4
           - process_4_binary
           - process_6

@@ -2838,15 +2838,29 @@ forms:
           - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)",
              shown_if: {field: X_type, is: binary}}
-      - input: "Poisson or negative binomial regression"
+      - input: "Poisson, negative binomial or zero-inflated regression"
         fields:
           - {id: count_model, label: "Model for the counts", type: select, path: target_test.method, required: true,
-             choices: {wald_z: "Poisson regression (the counts vary as much as their average)", negative_binomial: "Negative binomial regression (the counts vary more than that), simulated"},
+             choices: {wald_z: "Poisson regression (the counts vary as much as their average)", negative_binomial: "Negative binomial regression (the counts vary more than that), simulated",
+                       zero_inflated_poisson: "Zero-inflated Poisson regression (extra zeros from people who could not have had an event), simulated",
+                       zero_inflated_negative_binomial: "Zero-inflated negative binomial regression (extra zeros, and counts that vary more than their average), simulated"},
              default: wald_z, default_source: "Poisson regression, the test G*Power and pwrss's power.z.poisson() compute",
-             help: "Counts of events often vary more between people than a Poisson distribution allows (some people have many, most few). If your earlier data show a variance well above the mean, choose negative binomial regression."}
+             help: "Counts of events often vary more between people than a Poisson distribution allows (some people have many, most few). If your earlier data show a variance well above the mean, choose negative binomial regression. If some people could not have had any event at all (for example, people who never drink, when you count drinks), the zero-inflated models add a share of extra zeros."}
           - {id: dispersion, label: "Overdispersion k (variance = mean + k × mean²)", type: number, path: population.dispersion, required: true, min_exclusive: 0,
-             shown_if: {field: count_model, is: negative_binomial},
-             help: "From earlier data: k = (variance - mean) / mean². 0 would be Poisson; 0.5 or 1 is common for counts such as visits or symptoms. In MASS's glm.nb() output it is 1 / theta."}
+             shown_if: {field: count_model, is_one_of: [negative_binomial, zero_inflated_negative_binomial]},
+             help: "From earlier data: k = (variance - mean) / mean². 0 would be Poisson; 0.5 or 1 is common for counts such as visits or symptoms. In MASS's glm.nb() and pscl's zeroinfl() output it is 1 / theta."}
+          - {id: zero_prob, writeup_label: "share of extra zeros", label: "Share of extra zeros at the starting point (0 to 1)", type: number, path: population.zero_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
+             help: "The share of people who could not have had an event, on top of the zeros among everyone else (for a score, at its average; for a group, in the first group). The rate and the rate ratio above describe everyone else. In pscl's zeroinfl() output, plogis() of the zero model's intercept."}
+          - {id: zero_odds_ratio, writeup_label: "odds ratio for being an extra zero", label: "Odds ratio for being an extra zero", type: number, path: population.zero_odds_ratio, required: true, min_exclusive: 0,
+             default: 1, default_source: "the predictor doesn't change the share of extra zeros, the design spec's default (population > zero_odds_ratio)",
+             shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
+             help: "How many times the odds of being an extra zero change per SD of the score, or in the second group against the first. 1 means the predictor doesn't change it."}
+          - {id: count_part, label: "Which part to test", type: select, path: target_test.effect, required: true,
+             choices: {rate_ratio: "The count part: does the predictor change the rate, among those who could have an event?", zero_odds_ratio: "The zero part: does the predictor change the share of extra zeros?", rate_and_zero: "Both parts together (a likelihood-ratio test, two-sided)"},
+             default: rate_ratio, default_source: "the count part, the rate ratio the card asks for first",
+             shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
+             help: "Both parts include the predictor, as pscl's zeroinfl() does by default; this chooses which test the power is for."}
       - input: "How much the other predictors overlap with this one"
         fields:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,

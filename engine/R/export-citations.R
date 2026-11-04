@@ -129,6 +129,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       if ("car" %in% used && !"ARTool" %in% used) {
         list(s("car", "whose linearHypothesis() and hccm() give the test of the coefficient with heteroscedasticity-consistent standard errors"))
       },
+      if ("pscl" %in% used) {
+        list(s("pscl", "whose zeroinfl() fits the zero-inflated regression powerkit's experiment runs"))
+      },
       if ("nnet" %in% used) {
         list(s("nnet", "whose multinom() fits the multinomial logistic regression powerkit's experiment runs"))
       },

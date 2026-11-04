@@ -78,8 +78,9 @@ route_spec <- function(spec, seed = NULL) {
     "multiple_regression/r2_zero" = ,
     "multiple_regression/r2_increase" = ,
     "logistic_regression/single_predictor" = ,
-    "poisson_regression/single_predictor_count" = if (negative_binomial_test(spec)) {
-      # Negative binomial regression, simulated with Spower.
+    "poisson_regression/single_predictor_count" = if (simulated_count_test(spec)) {
+      # Negative binomial and zero-inflated regression, simulated with
+      # Spower.
       spower_backend(spec, seed)
     } else {
       pwrss_backend(spec, seed)
