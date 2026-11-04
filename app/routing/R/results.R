@@ -2178,10 +2178,13 @@ writeup_claim <- function(values, spec) {
     all = {
       k <- claim_tests(values)
       if (!is.na(k) && isTRUE(values$goal %in% c("sample_size", "sensitivity"))) {
+        if (identical(values$all_dependence, "unknown")) return(sprintf(
+          "The claim requires all %s tests. Alpha was unchanged. The union bound gives the sufficient per-test power target 1 - (1 - %s)/%s = %s (Blitzstein & Hwang, 2019), without assuming independence. All tests must reach at least this power under the same stipulated population; the bound can be conservative and does not estimate the actual joint power. Conditional power among valid fits alone does not establish it when fits fail.",
+          whole(k), format(parse_number(values$power)), whole(k), format(signif(spec$goal$power, 4))))
         sprintf("The claim requires all %s tests to be significant, so no correction to alpha was applied, and each test was planned at power %s^(1/%s) = %s, so that if the tests are independent all of them succeed with probability %s.",
           whole(k), format(parse_number(values$power)), whole(k), format(signif(spec$goal$power, 3)), format(parse_number(values$power)))
       } else {
-        "The claim requires every one of several tests to be significant; the chance that all succeed is lower than the power of each test."
+        "The claim requires every one of several tests to be significant; the joint chance cannot exceed the least powerful individual test."
       }
     })
 }
