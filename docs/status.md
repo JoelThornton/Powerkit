@@ -14,6 +14,11 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Script handoffs:** package names and the minimum declared R version
+  come from the selected engine backend and its supporting software.
+  Mixed-model handoffs name simr rather than power4mome; the downloaded
+  script records versions and uses the same R requirement.
+
 - **Transparency:** feedback names the entered answers included by its
   checkbox and the browser information accompanying Send. About credits
   include precision and robust-analysis tools, using their own citations.

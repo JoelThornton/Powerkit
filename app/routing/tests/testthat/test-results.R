@@ -393,7 +393,8 @@ test_that("the preview uses the recorded seed and few replications, and equals r
 
 test_that("a required N goes straight to the R script; moderated mediation's preview offers it too", {
   for (ep in c("E10", "E13")) {
-    spec <- list(goal = list(type = "sample_size", power = 0.8), options = list(seed = 3L))
+    spec <- light_spec(ep, list(type = "sample_size", power = 0.8))
+    spec$options$seed <- 3L
     html <- as.character(no_preview_ui(forms, ep, spec))
     expect_match(html, "There is no rough preview for a required sample size", fixed = TRUE, label = ep)
     expect_match(html, "Download R script to run the full analysis on your computer", fixed = TRUE, label = ep)
@@ -405,7 +406,7 @@ test_that("a required N goes straight to the R script; moderated mediation's pre
   calc <- list(status = "ok", notes = character(), result = list(
     goal_type = "power", curve = data.frame(n = 120, power = 0.5, mcse = 0.05),
     provenance = list(nrep = 100L, seed = 1L)))
-  html <- as.character(preview_panel_ui(forms, "E13", calc, list(options = list(seed = 1L)), c(lower = 0.4, upper = 0.6)))
+  html <- as.character(preview_panel_ui(forms, "E13", calc, light_spec("E13", list(type = "power", n = 120L)), c(lower = 0.4, upper = 0.6)))
   expect_match(html, "Rough preview from 100 simulations: power is likely between 40% and 60%", fixed = TRUE)
   expect_match(html, "Download R script to run the full analysis on your computer", fixed = TRUE)
   expect_match(html, htmltools::htmlEscape(script_run_time(forms, "E13", "power")), fixed = TRUE)

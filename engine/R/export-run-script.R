@@ -43,7 +43,7 @@ export_run_script <- function(spec, file = NULL, run_time = NULL) {
   backend <- route_spec(spec, seed)
   package <- backend$name
   versions <- package_versions(c("powerkit", backend$packages))
-  needs_r <- r_requirement(backend$packages)
+  needs_r <- r_requirement(c("powerkit", backend$packages))
   json <- strsplit(as.character(jsonlite::prettify(spec_to_json(unclass(spec)), indent = 2)), "\n", fixed = TRUE)[[1]]
   batched <- !is.null(backend$batch_size)
   lines <- c(
@@ -110,6 +110,27 @@ export_run_script <- function(spec, file = NULL, run_time = NULL) {
   }
   write_utf8(text, file)
   invisible(text)
+}
+
+#' Software requirements for a selected analysis
+#'
+#' Reports the backend and supporting packages selected for a validated
+#' design, without running a power calculation. The R requirement is the
+#' greatest declared minimum among powerkit and those installed packages.
+#' Installed versions describe the environment producing the handoff;
+#' installing different versions can change numerical results.
+#'
+#' @param spec A design specification accepted by [validate_spec()].
+#' @return A list with `backend`, `packages`, `versions`, and `r_requirement`
+#'   (a string such as `"4.4.0 or later"`, or `""` when none is declared).
+#' @export
+analysis_requirements <- function(spec) {
+  spec <- withCallingHandlers(validate_spec(spec),
+    powerkit_spec_warning = function(w) invokeRestart("muffleWarning"))
+  backend <- route_spec(spec, spec$options$seed)
+  packages <- unique(c("powerkit", backend$packages))
+  list(backend = backend$name, packages = packages,
+    versions = package_versions(packages), r_requirement = r_requirement(packages))
 }
 
 # The R version the backend packages need, from their installed

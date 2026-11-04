@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Install the right tools for a downloaded analysis"
+    text: >-
+      When a full analysis needs to run on your computer, its instructions
+      name the packages and R version required for that analysis. Mixed-model
+      instructions now name their actual tools, and explain version differences.
+  - date: "2026-11-04"
     title: "Know what feedback includes"
     text: >-
       The feedback checkbox now says that it includes your entered answers,
