@@ -103,7 +103,7 @@ test_that("Labs opens on a list of tools; the notes appear once their tool is ch
   expect_match(html, "data-display-if=\"input.labs_tool == &#39;prereplication&#39;\"|data-display-if=\"input.labs_tool == 'prereplication'\"")
   expect_match(html, "Open Pre-replication notes", fixed = TRUE)
   expect_match(html, "All Labs tools", fixed = TRUE)
-  expect_length(labs_tools, 5)
+  expect_length(labs_tools, 6)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
 

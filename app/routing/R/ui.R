@@ -144,8 +144,9 @@ nav_fields <- c("screen", "from_labs", "labs_seed", "start", "route", "node", "c
 
 # What makes one entry differ from the last: the screen, the question or
 # card on it, how many answers were given, and the tab.
-nav_key <- function(screen, node, endpoint, n_answers, tab) {
-  paste(screen %||% "", node %||% "", endpoint %||% "", n_answers, tab %||% "", sep = "|")
+nav_key <- function(screen, node, endpoint, n_answers, tab, labs_tool = "") {
+  tool <- if (identical(tab, labs_tab_title)) labs_tool %||% "" else ""
+  paste(screen %||% "", node %||% "", endpoint %||% "", n_answers, tab %||% "", tool, sep = "|")
 }
 
 # Page addresses ---------------------------------------------------------------
@@ -220,7 +221,7 @@ share_page_ui <- function() {
   div(class = "share-page",
     tags$span(class = "share-page-status", role = "status", `aria-live` = "polite"),
     tags$button(type = "button", class = "btn btn-sm share-page-btn", onclick = "pkSharePage(this)",
-      `data-public` = public_address, "Share this page"))
+      `data-public` = public_address, title = "Copies a link to this page or Labs tool. To share your answers and results, save a project file.", "Copy page link"))
 }
 
 # Each history entry carries its page in the address (?page=...); a link
@@ -271,15 +272,16 @@ nav_js <- "
   document.addEventListener('shown.bs.tab', function(e) {
     if (e.target && e.target.scrollIntoView) e.target.scrollIntoView({block: 'nearest', inline: 'nearest'});
   });
-  window.pkPageUrl = function(page) {
+  window.pkPageUrl = function(page, tool) {
     var url = new URL(window.location.href);
     if (page && page !== 'plan') url.searchParams.set('page', page); else url.searchParams.delete('page');
+    if (page === 'labs' && tool) url.searchParams.set('tool', tool); else url.searchParams.delete('tool');
     return url.toString();
   };
   Shiny.addCustomMessageHandler('pk_nav', function(m) {
     var entry = { pk: m.pos };
     window.pkPage = m.page;
-    var url = pkPageUrl(m.page);
+    var url = pkPageUrl(m.page, m.tool);
     if (m.replace) history.replaceState(entry, '', url);
     else history.pushState(entry, '', url);
   });
@@ -298,7 +300,7 @@ nav_js <- "
     var link = base + (params.toString() ? '?' + params.toString() : '');
     var status = btn.parentNode.querySelector('.share-page-status');
     pkCopyText(link, null);
-    if (status) { status.textContent = 'Link copied'; setTimeout(function() { status.textContent = ''; }, 3000); }
+    if (status) { status.textContent = 'Page link copied'; setTimeout(function() { status.textContent = ''; }, 3000); }
   };
 "
 

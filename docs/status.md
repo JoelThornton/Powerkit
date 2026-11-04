@@ -14,6 +14,13 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Labs and navigation:** research tools and educational tools have
+  separate sections. The repeated-studies tool uses actual two-group
+  normal-data t-tests and effect estimates, with simulation uncertainty,
+  conditional selection summaries and labelled CSV exports. Browser
+  history tracks individual tools and the menu; Chrome checks cover menu/tool Back and Forward, cross-tab restoration,
+  a completed run and the stale-settings warning. Numerical and screen tests pass.
+
 - **Sample-size search:** doubling checks the largest valid allocation at
   the configured limit. Boundary regressions cover valid allocation steps
   and a small-effect independent t-test that reaches its target below the cap.

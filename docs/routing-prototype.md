@@ -19,6 +19,27 @@ The routes and cards come from one data file,
 from [`app/routing/forms.yaml`](../app/routing/forms.yaml). A test checks that `tree.yaml`
 and `decision-tree.md` agree, so they can't drift apart.
 
+## Optional Labs tools
+
+Labs keeps research tools (the methods map, pre-replication notes,
+Bayesian planning and the effect-size converter) apart from educational
+tools (the power visualiser and 1,000 studies).
+
+The repeated-studies example simulates independent normal scores in two
+equal groups with equal population SDs, then applies an actual two-sided
+pooled Student t-test and pooled-SD Cohen's d to each dataset. Its p-values
+and estimates come from the same data. The significant subset is a filter
+of those studies, not a model of publication behaviour. Magnitude
+exaggeration and wrong directions are separate, and ratios relative to a
+true effect of zero are left undefined. The displayed Monte Carlo interval
+concerns simulation error, not uncertainty about the population effect.
+The engine returns run settings, seed, hash and versions; the CSV labels
+every row as simulated study results. Changing a control does not silently
+replace the previous run.
+
+Browser Back/Forward tracks each Labs tool and its menu. Page links include
+the selected tool; they do not share a completed plan or its assumptions.
+
 ## Run it (step by step)
 
 **Trying it for the first time, with no R experience?** Follow
