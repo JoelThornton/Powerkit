@@ -19,6 +19,12 @@ entries:
       reproduce, and moderated mediation with both links moderated checks
       and generates the full population correctly.
   - date: "2026-11-04"
+    title: "A public guide to planning with powerkit"
+    text: >-
+      A guide explains the main planning questions, how to find your design,
+      what to do with uncertain inputs and how to read the results. It can
+      be read without opening an interactive calculation.
+  - date: "2026-11-04"
     title: "Saved plans keep the right answers and results together"
     text: >-
       If you edit your answers after calculating, powerkit asks you to
