@@ -4907,3 +4907,34 @@ only.
   within-participants factors; the interaction's rejection rate stays near
   alpha with skewed scores and both main effects present. A published
   example is a placeholder for the maintainer.
+
+## 2026-11-04 · Decisions for the rest of the queue (`next.md` items 2 to 6)
+
+Recommendations made with the 0.31.0 work and accepted by the maintainer.
+
+- **Item 2, the Bayes factor of an effect in factorial and repeated
+  measures ANOVAs:** JASP's inclusion Bayes factor across all models, with
+  uniform model priors and the principle of marginality, as its Bayesian
+  ANOVA's Effects table gives it (jaspAnova's
+  `inst/qml/common/bayesian/DefaultOptions.qml`: `effectsType` "allModels",
+  checked by default; `AdditionalOptions.qml`: `modelPrior` "uniform", r
+  scale 0.5 for fixed and 1 for random effects), by default; the
+  comparison across matched models as an option. Between-participants
+  designs (about 0.1 s per simulated study with BayesFactor) run in the
+  app; repeated measures (about 0.8 s) take the preview and R script route.
+- **Item 3, three or more occasions:** growth curves first, by longpower's
+  closed form (CRAN 1.0.27), checked against a simr simulation; then the
+  random-intercept cross-lagged panel model with powRICLPM (CRAN 0.2.1).
+  Experience sampling waits: PowerAnalysisIL is not on CRAN.
+- **Item 4, designs that need a custom simulation:** one PR per design,
+  starting with a moderator with three or more groups (E30) and moderation
+  with a yes/no outcome (E32); then interrupted time series (E42).
+- **Item 5, the rest of the non-parametric comparisons:** PERMANOVA by
+  simulation with vegan's `adonis2()` (CRAN 2.7-6). Quade's non-parametric
+  ANCOVA is not covered: no package implements it, and base R's
+  `quade.test()` is a different test (Quade's test for unreplicated
+  blocks).
+- **Item 6, psychometric models:** IRT and DIF with irtpwr (CRAN 1.0.3)
+  first; Krippendorff's alpha and two-way ICCs once a package with a
+  sample-size or power method is found; EFA, latent profiles and signal
+  detection each scoped in its own PR.
