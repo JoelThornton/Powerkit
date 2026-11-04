@@ -24,8 +24,9 @@ fully validated. Validation runs are recorded in
   A complete variant-by-variant evidence registry remains outstanding.
 
 - **Planning guidance:** precision is reachable with its estimate choice
-  visible outside Settings. Expected width is an average, without a median
-  claim. Simulation choices describe their supplied populations and Welch's
+  visible outside Settings. MBESS's expected width and presize's width at
+  the supplied values are explained separately, without a median claim.
+  Simulation choices describe their supplied populations and Welch's
   equal-SD limitation. All-tests power explicitly requires independence;
   a dependence-free sufficient target remains to be added.
 
