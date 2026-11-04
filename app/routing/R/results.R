@@ -1858,8 +1858,29 @@ provenance_lines <- function(result) {
     sprintf("R: %s", p$r_version),
     sprintf("Packages: %s", paste(sprintf("%s %s", names(p$packages), p$packages), collapse = ", ")),
     sprintf("Check run (does the backend reproduce your population?): %s", if (all(result$check_run$ok)) "passed" else "failed"),
-    sprintf("Run time: %.1f seconds", p$run_time_seconds)
+    sprintf("Run time: %.1f seconds", p$run_time_seconds),
+    simulation_outcome_text(result)
   )
+}
+
+simulation_outcome_text <- function(result) {
+  s <- result$provenance$simulations
+  if (!is.data.frame(s) || !all(c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability", "denominator") %in% names(s))) return(character())
+  vapply(seq_len(nrow(s)), function(i) sprintf(
+    "At N = %s: %s studies attempted, %s analysable decisions, %s failed, %s met the analysis criterion. Criterion met among valid decisions: %s; criterion met per attempted study: %s. Reported power uses %s.",
+    whole(s$n[i]), whole(s$attempted[i]), whole(s$valid[i]), whole(s$failed[i]), whole(s$successful[i]),
+    if (is.na(s$conditional_power[i])) "not estimable" else percent(s$conditional_power[i]),
+    percent(s$successful_study_probability[i]),
+    switch(s$denominator[i], valid = "valid decisions only", attempted = "all attempts, including failed decisions as unsuccessful", "all decisions (none failed)")), character(1))
+}
+
+simulation_failures_ui <- function(result) {
+  s <- result$provenance$simulations
+  if (!is.data.frame(s) || !"failed" %in% names(s) || !any(s$failed > 0)) return(NULL)
+  div(class = "alert alert-warning", role = "status",
+    tags$strong("Some simulated studies could not be analysed. "),
+    "Conditional power describes valid decisions only. Successful-study probability includes failures as unsuccessful attempts. A Monte Carlo interval does not resolve model-fitting failures.",
+    tags$ul(lapply(simulation_outcome_text(result)[s$failed > 0], tags$li)))
 }
 
 # The whole result panel. `calc` is run_calculation()'s value.
@@ -2063,6 +2084,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       if (p_$backend %in% c("pwr", "stats", "pwrss", "powertools")) "powerkit built the call from your answers and checked the effect size it passes. " else
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations above."),
+    simulation_failures_ui(result),
     validation_ui(ep),
     technical_details_ui(result),
     if (length(departures_in_view)) tagList(
@@ -2403,6 +2425,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))
   claim <- writeup_claim(values, spec)
+  failures <- result$provenance$simulations
+  if (is.data.frame(failures) && "failed" %in% names(failures) && any(failures$failed > 0)) {
+    main <- c(main, simulation_outcome_text(result)[failures$failed > 0])
+  }
   # The short version names only the differences that change the answer
   # (known_methods); departures from a tool's defaults are listed in the
   # full version, to keep the paper's paragraph short.
@@ -2731,7 +2757,8 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
         "powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
-      validation_ui(ep),
+      simulation_failures_ui(result),
+    validation_ui(ep),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),
         tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),

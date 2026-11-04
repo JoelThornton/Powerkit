@@ -258,8 +258,13 @@ power4mome_rejections <- function(inputs, n, nrep, seed) {
     test_args = inputs$test_args
   )
   rates <- power4mome::rejection_rates(result)
+  power4mome_counts(rates, nrep)
+}
+
+power4mome_counts <- function(rates, nrep) {
   valid <- round(rates$pvalid[1] * nrep)
-  c(round(rates$reject[1] * valid), valid)
+  successful <- if (valid == 0) 0 else round(rates$reject[1] * valid)
+  c(successful, valid, nrep, valid)
 }
 
 # Check run: one large data set from power4mome's generator. Each equation

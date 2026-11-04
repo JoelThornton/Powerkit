@@ -84,8 +84,11 @@ values;
 size (the most replications simulated in one backend call; \code{NA} if
 the backend isn't run in batches), \code{simulations} (for a simulated
 result, a data frame with one row per simulated n: its \code{seed},
-\code{rejections}, analysable replications \code{nrep}, and \code{fitted}, whether
-the curve for the required n was fitted to it; \code{NA} for an exact
+\code{rejections}, the reported power denominator \code{nrep}, and \code{fitted},
+whether the curve for the required n was fitted to it. It also records
+attempted, valid, failed and successful counts, conditional power
+among valid decisions, successful-study probability per attempt, and
+the denominator convention; \code{NA} for an exact
 result), backend and backend function, R and package versions, and
 run time. A simulated result is reproduced by the same seed,
 replications and batch size; for a backend run in batches, the
