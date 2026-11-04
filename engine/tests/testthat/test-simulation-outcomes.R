@@ -28,3 +28,17 @@ test_that("whole-study decisions keep the same two denominators", {
   expect_equal(failed[["failed"]], 1000)
   expect_equal(failed[["successful_study_probability"]], 0)
 })
+
+test_that("project files retain simulation denominators and counts", {
+  spec <- example_spec("correlation")
+  spec$goal <- list(type = "power", n = 80)
+  spec$options <- list(seed = 11, method = "simulation", nrep = 100)
+  expect_warning(result <- run_spec(spec), "fewer than 1,000 replications")
+  path <- tempfile(fileext = ".powerkit.json")
+  on.exit(unlink(path))
+  write_project(spec, result, file = path)
+  saved <- read_project(path)$result$provenance$simulations
+  for (field in c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability", "denominator")) {
+    expect_equal(unlist(saved[[field]], use.names = FALSE), result$provenance$simulations[[field]], info = field)
+  }
+})
