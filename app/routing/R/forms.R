@@ -606,9 +606,9 @@ claim_notes <- function() list(
   ),
   any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
   all = paste(
-    "You said your claim needs every test to be significant. No correction to the significance level is needed, but the chance that all succeed is lower than any one test's power:",
+    "You said your claim needs every test to be significant. No correction to the significance level is needed, but the joint chance cannot exceed the least powerful individual test:",
     "two independent tests at 0.8 each succeed together only about 0.8 x 0.8 = 0.64 of the time.",
-    "Powerkit raises each test's target power using this independence assumption. This is not a guarantee for related tests on the same people; their joint chance can be lower or higher. Where supported, use the study plan's joint-power simulation to model the tests together."
+    "Powerkit raises each test's target power using the rule you choose below. Independent tests use the product rule; unknown dependence uses a sufficient bound that may be conservative. Both need defensible common population assumptions. Where supported, a joint-power simulation models the tests together."
   )
 )
 
