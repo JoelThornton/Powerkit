@@ -23,7 +23,35 @@ true_power <- function(n) stats::pnorm(0.1 * sqrt(n) - stats::qnorm(0.975))
 test_that("bracket_n() finds the smallest valid n reaching the target", {
   expect_equal(bracket_n(true_power, 0.8, 8, 4), 788)
   expect_equal(bracket_n(true_power, 0.8, 800, 4), 800)
-  expect_error(bracket_n(function(n) 0.1, 0.8, 8, 4), "too small to detect", class = "powerkit_run_error")
+  expect_error(bracket_n(function(n) 0.1, 0.8, 8, 4), "search limit", class = "powerkit_run_error")
+})
+
+test_that("doubling checks the largest valid size before reporting the search limit", {
+  checked <- numeric()
+  power_at <- function(n) {
+    checked <<- c(checked, n)
+    if (n >= 90000) 0.9 else 0.7
+  }
+  expect_equal(bracket_n(power_at, 0.8, 8, 2), 90000)
+  expect_true(100000 %in% checked)
+  expect_lte(max(checked), 100000)
+
+  checked <- numeric()
+  at <- function(n) { checked <<- c(checked, n); n / 100 }
+  expect_equal(bracket_n(at, 0.9, 12, 6, n_max = 95), 90)
+  expect_true(all(checked %% 6 == 0))
+  expect_lte(max(checked), 95)
+  expect_error(bracket_n(at, 0.95, 12, 6, n_max = 95), "largest valid sample size checked", class = "powerkit_run_error")
+  expect_error(bracket_n(at, 0.8, 96, 6, n_max = 95), "smallest valid sample size", class = "powerkit_run_error")
+})
+
+test_that("the small-effect t-test reaches its target below the search cap", {
+  at <- function(n) pwr::pwr.t2n.test(n1 = n / 2, n2 = n / 2,
+    d = 0.021, sig.level = 0.05, alternative = "two.sided")$power
+  n <- bracket_n(at, 0.8, 4, 2)
+  expect_lte(n, 100000)
+  expect_gte(at(n), 0.8)
+  expect_lt(at(n - 2), 0.8)
 })
 
 test_that("search_n() brackets the true required n with its interval", {

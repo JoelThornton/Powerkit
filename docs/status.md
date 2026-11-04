@@ -14,6 +14,10 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Sample-size search:** doubling checks the largest valid allocation at
+  the configured limit. Boundary regressions cover valid allocation steps
+  and a small-effect independent t-test that reaches its target below the cap.
+
 - **Scientific decision integrity:** joint power is limited to supported
   tests; effect exploration preserves margins and design priors. Models
   58/59 use full product moments and explicit population residual variances
