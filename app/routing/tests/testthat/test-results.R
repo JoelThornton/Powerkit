@@ -221,7 +221,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_no_match(html, "Calculated by simulation with", fixed = TRUE)
   expect_match(html, "Calculated with a formula", fixed = TRUE)          # Departure 9
   expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
-  expect_match(html, "Validated. ", fixed = TRUE)                       # basic chunk rerun after #42
+  expect_match(html, "Check record. ", fixed = TRUE)                       # basic chunk rerun after #42
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
   # Departures that change the answer stay in view, with a pointer from the
   # answer; the ones that don't (9, 11) are folded.
@@ -1162,7 +1162,7 @@ test_that("two dependent correlations run on pwrss's unpooled Steiger test, with
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend_function, "pwrss::power.z.twocors.steiger")
   html <- as.character(result_panel_ui(tree, forms, "E51", fields, form_examples$E51, calc))
-  expect_match(html, "Validated. ", fixed = TRUE)
+  expect_match(html, "Check record. ", fixed = TRUE)
   expect_match(html, "139 and 875", fixed = TRUE)                          # Departure 12
   # The G*Power manual's example without a shared variable (28.3.1): 886.
   values <- c(list(comparison = "nonoverlapping_correlations", X1_label = "Stress at 14", Y1_label = "Sleep at 14",
@@ -1236,7 +1236,7 @@ test_that("a planned contrast runs on pwrss, and refuses weights that don't add 
   expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.contrasts")
   expect_gt(calc$result$n_required$n, 0)
   html <- as.character(result_panel_ui(tree, forms, "E19", fields, form_examples$E19, calc))
-  expect_match(html, "Validated. ", fixed = TRUE)
+  expect_match(html, "Check record. ", fixed = TRUE)
   # Weights that don't add up to 0 are refused in plain English.
   bad <- build_spec(forms, "E19", fields, modifyList(form_examples$E19, list(weights = "-1, 0, 0, 2")))
   expect_error(run(bad), "must add up to 0", fixed = TRUE)
@@ -1399,7 +1399,7 @@ test_that("logistic regression runs on pwrss, with Known difference 3 only when 
   expect_gt(calc$result$n_required$n, 0)
   expect_length(known_difference_keys(forms, "E27", calc$spec), 0)
   html <- as.character(result_panel_ui(tree, forms, "E27", fields, form_examples$E27, calc))
-  expect_match(html, "Validated. ", fixed = TRUE)
+  expect_match(html, "Check record. ", fixed = TRUE)
   expect_no_match(html, "395 against 375", fixed = TRUE)
   # With R-squared above 0, the result screen and the write-up say so.
   values <- modifyList(form_examples$E27, list(r2_other = "0.1", just_source = "A pilot study."))
@@ -1428,7 +1428,7 @@ test_that("the variance tests are calculated exactly, as G*Power does, with no k
     expect_null(forms$forms[[ep]]$known_differences)
     fields <- form_fields(form_groups(forms, ep))
     html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
-    expect_match(html, "Validated. ", fixed = TRUE, label = ep)
+    expect_match(html, "Check record. ", fixed = TRUE, label = ep)
     expect_no_match(html, "G*Power computes them exactly", fixed = TRUE, label = ep)
     expect_match(html, "Calculated by the R package\\s*<strong>stats</strong>", label = ep)
     expect_match(html, "G*Power 3.1 manual", fixed = TRUE, label = ep)

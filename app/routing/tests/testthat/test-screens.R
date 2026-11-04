@@ -27,7 +27,7 @@ test_that("every end-point card renders, with its status and inputs", {
     runs <- tree$endpoints[[id]]$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
     if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, if (runs) "What you('|&#39;)ll need" else "What you would enter", label = id)
     expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
-      runs_validated = "Validated: ", runs_validation_in_progress = "Runs, validation in progress.",
+      runs_validated = "Check record: ", runs_validation_in_progress = "Runs, validation in progress.",
       coming_soon = "Coming soon.",
       not_in_powerkit = if (isTRUE(tree$endpoints[[id]]$no_ready_made_tool)) "Not in powerkit yet." else tree$endpoints[[id]]$not_in_powerkit_heading %||% "Not in powerkit yet: use")
     expect_match(html, expected, fixed = TRUE, label = id)
@@ -611,10 +611,16 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   html <- as.character(card_ui(tree, "E2"))
   expect_match(html, "class=\"card-facts\"", fixed = TRUE)
   expect_match(html, "In a second or two", fixed = TRUE)
-  expect_match(html, "Checked against published values", fixed = TRUE)
+  expect_match(html, "Checks recorded; see their scope below", fixed = TRUE)
   # Its other versions (rank test, Bayes factor) are gathered in one box.
   expect_match(html, "Other versions, chosen on the next screen", fixed = TRUE)
   expect_match(as.character(card_ui(tree, "E13")), "A preview here, then an R script", fixed = TRUE)
+  # This record explicitly awaits a published example; the badge must not
+  # contradict it or imply that every conditional/indirect-effect variant passed.
+  record <- as.character(card_ui(tree, "E13"))
+  expect_match(record, "published example is still to come", fixed = TRUE)
+  expect_no_match(record, "Checked against published values", fixed = TRUE)
+  expect_match(record, "not automatically to every test version", fixed = TRUE)
   # Cards that don't calculate have no facts strip.
   expect_no_match(as.character(card_ui(tree, "E35")), "card-facts", fixed = TRUE)
   # Reached by answering questions, it says so.

@@ -14,6 +14,15 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Transparency:** feedback names the entered answers included by its
+  checkbox and the browser information accompanying Send. About credits
+  include precision and robust-analysis tools, using their own citations.
+  The build guide separates implemented phases from outstanding validation,
+  usability and hosting completion checks.
+  Cards and results identify scoped check records rather than describing
+  every variant as validated or every completed check as a published example.
+  A complete variant-by-variant evidence registry remains outstanding.
+
 - **Planning guidance:** precision is reachable with its estimate choice
   visible outside Settings. Expected width is an average, without a median
   claim. Simulation choices describe their supplied populations and Welch's
