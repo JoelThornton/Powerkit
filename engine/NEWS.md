@@ -8,6 +8,10 @@
   power4mome 0.2.1's outdated-product standardisation. Reproduction scripts
   use the same corrected population (Departure 19).
 
+* Public crawling is allowed by an app-owned robots file. A sitemap lists
+  the home page and a static guide that does not need a Shiny connection.
+  Publishing notes describe the deployment probe and public verification.
+
 * Saved calculations keep the answers used for that run. Editing a form
   marks its result out of date and prevents saving or adding it to a study
   plan until it is recalculated. Opened files are checked for inconsistent

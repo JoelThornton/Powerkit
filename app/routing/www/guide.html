@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Powerkit guide: planning sample size, power and precision</title>
+  <meta name="description" content="How to use Powerkit to plan psychology studies, choose a power or precision question, provide defensible assumptions and save a reproducible plan.">
+  <link rel="canonical" href="https://joelthornton-powerkit.share.connect.posit.cloud/guide.html">
+  <style>
+    :root { color-scheme: light; font: 1.05rem/1.65 system-ui, sans-serif; color: #17283d; background: #f6f8fb; }
+    body { margin: 0; } main { max-width: 48rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    a { color: #075a8c; } a:focus-visible { outline: 3px solid #a15b00; outline-offset: 3px; }
+    h1, h2 { line-height: 1.25; } h2 { margin-top: 2rem; }
+    .notice { border-left: 4px solid #a15b00; padding: .75rem 1rem; background: #fff5df; }
+    .open { display: inline-block; padding: .65rem 1rem; color: white; background: #075a8c; border-radius: .4rem; text-decoration: none; }
+    nav ul { padding-left: 1.25rem; } footer { border-top: 1px solid #cbd3de; margin-top: 2rem; padding-top: 1rem; }
+  </style>
+</head>
+<body><main>
+  <p><a href="./">Powerkit</a> / Guide</p>
+  <h1>Power analysis for psychology studies</h1>
+  <p>Powerkit helps researchers plan how many people, pairs, items or groups a study needs. It brings established statistical tools into one interface, explains the inputs and helps keep the calculation with its assumptions.</p>
+  <p class="notice"><strong>Development prototype.</strong> Validation is ongoing. Check the evidence and limitations for your exact analysis before using an answer to plan a real study. A calculator cannot decide whether the design tests your theory or the measures are appropriate.</p>
+  <p><a class="open" href="./">Open Powerkit</a></p>
+  <nav aria-label="On this page"><ul>
+    <li><a href="#question">Choose the question</a></li>
+    <li><a href="#designs">Find your design</a></li>
+    <li><a href="#inputs">Provide your numbers</a></li>
+    <li><a href="#interpret">Interpret and save the result</a></li>
+    <li><a href="#labs">Explore the research and teaching tools</a></li>
+  </ul></nav>
+  <h2 id="question">Choose the question before choosing a number</h2>
+  <p>You can plan the sample size needed for a specified power, assess power at a feasible sample size, or, where supported, find the smallest effect that sample could detect. Precision planning instead asks how narrow a confidence interval should be. Equivalence and minimum-effect tests answer different questions from detecting an effect different from zero.</p>
+  <h2 id="designs">Find the analysis that matches the study</h2>
+  <p>Start with “I know my analysis” to search, “Help me choose” to describe your study, or “Plan my whole study” for several analyses. Each analysis card explains what it needs and how the calculation is performed.</p>
+  <p>Powerkit covers common t-tests, correlations, ANOVA and ANCOVA, regression, proportions and categorical outcomes, rank tests, moderation and mediation, clustered and multilevel designs, selected structural equation models, reliability, meta-analysis and precision questions. Coverage varies by outcome, test version and design. Some calculations run in the app; others offer a preview and a script. Guidance cards explain cases that are not implemented.</p>
+  <p>Specify the comparison you will analyse. A group-by-time interaction, an adjusted post-test comparison and a within-group change are not automatically the same question. For clustered studies, distinguish the number of groups from the number of people.</p>
+  <h2 id="inputs">Use information you can justify</h2>
+  <p>Depending on the analysis, you can supply a standardised effect, means and standard deviations in your measure’s units, or a supported published statistic. Record where the estimate comes from. An observed estimate from a small or selectively published study may be optimistic.</p>
+  <p>If you do not know the effect, use a supported sensitivity or precision question, or compare explicitly stated scenarios. Correlations between repeated measurements, intraclass correlations and other population assumptions can substantially change the answer. Leaving a quantity blank or assuming zero does not establish its value.</p>
+  <p>Simulation estimates power for the population and analysis it actually generates. It does not automatically solve non-normality, unequal variances, dependence or missing data. Read the assumptions for the specific route. An example simulated dataset contains invented observations, not research evidence.</p>
+  <h2 id="interpret">Read the conditions and keep the reasoning</h2>
+  <p>Power is the chance of the specified decision if the assumed population is correct. It is not the probability that a hypothesis is true, a promise of significance, or a guarantee of a worthwhile effect. Simulation intervals describe computational uncertainty; uncertain population assumptions are a separate issue.</p>
+  <p>Check whether the answer counts analysed people, recruits, pairs, items, studies or clusters. Attrition inflation is a planning heuristic and does not model every missing-data process.</p>
+  <p>Save a project or study-plan file to retain inputs and results, and use the methods paragraph, citations and R script when reporting the plan. Recalculate after changing inputs. “Copy page link” shares the tool or page, not the private contents of your project file.</p>
+  <h2 id="labs">Explore before committing to a plan</h2>
+  <p><a href="./?page=labs">Labs</a> contains optional experimental tools, including the methods map, effect-size conversion, pre-replication notes, a power visualiser and Bayesian planning. Educational demonstrations illustrate repeated-sampling behaviour; research-planning tools help organise a particular study. Neither replaces a justified analysis plan.</p>
+  <footer><p>Methods, validation evidence, limitations and changes are listed in the app and the <a href="https://github.com/JoelThornton/Powerkit">Powerkit repository</a>. This guide is available without running an interactive calculation.</p></footer>
+</main></body></html>
