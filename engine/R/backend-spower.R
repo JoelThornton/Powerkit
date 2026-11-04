@@ -40,7 +40,9 @@ spower_backend <- function(spec, seed = NULL) {
       # fits quantreg's rq().
       if (robust_regression(spec)) {
         if (identical(spec$target_test$method, "quantile_regression")) "quantreg" else "car"
-      }
+      },
+      # p_multinomial() fits nnet's multinom().
+      if (identical(spec$template, "multinomial")) "nnet"
     ),
     methods = "simulation",
     default_method = "simulation",
@@ -229,6 +231,27 @@ spower_inputs <- function(spec) {
         )
       }
     ),
+    # Multinomial logistic regression: powerkit's own experiment,
+    # p_multinomial(), draws the predictor, any other predictor and the
+    # outcome's category (multinomial_data()) and returns the likelihood-
+    # ratio test of the predictor (all its coefficients) or the Wald z test
+    # of one category against the first, from nnet's multinom().
+    multinomial = {
+      coefficients <- multinomial_coefficients(spec)
+      list(
+        experiment = "p_multinomial", own = TRUE,
+        args = function(n) {
+          c(
+            list(
+              n = n, intercepts = coefficients$intercepts, slopes = coefficients$slopes,
+              binary = identical(spec$variables$X$type, "binary"), x_prob = pop$x_prob %||% 0.5,
+              r2_other = pop$r2_other_predictors %||% 0, test = spec$target_test$method
+            ),
+            if (identical(spec$target_test$method, "wald_z")) list(category = multinomial_category(spec))
+          )
+        }
+      )
+    },
     factorial = {
       design <- logistic_factorial_design(spec)
       list(
@@ -247,6 +270,13 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+  } else if (identical(template, "multinomial")) {
+    if (identical(spec$target_test$method, "wald_z")) {
+      sprintf("Spower::Spower(p_multinomial()) (nnet::multinom(), the Wald z test of X's coefficient for %s against %s)",
+        multinomial_level(spec, multinomial_category(spec)), multinomial_level(spec, 1))
+    } else {
+      "Spower::Spower(p_multinomial()) (nnet::multinom(), the likelihood-ratio test of X, all categories together)"
+    }
   } else if (identical(template, "single_predictor_count")) {
     sprintf("Spower::Spower(p_negative_binomial(%s)) (MASS::glm.nb(), the Wald z test of the predictor)",
       if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
@@ -622,6 +652,124 @@ score_shape_quantile <- function(shape, quantile) {
   )
 }
 
+# Multinomial logistic regression ---------------------------------------------
+#
+# The model: the log odds of category k against the first (the reference)
+# are intercept_k + slope_k x, for k = 2, ..., K. The spec gives the share
+# of people in each category at X's mean (a score) or in X's first group,
+# and either the shares one SD above X's mean or in X's second group, or
+# each category's odds ratio against the first. Both fix the model
+# exactly: intercept_k = log(p_k / p_1) at the starting point, and slope_k
+# = log(odds ratio_k).
+multinomial_coefficients <- function(spec) {
+  pop <- spec$population
+  start <- as.numeric(unlist(pop$probabilities))
+  intercepts <- log(start[-1] / start[1])
+  slopes <- if (!is.null(pop$odds_ratios)) {
+    log(as.numeric(unlist(pop$odds_ratios)))
+  } else {
+    second <- as.numeric(unlist(pop$probabilities_second))
+    log(second[-1] / second[1]) - intercepts
+  }
+  list(intercepts = intercepts, slopes = slopes)
+}
+
+# The category tested against the first by the Wald z test, as its
+# position among Y's levels (target_test > category names it); NULL for
+# the likelihood-ratio test of every category together.
+multinomial_category <- function(spec) {
+  if (!identical(spec$target_test$method, "wald_z")) {
+    return(NULL)
+  }
+  match(spec$target_test$category, unlist(spec$variables$Y$levels))
+}
+
+multinomial_level <- function(spec, k) {
+  sprintf("'%s'", unlist(spec$variables$Y$levels)[[k]])
+}
+
+# Each category's share of people at a value of X (one row per person),
+# from the model's coefficients.
+multinomial_probabilities <- function(x, intercepts, slopes) {
+  eta <- cbind(0, outer(x, slopes) + rep(intercepts, each = length(x)))
+  p <- exp(eta - apply(eta, 1, max))
+  p / rowSums(p)
+}
+
+# Data for multinomial logistic regression: n people; the predictor x is a
+# standard normal score, or a yes/no group (0, 1) with round(n * x_prob) in
+# the second group, placed at random. With another predictor (r2_other
+# above 0), z is drawn so that x's R-squared on z is r2_other, with no
+# effect of its own on the outcome, as for logistic and Poisson
+# regression. Each person's category is then drawn from the model's shares
+# at their x (one uniform draw per person). Drawn in this order: x, z, the
+# categories. y is a factor of the category numbers 1 to K.
+multinomial_data <- function(n, intercepts, slopes, binary, x_prob, r2_other) {
+  x <- if (binary) sample(rep(c(0, 1), c(n - round(n * x_prob), round(n * x_prob)))) else stats::rnorm(n)
+  data <- data.frame(x = x)
+  if (r2_other > 0) {
+    standard <- if (binary) (x - mean(x)) / stats::sd(x) else x
+    data$z <- sqrt(r2_other) * standard + sqrt(1 - r2_other) * stats::rnorm(n)
+  }
+  p <- multinomial_probabilities(x, intercepts, slopes)
+  k <- ncol(p)
+  below <- t(apply(p, 1, cumsum))[, -k, drop = FALSE]
+  data$y <- factor(1L + rowSums(stats::runif(n) > below), levels = seq_len(k))
+  data
+}
+
+# Spower experiment for multinomial logistic regression: nnet's
+# multinom() of the category on x (and z). The likelihood-ratio test of x
+# compares it with the model without x (K - 1 df: x's coefficients for
+# every category at once); the Wald z test is x's coefficient for one
+# category against the first. A data set in which some category has
+# nobody can't be fitted, and counts as not significant (p = 1), as it
+# would for the study.
+p_multinomial <- function(n, intercepts, slopes, binary, x_prob, r2_other, test = "likelihood_ratio", category = NULL) {
+  data <- multinomial_data(n, intercepts, slopes, binary, x_prob, r2_other)
+  if (any(tabulate(data$y, nlevels(data$y)) == 0)) {
+    return(1)
+  }
+  others <- if (r2_other > 0) " + z" else ""
+  wald <- identical(test, "wald_z")
+  full <- nnet::multinom(stats::as.formula(paste0("y ~ x", others)), data = data, trace = FALSE, Hess = wald)
+  if (wald) {
+    fit <- summary(full)
+    z <- fit$coefficients[category - 1, "x"] / fit$standard.errors[category - 1, "x"]
+    return(2 * stats::pnorm(-abs(z)))
+  }
+  reduced <- nnet::multinom(stats::as.formula(paste0("y ~ 1", others)), data = data, trace = FALSE)
+  stats::pchisq(stats::deviance(reduced) - stats::deviance(full), df = length(slopes), lower.tail = FALSE)
+}
+
+# Check run: one large data set, fitted as each simulated one is; every
+# category's intercept and slope recovered (the share at the starting
+# point and the odds ratio, on the log scale).
+multinomial_check_run <- function(spec, args, seed) {
+  data <- call_backend("Spower", with_seed(seed, multinomial_data(args$n, args$intercepts, args$slopes, args$binary, args$x_prob, args$r2_other)))
+  others <- if (args$r2_other > 0) " + z" else ""
+  fit <- call_backend("nnet", summary(nnet::multinom(stats::as.formula(paste0("y ~ x", others)), data = data, trace = FALSE, Hess = TRUE)))
+  est <- fit$coefficients
+  se <- fit$standard.errors
+  levels <- unlist(spec$variables$Y$levels)
+  start <- if (args$binary) "the first group" else "X's mean"
+  rows <- do.call(rbind, lapply(seq_along(args$slopes), function(j) {
+    rbind(
+      check_run_rows(sprintf("log odds of '%s' against '%s' at %s", levels[j + 1], levels[1], start), args$intercepts[j], est[j, "(Intercept)"], se[j, "(Intercept)"]),
+      check_run_rows(sprintf("odds ratio for X, '%s' against '%s' (checked on the log scale)", levels[j + 1], levels[1]), args$slopes[j], est[j, "x"], se[j, "x"])
+    )
+  }))
+  slopes <- seq(2, nrow(rows), by = 2)
+  rows$specified[slopes] <- exp(args$slopes)
+  rows$recovered[slopes] <- exp(est[, "x"])
+  if (args$r2_other > 0) {
+    r2 <- stats::cor(data$x, data$z)^2
+    rows <- rbind(rows, data.frame(parameter = "R-squared of X on the other predictor", specified = args$r2_other, recovered = r2,
+      ok = abs(r2 - args$r2_other) <= 5 * 2 * sqrt(args$r2_other) * (1 - args$r2_other) / sqrt(nrow(data))))
+  }
+  rows
+}
+
 # Spower experiment for one regression coefficient: the outcome regressed
 # on x and the other predictors, and the p-value of x's coefficient (two-
 # sided). Least squares with heteroscedasticity-consistent standard errors
@@ -762,6 +910,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "factorial")) {
     return(logistic_factorial_check_run(spec, args, seed))
+  }
+  if (identical(spec$template, "multinomial")) {
+    return(multinomial_check_run(spec, args, seed))
   }
   # Negative binomial regression: one large data set, fitted as each
   # simulated one is; the rate ratio, base rate and dispersion recovered.

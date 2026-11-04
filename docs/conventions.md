@@ -1715,6 +1715,22 @@ Wired into the app on 18 October 2026 (E25, E26).*
   formula's (pwrss), checked in the validation. Tests:
   `test-backend-negative-binomial.R`; `test-validation-negative-binomial.R`
   [powerkit, `docs/decisions.md`].
+- **Multinomial logistic regression (E70): the likelihood-ratio test by
+  default.** G\*Power has no multinomial logistic regression, so nothing
+  is departed from. The outcome's first category is the reference; the
+  model's log odds of each other category against it are linear in the
+  predictor, a standard normal score or a yes/no group of fixed size, and
+  another predictor (if any) overlaps with it by the R-squared given
+  without an effect of its own, as for logistic and Poisson regression.
+  The effect is entered as the shares at two points or as odds ratios;
+  both fix the same model. nnet's `multinom()` fits each simulated study.
+  The default test is the likelihood-ratio test of the predictor, all its
+  coefficients at once (K - 1 df), the test car's `Anova()` reports for a
+  `multinom()` fit; the Wald z test of one category against the first is
+  the alternative. A simulated study with nobody in some category can't
+  be fitted and counts as not significant, as it would for the study.
+  Tests: `test-backend-multinomial.R`; `test-validation-multinomial.R`
+  [powerkit, `docs/decisions.md`].
 - **The aligned rank transform (E7, E21 and E22's test version): ARTool's
   Type III tests.** G\*Power has no aligned rank transform, so nothing is
   departed from. Each cell's scores are its mean plus its SD times a draw

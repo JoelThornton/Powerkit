@@ -4790,3 +4790,42 @@ only.
   optimistic. The card says so, and a validation test records the size.
   Alternatives are the bootstrap (`se = "boot"`, much slower) or rank
   inversion (intervals only); a statistician's view is wanted.
+
+## 2026-11-04 · Multinomial logistic regression (E70)
+
+- **What:** a new card and template, `logistic_regression / multinomial`,
+  for an outcome in three or more unordered categories predicted by one
+  score or yes/no group, other predictors entering through the predictor's
+  R-squared with them (as on the logistic and Poisson cards). Spower
+  simulates powerkit's experiment `p_multinomial()`, which fits nnet's
+  `multinom()`. Goals: power and sample size.
+- **Why:** `next.md` item 6 (decided 1 November 2026: by simulation with
+  Spower). Multinomial logistic regression is how psychologists analyse a
+  choice among several options or a category membership predicted by a
+  score, and the design finder had no card for it (the guided route sent
+  a categorical outcome with a score predictor to the safety net). No
+  package powerkit uses has a power function for it and G\*Power has no
+  such test; nnet ships with R as a recommended package, so the only new
+  import adds no installation.
+- **Inputs:** the share in each category at the starting point (X's mean,
+  or X's first group) and the effect as the shares at a second point (one
+  SD higher, or X's second group) or as each category's odds ratio against
+  the first, the form papers report (SPSS's Exp(B)). Both fix the model
+  exactly: intercept_k = log(p_k / p_1) at the start, slope_k = log of the
+  odds ratio.
+- **Tests:** the likelihood-ratio test of the predictor (K − 1 df) by
+  default, the omnibus test researchers report for a predictor; the Wald z
+  test of one category against the first as an option, for a hypothesis
+  about one category. Two-sided only, since the omnibus test has no
+  direction.
+- **Empty categories:** a simulated study with nobody in some category
+  can't be fitted and counts as not significant. The minimum n is ten per
+  coefficient (2(K − 1)).
+- **Validation** (`test-validation-multinomial.R`, chunk `multinomial`):
+  with a yes/no predictor the likelihood-ratio test is exactly the G test
+  of the 2 x K table, which an independent simulation computes from
+  `rmultinom()` counts; with a score, an independent simulation draws the
+  categories by the Gumbel-maximum rule and fits the same model as a
+  Poisson log-linear model in `glm()`; pwr's chi-square formula within
+  0.02; Type I error. A published worked example is a placeholder for the
+  maintainer.

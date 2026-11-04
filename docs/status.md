@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 4 November 2026 (powerkit 0.30.0). This page says where the
+*Last updated: 4 November 2026 (powerkit 0.31.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -87,8 +87,12 @@ fully validated. Validation runs are recorded in
   Parts of screens that repeat (the list of analyses, an input screen's
   groups of fields) are kept as HTML once built (`cached_html()` in
   `R/ui.R`), so a click shows the next screen in about 40 ms on a laptop.
-  **46 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
-  E37, E43, E44, E46, E47-E57, E59-E61, E64, E66 and E69 (`forms.yaml`'s `calculates`);
+  **47 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E34, E36,
+  E37, E43, E44, E46, E47-E57, E59-E61, E64, E66, E69 and E70 (`forms.yaml`'s `calculates`);
+  E70, multinomial logistic regression (an outcome in three or more
+  unordered categories on a score or yes/no predictor, simulated with
+  Spower and nnet's `multinom()`; the likelihood-ratio test or one
+  category's Wald test), since 4 November 2026;
   E69, reliability and agreement (tests of an ICC, Cronbach's alpha and
   kappa against a value to beat; ICC.Sample.Size, statpsych, kappaSize),
   reached from the aim screen, since 2 November 2026;

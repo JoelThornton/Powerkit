@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Psychology Designs
-Version: 0.30.0
+Version: 0.31.0
 Authors@R:
     person("Joel", "Thornton", , "58643641+JoelThornton@users.noreply.github.com",
            role = c("aut", "cre"))
@@ -47,6 +47,7 @@ Imports:
     lmerTest,
     manymome,
     MBESS,
+    nnet,
     gsl,
     metafor,
     metapower,

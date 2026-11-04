@@ -358,6 +358,17 @@ design_description <- function(spec) {
       if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
+    "logistic_regression/multinomial" = sprintf(
+      "multinomial logistic regression of %s (%s; the first is the reference) on %s%s: %s%s",
+      label("Y"), levels("Y"), label("X"),
+      if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
+      if (identical(spec$target_test$method, "wald_z")) {
+        sprintf("Wald z test of its coefficient for %s against %s", multinomial_level(spec, multinomial_category(spec)), multinomial_level(spec, 1))
+      } else {
+        "likelihood-ratio test of its coefficients for every category"
+      },
+      if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) ", adjusting for other predictors" else ""
+    ),
     "poisson_regression/single_predictor_count" = sprintf(
       "%s regression of %s (a count) on %s%s: Wald z test of %s",
       if (negative_binomial_test(spec)) "negative binomial" else "Poisson", label("Y"), label("X"),
@@ -1411,6 +1422,27 @@ spower_script_inputs <- function(spec) {
         sprintf("quantile <- %s # the quantile of the outcome tested (0.5: the median)", r_code(pop$quantile %||% 0.5))
       }
     ),
+    multinomial = c(
+      sprintf("# The categories of %s, in order (the first is the reference): %s.", comment_text(v$Y$label),
+        paste(comment_text(unlist(v$Y$levels)), collapse = ", ")),
+      sprintf("probabilities <- %s # share in each category %s", r_code(as.numeric(unlist(pop$probabilities))),
+        if (identical(v$X$type, "binary")) sprintf("in %s", lv("X", 1)) else "at the predictor's mean"),
+      if (!is.null(pop$odds_ratios)) {
+        sprintf("odds_ratios <- %s # each category's odds ratio against the first, %s", r_code(as.numeric(unlist(pop$odds_ratios))),
+          if (identical(v$X$type, "binary")) sprintf("%s over %s", lv("X", 2), lv("X", 1)) else "per SD of the predictor")
+      } else {
+        sprintf("probabilities_second <- %s # share in each category %s", r_code(as.numeric(unlist(pop$probabilities_second))),
+          if (identical(v$X$type, "binary")) sprintf("in %s", lv("X", 2)) else "one SD above the predictor's mean")
+      },
+      sprintf("binary <- %s # %s", r_code(identical(v$X$type, "binary")), if (identical(v$X$type, "binary")) "the predictor is a yes/no group" else "the predictor is a score, standardised"),
+      sprintf("x_prob <- %s # proportion of people in the second group (a yes/no predictor only)", r_code(pop$x_prob %||% 0.5)),
+      sprintf("r2_other <- %s # R-squared of the predictor on the other predictors (0: none)", r_code(pop$r2_other_predictors %||% 0)),
+      sprintf("test <- %s # %s", r_code(spec$target_test$method),
+        if (identical(spec$target_test$method, "wald_z")) "the Wald z test of one category against the first" else "the likelihood-ratio test of the predictor, every category together"),
+      if (identical(spec$target_test$method, "wald_z")) {
+        sprintf("category <- %d # the category tested against the first: %s", multinomial_category(spec), comment_text(spec$target_test$category))
+      }
+    ),
     single_predictor_count = c(
       sprintf("rate_ratio <- %s # rate ratio for %s: %s", r_code(pop$rate_ratio), comment_text(v$X$label),
         if (identical(v$X$type, "binary")) sprintf("the rate in %s over the rate in %s", lv("X", 2), lv("X", 1)) else "the multiple of the rate per SD of the predictor"),
@@ -1607,6 +1639,16 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "method = method",
       if (identical(spec$target_test$method, "quantile_regression")) "quantile = quantile"
     ),
+    multinomial = c(
+      "n = batch_n, # sample size",
+      "intercepts = intercepts,",
+      "slopes = slopes,",
+      "binary = binary,",
+      "x_prob = x_prob,",
+      "r2_other = r2_other,",
+      "test = test",
+      if (identical(spec$target_test$method, "wald_z")) "category = category"
+    ),
     single_predictor_count = c(
       "n = batch_n, # sample size",
       "rate_ratio = rate_ratio,",
@@ -1761,6 +1803,51 @@ spower_derived_lines <- function(spec) {
       "  }",
       "  fit <- lm(y ~ ., data = data)",
       "  car::linearHypothesis(fit, \"x = 0\", white.adjust = sub(\"ols_\", \"\", method))[2, \"Pr(>F)\"]",
+      "}"
+    ),
+    multinomial = c(
+      "# The model: the log odds of category k against the first are",
+      "# intercepts[k - 1] + slopes[k - 1] * x, for k = 2, ..., K.",
+      "intercepts <- log(probabilities[-1] / probabilities[1]) # at the starting point",
+      if (!is.null(spec$population$odds_ratios)) {
+        "slopes <- log(odds_ratios)"
+      } else {
+        "slopes <- log(probabilities_second[-1] / probabilities_second[1]) - intercepts"
+      },
+      "# The experiment, as powerkit runs it: the predictor x (a standard normal",
+      "# score, or a yes/no group with round(n * x_prob) in the second group, in",
+      "# random order), then another predictor z if r2_other is above 0 (x's",
+      "# R-squared on z is r2_other; z has no effect of its own), then each",
+      "# person's category from the model's shares at their x. nnet's multinom()",
+      "# is fitted; a data set with nobody in some category can't be, and counts",
+      "# as not significant. The p-value is the likelihood-ratio test of x (all",
+      "# its coefficients, K - 1 df) or the Wald z test of its coefficient for one",
+      "# category against the first.",
+      "p_multinomial <- function(n, intercepts, slopes, binary, x_prob, r2_other,",
+      "                          test = \"likelihood_ratio\", category = NULL) {",
+      "  x <- if (binary) sample(rep(c(0, 1), c(n - round(n * x_prob), round(n * x_prob)))) else rnorm(n)",
+      "  data <- data.frame(x = x)",
+      "  if (r2_other > 0) {",
+      "    standard <- if (binary) (x - mean(x)) / sd(x) else x",
+      "    data$z <- sqrt(r2_other) * standard + sqrt(1 - r2_other) * rnorm(n)",
+      "  }",
+      "  eta <- cbind(0, outer(x, slopes) + rep(intercepts, each = n))",
+      "  p <- exp(eta - apply(eta, 1, max))",
+      "  p <- p / rowSums(p)",
+      "  k <- ncol(p)",
+      "  below <- t(apply(p, 1, cumsum))[, -k, drop = FALSE]",
+      "  data$y <- factor(1L + rowSums(runif(n) > below), levels = seq_len(k))",
+      "  if (any(tabulate(data$y, k) == 0)) return(1)",
+      "  others <- if (r2_other > 0) \" + z\" else \"\"",
+      "  wald <- test == \"wald_z\"",
+      "  full <- nnet::multinom(as.formula(paste0(\"y ~ x\", others)), data = data, trace = FALSE, Hess = wald)",
+      "  if (wald) {",
+      "    fit <- summary(full)",
+      "    z <- fit$coefficients[category - 1, \"x\"] / fit$standard.errors[category - 1, \"x\"]",
+      "    return(2 * pnorm(-abs(z)))",
+      "  }",
+      "  reduced <- nnet::multinom(as.formula(paste0(\"y ~ 1\", others)), data = data, trace = FALSE)",
+      "  pchisq(deviance(reduced) - deviance(full), df = length(slopes), lower.tail = FALSE)",
       "}"
     ),
     single_predictor_count = c(

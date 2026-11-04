@@ -477,6 +477,11 @@
             "type": "string"
           }
         },
+        "category": {
+          "description": "Multinomial logistic regression with the Wald z test only (method 'wald_z'): the category of Y, by name, whose odds against Y's first category (the reference) are tested. Not used by the likelihood-ratio test, which tests every category together.",
+          "type": "string",
+          "minLength": 1
+        },
         "p_adjust": {
           "description": "Pairwise comparisons only: how the p-values of all the pairwise comparisons are adjusted for their number (Holm's or Bonferroni's method, or none), as stats::p.adjust() does in Superpower's ANOVA_power().",
           "enum": [
@@ -4345,7 +4350,8 @@
           "template": {
             "enum": [
               "single_predictor",
-              "factorial"
+              "factorial",
+              "multinomial"
             ]
           }
         },
@@ -4409,6 +4415,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_logistic_factorial"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "multinomial"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_multinomial"
             }
           }
         ]
@@ -8386,6 +8407,108 @@
                 },
                 "method": {
                   "const": "wald_chi_square"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_multinomial": {
+      "description": "Multinomial logistic regression of an outcome Y in three or more unordered categories on one predictor X (a score or a yes/no group), optionally adjusted for other predictors: the likelihood-ratio test of X (all its coefficients, K - 1 df), or the Wald z test of X's coefficient for one category against the first, simulated with Spower (nnet's multinom()).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "Y": {
+              "description": "The outcome's categories, the first being the reference that the odds ratios compare each other category with.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/variable_categorical"
+                },
+                {
+                  "properties": {
+                    "levels": {
+                      "minItems": 3,
+                      "maxItems": 10
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "probabilities"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "proportion"
+            },
+            "probabilities": {
+              "description": "The share of people in each category of Y, in the order of Y's levels (adding up to 1), when X is at its mean (a score) or in X's first group (a yes/no X).",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "$ref": "#/definitions/proportion"
+              }
+            },
+            "probabilities_second": {
+              "description": "The effect as shares: the share of people in each category of Y (adding up to 1) one standard deviation above X's mean (a score, taken as standardised) or in X's second group (a yes/no X). Give this or 'odds_ratios', not both. The same shares as 'probabilities' would be no effect, allowed to check the Type I error rate at a fixed n.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "$ref": "#/definitions/proportion"
+              }
+            },
+            "odds_ratios": {
+              "description": "The effect as odds ratios: for each category of Y but the first (the reference), in the order of Y's levels, how many times the odds of that category against the first change per standard deviation of X (a score) or in X's second group against the first (a yes/no X), as a multinomial logistic regression reports them (sometimes called relative risk ratios). Give this or 'probabilities_second', not both. All 1 would be no effect.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion of people in X's second level. 0.5 (equal groups) if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "r2_other_predictors": {
+              "description": "R-squared of X on the other predictors in the model (0 if omitted, or if X is the only predictor). The other predictors' own effects aren't needed.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "effect": {
+                  "const": "odds_ratios"
+                },
+                "method": {
+                  "enum": [
+                    "likelihood_ratio",
+                    "wald_z"
+                  ],
+                  "description": "'likelihood_ratio': the likelihood-ratio test of X, all its coefficients at once (K - 1 df), comparing the model with and without X, as SPSS's 'Likelihood Ratio Tests' table and car's Anova() report it. 'wald_z': the Wald z test of X's coefficient for one category (target_test > category) against the first."
                 }
               }
             }

@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Plan a study whose outcome is one of several categories"
+    text: >-
+      A new analysis, multinomial logistic regression, plans a study in which
+      a score or a yes/no group predicts which of three or more unordered
+      categories people fall into, such as where they first seek help. Give
+      the share in each category and the effect as shares or odds ratios,
+      and test the predictor overall or one category against the first.
+  - date: "2026-11-04"
     title: "Keep meta-analysis study counts comparable"
     text: >-
       Study plans keep meta-analyses separate when they assume different

@@ -123,6 +123,7 @@ endpoints:
   E67: model
   E68: model
   E69: z
+  E70: model
   E-bayes: bayes
 
 relations:
@@ -162,6 +163,7 @@ relations:
   - {from: E9, to: E30, label: "with a moderator of three or more groups becomes"}
   - {from: E24, to: E27, label: "for a yes/no outcome becomes"}
   - {from: E24, to: E28, label: "for a count outcome becomes"}
+  - {from: E27, to: E70, label: "with three or more unordered categories becomes"}
   - {from: E27, to: E29, label: "for ordered categories becomes"}
   - {from: E27, to: E47, label: "with crossed factors becomes"}
   - {from: E24, to: E43, label: "for the time until an event becomes"}

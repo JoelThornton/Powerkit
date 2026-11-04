@@ -528,8 +528,12 @@ until it goes through
 - **Cronbach's alpha against a benchmark** (Bonett and Wright's formula):
   scale-development studies planning for a minimum internal consistency.
   B50 covers ICC and kappa but not alpha.
-- **Multinomial logistic regression**, and **generalised estimating
-  equations (GEE)** as an alternative to the mixed-model rows.
+- **Multinomial logistic regression**: in the app since 4 November 2026
+  (E70, simulated with Spower by powerkit's experiment around nnet's
+  `multinom()`; the likelihood-ratio test of a score or yes/no predictor,
+  or the Wald z test of one category).
+- **Generalised estimating equations (GEE)** as an alternative to the
+  mixed-model rows.
 - **Stepped-wedge cluster trials** (Hussey and Hughes): clusters crossing
   over in stages, alongside B39's parallel cluster trial.
 - **Competing risks (Fine–Gray)** beside the survival rows.

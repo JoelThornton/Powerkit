@@ -10,7 +10,8 @@ population_problems <- function(spec) {
     factorial_anova = check_factorial_anova,
     multiple_regression = check_multiple_regression,
     logistic_regression = function(spec) {
-      if (identical(spec$template, "factorial")) check_logistic_factorial(spec) else check_single_predictor_x(spec)
+      switch(spec$template, factorial = check_logistic_factorial(spec),
+        multinomial = c(check_single_predictor_x(spec), check_multinomial(spec)), check_single_predictor_x(spec))
     },
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
@@ -662,7 +663,7 @@ check_score_shape_allowed <- function(spec) {
 # designs, with powertools' formulas only).
 pwrss_only <- function(spec) {
   (spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial", "sem", "ordinal_regression") &&
-    !identical(spec$template, "factorial")) ||
+    !isTRUE(spec$template %in% c("factorial", "multinomial"))) ||
     spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
                          "oneway_ancova", "factorial_ancova", "oneway_contrast") ||
     spec$template %in% dependent_correlation_templates() ||
@@ -1120,6 +1121,65 @@ check_single_predictor_x <- function(spec) {
     ))
   }
   character()
+}
+
+# Multinomial logistic regression: the outcome's categories, the shares in
+# each (adding up to 1, one per category), the effect given one way only
+# (the shares at the second point or the odds ratios, one per category but
+# the first), and the category the Wald z test compares with the first.
+check_multinomial <- function(spec) {
+  pop <- spec$population
+  levels <- unlist(spec$variables$Y$levels)
+  k <- length(levels)
+  label <- var_label(spec, "Y")
+  second <- if (identical(spec$variables$X$type, "binary")) "X's second group" else "one SD above X's mean"
+  problems <- character()
+  shares <- function(field, where) {
+    p <- as.numeric(unlist(pop[[field]]))
+    if (length(p) != k) {
+      return(sprintf("'population > %s' needs one share for each of %s's %d categories (%s), %s; it has %d.",
+        field, label, k, paste(levels, collapse = ", "), where, length(p)))
+    }
+    if (abs(sum(p) - 1) > 1e-6) {
+      return(sprintf("The shares in 'population > %s' (%s) add up to %s; they must add up to 1.",
+        field, where, format_number(sum(p))))
+    }
+    character()
+  }
+  start <- if (identical(spec$variables$X$type, "binary")) "in X's first group" else "at X's mean"
+  problems <- c(problems, shares("probabilities", start))
+  given <- c(!is.null(pop$probabilities_second), !is.null(pop$odds_ratios))
+  if (all(given)) {
+    problems <- c(problems, "Give the effect once: either 'population > probabilities_second' (the shares at the second point) or 'population > odds_ratios', not both.")
+  } else if (!any(given)) {
+    problems <- c(problems, sprintf(
+      "Give the effect: 'population > probabilities_second' (the share in each category %s) or 'population > odds_ratios' (each category's odds ratio against '%s').",
+      second, levels[1]
+    ))
+  } else if (given[1]) {
+    problems <- c(problems, shares("probabilities_second", second))
+  } else if (length(unlist(pop$odds_ratios)) != k - 1) {
+    problems <- c(problems, sprintf(
+      "'population > odds_ratios' needs one odds ratio for each category but the first ('%s', the reference): %d for %s's %d categories; it has %d.",
+      levels[1], k - 1, label, k, length(unlist(pop$odds_ratios))
+    ))
+  }
+  wald <- identical(spec$target_test$method, "wald_z")
+  category <- spec$target_test$category
+  if (wald && is.null(category)) {
+    problems <- c(problems, sprintf(
+      "The Wald z test compares one category with the first ('%s'): name it in 'target_test > category' (one of %s).",
+      levels[1], paste(levels[-1], collapse = ", ")
+    ))
+  } else if (wald && !isTRUE(category %in% levels[-1])) {
+    problems <- c(problems, sprintf(
+      "'target_test > category' is '%s', but it must be one of %s's categories other than the first ('%s', the reference): %s.",
+      category, label, levels[1], paste(levels[-1], collapse = ", ")
+    ))
+  } else if (!wald && !is.null(category)) {
+    problems <- c(problems, "'target_test > category' is only used by the Wald z test of one category ('target_test > method' \"wald_z\"); the likelihood-ratio test covers every category together. Remove it.")
+  }
+  problems
 }
 
 # Equivalence tests -------------------------------------------------------------
@@ -2650,11 +2710,14 @@ minimum_n <- function(spec) {
     # coefficient, plus one.
     # A logistic factorial design: ten in every cell, so that most simulated
     # data sets have both answers in each cell.
-    logistic_regression = if (identical(spec$template, "factorial")) {
-      10 * length(spec$variables$A$levels) * length(spec$variables$B$levels)
-    } else {
+    logistic_regression = switch(spec$template,
+      factorial = 10 * length(spec$variables$A$levels) * length(spec$variables$B$levels),
+      # Multinomial: ten for each of the categories' coefficients (an
+      # intercept and X's slope for each category but the first), so that
+      # most simulated data sets have someone in every category.
+      multinomial = 10 * 2 * (length(spec$variables$Y$levels) - 1),
       3
-    },
+    ),
     poisson_regression = 3,
     # powertools::propodds() needs at least 2 in group 1; 2 in each group.
     ordinal_regression = 4,
@@ -2888,12 +2951,20 @@ target_effect_is_zero <- function(spec) {
     # 0 (the schema requires it), whatever the expected difference.
     equivalence_test = pop$bound %||% pop$margin,
     multiple_regression = switch(spec$template, r2_zero = pop$r2, single_coefficient = pop$partial_r2, pop$r2_full - pop$r2_reduced),
-    logistic_regression = if (identical(spec$template, "factorial")) {
-      design <- logistic_factorial_design(spec)
-      max(abs(design$betas[design$tested]))
-    } else {
+    logistic_regression = switch(spec$template,
+      factorial = {
+        design <- logistic_factorial_design(spec)
+        max(abs(design$betas[design$tested]))
+      },
+      # Multinomial: X's coefficient for the category tested, or for any
+      # category when all are tested together.
+      multinomial = {
+        slopes <- multinomial_coefficients(spec)$slopes
+        k <- multinomial_category(spec)
+        if (is.null(k) || is.na(k)) max(abs(slopes)) else slopes[[k - 1]]
+      },
       log(pop$odds_ratio)
-    },
+    ),
     ordinal_regression = log(pop$odds_ratio),
     mixed_model = if (identical(spec$template, "two_level")) {
       switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW,

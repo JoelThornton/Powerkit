@@ -1,3 +1,20 @@
+# powerkit 0.31.0
+
+* Multinomial logistic regression (template `logistic_regression /
+  multinomial`, card E70): an outcome in three or more unordered categories
+  on one predictor, a score or a yes/no group, with other predictors
+  through its R-squared with them. The effect is each category's share at
+  the starting point and either the shares at a second point (one SD
+  higher, or the second group) or each category's odds ratio against the
+  first. Spower simulates powerkit's experiment `p_multinomial()`, which
+  fits nnet's `multinom()` and returns the likelihood-ratio test of the
+  predictor (every category, K - 1 df; the default) or the Wald z test of
+  one category against the first (`target_test > category`). A data set
+  with an empty category counts as not significant. Check run, exported
+  script and simulated data draw the same way. Validation chunk
+  `multinomial`: the G test of the 2 x K table and a Poisson log-linear fit,
+  each simulated separately, pwr's chi-square formula and Type I error.
+
 # powerkit 0.30.0
 
 * Meta-analysis study-count comparisons retain participants per study and

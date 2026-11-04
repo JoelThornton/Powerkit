@@ -899,6 +899,13 @@ build_spec <- function(forms, ep_id, fields, values) {
     at <- match(tolower(trimws(pair)), tolower(trimws(levels)))
     spec$target_test$comparison <- as.list(ifelse(is.na(at), pair, levels[at]))
   }
+  # The category tested against the first (E70) is matched to the
+  # outcome's spelling in the same way.
+  if (!is.null(spec$target_test$category) && !is.null(spec$variables$Y$levels)) {
+    levels <- unlist(spec$variables$Y$levels)
+    at <- match(tolower(trimws(spec$target_test$category)), tolower(trimws(levels)))
+    if (!is.na(at)) spec$target_test$category <- levels[at]
+  }
   # Precision (E46): one engine goal, and the interval's level as alpha.
   if (isTRUE(form$precision)) {
     spec$goal$type <- "precision"
