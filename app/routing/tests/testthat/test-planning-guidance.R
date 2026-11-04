@@ -7,7 +7,7 @@ test_that("precision's estimate selector stays visible before conditional study 
   hidden_ids <- vapply(form_fields(groups[sections == "settings"]), `[[`, "", "id")
   expect_false("estimate" %in% hidden_ids)
   aim <- Filter(function(q) identical(q$id, "aim"), tree$start_questions)[[1]]
-  expect_identical(aim$options$estimate$next, "E46")
+  expect_identical(aim$options$estimate[["next"]], "E46")
 })
 
 test_that("simulation choices disclose supported populations and Welch's current limit", {
