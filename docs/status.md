@@ -14,6 +14,13 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Current versus historical guidance:** the README and build guide describe
+  the actual routing app and acknowledge sourced Powerkit implementations.
+  Obsolete empty screen scaffolds are removed; the optional assistant folder
+  explicitly contains no service. Historical coverage/decision inventories
+  point to current routing metadata and retain their dated scientific evidence.
+  About distinguishes hosted processing, local execution and optional feedback.
+
 - **Verification follow-up:** upstream questions have a per-variant exposure,
   evidence, workaround and recheck register, separating bypassed faults from
   active limitations and recorded resolutions. The psychologist usability

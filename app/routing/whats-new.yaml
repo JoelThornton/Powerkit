@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "Clearer credits and current guidance"
+    text: >-
+      About explains where calculations run and identifies documented methods
+      implemented in Powerkit. The project guide now points to the actual app
+      and distinguishes current capabilities from historical planning notes.
+  - date: "2026-11-04"
     title: "Keep meta-analysis study counts comparable"
     text: >-
       Study plans keep meta-analyses separate when they assume different
@@ -28,8 +34,7 @@ entries:
     text: >-
       Precision planning now keeps the choice of estimate visible. Its help
       describes interval width under the chosen method and distinguishes it
-      from a chance of meeting your target. Simulation and multiple-test
-      guidance explain what is assumed,
+      from a chance of meeting your target. Simulation and multiple-test guidance explain what is assumed,
       including the equal spreads currently used when planning Welch's test.
   - date: "2026-11-04"
     title: "Keep the right sample units and whole groups"

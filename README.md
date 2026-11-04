@@ -7,11 +7,11 @@
 > for where the project is.
 
 A power analysis tool for psychology. You describe your study once, in plain
-terms, and powerkit routes it to a validated R package to work out the power,
+terms, and powerkit routes it to established R packages and documented methods to work out the power,
 the sample size you need, or the smallest effect you could detect.
 
-powerkit does not reimplement the statistics. It builds on established,
-peer-reviewed R packages, among them
+Powerkit mainly adapts established R packages. Where it implements a formula
+or simulation itself, the method, source and checks are documented. Its packages include
 [pwr](https://cran.r-project.org/package=pwr),
 [pwrss](https://cran.r-project.org/package=pwrss),
 [Superpower](https://cran.r-project.org/package=Superpower),
@@ -22,8 +22,8 @@ peer-reviewed R packages, among them
 [TOSTER](https://cran.r-project.org/package=TOSTER),
 [semPower](https://cran.r-project.org/package=semPower) and
 [bfpwr](https://cran.r-project.org/package=bfpwr),
-and is grateful to their authors. Every result records which package
-computed it. On top of those packages, powerkit adds:
+and it is grateful to their authors. Every result records its backend,
+method and software versions. On top of those packages, powerkit adds:
 
 - one specification format for every design;
 - checks that the population you describe is possible;
@@ -39,9 +39,9 @@ A prototype point-and-click app is in `app/routing/` (how to run it:
 [`docs/run-it-yourself.md`](docs/run-it-yourself.md)). It follows a
 four-screen design (decided 18 October 2026, `docs/decisions.md`):
 
-1. **Start:** can you choose your sample size or is it fixed; are you
-   testing a prediction or estimating something; does your claim rest on
-   one test or several.
+1. **Start:** choose the analysis list, guided questions or a whole-study
+   plan. The input screen then asks the goal, whether the sample is fixed,
+   and how several tests support the claim when applicable.
 2. **Find your design:** a few plain questions route you to the right
    analysis.
 3. **Inputs:** the effect size is at the centre. You say where it comes
