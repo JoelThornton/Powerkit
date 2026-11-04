@@ -104,7 +104,7 @@ preview_panel_ui <- function(forms, ep_id, calc, full_spec, range) {
           whole(full_nrep), wait)),
         actionButton("full_run", sprintf("Run the full analysis (%s)", wait), class = "btn btn-primary"))
     } else {
-      script_offer_ui(forms, ep_id, goal, result$provenance$seed)
+      script_offer_ui(forms, ep_id, goal, result$provenance$seed, spec = full_spec)
     }
   )
 }
@@ -115,13 +115,15 @@ no_preview_ui <- function(forms, ep_id, spec) {
     class = "result-panel script-panel", role = "status", tabindex = "-1",
     h3(class = "h4", "Run the full analysis on your computer"),
     p("There is no rough preview for a required sample size: even with 100 simulations per sample size, finding the N takes 15 minutes or more and often can't narrow it down."),
-    script_offer_ui(forms, ep_id, spec$goal$type, spec$options$seed, heading = FALSE)
+    script_offer_ui(forms, ep_id, spec$goal$type, spec$options$seed, heading = FALSE, spec = spec)
   )
 }
 
 # The R script offer: run time, what to install, and the download button.
-script_offer_ui <- function(forms, ep_id, goal, seed, heading = TRUE) {
-  r_needs <- backend_r_requirement("power4mome")
+script_offer_ui <- function(forms, ep_id, goal, seed, heading = TRUE, spec) {
+  requirements <- engine_function("analysis_requirements")(spec)
+  package <- requirements$backend
+  r_needs <- requirements$r_requirement
   div(class = "script-offer",
     if (heading) h4(class = "h5", "Run the full analysis on your computer"),
     p(sprintf(
@@ -129,10 +131,11 @@ script_offer_ui <- function(forms, ep_id, goal, seed, heading = TRUE) {
       script_run_time(forms, ep_id, goal), seed)),
     p("What you need:"),
     tags$ul(
-      tags$li(sprintf("R%s, from cran.r-project.org.", if (is.null(r_needs)) "" else sprintf(" %s or later", r_needs))),
-      tags$li("powerkit and power4mome. In R, run once: ",
+      tags$li(sprintf("R%s, from cran.r-project.org.", if (nzchar(r_needs)) paste0(" ", r_needs) else "")),
+      tags$li(paste0(paste(requirements$packages, collapse = ", "), ". In R, run once: "),
         tags$code("install.packages(\"remotes\")"), " then ",
         tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\")"), "."),
-      tags$li("Then run the script. It saves the result, a script that reproduces it with power4mome alone, and the citations.")),
+      tags$li(sprintf("Then run the script. It saves the result, a script that reproduces it with %s alone, and the citations.", package))),
+    p(class = "hint", paste0("The downloaded script records the package versions used here. Different versions on your computer may give different results.")),
     downloadButton("download_run_script", "Download R script to run the full analysis on your computer", class = "btn btn-primary"))
 }

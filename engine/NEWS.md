@@ -1,5 +1,10 @@
 # powerkit 0.30.0
 
+* Script handoffs derive their package list and R requirement from the
+  selected backend, including supporting packages. Mixed-model handoffs
+  correctly name simr. `analysis_requirements()` exposes this metadata
+  without performing a power calculation.
+
 * Feedback explicitly discloses optional entered answers and the browser
   information accompanying Send. About credits include the precision and
   robust-analysis packages already used by the app.
