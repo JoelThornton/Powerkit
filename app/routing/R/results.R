@@ -2038,6 +2038,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     result_sections_ui(as.list(sections[!is.na(sections)])),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
     h3(class = "h4", "Your result"),
+    simulation_failures_ui(result),
     hero,
     p(class = "result-headline lead", words[["headline"]]),
     if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
@@ -2084,7 +2085,6 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       if (p_$backend %in% c("pwr", "stats", "pwrss", "powertools")) "powerkit built the call from your answers and checked the effect size it passes. " else
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations above."),
-    simulation_failures_ui(result),
     validation_ui(ep),
     technical_details_ui(result),
     if (length(departures_in_view)) tagList(
@@ -2728,6 +2728,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
     result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
       h3(class = "h4", "Your result"),
+      simulation_failures_ui(result),
       hero,
       p(class = "result-headline lead", words[["headline"]]),
       p(class = "result-reading", words[["reading"]]),
@@ -2757,8 +2758,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
         "powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
-      simulation_failures_ui(result),
-    validation_ui(ep),
+      validation_ui(ep),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),
         tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),
