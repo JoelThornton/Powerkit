@@ -336,7 +336,7 @@ test_that("the claim is asked under Settings, starts at one test, and notes each
   expect_equal(form_section(Filter(function(g) identical(g$title, "Your claim"), groups())[[1]]), "settings")
   expect_true("n_tests" %in% vapply(form_fields(groups()), `[[`, "", "id"))
   html <- as.character(form_ui(tree, forms, "E2", groups()))
-  expect_match(html, "raises this test's target power", fixed = TRUE)
+  expect_match(html, "raises each test's target power", fixed = TRUE)
   expect_match(html, "error-statistical view", fixed = TRUE)
   expect_match(html, "input.f_claim == &#39;any&#39;|input.f_claim == 'any'")
   fields <- form_fields(groups("any"))

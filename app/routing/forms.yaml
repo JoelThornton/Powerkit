@@ -108,14 +108,15 @@ tool_defaults:
 default_seed: 1
 
 # How E1-E6 are calculated (docs/decisions.md, 17 October 2026): pwr's
-# formula by default; Spower simulation if the user expects their data
-# won't meet the test's assumptions. Welch's t-test (E2) has no pwr formula:
+# formula by default; Spower simulation estimates power under the supplied
+# population, without automatically changing its assumptions. Welch's t-test (E2) has no pwr formula:
 # it is simulated by default, with pwrss's formula on request (E2's
 # welch_method).
 # A form's `method_extra` fields are shown with this choice (E5: the z test,
 # as in G*Power, or pwr's Cohen's h; Departure 11).
 basic_method_field: {id: calc_method, label: "How power is worked out", type: select, path: options.method, optional: true,
-  choices: {exact: "Formula (pwr; base R or pwrss for two proportions): assumes the test's assumptions hold", simulation: "Simulation (Spower): if you expect your data won't meet the test's assumptions"},
+  choices: {exact: "Formula (pwr; base R or pwrss for two proportions)", simulation: "Simulation (Spower): repeat studies under the specified population"},
+  help: "Both methods rely on the population and analysis specified here. Selecting simulation does not add skewed scores, unequal spreads or missing data. A departure is included only when this screen provides a specific input for it. Simulation adds random error from the finite number of repeated studies.",
   default: exact, default_source: "powerkit's default for basic tests (docs/decisions.md, 17 October 2026)"}
 
 # Designs the engine can compute that the app can't reach yet: a missing
@@ -424,7 +425,8 @@ forms:
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)", mann_whitney: "Mann-Whitney test (rank-based), simulated", brunner_munzel: "Brunner-Munzel test (rank-based, spread may differ), simulated", bayes_factor: "Bayes factor t-test (default JZS prior, equal groups), instead of a p-value", minimum_effect: "Minimum-effect test: the effect is larger than your smallest effect of interest (pwrss)"},
-             default: student_t, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0), and Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)"}
+             default: student_t, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0), and Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)",
+             choice_notes: {welch_t: "This planner currently uses normal scores with equal population SDs for Welch's test, by both formula and simulation. Welch's analysis allows unequal spreads, but this calculation does not yet plan for them. Choosing simulation does not change this assumption."}}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is_one_of: [mann_whitney, brunner_munzel]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},

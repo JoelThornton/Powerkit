@@ -1,5 +1,13 @@
 # powerkit 0.30.0
 
+* Precision planning is described as available, with its estimate selector
+  visible among study inputs. Expected interval width is explained as an
+  average rather than a median or a probability guarantee.
+* Simulation method guidance states its supplied population assumptions;
+  Welch's equal-population-SD limitation is visible at the method choice.
+  Independence-based all-tests planning no longer claims to be conservative
+  for dependent tests.
+
 * Study plans identify whether N counts participants, pairs, items or
   studies and compare requirements only when their recorded sample
   structures match. Cluster-trial totals are labelled as participants.

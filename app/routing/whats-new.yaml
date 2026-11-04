@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "See the planning choices and their assumptions"
+    text: >-
+      Precision planning now keeps the choice of estimate visible. Its help
+      distinguishes average interval width from a chance of meeting your
+      target. Simulation and multiple-test guidance explain what is assumed,
+      including the equal spreads currently used when planning Welch's test.
+  - date: "2026-11-04"
     title: "Keep the right sample units and whole groups"
     text: >-
       Study plans keep requirements in participants, pairs, items and studies

@@ -230,6 +230,15 @@ direction_note <- paste(
 # pwr formula, and Fisher's exact test (E5) is pwrss's formula only.
 basic_method_field <- function(forms, ep_id) {
   field <- forms$basic_method_field
+  population <- switch(ep_id,
+    E1 = "The ordinary one-sample t-test simulation draws normal scores.",
+    E2 = "The ordinary two-group t-test simulation draws normal scores with equal population SDs. Choosing Welch changes the analysis, not those simulated SDs.",
+    E3 = "The ordinary paired t-test simulation draws normal paired scores with the specified standardised mean difference.",
+    E4 = "The Pearson correlation simulation draws bivariate normal scores with the specified correlation. Rank-test shape choices, when shown, are separate inputs.",
+    E5 = "The simulation draws binary outcomes at each group's specified proportion.",
+    E6 = "The simulation draws table counts from the cell probabilities implied by the specified population.",
+    NULL)
+  field$help <- paste(c(population, field$help), collapse = " ")
   version <- Filter(function(f) identical(f$id, "method"), form_fields(forms$forms[[ep_id]]$groups))
   if (length(version)) field$shown_if <- list(field = "method", is = version[[1]][["default"]])
   field
@@ -255,7 +264,7 @@ precision_goal_fields <- function(tool) {
          help = "For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
          type = "number", path = "goal.width", needed_for = "precision_n", min_exclusive = 0),
     list(id = "assurance", label = "Chance that the interval is no wider than that (optional)",
-         help = "Left empty, the sample size makes the interval's expected width this narrow, so about half of studies get a wider one. With 0.8, 80% of studies would get an interval no wider (MBESS's assurance). Only for d, standardised means and regression coefficients (MBESS).",
+         help = "Left empty, planning targets the interval's expected (average) width; it does not set the chance that your interval will be narrow enough. With 0.8, planning targets an 80% chance of an interval no wider than your target, under the population you specify (MBESS's assurance). Only for d, standardised means and regression coefficients (MBESS).",
          type = "number", path = "goal.assurance", optional = TRUE, min_exclusive = 0.5, max_exclusive = 1,
          shown_if = list(list(field = "goal", is = "precision_n"), mbess)),
     list(id = "n", label = "Number of participants analysed (in total; pairs for paired data)",
@@ -599,7 +608,7 @@ claim_notes <- function() list(
   all = paste(
     "You said your claim needs every test to be significant. No correction to the significance level is needed, but the chance that all succeed is lower than any one test's power:",
     "two independent tests at 0.8 each succeed together only about 0.8 x 0.8 = 0.64 of the time.",
-    "So powerkit raises this test's target power so that all the tests together reach your target power, if each test is planned the same way."
+    "Powerkit raises each test's target power using this independence assumption. This is not a guarantee for related tests on the same people; their joint chance can be lower or higher. Where supported, use the study plan's joint-power simulation to model the tests together."
   )
 )
 
@@ -652,11 +661,11 @@ claim_result_note <- function(values, alpha_used, goal = NULL) {
       target <- parse_number(values$power)
       sprintf(paste(
         "Your claim: all of %s tests. So that all of them succeed together with a chance of %s, this test is planned at %s^(1/%s) = %s power; plan each of the others at the same power.",
-        "This assumes the tests are independent. Tests on the same people are usually positively related, which makes the chance a little higher, so this errs on the safe side.",
+        "This assumes the tests are independent. Related tests can have a lower or higher joint chance; this calculation does not guarantee the target for them. Where supported, use the study plan's joint-power simulation.",
         "Another approach raises each test's significance level instead (a \"reverse Bonferroni\": Francis & Thunell, 2021); powerkit doesn't do that."),
         whole(k), format(target), format(target), whole(k), format(signif(claim_power(target, values), 3)))
     } else {
-      "Your claim: all of several tests. The power shown is for this test alone. The chance that every test succeeds is about the product of their powers (for two tests at 0.8, about 0.64), or a little higher for related tests on the same people."
+      "Your claim: all of several tests. The power shown is for this test alone. If the tests are independent, the chance that every test succeeds is the product of their powers (for two tests at 0.8, 0.64). For related tests it can be lower or higher; a joint-power simulation is needed to model their dependence."
     }
   )
 }

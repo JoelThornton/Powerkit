@@ -2611,7 +2611,7 @@ precision_sentences <- function(spec, result) {
         format(pr$target_width), percent(pr$assurance))
     }
     more <- if (spec$template %in% c("two_groups", "one_group", "paired", "regression_coefficient")) "give a chance (assurance) that it is no wider, or plan a smaller width" else "plan a smaller width"
-    reading <- if (is.na(pr$assurance)) sprintf("“Expected” means the typical study: about half of studies this size would get a somewhat wider interval. For more certainty, %s.", more) else
+    reading <- if (is.na(pr$assurance)) sprintf("The expected width is an average under your planning assumptions, not a guarantee for your study or a claim that half of intervals will be wider. For more certainty, %s.", more) else
       "This is the chance (MBESS's assurance) that the interval is no wider than the width you set."
   } else {
     headline <- sprintf("With %s, the %s for %s would be about %s wide.", precision_people(spec, pr$n), interval, estimate, precision_number(pr$width))
