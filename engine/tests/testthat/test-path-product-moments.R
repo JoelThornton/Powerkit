@@ -7,6 +7,12 @@ product_moment_spec <- function(template = "process_58", rho = 0) {
       "XW->Y" = 0.1), correlations = list("X<->W" = rho)))
 }
 
+test_that("whole-study population checks do not require a template identifier", {
+  path <- system.file("whole-study", "example.json", package = "powerkit", mustWork = TRUE)
+  spec <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  expect_s3_class(validate_whole_study(spec), "powerkit_whole_study")
+})
+
 test_that("a mediator in a later product keeps its higher-order moments", {
   spec <- product_moment_spec()
   moments <- implied_r_squared(spec, path_model(spec))

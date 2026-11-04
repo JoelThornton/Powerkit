@@ -1169,6 +1169,7 @@ explore_curve <- function(spec, result, effect, run = engine_function("run_spec"
     s <- spec
     # The slider is in standardised units, whatever units the plan used.
     s$population$metric <- "standardised"
+    s$population$raw <- NULL
     s$population[[e$field]] <- effect
     s <- without_safeguard(s)
     s$goal <- list(type = "power", n = as.integer(n))
@@ -1223,6 +1224,7 @@ scenario_curves <- function(spec, result, conservative = NA, optimistic = NA, n 
     power <- vapply(ns, function(at) {
       s <- spec
       s$population$metric <- "standardised"
+      s$population$raw <- NULL
       s$population[[e$field]] <- effects[[k]]
       s <- without_safeguard(s)
       s$goal <- list(type = "power", n = as.integer(at))
@@ -1242,6 +1244,7 @@ scenario_n <- function(spec, result, conservative = NA, optimistic = NA, run = e
   vapply(effects, function(effect) {
     s <- spec
     s$population$metric <- "standardised"
+    s$population$raw <- NULL
     s$population[[e$field]] <- effect
     s <- without_safeguard(s)
     s$goal <- list(type = "sample_size", power = power)

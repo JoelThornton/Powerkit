@@ -107,6 +107,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
+      Isserlis1918_moments = "verified",
       Superpower_method = "citation", InteractionPoweR_method = "citation",
       Rubin2021_alpha = "verified", Rubin2024_inconsistent = "verified",
       RubinMikael2025_power = "verified", Frane2019_misguided = "verified",

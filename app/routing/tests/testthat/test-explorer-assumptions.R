@@ -1,6 +1,7 @@
 test_that("effect exploration retains the scientific decision and design assumptions", {
   spec <- list(design = "basic_test", template = "independent_t",
-    population = list(metric = "standardised", d = 0.6, margin = 0.2, effect_sd = 0.15),
+    population = list(metric = "raw", raw = list(mean_1 = 0, mean_2 = 0.6, sd = 1),
+      d = 0.6, margin = 0.2, effect_sd = 0.15),
     target_test = list(method = "minimum_effect", alpha = 0.05),
     options = list(), goal = list(type = "sample_size", power = 0.8))
   result <- list(goal_type = "sample_size", n_required = list(n = 128))
@@ -16,6 +17,8 @@ test_that("effect exploration retains the scientific decision and design assumpt
     scenario_n(spec, result, conservative = 0.3, run = run)
     scenario_curves(spec, result, conservative = 0.3, run = run)
     expect_gt(length(received), 0)
+    expect_true(all(vapply(received, function(s) is.null(s$population$raw), logical(1))))
+    expect_true(all(vapply(received, function(s) identical(s$population$metric, "standardised"), logical(1))))
     expect_true(all(vapply(received, function(s) identical(s$population$margin, 0.2), logical(1))))
     expect_true(all(vapply(received, function(s) identical(s$population$effect_sd, 0.15), logical(1))))
     expect_true(all(vapply(received, function(s) identical(s$target_test$method, method), logical(1))))
