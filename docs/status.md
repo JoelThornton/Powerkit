@@ -46,8 +46,9 @@ fully validated. Validation runs are recorded in
   visible outside Settings. MBESS's expected width and presize's width at
   the supplied values are explained separately, without a median claim.
   Simulation choices describe their supplied populations and Welch's
-  equal-SD limitation. All-tests power explicitly requires independence;
-  a dependence-free sufficient target remains to be added.
+  equal-SD limitation. All-tests planning offers the independence rule or
+  a sufficient union-bound target when dependence is unknown, with unchanged
+  alpha and explicit unconditional-probability requirements.
 
 - **Sample counts:** plans distinguish participants, pairs, items and
   studies, and only show a largest comparable requirement for matching

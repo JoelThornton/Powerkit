@@ -1,5 +1,10 @@
 # powerkit 0.30.0
 
+* All-tests planning offers a sufficient per-test target under unknown
+  dependence, derived from the union bound, alongside the existing
+  independence rule. Alpha is unchanged; notes distinguish a bound from an
+  estimated joint power and require unconditional successful-test probabilities.
+
 * About and the README accurately describe package adapters and sourced
   implementations in Powerkit. About distinguishes hosted calculations,
   local execution and optional feedback. Stale screen scaffolds are removed

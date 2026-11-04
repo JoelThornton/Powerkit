@@ -1889,3 +1889,29 @@ Wired into the app on 18 October 2026 (E25, E26).*
   factor test is chosen (`app/routing/forms.yaml`, `known_differences`,
   key "13").
 - **Methods paragraph:** `known_differences_methods`, key "13".
+
+## All-tests sufficient power target under unknown dependence
+
+For a claim requiring every one of k tests to succeed, let F_i denote
+failure of test i. The union bound gives P(any F_i) <= sum P(F_i).
+Consequently, making every marginal failure probability no larger than
+(1 - target)/k is sufficient for P(all succeed) >= target. This yields
+per-test power 1 - (1-target)/k. It can be conservative, and is distinct
+from the independence rule target^(1/k). It never raises alpha.
+
+Source: Blitzstein and Hwang (2019), doi:10.1201/9780429428357,
+`BlitzsteinHwang2019_probability` in refs.bib; the union-bound statement
+was independently checked in the online Probability Course textbook,
+section 6.2.1. The formula above is its direct complement-event derivation.
+The default independence option and older saved files retain their previous
+rule. Result notes and methods text name the selected rule. For target .8
+and two tests, the targets differ: .894427 under independence versus .9
+without it. G*Power has no joint-claim planner to benchmark this bound;
+individual test power continues to use its existing backend.
+
+Tests independently simulate independent events and disjoint failure
+couplings attaining the worst-case bound. A lower-bound guarantee needs
+unconditional successful-test probabilities under a common stipulated
+population. Conditional power among valid fits alone does not establish
+that guarantee when fits fail; this rule does not fix missingness,
+model misspecification or convergence problems.

@@ -606,9 +606,9 @@ claim_notes <- function() list(
   ),
   any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
   all = paste(
-    "You said your claim needs every test to be significant. No correction to the significance level is needed, but the chance that all succeed is lower than any one test's power:",
+    "You said your claim needs every test to be significant. No correction to the significance level is needed, but the joint chance cannot exceed the least powerful individual test:",
     "two independent tests at 0.8 each succeed together only about 0.8 x 0.8 = 0.64 of the time.",
-    "Powerkit raises each test's target power using this independence assumption. This is not a guarantee for related tests on the same people; their joint chance can be lower or higher. Where supported, use the study plan's joint-power simulation to model the tests together."
+    "Powerkit raises each test's target power using the rule you choose below. Independent tests use the product rule; unknown dependence uses a sufficient bound that may be conservative. Both need defensible common population assumptions. Where supported, a joint-power simulation models the tests together."
   )
 )
 
@@ -620,7 +620,14 @@ claim_groups <- function(claim = "one", n_tests = NULL) {
          choices = claim_choices, default = claim, choice_notes = claim_notes()),
     list(id = "n_tests", label = "Number of tests", type = "number", required = TRUE, min = 2, integer = TRUE,
          default = n_tests, applies_if_claim = c("any", "all"),
-         shown_if = list(list(field = "claim", is_not = "one"), list(field = "claim", is_not = "each")))
+         shown_if = list(list(field = "claim", is_not = "one"), list(field = "claim", is_not = "each"))),
+    list(id = "all_dependence", label = "Planning for all tests: what can you assume?", type = "select", default = "independent",
+         shown_for_goals = c("sample_size", "sensitivity"),
+         default_source = "the existing independence-based planning rule; choose unknown dependence when independence cannot be justified",
+         choices = list(independent = "Independent tests: use the product of their powers",
+           unknown = "Dependence unknown: use a sufficient target that may be conservative"),
+         shown_if = list(field = "claim", is = "all"),
+         help = "The sufficient target needs no correlation between tests. Each test's unconditional successful-study probability must reach it under the same population assumptions. Conditional power among valid fits alone does not establish this when fits fail. This is a sufficient bound, not an estimate of joint power.")
   )
   list(list(input = NULL, title = "Your claim", fields = fields))
 }
@@ -659,6 +666,9 @@ claim_result_note <- function(values, alpha_used, goal = NULL) {
     ),
     all = if (!is.na(k) && isTRUE(goal %in% c("sample_size", "sensitivity"))) {
       target <- parse_number(values$power)
+      if (identical(values$all_dependence, "unknown")) return(sprintf(
+        "Your claim needs all %s tests. With dependence unknown, each test is planned at 1 - (1 - %s)/%s = %s power. If every test reaches at least this power under the same population assumptions, the chance that all succeed is at least %s by the union bound (Blitzstein & Hwang, 2019). This may be conservative; significance levels are unchanged. It is a sufficient bound, not an estimate of joint power. Conditional power among valid fits alone does not establish it when fits fail.",
+        whole(k), format(target), whole(k), format(signif(claim_power(target, values), 4)), format(target)))
       sprintf(paste(
         "Your claim: all of %s tests. So that all of them succeed together with a chance of %s, this test is planned at %s^(1/%s) = %s power; plan each of the others at the same power.",
         "This assumes the tests are independent. Related tests can have a lower or higher joint chance; this calculation does not guarantee the target for them. Where supported, use the study plan's joint-power simulation.",
@@ -684,7 +694,7 @@ claim_alpha <- function(alpha, values) {
 claim_power <- function(power, values) {
   k <- claim_tests(values)
   if (!identical(values$claim, "all") || is.na(k) || is.null(power)) return(power)
-  power^(1 / k)
+  engine_function("all_tests_target")(power, k, if (identical(values$all_dependence, "unknown")) "unknown" else "independent")
 }
 
 form_fields <- function(groups) unlist(lapply(groups, `[[`, "fields"), recursive = FALSE)
