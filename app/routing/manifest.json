@@ -5947,19 +5947,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "b1b33faf1ddb9ea64c69e2178ee10148f1e11e43",
-        "RemoteSha": "b1b33faf1ddb9ea64c69e2178ee10148f1e11e43",
+        "RemoteRef": "8bcc084551c3339782107976a749dd785df2084e",
+        "RemoteSha": "8bcc084551c3339782107976a749dd785df2084e",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "b1b33faf1ddb9ea64c69e2178ee10148f1e11e43",
-        "GithubSHA1": "b1b33faf1ddb9ea64c69e2178ee10148f1e11e43",
+        "GithubRef": "8bcc084551c3339782107976a749dd785df2084e",
+        "GithubSHA1": "8bcc084551c3339782107976a749dd785df2084e",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-04 13:34:46 UTC; runner",
+        "Packaged": "2026-11-04 14:04:12 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-04 13:34:56 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-04 14:04:25 UTC; unix"
       }
     },
     "powertools": {
@@ -8034,13 +8034,22 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "779f9b4797e0d735a2a88fffb638706b"
+      "checksum": "6eecdd2c0eb884be2f917d22bcaa78b7"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
     },
+    "www/guide.html": {
+      "checksum": "04e3ec1f6dc32b1862de3fda39a0ef35"
+    },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
+    },
+    "www/robots.txt": {
+      "checksum": "00c673d2d8ab796fb536442fd64513a3"
+    },
+    "www/sitemap.xml": {
+      "checksum": "d43cc68dfe9aba1e0fb68b2a5a76a97d"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"
