@@ -1,4 +1,11 @@
-# Phase 3b: statistical decisions needed before coding binary X and W
+# Binary X and W: decision history and method questions
+
+**Historical decision record.** Supported binary predictors are implemented.
+The dated alternatives below retain the reasoning behind those choices;
+they are not instructions to restart the phase. Current restrictions and
+outstanding checks are in [`status.md`](status.md),
+[`conventions.md`](conventions.md), [`upstream-questions.md`](upstream-questions.md)
+and the corresponding validation files.
 
 *Decided 29 October 2026 (`decisions.md`): section 1, option B; section 2, the split asked on the mediation cards (50/50 default) and fixed at 50/50 for interactions; reliability for E15's score only. E15 and E16 are built. Sections 3 and 5 remain for E17.*
 

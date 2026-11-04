@@ -66,23 +66,19 @@ powerkit/                      # working name
 │   ├── R/
 │   │   ├── spec.R             # read + validate a design spec (JSON schema)
 │   │   ├── route.R            # pick the backend for a spec
-│   │   ├── backends/          # one adapter per backend
-│   │   │   ├── spower.R
-│   │   │   ├── power4mome.R
-│   │   │   ├── superpower.R
-│   │   │   └── interactionpower.R
+│   │   ├── backend-*.R        # adapters and supporting generators
 │   │   ├── search_n.R         # sample size search + power curve
-│   │   ├── export_script.R    # write a standalone R script for the run
-│   │   └── writeup.R          # templated APA paragraph + citations
+│   │   └── export-*.R         # standalone scripts, citations and run handoffs
 │   ├── inst/schema/design.schema.json
 │   ├── inst/citations/refs.bib
 │   └── tests/testthat/        # validation targets (section 6)
-├── app/                       # Shiny front end
-│   ├── forms/                 # one module per design form
-│   ├── builder/               # full-model builder
-│   ├── confirm/               # diagram + equations confirmation
-│   └── results/
-├── assistant/                 # later: AI suggestion service
+├── app/routing/               # implemented Shiny prototype
+│   ├── app.R                  # session state, calculation and file handlers
+│   ├── R/                     # input screens, results, plans and Labs
+│   ├── forms.yaml             # input definitions and defaults
+│   ├── tree.yaml              # design routing and capability notes
+│   └── tests/testthat/
+├── assistant/README.md         # reserved service; not implemented or loaded
 ├── docs/                      # this guide, decisions log
 ├── renv.lock                  # pinned package versions
 └── CLAUDE.md

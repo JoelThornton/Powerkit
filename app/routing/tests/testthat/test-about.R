@@ -7,7 +7,10 @@ test_that("the About panel says it's a prototype and what it does", {
   expect_match(html, "About powerkit", fixed = TRUE)
   expect_match(html, "This is a prototype.", fixed = TRUE)
   expect_match(html, "not yet fully validated", fixed = TRUE)
-  expect_match(html, "never does the statistics itself", fixed = TRUE)
+  expect_match(html, "Documented formulas and simulations", fixed = TRUE)
+  expect_no_match(html, "every number comes from", fixed = TRUE)
+  expect_match(html, "on the host for the online app", fixed = TRUE)
+  expect_no_match(html, "everything else you enter stays on your computer", fixed = TRUE)
 })
 
 test_that("the About panel lists every end point that calculates, and only those", {

@@ -1,5 +1,10 @@
 # powerkit 0.30.0
 
+* About and the README accurately describe package adapters and sourced
+  implementations in Powerkit. About distinguishes hosted calculations,
+  local execution and optional feedback. Stale screen scaffolds are removed
+  and historical coverage/decision notes link to current implementation data.
+
 * Meta-analysis study-count comparisons retain participants per study and
   dependent effects per study, so different study structures stay separate.
 

@@ -175,7 +175,7 @@ about_ui <- function(tree, forms) {
           tags$span("The analysis asks only what it needs, and helps you say where your effect size comes from.")),
         tags$li(tags$strong("Get the answer."),
           tags$span("An established R package calculates it. You get a write-up, the citations, and an R script that reruns it without powerkit."))),
-      p(class = "about-note", "powerkit never does the statistics itself: every number comes from one of the packages under Credits."),
+      p(class = "about-note", "Most calculations call the packages under Credits. Documented formulas and simulations implemented in powerkit are identified in the method notes and reproduction scripts."),
       tags$button(type = "button", class = "btn btn-primary about-start", onclick = "pkAboutTab('Plan a power analysis')",
         "Start planning")),
 
@@ -220,7 +220,7 @@ about_ui <- function(tree, forms) {
           "It fills in where you are in powerkit for you and shows the whole message before you send it. ",
           "Every card also has a <strong>Something doesn&#39;t fit?</strong> link at the bottom that leads there."))),
         p(class = "about-small", "Nothing is sent from this app without you: the only thing it ever sends is a feedback message, ",
-          "when you click Send, and everything else you enter stays on your computer."),
+          "when you click Send, including the optional answers and browser information disclosed on the Feedback tab. Calculations use your answers where this app is running: on the host for the online app, or on your computer for a local installation."),
         tags$button(type = "button", class = "btn btn-outline-primary", onclick = "pkAboutTab('Feedback')", "Give feedback"))),
 
     about_section("about-credits", "Credits",
