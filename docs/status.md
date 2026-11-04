@@ -14,6 +14,13 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Verification follow-up:** upstream questions have a per-variant exposure,
+  evidence, workaround and recheck register, separating bypassed faults from
+  active limitations and recorded resolutions. The psychologist usability
+  protocol now covers missing information, plausible mistakes, interpretation,
+  file round trips and a counterbalanced comparison. Human sessions remain
+  outstanding; no ease-of-use result is claimed.
+
 - **Script handoffs:** package names and the minimum declared R version
   come from the selected engine backend and its supporting software.
   Mixed-model handoffs name simr rather than power4mome; the downloaded
