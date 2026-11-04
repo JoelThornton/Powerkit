@@ -636,7 +636,7 @@ function powerkitRestoreAnalyses() {
 # "More about this analysis".
 validated_line_ui <- function(tree, ep) {
   if (!identical(ep$status, "runs_validated")) return(NULL)
-  p(class = "validated-line", tags$strong("Validated: "), ep$validation$note, " ",
+  p(class = "validated-line", tags$strong("Check record: "), ep$validation$note, " ", validation_scope_note, " ",
     tags$a(href = tree$links$validation_log, target = "_blank", "Validation log"), " \u00b7 ",
     tags$a(href = paste0(tree$links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file)))
 }
@@ -772,10 +772,12 @@ card_how_words <- c(
   script = "A preview here, then an R script to run on your computer"
 )
 
+validation_scope_note <- "Checks apply to the cases described in this record, not automatically to every test version, population or decision rule. Package agreement, independent simulation and published examples are different kinds of evidence."
+
 card_facts_ui <- function(tree, ep_id, ep) {
   how <- unname(tree$calculate_how[ep_id])
   if (!length(how) || is.na(how) || !ep$status %in% c("runs_validated", "runs_validation_in_progress")) return(NULL)
-  checked <- if (identical(ep$status, "runs_validated")) "Checked against published values" else "Validation in progress"
+  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded; see their scope below" else "Validation in progress"
   fact <- function(label, value, cls = NULL) div(class = paste("card-fact", cls), tags$span(class = "card-fact-label", label), tags$span(class = "card-fact-value", value))
   div(class = "card-facts",
     fact("Calculates", card_how_words[[how]], paste0("how-", how)),

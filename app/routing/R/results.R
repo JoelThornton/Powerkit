@@ -1842,9 +1842,9 @@ known_differences_for <- function(forms, ep_id, spec = NULL) {
 
 validation_ui <- function(ep) {
   if (identical(ep$status, "runs_validated")) {
-    p(class = "result-validation small text-muted", tags$strong("Validated. "), ep$validation$note)
+    p(class = "result-validation small text-muted", tags$strong("Check record. "), ep$validation$note, " ", validation_scope_note)
   } else {
-    div(class = "status status-in-progress", tags$strong("Validation in progress. "), ep$validation$note %||% "")
+    div(class = "status status-in-progress", tags$strong("Validation in progress. "), ep$validation$note %||% "", " ", validation_scope_note)
   }
 }
 

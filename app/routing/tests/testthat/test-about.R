@@ -83,6 +83,8 @@ test_that("the About panel says what powerkit doesn't do and how far along it is
   expect_match(html, "Where the numbers come from", fixed = TRUE)
   expect_match(html, "How far along it is", fixed = TRUE)
   expect_match(html, "until a statistician has checked it", fixed = TRUE)
+  expect_no_match(html, "have passed their published checks", fixed = TRUE)
+  expect_match(html, "does not establish validation of every option", fixed = TRUE)
 })
 
 test_that("the analysis families fold, and start folded on a phone", {

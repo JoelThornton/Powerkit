@@ -19,6 +19,9 @@ fully validated. Validation runs are recorded in
   include precision and robust-analysis tools, using their own citations.
   The build guide separates implemented phases from outstanding validation,
   usability and hosting completion checks.
+  Cards and results identify scoped check records rather than describing
+  every variant as validated or every completed check as a published example.
+  A complete variant-by-variant evidence registry remains outstanding.
 
 - **Planning guidance:** precision is reachable with its estimate choice
   visible outside Settings. Expected width is an average, without a median

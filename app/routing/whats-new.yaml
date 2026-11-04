@@ -10,7 +10,8 @@ entries:
     text: >-
       The feedback checkbox now says that it includes your entered answers,
       and the help explains the browser information sent for troubleshooting.
-      About also credits the tools used for precision and robust analyses.
+      About credits the tools used for precision and robust analyses. Check
+      records explain their scope, without claiming every option is validated.
   - date: "2026-11-04"
     title: "See the planning choices and their assumptions"
     text: >-

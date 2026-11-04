@@ -3,6 +3,9 @@
 * Feedback explicitly discloses optional entered answers and the browser
   information accompanying Send. About credits include the precision and
   robust-analysis packages already used by the app.
+* Cards, results and About distinguish design-level check records from
+  validation of every option; completed checks no longer universally claim
+  agreement with published examples.
 
 * Precision planning is described as available, with its estimate selector
   visible among study inputs. Expected interval width is explained as an
