@@ -52,8 +52,10 @@ test_that("changing controls leaves a teaching run intact until the next explici
     result$settings$seed <- seed
     result
   }
-  local_mocked_bindings(engine_function = function(name) engine, .env = globalenv())
-  shiny::testServer(study_variation_server, {
+  server <- study_variation_server
+  environment(server) <- list2env(list(engine_function = function(name) engine),
+    parent = environment(study_variation_server))
+  shiny::testServer(server, {
     session$setInputs(variation_n = 64, variation_d = 0.3, variation_alpha = "0.05",
       variation_fixed_seed = TRUE, variation_seed = 12, variation_run = 1)
     expect_equal(run()$settings$n, 64)
