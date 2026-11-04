@@ -2640,6 +2640,17 @@ forms:
              help: "Within a group, in the means' units; the same in every group."}
           - {id: manova_r, writeup_label: "correlation between the outcomes", label: "Correlation between any two outcomes within a group (the same for every pair)", type: number, path: population.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true,
              help: "How strongly people's scores on two outcomes go together, for example 0.5 for related questionnaires."}
+      - input: "MANOVA or PERMANOVA"
+        fields:
+          - {id: manova_test, label: "Test", type: select, path: target_test.method, required: true,
+             choices: {pillai_trace: "MANOVA (Pillai's trace; with two groups, Hotelling's T-squared)", permanova: "PERMANOVA (a permutation test on distances between people), simulated"},
+             default: pillai_trace, default_source: "the MANOVA test of Pillai's trace, as G*Power computes it",
+             help: "PERMANOVA (vegan's adonis2()) compares the groups' average distances on the standardised outcomes with a permutation test, so it doesn't assume normal scores. It can also react to groups that differ in spread rather than in their means."}
+          - {id: score_shape, label: "The shape of the scores", type: select, path: population.score_shape, required: true,
+             shown_if: {field: manova_test, is: permanova},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
+             help: "Every outcome has this shape. With a shape other than normal, each person's scores share a common level, so the correlation between outcomes must be at least 0."}
 
   # One-sample Hotelling's T-squared: one group's outcomes against fixed
   # values (scale norms, midpoints), computed exactly by its noncentral F

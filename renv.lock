@@ -408,6 +408,17 @@
       "Repository": "RSPM",
       "Hash": "c8acb7636aeab8b86c2730925bd4ec98"
     },
+    "permute": {
+      "Package": "permute",
+      "Version": "0.9-10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "stats"
+      ],
+      "Hash": "c27c9078c87f1db5e3158f0d6dce5363"
+    },
     "plotrix": {
       "Package": "plotrix",
       "Version": "3.8-14",
@@ -3393,6 +3404,21 @@
         "rlang"
       ],
       "Hash": "2dcde2d30d3ad67bf1d3a37177457b87"
+    },
+    "vegan": {
+      "Package": "vegan",
+      "Version": "2.7-6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "MASS",
+        "R",
+        "cluster",
+        "lattice",
+        "mgcv",
+        "permute"
+      ],
+      "Hash": "5aaec75a1b9dfb3e74d16a7fa04ee3e7"
     },
     "vipor": {
       "Package": "vipor",

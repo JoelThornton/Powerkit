@@ -4938,3 +4938,27 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   first; Krippendorff's alpha and two-way ICCs once a package with a
   sample-size or power method is found; EFA, latent profiles and signal
   detection each scoped in its own PR.
+
+## 2026-11-04 · PERMANOVA (E59's test version)
+
+- **What:** the MANOVA card offers PERMANOVA (permutational MANOVA) as a
+  test version, for one or two factors, simulated by Spower with
+  powerkit's experiment `p_permanova()` around vegan's `adonis2()`. Goals:
+  power and sample size. This finishes `next.md` item 5 (decided 4
+  November 2026, this page).
+- **Why:** PERMANOVA is the distance-based alternative researchers use when
+  several outcomes are not multivariate normal; no package powerkit uses
+  has a power function for it, and vegan is its reference implementation
+  (CRAN 2.7-6, GPL-2; it brings permute, the only new dependency besides
+  itself, and needs a Fortran compiler to build from source).
+- **Distance:** Euclidean distances between the outcomes standardised in
+  each data set, not vegan's default Bray-Curtis, which is for ecological
+  abundance data and needs values of 0 or more (`conventions.md`).
+  Permutations: vegan's default 999.
+- **Data:** normal scores as for MANOVA; scores of another shape as each
+  person's common level plus a deviation of that shape, so the correlation
+  must be at least 0.
+- **Validation** (`test-validation-permanova.R`, chunk `permanova`): the
+  pseudo-F written out from its definition equals `adonis2()`'s F; powerkit
+  agrees with a separate permutation test of that pseudo-F, without vegan;
+  Type I error with skewed scores. A published example is a placeholder.

@@ -45,6 +45,8 @@ spower_backend <- function(spec, seed = NULL) {
       if (robust_regression(spec)) {
         if (identical(spec$target_test$method, "quantile_regression")) "quantreg" else "car"
       },
+      # p_permanova() calls vegan's adonis2().
+      if (permanova_test(spec)) "vegan",
       # p_multinomial() fits nnet's multinom().
       if (identical(spec$template, "multinomial")) "nnet"
     ),
@@ -126,7 +128,18 @@ spower_inputs <- function(spec) {
     # One-way MANOVA: powerkit's own experiment for Spower, p_manova(),
     # draws multivariate normal scores for each group (manova_scores()) and
     # returns the p-value of Pillai's trace from stats::manova().
-    manova = list(
+    # PERMANOVA: powerkit's own experiment, p_permanova(), draws the
+    # groups' scores (permanova_scores(): multivariate normal, or of the
+    # chosen shape) and returns vegan's adonis2() permutation test of the
+    # effect, on Euclidean distances between the standardised outcomes.
+    manova = if (permanova_test(spec)) list(
+      experiment = "p_permanova", own = TRUE, generator = "permanova_scores", generate = permanova_scores,
+      args = function(n) {
+        c(list(n = n / length(pop$means), means = manova_means(spec), sds = as.numeric(unlist(pop$sds)), r = pop$r,
+          shape = pop$score_shape %||% "normal"),
+          if (!is.null(spec$variables$B)) list(b = length(spec$variables$B$levels), term = manova_term(spec)))
+      }
+    ) else list(
       experiment = "p_manova", own = TRUE, generator = "manova_scores", generate = manova_scores,
       args = function(n) {
         c(list(n = n / length(pop$means), means = manova_means(spec), sds = as.numeric(unlist(pop$sds)), r = pop$r),
@@ -326,6 +339,9 @@ spower_inputs <- function(spec) {
       if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
   } else if (welch_anova(spec)) {
     "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))"
+  } else if (identical(template, "manova") && permanova_test(spec)) {
+    sprintf("Spower::Spower(p_permanova()) (vegan::adonis2(method = \"euclidean\", permutations = 999) on the standardised outcomes%s)",
+      if (is.null(spec$variables$B)) "" else sprintf(", the sequential test of %s", manova_term(spec)))
   } else if (identical(template, "manova")) {
     if (is.null(spec$variables$B)) "Spower::Spower(p_manova()) (stats::manova(), Pillai's trace)" else
       sprintf("Spower::Spower(p_manova()) (stats::manova() of A * B, Pillai's trace of %s)", manova_term(spec))
@@ -1187,6 +1203,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   if (identical(spec$template, "multinomial")) {
     return(multinomial_check_run(spec, args, seed))
   }
+  if (permanova_test(spec) && !identical(args$shape, "normal")) {
+    return(permanova_check_run(spec, args, seed))
+  }
   if (identical(spec$template, "single_predictor_count") && zero_inflated_test(spec)) {
     return(zero_inflated_check_run(args, seed))
   }
@@ -1577,6 +1596,71 @@ p_manova <- function(n, means, sds, r, b = 1, term = "A") {
   B <- factor((group - 1) %% b + 1)
   fit <- stats::manova(y ~ A * B)
   summary(fit, test = "Pillai")$stats[term, "Pr(>F)"]
+}
+
+# PERMANOVA ----------------------------------------------------------------------
+#
+# Scores for PERMANOVA: n people in each group (or combination of A and
+# B). Normal scores are multivariate normal, as for MANOVA
+# (manova_scores()). Scores of another shape are drawn as each person's
+# common level (standard normal, a share r of the variance) plus a
+# deviation of the chosen shape for each outcome (score_shape_sampler(),
+# the rest), so any two outcomes correlate r (at least 0), each outcome
+# has its SD, and groups differ by their means; in each group in turn, the
+# common levels first, then each outcome's deviations in turn.
+permanova_scores <- function(n, means, sds, r, shape = "normal", ...) {
+  if (identical(shape %||% "normal", "normal")) {
+    return(manova_scores(n, means, sds, r))
+  }
+  draw <- score_shape_sampler(shape)
+  p <- ncol(means)
+  y <- do.call(rbind, lapply(seq_len(nrow(means)), function(g) {
+    common <- stats::rnorm(n)
+    vapply(seq_len(p), function(j) means[g, j] + sds[j] * (sqrt(r) * common + sqrt(1 - r) * draw(n)), numeric(n))
+  }))
+  y <- matrix(y, ncol = p)
+  colnames(y) <- paste0("Y", seq_len(p))
+  data.frame(group = factor(rep(seq_len(nrow(means)), each = n)), y)
+}
+
+# Spower experiment for PERMANOVA (permutational MANOVA; vegan's
+# adonis2(), Anderson, 2001, cited by its help): the outcomes standardised
+# in each data set (scale()), so that an outcome measured on a larger scale
+# doesn't dominate the distances, then Euclidean distances (vegan's default
+# is Bray-Curtis, for ecological abundance data, which needs scores of 0 or
+# more) and vegan's default 999 permutations. One factor: the test of the
+# groups; two factors: the effect's sequential test (by = "terms"), which
+# equals its marginal test with equal groups.
+p_permanova <- function(n, means, sds, r, shape = "normal", b = 1, term = "A") {
+  data <- permanova_scores(n, means, sds, r, shape)
+  y <- scale(as.matrix(data[, -1]))
+  if (b == 1) {
+    fit <- vegan::adonis2(y ~ group, data = data, method = "euclidean", permutations = 999, by = "terms")
+    return(fit["group", "Pr(>F)"])
+  }
+  group <- as.integer(data$group)
+  design <- data.frame(A = factor((group - 1) %/% b + 1), B = factor((group - 1) %% b + 1))
+  fit <- vegan::adonis2(y ~ A * B, data = design, method = "euclidean", permutations = 999, by = "terms")
+  fit[term, "Pr(>F)"]
+}
+
+# Check run for PERMANOVA's scores of a shape other than normal: each
+# group's means, and the average correlation between two outcomes (its
+# allowance three times the normal-theory standard error, since
+# heavy-tailed scores estimate it less precisely).
+permanova_check_run <- function(spec, args, seed) {
+  data <- call_backend("Spower", with_seed(seed, permanova_scores(args$n, args$means, args$sds, args$r, args$shape)))
+  y <- as.matrix(data[, -1])
+  groups <- split(seq_len(nrow(data)), data$group)
+  centred <- do.call(rbind, lapply(groups, function(i) scale(y[i, , drop = FALSE], scale = FALSE)))
+  within_r <- mean(stats::cor(centred)[upper.tri(diag(ncol(y)))])
+  cells <- expand.grid(g = seq_len(nrow(args$means)), j = seq_len(ncol(args$means)))
+  rbind(
+    check_run_rows(sprintf("mean of Y%d in group %d", cells$j, cells$g), args$means[cbind(cells$g, cells$j)],
+      vapply(seq_len(nrow(cells)), function(i) mean(y[groups[[cells$g[i]]], cells$j[i]]), numeric(1)),
+      args$sds[cells$j] / sqrt(args$n)),
+    check_run_rows("correlation between two outcomes (average)", args$r, within_r, 3 * (1 - args$r^2) / sqrt(nrow(y)))
+  )
 }
 
 # The term of A * B a two-factor MANOVA tests.

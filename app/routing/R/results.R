@@ -1834,6 +1834,8 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   # MANOVA with three or more groups; two groups are calculated exactly).
   groups <- form$known_differences_if_groups_above
   keys <- Filter(function(k) is.null(groups[[k]]) || length(spec$variables$A$levels) > groups[[k]] || !is.null(spec$variables$B), keys)
+  # PERMANOVA (E59's test version) has no G*Power counterpart to differ from.
+  if (identical(spec$target_test$method, "permanova")) keys <- setdiff(keys, "8")
   # A known difference may have its own wording for the smallest detectable
   # effect (key "1 sensitivity": E9's comes from the fixed-model formula).
   if (identical(spec$goal$type, "sensitivity")) {
@@ -2257,6 +2259,9 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       ),
       format(100 * spec$population$zero_prob),
       if (identical(spec$target_test$method, "zero_inflated_negative_binomial")) sprintf(", overdispersion k = %s", format(spec$population$dispersion)) else "")
+  }
+  if (identical(spec$target_test$method, "permanova")) {
+    name <- sprintf("a PERMANOVA (vegan's adonis2() permutation test on Euclidean distances between the standardised outcomes), simulated assuming %s", score_shape_text(spec$population$score_shape))
   }
   if (identical(spec$target_test$method, "negative_binomial")) {
     name <- sprintf("a negative binomial regression (the Wald z test of one predictor, overdispersion k = %s), simulated", format(spec$population$dispersion))

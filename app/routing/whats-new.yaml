@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "PERMANOVA for several outcomes that aren't normal"
+    text: >-
+      When groups are compared on several outcomes at once, you can now plan
+      for PERMANOVA, a permutation test on the distances between people's
+      scores, instead of MANOVA. Choose the shape of the scores, and powerkit
+      simulates the test.
+  - date: "2026-11-04"
     title: "A rank-based test for designs with repeated measurements"
     text: >-
       The aligned rank transform ANOVA, a rank-based test of main effects and

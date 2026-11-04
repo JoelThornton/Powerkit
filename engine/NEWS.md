@@ -1,5 +1,15 @@
 # powerkit 0.31.0
 
+* PERMANOVA as a test version on the MANOVA template (`target_test >
+  method` "permanova", with `population > score_shape`): powerkit's
+  experiment `p_permanova()` draws the groups' scores (multivariate normal,
+  or each person's common level plus a deviation of the chosen shape) and
+  runs vegan's `adonis2()` on Euclidean distances between the standardised
+  outcomes, 999 permutations; two factors take the effect's sequential
+  test. Two groups are simulated too. New imports: vegan (2.7-6) and its
+  dependency permute (0.9-10), added to `renv.lock`. Validation chunk
+  `permanova`.
+
 * The aligned rank transform ANOVA with a within-participants factor: the
   2 x 2 mixed, larger mixed and two-factor within-participants templates
   accept `target_test > method` "aligned_rank_transform" with

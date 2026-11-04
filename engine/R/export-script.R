@@ -307,14 +307,21 @@ design_description <- function(spec) {
     ),
     "basic_test/manova" = if (is.null(v$B)) {
       sprintf(
-        "one-way MANOVA of %s across the %d groups of %s (%s); Pillai's trace%s",
+        "%s of %s across the %d groups of %s (%s); %s",
+        if (permanova_test(spec)) "one-way PERMANOVA" else "one-way MANOVA",
         paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "), length(unlist(v$A$levels)), label("A"), levels("A"),
-        if (length(unlist(v$A$levels)) == 2) " (with two groups, Hotelling's T-squared)" else ""
+        if (permanova_test(spec)) {
+          sprintf("vegan's adonis2() permutation test on Euclidean distances between the standardised outcomes, %s", score_shape_words(spec$population$score_shape))
+        } else {
+          paste0("Pillai's trace", if (length(unlist(v$A$levels)) == 2) " (with two groups, Hotelling's T-squared)" else "")
+        }
       )
     } else {
       sprintf(
-        "two-way MANOVA of %s by %s (%s) and %s (%s); Pillai's trace of %s",
+        "%s of %s by %s (%s) and %s (%s); %s of %s",
+        if (permanova_test(spec)) "two-way PERMANOVA" else "two-way MANOVA",
         paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "), label("A"), levels("A"), label("B"), levels("B"),
+        if (permanova_test(spec)) "vegan's adonis2() permutation test" else "Pillai's trace",
         switch(spec$target_test$effect, main_effect_A = label("A"), main_effect_B = label("B"), interaction = "their interaction")
       )
     },
@@ -1383,7 +1390,8 @@ spower_script_inputs <- function(spec) {
       ),
       sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE)", r_code(as.numeric(t(manova_means(spec)))), length(pop$means)),
       sprintf("sds <- %s # SD of each outcome within the groups", r_code(as.numeric(unlist(pop$sds)))),
-      sprintf("r <- %s # correlation between every pair of outcomes", r_code(pop$r))
+      sprintf("r <- %s # correlation between every pair of outcomes", r_code(pop$r)),
+      if (permanova_test(spec)) sprintf("shape <- %s # the shape of the scores: %s", r_code(pop$score_shape %||% "normal"), score_shape_words(pop$score_shape))
     ),
     hotelling_one = c(
       sprintf("# Outcomes, in order: %s.",
@@ -1638,6 +1646,7 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "n = n_group, # size of each group",
       "means = means,",
       "sds = sds,",
+      if (permanova_test(spec)) "shape = shape,",
       if (is.null(spec$variables$B)) "r = r" else c("r = r,", "b = b,", "term = term")
     ),
     hotelling_one = c(
@@ -1995,7 +2004,51 @@ spower_derived_lines <- function(spec) {
       sprintf("# The Wald test of %s: all of its coefficients are 0.", logistic_factorial_effect_words(spec)),
       sprintf("test <- %s", r_code(logistic_factorial_design(spec)$test))
     ),
-    manova = c(
+    manova = if (permanova_test(spec)) c(
+      "# The experiment, as powerkit runs it: each group's scores, multivariate",
+      "# normal, or for another shape each person's common level (a share r of the",
+      "# variance) plus a deviation of that shape for each outcome; then the",
+      "# outcomes standardised, Euclidean distances, and the p-value of vegan's",
+      "# adonis2() permutation test (999 permutations) of the groups or the effect.",
+      "permanova_scores <- function(n, means, sds, r, shape) {",
+      "  p <- ncol(means)",
+      "  if (shape == \"normal\") {",
+      "    correlation <- matrix(r, p, p)",
+      "    diag(correlation) <- 1",
+      "    sigma <- diag(sds, p) %*% correlation %*% diag(sds, p)",
+      "    y <- do.call(rbind, lapply(seq_len(nrow(means)), function(g) SimDesign::rmvnorm(n, means[g, ], sigma)))",
+      "  } else {",
+      "    draw <- switch(shape,",
+      "      skewed = function(n) (rchisq(n, df = 10) - 10) / sqrt(20), # standardised chi-square, 10 df",
+      "      heavy_tailed = function(n) rt(n, df = 3) / sqrt(3) # t with 3 df, rescaled to SD 1",
+      "    )",
+      "    y <- do.call(rbind, lapply(seq_len(nrow(means)), function(g) {",
+      "      common <- rnorm(n)",
+      "      vapply(seq_len(p), function(j) means[g, j] + sds[j] * (sqrt(r) * common + sqrt(1 - r) * draw(n)), numeric(n))",
+      "    }))",
+      "    y <- matrix(y, ncol = p)",
+      "  }",
+      "  colnames(y) <- paste0(\"Y\", seq_len(p))",
+      "  data.frame(group = factor(rep(seq_len(nrow(means)), each = n)), y)",
+      "}",
+      if (is.null(spec$variables$B)) c(
+        "p_permanova <- function(n, means, sds, shape, r) {",
+        "  data <- permanova_scores(n, means, sds, r, shape)",
+        "  y <- scale(as.matrix(data[, -1]))",
+        "  fit <- vegan::adonis2(y ~ group, data = data, method = \"euclidean\", permutations = 999, by = \"terms\")",
+        "  fit[\"group\", \"Pr(>F)\"]",
+        "}"
+      ) else c(
+        "p_permanova <- function(n, means, sds, shape, r, b, term) {",
+        "  data <- permanova_scores(n, means, sds, r, shape)",
+        "  y <- scale(as.matrix(data[, -1]))",
+        "  group <- as.integer(data$group)",
+        "  design <- data.frame(A = factor((group - 1) %/% b + 1), B = factor((group - 1) %% b + 1))",
+        "  fit <- vegan::adonis2(y ~ A * B, data = design, method = \"euclidean\", permutations = 999, by = \"terms\")",
+        "  fit[term, \"Pr(>F)\"]",
+        "}"
+      )
+    ) else c(
       "# The experiment, as powerkit runs it: multivariate normal scores for each",
       "# group, then the p-value of Pillai's trace from stats::manova().",
       "manova_scores <- function(n, means, sds, r) {",

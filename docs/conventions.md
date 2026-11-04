@@ -1715,6 +1715,18 @@ Wired into the app on 18 October 2026 (E25, E26).*
   formula's (pwrss), checked in the validation. Tests:
   `test-backend-negative-binomial.R`; `test-validation-negative-binomial.R`
   [powerkit, `docs/decisions.md`].
+- **PERMANOVA (E59's test version): Euclidean distances between the
+  standardised outcomes, where vegan defaults to Bray-Curtis.** G\*Power
+  has no PERMANOVA. vegan's `adonis2()` uses Bray-Curtis dissimilarities
+  by default, which are for ecological abundance data and need values of
+  0 or more; for scores powerkit standardises each outcome in each data
+  set and uses Euclidean distances, so that an outcome on a larger scale
+  doesn't dominate, with vegan's default 999 permutations. Normal scores
+  are multivariate normal, as for MANOVA; scores of another shape are each
+  person's common level plus a deviation of that shape. With two factors
+  the effect's sequential test (`by = "terms"`), equal to its marginal test
+  with equal groups. Tests: `test-backend-permanova.R`;
+  `test-validation-permanova.R` [powerkit, `docs/decisions.md`].
 - **Multinomial logistic regression (E70): the likelihood-ratio test by
   default.** G\*Power has no multinomial logistic regression, so nothing
   is departed from. The outcome's first category is the reference; the

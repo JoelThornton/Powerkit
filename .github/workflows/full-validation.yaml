@@ -82,6 +82,7 @@ on:
           - reliability
           - aligned_rank
           - aligned_rank_within
+          - permanova
           - negative_binomial
           - robust_regression
           - multinomial

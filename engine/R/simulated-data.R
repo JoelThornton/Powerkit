@@ -644,14 +644,31 @@ sim_multivariate_code <- function(spec, n) {
   means <- if (manova) manova_means(spec) else matrix(as.numeric(unlist(pop$means)), nrow = 1)
   k <- nrow(means)
   per_group <- n %/% k
+  shaped <- manova && permanova_test(spec) && !identical(pop$score_shape %||% "normal", "normal")
   c(
     sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE) # one row per %s, one column per outcome",
       r_code(as.numeric(t(means))), k, if (manova) "group" else "group (here one)"),
-    sprintf("correlation <- matrix(%s, %d, %d)", r_code(pop$r), p, p),
-    "diag(correlation) <- 1",
     sprintf("sds <- %s", r_code(as.numeric(unlist(pop$sds)))),
-    "sigma <- diag(sds) %*% correlation %*% diag(sds)",
-    sprintf("y <- do.call(rbind, lapply(seq_len(%d), function(g) SimDesign::rmvnorm(%d, means[g, ], sigma)))", k, per_group),
+    if (shaped) {
+      # PERMANOVA with scores of another shape: each person's common level
+      # plus a deviation of that shape (permanova_scores()).
+      c(
+        sprintf("draw <- function(n) %s # %s", switch(pop$score_shape, skewed = "(stats::rchisq(n, df = 10) - 10) / sqrt(20)", heavy_tailed = "stats::rt(n, df = 3) / sqrt(3)"),
+          score_shape_words(pop$score_shape)),
+        sprintf("y <- do.call(rbind, lapply(seq_len(%d), function(g) {", k),
+        sprintf("  common <- stats::rnorm(%d)", per_group),
+        sprintf("  vapply(seq_len(%d), function(j) means[g, j] + sds[j] * (sqrt(%s) * common + sqrt(1 - %s) * draw(%d)), numeric(%d))", p, r_code(pop$r), r_code(pop$r), per_group, per_group),
+        "}))",
+        sprintf("y <- matrix(y, ncol = %d)", p)
+      )
+    } else {
+      c(
+        sprintf("correlation <- matrix(%s, %d, %d)", r_code(pop$r), p, p),
+        "diag(correlation) <- 1",
+        "sigma <- diag(sds) %*% correlation %*% diag(sds)",
+        sprintf("y <- do.call(rbind, lapply(seq_len(%d), function(g) SimDesign::rmvnorm(%d, means[g, ], sigma)))", k, per_group)
+      )
+    },
     "simulated <- data.frame(",
     if (manova && is.null(spec$variables$B)) sprintf("  %s = rep(%s, each = %d),", sim_label(spec, "A"), r_code(sim_levels(spec, "A")), per_group),
     # Two factors: the groups are A's levels by B's, B's fastest.

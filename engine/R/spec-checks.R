@@ -133,7 +133,7 @@ exact_available <- function(spec) {
   bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !simulated_count_test(spec) && !robust_regression(spec) &&
     !pairwise_comparison(spec) &&
-    !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && !manova_two_groups(spec)) && (
+    !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec))) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
       pwr_covers(spec) ||
       formula_test(spec) ||
@@ -198,7 +198,7 @@ simulation_available <- function(spec) {
 # (backend-variance.R, backend-hotelling.R). The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  identical(spec$template, "paired_variances") || identical(spec$template, "manova") && !manova_two_groups(spec) || rank_test(spec) || welch_anova(spec) ||
+  identical(spec$template, "paired_variances") || identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec)) || rank_test(spec) || welch_anova(spec) ||
     rank_correlation(spec) || proportion_trend(spec) || simulated_count_test(spec) || robust_regression(spec)
 }
 
@@ -338,6 +338,10 @@ check_zero_inflation <- function(spec) {
   }
   problems
 }
+
+# PERMANOVA (vegan's adonis2()), on the MANOVA template: simulated with
+# Spower by powerkit's own experiment.
+permanova_test <- function(spec) identical(spec$target_test$method, "permanova")
 
 # The Jonckheere-Terpstra test of a trend across groups in order (PMCMRplus's
 # jonckheereTest()), on the one-way between-participants template.
@@ -743,7 +747,8 @@ check_welch_sds <- function(spec) {
 # The shape of the scores is only an input to the rank tests: the t-tests
 # and ANOVA powerkit computes assume normal scores.
 check_score_shape_allowed <- function(spec) {
-  if (is.null(spec$population$score_shape) || rank_test(spec) || rank_correlation(spec)) {
+  # MANOVA and PERMANOVA: check_manova() says so.
+  if (is.null(spec$population$score_shape) || rank_test(spec) || rank_correlation(spec) || identical(spec$template, "manova")) {
     return(character())
   }
   paste0(
@@ -1718,6 +1723,14 @@ check_manova <- function(spec) {
   }
   if (length(pop$sds) != p) {
     problems <- c(problems, sprintf("'population > sds' should have one SD per outcome (%d); it has %d.", p, length(pop$sds)))
+  }
+  if (!is.null(pop$score_shape) && !permanova_test(spec)) {
+    problems <- c(problems, "'population > score_shape' is only used by PERMANOVA ('target_test > method' \"permanova\"); MANOVA's test of Pillai's trace assumes multivariate normal scores. Remove it, or choose PERMANOVA.")
+  }
+  if (permanova_test(spec) && !identical(pop$score_shape %||% "normal", "normal") && pop$r < 0) {
+    problems <- c(problems, paste0(
+      "For PERMANOVA with scores that aren't normal, the correlation between the outcomes ('population > r') must be at least 0: ",
+      "powerkit draws each score as the person's common level plus a deviation, so the correlation is the share of the variance they share."))
   }
   if (p > 1 && pop$r <= -1 / (p - 1)) {
     problems <- c(problems, sprintf(

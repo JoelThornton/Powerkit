@@ -1806,6 +1806,23 @@ test_that("the aligned rank transform (E7, E21 and E22's test version) builds Sp
   expect_match(w[["short"]], "aligned rank transform", fixed = TRUE)
 })
 
+test_that("PERMANOVA (E59's test version) takes the shape of the scores, reaches vegan and drops MANOVA's known difference", {
+  fields <- form_fields(form_groups(forms, "E59"))
+  values <- modifyList(form_examples$E59, list(manova_test = "permanova", score_shape = "skewed", goal = "power", n = "90"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E59", fields, values)
+  expect_identical(spec$target_test$method, "permanova")
+  expect_identical(spec$population$score_shape, "skewed")
+  expect_false("8" %in% known_difference_keys(forms, "E59", spec))
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true("vegan" %in% names(calc$result$provenance$packages))
+  w <- writeup_text(forms$forms[["E59"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "PERMANOVA", fixed = TRUE)
+})
+
 test_that("the aligned rank transform with a within-participants factor (E8, E55, E20) builds Spower specs and names the design", {
   for (id in c("E8", "E55", "E20")) {
     fields <- form_fields(form_groups(forms, id))

@@ -136,6 +136,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       if ("pscl" %in% used) {
         list(s("pscl", "whose zeroinfl() fits the zero-inflated regression powerkit's experiment runs"))
       },
+      if ("vegan" %in% used) {
+        list(s("vegan", "whose adonis2() is the PERMANOVA powerkit's experiment runs"))
+      },
       if ("nnet" %in% used) {
         list(s("nnet", "whose multinom() fits the multinomial logistic regression powerkit's experiment runs"))
       },
