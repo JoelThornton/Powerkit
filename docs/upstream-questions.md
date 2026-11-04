@@ -6,6 +6,47 @@ an issue on the package's repository. Questions that were raised and
 answered are recorded in `docs/conventions.md` (Departures 4 and 8) and
 `docs/decisions.md` ("Upstream reports fixed; upstream watch").
 
+## Exposure and recheck register
+
+*Reviewed 4 November 2026 against the adapters and the questions below.*
+An open upstream question is not automatically an exposed Powerkit defect.
+"Bypassed" describes the current route, not a claim that upstream fixed it.
+Independent numerical evidence is named where recorded; a source inspection
+alone is not an independent numerical validation. The detailed questions
+below retain their reproduction information and limitations.
+
+| Package / affected variant | Evidence to retain | Current exposure and mitigation | Recheck condition |
+|---|---|---|---|
+| InteractionPoweR: regression-interaction sensitivity from correlations | Known differences 1/7; formula/df inspection and recorded comparison with G*Power | Used with the disclosed fixed-model convention; not evidence of random-predictor equivalence | New version, clarified effect definition/df, or replacement method; repeat the same fixed and simulated comparisons |
+| powertools: binary cluster/multisite outcome, variance multiplier 1.2 | Source inspection; source of multiplier remains unknown | Approximation retained and disclosed; provenance question remains open | Author supplies derivation or implementation changes; check representative event rates and ICCs |
+| powertools: varying cluster sizes with a binary outcome | `re.clustsize.bin()` source comparison; no independent validation recorded here | Restricted: this simulated/planning combination is not enabled; equal sizes remain available | Corrected formula plus independent checks before enabling variable sizes |
+| powertools: continuous cluster covariates, RsqB/RsqW | Recorded hand-calculated design effect in question 3 | Inputs interpreted as shares within their respective variance components | Documentation or formula changes; rerun the hand calculation and covariate cases |
+| powertools: returned df, critical value and noncentrality | Source inspection; backend does not return these fields | Reporting limitation: no invented details are displayed | Backend starts returning details; compare each with the reported power |
+| bfpwr: t-test Bayes factors at small N | Known difference 6; comparison with simulated t statistics | Normal approximation used and disclosed | Exact/t-based implementation or changed design-prior handling; repeat small-N comparisons |
+| metapower: random-effects heterogeneity power | `upstream/metapower-homogeneity.R`; independent simulated Q tests | Bypassed: Powerkit simulates Q with metafor instead of `homogen_power()` | Upstream correction; retain the three discrepant cases before considering a route change |
+| metapower: correlation effect rounded on Fisher's z scale | Known difference 9; recorded rounded/unrounded comparison | `mpower()` convention retained and disclosed | Rounding changes or author clarification; rerun the same correlations |
+| power4mome: models 58/59 population products | `test-path-product-moments.R`; full polynomial moments and independently generated/OLS checks in the validation journal | Workaround: explicit residual variances and `standardized = FALSE`; separate fitted model | Standardisation/product-update changes; recover the population and repeat scoped simulations before removing the workaround |
+| power4mome: seeded product-term standardisation | Same-seed checks with different preceding RNG states | Workaround: explicitly seed before `power4test()` | RNG/seeding changes; compare repeated calls and core settings |
+| power4mome: X with three or more categories in mediation | Backend-support question; no independent supported implementation recorded | Unsupported, rather than approximated by a continuous X | A documented generator, effect coding and target test, followed by validation |
+| manymome/power4mome: model 8 moderated-mediation index | Recorded refusal of `index_of_mome()` and conditional-effect comparison | Bypassed by offering the explicitly labelled difference of conditional indirect effects; it is a different target | Index implementation changes; compare estimands and retain both target-specific tests |
+| power4mome: correlated binary X and W | Backend restriction and historical questions; no validated generator recorded | Unsupported where the generator requires zero covariance | A supported joint generator and independent checks at nonzero associations |
+| power4mome: binary-X Monte Carlo interval calibration | `test-validation-modmed-binary.R`, independent OLS interval comparison | Active limitation, disclosed; not treated as validated merely because the simulation runs | Recommended fitting/interval settings or a package change; repeat null and alternative checks |
+| power4mome: models 58/59 fitted residual covariance | Recorded failed standard errors with `M ~~ W` | Bypassed: fitted model supplied without the non-estimable covariance | Fitted-model construction changes; compare standard errors, failures and target decisions |
+| Spower: directional one-/two-variance tests | `upstream/spower-var-test.R`, manual examples 26.3/15.3 | Direction passed explicitly; analytic variance routes avoid this default issue | Changes to `alternative`/`two.tailed`; rerun both directions, including effects opposite to the prediction |
+| Spower: unequal groups in simulated two-variance tests | `gen_var.test()` unequal-length reproduction | Restricted for the simulation route; analytic unequal-allocation F-test route is separate | Generator fixed; compare generated counts and null/alternative rejection before enabling it |
+| Spower: explicit `alternative = NULL` in variance experiments | Reproduction in the variance-test script | Avoided by Powerkit's explicit direction handling | Argument validation changes; rerun explicit NULL and both supported directions |
+| Spower: one-sided correlation test with nonzero null rho | Source inspection quoted below; no independent numerical check recorded here | Not exposed: Powerkit does not offer that nonzero-null simulated correlation target | Such a target is added, or Spower's p-value code changes; validate the actual directional test |
+| Spower 0.6.4: halved two-sided p-values with a zero null | Historical reproduction `upstream/spower-one-sided-tests.R`; retired Departure 4 | Upstream resolution recorded for 0.7; this historical fault is separate from the nonzero-null question above | Direction handling changes; retain null and opposite-direction regression checks on upgrade |
+| semPower: simulated configural measurement-invariance comparison | `test-validation-sem-latent.R`; recorded internal dimension error | Analytic route unaffected; independent lavaan simulation used for the cross-check | Simulation output changes; repeat configural and saturated comparisons before changing the cross-check |
+| PMCMRplus: list-form Jonckheere direction/continuity | `test-backend-trend.R`; list versus score/group calls | Bypassed: scores and group labels passed separately | New version or list-method fix; retain directional and two-sided comparisons |
+
+On a dependency update, inspect the affected rows and run their named checks
+before removing a workaround or widening a supported population. Record the
+version and outcome here and in the validation journal. Do not mark a row
+resolved from a green workflow whose relevant tests were skipped. Questions
+may be prepared as reproducible upstream reports; this register does not
+mean a report has been submitted or answered.
+
 ## InteractionPoweR
 
 Questions about InteractionPoweR 0.2.4, from its source (opened 30 October 2026).
@@ -161,7 +202,7 @@ workaround when updating power4mome; no upstream resolution is assumed.
       columns of different lengths ("arguments imply differing number of
       rows"). `unlist(Map(...))` would fix it. Until then the allocation
       ratio in example 15.3 (N = 443, 148 and 295) can't be simulated, and
-      powerkit refuses an allocation ratio for its two-variance test
+      powerkit refuses unequal allocation for its simulated two-variance test
       (`docs/conventions.md`, variance tests).
    3. Passing `alternative = NULL` explicitly, which is `p_var.test()`'s own
       default, stops `Spower()` with "Exactly *one* argument must be set to
