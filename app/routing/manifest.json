@@ -5603,6 +5603,35 @@
         "Built": "R 4.5.0; ; 2026-10-19 04:12:44 UTC; unix"
       }
     },
+    "permute": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "permute",
+        "Title": "Functions for Generating Restricted Permutations of Data",
+        "Version": "0.9-10",
+        "Authors@R": "c(person(given = \"Gavin L.\", family = \"Simpson\",\n                    email = \"ucfagls@gmail.com\",\n                    role = c(\"aut\", \"cph\", \"cre\"),\n\t\t                comment = c(ORCID = \"0000-0002-9084-8413\")),\n             person(given = \"R Core Team\", role = \"cph\"),\n             person(given = \"Douglas M.\", family = \"Bates\", role = \"ctb\"),\n             person(given = \"Jari\", family = \"Oksanen\", role = \"ctb\"))",
+        "Depends": "R (>= 3.6.0)",
+        "Imports": "stats",
+        "Suggests": "vegan (>= 2.0-0), testthat (>= 0.5), parallel, knitr,\nrmarkdown, bookdown, sessioninfo",
+        "Description": "A set of restricted permutation designs for freely exchangeable, line transects (time series), and spatial grid designs plus permutation of blocks (groups of samples) is provided. 'permute' also allows split-plot designs, in which the whole-plots or split-plots or both can be freely-exchangeable or one of the restricted designs. The 'permute' package is modelled after the permutation schemes of 'Canoco 3.1' (and later) by Cajo ter Braak.",
+        "License": "GPL-2",
+        "ByteCompile": "true",
+        "URL": "https://github.com/gavinsimpson/permute",
+        "BugReports": "https://github.com/gavinsimpson/permute/issues",
+        "Copyright": "see file COPYRIGHTS",
+        "VignetteBuilder": "knitr",
+        "Language": "en-GB",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-02-06 11:02:27 UTC; gavin",
+        "Author": "Gavin L. Simpson [aut, cph, cre] (ORCID:\n    <https://orcid.org/0000-0002-9084-8413>),\n  R Core Team [cph],\n  Douglas M. Bates [ctb],\n  Jari Oksanen [ctb]",
+        "Maintainer": "Gavin L. Simpson <ucfagls@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-02-06 11:50:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-12 19:41:15 UTC; unix"
+      }
+    },
     "pgnorm": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5937,7 +5966,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, ARTool, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize, PMCMRplus,\nPOMADE, presize, lme4, lmerTest, manymome, MBESS, nnet, gsl,\nmetafor, metapower, parallel, psych, quantreg, power4mome, pwr,\npowertools, powerSurvEpi, pscl, pwrss, PUMP, semPower, simr,\nSimDesign, statpsych, Spower (>= 0.7), stats, SuppDists,\nsurvival, Superpower, TOSTER, utils, WebPower",
+        "Imports": "afex, ARTool, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize, PMCMRplus,\nPOMADE, presize, lme4, lmerTest, manymome, MBESS, nnet, gsl,\nmetafor, metapower, parallel, pbkrtest, psych, quantreg,\npower4mome, pwr, powertools, powerSurvEpi, pscl, pwrss, PUMP,\nsemPower, simr, SimDesign, statpsych, Spower (>= 0.7), stats,\nSuppDists, survival, Superpower, TOSTER, vegan, utils, WebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5947,19 +5976,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "253cfa88027ef214bcf5ff5fd8b41e0dd822a4b8",
-        "RemoteSha": "253cfa88027ef214bcf5ff5fd8b41e0dd822a4b8",
+        "RemoteRef": "2b6c562ddb9c41129d14694f36a27d15a6da263d",
+        "RemoteSha": "2b6c562ddb9c41129d14694f36a27d15a6da263d",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "253cfa88027ef214bcf5ff5fd8b41e0dd822a4b8",
-        "GithubSHA1": "253cfa88027ef214bcf5ff5fd8b41e0dd822a4b8",
+        "GithubRef": "2b6c562ddb9c41129d14694f36a27d15a6da263d",
+        "GithubSHA1": "2b6c562ddb9c41129d14694f36a27d15a6da263d",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-05 03:34:29 UTC; runner",
+        "Packaged": "2026-11-05 08:55:03 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-05 03:34:42 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-05 08:55:19 UTC; unix"
       }
     },
     "powertools": {
@@ -7670,6 +7699,32 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:44:41 UTC; unix"
       }
     },
+    "vegan": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "vegan",
+        "Title": "Community Ecology Package",
+        "Version": "2.7-6",
+        "Authors@R": "c(person(\"Jari\", \"Oksanen\", role=c(\"aut\",\"cre\"),\n                    email=\"jhoksane@gmail.com\",\n\t\t    comment = c(ORCID=\"0000-0001-7102-9626\")),\n\t   person(\"Gavin L.\", \"Simpson\", role=\"aut\",\n\t            email=\"ucfagls@gmail.com\",\n\t\t    comment = c(ORCID = \"0000-0002-9084-8413\")),\n\t   person(\"F. Guillaume\", \"Blanchet\", role=\"aut\"),\n\t   person(\"Roeland\", \"Kindt\", role=\"aut\"),\n\t   person(\"Pierre\", \"Legendre\", role=\"aut\"),\n\t   person(\"Peter R.\", \"Minchin\", role=\"aut\"),\n\t   person(\"R.B.\", \"O'Hara\", role=\"aut\"),\n\t   person(\"Peter\", \"Solymos\", role=\"aut\"),\n\t   person(\"M. Henry H.\", \"Stevens\", role=\"aut\"),\n\t   person(\"Eduard\", \"Szoecs\", role=\"aut\"),\n\t   person(\"Helene\", \"Wagner\", role=\"aut\"),\n\t   person(\"Matt\", \"Barbour\", role=\"ctb\"),\n\t   person(\"Michael\", \"Bedward\", role=\"aut\"),\n\t   person(\"Henrik\", \"Bengtsson\", role=\"ctb\"),\n\t   person(\"Ben\", \"Bolker\", role=\"aut\"),\n\t   person(\"Daniel\", \"Borcard\", role=\"aut\"),\n\t   person(\"Tuomas\", \"Borman\", role=\"ctb\"),\n\t   person(\"Gustavo\", \"Carvalho\", role=\"aut\"),\n\t   person(\"Michael\", \"Chirico\", role=\"ctb\"),\n\t   person(\"Miquel\", \"De Caceres\", role=\"aut\"),\n\t   person(\"Sebastien\", \"Durand\", role=\"aut\"),\n\t   person(\"Heloisa Beatriz Antoniazi\", \"Evangelista\", role=\"aut\"),\n\t   person(\"Rich\", \"FitzJohn\", role=\"ctb\"),\n\t   person(\"Michael\", \"Friendly\", role=\"ctb\"),\n\t   person(\"Brendan\",\"Furneaux\", role=\"ctb\"),\n\t   person(\"Geoffrey\", \"Hannigan\", role=\"aut\"),\n\t   person(\"Isaac\", \"Heida\", role=\"ctb\"),\n\t   person(\"Mark O.\", \"Hill\", role=\"aut\"),\n\t   person(\"Leo\", \"Lahti\", role=\"aut\"),\n\t   person(\"Cameron\", \"Martino\", role=\"aut\"),\n\t   person(\"Dan\", \"McGlinn\", role=\"ctb\"),\n\t   person(\"Marie-Helene\", \"Ouellette\", role=\"aut\"),\n\t   person(\"Eduardo\", \"Ribeiro Cunha\", role=\"aut\"),\n\t   person(\"Tyler\", \"Smith\", role=\"aut\"),\n\t   person(\"Adrian\", \"Stier\", role=\"aut\"),\n\t   person(\"Cajo J.F.\", \"Ter Braak\", role=\"aut\"),\n\t   person(\"James\", \"Weedon\", role=\"aut\"))",
+        "Depends": "permute (>= 0.9-0), R (>= 4.1.0)",
+        "Suggests": "parallel, knitr, markdown",
+        "Imports": "MASS, cluster, lattice, mgcv",
+        "VignetteBuilder": "utils, knitr",
+        "Description": "Ordination methods, diversity analysis and other\n  functions for community and vegetation ecologists.",
+        "License": "GPL-2",
+        "BugReports": "https://github.com/vegandevs/vegan/issues",
+        "URL": "https://vegandevs.github.io/vegan/,\nhttps://github.com/vegandevs/vegan",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-08-31 10:13:55 UTC; jarioksa",
+        "Author": "Jari Oksanen [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-7102-9626>),\n  Gavin L. Simpson [aut] (ORCID: <https://orcid.org/0000-0002-9084-8413>),\n  F. Guillaume Blanchet [aut],\n  Roeland Kindt [aut],\n  Pierre Legendre [aut],\n  Peter R. Minchin [aut],\n  R.B. O'Hara [aut],\n  Peter Solymos [aut],\n  M. Henry H. Stevens [aut],\n  Eduard Szoecs [aut],\n  Helene Wagner [aut],\n  Matt Barbour [ctb],\n  Michael Bedward [aut],\n  Henrik Bengtsson [ctb],\n  Ben Bolker [aut],\n  Daniel Borcard [aut],\n  Tuomas Borman [ctb],\n  Gustavo Carvalho [aut],\n  Michael Chirico [ctb],\n  Miquel De Caceres [aut],\n  Sebastien Durand [aut],\n  Heloisa Beatriz Antoniazi Evangelista [aut],\n  Rich FitzJohn [ctb],\n  Michael Friendly [ctb],\n  Brendan Furneaux [ctb],\n  Geoffrey Hannigan [aut],\n  Isaac Heida [ctb],\n  Mark O. Hill [aut],\n  Leo Lahti [aut],\n  Cameron Martino [aut],\n  Dan McGlinn [ctb],\n  Marie-Helene Ouellette [aut],\n  Eduardo Ribeiro Cunha [aut],\n  Tyler Smith [aut],\n  Adrian Stier [aut],\n  Cajo J.F. Ter Braak [aut],\n  James Weedon [aut]",
+        "Maintainer": "Jari Oksanen <jhoksane@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-08-31 19:30:08 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-01 04:03:53 UTC; unix"
+      }
+    },
     "vipor": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -7931,7 +7986,7 @@
       "checksum": "b4dea88460ad4ddac3281930e010973b"
     },
     "forms.yaml": {
-      "checksum": "034f1fcc11adcd3613caa0b9d0da48b2"
+      "checksum": "dc98306a50c38b37d80190fda9b5faa7"
     },
     "methods-map.yaml": {
       "checksum": "89a79e0d5586b041abead785a2bb1f83"
@@ -7961,7 +8016,7 @@
       "checksum": "23e6eed5ff5f012fdb8a5f2df34c6c0e"
     },
     "R/results.R": {
-      "checksum": "49b9239536544743a40985946a2bf3ad"
+      "checksum": "9b227487817a1cdb87177b43a9bdee0b"
     },
     "R/simulations.R": {
       "checksum": "025c9ef2b3cf1436d421140b5759e059"
@@ -7991,7 +8046,7 @@
       "checksum": "619c128970bd157c9ab610aae34ce7ee"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "fd8cce308cc255560581627abfa067c2"
+      "checksum": "8dcbbb70d9e5a54aadab81fd79b6d422"
     },
     "tests/testthat/setup.R": {
       "checksum": "c9ff9599c519c8de3b27706899401d69"
@@ -8051,7 +8106,7 @@
       "checksum": "2f7d37efeda4a374d8cd69d894551782"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "71ec5259f2f0833e6a089d8eb0997782"
+      "checksum": "c072b3c2048e2ba23f0d0e61c97bc00c"
     },
     "tests/testthat/test-screens.R": {
       "checksum": "c6a18d6dcc163fdb9ce72735b050bf04"
@@ -8069,7 +8124,7 @@
       "checksum": "b9235475e912cbc9620f9a5c295575a5"
     },
     "tests/testthat/test-tree.R": {
-      "checksum": "80c84c03514101b6aae6a009bfd24efa"
+      "checksum": "66d079bff6e4b8090bdbf2c365908329"
     },
     "tests/testthat/test-walkthrough-fixes.R": {
       "checksum": "21dc18aefa2e3618ebd163a75e3480b7"
@@ -8084,7 +8139,7 @@
       "checksum": "929b76a01029c06cbe8e19210c479077"
     },
     "tree.yaml": {
-      "checksum": "e7fbf0d6b14b41b9cb322b4fa4c5b0a9"
+      "checksum": "8cd1da64831a726ad92509d90954c26b"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -8099,7 +8154,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "a3e740141240bd541c907f5457815b44"
+      "checksum": "8412996e2c180dbb9ac27a44ad514941"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
