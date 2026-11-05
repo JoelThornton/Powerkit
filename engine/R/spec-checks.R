@@ -604,6 +604,9 @@ check_bayes_factor <- function(spec) {
   if (bftable_test(spec)) {
     return(check_bayes_table(spec))
   }
+  if (bffactorial_test(spec)) {
+    return(check_bayes_factorial(spec))
+  }
   if (!bfprop_test(spec) && !is.null(spec$target_test$prior_concentration)) {
     return("'target_test > prior_concentration' belongs to the Bayes factor tests of proportions and tables; remove it.")
   }

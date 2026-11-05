@@ -1793,6 +1793,15 @@ Wired into the app on 18 October 2026 (E25, E26).*
   the product's coefficient, as `summary()` reports it. Tests:
   `test-backend-logistic-interaction.R`;
   `test-validation-logistic-interaction.R` [powerkit, `docs/decisions.md`].
+- **The Bayes factor of an effect in a two-factor between-participants
+  ANOVA (E7, E21, E22): JASP's inclusion Bayes factor.** G\*Power has no
+  Bayes factors, so nothing is departed from. powerkit follows JASP's
+  Bayesian ANOVA: BayesFactor's `anovaBF()` over the models that respect
+  marginality, r scale 0.5, and the effect's inclusion Bayes factor across
+  all models with uniform model priors (bayestestR's
+  `bayesfactor_inclusion()`); across matched models is an option. Tests:
+  `test-backend-bayes-anova.R`; `test-validation-bayes-factorial.R`
+  [powerkit, `docs/decisions.md`].
 - **Multinomial logistic regression (E70): the likelihood-ratio test by
   default.** G\*Power has no multinomial logistic regression, so nothing
   is departed from. The outcome's first category is the reference; the
