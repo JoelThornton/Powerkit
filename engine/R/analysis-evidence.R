@@ -100,7 +100,7 @@ analysis_evidence <- function(spec, computation_method = NULL) {
       query$features$computation_method, sep = "/"),
     record_id = record$id %||% "unlinked", categories = categories,
     scope = record$scope %||% "Complete inputs may narrow the variant. No linked record is not a failed check.",
-    limits = registry$limits, sources = registry$sources[source_ids])
+    limits = registry$limits, sources = if (length(source_ids)) registry$sources[source_ids] else list())
 }
 
 evidence_record_text <- function(record) {

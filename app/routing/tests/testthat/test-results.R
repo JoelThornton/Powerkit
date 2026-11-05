@@ -709,7 +709,7 @@ test_that("one-way ANOVA, regression, one proportion and McNemar run on the engi
   expect_equal(calc$result$n_required$n, 129)
   html <- as.character(result_panel_ui(tree, forms, "E26", form_fields(form_groups(forms, "E26")), form_examples$E26, calc))
   expect_match(html, "exact tests of counts", fixed = TRUE)           # Known difference 2
-  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   expect_match(html, "pwrss's formula, pwrss::power.exact.mcnemar(), no simulation", fixed = TRUE)
   for (ep in c("E24", "E25")) {
     calc <- run_calculation(light_spec(ep), run, seed = 1L)
@@ -1197,7 +1197,7 @@ test_that("equivalence tests run on TOSTER for each comparison, with their own w
   expect_match(s[["reading"]], "closer to a bound, fewer would", fixed = TRUE)
   expect_no_match(s[["reading"]], "significant result", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E36", fields, values, calc))
-  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "an equivalence test (two one-sided tests, TOST) of two independent groups (each one-sided test at \u03b1 = .05)", fixed = TRUE)
   expect_match(w[["short"]], "equivalence bound (\u00b1) = 0.5", fixed = TRUE)
@@ -1251,7 +1251,7 @@ test_that("Poisson regression runs on pwrss, with the exposure and a yes/no pred
   n_one_year <- calc$result$n_required$n
   expect_gt(n_one_year, 0)
   html <- as.character(result_panel_ui(tree, forms, "E28", fields, form_examples$E28, calc))
-  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   # Following people for longer means more events, so fewer people.
   values <- modifyList(form_examples$E28, list(mean_exposure = "2"))
   calc <- run_calculation(build_spec(forms, "E28", fields, values), run, seed = 1L)
@@ -1278,7 +1278,7 @@ test_that("a cluster-randomised trial runs on powertools, with the groups and th
   expect_match(words[["detail"]], "The design effect is 1.95", fixed = TRUE)
   expect_match(words[["detail"]], "intraclass correlation 0.05", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E34", fields, form_examples$E34, calc))
-  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   values <- modifyList(form_examples$E34, list(just_source = "A pilot study."))
   w <- writeup_text(forms$forms$E34, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "the design effect is 1.95", fixed = TRUE)
@@ -1445,7 +1445,7 @@ test_that("goodness of fit and two correlations run on pwrss, with their notes",
     expect_identical(calc$result$provenance$backend_function, fns[[ep]], label = ep)
     expect_gt(calc$result$n_required$n, 0)
     html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
-    expect_match(html, "Validation in progress. ", fixed = TRUE, label = ep)
+    expect_match(html, "Historical design-level note", fixed = TRUE, label = ep)
   }
 })
 

@@ -61,4 +61,7 @@ test_that("results and saved records preserve the evidence captured at calculati
   expect_equal(saved_result(project)$provenance$evidence, captured)
   expect_match(export_script(spec, result), captured$registry_sha256, fixed = TRUE)
   expect_match(paste(evidence_record_text(NULL), collapse = " "), "No supported variant-level")
+  unlinked <- analysis_evidence(list(design = "basic_test", template = "independent_t", target_test = list(method = "welch_t")))
+  encoded <- jsonlite::fromJSON(jsonlite::toJSON(encode_value(unlinked), auto_unbox = TRUE, null = "null"), simplifyVector = FALSE)
+  expect_identical(decode_value(encoded), unlinked)
 })
