@@ -35,6 +35,8 @@ source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "capabilities.R"), local = TRUE)
+source(file.path("R", "planning.R"), local = TRUE)
+source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
@@ -1033,7 +1035,7 @@ server <- function(input, output, session) {
     calc <- state$calc
     req(calc, identical(calc$status, "ok"), input$explore_effect, !is.null(explore_effect(calc$spec)))
     df <- explore_curve(calc$spec, calc$result, input$explore_effect, seed = forms$default_seed)
-    planned <- calc$result$n_required$n %||% calc$spec$goal$n
+    planned <- n_analysed(calc$result)
     power_curve_plot(list(list(df = df, col = "#0A5A8C", fill = TRUE)), target = calc$spec$goal$power %||% 0.8, planned_n = planned)
   }, res = 96)
 
@@ -1059,7 +1061,7 @@ server <- function(input, output, session) {
     style <- list(conservative = list(col = "#b45309", lty = 2), expected = list(col = "#14284B", lty = 1), optimistic = list(col = "#0A5A8C", lty = 3))
     calc <- state$calc
     power_curve_plot(lapply(keys, function(k) list(df = df[df$scenario == k, ], col = style[[k]]$col, lty = style[[k]]$lty)),
-      target = calc$spec$goal$power %||% 0.8, planned_n = calc$result$n_required$n %||% calc$spec$goal$n)
+      target = calc$spec$goal$power %||% 0.8, planned_n = n_analysed(calc$result))
     legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
       lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3, bty = "n", inset = c(0, 0.04))
   }, res = 96)
@@ -1303,6 +1305,23 @@ server <- function(input, output, session) {
   )
   # Project files: the engine writes and reads them (write_project(),
   # read_project()); the app passes the route and puts the screen back.
+  observeEvent(input$scenario_compare, {
+    values <- isolate(current_form_values())
+    fields <- isolate(current_form_fields())
+    compared <- tryCatch(compare_named_alternatives(forms, state$endpoint, fields, values), error = function(e) conditionMessage(e))
+    output$scenario_comparison <- renderUI(if (is.character(compared)) p(role = "alert", compared) else tagList(
+      p("Formula comparison of saved assumptions; these are separate plans. Recalculate the chosen alternative before exporting its result."),
+      tags$table(class = "table", tags$thead(tags$tr(lapply(names(compared), function(x) tags$th(scope = "col", x)))),
+        tags$tbody(lapply(seq_len(nrow(compared)), function(i) tags$tr(lapply(compared[i, ], tags$td)))))))
+  })
+
+  output$download_planning_document <- downloadHandler(
+    filename = function() "powerkit-study-planning.md",
+    content = function(file) {
+      req(calculation_matches_values(state$calc, current_form_values()))
+      req(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
+      writeLines(planning_document(tree, forms, state$calc), file, useBytes = TRUE)
+    })
   output$download_project <- downloadHandler(
     filename = function() project_file_name(state$endpoint),
     content = function(file) {

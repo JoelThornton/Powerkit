@@ -162,7 +162,56 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   # method_extra: further choices about the formula, shown with the method
   # (E5's z test or Cohen's h).
   if (isTRUE(form$basic_method)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = c(list(basic_method_field(forms, ep_id)), form$method_extra))))
-  c(groups, closing_groups(forms, ep_id, start))
+  out <- c(groups, simulation_accuracy_group(forms, ep_id), closing_groups(forms, ep_id, start))
+  candidates <- form_fields(out)
+  c(out, list(list(input = NULL, title = "Assumptions and named alternatives", fields = list(
+    list(id = "scenario_library", label = "Assumptions and named alternatives", type = "scenario_library", optional = TRUE,
+      scenario_fields = candidates)))))
+}
+
+simulation_accuracy_group <- function(forms, ep_id) {
+  form <- forms$forms[[ep_id]]
+  choices <- unlist(lapply(form_fields(form$groups), function(f) names(f$choices)))
+  offered <- ep_id %in% c(names(forms$background), names(forms$simulations$endpoints)) ||
+    isTRUE(form$basic_method) || identical(form$base$design, "factorial_anova") ||
+    any(choices %in% c("simulation", "hartung_knapp", "brunner_munzel", "permanova")) ||
+    identical(form$base$template, "paired_variances")
+  if (!offered) return(NULL)
+  when <- NULL
+  if (isTRUE(form$basic_method)) when <- list(any = list(
+    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "spearman", "kendall")),
+    list(list(field = "method", is = "welch_t"), list(field = "welch_method", is_not = "exact")),
+    list(list(field = "calc_method", is = "simulation"), list(field = "method", is_not = "welch_t"),
+      list(field = "method", is_not = "bayes_factor"), list(field = "method", is_not = "minimum_effect"), list(field = "method", is_not = "fisher_exact"))))
+  if (identical(form$base$design, "meta_analysis")) {
+    test <- Filter(function(f) identical(f$path, "target_test.test"), form_fields(form$groups))
+    if (length(test)) when <- list(field = test[[1]]$id, is = "hartung_knapp")
+  }
+  group <- list(input = NULL, title = "Simulation accuracy", note = paste(
+    "Used only when this analysis is simulated; formulas have no Monte Carlo error.",
+    "These are approximate pointwise 95% margins for random simulation error in a probability, assuming every attempted study gives a valid decision.",
+    "Failures can reduce the effective number of decisions; read the actual interval and failure counts in the result.",
+    "More simulations do not resolve uncertainty about your effect size, SDs, correlations or other population assumptions, and do not guarantee a sample-size search's accuracy."), fields = list(
+    list(id = "simulation_accuracy", label = "How precise should the simulation be?", type = "select", optional = TRUE,
+      default = "standard", default_source = "1,000 repeated studies, powerkit's usual simulation setting",
+      choices = list(quick = "Quick exploration: about +/-5 percentage points (400 studies)",
+        standard = "Standard: about +/-3 percentage points (1,000 studies)",
+        precise = "More precise: about +/-1 percentage point (10,000 studies; takes longer)", custom = "Custom number of repeated studies"),
+      sets = list(quick = list(list(path = "options.nrep", value = 400L)),
+        standard = list(list(path = "options.nrep", value = 1000L)),
+        precise = list(list(path = "options.nrep", value = 10000L)))),
+    list(id = "nrep", label = "Repeated studies per sample size", type = "number", path = "options.nrep",
+      optional = TRUE, integer = TRUE, min = 100, max = 1000000,
+      help = "Advanced: empty uses the engine's usual number. A custom number changes simulation error and run time, not the assumed population.",
+      shown_if = list(field = "simulation_accuracy", is = "custom"))))
+  if (!is.null(when)) {
+    group$shown_if <- list(when)
+    group$fields <- lapply(group$fields, function(f) {
+      f$shown_if <- c(list(when), if (!is.null(f$shown_if)) list(f$shown_if))
+      f
+    })
+  }
+  list(group)
 }
 
 # Names of variables and their levels only label the result and the
@@ -196,32 +245,31 @@ with_name_default <- function(f) {
   f
 }
 
-# The direction, asked first and not filled in: the choice of a one- or
-# two-sided test should follow from the hypothesis (Rubin, 2022), not from
-# a pre-filled default. The packages' default is still named.
+# The decision rule is chosen before looking at data, without a prefilled
+# direction. A directional prediction can still accompany a two-sided test;
+# it does not by itself select one-sided testing.
 direction_group <- function(tool, shown_if = NULL) {
   list(input = NULL, title = "Your hypothesis", note = direction_note, fields = list(
     list(
-      id = "alternative", label = "Does your hypothesis predict a direction?", type = "select", path = "target_test.alternative", required = TRUE,
+      id = "alternative", label = "Which directions will your statistical decision test?", type = "select", path = "target_test.alternative", required = TRUE,
       choices = list(
-        greater = "Yes: it predicts a positive effect (one-sided test)",
-        less = "Yes: it predicts a negative effect (one-sided test)",
-        two_sided = "No: an effect in either direction would support it (two-sided test)"),
+        greater = "Positive effects only (one-sided test)",
+        less = "Negative effects only (one-sided test)",
+        two_sided = "Effects in either direction (two-sided test; a directional prediction is still possible)"),
       default_source = paste0("Not filled in for you (for reference: ", tool[["alternative_source"]], ")"),
       shown_if = shown_if
     ),
     list(
-      id = "alternative_reason", label = "Why your hypothesis predicts this direction", help = "Goes in the write-up; for example \"the theory predicts that training raises scores\".",
-      type = "text", optional = TRUE, shown_if = if (is.null(shown_if)) list(field = "alternative", is_not = "two_sided") else c(list(list(field = "alternative", is_not = "two_sided")), shown_if)
+      id = "alternative_reason", label = "Why only this direction counts for the decision", help = "Decide before seeing the results. Explain why an effect in the opposite direction would not count as a rejection under this rule; a directional prediction alone does not require a one-sided test.",
+      type = "text", optional = TRUE, shown_if = if (is.null(shown_if)) list(field = "alternative", is_one_of = c("greater", "less")) else c(list(list(field = "alternative", is_one_of = c("greater", "less"))), shown_if)
     )
   ))
 }
 
 direction_note <- paste(
-  "Answer this from your hypothesis, before the numbers.",
-  "If it says which way the effect goes (for example, that training raises scores), a one-sided test in that direction fits it.",
-  "If any difference would support it, a two-sided test fits; its p-value doesn't support a claim about which way the effect goes",
-  "(Rubin, 2022, Significance)."
+  "A prediction and a statistical decision rule are separate choices. You can predict that training raises scores and still use a two-sided test.",
+  "Choose one-sided testing only if a rejection in the opposite direction will not count under the rule you commit to before seeing data.",
+  "A significant two-sided result can be positive or negative: interpret its estimate and interval against your prediction, rather than treating either rejection as support for the theory."
 )
 
 # E1-E6: pwr's formula or Spower's simulation (forms.yaml,
@@ -260,7 +308,7 @@ precision_goal_fields <- function(tool) {
     list(id = "goal", label = "What do you want to find out?", type = "select", required = TRUE,
          choices = list(precision_n = "The sample size for an interval this narrow",
            precision_width = "How narrow the interval would be at a given sample size")),
-    list(id = "width", writeup_label = "interval width", label = "The widest interval you'd accept (upper limit minus lower, in the estimate's own units)",
+    list(id = "width", writeup_label = "interval width", label = "Target interval width (upper limit minus lower, in the estimate's own units)",
          help = "For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
          type = "number", path = "goal.width", needed_for = "precision_n", min_exclusive = 0),
     list(id = "assurance", label = "Chance that the interval is no wider than that (optional)",
@@ -311,7 +359,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     shown_for_goals = c("power", "sensitivity", "justified_alpha"), optional = TRUE)
   test <- list(
     goal,
-    list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor test, the chance that the study finds strong evidence for the effect." else "As a proportion, for example 0.9.",
+    list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor test, the chance that the study finds strong evidence for the effect." else "The chance the selected test rejects its null under the population you specify. For example 0.9 means 90% of repeated studies under those assumptions; it does not mean a 90% chance your theory is true.",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          default = tool[["power"]], default_source = tool[["power_source"]]),
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
@@ -331,7 +379,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(id = "error_rule", label = "How should the two errors be traded off?", type = "select", path = "goal.error_rule",
          choices = list(minimize = "Make their weighted total as small as possible", balance = "Make the weighted errors equal"),
          default = "minimize", shown_for_goals = "justified_alpha", optional = TRUE),
-    list(id = "alpha", label = "Significance level (alpha)", type = "number", path = "target_test.alpha", required = TRUE,
+    list(id = "alpha", label = "Significance level (alpha)", help = "The planned false-positive rate under the test's null assumptions, not the probability your conclusion is wrong. A smaller alpha requires stronger evidence, and usually a larger sample for the same power.", type = "number", path = "target_test.alpha", required = TRUE,
          min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]], shown_if = no_bayes),
     # Shown only when alpha is changed from its default (decided 18 October
     # 2026, judgement call G8); goes in the write-up.
@@ -351,6 +399,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
   }
   Filter(Negate(is.null), c(list(
     list(input = NULL, title = "What you want to find out", fields = test)),
+    list(list(input = NULL, title = "Scientific question (optional)", fields = list(
+      list(id = "research_question", label = "What scientific question will this study address?", type = "text", optional = TRUE,
+        help = "For example, whether training improves recall enough to change practice. This labels the planning document; it does not choose a statistical test for you.")))),
     if (!isTRUE(form$precision)) claim_groups(start$claim, start$n_tests),
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = c(list(
@@ -827,7 +878,11 @@ form_problems <- function(fields, values) {
       }
     }
   }
-  c(problems, combination_problems(values))
+  scenario_problem <- if (!blank(values$scenario_library)) tryCatch({
+    read_scenario_library(values$scenario_library, fields)
+    character()
+  }, error = function(e) conditionMessage(e)) else character()
+  c(problems, combination_problems(values), scenario_problem)
 }
 
 # --- Building the spec ---------------------------------------------------------
@@ -1048,6 +1103,10 @@ answers_text <- function(tree, route_label, history, ep_id, fields, values) {
   for (f in fields) {
     v <- values[[f$id]]
     if (blank(v) || !field_applies(f, values)) next
+    if (identical(f$id, "scenario_library")) {
+      lines <- c(lines, assumption_record_lines(values, fields), named_alternative_lines(values, fields))
+      next
+    }
     shown <- if (!is.null(f$choices) && !is.null(f$choices[[as.character(v)]])) f$choices[[as.character(v)]] else gsub("\n", " / ", as.character(v))
     lines <- c(lines, sprintf("- %s: %s", f$label, shown))
   }

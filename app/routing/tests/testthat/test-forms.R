@@ -96,11 +96,11 @@ test_that("other settings start at the wrapped tool's default, and say whose def
   direction <- Filter(function(f) f$id == "alternative", fields_for("E2"))[[1]]
   # Asked, not pre-filled, and first (docs/decisions.md, 19 October 2026).
   expect_null(direction[["default"]])
-  expect_match(direction$label, "Does your hypothesis predict a direction?", fixed = TRUE)
+  expect_match(direction$label, "Which directions will your statistical decision test?", fixed = TRUE)
   expect_match(direction$default_source, "Not filled in for you", fixed = TRUE)
   expect_equal(form_groups(forms, "E2")[[1]]$title, "Your hypothesis")
   expect_match(form_problems(fields_for("E2"), modifyList(form_examples[["E2"]], list(alternative = ""))),
-    "Does your hypothesis predict a direction?", fixed = TRUE, all = FALSE)
+    "Which directions will your statistical decision test?", fixed = TRUE, all = FALSE)
   expect_length(Filter(function(f) f$id == "alternative", fields_for("E9")), 0)
 })
 
