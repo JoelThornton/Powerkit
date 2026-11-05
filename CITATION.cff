@@ -5,7 +5,7 @@ message: >-
   InteractionPoweR or power4mome) and its method paper: powerkit's citations export
   (export_citations()) lists them for each result.
 type: software
-title: "powerkit: Unified Power Analysis for Psychology Designs"
+title: "powerkit: Unified Power Analysis for Common Research Designs"
 version: 0.32.0
 authors:
   - family-names: Thornton
@@ -13,7 +13,7 @@ authors:
 repository-code: "https://github.com/JoelThornton/Powerkit"
 license: GPL-3.0-or-later
 abstract: >-
-  powerkit reads a single design specification for common psychology
+  powerkit reads a single design specification for common research
   designs, checks that it describes a possible population, and routes it to
   established power analysis packages (among them pwr, pwrss, Superpower,
   Spower, InteractionPoweR, power4mome, powertools, TOSTER, semPower,
@@ -21,7 +21,7 @@ abstract: >-
 keywords:
   - power analysis
   - sample size
-  - psychology
+  - research design
   - R
 # Placeholder: a preferred-citation for powerkit's paper is added once that
 # paper exists (and is in engine/inst/citations/refs.bib under 'powerkit').

@@ -661,8 +661,8 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("Powerkit: power analysis for psychology (prototype)"),
-    tags$meta(name = "description", content = "Plan sample size, statistical power and precision for psychology studies. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
+  tags$head(tags$title("Powerkit: power analysis and sample size planning (prototype)"),
+    tags$meta(name = "description", content = "Plan sample size, statistical power and precision for your study. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
     tags$link(rel = "canonical", href = paste0(public_address, "/")),
     tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
   # The name, and that it is a prototype with its version; what the
@@ -686,7 +686,7 @@ ui <- function(req) fluidPage(
       tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
-    tags$footer(class = "small text-muted mt-4", "Powerkit helps plan psychology studies. ",
+    tags$footer(class = "small text-muted mt-4", "Powerkit helps plan research studies. ",
       tags$a(href = "guide.html", "Read the guide and current limitations"), ".")
   )
 )
