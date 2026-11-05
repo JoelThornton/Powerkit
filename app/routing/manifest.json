@@ -6143,19 +6143,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "e15bfa7fc0ca10a4b173711842f95decd0b86011",
-        "RemoteSha": "e15bfa7fc0ca10a4b173711842f95decd0b86011",
+        "RemoteRef": "15b5b213e634edb3bd7b4c8097115cbefe0866cb",
+        "RemoteSha": "15b5b213e634edb3bd7b4c8097115cbefe0866cb",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "e15bfa7fc0ca10a4b173711842f95decd0b86011",
-        "GithubSHA1": "e15bfa7fc0ca10a4b173711842f95decd0b86011",
+        "GithubRef": "15b5b213e634edb3bd7b4c8097115cbefe0866cb",
+        "GithubSHA1": "15b5b213e634edb3bd7b4c8097115cbefe0866cb",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-05 20:05:38 UTC; runner",
+        "Packaged": "2026-11-05 20:50:06 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-05 20:05:52 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-05 20:50:26 UTC; unix"
       }
     },
     "powertools": {
@@ -8385,7 +8385,7 @@
       "checksum": "0973a4e552a04a2a128e80b4a50775e1"
     },
     "R/forms.R": {
-      "checksum": "29caf9bbf0fd810ecf714535dd418919"
+      "checksum": "94bae7e274d2e4cd6537c803303bb746"
     },
     "R/labs.R": {
       "checksum": "a03c7b174e5dcb147c075d96fdd3bc56"
@@ -8430,7 +8430,7 @@
       "checksum": "67b82f05574497843b50af9c7dc43737"
     },
     "whats-new.yaml": {
-      "checksum": "2f513e6c22267b9c13ce9bc46d55f188"
+      "checksum": "d5443f612da937c2baa1b015dd6027d2"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
