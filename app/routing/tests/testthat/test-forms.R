@@ -930,6 +930,41 @@ test_that("the mixed ANOVA forms take unequal groups and then leave out the exac
   expect_identical(build_spec(forms, "E55", fields_for("E55"), values_for("E55"))$options$method, "exact")
 })
 
+test_that("a number in place of names stands for that many groups, conditions or categories", {
+  v <- values_for("E18")
+  v$A_levels <- "3"
+  fields <- fields_for("E18")
+  expect_length(form_problems(fields, v), 0)
+  spec <- build_spec(forms, "E18", fields, v)
+  expect_identical(spec$variables$A$levels, list("Group 1", "Group 2", "Group 3"))
+  # The count must match the means, as names do.
+  v$A_levels <- "4"
+  expect_match(form_problems(fields, v)[["means"]], "should have 4 numbers")
+  # One is not enough; names still work as before.
+  v$A_levels <- "1"
+  expect_match(form_problems(fields, v)[["A_levels"]], "at least two")
+  v$A_levels <- "Low, Mid, High"
+  expect_identical(build_spec(forms, "E18", fields, v)$variables$A$levels, list("Low", "Mid", "High"))
+  # Every levels field of a variable says so, with a word that fits it.
+  for (ep in form_ids) for (f in fields_for(ep)) {
+    if (level_count_field(f)) {
+      expect_match(f$help, "Or just how many there are", fixed = TRUE, label = paste(ep, f$id))
+      expect_true(f$level_prefix %in% c("Group", "Condition", "Category", "Time", "Level"))
+    }
+  }
+  # A count gives a valid spec on every screen with a levels field.
+  for (ep in form_ids) {
+    v <- values_for(ep)
+    f <- fields_for(ep, as.integer(v$n_mediators %||% 2))
+    lv <- Filter(function(x) level_count_field(x) && !blank(v[[x$id]]), f)
+    if (!length(lv)) next
+    for (x in lv) v[[x$id]] <- as.character(length(parse_levels(v[[x$id]])))
+    problems <- form_problems(f, v)
+    problems <- problems[!names(problems) %in% c("comparison")]
+    expect_length(problems, 0)
+  }
+})
+
 test_that("means in SD units fill in an SD of 1 and hide it, and empty headings hide with their fields", {
   v <- values_for("E18")
   v$metric <- "standardised"

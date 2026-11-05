@@ -61,6 +61,13 @@ call), and nodes for approaches powerkit doesn't compute.
 
 ## Waiting on the maintainer, not a PR
 
+- **Publishing the online app from a `live` branch** (an idea for when
+  the app has regular users): Connect Cloud republishes on every change
+  to main and reinstalls its packages, so a visit during a republish waits
+  minutes. Publishing from a `live` branch that a workflow moves up to
+  main once a night (or on request) would keep merges from interrupting
+  visitors. Needs the branch changed in the app's Connect Cloud settings.
+
 - **Whole-study simulation: the statistician's check**: Built on 27 October 2026 and in the app as an experimental option on the guided plan (power4mome; correlation, interaction, mediation and moderated mediation; a quick look in the app, and the full run and the sample size search from an R script). Before it is offered as more than experimental, a statistician goes through the method note and the cross-checks; then the other designs on the plan *Needs the maintainer: the statistician's check*
 - **Validation catch-up, the rest**: Six cards moved to validated on 27 October 2026. Eight still say "validation in progress": the one-way ANOVA, multiple regression R², one proportion and McNemar (in the engine's tests, not yet in the full run), ANCOVA, Poisson regression, goodness of fit and two independent correlations. Each needs a published example in its validation file and a full run *Needs the maintainer: the published values are theirs*
 - **Published values** (`TODO_PUBLISHED_VALUE`) for every validation file,

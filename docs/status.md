@@ -44,6 +44,8 @@ fully validated. Validation runs are recorded in
   example data preserve it. Point-biserial/test-statistic conversions and
   safeguard planning remain limited to their equal-SD assumptions.
 
+- **Group names:** optional; a levels field takes a count ("3") in place
+  of names.
 - **Bayes factors:** fifteen designs have a Bayes factor test version,
   all listed on "Plan a study analysed with Bayes factors" (E-bayes) and
   found by searching "Bayes". P-value results of the exactly calculated
