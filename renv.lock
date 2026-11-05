@@ -140,6 +140,19 @@
       ],
       "Hash": "a41d0fc833ea756a1136b60a437efe26"
     },
+    "longpower": {
+      "Package": "longpower",
+      "Version": "1.0.27",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "lme4",
+        "methods",
+        "nlme"
+      ],
+      "Hash": "aa13c3c0a8a04c626ac353cb75c6263b"
+    },
     "mathjaxr": {
       "Package": "mathjaxr",
       "Version": "2.0-0",

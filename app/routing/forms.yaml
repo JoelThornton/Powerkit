@@ -78,6 +78,11 @@ tool_defaults:
     alpha: 0.05
     alpha_source: "the default of Hmisc's cpower() (alpha = 0.05, Hmisc 5.3-0) and powerSurvEpi's powerEpiCont.default() (alpha = 0.05, powerSurvEpi 0.1.5)"
     power_source: "neither package has a default target power (powerSurvEpi's ssizeEpiCont.default(power) must be given; cpower() reports power only); enter one"
+  longpower:
+    alpha: 0.05
+    alpha_source: "longpower's default (diggle.linear.power(sig.level = 0.05), longpower 1.0.27)"
+    power_source: "longpower has no default target power (diggle.linear.power(power = NULL)); enter one"
+    alternative_source: "longpower's default (two-sided: diggle.linear.power(alternative = \"two.sided\"), longpower 1.0.27)"
   semPower:
     alpha: 0.05
     alpha_source: "the usual 5% level; semPower has no default (semPower.postHoc(alpha) must be given, semPower 2.2.0)"
@@ -132,7 +137,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -2845,6 +2850,37 @@ forms:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
              default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
              help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
+
+  # Growth curves (longpower's diggle.linear.power(), Diggle et al., 2002):
+  # two equal groups, three or more occasions, random intercept and slope.
+  E35:
+    methods_name: "a growth-curve comparison of two groups' rates of change (Diggle and colleagues' formula for a linear mixed model)"
+    tool: longpower
+    directional: true
+    base: {spec_version: "0.1", design: mixed_model, template: growth_curve,
+           variables: {G: {type: binary}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {effect: slope_difference, method: z_test}}
+    groups:
+      - input: "Your groups, the outcome and the occasions"
+        fields:
+          - {id: G_label, label: "What the groups are (for example, condition)", type: text, path: variables.G.label, required: true}
+          - {id: G_level1, label: "Group 1", type: text, path: variables.G.levels.1, required: true}
+          - {id: G_level2, label: "Group 2", type: text, path: variables.G.levels.2, required: true}
+          - {id: Y_label, label: "Outcome (for example, stress score)", type: text, path: variables.Y.label, required: true}
+          - {id: times, writeup_label: "occasions", label: "The occasions' times, separated by commas (three or more, for example 0, 1, 2, 3 for monthly measurements)", type: numbers, path: population.times, required: true,
+             help: "In the units the rates of change are per: with monthly measurements in months, the rate of change is per month."}
+      - input: "The difference in rates of change"
+        fields:
+          - {id: slope_difference, writeup_label: "difference in rates of change", label: "Group 2's average rate of change minus group 1's, per unit of time, in the outcome's units", type: number, path: population.slope_difference, effect: true,
+             help: "For example -1: the outcome falls one point more per month in group 2 than in group 1."}
+      - input: "How much people vary"
+        fields:
+          - {id: sd_slope, writeup_label: "SD of people's rates of change", label: "SD of people's own rates of change (the random slope SD), per unit of time", type: number, path: population.sd_slope, effect: true, min: 0}
+          - {id: sd_residual, writeup_label: "residual SD", label: "SD of each person's scores around their own line (the residual SD)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
+          - {id: sd_intercept, writeup_label: "SD of people's starting levels", label: "SD of people's starting levels (the random intercept SD, at the first occasion)", type: number, path: population.sd_intercept, required: true, min: 0,
+             default: 0, default_source: "0, the design spec's default; with complete data the starting levels' spread doesn't change the test of the slopes unless they correlate with the rates of change"}
+          - {id: r_intercept_slope, label: "Correlation between people's starting levels and rates of change", type: number, path: population.r_intercept_slope, required: true, min: -1, max: 1,
+             default: 0, default_source: "0, the design spec's default (population > r_intercept_slope)"}
 
   # Moderation by a factor with three or more groups (Spower simulation of
   # powerkit's experiment around lm()): the correlation of X and Y in each

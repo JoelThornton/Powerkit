@@ -1806,6 +1806,21 @@ test_that("the aligned rank transform (E7, E21 and E22's test version) builds Sp
   expect_match(w[["short"]], "aligned rank transform", fixed = TRUE)
 })
 
+test_that("growth curves (E35) build a longpower spec from the occasions and variance components", {
+  fields <- form_fields(form_groups(forms, "E35"))
+  values <- modifyList(form_examples$E35, list(goal = "power", n = "200"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E35", fields, values)
+  expect_identical(spec$template, "growth_curve")
+  expect_equal(unlist(spec$population$times), 0:3)
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "longpower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E35"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "growth-curve comparison", fixed = TRUE)
+})
+
 test_that("moderation by three or more groups (E30) takes a correlation per group and unequal groups, and reaches Spower", {
   fields <- form_fields(form_groups(forms, "E30"))
   values <- modifyList(form_examples$E30, list(group_sizes = "unequal", group_ratio = "1, 2, 1", goal = "power", n = "400"))

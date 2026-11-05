@@ -1,5 +1,17 @@
 # powerkit 0.31.0
 
+* Growth curves (template `mixed_model / growth_curve`, card E35): two equal
+  groups measured at three or more occasions, the difference in their
+  average rates of change in a linear mixed model with a random intercept
+  and slope, by Diggle, Heagerty, Liang and Zeger's (2002) formula in
+  longpower's `diggle.linear.power()`. The covariance of a person's
+  measurements is built from the random effects as longpower's help example
+  builds it. The package's own power for a given n fails for small groups
+  and returns about 0 for large ones (`upstream-questions.md`), so powerkit
+  solves its sample size for the power instead. New import: longpower
+  (1.0.27, added to `renv.lock`). Validation chunk `growth`: lme4 fits to
+  simulated studies.
+
 * Moderation by a factor with three or more groups (template
   `regression_interaction / group_moderator`, card E30): the correlation of
   a score X with Y in each group (and optionally each group's mean), equal

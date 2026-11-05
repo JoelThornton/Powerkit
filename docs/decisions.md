@@ -5009,3 +5009,29 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   `group_moderator`): pwr's F test formula with f^2 from the population
   (within 0.02), a separately written simulation, and Type I error when the
   groups differ only in their means.
+
+## 2026-11-05 · Growth curves (E35)
+
+- **What:** E35 calculates growth curves: a new template, `mixed_model /
+  growth_curve`, by longpower's `diggle.linear.power()` (Diggle, Heagerty,
+  Liang and Zeger, 2002). Goals: power and sample size. Cross-lagged panels
+  and experience sampling stay on the card as designs not calculated yet.
+- **Why:** `next.md` item 3 (decided 4 November 2026: growth curves first,
+  longpower's closed form checked against a simulation).
+- **Which formula:** longpower offers several. Diggle and colleagues'
+  textbook formula fits the model researchers usually fit, with its own
+  starting level for each group, for equal groups and complete data.
+  `edland.linear.power()` adds attrition and unequal allocation but cites
+  work "in process"; Hu, Mackey and Thomas (2021,
+  `hu.mackey.thomas.linear.power()`) adds them in a published method that
+  assumes both groups start at the same level, as in a randomised trial.
+  Diggle's first; Hu, Mackey and Thomas's is the candidate for attrition
+  and unequal groups.
+- **A package fault worked around:** `diggle.linear.power()` given n finds
+  the power by root-finding that fails for small groups and returns about 0
+  for large ones; powerkit solves the package's sample size for the power
+  instead (`upstream-questions.md`, longpower).
+- **Validation** (`test-validation-growth.R`, chunk `growth`): lme4 fits to
+  simulated studies, the group x time coefficient tested by its Wald z test
+  (within 0.03, since the formula takes the covariance as known); Diggle and
+  colleagues' published table is a placeholder for the maintainer.

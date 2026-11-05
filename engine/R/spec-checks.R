@@ -17,6 +17,7 @@ population_problems <- function(spec) {
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
       switch(spec$template, two_level = check_two_level(spec), crossed_conditions = check_crossed_conditions(spec),
+        growth_curve = check_growth_curve(spec),
         three_level = check_three_level(spec), item_predictor = check_item_predictor(spec),
         c(check_crossed_two_condition(spec), check_crossed_outcome(spec, conditions = FALSE)))
     },
@@ -136,6 +137,7 @@ exact_available <- function(spec) {
     !pairwise_comparison(spec) &&
     !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec))) && (
     spec$design %in% c("factorial_anova", "multiple_regression", "generic_test", "equivalence_test") ||
+      identical(spec$template, "growth_curve") ||
       pwr_covers(spec) ||
       formula_test(spec) ||
       pwrss_only(spec) ||
@@ -189,6 +191,7 @@ check_cell_ratio_allowed <- function(spec) {
 # only (pwrss).
 simulation_available <- function(spec) {
   !(spec$design %in% c("multiple_regression", "generic_test", "equivalence_test") || pwrss_only(spec) || bayes_factor_test(spec) ||
+    identical(spec$template, "growth_curve") ||
     minimum_effect_test(spec))
 }
 
@@ -885,7 +888,7 @@ check_proportions_formula_allowed <- function(spec) {
 check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
-                 dependent_correlation_templates(), "single_predictor", if (identical(spec$design, "logistic_regression")) "interaction",
+                 dependent_correlation_templates(), "single_predictor", if (identical(spec$design, "logistic_regression")) "interaction", "growth_curve",
                  "single_predictor_count", "one_variance", "two_variances",
                  "cluster_randomised", "multisite", "group_treatment", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
@@ -910,6 +913,8 @@ check_direction_allowed <- function(spec) {
     single_predictor = log(pop$odds_ratio),
     # "greater" means X's odds ratio rises with W (a ratio above 1).
     interaction = log(pop$odds_ratio_xw),
+    # "greater" means group 2 changes faster than group 1.
+    growth_curve = pop$slope_difference,
     # "greater" means the event rate goes up with X (rate ratio above 1),
     # or, for the zero part of a zero-inflated model, the odds of an extra
     # zero do.
@@ -2887,7 +2892,8 @@ minimum_n <- function(spec) {
       pop2 <- spec$population
       if (is.null(pop2$groups_per_site)) 10 * pop2$cluster_size else 6 * pop2$cluster_size * pop2$groups_per_site
     } else
-      if (identical(spec$template, "three_level")) 6 * spec$population$group_size * spec$population$groups_per_site else 6,
+      if (identical(spec$template, "three_level")) 6 * spec$population$group_size * spec$population$groups_per_site else
+      if (identical(spec$template, "growth_curve")) 4 else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
     # Subgroups: two studies of each kind, so the within-kind variance has
@@ -2951,6 +2957,9 @@ group_split <- function(spec) {
   }
   if (spec$template == "tost_two_proportions") {
     return(list(rule = "split into 2 equal groups (TOSTER takes one group size)", valid = function(n) n %% 2 == 0))
+  }
+  if (spec$template == "growth_curve") {
+    return(list(rule = "split into 2 equal groups, as the growth-curve formula assumes", valid = function(n) n %% 2 == 0))
   }
   if (identical(spec$template, "manova") && !is.null(spec$variables$B)) {
     cells <- manova_groups(spec)
@@ -3128,7 +3137,9 @@ target_effect_is_zero <- function(spec) {
       log(pop$odds_ratio)
     ),
     ordinal_regression = log(pop$odds_ratio),
-    mixed_model = if (identical(spec$template, "two_level")) {
+    mixed_model = if (identical(spec$template, "growth_curve")) {
+      pop$slope_difference
+    } else if (identical(spec$template, "two_level")) {
       switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW,
         site_effect = pop$b_Z, site_interaction = pop$b_XZ)
     } else if (identical(spec$template, "three_level")) {

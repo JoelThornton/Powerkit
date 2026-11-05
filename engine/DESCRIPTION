@@ -45,6 +45,7 @@ Imports:
     presize,
     lme4,
     lmerTest,
+    longpower,
     manymome,
     MBESS,
     nnet,

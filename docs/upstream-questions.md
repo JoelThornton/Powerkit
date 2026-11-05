@@ -27,6 +27,7 @@ below retain their reproduction information and limitations.
 | metapower: correlation effect rounded on Fisher's z scale | Known difference 9; recorded rounded/unrounded comparison | `mpower()` convention retained and disclosed | Rounding changes or author clarification; rerun the same correlations |
 | power4mome: models 58/59 population products | `test-path-product-moments.R`; full polynomial moments and independently generated/OLS checks in the validation journal | Workaround: explicit residual variances and `standardized = FALSE`; separate fitted model | Standardisation/product-update changes; recover the population and repeat scoped simulations before removing the workaround |
 | power4mome: seeded product-term standardisation | Same-seed checks with different preceding RNG states | Workaround: explicitly seed before `power4test()` | RNG/seeding changes; compare repeated calls and core settings |
+| longpower: `diggle.linear.power()` power for a given n | Question below; `test-backend-growth.R` compares the solved power with the package's own where that works | Bypassed: Powerkit solves the package's sample size for the power, so the same formula gives the power | Upstream correction; rerun the small- and large-group cases before calling the power directly |
 | power4mome: X with three or more categories in mediation | Backend-support question; no independent supported implementation recorded | Unsupported, rather than approximated by a continuous X | A documented generator, effect coding and target test, followed by validation |
 | manymome/power4mome: model 8 moderated-mediation index | Recorded refusal of `index_of_mome()` and conditional-effect comparison | Bypassed by offering the explicitly labelled difference of conditional indirect effects; it is a different target | Index implementation changes; compare estimands and retain both target-specific tests |
 | power4mome: correlated binary X and W | Backend restriction and historical questions; no validated generator recorded | Unsupported where the generator requires zero covariance | A supported joint generator and independent checks at nonzero associations |
@@ -255,3 +256,22 @@ Questions about PMCMRplus 1.9.12, from its source (opened 1 November
    (`p_jonckheere()`) passes the scores and groups, and a test checks that
    the list form is still two-sided (`test-backend-trend.R`). Is reading
    these from the list intended?
+
+## longpower
+
+Questions about longpower 1.0.27, from running it (5 November 2026).
+
+1. **`diggle.linear.power()` given `n` returns a wrong power, or fails.**
+   With `n` given and `power = NULL`, the function finds the power by root
+   finding; for small groups it stops with "no sign change found in 1000
+   iterations" (n = 2, 4 and 10 per group with times 0 to 3, random
+   intercept SD 6, slope SD 2, correlation -0.2, residual SD 4, delta 1),
+   and for large ones it returns about 0 (5.6e-17 at n = 2,000 per group,
+   where the power is about 1). With `power` given it returns the sample
+   size by the formula itself, correctly. powerkit's adapter
+   (`backend-longpower.R`, `growth_power()`) finds the power as the one
+   whose required group size is the n asked about, and
+   `test-backend-growth.R` checks that it equals the package's own power
+   where that works (n = 100 per group). Is the root-finding's interval or
+   tolerance the cause?
+

@@ -258,7 +258,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B38 | Mixed models with binary outcomes | ML | E33 or E34 | Planned (phase 6: mixed-effects) | Could: AP, PN | mixpower `mp_scenario_lme4_binomial()`; simr `powerSim()` (glmer models) | Phase 6 | — |
 | B39 | Cluster-randomised | ML; Audit | E34 | Wired (score or yes/no outcome, two conditions, equal numbers of groups, a baseline score optional for a score; also multisite trials, people randomised within groups, and group treatment trials, only one condition in groups; matches powertools called directly and the design-effect calculation in the engine's tests; published values to transcribe) | Now: AP, PN, S (powertools). Could: more covariates, unequal numbers of groups | **Engine: powertools `crt.parallel.cont()` and `multisite.cont()`** (27 October 2026), `crt.parallel.bin()` and `multisite.bin()` (yes/no outcome, 28 October 2026), `irgtt.cont()` and `irgtt.bin()` (only one condition in groups, 28 October 2026). Also WebPower `wp.crt2arm()`, `wp.crt3arm()` | Next: simulated models (package decision) | — |
 | B40 | Dyadic (APIM) | ML; Audit | E44 | Wired (1 November 2026: actor and partner effects, distinguishable or indistinguishable members; simulated with power4mome, lavaan's z test; published value to transcribe) | Now: AP (in the app), PN (R script) | **Engine: power4mome `power4test()` with `test_parameters()`**; apimpower (web app, not callable) | Transcribe a published example | [A5][], [C2][] |
-| B41 | Growth curves | ML; BG; Audit | E35 | Planned (later in the build guide; no phase) | — | longpower `lmmpower()`, `power.mmrm()`; mlmpower `power_analysis()` with `within_time_predictor()`; powerlmm `study_parameters()`, `get_power()` *(archived on CRAN in 2021; 0.4.0)*; semPower `semPower.powerLGCM()`; WebPower `wp.lcsm()` | — | [A6][] |
+| B41 | Growth curves | ML; BG; Audit | E35 | Wired (validation not finished): 5 November 2026, longpower `diggle.linear.power()` (Diggle et al., 2002), two equal groups, random intercept and slope, the power solved from its sample size | Now: AP, PN | **Engine: longpower `diggle.linear.power()`**; Hu, Mackey and Thomas (2021, `hu.mackey.thomas.linear.power()`) for attrition and unequal groups, next | Attrition and unequal groups | — |
 | B42 | Diary/EMA and intensive longitudinal | ML; BG; Audit | E35 or E41 | Planned (later in the build guide; no phase) | — | PowerAnalysisIL *(coverage.md; GitHub, not on CRAN)* | — | [C3][] |
 | B43 | Cross-lagged panel models (including random-intercept versions) | ML; BG | E35 | Planned (later in the build guide; no phase) | — | powRICLPM `powRICLPM()`; semPower `semPower.powerCLPM()`, `semPower.powerRICLPM()` | — | — |
 | B44 | Segmented regression and interrupted time series | ML; Audit | E45 | Unknown (check PITS against the known-breakpoint case) | — | PITS `calculate_power()`, `run_its_power()` (single-site ITS). Estimated breakpoint: none found | Check PITS | [A2][], [A6][] |
@@ -431,9 +431,9 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 30 | 28 | 0 | 58 |
+| Wired (validation not finished) | 30 | 29 | 0 | 59 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
-| Planned | 1 | 8 | 2 | 11 |
+| Planned | 1 | 7 | 2 | 10 |
 | Foundation tool can do it, not planned | 4 | 8 | 0 | 12 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 1 | 5 | 6 |
