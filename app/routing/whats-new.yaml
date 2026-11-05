@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "A faster first visit"
+    text: >-
+      The app now starts about two and a half seconds sooner after a quiet
+      spell, so the first page appears faster. The About tab is prepared the
+      first time someone opens it.
+  - date: "2026-11-05"
     title: "Bayes factors for two-factor ANOVAs"
     text: >-
       The two-factor between-participants ANOVA cards can now plan for the
