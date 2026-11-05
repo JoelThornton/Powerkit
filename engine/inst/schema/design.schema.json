@@ -43,7 +43,8 @@
         "dyadic",
         "survival",
         "reliability",
-        "irt"
+        "irt",
+        "signal_detection"
       ]
     },
     "template": {
@@ -173,6 +174,9 @@
     },
     {
       "$ref": "#/definitions/design_irt"
+    },
+    {
+      "$ref": "#/definitions/design_signal_detection"
     }
   ],
   "definitions": {
@@ -11454,6 +11458,148 @@
             }
           }
         ]
+      }
+    },
+    "design_signal_detection": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "signal_detection"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "dprime"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "dprime"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_signal_detection_dprime"
+            }
+          }
+        ]
+      }
+    },
+    "template_signal_detection_dprime": {
+      "description": "Sensitivity (d') in two conditions, from a signal detection task: each person sees signal and noise trials and says yes or no. Each person's d' is estimated from their hits and false alarms with the log-linear correction (Hautus, 1995) and the two conditions are compared with a t-test: paired when the same people do both (G a within factor), Student's when two groups each do one (G binary, equal groups). The power is simulated (Spower). goal > n is the number of people in all.",
+      "properties": {
+        "variables": {
+          "required": [
+            "G",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "G": {
+              "description": "The two conditions (within_factor: the same people in both) or two groups (binary: different people), in order.",
+              "properties": {
+                "type": {
+                  "enum": [
+                    "within_factor",
+                    "binary"
+                  ]
+                },
+                "levels": {
+                  "maxItems": 2
+                }
+              }
+            },
+            "Y": {
+              "description": "The task.",
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "dprime",
+            "trials_signal",
+            "trials_noise"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "dprime"
+            },
+            "dprime": {
+              "description": "The average true d' in each condition or group, in order (equal-variance Gaussian signal detection model).",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number",
+                "minimum": -5,
+                "maximum": 6
+              }
+            },
+            "trials_signal": {
+              "description": "Signal trials per person in each condition (old items, targets).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5000
+            },
+            "trials_noise": {
+              "description": "Noise trials per person in each condition (new items, lures).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5000
+            },
+            "sd_dprime": {
+              "description": "SD of people's true d' around the average, in each condition. 0 if omitted (everyone the same).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            },
+            "r_dprime": {
+              "description": "Same people in both conditions only: the correlation between a person's true d' in the two. 0.5 if omitted.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "criterion": {
+              "description": "The average response criterion c (0: no bias; positive: a tendency to say no). 0 if omitted.",
+              "type": "number",
+              "minimum": -3,
+              "maximum": 3
+            },
+            "sd_criterion": {
+              "description": "SD of people's criterion around the average (the same person keeps theirs in both conditions). 0 if omitted.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 3
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": false,
+            "effect": {
+              "const": "dprime_difference"
+            },
+            "method": {
+              "const": "t_test"
+            }
+          }
+        }
       }
     },
     "template_irt_dif": {

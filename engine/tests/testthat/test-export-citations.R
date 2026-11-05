@@ -103,7 +103,9 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # method paper (1 November 2026; MBESS's citation() gives no DOI, so it
   # is exported from the package alone), and the sources for assurance
   # and sequential Bayes factor designs (1 November 2026), and the tests of
-  # close and not-close fit for structural equation models (2 November 2026).
+  # close and not-close fit for structural equation models (2 November 2026),
+  # and the log-linear correction for d' (5 November 2026, from the
+  # publisher's record and abstract).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -122,7 +124,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       IntHout2014_hksj = "verified", OHagan2005_assurance = "verified",
       SchonbrodtWagenmakers2018_bfda = "verified", Schonbrodt2017_sequential = "verified",
       Perugini2025_critical = "verified", Lakens2022_justification = "verified",
-      MacCallum1996_rmsea = "verified", BlitzsteinHwang2019_probability = "verified"
+      MacCallum1996_rmsea = "verified", BlitzsteinHwang2019_probability = "verified",
+      Hautus1995_loglinear = "verified"
     )
   )
 })

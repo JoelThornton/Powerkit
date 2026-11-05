@@ -14,6 +14,9 @@ sample_allocation <- function(spec) {
   }
   if (identical(template, "tost_two_proportions")) return(weights(c(1, 1)))
   if (identical(template, "growth_curve") || identical(spec$design, "irt")) return(weights(c(1, 1)))
+  if (identical(spec$design, "signal_detection")) {
+    return(if (identical(spec$variables$G$type, "binary")) weights(c(1, 1)) else single)
+  }
   if (identical(template, "invariance")) {
     if (identical(spec$population$over, "occasions")) return(single)
     k <- spec$population$n_groups %||% 2

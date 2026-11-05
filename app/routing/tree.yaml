@@ -441,6 +441,7 @@ nodes:
          when: {outcome: score, times: [once, twice]}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
       - {label: "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)", next: E37}
       - {label: "That a test's items work the same way in two groups (differential item functioning, in item response theory)", next: E71, help: "e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
+      - {label: "That people tell a signal from noise better in one condition or group than another (sensitivity, d', in signal detection)", next: E72, help: "e.g. recognition memory is better after deep than after shallow encoding, measured as d' from hits and false alarms."}
       - {label: "That people fall into distinct types or profiles", next: E58, help: "e.g. finding groups of students with different patterns of motivation (latent profile or latent class analysis)."}
 
   # A difference ------------------------------------------------------------
@@ -1682,6 +1683,23 @@ endpoints:
     inputs: ["Your groups and the test", "Each item's discrimination and difficulty", "The items with DIF and how they differ", "Which test"]
     tier: v2
     alternatives: ["measurement invariance in a CFA, for questionnaire scores treated as continuous (the latent-variable card)", "a logistic regression DIF test of each item on the total score (for example, lordif), planned by simulation"]
+  E72:
+    doc_name: "Signal detection: sensitivity (d') in two conditions or groups"
+    plain_name: "How well people tell a signal from noise, in two conditions or groups (d')"
+    search_words: "signal detection theory sdt d prime dprime d' sensitivity hits false alarms recognition memory old new perception discrimination yes no response bias criterion"
+    template: "signal_detection / dprime"
+    backend: "Spower: powerkit's experiment (each person's hits and false alarms from the equal-variance signal detection model, d' with the log-linear correction, then a paired or Student's t-test), simulated"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-signal-detection.R, note: "Agrees with a simulation written separately, drawing every trial as an evidence value against the person's criterion, for paired and two-group designs, one- and two-sided, and near ceiling. Not yet checked against a published example."}
+    card_points:
+      - "Compares how well people tell a signal from noise (sensitivity, d') in two conditions done by the same people, or in two groups: for example, recognition memory after deep and after shallow encoding, from each person's hits and false alarms."
+      - "Each person's d' is estimated as researchers usually do, with the log-linear correction for perfect scores (Hautus, 1995), and the two conditions are compared with a t-test. The number of trials matters: few trials make each person's d' noisy, and near-perfect performance compresses it."
+      - "You give the average d' in each condition, the numbers of signal and noise trials, how much people differ, and for the same people in both conditions, how strongly their d' correlates. Simulated, so a run takes a few seconds."
+      - "Assumes the equal-variance signal detection model with yes/no responses. Rating-scale (confidence) designs, unequal-variance models and fitting d' in a hierarchical model are not covered yet."
+    inputs: ["Your conditions and the task", "Sensitivity (d') in each condition", "Trials and how people vary"]
+    tier: v2
+    alternatives: ["a hierarchical (multilevel) signal detection model fitted to the trials, planned by simulation", "comparing hit rates alone, which mixes sensitivity with response bias"]
   E43:
     doc_name: "Time-to-event (survival) outcome: the log-rank test and Cox regression"
     plain_name: "An outcome that is the time until something happens"
@@ -2254,7 +2272,7 @@ analysis_families:
   - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}
   - {id: equivalence, label: "Showing there's no meaningful effect (equivalence, non-inferiority)", endpoints: [E36]}
   - {id: meta, label: "Meta-analysis", endpoints: [E61]}
-  - {id: other, label: "Other: time-to-event, reliability, precision, Bayes factors and generic tests", endpoints: [E43, E69, E46, E-bayes, E50]}
+  - {id: other, label: "Other: time-to-event, signal detection, reliability, precision, Bayes factors and generic tests", endpoints: [E43, E72, E69, E46, E-bayes, E50]}
 
 glossary:
   - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}

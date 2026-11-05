@@ -5391,3 +5391,40 @@ as a way to run that study, not as a different answer to it.
   SD). Separate SDs for Welch's F are still asked, in the same units as
   the means.
 
+## 2026-11-05 · Signal detection: d' in two conditions or groups (E72)
+
+- **What:** a new card, E72, and design, `signal_detection / dprime`:
+  whether sensitivity (d') differs between two conditions done by the same
+  people, or between two groups, as in recognition memory or perception
+  studies. Reached from Q1 ("That people tell a signal from noise better in
+  one condition or group than another") and the "Other" family.
+- **Why:** `next.md` item 5 (decided 4 November 2026, and the order on 5
+  November 2026: signal detection first). No package plans this: sensR's
+  `d.primePwr()` tests one d' against chance in sensory discrimination
+  protocols, not a difference between conditions as psychologists analyse
+  it.
+- **Method (the maintainer's choice of a simulation, 5 November 2026):**
+  powerkit's Spower experiment `p_dprime()`. People's hits and false alarms
+  come from the equal-variance Gaussian signal detection model (yes on a
+  signal trial with probability pnorm(d / 2 - c), on a noise trial
+  pnorm(-d / 2 - c)), with each person's true d' drawn around the
+  condition's average (correlated across conditions for the same people)
+  and their criterion around its average. Each person's d' is estimated as
+  researchers usually do, with the log-linear correction (Hautus, 1995,
+  which found it less biased than the 1/(2N) rule), and the conditions are
+  compared with the paired t-test or Student's t-test, the analysis most
+  studies report. No new statistics: the model's definition, the published
+  correction and the t-test.
+- **Inputs:** the average d' in each condition, signal and noise trials per
+  person, the SD of people's true d' (and for the same people, its
+  correlation across conditions), and the average criterion and its SD (0
+  by default: unbiased observers).
+- **Validation** (`test-validation-signal-detection.R`, chunk
+  `signal_detection`): a simulation written separately, drawing every trial
+  as an evidence value against the person's criterion, agrees within Monte
+  Carlo error in three cases, including one near ceiling where the
+  correction matters most (88.7% against 88.1%, 88.0% against 88.7%, 59.5%
+  against 58.5%). A published example is a placeholder for the maintainer.
+- **Not covered yet:** rating-scale (confidence) designs, unequal-variance
+  models, and d' fitted in a hierarchical model of the trials.
+

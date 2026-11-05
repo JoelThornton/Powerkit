@@ -92,6 +92,7 @@ on:
           - logistic_interaction
           - group_moderator
           - growth
+          - signal_detection
           - irt
           - process_4
           - process_4_binary

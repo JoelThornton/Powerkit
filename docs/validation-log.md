@@ -1109,6 +1109,22 @@ with R 4.5.3: **36 PASS, 0 FAIL, 1 SKIP** (the published example,
 
 Packages: powerkit 0.32.0; bfpwr 0.1.6; BayesFactor 0.9.12-4.8.
 
+## 2026-11-05 · Signal detection: d' in two conditions or groups (local, cloud session)
+
+`test-validation-signal-detection.R` (chunk `signal_detection`) on Linux
+x86_64 with R 4.5.3: **3 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`). powerkit's `p_dprime()` at 10,000 replications
+against 2,000 studies simulated trial by trial (evidence values against
+each person's criterion), d' with the log-linear correction, `t.test()`:
+
+| Case | powerkit (MCSE) | Independent (MCSE) |
+| --- | --- | --- |
+| Paired, d' 1 and 1.4, 40 trials, SD 0.5, r 0.5, n 30, two-sided | 0.887 (0.003) | 0.881 (0.007) |
+| Two groups, d' 1.5 and 1.1, 30 trials, SD 0.4, n 60, one-sided | 0.880 (0.003) | 0.887 (0.007) |
+| Paired near ceiling, d' 2.5 and 3, 12 trials, n 25, two-sided | 0.595 (0.005) | 0.585 (0.011) |
+
+Packages: powerkit 0.32.0; Spower 0.7; SimDesign 2.28.
+
 ## Variant evidence registry
 
 `engine/inst/evidence/records.json` is the machine-readable index of selected

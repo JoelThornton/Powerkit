@@ -1,5 +1,9 @@
 # powerkit 0.32.0
 
+* Signal detection (E72, `signal_detection / dprime`): d' in two conditions
+  or groups, simulated with Spower (hits and false alarms, d' with the
+  log-linear correction, a paired or Student's t-test).
+
 * Bayes factor t-test results offer "Check as you go?": the plan as a
   sequential design with its sample size as the largest
   (`bayes_sequential()`, as in Labs).

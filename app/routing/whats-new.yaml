@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Signal detection: plan a study of d'"
+    text: >-
+      powerkit can now plan studies that compare how well people tell a
+      signal from noise (d') in two conditions or two groups, as in
+      recognition memory or perception experiments. It works from the number
+      of trials, how much people differ and their response bias, and
+      simulates the analysis researchers usually run.
+  - date: "2026-11-05"
     title: "Check the evidence as you go"
     text: >-
       Planning a Bayes factor t-test? The result now shows how the same study
