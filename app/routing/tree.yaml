@@ -914,9 +914,9 @@ endpoints:
     plain_name: "Compare two separate groups on a score"
     search_words: "two sample t test unpaired welch student"
     template: "basic_test / independent_t"
-    backend: "pwr: pwr.t.test(), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it); Spower's p_wilcox.test() for the Mann-Whitney test; Spower with brunnermunzel's brunnermunzel.test() for the Brunner-Munzel test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() with a margin for the minimum-effect test"
+    backend: "pwr: pwr.t.test() (pooled SD), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it); Spower's p_wilcox.test() for the Mann-Whitney test; Spower with brunnermunzel's brunnermunzel.test() for the Brunner-Munzel test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() with a margin for the minimum-effect test"
     method: "Formula (no simulation)"
-    inputs: ["Names of the two groups and the outcome", "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), the means and SD in your measure's own units, or a point-biserial correlation", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's t-test, the Mann-Whitney or Brunner-Munzel test, a Bayes factor t-test or a minimum-effect test"]
+    inputs: ["Names of the two groups and the outcome", "The effect: a standardised mean difference, raw means and SDs, or a point-biserial correlation", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's t-test, the Mann-Whitney or Brunner-Munzel test, a Bayes factor t-test or a minimum-effect test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
@@ -993,7 +993,7 @@ endpoints:
     template: "factorial_anova / 2x2_between"
     backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
-    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test or the aligned rank transform"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test, the aligned rank transform or a Bayes factor"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-between.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
     tier: MVP
@@ -1231,7 +1231,7 @@ endpoints:
       - "Two factors crossed, with different people in every combination (cell), and at least one factor with three or more levels, such as feedback (none or praise) by task difficulty (easy, medium or hard)."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
       - "powerkit assumes the same number of people and the same SD in every cell. For three factors, use the three-factor ANOVA."
-    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect", "The F test or the aligned rank transform"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect", "The F test, the aligned rank transform or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts, such as a linear trend in one factor at each level of the other", "simple effects, one factor at each level of the other", "the aligned rank transform, if you analyse ranks"]
   E22:
@@ -1250,7 +1250,7 @@ endpoints:
       - "You give the four expected means, the SD and each group's size (or their ratio, such as 2, 2, 1, 1); the total is split in that ratio."
       - "Effects are tested with Type III sums of squares, as Superpower, SPSS and jamovi do by default; with unequal groups, main effects can differ from a Type II analysis."
       - "Simulated, so the answer carries a little random error. Both factors are between participants here; for unequal groups with a factor measured in everyone, use the mixed ANOVA card."
-    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test or the aligned rank transform", "The size of each group"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test, the aligned rank transform or a Bayes factor", "The size of each group"]
     refs: "decision N3; docs/conventions.md, 'Superpower and unequal group sizes'"
     tier: v2
     alternatives: ["tests of the simple effects", "a planned contrast", "the aligned rank transform, if you analyse ranks"]
@@ -1719,19 +1719,20 @@ endpoints:
   E44:
     doc_name: "Dyadic data: actor and partner effects (the actor-partner interdependence model)"
     plain_name: "Pairs of people: how each one's score relates to their own and their partner's outcome"
-    search_words: "dyadic dyads couples APIM actor partner interdependence pairs"
+    search_words: "dyadic dyads couples APIM actor partner interdependence pairs moderation relationship length dyad-level moderator"
     template: "dyadic / apim"
     backend: "power4mome: power4test() on the APIM, fitted with lavaan, the effect tested with test_parameters() (simulation)"
     method: "Simulation"
     status: runs_validation_in_progress
-    validation: {file: test-validation-apim.R, note: "Agrees with a simulation written separately (the data drawn directly, the APIM fitted with lavaan without power4mome) for actor and partner effects in both kinds of dyad, recovers every path and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    validation: {file: test-validation-apim.R, note: "Agrees with a simulation written separately (the data drawn directly, the APIM fitted with lavaan without power4mome) for actor and partner effects in both kinds of dyad, recovers every path and correlation in its check run, and keeps the Type I error at alpha; with a pair-level moderator, the same for the moderation alone and with the actor effect. Not yet checked against a published example."}
     card_points:
       - "Pairs of people whose scores are related, such as couples or friends, with something measured on each member (X) and an outcome measured on each (Y): each person's X can affect their own Y (the actor effect) and their partner's Y (the partner effect)."
       - "Members can be distinguishable (for example, a woman and a man, or a parent and child), with their own actor and partner effects, or indistinguishable (for example, same-sex friends), sharing them."
       - "You give the actor and partner effects as standardised paths, the correlation of the two members' X, and how alike the two members' outcomes are beyond their X; powerkit finds the number of pairs."
       - "Several effects can be planned for together: the chance that the actor and partner effects (or both members' partner effects) are all significant in the same study, counted directly in the simulated studies."
+      - "The actor effect can depend on a score that describes the pair, such as relationship length (a pair-level moderator): you give how much the actor effect changes per SD of it, and can plan for the moderation alone or with the actor effect, significant in the same study."
       - "Simulated with power4mome, the model fitted by lavaan in each simulated study, so the answer carries a little random error."
-    inputs: ["The variables, and whether the members can be told apart", "The actor and partner effects", "How alike the members are"]
+    inputs: ["The variables, and whether the members can be told apart", "The actor and partner effects", "Whether the actor effect depends on something about the pair", "How alike the members are"]
     tier: v2
     alternatives: ["conditions given to whole pairs: a cluster-randomised trial with groups of two", "treating the two members as independent people, which can overstate or understate power"]
   E65:
@@ -2020,7 +2021,7 @@ endpoints:
     status: not_in_powerkit
     not_in_powerkit_heading: "For other designs, not in powerkit yet: use "
     card_points:
-      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions or a correlation, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation and two proportions, BayesFactor."
+      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions, a table of counts, a correlation, a one-way ANOVA or an effect in a two-factor between-participants ANOVA, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation, proportions, tables and ANOVAs, BayesFactor (and bayestestR for an ANOVA effect's inclusion Bayes factor)."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}

@@ -357,12 +357,18 @@ jonckheere_test <- function(spec) identical(spec$target_test$method, "jonckheere
 # differ in spread as well as location.
 brunner_munzel_test <- function(spec) identical(spec$target_test$method, "brunner_munzel")
 
-# The ratio of the groups' SDs is an input to the Brunner-Munzel test only.
+# The ratio of the groups' SDs is explicit for Brunner-Munzel and Welch.
 check_sd_ratio <- function(spec) {
-  if (is.null(spec$population$sd_ratio) || brunner_munzel_test(spec)) {
+  if (unequal_welch(spec) && (identical(spec$population$metric, "point_biserial") ||
+      !is.null(spec$effect_justification$conversion) || !is.null(spec$effect_justification$safeguard))) {
+    return("For unequal-SD Welch planning, give raw means and the two SDs, or a mean difference standardised by their root mean square. Point-biserial/published-test conversions and the safeguard need equal-SD assumptions and cannot establish this population.")
+  }
+  if (is.null(spec$population$sd_ratio) || brunner_munzel_test(spec) ||
+      (identical(spec$template, "independent_t") && (identical(spec$target_test$method, "welch_t") ||
+        (identical(spec$target_test$method, "student_t") && isTRUE(all.equal(spec$population$sd_ratio, 1)))))) {
     return(character())
   }
-  "'population > sd_ratio' is only used by the Brunner-Munzel test ('target_test > method' \"brunner_munzel\"); remove it."
+  "'population > sd_ratio' is only used by the Brunner-Munzel or Welch test; choose one of those methods, or remove it."
 }
 
 # The Cochran-Armitage test of a trend in proportions (stats::prop.trend.test()).
@@ -597,6 +603,9 @@ check_bayes_factor <- function(spec) {
   }
   if (bftable_test(spec)) {
     return(check_bayes_table(spec))
+  }
+  if (bffactorial_test(spec)) {
+    return(check_bayes_factorial(spec))
   }
   if (!bfprop_test(spec) && !is.null(spec$target_test$prior_concentration)) {
     return("'target_test > prior_concentration' belongs to the Bayes factor tests of proportions and tables; remove it.")
@@ -3222,10 +3231,7 @@ target_effect_is_zero <- function(spec) {
       # Several effects tested together: joint power needs every one, so
       # the smallest of them counts.
       b <- apim_paths(spec)
-      labels <- list(actor = "a1", partner = "p21", actor_1 = "a1", actor_2 = "a2", partner_12 = "p12", partner_21 = "p21",
-        actor_and_partner = c("a1", "p21"), both_actors = c("a1", "a2"), both_partners = c("p12", "p21"),
-        all_four = c("a1", "a2", "p12", "p21"))
-      at <- labels[[spec$target_test$effect]]
+      at <- apim_effect_labels[[spec$target_test$effect]]
       values <- b[at]
       if (is.null(at) || anyNA(values)) 1 else min(abs(values))
     }
@@ -3266,15 +3272,35 @@ modmed_mediator <- function(spec) {
 check_apim <- function(spec) {
   pop <- spec$population
   distinguishable <- isTRUE(pop$distinguishable)
+  w <- apim_has_w(spec)
   own <- if (distinguishable) c("actor_1", "actor_2", "partner_12", "partner_21") else c("actor", "partner")
   other <- if (distinguishable) c("actor", "partner") else c("actor_1", "actor_2", "partner_12", "partner_21")
-  effects <- c(own, if (distinguishable) c("both_actors", "both_partners", "all_four") else "actor_and_partner")
+  w_own <- if (distinguishable) c("moderation_1", "moderation_2", "w_y_1", "w_y_2") else c("moderation", "w_y")
+  w_other <- if (distinguishable) c("moderation", "w_y") else c("moderation_1", "moderation_2", "w_y_1", "w_y_2")
+  if (w) {
+    own <- c(own, w_own, "r_xw")
+    other <- c(other, w_other)
+  } else {
+    other <- c(other, w_own, w_other, "r_xw")
+  }
+  effects <- c(
+    if (distinguishable) c("actor_1", "actor_2", "partner_12", "partner_21", "both_actors", "both_partners", "all_four") else c("actor", "partner", "actor_and_partner"),
+    if (w && distinguishable) c("moderation_1", "moderation_2", "both_moderations", "actors_and_moderations"),
+    if (w && !distinguishable) c("moderation", "actor_and_moderation")
+  )
   problems <- character()
   missing <- own[vapply(own, function(k) is.null(pop[[k]]), logical(1))]
   if (length(missing)) {
     problems <- c(problems, sprintf("Give %s (0 for no effect).", paste(sprintf("'population > %s'", missing), collapse = ", ")))
   }
   extra <- other[!vapply(other, function(k) is.null(pop[[k]]), logical(1))]
+  no_w <- if (!w) intersect(extra, c(w_own, w_other, "r_xw")) else character()
+  extra <- setdiff(extra, no_w)
+  if (length(no_w)) {
+    problems <- c(problems, sprintf("%s %s only with a pair-level moderator ('variables > W'); add W or remove %s.",
+      paste(sprintf("'population > %s'", no_w), collapse = ", "), if (length(no_w) == 1) "applies" else "apply",
+      if (length(no_w) == 1) "it" else "them"))
+  }
   if (length(extra)) {
     problems <- c(problems, sprintf("%s %s for %s members; remove %s.", paste(sprintf("'population > %s'", extra), collapse = ", "),
       if (length(extra) == 1) "is" else "are", if (distinguishable) "indistinguishable" else "distinguishable",
@@ -3284,8 +3310,9 @@ check_apim <- function(spec) {
     problems <- c(problems, "'population > members' names the members of distinguishable dyads; remove it, or set 'distinguishable' to true.")
   }
   if (!spec$target_test$effect %in% effects) {
-    problems <- c(problems, sprintf("'target_test > effect' should be one of %s for %s members.",
-      paste(sprintf("\"%s\"", effects), collapse = ", "), if (distinguishable) "distinguishable" else "indistinguishable"))
+    problems <- c(problems, sprintf("'target_test > effect' should be one of %s for %s members%s.",
+      paste(sprintf("\"%s\"", effects), collapse = ", "), if (distinguishable) "distinguishable" else "indistinguishable",
+      if (w) " with a moderator" else ""))
   }
   if (length(problems)) return(problems)
   r2 <- apim_r_squared(spec)

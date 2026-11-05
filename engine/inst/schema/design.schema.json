@@ -596,6 +596,13 @@
         "free_parameters": {
           "type": "string",
           "description": "Differential item functioning only (irt / dif): which parameters of each DIF item the test frees between the groups; see that template."
+        },
+        "inclusion": {
+          "enum": [
+            "all_models",
+            "matched_models"
+          ],
+          "description": "Bayes factor of an effect in a factorial ANOVA only: its inclusion Bayes factor across all models (the default, JASP's) or across matched models."
         }
       },
       "allOf": [
@@ -1475,13 +1482,14 @@
               "type": "number"
             },
             "raw": {
-              "description": "The effect in the outcome's own units: each group's expected mean and the SD within a group (one SD for both groups).",
+              "description": "Each group's expected mean and either one common SD or, for Welch's test, sd1 and sd2 separately.",
               "type": "object",
               "required": [
                 "mean_1",
-                "mean_2",
-                "sd"
+                "mean_2"
               ],
+              "oneOf": [{"required": ["sd"]}, {"required": ["sd1", "sd2"]}],
+              "dependencies": {"sd1": ["sd2"], "sd2": ["sd1"]},
               "additionalProperties": false,
               "properties": {
                 "mean_1": {
@@ -1492,6 +1500,8 @@
                   "description": "The expected mean of group 2 (X's second level).",
                   "type": "number"
                 },
+                "sd1": {"description": "Group 1's population SD (Welch's test).", "type": "number", "exclusiveMinimum": 0},
+                "sd2": {"description": "Group 2's population SD (Welch's test).", "type": "number", "exclusiveMinimum": 0},
                 "sd": {
                   "description": "The SD of the outcome within a group, taken as the same in both groups, above 0.",
                   "type": "number",
@@ -1513,7 +1523,7 @@
               ]
             },
             "sd_ratio": {
-              "description": "Brunner-Munzel test only: group 2's SD over group 1's (default 1, equal spread). The scores keep their shape; d stays the difference in means over the pooled SD, taken here as sqrt((SD1^2 + SD2^2) / 2).",
+              "description": "Brunner-Munzel or Welch test: group 2's SD over group 1's (default 1). The effect d uses the root mean square SD, sqrt((SD1^2 + SD2^2) / 2), independent of allocation. Raw Welch inputs derive this ratio from sd1 and sd2.",
               "type": "number",
               "exclusiveMinimum": 0
             },
@@ -2428,10 +2438,11 @@
         "target_test": {
           "properties": {
             "method": {
-              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower.",
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower. 'bayes_factor': the effect's inclusion Bayes factor, as JASP's Bayesian ANOVA reports it (BayesFactor's anovaBF() over the models that respect marginality, bayestestR's bayesfactor_inclusion()), simulated with Spower; strong evidence is an inclusion BF of at least 'evidence_threshold'.",
               "enum": [
                 "anova_f",
-                "aligned_rank_transform"
+                "aligned_rank_transform",
+                "bayes_factor"
               ]
             }
           }
@@ -2908,10 +2919,11 @@
               ]
             },
             "method": {
-              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower.",
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower. 'bayes_factor': the effect's inclusion Bayes factor, as JASP's Bayesian ANOVA reports it (BayesFactor's anovaBF() over the models that respect marginality, bayestestR's bayesfactor_inclusion()), simulated with Spower; strong evidence is an inclusion BF of at least 'evidence_threshold'.",
               "enum": [
                 "anova_f",
-                "aligned_rank_transform"
+                "aligned_rank_transform",
+                "bayes_factor"
               ]
             }
           }
@@ -9955,7 +9967,7 @@
       }
     },
     "template_apim": {
-      "description": "The actor-partner interdependence model (APIM) for pairs of people (dyads): each member's X predicts their own Y (the actor effect) and their partner's Y (the partner effect), with the two members' X correlated and their Y residuals correlated. Paths are standardised. With distinguishable members (population > distinguishable true, e.g. woman and man) each member has their own actor and partner effect; with indistinguishable members (e.g. same-sex friends) one actor and one partner effect are shared, and the model is fitted with them constrained equal. Simulated with power4mome (data from the population model, the APIM fitted by lavaan), the chosen effect tested by its Wald z test. goal > n is the number of dyads.",
+      "description": "The actor-partner interdependence model (APIM) for pairs of people (dyads): each member's X predicts their own Y (the actor effect) and their partner's Y (the partner effect), with the two members' X correlated and their Y residuals correlated. Paths are standardised. With distinguishable members (population > distinguishable true, e.g. woman and man) each member has their own actor and partner effect; with indistinguishable members (e.g. same-sex friends) one actor and one partner effect are shared, and the model is fitted with them constrained equal. Simulated with power4mome (data from the population model, the APIM fitted by lavaan), the chosen effect tested by its Wald z test. goal > n is the number of dyads. Optionally a pair-level moderator W (one value per pair, such as relationship length) predicts each member's Y and moderates each actor effect (X x W), with joint power for the moderation and the actor effects (5 November 2026).",
       "properties": {
         "variables": {
           "required": [
@@ -9968,6 +9980,10 @@
               "$ref": "#/definitions/variable_continuous"
             },
             "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "W": {
+              "description": "Optional: a pair-level moderator, one value per pair (for example, relationship length), which moderates each member's actor effect.",
               "$ref": "#/definitions/variable_continuous"
             }
           }
@@ -10041,6 +10057,46 @@
             "r_y": {
               "description": "The correlation of the two members' Y beyond what their X explain (the residual correlation, often called non-independence).",
               "$ref": "#/definitions/correlation"
+            },
+            "r_xw": {
+              "description": "With a moderator W: the correlation of W with each member's X (the same for both).",
+              "$ref": "#/definitions/correlation"
+            },
+            "moderation": {
+              "description": "Indistinguishable members, with W: the standardised X x W path on a person's own Y (how much their actor effect changes per SD of W), shared.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "w_y": {
+              "description": "Indistinguishable members, with W: W's standardised path to each member's Y, shared.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "moderation_1": {
+              "description": "Distinguishable members, with W: X1 x W on member 1's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "moderation_2": {
+              "description": "Distinguishable members, with W: X2 x W on member 2's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "w_y_1": {
+              "description": "Distinguishable members, with W: W on member 1's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "w_y_2": {
+              "description": "Distinguishable members, with W: W on member 2's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
             }
           }
         },
@@ -10062,9 +10118,15 @@
                     "actor_and_partner",
                     "both_actors",
                     "both_partners",
-                    "all_four"
+                    "all_four",
+                    "moderation",
+                    "actor_and_moderation",
+                    "moderation_1",
+                    "moderation_2",
+                    "both_moderations",
+                    "actors_and_moderations"
                   ],
-                  "description": "The effect tested, or several tested together (joint power: every one significant in the same study): indistinguishable members 'actor', 'partner' or 'actor_and_partner'; distinguishable members 'actor_1', 'actor_2', 'partner_12', 'partner_21', 'both_actors', 'both_partners' or 'all_four'."
+                  "description": "The effect tested, or several tested together (joint power: every one significant in the same study): indistinguishable members 'actor', 'partner' or 'actor_and_partner'; distinguishable members 'actor_1', 'actor_2', 'partner_12', 'partner_21', 'both_actors', 'both_partners' or 'all_four'. With a moderator W: indistinguishable members 'moderation' or 'actor_and_moderation' (the actor effect and its moderation together); distinguishable members 'moderation_1', 'moderation_2', 'both_moderations' or 'actors_and_moderations' (both actor effects and both moderations)."
                 },
                 "method": {
                   "const": "wald_z"

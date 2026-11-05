@@ -146,8 +146,6 @@ about_section <- function(id, title, ...) {
 about_ui <- function(tree, forms) {
   version <- powerkit_version()
   how <- about_endpoint_how(forms)
-  statuses <- vapply(names(how), function(id) tree$endpoints[[id]]$status %||% "", "")
-  n_validated <- sum(statuses == "runs_validated")
   div(
     class = "about about-page",
     div(class = "about-hero",
@@ -163,6 +161,7 @@ about_ui <- function(tree, forms) {
       tags$nav(class = "about-toc", `aria-label` = "On this page",
         tags$a(href = "#about-how", "How it works"),
         tags$a(href = "#about-plans", "What it can plan"),
+        tags$a(href = "#about-capabilities", "Capabilities and checks"),
         tags$a(href = "#about-trust", "Can you trust it?"),
         tags$a(href = "#about-feedback", "Feedback"),
         tags$a(href = "#about-credits", "Credits"))),
@@ -184,6 +183,8 @@ about_ui <- function(tree, forms) {
         "The other cards say which analysis fits a study and point to a tool that does it."),
       about_plans_ui(tree, forms)),
 
+    about_section("about-capabilities", "Capabilities and checks", capabilities_ui(tree, forms)),
+
     about_section("about-trust", "Can you trust it?",
       div(class = "about-cards",
         div(class = "about-card",
@@ -193,10 +194,7 @@ about_ui <- function(tree, forms) {
             "and explains it. The result's R script reproduces the supported calculation, so anyone can inspect how it was obtained.")),
         div(class = "about-card",
           tags$h4("How far along it is"),
-          p(sprintf("%d of the %d analyses that calculate have completed checks recorded at design level; the rest say \"validation in progress\" on their card. ",
-              n_validated, length(how)),
-            "Read each check record for the exact cases and kind of evidence; a completed record does not establish validation of every option. ",
-            "It won't be released until a statistician has checked it."),
+          p("Evidence is recorded for particular analysis variants and representative cases. Software agreement, independent references, published examples and method-validation runs are reported separately. Changing the test version can change its coverage. No linked record means unknown coverage; it is not a failed check. A statistician's review is still required before release."),
           if (!is.null(version)) p(class = "about-small",
             sprintf("This is powerkit %s. ", version),
             "Every result and every R script you download says this version, so a number you quote can be traced back to it. ",
@@ -208,7 +206,7 @@ about_ui <- function(tree, forms) {
             tags$li(tags$strong("It doesn't choose your effect size. "), "It asks where yours comes from and helps you explain it, ",
               "but the number and the reasoning are yours."),
             tags$li(tags$strong("It doesn't collect or analyse your data. "), "It plans a study; it doesn't run one."),
-            tags$li(tags$strong("It doesn't use AI to calculate or to write anything you see. "), "Every number comes from the R packages below, ",
+            tags$li(tags$strong("It doesn't use AI to calculate or to write anything you see. "), "Calculations use the packages below or documented implementations in powerkit, ",
               "and the write-up is fixed wording filled in with your numbers."),
             tags$li(tags$strong("It doesn't replace a statistician for unusual designs. "), "If no card fits your study, ",
               "or a card gives guidance only, ask someone who knows your design."))))),

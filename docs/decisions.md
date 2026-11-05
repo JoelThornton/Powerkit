@@ -5108,3 +5108,100 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   correlation is the right input for a group, or the groups' standardised
   difference.
 
+## 2026-11-05 · The About tab is built on first opening, for a faster first visit
+
+- **What:** the About tab's content (the capability table above all) is
+  built the first time a visitor opens it and kept for the rest of that R
+  process, instead of when the app starts.
+- **Why:** visitors reported that the site often sat on "loading" until
+  they refreshed. Posit Connect Cloud starts a new R process for a visit
+  after a quiet spell, so that first visit waits for the whole app start;
+  a refresh reaches the process that is by then running. Of the 3.1
+  seconds the app spent before it could answer, building the About tab
+  took 1.9 (the capability table, added on 5 November 2026, 1.7 of them);
+  the app now starts in 0.5. The time Connect Cloud takes to start a
+  process and load R is outside the app.
+- **Trade-off:** the About tab's first opening in a new process takes
+  about 2 seconds; later openings are instant. Search engines read the
+  static guide (`www/guide.html`), not the About tab.
+## 2026-11-05 · Dyadic data: a pair-level moderator of the actor effects (E44)
+
+- **What:** the actor-partner card (E44) takes an optional pair-level
+  moderator W (one value per pair, such as relationship length) that
+  predicts each member's outcome and moderates each member's actor effect.
+  The moderation can be tested alone or jointly with the actor effects,
+  counted in the same simulated studies.
+- **Why:** `next.md` item 1 (decided 31 October 2026: extend joint power
+  one design at a time). For independent people the whole-study
+  simulation covers a comparison, a moderation and a mediation on the
+  same data; for pairs the joint claim so far was the actor and partner
+  effects together. Whether the actor effect depends on something about
+  the pair is the moderation dyadic studies most often add, and power4mome
+  fits it with no new engine.
+- **Model:** Y1 ~ X1 + X2 + W + X1:W and Y2 ~ X2 + X1 + W + X2:W, W
+  correlated r_xw with each member's X; for indistinguishable members W's
+  path and the moderation are constrained equal across members, as the
+  actor and partner paths already are. W moderating the partner effects
+  is not offered yet.
+- **Moments:** the two products correlate (r_x + r_xw^2 for jointly normal
+  variables), so each Y's residual variance is computed from the exact
+  moments and supplied explicitly, with power4mome's standardisation off
+  (as for PROCESS models 58 and 59, Departure 19).
+- **Validation** (`test-validation-apim-moderation.R`, chunk `dyadic`): a
+  simulation written separately (the data drawn with MASS, the products
+  formed by hand, each Y's residual variance found numerically from a
+  million draws, lavaan fitted directly) for the moderation alone, with
+  the actor effect, and both members' moderations; Type I error with no
+  moderation. lavaan's Wald z test of the moderation is liberal with few
+  pairs: with no moderation it rejected 7.2% of 4,000 studies at 60 pairs,
+  5.1% at 200 and 800 (the independent simulation, lavaan alone).
+  powerkit reports the power of the test lavaan prints, as for the other
+  tests it simulates; a test records the size, and the input screen says
+  so.
+## 2026-11-05 · powerkit is not only for psychology
+
+- **What:** the page title, search description and footer of the app,
+  the static guide, the README, the engine's DESCRIPTION title and
+  description, and CITATION.cff no longer describe powerkit as a tool for
+  psychology; they describe it as power analysis and sample size planning
+  for research studies.
+- **Why:** the maintainer's direction: powerkit serves researchers beyond
+  psychology. The wording had been removed before but came back with the
+  search-engine text added on 4 November 2026, which took its phrasing
+  from the project's own self-descriptions (CLAUDE.md's first line, the
+  README, DESCRIPTION, CITATION.cff), all of which still said psychology.
+- **How it stays out:** those self-descriptions now say research studies,
+  CLAUDE.md says never to describe powerkit to users as a psychology tool,
+  and `app/routing/tests/testthat/test-wording.R` fails if the title,
+  description, footer, guide, DESCRIPTION, CITATION.cff or the README's
+  opening call it one. Psychology examples on the cards and citations of
+  psychology journals are unaffected.
+
+## 2026-11-05 · The Bayes factor of an effect in a two-factor between-participants ANOVA (E7, E21, E22)
+
+- **What:** the 2 x 2 (E7), unequal-groups 2 x 2 (E22) and two-factor
+  (E21) between-participants ANOVA cards offer the Bayes factor of the
+  chosen effect (either main effect or the interaction) as a test version:
+  the chance that the study gives strong evidence, an inclusion Bayes
+  factor past the threshold, and the no-effect side. Simulated with Spower.
+- **Why:** `next.md` item 2, decided 4 November 2026: JASP's inclusion
+  Bayes factor across all models, with uniform model priors and the
+  principle of marginality, by default; the comparison across matched
+  models as an option; between-participants designs in the app first.
+- **How:** each simulated study draws normal scores in each cell (the
+  cells' means, one SD, each cell's share of n); BayesFactor's `anovaBF()`
+  fits every model that respects marginality (`whichModels = "withmain"`)
+  with JASP's r scale of 0.5, and bayestestR's `bayesfactor_inclusion()`
+  gives the effect's inclusion Bayes factor (posterior over prior inclusion
+  odds), across all models or matched models. The no-effect side removes
+  only the tested effect from the cell means. About 0.1 s per simulated
+  study.
+- **Validation** (`test-validation-bayes-factorial.R`, chunk
+  `bayes_factorial`): a simulation written separately, with the inclusion
+  Bayes factor across all models computed by hand from the models' Bayes
+  factors, for an interaction and a main effect, equal and unequal cells;
+  the matched-models option against the same loop. A published example is
+  a placeholder for the maintainer.
+- **Next:** the repeated-measures designs, by the preview and R script
+  route (about 0.8 s per simulated study).
+

@@ -96,6 +96,7 @@ run_generic <- function(spec, seed) {
       recruitment = NA,
       check_run = check,
       provenance = list(
+        evidence = analysis_evidence(spec, computation_method = "exact"),
         spec_hash = spec_hash(spec),
         method = "exact",
         seed = seed,

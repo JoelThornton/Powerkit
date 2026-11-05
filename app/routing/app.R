@@ -34,6 +34,7 @@ source(file.path("R", "project.R"), local = TRUE)
 source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
+source(file.path("R", "capabilities.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
@@ -45,6 +46,7 @@ whats_new <- load_whats_new("whats-new.yaml")
 # numbers are calculated".
 tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
 tree$calculate_how <- about_endpoint_how(forms)
+tree$evidence_defaults <- setNames(lapply(names(forms$forms), function(id) default_evidence(forms, id)), names(forms$forms))
 options(powerkit.routing_dir = getwd())
 
 app_css <- "
@@ -646,7 +648,16 @@ focus_js <- "
 # The tabs that are the same for everyone, built once when the app starts
 # (About reads every package's citation(), so building it per visitor is
 # slow when many people open the app at once).
-about_tab <- about_ui(tree, forms)
+# The About tab is built the first time anyone opens it, then kept for this
+# R process: building it (the capability table above all) took about 1.9 of
+# the 3.1 seconds a new process spent before it could show the first page,
+# and a visitor arriving after a quiet spell gets a new process, so every
+# such first visit waited for it (docs/decisions.md, 5 November 2026).
+about_tab_cache <- new.env(parent = emptyenv())
+about_tab_html <- function() {
+  if (is.null(about_tab_cache$html)) about_tab_cache$html <- about_ui(tree, forms)
+  about_tab_cache$html
+}
 whats_new_tab <- whats_new_ui(whats_new)
 labs_tab <- labs_ui(tree)
 feedback_tab <- feedback_tab_ui(tree)
@@ -659,8 +670,8 @@ ui <- function(req) fluidPage(
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
   theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
-  tags$head(tags$title("Powerkit: power analysis for psychology (prototype)"),
-    tags$meta(name = "description", content = "Plan sample size, statistical power and precision for psychology studies. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
+  tags$head(tags$title("Powerkit: power analysis and sample size planning (prototype)"),
+    tags$meta(name = "description", content = "Plan sample size, statistical power and precision for your study. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
     tags$link(rel = "canonical", href = paste0(public_address, "/")),
     tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
   # The name, and that it is a prototype with its version; what the
@@ -678,18 +689,25 @@ ui <- function(req) fluidPage(
       # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
       selected = page_from_query(req$QUERY_STRING),
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
-      tabPanel("About", div(class = "pt-3", about_tab)),
+      tabPanel("About", div(class = "pt-3", uiOutput("about_page"))),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
       tabPanel("Updates", div(class = "pt-3", whats_new_tab)),
       tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
-    tags$footer(class = "small text-muted mt-4", "Powerkit helps plan psychology studies. ",
+    tags$footer(class = "small text-muted mt-4", "Powerkit helps plan research studies. ",
       tags$a(href = "guide.html", "Read the guide and current limitations"), ".")
   )
 )
 
 server <- function(input, output, session) {
+  # The About page, built on first opening (about_tab_html()).
+  about_opened <- reactiveVal(FALSE)
+  observeEvent(input$tabs, if (identical(input$tabs, "About")) about_opened(TRUE))
+  output$about_page <- renderUI({
+    req(about_opened())
+    about_tab_html()
+  })
   # Placeholders for undecided settings show only in the maintainer's view.
   session$userData$maintainer_view <- maintainer_view_requested(isolate(session$clientData$url_search))
   state <- reactiveValues(
@@ -1198,6 +1216,10 @@ server <- function(input, output, session) {
       export(state$calc$spec, state$calc$result, file = file)
     }
   )
+  output$download_capabilities <- downloadHandler(
+    filename = function() "powerkit-current-capabilities.csv",
+    content = function(file) utils::write.csv(capability_rows(tree, forms), file, row.names = FALSE, na = ""))
+
   output$download_citations <- downloadHandler(
     filename = function() sprintf("powerkit-%s-citations.txt", state$endpoint),
     content = function(file) {

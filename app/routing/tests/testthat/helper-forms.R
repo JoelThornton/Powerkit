@@ -6,7 +6,7 @@ closing_ok <- list(goal = "sample_size", power = "0.8", alpha = "0.05",
 form_examples <- list(
   E1 = c(list(Y_label = "Change in wellbeing", d = "0.3", method = "t_test", alternative = "two_sided"), closing_ok),
   E2 = c(list(X_label = "Condition", X_level1 = "Control", X_level2 = "Training", Y_label = "Recall score",
-              d = "0.4", allocation_ratio = "1", method = "welch_t", alternative = "two_sided"), closing_ok),
+              d = "0.4", allocation_ratio = "1", method = "welch_t", welch_sd_ratio = "1", alternative = "two_sided"), closing_ok),
   E3 = c(list(X_label = "Session", X_level1 = "Before", X_level2 = "After", Y_label = "Anxiety score",
               dz = "0.35", method = "t_test", alternative = "two_sided"), closing_ok),
   E4 = c(list(X_label = "Trait mindfulness", Y_label = "Rumination", r = "-0.2", method = "pearson", alternative = "two_sided"), closing_ok),
@@ -211,7 +211,7 @@ form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time
 
 # E44: couples, indistinguishable; the partner effect.
 form_examples$E44 <- c(list(X_label = "Daily stress", Y_label = "Relationship satisfaction", distinguishable = "false",
-                            actor = "-0.3", partner = "-0.15", apim_effect = "partner", r_x = "0.2", r_y = "0.3"), closing_ok)
+                            actor = "-0.3", partner = "-0.15", apim_effect = "partner", apim_moderator = "none", r_x = "0.2", r_y = "0.3"), closing_ok)
 
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",

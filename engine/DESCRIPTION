@@ -1,11 +1,11 @@
 Package: powerkit
-Title: Unified Power Analysis for Psychology Designs
-Version: 0.31.0
+Title: Unified Power Analysis for Common Research Designs
+Version: 0.32.0
 Authors@R:
     person("Joel", "Thornton", , "58643641+JoelThornton@users.noreply.github.com",
            role = c("aut", "cre"))
 Description: Reads a single design specification (JSON) for common
-    psychology designs, checks that it describes a possible population, and
+    research designs, checks that it describes a possible population, and
     routes it to established backend packages to estimate power, required
     sample size and sensitivity. This development version runs t-tests,
     correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and
@@ -28,6 +28,7 @@ Imports:
     afex,
     ARTool,
     BayesFactor,
+    bayestestR,
     bfpwr,
     brunnermunzel,
     car,

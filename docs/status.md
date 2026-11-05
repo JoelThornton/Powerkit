@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 5 November 2026 (powerkit 0.31.0). This page says where the
+*Last updated: 5 November 2026 (powerkit 0.32.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -18,6 +18,18 @@ fully validated. Validation runs are recorded in
   queueing, ticket recovery and staged checkpointing, with reproducible
   streams, denominator preservation and failure acceptance tests. No durable
   service is implemented; current jobs still end with their Shiny session.
+- **Variant evidence and capabilities:** a versioned case registry separates
+  software agreement, independent references, published examples and method
+  runs. Results, saved projects and scripts retain its hash and snapshot.
+  The About catalogue derives discrete choices and limits from current forms;
+  unknown variants stay unknown, and historical records are not release-wide
+  certification.
+
+- **Welch populations:** two-group planning accepts one common SD or separate
+  raw SDs, or a ratio alongside a difference in fixed RMS-SD units. Formula
+  and simulation use the same population across allocations; scripts and
+  example data preserve it. Point-biserial/test-statistic conversions and
+  safeguard planning remain limited to their equal-SD assumptions.
 
 - **Unfinished drafts:** input screens can download partial answers without
   a calculation or justification. The same file opener restores blanks and
@@ -61,8 +73,8 @@ fully validated. Validation runs are recorded in
 - **Planning guidance:** precision is reachable with its estimate choice
   visible outside Settings. MBESS's expected width and presize's width at
   the supplied values are explained separately, without a median claim.
-  Simulation choices describe their supplied populations and Welch's
-  equal-SD limitation. All-tests planning offers the independence rule or
+  Simulation choices describe their supplied populations, including the
+  stated group SDs for Welch's test. All-tests planning offers the independence rule or
   a sufficient union-bound target when dependence is unknown, with unchanged
   alpha and explicit unconditional-probability requirements.
   The engine preserves single-test targets exactly, including near zero.
@@ -137,7 +149,7 @@ fully validated. Validation runs are recorded in
   score in a Cox regression by powerSurvEpi's Hsieh and Lavori formula),
   since 2 November 2026;
   E44, the actor-partner model for pairs (with joint power for actor and partner
-  effects tested together), and E46, precision planning
+  effects tested together, and since 5 November 2026 a pair-level moderator of the actor effects), and E46, precision planning
   (below), since 1 November 2026; E64
   and E66, the Jonckheere-Terpstra and Cochran-Armitage trend tests
   (simulated with Spower; one- or two-sided, equal or unequal groups),
@@ -149,7 +161,7 @@ fully validated. Validation runs are recorded in
   1 November. Bayes factor versions: the three t-tests
   and, since 1 November 2026, the test of one proportion (E25; bfpwr,
   JASP's prior and one-sided test by default) and the correlation (E4;
-  BayesFactor, JASP's Bayes factor and prior width by default) and two proportions (E5; BayesFactor's contingency table Bayes factor, JASP's default), and since 2 November the one-way ANOVA (E18; BayesFactor's ANOVA Bayes factor with JASP's r scale of 0.5, exact) and tables of any size (E6; BayesFactor's contingency table Bayes factor with JASP's sampling plan and prior, simulated with Spower). **Fourteen are simulated with a
+  BayesFactor, JASP's Bayes factor and prior width by default) and two proportions (E5; BayesFactor's contingency table Bayes factor, JASP's default), and since 2 November the one-way ANOVA (E18; BayesFactor's ANOVA Bayes factor with JASP's r scale of 0.5, exact) and tables of any size (E6; BayesFactor's contingency table Bayes factor with JASP's sampling plan and prior, simulated with Spower), and since 5 November the effects of two-factor between-participants ANOVAs (E7, E21, E22; JASP's inclusion Bayes factor, simulated). **Fourteen are simulated with a
   preview first**, then a full run in the app or an R script: E10-E14,
   E17 (a yes/no X or W), E38 (W on both links or the direct path, both
   1 November 2026) and E40 (with a yes/no X or W since 2 November)

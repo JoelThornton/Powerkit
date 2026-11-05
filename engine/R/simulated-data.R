@@ -85,6 +85,9 @@ simulated_data_available <- function(spec) {
 simulated_data_note <- function(spec) {
   spec <- validate_spec(spec)
   pop <- spec$population
+  if (unequal_welch(spec)) return(sprintf(
+    "Normal scores in root-mean-square SD units, with group 2's SD %s times group 1's. Group 1's mean is -d and group 2's is zero; their difference is the planned d. These are model-generated examples, not observed participants.",
+    format(pop$sd_ratio)))
   if (identical(spec$template, "single_coefficient")) {
     return(paste0(
       "The other predictors (Other_1, ...) are drawn unrelated to ", spec$variables$X$label %||% "the tested predictor",
@@ -1544,12 +1547,13 @@ sim_apim_code <- function(spec, n) {
   name <- function(role, i) csv_name(paste(spec$variables[[role]]$label %||% role, members[i]))
   c(
     # power4test() takes its own seed, drawn here from the data set's seed.
-    sprintf("sim <- power4mome::power4test(nrep = 1, model = %s, pop_es = %s, n = %d, do_the_test = FALSE, iseed = sample.int(1e8, 1), progress = FALSE)",
-      r_code(inputs$model), r_code(inputs$pop_es), n),
+    sprintf("sim <- power4mome::power4test(nrep = 1, model = %s, pop_es = %s, n = %d,%s do_the_test = FALSE, iseed = sample.int(1e8, 1), progress = FALSE)",
+      r_code(inputs$model), r_code(inputs$pop_es), n, if (isTRUE(inputs$moderator)) " standardized = FALSE," else ""),
     "pooled <- as.data.frame(power4mome::pool_sim_data(sim))",
     "simulated <- data.frame(",
     "  dyad = seq_len(nrow(pooled)),",
     sprintf("  %s = pooled$X1, %s = pooled$X2,", name("X", 1), name("X", 2)),
+    if (isTRUE(inputs$moderator)) sprintf("  %s = pooled$W,", csv_name(spec$variables$W$label %||% "W")) else NULL,
     sprintf("  %s = pooled$Y1, %s = pooled$Y2", name("Y", 1), name("Y", 2)),
     ")"
   )

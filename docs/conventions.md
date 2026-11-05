@@ -519,7 +519,7 @@ likelihood ratio; not a departure.
 | --- | --- | --- | --- |
 | G\*Power | No test for dyadic data | — | — |
 | apimpower | A web app for APIM power; not callable from R, not compared | — | — |
-| **powerkit** | power4mome's `power4test()` on the APIM, fitted with lavaan (maximum likelihood), the effect tested by `test_parameters()`, lavaan's Wald z test (E44, from 1 November 2026) [powerkit] | Standardised actor and partner paths, the correlation of the members' X and the residual correlation of their Y | Y1 ~ X1 + X2 and Y2 ~ X2 + X1, X1 ~~ X2, Y1 ~~ Y2; with indistinguishable members the actor paths are constrained equal, and so are the partner paths. Several effects can be tested together (joint power: every one significant in the same simulated study). `goal.n` is the number of pairs. Not a departure: no established tool computes this design for comparison |
+| **powerkit** | power4mome's `power4test()` on the APIM, fitted with lavaan (maximum likelihood), the effect tested by `test_parameters()`, lavaan's Wald z test (E44, from 1 November 2026) [powerkit] | Standardised actor and partner paths, the correlation of the members' X and the residual correlation of their Y | Y1 ~ X1 + X2 and Y2 ~ X2 + X1, X1 ~~ X2, Y1 ~~ Y2; with indistinguishable members the actor paths are constrained equal, and so are the partner paths. Several effects can be tested together (joint power: every one significant in the same simulated study). Optionally (5 November 2026) a pair-level moderator W predicts each Y and moderates each actor effect (X1 x W on Y1, X2 x W on Y2), constrained equal across members when they are indistinguishable; each Y's residual variance comes from the products' moments (the two products correlate r_x + r_xw^2) and is supplied with power4mome's standardisation off, as for PROCESS models 58 and 59. With few pairs lavaan's Wald z test of the moderation is liberal (7.2% at alpha .05 with 60 pairs, 5.1% with 200; `test-validation-apim-moderation.R`). `goal.n` is the number of pairs. Not a departure: no established tool computes this design for comparison |
 
 ## Bayes factor test of one proportion (E25)
 
@@ -1793,6 +1793,15 @@ Wired into the app on 18 October 2026 (E25, E26).*
   the product's coefficient, as `summary()` reports it. Tests:
   `test-backend-logistic-interaction.R`;
   `test-validation-logistic-interaction.R` [powerkit, `docs/decisions.md`].
+- **The Bayes factor of an effect in a two-factor between-participants
+  ANOVA (E7, E21, E22): JASP's inclusion Bayes factor.** G\*Power has no
+  Bayes factors, so nothing is departed from. powerkit follows JASP's
+  Bayesian ANOVA: BayesFactor's `anovaBF()` over the models that respect
+  marginality, r scale 0.5, and the effect's inclusion Bayes factor across
+  all models with uniform model priors (bayestestR's
+  `bayesfactor_inclusion()`); across matched models is an option. Tests:
+  `test-backend-bayes-anova.R`; `test-validation-bayes-factorial.R`
+  [powerkit, `docs/decisions.md`].
 - **Multinomial logistic regression (E70): the likelihood-ratio test by
   default.** G\*Power has no multinomial logistic regression, so nothing
   is departed from. The outcome's first category is the reference; the
@@ -2057,3 +2066,40 @@ mean 80% conditional success and 72% success per attempted study. Results
 and copied methods identify both when failures occur. Monte Carlo precision
 of a reported rate is separate from fitting failures. Historical saved
 records without these counts do not receive invented zero-failure counts.
+
+
+## Welch planning with unequal population SDs
+
+For unequal-SD two-group Welch planning, the population difference is
+`d_RMS = (mean2 - mean1) / sqrt((SD1^2 + SD2^2)/2)`. This fixed population
+scale is independent of allocation. Equal SDs recover the existing d.
+Raw inputs retain both means and SDs and derive d_RMS and SD2/SD1.
+
+Spower 0.7's `p_t.test()` and `gen_t.test()` already accept `sds`; the
+adapter passes both SDs in RMS units, and retains the existing sign
+convention (group 1 has mean -d_RMS, group 2 has mean 0).
+The pwrss 1.3.3 Welch formula instead defines d using the expected
+sample-size-weighted pooled SD. At every actual allocation the adapter
+uses pwrss's own `means.to.d()` to change units, and passes `var.ratio`
+as SD1 squared / SD2 squared and `n.ratio` as n1/n2. No power formula is
+reimplemented. Its Welch-Satterthwaite calculation is an approximation.
+
+Sources checked 5 November 2026: pwrss 1.3.3 installed source of
+`power.t.welch()` and `means.to.d()`, Spower 0.7 installed source of
+`gen_t.test()`, and the author's help at
+<https://metinbulus.github.io/pwrss/reference/means.student.welch.html>
+and <https://metinbulus.github.io/pwrss/reference/means.to.d.html>.
+Package citations remain available through citation().
+
+The `welch_spreads` validation chunk compares the formula with separately
+generated normal samples analysed by base R's Welch t-test at both
+allocation orientations, and checks the actual simulation and null error
+rate at 10,000 replications. Formula comparisons allow four Monte Carlo
+standard errors plus 0.01 for the approximation. This is a scoped check,
+not evidence for arbitrary shapes, missingness or all variance ratios.
+G*Power's common-SD t-test is not an unequal-variance Welch benchmark.
+
+The two SDs, standardisation and normal-score assumption appear in the
+result/write-up and reproduction scripts. Point-biserial, test-statistic
+conversion and safeguard shortcuts are refused for unequal-SD Welch
+populations because their equal-SD inputs do not identify this effect.

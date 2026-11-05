@@ -1,4 +1,25 @@
-# powerkit 0.31.0
+# powerkit 0.32.0
+
+* The app starts in about 0.5 s instead of 3: the About tab is built the
+  first time it is opened, not when the app starts.
+* The Bayes factor of an effect in a two-factor between-participants ANOVA
+  (templates `2x2_between` and `factorial_between`, `target_test > method`
+  "bayes_factor", with `prior_scale` 0.5 by default and `inclusion`
+  "all_models" or "matched_models"): JASP's inclusion Bayes factor, from
+  BayesFactor's `anovaBF()` over the models that respect marginality and
+  bayestestR's `bayesfactor_inclusion()`, simulated with Spower
+  (`p_bayes_factorial()`), with the no-effect side. New import: bayestestR
+  (already in `renv.lock`). Validation chunk `bayes_factorial`.
+
+* Dyadic data (template `dyadic / apim`, card E44): an optional pair-level
+  moderator (`variables > W`, `population > moderation` and `w_y`, or one
+  of each per member, and `r_xw`) moderates each member's actor effect.
+  `target_test > effect` adds "moderation" and "actor_and_moderation"
+  (shared effects) and "moderation_1", "moderation_2", "both_moderations"
+  and "actors_and_moderations" (each member's own). Each Y's residual
+  variance comes from the products' exact moments, supplied with
+  power4mome's standardisation off. Validation chunk `dyadic`: a
+  simulation written separately with lavaan.
 
 * Document the current session-bound calculation lifecycle and a staged
   proposal for durable jobs and statistically valid resumability. No
@@ -11,6 +32,24 @@
   the exact moments of the products (`whole_study_moments()`), and
   power4mome's own standardisation is switched off for these studies.
   Validation (chunk `whole_study`): a simulation written separately.
+* The package title and description, the app's page title, search
+  description and footer, and the guide describe powerkit as power analysis
+  for research studies, not only psychology.
+
+* Results capture a versioned, hashed evidence registry for the selected
+  analysis variant. Package agreement, independent references, published
+  examples and opt-in method-validation runs remain separate; unmatched
+  variants stay unknown. Saved records and scripts preserve the snapshot.
+* The About page generates a searchable capability table from current
+  forms and cards, including access routes, declared choices and limits.
+
+* Welch two-group planning accepts separate raw SDs or a population SD ratio.
+  Its standardised difference uses a fixed root mean square SD. Formula
+  calls convert to pwrss's weighted units at each actual allocation;
+  simulation, example data and reproduction scripts retain the same spreads.
+  Equal-SD plans retain their existing populations and answers.
+
+# powerkit 0.31.0
 
 * Differential item functioning (template `irt / dif`, card E71): whether
   some items of a test with yes/no answers work differently in two groups,

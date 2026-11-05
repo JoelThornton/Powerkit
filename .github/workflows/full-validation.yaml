@@ -72,10 +72,12 @@ on:
           - interactions
           - three_way
           - basic
+          - welch_spreads
           - variances
           - manova
           - rank
           - bayes
+          - bayes_factorial
           - meta
           - dyadic
           - survival

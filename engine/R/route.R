@@ -29,7 +29,14 @@ route_spec <- function(spec, seed = NULL) {
   }
   switch(
     key,
-    "factorial_anova/2x2_between" = ,
+    "factorial_anova/2x2_between" = if (bffactorial_test(spec)) {
+      # The Bayes factor of an effect (inclusion BF), simulated with Spower.
+      bffactorial_backend(spec, seed)
+    } else if (rank_test(spec)) {
+      spower_backend(spec, seed)
+    } else {
+      superpower_backend(spec, seed)
+    },
     "factorial_anova/2x2_mixed" = ,
     "factorial_anova/mixed" = ,
     "factorial_anova/oneway_between" = if (bfanova_test(spec)) {
@@ -48,7 +55,9 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       superpower_backend(spec, seed)
     },
-    "factorial_anova/factorial_between" = if (rank_test(spec)) {
+    "factorial_anova/factorial_between" = if (bffactorial_test(spec)) {
+      bffactorial_backend(spec, seed)
+    } else if (rank_test(spec)) {
       # The aligned rank transform ANOVA, simulated with Spower.
       spower_backend(spec, seed)
     } else {

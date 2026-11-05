@@ -410,13 +410,14 @@ forms:
           - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
-      - input: "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), the means and SD in your measure's own units, or a point-biserial correlation"
+      - input: "The effect: a standardised mean difference, raw means and SDs, or a point-biserial correlation"
         fields:
           - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric,
-             choices: {standardised: "As Cohen's d: (group 2 minus group 1) / pooled SD", raw: "In my measure's own units: each group's mean and the SD", point_biserial: "As a point-biserial correlation r between group and outcome, as in G*Power's point-biserial model"},
+             choices: {standardised: "As a standardised mean difference: group 2 minus group 1, in SD units", raw: "In my measure's own units: each group's mean and the SD information", point_biserial: "As a point-biserial correlation r between group and outcome, as in G*Power's point-biserial model"},
              default: standardised, default_source: "Cohen's d, the effect size pwr.t.test() takes (pwr 1.3-0); powerkit works it out from the means and SD, or from a point-biserial r, if you give those"}
-          - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true,
-             shown_if: [{field: effect_units, is_not: raw}, {field: effect_units, is_not: point_biserial}]}
+          - {id: d, label: "Standardised mean difference (d)", writeup_label: "Cohen's d", type: number, path: population.d, effect: true,
+             shown_if: [{field: effect_units, is_not: raw}, {field: effect_units, is_not: point_biserial}],
+             help: "For Student's test use the common/pooled SD. For Welch's test with unequal spreads use sqrt((SD1 squared + SD2 squared) / 2). A published pooled d may use a different denominator: raw means and the two SDs are safer when those are available."}
           - {id: r_pb, label: "Point-biserial r between group and outcome", type: number, path: population.r, effect: true, no_conversion: true,
              min_exclusive: -1, max_exclusive: 1, writeup_label: "point-biserial r",
              shown_if: {field: effect_units, is: point_biserial},
@@ -425,8 +426,19 @@ forms:
              shown_if: {field: effect_units, is: raw}}
           - {id: raw_mean_2, label: "Expected mean, group 2", type: number, path: population.raw.mean_2, effect: true, writeup_label: "group 2 mean",
              shown_if: {field: effect_units, is: raw}}
+          - {id: welch_sd_input, label: "Which SD information do you have?", type: select,
+             shown_if: [{field: effect_units, is: raw}, {field: method, is: welch_t}],
+             choices: {common: "One common SD for both groups", separate: "An SD for each group"}, default: common,
+             default_source: "one common SD, preserving earlier raw-input plans",
+             help: "Use the same units as the means. If the spreads are unknown, compare explicit scenarios rather than treating equality as known."}
           - {id: raw_sd, label: "SD: how much people usually vary on the measure within a group", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
-             shown_if: {field: effect_units, is: raw}}
+             shown_if: [{field: effect_units, is: raw}, {any: [{field: method, is_not: welch_t}, {field: welch_sd_input, is_not: separate}]}]}
+          - {id: raw_sd1, label: "SD in group 1", type: number, path: population.raw.sd1, required: true, min_exclusive: 0,
+             in_effect_text: true, writeup_label: "group 1 SD",
+             shown_if: [{field: effect_units, is: raw}, {field: method, is: welch_t}, {field: welch_sd_input, is: separate}]}
+          - {id: raw_sd2, label: "SD in group 2", type: number, path: population.raw.sd2, required: true, min_exclusive: 0,
+             in_effect_text: true, writeup_label: "group 2 SD",
+             shown_if: [{field: effect_units, is: raw}, {field: method, is: welch_t}, {field: welch_sd_input, is: separate}]}
       - input: "The size of group 2 relative to group 1 (1 = equal)"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
@@ -436,7 +448,11 @@ forms:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)", mann_whitney: "Mann-Whitney test (rank-based), simulated", brunner_munzel: "Brunner-Munzel test (rank-based, spread may differ), simulated", bayes_factor: "Bayes factor t-test (default JZS prior, equal groups), instead of a p-value", minimum_effect: "Minimum-effect test: the effect is larger than your smallest effect of interest (pwrss)"},
              default: student_t, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0), and Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)",
-             choice_notes: {welch_t: "This planner currently uses normal scores with equal population SDs for Welch's test, by both formula and simulation. Welch's analysis allows unequal spreads, but this calculation does not yet plan for them. Choosing simulation does not change this assumption."}}
+             choice_notes: {welch_t: "Both formula and simulation plan for normal scores and your stated group spreads. Give two SDs with raw means, or a ratio with a standardised effect. With unequal SDs the effect is the mean difference divided by sqrt((SD1 squared + SD2 squared) / 2), not an allocation-weighted pooled SD. Point-biserial/published-test conversions and safeguard power require equal-SD assumptions; use raw means/SDs for unequal spreads."}}
+          - {id: welch_sd_ratio, label: "SD of group 2 divided by SD of group 1", type: number, path: population.sd_ratio, required: true, min_exclusive: 0,
+             shown_if: [{field: method, is: welch_t}, {field: effect_units, is_not: raw}],
+             default: 1, default_source: "equal population SDs, preserving earlier Welch plans",
+             help: "For example, SDs 10 and 15 give 1.5. Your standardised mean difference uses the root mean square of the two SDs. If unknown, use a justified range of scenarios; this is a population assumption, not a property supplied by choosing Welch's test."}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is_one_of: [mann_whitney, brunner_munzel]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -469,7 +485,7 @@ forms:
       # request (engine, wave 2).
       - {id: welch_method, label: "How power is worked out", type: select, path: options.method, optional: true,
          shown_if: {field: method, is: welch_t},
-         choices: {simulation: "Simulation (Spower)", exact: "Formula (pwrss's power.t.welch()): faster, no simulation noise"},
+         choices: {simulation: "Simulation (Spower)", exact: "Formula approximation (pwrss's power.t.welch()): faster, no simulation noise"},
          default: simulation, default_source: "powerkit's default for Welch's t-test (Spower's simulation; pwr has no Welch formula)"}
 
   E3:
@@ -744,16 +760,27 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {main_effect_A: "Factor A", main_effect_B: "Factor B", interaction: "The interaction"}}
-      - input: "The F test or the aligned rank transform"
+      - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANOVA), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
              help: "Every cell has the same shape, with its own mean and SD. A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
+          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          shown_if: {field: test_version, is: anova_f},
@@ -808,16 +835,27 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {main_effect_A: "Factor A", main_effect_B: "Factor B", interaction: "The interaction"}}
-      - input: "The F test or the aligned rank transform"
+      - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANOVA), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
              help: "Every cell has the same shape, with its own mean and SD. A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
+          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
       - input: "The size of each group"
         fields:
           # options > cell_ratio: relative sizes, so expected group sizes
@@ -1443,14 +1481,49 @@ forms:
           - {id: partner_21, writeup_label: "partner effect of member 2 on member 1", label: "Partner effect of member 2 on member 1: member 2's X on member 1's Y", type: number, path: population.partner_21, effect: true, min: -1, max: 1,
              shown_if: {field: distinguishable, is: "true"}}
           - {id: apim_effect, label: "The effect to test (shared effects)", type: select, path: target_test.effect, required: true,
-             shown_if: {field: distinguishable, is: "false"},
+             shown_if: [{field: distinguishable, is: "false"}, {field: apim_moderator, is: "none"}],
              choices: {partner: "The partner effect", actor: "The actor effect", actor_and_partner: "Both: the actor and the partner effect significant in the same study (joint power)"},
              default: partner, default_source: "the partner effect, the one dyadic designs are usually planned for"}
           - {id: apim_effect_d, label: "The effect to test (each member's own)", type: select, path: target_test.effect, required: true,
-             shown_if: {field: distinguishable, is: "true"},
+             shown_if: [{field: distinguishable, is: "true"}, {field: apim_moderator, is: "none"}],
              choices: {partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2", actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect",
                        both_partners: "Both partner effects significant in the same study (joint power)", both_actors: "Both actor effects (joint power)", all_four: "All four effects (joint power)"},
              default: partner_21, default_source: "a partner effect, the kind dyadic designs are usually planned for"}
+      - input: "Whether the actor effect depends on something about the pair"
+        fields:
+          - {id: apim_moderator, label: "Does the actor effect depend on a score that describes the pair (a moderator, such as relationship length)?", type: select, required: true,
+             choices: {none: "No", "yes": "Yes: the pair-level score W moderates each member's actor effect"},
+             sets: {"yes": [{path: variables.W.type, value: continuous}]},
+             default: none, default_source: "no moderator, the actor-partner model on its own"}
+          - {id: W_label, label: "The pair-level moderator (W; one value per pair, for example relationship length)", type: text, path: variables.W.label, required: true,
+             shown_if: {field: apim_moderator, is: "yes"}}
+          - {id: moderation, writeup_label: "moderation of the actor effect", label: "Moderation: how much the actor effect changes per SD of W (the standardised X x W path on a person's own Y)", type: number, path: population.moderation, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "false"}],
+             help: "0 means W doesn't change the actor effect. For example 0.15: one SD more of W makes the actor effect 0.15 larger. With few pairs the test lavaan reports for the moderation is slightly liberal: about 7% false positives at a 5% level with 60 pairs, close to 5% from 200."}
+          - {id: w_y, writeup_label: "W's effect on each member's Y", label: "W's own effect on each member's Y (a standardised path)", type: number, path: population.w_y, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "false"}]}
+          - {id: moderation_1, writeup_label: "moderation of member 1's actor effect", label: "Moderation of member 1's actor effect (X1 x W on member 1's Y)", type: number, path: population.moderation_1, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "true"}]}
+          - {id: moderation_2, writeup_label: "moderation of member 2's actor effect", label: "Moderation of member 2's actor effect (X2 x W on member 2's Y)", type: number, path: population.moderation_2, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "true"}]}
+          - {id: w_y_1, writeup_label: "W's effect on member 1's Y", label: "W's own effect on member 1's Y", type: number, path: population.w_y_1, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "true"}]}
+          - {id: w_y_2, writeup_label: "W's effect on member 2's Y", label: "W's own effect on member 2's Y", type: number, path: population.w_y_2, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "true"}]}
+          - {id: r_xw, writeup_label: "correlation of W with each member's X", label: "Correlation of W with each member's X", type: number, path: population.r_xw, required: true, min_exclusive: -1, max_exclusive: 1,
+             default: 0, default_source: "uncorrelated, the simplest assumption; give the correlation from earlier data if you have it",
+             shown_if: {field: apim_moderator, is: "yes"}}
+          - {id: apim_effect_w, label: "The effect to test (shared effects)", type: select, path: target_test.effect, required: true,
+             shown_if: [{field: distinguishable, is: "false"}, {field: apim_moderator, is: "yes"}],
+             choices: {moderation: "The moderation of the actor effect", actor_and_moderation: "Both: the actor effect and its moderation significant in the same study (joint power)",
+                       partner: "The partner effect", actor: "The actor effect", actor_and_partner: "The actor and the partner effect (joint power)"},
+             default: moderation, default_source: "the moderation, the reason for adding W"}
+          - {id: apim_effect_dw, label: "The effect to test (each member's own)", type: select, path: target_test.effect, required: true,
+             shown_if: [{field: distinguishable, is: "true"}, {field: apim_moderator, is: "yes"}],
+             choices: {both_moderations: "Both moderations significant in the same study (joint power)", moderation_1: "The moderation of member 1's actor effect", moderation_2: "The moderation of member 2's actor effect",
+                       actors_and_moderations: "Both actor effects and both moderations (joint power)", partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2",
+                       actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect", both_partners: "Both partner effects (joint power)", both_actors: "Both actor effects (joint power)", all_four: "All four actor and partner effects (joint power)"},
+             default: both_moderations, default_source: "both members' moderations, the reason for adding W"}
       - input: "How alike the members are"
         fields:
           - {id: r_x, writeup_label: "correlation of the members' X", label: "Correlation of the two members' X", type: number, path: population.r_x, effect: true, min: -1, max: 1}
@@ -2121,16 +2194,27 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does one factor's effect depend on the other?", main_effect_A: "The first factor, averaged over the second", main_effect_B: "The second factor, averaged over the first"}}
-      - input: "The F test or the aligned rank transform"
+      - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANOVA), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
              help: "Every cell has the same shape, with its own mean and SD. A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
+          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          shown_if: {field: test_version, is: anova_f},

@@ -6,6 +6,39 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "A faster first visit"
+    text: >-
+      The app now starts about two and a half seconds sooner after a quiet
+      spell, so the first page appears faster. The About tab is prepared the
+      first time someone opens it.
+  - date: "2026-11-05"
+    title: "Bayes factors for two-factor ANOVAs"
+    text: >-
+      The two-factor between-participants ANOVA cards can now plan for the
+      Bayes factor of a main effect or the interaction, as JASP's Bayesian
+      ANOVA reports it: the chance that your study gives strong evidence, and
+      what it would show if there were no effect.
+  - date: "2026-11-05"
+    title: "Couples and pairs: an actor effect that depends on the pair"
+    text: >-
+      The card for pairs of people can now plan for an actor effect that
+      depends on something about the pair, such as how long a couple has
+      been together, and for that moderation and the actor effect to be
+      significant in the same study.
+  - date: "2026-11-05"
+    title: "See what a test can do and what has been checked"
+    text: >-
+      About now has a searchable table of analysis choices and limits.
+      Results distinguish software comparisons, independent references,
+      published examples and method checks for the selected test version;
+      saved results keep the evidence record captured at the time.
+  - date: "2026-11-05"
+    title: "Plan for different group spreads"
+    text: >-
+      Welch planning can use an SD for each group, or an SD ratio with a
+      clearly defined standardised difference. Results, example datasets
+      and downloaded scripts keep those same population assumptions.
+  - date: "2026-11-05"
     title: "Whole-study plans with groups people aren't randomised to"
     text: >-
       When you simulate your whole study with two groups, the groups can now
