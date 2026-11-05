@@ -49,6 +49,7 @@ fully validated. Validation runs are recorded in
   equal-SD limitation. All-tests planning offers the independence rule or
   a sufficient union-bound target when dependence is unknown, with unchanged
   alpha and explicit unconditional-probability requirements.
+  The engine preserves single-test targets exactly, including near zero.
 
 - **Sample counts:** plans distinguish participants, pairs, items and
   studies, and only show a largest comparable requirement for matching

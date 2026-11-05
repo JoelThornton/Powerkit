@@ -4,6 +4,7 @@
   dependence, derived from the union bound, alongside the existing
   independence rule. Alpha is unchanged; notes distinguish a bound from an
   estimated joint power and require unconditional successful-test probabilities.
+  A single-test target is returned unchanged, including near-zero probabilities.
 
 * About and the README accurately describe package adapters and sourced
   implementations in Powerkit. About distinguishes hosted calculations,

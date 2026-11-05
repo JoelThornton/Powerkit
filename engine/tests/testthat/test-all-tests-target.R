@@ -2,6 +2,7 @@ test_that("all-tests targets distinguish independence and arbitrary dependence",
   expect_equal(all_tests_target(0.8, 2), sqrt(0.8))
   expect_equal(all_tests_target(0.8, 2, "unknown"), 0.9)
   expect_equal(all_tests_target(0.8, 1, "unknown"), 0.8)
+  expect_identical(all_tests_target(1e-20, 1, "unknown"), 1e-20)
   expect_error(all_tests_target(1, 2), "between")
   expect_error(all_tests_target(0.8, 2.5), "whole")
   expect_error(all_tests_target(1 - .Machine$double.eps, 1e8, "unknown"), "certainty")
