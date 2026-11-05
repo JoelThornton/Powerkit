@@ -6126,7 +6126,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.32.0",
+        "Version": "0.33.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6143,19 +6143,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "b0f4ad23c32a4947db7f7786b21a4aaafbe2b9ce",
-        "RemoteSha": "b0f4ad23c32a4947db7f7786b21a4aaafbe2b9ce",
+        "RemoteRef": "3340dd8c11a7495c002628e01f5c081a8cd601aa",
+        "RemoteSha": "3340dd8c11a7495c002628e01f5c081a8cd601aa",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "b0f4ad23c32a4947db7f7786b21a4aaafbe2b9ce",
-        "GithubSHA1": "b0f4ad23c32a4947db7f7786b21a4aaafbe2b9ce",
+        "GithubRef": "3340dd8c11a7495c002628e01f5c081a8cd601aa",
+        "GithubSHA1": "3340dd8c11a7495c002628e01f5c081a8cd601aa",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-05 21:55:58 UTC; runner",
+        "Packaged": "2026-11-05 23:13:41 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-05 21:56:08 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-05 23:13:59 UTC; unix"
       }
     },
     "powertools": {
@@ -8358,10 +8358,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "7897fa4262ff60645199c4212731fae8"
+      "checksum": "b14a1e271c7be7ec6314d81744053c62"
     },
     "forms.yaml": {
-      "checksum": "87c15f136fe6e528da96bdd3a57848fb"
+      "checksum": "4006903bfcb8de3b7a66e5c7098e507b"
     },
     "methods-map.yaml": {
       "checksum": "6f48dcf1bc6e92e2e8283cd2b7ccf3df"
@@ -8370,7 +8370,7 @@
       "checksum": "a4f5c64a533504a8bc5ffefd5a5fc9b4"
     },
     "R/capabilities.R": {
-      "checksum": "5a7601b999c01e5a660277e0a3621e87"
+      "checksum": "1d01abd82581e3f0efada5a959c40016"
     },
     "R/connection.R": {
       "checksum": "f723f8d9f425ac15a0df784a0023a752"
@@ -8382,46 +8382,52 @@
       "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
     },
     "R/forms_ui.R": {
-      "checksum": "0973a4e552a04a2a128e80b4a50775e1"
+      "checksum": "efa3a12b6ac055c939d58d77ac2381da"
     },
     "R/forms.R": {
       "checksum": "94bae7e274d2e4cd6537c803303bb746"
     },
+    "R/input-support.R": {
+      "checksum": "bdf0e5767132a553068c033f7e5f520e"
+    },
     "R/labs.R": {
-      "checksum": "a03c7b174e5dcb147c075d96fdd3bc56"
+      "checksum": "08ad821fb1739380c07cb21a9240904d"
     },
     "R/map.R": {
       "checksum": "4a864e016dc04c84f1c5004b2fb35c19"
     },
     "R/planning.R": {
-      "checksum": "95592fc35156898b8f3455c1cad94cc1"
+      "checksum": "335b1c0b36667a512c94e886c1929fde"
     },
     "R/project.R": {
       "checksum": "23e6eed5ff5f012fdb8a5f2df34c6c0e"
     },
     "R/results.R": {
-      "checksum": "98abf7e8304e91dd9a7f6113c73b344c"
+      "checksum": "3e49dea5d1a733d6d3edea41ce25ba33"
+    },
+    "R/sample.R": {
+      "checksum": "5a2faf0bd5eeff5c04489743edadd733"
     },
     "R/scenarios.R": {
-      "checksum": "63d5f30fc4c0e6bcfbd3a672837c5294"
+      "checksum": "4c637bbcf8efa95600840ed24a6ca478"
     },
     "R/simulations.R": {
-      "checksum": "a97a5506915793d816cb4f760a15eb68"
+      "checksum": "56ff65f67414f0e4e1341915124c3033"
     },
     "R/study-plan.R": {
-      "checksum": "069bb384145200633f180d3266e7e352"
+      "checksum": "6d21287712fd5108f832bf263b84aff8"
     },
     "R/study-variation.R": {
-      "checksum": "c361de6fb50d7507c0424eb5b5090bd7"
+      "checksum": "d08f1c1510dd4d90b159c5580c4d431a"
     },
     "R/tree.R": {
       "checksum": "944417d267637ddaca7d4b5aaadadd7c"
     },
     "R/ui.R": {
-      "checksum": "c5a2b48697fa070d84e65c5a1cf83028"
+      "checksum": "9b0b394d4d6c3ae106b4aedfa67cb4bb"
     },
     "R/whole-study.R": {
-      "checksum": "46a94bee95348c07c30275a04f65ce22"
+      "checksum": "8612e0fea2b35a09e54642251ad1797f"
     },
     "README.md": {
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
@@ -8430,7 +8436,7 @@
       "checksum": "7f769c04eed0ee4f7b7bb477c357ac03"
     },
     "whats-new.yaml": {
-      "checksum": "7c56a7cf24b337feb1742be7eb27f3e5"
+      "checksum": "0ae41f1a3c78a3e7d05ca6b840663361"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
