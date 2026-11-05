@@ -24,6 +24,7 @@ all_tests_target <- function(target, tests, dependence = c("independent", "unkno
   if (!is.numeric(tests) || length(tests) != 1 || !is.finite(tests) || tests < 1 || tests != floor(tests)) {
     abort_spec("The number of tests must be a positive whole number.")
   }
+  if (tests == 1) return(target)
   p <- if (dependence == "unknown") 1 - (1 - target) / tests else target^(1 / tests)
   if (p >= 1) abort_spec("This target and number of tests are too close to certainty to represent. Use fewer tests or a lower joint target.")
   p
