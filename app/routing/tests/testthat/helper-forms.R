@@ -71,7 +71,7 @@ form_examples <- list(
   E36 = c(list(comparison = "tost_independent", X_label = "Condition", X_level1 = "Paper", X_level2 = "Screen", Y_label = "Reading comprehension",
                effect_units = "standardised", bound = "0.5", d = "0", allocation_ratio = "1"), closing_ok),
   E35 = c(list(G_label = "Condition", G_level1 = "Waiting list", G_level2 = "Mindfulness course", Y_label = "Stress score", times = "0, 1, 2, 3",
-               slope_difference = "-1", sd_slope = "2", sd_residual = "4", sd_intercept = "6", r_intercept_slope = "-0.2", alternative = "two_sided"), closing_ok),
+               slope_difference = "-1", sd_slope = "2", sd_residual = "4", sd_intercept = "6", r_intercept_slope = "-0.2", growth_dropout = "none", allocation_ratio = "1", alternative = "two_sided"), closing_ok),
   E72 = c(list(G_type = "within_factor", G_label = "Encoding task", G_level1 = "Shallow", G_level2 = "Deep", Y_label = "Recognition memory",
                d1 = "1", d2 = "1.4", trials_signal = "40", trials_noise = "40", sd_dprime = "0.5", r_dprime = "0.5", criterion = "0.2", sd_criterion = "0.3",
                alternative = "two_sided"), closing_ok),

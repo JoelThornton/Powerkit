@@ -14,6 +14,24 @@ entries:
       of trials, how much people differ and their response bias, and
       simulates the analysis researchers usually run.
   - date: "2026-11-05"
+    title: "Growth curves with drop-out and unequal groups"
+    text: >-
+      When people are measured three or more times, you can now say how many
+      are still in the study at each occasion, and make the groups different
+      sizes. People who leave still count up to their last measurement, so
+      you need fewer than if you simply recruited extra.
+  - date: "2026-11-05"
+    title: "Naming your groups is optional"
+    text: >-
+      Where a screen asks for the groups', conditions' or categories' names,
+      you can type how many there are instead, such as 3. They are then
+      called Group 1, Group 2 and Group 3.
+  - date: "2026-11-05"
+    title: "The About page opens straight away"
+    text: >-
+      powerkit now loads the About page in the background while you start
+      planning, so it's ready by the time you open it.
+  - date: "2026-11-05"
     title: "Check the evidence as you go"
     text: >-
       Planning a Bayes factor t-test? The result now shows how the same study

@@ -5253,6 +5253,44 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   hand) for a two-factor within-participants design and a 2 x 2 mixed
   design. A published example is a placeholder for the maintainer.
 
+## 2026-11-05 · Growth curves with drop-out and unequal groups (E35)
+
+- **What:** the growth-curve screen asks whether anyone drops out before
+  the last occasion and, if so, the share still in the study at each
+  occasion (`population > retention`, the same in both groups), and the
+  second group's size relative to the first (`options >
+  allocation_ratio`). With either, the engine uses longpower's
+  `hu.mackey.thomas.linear.power()` (Hu, Mackey and Thomas, 2021,
+  Biometrical Journal, the reference in longpower's help), which keeps
+  everyone's measurements up to the occasion they leave after (monotone
+  drop-out) and takes unequal allocation. Without them it keeps Diggle and
+  colleagues' formula, as decided on 5 November 2026.
+- **Why:** `next.md` item 3 named attrition and unequal groups as the next
+  step for growth curves. Recruiting more to make up for people who leave
+  (`options > attrition`) wastes their earlier measurements, which a
+  mixed model uses; the two can't be combined, and the spec checks say so.
+- **The model it assumes:** both groups start at the same level, as in a
+  randomised trial (no group main effect), where Diggle's formula lets each
+  group have its own. The card and the screen say so. With complete data
+  and equal groups the two formulas differ (192 against 228 for the
+  example spec), which is why Diggle's stays the default there.
+- **Validation** (`test-validation-growth-dropout.R`, chunk `growth`):
+  lme4 fits of the formula's model to simulated studies with monotone
+  drop-out drawn with the given shares, the group x time term tested by its
+  Wald z test, agree within a point (79.2% against 79.6%; 93.0% against
+  93.7%; 63.9% against 63.4%; 1,000 studies each), inside the 0.03
+  allowance the complete-data formula has. A published example from Hu,
+  Mackey and Thomas is a placeholder for the maintainer.
+## 2026-11-05 · Groups by number or by name
+
+A variable's groups, conditions or categories (every `levels` field of a
+variable) may be given as how many there are instead of their names:
+"3" stands for "Group 1, Group 2, Group 3" (or Condition, Category, Time
+or Level, from the field's wording). G\*Power asks only for the number of
+groups; powerkit uses names to label the means, the results and the
+write-up, and they stay available for anyone who wants them. A count is
+written out as names before the screen's checks and the spec
+(`expand_level_counts()`), so the engine sees names as before.
 ## 2026-11-05 · How Bayes factors fit powerkit: a four-part plan
 
 Open question 8 (where Bayes factors enter) and the rest of `next.md`
@@ -5427,4 +5465,17 @@ as a way to run that study, not as a different answer to it.
   against 58.5%). A published example is a placeholder for the maintainer.
 - **Not covered yet:** rating-scale (confidence) designs, unequal-variance
   models, and d' fitted in a hierarchical model of the trials.
+## 2026-11-05 · The About page, fetched before it is opened
+
+The About page is about 1.5 MB of HTML (its table of every capability has
+over 1,000 rows). It was built once per R process, but turning it into
+text took 1.2 seconds at every opening, and the whole page then went
+through the Shiny connection. Now the server builds it once as text,
+just after the first visitor's first screen has gone out, and writes it
+to a file (`about-cache/about.html`); the browser fetches that file in the
+background once its first screen is up and puts it in the tab. Opening
+About then takes about a third of a second. If someone opens the tab
+before the file arrives, the server sends its finished copy as before.
+Building it straight after start had delayed the first visitor's first
+screen by about five seconds, so it waits for that screen.
 

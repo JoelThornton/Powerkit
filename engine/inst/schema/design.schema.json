@@ -8910,6 +8910,17 @@
               "description": "SD of the occasion-to-occasion variation around each person's own line (the residual).",
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "retention": {
+              "description": "Drop-out: the share of people still in the study at each occasion, in the order of 'times' (the first 1, never rising; the same in both groups). Monotone drop-out: someone who misses an occasion misses the later ones. With it, or with unequal groups, powerkit uses Hu, Mackey and Thomas's (2021) formula (longpower's hu.mackey.thomas.linear.power()), which assumes both groups start at the same level, as in a randomised trial. Omitted: complete data.",
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 20,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1
+              }
             }
           }
         },

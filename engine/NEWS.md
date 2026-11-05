@@ -4,6 +4,14 @@
   or groups, simulated with Spower (hits and false alarms, d' with the
   log-linear correction, a paired or Student's t-test).
 
+* Growth curves (E35) with drop-out over the occasions (`population >
+  retention`) or unequal groups (`options > allocation_ratio`), by
+  longpower's `hu.mackey.thomas.linear.power()`.
+* Input screens take the number of groups, conditions or categories in
+  place of their names ("3" for Group 1, Group 2, Group 3).
+
+* The app fetches the About page in the background once the first screen is
+  up, so opening it takes a fraction of a second.
 * Bayes factor t-test results offer "Check as you go?": the plan as a
   sequential design with its sample size as the largest
   (`bayes_sequential()`, as in Labs).

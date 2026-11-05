@@ -3039,7 +3039,9 @@ forms:
              help: "All four test the same hypothesis and differ little in power in large samples."}
 
   # Growth curves (longpower's diggle.linear.power(), Diggle et al., 2002):
-  # two equal groups, three or more occasions, random intercept and slope.
+  # two groups, three or more occasions, random intercept and slope; with
+  # drop-out or unequal groups, hu.mackey.thomas.linear.power() (Hu, Mackey
+  # and Thomas, 2021).
   E35:
     methods_name: "a growth-curve comparison of two groups' rates of change (Diggle and colleagues' formula for a linear mixed model)"
     tool: longpower
@@ -3068,6 +3070,17 @@ forms:
              default: 0, default_source: "0, the design spec's default; with complete data the starting levels' spread doesn't change the test of the slopes unless they correlate with the rates of change"}
           - {id: r_intercept_slope, label: "Correlation between people's starting levels and rates of change", type: number, path: population.r_intercept_slope, required: true, min: -1, max: 1,
              default: 0, default_source: "0, the design spec's default (population > r_intercept_slope)"}
+      - input: "Drop-out and the groups' sizes"
+        fields:
+          - {id: growth_dropout, label: "Does anyone drop out before the last occasion?", type: select, required: true,
+             choices: {none: "No: everyone is measured at every occasion", some: "Yes: some people leave along the way"},
+             default: none, default_source: "complete data, as Diggle and colleagues' formula assumes",
+             help: "With drop-out or unequal groups, powerkit uses Hu, Mackey and Thomas's formula (longpower), which keeps everyone's measurements up to the one they leave after. It assumes both groups start at the same level, as in a randomised trial."}
+          - {id: retention, writeup_label: "share still in the study at each occasion", label: "The share still in the study at each occasion, one per occasion in the same order (the first is 1, for example 1, 0.9, 0.85, 0.8)", type: numbers, path: population.retention, required: true,
+             shown_if: {field: growth_dropout, is: some},
+             help: "The same in both groups. Someone who leaves misses every later occasion. Don't also allow for drop-out under recruitment below: this already does."}
+          - {id: allocation_ratio, label: "Size of group 2 relative to group 1 (1 = equal groups)", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
+             default: 1, default_source: "equal groups, as Diggle and colleagues' formula assumes"}
 
   # Signal detection: d' in two conditions or groups (Spower simulation of
   # powerkit's experiment: hits and false alarms, d' with the log-linear
