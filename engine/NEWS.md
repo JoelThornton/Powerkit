@@ -1,5 +1,8 @@
 # powerkit 0.32.0
 
+* Input screens hide a box when all its fields are hidden, and means in SD
+  units no longer ask for the SD (it is 1).
+
 * The Bayes factor of an effect in the repeated-measures ANOVAs (templates
   `oneway_within`, `factorial_within`, `2x2_mixed` and `mixed`,
   `target_test > method` "bayes_factor"): JASP's inclusion Bayes factor with

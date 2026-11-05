@@ -151,7 +151,25 @@ group_ui_build <- function(tree, g, values, index) {
         tags$span(class = "form-names-note", "Used to label the result and the write-up.")),
       box)
   }
-  if (is.null(g$shown_if)) box else conditionalPanel(shown_if_js(g), box)
+  if (!is.null(g$shown_if)) return(conditionalPanel(shown_if_js(g), box))
+  # A group whose fields are all shown only for some choices is hidden
+  # with them, so no empty heading is left (5 November 2026).
+  shown <- group_shown_js(g)
+  if (is.null(shown)) box else conditionalPanel(shown, box)
+}
+
+# The browser condition under which at least one of a group's fields is
+# shown; NULL when some field is always shown.
+group_shown_js <- function(g) {
+  parts <- vapply(g$fields, function(f) {
+    goals <- f$needed_for %||% f$shown_for_goals
+    if (is.null(goals) && is.null(f$shown_if)) return(NA_character_)
+    conds <- c(if (!is.null(goals)) paste0("(", paste(sprintf("input.f_goal == '%s'", goals), collapse = " || "), ")"),
+      if (!is.null(f$shown_if)) paste0("(", shown_if_js(f), ")"))
+    paste(conds, collapse = " && ")
+  }, character(1))
+  if (!length(parts) || anyNA(parts)) return(NULL)
+  paste0("(", paste(unique(parts), collapse = ") || ("), ")")
 }
 
 # The whole screen. `values` keeps what the user typed when the screen is

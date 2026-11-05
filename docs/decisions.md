@@ -5230,3 +5230,15 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   hand) for a two-factor within-participants design and a 2 x 2 mixed
   design. A published example is a placeholder for the maintainer.
 
+## 2026-11-05 · Input screens: no empty boxes, and no SD for means in SD units
+
+- **Empty boxes.** A box of fields whose fields are all shown only for
+  some choices now hides with them (`group_shown_js()`), so choosing
+  partial eta-squared, for example, no longer leaves an empty "The SD"
+  heading on the screen.
+- **Means in SD units.** Their SD is 1 by definition, so choosing "SD
+  units" for the means fills in an SD of 1 and hides the question
+  (`with_sd_units()`, on every screen with that choice and one common
+  SD). Separate SDs for Welch's F are still asked, in the same units as
+  the means.
+

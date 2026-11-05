@@ -929,3 +929,33 @@ test_that("the mixed ANOVA forms take unequal groups and then leave out the exac
   expect_null(spec$options$method)
   expect_identical(build_spec(forms, "E55", fields_for("E55"), values_for("E55"))$options$method, "exact")
 })
+
+test_that("means in SD units fill in an SD of 1 and hide it, and empty headings hide with their fields", {
+  v <- values_for("E18")
+  v$metric <- "standardised"
+  v$sd <- NULL
+  fields <- fields_for("E18")
+  sd_field <- Filter(function(f) identical(f$id, "sd"), fields)[[1]]
+  expect_false(field_applies(sd_field, v))
+  expect_length(form_problems(fields, v), 0)
+  spec <- build_spec(forms, "E18", fields, v)
+  expect_identical(spec$population$sd, 1)
+  # Every screen with the choice of units and one SD hides it the same way.
+  for (ep in form_ids) {
+    f <- fields_for(ep)
+    ids <- vapply(f, function(x) x$id %||% "", character(1))
+    if (all(c("metric", "sd") %in% ids)) {
+      sd_field <- f[[which(ids == "sd")]]
+      expect_false(field_applies(sd_field, list(metric = "standardised")), label = ep)
+    }
+  }
+  # "The SD" box: all its fields depend on choices, so the box does too.
+  sd_group <- Filter(function(g) identical(g$input, "The SD"), form_groups(forms, "E18"))[[1]]
+  js <- group_shown_js(sd_group)
+  expect_match(js, "input.f_metric != 'standardised'", fixed = TRUE)
+  expect_match(js, "input.f_metric != 'eta_squared'", fixed = TRUE)
+  expect_match(as.character(group_ui(tree, sd_group, list(), 1)), "data-display-if", fixed = TRUE)
+  # A box with a field that is always shown is never hidden.
+  names_group <- form_groups(forms, "E18")[[1]]
+  expect_null(group_shown_js(list(fields = list(list(id = "x"), list(id = "y", shown_if = list(field = "a", is = "b"))))))
+})

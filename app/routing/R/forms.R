@@ -159,6 +159,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   }
   if (!is.null(form$extra)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = form$extra)))
   groups <- lapply(groups, function(g) { g$fields <- lapply(g$fields, with_name_default); g })
+  groups <- with_sd_units(groups)
   # method_extra: further choices about the formula, shown with the method
   # (E5's z test or Cohen's h).
   if (isTRUE(form$basic_method)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = c(list(basic_method_field(forms, ep_id)), form$method_extra))))
@@ -194,6 +195,27 @@ with_name_default <- function(f) {
   f$required <- FALSE
   f$name_default <- name_default_text(f)
   f
+}
+
+# Means in SD units have an SD of 1 by definition, so the SD isn't asked:
+# choosing SD units fills it in (5 November 2026). Applies where the form
+# has the "Units of the means" choice and one common SD (population.sd).
+with_sd_units <- function(groups) {
+  ids <- unlist(lapply(groups, function(g) vapply(g$fields, function(f) f$id %||% "", character(1))))
+  if (!all(c("metric", "sd") %in% ids)) return(groups)
+  lapply(groups, function(g) {
+    g$fields <- lapply(g$fields, function(f) {
+      if (identical(f$id, "metric") && "standardised" %in% names(f$choices)) {
+        f$sets <- utils::modifyList(f$sets %||% list(), list(standardised = c(f$sets$standardised, list(list(path = "population.sd", value = 1)))))
+      }
+      if (identical(f$id, "sd") && identical(f$path, "population.sd")) {
+        f$shown_if <- c(shown_if_conditions(f), list(list(field = "metric", is_not = "standardised")))
+        f$label <- sub(";? *1 if the means are in SD units", "", f$label)
+      }
+      f
+    })
+    g
+  })
 }
 
 # The direction, asked first and not filled in: the choice of a one- or
