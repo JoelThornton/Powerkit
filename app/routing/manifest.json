@@ -6143,19 +6143,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "fb0639bde59f13ed5fa54408fe54f0f7f6dcf021",
-        "RemoteSha": "fb0639bde59f13ed5fa54408fe54f0f7f6dcf021",
+        "RemoteRef": "f766e8dc3129fbcd99fddf4daaaaf2c3f1748ef4",
+        "RemoteSha": "f766e8dc3129fbcd99fddf4daaaaf2c3f1748ef4",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "fb0639bde59f13ed5fa54408fe54f0f7f6dcf021",
-        "GithubSHA1": "fb0639bde59f13ed5fa54408fe54f0f7f6dcf021",
+        "GithubRef": "f766e8dc3129fbcd99fddf4daaaaf2c3f1748ef4",
+        "GithubSHA1": "f766e8dc3129fbcd99fddf4daaaaf2c3f1748ef4",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-05 16:42:33 UTC; runner",
+        "Packaged": "2026-11-05 17:15:37 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-05 16:42:50 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-05 17:15:47 UTC; unix"
       }
     },
     "powertools": {
@@ -8358,7 +8358,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "2e048df22707075327916ef00431f20a"
+      "checksum": "c2e7a45c2ef0eb690ec3718960edc3d7"
     },
     "forms.yaml": {
       "checksum": "3ba8e08fd18aeba0789c81e5313c3e59"
@@ -8371,6 +8371,9 @@
     },
     "R/capabilities.R": {
       "checksum": "5a7601b999c01e5a660277e0a3621e87"
+    },
+    "R/connection.R": {
+      "checksum": "672170821c4a024024a0289a8229e794"
     },
     "R/drafts.R": {
       "checksum": "642f5e19d07ba6bcc322d38136aefd45"
@@ -8427,7 +8430,7 @@
       "checksum": "48b8844edd668127292ecfd8f9f30399"
     },
     "whats-new.yaml": {
-      "checksum": "7a209787b3da45dd55b0ce621afa3b63"
+      "checksum": "8fe50754c50fb50273083eddd9ae1ff4"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
