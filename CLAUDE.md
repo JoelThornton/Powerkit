@@ -1,7 +1,9 @@
 # powerkit — project rules
 
 ## What this is
-A unified power analysis tool for psychology. One design specification format,
+A unified power analysis tool for research studies (built with psychology's
+designs in mind, but not only for psychology: never describe it to users as
+a psychology tool; docs/decisions.md, 5 November 2026). One design specification format,
 routed to validated R backends (Spower, power4mome, Superpower, InteractionPoweR),
 with a Shiny front end (design finder, design forms, full-model builder,
 confirmation screen, results and exports). An optional AI assistant comes last.
