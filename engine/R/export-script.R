@@ -86,6 +86,7 @@ export_script <- function(spec, result, file = NULL) {
     statpsych = ,
     kappaSize = reliability_script(spec, result),
     longpower = growth_script(spec, result),
+    irtpwr = irt_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result), three_level = three_level_script(spec, result),
       item_predictor = item_predictor_script(spec, result),
       crossed_conditions = crossed_conditions_script(spec, result), simr_script(spec, result)),
@@ -227,6 +228,9 @@ design_description <- function(spec) {
   }
   if (identical(spec$design, "reliability")) {
     return(reliability_design_description(spec, label))
+  }
+  if (identical(spec$design, "irt")) {
+    return(irt_design_description(spec, label))
   }
   if (identical(spec$design, "dyadic")) {
     members <- unlist(spec$population$members %||% list("member 1", "member 2"))

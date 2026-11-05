@@ -33,7 +33,8 @@ population_problems <- function(spec) {
     precision = function(spec) character(),
     dyadic = check_apim,
     survival = check_survival,
-    reliability = check_reliability
+    reliability = check_reliability,
+    irt = check_irt
   )
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
@@ -2908,6 +2909,8 @@ minimum_n <- function(spec) {
     # Reliability: the formulas are for large samples; kappaSize warns when
     # an expected cell count is below 5.
     reliability = 10,
+    # DIF: enough people in each group for the multigroup model.
+    irt = 20,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -2957,6 +2960,9 @@ group_split <- function(spec) {
   }
   if (spec$template == "tost_two_proportions") {
     return(list(rule = "split into 2 equal groups (TOSTER takes one group size)", valid = function(n) n %% 2 == 0))
+  }
+  if (identical(spec$design, "irt")) {
+    return(list(rule = "split into 2 equal groups, as irtpwr's DIF model assumes", valid = function(n) n %% 2 == 0))
   }
   if (spec$template == "growth_curve") {
     return(list(rule = "split into 2 equal groups, as the growth-curve formula assumes", valid = function(n) n %% 2 == 0))
@@ -3200,6 +3206,7 @@ target_effect_is_zero <- function(spec) {
     } else {
       pop$effect
     },
+    irt = max(abs(c(unlist(pop$b_shift %||% 0), unlist(pop$a_change %||% 0)))),
     reliability = switch(spec$template,
       icc = pop$icc - pop$icc_null,
       cronbach_alpha = pop$reliability - pop$reliability_null,

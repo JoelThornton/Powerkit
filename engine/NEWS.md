@@ -1,5 +1,20 @@
 # powerkit 0.31.0
 
+* Differential item functioning (template `irt / dif`, card E71): whether
+  some items of a test with yes/no answers work differently in two groups,
+  in a two-parameter logistic IRT model, by irtpwr's analytical method
+  with its DIF preset (the likelihood-ratio, Wald, score or gradient
+  statistic). Items are entered as discrimination and difficulty. By
+  default the test frees both of each DIF item's parameters, the omnibus
+  test in mirt's `DIF()` help; `target_test > free_parameters =
+  "differing"` keeps irtpwr's choice of only the parameters that differ
+  (Departure 20). The preset's hypothesis-building functions are replaced
+  through `setup.hypothesis(type = <list>)`, which also works around its
+  failure with one differing parameter (`upstream-questions.md`). New
+  imports: irtpwr (1.0.3) with mirt (1.48) and their dependencies, added
+  to `renv.lock`. Validation chunk `irt`: mirt multigroup models fitted
+  to simulated studies, and Type I error.
+
 * Growth curves (template `mixed_model / growth_curve`, card E35): two equal
   groups measured at three or more occasions, the difference in their
   average rates of change in a linear mixed model with a random intercept

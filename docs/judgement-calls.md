@@ -81,7 +81,7 @@ ordered by impact.
 ## Contents
 
 - [A. What the cards say](#a-what-the-cards-say): A1–A9
-- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B18
+- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B19
 - [C. Which card users reach](#c-which-card-users-reach): C1–C18
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
 - [E. Behind the scenes](#e-behind-the-scenes): E1–E7
@@ -829,6 +829,30 @@ results.
   and Rubin's view is the one the change would rest on.
 - **Recorded in:** this entry; `decisions.md` (18 October 2026);
   setting `one_sided_tests`.
+
+### B19. Differential item functioning (E71): which parameters the test frees by default
+
+- **Question:** should the DIF test powerkit plans for free both of each
+  DIF item's parameters between the groups (discrimination and
+  difficulty, 2 df per item), or only those expected to differ (1 df when
+  only the difficulty changes)?
+- **Options:** (a) both, with irtpwr's choice as an option (what powerkit
+  does now, Departure 20); (b) only those that differ, irtpwr's preset,
+  with both as an option.
+- **What established tools do:** irtpwr 1.0.3's `"DIF2PL"` preset tests
+  the parameters that differ in the population given (its source). mirt
+  1.48's `DIF()` help runs its omnibus tests with `which.par = c('a1',
+  'd')` and tests one parameter as a follow-up (opened).
+- **Who might disagree:** researchers who pre-register a test of uniform
+  DIF only would want (b); its power is higher (64.1% against 53.6% in
+  the example at 600 people).
+- **Knock-on effects:** Departure 20 on the E71 result and in the methods
+  paragraph while (a) stands; none for (b).
+- **Recorded in:** `docs/conventions.md`, Departure 20; `docs/decisions.md`,
+  5 November 2026.
+- **Recommendation:** (a), because a power analysis should be for the test
+  that will be run, and the omnibus test is the one the analysis tools
+  present first.
 
 ## C. Which card users reach
 

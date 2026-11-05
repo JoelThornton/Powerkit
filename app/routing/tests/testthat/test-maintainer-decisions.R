@@ -13,10 +13,13 @@ test_that("E15 (yes/no X or W) asks for reliability of the score and outcome onl
   expect_identical(shown_if("rel_W")$is, "X")
 })
 
-test_that("E37 says IRT designs aren't covered (flag F7)", {
-  expect_true(any(grepl("Item response theory (IRT) designs aren't covered", tree$endpoints$E37$card_points, fixed = TRUE)))
+test_that("E37 says which IRT designs aren't covered (flag F7)", {
+  # Since 5 November 2026 differential item functioning has its own card
+  # (E71), so E37 points to it and says the other IRT designs aren't covered.
+  said <- "differential item functioning between two groups has its own card; other IRT designs aren't covered yet"
+  expect_true(any(grepl(said, tree$endpoints$E37$card_points, fixed = TRUE)))
   html <- as.character(card_ui(tree, "E37"))
-  expect_match(html, "Item response theory (IRT) designs aren't covered", fixed = TRUE)
+  expect_match(html, said, fixed = TRUE)
 })
 
 test_that("a test-retest study answered 'Twice' reaches E41, as the audit says (flag F11)", {
