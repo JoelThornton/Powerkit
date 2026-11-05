@@ -1724,7 +1724,7 @@ endpoints:
     backend: "power4mome: power4test() on the APIM, fitted with lavaan, the effect tested with test_parameters() (simulation)"
     method: "Simulation"
     status: runs_validation_in_progress
-    validation: {file: test-validation-apim.R, note: "Agrees with a simulation written separately (the data drawn directly, the APIM fitted with lavaan without power4mome) for actor and partner effects in both kinds of dyad, recovers every path and correlation in its check run, and keeps the Type I error at alpha; with a pair-level moderator, the same for the moderation alone and with the actor effect (test-validation-apim-moderation.R). Not yet checked against a published example."}
+    validation: {file: test-validation-apim.R, note: "Agrees with a simulation written separately (the data drawn directly, the APIM fitted with lavaan without power4mome) for actor and partner effects in both kinds of dyad, recovers every path and correlation in its check run, and keeps the Type I error at alpha; with a pair-level moderator, the same for the moderation alone and with the actor effect. Not yet checked against a published example."}
     card_points:
       - "Pairs of people whose scores are related, such as couples or friends, with something measured on each member (X) and an outcome measured on each (Y): each person's X can affect their own Y (the actor effect) and their partner's Y (the partner effect)."
       - "Members can be distinguishable (for example, a woman and a man, or a parent and child), with their own actor and partner effects, or indistinguishable (for example, same-sex friends), sharing them."
