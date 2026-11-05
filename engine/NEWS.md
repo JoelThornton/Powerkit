@@ -1,5 +1,9 @@
 # powerkit 0.32.0
 
+* The app shows that it is starting or working, keeps an open page's
+  connection alive, reconnects when it can, reloads a disconnected page
+  when the visitor comes back to it, and keeps the answers on an input screen in the browser so a
+  new visit can continue where the last one left off (`R/connection.R`).
 * The Bayes factor of an effect in the repeated-measures ANOVAs (templates
   `oneway_within`, `factorial_within`, `2x2_mixed` and `mixed`,
   `target_test > method` "bayes_factor"): JASP's inclusion Bayes factor with

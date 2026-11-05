@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Your answers survive a lost connection"
+    text: >-
+      If you leave the page and the connection drops, powerkit now keeps the
+      answers you had typed on an input screen in your browser and offers to
+      bring them back when you return. It also keeps the connection open while
+      the page is open, reloads the page by itself when you come back after
+      the connection dropped, and shows when it is starting up or working.
+  - date: "2026-11-05"
     title: "Bayes factors for repeated-measures ANOVAs"
     text: >-
       The repeated-measures and mixed ANOVA cards can now plan for the Bayes
