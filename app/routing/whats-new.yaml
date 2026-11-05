@@ -12,6 +12,13 @@ entries:
       clearly defined standardised difference. Results, example datasets
       and downloaded scripts keep those same population assumptions.
   - date: "2026-11-05"
+    title: "Whole-study plans with groups people aren't randomised to"
+    text: >-
+      When you simulate your whole study with two groups, the groups can now
+      be related to the moderator or the first measurement, as groups such as
+      men and women often are. Give the correlation, or 0 if people are
+      randomised to the groups.
+  - date: "2026-11-05"
     title: "Check that a test's items work the same in two groups"
     text: >-
       You can now plan a study of differential item functioning: whether

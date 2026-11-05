@@ -45,8 +45,8 @@ whole_study_twice_serial <- "In a chain: X affects the first, which affects the 
 whole_study_twice_links <- c("The link from X to the mediator" = "x_m", "The link from the mediator to the outcome" = "m_y")
 
 whole_study_path_label <- function(key) {
-  if (identical(key, "X<->W")) return("Correlation of the predictor with the moderator (X with W)")
-  if (identical(key, "X<->B")) return("Correlation of the predictor with the first measurement of the outcome (X with B)")
+  if (identical(key, "X<->W")) return("Correlation of the predictor with the moderator (X with W; for groups or conditions, 0 if people are randomised to them)")
+  if (identical(key, "X<->B")) return("Correlation of the predictor with the first measurement of the outcome (X with B; for groups or conditions, 0 if people are randomised to them)")
   if (identical(key, "W<->B")) return("Correlation of the moderator with the first measurement of the outcome (W with B)")
   if (identical(key, "M1<->M2")) return("Correlation of the two mediators' residuals (what M1 and M2 share beyond X)")
   ends <- strsplit(key, "->", fixed = TRUE)[[1]]

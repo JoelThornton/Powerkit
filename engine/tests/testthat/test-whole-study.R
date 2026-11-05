@@ -283,12 +283,34 @@ test_that("X may be two groups: power4mome draws it with the share given, and th
   expect_named(result$implied$compare$values, c("r", "d"))
 })
 
-test_that("a two-group X must be uncorrelated with W, and x_prob needs a two-group X", {
-  expect_error(validate_whole_study(group_study(r_xw = 0.3)), "must be 0", class = "powerkit_spec_error")
+test_that("a two-group X may correlate with W (non-randomised groups): W is drawn from X, with exact moments", {
+  # Randomised groups (no correlation) keep power4mome's own standardisation.
+  expect_null(whole_study_inputs(validate_whole_study(group_study()))$standardized)
+  spec <- validate_whole_study(group_study(r_xw = 0.3))
+  inputs <- whole_study_inputs(spec)
+  expect_false(inputs$standardized)
+  expect_true(all(c("W ~ X", "W ~~ 0.91*W") %in% lines_of(inputs$model)))
+  expect_true("W ~ X: 0.3" %in% lines_of(inputs$pop_es))
+  expect_false(any(grepl("X ~~ W", lines_of(inputs$pop_es), fixed = TRUE)))
+  # For two equal groups X x W has variance 1 - r^2, not the 1 + r^2 of
+  # jointly normal variables, and is uncorrelated with X and W; so Y's
+  # R-squared is the sum below.
+  paths <- spec$population$paths
+  r <- 0.3
+  expected <- paths[["X->Y"]]^2 + paths[["W->Y"]]^2 + 2 * paths[["X->Y"]] * paths[["W->Y"]] * r + paths[["XW->Y"]]^2 * (1 - r^2)
+  moments <- whole_study_moments(spec, whole_study_model(spec))
+  expect_equal(moments$r_squared[["Y"]], expected, tolerance = 1e-12)
+  expect_equal(moments$residual[["W"]], 1 - r^2)
+  # The check run recovers the paths, every variance of 1 and the correlation.
+  result <- run_whole_study(group_study(r_xw = 0.3, x_prob = 0.3))
+  expect_true(all(result$check_run$ok))
+  expect_true("X<->W" %in% result$check_run$parameter)
+})
+
+test_that("x_prob needs a two-group X, and only X may be two groups", {
   scores <- regression_study()
   scores$population$x_prob <- 0.5
   expect_error(validate_whole_study(scores), "only when X is two groups", class = "powerkit_spec_error")
-  # Only X may be two groups.
   outcome <- group_study()
   outcome$variables$Y$type <- "binary"
   expect_error(validate_whole_study(outcome), class = "powerkit_spec_error")
@@ -306,11 +328,16 @@ test_that("measured twice, the baseline B predicts Y and every analysis adjusts 
   inputs <- whole_study_inputs(validate_whole_study(spec))
   expect_identical(vapply(inputs$analyses, function(a) a$fit_model, ""), c("Y ~ X + B", "Y ~ X + W + X:W + B"))
   expect_true(all(c("X ~~ B: 0.1", "W ~~ B: 0.2") %in% lines_of(inputs$pop_es)))
-  # A two-group X is drawn on its own: uncorrelated with B, which isn't asked.
+  # A two-group X may correlate with B too: B is drawn from X and W with
+  # the standardised coefficients that give the three correlations.
   spec$variables$X$type <- "binary"
   spec$population$correlations <- list("X<->W" = 0, "X<->B" = 0.1, "W<->B" = 0.2)
-  expect_error(validate_whole_study(spec), "correlation of X and B must be 0", class = "powerkit_spec_error")
-  expect_setequal(whole_study_parameters(spec[setdiff(names(spec), "population")])$correlations, "W<->B")
+  expect_setequal(whole_study_parameters(spec[setdiff(names(spec), "population")])$correlations, c("X<->W", "X<->B", "W<->B"))
+  inputs <- whole_study_inputs(validate_whole_study(spec))
+  expect_true(all(c("B ~ X: 0.1", "B ~ W: 0.2") %in% lines_of(inputs$pop_es)))
+  # Without them (randomised groups) both are 0, as before they could be given.
+  spec$population$correlations <- list("W<->B" = 0.2)
+  expect_null(whole_study_inputs(validate_whole_study(spec))$standardized)
 })
 
 test_that("measured twice, a mediation adjusts Y, not the mediator, for the baseline", {

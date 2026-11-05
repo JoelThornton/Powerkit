@@ -8,6 +8,14 @@
 
 # powerkit 0.31.0
 
+* Whole-study simulation: X as two groups may now correlate with the
+  moderator W and the first measurement B (`population > correlations`
+  "X<->W" and "X<->B"; 0 if not given, as for randomised groups). W and B
+  are drawn from X in the population, each residual variance comes from
+  the exact moments of the products (`whole_study_moments()`), and
+  power4mome's own standardisation is switched off for these studies.
+  Validation (chunk `whole_study`): a simulation written separately.
+
 * Differential item functioning (template `irt / dif`, card E71): whether
   some items of a test with yes/no answers work differently in two groups,
   in a two-parameter logistic IRT model, by irtpwr's analytical method
