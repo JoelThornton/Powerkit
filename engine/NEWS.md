@@ -2,6 +2,9 @@
 
 * The app starts in about 0.5 s instead of 3: the About tab is built the
   first time it is opened, not when the app starts.
+* The package title and description, the app's page title, search
+  description and footer, and the guide describe powerkit as power analysis
+  for research studies, not only psychology.
 
 * Results capture a versioned, hashed evidence registry for the selected
   analysis variant. Package agreement, independent references, published
