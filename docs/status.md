@@ -32,9 +32,11 @@ fully validated. Validation runs are recorded in
   safeguard planning remain limited to their equal-SD assumptions.
 
 - **Bayes factors:** fifteen designs have a Bayes factor test version,
-  all listed on "Plan a study analysed with Bayes factors" (E-bayes, a
-  guide page) and found by searching "Bayes". Next: what a Bayes factor
-  adds on frequentist results, planning for both, then the full planner.
+  all listed on "Plan a study analysed with Bayes factors" (E-bayes) and
+  found by searching "Bayes". P-value results of the exactly calculated
+  ones offer "Add a Bayes factor?" (`bayes_companion()`): the chances at
+  3 and 10, the size for both and, for t-tests, how often they agree.
+  Next: the full Bayesian planner on the cards.
 
 - **Unfinished drafts:** input screens can download partial answers without
   a calculation or justification. The same file opener restores blanks and

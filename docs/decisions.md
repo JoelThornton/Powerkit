@@ -5273,3 +5273,44 @@ Sources for parts 2 to 4 are added to `refs.bib`, checked against the
 full text, in the PRs that cite them; Schonbrodt and Wagenmakers (2018)
 and O'Hagan, Stevens and Campbell (2005) are there already.
 
+## 2026-11-05 · What a Bayes factor would add, and planning for both (parts 2 and 3)
+
+Parts 2 and 3 of the plan above, on the designs whose Bayes factor
+version is calculated exactly: the three t-tests, the correlation, one
+proportion, two proportions and the one-way ANOVA. The tables and the
+two-factor and repeated-measures ANOVAs are simulated (seconds to minutes
+a study), so they are left out.
+
+- **Engine.** `bayes_companion(spec, n, thresholds, target)` runs the
+  plan's Bayes factor test version (the same function the card's Bayes
+  factor version uses, with its default priors, JASP's) at the planned
+  sample size, and, with the target power, finds the sample size giving
+  the Bayes factor the same chance. A plan with no counterpart says why
+  (Welch's t-test or Welch's F with SDs that differ).
+- **Two thresholds, 3 and 10.** At ordinary sample sizes a Bayes factor
+  of 10 for no effect is often out of reach (90 people in a one-sample
+  test can't give it, however the data fall), so one threshold would
+  show 0% where 3 shows most studies finding evidence of no effect.
+- **Agreement (t-tests).** The p-value and the JZS Bayes factor both
+  depend on the data only through t, so each test's decision is a
+  region of t: the Bayes factor's bounds from bfpwr's `tbf01()` (as in
+  `bayes_sequential()`), the p-value's from the t distribution; the
+  chance of each pair of decisions is a probability of t between two
+  values, from the noncentral t (as for the t-test's power). With no
+  effect the p-value's share is exactly alpha, with the effect it is
+  pwr's power, and a simulation written separately (`t.test()` and
+  BayesFactor's `ttestBF()`) agrees cell by cell
+  (`test-validation-bayes-companion.R`, `validation-log.md`). The table
+  is exact; bfpwr's closed form, which the chances above it use so that
+  they match the card's Bayes factor version, is slightly low (Known
+  difference 6), so the two can differ by a few tenths of a point. The
+  p-value side of the table is Student's t-test also when the plan uses
+  Welch's with equal SDs and equal groups, where the two agree closely.
+- **In the app.** "Add a Bayes factor?" sits under the answer on those
+  designs' p-value results, with one button: the numbers take one to four
+  seconds, so they are worked out when asked for. It shows the chances at
+  both thresholds, the sample size for both, how often the two agree,
+  advice on reporting both (name the main test in advance), wording for
+  the plan with the p-value test as the main one, and a button switching
+  the plan to the Bayes factor test.
+

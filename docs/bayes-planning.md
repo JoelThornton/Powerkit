@@ -18,11 +18,11 @@ Four parts, in this order (`decisions.md`, 5 November 2026):
    lists every design with a Bayes factor version and opens each with it
    chosen; searching "Bayes" finds them. No question about p-values or
    Bayes factors is added to the start.
-2. **What a Bayes factor would add**, shown on frequentist results: the
+2. **What a Bayes factor would add** (done), shown on frequentist results: the
    chance of strong evidence for the effect, and for no effect if there
    is none, at the sample size planned for the p-value, with JASP's
    default priors.
-3. **Planning for both**: one sample size for a p-value and a Bayes
+3. **Planning for both** (done): one sample size for a p-value and a Bayes
    factor reported together, with how often they would agree and the
    primary test named in the plan's wording.
 4. **A full Bayesian planner on the cards**: what the Labs tool does

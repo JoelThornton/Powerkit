@@ -1,5 +1,11 @@
 # powerkit 0.32.0
 
+* `bayes_companion()`: what a Bayes factor would add to a plan made with a
+  p-value (its chances at thresholds of 3 and 10, the sample size for both
+  tests, and for t-tests how often the two agree, exactly). In the app,
+  "Add a Bayes factor?" on p-value results of the t-tests, the correlation,
+  proportions and the one-way ANOVA.
+
 * "Plan a study analysed with Bayes factors" in the list of analyses is a
   page of every design with a Bayes factor test version, each opening its
   input screen with the Bayes factor chosen; searching "Bayes" finds them.

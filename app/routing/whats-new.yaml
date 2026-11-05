@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Add a Bayes factor to your plan"
+    text: >-
+      Results for t-tests, correlations, proportions and the one-way ANOVA
+      now offer "Add a Bayes factor?": how often a Bayes factor would find
+      your effect, or show that there is none, with the sample size you
+      planned; how many people you'd need for both; how often the p-value
+      and the Bayes factor would agree; and wording for your plan.
+  - date: "2026-11-05"
     title: "Every Bayes factor design in one place"
     text: >-
       In "I know my analysis", searching for Bayes now finds every design

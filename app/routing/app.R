@@ -1042,6 +1042,25 @@ server <- function(input, output, session) {
     }
     session$sendCustomMessage("focus_result", "form_result")
   }
+  # What a Bayes factor would add (bayes_companion_card_ui()): computed
+  # by the engine when asked for, for the last calculation.
+  observeEvent(input$bayes_companion_show, {
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"))
+    n <- bayes_companion_n(calc$spec, calc$result)
+    target <- if (identical(calc$result$goal_type, "sample_size")) calc$spec$goal$power
+    comp <- tryCatch(engine_function("bayes_companion")(calc$spec, n, target = target),
+      error = function(e) list(available = FALSE, reason = "powerkit couldn't work out the Bayes factor side of this plan."))
+    output$bayes_companion <- renderUI(bayes_companion_ui(calc$spec, calc$result, comp))
+  })
+  observeEvent(state$calc, output$bayes_companion <- renderUI(NULL), ignoreNULL = FALSE)
+  # Switch the plan's test version to its Bayes factor test.
+  observeEvent(input$bayes_companion_switch, {
+    d <- tree$bayes_designs[[state$endpoint]]
+    req(d)
+    updateSelectInput(session, field_input_id(list(id = d$field)), selected = "bayes_factor")
+    session$sendCustomMessage("focus_result", field_input_id(list(id = d$field)))
+  })
   # The explore panel: power by N for the effect on the slider. It reads the
   # last calculation and never changes the plan.
   output$explore_plot <- renderPlot({
