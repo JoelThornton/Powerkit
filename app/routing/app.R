@@ -35,9 +35,12 @@ source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "capabilities.R"), local = TRUE)
+source(file.path("R", "planning.R"), local = TRUE)
+source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
+source(file.path("R", "connection.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
@@ -663,6 +666,10 @@ about_tab_html <- function() {
   if (is.null(about_tab_cache$html)) about_tab_cache$html <- about_ui(tree, forms)
   about_tab_cache$html
 }
+# Built in the background once the app has started and answered its first
+# visitor, so the tab is usually ready before anyone opens it (later runs
+# it when the app is idle).
+later::later(function() about_tab_html(), delay = 3)
 whats_new_tab <- whats_new_ui(whats_new)
 labs_tab <- labs_ui(tree)
 feedback_tab <- feedback_tab_ui(tree)
@@ -678,9 +685,10 @@ ui <- function(req) fluidPage(
   tags$head(tags$title("Powerkit: power analysis and sample size planning (prototype)"),
     tags$meta(name = "description", content = "Plan sample size, statistical power and precision for your study. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
     tags$link(rel = "canonical", href = paste0(public_address, "/")),
-    tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
+    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
+  connection_ui(),
   tags$header(class = "topbar",
     div(class = "topbar-inner",
       h1(class = "brand", "powerkit",
@@ -694,7 +702,9 @@ ui <- function(req) fluidPage(
       # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
       selected = page_from_query(req$QUERY_STRING),
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
-      tabPanel("About", div(class = "pt-3", uiOutput("about_page"))),
+      tabPanel("About", div(class = "pt-3",
+        tags$p(class = "about-loading", tags$span(class = "pk-spinner pk-spinner-small", `aria-hidden` = "true"), "Loading the About page…"),
+        uiOutput("about_page"))),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
       tabPanel("Updates", div(class = "pt-3", whats_new_tab)),
       tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
@@ -706,6 +716,9 @@ ui <- function(req) fluidPage(
 )
 
 server <- function(input, output, session) {
+  # If the connection drops while this session's process is still running,
+  # Shiny reconnects to it and nothing is lost (R/connection.R).
+  session$allowReconnect(TRUE)
   # The About page, built on first opening (about_tab_html()).
   about_opened <- reactiveVal(FALSE)
   observeEvent(input$tabs, if (identical(input$tabs, "About")) about_opened(TRUE))
@@ -805,6 +818,49 @@ server <- function(input, output, session) {
     names(values) <- vapply(fields, `[[`, "", "id")
     values[!vapply(values, is.null, logical(1))]
   }
+  # Answers on an input screen, saved in this browser a moment after each
+  # change (R/connection.R), in the draft format "Save a draft" uses.
+  autosave_route <- debounce(reactive({
+    if (!identical(state$screen, "form") || is.null(state$endpoint)) return(NULL)
+    project_route(reactiveValuesToList(state), current_form_values())
+  }), 1500)
+  observe({
+    route <- autosave_route()
+    req(route)
+    session$sendCustomMessage("pk_autosave", as.character(jsonlite::toJSON(autosave_record(route), auto_unbox = TRUE, null = "null")))
+  })
+  # A new session that finds saved answers in the browser offers to bring
+  # them back, once, while the visitor hasn't started anything yet.
+  saved_draft <- reactiveVal(NULL)
+  observeEvent(input$pk_saved_draft, {
+    record <- autosave_from_browser(input$pk_saved_draft)
+    if (is.null(record) || !identical(state$screen, "start") || length(state$history)) return()
+    restored <- restore_draft(record, tree, forms)
+    if (is.character(restored)) {
+      session$sendCustomMessage("pk_autosave", "")
+      return()
+    }
+    saved_draft(list(record = record, restored = restored))
+    name <- tree$endpoints[[record$route$endpoint]]$plain_name %||% record$route$endpoint
+    showModal(modalDialog(
+      title = "Continue where you left off?",
+      tags$p(sprintf("You were filling in \"%s\" (saved %s). Your answers are kept in this browser.", name, record$saved_at)),
+      footer = tagList(actionButton("pk_restore_no", "Start fresh", class = "btn-outline-secondary"),
+        actionButton("pk_restore_yes", "Continue", class = "btn-primary")),
+      easyClose = FALSE))
+  }, once = TRUE)
+  observeEvent(input$pk_restore_yes, {
+    saved <- saved_draft()
+    removeModal()
+    req(saved)
+    for (name in names(saved$restored)) state[[name]] <- saved$restored[[name]]
+    output$form_result <- renderUI(draft_opened_ui(saved$record$saved_at))
+  })
+  observeEvent(input$pk_restore_no, {
+    removeModal()
+    saved_draft(NULL)
+    session$sendCustomMessage("pk_autosave", "")
+  })
   observeEvent(input$pick, {
     pick <- input$pick
     kind <- sub(":.*$", "", pick)
@@ -1090,7 +1146,7 @@ server <- function(input, output, session) {
     calc <- state$calc
     req(calc, identical(calc$status, "ok"), input$explore_effect, !is.null(explore_effect(calc$spec)))
     df <- explore_curve(calc$spec, calc$result, input$explore_effect, seed = forms$default_seed)
-    planned <- calc$result$n_required$n %||% calc$spec$goal$n
+    planned <- n_analysed(calc$result)
     power_curve_plot(list(list(df = df, col = "#0A5A8C", fill = TRUE)), target = calc$spec$goal$power %||% 0.8, planned_n = planned)
   }, res = 96)
 
@@ -1116,7 +1172,7 @@ server <- function(input, output, session) {
     style <- list(conservative = list(col = "#b45309", lty = 2), expected = list(col = "#14284B", lty = 1), optimistic = list(col = "#0A5A8C", lty = 3))
     calc <- state$calc
     power_curve_plot(lapply(keys, function(k) list(df = df[df$scenario == k, ], col = style[[k]]$col, lty = style[[k]]$lty)),
-      target = calc$spec$goal$power %||% 0.8, planned_n = calc$result$n_required$n %||% calc$spec$goal$n)
+      target = calc$spec$goal$power %||% 0.8, planned_n = n_analysed(calc$result))
     legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
       lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3, bty = "n", inset = c(0, 0.04))
   }, res = 96)
@@ -1360,6 +1416,23 @@ server <- function(input, output, session) {
   )
   # Project files: the engine writes and reads them (write_project(),
   # read_project()); the app passes the route and puts the screen back.
+  observeEvent(input$scenario_compare, {
+    values <- isolate(current_form_values())
+    fields <- isolate(current_form_fields())
+    compared <- tryCatch(compare_named_alternatives(forms, state$endpoint, fields, values), error = function(e) conditionMessage(e))
+    output$scenario_comparison <- renderUI(if (is.character(compared)) p(role = "alert", compared) else tagList(
+      p("Formula comparison of saved assumptions; these are separate plans. Recalculate the chosen alternative before exporting its result."),
+      tags$table(class = "table", tags$thead(tags$tr(lapply(names(compared), function(x) tags$th(scope = "col", x)))),
+        tags$tbody(lapply(seq_len(nrow(compared)), function(i) tags$tr(lapply(compared[i, ], tags$td)))))))
+  })
+
+  output$download_planning_document <- downloadHandler(
+    filename = function() "powerkit-study-planning.md",
+    content = function(file) {
+      req(calculation_matches_values(state$calc, current_form_values()))
+      req(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
+      writeLines(planning_document(tree, forms, state$calc), file, useBytes = TRUE)
+    })
   output$download_project <- downloadHandler(
     filename = function() project_file_name(state$endpoint),
     content = function(file) {

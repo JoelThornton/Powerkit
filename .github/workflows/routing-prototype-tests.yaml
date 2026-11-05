@@ -27,6 +27,47 @@ jobs:
       contents: read
       packages: write
 
+  browser-tests:
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    env:
+      RENV_ACTIVATE_PROJECT: "FALSE"
+      NOT_CRAN: "true"
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: app/routing/walkthroughs/package-lock.json
+      - name: Install the engine and locked browser test tools
+        run: |
+          R CMD INSTALL engine
+          npm ci --ignore-scripts --no-audit --no-fund --prefix app/routing/walkthroughs
+          node app/routing/walkthroughs/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Check calculations, files, precision, cancellation and navigation in Chromium
+        run: node app/routing/walkthroughs/node_modules/playwright/cli.js test --config app/routing/walkthroughs/playwright.config.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-regression-report
+          path: |
+            app/routing/walkthroughs/playwright-report/
+            app/routing/walkthroughs/test-results/
+          retention-days: 7
+
   # Two jobs side by side: test-results.R, which runs calculations and the
   # exported scripts and takes about two thirds of the time, and every
   # other test file. Together they are the whole suite.

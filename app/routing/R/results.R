@@ -17,11 +17,12 @@ form_calculates <- function(forms, ep_id) ep_id %in% unlist(forms$calculates)
 # so on) also runs in the background, so a run of a minute or two neither
 # leaves the screen without a progress bar nor holds up everyone else
 # using the app (the online app has one R process). The basic tests'
-# simulations (Welch's t-test, the rank tests for two groups) take a few
-# seconds, less than starting a background process, so they run here.
+# usual short simulations take less time than starting another process.
+# Higher-accuracy basic runs use that process so they remain cancellable.
 runs_in_background <- function(forms, ep_id, spec = NULL, simulates = engine_function("runs_simulation")) {
   if (ep_id %in% names(forms$background)) return(TRUE)
-  if (is.null(spec) || is.null(simulates) || identical(spec$design, "basic_test")) return(FALSE)
+  if (is.null(spec) || is.null(simulates)) return(FALSE)
+  if (identical(spec$design, "basic_test") && (spec$options$nrep %||% 1000L) <= 1000L) return(FALSE)
   isTRUE(tryCatch(simulates(spec), error = function(e) FALSE))
 }
 usual_seconds <- function(forms, ep_id, goal) forms$background[[ep_id]][[goal]] %||% NA_real_
@@ -2096,7 +2097,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     div(class = "nav-buttons",
       if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
       downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
-      if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
+      if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary"),
+      if (can_export) downloadButton("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
     if (can_export) uiOutput("study_plan_bar"),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     simulated_data_ui(spec, result)),
@@ -2793,7 +2795,8 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       div(class = "nav-buttons",
         if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
         downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
-        if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
+        if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary"),
+      if (can_export) downloadButton("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
       if (can_export && !is.na(result$precision$target_width)) uiOutput("study_plan_bar"),
       p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation() and the software used. Save project keeps your answers and result in one file on your computer; open it from the start screen to carry on."),
       simulated_data_ui(spec, result)),
