@@ -32,9 +32,10 @@ efa_by_hand <- function(k, p, loading, phi, n, congruence, nrep, seed) {
   orders <- orders[apply(orders, 1, function(o) length(unique(o)) == k), , drop = FALSE]
   hits <- with_seed(seed, vapply(seq_len(nrep), function(i) {
     x <- MASS::mvrnorm(n, rep(0, nrow(sigma)), sigma)
-    fit <- tryCatch(suppressWarnings(stats::factanal(x, factors = k, rotation = if (k > 1) "oblimin" else "none")), error = function(e) NULL)
+    fit <- tryCatch(suppressWarnings(stats::factanal(x, factors = k, rotation = "none")), error = function(e) NULL)
     if (is.null(fit)) return(FALSE)
     est <- unclass(fit$loadings)
+    if (k > 1) est <- unclass(GPArotation::oblimin(est)$loadings)
     tucker <- abs(crossprod(est, lambda) / sqrt(outer(colSums(est^2), colSums(lambda^2))))
     best <- orders[which.max(apply(orders, 1, function(o) sum(tucker[cbind(o, seq_len(k))]))), ]
     all(tucker[cbind(best, seq_len(k))] >= congruence)

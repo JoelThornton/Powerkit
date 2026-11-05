@@ -141,7 +141,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -152,6 +152,7 @@ background:
   E15: {power: 5, sample_size: 80}
   E59: {power: 4, sample_size: 30}
   E58: {power: 25, sample_size: 120}
+  E73: {power: 35, sample_size: 150}
   E60: {power: 4, sample_size: 30}
 # At most this many background calculations (E9 and E10-E14's preview and
 # full run) at once, across everyone using the app; others are asked to try
@@ -3082,6 +3083,37 @@ forms:
              help: "The same in both groups. Someone who leaves misses every later occasion. Don't also allow for drop-out under recruitment below: this already does."}
           - {id: allocation_ratio, label: "Size of group 2 relative to group 1 (1 = equal groups)", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as Diggle and colleagues' formula assumes"}
+
+  # Exploratory factor analysis (Spower simulation of powerkit's experiment
+  # around psych's fa()): the chance every factor's loadings are recovered.
+  E73:
+    methods_name: "an exploratory factor analysis (psych's fa(): minimum residual, oblimin rotation), recovery of the loadings judged by Tucker's congruence, simulated"
+    tool: Spower
+    directional: false
+    no_alpha: true
+    power_label: "Target chance of recovering every factor"
+    power_help: "As a proportion, for example 0.8: the share of studies like yours in which every factor's loadings are recovered."
+    base: {spec_version: "0.1", design: factor_analysis, template: efa,
+           variables: {"Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: recovery, method: congruence}}
+    groups:
+      - input: "The questionnaire and its factors"
+        fields:
+          - {id: Y_label, label: "The questionnaire or set of items (for example, a wellbeing scale)", type: text, path: variables.Y.label, required: true}
+          - {id: factors, label: "Number of factors you expect", type: number, path: population.factors, required: true, min: 1, max: 6, integer: true}
+          - {id: items_per_factor, label: "Number of items for each factor", type: number, path: population.items_per_factor, required: true, min: 3, max: 20, integer: true,
+             help: "More items per factor make each factor better defined (overdetermined) and easier to recover."}
+      - input: "How strongly the items measure their factors"
+        fields:
+          - {id: loading, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "Its square is the item's communality, the share of its variance its factor explains. Loadings around 0.4 are weak, 0.6 moderate, 0.8 strong. Take them from earlier studies of the same or similar items."}
+          - {id: factor_correlation, label: "Correlation between the factors", type: number, path: population.factor_correlation, required: true, min: 0, max: 0.9,
+             default: 0, default_source: "uncorrelated factors, the design spec's default"}
+      - input: "What counts as recovering the factors"
+        fields:
+          - {id: congruence, label: "Tucker's congruence each factor's loadings must reach with the true ones", type: number, path: target_test.congruence, required: true, min: 0.8, max: 0.999,
+             default: 0.95, default_source: "0.95, the level at which Lorenzo-Seva and ten Berge (2006) treat two factors as virtually equal",
+             help: "1 is a perfect match. Lower values, such as 0.90, accept a rougher recovery."}
 
   # Latent profile analysis (Spower simulation of powerkit's experiment
   # around mclust): the chance the BIC finds the right number of profiles.

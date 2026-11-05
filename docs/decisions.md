@@ -5515,3 +5515,40 @@ screen by about five seconds, so it waits for that screen.
   that differ in other patterns or in their spread, and correlated
   indicators within a profile.
 
+## 2026-11-05 · Exploratory factor analysis: recovering the factors (E73)
+
+- **What:** a new card, E73, and design, `factor_analysis / efa`: the
+  chance that an exploratory factor analysis recovers every factor's
+  loadings. Reached from Q1 ("That a questionnaire's items form the
+  factors you expect, found by exploratory factor analysis") and the
+  latent-variables family.
+- **Why:** `next.md` item 5, the last of its three designs in the order
+  the maintainer chose on 5 November 2026. An EFA has no significance test
+  to power; the sample-size literature asks whether the loadings are
+  recovered, which depends on the communalities and the items per factor
+  more than on any people-per-item rule (MacCallum, Widaman, Zhang and
+  Hong, 1999). No package plans it.
+- **Method (the maintainer's choice of a simulation, 5 November 2026):**
+  powerkit's Spower experiment `p_efa()`. Data come from the common factor
+  model with simple structure (each item loads the same amount on one
+  factor), the factors correlating as given. psych's `fa()` is fitted with
+  its defaults (minimum residual, oblimin rotation), following the package
+  most researchers in R use; each true factor is matched one-to-one to an
+  estimated factor (the matching that makes the congruences largest in
+  total, sign ignored); a study succeeds when every factor's Tucker
+  congruence reaches the level asked, .95 by default, the level at which
+  Lorenzo-Seva and ten Berge (2006) treat factors as equal. Both sources
+  are in `refs.bib`.
+- **No alpha:** as for latent profiles (`no_alpha`, method `congruence`).
+- **Validation** (`test-validation-efa.R`, chunk `efa`): fits by base R's
+  `factanal()` (maximum likelihood, oblimin from GPArotation) on data drawn
+  separately, with matching and congruence computed separately, agree
+  within 0.03 (89.2% against 86.6%, 87.7% against 84.6%, 99.9% against
+  99.8%): minimum residual recovers the loadings about three points more
+  often than maximum likelihood at these sizes, so a plan for an ML
+  analysis would be slightly optimistic (not offered as a choice yet); a
+  published table from MacCallum and colleagues is a placeholder for the
+  maintainer.
+- **Not covered yet:** choosing the number of factors (parallel analysis,
+  for example), cross-loadings, and items with different loadings.
+

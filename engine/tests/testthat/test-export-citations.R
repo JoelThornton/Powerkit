@@ -105,7 +105,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # and sequential Bayes factor designs (1 November 2026), and the tests of
   # close and not-close fit for structural equation models (2 November 2026),
   # and the log-linear correction for d' (5 November 2026, from the
-  # publisher's record and abstract).
+  # publisher's record and abstract), and the two sources of the exploratory
+  # factor analysis card (5 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -125,7 +126,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       SchonbrodtWagenmakers2018_bfda = "verified", Schonbrodt2017_sequential = "verified",
       Perugini2025_critical = "verified", Lakens2022_justification = "verified",
       MacCallum1996_rmsea = "verified", BlitzsteinHwang2019_probability = "verified",
-      Hautus1995_loglinear = "verified"
+      Hautus1995_loglinear = "verified", MacCallum1999_samplesize = "verified",
+      LorenzoSeva2006_congruence = "verified"
     )
   )
 })

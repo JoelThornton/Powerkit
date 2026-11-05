@@ -229,6 +229,9 @@ group_text <- function(spec, n) {
 }
 
 test_text <- function(spec) {
+  if (identical(spec$template, "efa")) {
+    return(sprintf("psych's fa() (minimum residual, oblimin rotation), every factor's loadings with Tucker's congruence of at least %s", format(spec$target_test$congruence %||% 0.95)))
+  }
   if (identical(spec$template, "lpa")) {
     return(sprintf("the BIC choosing among latent profile models with 1 to %d profiles (mclust)", as.integer(spec$population$profiles) + 1L))
   }
@@ -569,6 +572,7 @@ simulation_note <- function(result) {
 # result_wording).
 result_sentences <- function(spec, result) {
   if (identical(spec$template, "lpa")) return(lpa_sentences(spec, result))
+  if (identical(spec$template, "efa")) return(efa_sentences(spec, result))
   if (is_precision(spec)) return(precision_sentences(spec, result))
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
   if (identical(spec$design, "meta_analysis")) return(meta_sentences(spec, result))
@@ -3024,5 +3028,29 @@ lpa_sentences <- function(spec, result) {
       reading = plain_reading(row$power, outcome = outcome,
         if_not = "If the profiles are closer together or one of them is small, fewer would.",
         condition = "the profiles are as you entered"))
+  }
+}
+
+# Exploratory factor analysis: the chance of recovering every factor's
+# loadings, in words.
+efa_sentences <- function(spec, result) {
+  k <- as.integer(spec$population$factors)
+  found <- sprintf("%s loadings are recovered (Tucker's congruence of at least %s with the true ones)",
+    if (k == 1) "the factor's" else sprintf("all %d factors'", k), format(spec$target_test$congruence %||% 0.95))
+  outcome <- if (k == 1) "recover the factor" else sprintf("recover all %d factors", k)
+  if_not <- "If the loadings are weaker or the factors have fewer items, fewer would."
+  condition <- "the factors are as you entered"
+  if (identical(result$goal_type, "sample_size")) {
+    est <- result$n_required
+    c(headline = sprintf("You need %s people for a %s chance that %s.", whole(est$n), percent(spec$goal$power), found),
+      detail = sprintf("This N comes from simulation (%s replications per sample size); the 95%% interval for the required N is %s to %s.",
+        whole(result$provenance$nrep), whole(est$lower), whole(est$upper)),
+      reading = plain_reading(spec$goal$power, outcome = outcome, if_not = if_not, condition = condition))
+  } else {
+    row <- result$curve[1, ]
+    c(headline = sprintf("With %s people, there is a %s chance that %s.", whole(row$n), percent(row$power), found),
+      detail = sprintf("Estimated by simulation from %s replications (Monte Carlo standard error %.1f percentage points).",
+        whole(result$provenance$nrep), 100 * row$mcse),
+      reading = plain_reading(row$power, outcome = outcome, if_not = if_not, condition = condition))
   }
 }

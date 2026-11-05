@@ -83,7 +83,7 @@ test_that("other settings start at the wrapped tool's default, and say whose def
   # Latent profiles (E58) have no significance test, so no alpha.
   expect_length(Filter(function(f) f$id == "alpha", fields_for("E58")), 0)
   expect_match(Filter(function(f) f$id == "power", fields_for("E58"))[[1]]$label, "right number of profiles", fixed = TRUE)
-  for (ep in setdiff(form_ids, c("E46", "E58"))) {
+  for (ep in setdiff(form_ids, c("E46", "E58", "E73"))) {
     f <- alpha(ep)
     expect_equal(f[["default"]], 0.05, label = ep)
     expect_match(f$default_source, forms$forms[[ep]]$tool, fixed = TRUE, label = ep)

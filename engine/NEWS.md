@@ -1,5 +1,9 @@
 # powerkit 0.32.0
 
+* Exploratory factor analysis (E73, `factor_analysis / efa`): the chance every
+  factor's loadings are recovered (Tucker's congruence), simulated with
+  Spower around psych's `fa()`.
+
 * Latent profile analysis (E58, `mixture / lpa`): the chance the BIC finds
   the right number of profiles, simulated with Spower around mclust (a new
   dependency).
