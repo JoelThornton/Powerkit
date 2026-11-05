@@ -5930,14 +5930,14 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Psychology Designs",
-        "Version": "0.30.0",
+        "Version": "0.31.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, ARTool, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize, PMCMRplus,\nPOMADE, presize, lme4, lmerTest, manymome, MBESS, gsl, metafor,\nmetapower, parallel, psych, quantreg, power4mome, pwr,\npowertools, powerSurvEpi, pwrss, PUMP, semPower, simr,\nSimDesign, statpsych, Spower (>= 0.7), stats, SuppDists,\nsurvival, Superpower, TOSTER, utils, WebPower",
+        "Imports": "afex, ARTool, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize, PMCMRplus,\nPOMADE, presize, lme4, lmerTest, manymome, MBESS, nnet, gsl,\nmetafor, metapower, parallel, psych, quantreg, power4mome, pwr,\npowertools, powerSurvEpi, pscl, pwrss, PUMP, semPower, simr,\nSimDesign, statpsych, Spower (>= 0.7), stats, SuppDists,\nsurvival, Superpower, TOSTER, utils, WebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5947,19 +5947,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "b386c094ce2e780b308ca12ecc9a587db5e51c56",
-        "RemoteSha": "b386c094ce2e780b308ca12ecc9a587db5e51c56",
+        "RemoteRef": "253cfa88027ef214bcf5ff5fd8b41e0dd822a4b8",
+        "RemoteSha": "253cfa88027ef214bcf5ff5fd8b41e0dd822a4b8",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "b386c094ce2e780b308ca12ecc9a587db5e51c56",
-        "GithubSHA1": "b386c094ce2e780b308ca12ecc9a587db5e51c56",
+        "GithubRef": "253cfa88027ef214bcf5ff5fd8b41e0dd822a4b8",
+        "GithubSHA1": "253cfa88027ef214bcf5ff5fd8b41e0dd822a4b8",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-05 00:32:14 UTC; runner",
+        "Packaged": "2026-11-05 03:34:29 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-05 00:32:29 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-05 03:34:42 UTC; unix"
       }
     },
     "powertools": {
@@ -6264,6 +6264,32 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-04-20 13:40:03 UTC",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:45 UTC; unix"
+      }
+    },
+    "pscl": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "pscl",
+        "Version": "1.5.9",
+        "Date": "2024-01-14",
+        "Title": "Political Science Computational Laboratory",
+        "Authors@R": "c(\n  person(\"Simon\", \"Jackman\",\n         role = c(\"aut\", \"cre\"),\n         email = \"simon.jackman@sydney.edu.au\",\n         comment = c(ORCID = \"0000-0001-7421-4034\")\n         ),\n  person(\"Alex\", \"Tahk\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0001-7895-9420\")),\n  person(\"Achim\", \"Zeileis\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0003-0918-3766\")),\n  person(\"Christina\", \"Maimone\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0002-0402-6297\")),\n  person(\"James\", \"Fearon\", role = c(\"ctb\")),\n  person(\"Zoe\", \"Meers\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0001-8045-6531\"))\n  )",
+        "Imports": "MASS, datasets, grDevices, graphics, stats, utils",
+        "Suggests": "lattice, MCMCpack, car, lmtest, sandwich, zoo, coda, vcd,\nmvtnorm, mgcv",
+        "Description": "Bayesian analysis of item-response theory (IRT) models,\n  roll call analysis; computing highest density regions; \n  maximum likelihood estimation of zero-inflated and hurdle models for count data;\n  goodness-of-fit measures for GLMs;\n  data sets used in writing\tand teaching; seats-votes curves.",
+        "LazyData": "true",
+        "License": "GPL-2",
+        "URL": "https://github.com/atahk/pscl",
+        "RoxygenNote": "7.3.0",
+        "NeedsCompilation": "yes",
+        "Packaged": "2024-01-16 06:19:34 UTC; jackman",
+        "Author": "Simon Jackman [aut, cre] (<https://orcid.org/0000-0001-7421-4034>),\n  Alex Tahk [ctb] (<https://orcid.org/0000-0001-7895-9420>),\n  Achim Zeileis [ctb] (<https://orcid.org/0000-0003-0918-3766>),\n  Christina Maimone [ctb] (<https://orcid.org/0000-0002-0402-6297>),\n  James Fearon [ctb],\n  Zoe Meers [ctb] (<https://orcid.org/0000-0001-8045-6531>)",
+        "Maintainer": "Simon Jackman <simon.jackman@sydney.edu.au>",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-01-31 08:00:03 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 20:44:59 UTC; unix"
       }
     },
     "psych": {
@@ -7905,10 +7931,10 @@
       "checksum": "b4dea88460ad4ddac3281930e010973b"
     },
     "forms.yaml": {
-      "checksum": "d3d4ddfa8d9e3147fe35db352c4c22ed"
+      "checksum": "034f1fcc11adcd3613caa0b9d0da48b2"
     },
     "methods-map.yaml": {
-      "checksum": "67eb2800cbbe955f630e138777a9c99d"
+      "checksum": "89a79e0d5586b041abead785a2bb1f83"
     },
     "R/about.R": {
       "checksum": "058c7b41398bd541aec5caa8fa38c310"
@@ -7923,7 +7949,7 @@
       "checksum": "d991c798a968b68cd76cf09312386f52"
     },
     "R/forms.R": {
-      "checksum": "7c03fd354bfa90a7049c4adb8cd31605"
+      "checksum": "301f71b5d75499eba337c29968cc1af0"
     },
     "R/labs.R": {
       "checksum": "a03c7b174e5dcb147c075d96fdd3bc56"
@@ -7935,7 +7961,7 @@
       "checksum": "23e6eed5ff5f012fdb8a5f2df34c6c0e"
     },
     "R/results.R": {
-      "checksum": "e4a3ebf1863772e04e416592427c993b"
+      "checksum": "49b9239536544743a40985946a2bf3ad"
     },
     "R/simulations.R": {
       "checksum": "025c9ef2b3cf1436d421140b5759e059"
@@ -7965,7 +7991,7 @@
       "checksum": "619c128970bd157c9ab610aae34ce7ee"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "77955d211f4fdeb38d1ac7924519d2e2"
+      "checksum": "fd8cce308cc255560581627abfa067c2"
     },
     "tests/testthat/setup.R": {
       "checksum": "c9ff9599c519c8de3b27706899401d69"
@@ -8025,10 +8051,10 @@
       "checksum": "2f7d37efeda4a374d8cd69d894551782"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "528cb7bad553e1f1d28629c042ebb56a"
+      "checksum": "71ec5259f2f0833e6a089d8eb0997782"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "46076b2107fdd1f2b32a98f85971e19b"
+      "checksum": "c6a18d6dcc163fdb9ce72735b050bf04"
     },
     "tests/testthat/test-script-handoff.R": {
       "checksum": "bc3eae8ef53e180d02a6ecede3214a60"
@@ -8058,7 +8084,7 @@
       "checksum": "929b76a01029c06cbe8e19210c479077"
     },
     "tree.yaml": {
-      "checksum": "f3d2d3fa376ff11baa76a8e41b85abec"
+      "checksum": "e7fbf0d6b14b41b9cb322b4fa4c5b0a9"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -8073,7 +8099,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "2cef7a3d8a5ecaf1213e7c33f0d3a1d6"
+      "checksum": "a3e740141240bd541c907f5457815b44"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
