@@ -1008,7 +1008,7 @@ endpoints:
     backend: "Superpower: ANOVA_exact(); for unequal groups, a Spower simulation analysed with afex's aov_car(); Spower with ARTool's art() and artlm() for the aligned rank transform"
     refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
     method: "Exact dataset (no repeated simulation)"
-    inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction", "The F test or the aligned rank transform", "The size of each group"]
+    inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction", "The F test, the aligned rank transform or a Bayes factor", "The size of each group"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-mixed.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
     tier: MVP
@@ -1213,7 +1213,7 @@ endpoints:
       - "Both factors are measured in everyone, such as cue (valid or invalid) by delay (short, medium or long) in a reaction-time task: each person does every combination."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
       - "One SD and one correlation for every pair of combinations, so that sphericity holds; or an SD for each combination and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one."
-    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two conditions", "Which effect", "The F test or the aligned rank transform"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two conditions", "Which effect", "The F test, the aligned rank transform or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts, such as the interaction's linear trend", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures", "the aligned rank transform, if you analyse ranks (a choice on the next screen)"]
   E21:
@@ -1969,7 +1969,7 @@ endpoints:
       - "Because the same people give every score, you also give the correlation between people's scores in any two conditions: the higher it is, the fewer people you need."
       - "With one SD for every condition and one correlation for every pair, sphericity holds and no correction is needed. If they differ, give an SD for each condition and a correlation for each pair, and choose a Greenhouse-Geisser or Huynh-Feldt correction if you will report the corrected F test; the MANOVA approach, which doesn't assume sphericity, is shown beside it."
       - "Will you analyse the study by comparing pairs of conditions rather than the F test? Choose pairwise comparisons as the test version: powerkit gives the power of the pair you name (a paired t-test), with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
-    inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions", "The ANOVA, Friedman's test or pairwise comparisons"]
+    inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions", "The ANOVA, Friedman's test, pairwise comparisons or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts among the conditions", "the multivariate (MANOVA) approach to repeated measures", "a mixed-effects model"]
   E55:
@@ -1987,7 +1987,7 @@ endpoints:
       - "One factor is different people (such as therapy or waiting list) and the other is measured in everyone (such as before, after and at follow-up). At least one of them has three or more levels."
       - "Power is for one effect: the groups' difference, the change over time or conditions, or the interaction (whether the change differs between groups), which is usually the hypothesis in a trial."
       - "Equal or unequal group sizes (unequal groups are simulated). One SD and one correlation for every pair of timepoints or conditions, so that sphericity holds; or an SD for each cell and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one, and the MANOVA approach shown beside it."
-    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect", "The F test or the aligned rank transform", "The size of each group"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect", "The F test, the aligned rank transform or a Bayes factor", "The size of each group"]
     tier: v2
     alternatives: ["ANCOVA on the last timepoint, adjusting for the first", "planned contrasts, such as a linear trend over time by group", "a mixed-effects model", "the multivariate (MANOVA) approach to repeated measures", "the aligned rank transform, if you analyse ranks (a choice on the next screen)"]
   E56:
@@ -2021,7 +2021,7 @@ endpoints:
     status: not_in_powerkit
     not_in_powerkit_heading: "For other designs, not in powerkit yet: use "
     card_points:
-      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions, a table of counts, a correlation, a one-way ANOVA or an effect in a two-factor between-participants ANOVA, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation, proportions, tables and ANOVAs, BayesFactor (and bayestestR for an ANOVA effect's inclusion Bayes factor)."
+      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions, a table of counts, a correlation, a one-way ANOVA or an effect in a two-factor or repeated-measures ANOVA, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation, proportions, tables and ANOVAs, BayesFactor (and bayestestR for an ANOVA effect's inclusion Bayes factor)."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}
