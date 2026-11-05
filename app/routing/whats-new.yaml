@@ -13,6 +13,42 @@ entries:
       sizes. People who leave still count up to their last measurement, so
       you need fewer than if you simply recruited extra.
   - date: "2026-11-05"
+    title: "Check the evidence as you go"
+    text: >-
+      Planning a Bayes factor t-test? The result now shows how the same study
+      would go if you checked the Bayes factor as the data come in and stopped
+      once the evidence was strong: how often it stops each way, and how many
+      people it usually needs.
+  - date: "2026-11-05"
+    title: "Does the prior matter?"
+    text: >-
+      Bayes factor t-test results now show how the plan changes if you
+      analyse with a wider or narrower prior, using JASP's three standard
+      widths. And when you say how unsure you are about the effect, the
+      screen puts it in words: "you are about 95% sure the true effect is
+      between ... and ...".
+  - date: "2026-11-05"
+    title: "Add a Bayes factor to your plan"
+    text: >-
+      Results for t-tests, correlations, proportions and the one-way ANOVA
+      now offer "Add a Bayes factor?": how often a Bayes factor would find
+      your effect, or show that there is none, with the sample size you
+      planned; how many people you'd need for both; how often the p-value
+      and the Bayes factor would agree; and wording for your plan.
+  - date: "2026-11-05"
+    title: "Every Bayes factor design in one place"
+    text: >-
+      In "I know my analysis", searching for Bayes now finds every design
+      powerkit can plan with a Bayes factor, and "Plan a study analysed with
+      Bayes factors" lists all fifteen. Each opens its screen with the Bayes
+      factor test already chosen.
+  - date: "2026-11-05"
+    title: "Fewer questions that don't apply"
+    text: >-
+      Input screens no longer leave an empty box behind when a choice hides
+      its questions, and if you give the means in SD units powerkit no
+      longer asks for the SD, which is then 1.
+  - date: "2026-11-05"
     title: "Your answers survive a lost connection"
     text: >-
       If you leave the page and the connection drops, powerkit now keeps the

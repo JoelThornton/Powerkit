@@ -51,6 +51,24 @@ field_ui <- function(f, value, described_by = character()) {
       if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else paste0(short_source(f$default_source), ".")
     )
   )
+  # The uncertainty about an effect, read as a range (5 November 2026): an
+  # SD around the effect entered is about 95% sure to hold the effect
+  # within 1.96 SDs of it (a normal design prior).
+  if (!is.null(f$range_reading)) field <- tagList(field, p(class = "field-reading small", id = paste0(id, "_reading"), `aria-live` = "polite"),
+    tags$script(HTML(sprintf("(function() {
+  var means = %s, sd = '%s', out = '%s_reading';
+  function update() {
+    var el = document.getElementById(out); if (!el) return;
+    var s = parseFloat((document.getElementById(sd) || {}).value), m = NaN;
+    means.forEach(function(id) { var e = document.getElementById(id); if (e && e.offsetParent !== null && !isNaN(parseFloat(e.value))) m = parseFloat(e.value); });
+    if (isNaN(s) || isNaN(m)) { el.textContent = ''; return; }
+    if (s === 0) { el.textContent = 'You are planning for exactly ' + m + '.'; return; }
+    var lo = (m - 1.96 * s).toFixed(2), hi = (m + 1.96 * s).toFixed(2);
+    el.textContent = 'In words: you are about 95%% sure the true effect is between ' + lo + ' and ' + hi + '.';
+  }
+  document.addEventListener('input', update); document.addEventListener('change', update);
+  setTimeout(update, 0);
+})();", jsonlite::toJSON(paste0("f_", unlist(f$range_reading))), id, id))))
   # A note for each choice that needs one, shown when it is chosen (the
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
@@ -153,7 +171,25 @@ group_ui_build <- function(tree, g, values, index) {
         tags$span(class = "form-names-note", "Used to label the result and the write-up.")),
       box)
   }
-  if (is.null(g$shown_if)) box else conditionalPanel(shown_if_js(g), box)
+  if (!is.null(g$shown_if)) return(conditionalPanel(shown_if_js(g), box))
+  # A group whose fields are all shown only for some choices is hidden
+  # with them, so no empty heading is left (5 November 2026).
+  shown <- group_shown_js(g)
+  if (is.null(shown)) box else conditionalPanel(shown, box)
+}
+
+# The browser condition under which at least one of a group's fields is
+# shown; NULL when some field is always shown.
+group_shown_js <- function(g) {
+  parts <- vapply(g$fields, function(f) {
+    goals <- f$needed_for %||% f$shown_for_goals
+    if (is.null(goals) && is.null(f$shown_if)) return(NA_character_)
+    conds <- c(if (!is.null(goals)) paste0("(", paste(sprintf("input.f_goal == '%s'", goals), collapse = " || "), ")"),
+      if (!is.null(f$shown_if)) paste0("(", shown_if_js(f), ")"))
+    paste(conds, collapse = " && ")
+  }, character(1))
+  if (!length(parts) || anyNA(parts)) return(NULL)
+  paste0("(", paste(unique(parts), collapse = ") || ("), ")")
 }
 
 # The whole screen. `values` keeps what the user typed when the screen is

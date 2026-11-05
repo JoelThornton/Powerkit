@@ -455,14 +455,15 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
   }
   item <- function(id, family) {
     ep <- eps[[id]]
-    badge <- known_status_badge[[ep$status]]
+    badge <- if (is.null(ep$guide)) known_status_badge[[ep$status]]
     # The other name underneath: the technical one by default, the plain
     # one with explanations off.
     help <- tagList(tags$span(class = "name-tech-alt", shown_name(id)), tags$span(class = "name-plain-alt", ep$plain_name))
-    words <- search_text(ep$plain_name, ep$doc_name, family$label, ep$rank_test, ep$search_words)
+    words <- search_text(ep$plain_name, ep$doc_name, family$label, ep$rank_test, ep$search_words,
+      if (id %in% names(tree$bayes_designs)) "Bayes factor Bayesian")
     div(class = "known-item", `data-search` = words,
       tags$button(type = "button", `data-ep` = id,
-        class = if (identical(ep$status, "not_in_powerkit")) "btn choice known-choice known-choice-not" else "btn choice known-choice",
+        class = if (identical(ep$status, "not_in_powerkit") && is.null(ep$guide)) "btn choice known-choice known-choice-not" else "btn choice known-choice",
         onclick = sprintf("Shiny.setInputValue('pick', 'ep:%s', {priority: 'event'})", id),
         tags$span(class = "choice-label", name_swap(ep$plain_name, shown_name(id))),
         tags$span(class = "choice-help", help),
@@ -654,6 +655,7 @@ status_ui <- function(tree, ep) {
   not_five <- if (identical(ep$five_tools, "not covered")) {
     p(tags$strong("Not covered by the five tools"), " powerkit builds on (Superpower, Spower, power4mome, InteractionPoweR, G*Power).")
   }
+  if (identical(ep$guide, "bayes")) return(bayes_guide_ui(tree, ep, package_list))
   switch(
     ep$status,
     # A design that runs and is validated needs no box saying so (26
@@ -820,7 +822,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       if (!compact) card_facts_ui(tree, ep_id, ep),
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
-      if (!is.null(ep$card_points)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
+      if (!is.null(ep$card_points) && is.null(ep$guide)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
       other_analyses_ui(tree, ep),
       # What the input screen will ask, shown openly on a card that runs, so
       # you can gather it before starting (1 November 2026).
@@ -831,7 +833,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       card_versions_ui(tree, ep),
       # Which package calculates it and the questions asked after the
       # numbers: useful to some, so folded (22 October 2026).
-      if (!is.null(ep$inputs) || runs) tags$details(class = "card-more",
+      if ((!is.null(ep$inputs) || runs) && is.null(ep$guide)) tags$details(class = "card-more",
         tags$summary(if (!compact && runs) "More about this analysis: which package calculates it, and what you'd be asked next"
           else "More about this analysis: what you'd enter, and which package calculates it"),
         if (!is.null(ep$inputs) && !compact && runs) tagList(section_heading("What the terms mean"),
@@ -861,7 +863,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       if (!compact) placeholders_at(tree, ep_id),
       # End points that calculate on their input screen (forms.yaml,
       # `calculates`, copied into tree$calculates when the app starts).
-      if (!ep_id %in% unlist(tree$calculates)) p(class = "no-numbers", "No numbers are calculated in this prototype.")
+      if (!ep_id %in% unlist(tree$calculates) && is.null(ep$guide)) p(class = "no-numbers", "No numbers are calculated in this prototype.")
     )
   )
 }
@@ -1137,5 +1139,60 @@ settings_table_ui <- function(tree) {
         tags$td(if (is_decided(s)) s$value else tags$em("Undecided"))
       )))
     ))
+  )
+}
+
+# Bayes factors (5 November 2026) -------------------------------------------
+
+# The designs with a Bayes factor test version: every form with a field
+# offering the choice "bayes_factor", in the tree's order, with that
+# field's id (so the screen can open with it chosen).
+bayes_form_designs <- function(tree, forms) {
+  field_of <- function(form) {
+    fields <- c(unlist(lapply(form$groups, `[[`, "fields"), recursive = FALSE), form$extra)
+    for (f in fields) if (identical(f$type, "select") && "bayes_factor" %in% names(f$choices)) return(f$id)
+    NULL
+  }
+  out <- list()
+  # In the order of the list of analyses (its groups), then any others.
+  ids <- unique(c(unlist(lapply(tree$analysis_families, `[[`, "endpoints")), names(tree$endpoints)))
+  for (id in ids) {
+    form <- forms$forms[[id]]
+    if (is.null(form)) next
+    field <- field_of(form)
+    if (!is.null(field)) out[[id]] <- list(id = id, field = field)
+  }
+  out
+}
+
+# The "Plan a study analysed with Bayes factors" page: every design that
+# has a Bayes factor version, each opening its input screen with it
+# chosen, and the planning tool in Labs.
+bayes_guide_ui <- function(tree, ep, package_list) {
+  designs <- tree$bayes_designs %||% list()
+  div(class = "bayes-guide",
+    lapply(ep$card_points, p),
+    tags$h3(class = "card-section-title", sprintf("The %d designs powerkit plans with a Bayes factor", length(designs))),
+    tags$ul(class = "bayes-guide-list", lapply(designs, function(d) {
+      e <- tree$endpoints[[d$id]]
+      tags$li(class = "bayes-guide-item",
+        tags$span(class = "bayes-guide-name", name_swap(e$plain_name, standard_name(e$doc_name)$name)),
+        tags$button(type = "button", class = "btn btn-outline-primary btn-sm",
+          `aria-label` = paste("Plan", e$plain_name, "with a Bayes factor"),
+          onclick = sprintf("Shiny.setInputValue('pick', 'bayesform:%s', {priority: 'event'})", d$id),
+          "Plan with a Bayes factor"))
+    })),
+    p(class = "bayes-guide-labs", "To see how the priors and your uncertainty about the effect change a plan, or to plan a sequential design (checking the evidence as the data come in), try ",
+      tags$button(type = "button", class = "btn btn-link known-inline-link",
+        onclick = "Shiny.setInputValue('go_labs_bayes', Date.now(), {priority: 'event'})", "Bayesian planning in Labs"), "."),
+    tags$details(class = "card-more",
+      tags$summary("Other designs: not in powerkit yet"),
+      p(tags$strong("Other designs, not in powerkit yet: "),
+        lapply(seq_along(ep$packages), function(i) {
+          pk <- ep$packages[[i]]
+          tagList(if (i > 1) " or ", tags$a(href = pk$url, target = "_blank", pk$name))
+        })),
+      package_list(),
+      p(class = "small mb-0", "From powerkit's review of what other tools cover. powerkit can't check results from other tools."))
   )
 }

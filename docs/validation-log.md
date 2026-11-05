@@ -1108,6 +1108,22 @@ its Wald z test, against longpower's `hu.mackey.thomas.linear.power()`:
 | 5 occasions, retention 1, 0.95, 0.85, 0.8, 0.75, groups 1 : 0.5, n 150 | 0.6387 | 0.634 (0.015) |
 
 Packages: powerkit 0.32.0; longpower 1.0.27; lme4 (the image's version).
+## 2026-11-05 · p-value and Bayes factor agreement on t-tests (local, cloud session)
+
+`test-validation-bayes-companion.R` (in the `bayes` chunk) on Linux x86_64
+with R 4.5.3: **36 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`), in about three minutes. Each case simulated
+4,000 studies with the effect and 4,000 without.
+
+- The agreement table (`bayes_companion()`): the chance of each pair of
+  decisions (p below alpha or not; BF10 at least k, BF01 at least k, or
+  neither) agreed, cell by cell, with studies simulated one by one and
+  analysed with `t.test()` and BayesFactor's `ttestBF()` (not bfpwr), within
+  four Monte Carlo standard errors: a one-sample test two-sided (n 40,
+  d 0.4, k 3), two groups one-sided (n 80, d 0.5, k 10) and paired data
+  one-sided towards a negative effect (n 60, d_z -0.3, k 3).
+
+Packages: powerkit 0.32.0; bfpwr 0.1.6; BayesFactor 0.9.12-4.8.
 
 ## Variant evidence registry
 
