@@ -78,8 +78,9 @@ route_spec <- function(spec, seed = NULL) {
     "multiple_regression/r2_zero" = ,
     "multiple_regression/r2_increase" = ,
     "logistic_regression/single_predictor" = ,
-    "poisson_regression/single_predictor_count" = if (negative_binomial_test(spec)) {
-      # Negative binomial regression, simulated with Spower.
+    "poisson_regression/single_predictor_count" = if (simulated_count_test(spec)) {
+      # Negative binomial and zero-inflated regression, simulated with
+      # Spower.
       spower_backend(spec, seed)
     } else {
       pwrss_backend(spec, seed)
@@ -173,7 +174,10 @@ route_spec <- function(spec, seed = NULL) {
     "mixed_model/crossed_conditions" = simr_backend(spec, seed),
     "mixed_model/three_level" = simr_backend(spec, seed),
     "mixed_model/item_predictor" = simr_backend(spec, seed),
-    "logistic_regression/factorial" = spower_backend(spec, seed),
+    "logistic_regression/factorial" = ,
+    # Multinomial logistic regression, simulated with Spower (nnet's
+    # multinom()).
+    "logistic_regression/multinomial" = spower_backend(spec, seed),
     "regression_interaction/two_way" = if (interaction_r2_change(spec)) {
       # Given by its R-squared change, as G*Power takes it: pwrss's F test.
       pwrss_backend(spec, seed)

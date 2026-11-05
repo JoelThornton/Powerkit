@@ -44,8 +44,8 @@ variances, goodness of fit and cross-tabulations (not McNemar's test),
 the rank tests, equivalence and non-inferiority tests, the ANOVA designs
 on Superpower and Welch's one-way ANOVA, regression interactions,
 mediation and moderated mediation, factorial logistic regression,
-ordinal outcomes in two groups, planned contrasts, logistic and Poisson
-regression with one predictor (other predictors carried by one
+ordinal outcomes in two groups, planned contrasts, logistic, multinomial
+and Poisson regression with one predictor (other predictors carried by one
 column), multiple regression's R-squared tests, one- and two-way ANCOVA,
 the trend tests, cluster trials (cluster-randomised, multisite and group
 treatment, with a score or a yes/no outcome and a baseline score) and

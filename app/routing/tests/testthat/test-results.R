@@ -1857,6 +1857,60 @@ test_that("one regression coefficient (E24's third question) asks how it is test
   expect_match(w[["short"]], "HC3 robust standard errors", fixed = TRUE)
 })
 
+test_that("zero-inflated regression (E28's model choice) asks for the extra zeros and the part tested, and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E28"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  for (id in c("zero_prob", "zero_odds_ratio", "count_part")) {
+    expect_true(field_applies(by_id(id), list(count_model = "zero_inflated_poisson")), label = id)
+    expect_false(field_applies(by_id(id), list(count_model = "negative_binomial")), label = id)
+  }
+  expect_true(field_applies(by_id("dispersion"), list(count_model = "zero_inflated_negative_binomial")))
+  expect_false(field_applies(by_id("dispersion"), list(count_model = "zero_inflated_poisson")))
+  plain <- build_spec(forms, "E28", fields, form_examples$E28)
+  expect_null(plain$population$zero_prob)
+  expect_identical(plain$target_test$effect, "rate_ratio")
+  values <- modifyList(form_examples$E28, list(count_model = "zero_inflated_negative_binomial", dispersion = "0.5", zero_prob = "0.3",
+    zero_odds_ratio = "1.5", count_part = "rate_and_zero", goal = "power", n = "300"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E28", fields, values)
+  expect_identical(spec$target_test$effect, "rate_and_zero")
+  expect_equal(spec$population$zero_prob, 0.3)
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E28"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "zero-inflated negative binomial regression", fixed = TRUE)
+})
+
+test_that("multinomial logistic regression (E70) takes shares or odds ratios and a test of one category, and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E70"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  expect_true(field_applies(by_id("odds_ratios"), list(effect_as = "odds_ratios")))
+  expect_false(field_applies(by_id("probabilities_second"), list(effect_as = "odds_ratios")))
+  expect_false(field_applies(by_id("category"), list(multinomial_test = "likelihood_ratio")))
+  plain <- build_spec(forms, "E70", fields, form_examples$E70)
+  expect_identical(plain$target_test$method, "likelihood_ratio")
+  expect_null(plain$population$odds_ratios)
+  expect_null(plain$target_test$category)
+  values <- modifyList(form_examples$E70, list(effect_as = "odds_ratios", odds_ratios = "1.5, 1.2", multinomial_test = "wald_z",
+    category = "online search", goal = "power", n = "300"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E70", fields, values)
+  expect_null(spec$population$probabilities_second)
+  expect_equal(unlist(spec$population$odds_ratios), c(1.5, 1.2))
+  # The category is matched to the outcome's own spelling.
+  expect_identical(spec$target_test$category, "Online search")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E70"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "multinomial logistic regression", fixed = TRUE)
+})
+
 test_that("Friedman's test on E54 and shaped scores for the rank correlations on E4 reach the engine and the write-up", {
   fields <- form_fields(form_groups(forms, "E54"))
   values <- modifyList(form_examples$E54, list(test_version = "friedman", score_shape = "skewed", method = NULL, goal = "power", n = "30"))

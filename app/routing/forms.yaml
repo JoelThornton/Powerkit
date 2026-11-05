@@ -132,7 +132,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -2748,6 +2748,62 @@ forms:
              default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
              help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
 
+  # Multinomial logistic regression, one predictor (Spower simulation of
+  # powerkit's experiment around nnet's multinom()): an outcome in three or
+  # more unordered categories, the first the reference. The effect is the
+  # share in each category at two points (X's mean and 1 SD above, or the
+  # two groups), or each category's odds ratio against the first, as papers
+  # report it. Other predictors enter only through X's R-squared with them.
+  E70:
+    methods_name: "a multinomial logistic regression, simulated"
+    tool: Spower
+    directional: false
+    base: {spec_version: "0.1", design: logistic_regression, template: multinomial,
+           variables: {X: {}, "Y": {type: categorical}}, population: {metric: proportion},
+           target_test: {effect: odds_ratios}}
+    groups:
+      - input: "Your outcome and its categories, your predictor and what kind of predictor it is"
+        fields:
+          - {id: Y_label, label: "Outcome (for example, where help was first sought)", type: text, path: variables.Y.label, required: true}
+          - {id: Y_levels, label: "Its categories, separated by commas (three or more; the first is the one the others are compared with)", type: levels, path: variables.Y.levels, required: true,
+             help: "Put first the category that makes the natural comparison, such as the most common choice or the usual one: the odds ratios and the test of one category compare each other category with it."}
+          - {id: X_label, label: "Predictor", type: text, path: variables.X.label, required: true}
+          - {id: X_type, label: "What kind of predictor", type: select, path: variables.X.type, required: true,
+             choices: {continuous: "A score (for example, a questionnaire total)", binary: "A yes/no group (for example, treatment or control)"}}
+          - {id: X_level1, label: "First group (the comparison group)", type: text, path: variables.X.levels.1, required: true,
+             shown_if: {field: X_type, is: binary}}
+          - {id: X_level2, label: "Second group", type: text, path: variables.X.levels.2, required: true,
+             shown_if: {field: X_type, is: binary}}
+      - input: "The share of people in each category, and the effect"
+        fields:
+          - {id: probabilities, writeup_label: "share in each category at the starting point", label: "Share of people in each category at the starting point: one for each, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "For a score: the shares among people at the predictor's average. For a group: the shares in the first group."}
+          - {id: effect_as, label: "How you'll give the effect", type: select, required: true,
+             choices: {shares: "The shares at a second point (one SD higher on the score, or in the second group)", odds_ratios: "Odds ratios, as a multinomial logistic regression reports them"},
+             default: shares, default_source: "shares, which need no reference category to read"}
+          - {id: probabilities_second, writeup_label: "share in each category at the second point", label: "Share of people in each category one SD higher on the score, or in the second group: one for each, in the same order (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities_second, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: effect_as, is: shares},
+             help: "The same shares as at the starting point would mean no effect."}
+          - {id: odds_ratios, writeup_label: "odds ratios against the first category", label: "Odds ratios: one for each category except the first, in the same order, separated by commas", type: numbers, path: population.odds_ratios, effect: true, min_exclusive: 0,
+             shown_if: {field: effect_as, is: odds_ratios},
+             help: "For each category, how many times the odds of being in it rather than the first category change per SD of the score, or in the second group against the first (SPSS calls them Exp(B); some papers call them relative risk ratios). 1 means no effect."}
+          - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
+             default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)",
+             shown_if: {field: X_type, is: binary}}
+      - input: "Which test"
+        fields:
+          - {id: multinomial_test, label: "Which test", type: select, path: target_test.method, required: true,
+             choices: {likelihood_ratio: "Whether the predictor relates to the outcome at all (the likelihood-ratio test, every category together)", wald_z: "Whether one category's odds against the first change (the Wald z test of one coefficient)"},
+             default: likelihood_ratio, default_source: "the likelihood-ratio test of the predictor, the test SPSS's 'Likelihood Ratio Tests' table and car's Anova() report for it",
+             help: "The likelihood-ratio test asks whether the predictor matters for the outcome as a whole. If your hypothesis is about one category in particular (for example, more people choosing online search over a doctor), the test of that category is the one to power."}
+          - {id: category, label: "The category compared with the first", type: text, path: target_test.category, required: true,
+             shown_if: {field: multinomial_test, is: wald_z}}
+      - input: "How much the other predictors overlap with this one"
+        fields:
+          - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
+             default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
+             help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
+
   # Poisson regression, one predictor (pwrss's Wald z test): a score X is
   # taken as standardised, so its rate ratio is per SD; a yes/no X compares
   # its second group with the first. Events are counted over a mean
@@ -2782,15 +2838,29 @@ forms:
           - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)",
              shown_if: {field: X_type, is: binary}}
-      - input: "Poisson or negative binomial regression"
+      - input: "Poisson, negative binomial or zero-inflated regression"
         fields:
           - {id: count_model, label: "Model for the counts", type: select, path: target_test.method, required: true,
-             choices: {wald_z: "Poisson regression (the counts vary as much as their average)", negative_binomial: "Negative binomial regression (the counts vary more than that), simulated"},
+             choices: {wald_z: "Poisson regression (the counts vary as much as their average)", negative_binomial: "Negative binomial regression (the counts vary more than that), simulated",
+                       zero_inflated_poisson: "Zero-inflated Poisson regression (extra zeros from people who could not have had an event), simulated",
+                       zero_inflated_negative_binomial: "Zero-inflated negative binomial regression (extra zeros, and counts that vary more than their average), simulated"},
              default: wald_z, default_source: "Poisson regression, the test G*Power and pwrss's power.z.poisson() compute",
-             help: "Counts of events often vary more between people than a Poisson distribution allows (some people have many, most few). If your earlier data show a variance well above the mean, choose negative binomial regression."}
+             help: "Counts of events often vary more between people than a Poisson distribution allows (some people have many, most few). If your earlier data show a variance well above the mean, choose negative binomial regression. If some people could not have had any event at all (for example, people who never drink, when you count drinks), the zero-inflated models add a share of extra zeros."}
           - {id: dispersion, label: "Overdispersion k (variance = mean + k × mean²)", type: number, path: population.dispersion, required: true, min_exclusive: 0,
-             shown_if: {field: count_model, is: negative_binomial},
-             help: "From earlier data: k = (variance - mean) / mean². 0 would be Poisson; 0.5 or 1 is common for counts such as visits or symptoms. In MASS's glm.nb() output it is 1 / theta."}
+             shown_if: {field: count_model, is_one_of: [negative_binomial, zero_inflated_negative_binomial]},
+             help: "From earlier data: k = (variance - mean) / mean². 0 would be Poisson; 0.5 or 1 is common for counts such as visits or symptoms. In MASS's glm.nb() and pscl's zeroinfl() output it is 1 / theta."}
+          - {id: zero_prob, writeup_label: "share of extra zeros", label: "Share of extra zeros at the starting point (0 to 1)", type: number, path: population.zero_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
+             help: "The share of people who could not have had an event, on top of the zeros among everyone else (for a score, at its average; for a group, in the first group). The rate and the rate ratio above describe everyone else. In pscl's zeroinfl() output, plogis() of the zero model's intercept."}
+          - {id: zero_odds_ratio, writeup_label: "odds ratio for being an extra zero", label: "Odds ratio for being an extra zero", type: number, path: population.zero_odds_ratio, required: true, min_exclusive: 0,
+             default: 1, default_source: "the predictor doesn't change the share of extra zeros, the design spec's default (population > zero_odds_ratio)",
+             shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
+             help: "How many times the odds of being an extra zero change per SD of the score, or in the second group against the first. 1 means the predictor doesn't change it."}
+          - {id: count_part, label: "Which part to test", type: select, path: target_test.effect, required: true,
+             choices: {rate_ratio: "The count part: does the predictor change the rate, among those who could have an event?", zero_odds_ratio: "The zero part: does the predictor change the share of extra zeros?", rate_and_zero: "Both parts together (a likelihood-ratio test, two-sided)"},
+             default: rate_ratio, default_source: "the count part, the rate ratio the card asks for first",
+             shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
+             help: "Both parts include the predictor, as pscl's zeroinfl() does by default; this chooses which test the power is for. With negative binomial counts the zero part's Wald test is conservative (about 4% false positives at alpha .05 in powerkit's checks), so its power is too."}
       - input: "How much the other predictors overlap with this one"
         fields:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,

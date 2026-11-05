@@ -59,7 +59,7 @@ test_that("the dispersion belongs to negative binomial regression, which needs i
   expect_spec_problem(spec, "Negative binomial regression needs 'population > dispersion'")
   spec <- nb_spec()
   spec$target_test$method <- "wald_z"
-  expect_spec_problem(spec, "'population > dispersion' is only used by negative binomial regression")
+  expect_spec_problem(spec, "'population > dispersion' is only used by the negative binomial models")
 })
 
 test_that("the R script reproduces the run, and the simulated data are negative binomial", {

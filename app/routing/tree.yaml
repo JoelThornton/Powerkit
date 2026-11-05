@@ -618,6 +618,7 @@ nodes:
     text: "Which kind of categorical outcome?"
     options:
       - {label: "Yes/no", next: E27}
+      - {label: "One of several categories, predicted by a score (or controlling for other variables)", next: E70}
       - {label: "One of several categories (and the other variable is categories too)", next: E6}
   q3_rel:
     doc_id: Q3
@@ -1318,21 +1319,40 @@ endpoints:
     inputs: ["Your outcome, your predictor and what kind of predictor it is", "The odds ratio and the proportion of 'yes' at the starting point", "How much the other predictors overlap with this one"]
     tier: v2
     alternatives: ["Fisher's exact test or the z test of two proportions, for a yes/no group with no other predictors"]
+  E70:
+    doc_name: "Multinomial logistic regression (outcome in unordered categories)"
+    plain_name: "Predict which of several categories someone is in"
+    search_words: "multinomial logistic regression nominal outcome categories choice polytomous mlogit relative risk ratio"
+    template: "logistic_regression / multinomial"
+    backend: "Spower: powerkit's experiment around nnet's multinom(), the likelihood-ratio test of the predictor or the Wald z test of one category (simulation)"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-multinomial.R, note: "Recovers every category's share and odds ratio in its check run and matches Spower called directly in the engine's tests; agrees with the likelihood-ratio test of the 2 x K table simulated separately (a yes/no predictor), with the same model fitted as a Poisson log-linear model (a score), with pwr's chi-square formula, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "Tests whether one predictor (a score, or a yes/no group) relates to an outcome in three or more categories with no order, such as which of several options people choose."
+      - "You give the share of people in each category at the starting point and the effect, either as the shares at a second point (one SD higher, or in the second group) or as each category's odds ratio against the first category."
+      - "Choose the likelihood-ratio test of the predictor (every category together, as SPSS reports it), or the Wald z test of one category against the first, when the hypothesis is about that category."
+      - "Simulated, so the answer carries a little random error. Other predictors in the model enter only through how much they overlap with this one (R-squared)."
+    inputs: ["Your outcome and its categories, your predictor and what kind of predictor it is", "The share of people in each category, and the effect", "Which test", "How much the other predictors overlap with this one"]
+    tier: v2
+    alternatives: ["a chi-square test of independence, for a predictor that is groups and no other predictors", "logistic regression, for an outcome with two categories", "ordinal regression, for categories in order"]
   E28:
     doc_name: "Count outcome (Poisson or negative binomial)"
     plain_name: "An outcome that counts how often something happened"
+    search_words: "zero-inflated zero inflated excess zeros hurdle zinb zip overdispersion"
     template: "poisson_regression / single_predictor_count"
-    backend: "pwrss: power.z.poisson() (the Wald z test of one predictor in a Poisson regression, by formula); Spower with MASS's glm.nb() for negative binomial regression (simulated)"
-    method: "Formula (no simulation); simulation for negative binomial regression"
+    backend: "pwrss: power.z.poisson() (the Wald z test of one predictor in a Poisson regression, by formula); Spower with MASS's glm.nb() for negative binomial regression and with pscl's zeroinfl() for zero-inflated regression (simulated)"
+    method: "Formula (no simulation); simulation for negative binomial and zero-inflated regression"
     status: runs_validation_in_progress
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests. Not yet checked against G*Power or a published example in the validation run."}
     card_points:
       - "Tests one predictor of a count (how many times something happened): a score, or a yes/no group. The rate ratio is per standard deviation for a score, or the second group against the first."
       - "Poisson regression assumes the counts vary as much as their average. For counts that vary more than that (some people with many events, most with few), choose negative binomial regression, which powerkit simulates for the overdispersion you give."
+      - "If some people could not have had an event at all, so there are more zeros than either model gives, choose a zero-inflated model: you add the share of extra zeros, and test the predictor's effect on the rate, on the extra zeros, or on both."
       - "Other predictors in the model enter only through how much they overlap with this one (R-squared)."
-    inputs: ["Your outcome, your predictor and what kind of predictor it is", "The rate ratio, the starting rate and the time over which events are counted", "Poisson or negative binomial regression", "How much the other predictors overlap with this one"]
+    inputs: ["Your outcome, your predictor and what kind of predictor it is", "The rate ratio, the starting rate and the time over which events are counted", "Poisson, negative binomial or zero-inflated regression", "How much the other predictors overlap with this one"]
     tier: v2
-    alternatives: ["a negative binomial regression, for counts that vary more than their average (a choice on the next screen)", "a zero-inflated model, for more zeros than either allows (not in powerkit yet)"]
+    alternatives: ["a negative binomial regression, for counts that vary more than their average (a choice on the next screen)", "a zero-inflated model, for more zeros than either allows (a choice on the next screen)", "a hurdle model, which treats every zero as a separate process (not in powerkit yet)"]
   E29:
     doc_name: "Ordinal outcome (ordered categories)"
     plain_name: "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
@@ -2000,6 +2020,7 @@ guided:
         - {when: {x: cond3, times: twice, outcome: score}, endpoint: E55}
         - {when: {x: score, times: twice, covariate: none}, endpoint: E41}
         - {when: {outcome: categories, x: [cond2, cond3]}, endpoint: E6}
+        - {when: {outcome: categories, x: score, times: once}, endpoint: E70}
         - {when: {outcome: categories, x: score}, endpoint: E-unsure}
         - {when: {outcome: yesno, x: cond2}, endpoint: E5}
         - {when: {outcome: yesno}, endpoint: E27}
@@ -2166,7 +2187,7 @@ analysis_families:
   - {id: means, label: "Comparing averages (t-tests)", endpoints: [E1, E2, E3]}
   - {id: anova, label: "ANOVA and ANCOVA", endpoints: [E18, E54, E7, E8, E22, E21, E20, E55, E56, E19, E23, E64]}
   - {id: correlation, label: "Correlations", endpoints: [E4, E49, E51]}
-  - {id: categories, label: "Yes/no, categories and ordered categories", endpoints: [E25, E5, E26, E6, E48, E29, E66]}
+  - {id: categories, label: "Yes/no, categories and ordered categories", endpoints: [E25, E5, E26, E6, E48, E70, E29, E66]}
   - {id: regression, label: "Regression (scores, yes/no and counts)", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}

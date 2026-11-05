@@ -5,7 +5,7 @@
 # or, where the backend has no generator, from the same population by base
 # R's draws (one proportion, rank tests, factorial logistic regression,
 # ordinal outcomes with Hmisc::pomodm() for the second group's shares,
-# one-predictor logistic and Poisson regression, multiple regression's
+# one-predictor logistic, multinomial and Poisson regression, multiple regression's
 # R-squared tests, the ANCOVAs, the Cochran-Armitage trend test, cluster
 # trials and precision planning).
 # It is for writing and checking analysis code before the real data
@@ -29,8 +29,8 @@
 #' the rank tests, equivalence and non-inferiority tests, the ANOVA designs
 #' on Superpower and Welch's one-way ANOVA, regression interactions,
 #' mediation and moderated mediation, factorial logistic regression,
-#' ordinal outcomes in two groups, planned contrasts, logistic and Poisson
-#' regression with one predictor (other predictors carried by one
+#' ordinal outcomes in two groups, planned contrasts, logistic, multinomial
+#' and Poisson regression with one predictor (other predictors carried by one
 #' column), multiple regression's R-squared tests, one- and two-way ANCOVA,
 #' the trend tests, cluster trials (cluster-randomised, multisite and group
 #' treatment, with a score or a yes/no outcome and a baseline score) and
@@ -672,7 +672,7 @@ sim_ancova_code <- function(spec, n) {
 # they overlap with X, not what they do (simulated_data_note()).
 sim_glm_code <- function(spec, n) {
   pop <- spec$population
-  if (!identical(spec$template %in% c("single_predictor", "single_predictor_count"), TRUE)) {
+  if (!identical(spec$template %in% c("single_predictor", "single_predictor_count", "multinomial"), TRUE)) {
     return(NULL)
   }
   r2_other <- pop$r2_other_predictors %||% 0
@@ -682,10 +682,30 @@ sim_glm_code <- function(spec, n) {
   } else {
     sprintf("x <- stats::rnorm(%d) # standardised", n)
   }
-  y_line <- if (identical(spec$design, "logistic_regression")) {
+  y_line <- if (identical(spec$template, "multinomial")) {
+    coefficients <- multinomial_coefficients(spec)
+    c(
+      sprintf("intercepts <- %s # log odds of each category against %s at the starting point", r_code(coefficients$intercepts), sim_levels(spec, "Y")[1]),
+      sprintf("slopes <- %s # log odds ratios of each category against %s", r_code(coefficients$slopes), sim_levels(spec, "Y")[1]),
+      sprintf("shares <- exp(cbind(0, outer(x, slopes) + rep(intercepts, each = %d)))", n),
+      "shares <- shares / rowSums(shares) # each person's chance of each category",
+      sprintf("y <- %s[apply(shares, 1, function(p) sample.int(length(p), 1, prob = p))]", r_code(sim_levels(spec, "Y")))
+    )
+  } else if (identical(spec$design, "logistic_regression")) {
     sprintf(
       "y <- %s[stats::rbinom(%d, 1, stats::plogis(stats::qlogis(%s) + log(%s) * x)) + 1]",
       r_code(sim_levels(spec, "Y")), n, r_code(pop$base_prob), r_code(pop$odds_ratio)
+    )
+  } else if (zero_inflated_test(spec)) {
+    c(
+      if (negative_binomial_counts(spec)) {
+        sprintf("y <- stats::rnbinom(%d, size = 1 / %s, mu = %s * %s * %s^x) # events over the mean exposure, overdispersion %s",
+          n, r_code(pop$dispersion), r_code(pop$mean_exposure %||% 1), r_code(pop$base_rate), r_code(pop$rate_ratio), format_number(pop$dispersion))
+      } else {
+        sprintf("y <- stats::rpois(%d, %s * %s * %s^x) # events over the mean exposure", n, r_code(pop$mean_exposure %||% 1), r_code(pop$base_rate), r_code(pop$rate_ratio))
+      },
+      sprintf("extra <- stats::runif(%d) < stats::plogis(stats::qlogis(%s) + log(%s) * x) # the extra zeros", n, r_code(pop$zero_prob), r_code(pop$zero_odds_ratio %||% 1)),
+      "y[extra] <- 0"
     )
   } else if (negative_binomial_test(spec)) {
     sprintf(
