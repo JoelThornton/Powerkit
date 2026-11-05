@@ -94,6 +94,7 @@ on:
           - growth
           - signal_detection
           - lpa
+          - efa
           - irt
           - process_4
           - process_4_binary

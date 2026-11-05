@@ -36,7 +36,8 @@ population_problems <- function(spec) {
     reliability = check_reliability,
     irt = check_irt,
     signal_detection = check_dprime,
-    mixture = check_lpa
+    mixture = check_lpa,
+    factor_analysis = function(spec) character()
   )
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
@@ -2924,6 +2925,7 @@ minimum_n <- function(spec) {
     irt = 20,
     signal_detection = if (identical(spec$variables$G$type, "within_factor")) 3 else 4,
     mixture = 10 * (spec$population$profiles + 1),
+    factor_analysis = spec$population$factors * spec$population$items_per_factor + 2,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -3230,6 +3232,7 @@ target_effect_is_zero <- function(spec) {
     irt = max(abs(c(unlist(pop$b_shift %||% 0), unlist(pop$a_change %||% 0)))),
     signal_detection = diff(as.numeric(unlist(pop$dprime))),
     mixture = pop$separation,
+    factor_analysis = pop$loading,
     reliability = switch(spec$template,
       icc = pop$icc - pop$icc_null,
       cronbach_alpha = pop$reliability - pop$reliability_null,

@@ -47,6 +47,8 @@ spower_backend <- function(spec, seed = NULL) {
       },
       # p_permanova() calls vegan's adonis2().
       if (permanova_test(spec)) "vegan",
+      # p_efa() fits psych's fa(), whose oblimin rotation is GPArotation's.
+      if (identical(spec$template, "efa")) c("psych", "GPArotation"),
       # p_lpa() fits mclust's models.
       if (identical(spec$template, "lpa")) "mclust",
       # p_multinomial() fits nnet's multinom().
@@ -287,6 +289,17 @@ spower_inputs <- function(spec) {
     # profiles + 1 profiles and returns 0 when the BIC chooses the right
     # number, 1 when it doesn't, so Spower's share of "p-values" below its
     # level is the chance of finding it.
+    # Exploratory factor analysis: powerkit's own experiment, p_efa(),
+    # draws people from the factor model (efa_data()), fits psych's fa()
+    # and returns 0 when every factor's loadings are recovered (Tucker's
+    # congruence at least the level asked), 1 when not.
+    efa = list(
+      experiment = "p_efa", own = TRUE,
+      args = function(n) {
+        list(n = n, factors = pop$factors, items = pop$items_per_factor, loading = pop$loading,
+          phi = pop$factor_correlation %||% 0, congruence = spec$target_test$congruence %||% 0.95)
+      }
+    ),
     lpa = list(
       experiment = "p_lpa", own = TRUE,
       args = function(n) {
@@ -361,6 +374,8 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+  } else if (identical(template, "efa")) {
+    "Spower::Spower(p_efa()) (psych's fa() with its defaults, minimum residual and oblimin rotation; every factor's loadings recovered with Tucker's congruence at the level asked)"
   } else if (identical(template, "lpa")) {
     "Spower::Spower(p_lpa()) (mclust's latent profile models with 1 to k + 1 profiles, equal variances and local independence, the BIC choosing among them)"
   } else if (identical(template, "dprime")) {
@@ -1050,6 +1065,70 @@ group_moderator_check_run <- function(spec, args, seed) {
   )
 }
 
+# Exploratory factor analysis ---------------------------------------------------
+#
+# Data: the common factor model with simple structure: items_per_factor
+# items load `loading` on each factor and 0 on the others, the factors
+# correlate phi, and each item's unique variance makes its variance 1.
+# Scores are multivariate normal with that covariance.
+efa_loadings <- function(factors, items, loading) kronecker(diag(factors), matrix(loading, items, 1))
+
+efa_data <- function(n, factors, items, loading, phi) {
+  lambda <- efa_loadings(factors, items, loading)
+  correlation <- matrix(phi, factors, factors)
+  diag(correlation) <- 1
+  sigma <- lambda %*% correlation %*% t(lambda)
+  diag(sigma) <- 1
+  matrix(stats::rnorm(n * nrow(sigma)), n) %*% chol(sigma)
+}
+
+# Tucker's congruence of each true factor with the estimated factor matched
+# to it: the one-to-one matching that makes the congruences (in absolute
+# value, as a factor's sign is arbitrary) largest in total.
+efa_matched_congruence <- function(estimated, true) {
+  tucker <- abs(crossprod(estimated, true) / sqrt(outer(colSums(estimated^2), colSums(true^2))))
+  k <- ncol(true)
+  orders <- if (k == 1) matrix(1, 1, 1) else efa_permutations(k)
+  totals <- apply(orders, 1, function(o) sum(tucker[cbind(o, seq_len(k))]))
+  best <- orders[which.max(totals), ]
+  tucker[cbind(best, seq_len(k))]
+}
+
+efa_permutations <- function(k) {
+  if (k == 1) return(matrix(1, 1, 1))
+  smaller <- efa_permutations(k - 1)
+  do.call(rbind, lapply(seq_len(k), function(i) {
+    cbind(i, matrix(setdiff(seq_len(k), i)[smaller], nrow(smaller)))
+  }))
+}
+
+# Spower experiment: 0 when every factor's loadings are recovered with
+# congruence of at least `congruence`, 1 otherwise (including a fit that
+# fails).
+p_efa <- function(n, factors, items, loading, phi, congruence) {
+  x <- efa_data(n, factors, items, loading, phi)
+  fit <- tryCatch(suppressWarnings(psych::fa(x, nfactors = factors, rotate = if (factors > 1) "oblimin" else "none",
+    fm = "minres", warnings = FALSE)), error = function(e) NULL)
+  if (is.null(fit)) return(1)
+  matched <- efa_matched_congruence(unclass(fit$loadings), efa_loadings(factors, items, loading))
+  if (all(matched >= congruence)) 0 else 1
+}
+
+# Check run: one large data set; the correlation between two items of the
+# same factor, and between items of two factors, against the model's.
+efa_check_run <- function(args, seed) {
+  n <- 20000
+  x <- call_backend("Spower", with_seed(seed, efa_data(n, args$factors, args$items, args$loading, args$phi)))
+  same <- stats::cor(x[, 1], x[, 2])
+  rows <- check_run_rows("correlation of two items of the same factor", args$loading^2, same, (1 - args$loading^4) / sqrt(n))
+  if (args$factors > 1) {
+    across <- stats::cor(x[, 1], x[, args$items + 1])
+    expected <- args$loading^2 * args$phi
+    rows <- rbind(rows, check_run_rows("correlation of items of two factors", expected, across, (1 - expected^2) / sqrt(n)))
+  }
+  rbind(rows, check_run_rows("variance of an item", 1, stats::var(x[, 1]), sqrt(2 / n)))
+}
+
 # Latent profile analysis -----------------------------------------------------
 #
 # Data: each person belongs to profile k with probability shares[k] (drawn
@@ -1495,6 +1574,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "lpa")) {
     return(lpa_check_run(args, seed))
+  }
+  if (identical(spec$template, "efa")) {
+    return(efa_check_run(args, seed))
   }
   if (permanova_test(spec) && !identical(args$shape, "normal")) {
     return(permanova_check_run(spec, args, seed))

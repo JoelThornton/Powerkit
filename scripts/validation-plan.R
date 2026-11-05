@@ -40,6 +40,7 @@ chunk_sources <- function() {
     dyadic = c(power4mome, "engine/R/backend-apim.R"),
     bayes_factorial = "engine/R/backend-bayesfactor-factorial.R",
     lpa = "engine/R/backend-spower.R",
+    efa = "engine/R/backend-spower.R",
     mixed_model = "engine/R/backend-simr.R"
   )
 }

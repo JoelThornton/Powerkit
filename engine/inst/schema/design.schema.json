@@ -45,7 +45,8 @@
         "reliability",
         "irt",
         "signal_detection",
-        "mixture"
+        "mixture",
+        "factor_analysis"
       ]
     },
     "template": {
@@ -181,6 +182,9 @@
     },
     {
       "$ref": "#/definitions/design_mixture"
+    },
+    {
+      "$ref": "#/definitions/design_factor_analysis"
     }
   ],
   "definitions": {
@@ -529,6 +533,12 @@
           "type": "number",
           "exclusiveMinimum": 1
         },
+        "congruence": {
+          "description": "Exploratory factor analysis only (method 'congruence'): the Tucker congruence every factor's estimated loadings must reach with the true ones for the study to count as recovering them. Default .95 ('virtually equal' in Lorenzo-Seva and ten Berge, 2006).",
+          "type": "number",
+          "minimum": 0.8,
+          "maximum": 0.999
+        },
         "prior_scale": {
           "description": "Bayes factor t-tests and the Bayes factor one-way ANOVA only: the scale of the Cauchy analysis prior on the standardised effect under the alternative (the Jeffreys-Zellner-Siow Bayes factor). Default for the t-tests 1/sqrt(2) (about 0.707), bfpwr's default (powertbf01(pscale = 1/sqrt(2))); for the ANOVA 0.5, JASP's 'r scale fixed effects' (BayesFactor's oneWayAOV.Fstat(rscale = 0.5)).",
           "type": "number",
@@ -623,7 +633,8 @@
               "method": {
                 "enum": [
                   "bayes_factor",
-                  "bic"
+                  "bic",
+                  "congruence"
                 ]
               }
             }
@@ -639,6 +650,7 @@
             ],
             "properties": {
               "evidence_threshold": false,
+              "congruence": false,
               "prior_scale": false,
               "prior_a": false,
               "prior_b": false,
@@ -11724,6 +11736,116 @@
             },
             "method": {
               "const": "bic"
+            }
+          }
+        }
+      }
+    },
+    "design_factor_analysis": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "factor_analysis"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "efa"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "efa"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_factor_analysis_efa"
+            }
+          }
+        ]
+      }
+    },
+    "template_factor_analysis_efa": {
+      "description": "Exploratory factor analysis: will the study recover the factors' loadings? Items load on one factor each (simple structure) with the same loading; the factors may correlate. Each simulated study fits psych's fa() with the number of factors (its defaults: minimum residual, oblimin rotation) and matches the estimated factors to the true ones; 'power' is the chance that every factor's loadings are recovered with Tucker's congruence of at least target_test > congruence (.95 by default, 'virtually equal' in Lorenzo-Seva and ten Berge, 2006). Recovery depends on the communalities (the loadings squared) and the items per factor more than on a rule of thumb (MacCallum, Widaman, Zhang and Hong, 1999). goal > n is the number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "description": "The questionnaire or set of items.",
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "factors",
+            "items_per_factor",
+            "loading"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "factors": {
+              "description": "The number of factors.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            },
+            "items_per_factor": {
+              "description": "The number of items loading on each factor.",
+              "type": "integer",
+              "minimum": 3,
+              "maximum": 20
+            },
+            "loading": {
+              "description": "Each item's standardised loading on its factor (its communality is the loading squared).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "factor_correlation": {
+              "description": "The correlation between every pair of factors. 0 if omitted.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.9
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": false,
+            "effect": {
+              "const": "recovery"
+            },
+            "method": {
+              "const": "congruence"
+            },
+            "congruence": {
+              "description": "The Tucker congruence every factor's estimated loadings must reach with the true ones. Default .95.",
+              "type": "number",
+              "minimum": 0.8,
+              "maximum": 0.999
             }
           }
         }

@@ -371,6 +371,11 @@ design_description <- function(spec) {
       if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
+    "factor_analysis/efa" = sprintf(
+      "exploratory factor analysis: will %d factor%s of %d items each in %s be recovered (loading %s)? psych's fa(), every factor's loadings with Tucker's congruence of at least %s",
+      as.integer(spec$population$factors), if (spec$population$factors > 1) "s" else "", as.integer(spec$population$items_per_factor),
+      label("Y"), format_number(spec$population$loading), format_number(spec$target_test$congruence %||% 0.95)
+    ),
     "mixture/lpa" = sprintf(
       "latent profile analysis: will %d profiles of people on %d indicators (%s) be found? mclust's models with 1 to %d profiles, the BIC choosing among them",
       as.integer(spec$population$profiles), as.integer(spec$population$indicators), label("Y"), as.integer(spec$population$profiles) + 1L
@@ -753,8 +758,8 @@ goal_inputs <- function(spec, result) {
   goal <- spec$goal
   p <- result$provenance
   c(
-    if (identical(spec$template, "lpa")) {
-      "alpha <- 0.5 # not a significance level: p_lpa() returns 0 when the right number of profiles is found and 1 when not, so Spower's \"power\" counts the 0s"
+    if (spec$template %in% c("lpa", "efa")) {
+      "alpha <- 0.5 # not a significance level: the experiment returns 0 on success and 1 otherwise, so Spower's \"power\" counts the 0s"
     } else {
       sprintf("alpha <- %s # significance level", r_code(spec$target_test$alpha))
     },
@@ -1482,6 +1487,13 @@ spower_script_inputs <- function(spec) {
         sprintf("quantile <- %s # the quantile of the outcome tested (0.5: the median)", r_code(pop$quantile %||% 0.5))
       }
     ),
+    efa = c(
+      sprintf("factors <- %s # the number of factors", r_code(as.integer(pop$factors))),
+      sprintf("items <- %s # items loading on each factor (%s)", r_code(as.integer(pop$items_per_factor)), comment_text(v$Y$label)),
+      sprintf("loading <- %s # each item's standardised loading on its factor", r_code(pop$loading)),
+      sprintf("phi <- %s # correlation between factors", r_code(pop$factor_correlation %||% 0)),
+      sprintf("congruence <- %s # Tucker's congruence each factor must reach", r_code(spec$target_test$congruence %||% 0.95))
+    ),
     lpa = c(
       sprintf("profiles <- %s # the number of profiles in the population", r_code(as.integer(pop$profiles))),
       sprintf("indicators <- %s # the number of indicators (%s)", r_code(as.integer(pop$indicators)), comment_text(v$Y$label)),
@@ -1753,6 +1765,10 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "method = method",
       if (identical(spec$target_test$method, "quantile_regression")) "quantile = quantile"
     ),
+    efa = c(
+      "n = batch_n, # sample size",
+      "factors = factors,", "items = items,", "loading = loading,", "phi = phi,", "congruence = congruence"
+    ),
     lpa = c(
       "n = batch_n, # sample size",
       "profiles = profiles,", "indicators = indicators,", "separation = separation,", "shares = shares"
@@ -1938,6 +1954,29 @@ spower_derived_lines <- function(spec) {
       "  }",
       "  fit <- lm(y ~ ., data = data)",
       "  car::linearHypothesis(fit, \"x = 0\", white.adjust = sub(\"ols_\", \"\", method))[2, \"Pr(>F)\"]",
+      "}"
+    ),
+    efa = c(
+      "# The experiment, as powerkit runs it: simple structure (each item loads",
+      "# `loading` on one factor), factors correlating phi, item variances 1;",
+      "# psych's fa() with its defaults (minimum residual, oblimin rotation); each",
+      "# true factor matched one-to-one to an estimated factor so the congruences",
+      "# are largest in total; 0 when every factor's Tucker congruence reaches the",
+      "# level asked, 1 when not (Spower counts the 0s).",
+      "p_efa <- function(n, factors, items, loading, phi, congruence) {",
+      "  lambda <- kronecker(diag(factors), matrix(loading, items, 1))",
+      "  correlation <- matrix(phi, factors, factors); diag(correlation) <- 1",
+      "  sigma <- lambda %*% correlation %*% t(lambda); diag(sigma) <- 1",
+      "  x <- matrix(rnorm(n * nrow(sigma)), n) %*% chol(sigma)",
+      "  fit <- tryCatch(suppressWarnings(psych::fa(x, nfactors = factors, rotate = if (factors > 1) \"oblimin\" else \"none\",",
+      "    fm = \"minres\", warnings = FALSE)), error = function(e) NULL)",
+      "  if (is.null(fit)) return(1)",
+      "  est <- unclass(fit$loadings)",
+      "  tucker <- abs(crossprod(est, lambda) / sqrt(outer(colSums(est^2), colSums(lambda^2))))",
+      "  perms <- function(k) if (k == 1) matrix(1, 1, 1) else do.call(rbind, lapply(seq_len(k), function(i) cbind(i, matrix(setdiff(seq_len(k), i)[perms(k - 1)], nrow = factorial(k - 1)))))",
+      "  orders <- perms(factors)",
+      "  best <- orders[which.max(apply(orders, 1, function(o) sum(tucker[cbind(o, seq_len(factors))]))), ]",
+      "  if (all(tucker[cbind(best, seq_len(factors))] >= congruence)) 0 else 1",
       "}"
     ),
     lpa = c(
