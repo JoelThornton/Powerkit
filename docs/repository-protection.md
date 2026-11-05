@@ -19,7 +19,7 @@ publishing. Do not add an app bypass simply to work around that conflict.
    no new credentials or app permissions are required.
 4. Add an active main ruleset requiring a pull request and these existing,
    always-created aggregate checks: `engine-review-gate` and
-   `app-review-gate`. They explicitly reject dependency failures/cancellations
+   `app-review-gate`, plus the always-created PR check `manifest`. They explicitly reject dependency failures/cancellations
    and skips caused by failed prerequisites. An engine skip is accepted only
    when the successful change detector explicitly found no engine changes.
    Pin checks to the GitHub Actions source when available. For one maintainer,
@@ -27,9 +27,10 @@ publishing. Do not add an app bypass simply to work around that conflict.
    conversation resolution. Leave no bypass actors. Do not require linear
    history: the repository uses merge commits. Require the branch to be up to
    date if the maintainer accepts rerunning checks after concurrent merges.
-5. Keep checking conditional manifest and Windows/macOS setup jobs when they
-   run. Do not make a path-filtered workflow's absent check mandatory, since
-   that would permanently block documentation-only PRs.
+5. The manifest check runs on every PR so it can safely be required. Keep
+   checking conditional Windows/macOS setup jobs when they run. Do not make
+   their path-filtered absent checks mandatory: that would block
+   documentation-only PRs.
 6. Add a tag ruleset for release tags `v*`, blocking updates and deletions.
    Restrict tag creation to the maintainer if desired. A release still needs
    explicit review of the high-replication validation summary: skipped,

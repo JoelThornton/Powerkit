@@ -17,14 +17,6 @@ on:
       - "scripts/test-publish-branch.py"
       - "!app/routing/manifest.json"
   pull_request:
-    paths:
-      - "app/routing/**"
-      - "engine/DESCRIPTION"
-      - "renv.lock"
-      - ".github/workflows/online-app-manifest.yaml"
-      - "scripts/prepare-publish-branch.py"
-      - "scripts/test-publish-branch.py"
-      - "!app/routing/manifest.json"
   workflow_dispatch:
 
 permissions:
