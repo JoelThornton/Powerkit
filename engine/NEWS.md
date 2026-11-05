@@ -1,5 +1,13 @@
 # powerkit 0.32.0
 
+* The Bayes factor of an effect in the repeated-measures ANOVAs (templates
+  `oneway_within`, `factorial_within`, `2x2_mixed` and `mixed`,
+  `target_test > method` "bayes_factor"): JASP's inclusion Bayes factor with
+  the participants as a random factor (r scale 1), each person's scores
+  sharing their level with the spec's correlation. In the app, a rough
+  preview and an R script (`forms.yaml`, simulations > method_routes).
+  Validation chunk `bayes_factorial`.
+
 * The app starts in about 0.5 s instead of 3: the About tab is built the
   first time it is opened, not when the app starts.
 * The Bayes factor of an effect in a two-factor between-participants ANOVA

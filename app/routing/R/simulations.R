@@ -19,9 +19,16 @@
 # and the full run are run_spec(); the preview's range is power_interval()
 # or the engine's interval for the required N.
 
-runs_long <- function(forms, ep_id) ep_id %in% names(forms$simulations$endpoints)
+# A card can also take this route for one test version only (forms.yaml,
+# simulations > method_routes: the Bayes factor of a repeated-measures
+# ANOVA effect, about 0.8 s per simulated study).
+runs_long <- function(forms, ep_id, spec = NULL) {
+  if (ep_id %in% names(forms$simulations$endpoints)) return(TRUE)
+  route <- forms$simulations$method_routes[[ep_id]]
+  !is.null(route) && !is.null(spec) && identical(spec$target_test$method, route$method)
+}
 
-long_settings <- function(forms, ep_id) forms$simulations$endpoints[[ep_id]]
+long_settings <- function(forms, ep_id) forms$simulations$endpoints[[ep_id]] %||% forms$simulations$method_routes[[ep_id]]
 
 preview_nrep <- function(forms) as.integer(forms$simulations$preview_nrep)
 

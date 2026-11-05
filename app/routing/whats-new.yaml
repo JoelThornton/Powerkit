@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Bayes factors for repeated-measures ANOVAs"
+    text: >-
+      The repeated-measures and mixed ANOVA cards can now plan for the Bayes
+      factor of an effect, as JASP's Bayesian repeated-measures ANOVA reports
+      it. Simulating it takes about a second per study, so you get a rough
+      preview here and an R script for the full analysis.
+  - date: "2026-11-05"
     title: "A faster first visit"
     text: >-
       The app now starts about two and a half seconds sooner after a quiet
