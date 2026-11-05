@@ -1,5 +1,9 @@
 # powerkit 0.32.0
 
+* The package title and description, the app's page title, search
+  description and footer, and the guide describe powerkit as power analysis
+  for research studies, not only psychology.
+
 * Results capture a versioned, hashed evidence registry for the selected
   analysis variant. Package agreement, independent references, published
   examples and opt-in method-validation runs remain separate; unmatched

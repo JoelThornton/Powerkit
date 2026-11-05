@@ -6,7 +6,7 @@
 > for the current validation status, and [`docs/status.md`](docs/status.md)
 > for where the project is.
 
-A power analysis tool for psychology. You describe your study once, in plain
+A power analysis tool for research studies. You describe your study once, in plain
 terms, and powerkit routes it to established R packages and documented methods to work out the power,
 the sample size you need, or the smallest effect you could detect.
 

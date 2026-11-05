@@ -288,5 +288,5 @@ test_that("CITATION.cff agrees with the package DESCRIPTION", {
   version <- as.character(utils::packageVersion("powerkit"))
   expect_true(any(lines == paste("version:", version)))
   expect_true(any(lines == "license: GPL-3.0-or-later"))
-  expect_true(any(grepl("powerkit: Unified Power Analysis for Psychology Designs", lines, fixed = TRUE)))
+  expect_true(any(grepl("powerkit: Unified Power Analysis for Common Research Designs", lines, fixed = TRUE)))
 })

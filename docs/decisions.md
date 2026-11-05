@@ -5108,3 +5108,22 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   correlation is the right input for a group, or the groups' standardised
   difference.
 
+## 2026-11-05 · powerkit is not only for psychology
+
+- **What:** the page title, search description and footer of the app,
+  the static guide, the README, the engine's DESCRIPTION title and
+  description, and CITATION.cff no longer describe powerkit as a tool for
+  psychology; they describe it as power analysis and sample size planning
+  for research studies.
+- **Why:** the maintainer's direction: powerkit serves researchers beyond
+  psychology. The wording had been removed before but came back with the
+  search-engine text added on 4 November 2026, which took its phrasing
+  from the project's own self-descriptions (CLAUDE.md's first line, the
+  README, DESCRIPTION, CITATION.cff), all of which still said psychology.
+- **How it stays out:** those self-descriptions now say research studies,
+  CLAUDE.md says never to describe powerkit to users as a psychology tool,
+  and `app/routing/tests/testthat/test-wording.R` fails if the title,
+  description, footer, guide, DESCRIPTION, CITATION.cff or the README's
+  opening call it one. Psychology examples on the cards and citations of
+  psychology journals are unaffected.
+
