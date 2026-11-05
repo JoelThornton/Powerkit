@@ -447,6 +447,16 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "text", optional = TRUE, shown_if = c(list(list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05))), if (!is.null(no_bayes)) list(no_bayes)))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
+  # No significance test (latent profiles: the BIC chooses the number of
+  # profiles), so no alpha to ask for.
+  if (isTRUE(form$no_alpha)) {
+    test <- Filter(function(f) !f$id %in% c("alpha", "alpha_reason"), test)
+    at <- which(vapply(test, function(f) identical(f$id, "power"), logical(1)))
+    if (length(at)) {
+      test[[at]]$label <- form$power_label %||% "Target chance of success"
+      test[[at]]$help <- form$power_help %||% test[[at]]$help
+    }
+  }
   if (isTRUE(form$precision)) test <- precision_goal_fields(tool)
   if (meta) {
     test <- Filter(function(f) !f$id %in% c("n_max", "situation"), test)

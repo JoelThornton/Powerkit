@@ -40,7 +40,7 @@ test_that("shares must match the profiles and add up to 1; there is no alpha", {
 
 test_that("the R script reproduces the run", {
   skip_if_not_installed("mclust")
-  spec <- lpa_test_spec(separation = 0.9, nrep = 60)
+  spec <- lpa_test_spec(separation = 0.9, nrep = 100)
   result <- suppressWarnings(run_quietly(spec))
   script <- export_script(spec, result)
   expect_true(any(grepl("mclust::mclustBIC", script, fixed = TRUE)))

@@ -75,6 +75,8 @@ form_examples <- list(
   E72 = c(list(G_type = "within_factor", G_label = "Encoding task", G_level1 = "Shallow", G_level2 = "Deep", Y_label = "Recognition memory",
                d1 = "1", d2 = "1.4", trials_signal = "40", trials_noise = "40", sd_dprime = "0.5", r_dprime = "0.5", criterion = "0.2", sd_criterion = "0.3",
                alternative = "two_sided"), closing_ok),
+  E58 = c(list(Y_label = "Motivation subscales", indicators = "8", profiles = "3", separation = "1.2", profile_sizes = "unequal",
+               shares = "0.4, 0.4, 0.2"), closing_ok),
   E71 = c(list(G_label = "Language version", G_level1 = "English", G_level2 = "Spanish", Y_label = "Reading test",
                irt_a = "1.2, 0.9, 1.5, 1.0, 1.3, 0.8, 1.1, 1.4", irt_b = "-1, -0.5, 0, 0.3, 0.6, 1, -0.2, 0.4",
                dif_items = "1", b_shift = "0.4", free_parameters = "both", irt_stat = "likelihood_ratio"), closing_ok),

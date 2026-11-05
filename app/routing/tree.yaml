@@ -801,12 +801,12 @@ closing_questions:
     card_notes: {E46: "The sample size for a confidence-interval width, or the width at a given sample size; no power.", E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning.", E8: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."}
     setting: [analysis_types, observed_power]
     applies_to: all
-  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all, not_for: [E46]}
+  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all, not_for: [E46, E58]}
   - {doc_id: Q-power, text: "What power do you want?", applies_to: all, not_for: [E46]}
   - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks, applies_to: all}
   - {doc_id: Q-attr, text: "How many participants do you expect to lose?", applies_to: all, not_for: [E50, E61]}
   - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all, not_for: [E46]}
-  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all, not_for: [E46]}
+  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all, not_for: [E46, E58]}
 
 # Added by the app to every question, in every route (and to the end-point
 # list): leads to a card saying powerkit can't advise on the design yet.
@@ -1654,18 +1654,21 @@ endpoints:
   E58:
     doc_name: "Latent profile or latent class analysis (how many types of people, and who belongs to which)"
     plain_name: "Finding types or profiles of people (latent profile or latent class analysis)"
-    status: not_in_powerkit
-    no_ready_made_tool: true
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
+    search_words: "latent profile analysis lpa latent class analysis lca mixture model clusters types subgroups profiles class enumeration bic mclust person-centred"
+    template: "mixture / lpa"
+    backend: "Spower: powerkit's experiment around mclust (latent profile models with equal variances and local independence, fitted with 1 to k + 1 profiles, the BIC choosing among them), simulated"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-lpa.R, note: "Agrees with the same model fitted by an expectation-maximisation algorithm written separately, with the BIC computed by hand, in three cases from a clear to a hard enumeration. Not yet checked against a published simulation table."}
     card_points:
-      - "The question here is not a significance test: it is whether your sample can find the right number of profiles (class enumeration) and sort people into them reliably. No power formula answers that, so it is planned from published simulation studies, or from a simulation of your own model."
+      - "The question here is not a significance test: it is whether your sample can find the right number of profiles (class enumeration). powerkit simulates studies from the profiles you expect, fits latent profile models with 1 up to one more than that number of profiles (mclust), and counts how often the BIC chooses the right number: the study's chance of finding it."
       - "Separation between profiles matters more than sample size. In Tein, Coxe and Cham's (2013) simulations, no sample size up to 1,000 reliably found the right number of profiles when profiles differed by a small or medium amount on each indicator (Cohen's d of .2 or .5); at d = .8, it took at least 500 people and 10 or more indicators; at d = 1.5, 250 people were enough for most criteria."
       - "As a working range, Nylund-Gibson and Choi (2018) suggest that about 300 to 1,000 people is where the usual criteria work adequately; the median sample in published latent profile studies was 377 in Tein and colleagues' review and 494 in Spurk and colleagues' (2020). A small profile needs more people: with a class of 5% of 200 people, its estimates were poor (Nylund, Asparouhov and Muthén, 2007)."
-      - "Choose the number of profiles with the BIC and the bootstrap likelihood ratio test (BLRT), which did best in these simulations (Nylund, Asparouhov and Muthén, 2007; Tein, Coxe and Cham, 2013). Entropy describes how cleanly people are classified (above .80 is usually called good) but is not a way to choose the number of profiles."
-      - "For a plan of your own, simulate data from the profiles you expect and fit the models you will fit: Mplus's Monte Carlo facility does this (Nylund-Gibson and Choi, 2018, point to example 12.4 of its user's guide)."
-    inputs: ["The number of profiles you expect", "How far apart they are on each indicator", "The number of indicators", "The size of the smallest profile"]
-    tier: later
+      - "powerkit uses the BIC, which did best with the bootstrap likelihood ratio test in these simulations (Nylund, Asparouhov and Muthén, 2007; Tein, Coxe and Cham, 2013); the bootstrap test is too slow to simulate here. Entropy describes how cleanly people are classified but is not a way to choose the number of profiles."
+      - "Assumes score indicators, profiles that are equally far apart on every indicator, the same spread within each profile and indicators unrelated within a profile (the usual latent profile model). Yes/no indicators (latent class analysis) and other shapes are not covered yet."
+    inputs: ["The scores the profiles are formed from", "The profiles you expect"]
+    tier: v2
+    alternatives: ["the bootstrap likelihood ratio test, which needs many model fits per study (Mplus's Monte Carlo facility, or tidyLPA)", "a cluster analysis, such as k-means, which doesn't model profiles statistically"]
   E71:
     doc_name: "Differential item functioning (DIF) in a 2PL IRT model, two groups"
     plain_name: "Whether a test's items work the same way in two groups (differential item functioning)"

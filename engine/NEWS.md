@@ -1,5 +1,9 @@
 # powerkit 0.32.0
 
+* Latent profile analysis (E58, `mixture / lpa`): the chance the BIC finds
+  the right number of profiles, simulated with Spower around mclust (a new
+  dependency).
+
 * Signal detection (E72, `signal_detection / dprime`): d' in two conditions
   or groups, simulated with Spower (hits and false alarms, d' with the
   log-linear correction, a paired or Student's t-test).

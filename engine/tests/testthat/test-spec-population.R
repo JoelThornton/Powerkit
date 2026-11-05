@@ -319,6 +319,7 @@ zero_effect_cases <- list(
   growth_curve = function(s) within(s, population$slope_difference <- 0),
   irt_dif = function(s) within(s, population$b_shift <- list(0)),
   dprime = function(s) within(s, population$dprime <- list(1, 1)),
+  lpa = function(s) within(s, population$separation <- 0),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   # Equal means make every contrast zero, whatever its weights.

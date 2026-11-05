@@ -1141,6 +1141,27 @@ each person's criterion), d' with the log-linear correction, `t.test()`:
 
 Packages: powerkit 0.32.0; Spower 0.7; SimDesign 2.28.
 
+## 2026-11-05 · Latent profile analysis: finding the right number of profiles (local, cloud session)
+
+`test-validation-lpa.R` (chunk `lpa`) on Linux x86_64 with R 4.5.3:
+**3 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`), in about eight minutes. powerkit's `p_lpa()`
+(mclust's EEI models, BIC) at 2,000 replications against 1,000 studies
+drawn separately and fitted by an expectation-maximisation algorithm
+written in the test (k-means starts, BIC by hand):
+
+| Case | powerkit (MCSE) | Independent (MCSE) |
+| --- | --- | --- |
+| 3 profiles, 8 indicators, separation 0.9, shares .4/.4/.2, n 300 | 0.678 (0.010) | 0.679 (0.015) |
+| 2 profiles, 6 indicators, separation 1, n 150 | 0.998 (0.001) | 0.996 (0.002) |
+| 4 profiles, 10 indicators, separation 1, n 400 | 0.983 (0.003) | 0.992 (0.003) |
+
+The third case's difference (0.009) is inside the test's 99.9% Monte Carlo
+tolerance but the largest of the three; a fit that ends at a poorer local
+optimum chooses differently, and the two algorithms start differently.
+
+Packages: powerkit 0.32.0; Spower 0.7; mclust 6.1.3.
+
 ## Variant evidence registry
 
 `engine/inst/evidence/records.json` is the machine-readable index of selected

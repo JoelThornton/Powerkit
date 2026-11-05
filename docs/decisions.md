@@ -5479,3 +5479,39 @@ before the file arrives, the server sends its finished copy as before.
 Building it straight after start had delayed the first visitor's first
 screen by about five seconds, so it waits for that screen.
 
+## 2026-11-05 · Latent profile analysis: the chance of finding the right number of profiles (E58)
+
+- **What:** E58 calculates. A new design, `mixture / lpa`: the chance that
+  a study finds the right number of profiles (class enumeration), which is
+  what sample size planning for a latent profile analysis is about (no
+  significance test is involved). Its published guidance (Tein, Coxe and
+  Cham, 2013; Nylund, Asparouhov and Muthén, 2007; Nylund-Gibson and Choi,
+  2018; Spurk and colleagues, 2020) stays on the card.
+- **Why:** `next.md` item 5, the second of its designs in the order the
+  maintainer chose on 5 November 2026. No package plans it.
+- **Method (the maintainer's choice of a simulation, 5 November 2026):**
+  powerkit's Spower experiment `p_lpa()`. People are drawn into k profiles
+  with the given shares (sizes vary from study to study, as in the
+  published simulations) and their indicators are independent normal
+  scores with SD 1, profile j's mean being (j - 1) times the separation on
+  every indicator, as in Tein, Coxe and Cham's design. mclust (a new
+  dependency, CRAN, base R only) fits its EEI models, the usual latent
+  profile model with equal variances and local independence, with 1 to
+  k + 1 profiles, and the BIC chooses. The share of studies choosing k is
+  the "power"; the experiment returns 0 or 1, so Spower counts it. The BIC
+  is used because it did best, with the bootstrap likelihood ratio test,
+  in those simulations; the bootstrap test fits every model many times
+  per study and is too slow to simulate here.
+- **No alpha:** forms take `no_alpha` (the alpha questions are left out
+  and "Target power" is relabelled), the spec has no `target_test >
+  alpha` (method `bic`, like a Bayes factor), and the result reads as the
+  chance of finding the profiles, not power to detect an effect.
+- **Validation** (`test-validation-lpa.R`, chunk `lpa`): the same model
+  fitted by an expectation-maximisation algorithm written separately
+  (started from k-means, BIC by hand) on studies drawn separately; a
+  published table from Tein, Coxe and Cham is a placeholder for the
+  maintainer.
+- **Not covered yet:** yes/no indicators (latent class analysis), profiles
+  that differ in other patterns or in their spread, and correlated
+  indicators within a profile.
+

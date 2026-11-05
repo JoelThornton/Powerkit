@@ -166,6 +166,8 @@ fully validated. Validation runs are recorded in
   method; both of each DIF item's parameters tested by default, the
   maintainer's decision of 5 November 2026), reached from Q1, since 5
   November 2026;
+  E58, latent profile analysis (the chance the BIC finds the right number
+  of profiles, simulated with Spower around mclust), since 5 November 2026;
   E72, signal detection (d' in two conditions or groups, simulated with
   Spower: hits and false alarms, the log-linear correction, a t-test),
   reached from Q1, since 5 November 2026;

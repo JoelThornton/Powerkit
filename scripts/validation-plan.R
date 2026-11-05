@@ -39,6 +39,7 @@ chunk_sources <- function() {
     whole_study = c(power4mome, "engine/R/whole-study.R"),
     dyadic = c(power4mome, "engine/R/backend-apim.R"),
     bayes_factorial = "engine/R/backend-bayesfactor-factorial.R",
+    lpa = "engine/R/backend-spower.R",
     mixed_model = "engine/R/backend-simr.R"
   )
 }
