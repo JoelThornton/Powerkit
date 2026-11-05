@@ -35,7 +35,8 @@ population_problems <- function(spec) {
     survival = check_survival,
     reliability = check_reliability,
     irt = check_irt,
-    signal_detection = check_dprime
+    signal_detection = check_dprime,
+    mixture = check_lpa
   )
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
@@ -2922,6 +2923,7 @@ minimum_n <- function(spec) {
     # DIF: enough people in each group for the multigroup model.
     irt = 20,
     signal_detection = if (identical(spec$variables$G$type, "within_factor")) 3 else 4,
+    mixture = 10 * (spec$population$profiles + 1),
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -3227,6 +3229,7 @@ target_effect_is_zero <- function(spec) {
     },
     irt = max(abs(c(unlist(pop$b_shift %||% 0), unlist(pop$a_change %||% 0)))),
     signal_detection = diff(as.numeric(unlist(pop$dprime))),
+    mixture = pop$separation,
     reliability = switch(spec$template,
       icc = pop$icc - pop$icc_null,
       cronbach_alpha = pop$reliability - pop$reliability_null,
@@ -3483,4 +3486,18 @@ check_dprime <- function(spec) {
     return("'population > r_dprime' is the correlation of a person's d' in the two conditions, so it belongs to the same people in both (G a within factor); with two groups, remove it.")
   }
   character()
+}
+
+# Latent profile analysis: one share for each profile, adding up to 1.
+check_lpa <- function(spec) {
+  pop <- spec$population
+  if (is.null(pop$shares)) return(character())
+  shares <- as.numeric(unlist(pop$shares))
+  problems <- character()
+  if (length(shares) != pop$profiles) {
+    problems <- c(problems, sprintf("'population > shares' needs one share for each of the %d profiles.", pop$profiles))
+  } else if (abs(sum(shares) - 1) > 1e-6) {
+    problems <- c(problems, sprintf("'population > shares' should add up to 1; they add up to %s.", format(signif(sum(shares), 4))))
+  }
+  problems
 }

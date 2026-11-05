@@ -192,6 +192,9 @@ route_spec <- function(spec, seed = NULL) {
     # Spower: hits and false alarms, d' with the log-linear correction,
     # and a t-test.
     "signal_detection/dprime" = spower_backend(spec, seed),
+    # Latent profile analysis: the chance the BIC finds the right number
+    # of profiles, simulated with Spower around mclust.
+    "mixture/lpa" = spower_backend(spec, seed),
     "meta_analysis/subgroups" = if (hartung_knapp_test(spec)) meta_hk_mod_backend(spec, seed) else metapower_mod_backend(spec, seed),
     "meta_analysis/mean_effect" = if (hartung_knapp_test(spec)) meta_hk_backend(spec, seed) else metapower_backend(spec, seed),
     "meta_analysis/dependent_effects" = pomade_backend(spec, seed),

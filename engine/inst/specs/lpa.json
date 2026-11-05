@@ -1,0 +1,34 @@
+{
+  "spec_version": "0.1",
+  "design": "mixture",
+  "template": "lpa",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Motivation subscales"
+    }
+  },
+  "population": {
+    "metric": "sd_units",
+    "profiles": 3,
+    "indicators": 8,
+    "separation": 1.2,
+    "shares": [0.4, 0.4, 0.2]
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: replace with your reasoning."
+  },
+  "target_test": {
+    "effect": "profiles",
+    "method": "bic"
+  },
+  "goal": {
+    "type": "power",
+    "n": 300
+  },
+  "options": {
+    "nrep": 500,
+    "seed": 20261105
+  }
+}

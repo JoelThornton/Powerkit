@@ -44,7 +44,8 @@
         "survival",
         "reliability",
         "irt",
-        "signal_detection"
+        "signal_detection",
+        "mixture"
       ]
     },
     "template": {
@@ -177,6 +178,9 @@
     },
     {
       "$ref": "#/definitions/design_signal_detection"
+    },
+    {
+      "$ref": "#/definitions/design_mixture"
     }
   ],
   "definitions": {
@@ -617,7 +621,10 @@
             ],
             "properties": {
               "method": {
-                "const": "bayes_factor"
+                "enum": [
+                  "bayes_factor",
+                  "bic"
+                ]
               }
             }
           },
@@ -11608,6 +11615,115 @@
             },
             "method": {
               "const": "t_test"
+            }
+          }
+        }
+      }
+    },
+    "design_mixture": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "mixture"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "lpa"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "lpa"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mixture_lpa"
+            }
+          }
+        ]
+      }
+    },
+    "template_mixture_lpa": {
+      "description": "Latent profile analysis: will the study find the right number of profiles? People belong to one of 'profiles' groups that differ on 'indicators' scores; within a profile the scores are independent with SD 1 (local independence, equal variances across profiles: mclust's EEI model, the usual latent profile model). Each simulated study fits models with 1 to profiles + 1 profiles (mclust) and the BIC chooses among them; 'power' is the chance it chooses the right number (class enumeration; Nylund, Asparouhov and Muthen, 2007; Tein, Coxe and Cham, 2013). goal > n is the number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "description": "The indicators (the scores the profiles are formed from), as one set.",
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "profiles",
+            "indicators",
+            "separation"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "sd_units"
+            },
+            "profiles": {
+              "description": "The number of profiles in the population.",
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 6
+            },
+            "indicators": {
+              "description": "The number of indicators (scores).",
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 30
+            },
+            "separation": {
+              "description": "How far apart neighbouring profiles are on each indicator, in within-profile SD units (Cohen's d), as in Tein, Coxe and Cham's (2013) simulations: profile k's mean is (k - 1) times this on every indicator.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            },
+            "shares": {
+              "description": "Each profile's share of the population, in order, adding up to 1. Equal if omitted.",
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 6,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1
+              }
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": false,
+            "effect": {
+              "const": "profiles"
+            },
+            "method": {
+              "const": "bic"
             }
           }
         }

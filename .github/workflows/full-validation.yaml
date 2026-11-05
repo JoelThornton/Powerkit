@@ -93,6 +93,7 @@ on:
           - group_moderator
           - growth
           - signal_detection
+          - lpa
           - irt
           - process_4
           - process_4_binary

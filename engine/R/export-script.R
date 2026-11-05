@@ -371,6 +371,10 @@ design_description <- function(spec) {
       if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
+    "mixture/lpa" = sprintf(
+      "latent profile analysis: will %d profiles of people on %d indicators (%s) be found? mclust's models with 1 to %d profiles, the BIC choosing among them",
+      as.integer(spec$population$profiles), as.integer(spec$population$indicators), label("Y"), as.integer(spec$population$profiles) + 1L
+    ),
     "signal_detection/dprime" = sprintf(
       "signal detection: does sensitivity (d') in %s differ between %s (%s, %s)? Each person's d' from their hits and false alarms, then %s",
       label("Y"), label("G"), levels("G"),
@@ -749,7 +753,11 @@ goal_inputs <- function(spec, result) {
   goal <- spec$goal
   p <- result$provenance
   c(
-    sprintf("alpha <- %s # significance level", r_code(spec$target_test$alpha)),
+    if (identical(spec$template, "lpa")) {
+      "alpha <- 0.5 # not a significance level: p_lpa() returns 0 when the right number of profiles is found and 1 when not, so Spower's \"power\" counts the 0s"
+    } else {
+      sprintf("alpha <- %s # significance level", r_code(spec$target_test$alpha))
+    },
     if (goal$type != "sample_size") {
       sprintf("n_total <- %s # total sample size (every participant analysed)", r_code(goal$n))
     },
@@ -1474,6 +1482,12 @@ spower_script_inputs <- function(spec) {
         sprintf("quantile <- %s # the quantile of the outcome tested (0.5: the median)", r_code(pop$quantile %||% 0.5))
       }
     ),
+    lpa = c(
+      sprintf("profiles <- %s # the number of profiles in the population", r_code(as.integer(pop$profiles))),
+      sprintf("indicators <- %s # the number of indicators (%s)", r_code(as.integer(pop$indicators)), comment_text(v$Y$label)),
+      sprintf("separation <- %s # distance between neighbouring profiles on each indicator, in SD units", r_code(pop$separation)),
+      sprintf("shares <- %s # each profile's share of the population", r_code(as.numeric(unlist(pop$shares %||% rep(1 / pop$profiles, pop$profiles)))))
+    ),
     dprime = c(
       sprintf("# The %s of %s, in order: %s.", if (identical(v$G$type, "within_factor")) "conditions" else "groups",
         comment_text(v$G$label), paste(comment_text(unlist(v$G$levels)), collapse = ", ")),
@@ -1739,6 +1753,10 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "method = method",
       if (identical(spec$target_test$method, "quantile_regression")) "quantile = quantile"
     ),
+    lpa = c(
+      "n = batch_n, # sample size",
+      "profiles = profiles,", "indicators = indicators,", "separation = separation,", "shares = shares"
+    ),
     dprime = c(
       "n = batch_n, # sample size (people in all)",
       "d1 = d1,", "d2 = d2,", "trials_signal = trials_signal,", "trials_noise = trials_noise,",
@@ -1920,6 +1938,21 @@ spower_derived_lines <- function(spec) {
       "  }",
       "  fit <- lm(y ~ ., data = data)",
       "  car::linearHypothesis(fit, \"x = 0\", white.adjust = sub(\"ols_\", \"\", method))[2, \"Pr(>F)\"]",
+      "}"
+    ),
+    lpa = c(
+      "# The experiment, as powerkit runs it: each person in profile k with",
+      "# probability shares[k]; their indicators independent normal scores with",
+      "# SD 1 and mean (k - 1) * separation. mclust's EEI models (equal variances,",
+      "# local independence) with 1 to profiles + 1 profiles are fitted, and the",
+      "# experiment returns 0 when the BIC is best at the true number, 1 when it",
+      "# isn't: Spower's power is then the chance the right number is found.",
+      "p_lpa <- function(n, profiles, indicators, separation, shares) {",
+      "  g <- sample.int(profiles, n, replace = TRUE, prob = shares)",
+      "  x <- matrix(rnorm(n * indicators), n) + (g - 1) * separation",
+      "  bic <- mclust::mclustBIC(x, G = seq_len(profiles + 1), modelNames = \"EEI\", verbose = FALSE)",
+      "  chosen <- which.max(bic[, \"EEI\"])",
+      "  if (length(chosen) == 1 && chosen == profiles) 0 else 1",
       "}"
     ),
     dprime = c(
