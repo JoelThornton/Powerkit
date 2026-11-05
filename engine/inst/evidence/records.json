@@ -1,0 +1,887 @@
+{
+  "format_version": 1,
+  "version": "2026-11-05.1",
+  "limits": [
+    "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+    "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+    "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+    "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+  ],
+  "sources": {
+    "basic-2026-10-27": {
+      "date": "2026-10-27",
+      "revision": "612c22e",
+      "url": "https://github.com/JoelThornton/Powerkit/actions/runs/40501466220",
+      "files": [
+        "engine/tests/testthat/test-validation-basic-tests.R"
+      ],
+      "note": "Historical basic chunk: 27 PASS and 2 published-value TODO skips. These are case records at that revision, not current release-wide validation.",
+      "replications": 10000
+    },
+    "generic-2026-10-27": {
+      "date": "2026-10-27",
+      "revision": "612c22e",
+      "url": "https://github.com/JoelThornton/Powerkit/actions/runs/40501450758",
+      "files": [
+        "engine/tests/testthat/test-validation-generic-tests.R"
+      ],
+      "note": "Four generic-test cases passed, including their published manual values."
+    },
+    "variances-2026-10-27": {
+      "date": "2026-10-27",
+      "revision": "612c22e",
+      "url": "https://github.com/JoelThornton/Powerkit/actions/runs/40501454715",
+      "files": [
+        "engine/tests/testthat/test-validation-variance-tests.R"
+      ],
+      "note": "Eight variance-test cases passed; published examples cover one variance and two independent variances.",
+      "replications": 10000
+    },
+    "logistic-binary-2026-10-27": {
+      "date": "2026-10-27",
+      "revision": "612c22e",
+      "url": "https://github.com/JoelThornton/Powerkit/actions/runs/40501458557",
+      "files": [
+        "engine/tests/testthat/test-validation-logistic-regression.R"
+      ],
+      "note": "Binary-predictor published case passed; the normal-predictor case was still skipped in this run."
+    },
+    "logistic-normal-2026-10-27": {
+      "date": "2026-10-27",
+      "revision": "journal-recorded local run",
+      "url": "https://github.com/JoelThornton/Powerkit/blob/main/docs/validation-log.md#2026-10-27--logistic-normal-x-local",
+      "files": [
+        "engine/tests/testthat/test-validation-logistic-regression.R"
+      ],
+      "note": "The journal records a subsequent local normal-predictor case, N=337 and power at that N, with Demidenko variance correction."
+    },
+    "poisson-2026-10-27": {
+      "date": "2026-10-27",
+      "revision": "612c22e",
+      "url": "https://github.com/JoelThornton/Powerkit/actions/runs/40501462143",
+      "files": [
+        "engine/tests/testthat/test-validation-poisson-regression.R"
+      ],
+      "note": "One sample-size benchmark passed; the two published power comparisons were still skipped."
+    },
+    "contrast-2026-10-27": {
+      "date": "2026-10-27",
+      "revision": "b8cae0f",
+      "url": "https://github.com/JoelThornton/Powerkit/actions/runs/40505685163",
+      "files": [
+        "engine/tests/testthat/test-validation-anova-contrast.R"
+      ],
+      "note": "Three published contrast examples passed."
+    },
+    "interaction-2026-10-27": {
+      "date": "2026-10-27",
+      "revision": "b8cae0f",
+      "url": "https://github.com/JoelThornton/Powerkit/actions/runs/40505689700",
+      "files": [
+        "engine/tests/testthat/test-validation-regression-interaction.R"
+      ],
+      "note": "Seven cases passed and the published measurement-error case remained a TODO skip.",
+      "replications": 10000
+    },
+    "conditional-difference-2026-11-04": {
+      "date": "2026-11-04",
+      "revision": "51245b0d8930704c1edc48afb1182d937cbf60ac",
+      "url": "https://github.com/JoelThornton/Powerkit/actions/runs/41846071706",
+      "files": [
+        "engine/tests/testthat/test-validation-modmed-difference.R"
+      ],
+      "note": "Models 8 and 58: three PASS, one published-value TODO skip. The comparisons used 500 replications and the null case 1,000; this was not the standard 10,000-replication release validation.",
+      "replications": 500
+    },
+    "welch-spreads-2026-11-05": {
+      "date": "2026-11-05",
+      "revision": "79465d9c10ac43a201751adc9d4b1ada2d7fa61d",
+      "url": "https://github.com/JoelThornton/Powerkit/blob/main/docs/validation-log.md#2026-11-05--welch-planning-with-unequal-sds-local",
+      "files": [
+        "engine/tests/testthat/test-validation-welch-spreads.R",
+        "engine/tests/testthat/test-welch-population.R"
+      ],
+      "note": "Three opt-in checks passed with the locked Spower 0.7: formula/reference, separate simulation and a null rate of 0.0499. The source tree and local versions are recorded in the journal.",
+      "replications": 10000
+    }
+  },
+  "records": [
+    {
+      "id": "independent-student",
+      "match": {
+        "design": "basic_test",
+        "template": "independent_t",
+        "target_test.method": "student_t",
+        "features.score_shape": "normal",
+        "features.sd_ratio": 1
+      },
+      "scope": "Independent normal scores with equal population SDs. Analytic and direct simulation case checks include unequal allocation. The published Faul example is one-sided, equal allocation, d=0.5 and N=176; it is a power check, not a validation of every sample-size search.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "basic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "basic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Faul et al. (2007), as transcribed in the maintainer's test: one-sided power at N=176.",
+          "sources": [
+            "basic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power",
+            "features.computation_method": "exact",
+            "target_test.alternative": "greater",
+            "features.allocation_ratio": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "one-sample-t",
+      "match": {
+        "design": "basic_test",
+        "template": "one_sample_t",
+        "target_test.method": "t_test",
+        "features.score_shape": "normal"
+      },
+      "scope": "Normal one-sample t-test. Software agreement and a null-error case are recorded; no worked-example benchmark is linked.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "basic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "basic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        }
+      }
+    },
+    {
+      "id": "paired-t",
+      "match": {
+        "design": "basic_test",
+        "template": "paired_t",
+        "target_test.method": "t_test",
+        "features.score_shape": "normal"
+      },
+      "scope": "Paired t-test with normal differences. The published example is two-sided power at N=50 with dz=0.421637; it does not establish arbitrary within-person models.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "basic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "basic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "G*Power manual paired-test power example, as transcribed by the maintainer.",
+          "sources": [
+            "basic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power",
+            "features.computation_method": "exact",
+            "target_test.alternative": "two_sided"
+          }
+        }
+      }
+    },
+    {
+      "id": "pearson",
+      "match": {
+        "design": "basic_test",
+        "template": "correlation",
+        "target_test.method": "pearson",
+        "features.score_shape": "normal"
+      },
+      "scope": "Pearson correlation under the normal-score model; rank correlations and nonzero-null-correlation models are not covered by this record.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "basic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "basic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "The Faul bivariate-normal benchmark remains TODO_PUBLISHED_VALUE in the recorded run.",
+          "sources": [
+            "basic-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "two-proportions-z",
+      "match": {
+        "design": "basic_test",
+        "template": "two_proportions",
+        "target_test.method": "z_test"
+      },
+      "scope": "Independent binary outcomes. G*Power screenshot comparisons include unequal groups; those screenshots are distinct from a published worked example.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "basic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "basic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "The published worked-example test remained a TODO skip; separate G*Power screenshot checks passed.",
+          "sources": [
+            "basic-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "chi-square-independence",
+      "match": {
+        "design": "basic_test",
+        "template": "chi_square_independence",
+        "target_test.method": "pearson_chi_square"
+      },
+      "scope": "Pearson chi-square test of independent table counts. Bayes-factor and other table tests are separate variants.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "basic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "basic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        }
+      }
+    },
+    {
+      "id": "generic-t",
+      "match": {
+        "design": "generic_test",
+        "template": "t",
+        "target_test.method": "t_test"
+      },
+      "scope": "The supplied noncentrality and degrees-of-freedom case from the G*Power manual. This does not validate a researcher's conversion from a scientific model to those parameters.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "generic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "generic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Published G*Power manual case recorded in the generic chunk.",
+          "sources": [
+            "generic-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "generic-f",
+      "match": {
+        "design": "generic_test",
+        "template": "f",
+        "target_test.method": "f_test"
+      },
+      "scope": "The supplied noncentrality and degrees-of-freedom case from the G*Power manual. This does not validate a researcher's conversion from a scientific model to those parameters.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "generic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "generic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Published G*Power manual case recorded in the generic chunk.",
+          "sources": [
+            "generic-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "generic-chi_square",
+      "match": {
+        "design": "generic_test",
+        "template": "chi_square",
+        "target_test.method": "chi_square_test"
+      },
+      "scope": "The supplied noncentrality and degrees-of-freedom case from the G*Power manual. This does not validate a researcher's conversion from a scientific model to those parameters.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "generic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "generic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Published G*Power manual case recorded in the generic chunk.",
+          "sources": [
+            "generic-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "generic-z",
+      "match": {
+        "design": "generic_test",
+        "template": "z",
+        "target_test.method": "z_test"
+      },
+      "scope": "The supplied noncentrality and degrees-of-freedom case from the G*Power manual. This does not validate a researcher's conversion from a scientific model to those parameters.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "generic-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "generic-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Published G*Power manual case recorded in the generic chunk.",
+          "sources": [
+            "generic-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "one_variance",
+      "match": {
+        "design": "basic_test",
+        "template": "one_variance",
+        "target_test.method": "chi_square_var"
+      },
+      "scope": "Normal-score variance-test cases. Paired, independent and single-variance tests have distinct assumptions; the source lists the tested directions and allocations. Historical run used the implementation at the linked revision, before the 31 October formula replacement; it does not validate that replacement.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "variances-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "variances-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Published G*Power manual variance cases recorded in this chunk.",
+          "sources": [
+            "variances-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "two_variances",
+      "match": {
+        "design": "basic_test",
+        "template": "two_variances",
+        "target_test.method": "f_var"
+      },
+      "scope": "Normal-score variance-test cases. Paired, independent and single-variance tests have distinct assumptions; the source lists the tested directions and allocations. Historical run used the implementation at the linked revision, before the 31 October formula replacement; it does not validate that replacement.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "variances-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "variances-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Published G*Power manual variance cases recorded in this chunk.",
+          "sources": [
+            "variances-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "paired_variances",
+      "match": {
+        "design": "basic_test",
+        "template": "paired_variances",
+        "target_test.method": "pitman_morgan"
+      },
+      "scope": "Normal-score variance-test cases. Paired, independent and single-variance tests have distinct assumptions; the source lists the tested directions and allocations.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "variances-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "variances-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        }
+      }
+    },
+    {
+      "id": "logistic-binary",
+      "match": {
+        "design": "logistic_regression",
+        "template": "single_predictor",
+        "target_test.method": "wald_z",
+        "variables.X.type": "binary"
+      },
+      "scope": "Single-predictor Wald logistic regression using the documented Demidenko variance correction. The normal-score and binary-predictor worked examples are distinct; interaction, multinomial and other predictor distributions are outside this record.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "logistic-binary-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "logistic-binary-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Published G*Power manual worked example for this predictor type.",
+          "sources": [
+            "logistic-binary-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "logistic-continuous",
+      "match": {
+        "design": "logistic_regression",
+        "template": "single_predictor",
+        "target_test.method": "wald_z",
+        "variables.X.type": "continuous"
+      },
+      "scope": "Single-predictor Wald logistic regression using the documented Demidenko variance correction. The normal-score and binary-predictor worked examples are distinct; interaction, multinomial and other predictor distributions are outside this record.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "logistic-normal-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "logistic-normal-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Published G*Power manual worked example for this predictor type.",
+          "sources": [
+            "logistic-normal-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "poisson-binary-size",
+      "match": {
+        "design": "poisson_regression",
+        "template": "single_predictor_count",
+        "target_test.method": "wald_z",
+        "variables.X.type": "binary"
+      },
+      "scope": "Binary predictor, Poisson rate model: the published required-N case is recorded. Negative-binomial and zero-inflated models are separate.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "poisson-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "poisson-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "sample_size"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "The binary-predictor required N of 649 is recorded; the two published power comparisons were skipped.",
+          "sources": [
+            "poisson-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "sample_size"
+          }
+        }
+      }
+    },
+    {
+      "id": "planned-contrast",
+      "match": {
+        "design": "factorial_anova",
+        "template": "oneway_contrast",
+        "target_test.method": "contrast_t"
+      },
+      "scope": "Three one-way planned-contrast cases, as transcribed from the G*Power manual. Other contrast matrices and covariate structures are not blanket-validated.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "contrast-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "contrast-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Three published manual contrast examples passed.",
+          "sources": [
+            "contrast-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "regression-two-way",
+      "match": {
+        "design": "regression_interaction",
+        "template": "two_way",
+        "target_test.method": "ols_t",
+        "variables.X.type": "continuous",
+        "variables.W.type": "continuous",
+        "features.measurement_error": false,
+        "population.metric": {
+          "not": "r2_change"
+        }
+      },
+      "scope": "Continuous X and W, no measurement-error correction. Baranger tutorial cases compare power and a required-N range. The measurement-error published case remained a TODO skip; R-squared-change input is a separate formula route.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "interaction-2026-10-27"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "interaction-2026-10-27"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "recorded",
+          "note": "Baranger tutorial Figures 2 and 3 case comparisons recorded in the interaction chunk.",
+          "sources": [
+            "interaction-2026-10-27"
+          ]
+        }
+      }
+    },
+    {
+      "id": "process_8-difference",
+      "match": {
+        "design": "moderated_mediation",
+        "template": "process_8",
+        "target_test.method": "monte_carlo_ci",
+        "variables.X.type": "continuous",
+        "variables.W.type": "continuous",
+        "features.mediators": 1,
+        "features.specified_correlations": "none",
+        "target_test.effect": "conditional_indirect_difference"
+      },
+      "scope": "One continuous mediator, continuous X and W, no specified nonzero correlations; conditional-indirect difference between W=-1 and W=1. Model 59, binary variables and additional mediators are not covered. Comparison: 500 replications; null case: 1,000.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "conditional-difference-2026-11-04"
+          ]
+        },
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "conditional-difference-2026-11-04"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "Published difference benchmark remains untranscribed.",
+          "sources": [
+            "conditional-difference-2026-11-04"
+          ]
+        },
+        "independent": {
+          "status": "recorded",
+          "note": "An implementation or simulation written separately was used, within the stated case scope.",
+          "sources": [
+            "conditional-difference-2026-11-04"
+          ]
+        }
+      }
+    },
+    {
+      "id": "process_58-difference",
+      "match": {
+        "design": "moderated_mediation",
+        "template": "process_58",
+        "target_test.method": "monte_carlo_ci",
+        "variables.X.type": "continuous",
+        "variables.W.type": "continuous",
+        "features.mediators": 1,
+        "features.specified_correlations": "none",
+        "target_test.effect": "conditional_indirect_difference"
+      },
+      "scope": "One continuous mediator, continuous X and W, no specified nonzero correlations; conditional-indirect difference between W=-1 and W=1. Model 59, binary variables and additional mediators are not covered. Comparison: 500 replications; null case: 1,000.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "conditional-difference-2026-11-04"
+          ]
+        },
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "conditional-difference-2026-11-04"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "Published difference benchmark remains untranscribed.",
+          "sources": [
+            "conditional-difference-2026-11-04"
+          ]
+        },
+        "independent": {
+          "status": "recorded",
+          "note": "An implementation or simulation written separately was used, within the stated case scope.",
+          "sources": [
+            "conditional-difference-2026-11-04"
+          ]
+        }
+      }
+    },
+    {
+      "id": "welch-unequal-normal",
+      "match": {
+        "design": "basic_test",
+        "template": "independent_t",
+        "target_test.method": "welch_t",
+        "features.score_shape": "normal",
+        "features.sd_ratio": 3,
+        "features.allocation_ratio": {
+          "one_of": [
+            0.5,
+            2
+          ]
+        }
+      },
+      "scope": "Normal populations with SD ratio 3, means 20 and 24, SDs 5 and 15, total N=120, and allocation ratios 0.5 or 2. Power comparisons use two-sided tests; the null simulation uses a greater-than decision. Other shapes, missingness, SD ratios and parameter values are not established by these cases.",
+      "categories": {
+        "package_agreement": {
+          "status": "recorded",
+          "note": "Software comparisons are limited to the cases named in the source record.",
+          "sources": [
+            "welch-spreads-2026-11-05"
+          ]
+        },
+        "full_validation": {
+          "status": "recorded",
+          "note": "The run covers the named cases and revision, not every option or the complete release.",
+          "sources": [
+            "welch-spreads-2026-11-05"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "independent": {
+          "status": "recorded",
+          "note": "An implementation or simulation written separately was used, within the stated case scope.",
+          "sources": [
+            "welch-spreads-2026-11-05"
+          ],
+          "when": {
+            "target_test.alternative": "two_sided"
+          }
+        }
+      }
+    }
+  ]
+}

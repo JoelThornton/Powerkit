@@ -636,7 +636,7 @@ function powerkitRestoreAnalyses() {
 # "More about this analysis".
 validated_line_ui <- function(tree, ep) {
   if (!identical(ep$status, "runs_validated")) return(NULL)
-  p(class = "validated-line", tags$strong("Check record: "), ep$validation$note, " ", validation_scope_note, " ",
+  p(class = "validated-line", tags$strong("Historical design-level record: "), ep$validation$note, " ", validation_scope_note, " ",
     tags$a(href = tree$links$validation_log, target = "_blank", "Validation log"), " \u00b7 ",
     tags$a(href = paste0(tree$links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file)))
 }
@@ -840,6 +840,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
           input,
           hints_ui(tree, input)
         )))),
+        evidence_ui(tree$evidence_defaults[[ep_id]], "Evidence for this form's default test version"),
         validated_line_ui(tree, ep),
         if (runs) tagList(
           p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),

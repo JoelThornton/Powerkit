@@ -189,6 +189,7 @@ script_header <- function(spec, result, package, call_description) {
     sprintf("# Goal: %s", goal_description(spec)),
     sprintf("# Method: %s", method_description(result)),
     sprintf("# Calculation: %s", call_description),
+    paste0("# ", comment_text(evidence_record_text(p$evidence))),
     "#",
     sprintf("# %s did this calculation. Please cite it: run citation(\"%s\"),", package, package),
     "# and see powerkit's citations export for its method paper.",

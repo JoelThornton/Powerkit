@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "See what a test can do and what has been checked"
+    text: >-
+      About now has a searchable table of analysis choices and limits.
+      Results distinguish software comparisons, independent references,
+      published examples and method checks for the selected test version;
+      saved results keep the evidence record captured at the time.
+  - date: "2026-11-05"
     title: "Plan for different group spreads"
     text: >-
       Welch planning can use an SD for each group, or an SD ratio with a

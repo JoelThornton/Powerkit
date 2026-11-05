@@ -1852,12 +1852,9 @@ known_differences_for <- function(forms, ep_id, spec = NULL) {
   vapply(keys, function(k) forms$known_differences[[k]], character(1))
 }
 
-validation_ui <- function(ep) {
-  if (identical(ep$status, "runs_validated")) {
-    p(class = "result-validation small text-muted", tags$strong("Check record. "), ep$validation$note, " ", validation_scope_note)
-  } else {
-    div(class = "status status-in-progress", tags$strong("Validation in progress. "), ep$validation$note %||% "", " ", validation_scope_note)
-  }
+validation_ui <- function(ep, result = NULL) {
+  tagList(evidence_ui(result$provenance$evidence),
+    tags$details(tags$summary("Historical design-level note"), p(ep$validation$note %||% "No design-level note is recorded.", " ", validation_scope_note)))
 }
 
 provenance_lines <- function(result) {
@@ -1871,7 +1868,8 @@ provenance_lines <- function(result) {
     sprintf("Packages: %s", paste(sprintf("%s %s", names(p$packages), p$packages), collapse = ", ")),
     sprintf("Check run (does the backend reproduce your population?): %s", if (all(result$check_run$ok)) "passed" else "failed"),
     sprintf("Run time: %.1f seconds", p$run_time_seconds),
-    simulation_outcome_text(result)
+    simulation_outcome_text(result),
+    evidence_lines(p$evidence)
   )
 }
 
@@ -2103,7 +2101,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       if (p_$backend %in% c("pwr", "stats", "pwrss", "powertools")) "powerkit built the call from your answers and checked the effect size it passes. " else
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations above."),
-    validation_ui(ep),
+    validation_ui(ep, result),
     technical_details_ui(result),
     if (length(departures_in_view)) tagList(
       h4(class = "h6", "Where powerkit differs from the tool's defaults"),
@@ -2477,6 +2475,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   full <- paste(c(
     paste(c(main, interval, recruit_line, claim), collapse = " "),
     writeup_software(result, full = TRUE),
+    paste(evidence_lines(result$provenance$evidence), collapse = " "),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
   ), collapse = "\n\n")
@@ -2796,7 +2795,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
         "powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
-      validation_ui(ep),
+      validation_ui(ep, result),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),
         tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),
