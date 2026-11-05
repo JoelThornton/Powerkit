@@ -42,7 +42,8 @@
         "precision",
         "dyadic",
         "survival",
-        "reliability"
+        "reliability",
+        "irt"
       ]
     },
     "template": {
@@ -169,6 +170,9 @@
     },
     {
       "$ref": "#/definitions/design_reliability"
+    },
+    {
+      "$ref": "#/definitions/design_irt"
     }
   ],
   "definitions": {
@@ -588,6 +592,10 @@
           },
           "minItems": 2,
           "maxItems": 2
+        },
+        "free_parameters": {
+          "type": "string",
+          "description": "Differential item functioning only (irt / dif): which parameters of each DIF item the test frees between the groups; see that template."
         }
       },
       "allOf": [
@@ -8109,7 +8117,8 @@
               "two_level",
               "crossed_conditions",
               "three_level",
-              "item_predictor"
+              "item_predictor",
+              "growth_curve"
             ]
           }
         },
@@ -8187,6 +8196,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_item_predictor"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "growth_curve"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_growth_curve"
             }
           }
         ]
@@ -8775,6 +8799,86 @@
               }
             }
           ]
+        }
+      }
+    },
+    "template_growth_curve": {
+      "description": "Growth curves: two groups of people measured at three or more occasions, and the difference between the groups' average rates of change (the group x time interaction in a linear mixed model with a random intercept and slope for each person), by Diggle, Heagerty, Liang and Zeger's (2002) formula, longpower's diggle.linear.power(). Equal groups, complete data; goal > n is the total number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "G",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "G": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "times",
+            "slope_difference",
+            "sd_slope",
+            "sd_residual"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "times": {
+              "description": "The occasions' times, in the units the slopes are per (for example 0, 1, 2, 3 months), in order, three or more.",
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 20,
+              "items": {
+                "type": "number"
+              }
+            },
+            "slope_difference": {
+              "description": "The second group's average rate of change minus the first's, in the outcome's units per unit of time. 0 is allowed, to check the Type I error rate at a fixed n.",
+              "type": "number"
+            },
+            "sd_intercept": {
+              "description": "SD of people's own starting levels (the random intercept), at time 0. 0 if omitted.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_slope": {
+              "description": "SD of people's own rates of change (the random slope), per unit of time; 0 would be a random-intercept model.",
+              "type": "number",
+              "minimum": 0
+            },
+            "r_intercept_slope": {
+              "description": "Correlation between people's starting levels and rates of change. 0 if omitted.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "sd_residual": {
+              "description": "SD of the occasion-to-occasion variation around each person's own line (the residual).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": false,
+            "effect": {
+              "const": "slope_difference"
+            },
+            "method": {
+              "const": "z_test"
+            }
+          }
         }
       }
     },
@@ -11217,6 +11321,155 @@
                 },
                 "method": {
                   "const": "kappa_chi_square"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "design_irt": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "irt"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "dif"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "dif"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_irt_dif"
+            }
+          }
+        ]
+      }
+    },
+    "template_irt_dif": {
+      "description": "Differential item functioning (DIF) in a two-parameter logistic (2PL) IRT model: do some items work differently in two groups of equal size whose abilities follow the same standard normal distribution? The test compares the multigroup model with the DIF items' parameters free against the one with every item's parameters equal (irtpwr's analytical power; Zimmer and Debelak, 2023). goal > n is the total number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "G",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "G": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "description": "The test or questionnaire whose items are compared.",
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "a",
+            "b",
+            "dif_items"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "irt_2pl"
+            },
+            "a": {
+              "description": "Each item's discrimination (2PL slope) in the reference group (G's first level), in the items' order.",
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 40,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "b": {
+              "description": "Each item's difficulty (the ability at which a person has a 50% chance of answering 'yes' or correctly) in the reference group, in the same order.",
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 40,
+              "items": {
+                "type": "number"
+              }
+            },
+            "dif_items": {
+              "description": "The items with DIF, by number (1 for the first item).",
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "b_shift": {
+              "description": "For each DIF item, in the same order: how much harder it is in the focal group (G's second level), as a difference in difficulty (uniform DIF). 0 for none.",
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "number"
+              }
+            },
+            "a_change": {
+              "description": "Optional, for each DIF item: the focal group's discrimination minus the reference group's (non-uniform DIF). 0 for each if omitted.",
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "effect": {
+                  "const": "dif"
+                },
+                "method": {
+                  "enum": [
+                    "likelihood_ratio",
+                    "wald",
+                    "score",
+                    "gradient"
+                  ],
+                  "description": "The test statistic: the likelihood-ratio test (the default, the test of nested multigroup models researchers usually report), or the Wald, score or gradient statistic, each by irtpwr's analytical method."
+                },
+                "free_parameters": {
+                  "enum": [
+                    "both",
+                    "differing"
+                  ],
+                  "default": "both",
+                  "description": "Which parameters of each DIF item the test frees between the groups: 'both' (the default), its discrimination and difficulty together, the usual likelihood-ratio test of DIF in a 2PL model (2 df per item: the omnibus test in mirt's DIF() help, which.par = c('a1', 'd')); or 'differing', only the parameters that differ in population (b_shift or a_change not 0), as irtpwr's DIF preset builds its hypothesis."
                 }
               }
             }

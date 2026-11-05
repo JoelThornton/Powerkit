@@ -69,9 +69,11 @@ test_that("answers other than the simple ones leave at an honest end point", {
   # Equivalence is chosen on the aim screen, before the screening.
   expect_all_routes(c(screen_score, "Once"), "E36", ctx = list(goal = "equivalence"))
   expect_identical(start_exit(tree, list(aim = "estimate")), "E46")
-  for (id in c("E35", "E65", "E45")) {
+  for (id in c("E65", "E45")) {
     expect_identical(tree$endpoints[[id]]$status, "not_in_powerkit", label = id)
   }
+  # Growth curves calculate (longpower, 5 November 2026).
+  expect_identical(tree$endpoints$E35$status, "runs_validation_in_progress")
   # Estimating precisely: the precision card calculates (MBESS, presize).
   expect_identical(tree$endpoints$E46$status, "runs_validation_in_progress")
   # Ordered categories in two groups calculate (powertools' propodds()).

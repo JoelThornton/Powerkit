@@ -78,6 +78,15 @@ tool_defaults:
     alpha: 0.05
     alpha_source: "the default of Hmisc's cpower() (alpha = 0.05, Hmisc 5.3-0) and powerSurvEpi's powerEpiCont.default() (alpha = 0.05, powerSurvEpi 0.1.5)"
     power_source: "neither package has a default target power (powerSurvEpi's ssizeEpiCont.default(power) must be given; cpower() reports power only); enter one"
+  longpower:
+    alpha: 0.05
+    alpha_source: "longpower's default (diggle.linear.power(sig.level = 0.05), longpower 1.0.27)"
+    power_source: "longpower has no default target power (diggle.linear.power(power = NULL)); enter one"
+    alternative_source: "longpower's default (two-sided: diggle.linear.power(alternative = \"two.sided\"), longpower 1.0.27)"
+  irtpwr:
+    alpha: 0.05
+    alpha_source: "the usual 5% level; irtpwr has no default (irtpwr(alpha = NULL) must be given, irtpwr 1.0.3)"
+    power_source: "irtpwr has no default target power (irtpwr(power = NULL)); enter one"
   semPower:
     alpha: 0.05
     alpha_source: "the usual 5% level; semPower has no default (semPower.postHoc(alpha) must be given, semPower 2.2.0)"
@@ -132,7 +141,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -253,6 +262,7 @@ whole_study:
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
   "19": "Moderation of both mediation links: powerkit calculates residual variances from the full product moments and supplies them directly to power4mome. Its default standardisation can use the mediator's old values in the later product and generate the wrong outcome variance. Impossible combinations of paths are rejected before running."
+  "20": "Differential item functioning: the test frees both of each DIF item's parameters (discrimination and difficulty) between the groups, whichever you expect to differ, because that is the test usually run (the omnibus test in mirt's DIF() help) and a power analysis should be for the test you will run. irtpwr's DIF preset tests only the parameters that differ, which is more powerful when only the difficulty changes: for the 8-item example with one item 0.4 harder, 53.6% against 64.1% at 600 people. That test is a choice on the input screen."
   "1": "Required N for a 2 x 2 interaction: powerkit gives the smallest N at which the exact F test reaches the target power. Sommet et al.'s (2023) z approximation gives slightly smaller numbers: 4 participants fewer (one per cell) in their two published examples."
   "2": "Mixed design: powerkit uses Superpower's ANOVA_exact(), which reproduces the G*Power values Superpower's vignette reports, not ANOVA_exact2(). The two differ slightly (91.2% vs 90.5% in the vignette's example)."
   "3": "Superpower's exact dataset is built under this run's seed, so the result is identical each time with the same seed. The size of this difference is about 1e-15 in power, with no practical effect."
@@ -2861,6 +2871,82 @@ forms:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
              default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
              help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
+
+  # Differential item functioning in a 2PL IRT model (irtpwr's analytical
+  # method with its DIF preset; Zimmer and Debelak, 2023): two
+  # groups of equal size with standard normal abilities; items entered as
+  # discrimination and difficulty; the DIF items' parameters freed between
+  # the groups (both by default, or only those that differ).
+  E71:
+    methods_name: "a test of differential item functioning in a two-parameter logistic IRT model (irtpwr's analytical method)"
+    tool: irtpwr
+    directional: false
+    departures: ["20"]
+    base: {spec_version: "0.1", design: irt, template: dif,
+           variables: {G: {type: binary}, "Y": {type: continuous}}, population: {metric: irt_2pl},
+           target_test: {effect: dif}}
+    groups:
+      - input: "Your groups and the test"
+        fields:
+          - {id: G_label, label: "What the groups are (for example, language version)", type: text, path: variables.G.label, required: true}
+          - {id: G_level1, label: "Reference group (the one the item parameters come from)", type: text, path: variables.G.levels.1, required: true}
+          - {id: G_level2, label: "Focal group", type: text, path: variables.G.levels.2, required: true}
+          - {id: Y_label, label: "The test or questionnaire (for example, reading test)", type: text, path: variables.Y.label, required: true}
+      - input: "Each item's discrimination and difficulty"
+        fields:
+          - {id: irt_a, writeup_label: "item discriminations", label: "Each item's discrimination (the 2PL slope a), in the items' order, separated by commas (3 to 40 items)", type: numbers, path: population.a, effect: true, min_exclusive: 0,
+             help: "From an earlier calibration of the test, or a published one. Discriminations around 1 are typical; above 2 is high. Use the logistic metric (without the 1.7 scaling constant)."}
+          - {id: irt_b, writeup_label: "item difficulties", label: "Each item's difficulty (b, the ability at which half answer 'yes' or correctly), in the same order", type: numbers, path: population.b, effect: true,
+             help: "On the scale of the reference group's ability, which has mean 0 and SD 1. If your software reports intercepts d instead, the difficulty is -d / a."}
+      - input: "The items with DIF and how they differ"
+        fields:
+          - {id: dif_items, writeup_label: "items with DIF", label: "Which items have DIF: their numbers in the list above, separated by commas (1 for the first)", type: numbers, path: population.dif_items, effect: true, min: 1, integer: true,
+             help: "The other items are anchors: assumed to work the same way in both groups."}
+          - {id: b_shift, writeup_label: "change in difficulty in the focal group", label: "For each DIF item, in the same order: how much harder it is in the focal group (its difficulty there minus in the reference group; 0 for none)", type: numbers, path: population.b_shift, effect: true,
+             help: "Uniform DIF. For example 0.4: the item is as hard for focal-group members as for reference-group members 0.4 SD lower in ability. Negative if easier."}
+          - {id: a_change, writeup_label: "change in discrimination in the focal group", label: "For each DIF item, in the same order: its discrimination in the focal group minus in the reference group (optional; 0 for each if left empty)", type: numbers, path: population.a_change, optional: true,
+             help: "Non-uniform DIF: the item separates people of different ability more, or less, in the focal group."}
+      - input: "Which test"
+        fields:
+          - {id: free_parameters, label: "Which of each DIF item's parameters the test frees between the groups", type: select, path: target_test.free_parameters, required: true,
+             choices: {both: "Both its discrimination and its difficulty (the usual likelihood-ratio DIF test, 2 df per item)", differing: "Only those that differ above (irtpwr's own choice; 1 df when only the difficulty changes)"},
+             default: both, default_source: "both parameters, the omnibus likelihood-ratio DIF test (mirt's DIF() help: which.par = c('a1', 'd'), with 1-df tests as follow-ups); irtpwr's preset frees only those that differ (docs/conventions.md)",
+             help: "Plan for the test you will run. Freeing only the difficulty is more powerful when only the difficulty changes, but misses a change in discrimination you didn't expect."}
+          - {id: irt_stat, label: "Test statistic", type: select, path: target_test.method, required: true,
+             choices: {likelihood_ratio: "Likelihood ratio (the usual choice)", wald: "Wald", score: "Score (Lagrange multiplier)", gradient: "Gradient"},
+             default: likelihood_ratio, default_source: "the likelihood-ratio test of the nested multigroup models, the DIF test researchers usually report",
+             help: "All four test the same hypothesis and differ little in power in large samples."}
+
+  # Growth curves (longpower's diggle.linear.power(), Diggle et al., 2002):
+  # two equal groups, three or more occasions, random intercept and slope.
+  E35:
+    methods_name: "a growth-curve comparison of two groups' rates of change (Diggle and colleagues' formula for a linear mixed model)"
+    tool: longpower
+    directional: true
+    base: {spec_version: "0.1", design: mixed_model, template: growth_curve,
+           variables: {G: {type: binary}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {effect: slope_difference, method: z_test}}
+    groups:
+      - input: "Your groups, the outcome and the occasions"
+        fields:
+          - {id: G_label, label: "What the groups are (for example, condition)", type: text, path: variables.G.label, required: true}
+          - {id: G_level1, label: "Group 1", type: text, path: variables.G.levels.1, required: true}
+          - {id: G_level2, label: "Group 2", type: text, path: variables.G.levels.2, required: true}
+          - {id: Y_label, label: "Outcome (for example, stress score)", type: text, path: variables.Y.label, required: true}
+          - {id: times, writeup_label: "occasions", label: "The occasions' times, separated by commas (three or more, for example 0, 1, 2, 3 for monthly measurements)", type: numbers, path: population.times, required: true,
+             help: "In the units the rates of change are per: with monthly measurements in months, the rate of change is per month."}
+      - input: "The difference in rates of change"
+        fields:
+          - {id: slope_difference, writeup_label: "difference in rates of change", label: "Group 2's average rate of change minus group 1's, per unit of time, in the outcome's units", type: number, path: population.slope_difference, effect: true,
+             help: "For example -1: the outcome falls one point more per month in group 2 than in group 1."}
+      - input: "How much people vary"
+        fields:
+          - {id: sd_slope, writeup_label: "SD of people's rates of change", label: "SD of people's own rates of change (the random slope SD), per unit of time", type: number, path: population.sd_slope, effect: true, min: 0}
+          - {id: sd_residual, writeup_label: "residual SD", label: "SD of each person's scores around their own line (the residual SD)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
+          - {id: sd_intercept, writeup_label: "SD of people's starting levels", label: "SD of people's starting levels (the random intercept SD, at the first occasion)", type: number, path: population.sd_intercept, required: true, min: 0,
+             default: 0, default_source: "0, the design spec's default; with complete data the starting levels' spread doesn't change the test of the slopes unless they correlate with the rates of change"}
+          - {id: r_intercept_slope, label: "Correlation between people's starting levels and rates of change", type: number, path: population.r_intercept_slope, required: true, min: -1, max: 1,
+             default: 0, default_source: "0, the design spec's default (population > r_intercept_slope)"}
 
   # Moderation by a factor with three or more groups (Spower simulation of
   # powerkit's experiment around lm()): the correlation of X and Y in each

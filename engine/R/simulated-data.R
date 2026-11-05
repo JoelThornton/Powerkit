@@ -573,6 +573,26 @@ sim_rank_code <- function(spec, n) {
   c(draw, body)
 }
 
+# Growth curves: each person's starting level and rate of change from the
+# random effects, the second group's average rate slope_difference higher,
+# and the residuals (growth_data()); long format.
+sim_growth_code <- function(spec, n) {
+  inputs <- growth_inputs(spec)
+  per <- n %/% 2
+  c(
+    sprintf("times <- %s", r_code(inputs$t)),
+    sprintf("sigma <- matrix(%s, 2) # covariance of the starting level and the rate of change", r_code(c(inputs$s_i^2, inputs$cov_is, inputs$cov_is, inputs$s_s^2))),
+    sprintf("effects <- SimDesign::rmvnorm(%d, c(0, 0), sigma)", 2 * per),
+    sprintf("group <- rep(c(0, 1), each = %d)", per),
+    sprintf("slope <- effects[, 2] + %s * group", r_code(inputs$delta)),
+    sprintf("simulated <- data.frame(Participant = rep(seq_len(%d), each = length(times)), %s = rep(%s[group + 1], each = length(times)),",
+      2 * per, sim_label(spec, "G"), r_code(sim_levels(spec, "G"))),
+    "  Time = rep(times, length(group)),",
+    sprintf("  %s = rep(effects[, 1], each = length(times)) + rep(slope, each = length(times)) * rep(times, length(group)) + stats::rnorm(length(group) * length(times), 0, %s))",
+      sim_label(spec, "Y"), r_code(inputs$s_e))
+  )
+}
+
 # Moderation by groups: each group's X and Y drawn as
 # group_moderator_data() draws them.
 sim_group_moderator_code <- function(spec, n) {
@@ -1137,6 +1157,7 @@ sim_precision_code <- function(spec, n) {
 # long format a mixed model is fitted to. The outcome is centred: the
 # model's intercept is 0, as the difference is all the power depends on.
 sim_mixed_code <- function(spec, n) {
+  if (identical(spec$template, "growth_curve")) return(sim_growth_code(spec, n))
   if (identical(spec$template, "two_level")) return(sim_two_level_code(spec, n))
   if (identical(spec$template, "crossed_conditions")) return(sim_crossed_conditions_code(spec, n))
   if (identical(spec$template, "three_level")) return(sim_three_level_code(spec, n))

@@ -1,0 +1,49 @@
+{
+  "spec_version": "0.1",
+  "design": "mixed_model",
+  "template": "growth_curve",
+  "variables": {
+    "G": {
+      "type": "binary",
+      "label": "Condition",
+      "levels": [
+        "Waiting list",
+        "Mindfulness course"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Stress score"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "times": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "slope_difference": -1,
+    "sd_intercept": 6,
+    "sd_slope": 2,
+    "r_intercept_slope": -0.2,
+    "sd_residual": 4
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: stress falling one point a month faster with the course, over four monthly measurements, is the smallest change of interest; the variances are from an earlier cohort."
+  },
+  "target_test": {
+    "effect": "slope_difference",
+    "method": "z_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261105
+  }
+}

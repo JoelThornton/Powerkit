@@ -1806,6 +1806,45 @@ test_that("the aligned rank transform (E7, E21 and E22's test version) builds Sp
   expect_match(w[["short"]], "aligned rank transform", fixed = TRUE)
 })
 
+test_that("growth curves (E35) build a longpower spec from the occasions and variance components", {
+  fields <- form_fields(form_groups(forms, "E35"))
+  values <- modifyList(form_examples$E35, list(goal = "power", n = "200"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E35", fields, values)
+  expect_identical(spec$template, "growth_curve")
+  expect_equal(unlist(spec$population$times), 0:3)
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "longpower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E35"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "growth-curve comparison", fixed = TRUE)
+})
+
+test_that("differential item functioning (E71) builds an irtpwr spec from item parameters and the DIF items", {
+  fields <- form_fields(form_groups(forms, "E71"))
+  values <- modifyList(form_examples$E71, list(goal = "power", n = "600"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E71", fields, values)
+  expect_identical(spec$template, "dif")
+  expect_equal(unlist(spec$population$a), c(1.2, 0.9, 1.5, 1.0, 1.3, 0.8, 1.1, 1.4))
+  expect_equal(unlist(spec$population$dif_items), 1)
+  expect_null(spec$population$a_change)
+  expect_identical(spec$target_test$free_parameters, "both")
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "irtpwr")
+  expect_equal(calc$result$curve$power, 0.536, tolerance = 0.002)
+  w <- writeup_text(forms$forms[["E71"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "differential item functioning", fixed = TRUE)
+  # Departure 20 is shown with the default test, and not with irtpwr's own.
+  expect_named(departures_for(forms, "E71", calc$spec), "20")
+  # Only the parameter that differs: irtpwr's own choice, more powerful here.
+  spec <- build_spec(forms, "E71", fields, modifyList(values, list(free_parameters = "differing")))
+  expect_length(departures_for(forms, "E71", spec), 0)
+  expect_gt(run_calculation(spec, run, seed = 1L)$result$curve$power, calc$result$curve$power)
+})
+
 test_that("moderation by three or more groups (E30) takes a correlation per group and unequal groups, and reaches Spower", {
   fields <- form_fields(form_groups(forms, "E30"))
   values <- modifyList(form_examples$E30, list(group_sizes = "unequal", group_ratio = "1, 2, 1", goal = "power", n = "400"))

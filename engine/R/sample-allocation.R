@@ -13,6 +13,7 @@ sample_allocation <- function(spec) {
     return(weights(c(1, spec$options$allocation_ratio %||% 1)))
   }
   if (identical(template, "tost_two_proportions")) return(weights(c(1, 1)))
+  if (identical(template, "growth_curve") || identical(spec$design, "irt")) return(weights(c(1, 1)))
   if (identical(template, "invariance")) {
     if (identical(spec$population$over, "occasions")) return(single)
     k <- spec$population$n_groups %||% 2

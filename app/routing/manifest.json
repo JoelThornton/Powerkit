@@ -2497,6 +2497,34 @@
         "Built": "R 4.5.0; ; 2026-10-18 07:39:07 UTC; unix"
       }
     },
+    "dcurver": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "dcurver",
+        "Version": "0.9.3",
+        "Date": "2025-10-24",
+        "Title": "Utility Functions for Davidian Curves",
+        "Authors@R": "person(given = \"Ozan\",\n                  family = \"Öğreden\",\n                  role = c(\"aut\", \"cre\"),\n                  email = \"oguzhanogreden@protonmail.com\")",
+        "Description": "A Davidian curve defines a seminonparametric density, whose shape and flexibility can be tuned by\n  easy to estimate parameters. Since a special case of a Davidian curve is the standard normal density,\n  Davidian curves can be used for relaxing normality assumption in statistical applications (Zhang & Davidian, 2001)\n  <doi:10.1111/j.0006-341X.2001.00795.x>. This package provides the density function, the gradient of\n  the loglikelihood and a random generator for Davidian curves.",
+        "License": "GPL-3",
+        "URL": "https://github.com/oguzhanogreden/dcurver",
+        "BugReports": "https://github.com/oguzhanogreden/dcurver/issues",
+        "Imports": "Rcpp (>= 0.12.14)",
+        "LinkingTo": "Rcpp, RcppArmadillo",
+        "RoxygenNote": "7.3.2",
+        "Encoding": "UTF-8",
+        "Suggests": "testthat",
+        "Language": "en-US",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-10-24 12:27:35 UTC; ozan",
+        "Author": "Ozan Öğreden [aut, cre]",
+        "Maintainer": "Ozan Öğreden <oguzhanogreden@protonmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-10-24 16:10:09 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-10-18 08:50:46 UTC; unix"
+      }
+    },
     "deSolve": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -2520,6 +2548,31 @@
         "Date/Publication": "2026-03-20 06:10:37 UTC",
         "Encoding": "UTF-8",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-04-23 21:15:00 UTC; unix"
+      }
+    },
+    "deldir": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "deldir",
+        "Version": "2.0-4",
+        "Date": "2024-02-27",
+        "Title": "Delaunay Triangulation and Dirichlet (Voronoi) Tessellation",
+        "Author": "Rolf Turner",
+        "Maintainer": "Rolf Turner <rolfturner@posteo.net>",
+        "Depends": "R (>= 3.5.0)",
+        "Suggests": "polyclip",
+        "Imports": "graphics, grDevices",
+        "Description": "Calculates the Delaunay triangulation and the Dirichlet\n\tor Voronoi tessellation (with respect to the entire plane) of\n\ta planar point set. Plots triangulations and tessellations in\n\tvarious ways.  Clips tessellations to sub-windows. Calculates\n\tperimeters of tessellations.  Summarises information about\n\tthe tiles of the tessellation.\tCalculates the centroidal\n\tVoronoi (Dirichlet) tessellation using Lloyd's algorithm.",
+        "LazyData": "true",
+        "ByteCompile": "true",
+        "License": "GPL (>= 2)",
+        "NeedsCompilation": "yes",
+        "Packaged": "2024-02-27 02:48:30 UTC; rolf",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-02-28 04:00:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:32 UTC; unix"
       }
     },
     "desc": {
@@ -4043,6 +4096,32 @@
         "Built": "R 4.5.0; ; 2026-10-14 04:08:37 UTC; unix"
       }
     },
+    "irtpwr": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "irtpwr",
+        "Title": "Power Analysis for IRT Models Using the Wald, LR, Score, and\nGradient Statistics",
+        "Version": "1.0.3",
+        "Authors@R": "c(\n    person(\"Felix\", \"Zimmer\", , \"felix.zimmer@mail.de\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0002-8127-0007\")),\n    person(\"Rudolf\", \"Debelak\", , \"rudolf.debelak@psychologie.uzh.ch\", role = c(\"aut\"),\n           comment = c(ORCID = \"0000-0001-8900-2106\")),\n    person(\"Jan\", \"Radek\", , \"jan.radek@uzh.ch\", role = c(\"ctb\"))\n  )",
+        "Description": "Implementation of analytical and sampling-based power analyses for\n    the Wald, likelihood ratio (LR), score, and gradient tests. Can be applied\n    to item response theory (IRT) models that are fitted using marginal maximum\n    likelihood estimation. The methods are described in our paper\n    (Zimmer et al. (2022) <doi:10.1007/s11336-022-09883-5>).",
+        "License": "GPL (>= 3)",
+        "URL": "https://github.com/flxzimmer/irtpwr",
+        "BugReports": "https://github.com/flxzimmer/irtpwr/issues",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.2.3",
+        "Suggests": "testthat, knitr, rmarkdown",
+        "Imports": "mirt, Deriv, digest, spatstat.random, ggplot2, methods",
+        "VignetteBuilder": "knitr",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-11-20 16:08:20 UTC; felix",
+        "Author": "Felix Zimmer [aut, cre] (<https://orcid.org/0000-0002-8127-0007>),\n  Rudolf Debelak [aut] (<https://orcid.org/0000-0001-8900-2106>),\n  Jan Radek [ctb]",
+        "Maintainer": "Felix Zimmer <felix.zimmer@mail.de>",
+        "Repository": "RSPM",
+        "Date/Publication": "2023-11-20 16:20:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-24 00:34:54 UTC; unix"
+      }
+    },
     "isoband": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -4666,6 +4745,35 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:43:10 UTC; unix"
       }
     },
+    "longpower": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "longpower",
+        "Type": "Package",
+        "Title": "Sample Size Calculations for Longitudinal Data",
+        "Version": "1.0.27",
+        "Authors@R": "c(\n  person(c(\"Michael\", \"C.\"), \"Donohue\", email = \"mdonohue@usc.edu\", role = c(\"aut\", \"cre\")),\n  person(c(\"Steve\", \"D.\"), \"Edland\", email = \"sedland@health.ucsd.edu\", role = \"ctb\"),\n  person(\"Nan\", \"Hu\", email = \"hu.nan@gene.com\", role = \"ctb\"))",
+        "Description": "Compute power and sample size for linear models of longitudinal\n    data. Supported models include mixed-effects models and models fit by\n    generalized least squares and generalized estimating equations. The package\n    is described in Iddi and Donohue (2022) <DOI:10.32614/RJ-2022-022>. Relevant\n    formulas are derived by Liu and Liang (1997) <DOI:10.2307/2533554>, \n    Diggle et al (2002) <ISBN:9780199676750>, and Lu, Luo, and Chen (2008)\n    <DOI:10.2202/1557-4679.1098>.",
+        "License": "GPL (>= 2)",
+        "Depends": "R (>= 3.0.0), lme4 (>= 1.0), nlme",
+        "Imports": "methods",
+        "Suggests": "gee, testthat, knitr, rmarkdown",
+        "LazyLoad": "yes",
+        "VignetteBuilder": "knitr",
+        "URL": "https://github.com/mcdonohue/longpower",
+        "Collate": "'longpower-package.R' 'cprm.power.R' 'diggle.linear.power.R'\n'edland.linear.power.R' 'liu.liang.linear.power.R'\n'hu.mackey.thomas.linear.power.R' 'lmmpower.R' 'power_mmrm.R'\n'print.power.longtest.R'",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-09-04 22:01:17 UTC; mdonohue",
+        "Author": "Michael C. Donohue [aut, cre],\n  Steve D. Edland [ctb],\n  Nan Hu [ctb]",
+        "Maintainer": "Michael C. Donohue <mdonohue@usc.edu>",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-09-05 02:10:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-23 22:27:20 UTC; unix"
+      }
+    },
     "magrittr": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5027,6 +5135,39 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-09-24 11:20:19 UTC",
         "Built": "R 4.5.0; ; 2026-09-25 04:09:19 UTC; unix"
+      }
+    },
+    "mirt": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "mirt",
+        "Version": "1.48",
+        "Type": "Package",
+        "Title": "Multidimensional Item Response Theory",
+        "Authors@R": "c( person(\"Phil\", family=\"Chalmers\", email =\n                     \"rphilip.chalmers@gmail.com\", role = c(\"aut\", \"cre\"),\n                     comment = c(ORCID=\"0000-0001-5332-2810\")),\n    person(\"Joshua\", family=\"Pritikin\", role=c('ctb')),\n    person(\"Alexander\", family=\"Robitzsch\", role=c('ctb')),\n    person(\"Mateusz\", family=\"Zoltak\", role=c('ctb')),\n    person(\"KwonHyun\", family=\"Kim\", role=c('ctb')),\n    person(\"Carl F.\", family=\"Falk\", role=c('ctb')),\n    person(\"Adam\", family=\"Meade\", role=c('ctb')),\n    person(\"Lennart\", family=\"Schneider\", role=c('ctb')),\n    person(\"David\", family=\"King\", role=c('ctb')),\n    person(\"Chen-Wei\", family=\"Liu\", role=c('ctb')),\n    person(\"Ogreden\", family=\"Oguzhan\", role=c('ctb')),\n    person(\"Samuel\", family=\"Huang\", role=c('ctb')))",
+        "Description": "Analysis of discrete response data using\n    unidimensional and multidimensional item analysis models under the Item\n    Response Theory paradigm (Chalmers (2012) <doi:10.18637/jss.v048.i06>).\n    Exploratory and confirmatory item factor analysis models\n\tare estimated with quadrature (EM) or stochastic (MHRM) methods. Confirmatory\n    bi-factor and two-tier models are available for modeling item testlets using\n\tdimension reduction EM algorithms, while multiple group analyses and\n\tmixed effects designs are included for detecting differential item, bundle,\n\tand test functioning, and for modeling item and person covariates.\n\tFinally, latent class models such as the DINA, DINO, multidimensional latent class,\n\tmixture IRT models, and zero-inflated response models are supported, as well\n\tas a wide family of probabilistic unfolding models.",
+        "VignetteBuilder": "knitr",
+        "Depends": "stats, R (>= 4.1.0), stats4, lattice, methods",
+        "Imports": "GPArotation, gridExtra, Matrix (>= 1.5-0), Rcpp, mgcv, vegan,\nDeriv, splines, splines2, pbapply (>= 1.3-0), dcurver,\nSimDesign",
+        "Suggests": "boot, parallel, mirai, latticeExtra, directlabels, shiny,\nknitr, markdown, Rsolnp, nloptr, sirt, plink, mirtCAT, testthat\n(>= 3.0.0)",
+        "ByteCompile": "yes",
+        "LazyLoad": "yes",
+        "LazyData": "yes",
+        "LinkingTo": "Rcpp, RcppArmadillo",
+        "License": "GPL (>= 3)",
+        "Encoding": "UTF-8",
+        "Repository": "RSPM",
+        "Maintainer": "Phil Chalmers <rphilip.chalmers@gmail.com>",
+        "URL": "https://philchalmers.github.io/mirt/,\nhttps://github.com/philchalmers/mirt/wiki,\nhttps://groups.google.com/forum/#!forum/mirt-package",
+        "BugReports": "https://github.com/philchalmers/mirt/issues?state=open",
+        "Config/testthat/edition": "3",
+        "Config/roxygen2/version": "8.1.0",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-10-06 00:13:23 UTC; phil",
+        "Author": "Phil Chalmers [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-5332-2810>),\n  Joshua Pritikin [ctb],\n  Alexander Robitzsch [ctb],\n  Mateusz Zoltak [ctb],\n  KwonHyun Kim [ctb],\n  Carl F. Falk [ctb],\n  Adam Meade [ctb],\n  Lennart Schneider [ctb],\n  David King [ctb],\n  Chen-Wei Liu [ctb],\n  Ogreden Oguzhan [ctb],\n  Samuel Huang [ctb]",
+        "Date/Publication": "2026-10-06 08:00:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-10-18 10:19:20 UTC; unix"
       }
     },
     "mitml": {
@@ -5851,6 +5992,32 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-09 06:52:25 UTC; unix"
       }
     },
+    "polyclip": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "polyclip",
+        "Version": "1.10-7",
+        "Date": "2024-07-23",
+        "Title": "Polygon Clipping",
+        "Authors@R": "c(person(\"Angus\", \"Johnson\", role = \"aut\", \n   \t    comment=\"C++ original, http://www.angusj.com/delphi/clipper.php\"),\n\t     person(\"Adrian\", \"Baddeley\", role = c(\"aut\", \"trl\", \"cre\"),\n\t\t     email = \"Adrian.Baddeley@curtin.edu.au\"),\n\t     person(\"Kurt\", \"Hornik\", role = \"ctb\"),\n\t     person(c(\"Brian\", \"D.\"), \"Ripley\", role = \"ctb\"),\n\t     person(\"Elliott\", \"Sales de Andrade\", role=\"ctb\"),\n\t     person(\"Paul\", \"Murrell\", role = \"ctb\"),\n\t     person(\"Ege\", \"Rubak\", role=\"ctb\"),\n\t     person(\"Mark\", \"Padgham\", role=\"ctb\"))",
+        "Maintainer": "Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>",
+        "Depends": "R (>= 3.5.0)",
+        "Description": "R port of Angus Johnson's open source library 'Clipper'. Performs polygon clipping operations (intersection, union, set minus, set difference) for polygonal regions of arbitrary complexity, including holes. Computes offset polygons (spatial buffer zones, morphological dilations, Minkowski dilations) for polygonal regions and polygonal lines. Computes Minkowski Sum of general polygons. There is a function for removing self-intersections from polygon data.",
+        "License": "BSL",
+        "URL": "https://www.angusj.com,\nhttps://sourceforge.net/projects/polyclipping,\nhttps://github.com/baddstats/polyclip",
+        "BugReports": "https://github.com/baddstats/polyclip/issues",
+        "ByteCompile": "true",
+        "Note": "built from Clipper C++ version 6.4.0",
+        "NeedsCompilation": "yes",
+        "Packaged": "2024-07-22 23:24:18 UTC; adrian",
+        "Author": "Angus Johnson [aut] (C++ original,\n    http://www.angusj.com/delphi/clipper.php),\n  Adrian Baddeley [aut, trl, cre],\n  Kurt Hornik [ctb],\n  Brian D. Ripley [ctb],\n  Elliott Sales de Andrade [ctb],\n  Paul Murrell [ctb],\n  Ege Rubak [ctb],\n  Mark Padgham [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-07-23 06:10:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:47 UTC; unix"
+      }
+    },
     "polycor": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -5966,7 +6133,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, ARTool, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, jsonlite,\njsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize, PMCMRplus,\nPOMADE, presize, lme4, lmerTest, manymome, MBESS, nnet, gsl,\nmetafor, metapower, parallel, pbkrtest, psych, quantreg,\npower4mome, pwr, powertools, powerSurvEpi, pscl, pwrss, PUMP,\nsemPower, simr, SimDesign, statpsych, Spower (>= 0.7), stats,\nSuppDists, survival, Superpower, TOSTER, vegan, utils, WebPower",
+        "Imports": "afex, ARTool, BayesFactor, bfpwr, brunnermunzel, car, digest,\neffectsize, Hmisc, ICC.Sample.Size, InteractionPoweR, irtpwr,\njsonlite, jsonvalidate (>= 1.3.0), JustifyAlpha, kappaSize,\nPMCMRplus, POMADE, presize, lme4, lmerTest, longpower,\nmanymome, MBESS, nnet, gsl, metafor, metapower, mirt, parallel,\npbkrtest, psych, quantreg, power4mome, pwr, powertools,\npowerSurvEpi, pscl, pwrss, PUMP, semPower, simr, SimDesign,\nstatpsych, Spower (>= 0.7), stats, SuppDists, survival,\nSuperpower, TOSTER, vegan, utils, WebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -5976,19 +6143,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "b090cd1f1f3a8482a88354d157c3150c8fd3687a",
-        "RemoteSha": "b090cd1f1f3a8482a88354d157c3150c8fd3687a",
+        "RemoteRef": "7b61ae68933a15678491b45984bf779eb0bcbc05",
+        "RemoteSha": "7b61ae68933a15678491b45984bf779eb0bcbc05",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "b090cd1f1f3a8482a88354d157c3150c8fd3687a",
-        "GithubSHA1": "b090cd1f1f3a8482a88354d157c3150c8fd3687a",
+        "GithubRef": "7b61ae68933a15678491b45984bf779eb0bcbc05",
+        "GithubSHA1": "7b61ae68933a15678491b45984bf779eb0bcbc05",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-05 09:08:37 UTC; runner",
+        "Packaged": "2026-11-05 09:24:57 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-05 09:08:55 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-05 09:25:13 UTC; unix"
       }
     },
     "powertools": {
@@ -7208,6 +7375,194 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:44 UTC; unix"
       }
     },
+    "spatstat.data": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "spatstat.data",
+        "Version": "3.1-9",
+        "Date": "2025-10-18",
+        "Title": "Datasets for 'spatstat' Family",
+        "Authors@R": "c(person(\"Adrian\", \"Baddeley\", \n                    role = c(\"aut\", \"cre\"),\n       \t            email = \"Adrian.Baddeley@curtin.edu.au\",\n\t\t    comment = c(ORCID=\"0000-0001-9499-8382\")),\n\t     person(\"Rolf\", \"Turner\", \n                    role = \"aut\",\n \t            email=\"rolfturner@posteo.net\",\n\t\t    comment=c(ORCID=\"0000-0001-5521-5218\")),\n\t    person(\"Ege\",   \"Rubak\", \n                    role = \"aut\",\n\t\t    email = \"rubak@math.aau.dk\",\n\t\t    comment=c(ORCID=\"0000-0002-6675-533X\")),\n            person(\"W\", \"Aherne\", role=\"ctb\"),\n            person(\"Freda\", \"Alexander\", role=\"ctb\"),\n            person(\"Qi Wei\", \"Ang\", role=\"ctb\"),\n            person(\"Sourav\", \"Banerjee\", role=\"ctb\"),\n            person(\"Mark\", \"Berman\", role=\"ctb\"),\n            person(\"R\", \"Bernhardt\", role=\"ctb\"),\n            person(\"Thomas\", \"Berndtsen\", role=\"ctb\"),\n            person(\"Andrew\", \"Bevan\", role=\"ctb\"),\n            person(\"Jeffrey\", \"Betts\", role=\"ctb\"),\n            person(\"Ray\", \"Cartwright\", role=\"ctb\"),\n            person(\"Lucia\", \"Cobo Sanchez\", role=\"ctb\"),\n            person(\"Richard\", \"Condit\", role=\"ctb\"),\n            person(\"Francis\", \"Crick\", role=\"ctb\"),\n            person(\"Marcelino\", \"de la Cruz Rot\", role=\"ctb\"),\n            person(\"Jack\", \"Cuzick\", role=\"ctb\"),\n            person(\"Tilman\", \"Davies\", role=\"ctb\"),\n            person(\"Peter\", \"Diggle\", role=\"ctb\"),\n            person(\"Michael\", \"Drinkwater\", role=\"ctb\"),\n            person(\"Stephen\", \"Eglen\", role=\"ctb\"),\n            person(\"Robert\", \"Edwards\", role=\"ctb\"),\n            person(\"Johannes\", \"Elias\", role=\"ctb\"),\n            person(\"AE\", \"Esler\", role=\"ctb\"),\n            person(\"Gregory\", \"Evans\", role=\"ctb\"),\n            person(\"Bernard\", \"Fingleton\", role=\"ctb\"),\n            person(\"Olivier\", \"Flores\", role=\"ctb\"),\n            person(\"David\", \"Ford\", role=\"ctb\"),\n            person(\"Robin\", \"Foster\", role=\"ctb\"),\n            person(\"Janet\", \"Franklin\", role=\"ctb\"),\n            person(\"Neba\", \"Funwi-Gabga\", role=\"ctb\"),\n            person(\"DJ\", \"Gerrard\", role=\"ctb\"),\n            person(\"Andy\", \"Green\", role=\"ctb\"),\n            person(\"Tim\", \"Griffin\", role=\"ctb\"),\n            person(\"Ute\", \"Hahn\", role=\"ctb\"),\n            person(\"RD\", \"Harkness\", role=\"ctb\"),\n            person(\"Arthur\", \"Hickman\", role=\"ctb\"),\n            person(\"Stephen\", \"Hubbell\", role=\"ctb\"),\n            person(\"Austin\", \"Hughes\", role=\"ctb\"),\n            person(\"Jonathan\", \"Huntington\", role=\"ctb\"),\n            person(\"MJ\", \"Hutchings\", role=\"ctb\"),\n            person(\"Jackie\", \"Inwald\", role=\"ctb\"),\n            person(\"Valerie\", \"Isham\", role=\"ctb\"),\n            person(\"Aruna\", \"Jammalamadaka\", role=\"ctb\"),\n            person(\"Carl\", \"Knox-Robinson\", role=\"ctb\"),\n            person(\"Mahdieh\", \"Khanmohammadi\", role=\"ctb\"),\n            person(\"Tero\", \"Kokkila\", role=\"ctb\"),\n            person(\"Bas\", \"Kooijman\", role=\"ctb\"),\n            person(\"Kenneth\", \"Kosik\", role=\"ctb\"),\n            person(\"Peter\", \"Kovesi\", role=\"ctb\"),\n            person(\"Lily\", \"Kozmian-Ledward\", role=\"ctb\"),\n            person(\"Robert\", \"Lamb\", role=\"ctb\"),\n            person(\"NA\", \"Laskurain\", role=\"ctb\"),\n            person(\"George\", \"Leser\", role=\"ctb\"),\n            person(\"Marie-Colette\", \"van Lieshout\", role=\"ctb\"),\n            person(\"AF\", \"Mark\", role=\"ctb\"),\n            person(\"Sebastian\", \"Meyer\", role=\"ctb\"),\n            person(\"Jorge\", \"Mateu\", role=\"ctb\"),\n            person(\"Annikki\", \"Makela\", role=\"ctb\"),\n            person(\"Enrique\", \"Miranda\", role=\"ctb\"),\n            person(\"Nicoletta\", \"Nava\", role=\"ctb\"),\n            person(\"M\", \"Numata\", role=\"ctb\"),\n            person(\"Matti\", \"Nummelin\", role=\"ctb\"),\n            person(\"Jens Randel\", \"Nyengaard\", role=\"ctb\"),\n            person(\"Yosihiko\", \"Ogata\", role=\"ctb\"),\n            person(\"Si\", \"Palmer\", role=\"ctb\"),\n            person(\"Antti\", \"Penttinen\", role=\"ctb\"),\n            person(\"Sandra\", \"Pereira\", role=\"ctb\"),\n            person(\"Nicolas\", \"Picard\", role=\"ctb\"),\n            person(\"William\", \"Platt\", role=\"ctb\"),\n            person(\"Stephen\", \"Rathbun\", role=\"ctb\"),\n            person(\"Brian\", \"Ripley\", role=\"ctb\"),\n            person(\"Roger\", \"Sainsbury\", role=\"ctb\"),\n            person(\"Dietrich\", \"Stoyan\", role=\"ctb\"),\n            person(\"David\", \"Strauss\", role=\"ctb\"),\n            person(\"L\", \"Strand\", role=\"ctb\"),\n            person(\"Masaharu\", \"Tanemura\", role=\"ctb\"),\n            person(\"Graham\", \"Upton\", role=\"ctb\"),\n            person(\"Bill\", \"Venables\", role=\"ctb\"),\n            person(\"Ulrich\", \"Vogel\", role=\"ctb\"),\n            person(\"Sasha\", \"Voss\", role=\"ctb\"),\n            person(\"Rasmus\", \"Waagepetersen\", role=\"ctb\"),\n            person(\"Keith\", \"Watkins\", role=\"ctb\"),\n            person(\"H\", \"Wendrock\", role=\"ctb\")\n\t\t    )",
+        "Maintainer": "Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>",
+        "Depends": "R (>= 3.5.0)",
+        "Imports": "spatstat.utils (>= 3.1-2), Matrix",
+        "Suggests": "spatstat.geom, spatstat.random, spatstat.explore,\nspatstat.model, spatstat.linnet",
+        "Description": "Contains all the datasets for the 'spatstat' family of packages.",
+        "License": "GPL (>= 2)",
+        "URL": "http://spatstat.org/",
+        "LazyData": "true",
+        "NeedsCompilation": "no",
+        "ByteCompile": "true",
+        "BugReports": "https://github.com/spatstat/spatstat.data/issues",
+        "Packaged": "2025-10-18 06:37:21 UTC; adrian",
+        "Author": "Adrian Baddeley [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-9499-8382>),\n  Rolf Turner [aut] (ORCID: <https://orcid.org/0000-0001-5521-5218>),\n  Ege Rubak [aut] (ORCID: <https://orcid.org/0000-0002-6675-533X>),\n  W Aherne [ctb],\n  Freda Alexander [ctb],\n  Qi Wei Ang [ctb],\n  Sourav Banerjee [ctb],\n  Mark Berman [ctb],\n  R Bernhardt [ctb],\n  Thomas Berndtsen [ctb],\n  Andrew Bevan [ctb],\n  Jeffrey Betts [ctb],\n  Ray Cartwright [ctb],\n  Lucia Cobo Sanchez [ctb],\n  Richard Condit [ctb],\n  Francis Crick [ctb],\n  Marcelino de la Cruz Rot [ctb],\n  Jack Cuzick [ctb],\n  Tilman Davies [ctb],\n  Peter Diggle [ctb],\n  Michael Drinkwater [ctb],\n  Stephen Eglen [ctb],\n  Robert Edwards [ctb],\n  Johannes Elias [ctb],\n  AE Esler [ctb],\n  Gregory Evans [ctb],\n  Bernard Fingleton [ctb],\n  Olivier Flores [ctb],\n  David Ford [ctb],\n  Robin Foster [ctb],\n  Janet Franklin [ctb],\n  Neba Funwi-Gabga [ctb],\n  DJ Gerrard [ctb],\n  Andy Green [ctb],\n  Tim Griffin [ctb],\n  Ute Hahn [ctb],\n  RD Harkness [ctb],\n  Arthur Hickman [ctb],\n  Stephen Hubbell [ctb],\n  Austin Hughes [ctb],\n  Jonathan Huntington [ctb],\n  MJ Hutchings [ctb],\n  Jackie Inwald [ctb],\n  Valerie Isham [ctb],\n  Aruna Jammalamadaka [ctb],\n  Carl Knox-Robinson [ctb],\n  Mahdieh Khanmohammadi [ctb],\n  Tero Kokkila [ctb],\n  Bas Kooijman [ctb],\n  Kenneth Kosik [ctb],\n  Peter Kovesi [ctb],\n  Lily Kozmian-Ledward [ctb],\n  Robert Lamb [ctb],\n  NA Laskurain [ctb],\n  George Leser [ctb],\n  Marie-Colette van Lieshout [ctb],\n  AF Mark [ctb],\n  Sebastian Meyer [ctb],\n  Jorge Mateu [ctb],\n  Annikki Makela [ctb],\n  Enrique Miranda [ctb],\n  Nicoletta Nava [ctb],\n  M Numata [ctb],\n  Matti Nummelin [ctb],\n  Jens Randel Nyengaard [ctb],\n  Yosihiko Ogata [ctb],\n  Si Palmer [ctb],\n  Antti Penttinen [ctb],\n  Sandra Pereira [ctb],\n  Nicolas Picard [ctb],\n  William Platt [ctb],\n  Stephen Rathbun [ctb],\n  Brian Ripley [ctb],\n  Roger Sainsbury [ctb],\n  Dietrich Stoyan [ctb],\n  David Strauss [ctb],\n  L Strand [ctb],\n  Masaharu Tanemura [ctb],\n  Graham Upton [ctb],\n  Bill Venables [ctb],\n  Ulrich Vogel [ctb],\n  Sasha Voss [ctb],\n  Rasmus Waagepetersen [ctb],\n  Keith Watkins [ctb],\n  H Wendrock [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-10-18 07:10:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-12 19:45:00 UTC; unix"
+      }
+    },
+    "spatstat.geom": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "spatstat.geom",
+        "Version": "3.8-3",
+        "Date": "2026-09-18",
+        "Title": "Geometrical Functionality of the 'spatstat' Family",
+        "Authors@R": "c(person(\"Adrian\", \"Baddeley\", \n                    role = c(\"aut\", \"cre\", \"cph\"),\n       \t            email = \"Adrian.Baddeley@curtin.edu.au\",\n\t\t    comment = c(ORCID=\"0000-0001-9499-8382\")),\n\t     person(\"Rolf\", \"Turner\", \n                    role = c(\"aut\", \"cph\"),\n \t            email=\"rolfturner@posteo.net\",\n\t\t    comment=c(ORCID=\"0000-0001-5521-5218\")),\n\t     person(\"Ege\",   \"Rubak\", \n                    role = c(\"aut\", \"cph\"),\n\t\t    email = \"rubak@math.aau.dk\",\n\t\t    comment=c(ORCID=\"0000-0002-6675-533X\")),\n\t     person(\"Warick\",    \"Brown\" ,        role = \"ctb\"),\n\t     person(\"Tilman\",    \"Davies\",        role = \"ctb\"),\n\t     person(\"Ute\",       \"Hahn\",          role = \"ctb\"),\n\t     person(\"Martin\",    \"Hazelton\",      role = \"ctb\"),\n\t     person(\"Abdollah\",  \"Jalilian\",      role = \"ctb\"),\n \t     person(\"Greg\",      \"McSwiggan\",     role = c(\"ctb\", \"cph\")),\n \t     person(\"Sebastian\", \"Meyer\",         role = c(\"ctb\", \"cph\")),\n\t     person(\"Jens\",      \"Oehlschlaegel\", role = c(\"ctb\", \"cph\")),\n\t     person(\"Suman\",     \"Rakshit\",       role = \"ctb\"),\n\t     person(\"Dominic\",   \"Schuhmacher\",   role = \"ctb\"),\n\t     person(\"Rasmus\",    \"Waagepetersen\", role = \"ctb\"))",
+        "Maintainer": "Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>",
+        "Depends": "R (>= 3.5.0), spatstat.data (>= 3.1-9), spatstat.univar (>=\n3.2-0), stats, graphics, grDevices, utils, methods",
+        "Imports": "spatstat.utils (>= 3.2-5), deldir (>= 2.0-2), polyclip (>=\n1.10)",
+        "Suggests": "spatstat.random (>= 3.5), spatstat.explore (>= 3.8),\nspatstat.model (>= 3.7), spatstat.linnet (>= 3.5), spatial,\nfftwtools (>= 0.9-8), spatstat (>= 3.6)",
+        "Description": "Defines spatial data types and supports geometrical operations\n\t     on them. Data types include point patterns, windows (domains),\n\t     pixel images, line segment patterns, tessellations and hyperframes.\n\t     Capabilities include creation and manipulation of data\n\t     (using command line or graphical interaction),\n\t     plotting, geometrical operations (rotation, shift, rescale,\n\t     affine transformation), convex hull, discretisation and\n\t     pixellation, Dirichlet tessellation, Delaunay triangulation,\n\t     pairwise distances, nearest-neighbour distances,\n\t     distance transform, morphological operations\n\t     (erosion, dilation, closing, opening), quadrat counting,\n\t     geometrical measurement, geometrical covariance,\n\t     colour maps, calculus on spatial domains,\n\t     Gaussian blur, level sets of images, transects of images,\n\t     intersections between objects, minimum distance matching.\n\t     (Excludes spatial data on a network, which are supported by\n\t     the package 'spatstat.linnet'.)",
+        "License": "GPL (>= 2)",
+        "URL": "http://spatstat.org/",
+        "NeedsCompilation": "yes",
+        "ByteCompile": "true",
+        "BugReports": "https://github.com/spatstat/spatstat.geom/issues",
+        "Packaged": "2026-09-18 07:59:15 UTC; adrian",
+        "Author": "Adrian Baddeley [aut, cre, cph] (ORCID:\n    <https://orcid.org/0000-0001-9499-8382>),\n  Rolf Turner [aut, cph] (ORCID: <https://orcid.org/0000-0001-5521-5218>),\n  Ege Rubak [aut, cph] (ORCID: <https://orcid.org/0000-0002-6675-533X>),\n  Warick Brown [ctb],\n  Tilman Davies [ctb],\n  Ute Hahn [ctb],\n  Martin Hazelton [ctb],\n  Abdollah Jalilian [ctb],\n  Greg McSwiggan [ctb, cph],\n  Sebastian Meyer [ctb, cph],\n  Jens Oehlschlaegel [ctb, cph],\n  Suman Rakshit [ctb],\n  Dominic Schuhmacher [ctb],\n  Rasmus Waagepetersen [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-09-18 09:20:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-19 04:03:58 UTC; unix"
+      }
+    },
+    "spatstat.random": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "spatstat.random",
+        "Version": "3.5-2",
+        "Date": "2026-09-21",
+        "Title": "Random Generation Functionality for the 'spatstat' Family",
+        "Authors@R": "c(person(\"Adrian\", \"Baddeley\", \n                    role = c(\"aut\", \"cre\", \"cph\"),\n       \t            email = \"Adrian.Baddeley@curtin.edu.au\",\n\t\t    comment = c(ORCID=\"0000-0001-9499-8382\")),\n\t     person(\"Rolf\", \"Turner\", \n                    role = c(\"aut\", \"cph\"),\n \t            email=\"rolfturner@posteo.net\",\n\t\t    comment=c(ORCID=\"0000-0001-5521-5218\")),\n\t     person(\"Ege\",   \"Rubak\", \n                    role = c(\"aut\", \"cph\"),\n\t\t    email = \"rubak@math.aau.dk\",\n\t\t    comment=c(ORCID=\"0000-0002-6675-533X\")),\n\t     person(\"Tilman\", \"Davies\",\n\t            role = c(\"aut\", \"cph\"),\n\t\t    comment=c(ORCID=\"0000-0003-0565-1825\")),\n\t     person(\"Kasper\", \"Klitgaard Berthelsen\",\n\t            role = c(\"ctb\", \"cph\")),\n\t     person(\"David\", \"Bryant\",\n\t            role = c(\"ctb\", \"cph\")),\n\t     person(\"Ya-Mei\", \"Chang\",\n\t            role = c(\"ctb\", \"cph\"),\n\t\t    email = \"yamei628@gmail.com\"),\n\t     person(\"Ute\", \"Hahn\",\n\t            role = \"ctb\"),\n\t     person(\"Abdollah\", \"Jalilian\", \n\t            role = \"ctb\"),\n\t     person(\"Dominic\", \"Schuhmacher\",\n\t            role = c(\"ctb\", \"cph\")),\n\t     person(\"Rasmus\", \"Plenge Waagepetersen\",\n\t            role = c(\"ctb\", \"cph\")))",
+        "Maintainer": "Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>",
+        "Depends": "R (>= 3.5.0), spatstat.data (>= 3.1-9), spatstat.univar (>=\n3.2-0), spatstat.geom (>= 3.8-2), stats, utils, methods,\ngrDevices",
+        "Imports": "Matrix, spatstat.utils (>= 3.2-5), spatstat.sparse (>= 3.2-0)",
+        "Suggests": "spatial, spatstat.linnet (>= 3.5), spatstat.explore (>= 3.8),\nspatstat.model (>= 3.7), spatstat (>= 3.6), gsl",
+        "Description": "Functionality for random generation of spatial data in the 'spatstat' family of packages.\n\t     Generates random spatial patterns of points according to many simple rules (complete spatial randomness,\n\t     Poisson, binomial, random grid, systematic, cell), randomised alteration of patterns\n\t     (thinning, random shift, jittering),  simulated realisations of random point processes including\n\t     simple sequential inhibition, Matern inhibition models, Neyman-Scott cluster processes\n\t     (using direct, Brix-Kendall, or hybrid algorithms),\n\t     log-Gaussian Cox processes, product shot noise cluster processes\n\t     and Gibbs point processes (using Metropolis-Hastings birth-death-shift algorithm,\n\t     alternating Gibbs sampler, or coupling-from-the-past perfect simulation).\n\t     Also generates random spatial patterns of line segments,\n\t     random tessellations, and random images (random noise, random mosaics).\n\t     Excludes random generation on a linear network,\n\t     which is covered by the separate package 'spatstat.linnet'.",
+        "License": "GPL (>= 2)",
+        "URL": "http://spatstat.org/",
+        "NeedsCompilation": "yes",
+        "ByteCompile": "true",
+        "BugReports": "https://github.com/spatstat/spatstat.random/issues",
+        "Packaged": "2026-09-21 02:49:29 UTC; adrian",
+        "Author": "Adrian Baddeley [aut, cre, cph] (ORCID:\n    <https://orcid.org/0000-0001-9499-8382>),\n  Rolf Turner [aut, cph] (ORCID: <https://orcid.org/0000-0001-5521-5218>),\n  Ege Rubak [aut, cph] (ORCID: <https://orcid.org/0000-0002-6675-533X>),\n  Tilman Davies [aut, cph] (ORCID:\n    <https://orcid.org/0000-0003-0565-1825>),\n  Kasper Klitgaard Berthelsen [ctb, cph],\n  David Bryant [ctb, cph],\n  Ya-Mei Chang [ctb, cph],\n  Ute Hahn [ctb],\n  Abdollah Jalilian [ctb],\n  Dominic Schuhmacher [ctb, cph],\n  Rasmus Plenge Waagepetersen [ctb, cph]",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-09-22 03:10:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-22 04:00:28 UTC; unix"
+      }
+    },
+    "spatstat.sparse": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "spatstat.sparse",
+        "Version": "3.2-0",
+        "Date": "2026-05-21",
+        "Title": "Sparse Three-Dimensional Arrays and Linear Algebra Utilities",
+        "Authors@R": "c(person(\"Adrian\", \"Baddeley\", \n                    role = c(\"aut\", \"cre\", \"cph\"),\n       \t            email = \"Adrian.Baddeley@curtin.edu.au\",\n\t\t    comment = c(ORCID=\"0000-0001-9499-8382\")),\n\t     person(\"Rolf\", \"Turner\", \n                    role = c(\"aut\", \"cph\"),\n \t            email=\"rolfturner@posteo.net\",\n\t\t    comment=c(ORCID=\"0000-0001-5521-5218\")),\n\t    person(\"Ege\",   \"Rubak\", \n                    role = c(\"aut\", \"cph\"),\n\t\t    email = \"rubak@math.aau.dk\",\n\t\t    comment=c(ORCID=\"0000-0002-6675-533X\")))",
+        "Maintainer": "Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>",
+        "Depends": "R (>= 3.5.0), stats, utils, methods, Matrix, abind, tensor",
+        "Imports": "spatstat.utils (>= 3.2-3)",
+        "Description": "Defines sparse three-dimensional arrays\n\t     and supports standard operations on them.\n\t     The package also includes utility functions for\n\t     matrix calculations that are common in\n\t     statistics, such as quadratic forms.",
+        "License": "GPL (>= 2)",
+        "URL": "http://spatstat.org/",
+        "NeedsCompilation": "yes",
+        "ByteCompile": "true",
+        "BugReports": "https://github.com/spatstat/spatstat.sparse/issues",
+        "Packaged": "2026-05-21 03:14:44 UTC; adrian",
+        "Author": "Adrian Baddeley [aut, cre, cph] (ORCID:\n    <https://orcid.org/0000-0001-9499-8382>),\n  Rolf Turner [aut, cph] (ORCID: <https://orcid.org/0000-0001-5521-5218>),\n  Ege Rubak [aut, cph] (ORCID: <https://orcid.org/0000-0002-6675-533X>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-05-21 05:10:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:45:03 UTC; unix"
+      }
+    },
+    "spatstat.univar": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "spatstat.univar",
+        "Version": "3.2-0",
+        "Date": "2026-05-18",
+        "Title": "One-Dimensional Probability Distribution Support for the\n'spatstat' Family",
+        "Authors@R": "c(person(\"Adrian\", \"Baddeley\", \n                    role = c(\"aut\", \"cre\", \"cph\"),\n       \t            email = \"Adrian.Baddeley@curtin.edu.au\",\n\t\t    comment = c(ORCID=\"0000-0001-9499-8382\")),\n\t     person(c(\"Tilman\", \"M.\"), \"Davies\",\n\t             role = c(\"aut\", \"ctb\", \"cph\"),\n\t\t     email = \"Tilman.Davies@otago.ac.nz\",\n\t\t     comment = c(ORCID=\"0000-0003-0565-1825\")),\n\t     person(c(\"Martin\", \"L.\"), \"Hazelton\",\n\t     \t    role = c(\"aut\", \"ctb\", \"cph\"),\n\t\t    email = \"Martin.Hazelton@otago.ac.nz\",\n\t\t    comment = c(ORCID=\"0000-0001-7831-725X\")),\n\t     person(\"Ege\",   \"Rubak\", \n                    role = c(\"aut\", \"cph\"),\n\t\t    email = \"rubak@math.aau.dk\",\n\t\t    comment=c(ORCID=\"0000-0002-6675-533X\")),\n\t     person(\"Rolf\", \"Turner\", \n                    role = c(\"aut\", \"cph\"),\n \t            email=\"rolfturner@posteo.net\",\n\t\t    comment=c(ORCID=\"0000-0001-5521-5218\")),\n             person(\"Greg\", \"McSwiggan\",\n\t            role = c(\"ctb\", \"cph\")))",
+        "Maintainer": "Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>",
+        "Depends": "R (>= 3.5.0), stats",
+        "Imports": "spatstat.utils (>= 3.2-3), graphics",
+        "Description": "Estimation of one-dimensional probability distributions\n\t     including kernel density estimation, weighted empirical cumulative\n\t     distribution functions, Kaplan-Meier and reduced-sample estimators\n\t     for right-censored data, heat kernels, special distributions,\n\t     kernel properties, quantiles and integration.",
+        "License": "GPL (>= 2)",
+        "URL": "http://spatstat.org/",
+        "NeedsCompilation": "yes",
+        "ByteCompile": "true",
+        "BugReports": "https://github.com/spatstat/spatstat.univar/issues",
+        "Packaged": "2026-05-18 04:27:43 UTC; adrian",
+        "Author": "Adrian Baddeley [aut, cre, cph] (ORCID:\n    <https://orcid.org/0000-0001-9499-8382>),\n  Tilman M. Davies [aut, ctb, cph] (ORCID:\n    <https://orcid.org/0000-0003-0565-1825>),\n  Martin L. Hazelton [aut, ctb, cph] (ORCID:\n    <https://orcid.org/0000-0001-7831-725X>),\n  Ege Rubak [aut, cph] (ORCID: <https://orcid.org/0000-0002-6675-533X>),\n  Rolf Turner [aut, cph] (ORCID: <https://orcid.org/0000-0001-5521-5218>),\n  Greg McSwiggan [ctb, cph]",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-05-18 05:50:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:42:25 UTC; unix"
+      }
+    },
+    "spatstat.utils": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "spatstat.utils",
+        "Version": "3.2-5",
+        "Date": "2026-09-11",
+        "Title": "Utility Functions for 'spatstat'",
+        "Authors@R": "c(person(\"Adrian\", \"Baddeley\", \n                    role = c(\"aut\", \"cre\"),\n       \t            email = \"Adrian.Baddeley@curtin.edu.au\",\n\t\t    comment = c(ORCID=\"0000-0001-9499-8382\")),\n\t     person(\"Rolf\", \"Turner\", \n                    role = \"aut\",\n \t            email=\"rolfturner@posteo.net\",\n\t\t    comment=c(ORCID=\"0000-0001-5521-5218\")),\n\t    person(\"Ege\",   \"Rubak\", \n                    role = \"aut\",\n\t\t    email = \"rubak@math.aau.dk\",\n\t\t    comment=c(ORCID=\"0000-0002-6675-533X\")))",
+        "Maintainer": "Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>",
+        "Depends": "R (>= 3.5.0), stats, graphics, grDevices, utils, methods",
+        "Suggests": "spatstat.model",
+        "Description": "Contains utility functions for the 'spatstat' family of packages\n             which may also be useful for other purposes.",
+        "License": "GPL (>= 2)",
+        "URL": "http://spatstat.org/",
+        "NeedsCompilation": "yes",
+        "ByteCompile": "true",
+        "BugReports": "https://github.com/spatstat/spatstat.utils/issues",
+        "Packaged": "2026-09-11 03:44:46 UTC; adrian",
+        "Author": "Adrian Baddeley [aut, cre] (ORCID:\n    <https://orcid.org/0000-0001-9499-8382>),\n  Rolf Turner [aut] (ORCID: <https://orcid.org/0000-0001-5521-5218>),\n  Ege Rubak [aut] (ORCID: <https://orcid.org/0000-0002-6675-533X>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-09-11 07:20:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-12 04:03:34 UTC; unix"
+      }
+    },
+    "splines2": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "splines2",
+        "Title": "Regression Spline Functions and Classes",
+        "Version": "0.5.4",
+        "Authors@R": "c(\n    person(given = \"Wenjie\", family = \"Wang\",\n           email = \"wang@wwenjie.org\",\n           role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0003-0363-3180\")),\n    person(given = \"Jun\", family = \"Yan\", role = \"aut\",\n           comment = c(ORCID = \"0000-0003-4401-7296\"))\n    )",
+        "Description": "Constructs basis functions of B-splines, M-splines,\n    I-splines, convex splines (C-splines), periodic splines,\n    natural cubic splines, generalized Bernstein polynomials,\n    their derivatives, and integrals (except C-splines)\n    by closed-form recursive formulas.\n    It also contains a C++ head-only library integrated with Rcpp.\n    See Wang and Yan (2021) <doi:10.6339/21-JDS1020> for details.",
+        "Imports": "stats, graphics, Rcpp",
+        "LinkingTo": "Rcpp, RcppArmadillo",
+        "Suggests": "knitr, rmarkdown, tinytest, RcppArmadillo",
+        "Depends": "R (>= 3.2.3)",
+        "VignetteBuilder": "knitr",
+        "License": "GPL (>= 3)",
+        "URL": "https://wwenjie.org/splines2,\nhttps://github.com/wenjie2wang/splines2",
+        "BugReports": "https://github.com/wenjie2wang/splines2/issues",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.2",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-02-28 02:29:56 UTC; wenjie",
+        "Author": "Wenjie Wang [aut, cre] (<https://orcid.org/0000-0003-0363-3180>),\n  Jun Yan [aut] (<https://orcid.org/0000-0003-4401-7296>)",
+        "Maintainer": "Wenjie Wang <wang@wwenjie.org>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-02-28 05:40:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-10-18 10:05:42 UTC; unix"
+      }
+    },
     "statpsych": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -7380,6 +7735,26 @@
         "Repository": "RSPM",
         "Date/Publication": "2024-10-04 09:40:02 UTC",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:47 UTC; unix"
+      }
+    },
+    "tensor": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "tensor",
+        "Version": "1.5.1",
+        "Title": "Tensor Product of Arrays",
+        "Authors@R": "person(given = \"Jonathan\",\n                  family = \"Rougier\",\n                  role = c(\"aut\", \"cre\"),\n                  email = \"j.c.rougier@bristol.ac.uk\")",
+        "Description": "The tensor product of two arrays is notionally an outer\n        product of the arrays collapsed in specific extents by summing\n        along the appropriate diagonals.",
+        "License": "GPL (>= 2)",
+        "Packaged": "2025-06-17 10:36:58 UTC; hornik",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-06-17 10:53:36 UTC",
+        "NeedsCompilation": "no",
+        "Author": "Jonathan Rougier [aut, cre]",
+        "Maintainer": "Jonathan Rougier <j.c.rougier@bristol.ac.uk>",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-12 19:40:27 UTC; unix"
       }
     },
     "testthat": {
@@ -7986,10 +8361,10 @@
       "checksum": "b4dea88460ad4ddac3281930e010973b"
     },
     "forms.yaml": {
-      "checksum": "048379019dd11909c6582e8dd480f02d"
+      "checksum": "ccc80779629031dc1615f3f535a21890"
     },
     "methods-map.yaml": {
-      "checksum": "89a79e0d5586b041abead785a2bb1f83"
+      "checksum": "3236004251fdb1800be9299a2dc8d753"
     },
     "R/about.R": {
       "checksum": "058c7b41398bd541aec5caa8fa38c310"
@@ -8016,7 +8391,7 @@
       "checksum": "23e6eed5ff5f012fdb8a5f2df34c6c0e"
     },
     "R/results.R": {
-      "checksum": "9b227487817a1cdb87177b43a9bdee0b"
+      "checksum": "6010a5691636f54276a8d973170f53fe"
     },
     "R/simulations.R": {
       "checksum": "025c9ef2b3cf1436d421140b5759e059"
@@ -8046,7 +8421,7 @@
       "checksum": "619c128970bd157c9ab610aae34ce7ee"
     },
     "tests/testthat/helper-forms.R": {
-      "checksum": "0652b8845eae96c404d8a1274013a772"
+      "checksum": "de51f2bd2d0d85f9b76448b8fa94dfe1"
     },
     "tests/testthat/setup.R": {
       "checksum": "c9ff9599c519c8de3b27706899401d69"
@@ -8076,7 +8451,7 @@
       "checksum": "1607c559bbc9b96b3ec4cfeef79b7eee"
     },
     "tests/testthat/test-forms.R": {
-      "checksum": "d673b6b54eb94b93bbe45b4f562b30b8"
+      "checksum": "6c654276ad153c4018d2a49535490e4c"
     },
     "tests/testthat/test-labs-history.R": {
       "checksum": "44bdd6d3b5aad636cd1faff67935d0b2"
@@ -8085,10 +8460,10 @@
       "checksum": "9c4a0ebf60c7d547acbc7c059b3ec50c"
     },
     "tests/testthat/test-maintainer-decisions.R": {
-      "checksum": "f35ce203732fd8ebf97d01f57bf26873"
+      "checksum": "8994d1d933b1fdf45f4e239ee7b060f1"
     },
     "tests/testthat/test-misroutes.R": {
-      "checksum": "2a7f7ebc30a062251f5297d914392ae9"
+      "checksum": "7dd04135f437eb7f8cd841771bf55169"
     },
     "tests/testthat/test-plan-sample-units.R": {
       "checksum": "30673456be2d56c1d14952c56498d9b0"
@@ -8100,16 +8475,16 @@
       "checksum": "d77f5b4ba072267c31875a36b73790ba"
     },
     "tests/testthat/test-project.R": {
-      "checksum": "e8c7af15d5146e5ea8d3289913dccda8"
+      "checksum": "a22b01d5a37ca415d53dd72ed0d352b3"
     },
     "tests/testthat/test-repo-consistency.R": {
       "checksum": "2f7d37efeda4a374d8cd69d894551782"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "6ace1dd39118e03d9a3fabb15c23d34d"
+      "checksum": "9152f9e5ea55c9ef91e36b6913a61719"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "f293e8ba171b34444f5b9232bcec6d14"
+      "checksum": "d86c70649c82beff117c1556888f439c"
     },
     "tests/testthat/test-script-handoff.R": {
       "checksum": "bc3eae8ef53e180d02a6ecede3214a60"
@@ -8139,7 +8514,7 @@
       "checksum": "929b76a01029c06cbe8e19210c479077"
     },
     "tree.yaml": {
-      "checksum": "03ac9327487c9b2369bef53bb563d878"
+      "checksum": "14e03a903dd888095bc3fd9d59b171b3"
     },
     "walkthroughs/accessibility.js": {
       "checksum": "b1dd931d40e3a4e18137b25467fef3af"
@@ -8154,7 +8529,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "d1ed22396921dedefe395429848aa975"
+      "checksum": "71444f7687a2e5d26046e8c00e1d9f32"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

@@ -124,6 +124,7 @@ endpoints:
   E68: model
   E69: z
   E70: model
+  E71: model
   E-bayes: bayes
 
 relations:
@@ -200,3 +201,4 @@ relations:
   - {from: E44, to: E65, label: "in other designs for pairs is"}
   - {from: E24, to: E37, label: "with latent variables becomes"}
   - {from: E37, to: E58, label: "with types of people instead of factors is"}
+  - {from: E37, to: E71, label: "comparing groups' yes/no items in item response theory becomes"}

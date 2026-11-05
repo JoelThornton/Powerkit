@@ -1777,6 +1777,9 @@ bayes_sentence <- function(spec, result) {
 departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
   if (!spec$template %in% c("process_58", "process_59")) keys <- setdiff(keys, "19")
+  # Departure 20 (both of each DIF item's parameters tested) applies unless
+  # the user keeps irtpwr's own choice.
+  if (!identical(spec$template, "dif") || identical(spec$target_test$free_parameters, "differing")) keys <- setdiff(keys, "20")
   # Departure 1 is about the interaction's required N only.
   if (!identical(spec$target_test$effect, "interaction") || is_rank_test(spec)) keys <- setdiff(keys, "1")
   # Departures 9, 10 and 11 (a formula for basic tests; Fisher's z for a

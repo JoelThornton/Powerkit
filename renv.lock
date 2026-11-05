@@ -140,6 +140,57 @@
       ],
       "Hash": "a41d0fc833ea756a1136b60a437efe26"
     },
+    "dcurver": {
+      "Package": "dcurver",
+      "Version": "0.9.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Rcpp",
+        "RcppArmadillo"
+      ],
+      "Hash": "51f82ecf0f61e3eaffbe4ea265af81dd"
+    },
+    "deldir": {
+      "Package": "deldir",
+      "Version": "2.0-4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "graphics",
+        "grDevices",
+        "R"
+      ],
+      "Hash": "24754fce82729ff85317dd195b6646a8"
+    },
+    "irtpwr": {
+      "Package": "irtpwr",
+      "Version": "1.0.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Deriv",
+        "digest",
+        "ggplot2",
+        "methods",
+        "mirt",
+        "spatstat.random"
+      ],
+      "Hash": "8fd7050538eb2c75cb35bafe972efac2"
+    },
+    "longpower": {
+      "Package": "longpower",
+      "Version": "1.0.27",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "lme4",
+        "methods",
+        "nlme"
+      ],
+      "Hash": "aa13c3c0a8a04c626ac353cb75c6263b"
+    },
     "mathjaxr": {
       "Package": "mathjaxr",
       "Version": "2.0-0",
@@ -408,6 +459,33 @@
       "Repository": "RSPM",
       "Hash": "c8acb7636aeab8b86c2730925bd4ec98"
     },
+    "mirt": {
+      "Package": "mirt",
+      "Version": "1.48",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "dcurver",
+        "Deriv",
+        "GPArotation",
+        "gridExtra",
+        "lattice",
+        "Matrix",
+        "methods",
+        "mgcv",
+        "pbapply",
+        "R",
+        "Rcpp",
+        "RcppArmadillo",
+        "SimDesign",
+        "splines",
+        "splines2",
+        "stats",
+        "stats4",
+        "vegan"
+      ],
+      "Hash": "aaed74b12bf5f501b46e4ecd15c988da"
+    },
     "permute": {
       "Package": "permute",
       "Version": "0.9-10",
@@ -432,6 +510,16 @@
         "utils"
       ],
       "Hash": "10f65572350427cd4ba39973c9b95f3b"
+    },
+    "polyclip": {
+      "Package": "polyclip",
+      "Version": "1.10-7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "5879bf5aae702ffef0a315c44328f984"
     },
     "semPower": {
       "Package": "semPower",
@@ -3171,6 +3259,117 @@
       ],
       "Hash": "e716e13bfbfe8acb6182a05f4b367772"
     },
+    "spatstat.data": {
+      "Package": "spatstat.data",
+      "Version": "3.1-9",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Matrix",
+        "R",
+        "spatstat.utils"
+      ],
+      "Hash": "9a5f224a2c60e7183d8738bd4a570754"
+    },
+    "spatstat.geom": {
+      "Package": "spatstat.geom",
+      "Version": "3.8-3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "deldir",
+        "graphics",
+        "grDevices",
+        "methods",
+        "polyclip",
+        "R",
+        "spatstat.data",
+        "spatstat.univar",
+        "spatstat.utils",
+        "stats",
+        "utils"
+      ],
+      "Hash": "0edfa1d2526ef1d84229e35c2658c09c"
+    },
+    "spatstat.random": {
+      "Package": "spatstat.random",
+      "Version": "3.5-2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "grDevices",
+        "Matrix",
+        "methods",
+        "R",
+        "spatstat.data",
+        "spatstat.geom",
+        "spatstat.sparse",
+        "spatstat.univar",
+        "spatstat.utils",
+        "stats",
+        "utils"
+      ],
+      "Hash": "d78e04788ad4356387b21b17f36c1b76"
+    },
+    "spatstat.sparse": {
+      "Package": "spatstat.sparse",
+      "Version": "3.2-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "abind",
+        "Matrix",
+        "methods",
+        "R",
+        "spatstat.utils",
+        "stats",
+        "tensor",
+        "utils"
+      ],
+      "Hash": "2afe45c9e92441c5e600dd45ef0d392f"
+    },
+    "spatstat.univar": {
+      "Package": "spatstat.univar",
+      "Version": "3.2-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "graphics",
+        "R",
+        "spatstat.utils",
+        "stats"
+      ],
+      "Hash": "e3fb662b88f979a511393a2cfc5a8454"
+    },
+    "spatstat.utils": {
+      "Package": "spatstat.utils",
+      "Version": "3.2-5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "graphics",
+        "grDevices",
+        "methods",
+        "R",
+        "stats",
+        "utils"
+      ],
+      "Hash": "c0d2ffb4c71a37bfcb75c96fb5d50483"
+    },
+    "splines2": {
+      "Package": "splines2",
+      "Version": "0.5.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "graphics",
+        "R",
+        "Rcpp",
+        "RcppArmadillo",
+        "stats"
+      ],
+      "Hash": "360a704c2e685a3d51fff101e89a2863"
+    },
     "stringfish": {
       "Package": "stringfish",
       "Version": "0.19.2",
@@ -3235,6 +3434,14 @@
       "Source": "Repository",
       "Repository": "RSPM",
       "Hash": "de342ebfebdbf40477d0758d05426646"
+    },
+    "tensor": {
+      "Package": "tensor",
+      "Version": "1.5.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [],
+      "Hash": "f8a2a103e9fd7dfc81e71b05e2346912"
     },
     "testthat": {
       "Package": "testthat",

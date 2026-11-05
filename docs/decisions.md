@@ -5009,3 +5009,70 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   `group_moderator`): pwr's F test formula with f^2 from the population
   (within 0.02), a separately written simulation, and Type I error when the
   groups differ only in their means.
+
+## 2026-11-05 · Growth curves (E35)
+
+- **What:** E35 calculates growth curves: a new template, `mixed_model /
+  growth_curve`, by longpower's `diggle.linear.power()` (Diggle, Heagerty,
+  Liang and Zeger, 2002). Goals: power and sample size. Cross-lagged panels
+  and experience sampling stay on the card as designs not calculated yet.
+- **Why:** `next.md` item 3 (decided 4 November 2026: growth curves first,
+  longpower's closed form checked against a simulation).
+- **Which formula:** longpower offers several. Diggle and colleagues'
+  textbook formula fits the model researchers usually fit, with its own
+  starting level for each group, for equal groups and complete data.
+  `edland.linear.power()` adds attrition and unequal allocation but cites
+  work "in process"; Hu, Mackey and Thomas (2021,
+  `hu.mackey.thomas.linear.power()`) adds them in a published method that
+  assumes both groups start at the same level, as in a randomised trial.
+  Diggle's first; Hu, Mackey and Thomas's is the candidate for attrition
+  and unequal groups.
+- **A package fault worked around:** `diggle.linear.power()` given n finds
+  the power by root-finding that fails for small groups and returns about 0
+  for large ones; powerkit solves the package's sample size for the power
+  instead (`upstream-questions.md`, longpower).
+- **Validation** (`test-validation-growth.R`, chunk `growth`): lme4 fits to
+  simulated studies, the group x time coefficient tested by its Wald z test
+  (within 0.03, since the formula takes the covariance as known); Diggle and
+  colleagues' published table is a placeholder for the maintainer.
+
+## 2026-11-05 · Differential item functioning in a 2PL IRT model (E71)
+
+- **What:** a new card, E71, and template, `irt / dif`: whether some items
+  of a test with yes/no or right/wrong answers work differently in two
+  groups, by irtpwr's analytical method (`irtpwr()`, Zimmer and Debelak,
+  2023, the package's citation()) with its `"DIF2PL"` preset. Goals: power
+  and sample size. Reached from Q1 ("That a test's items work the same way
+  in two groups") and the latent-variables family in "I know my analysis".
+- **Why:** `next.md` item 5 (decided 4 November 2026: IRT and DIF with
+  irtpwr first). Of the IRT designs, DIF between two groups (for example
+  two language versions of a test) is the one psychologists most often
+  plan for; irtpwr's other presets (1PL against 2PL, a partial credit
+  model against the generalised one) can follow if researchers ask.
+- **Inputs:** each item's discrimination a and difficulty b, as calibrations
+  report them (irtpwr's intercept is d = -a b); the DIF items, each one's
+  change in difficulty and, optionally, in discrimination; the statistic
+  (likelihood ratio by default, or Wald, score or gradient). Two groups of
+  equal size with standard normal abilities and the other items as
+  anchors, as the preset assumes; the spec checks require an anchor item
+  and an even n.
+- **Which parameters are tested (judgement call B19, decided 5 November
+  2026: both, explained to users):** both of each DIF item's parameters by default (2 df per item),
+  the omnibus test in mirt's `DIF()` help; irtpwr's preset tests only the
+  parameters that differ, offered as `target_test > free_parameters =
+  "differing"`. Departure 20 records the difference (53.6% against 64.1%
+  in the example at 600 people).
+- **Package faults worked around:** the preset stops when one parameter
+  differs (`upstream-questions.md`, irtpwr), and it builds its hypothesis
+  from the differences only; powerkit passes the preset with its `res()`
+  and `unres()` replaced through `setup.hypothesis(type = <list>)`, the
+  package's documented way to give a custom preset, and checks that it
+  gives the package's own power where both run.
+- **Validation** (`test-validation-irt.R`, chunk `irt`): mirt's
+  `multipleGroup()` fitted to simulated studies with every item equal and
+  with the DIF item's parameters free, compared by their likelihood ratio,
+  for a change in difficulty and in discrimination and both choices of
+  parameters (within 0.04 plus the simulation's error, since irtpwr's
+  method is large-sample), and the Type I error with no DIF. The method
+  paper's example is a placeholder for the maintainer.
+

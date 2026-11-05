@@ -12,6 +12,21 @@ entries:
       clearly defined standardised difference. Results, example datasets
       and downloaded scripts keep those same population assumptions.
   - date: "2026-11-05"
+    title: "Check that a test's items work the same in two groups"
+    text: >-
+      You can now plan a study of differential item functioning: whether
+      items of a test with yes/no or right/wrong answers are harder, or
+      separate people differently, in two groups such as two language
+      versions. Give each item's discrimination and difficulty and how the
+      items you're testing differ.
+  - date: "2026-11-05"
+    title: "Plan a growth-curve study"
+    text: >-
+      You can now plan a study that measures two groups three or more times
+      and compares how fast they change, as a mixed model with each person's
+      own starting level and rate of change. Give the occasions, the
+      difference in rates of change and how much people vary.
+  - date: "2026-11-05"
     title: "Moderation by three or more groups"
     text: >-
       You can now plan a study asking whether a relationship differs between

@@ -113,8 +113,16 @@ fully validated. Validation runs are recorded in
   Parts of screens that repeat (the list of analyses, an input screen's
   groups of fields) are kept as HTML once built (`cached_html()` in
   `R/ui.R`), so a click shows the next screen in about 40 ms on a laptop.
-  **49 cards calculate in the app**: E1-E9, E15, E18-E32, E34, E36,
-  E37, E43, E44, E46, E47-E57, E59-E61, E64, E66, E69 and E70 (`forms.yaml`'s `calculates`);
+  **51 cards calculate in the app**: E1-E9, E15, E18-E32, E34-E36,
+  E37, E43, E44, E46, E47-E57, E59-E61, E64, E66, E69, E70 and E71 (`forms.yaml`'s `calculates`);
+  E71, differential item functioning (whether a test's items work the
+  same way in two groups, in a 2PL IRT model, by irtpwr's analytical
+  method; both of each DIF item's parameters tested by default, the
+  maintainer's decision of 5 November 2026), reached from Q1, since 5
+  November 2026;
+  E35, growth curves (two groups' rates of change over three or more
+  occasions, Diggle and colleagues' formula in longpower), since 5
+  November 2026;
   E30, moderation by a factor with three or more groups (the F test of the
   X x group terms, simulated with Spower and lm()), since 5 November 2026;
   E32, moderation of a yes/no outcome (logistic regression with X x W,

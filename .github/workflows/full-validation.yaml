@@ -90,6 +90,8 @@ on:
           - zero_inflated
           - logistic_interaction
           - group_moderator
+          - growth
+          - irt
           - process_4
           - process_4_binary
           - process_6
