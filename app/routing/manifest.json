@@ -6125,10 +6125,10 @@
       "Repository": null,
       "description": {
         "Package": "powerkit",
-        "Title": "Unified Power Analysis for Psychology Designs",
+        "Title": "Unified Power Analysis for Common Research Designs",
         "Version": "0.32.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
-        "Description": "Reads a single design specification (JSON) for common\n    psychology designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
+        "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
@@ -6143,19 +6143,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "ab028bfa8e37b937a32234b352d1f07a50b89fd8",
-        "RemoteSha": "ab028bfa8e37b937a32234b352d1f07a50b89fd8",
+        "RemoteRef": "03d183bfb24bd06cd6f61bd1441deb8b17a10b9c",
+        "RemoteSha": "03d183bfb24bd06cd6f61bd1441deb8b17a10b9c",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "ab028bfa8e37b937a32234b352d1f07a50b89fd8",
-        "GithubSHA1": "ab028bfa8e37b937a32234b352d1f07a50b89fd8",
+        "GithubRef": "03d183bfb24bd06cd6f61bd1441deb8b17a10b9c",
+        "GithubSHA1": "03d183bfb24bd06cd6f61bd1441deb8b17a10b9c",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-05 11:21:31 UTC; runner",
+        "Packaged": "2026-11-05 11:58:12 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-05 11:21:46 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-05 11:58:29 UTC; unix"
       }
     },
     "powertools": {
@@ -8358,7 +8358,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "ff6ef38a4dc5a11da64df47dd346ba6c"
+      "checksum": "eebd008acfd2b7aa871a9efa8e66300c"
     },
     "forms.yaml": {
       "checksum": "9ab525da26651acc6015083bc29c6178"
@@ -8522,6 +8522,9 @@
     "tests/testthat/test-whole-study-screen.R": {
       "checksum": "c8551ca30efde9c9e7e53fe56d1af3c7"
     },
+    "tests/testthat/test-wording.R": {
+      "checksum": "38f366eb43876ab7c188433b6be8e82d"
+    },
     "tree.yaml": {
       "checksum": "d108a4d767b953a5c69fa5fe33b7b85c"
     },
@@ -8544,7 +8547,7 @@
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
     },
     "www/guide.html": {
-      "checksum": "04e3ec1f6dc32b1862de3fda39a0ef35"
+      "checksum": "20f2e46a68c783f114a9107d1508703b"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
