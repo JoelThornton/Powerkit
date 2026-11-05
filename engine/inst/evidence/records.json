@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "version": "2026-11-05.1",
+  "version": "2026-11-05.2",
   "limits": [
     "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
     "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
@@ -102,6 +102,16 @@
         "engine/tests/testthat/test-welch-population.R"
       ],
       "note": "Three opt-in checks passed with the locked Spower 0.7: formula/reference, separate simulation and a null rate of 0.0499. The source tree and local versions are recorded in the journal.",
+      "replications": 10000
+    },
+    "zero-inflated-2026-11-05": {
+      "date": "2026-11-05",
+      "revision": "6d40bd1b957bde6aae723ec8e2835259ca9ff6c6",
+      "url": "https://github.com/JoelThornton/Powerkit/blob/main/docs/validation/2026-11-05-basic-zero.txt",
+      "files": [
+        "engine/tests/testthat/test-validation-zero-inflated.R"
+      ],
+      "note": "Frozen-source local run: three PASS blocks, one published-example TODO SKIP. Engine uses 10,000 replications; separate likelihood checks use 4,000. Exact cases and pre-integration source are recorded, not the full current release.",
       "replications": 10000
     }
   },
@@ -880,6 +890,108 @@
           "when": {
             "target_test.alternative": "two_sided"
           }
+        }
+      }
+    },
+    {
+      "id": "zero_inflated_poisson-normal-score",
+      "match": {
+        "design": "poisson_regression",
+        "template": "single_predictor_count",
+        "variables.X.type": "continuous",
+        "target_test.method": "zero_inflated_poisson",
+        "target_test.effect": {
+          "one_of": [
+            "rate_ratio",
+            "rate_and_zero",
+            "zero_odds_ratio"
+          ]
+        }
+      },
+      "scope": "Poisson mixture, one standard-normal score predictor, only the parameter settings and effects in test-validation-zero-inflated.R at the recorded source revision. Not binary predictors, other covariates, arbitrary populations, all N values, or a full release validation. The negative-binomial zero-part Wald test is conservative in its recorded null case.",
+      "categories": {
+        "independent": {
+          "status": "scoped_only",
+          "note": "Separately written mixture generation and likelihood maximisation checked the count-part effect; the joint count/zero contrast was checked only for Poisson. No separate zero-part power claim is made.",
+          "sources": [
+            "zero-inflated-2026-11-05"
+          ],
+          "when": {
+            "goal.type": "power",
+            "target_test.effect": {
+              "one_of": [
+                "rate_ratio",
+                "rate_and_zero"
+              ]
+            }
+          }
+        },
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "Three opt-in blocks passed at the recorded source; includes null-size and conservatism cases. Published examples and the complete release remain unfinished.",
+          "sources": [
+            "zero-inflated-2026-11-05"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "The original published-value placeholder was skipped, not passed.",
+          "sources": [
+            "zero-inflated-2026-11-05"
+          ]
+        }
+      }
+    },
+    {
+      "id": "zero_inflated_negative_binomial-normal-score",
+      "match": {
+        "design": "poisson_regression",
+        "template": "single_predictor_count",
+        "variables.X.type": "continuous",
+        "target_test.method": "zero_inflated_negative_binomial",
+        "target_test.effect": {
+          "one_of": [
+            "rate_ratio",
+            "zero_odds_ratio"
+          ]
+        }
+      },
+      "scope": "negative binomial mixture, one standard-normal score predictor, only the parameter settings and effects in test-validation-zero-inflated.R at the recorded source revision. Not binary predictors, other covariates, arbitrary populations, all N values, or a full release validation. The negative-binomial zero-part Wald test is conservative in its recorded null case.",
+      "categories": {
+        "independent": {
+          "status": "scoped_only",
+          "note": "Separately written mixture generation and likelihood maximisation checked the count-part effect; the joint count/zero contrast was checked only for Poisson. No separate zero-part power claim is made.",
+          "sources": [
+            "zero-inflated-2026-11-05"
+          ],
+          "when": {
+            "goal.type": "power",
+            "target_test.effect": {
+              "one_of": [
+                "rate_ratio"
+              ]
+            }
+          }
+        },
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "Three opt-in blocks passed at the recorded source; includes null-size and conservatism cases. Published examples and the complete release remain unfinished.",
+          "sources": [
+            "zero-inflated-2026-11-05"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "The original published-value placeholder was skipped, not passed.",
+          "sources": [
+            "zero-inflated-2026-11-05"
+          ]
         }
       }
     }

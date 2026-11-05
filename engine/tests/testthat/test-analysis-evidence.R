@@ -65,3 +65,19 @@ test_that("results and saved records preserve the evidence captured at calculati
   encoded <- jsonlite::fromJSON(jsonlite::toJSON(encode_value(unlinked), auto_unbox = TRUE, null = "null"), simplifyVector = FALSE)
   expect_identical(decode_value(encoded), unlinked)
 })
+test_that("zero-inflated evidence stays scoped and does not turn a skipped publication into a pass", {
+  spec <- list(design = "poisson_regression", template = "single_predictor_count",
+    variables = list(X = list(type = "continuous")), population = list(),
+    target_test = list(method = "zero_inflated_poisson", effect = "rate_ratio"),
+    goal = list(type = "power", n = 300))
+  record <- analysis_evidence(spec)
+  expect_equal(record$categories$independent$status, "scoped_only")
+  expect_equal(record$categories$published$status, "pending")
+  expect_match(record$scope, "recorded source revision", fixed = TRUE)
+  spec$target_test$method <- "zero_inflated_negative_binomial"
+  spec$target_test$effect <- "rate_and_zero"
+  expect_equal(analysis_evidence(spec)$record_id, "unlinked")
+  spec$target_test$effect <- "rate_ratio"
+  spec$variables$X$type <- "binary"
+  expect_equal(analysis_evidence(spec)$record_id, "unlinked")
+})

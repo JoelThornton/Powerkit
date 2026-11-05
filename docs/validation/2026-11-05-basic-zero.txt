@@ -1,0 +1,118 @@
+Exact published source snapshot: 6d40bd1b957bde6aae723ec8e2835259ca9ff6c6
+Git tree: 2f74bdbdec08c68471d9a522ec144b507f02c070
+Local checkout commit ba9e70c has that identical tree.
+This is selected method validation, not full release validation.
+
+===== powerkit validation summary (copy from here) =====
+Date: 2026-11-05 18:51   Commit: ba9e70c   Cores: 2
+R: R version 4.5.3 (2026-03-11 ucrt)   Platform: x86_64-w64-mingw32
+Selected chunks: basic, zero_inflated
+Partition: 1 of 1; totals cover only this selected partition.
+Packages: powerkit 0.33.0, Superpower 0.2.4.1, Spower 0.7, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 37 PASS, 0 FAIL, 0 ERROR, 5 SKIP, 0 NOT RUN (of 42)
+
+PASS    basic / independent t-test: power matches pwr (analytic) (20s)
+          success: Reference power 0.801460; powerkit's exact power 0.801460 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / independent t-test, one-sided: power matches pwr (analytic) (19s)
+          success: Reference power 0.808972; powerkit's exact power 0.808972 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / independent t-test, unequal groups: power matches pwr (analytic) (19s)
+          success: Reference power 0.732775; powerkit's exact power 0.732775 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / one-sample t-test: power matches pwr (analytic) (19s)
+          success: Reference power 0.803794; powerkit's exact power 0.803794 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / paired t-test: power matches pwr (analytic) (20s)
+          success: Reference power 0.807788; powerkit's exact power 0.807788 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / correlation at alpha = .01: power matches pwr (analytic) (19s)
+          success: Reference power 0.881763; powerkit's exact power 0.881763 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / two proportions: power matches G*Power's z test (G*Power value) (19s)
+          success: Reference power 0.234492; powerkit's exact power 0.234492 differs by -0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / two proportions, unequal groups: power matches G*Power's z test (G*Power values) (20s)
+          success: Reference power 0.896041; powerkit's exact power 0.896041 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+          success: success
+          success: Reference power 0.908774; powerkit's exact power 0.908774 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+          success: success
+          success: Reference power 0.929266; powerkit's exact power 0.929266 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+          success: success
+          success: Reference power 0.938848; powerkit's exact power 0.938849 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+          success: success
+          success: Reference power 0.947323; powerkit's exact power 0.947324 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+          success: success
+PASS    basic / two proportions, unequal groups: a priori N matches G*Power at N2/N1 = 3 (G*Power value) (21s)
+          success: success
+          success: success
+PASS    basic / two proportions, Cohen's h option: power matches pwr (analytic) (20s)
+          success: Reference power 0.802106; powerkit's exact power 0.802106 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / chi-square test of independence: power matches pwr (analytic) (19s)
+          success: Reference power 0.620432; powerkit's exact power 0.620432 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / independent t-test: matches the Faul et al. (2007) G*Power example (published) (19s)
+          success: Reference power 0.951425; powerkit's exact power 0.951425 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / paired t-test: matches G*Power 3.1 manual example (published) (19s)
+          success: Reference power 0.832114; powerkit's exact power 0.832114 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+SKIP    basic / correlation: matches the Faul et al. (2007) exact bivariate-normal example (published) (16s)
+SKIP    basic / two proportions: matches a published example (published) (17s)
+PASS    basic / independent t-test: powerkit matches a direct Spower call (52s)
+          success: powerkit's estimate 0.6948 vs the direct backend call 0.6912: difference 0.0036; the 99.9% Monte Carlo tolerance is 0.0215.
+PASS    basic / paired t-test: powerkit matches a direct Spower call (49s)
+          success: powerkit's estimate 0.6976 vs the direct backend call 0.6957: difference 0.0019; the 99.9% Monte Carlo tolerance is 0.0214.
+PASS    basic / correlation: powerkit matches a direct Spower call (0h 01m)
+          success: powerkit's estimate 0.7160 vs the direct backend call 0.7160: difference 0.0000; the 99.9% Monte Carlo tolerance is 0.0210.
+PASS    basic / two proportions: powerkit matches a direct Spower call (55s)
+          success: powerkit's estimate 0.7758 vs the direct backend call 0.7758: difference 0.0000; the 99.9% Monte Carlo tolerance is 0.0194.
+PASS    basic / chi-square test of independence: powerkit matches a direct Spower call (45s)
+          success: powerkit's estimate 0.4947 vs the direct backend call 0.4947: difference 0.0000; the 99.9% Monte Carlo tolerance is 0.0233.
+PASS    basic / independent t-test: Type I error is near alpha (33s)
+          success: Type I error rate 0.0518; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / independent t-test, unequal groups (Welch): Type I error is near alpha (35s)
+          success: Type I error rate 0.0498; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / one-sample t-test: Type I error is near alpha (33s)
+          success: Type I error rate 0.0479; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / paired t-test: Type I error is near alpha (35s)
+          success: Type I error rate 0.0519; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / correlation: Type I error is near alpha (53s)
+          success: Type I error rate 0.0502; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / two proportions: Type I error is near alpha (35s)
+          success: Type I error rate 0.0482; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / chi-square test of independence: Type I error is near alpha (31s)
+          success: Type I error rate 0.0511; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    basic / two dependent correlations, common index: matches G*Power 3.1 manual example 28.3.2 (published) (21s)
+          success: Published n = 144; must lie in powerkit's interval [144, 144] (estimate 144).
+          success: Reference power 0.801161; powerkit's exact power 0.801161 differs by 0.000000 (allowed: 0.0005, 3 decimal places).
+PASS    basic / two dependent correlations, no common index: matches G*Power 3.1 manual example 28.3.1 (published) (21s)
+          success: Published n = 886; must lie in powerkit's interval [886, 886] (estimate 886).
+          success: Reference power 0.800093; powerkit's exact power 0.800156 differs by 0.000063 (allowed: 0.0005, 3 decimal places).
+SKIP    basic / justified alpha, two groups: matches a published compromise power analysis (published) (16s)
+PASS    basic / justified alpha: a grid search over alpha finds the same minimum and balance point (21s)
+          success: success
+          success: success
+          success: success
+          success: success
+PASS    basic / independent_t, n = 40, two_sided: an observed effect beyond the critical value is exactly a significant test (analytic) (20s)
+          success: success
+          success: success
+PASS    basic / independent_t, n = 90, greater: an observed effect beyond the critical value is exactly a significant test (analytic) (21s)
+          success: success
+          success: success
+PASS    basic / one_sample_t, n = 25, two_sided: an observed effect beyond the critical value is exactly a significant test (analytic) (19s)
+          success: success
+          success: success
+PASS    basic / paired_t, n = 30, less: an observed effect beyond the critical value is exactly a significant test (analytic) (19s)
+          success: success
+          success: success
+PASS    basic / correlation, n = 50, two_sided: an observed effect beyond the critical value is exactly a significant test (analytic) (19s)
+          success: success
+          success: success
+PASS    basic / correlation, n = 120, greater: an observed effect beyond the critical value is exactly a significant test (analytic) (19s)
+          success: success
+          success: success
+SKIP    basic / two groups and a correlation: match Perugini et al.'s worked examples (published) (16s)
+PASS    zero_inflated / zero-inflated: powerkit agrees with the likelihood written out and maximised separately (simulation) (1h 03m)
+          success: Estimates 0.7867 and 0.7825 differ by 0.0042; the tolerance is 0.0253 (99.9% Monte Carlo interval plus an allowance of 0.000).
+          success: Estimates 0.9694 and 0.9680 differ by 0.0014; the tolerance is 0.0108 (99.9% Monte Carlo interval plus an allowance of 0.000).
+          success: Estimates 0.9193 and 0.9233 differ by -0.0040; the tolerance is 0.0165 (99.9% Monte Carlo interval plus an allowance of 0.000).
+PASS    zero_inflated / zero-inflated: each part's test keeps its Type I error when the predictor changes only the other part (simulation) (0h 13m)
+          success: Type I error rate 0.0529; must lie in [0.040, 0.060] for alpha = 0.05.
+          success: Type I error rate 0.0498; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    zero_inflated / zero-inflated: the zero part's Wald test is conservative with negative binomial counts (simulation, recorded size) (0h 29m)
+          success: success
+          success: success
+SKIP    zero_inflated / zero-inflated: compared with a published example (published) (17s)
+===== end of summary =====
