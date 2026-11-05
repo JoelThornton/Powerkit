@@ -81,7 +81,7 @@ ordered by impact.
 ## Contents
 
 - [A. What the cards say](#a-what-the-cards-say): A1–A9
-- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B18
+- [B. What the cards and forms ask](#b-what-the-cards-and-forms-ask): B1–B19
 - [C. Which card users reach](#c-which-card-users-reach): C1–C18
 - [D. The routes and the start screen](#d-the-routes-and-the-start-screen): D1–D7
 - [E. Behind the scenes](#e-behind-the-scenes): E1–E7
@@ -829,6 +829,10 @@ results.
   and Rubin's view is the one the change would rest on.
 - **Recorded in:** this entry; `decisions.md` (18 October 2026);
   setting `one_sided_tests`.
+
+### B19. Differential item functioning (E71): which parameters the test frees by default
+
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#b19-differential-item-functioning-e71-which-parameters-the-test-frees-by-default).
 
 ## C. Which card users reach
 

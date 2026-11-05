@@ -273,7 +273,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B48 | Latent interactions | ML | none: nearest E9 with reliabilities *(inferred)* | Unknown (no candidate found) | — | unknown | Search | — |
 | B49 | Latent profile/class analysis | ML | E58 (guidance card, 30 October 2026) | No ready-made tool | — | none: planned from published simulations (Tein, Coxe and Cham, 2013; Nylund, Asparouhov and Muthén, 2007) or a custom simulation (Mplus Monte Carlo; Spower) | — | — |
 | B50 | Reliability (ICC) | ML; Audit | E69 | Wired (validation not finished): 2 November 2026, tests of the ICC (ICC.Sample.Size `calculateIccPower()`), Cronbach's alpha (Bonett and Wright's test, statpsych `size.test.cronbach()`) and kappa (kappaSize `PowerBinary()` to `Power5Cats()`); checked against simulated studies. Not yet: omega, Krippendorff's alpha, two-way ICCs | Now: AP, PN | ICC.Sample.Size `calculateIccSampleSize()`; presize `prec_icc()`; MBESS `ss.aipe.reliability()`; kappaSize `PowerBinary()` (agreement) | Transcribe published examples (validation placeholders) | [C4][] |
-| B51 | IRT | ML; Audit | E37 (says IRT isn't covered) | Unknown (decide scope; tools exist) | — | irtpwr `irtpwr()`; irtsim `irt_simulate()` | Decide | — |
+| B51 | IRT | ML; Audit | E71 (differential item functioning, reached from Q1); E37 says the other IRT designs aren't covered | Wired (5 November 2026): differential item functioning between two groups in a 2PL model, by irtpwr's analytical method (validation not finished). Other IRT designs (polytomous items, a test of a whole IRT model's fit) not covered | Now: AP, PN | **Engine: irtpwr `irtpwr()` with its DIF preset** (its hypothesis built from the parameters chosen; docs/conventions.md); irtsim `irt_simulate()` | Polytomous items (irtpwr's other presets) if researchers ask | — |
 | B52 | Factor analysis sample size | ML; Audit | E37 (confirmatory); exploratory not reachable | Unknown (exploratory: no candidate found) | — | Confirmatory: semPower `semPower.powerCFA()`; the power of a CFA's test of fit is computed (B45, E37) | — | — |
 | B53 | Network models | ML; Audit | none: not reachable | Unknown (decide scope; a tool exists) | — | powerly `powerly()` ("Sample Size Analysis for Psychological Networks") | Decide | — |
 
@@ -431,14 +431,14 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 30 | 29 | 0 | 59 |
+| Wired (validation not finished) | 30 | 30 | 0 | 60 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 7 | 2 | 10 |
 | Foundation tool can do it, not planned | 4 | 8 | 0 | 12 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 1 | 5 | 6 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
-| Unknown | 1 | 12 | 0 | 13 |
+| Unknown | 1 | 11 | 0 | 12 |
 | Out of scope | 0 | 0 | 0 | 0 |
 
 (Part D's four rows are out of scope by definition and aren't counted.)

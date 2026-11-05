@@ -1297,6 +1297,35 @@ The previous normal-product approximation gave .666 and accepted it.
 with correlated X/W, and recovery from power4mome's actual generator.
 Departure 19 is shown on the affected result and in the methods text.
 
+### 20. Differential item functioning: both of each DIF item's parameters tested, not only those that differ (irtpwr's preset)
+
+- **What differs:** irtpwr's `"DIF2PL"` preset builds its hypothesis from
+  the parameters that differ in the population given, so an item that is
+  only harder in the focal group is tested on its intercept alone (1 df).
+  The test researchers usually run frees both of the item's parameters,
+  its discrimination and its intercept: mirt's `DIF()` help (mirt 1.48)
+  runs its omnibus tests with `which.par = c('a1', 'd')`, with tests of
+  one parameter as follow-ups for flagged items. powerkit plans for that
+  test by default (2 df per DIF item), through the preset with its
+  hypothesis-building functions replaced (`backend-irtpwr.R`), and offers
+  irtpwr's choice as `target_test > free_parameters = "differing"`.
+- **Why** (the maintainer's decision, 5 November 2026; judgement call
+  B19): a power analysis should be for the test that will be run;
+  freeing only the difficulty is more powerful when only the difficulty
+  differs but cannot detect a change in discrimination, so it is a
+  narrower test than the usual one.
+- **Size:** for the example spec (8 items, item 1 0.4 harder in the focal
+  group) at 600 people, 53.6% (both parameters) against 64.1% (only the
+  difficulty), by the likelihood-ratio statistic. When both parameters
+  differ, the two choices are the same test.
+- **Test:** `engine/tests/testthat/test-backend-irt.R`, "Departure 20:
+  testing both of a DIF item's parameters (the default) costs power when
+  only its difficulty differs"; both choices agree with simulated
+  multigroup models in `test-validation-irt.R`.
+- **Shown to users:** on the E71 result unless the user chose irtpwr's
+  test (`app/routing/R/results.R`, `departures_for()`), and in the
+  methods paragraph.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool

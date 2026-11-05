@@ -440,6 +440,7 @@ nodes:
       - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1,
          when: {outcome: score, times: [once, twice]}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
       - {label: "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)", next: E37}
+      - {label: "That a test's items work the same way in two groups (differential item functioning, in item response theory)", next: E71, help: "e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
       - {label: "That people fall into distinct types or profiles", next: E58, help: "e.g. finding groups of students with different patterns of motivation (latent profile or latent class analysis)."}
 
   # A difference ------------------------------------------------------------
@@ -1508,13 +1509,14 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-validation-sem-model-fit.R, note: "Matches semPower called directly, power and required N, for every question on this screen, in the engine's tests; model fit also matches the noncentral chi-square written out in base R, and the degrees of freedom match lavaan's count. Not yet checked against a published worked example in the validation run."}
     # Maintainer decision on flag F7 (16 October 2026): IRT users reach this
-    # card through Q1's "a questionnaire structure" answer.
+    # card through Q1's "a questionnaire structure" answer; differential
+    # item functioning has its own Q1 answer and card (E71).
     card_points:
       - "Four questions about models with latent variables, each by formula with semPower: whether the model fits (a CFA or SEM's test of exact fit), whether a questionnaire measures the same thing in different groups or on different occasions (measurement invariance, metric or scalar, for one factor or several), whether two factors are correlated, and whether latent variables predict another (a slope in a latent regression)."
       - "Model fit is power to show a model is wrong, the reverse of what people often expect. A study with too few people will rarely reject even a poor model, so a model that \"fits\" in a small sample says little. Pick the smallest misfit you would want to notice: many studies use an RMSEA of 0.05. For a CFA, give the number of items and factors and powerkit counts the model's degrees of freedom (semPower, with lavaan); for any other model, enter its degrees of freedom, which lavaan reports when you fit it."
       - "The other three test one restriction against the model without it (a chi-square difference test), so you describe the model: how many items measure each factor, a typical standardised loading, and the difference you want to detect."
       - "Exact fit asks whether a model is exactly right, which almost no model is. The tests of close and not-close fit (MacCallum, Browne and Sugawara, 1996) ask instead whether its RMSEA is above or below a small value (0.05), so a study can plan to show that a model fits closely; powerkit computes them with WebPower."
-      - "This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). Item response theory (IRT) designs aren't covered."
+      - "This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). For item response theory (IRT), differential item functioning between two groups has its own card; other IRT designs aren't covered yet."
     inputs: ["What you want to test", "Model fit: the number of items and factors (for a CFA), or the model's degrees of freedom", "Model fit: the test, and the model's RMSEA in the population", "Measurement invariance: the groups or occasions, the items and their loadings, and how the last group or occasion differs", "Two factors: the items and loading of each, and their correlation", "Latent regression: the slopes, the predictors' correlation, and the items"]
     tier: v2
     alternatives: ["planning for the precision of the RMSEA (the width of its confidence interval)", "a simulation of the full model (simsem, or semPower's simulated power)"]
@@ -1663,6 +1665,23 @@ endpoints:
       - "For a plan of your own, simulate data from the profiles you expect and fit the models you will fit: Mplus's Monte Carlo facility does this (Nylund-Gibson and Choi, 2018, point to example 12.4 of its user's guide)."
     inputs: ["The number of profiles you expect", "How far apart they are on each indicator", "The number of indicators", "The size of the smallest profile"]
     tier: later
+  E71:
+    doc_name: "Differential item functioning (DIF) in a 2PL IRT model, two groups"
+    plain_name: "Whether a test's items work the same way in two groups (differential item functioning)"
+    search_words: "irt item response theory dif differential item functioning 2pl two-parameter logistic measurement bias item bias translation multigroup rasch item fairness"
+    template: "irt / dif"
+    backend: "irtpwr: irtpwr() with its DIF preset (the likelihood-ratio, Wald, score or gradient test of nested multigroup 2PL models, by its analytical method)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-irt.R, note: "Gives irtpwr's own DIF preset's power where that works, in the engine's tests, and agrees with multigroup models (mirt) fitted to simulated studies and compared by their likelihood ratio, for a change in difficulty and in discrimination, testing both of the item's parameters or only the one that differs (within 0.04); the test keeps its Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "Tests whether some items of a test or questionnaire with yes/no (or right/wrong) answers work differently in two groups, such as two language versions, for people of the same ability: differential item functioning (DIF) in a two-parameter logistic (2PL) item response theory model."
+      - "You give each item's discrimination and difficulty, from an earlier calibration or a published one, and for each item with DIF how much harder it is in the second group (uniform DIF) and, if you expect it, how much its discrimination changes (non-uniform DIF)."
+      - "By default the test frees both of each DIF item's parameters between the groups, the usual likelihood-ratio test of DIF (2 df per item); irtpwr's own preset frees only the parameters that differ, which is more powerful when only the difficulty changes, and is a choice on the next screen."
+      - "Calculated by irtpwr's analytical method, for two groups of equal size whose abilities have the same normal distribution, with the other items as anchors. Polytomous (rating-scale) items and groups that differ in ability are not covered yet."
+    inputs: ["Your groups and the test", "Each item's discrimination and difficulty", "The items with DIF and how they differ", "Which test"]
+    tier: v2
+    alternatives: ["measurement invariance in a CFA, for questionnaire scores treated as continuous (the latent-variable card)", "a logistic regression DIF test of each item on the total score (for example, lordif), planned by simulation"]
   E43:
     doc_name: "Time-to-event (survival) outcome: the log-rank test and Cox regression"
     plain_name: "An outcome that is the time until something happens"
@@ -2227,7 +2246,7 @@ analysis_families:
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
   - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E45, E65]}
-  - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, profiles)", endpoints: [E37, E58]}
+  - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, IRT, profiles)", endpoints: [E37, E71, E58]}
   - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
   - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}
   - {id: equivalence, label: "Showing there's no meaningful effect (equivalence, non-inferiority)", endpoints: [E36]}

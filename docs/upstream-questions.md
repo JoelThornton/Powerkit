@@ -28,6 +28,7 @@ below retain their reproduction information and limitations.
 | power4mome: models 58/59 population products | `test-path-product-moments.R`; full polynomial moments and independently generated/OLS checks in the validation journal | Workaround: explicit residual variances and `standardized = FALSE`; separate fitted model | Standardisation/product-update changes; recover the population and repeat scoped simulations before removing the workaround |
 | power4mome: seeded product-term standardisation | Same-seed checks with different preceding RNG states | Workaround: explicitly seed before `power4test()` | RNG/seeding changes; compare repeated calls and core settings |
 | longpower: `diggle.linear.power()` power for a given n | Question below; `test-backend-growth.R` compares the solved power with the package's own where that works | Bypassed: Powerkit solves the package's sample size for the power, so the same formula gives the power | Upstream correction; rerun the small- and large-group cases before calling the power directly |
+| irtpwr: DIF preset with one differing parameter | Question below; `test-backend-irt.R` compares the corrected preset with the package's own where both run | Workaround: Powerkit passes the preset with its `res()` corrected (`drop = FALSE`) through `setup.hypothesis(type = <list>)` | Upstream correction; compare the package's preset with the corrected one for one and two differing parameters before removing the workaround |
 | power4mome: X with three or more categories in mediation | Backend-support question; no independent supported implementation recorded | Unsupported, rather than approximated by a continuous X | A documented generator, effect coding and target test, followed by validation |
 | manymome/power4mome: model 8 moderated-mediation index | Recorded refusal of `index_of_mome()` and conditional-effect comparison | Bypassed by offering the explicitly labelled difference of conditional indirect effects; it is a different target | Index implementation changes; compare estimands and retain both target-specific tests |
 | power4mome: correlated binary X and W | Backend restriction and historical questions; no validated generator recorded | Unsupported where the generator requires zero covariance | A supported joint generator and independent checks at nonzero associations |
@@ -275,3 +276,28 @@ Questions about longpower 1.0.27, from running it (5 November 2026).
    where that works (n = 100 per group). Is the root-finding's interval or
    tolerance the cause?
 
+## irtpwr
+
+Questions about irtpwr 1.0.3, from running it (5 November 2026).
+
+1. **The `"DIF2PL"` preset stops when only one parameter differs.** With
+   one item whose difficulty differs between the groups (one row in the
+   hypothesis matrix), `setup.hypothesis(type = "DIF2PL", altpars = ...)`
+   followed by `irtpwr()` stops with "'x' must be an array of at least
+   two dimensions" (4 items, the first 0.4 harder): the preset's `res()`
+   computes `colSums(Amat[, 1:(2 * n.items)])`, and with one row the
+   subset drops to a vector, so `colSums()` fails. With two or more
+   differing parameters it runs. A single item with uniform DIF is the
+   most common planning case. powerkit's adapter (`backend-irtpwr.R`,
+   `irt_preset()`) passes the preset with `drop = FALSE` added, and
+   `test-backend-irt.R` checks that it gives the package's own power
+   where both run (two differing parameters). Is `drop = FALSE` the
+   intended fix?
+2. **Which parameters the DIF preset tests.** The preset's hypothesis
+   names the parameters that differ in the population given, so a change
+   in difficulty alone is tested with 1 df. mirt's `DIF()` help calls the
+   test of both parameters (`which.par = c('a1', 'd')`) the omnibus test,
+   with tests of one parameter as follow-ups. powerkit tests both of each
+   DIF item's parameters by default and offers the preset's choice
+   (docs/conventions.md). Would an argument naming the parameters to test
+   suit the package?
