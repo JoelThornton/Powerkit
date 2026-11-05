@@ -1,5 +1,8 @@
 # powerkit 0.32.0
 
+* Input screens hide a box when all its fields are hidden, and means in SD
+  units no longer ask for the SD (it is 1).
+
 * The app shows that it is starting or working, keeps an open page's
   connection alive, reconnects when it can, reloads a disconnected page
   when the visitor comes back to it, and keeps the answers on an input screen in the browser so a

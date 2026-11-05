@@ -44,6 +44,9 @@ fully validated. Validation runs are recorded in
   example data preserve it. Point-biserial/test-statistic conversions and
   safeguard planning remain limited to their equal-SD assumptions.
 
+- **Input screens:** a box hides when every field in it is hidden, and
+  means in SD units take an SD of 1 without asking.
+
 - **Unfinished drafts:** input screens can download partial answers without
   a calculation or justification. The same file opener restores blanks and
   editable values, clears any previous calculation and labels the draft as

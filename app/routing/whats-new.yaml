@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Fewer questions that don't apply"
+    text: >-
+      Input screens no longer leave an empty box behind when a choice hides
+      its questions, and if you give the means in SD units powerkit no
+      longer asks for the SD, which is then 1.
+  - date: "2026-11-05"
     title: "Your answers survive a lost connection"
     text: >-
       If you leave the page and the connection drops, powerkit now keeps the
