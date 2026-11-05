@@ -1044,6 +1044,13 @@ as an experimental option, for a statistician's check
   comparison adjusted for B had 82.7% power against powerkit's ANCOVA
   card (E23, pwrss's `power.f.ancova.shieh()`) at the implied values,
   83.9%: the same kind of gap; Type I error 4.9% and 4.5% with no effect.
+  With non-randomised groups correlated with the moderator or the first
+  measurement (5 November 2026; equal groups with r = .4, a quarter in
+  the second group with r = -.3, and a first measurement; 10,000
+  replications each), the group comparison's, the interaction's and the
+  joint power all agree with a simulation written separately within the
+  99.9% Monte Carlo interval; both are simulations of the same model, so
+  this checks the exact moments and the population, not a departure.
   Every analysis adjusts Y for B, as the
   ANCOVA option the guided plan offers for two groups measured twice
   does, so this follows E23 rather than departing from it; the mixed
@@ -1055,7 +1062,8 @@ as an experimental option, for a statistician's check
   the correlation and an interaction they were unrelated (36.5% against
   36.4%).
 - **Test:** `test-validation-whole-study-crosscheck.R` (full validation,
-  chunk `whole_study`): each analysis against its separate calculation,
+  chunk `whole_study`; with `test-validation-whole-study-groups.R` for
+  non-randomised groups): each analysis against its separate calculation,
   the joint power above the product of the separate powers for related
   analyses, and Type I error with every path 0; `test-whole-study.R`: the
   joint counts' exact bookkeeping.

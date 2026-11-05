@@ -219,20 +219,12 @@ whole_study_problems <- function(spec) {
     problems <- c(problems, "'population > x_prob' is the share in X's second group, so it applies only when X is two groups ('variables > X > type' \"binary\").")
   }
   correlations <- spec$population$correlations %||% list()
-  # power4mome draws a two-group X on its own (x_fun), so it can't be
-  # correlated with W or B: as when the groups are randomised.
   binary_x <- identical(spec$variables$X$type, "binary")
-  for (other in c("W", "B")) {
-    key <- paste0("X<->", other)
-    if (binary_x && isTRUE(abs(correlations[[key]] %||% 0) > 0)) {
-      problems <- c(problems, sprintf(paste0(
-        "With X as two groups, the correlation of X and %s must be 0 (as when people are randomised to the groups): ",
-        "the simulation draws the groups on their own."), other))
-    }
-  }
   wanted <- whole_study_correlation_keys(spec)
-  missing_r <- setdiff(wanted, names(correlations))
-  extra_r <- setdiff(names(correlations), c(wanted, if (binary_x) c("X<->W", "X<->B")))
+  # For a two-group X its correlations with W and B are 0 unless given
+  # (randomised groups), as before they could be given.
+  missing_r <- setdiff(wanted, c(names(correlations), if (binary_x) c("X<->W", "X<->B")))
+  extra_r <- setdiff(names(correlations), wanted)
   if (length(missing_r) > 0) {
     problems <- c(problems, sprintf("Give the correlation %s (0 if none).", paste(missing_r, collapse = " and ")))
   }
@@ -245,16 +237,102 @@ whole_study_problems <- function(spec) {
   whole_study_variance_problems(spec, model)
 }
 
-# The correlations the population needs: of the exogenous variables
-# (X, W and the baseline B; not of a two-group X, drawn on its own), and of
-# parallel mediators' residuals.
+# The correlations the population needs: of the exogenous variables X, W
+# and the baseline B, and of parallel mediators' residuals. A two-group X
+# may correlate with W and B too (non-randomised groups); the population
+# then draws W and B from X (whole_study_exogenous_regressions()).
 whole_study_correlation_keys <- function(spec) {
   roles <- names(spec$variables)
-  binary_x <- identical(spec$variables$X$type, "binary")
-  c(if ("W" %in% roles && !binary_x) "X<->W",
-    if ("B" %in% roles && !binary_x) "X<->B",
+  c(if ("W" %in% roles) "X<->W",
+    if ("B" %in% roles) "X<->B",
     if (all(c("W", "B") %in% roles)) "W<->B",
     if (identical(spec$mediators, "parallel")) "M1<->M2")
+}
+
+# A two-group X correlated with W or B. power4mome draws a two-group X on
+# its own (rbinary_rs(), as x_fun), so it can't be given a covariance with
+# another exogenous variable; W and B are instead regressed on X (and B on
+# W) in the population with the standardised coefficients that give the
+# correlations entered. Within each group W is then normal, with the
+# groups' means apart, as for a non-randomised group such as gender with a
+# personality score.
+whole_study_correlated_group <- function(spec) {
+  r <- spec$population$correlations %||% list()
+  identical(spec$variables$X$type, "binary") &&
+    any(abs(as.numeric(unlist(r[intersect(c("X<->W", "X<->B"), names(r))]))) > 0)
+}
+
+whole_study_exogenous_regressions <- function(spec) {
+  r <- spec$population$correlations %||% list()
+  get <- function(key) as.numeric(r[[key]] %||% 0)
+  roles <- names(spec$variables)
+  out <- list()
+  if ("W" %in% roles) out$W <- c(X = get("X<->W"))
+  if ("B" %in% roles) {
+    out$B <- if ("W" %in% roles) {
+      beta <- solve(matrix(c(1, get("X<->W"), get("X<->W"), 1), 2), c(get("X<->B"), get("W<->B")))
+      c(X = beta[1], W = beta[2])
+    } else {
+      c(X = get("X<->B"))
+    }
+  }
+  out
+}
+
+# Exact population moments when a two-group X correlates with W or B. A
+# product of a two-group X with W no longer has the moments of a product of
+# jointly normal variables (implied_r_squared()): for two equal groups its
+# variance is 1 - r^2, not 1 + r^2, and with unequal groups it correlates
+# with X and W. Every variable is written as a polynomial in independent
+# standardised sources (X, two-valued; one normal source per other
+# variable), as path_product_moments() does for PROCESS models 58 and 59
+# (Departure 19), and each variance and covariance is its expectation.
+# Returns each endogenous variable's R-squared and residual variance, with
+# all observed variables standardised.
+whole_study_moments <- function(spec, model) {
+  exo <- whole_study_exogenous_regressions(spec)
+  sources <- c("X", names(exo), model$mediators, "Y")
+  k <- length(sources)
+  unit <- function(v) {
+    powers <- integer(k)
+    powers[match(v, sources)] <- 1L
+    stats::setNames(1, paste(powers, collapse = ","))
+  }
+  binary_prob <- c(spec$population$x_prob %||% 0.5, rep(NA_real_, k - 1))
+  mean_of <- function(p) path_poly_mean(p, binary_prob)
+  cov_of <- function(a, b) mean_of(path_poly_multiply(a, b)) - mean_of(a) * mean_of(b)
+  rho <- as.numeric((spec$population$correlations %||% list())[["M1<->M2"]] %||% 0)
+  poly <- list(X = unit("X"))
+  r_squared <- c()
+  residual <- c()
+  add <- function(v, predicted) {
+    explained <- if (length(predicted)) cov_of(predicted, predicted) else 0
+    r_squared[v] <<- explained
+    if (explained >= 1 - 1e-8) return(FALSE)
+    residual[v] <<- 1 - explained
+    noise <- if (identical(v, "M2") && identical(spec$mediators, "parallel")) {
+      path_poly_add(rho * unit("M1"), sqrt(1 - rho^2) * unit("M2"))
+    } else {
+      unit(v)
+    }
+    poly[[v]] <<- path_poly_add(predicted, sqrt(residual[[v]]) * noise)
+    TRUE
+  }
+  for (v in names(exo)) {
+    if (!add(v, do.call(path_poly_add, lapply(names(exo[[v]]), function(p) exo[[v]][[p]] * poly[[p]])))) {
+      return(list(r_squared = r_squared, residual = residual))
+    }
+  }
+  for (v in endogenous_order(model)) {
+    if (v %in% names(model$products)) {
+      parts <- model$products[[v]]
+      poly[[v]] <- path_poly_multiply(poly[[parts[1]]], poly[[parts[2]]])
+    } else {
+      terms <- lapply(model$equations[[v]], function(p) as.numeric(spec$population$paths[[paste0(p, "->", v)]]) * poly[[p]])
+      if (!add(v, do.call(path_poly_add, terms))) break
+    }
+  }
+  list(r_squared = r_squared, residual = residual)
 }
 
 # Each outcome's explained variance must be below 1. It is computed with
@@ -263,7 +341,7 @@ whole_study_correlation_keys <- function(spec) {
 # structure from path_model(), so the whole-study structure is given to
 # it directly.
 whole_study_variance_problems <- function(spec, model) {
-  r2 <- implied_r_squared(whole_study_paths_spec(spec), model)
+  r2 <- if (whole_study_correlated_group(spec)) whole_study_moments(spec, model) else implied_r_squared(whole_study_paths_spec(spec), model)
   bad <- names(r2$r_squared)[!is.finite(r2$r_squared) | r2$r_squared >= 1]
   if (length(bad) == 0) {
     return(character())
@@ -307,7 +385,25 @@ whole_study_inputs <- function(spec) {
   correlations <- spec$population$correlations %||% list()
   covariances <- character()
   pop_covariances <- character()
-  for (key in intersect(c("X<->W", "X<->B", "W<->B"), names(correlations))) {
+  population_variances <- character()
+  correlated_group <- whole_study_correlated_group(spec)
+  if (correlated_group) {
+    # W and B drawn from X (whole_study_exogenous_regressions()), every
+    # residual variance supplied explicitly from the exact moments and
+    # power4mome's own standardisation switched off, as for PROCESS models
+    # 58 and 59 (Departure 19): its Monte Carlo standardisation assumes the
+    # products' moments it would have with jointly normal variables.
+    exo <- whole_study_exogenous_regressions(spec)
+    moments <- whole_study_moments(spec, model)
+    regressions <- c(vapply(names(exo), function(v) paste(v, "~", paste(names(exo[[v]]), collapse = " + ")), character(1)), regressions)
+    pop_paths <- c(unlist(lapply(names(exo), function(v) {
+      vapply(names(exo[[v]]), function(p) sprintf("%s ~ %s: %s", v, p, format_pop_value(exo[[v]][[p]])), character(1))
+    }), use.names = FALSE), pop_paths)
+    population_variances <- vapply(names(moments$residual), function(v) {
+      sprintf("%s ~~ %s*%s", v, format_pop_value(moments$residual[[v]]), v)
+    }, character(1))
+  }
+  for (key in if (!correlated_group) intersect(c("X<->W", "X<->B", "W<->B"), names(correlations))) {
     pair <- strsplit(key, "<->", fixed = TRUE)[[1]]
     pop_covariances <- c(pop_covariances, sprintf("%s ~~ %s: %s", pair[1], pair[2], format_pop_value(correlations[[key]])))
   }
@@ -316,7 +412,7 @@ whole_study_inputs <- function(spec) {
     # observed variables standardised), so the residual correlation is
     # multiplied by the two residual SDs, as power4mome_inputs() does for
     # parallel mediation.
-    r2 <- implied_r_squared(whole_study_paths_spec(spec), model)$r_squared
+    r2 <- if (correlated_group) moments$r_squared else implied_r_squared(whole_study_paths_spec(spec), model)$r_squared
     covariances <- "M1 ~~ M2"
     pop_covariances <- c(pop_covariances, sprintf(
       "M1 ~~ M2: %s",
@@ -354,7 +450,8 @@ whole_study_inputs <- function(spec) {
       test_fun = test$fun, test_args = test$args)
   })
   list(
-    model = paste(c(regressions, covariances), collapse = "\n"),
+    model = paste(c(regressions, covariances, population_variances), collapse = "\n"),
+    standardized = if (correlated_group) FALSE,
     pop_es = paste(c(pop_paths, pop_covariances), collapse = "\n"),
     equations = model$equations,
     term = term,

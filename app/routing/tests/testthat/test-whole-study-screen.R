@@ -54,7 +54,9 @@ test_that("measured twice, every analysis adjusts for the first measurement; the
   skip_if(is.null(params_of), "engine not available")
   params <- params_of(skeleton)
   expect_true("B->Y" %in% params$paths)
-  expect_setequal(params$correlations, "W<->B")
+  # Two groups: their correlations with W and B are asked too (0 if people
+  # are randomised to the groups).
+  expect_setequal(params$correlations, c("X<->W", "X<->B", "W<->B"))
 })
 
 test_that("measured twice: two mediators side by side or in a chain, and moderated mediation of one link", {
@@ -244,7 +246,10 @@ test_that("two groups or conditions: the group comparison, moderation and mediat
   expect_identical(skeleton$variables$W$type, "continuous")
   params_of <- engine_function("whole_study_parameters")
   skip_if(is.null(params_of), "engine not available")
-  # The engine doesn't ask for the correlation of the groups with W: it is 0.
+  # The engine asks for the correlation of the groups with W: 0 when people
+  # are randomised to the groups, as the label says, and otherwise the
+  # correlation of non-randomised groups (such as gender) with the moderator.
   params <- params_of(skeleton)
-  expect_false("X<->W" %in% params$correlations)
+  expect_true("X<->W" %in% params$correlations)
+  expect_match(whole_study_path_label("X<->W"), "0 if people are randomised", fixed = TRUE)
 })
