@@ -1,5 +1,13 @@
 # powerkit 0.31.0
 
+* Moderation by a factor with three or more groups (template
+  `regression_interaction / group_moderator`, card E30): the correlation of
+  a score X with Y in each group (and optionally each group's mean), equal
+  or unequal groups (`options > group_ratio`). powerkit's experiment
+  `p_group_moderator()` fits `lm()` and returns the F test of the X x group
+  terms. Validation chunk `group_moderator`: pwr's F test formula with f^2
+  from the population, a separately written simulation, and Type I error.
+
 * Moderation of a yes/no outcome (template `logistic_regression /
   interaction`, card E32): logistic regression of Y on X, W and X x W,
   each a score or a yes/no group, with the base proportion, the odds ratios

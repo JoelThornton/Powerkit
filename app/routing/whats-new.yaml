@@ -5,6 +5,13 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-05"
+    title: "Moderation by three or more groups"
+    text: >-
+      You can now plan a study asking whether a relationship differs between
+      three or more groups, such as screen time and sleep in three age
+      groups. Give the correlation in each group, and powerkit simulates the
+      test of the interaction.
   - date: "2026-11-04"
     title: "Moderation when the outcome is yes or no"
     text: >-

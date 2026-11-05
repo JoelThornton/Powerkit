@@ -107,8 +107,10 @@ fully validated. Validation runs are recorded in
   Parts of screens that repeat (the list of analyses, an input screen's
   groups of fields) are kept as HTML once built (`cached_html()` in
   `R/ui.R`), so a click shows the next screen in about 40 ms on a laptop.
-  **48 cards calculate in the app**: E1-E9, E15, E18-E29, E31, E32, E34, E36,
+  **49 cards calculate in the app**: E1-E9, E15, E18-E32, E34, E36,
   E37, E43, E44, E46, E47-E57, E59-E61, E64, E66, E69 and E70 (`forms.yaml`'s `calculates`);
+  E30, moderation by a factor with three or more groups (the F test of the
+  X x group terms, simulated with Spower and lm()), since 5 November 2026;
   E32, moderation of a yes/no outcome (logistic regression with X x W,
   simulated with Spower and glm()), since 4 November 2026;
   E70, multinomial logistic regression (an outcome in three or more

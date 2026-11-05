@@ -1228,6 +1228,25 @@ check_single_predictor_x <- function(spec) {
   character()
 }
 
+# Moderation by a factor with three or more groups: one correlation (and,
+# if given, one mean) per group; no reliabilities (the simulation draws the
+# scores as measured).
+check_group_moderator <- function(spec) {
+  pop <- spec$population
+  k <- length(spec$variables$A$levels)
+  problems <- character()
+  if (length(unlist(pop$r_xy)) != k) {
+    problems <- c(problems, sprintf("'population > r_xy' needs one correlation for each of A's %d groups; it has %d.", k, length(unlist(pop$r_xy))))
+  }
+  if (!is.null(pop$means) && length(unlist(pop$means)) != k) {
+    problems <- c(problems, sprintf("'population > means' needs one mean for each of A's %d groups; it has %d.", k, length(unlist(pop$means))))
+  }
+  if (any(vapply(c("X", "Y"), function(v) !is.null(spec$variables[[v]]$reliability), logical(1)))) {
+    problems <- c(problems, "Reliability isn't used for moderation by groups: the simulation draws the scores as measured. Remove 'reliability'.")
+  }
+  problems
+}
+
 # Moderation with a yes/no outcome: the proportions of a yes/no X and W
 # belong to yes/no variables, and the correlation between X and W to two
 # scores (powerkit draws a yes/no X or W on its own).
@@ -1643,7 +1662,8 @@ check_proportion_trend <- function(spec) {
 # Jonckheere-Terpstra and Cochran-Armitage tests only, one whole number per
 # group in the groups' order.
 unequal_groups <- function(spec) {
-  !is.null(spec$options$group_ratio) && (jonckheere_test(spec) || proportion_trend(spec) || mixed_unequal_groups(spec))
+  !is.null(spec$options$group_ratio) && (jonckheere_test(spec) || proportion_trend(spec) || mixed_unequal_groups(spec) ||
+    identical(spec$template, "group_moderator"))
 }
 
 # A mixed design (A between, B within) with unequal groups.
@@ -1659,10 +1679,10 @@ check_group_ratio_allowed <- function(spec) {
     return(character())
   }
   mixed <- mixed_unequal_groups(spec)
-  if (!jonckheere_test(spec) && !proportion_trend(spec) && !mixed) {
+  if (!jonckheere_test(spec) && !proportion_trend(spec) && !mixed && !identical(spec$template, "group_moderator")) {
     return(paste0(
       "'options > group_ratio' only applies to the trend tests (the Jonckheere-Terpstra ",
-      "and Cochran-Armitage tests) and to mixed designs (a between factor A by a within factor B). Remove it."
+      "and Cochran-Armitage tests), to mixed designs (a between factor A by a within factor B) and to moderation by groups. Remove it."
     ))
   }
   if (mixed) {
@@ -2178,6 +2198,9 @@ check_multiple_regression <- function(spec) {
 
 check_regression_interaction <- function(spec) {
   pop <- spec$population
+  if (identical(spec$template, "group_moderator")) {
+    return(check_group_moderator(spec))
+  }
   # Three-way interactions: InteractionPoweR builds the full correlation
   # matrix of the seven terms itself, and the backend refuses an impossible
   # one in plain English (interactionpower_3way_power()).
@@ -2885,7 +2908,8 @@ minimum_n <- function(spec) {
     cluster_trial = (if (identical(spec$template, "multisite")) 2 else 4) * spec$population$cluster_size,
     # The intercept and every term (3 for two-way, 7 for three-way), plus
     # at least two residual df.
-    regression_interaction = if (identical(spec$template, "three_way")) 10 else 6,
+    # Moderation by groups: five in each group beyond its two coefficients.
+    regression_interaction = switch(spec$template, three_way = 10, group_moderator = 5 * length(spec$variables$A$levels), 6),
     # More participants than items, so that the sample covariance matrix
     # can be positive definite; 2 when only the df are known.
     sem = switch(
@@ -2964,7 +2988,7 @@ group_split <- function(spec) {
       valid = function(n) all(whole(n * w / sum(w)))
     ))
   }
-  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed", "manova")) {
+  if (spec$template %in% c("oneway_between", "oneway_ancova", "oneway_contrast", "mixed", "manova", "group_moderator")) {
     k <- length(spec$variables$A$levels)
     return(list(rule = sprintf("split into %d equal groups", k), valid = function(n) n %% k == 0))
   }
@@ -3140,7 +3164,7 @@ target_effect_is_zero <- function(spec) {
       factor_correlation = pop$r,
       latent_regression = pop$slopes[[pop$tested %||% 1L]]
     ),
-    regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else if (identical(pop$metric, "r2_change")) pop$r2_change else pop$r_XW_Y,
+    regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else if (identical(spec$template, "group_moderator")) diff(range(as.numeric(unlist(pop$r_xy)))) else if (identical(pop$metric, "r2_change")) pop$r2_change else pop$r_XW_Y,
     mediation = {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
       prod(vapply(seq_len(length(nodes) - 1), function(i) {

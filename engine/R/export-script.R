@@ -365,6 +365,10 @@ design_description <- function(spec) {
       if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
+    "regression_interaction/group_moderator" = sprintf(
+      "moderation by groups: does the slope of %s on %s differ between the %d groups of %s (%s)? F test of the X x A terms",
+      label("Y"), label("X"), length(unlist(v$A$levels)), label("A"), levels("A")
+    ),
     "logistic_regression/interaction" = sprintf(
       "moderation of a yes/no outcome: logistic regression of %s (%s) on %s%s, %s%s and their product; Wald z test of the product's coefficient",
       label("Y"), levels("Y"), label("X"), if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
@@ -1454,6 +1458,12 @@ spower_script_inputs <- function(spec) {
         sprintf("quantile <- %s # the quantile of the outcome tested (0.5: the median)", r_code(pop$quantile %||% 0.5))
       }
     ),
+    group_moderator = c(
+      sprintf("# The groups of %s, in order: %s.", comment_text(v$A$label), paste(comment_text(unlist(v$A$levels)), collapse = ", ")),
+      sprintf("r <- %s # correlation between %s and %s in each group", r_code(as.numeric(unlist(pop$r_xy))), comment_text(v$X$label), comment_text(v$Y$label)),
+      sprintf("means <- %s # mean of %s in each group, in SD units", r_code(as.numeric(unlist(pop$means %||% rep(0, length(unlist(v$A$levels)))))), comment_text(v$Y$label)),
+      sprintf("group_ratio <- %s # each group's share of the sample", r_code(trend_group_shares(spec)))
+    ),
     interaction = c(
       sprintf("base_prob <- %s # proportion of %s with X and W at their means or in their first groups", r_code(pop$base_prob), lv("Y", 2)),
       sprintf("or_x <- %s # odds ratio for %s, with W at its mean or in its first group", r_code(pop$odds_ratio_x), comment_text(v$X$label)),
@@ -1699,6 +1709,10 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "method = method",
       if (identical(spec$target_test$method, "quantile_regression")) "quantile = quantile"
     ),
+    group_moderator = c(
+      "n = batch_n, # sample size",
+      "r = r,", "means = means,", "group_ratio = group_ratio"
+    ),
     interaction = c(
       "n = batch_n, # sample size",
       "base_prob = base_prob,", "or_x = or_x,", "or_w = or_w,", "or_xw = or_xw,",
@@ -1871,6 +1885,21 @@ spower_derived_lines <- function(spec) {
       "  }",
       "  fit <- lm(y ~ ., data = data)",
       "  car::linearHypothesis(fit, \"x = 0\", white.adjust = sub(\"ols_\", \"\", method))[2, \"Pr(>F)\"]",
+      "}"
+    ),
+    group_moderator = c(
+      "# The experiment, as powerkit runs it: n split between the groups in the",
+      "# ratio given; in each group in turn, X standard normal and Y = mean + r X +",
+      "# sqrt(1 - r^2) e (Y has SD 1 within a group and correlates r with X). The",
+      "# p-value is the F test comparing lm(y ~ x * a) with lm(y ~ x + a).",
+      "p_group_moderator <- function(n, r, means, group_ratio) {",
+      "  sizes <- as.integer(round(n * group_ratio / sum(group_ratio)))",
+      "  data <- do.call(rbind, lapply(seq_along(sizes), function(g) {",
+      "    x <- rnorm(sizes[g])",
+      "    data.frame(a = g, x = x, y = means[g] + r[g] * x + sqrt(1 - r[g]^2) * rnorm(sizes[g]))",
+      "  }))",
+      "  data$a <- factor(data$a, levels = seq_along(sizes))",
+      "  anova(lm(y ~ x + a, data = data), lm(y ~ x * a, data = data))[2, \"Pr(>F)\"]",
       "}"
     ),
     interaction = c(

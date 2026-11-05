@@ -164,7 +164,7 @@ simulated_data_code <- function(spec, n, seed) {
     } else if (spec$template %in% c("oneway_ancova", "factorial_ancova")) {
       sim_ancova_code(spec, n)
     },
-    regression_interaction = if (identical(spec$template, "two_way")) sim_interaction_code(spec, n),
+    regression_interaction = switch(spec$template, two_way = sim_interaction_code(spec, n), group_moderator = sim_group_moderator_code(spec, n), NULL),
     mediation = ,
     moderated_mediation = sim_power4mome_code(spec, n, seed),
     NULL
@@ -568,6 +568,25 @@ sim_rank_code <- function(spec, n) {
     }
   )
   c(draw, body)
+}
+
+# Moderation by groups: each group's X and Y drawn as
+# group_moderator_data() draws them.
+sim_group_moderator_code <- function(spec, n) {
+  pop <- spec$population
+  k <- length(spec$variables$A$levels)
+  w <- trend_group_shares(spec)
+  c(
+    sprintf("sizes <- %s # people in each group", r_code(as.integer(round(n * w / sum(w))))),
+    sprintf("r <- %s # correlation of X and Y in each group", r_code(as.numeric(unlist(pop$r_xy)))),
+    sprintf("means <- %s # mean of Y in each group (SD units)", r_code(as.numeric(unlist(pop$means %||% rep(0, k))))),
+    sprintf("groups <- %s", r_code(sim_levels(spec, "A"))),
+    "simulated <- do.call(rbind, lapply(seq_along(sizes), function(g) {",
+    "  x <- stats::rnorm(sizes[g])",
+    sprintf("  data.frame(%s = groups[g], %s = x, %s = means[g] + r[g] * x + sqrt(1 - r[g]^2) * stats::rnorm(sizes[g]))",
+      sim_label(spec, "A"), sim_label(spec, "X"), sim_label(spec, "Y")),
+    "}))"
+  )
 }
 
 # Moderation with a yes/no outcome: X, W and the outcome drawn as

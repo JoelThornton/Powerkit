@@ -3216,7 +3216,8 @@
           "template": {
             "enum": [
               "two_way",
-              "three_way"
+              "three_way",
+              "group_moderator"
             ]
           }
         },
@@ -3249,6 +3250,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_three_way"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "group_moderator"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_group_moderator"
             }
           }
         ]
@@ -8676,6 +8692,86 @@
               "const": "wald_z"
             }
           }
+        }
+      }
+    },
+    "template_group_moderator": {
+      "description": "Moderation by a factor with three or more groups: does the slope of a score X on a score Y differ between the groups of A? Linear regression of Y on X, A and X x A, and the F test of the X x A terms (k - 1 df), simulated with Spower (stats::lm()). Groups may differ in size (options > group_ratio).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "A",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 3,
+                  "maxItems": 10
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r_xy"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r_xy": {
+              "description": "The correlation between X and Y within each group of A, in the order of A's levels. The same correlation in every group is no moderation, allowed to check the Type I error rate at a fixed n.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": -1,
+                "exclusiveMaximum": 1
+              }
+            },
+            "means": {
+              "description": "Optional: Y's mean in each group at X's mean, in SD units of Y within a group (0 in every group if omitted). Differences between the groups' means don't change the test of the slopes, but are drawn so the data look as planned.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "effect": {
+                  "const": "interaction"
+                },
+                "method": {
+                  "const": "f_test"
+                }
+              }
+            }
+          ]
         }
       }
     },

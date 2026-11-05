@@ -88,6 +88,7 @@ on:
           - multinomial
           - zero_inflated
           - logistic_interaction
+          - group_moderator
           - process_4
           - process_4_binary
           - process_6

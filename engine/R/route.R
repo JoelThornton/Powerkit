@@ -192,6 +192,9 @@ route_spec <- function(spec, seed = NULL) {
       interactionpower_backend(spec, seed)
     },
     "regression_interaction/three_way" = interactionpower_3way_backend(spec),
+    # Moderation by a factor with three or more groups, simulated with
+    # Spower (lm()).
+    "regression_interaction/group_moderator" = spower_backend(spec, seed),
     "mediation/process_4" = ,
     "mediation/process_6" = ,
     "moderated_mediation/process_7" = ,

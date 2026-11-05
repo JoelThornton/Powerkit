@@ -4986,3 +4986,26 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   the model's expected Fisher information (within 0.02); a separately
   written simulation; Type I error with both main effects present. A
   published example is a placeholder.
+
+## 2026-11-05 · Moderation by a factor with three or more groups (E30)
+
+- **What:** E30 calculates: a new template, `regression_interaction /
+  group_moderator`, simulated by Spower with powerkit's experiment
+  `p_group_moderator()` around `lm()`. Goals: power and sample size.
+- **Why:** `next.md` item 4 (decided 4 November 2026: E30 and E32 first).
+  Comparing a relationship across three or more groups (age groups,
+  conditions, sites) is common, and the design finder's moderation route
+  sent it to a custom simulation.
+- **Inputs:** the correlation of X and Y in each group, the effect size
+  researchers usually have for each group, and optionally the groups'
+  means; equal or unequal groups (`options > group_ratio`).
+- **Data model and test:** in each group X standard normal and Y = m_g +
+  r_g X + sqrt(1 - r_g^2) e; the F test of the X x group terms (k - 1 df),
+  comparing `lm(y ~ x * a)` with `lm(y ~ x + a)`. When the correlations
+  differ, so do the groups' residual variances, which the F test assumes
+  equal; the simulation reports the power of the test as researchers run
+  it.
+- **Validation** (`test-validation-group-moderator.R`, chunk
+  `group_moderator`): pwr's F test formula with f^2 from the population
+  (within 0.02), a separately written simulation, and Type I error when the
+  groups differ only in their means.

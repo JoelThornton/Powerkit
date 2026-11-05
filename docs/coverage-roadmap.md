@@ -186,7 +186,7 @@ Rows the maintainer listed (ML). "Unknown" where it isn't clear.
 | B1 | Continuous × continuous | ML; BG | E9 | Done (validated and wired) | Now: AP, PN. Could: AP, PN, S (by grids over N and effect) | InteractionPoweR `power_interaction()`; `power_interaction_r2()` (analytic, brackets N) | Wire (draft PR from the other thread) | — |
 | B2 | Binary × continuous | ML; BG | E15 | Wired (29 October 2026; simulated, 50/50 split; published value to transcribe) | Now: AP, PN, S | **Engine: InteractionPoweR `power_interaction(k.x1 or k.x2 = 2)`** (50/50 split only); the implied group difference by `psych::r2d()` | Transcribe a published example | [E4][], [E5][] |
 | B3 | Binary × binary | ML | E7 (2 x 2 between ANOVA interaction) | Done (validated and wired) | Now: AP, PN, S | Superpower `ANOVA_exact()`; InteractionPoweR `k.x1 = 2, k.x2 = 2` as a cross-check (build guide, phase 3b c) | — | — |
-| B4 | Categorical moderator with 3+ levels | ML; Audit | E30 | No ready-made tool | — | InteractionPoweR's `k.x1`/`k.x2` make ordered (binary or ordinal) variables, not unordered categories (coverage.md) | — | [A1][] |
+| B4 | Categorical moderator with 3+ levels | ML; Audit | E30 | Wired (validation not finished): 4 November 2026, the F test of the X x group terms in lm(), simulated (Spower), a score by a factor with three or more groups | Now: AP, PN | **Engine: Spower, powerkit's experiment `p_group_moderator()` around `stats::lm()`** | A yes/no outcome by groups | — |
 | B5 | Three-way interaction | ML; BG | E31 | Wired (29 October 2026: InteractionPoweR's analytic `power_interaction_3way_r2()`, with reliabilities; matches it called directly; published value to transcribe) | Now: AP, PN | InteractionPoweR `power_interaction_3way_r2()` (analytic only), `cor.mat.3way()`; Superpower `power_threeway_between()` for three factors | coverage.md proposes v2 | — |
 | B6 | Simple slopes | ML | none: no card asks (E9's target is the interaction) | Foundation tool can do it, not planned | Could: PN | InteractionPoweR `power_interaction(detailed_results = TRUE)`, `plot_simple_slope()`, `simple.slopes.3way()` | — | [B7][] |
 | B7 | Curvilinear/quadratic effects | ML; Audit | none: reaches E4 | Foundation tool can do it, not planned | Could: AP, PN, S, Co, Cr | candidate: Spower `p_glm()` with a squared term in `formula` (inferred: `p_glm()` takes any formula) | Decide the card | [C12][] |
@@ -431,11 +431,11 @@ and fails if a line here disagrees.
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 10 | 8 | 5 | 23 |
-| Wired (validation not finished) | 30 | 27 | 0 | 57 |
+| Wired (validation not finished) | 30 | 28 | 0 | 58 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 8 | 2 | 11 |
 | Foundation tool can do it, not planned | 4 | 8 | 0 | 12 |
-| No ready-made tool | 0 | 6 | 0 | 6 |
+| No ready-made tool | 0 | 5 | 0 | 5 |
 | Partly working | 0 | 1 | 5 | 6 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
 | Unknown | 1 | 12 | 0 | 13 |

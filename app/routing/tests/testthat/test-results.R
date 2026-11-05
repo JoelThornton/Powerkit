@@ -1806,6 +1806,22 @@ test_that("the aligned rank transform (E7, E21 and E22's test version) builds Sp
   expect_match(w[["short"]], "aligned rank transform", fixed = TRUE)
 })
 
+test_that("moderation by three or more groups (E30) takes a correlation per group and unequal groups, and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E30"))
+  values <- modifyList(form_examples$E30, list(group_sizes = "unequal", group_ratio = "1, 2, 1", goal = "power", n = "400"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E30", fields, values)
+  expect_identical(spec$template, "group_moderator")
+  expect_equal(unlist(spec$options$group_ratio), c(1, 2, 1))
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E30"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "score by group interaction", fixed = TRUE)
+})
+
 test_that("moderation of a yes/no outcome (E32) builds a logistic interaction spec and reaches Spower", {
   fields <- form_fields(form_groups(forms, "E32"))
   by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]

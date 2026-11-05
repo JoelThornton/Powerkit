@@ -70,6 +70,8 @@ form_examples <- list(
                p_first_only = "0.1", p_second_only = "0.25", alternative = "two_sided"), closing_ok),
   E36 = c(list(comparison = "tost_independent", X_label = "Condition", X_level1 = "Paper", X_level2 = "Screen", Y_label = "Reading comprehension",
                effect_units = "standardised", bound = "0.5", d = "0", allocation_ratio = "1"), closing_ok),
+  E30 = c(list(Y_label = "Sleep quality", X_label = "Daily screen time", A_label = "Age group", A_levels = "12 to 14, 15 to 17, 18 to 20",
+               r_xy = "-0.1, -0.2, -0.35", group_sizes = "equal"), closing_ok),
   E32 = c(list(Y_label = "Sought counselling", X_label = "Perceived stress", X_type = "continuous", W_label = "Social support", W_type = "continuous",
                base_prob = "0.25", odds_ratio_x = "1.4", odds_ratio_w = "1.1", odds_ratio_xw = "1.25", r_xw = "-0.2", alternative = "two_sided"), closing_ok),
   E70 = c(list(Y_label = "Where help was first sought", Y_levels = "General practitioner, Online search, Friends or family",

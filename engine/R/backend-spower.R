@@ -274,6 +274,17 @@ spower_inputs <- function(spec) {
     # p_logistic_interaction(), draws X, W and the outcome
     # (logistic_interaction_data()) and returns the Wald z test of the
     # X x W coefficient in glm().
+    # Moderation by groups: powerkit's own experiment, p_group_moderator(),
+    # draws each group's X and Y (group_moderator_data()) and returns the F
+    # test of the X x A terms in lm().
+    group_moderator = list(
+      experiment = "p_group_moderator", own = TRUE,
+      args = function(n) {
+        w <- trend_group_shares(spec)
+        k <- length(spec$variables$A$levels)
+        list(n = n, r = as.numeric(unlist(pop$r_xy)), means = as.numeric(unlist(pop$means %||% rep(0, k))), group_ratio = w)
+      }
+    ),
     interaction = list(
       experiment = "p_logistic_interaction", own = TRUE,
       args = function(n) {
@@ -318,6 +329,8 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+  } else if (identical(template, "group_moderator")) {
+    "Spower::Spower(p_group_moderator()) (stats::lm() of Y on X * A, the F test of the X x A terms)"
   } else if (identical(template, "interaction") && identical(spec$design, "logistic_regression")) {
     sprintf("Spower::Spower(p_logistic_interaction(%s)) (stats::glm(family = binomial()), the Wald z test of the X x W coefficient)",
       if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
@@ -958,6 +971,48 @@ zero_inflated_check_run <- function(args, seed) {
   rows
 }
 
+# Moderation by a factor with three or more groups ---------------------------
+#
+# Data: the groups have n split in the ratio given (mixed_group_n()); in
+# each group in turn, X is standard normal and Y = mean_g + r_g X +
+# sqrt(1 - r_g^2) e, so that within the group Y has SD 1 and correlates r_g
+# with X. Drawn in this order, group by group: X, then the errors.
+group_moderator_data <- function(n, r, means, group_ratio) {
+  sizes <- mixed_group_n(n, group_ratio)
+  rows <- lapply(seq_along(sizes), function(g) {
+    x <- stats::rnorm(sizes[g])
+    data.frame(a = g, x = x, y = means[g] + r[g] * x + sqrt(1 - r[g]^2) * stats::rnorm(sizes[g]))
+  })
+  data <- do.call(rbind, rows)
+  data$a <- factor(data$a, levels = seq_along(sizes))
+  data
+}
+
+# Spower experiment: the F test comparing lm(y ~ x * a) with lm(y ~ x + a),
+# the test of the X x A terms (k - 1 df).
+p_group_moderator <- function(n, r, means, group_ratio) {
+  data <- group_moderator_data(n, r, means, group_ratio)
+  stats::anova(stats::lm(y ~ x + a, data = data), stats::lm(y ~ x * a, data = data))[2, "Pr(>F)"]
+}
+
+# Check run: one large data set; each group's correlation and mean, and
+# its share of the sample.
+group_moderator_check_run <- function(spec, args, seed) {
+  data <- call_backend("Spower", with_seed(seed, group_moderator_data(args$n, args$r, args$means, args$group_ratio)))
+  levels <- unlist(spec$variables$A$levels)
+  by_group <- split(data, data$a)
+  r_hat <- vapply(by_group, function(d) stats::cor(d$x, d$y), numeric(1))
+  sizes <- vapply(by_group, nrow, numeric(1))
+  m_hat <- vapply(by_group, function(d) mean(d$y), numeric(1))
+  rbind(
+    check_run_rows(sprintf("correlation of X and Y in %s", levels), args$r, r_hat, (1 - args$r^2) / sqrt(sizes)),
+    check_run_rows(sprintf("mean of Y in %s (SD units)", levels), args$means, m_hat, 1 / sqrt(sizes)),
+    data.frame(parameter = "share of people in each group (largest difference)", specified = 0,
+      recovered = max(abs(sizes / sum(sizes) - args$group_ratio / sum(args$group_ratio))),
+      ok = max(abs(sizes / sum(sizes) - args$group_ratio / sum(args$group_ratio))) < 1e-3)
+  )
+}
+
 # Moderation with a yes/no outcome --------------------------------------------
 #
 # Data: n people. Two scores X and W are standard normal with correlation
@@ -1274,6 +1329,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "interaction") && identical(spec$design, "logistic_regression")) {
     return(logistic_interaction_check_run(args, seed))
+  }
+  if (identical(spec$template, "group_moderator")) {
+    return(group_moderator_check_run(spec, args, seed))
   }
   if (permanova_test(spec) && !identical(args$shape, "normal")) {
     return(permanova_check_run(spec, args, seed))

@@ -1376,12 +1376,20 @@ endpoints:
   E30:
     doc_name: "Moderator with three or more groups"
     plain_name: "Moderation where X or W has three or more groups"
-    status: not_in_powerkit
-    no_ready_made_tool: true
-    inputs: ["Depends on the model you write"]
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
-    tier: later
+    search_words: "categorical moderator group differences in slopes interaction three groups factor by covariate"
+    template: "regression_interaction / group_moderator"
+    backend: "Spower: powerkit's experiment around stats::lm(), the F test of the X x group terms (simulation)"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-group-moderator.R, note: "Recovers each group's correlation, mean and share in its check run and matches Spower called directly in the engine's tests; agrees with the F test's power by pwr's formula (within 0.02) and with a separately written simulation, and keeps the Type I error at alpha when the groups differ only in their means. Not yet checked against a published example."}
+    card_points:
+      - "Whether the relationship between a score X and the outcome differs between three or more groups (for example, age groups or conditions): the test of the X x group terms in a regression, together."
+      - "You give the correlation between X and the outcome in each group, and optionally each group's mean; groups can differ in size."
+      - "If both of your variables are groups, this is a factorial ANOVA instead; if the moderator is a score and X has three or more groups, the same test applies with the roles swapped."
+      - "Simulated, so the answer carries a little random error."
+    inputs: ["Your outcome, the score X and the groups", "The correlation between X and the outcome in each group", "The size of each group"]
+    tier: v2
+    alternatives: ["a factorial ANOVA, if both variables are groups", "moderation with a yes/no moderator, for two groups", "tests of the slope in each group separately, adjusted for the number of groups"]
   E31:
     doc_name: "Three-way interaction"
     plain_name: "Does an interaction itself depend on a third variable?"

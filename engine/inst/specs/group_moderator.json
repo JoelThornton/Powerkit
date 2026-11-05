@@ -1,0 +1,49 @@
+{
+  "spec_version": "0.1",
+  "design": "regression_interaction",
+  "template": "group_moderator",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Daily screen time"
+    },
+    "A": {
+      "type": "between_factor",
+      "label": "Age group",
+      "levels": [
+        "12 to 14",
+        "15 to 17",
+        "18 to 20"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Sleep quality"
+    }
+  },
+  "population": {
+    "metric": "correlation",
+    "r_xy": [
+      -0.1,
+      -0.2,
+      -0.35
+    ]
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: screen time relates more strongly to poorer sleep in older groups; correlations of -0.1, -0.2 and -0.35 are the smallest pattern of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "f_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261104
+  }
+}
