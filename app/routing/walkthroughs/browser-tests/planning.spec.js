@@ -31,6 +31,7 @@ async function calculate(page) {
   await expect(page.locator('#form_result')).not.toContainText("didn't finish");
 }
 async function download(page, id, output) {
+  await expect(page.locator('#' + id)).toHaveAttribute('href', /\/download\//);
   const pending = page.waitForEvent('download');
   await page.locator('#' + id).click();
   const file = await pending;
@@ -49,6 +50,7 @@ test('calculate, edit, save and reopen an actual project', async ({ page }, info
   await tPlan(page);
   await calculate(page);
   await expect(page.locator('#form_result')).toContainText('120');
+  await expect(page.locator('#explore_plot img')).toBeVisible();
   const project = info.outputPath('plan.powerkit.json');
   await download(page, 'download_project', project);
   const document = info.outputPath('study-planning.md');
@@ -113,8 +115,13 @@ test('precision produces width rather than a power result', async ({ page }, inf
 });
 
 test('a real background simulation can be cancelled', async ({ page }) => {
-  await tPlan(page);
-  await setValue(page, 'method', 'welch_t');
+  await openAnalysis(page, 'E9', 'interaction');
+  await setValue(page, 'goal', 'power');
+  for (const [id, value] of [['r_X_Y', '-0.3'], ['r_W_Y', '0.2'], ['r_XW_Y', '0.1'], ['r_X_W', '-0.1'], ['rel_X', '0.8'], ['rel_W', '0.85']]) {
+    await setValue(page, id, value);
+  }
+  await setValue(page, 'just_type', 'smallest_effect_of_interest');
+  await setValue(page, 'just_source', 'A justified interaction scenario for cancellation checks.');
   await setValue(page, 'simulation_accuracy', 'precise');
   await setValue(page, 'n', '1000');
   await page.locator('#form_check').click();

@@ -1035,7 +1035,7 @@ server <- function(input, output, session) {
     calc <- state$calc
     req(calc, identical(calc$status, "ok"), input$explore_effect, !is.null(explore_effect(calc$spec)))
     df <- explore_curve(calc$spec, calc$result, input$explore_effect, seed = forms$default_seed)
-    planned <- calc$result$n_required$n %||% calc$spec$goal$n
+    planned <- n_analysed(calc$result)
     power_curve_plot(list(list(df = df, col = "#0A5A8C", fill = TRUE)), target = calc$spec$goal$power %||% 0.8, planned_n = planned)
   }, res = 96)
 
@@ -1061,7 +1061,7 @@ server <- function(input, output, session) {
     style <- list(conservative = list(col = "#b45309", lty = 2), expected = list(col = "#14284B", lty = 1), optimistic = list(col = "#0A5A8C", lty = 3))
     calc <- state$calc
     power_curve_plot(lapply(keys, function(k) list(df = df[df$scenario == k, ], col = style[[k]]$col, lty = style[[k]]$lty)),
-      target = calc$spec$goal$power %||% 0.8, planned_n = calc$result$n_required$n %||% calc$spec$goal$n)
+      target = calc$spec$goal$power %||% 0.8, planned_n = n_analysed(calc$result))
     legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
       lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3, bty = "n", inset = c(0, 0.04))
   }, res = 96)
