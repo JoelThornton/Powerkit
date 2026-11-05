@@ -38,7 +38,7 @@ fully validated. Validation runs are recorded in
   3 and 10, the size for both and, for t-tests, how often they agree.
   Bayes factor t-test results show the plan under JASP's three prior
   widths. Informed priors wait on a bfpwr fault (`upstream-questions.md`).
-  Next: sequential designs on the cards.
+  Their results also offer the plan as a sequential design.
 
 - **Unfinished drafts:** input screens can download partial answers without
   a calculation or justification. The same file opener restores blanks and

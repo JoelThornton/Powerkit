@@ -5342,3 +5342,18 @@ a study), so they are left out.
   simulation) is possible, but it is new maths for the maintainer to
   decide on.
 
+## 2026-11-05 · Sequential designs on the Bayes factor t-test cards (part 4)
+
+A Bayes factor t-test result offers "Check as you go?": the same plan as
+a sequential design with the planned sample size as the largest, Schonbrodt
+and Wagenmakers's design with a maximum N, from the engine's
+`bayes_sequential()` (the Labs tool's, so the same validation:
+`test-validation-bayes-sequential.R`). The researcher sets the first look,
+the number between looks and the threshold for stopping for no effect;
+the effect, its uncertainty, the prior, the threshold for an effect and
+the direction come from the plan. It shows how often the study stops each
+way, its size when it stops, and a single test at the maximum beside it.
+Worked out on request (2,000 simulated studies each way, about a second).
+The planned sample size stays the plan's: a sequential design is offered
+as a way to run that study, not as a different answer to it.
+

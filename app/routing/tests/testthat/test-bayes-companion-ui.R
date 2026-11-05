@@ -50,3 +50,27 @@ test_that("a Bayes factor t-test result shows how the plan changes with the prio
   expect_match(html, 'id="f_effect_sd_reading"', fixed = TRUE)
   expect_match(html, "95%% sure|95% sure")
 })
+
+test_that("a Bayes factor t-test result offers the same plan as a sequential design", {
+  v <- modifyList(form_examples$E2, list(method = "bayes_factor", evidence_threshold = "10", prior_scale = "0.707", effect_sd = "0.1"))
+  v$welch_sd_ratio <- NULL
+  spec <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), v)
+  result <- list(goal_type = "sample_size", n_required = list(n = 200))
+  html <- as.character(bayes_sequential_card_ui(spec, result))
+  expect_match(html, "Check as you go?", fixed = TRUE)
+  expect_match(html, "or at 100 in each group at most", fixed = TRUE)
+  args <- bayes_sequential_args(spec, 200, 20, 5, 6)
+  expect_identical(args$n_max, 100)
+  expect_identical(args$type, "two.sample")
+  expect_equal(args$effect, 0.4)
+  expect_equal(args$effect_sd, 0.1)
+  expect_equal(args$threshold, 10)
+  expect_equal(args$threshold_null, 6)
+  # The engine accepts them (a small run).
+  args$nsim <- 200
+  plan <- do.call(engine_function("bayes_sequential"), args)
+  expect_identical(plan$n_max, 100)
+  # Not on p-value plans.
+  freq <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), form_examples$E2)
+  expect_null(bayes_sequential_card_ui(freq, result))
+})

@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Check the evidence as you go"
+    text: >-
+      Planning a Bayes factor t-test? The result now shows how the same study
+      would go if you checked the Bayes factor as the data come in and stopped
+      once the evidence was strong: how often it stops each way, and how many
+      people it usually needs.
+  - date: "2026-11-05"
     title: "Does the prior matter?"
     text: >-
       Bayes factor t-test results now show how the plan changes if you

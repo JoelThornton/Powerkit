@@ -1056,7 +1056,27 @@ server <- function(input, output, session) {
       error = function(e) list(available = FALSE, reason = "powerkit couldn't work out the Bayes factor side of this plan."))
     output$bayes_companion <- renderUI(bayes_companion_ui(calc$spec, calc$result, comp))
   })
-  observeEvent(state$calc, output$bayes_companion <- renderUI(NULL), ignoreNULL = FALSE)
+  observeEvent(state$calc, {
+    output$bayes_companion <- renderUI(NULL)
+    output$seq_result <- renderUI(NULL)
+  }, ignoreNULL = FALSE)
+  # Check as you go? (bayes_sequential_card_ui()): the engine's
+  # bayes_sequential() for the last calculation's Bayes factor t-test.
+  observeEvent(input$seq_run, {
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"))
+    num <- function(x) { v <- suppressWarnings(as.numeric(x)); if (length(v) != 1) NA_real_ else v }
+    spec <- calc$spec
+    if (is.null(spec$population$d) && is.null(spec$population$dz)) {
+      output$seq_result <- renderUI(div(class = "form-problems mt-2", role = "alert",
+        p("The sequential design needs the effect as a standardised effect (d): enter it that way above and check your answers again.")))
+      return()
+    }
+    args <- bayes_sequential_args(spec, bayes_companion_n(spec, calc$result), num(input$seq_n_min), num(input$seq_step), num(input$seq_threshold_null))
+    plan <- tryCatch(do.call(engine_function("bayes_sequential"), args), error = function(e) list(problem = bayes_problem(e)))
+    output$seq_result <- renderUI(if (!is.null(plan$problem)) div(class = "form-problems mt-2", role = "alert", p(plan$problem))
+      else div(class = "mt-2", role = "status", bayes_sequential_numbers(plan)))
+  })
   # Switch the plan's test version to its Bayes factor test.
   observeEvent(input$bayes_companion_switch, {
     d <- tree$bayes_designs[[state$endpoint]]

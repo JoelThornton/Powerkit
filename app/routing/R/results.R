@@ -2047,9 +2047,11 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   explore <- explore_ui(spec, result)
   scen <- scenarios_ui(spec, result)
   bayes_card <- bayes_companion_card_ui(tree, ep_id, spec, result)
+  sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
     `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness)) "How sure can you be?",
     `result-bayes` = if (!is.null(bayes_card)) "Add a Bayes factor?",
+    `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
   div(
     class = "result-panel", role = "status", tabindex = "-1",
@@ -2082,6 +2084,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       explore,
       scen),
     bayes_card,
+    sequential_card,
     div(class = "result-card result-save", id = "result-take",
     h4(class = "h5", "Write it up and save it"),
     writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
@@ -2952,4 +2955,42 @@ bayes_robustness_ui <- function(spec, rob) {
       tags$tbody(lapply(seq_len(nrow(rob)), function(i) tags$tr(
         tags$th(scope = "row", rob$prior[i]), tags$td(format(signif(rob$scale[i], 3))),
         tags$td(percent(rob$for_effect[i])), tags$td(percent(rob$for_null[i])))))))
+}
+
+# Check as you go? (5 November 2026): the same Bayes factor t-test plan as
+# a sequential design, with the planned sample size as the largest
+# (Schonbrodt and Wagenmakers's design with a maximum N). The numbers are
+# the engine's bayes_sequential(), the Labs tool's, worked out on request.
+bayes_sequential_card_ui <- function(spec, result) {
+  if (!is_bayes_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t") ||
+      !result$goal_type %in% c("sample_size", "power")) return(NULL)
+  n <- bayes_companion_n(spec, result)
+  per <- bayes_sequential_unit_n(spec, n)
+  k <- spec$target_test$evidence_threshold %||% 10
+  unit <- if (identical(spec$template, "independent_t")) " in each group" else ""
+  div(class = "result-card result-sequential", id = "result-sequential",
+    h4(class = "h5", "Check as you go?"),
+    p(sprintf("A Bayes factor can be checked as the data come in: stop as soon as the evidence is strong either way, or at %s%s at most, the sample size of this plan. Most studies then stop well before the maximum. Decide every setting below before collecting data, and report them.", whole(per), unit)),
+    div(class = "row g-2",
+      div(class = "col-sm-4", numericInput("seq_n_min", sprintf("First look, after this many%s", unit), value = min(20, max(3, floor(per / 4))), min = 3, max = per, step = 1, width = "100%")),
+      div(class = "col-sm-4", numericInput("seq_step", sprintf("Then look again after every%s", if (nzchar(unit)) " (in each group)" else ""), value = 1, min = 1, max = per, step = 1, width = "100%")),
+      div(class = "col-sm-4", selectInput("seq_threshold_null", "Stop for no effect at a BF01 of at least",
+        choices = unique(as.character(c(3, 6, 10, 30, k))), selected = as.character(k), selectize = FALSE, width = "100%"))),
+    actionButton("seq_run", "Work out the sequential design", class = "btn btn-outline-primary"),
+    uiOutput("seq_result"))
+}
+
+# The sample size bayes_sequential() counts in: each group for two groups.
+bayes_sequential_unit_n <- function(spec, n) if (identical(spec$template, "independent_t")) n %/% 2 else n
+
+bayes_sequential_args <- function(spec, n, n_min, step, threshold_null) {
+  list(
+    n_min = n_min, n_max = bayes_sequential_unit_n(spec, n), step = step,
+    type = switch(spec$template, one_sample_t = "one.sample", paired_t = "paired", independent_t = "two.sample"),
+    effect = if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d,
+    effect_sd = spec$population$effect_sd %||% 0,
+    prior_scale = spec$target_test$prior_scale %||% (1 / sqrt(2)),
+    threshold = spec$target_test$evidence_threshold %||% 10, threshold_null = threshold_null,
+    alternative = switch(spec$target_test$alternative %||% "two_sided", two_sided = "two.sided", greater = "greater", less = "less"),
+    nsim = 2000, seed = spec$options$seed %||% 1L)
 }

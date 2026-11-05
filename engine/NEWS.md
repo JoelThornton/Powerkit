@@ -1,5 +1,9 @@
 # powerkit 0.32.0
 
+* Bayes factor t-test results offer "Check as you go?": the plan as a
+  sequential design with its sample size as the largest
+  (`bayes_sequential()`, as in Labs).
+
 * `bayes_robustness()`: a Bayes factor t-test plan's chances under JASP's
   three widths of the default prior (medium, wide, ultrawide) as well as
   its own, shown on the result as "Does the prior matter?". The input
