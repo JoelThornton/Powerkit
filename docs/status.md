@@ -44,6 +44,15 @@ fully validated. Validation runs are recorded in
   example data preserve it. Point-biserial/test-statistic conversions and
   safeguard planning remain limited to their equal-SD assumptions.
 
+- **Bayes factors:** fifteen designs have a Bayes factor test version,
+  all listed on "Plan a study analysed with Bayes factors" (E-bayes) and
+  found by searching "Bayes". P-value results of the exactly calculated
+  ones offer "Add a Bayes factor?" (`bayes_companion()`): the chances at
+  3 and 10, the size for both and, for t-tests, how often they agree.
+  Bayes factor t-test results show the plan under JASP's three prior
+  widths. Informed priors wait on a bfpwr fault (`upstream-questions.md`).
+  Their results also offer the plan as a sequential design.
+
 - **Input screens:** a box hides when every field in it is hidden, and
   means in SD units take an SD of 1 without asking.
 

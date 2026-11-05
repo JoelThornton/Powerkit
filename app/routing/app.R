@@ -48,6 +48,7 @@ whats_new <- load_whats_new("whats-new.yaml")
 # Cards for end points that calculate (or preview, E10-E14) don't say "No
 # numbers are calculated".
 tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
+tree$bayes_designs <- bayes_form_designs(tree, forms)
 tree$calculate_how <- about_endpoint_how(forms)
 tree$evidence_defaults <- setNames(lapply(names(forms$forms), function(id) default_evidence(forms, id)), names(forms$forms))
 options(powerkit.routing_dir = getwd())
@@ -85,6 +86,10 @@ app_css <- "
   .card-fact-label { font-size: 0.75rem; color: #6b7684; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600; }
   .card-fact-value { font-size: 0.92rem; color: var(--pk-navy); font-weight: 500; }
   .card-section-title { font-size: 1rem; font-weight: 600; color: var(--pk-navy); margin: 1.1rem 0 0.4rem; }
+  .bayes-guide-list { padding-left: 0; list-style: none; margin: 0.5rem 0 1rem; }
+  .bayes-guide-item { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.45rem 0; border-bottom: 1px solid #eef1f5; }
+  .bayes-guide-item:last-child { border-bottom: 0; }
+  .bayes-guide-item .btn { flex-shrink: 0; }
   .card-needs ul { padding-left: 0; list-style: none; margin-bottom: 0.5rem; }
   .card-needs li { position: relative; padding: 0.3rem 0 0.3rem 1.6rem; border-bottom: 1px solid #eef1f5; }
   .card-needs li:last-child { border-bottom: 0; }
@@ -983,6 +988,16 @@ server <- function(input, output, session) {
         state$skip_screening <- TRUE; state$node <- NULL
         state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
       }
+    } else if (kind == "bayesform") {
+      # From the Bayes factor page: the design's input screen with its
+      # Bayes factor test version chosen.
+      d <- tree$bayes_designs[[value]]
+      if (!is.null(d)) {
+        state$endpoint <- value; state$came_from <- "known"
+        state$form_values <- stats::setNames(list("bayes_factor"), d$field)
+        state$form_k <- 2L; state$calc <- NULL
+        state$screen <- "form"
+      }
     } else if (kind == "ep") {
       state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
     } else if (kind == "guided") {
@@ -1097,6 +1112,9 @@ server <- function(input, output, session) {
         calc <- if (identical(values$goal, "sensitivity_curve")) run_sensitivity_curve(spec, seed = forms$default_seed) else run_calculation(spec, seed = forms$default_seed)
         calc$route <- calc_route
         if (identical(calc$status, "ok")) calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values)
+        if (identical(calc$status, "ok") && is_bayes_test(calc$spec) && calc$spec$template %in% c("one_sample_t", "paired_t", "independent_t")) {
+          calc$robustness <- tryCatch(engine_function("bayes_robustness")(calc$spec, bayes_companion_n(calc$spec, calc$result)), error = function(e) NULL)
+        }
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
         session$sendCustomMessage("focus_result", "form_result")
@@ -1106,6 +1124,45 @@ server <- function(input, output, session) {
     }
     session$sendCustomMessage("focus_result", "form_result")
   }
+  # What a Bayes factor would add (bayes_companion_card_ui()): computed
+  # by the engine when asked for, for the last calculation.
+  observeEvent(input$bayes_companion_show, {
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"))
+    n <- bayes_companion_n(calc$spec, calc$result)
+    target <- if (identical(calc$result$goal_type, "sample_size")) calc$spec$goal$power
+    comp <- tryCatch(engine_function("bayes_companion")(calc$spec, n, target = target),
+      error = function(e) list(available = FALSE, reason = "powerkit couldn't work out the Bayes factor side of this plan."))
+    output$bayes_companion <- renderUI(bayes_companion_ui(calc$spec, calc$result, comp))
+  })
+  observeEvent(state$calc, {
+    output$bayes_companion <- renderUI(NULL)
+    output$seq_result <- renderUI(NULL)
+  }, ignoreNULL = FALSE)
+  # Check as you go? (bayes_sequential_card_ui()): the engine's
+  # bayes_sequential() for the last calculation's Bayes factor t-test.
+  observeEvent(input$seq_run, {
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"))
+    num <- function(x) { v <- suppressWarnings(as.numeric(x)); if (length(v) != 1) NA_real_ else v }
+    spec <- calc$spec
+    if (is.null(spec$population$d) && is.null(spec$population$dz)) {
+      output$seq_result <- renderUI(div(class = "form-problems mt-2", role = "alert",
+        p("The sequential design needs the effect as a standardised effect (d): enter it that way above and check your answers again.")))
+      return()
+    }
+    args <- bayes_sequential_args(spec, bayes_companion_n(spec, calc$result), num(input$seq_n_min), num(input$seq_step), num(input$seq_threshold_null))
+    plan <- tryCatch(do.call(engine_function("bayes_sequential"), args), error = function(e) list(problem = bayes_problem(e)))
+    output$seq_result <- renderUI(if (!is.null(plan$problem)) div(class = "form-problems mt-2", role = "alert", p(plan$problem))
+      else div(class = "mt-2", role = "status", bayes_sequential_numbers(plan)))
+  })
+  # Switch the plan's test version to its Bayes factor test.
+  observeEvent(input$bayes_companion_switch, {
+    d <- tree$bayes_designs[[state$endpoint]]
+    req(d)
+    updateSelectInput(session, field_input_id(list(id = d$field)), selected = "bayes_factor")
+    session$sendCustomMessage("focus_result", field_input_id(list(id = d$field)))
+  })
   # The explore panel: power by N for the effect on the slider. It reads the
   # last calculation and never changes the plan.
   output$explore_plot <- renderPlot({
@@ -1663,6 +1720,11 @@ server <- function(input, output, session) {
   observeEvent(input$labs_plan_confirm, { removeModal(); labs_start_plan() })
   observeEvent(input$labs_back, {
     session$sendCustomMessage("labs_open", "prereplication")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  })
+  # From the Bayes factor page (bayes_guide_ui()).
+  observeEvent(input$go_labs_bayes, {
+    session$sendCustomMessage("labs_open", "bayes")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
   # The one way in from the main route (labs_signpost_ui()).

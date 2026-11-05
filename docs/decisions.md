@@ -5253,6 +5253,132 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   hand) for a two-factor within-participants design and a 2 x 2 mixed
   design. A published example is a placeholder for the maintainer.
 
+## 2026-11-05 · How Bayes factors fit powerkit: a four-part plan
+
+Open question 8 (where Bayes factors enter) and the rest of `next.md`
+item 2, decided together. powerkit plans a Bayes factor test for fifteen
+designs, but the only way in was each card's test version, and the
+"Bayes factor design" page still said "not in powerkit yet".
+
+- **No extra question for everyone.** Asking "p-values or Bayes factors?"
+  at the start adds a question for every user, most of whom plan with
+  p-values. Bayes factors are found from "I know my analysis" and its
+  search instead, and offered on the results of the designs that have
+  them.
+- **Part 1 (this change): a page of every design with a Bayes factor
+  version.** E-bayes becomes a guide (`guide: bayes` in `tree.yaml`): a
+  short explanation, the designs with a Bayes factor test version (found
+  from `forms.yaml`, so the list stays complete as designs are added),
+  each opening its input screen with the Bayes factor chosen, and a link
+  to Bayesian planning in Labs. Searching "Bayes" lists those designs.
+- **Part 2: what a Bayes factor would add, on frequentist results.** At
+  the sample size planned for the p-value, the chance of strong evidence
+  for the effect if it is real, and of strong evidence for no effect if
+  there is none, with JASP's default priors. A non-significant p-value
+  cannot show that an effect is absent; a Bayes factor or an equivalence
+  test can (Lakens, McLatchie, Isager, Scheel and Dienes, 2020).
+- **Part 3: planning for both tests.** Many researchers report a p-value
+  and a Bayes factor for the same test. That is sound when one is named
+  as primary before the data are collected; choosing afterwards the one
+  that reads better is not. A study meant to be judged both ways needs a
+  sample size that serves both, since they can disagree (in a large
+  study, p just under .05 can come with a Bayes factor favouring no
+  effect). "Plan for both" finds the sample size meeting both targets,
+  shows how often the two would agree, and writes the plan's wording
+  with the primary test named.
+- **Part 4: a full Bayesian planner on the cards.** The Labs tool's
+  separate design and analysis priors, a design prior entered as a
+  plausible range, informed analysis priors (bfpwr's prior location,
+  scale and degrees of freedom), sequential designs, and a check of how
+  the plan changes with the prior's width.
+
+Sources for parts 2 to 4 are added to `refs.bib`, checked against the
+full text, in the PRs that cite them; Schonbrodt and Wagenmakers (2018)
+and O'Hagan, Stevens and Campbell (2005) are there already.
+
+## 2026-11-05 · What a Bayes factor would add, and planning for both (parts 2 and 3)
+
+Parts 2 and 3 of the plan above, on the designs whose Bayes factor
+version is calculated exactly: the three t-tests, the correlation, one
+proportion, two proportions and the one-way ANOVA. The tables and the
+two-factor and repeated-measures ANOVAs are simulated (seconds to minutes
+a study), so they are left out.
+
+- **Engine.** `bayes_companion(spec, n, thresholds, target)` runs the
+  plan's Bayes factor test version (the same function the card's Bayes
+  factor version uses, with its default priors, JASP's) at the planned
+  sample size, and, with the target power, finds the sample size giving
+  the Bayes factor the same chance. A plan with no counterpart says why
+  (Welch's t-test or Welch's F with SDs that differ).
+- **Two thresholds, 3 and 10.** At ordinary sample sizes a Bayes factor
+  of 10 for no effect is often out of reach (90 people in a one-sample
+  test can't give it, however the data fall), so one threshold would
+  show 0% where 3 shows most studies finding evidence of no effect.
+- **Agreement (t-tests).** The p-value and the JZS Bayes factor both
+  depend on the data only through t, so each test's decision is a
+  region of t: the Bayes factor's bounds from bfpwr's `tbf01()` (as in
+  `bayes_sequential()`), the p-value's from the t distribution; the
+  chance of each pair of decisions is a probability of t between two
+  values, from the noncentral t (as for the t-test's power). With no
+  effect the p-value's share is exactly alpha, with the effect it is
+  pwr's power, and a simulation written separately (`t.test()` and
+  BayesFactor's `ttestBF()`) agrees cell by cell
+  (`test-validation-bayes-companion.R`, `validation-log.md`). The table
+  is exact; bfpwr's closed form, which the chances above it use so that
+  they match the card's Bayes factor version, is slightly low (Known
+  difference 6), so the two can differ by a few tenths of a point. The
+  p-value side of the table is Student's t-test also when the plan uses
+  Welch's with equal SDs and equal groups, where the two agree closely.
+- **In the app.** "Add a Bayes factor?" sits under the answer on those
+  designs' p-value results, with one button: the numbers take one to four
+  seconds, so they are worked out when asked for. It shows the chances at
+  both thresholds, the sample size for both, how often the two agree,
+  advice on reporting both (name the main test in advance), wording for
+  the plan with the p-value test as the main one, and a button switching
+  the plan to the Bayes factor test.
+
+## 2026-11-05 · The Bayesian planner on the cards, first part: priors (part 4)
+
+- **Does the prior matter?** A Bayes factor t-test result now shows the
+  same study's chances under its own analysis prior and JASP's three
+  named widths of the default Cauchy prior (medium 1/sqrt(2), wide 1,
+  ultrawide sqrt(2)), each the card's own bfpwr calculation with only the
+  scale changed (`bayes_robustness()`). A wider prior finds small effects
+  less often and shows there is no effect more easily; at sizes where the
+  default prior can't give strong evidence for no effect at all, a wider
+  one often can. The JASP reporting guidelines ask for this kind of
+  robustness check.
+- **The design prior in words.** Under "How unsure you are about the
+  effect", the screen reads the SD as a range: about 95% sure the true
+  effect is within 1.96 SDs of the effect entered (the normal design
+  prior), so the number means something to someone who has not met a
+  design prior before.
+- **Informed analysis priors: not offered yet.** bfpwr's Bayes factor
+  with an informed t prior (`tbf01()` with `plocation` away from 0) is
+  exact, matching a numerical integration, but `powertbf01()` gives wrong
+  power at small samples (1 where simulation gives about 0 at n = 3 and
+  5; 0 against 5% at n = 10), agreeing only from about n = 30. A sample
+  size search starting at the smallest n would stop at 3. The question is
+  with the package (`upstream-questions.md`, bfpwr question 2). An exact
+  calculation in the engine (the Bayes factor's thresholds on t, from
+  `tbf01()`, and the noncentral t over the design prior, checked against
+  simulation) is possible, but it is new maths for the maintainer to
+  decide on.
+
+## 2026-11-05 · Sequential designs on the Bayes factor t-test cards (part 4)
+
+A Bayes factor t-test result offers "Check as you go?": the same plan as
+a sequential design with the planned sample size as the largest, Schonbrodt
+and Wagenmakers's design with a maximum N, from the engine's
+`bayes_sequential()` (the Labs tool's, so the same validation:
+`test-validation-bayes-sequential.R`). The researcher sets the first look,
+the number between looks and the threshold for stopping for no effect;
+the effect, its uncertainty, the prior, the threshold for an effect and
+the direction come from the plan. It shows how often the study stops each
+way, its size when it stops, and a single test at the maximum beside it.
+Worked out on request (2,000 simulated studies each way, about a second).
+The planned sample size stays the plan's: a sequential design is offered
+as a way to run that study, not as a different answer to it.
 ## 2026-11-05 · Input screens: no empty boxes, and no SD for means in SD units
 
 - **Empty boxes.** A box of fields whose fields are all shown only for
