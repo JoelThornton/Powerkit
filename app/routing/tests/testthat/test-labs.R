@@ -80,8 +80,9 @@ test_that("the main route's only link into Labs is shown for a previous study", 
 
 test_that("the Labs citation falls back, never errors, when the engine is only partly loaded", {
   fake <- new.env()
-  local_mocked_bindings(asNamespace = function(...) fake, .package = "base")
-  expect_match(labs_citation(labs_refs_path()), "doi.org/10.15626/MP.2024.4155", fixed = TRUE)
+  partial <- labs_citation
+  environment(partial) <- list2env(list(asNamespace = function(...) fake), parent = environment(labs_citation))
+  expect_match(partial(labs_refs_path()), "doi.org/10.15626/MP.2024.4155", fixed = TRUE)
 })
 
 test_that("the tabs that are the same for everyone are built once, not per visitor", {

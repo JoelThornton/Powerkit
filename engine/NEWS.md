@@ -1,3 +1,17 @@
+# powerkit 0.33.0
+
+* Input screens explain how to use available raw/published summaries and
+  what to do with genuinely missing information, without imputing numbers.
+* Shared sample descriptions keep analysis, recruitment, comparison and
+  planning-document counts in their stated units.
+* Browser checks audit accessibility, keyboard focus and narrow-screen reflow.
+* Validation checkpoints are tied to source/package/R fingerprints; long
+  chunks can be split across jobs without reducing replications or benchmarks.
+* A measured dependency assessment scopes optional installations. The complete
+  locked runtime and validation environment is retained.
+* Publishing uses a separate deployment branch so main can require checked
+  pull requests without an app bypass or another credential.
+
 # powerkit 0.32.0
 
 * Signal detection (E72, `signal_detection / dprime`): d' in two conditions

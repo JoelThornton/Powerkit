@@ -75,10 +75,11 @@ These come from the app and engine as they are now, not from a provider.
 - **Maintenance.** Self-hosted: someone runs the server (updates, R
   versions, packages). Connect Cloud: low.
 - **How to deploy (Connect Cloud).** Connect Cloud publishes the app
-  straight from this GitHub repository and republishes it whenever main
-  changes, so a merge is all it takes (set up once on the website, below).
+  straight from this GitHub repository’s `connect-cloud` branch. A successful
+  publishing workflow carries checked main source there after a merge
+  (one-time migration: `repository-protection.md`).
   It installs the packages listed in `app/routing/manifest.json`, which
-  the `online-app-manifest` workflow rewrites and commits to main after
+  the `online-app-manifest` workflow rewrites and commits to `connect-cloud` after
   every merge that changes the app, the engine or `renv.lock` (the
   manifest pins powerkit's engine to one commit, so it must be rewritten
   for an engine change to reach the online app). The free plan needs the
@@ -112,14 +113,14 @@ indexing or ranking. Reference: [Google's recrawl guidance](https://developers.g
 Button names are from Connect Cloud's documentation (found by search,
 18 October 2026), not checked against the live site.
 
-1. Wait until `app/routing/manifest.json` is on main (the
-   `online-app-manifest` workflow adds it after the PR that set this up
-   is merged; it shows in the repository's file list on GitHub).
+1. Wait for a successful publishing run and verify `app/routing/manifest.json`
+   on `connect-cloud`. For an existing app, follow `repository-protection.md`
+   to change its source branch without creating or deleting the app.
 2. Go to https://connect.posit.cloud and sign in.
 3. Click **Publish**, then choose **Shiny** and **GitHub** as the source.
 4. If asked, install the Posit Connect Cloud GitHub App and give it access
    to the JoelThornton/Powerkit repository.
-5. Choose the repository **JoelThornton/Powerkit**, the branch **main**,
+5. Choose the repository **JoelThornton/Powerkit**, the branch **connect-cloud**,
    and the primary file **app/routing/app.R**.
 6. Leave **Automatically publish on push** switched on (the default).
 7. Click **Publish** and wait while it installs the packages (several
@@ -132,7 +133,7 @@ Button names are from Connect Cloud's documentation (found by search,
 10. If the new copy's web address differs from the old one, the links in
     the README, `status.md` and `user-testing.md` need updating to it.
 
-From now on, each merge to main updates the app on its own.
+After the source-branch migration, each successful publishing run following a merge to main updates the app. Main is not modified by the publishing bot.
 
 #### Google Search Console verification
 

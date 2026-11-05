@@ -15,19 +15,6 @@ plan_label <- function(tree, endpoint, fallback = "An analysis") {
 
 # The sample size an analysis asks for: a power result's N, or the N a
 # precision result needs for its width.
-plan_n <- function(result) {
-  wants_n <- identical(result$goal_type, "sample_size") ||
-    (identical(result$goal_type, "precision") && !is.na(result$precision$target_width %||% NA))
-  if (wants_n && is.list(result$n_required)) result$n_required$n
-}
-
-# Ask the engine what N counts. If it cannot identify the structure, keep
-# the requirement separate rather than assuming it counts people.
-plan_sample <- function(spec, describe = engine_function("sample_structure")) {
-  unknown <- list(unit = "analysis units", note = "This count is kept separate because its sample structure could not be identified.", compatibility_key = NULL)
-  if (is.null(describe) || is.null(spec)) return(unknown)
-  tryCatch(describe(spec), error = function(e) unknown)
-}
 
 plan_entry_sample <- function(entry) entry$sample %||% plan_sample(entry$spec %||% entry$project$spec)
 
@@ -197,7 +184,7 @@ study_plan_ui <- function(entries) {
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
     div(class = "nav-buttons",
       actionButton("plan_more", "Add another analysis", class = "btn btn-primary"),
-      if (k) downloadButton("download_study_plan", "Save study plan", class = "btn btn-outline-primary"),
+      if (k) download_button("download_study_plan", "Save study plan", class = "btn btn-outline-primary"),
       if (k) actionLink("plan_clear", "Start a new plan")),
     p(class = "small", "\u201cAdd another analysis\u201d starts \u201cHelp me choose\u201d, which finds the next analysis from your study's description. Save study plan keeps every analysis in one file; open it from the start screen.")
   )

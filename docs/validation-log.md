@@ -1160,3 +1160,21 @@ About catalogue lists discrete form choices individually, because multiplying
 all options would include incompatible combinations; the result record uses
 the complete selected specification. Statistician review and the full release
 validation gate remain separate requirements.
+
+
+## Checkpoint and execution safeguards (5 November 2026)
+
+The validation runner now binds saved results to the engine/test sources,
+runner, lock, actual installed package versions, R and platform. Old records
+without that fingerprint, changed contexts and contexts changed during a test
+are not reused as current passes. Historical results above remain historical.
+A failed/errored/unfinished selected run exits unsuccessfully after writing
+its summary. `--require-complete` also rejects skips; an ordinary successful
+run containing published-value skips is not a completed release validation.
+
+Long workflow selections are partitioned into independent test jobs. Each
+summary names selected chunks and its partition; all partitions must be
+collected. Original test identities, seeds, replication counts and benchmark
+constants are unchanged. `--shard-index I --shard-count K` reproduces a part
+locally. A single test may still exceed the hosting limit; sharding is not
+within-test checkpointing. No full release run is claimed by this change.

@@ -479,7 +479,7 @@ test_that("with attrition, the result shows the number analysed and the number t
   n <- calc$result$n_required$n
   expect_equal(r$n_analysed, n)
   expect_equal(r$n_recruit, 2 * ceiling(n / 2 / 0.9 - 1e-9))
-  lines <- recruitment_lines(calc$result)
+  lines <- recruitment_lines(calc$result, calc$spec)
   expect_identical(lines[["analysed"]], sprintf("Analysed: %s participants (%s per group).", n, n / 2))
   expect_match(lines[["recruit"]], sprintf("To recruit: %s participants (%s per group), allowing for 10%% attrition", r$n_recruit, r$n_recruit / 2), fixed = TRUE)
   expect_match(lines[["caveat"]], "common but crude heuristic", fixed = TRUE)

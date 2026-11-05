@@ -1189,7 +1189,8 @@ explore_ui <- function(spec, result = NULL) {
     h5(class = "h6", "If the effect were different"),
     p(class = "small", "Move the slider: the line shows power at each sample size for that effect, and the circle marks your plan. Exploring doesn't change your plan."),
     sliderInput("explore_effect", e$label, min = 0.05, max = e$max, value = round(start, 2), step = 0.01, width = "100%"),
-    plotOutput("explore_plot", height = "300px")
+    plotOutput("explore_plot", height = "300px"),
+    tags$details(tags$summary("Read the exploration values as a table"), uiOutput("explore_table"))
   )
 }
 
@@ -1279,7 +1280,24 @@ scenarios_ui <- function(spec, result = NULL) {
       numericInput("scenario_optimistic", sprintf("Optimistic %s", e$label), value = NA, step = 0.01, width = "14rem")),
     conditionalPanel("input.scenario_conservative != null || input.scenario_optimistic != null",
       plotOutput("scenario_plot", height = "300px"),
-      uiOutput("scenario_n")))
+      uiOutput("scenario_n"),
+      tags$details(tags$summary("Read the scenario values as a table"), uiOutput("scenario_table"))))
+}
+
+# The very same engine-produced points as the plot, with explicit units.
+# Missing/failed points stay missing instead of becoming zero power.
+curve_points_ui <- function(df, spec, caption) {
+  if (!is.data.frame(df) || !nrow(df)) return(p("No curve values are available."))
+  scenario <- "scenario" %in% names(df)
+  div(style = "max-width:100%; overflow-x:auto", tabindex = "0", role = "region", `aria-label` = caption,
+    tags$table(class = "table table-sm",
+      tags$caption(caption),
+      tags$thead(tags$tr(if (scenario) tags$th(scope = "col", "Assumption"),
+        tags$th(scope = "col", paste0("N (", sample_description(spec)$unit, ")")), tags$th(scope = "col", "Power (%)"))),
+      tags$tbody(lapply(seq_len(nrow(df)), function(i) tags$tr(
+        if (scenario) tags$td(unname(scenario_names[df$scenario[i]]) %||% df$scenario[i]),
+        tags$td(whole(df$n[i])),
+        tags$td(if (is.na(df$power[i])) "Not calculated" else sprintf("%.2f", 100 * df$power[i])))))))
 }
 
 # "The smallest effect I could detect across a range of sample sizes": the
@@ -1520,14 +1538,13 @@ technical_details_ui <- function(result) {
 }
 
 # The n the result is about: the required n, or the goal's n.
-n_analysed <- function(result) {
-  if (identical(result$goal_type, "sample_size")) result$n_required$n else result$curve$n[1]
-}
+
 
 # Analysed and to recruit, when the user gave an attrition rate (the
 # maintainer's decision of 17 October 2026). The engine works out the
 # number to recruit (run_spec()'s `recruitment`); this only words it.
-recruitment_lines <- function(result) {
+recruitment_lines <- function(result, spec = NULL) {
+  sample_unit <- sample_description(spec)$unit
   r <- result$recruitment
   if (!is.list(r)) return(NULL)
   groups <- function(sizes) {
@@ -1536,10 +1553,10 @@ recruitment_lines <- function(result) {
     sprintf(" (%s)", paste(sprintf("%s in %s %d", whole(sizes), r$unit, seq_along(sizes)), collapse = " and "))
   }
   c(
-    analysed = sprintf("Analysed: %s participants%s.", whole(r$n_analysed), groups(r$groups_analysed)),
+    analysed = sprintf("Analysed: %s %s%s.", whole(r$n_analysed), sample_unit, groups(r$groups_analysed)),
     recruit = sprintf(
-      "To recruit: %s participants%s, allowing for %s attrition (each group's analysed number divided by %s, rounded up).",
-      whole(r$n_recruit), groups(r$groups_recruit), percent_attrition(r$attrition), format(1 - r$attrition)
+      "To recruit: %s %s%s, allowing for %s attrition (each group's analysed number divided by %s, rounded up).",
+      whole(r$n_recruit), sample_unit, groups(r$groups_recruit), percent_attrition(r$attrition), format(1 - r$attrition)
     ),
     caveat = attrition_caveat
   )
@@ -2070,7 +2087,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
-    if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
+    if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
       p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
       p(class = "small", recruit[["caveat"]])),
     p(class = "result-detail", words[["detail"]]),
@@ -2095,10 +2112,10 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       tags$strong("To save this plan, download its R script or get its write-up, "),
       "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again. Exploring doesn't need it; a plan you keep or share does."),
     div(class = "nav-buttons",
-      if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
-      downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
-      if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary"),
-      if (can_export) downloadButton("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
+      if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
+      download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
+      if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
+      if (can_export) download_button("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
     if (can_export) uiOutput("study_plan_bar"),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     simulated_data_ui(spec, result)),
@@ -2581,7 +2598,7 @@ simulated_data_ui <- function(spec, result) {
     return(p(class = "small simulated-data-unavailable", "A simulated data set isn't available for this design yet."))
   }
   div(class = "simulated-data",
-    downloadButton("download_simulated_data", sprintf("Simulated data set (CSV, n = %s)", format(n)), class = "btn btn-outline-secondary"),
+    download_button("download_simulated_data", sprintf("Simulated data set (CSV, n = %s)", format(n)), class = "btn btn-outline-secondary"),
     p(class = "small simulated-data-note", tags$strong("Simulated, not real data. "),
       "One made-up data set of the planned size, drawn from the population you entered. Use it to write and check your analysis code (in R, SPSS, JASP, jamovi or Python) before the real data arrive. It is not evidence, not a pilot, and not a substitute for your analysis plan. Every row says SIMULATED_NOT_REAL_DATA in its first column, and the R script builds the same data set.",
       # A choice the data set makes that the plan leaves open (the engine's
@@ -2780,7 +2797,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       p(class = "result-reading", words[["reading"]]),
       if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
       source_stale_ui(fields, values),
-      if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
+      if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
         p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
         p(class = "small", recruit[["caveat"]])),
       p(class = "result-detail", words[["detail"]]),
@@ -2793,10 +2810,10 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         tags$strong("To save this plan, download its R script or get its write-up, "),
         "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again."),
       div(class = "nav-buttons",
-        if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
-        downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
-        if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary"),
-      if (can_export) downloadButton("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
+        if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
+        download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
+        if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
+      if (can_export) download_button("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
       if (can_export && !is.na(result$precision$target_width)) uiOutput("study_plan_bar"),
       p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation() and the software used. Save project keeps your answers and result in one file on your computer; open it from the start screen to carry on."),
       simulated_data_ui(spec, result)),
