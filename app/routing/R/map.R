@@ -67,7 +67,7 @@ map_tree <- function(tree) {
     if (is_endpoint_id(id)) {
       ep <- tree$endpoints[[id]]
       return(list(kind = "endpoint", id = id, answer = answer, text = ep$plain_name %||% id,
-        status = ep$status %||% "not_in_powerkit"))
+        status = if (!is.null(ep$guide)) "runs_validation_in_progress" else ep$status %||% "not_in_powerkit"))
     }
     n <- tree$nodes[[id]]
     if (isTRUE(drawn[[id]])) {

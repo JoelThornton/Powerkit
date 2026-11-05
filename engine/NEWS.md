@@ -1,5 +1,9 @@
 # powerkit 0.32.0
 
+* "Plan a study analysed with Bayes factors" in the list of analyses is a
+  page of every design with a Bayes factor test version, each opening its
+  input screen with the Bayes factor chosen; searching "Bayes" finds them.
+
 * The Bayes factor of an effect in the repeated-measures ANOVAs (templates
   `oneway_within`, `factorial_within`, `2x2_mixed` and `mixed`,
   `target_test > method` "bayes_factor"): JASP's inclusion Bayes factor with

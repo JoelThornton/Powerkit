@@ -992,3 +992,31 @@ and not for the smallest detectable effect, which E15 doesn't offer.
 - **Recommendation:** (a), because a power analysis should be for the test
   that will be run, and the omnibus test is the one the analysis tools
   present first.
+
+### D3. Where Bayes factors enter (open question 8)
+
+**Decided 5 November 2026** (`decisions.md`): no question about p-values
+or Bayes factors on the start screen or before the design questions,
+since every added question costs every user. Instead "I know my analysis"
+leads to a page listing every design with a Bayes factor version (E-bayes,
+now a guide), searching "Bayes" finds those designs, and each design's
+results will show what a Bayes factor would add at the same sample size.
+The closing question Q-bayes stays on the cards.
+
+- **Question:** ask "p-values or Bayes factors?" on the start screen,
+  after Q1, among the closing questions (as the prototype shows Q-bayes
+  now), or only in the shortcut list?
+- **Options:**
+  - start screen;
+  - after Q1;
+  - closing questions;
+  - shortcut list only.
+- **What tools and sources do:** none of the tools reviewed routes
+  between p-values and Bayes factors (`decision-tree.md`, section 1)
+  (opened). `coverage.md` lists Bayesian design tools as candidates
+  (opened).
+- **Who might disagree, and why:**
+  - Bayesian users want to say so early.
+  - Most users plan with p-values, and an early question adds friction.
+- **Knock-on effects:** E-bayes is reachable only from the list now.
+- **Recorded in:** open question 8; setting `bayes_entry`.

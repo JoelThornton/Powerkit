@@ -25,6 +25,11 @@ test_that("every end-point card renders, with its status and inputs", {
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$plain_name), fixed = TRUE, label = id)
     # A card that runs lists what you'll need openly; the others fold it.
     runs <- tree$endpoints[[id]]$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
+    # A guide page (E-bayes) lists the designs that run instead.
+    if (!is.null(tree$endpoints[[id]]$guide)) {
+      expect_match(html, "designs powerkit plans with a Bayes factor", fixed = TRUE, label = id)
+      next
+    }
     if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, if (runs) "What you('|&#39;)ll need" else "What you would enter", label = id)
     expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
       runs_validated = "Historical design-level record: ", runs_validation_in_progress = "Runs, validation in progress.",
@@ -139,7 +144,7 @@ test_that("the analysis list offers common starting points and labels what doesn
   for (id in shortcuts) expect_match(html, sprintf("class=\"known-shortcut\" data-ep=\"%s\"", id), fixed = TRUE, label = id)
   # Status is a small label, not a run-on sentence; validated analyses have none.
   n_not <- sum(vapply(tree$endpoints[setdiff(names(tree$endpoints), tree$safety_net$endpoint)],
-    function(ep) identical(ep$status, "not_in_powerkit"), logical(1)))
+    function(ep) identical(ep$status, "not_in_powerkit") && is.null(ep$guide), logical(1)))
   expect_equal(lengths(regmatches(html, gregexpr("known-badge-not\">Not in powerkit yet<", html, fixed = TRUE))), n_not)
   expect_no_match(html, "the card points to tools that do it", fixed = TRUE)
   # A live count, and a way back from no matches to the questions.
@@ -655,4 +660,29 @@ test_that("the start screen stays short: three ways in, a tag on two, and recent
   expect_match(as.character(card_ui(tree, "E2")), 'data-recent-id="E2"', fixed = TRUE)
   expect_no_match(as.character(card_ui(tree, "E2", compact = TRUE)), "data-recent-id", fixed = TRUE)
   expect_match(nav_js, "powerkit-recent", fixed = TRUE)
+})
+
+test_that("the Bayes factor page lists every design with a Bayes factor version, each opening it chosen", {
+  designs <- tree$bayes_designs
+  expect_true(all(c("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E18", "E20", "E25") %in% names(designs)))
+  # Each field named really offers the Bayes factor.
+  for (d in designs) {
+    f <- Filter(function(x) identical(x$id, d$field), form_fields(form_groups(forms, d$id)))
+    expect_length(f, 1)
+    expect_true("bayes_factor" %in% names(f[[1]]$choices), label = d$id)
+  }
+  html <- as.character(card_ui(tree, "E-bayes"))
+  expect_no_match(html, "Not in powerkit yet.", fixed = TRUE)
+  for (id in names(designs)) expect_match(html, sprintf("bayesform:%s(&#39;|')", id), label = id)
+  expect_match(html, "go_labs_bayes", fixed = TRUE)
+  expect_match(html, sprintf("The %d designs powerkit plans with a Bayes factor", length(designs)), fixed = TRUE)
+  # In the list of analyses: no "not in powerkit" badge, and searching
+  # "Bayes" finds the designs that have it.
+  known <- as.character(known_ui(tree))
+  item <- regmatches(known, regexpr('<button[^>]*data-ep="E-bayes"[^>]*>.*?</button>', known))
+  expect_no_match(item, "Not in powerkit yet", fixed = TRUE)
+  expect_match(known, 'data-search="[^"]* bayes [^"]*"[^>]*>\\s*<button[^>]*data-ep="E18"', perl = TRUE)
+  # The app opens the screen with it chosen.
+  app <- paste(readLines(test_path("..", "..", "app.R")), collapse = "\n")
+  expect_match(app, 'kind == "bayesform"', fixed = TRUE)
 })

@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Every Bayes factor design in one place"
+    text: >-
+      In "I know my analysis", searching for Bayes now finds every design
+      powerkit can plan with a Bayes factor, and "Plan a study analysed with
+      Bayes factors" lists all fifteen. Each opens its screen with the Bayes
+      factor test already chosen.
+  - date: "2026-11-05"
     title: "Bayes factors for repeated-measures ANOVAs"
     text: >-
       The repeated-measures and mixed ANOVA cards can now plan for the Bayes

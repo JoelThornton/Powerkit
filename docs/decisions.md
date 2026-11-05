@@ -5230,3 +5230,46 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   hand) for a two-factor within-participants design and a 2 x 2 mixed
   design. A published example is a placeholder for the maintainer.
 
+## 2026-11-05 · How Bayes factors fit powerkit: a four-part plan
+
+Open question 8 (where Bayes factors enter) and the rest of `next.md`
+item 2, decided together. powerkit plans a Bayes factor test for fifteen
+designs, but the only way in was each card's test version, and the
+"Bayes factor design" page still said "not in powerkit yet".
+
+- **No extra question for everyone.** Asking "p-values or Bayes factors?"
+  at the start adds a question for every user, most of whom plan with
+  p-values. Bayes factors are found from "I know my analysis" and its
+  search instead, and offered on the results of the designs that have
+  them.
+- **Part 1 (this change): a page of every design with a Bayes factor
+  version.** E-bayes becomes a guide (`guide: bayes` in `tree.yaml`): a
+  short explanation, the designs with a Bayes factor test version (found
+  from `forms.yaml`, so the list stays complete as designs are added),
+  each opening its input screen with the Bayes factor chosen, and a link
+  to Bayesian planning in Labs. Searching "Bayes" lists those designs.
+- **Part 2: what a Bayes factor would add, on frequentist results.** At
+  the sample size planned for the p-value, the chance of strong evidence
+  for the effect if it is real, and of strong evidence for no effect if
+  there is none, with JASP's default priors. A non-significant p-value
+  cannot show that an effect is absent; a Bayes factor or an equivalence
+  test can (Lakens, McLatchie, Isager, Scheel and Dienes, 2020).
+- **Part 3: planning for both tests.** Many researchers report a p-value
+  and a Bayes factor for the same test. That is sound when one is named
+  as primary before the data are collected; choosing afterwards the one
+  that reads better is not. A study meant to be judged both ways needs a
+  sample size that serves both, since they can disagree (in a large
+  study, p just under .05 can come with a Bayes factor favouring no
+  effect). "Plan for both" finds the sample size meeting both targets,
+  shows how often the two would agree, and writes the plan's wording
+  with the primary test named.
+- **Part 4: a full Bayesian planner on the cards.** The Labs tool's
+  separate design and analysis priors, a design prior entered as a
+  plausible range, informed analysis priors (bfpwr's prior location,
+  scale and degrees of freedom), sequential designs, and a check of how
+  the plan changes with the prior's width.
+
+Sources for parts 2 to 4 are added to `refs.bib`, checked against the
+full text, in the PRs that cite them; Schonbrodt and Wagenmakers (2018)
+and O'Hagan, Stevens and Campbell (2005) are there already.
+

@@ -31,6 +31,11 @@ fully validated. Validation runs are recorded in
   example data preserve it. Point-biserial/test-statistic conversions and
   safeguard planning remain limited to their equal-SD assumptions.
 
+- **Bayes factors:** fifteen designs have a Bayes factor test version,
+  all listed on "Plan a study analysed with Bayes factors" (E-bayes, a
+  guide page) and found by searching "Bayes". Next: what a Bayes factor
+  adds on frequentist results, planning for both, then the full planner.
+
 - **Unfinished drafts:** input screens can download partial answers without
   a calculation or justification. The same file opener restores blanks and
   editable values, clears any previous calculation and labels the draft as

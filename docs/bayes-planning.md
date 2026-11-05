@@ -10,6 +10,26 @@ numbers are computed with bfpwr 0.1.6, the package powerkit already uses for
 its Bayes factor t-tests; where a claim rests on a source that is not yet in
 `engine/inst/citations/refs.bib`, it says so.*
 
+## The plan (decided 5 November 2026)
+
+Four parts, in this order (`decisions.md`, 5 November 2026):
+
+1. **Finding them** (done): "Plan a study analysed with Bayes factors"
+   lists every design with a Bayes factor version and opens each with it
+   chosen; searching "Bayes" finds them. No question about p-values or
+   Bayes factors is added to the start.
+2. **What a Bayes factor would add**, shown on frequentist results: the
+   chance of strong evidence for the effect, and for no effect if there
+   is none, at the sample size planned for the p-value, with JASP's
+   default priors.
+3. **Planning for both**: one sample size for a p-value and a Bayes
+   factor reported together, with how often they would agree and the
+   primary test named in the plan's wording.
+4. **A full Bayesian planner on the cards**: what the Labs tool does
+   (separate design and analysis priors, sequential designs), plus a
+   design prior entered as a plausible range, informed analysis priors
+   and a check across prior widths.
+
 ## The worry
 
 Much of what goes wrong with power analysis in psychology is ritual rather

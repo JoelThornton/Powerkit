@@ -149,7 +149,7 @@ settings:
     ref: "Open question 8"
     question: "Where do Bayes factors enter the tree? Now: the Bayes factor end point (E-bayes) is reachable only from 'I know my analysis', and every card lists 'p-values or Bayes factors?' among the questions asked next."
     options: {start: "Ask 'p-values or Bayes factors?' on the start screen", after_goal: "Ask it after Q1, before the design questions", closing: "Ask it with the closing questions on each card", shortcut: "Shortcut list only (as now)"}
-    value: null
+    value: shortcut
     shown_at: [start]
   - key: parallel_mediators_max
     ref: "Open question 10"
@@ -2019,9 +2019,11 @@ endpoints:
     doc_name: "Bayes factor design (any design)"
     plain_name: "Plan a study analysed with Bayes factors"
     status: not_in_powerkit
-    not_in_powerkit_heading: "For other designs, not in powerkit yet: use "
+    guide: bayes
+    search_words: "Bayes Bayesian Bayes factor BF10 JASP prior"
     card_points:
-      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions, a table of counts, a correlation, a one-way ANOVA or an effect in a two-factor or repeated-measures ANOVA, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation, proportions, tables and ANOVAs, BayesFactor (and bayestestR for an ANOVA effect's inclusion Bayes factor)."
+      - "A Bayes factor says how strongly the data support an effect over no effect, or no effect over an effect. Unlike a p-value, it can give strong evidence that there is no effect. Planning a study for a Bayes factor means finding the sample size that gives a good chance of strong evidence either way."
+      - "powerkit plans this for every design below, with the default priors JASP uses, which you can change. Open one to start with its Bayes factor test already chosen."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}
