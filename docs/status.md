@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 5 November 2026 (powerkit 0.31.0). This page says where the
+*Last updated: 5 November 2026 (powerkit 0.32.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -13,6 +13,19 @@ fully validated. Validation runs are recorded in
 `CLAUDE.md` and [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Variant evidence and capabilities:** a versioned case registry separates
+  software agreement, independent references, published examples and method
+  runs. Results, saved projects and scripts retain its hash and snapshot.
+  The About catalogue derives discrete choices and limits from current forms;
+  unknown variants stay unknown, and historical records are not release-wide
+  certification.
+
+- **Welch populations:** two-group planning accepts one common SD or separate
+  raw SDs, or a ratio alongside a difference in fixed RMS-SD units. Formula
+  and simulation use the same population across allocations; scripts and
+  example data preserve it. Point-biserial/test-statistic conversions and
+  safeguard planning remain limited to their equal-SD assumptions.
 
 - **Unfinished drafts:** input screens can download partial answers without
   a calculation or justification. The same file opener restores blanks and
@@ -56,8 +69,8 @@ fully validated. Validation runs are recorded in
 - **Planning guidance:** precision is reachable with its estimate choice
   visible outside Settings. MBESS's expected width and presize's width at
   the supplied values are explained separately, without a median claim.
-  Simulation choices describe their supplied populations and Welch's
-  equal-SD limitation. All-tests planning offers the independence rule or
+  Simulation choices describe their supplied populations, including the
+  stated group SDs for Welch's test. All-tests planning offers the independence rule or
   a sufficient union-bound target when dependence is unknown, with unchanged
   alpha and explicit unconditional-probability requirements.
   The engine preserves single-test targets exactly, including near zero.

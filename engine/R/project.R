@@ -355,7 +355,7 @@ result_record <- function(result) {
     provenance = c(
       result$provenance[c(
         "spec_hash", "method", "seed", "nrep", "cores", "backend", "backend_function",
-        "r_version", "started", "batch_size", "simulations"
+        "r_version", "started", "batch_size", "simulations", "evidence"
       )],
       # A named list, so the JSON keeps the package names.
       list(packages = as.list(result$provenance$packages))

@@ -410,13 +410,14 @@ forms:
           - {id: X_level1, label: "Group 1", type: text, path: variables.X.levels.1, required: true}
           - {id: X_level2, label: "Group 2", type: text, path: variables.X.levels.2, required: true}
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
-      - input: "The effect: Cohen's d (group 2 minus group 1, over the pooled SD), the means and SD in your measure's own units, or a point-biserial correlation"
+      - input: "The effect: a standardised mean difference, raw means and SDs, or a point-biserial correlation"
         fields:
           - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric,
-             choices: {standardised: "As Cohen's d: (group 2 minus group 1) / pooled SD", raw: "In my measure's own units: each group's mean and the SD", point_biserial: "As a point-biserial correlation r between group and outcome, as in G*Power's point-biserial model"},
+             choices: {standardised: "As a standardised mean difference: group 2 minus group 1, in SD units", raw: "In my measure's own units: each group's mean and the SD information", point_biserial: "As a point-biserial correlation r between group and outcome, as in G*Power's point-biserial model"},
              default: standardised, default_source: "Cohen's d, the effect size pwr.t.test() takes (pwr 1.3-0); powerkit works it out from the means and SD, or from a point-biserial r, if you give those"}
-          - {id: d, label: "Cohen's d", type: number, path: population.d, effect: true,
-             shown_if: [{field: effect_units, is_not: raw}, {field: effect_units, is_not: point_biserial}]}
+          - {id: d, label: "Standardised mean difference (d)", writeup_label: "Cohen's d", type: number, path: population.d, effect: true,
+             shown_if: [{field: effect_units, is_not: raw}, {field: effect_units, is_not: point_biserial}],
+             help: "For Student's test use the common/pooled SD. For Welch's test with unequal spreads use sqrt((SD1 squared + SD2 squared) / 2). A published pooled d may use a different denominator: raw means and the two SDs are safer when those are available."}
           - {id: r_pb, label: "Point-biserial r between group and outcome", type: number, path: population.r, effect: true, no_conversion: true,
              min_exclusive: -1, max_exclusive: 1, writeup_label: "point-biserial r",
              shown_if: {field: effect_units, is: point_biserial},
@@ -425,8 +426,19 @@ forms:
              shown_if: {field: effect_units, is: raw}}
           - {id: raw_mean_2, label: "Expected mean, group 2", type: number, path: population.raw.mean_2, effect: true, writeup_label: "group 2 mean",
              shown_if: {field: effect_units, is: raw}}
+          - {id: welch_sd_input, label: "Which SD information do you have?", type: select,
+             shown_if: [{field: effect_units, is: raw}, {field: method, is: welch_t}],
+             choices: {common: "One common SD for both groups", separate: "An SD for each group"}, default: common,
+             default_source: "one common SD, preserving earlier raw-input plans",
+             help: "Use the same units as the means. If the spreads are unknown, compare explicit scenarios rather than treating equality as known."}
           - {id: raw_sd, label: "SD: how much people usually vary on the measure within a group", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
-             shown_if: {field: effect_units, is: raw}}
+             shown_if: [{field: effect_units, is: raw}, {any: [{field: method, is_not: welch_t}, {field: welch_sd_input, is_not: separate}]}]}
+          - {id: raw_sd1, label: "SD in group 1", type: number, path: population.raw.sd1, required: true, min_exclusive: 0,
+             in_effect_text: true, writeup_label: "group 1 SD",
+             shown_if: [{field: effect_units, is: raw}, {field: method, is: welch_t}, {field: welch_sd_input, is: separate}]}
+          - {id: raw_sd2, label: "SD in group 2", type: number, path: population.raw.sd2, required: true, min_exclusive: 0,
+             in_effect_text: true, writeup_label: "group 2 SD",
+             shown_if: [{field: effect_units, is: raw}, {field: method, is: welch_t}, {field: welch_sd_input, is: separate}]}
       - input: "The size of group 2 relative to group 1 (1 = equal)"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
@@ -436,7 +448,11 @@ forms:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {student_t: "Student's t-test (equal spread assumed)", welch_t: "Welch's t-test (equal spread not assumed)", mann_whitney: "Mann-Whitney test (rank-based), simulated", brunner_munzel: "Brunner-Munzel test (rank-based, spread may differ), simulated", bayes_factor: "Bayes factor t-test (default JZS prior, equal groups), instead of a p-value", minimum_effect: "Minimum-effect test: the effect is larger than your smallest effect of interest (pwrss)"},
              default: student_t, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0), and Spower's default (p_t.test(var.equal = TRUE), Spower 0.7)",
-             choice_notes: {welch_t: "This planner currently uses normal scores with equal population SDs for Welch's test, by both formula and simulation. Welch's analysis allows unequal spreads, but this calculation does not yet plan for them. Choosing simulation does not change this assumption."}}
+             choice_notes: {welch_t: "Both formula and simulation plan for normal scores and your stated group spreads. Give two SDs with raw means, or a ratio with a standardised effect. With unequal SDs the effect is the mean difference divided by sqrt((SD1 squared + SD2 squared) / 2), not an allocation-weighted pooled SD. Point-biserial/published-test conversions and safeguard power require equal-SD assumptions; use raw means/SDs for unequal spreads."}}
+          - {id: welch_sd_ratio, label: "SD of group 2 divided by SD of group 1", type: number, path: population.sd_ratio, required: true, min_exclusive: 0,
+             shown_if: [{field: method, is: welch_t}, {field: effect_units, is_not: raw}],
+             default: 1, default_source: "equal population SDs, preserving earlier Welch plans",
+             help: "For example, SDs 10 and 15 give 1.5. Your standardised mean difference uses the root mean square of the two SDs. If unknown, use a justified range of scenarios; this is a population assumption, not a property supplied by choosing Welch's test."}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is_one_of: [mann_whitney, brunner_munzel]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -469,7 +485,7 @@ forms:
       # request (engine, wave 2).
       - {id: welch_method, label: "How power is worked out", type: select, path: options.method, optional: true,
          shown_if: {field: method, is: welch_t},
-         choices: {simulation: "Simulation (Spower)", exact: "Formula (pwrss's power.t.welch()): faster, no simulation noise"},
+         choices: {simulation: "Simulation (Spower)", exact: "Formula approximation (pwrss's power.t.welch()): faster, no simulation noise"},
          default: simulation, default_source: "powerkit's default for Welch's t-test (Spower's simulation; pwr has no Welch formula)"}
 
   E3:

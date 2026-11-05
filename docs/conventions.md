@@ -2066,3 +2066,40 @@ mean 80% conditional success and 72% success per attempted study. Results
 and copied methods identify both when failures occur. Monte Carlo precision
 of a reported rate is separate from fitting failures. Historical saved
 records without these counts do not receive invented zero-failure counts.
+
+
+## Welch planning with unequal population SDs
+
+For unequal-SD two-group Welch planning, the population difference is
+`d_RMS = (mean2 - mean1) / sqrt((SD1^2 + SD2^2)/2)`. This fixed population
+scale is independent of allocation. Equal SDs recover the existing d.
+Raw inputs retain both means and SDs and derive d_RMS and SD2/SD1.
+
+Spower 0.7's `p_t.test()` and `gen_t.test()` already accept `sds`; the
+adapter passes both SDs in RMS units, and retains the existing sign
+convention (group 1 has mean -d_RMS, group 2 has mean 0).
+The pwrss 1.3.3 Welch formula instead defines d using the expected
+sample-size-weighted pooled SD. At every actual allocation the adapter
+uses pwrss's own `means.to.d()` to change units, and passes `var.ratio`
+as SD1 squared / SD2 squared and `n.ratio` as n1/n2. No power formula is
+reimplemented. Its Welch-Satterthwaite calculation is an approximation.
+
+Sources checked 5 November 2026: pwrss 1.3.3 installed source of
+`power.t.welch()` and `means.to.d()`, Spower 0.7 installed source of
+`gen_t.test()`, and the author's help at
+<https://metinbulus.github.io/pwrss/reference/means.student.welch.html>
+and <https://metinbulus.github.io/pwrss/reference/means.to.d.html>.
+Package citations remain available through citation().
+
+The `welch_spreads` validation chunk compares the formula with separately
+generated normal samples analysed by base R's Welch t-test at both
+allocation orientations, and checks the actual simulation and null error
+rate at 10,000 replications. Formula comparisons allow four Monte Carlo
+standard errors plus 0.01 for the approximation. This is a scoped check,
+not evidence for arbitrary shapes, missingness or all variance ratios.
+G*Power's common-SD t-test is not an unequal-variance Welch benchmark.
+
+The two SDs, standardisation and normal-score assumption appear in the
+result/write-up and reproduction scripts. Point-biserial, test-statistic
+conversion and safeguard shortcuts are refused for unequal-SD Welch
+populations because their equal-SD inputs do not identify this effect.

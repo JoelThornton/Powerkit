@@ -102,7 +102,10 @@ pwrss_script_inputs <- function(spec) {
       alt_line
     ),
     independent_t = c(
-      sprintf("d <- %s # Cohen's d: (mean of %s minus mean of %s) / pooled SD", r_code(pop$d), lv("X", 2), lv("X", 1)),
+      sprintf("d <- %s # standardised mean difference (%s minus %s) / %s", r_code(pop$d), lv("X", 2), lv("X", 1),
+        if (unequal_welch(spec)) "root mean square SD" else "pooled SD"),
+      if (unequal_welch(spec)) c("# With unequal spreads, d uses sqrt((SD1^2 + SD2^2)/2), not the weighted pooled SD.",
+        sprintf("sds <- %s # group SDs in fixed RMS-SD units", r_code(welch_population_sds(spec)))),
       sprintf(
         "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
         r_code(spec$options$allocation_ratio %||% 1), lv("X", 2), lv("X", 1)
@@ -286,11 +289,16 @@ pwrss_script_call_lines <- function(spec, inputs) {
     independent_t = list(
       pre = c(
         "  n_group1 <- round(n_total / (1 + allocation_ratio))",
-        "  n_group2 <- n_total - n_group1"
+        "  n_group2 <- n_total - n_group1",
+        if (unequal_welch(spec)) c(
+          "  # Change units to pwrss's sample-size-weighted pooled SD at this allocation.",
+          "  d_backend <- suppressWarnings(means.to.d(mu1 = d, mu2 = 0, sd1 = sds[1], sd2 = sds[2],",
+          "    n.ratio = n_group1 / n_group2, n2 = n_group2, verbose = 0))$d")
       ),
       head = "power.t.welch( # Welch's t-test (unequal variances allowed)",
       args = c(
-        "d = d", "var.ratio = 1 # sd1^2 / sd2^2: the spec gives one pooled SD",
+        if (unequal_welch(spec)) "d = d_backend" else "d = d",
+        if (unequal_welch(spec)) "var.ratio = sds[1]^2 / sds[2]^2" else "var.ratio = 1 # equal population SDs",
         "n.ratio = n_group1 / n_group2 # pwrss's n.ratio is n1 / n2", "n2 = n_group2",
         "alpha = alpha", "alternative = alternative",
         "claim.basis = \"md.pval\" # power of the test of the mean difference", "verbose = 0"

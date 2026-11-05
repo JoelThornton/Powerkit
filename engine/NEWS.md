@@ -1,4 +1,4 @@
-# powerkit 0.31.0
+# powerkit 0.32.0
 
 * The Bayes factor of an effect in a two-factor between-participants ANOVA
   (templates `2x2_between` and `factorial_between`, `target_test > method`
@@ -26,6 +26,21 @@
   the exact moments of the products (`whole_study_moments()`), and
   power4mome's own standardisation is switched off for these studies.
   Validation (chunk `whole_study`): a simulation written separately.
+
+* Results capture a versioned, hashed evidence registry for the selected
+  analysis variant. Package agreement, independent references, published
+  examples and opt-in method-validation runs remain separate; unmatched
+  variants stay unknown. Saved records and scripts preserve the snapshot.
+* The About page generates a searchable capability table from current
+  forms and cards, including access routes, declared choices and limits.
+
+* Welch two-group planning accepts separate raw SDs or a population SD ratio.
+  Its standardised difference uses a fixed root mean square SD. Formula
+  calls convert to pwrss's weighted units at each actual allocation;
+  simulation, example data and reproduction scripts retain the same spreads.
+  Equal-SD plans retain their existing populations and answers.
+
+# powerkit 0.31.0
 
 * Differential item functioning (template `irt / dif`, card E71): whether
   some items of a test with yes/no answers work differently in two groups,
