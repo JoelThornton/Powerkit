@@ -6143,19 +6143,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "f4b4d13d1480dfbfc97d2d1717b8860ba1405645",
-        "RemoteSha": "f4b4d13d1480dfbfc97d2d1717b8860ba1405645",
+        "RemoteRef": "ab028bfa8e37b937a32234b352d1f07a50b89fd8",
+        "RemoteSha": "ab028bfa8e37b937a32234b352d1f07a50b89fd8",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "f4b4d13d1480dfbfc97d2d1717b8860ba1405645",
-        "GithubSHA1": "f4b4d13d1480dfbfc97d2d1717b8860ba1405645",
+        "GithubRef": "ab028bfa8e37b937a32234b352d1f07a50b89fd8",
+        "GithubSHA1": "ab028bfa8e37b937a32234b352d1f07a50b89fd8",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-05 11:08:01 UTC; runner",
+        "Packaged": "2026-11-05 11:21:31 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-05 11:08:19 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-05 11:21:46 UTC; unix"
       }
     },
     "powertools": {
@@ -8358,7 +8358,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "b4dea88460ad4ddac3281930e010973b"
+      "checksum": "ff6ef38a4dc5a11da64df47dd346ba6c"
     },
     "forms.yaml": {
       "checksum": "9ab525da26651acc6015083bc29c6178"
@@ -8367,7 +8367,10 @@
       "checksum": "3236004251fdb1800be9299a2dc8d753"
     },
     "R/about.R": {
-      "checksum": "058c7b41398bd541aec5caa8fa38c310"
+      "checksum": "a4f5c64a533504a8bc5ffefd5a5fc9b4"
+    },
+    "R/capabilities.R": {
+      "checksum": "5a7601b999c01e5a660277e0a3621e87"
     },
     "R/drafts.R": {
       "checksum": "642f5e19d07ba6bcc322d38136aefd45"
@@ -8391,7 +8394,7 @@
       "checksum": "23e6eed5ff5f012fdb8a5f2df34c6c0e"
     },
     "R/results.R": {
-      "checksum": "287d4040487a5e4d015149e410bb0e3d"
+      "checksum": "6acc3d50ad279f57791c10d06713c2d9"
     },
     "R/simulations.R": {
       "checksum": "025c9ef2b3cf1436d421140b5759e059"
@@ -8406,7 +8409,7 @@
       "checksum": "944417d267637ddaca7d4b5aaadadd7c"
     },
     "R/ui.R": {
-      "checksum": "a8e0a158cd32b8b9537cf59099c8b6ed"
+      "checksum": "1b1061fb1db58586940516a47ac93456"
     },
     "R/whole-study.R": {
       "checksum": "46a94bee95348c07c30275a04f65ce22"
@@ -8424,16 +8427,19 @@
       "checksum": "c24a7747f3e5022972883e8b7ace8d0d"
     },
     "tests/testthat/setup.R": {
-      "checksum": "c9ff9599c519c8de3b27706899401d69"
+      "checksum": "5f3a35e7537c9354277895a2307c9fb7"
     },
     "tests/testthat/test-about.R": {
-      "checksum": "03a3746b1b4ff6c00da7e6535f0c574a"
+      "checksum": "61daa115be2aeae4fb129d256eaa9c6f"
     },
     "tests/testthat/test-all-tests-bound.R": {
       "checksum": "401b1af29ec31382a5c580768ee6dfa2"
     },
     "tests/testthat/test-calculation-snapshot.R": {
       "checksum": "37f540ad65277e4afb87ee11dc11cc02"
+    },
+    "tests/testthat/test-capabilities.R": {
+      "checksum": "2eb4d94d03c3bdb8d29196d4f74ab515"
     },
     "tests/testthat/test-docs-match.R": {
       "checksum": "32d3ee5ce38e090cb7a546e2ad38632f"
@@ -8481,10 +8487,10 @@
       "checksum": "2f7d37efeda4a374d8cd69d894551782"
     },
     "tests/testthat/test-results.R": {
-      "checksum": "9152f9e5ea55c9ef91e36b6913a61719"
+      "checksum": "445f39a7f0c1dcdd34e61c3c63e5187a"
     },
     "tests/testthat/test-screens.R": {
-      "checksum": "d86c70649c82beff117c1556888f439c"
+      "checksum": "126630445ca6a68803e2b9582a93db64"
     },
     "tests/testthat/test-script-handoff.R": {
       "checksum": "bc3eae8ef53e180d02a6ecede3214a60"
@@ -8532,7 +8538,7 @@
       "checksum": "d9a188813e2d80388d84aa2489f26bb5"
     },
     "whats-new.yaml": {
-      "checksum": "3ff9e88d322908a857a1b3637486b91d"
+      "checksum": "db43142447db14ce449e22ab36a77fcd"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
