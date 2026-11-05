@@ -19,6 +19,11 @@ entries:
       you can type how many there are instead, such as 3. They are then
       called Group 1, Group 2 and Group 3.
   - date: "2026-11-05"
+    title: "The About page opens straight away"
+    text: >-
+      powerkit now loads the About page in the background while you start
+      planning, so it's ready by the time you open it.
+  - date: "2026-11-05"
     title: "Check the evidence as you go"
     text: >-
       Planning a Bayes factor t-test? The result now shows how the same study

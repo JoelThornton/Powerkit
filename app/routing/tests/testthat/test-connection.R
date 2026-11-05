@@ -30,3 +30,17 @@ test_that("answers saved in the browser come back as a draft the app can reopen"
   expect_null(autosave_from_browser("not json"))
   expect_null(autosave_from_browser(as.character(jsonlite::toJSON(list(format = "something else"), auto_unbox = TRUE))))
 })
+
+test_that("the About page is fetched in the background once the first screen is up", {
+  app <- paste(readLines(test_path("..", "..", "app.R")), collapse = "\n")
+  # Kept as finished HTML and written to a file the browser can fetch.
+  expect_match(app, 'addResourcePath("about-cache"', fixed = TRUE)
+  expect_match(app, "as.character(about_ui(tree, forms))", fixed = TRUE)
+  expect_match(app, 'div(id = "about_static")', fixed = TRUE)
+  # Built after the first visitor's first screen, never before it.
+  expect_match(app, "session$onFlushed(function() about_build_soon(0.5), once = TRUE)", fixed = TRUE)
+  # The server doesn't send it again once the browser has it.
+  expect_match(app, "!isTRUE(isolate(input$about_prefetched))", fixed = TRUE)
+  expect_match(connection_js, "about-cache/about.html", fixed = TRUE)
+  expect_match(connection_js, "Shiny.setInputValue('about_prefetched', true)", fixed = TRUE)
+})

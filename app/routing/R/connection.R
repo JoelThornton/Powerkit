@@ -99,6 +99,32 @@ connection_js <- "
       window.location.reload();
     }
   });
+  // The About page, fetched in the background once the first screen is up
+  // (the server writes it to about-cache/about.html shortly after starting),
+  // so it is ready before anyone opens it. Its scripts are run by hand, as
+  // scripts added with innerHTML don't run. Tries again for a minute if the
+  // file isn't written yet; if the tab is opened first, the server sends it.
+  var aboutTries = 0;
+  function fetchAbout() {
+    var box = document.getElementById('about_static'), served = document.getElementById('about_page');
+    if (!box || box.children.length || (served && served.children.length)) return;
+    fetch('about-cache/about.html', {cache: 'no-store'}).then(function(r) {
+      if (!r.ok) throw new Error('not yet');
+      return r.text();
+    }).then(function(html) {
+      if (box.children.length || (served && served.children.length)) return;
+      box.innerHTML = html;
+      box.querySelectorAll('script').forEach(function(old) {
+        var s = document.createElement('script'); s.text = old.text; old.parentNode.replaceChild(s, old);
+      });
+      $('.about-loading').remove();
+      if (window.Shiny && Shiny.setInputValue) Shiny.setInputValue('about_prefetched', true);
+    }).catch(function() { if (++aboutTries < 20) setTimeout(fetchAbout, 3000); });
+  }
+  var aboutStarted = false;
+  $(document).on('shiny:value', function(e) {
+    if (e.name === 'screen' && !aboutStarted) { aboutStarted = true; setTimeout(fetchAbout, 1500); }
+  });
   Shiny.addCustomMessageHandler('pk_autosave', function(text) {
     try { if (text) window.localStorage.setItem(KEY, text); else window.localStorage.removeItem(KEY); } catch (e) {}
   });
