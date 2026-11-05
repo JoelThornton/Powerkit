@@ -31,6 +31,7 @@ source(file.path("R", "results.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
 source(file.path("R", "whole-study.R"), local = TRUE)
 source(file.path("R", "project.R"), local = TRUE)
+source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
@@ -1289,8 +1290,29 @@ server <- function(input, output, session) {
         route = state$calc$route, file = file)
     }
   )
+  output$download_draft <- downloadHandler(
+    filename = function() sprintf("powerkit-%s-draft.powerkit.json", state$endpoint),
+    content = function(file) {
+      write_draft(project_route(reactiveValuesToList(state), isolate(current_form_values())), file)
+    }
+  )
   observeEvent(input$open_project, {
     path <- input$open_project$datapath
+    draft <- read_draft_record(path)
+    if (!is.null(draft)) {
+      restored <- restore_draft(draft, tree, forms)
+      if (is.character(restored)) {
+        output$open_project_message <- renderUI(div(class = "alert alert-warning", role = "alert", restored))
+        return()
+      }
+      cancel_job()
+      state$calc <- NULL; state$long_spec <- NULL
+      state$from_labs <- FALSE; state$labs_seed <- NULL
+      for (name in names(restored)) state[[name]] <- restored[[name]]
+      output$open_project_message <- renderUI(NULL)
+      output$form_result <- renderUI(draft_opened_ui(draft$saved_at))
+      return()
+    }
     # A study plan file opens as the plan; anything else as a project.
     read_plan <- engine_function("read_study_plan")
     plan <- if (!is.null(read_plan)) tryCatch(read_plan(path), error = function(e) NULL)
@@ -1338,6 +1360,7 @@ server <- function(input, output, session) {
   observeEvent(input$rerun_saved, check_form())
   # The plan checker: the same file, read for a reviewer (nothing is run).
   read_project_file <- function(path) {
+    if (!is.null(read_draft_record(path))) return("This is an unfinished draft, with no validated calculation to check. Open it as a draft to continue entering answers.")
     read <- engine_function("read_project")
     if (is.null(read)) return("Opening a project needs powerkit's engine, which isn't installed where this prototype is running.")
     tryCatch(read(path), error = function(e) {

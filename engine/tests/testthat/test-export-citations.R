@@ -122,7 +122,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       IntHout2014_hksj = "verified", OHagan2005_assurance = "verified",
       SchonbrodtWagenmakers2018_bfda = "verified", Schonbrodt2017_sequential = "verified",
       Perugini2025_critical = "verified", Lakens2022_justification = "verified",
-      MacCallum1996_rmsea = "verified"
+      MacCallum1996_rmsea = "verified", BlitzsteinHwang2019_probability = "verified"
     )
   )
 })

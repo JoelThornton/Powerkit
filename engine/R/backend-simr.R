@@ -188,7 +188,12 @@ simr_rejections <- function(inputs, n, nrep, seed) {
     seed = seed,
     progress = FALSE
   )))
-  c(result$x, result$n)
+  simr_counts(result)
+}
+
+simr_counts <- function(result) {
+  if (length(result$pval) != result$n) abort_run("The simulation did not return one decision per attempted study; its failure counts cannot be reported safely.")
+  c(result$x, result$n, result$n, sum(is.finite(result$pval)))
 }
 
 # Check run: one large data set simulated from simr's model (300

@@ -14,6 +14,17 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Unfinished drafts:** input screens can download partial answers without
+  a calculation or justification. The same file opener restores blanks and
+  editable values, clears any previous calculation and labels the draft as
+  unvalidated. Recovery is from the explicitly downloaded file, not autosave.
+
+- **Simulation outcomes:** every recorded sample-size point retains attempted,
+  valid, failed and successful decisions. Power4mome's valid-fit denominator
+  and simr's all-attempt denominator are preserved and identified; results
+  and methods show both conditional and successful-study frequencies when
+  decisions fail. Older saved records are not assigned invented failure counts.
+
 - **Current versus historical guidance:** the README and build guide describe
   the actual routing app and acknowledge sourced Powerkit implementations.
   Obsolete empty screen scaffolds are removed; the optional assistant folder
@@ -46,8 +57,10 @@ fully validated. Validation runs are recorded in
   visible outside Settings. MBESS's expected width and presize's width at
   the supplied values are explained separately, without a median claim.
   Simulation choices describe their supplied populations and Welch's
-  equal-SD limitation. All-tests power explicitly requires independence;
-  a dependence-free sufficient target remains to be added.
+  equal-SD limitation. All-tests planning offers the independence rule or
+  a sufficient union-bound target when dependence is unknown, with unchanged
+  alpha and explicit unconditional-probability requirements.
+  The engine preserves single-test targets exactly, including near zero.
 
 - **Sample counts:** plans distinguish participants, pairs, items and
   studies, and only show a largest comparable requirement for matching

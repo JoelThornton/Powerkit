@@ -395,6 +395,20 @@ whole_study_power_bar <- function(power, lower, upper) {
     span(class = "ws-bar-fill", style = sprintf("width: %s;", pc(power))))
 }
 
+whole_study_outcomes <- function(r) {
+  a <- r$analyses
+  if (!all(c("failed", "attempted", "valid", "successful", "conditional_power", "successful_study_probability") %in% names(a))) return(character())
+  labels <- a$label
+  if (!is.null(r$joint) && !is.null(r$joint$failed)) {
+    a <- rbind(a[, c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability")],
+      as.data.frame(r$joint[c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability")]))
+    labels <- c(labels, paste("Joint", r$joint$rule, "criterion"))
+  }
+  a$n <- r$n
+  a$denominator <- ifelse(a$failed > 0, "valid", "all_valid")
+  paste0(labels, ": ", simulation_outcome_text(list(provenance = list(simulations = a))))
+}
+
 whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, script = NULL) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
@@ -417,6 +431,10 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       `ws-take` = "Write it up and save it", `ws-how` = "How it was calculated")),
     div(class = paste("result-card result-main", if (show_joint) "has-hero"), id = "ws-answer",
       h3(class = "h4", "Your result"),
+      if (("failed" %in% names(a) && any(a$failed > 0)) || isTRUE(joint$failed > 0))
+        div(class = "alert alert-warning", role = "status",
+          p("Some simulated studies could not be analysed. The powers and intervals below describe valid decisions only. Success per attempted study is lower when fits fail; Monte Carlo uncertainty does not resolve these failures."),
+          tags$ul(lapply(whole_study_outcomes(r), tags$li))),
       if (show_joint) div(class = "result-hero",
         div(class = "result-figure",
           tags$span(class = "result-figure-value", percent(joint$power)),
@@ -498,12 +516,12 @@ whole_study_methods <- function(r) {
     " The proportion of simulated studies in which %s was %s.",
     if (r$joint$rule == "all") "every main analysis was significant" else "at least one main analysis was significant",
     percent(r$joint$power)) else ""
-  sprintf(paste0(
+  paste(sprintf(paste0(
     "Power was estimated by simulating the whole study (powerkit %s, experimental) with the R package power4mome %s. ",
     "One population model, specified as standardised paths, generated %s data sets of N = %s; each planned analysis was fitted to every data set with its own model ",
     "(regressions by ordinary least squares; mediation models in lavaan, with indirect effects tested by Monte Carlo confidence intervals) at alpha = %s%s. ",
     "%sEstimated power was %s.%s Random seed %s."),
     pv$packages[["powerkit"]], pv$packages[["power4mome"]], whole(pv$nrep), whole(r$n), format(r$alpha),
     if (identical(r$claim, "any")) " divided by the number of main analyses (Bonferroni)" else "",
-    baseline, powers, joint, pv$seed)
+    baseline, powers, joint, pv$seed), paste(whole_study_outcomes(r), collapse = " "))
 }

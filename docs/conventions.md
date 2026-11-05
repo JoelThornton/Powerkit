@@ -1920,3 +1920,45 @@ Wired into the app on 18 October 2026 (E25, E26).*
   factor test is chosen (`app/routing/forms.yaml`, `known_differences`,
   key "13").
 - **Methods paragraph:** `known_differences_methods`, key "13".
+
+## All-tests sufficient power target under unknown dependence
+
+For a claim requiring every one of k tests to succeed, let F_i denote
+failure of test i. The union bound gives P(any F_i) <= sum P(F_i).
+Consequently, making every marginal failure probability no larger than
+(1 - target)/k is sufficient for P(all succeed) >= target. This yields
+per-test power 1 - (1-target)/k. It can be conservative, and is distinct
+from the independence rule target^(1/k). It never raises alpha.
+
+Source: Blitzstein and Hwang (2019), doi:10.1201/9780429428357,
+`BlitzsteinHwang2019_probability` in refs.bib; the union-bound statement
+was independently checked in the online Probability Course textbook,
+section 6.2.1. The formula above is its direct complement-event derivation.
+The default independence option and older saved files retain their previous
+rule. Result notes and methods text name the selected rule. For target .8
+and two tests, the targets differ: .894427 under independence versus .9
+without it. G*Power has no joint-claim planner to benchmark this bound;
+individual test power continues to use its existing backend.
+
+Tests independently simulate independent events and disjoint failure
+couplings attaining the worst-case bound. A lower-bound guarantee needs
+unconditional successful-test probabilities under a common stipulated
+population. Conditional power among valid fits alone does not establish
+that guarantee when fits fail; this rule does not fix missingness,
+model misspecification or convergence problems.
+## Simulation outcomes and denominator conventions
+
+Simulation provenance records each recorded sample size's attempted,
+valid, failed and successful decisions. Power4mome's reported rejection
+rate conditions on valid analyses; simr's rate includes failed decisions
+as unsuccessful attempts. These backend conventions are retained rather
+than silently changing the planning result. The record also exposes
+successful / valid and successful / attempted, with the former undefined
+when no decisions are valid. Warnings alone are not classified as failed
+simr decisions when a finite p-value is returned.
+
+For example, 720 successes among 900 valid decisions in 1,000 attempts
+mean 80% conditional success and 72% success per attempted study. Results
+and copied methods identify both when failures occur. Monte Carlo precision
+of a reported rate is separate from fitting failures. Historical saved
+records without these counts do not receive invented zero-failure counts.

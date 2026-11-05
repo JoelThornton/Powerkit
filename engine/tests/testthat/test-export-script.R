@@ -52,7 +52,7 @@ test_that("r_code() writes values that read back exactly", {
 test_that("a simulated run records the seed of each simulated n", {
   spec <- sim_spec("independent_t", goal = list(type = "power", n = 100))
   sims <- run_quietly(spec)$provenance$simulations
-  expect_equal(sims, data.frame(
+  expect_equal(sims[c("n", "seed", "rejections", "nrep", "fitted")], data.frame(
     n = 100, seed = 7L, rejections = sims$rejections, nrep = 100, fitted = NA
   ))
   expect_identical(run_spec(small_run_spec("anova_2x2_mixed"))$provenance$simulations, NA)

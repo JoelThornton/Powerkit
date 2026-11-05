@@ -35,6 +35,21 @@
 
 # powerkit 0.30.0
 
+* Unfinished form answers can be saved and reopened as explicitly labelled
+  drafts, independently of validated project/result files. Blank answers
+  survive recovery and no previous result is restored as current.
+
+* Simulation records retain attempted, valid, failed and successful counts
+  for fixed-N and sample-size searches. Results and methods distinguish
+  conditional success among valid decisions from success per attempted study,
+  while preserving the backend's reported-power denominator convention.
+
+* All-tests planning offers a sufficient per-test target under unknown
+  dependence, derived from the union bound, alongside the existing
+  independence rule. Alpha is unchanged; notes distinguish a bound from an
+  estimated joint power and require unconditional successful-test probabilities.
+  A single-test target is returned unchanged, including near-zero probabilities.
+
 * About and the README accurately describe package adapters and sourced
   implementations in Powerkit. About distinguishes hosted calculations,
   local execution and optional feedback. Stale screen scaffolds are removed

@@ -437,7 +437,10 @@ whole_study_fit <- function(a, spec) {
 #'   Clopper-Pearson interval `lower` and `upper`, and `nrep`, the
 #'   replications it could be analysed in), `joint` (`NULL` with one main
 #'   analysis; otherwise its `rule`, `power`, `mcse`, `lower`, `upper` and
-#'   `nrep`), `sample_size` (`NULL` unless the goal is a sample size:
+#'   `nrep`). Both `analyses` and `joint` retain `attempted`, `valid`,
+#'   `failed`, `successful`, `conditional_power` and
+#'   `successful_study_probability`; reported power uses valid decisions.
+#'   `sample_size` (`NULL` unless the goal is a sample size:
 #'   the `target`, the `rule` and `criterion` it was reached by,
 #'   `n_required` with its 95% interval `lower` and `upper`, the power
 #'   `curve` and the `simulations` behind it), `implied` (what the population implies for each analysis,
@@ -472,18 +475,11 @@ run_whole_study <- function(spec) {
   # sample size search), with the spec's own seed.
   totals <- whole_study_counts(inputs, n, nrep, seed, cores)
 
-  rate <- function(rejections, valid) {
-    if (valid == 0) {
-      return(c(power = NA, mcse = NA, lower = NA, upper = NA, nrep = 0))
-    }
-    p <- rejections / valid
-    ci <- stats::binom.test(rejections, valid)$conf.int
-    c(power = p, mcse = sqrt(p * (1 - p) / valid), lower = ci[1], upper = ci[2], nrep = valid)
-  }
+  rate <- function(rejections, valid) whole_study_rate(rejections, valid, nrep)
   per_analysis <- do.call(rbind, lapply(inputs$analyses, function(a) {
     r <- rate(totals[[paste0(a$id, ":sig")]], totals[[paste0(a$id, ":valid")]])
     data.frame(id = a$id, label = a$label, role = a$role, test = a$test, alpha = a$alpha,
-      power = r[["power"]], mcse = r[["mcse"]], lower = r[["lower"]], upper = r[["upper"]], nrep = r[["nrep"]])
+      as.list(r))
   }))
   if (any(per_analysis$nrep == 0)) {
     abort_run("None of the simulated data sets could be analysed for at least one analysis. Check the population values, or try a larger n.")
@@ -527,6 +523,16 @@ run_whole_study <- function(spec) {
     ),
     class = "powerkit_whole_study_result"
   )
+}
+
+# Both denominators for a whole-study decision, without changing its
+# historical conditional-power definition.
+whole_study_rate <- function(rejections, valid, attempted) {
+  p <- if (valid == 0) NA_real_ else rejections / valid
+  ci <- if (valid == 0) c(NA_real_, NA_real_) else stats::binom.test(rejections, valid)$conf.int
+  c(power = p, mcse = sqrt(p * (1 - p) / valid), lower = ci[1], upper = ci[2], nrep = valid,
+    attempted = attempted, valid = valid, failed = attempted - valid, successful = rejections,
+    conditional_power = p, successful_study_probability = rejections / attempted)
 }
 
 # Every count of whole_study_batch_template(), summed over `nrep`
@@ -583,7 +589,8 @@ whole_study_search_n <- function(spec, inputs, nrep, seed, cores) {
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
       counts <- criterion$counts(whole_study_counts(inputs, n, nrep, seed, cores))
-      list(rejections = unname(counts[[1]]), nrep = unname(counts[[2]]))
+      list(rejections = unname(counts[[1]]), nrep = unname(counts[[2]]),
+        attempted = nrep, valid = unname(counts[[2]]))
     }
   )
   search <- search_n(spec, backend, spec$goal$power, nrep, seed, cores)
@@ -626,8 +633,7 @@ whole_study_batch <- function(inputs, n, nrep, seed) {
   }
   counts <- function(object, ...) {
     rates <- power4mome::rejection_rates(object, ...)
-    valid <- round(rates$pvalid[1] * nrep)
-    c(round(rates$reject[1] * valid), valid)
+    power4mome_counts(rates, nrep)[1:2]
   }
   only <- function(ids) {
     out <- obj

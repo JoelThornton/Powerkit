@@ -111,7 +111,8 @@ test_that("large simulations run in batches no larger than the batch size", {
   expect_equal(unname(calls[, "k"]), rep(250, 4))
   expect_equal(unname(calls[, "seed"]), 7:10)
   # Only the counts are kept, summed over batches.
-  expect_equal(sim, list(rejections = 4 * 125, nrep = 4 * 249))
+  expect_equal(sim, list(rejections = 4 * 125, nrep = 4 * 249,
+    attempted = 1000, valid = 996, failed = 4))
 })
 
 test_that("derived seeds stay in R's valid range", {

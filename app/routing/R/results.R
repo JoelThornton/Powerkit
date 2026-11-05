@@ -1858,8 +1858,29 @@ provenance_lines <- function(result) {
     sprintf("R: %s", p$r_version),
     sprintf("Packages: %s", paste(sprintf("%s %s", names(p$packages), p$packages), collapse = ", ")),
     sprintf("Check run (does the backend reproduce your population?): %s", if (all(result$check_run$ok)) "passed" else "failed"),
-    sprintf("Run time: %.1f seconds", p$run_time_seconds)
+    sprintf("Run time: %.1f seconds", p$run_time_seconds),
+    simulation_outcome_text(result)
   )
+}
+
+simulation_outcome_text <- function(result) {
+  s <- result$provenance$simulations
+  if (!is.data.frame(s) || !all(c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability", "denominator") %in% names(s))) return(character())
+  vapply(seq_len(nrow(s)), function(i) sprintf(
+    "At N = %s: %s studies attempted, %s analysable decisions, %s failed, %s met the analysis criterion. Criterion met among valid decisions: %s; criterion met per attempted study: %s. Reported power uses %s.",
+    whole(s$n[i]), whole(s$attempted[i]), whole(s$valid[i]), whole(s$failed[i]), whole(s$successful[i]),
+    if (is.na(s$conditional_power[i])) "not estimable" else percent(s$conditional_power[i]),
+    percent(s$successful_study_probability[i]),
+    switch(s$denominator[i], valid = "valid decisions only", attempted = "all attempts, including failed decisions as unsuccessful", "all decisions (none failed)")), character(1))
+}
+
+simulation_failures_ui <- function(result) {
+  s <- result$provenance$simulations
+  if (!is.data.frame(s) || !"failed" %in% names(s) || !any(s$failed > 0)) return(NULL)
+  div(class = "alert alert-warning", role = "status",
+    tags$strong("Some simulated studies could not be analysed. "),
+    "Conditional power describes valid decisions only. Successful-study probability includes failures as unsuccessful attempts. A Monte Carlo interval does not resolve model-fitting failures.",
+    tags$ul(lapply(simulation_outcome_text(result)[s$failed > 0], tags$li)))
 }
 
 # The whole result panel. `calc` is run_calculation()'s value.
@@ -2017,6 +2038,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     result_sections_ui(as.list(sections[!is.na(sections)])),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
     h3(class = "h4", "Your result"),
+    simulation_failures_ui(result),
     hero,
     p(class = "result-headline lead", words[["headline"]]),
     if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
@@ -2178,10 +2200,13 @@ writeup_claim <- function(values, spec) {
     all = {
       k <- claim_tests(values)
       if (!is.na(k) && isTRUE(values$goal %in% c("sample_size", "sensitivity"))) {
+        if (identical(values$all_dependence, "unknown")) return(sprintf(
+          "The claim requires all %s tests. Alpha was unchanged. The union bound gives the sufficient per-test power target 1 - (1 - %s)/%s = %s (Blitzstein & Hwang, 2019), without assuming independence. All tests must reach at least this power under the same stipulated population; the bound can be conservative and does not estimate the actual joint power. Conditional power among valid fits alone does not establish it when fits fail.",
+          whole(k), format(parse_number(values$power)), whole(k), format(signif(spec$goal$power, 4))))
         sprintf("The claim requires all %s tests to be significant, so no correction to alpha was applied, and each test was planned at power %s^(1/%s) = %s, so that if the tests are independent all of them succeed with probability %s.",
           whole(k), format(parse_number(values$power)), whole(k), format(signif(spec$goal$power, 3)), format(parse_number(values$power)))
       } else {
-        "The claim requires every one of several tests to be significant; the chance that all succeed is lower than the power of each test."
+        "The claim requires every one of several tests to be significant; the joint chance cannot exceed the least powerful individual test."
       }
     })
 }
@@ -2411,6 +2436,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, %s participants will be recruited.",
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))
   claim <- writeup_claim(values, spec)
+  failures <- result$provenance$simulations
+  if (is.data.frame(failures) && "failed" %in% names(failures) && any(failures$failed > 0)) {
+    main <- c(main, simulation_outcome_text(result)[failures$failed > 0])
+  }
   # The short version names only the differences that change the answer
   # (known_methods); departures from a tool's defaults are listed in the
   # full version, to keep the paper's paragraph short.
@@ -2710,6 +2739,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
     result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
       h3(class = "h4", "Your result"),
+      simulation_failures_ui(result),
       hero,
       p(class = "result-headline lead", words[["headline"]]),
       p(class = "result-reading", words[["reading"]]),

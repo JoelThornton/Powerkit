@@ -91,8 +91,7 @@ apim_rejections <- function(inputs, n, nrep, seed) {
       test_args = list(pars = inputs$label, level = 1 - inputs$alpha)
     )
     rates <- power4mome::rejection_rates(result)
-    valid <- round(rates$pvalid[1] * nrep)
-    return(c(round(rates$reject[1] * valid), valid))
+    return(power4mome_counts(rates, nrep))
   }
   # Several effects: each tested on the same fitted models, one
   # power4test() call per effect; a replication counts when every test

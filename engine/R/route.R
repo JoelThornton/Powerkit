@@ -239,16 +239,21 @@ simulate_in_chunks <- function(nrep, seed, cores, run_chunk, batch_size = Inf) {
     seq_along(chunks),
     function(i) {
       out <- run_chunk(chunks[i], seeds[i])
-      if (length(out) == 1) c(out, chunks[i]) else out
+      if (!length(out) %in% c(1, 2, 4) || any(!is.finite(out))) abort_run("The simulation returned invalid outcome counts.")
+      if (length(out) == 1) c(out, chunks[i], chunks[i], chunks[i]) else
+        if (length(out) == 2) c(out, chunks[i], out[2]) else out
     },
     cores
   )
-  results <- matrix(results, nrow = 2)
-  valid <- sum(results[2, ])
-  if (valid == 0) {
+  results <- matrix(results, nrow = 4)
+  denominator <- sum(results[2, ])
+  if (denominator == 0) {
     abort_run("None of the simulated data sets could be analysed. Check the population values, or try a larger n.")
   }
-  list(rejections = sum(results[1, ]), nrep = valid)
+  attempted <- sum(results[3, ]); valid <- sum(results[4, ])
+  if (valid > attempted || sum(results[1, ]) > valid) abort_run("The simulation returned inconsistent outcome counts.")
+  list(rejections = sum(results[1, ]), nrep = denominator,
+    attempted = attempted, valid = valid, failed = attempted - valid)
 }
 
 # Check runs for simulation backends: a recovered value from one large

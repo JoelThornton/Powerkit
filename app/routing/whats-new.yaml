@@ -22,6 +22,24 @@ entries:
       the share in each category and the effect as shares or odds ratios,
       and test the predictor overall or one category against the first.
   - date: "2026-11-04"
+    title: "Save an unfinished draft"
+    text: >-
+      Save your answers even when information or an effect-size justification
+      is missing. Reopen the downloaded draft from the start screen to continue.
+      Drafts restore no calculated result and are separate from validated projects.
+  - date: "2026-11-04"
+    title: "See when simulated studies fail"
+    text: >-
+      Results report how many simulated studies were attempted, analysable,
+      unsuccessful to analyse, and successful. When analysis fails, the
+      explanation separates success among valid decisions from success per attempt.
+  - date: "2026-11-04"
+    title: "Plan when every test must succeed"
+    text: >-
+      You can choose a sufficient per-test target without assuming independent
+      tests. It may be conservative and needs no guessed correlation. The
+      explanation states the assumptions and keeps significance levels unchanged.
+  - date: "2026-11-04"
     title: "Clearer credits and current guidance"
     text: >-
       About explains where calculations run and identifies documented methods
