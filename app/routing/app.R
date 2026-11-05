@@ -35,9 +35,12 @@ source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "capabilities.R"), local = TRUE)
+source(file.path("R", "planning.R"), local = TRUE)
+source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
+source(file.path("R", "connection.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
@@ -45,6 +48,7 @@ whats_new <- load_whats_new("whats-new.yaml")
 # Cards for end points that calculate (or preview, E10-E14) don't say "No
 # numbers are calculated".
 tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
+tree$bayes_designs <- bayes_form_designs(tree, forms)
 tree$calculate_how <- about_endpoint_how(forms)
 tree$evidence_defaults <- setNames(lapply(names(forms$forms), function(id) default_evidence(forms, id)), names(forms$forms))
 options(powerkit.routing_dir = getwd())
@@ -82,6 +86,10 @@ app_css <- "
   .card-fact-label { font-size: 0.75rem; color: #6b7684; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600; }
   .card-fact-value { font-size: 0.92rem; color: var(--pk-navy); font-weight: 500; }
   .card-section-title { font-size: 1rem; font-weight: 600; color: var(--pk-navy); margin: 1.1rem 0 0.4rem; }
+  .bayes-guide-list { padding-left: 0; list-style: none; margin: 0.5rem 0 1rem; }
+  .bayes-guide-item { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.45rem 0; border-bottom: 1px solid #eef1f5; }
+  .bayes-guide-item:last-child { border-bottom: 0; }
+  .bayes-guide-item .btn { flex-shrink: 0; }
   .card-needs ul { padding-left: 0; list-style: none; margin-bottom: 0.5rem; }
   .card-needs li { position: relative; padding: 0.3rem 0 0.3rem 1.6rem; border-bottom: 1px solid #eef1f5; }
   .card-needs li:last-child { border-bottom: 0; }
@@ -658,6 +666,10 @@ about_tab_html <- function() {
   if (is.null(about_tab_cache$html)) about_tab_cache$html <- about_ui(tree, forms)
   about_tab_cache$html
 }
+# Built in the background once the app has started and answered its first
+# visitor, so the tab is usually ready before anyone opens it (later runs
+# it when the app is idle).
+later::later(function() about_tab_html(), delay = 3)
 whats_new_tab <- whats_new_ui(whats_new)
 labs_tab <- labs_ui(tree)
 feedback_tab <- feedback_tab_ui(tree)
@@ -673,9 +685,10 @@ ui <- function(req) fluidPage(
   tags$head(tags$title("Powerkit: power analysis and sample size planning (prototype)"),
     tags$meta(name = "description", content = "Plan sample size, statistical power and precision for your study. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
     tags$link(rel = "canonical", href = paste0(public_address, "/")),
-    tags$style(HTML(app_css)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
+    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
+  connection_ui(),
   tags$header(class = "topbar",
     div(class = "topbar-inner",
       h1(class = "brand", "powerkit",
@@ -689,7 +702,9 @@ ui <- function(req) fluidPage(
       # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
       selected = page_from_query(req$QUERY_STRING),
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
-      tabPanel("About", div(class = "pt-3", uiOutput("about_page"))),
+      tabPanel("About", div(class = "pt-3",
+        tags$p(class = "about-loading", tags$span(class = "pk-spinner pk-spinner-small", `aria-hidden` = "true"), "Loading the About page…"),
+        uiOutput("about_page"))),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
       tabPanel("Updates", div(class = "pt-3", whats_new_tab)),
       tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
@@ -701,6 +716,9 @@ ui <- function(req) fluidPage(
 )
 
 server <- function(input, output, session) {
+  # If the connection drops while this session's process is still running,
+  # Shiny reconnects to it and nothing is lost (R/connection.R).
+  session$allowReconnect(TRUE)
   # The About page, built on first opening (about_tab_html()).
   about_opened <- reactiveVal(FALSE)
   observeEvent(input$tabs, if (identical(input$tabs, "About")) about_opened(TRUE))
@@ -800,6 +818,49 @@ server <- function(input, output, session) {
     names(values) <- vapply(fields, `[[`, "", "id")
     values[!vapply(values, is.null, logical(1))]
   }
+  # Answers on an input screen, saved in this browser a moment after each
+  # change (R/connection.R), in the draft format "Save a draft" uses.
+  autosave_route <- debounce(reactive({
+    if (!identical(state$screen, "form") || is.null(state$endpoint)) return(NULL)
+    project_route(reactiveValuesToList(state), current_form_values())
+  }), 1500)
+  observe({
+    route <- autosave_route()
+    req(route)
+    session$sendCustomMessage("pk_autosave", as.character(jsonlite::toJSON(autosave_record(route), auto_unbox = TRUE, null = "null")))
+  })
+  # A new session that finds saved answers in the browser offers to bring
+  # them back, once, while the visitor hasn't started anything yet.
+  saved_draft <- reactiveVal(NULL)
+  observeEvent(input$pk_saved_draft, {
+    record <- autosave_from_browser(input$pk_saved_draft)
+    if (is.null(record) || !identical(state$screen, "start") || length(state$history)) return()
+    restored <- restore_draft(record, tree, forms)
+    if (is.character(restored)) {
+      session$sendCustomMessage("pk_autosave", "")
+      return()
+    }
+    saved_draft(list(record = record, restored = restored))
+    name <- tree$endpoints[[record$route$endpoint]]$plain_name %||% record$route$endpoint
+    showModal(modalDialog(
+      title = "Continue where you left off?",
+      tags$p(sprintf("You were filling in \"%s\" (saved %s). Your answers are kept in this browser.", name, record$saved_at)),
+      footer = tagList(actionButton("pk_restore_no", "Start fresh", class = "btn-outline-secondary"),
+        actionButton("pk_restore_yes", "Continue", class = "btn-primary")),
+      easyClose = FALSE))
+  }, once = TRUE)
+  observeEvent(input$pk_restore_yes, {
+    saved <- saved_draft()
+    removeModal()
+    req(saved)
+    for (name in names(saved$restored)) state[[name]] <- saved$restored[[name]]
+    output$form_result <- renderUI(draft_opened_ui(saved$record$saved_at))
+  })
+  observeEvent(input$pk_restore_no, {
+    removeModal()
+    saved_draft(NULL)
+    session$sendCustomMessage("pk_autosave", "")
+  })
   observeEvent(input$pick, {
     pick <- input$pick
     kind <- sub(":.*$", "", pick)
@@ -903,6 +964,16 @@ server <- function(input, output, session) {
         state$start <- list(); state$route <- "known"; state$history <- list(); state$ctx <- list()
         state$skip_screening <- TRUE; state$node <- NULL
         state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
+      }
+    } else if (kind == "bayesform") {
+      # From the Bayes factor page: the design's input screen with its
+      # Bayes factor test version chosen.
+      d <- tree$bayes_designs[[value]]
+      if (!is.null(d)) {
+        state$endpoint <- value; state$came_from <- "known"
+        state$form_values <- stats::setNames(list("bayes_factor"), d$field)
+        state$form_k <- 2L; state$calc <- NULL
+        state$screen <- "form"
       }
     } else if (kind == "ep") {
       state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
@@ -1018,6 +1089,9 @@ server <- function(input, output, session) {
         calc <- if (identical(values$goal, "sensitivity_curve")) run_sensitivity_curve(spec, seed = forms$default_seed) else run_calculation(spec, seed = forms$default_seed)
         calc$route <- calc_route
         if (identical(calc$status, "ok")) calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values)
+        if (identical(calc$status, "ok") && is_bayes_test(calc$spec) && calc$spec$template %in% c("one_sample_t", "paired_t", "independent_t")) {
+          calc$robustness <- tryCatch(engine_function("bayes_robustness")(calc$spec, bayes_companion_n(calc$spec, calc$result)), error = function(e) NULL)
+        }
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
         session$sendCustomMessage("focus_result", "form_result")
@@ -1027,13 +1101,52 @@ server <- function(input, output, session) {
     }
     session$sendCustomMessage("focus_result", "form_result")
   }
+  # What a Bayes factor would add (bayes_companion_card_ui()): computed
+  # by the engine when asked for, for the last calculation.
+  observeEvent(input$bayes_companion_show, {
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"))
+    n <- bayes_companion_n(calc$spec, calc$result)
+    target <- if (identical(calc$result$goal_type, "sample_size")) calc$spec$goal$power
+    comp <- tryCatch(engine_function("bayes_companion")(calc$spec, n, target = target),
+      error = function(e) list(available = FALSE, reason = "powerkit couldn't work out the Bayes factor side of this plan."))
+    output$bayes_companion <- renderUI(bayes_companion_ui(calc$spec, calc$result, comp))
+  })
+  observeEvent(state$calc, {
+    output$bayes_companion <- renderUI(NULL)
+    output$seq_result <- renderUI(NULL)
+  }, ignoreNULL = FALSE)
+  # Check as you go? (bayes_sequential_card_ui()): the engine's
+  # bayes_sequential() for the last calculation's Bayes factor t-test.
+  observeEvent(input$seq_run, {
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"))
+    num <- function(x) { v <- suppressWarnings(as.numeric(x)); if (length(v) != 1) NA_real_ else v }
+    spec <- calc$spec
+    if (is.null(spec$population$d) && is.null(spec$population$dz)) {
+      output$seq_result <- renderUI(div(class = "form-problems mt-2", role = "alert",
+        p("The sequential design needs the effect as a standardised effect (d): enter it that way above and check your answers again.")))
+      return()
+    }
+    args <- bayes_sequential_args(spec, bayes_companion_n(spec, calc$result), num(input$seq_n_min), num(input$seq_step), num(input$seq_threshold_null))
+    plan <- tryCatch(do.call(engine_function("bayes_sequential"), args), error = function(e) list(problem = bayes_problem(e)))
+    output$seq_result <- renderUI(if (!is.null(plan$problem)) div(class = "form-problems mt-2", role = "alert", p(plan$problem))
+      else div(class = "mt-2", role = "status", bayes_sequential_numbers(plan)))
+  })
+  # Switch the plan's test version to its Bayes factor test.
+  observeEvent(input$bayes_companion_switch, {
+    d <- tree$bayes_designs[[state$endpoint]]
+    req(d)
+    updateSelectInput(session, field_input_id(list(id = d$field)), selected = "bayes_factor")
+    session$sendCustomMessage("focus_result", field_input_id(list(id = d$field)))
+  })
   # The explore panel: power by N for the effect on the slider. It reads the
   # last calculation and never changes the plan.
   output$explore_plot <- renderPlot({
     calc <- state$calc
     req(calc, identical(calc$status, "ok"), input$explore_effect, !is.null(explore_effect(calc$spec)))
     df <- explore_curve(calc$spec, calc$result, input$explore_effect, seed = forms$default_seed)
-    planned <- calc$result$n_required$n %||% calc$spec$goal$n
+    planned <- n_analysed(calc$result)
     power_curve_plot(list(list(df = df, col = "#0A5A8C", fill = TRUE)), target = calc$spec$goal$power %||% 0.8, planned_n = planned)
   }, res = 96)
 
@@ -1059,7 +1172,7 @@ server <- function(input, output, session) {
     style <- list(conservative = list(col = "#b45309", lty = 2), expected = list(col = "#14284B", lty = 1), optimistic = list(col = "#0A5A8C", lty = 3))
     calc <- state$calc
     power_curve_plot(lapply(keys, function(k) list(df = df[df$scenario == k, ], col = style[[k]]$col, lty = style[[k]]$lty)),
-      target = calc$spec$goal$power %||% 0.8, planned_n = calc$result$n_required$n %||% calc$spec$goal$n)
+      target = calc$spec$goal$power %||% 0.8, planned_n = n_analysed(calc$result))
     legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
       lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3, bty = "n", inset = c(0, 0.04))
   }, res = 96)
@@ -1303,6 +1416,23 @@ server <- function(input, output, session) {
   )
   # Project files: the engine writes and reads them (write_project(),
   # read_project()); the app passes the route and puts the screen back.
+  observeEvent(input$scenario_compare, {
+    values <- isolate(current_form_values())
+    fields <- isolate(current_form_fields())
+    compared <- tryCatch(compare_named_alternatives(forms, state$endpoint, fields, values), error = function(e) conditionMessage(e))
+    output$scenario_comparison <- renderUI(if (is.character(compared)) p(role = "alert", compared) else tagList(
+      p("Formula comparison of saved assumptions; these are separate plans. Recalculate the chosen alternative before exporting its result."),
+      tags$table(class = "table", tags$thead(tags$tr(lapply(names(compared), function(x) tags$th(scope = "col", x)))),
+        tags$tbody(lapply(seq_len(nrow(compared)), function(i) tags$tr(lapply(compared[i, ], tags$td)))))))
+  })
+
+  output$download_planning_document <- downloadHandler(
+    filename = function() "powerkit-study-planning.md",
+    content = function(file) {
+      req(calculation_matches_values(state$calc, current_form_values()))
+      req(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
+      writeLines(planning_document(tree, forms, state$calc), file, useBytes = TRUE)
+    })
   output$download_project <- downloadHandler(
     filename = function() project_file_name(state$endpoint),
     content = function(file) {
@@ -1567,6 +1697,11 @@ server <- function(input, output, session) {
   observeEvent(input$labs_plan_confirm, { removeModal(); labs_start_plan() })
   observeEvent(input$labs_back, {
     session$sendCustomMessage("labs_open", "prereplication")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  })
+  # From the Bayes factor page (bayes_guide_ui()).
+  observeEvent(input$go_labs_bayes, {
+    session$sendCustomMessage("labs_open", "bayes")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
   # The one way in from the main route (labs_signpost_ui()).

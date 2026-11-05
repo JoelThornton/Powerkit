@@ -14,10 +14,23 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Planning decisions and assumptions:** prediction is separate from test
+  direction. Accuracy presets explain finite-simulation error and fitting
+  failures; family-specific input guides cover meaning, illustration, source
+  and unknown routes. Named alternatives and reported/derived/assumed/unknown
+  records persist in drafts/projects. Formula comparisons exclude long
+  simulations and unsupported goals. Planning documents use captured answers
+  and the same staleness/reasoning guards as kept plans.
+
+- **Browser regression gate:** pinned Playwright/Chromium checks real
+  calculations, edits, project/draft round trips, precision, cancellation and
+  Labs Back/Forward in an isolated local app; reports retain failed traces.
+
 - **Long-job assessment:** `hosting-options.md` proposes external durable
   queueing, ticket recovery and staged checkpointing, with reproducible
   streams, denominator preservation and failure acceptance tests. No durable
   service is implemented; current jobs still end with their Shiny session.
+
 - **Variant evidence and capabilities:** a versioned case registry separates
   software agreement, independent references, published examples and method
   runs. Results, saved projects and scripts retain its hash and snapshot.
@@ -33,11 +46,29 @@ fully validated. Validation runs are recorded in
 
 - **Group names:** optional; a levels field takes a count ("3") in place
   of names.
+- **Bayes factors:** fifteen designs have a Bayes factor test version,
+  all listed on "Plan a study analysed with Bayes factors" (E-bayes) and
+  found by searching "Bayes". P-value results of the exactly calculated
+  ones offer "Add a Bayes factor?" (`bayes_companion()`): the chances at
+  3 and 10, the size for both and, for t-tests, how often they agree.
+  Bayes factor t-test results show the plan under JASP's three prior
+  widths. Informed priors wait on a bfpwr fault (`upstream-questions.md`).
+  Their results also offer the plan as a sequential design.
+
+- **Input screens:** a box hides when every field in it is hidden, and
+  means in SD units take an SD of 1 without asking.
 
 - **Unfinished drafts:** input screens can download partial answers without
   a calculation or justification. The same file opener restores blanks and
   editable values, clears any previous calculation and labels the draft as
-  unvalidated. Recovery is from the explicitly downloaded file, not autosave.
+  unvalidated. Answers on an input screen are also kept in the browser
+  (localStorage, same format) and a new visit offers to continue them.
+
+- **Connection and loading:** a starting screen while the server wakes, a
+  "Working…" bar when busy, a 20-second heartbeat, a reload by itself on
+  returning to a page whose connection was lost, and
+  Shiny reconnection to the same session when its process still runs. The
+  About tab is built in the background after start.
 
 - **Simulation outcomes:** every recorded sample-size point retains attempted,
   valid, failed and successful decisions. Power4mome's valid-fit denominator

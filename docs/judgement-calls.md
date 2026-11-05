@@ -1202,23 +1202,7 @@ start screen joins the design finder without asking twice
 
 ### D3. Where Bayes factors enter (open question 8)
 
-- **Question:** ask "p-values or Bayes factors?" on the start screen,
-  after Q1, among the closing questions (as the prototype shows Q-bayes
-  now), or only in the shortcut list?
-- **Options:**
-  - start screen;
-  - after Q1;
-  - closing questions;
-  - shortcut list only.
-- **What tools and sources do:** none of the tools reviewed routes
-  between p-values and Bayes factors (`decision-tree.md`, section 1)
-  (opened). `coverage.md` lists Bayesian design tools as candidates
-  (opened).
-- **Who might disagree, and why:**
-  - Bayesian users want to say so early.
-  - Most users plan with p-values, and an early question adds friction.
-- **Knock-on effects:** E-bayes is reachable only from the list now.
-- **Recorded in:** open question 8; setting `bayes_entry`.
+Decided (setting `bayes_entry`); moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#d3-where-bayes-factors-enter-open-question-8).
 
 ### D4. The guided "plan my whole study" route (open question 11)
 

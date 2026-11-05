@@ -17,11 +17,12 @@ form_calculates <- function(forms, ep_id) ep_id %in% unlist(forms$calculates)
 # so on) also runs in the background, so a run of a minute or two neither
 # leaves the screen without a progress bar nor holds up everyone else
 # using the app (the online app has one R process). The basic tests'
-# simulations (Welch's t-test, the rank tests for two groups) take a few
-# seconds, less than starting a background process, so they run here.
+# usual short simulations take less time than starting another process.
+# Higher-accuracy basic runs use that process so they remain cancellable.
 runs_in_background <- function(forms, ep_id, spec = NULL, simulates = engine_function("runs_simulation")) {
   if (ep_id %in% names(forms$background)) return(TRUE)
-  if (is.null(spec) || is.null(simulates) || identical(spec$design, "basic_test")) return(FALSE)
+  if (is.null(spec) || is.null(simulates)) return(FALSE)
+  if (identical(spec$design, "basic_test") && (spec$options$nrep %||% 1000L) <= 1000L) return(FALSE)
   isTRUE(tryCatch(simulates(spec), error = function(e) FALSE))
 }
 usual_seconds <- function(forms, ep_id, goal) forms$background[[ep_id]][[goal]] %||% NA_real_
@@ -2046,8 +2047,12 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   hero <- result_hero_ui(spec, result, fields, values)
   explore <- explore_ui(spec, result)
   scen <- scenarios_ui(spec, result)
+  bayes_card <- bayes_companion_card_ui(tree, ep_id, spec, result)
+  sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
-    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table)) "How sure can you be?",
+    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness)) "How sure can you be?",
+    `result-bayes` = if (!is.null(bayes_card)) "Add a Bayes factor?",
+    `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
   div(
     class = "result-panel", role = "status", tabindex = "-1",
@@ -2072,12 +2077,15 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
     if (length(known) || length(departures_in_view)) p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
-    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen)) div(class = "result-card result-sure", id = "result-sure",
+    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness)) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
       p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes your plan."),
       if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
+      bayes_robustness_ui(spec, calc$robustness),
       explore,
       scen),
+    bayes_card,
+    sequential_card,
     div(class = "result-card result-save", id = "result-take",
     h4(class = "h5", "Write it up and save it"),
     writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
@@ -2089,7 +2097,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     div(class = "nav-buttons",
       if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
       downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
-      if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
+      if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary"),
+      if (can_export) downloadButton("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
     if (can_export) uiOutput("study_plan_bar"),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     simulated_data_ui(spec, result)),
@@ -2786,7 +2795,8 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       div(class = "nav-buttons",
         if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
         downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
-        if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary")),
+        if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary"),
+      if (can_export) downloadButton("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
       if (can_export && !is.na(result$precision$target_width)) uiOutput("study_plan_bar"),
       p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation() and the software used. Save project keeps your answers and result in one file on your computer; open it from the start screen to carry on."),
       simulated_data_ui(spec, result)),
@@ -2802,4 +2812,188 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
       tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
   )
+}
+
+# What a Bayes factor would add (5 November 2026) ---------------------------
+
+# The card offering it: on a p-value plan of a design whose Bayes factor
+# version is calculated exactly. The numbers come from the engine
+# (bayes_companion()) when asked for, as they take a few seconds.
+bayes_companion_templates <- c("one_sample_t", "paired_t", "independent_t", "correlation", "one_proportion", "two_proportions", "oneway_between")
+
+bayes_companion_applies <- function(tree, ep_id, spec, result) {
+  ep_id %in% names(tree$bayes_designs) && spec$template %in% bayes_companion_templates && !is_bayes_test(spec) &&
+    result$goal_type %in% c("sample_size", "power") && is.null(spec$effect_justification$safeguard) &&
+    spec$target_test$method %in% c("t_test", "student_t", "welch_t", "pearson", "exact_binomial", "z_test", "fisher_exact", "anova_f")
+}
+
+bayes_companion_card_ui <- function(tree, ep_id, spec, result) {
+  if (!bayes_companion_applies(tree, ep_id, spec, result)) return(NULL)
+  div(class = "result-card result-bayes", id = "result-bayes",
+    h4(class = "h5", "Add a Bayes factor?"),
+    p("A p-value can't show that an effect is absent: a non-significant result only fails to find one. A Bayes factor can show either. Many researchers report both, and a study meant to be judged both ways needs enough people for both."),
+    actionButton("bayes_companion_show", "See what a Bayes factor would add to this plan", class = "btn btn-outline-primary",
+      onclick = "this.hidden = true;"),
+    uiOutput("bayes_companion"))
+}
+
+bayes_companion_n <- function(spec, result) {
+  if (identical(result$goal_type, "sample_size")) result$n_required$n else spec$goal$n
+}
+
+bayes_companion_test_words <- function(spec, comp) {
+  switch(spec$template,
+    one_sample_t = , paired_t = , independent_t = sprintf("the Bayes factor t-test (JASP's default prior: a Cauchy distribution with scale %s)", format(signif(comp$priors$prior_scale, 3))),
+    correlation = "the Bayes factor test of the correlation (JASP's default prior)",
+    oneway_between = sprintf("the Bayes factor ANOVA (JASP's default prior, r scale %s)", format(comp$priors$prior_scale %||% 0.5)),
+    "the Bayes factor test (JASP's default prior)")
+}
+
+bayes_companion_ui <- function(spec, result, comp) {
+  if (is.null(comp)) return(NULL)
+  if (!isTRUE(comp$available)) return(p(class = "result-bayes-unavailable mt-3", comp$reason))
+  units <- n_unit(spec) %||% "participants"
+  o <- comp$outcomes
+  cell <- function(k, col) percent(o[[col]][o$threshold == k])
+  ks <- o$threshold
+  table <- tags$table(class = "table table-sm result-bayes-table",
+    tags$thead(tags$tr(tags$th(scope = "col", "If you analysed it with a Bayes factor"),
+      lapply(ks, function(k) tags$th(scope = "col", sprintf("Bayes factor of at least %s", format(k)))))),
+    tags$tbody(
+      tags$tr(tags$th(scope = "row", "Evidence for the effect, if it is as you planned"), lapply(ks, function(k) tags$td(cell(k, "for_effect")))),
+      tags$tr(tags$th(scope = "row", "Evidence that there is no effect, if there is none"), lapply(ks, function(k) tags$td(cell(k, "for_null")))),
+      tags$tr(tags$th(scope = "row", "Misleading evidence for an effect, if there is none"), lapply(ks, function(k) tags$td(cell(k, "misleading"))))))
+  target <- spec$goal$power
+  both <- comp$n_for_both
+  both_line <- if (!is.null(both) && all(!is.na(both$n_bayes))) {
+    parts <- vapply(seq_len(nrow(both)), function(i) sprintf("%s %s for a Bayes factor of %s", whole(both$n_bayes[i]), units, format(both$threshold[i])), "")
+    p(class = "result-bayes-both", tags$strong("Planning for both: "),
+      sprintf("for the Bayes factor to have the same %s chance of evidence for the effect, the study needs %s. ", percent(target), paste(parts, collapse = ", or ")),
+      if (all(both$n_both == comp$n)) sprintf("Your %s %s already gives both.", whole(comp$n), units)
+      else sprintf("Planning for the p-value and a Bayes factor of %s together needs %s %s (%s for a Bayes factor of %s).",
+        format(both$threshold[1]), whole(both$n_both[1]), units, whole(both$n_both[nrow(both)]), format(both$threshold[nrow(both)])))
+  }
+  agree <- comp$agreement
+  agree_line <- if (!is.null(agree)) {
+    k <- agree$threshold[1]
+    a <- agree[agree$threshold == k, ]
+    pr <- function(truth, sig, bayes) percent(sum(a$probability[a$truth == truth & a$p_significant %in% sig & a$bayes %in% bayes]))
+    tagList(
+      h5(class = "h6 mt-3", sprintf("How often the two would agree (Bayes factor of %s)", format(k))),
+      tags$ul(class = "result-bayes-agree",
+        tags$li(sprintf("If the effect is as you planned: both find it %s of the time; only the p-value %s; only the Bayes factor %s; neither %s.",
+          pr("effect", TRUE, "effect"), pr("effect", TRUE, c("neither", "null")), pr("effect", FALSE, "effect"), pr("effect", FALSE, c("neither", "null")))),
+        tags$li(sprintf("If there is no effect: the p-value is significant %s of the time, as its alpha allows; the Bayes factor shows there is no effect %s of the time, and gives misleading evidence for one %s.",
+          pr("none", TRUE, c("effect", "neither", "null")), pr("none", c(TRUE, FALSE), "null"), pr("none", c(TRUE, FALSE), "effect")))))
+  }
+  div(class = "result-bayes-body mt-3",
+    p(sprintf("With %s %s, analysing the same data with %s would give:", whole(comp$n), units, bayes_companion_test_words(spec, comp))),
+    table,
+    if (any(o$for_null == 0)) p(class = "small", sprintf("A study of %s %s can't reach a Bayes factor of %s for no effect, however the data fall: it needs more people for that.",
+      whole(comp$n), units, format(max(o$threshold[o$for_null == 0])))),
+    both_line,
+    agree_line,
+    p(class = "result-bayes-advice", tags$strong("Reporting both: "),
+      "say before collecting data which test is your main one, and what you will conclude if they disagree. Choosing afterwards the one that reads better is a form of p-hacking."),
+    bayes_companion_wording_ui(spec, comp),
+    actionButton("bayes_companion_switch", "Plan with the Bayes factor test instead", class = "btn btn-link"))
+}
+
+# Wording for a plan that reports both, with the p-value test named as the
+# main one (the usual order when the sample size was planned for it).
+bayes_companion_wording_ui <- function(spec, comp) {
+  both <- comp$n_for_both
+  k <- comp$thresholds[1]
+  n <- if (!is.null(both) && !is.na(both$n_both[1])) both$n_both[1] else comp$n
+  units <- n_unit(spec) %||% "participants"
+  target <- spec$goal$power
+  chance <- if (!is.null(both) && !is.na(both$n_both[1])) sprintf(
+    "With %s %s, the %s has at least %s power and the Bayes factor at least %s chance of reaching %s, if the effect is as planned.",
+    whole(n), units, companion_freq_name(spec), percent(target), with_article(percent(target)), format(k)) else sprintf(
+    "With %s %s, the Bayes factor has %s chance of reaching %s if the effect is as planned.",
+    whole(n), units, with_article(percent(comp$outcomes$for_effect[comp$outcomes$threshold == k])), format(k))
+  text <- paste(
+    sprintf("The main analysis is %s %s at alpha = %s.", companion_side(spec), companion_freq_name(spec), alpha_text(spec$target_test$alpha %||% 0.05)),
+    sprintf("As a secondary analysis we will report the Bayes factor (BF10) from %s, treating a BF10 of at least %s as evidence for the effect and of at most 1/%s as evidence that there is none.",
+      bayes_companion_test_words(spec, comp), format(k), format(k)),
+    "If the two disagree, we will report both and base our conclusion on the main analysis.",
+    chance)
+  tagList(
+    h5(class = "h6 mt-3", "Wording for your plan"),
+    tags$p(class = "result-bayes-wording", text))
+}
+
+# The p-value test's name and sides, for the plan's wording.
+companion_freq_name <- function(spec) {
+  m <- spec$target_test$method
+  switch(spec$template,
+    one_sample_t = "one-sample t-test", paired_t = "paired t-test",
+    independent_t = if (identical(m, "welch_t")) "Welch's t-test" else "Student's t-test",
+    correlation = "test of Pearson's correlation", one_proportion = "exact binomial test",
+    two_proportions = if (identical(m, "fisher_exact")) "Fisher's exact test" else "z test of the two proportions",
+    oneway_between = "one-way ANOVA (F test)", "test")
+}
+
+companion_side <- function(spec) {
+  if (identical(spec$template, "oneway_between")) return("a")
+  switch(spec$target_test$alternative %||% "two_sided", two_sided = "a two-sided", greater = "a one-sided (effect positive)", less = "a one-sided (effect negative)")
+}
+
+# "an 80%", "a 75%": the article a percentage takes when read aloud.
+with_article <- function(pct) paste(if (grepl("^(8[0-9]?|11|18)%", pct)) "an" else "a", pct)
+
+# Does the prior matter? The plan's chances under its own analysis prior
+# and JASP's three named widths of the default prior (bayes_robustness()),
+# at the same sample size.
+bayes_robustness_ui <- function(spec, rob) {
+  if (is.null(rob) || !nrow(rob)) return(NULL)
+  k <- format(spec$target_test$evidence_threshold %||% 10)
+  tagList(
+    h5(class = "h6", "Does the prior matter?"),
+    p(class = "small", sprintf("The same study analysed with other widths of the analysis prior. A wider prior expects larger effects: it finds small ones less often, and shows that there is no effect more easily. If the plan only works for one prior, say why that prior is right in your plan.")),
+    tags$table(class = "table table-sm result-robustness",
+      tags$thead(tags$tr(tags$th(scope = "col", "Analysis prior"), tags$th(scope = "col", "Scale"),
+        tags$th(scope = "col", sprintf("BF10 of at least %s, if the effect is as planned", k)),
+        tags$th(scope = "col", sprintf("BF01 of at least %s, if there is no effect", k)))),
+      tags$tbody(lapply(seq_len(nrow(rob)), function(i) tags$tr(
+        tags$th(scope = "row", rob$prior[i]), tags$td(format(signif(rob$scale[i], 3))),
+        tags$td(percent(rob$for_effect[i])), tags$td(percent(rob$for_null[i])))))))
+}
+
+# Check as you go? (5 November 2026): the same Bayes factor t-test plan as
+# a sequential design, with the planned sample size as the largest
+# (Schonbrodt and Wagenmakers's design with a maximum N). The numbers are
+# the engine's bayes_sequential(), the Labs tool's, worked out on request.
+bayes_sequential_card_ui <- function(spec, result) {
+  if (!is_bayes_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t") ||
+      !result$goal_type %in% c("sample_size", "power")) return(NULL)
+  n <- bayes_companion_n(spec, result)
+  per <- bayes_sequential_unit_n(spec, n)
+  k <- spec$target_test$evidence_threshold %||% 10
+  unit <- if (identical(spec$template, "independent_t")) " in each group" else ""
+  div(class = "result-card result-sequential", id = "result-sequential",
+    h4(class = "h5", "Check as you go?"),
+    p(sprintf("A Bayes factor can be checked as the data come in: stop as soon as the evidence is strong either way, or at %s%s at most, the sample size of this plan. Most studies then stop well before the maximum. Decide every setting below before collecting data, and report them.", whole(per), unit)),
+    div(class = "row g-2",
+      div(class = "col-sm-4", numericInput("seq_n_min", sprintf("First look, after this many%s", unit), value = min(20, max(3, floor(per / 4))), min = 3, max = per, step = 1, width = "100%")),
+      div(class = "col-sm-4", numericInput("seq_step", sprintf("Then look again after every%s", if (nzchar(unit)) " (in each group)" else ""), value = 1, min = 1, max = per, step = 1, width = "100%")),
+      div(class = "col-sm-4", selectInput("seq_threshold_null", "Stop for no effect at a BF01 of at least",
+        choices = unique(as.character(c(3, 6, 10, 30, k))), selected = as.character(k), selectize = FALSE, width = "100%"))),
+    actionButton("seq_run", "Work out the sequential design", class = "btn btn-outline-primary"),
+    uiOutput("seq_result"))
+}
+
+# The sample size bayes_sequential() counts in: each group for two groups.
+bayes_sequential_unit_n <- function(spec, n) if (identical(spec$template, "independent_t")) n %/% 2 else n
+
+bayes_sequential_args <- function(spec, n, n_min, step, threshold_null) {
+  list(
+    n_min = n_min, n_max = bayes_sequential_unit_n(spec, n), step = step,
+    type = switch(spec$template, one_sample_t = "one.sample", paired_t = "paired", independent_t = "two.sample"),
+    effect = if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d,
+    effect_sd = spec$population$effect_sd %||% 0,
+    prior_scale = spec$target_test$prior_scale %||% (1 / sqrt(2)),
+    threshold = spec$target_test$evidence_threshold %||% 10, threshold_null = threshold_null,
+    alternative = switch(spec$target_test$alternative %||% "two_sided", two_sided = "two.sided", greater = "greater", less = "less"),
+    nsim = 2000, seed = spec$options$seed %||% 1L)
 }

@@ -17,6 +17,7 @@ field_ui <- function(f, value, described_by = character()) {
   current <- if (is.null(value) || length(value) == 0) "" else as.character(value)
   input <- switch(
     f$type,
+    scenario_library = scenario_library_ui(f, current),
     select = selectInput(id, label, choices = c("Choose one" = "", stats::setNames(names(f$choices), unlist(f$choices))),
                          selected = current, selectize = FALSE, width = "100%"),
     table = textAreaInput(id, label, value = current, rows = 4, width = "100%"),
@@ -43,12 +44,31 @@ field_ui <- function(f, value, described_by = character()) {
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
     input,
     if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
+    input_guide_ui(f),
     if (!is.null(f$default_source)) div(id = source_id, class = "default-source", title = f$default_source,
       # A choice's default is already shown selected, so only its source is
       # added (naming it again garbled the sentence).
       if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else paste0(short_source(f$default_source), ".")
     )
   )
+  # The uncertainty about an effect, read as a range (5 November 2026): an
+  # SD around the effect entered is about 95% sure to hold the effect
+  # within 1.96 SDs of it (a normal design prior).
+  if (!is.null(f$range_reading)) field <- tagList(field, p(class = "field-reading small", id = paste0(id, "_reading"), `aria-live` = "polite"),
+    tags$script(HTML(sprintf("(function() {
+  var means = %s, sd = '%s', out = '%s_reading';
+  function update() {
+    var el = document.getElementById(out); if (!el) return;
+    var s = parseFloat((document.getElementById(sd) || {}).value), m = NaN;
+    means.forEach(function(id) { var e = document.getElementById(id); if (e && e.offsetParent !== null && !isNaN(parseFloat(e.value))) m = parseFloat(e.value); });
+    if (isNaN(s) || isNaN(m)) { el.textContent = ''; return; }
+    if (s === 0) { el.textContent = 'You are planning for exactly ' + m + '.'; return; }
+    var lo = (m - 1.96 * s).toFixed(2), hi = (m + 1.96 * s).toFixed(2);
+    el.textContent = 'In words: you are about 95%% sure the true effect is between ' + lo + ' and ' + hi + '.';
+  }
+  document.addEventListener('input', update); document.addEventListener('change', update);
+  setTimeout(update, 0);
+})();", jsonlite::toJSON(paste0("f_", unlist(f$range_reading))), id, id))))
   # A note for each choice that needs one, shown when it is chosen (the
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
@@ -151,7 +171,25 @@ group_ui_build <- function(tree, g, values, index) {
         tags$span(class = "form-names-note", "Used to label the result and the write-up.")),
       box)
   }
-  if (is.null(g$shown_if)) box else conditionalPanel(shown_if_js(g), box)
+  if (!is.null(g$shown_if)) return(conditionalPanel(shown_if_js(g), box))
+  # A group whose fields are all shown only for some choices is hidden
+  # with them, so no empty heading is left (5 November 2026).
+  shown <- group_shown_js(g)
+  if (is.null(shown)) box else conditionalPanel(shown, box)
+}
+
+# The browser condition under which at least one of a group's fields is
+# shown; NULL when some field is always shown.
+group_shown_js <- function(g) {
+  parts <- vapply(g$fields, function(f) {
+    goals <- f$needed_for %||% f$shown_for_goals
+    if (is.null(goals) && is.null(f$shown_if)) return(NA_character_)
+    conds <- c(if (!is.null(goals)) paste0("(", paste(sprintf("input.f_goal == '%s'", goals), collapse = " || "), ")"),
+      if (!is.null(f$shown_if)) paste0("(", shown_if_js(f), ")"))
+    paste(conds, collapse = " && ")
+  }, character(1))
+  if (!length(parts) || anyNA(parts)) return(NULL)
+  paste0("(", paste(unique(parts), collapse = ") || ("), ")")
 }
 
 # The whole screen. `values` keeps what the user typed when the screen is
@@ -246,9 +284,11 @@ form_section <- function(g) {
   # The claim sits with the settings: most studies rest on one test.
   if (identical(g$title, "Your claim")) return("settings")
   if ("goal" %in% ids) return("goal")
+  if (identical(g$title, "Simulation accuracy")) return("accuracy")
+  if (identical(g$title, "Assumptions and named alternatives")) return("scenarios")
   # Choosing the estimate changes the scientific question, even when it
   # starts at a default. Keep it visible before its conditional inputs.
-  if ("estimate" %in% ids) return("study")
+  if (any(c("estimate", "research_question") %in% ids)) return("study")
   if ("guess" %in% ids) return("guess")
   if ("just_type" %in% ids || any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) return("effect")
   starts_set <- vapply(g$fields, function(f) !is.null(f[["default"]]) || isTRUE(f$optional), logical(1))
@@ -296,11 +336,14 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
   }, logical(1)))
   tagList(
     div(class = "form-section", h3(class = "h5 form-section-title", "1. Your goal"), part("goal")),
+    planning_decision_ui(form),
     if (any(section == "study")) div(class = "form-section", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
     div(class = "form-section form-section-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
       effect_unsure_ui(form),
       effect_help_ui(form, groups),
       part("effect")),
+    if (any(section == "accuracy")) div(class = "form-section", part("accuracy")),
+    if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
       tags$summary(tags$span(class = "form-settings-title", "Settings"), " (each starts at the default of the tool powerkit uses; open to change): ",
         settings_summary_ui(settings, values)),

@@ -96,11 +96,11 @@ test_that("other settings start at the wrapped tool's default, and say whose def
   direction <- Filter(function(f) f$id == "alternative", fields_for("E2"))[[1]]
   # Asked, not pre-filled, and first (docs/decisions.md, 19 October 2026).
   expect_null(direction[["default"]])
-  expect_match(direction$label, "Does your hypothesis predict a direction?", fixed = TRUE)
+  expect_match(direction$label, "Which directions will your statistical decision test?", fixed = TRUE)
   expect_match(direction$default_source, "Not filled in for you", fixed = TRUE)
   expect_equal(form_groups(forms, "E2")[[1]]$title, "Your hypothesis")
   expect_match(form_problems(fields_for("E2"), modifyList(form_examples[["E2"]], list(alternative = ""))),
-    "Does your hypothesis predict a direction?", fixed = TRUE, all = FALSE)
+    "Which directions will your statistical decision test?", fixed = TRUE, all = FALSE)
   expect_length(Filter(function(f) f$id == "alternative", fields_for("E9")), 0)
 })
 
@@ -963,4 +963,34 @@ test_that("a number in place of names stands for that many groups, conditions or
     problems <- problems[!names(problems) %in% c("comparison")]
     expect_length(problems, 0)
   }
+})
+
+test_that("means in SD units fill in an SD of 1 and hide it, and empty headings hide with their fields", {
+  v <- values_for("E18")
+  v$metric <- "standardised"
+  v$sd <- NULL
+  fields <- fields_for("E18")
+  sd_field <- Filter(function(f) identical(f$id, "sd"), fields)[[1]]
+  expect_false(field_applies(sd_field, v))
+  expect_length(form_problems(fields, v), 0)
+  spec <- build_spec(forms, "E18", fields, v)
+  expect_identical(spec$population$sd, 1)
+  # Every screen with the choice of units and one SD hides it the same way.
+  for (ep in form_ids) {
+    f <- fields_for(ep)
+    ids <- vapply(f, function(x) x$id %||% "", character(1))
+    if (all(c("metric", "sd") %in% ids)) {
+      sd_field <- f[[which(ids == "sd")]]
+      expect_false(field_applies(sd_field, list(metric = "standardised")), label = ep)
+    }
+  }
+  # "The SD" box: all its fields depend on choices, so the box does too.
+  sd_group <- Filter(function(g) identical(g$input, "The SD"), form_groups(forms, "E18"))[[1]]
+  js <- group_shown_js(sd_group)
+  expect_match(js, "input.f_metric != 'standardised'", fixed = TRUE)
+  expect_match(js, "input.f_metric != 'eta_squared'", fixed = TRUE)
+  expect_match(as.character(group_ui(tree, sd_group, list(), 1)), "data-display-if", fixed = TRUE)
+  # A box with a field that is always shown is never hidden.
+  names_group <- form_groups(forms, "E18")[[1]]
+  expect_null(group_shown_js(list(fields = list(list(id = "x"), list(id = "y", shown_if = list(field = "a", is = "b"))))))
 })

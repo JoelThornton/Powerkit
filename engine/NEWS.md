@@ -3,6 +3,32 @@
 * Input screens take the number of groups, conditions or categories in
   place of their names ("3" for Group 1, Group 2, Group 3).
 
+* Bayes factor t-test results offer "Check as you go?": the plan as a
+  sequential design with its sample size as the largest
+  (`bayes_sequential()`, as in Labs).
+
+* `bayes_robustness()`: a Bayes factor t-test plan's chances under JASP's
+  three widths of the default prior (medium, wide, ultrawide) as well as
+  its own, shown on the result as "Does the prior matter?". The input
+  screen reads the uncertainty about the effect as a range.
+
+* `bayes_companion()`: what a Bayes factor would add to a plan made with a
+  p-value (its chances at thresholds of 3 and 10, the sample size for both
+  tests, and for t-tests how often the two agree, exactly). In the app,
+  "Add a Bayes factor?" on p-value results of the t-tests, the correlation,
+  proportions and the one-way ANOVA.
+
+* "Plan a study analysed with Bayes factors" in the list of analyses is a
+  page of every design with a Bayes factor test version, each opening its
+  input screen with the Bayes factor chosen; searching "Bayes" finds them.
+
+* Input screens hide a box when all its fields are hidden, and means in SD
+  units no longer ask for the SD (it is 1).
+
+* The app shows that it is starting or working, keeps an open page's
+  connection alive, reconnects when it can, reloads a disconnected page
+  when the visitor comes back to it, and keeps the answers on an input screen in the browser so a
+  new visit can continue where the last one left off (`R/connection.R`).
 * The Bayes factor of an effect in the repeated-measures ANOVAs (templates
   `oneway_within`, `factorial_within`, `2x2_mixed` and `mixed`,
   `target_test > method` "bayes_factor"): JASP's inclusion Bayes factor with
@@ -59,6 +85,29 @@
   calls convert to pwrss's weighted units at each actual allocation;
   simulation, example data and reproduction scripts retain the same spreads.
   Equal-SD plans retain their existing populations and answers.
+
+* Separate directional predictions from one/two-sided decisions, and explain
+  nonzero, minimum-effect, equivalence, precision and SEM-fit/path goals.
+* Add pointwise simulation-accuracy presets, conditional controls and
+  input guides with definitions, illustrations, source routes and explicit
+  unknown-value advice, including generic-test, Bayes, IRT, SEM and count
+  parameters. Every declared numeric input has a structured guide; specific
+  parameter meanings take precedence over ambiguous keywords. Population
+  uncertainty remains distinct from Monte
+  Carlo error; precision width is not a maximum-width guarantee. Basic-test
+  simulations above 1,000 repetitions run in the background with Cancel,
+  while the usual short route retains its lower startup overhead.
+* Preserve sourced assumption statuses and named full-answer alternatives
+  in drafts/projects. Formula comparisons use the existing engine and refuse
+  simulation or unsupported goals; alternative sources are not certified.
+* Export a planning decision draft from captured result answers, with
+  question, assumptions/sources, units, recruitment, alternatives, decision
+  rule, evidence and provenance. Edits and stale reasoning block export.
+* Add an isolated, locked Playwright browser gate for calculation/edit/file
+  round trips, blank drafts/scenarios, precision, cancellation and Labs history.
+  Fixed-N explorer/scenario plots use the analysed N instead of reading a
+  nonexistent required-N record. Development tests/tools are excluded from
+  the production app bundle.
 
 # powerkit 0.31.0
 

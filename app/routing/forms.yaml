@@ -386,7 +386,7 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              default: 0.707, default_source: "bfpwr's default, 1/sqrt(2) (powertbf01(pscale = 1/sqrt(2)), bfpwr 0.1.6)",
              help: "The prior you will use when you analyse the data (the default Bayes factor t-test's JZS prior). Use the same scale as in your analysis plan."}
-          - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0,
+          - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0, range_reading: [d, dz],
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
              help: "Above 0, powerkit averages over true effects spread around yours (a normal design prior with this SD), which usually needs a larger sample."}
@@ -479,7 +479,7 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              default: 0.707, default_source: "bfpwr's default, 1/sqrt(2) (powertbf01(pscale = 1/sqrt(2)), bfpwr 0.1.6)",
              help: "The prior you will use when you analyse the data (the default Bayes factor t-test's JZS prior). Use the same scale as in your analysis plan."}
-          - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0,
+          - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0, range_reading: [d, dz],
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
              help: "Above 0, powerkit averages over true effects spread around yours (a normal design prior with this SD), which usually needs a larger sample."}
@@ -558,7 +558,7 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              default: 0.707, default_source: "bfpwr's default, 1/sqrt(2) (powertbf01(pscale = 1/sqrt(2)), bfpwr 0.1.6)",
              help: "The prior you will use when you analyse the data (the default Bayes factor t-test's JZS prior). Use the same scale as in your analysis plan."}
-          - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0,
+          - {id: effect_sd, label: "How unsure you are about the effect, as an SD (0 = exactly this effect)", type: number, path: population.effect_sd, required: true, min: 0, range_reading: [d, dz],
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the effect you entered, as a usual power analysis does (bfpwr's own default spreads it as widely as the analysis prior; docs/conventions.md, Departure 15)",
              help: "Above 0, powerkit averages over true effects spread around yours (a normal design prior with this SD), which usually needs a larger sample."}

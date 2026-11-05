@@ -25,6 +25,11 @@ test_that("every end-point card renders, with its status and inputs", {
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$plain_name), fixed = TRUE, label = id)
     # A card that runs lists what you'll need openly; the others fold it.
     runs <- tree$endpoints[[id]]$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
+    # A guide page (E-bayes) lists the designs that run instead.
+    if (!is.null(tree$endpoints[[id]]$guide)) {
+      expect_match(html, "designs powerkit plans with a Bayes factor", fixed = TRUE, label = id)
+      next
+    }
     if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, if (runs) "What you('|&#39;)ll need" else "What you would enter", label = id)
     expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
       runs_validated = "Historical design-level record: ", runs_validation_in_progress = "Runs, validation in progress.",
@@ -139,7 +144,7 @@ test_that("the analysis list offers common starting points and labels what doesn
   for (id in shortcuts) expect_match(html, sprintf("class=\"known-shortcut\" data-ep=\"%s\"", id), fixed = TRUE, label = id)
   # Status is a small label, not a run-on sentence; validated analyses have none.
   n_not <- sum(vapply(tree$endpoints[setdiff(names(tree$endpoints), tree$safety_net$endpoint)],
-    function(ep) identical(ep$status, "not_in_powerkit"), logical(1)))
+    function(ep) identical(ep$status, "not_in_powerkit") && is.null(ep$guide), logical(1)))
   expect_equal(lengths(regmatches(html, gregexpr("known-badge-not\">Not in powerkit yet<", html, fixed = TRUE))), n_not)
   expect_no_match(html, "the card points to tools that do it", fixed = TRUE)
   # A live count, and a way back from no matches to the questions.
@@ -344,7 +349,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   # these (CLAUDE.md: the app builds specs and calls the engine).
   used <- regmatches(code, gregexpr('engine_function\\("[^"]+"', code))[[1]]
   used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
-  expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "simulated_data_note", "power_interval", "power_picture", "power_picture_r", "power_picture_paired", "power_picture_anova", "power_picture_2p", "power_picture_chisq", "power_picture_f2", "bayes_planning", "bayes_sequential",
+  expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "simulated_data_note", "power_interval", "power_picture", "power_picture_r", "power_picture_paired", "power_picture_anova", "power_picture_2p", "power_picture_chisq", "power_picture_f2", "bayes_planning", "bayes_sequential", "bayes_companion", "bayes_robustness",
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
     "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result", "spec_hash", "study_variation", "sample_structure", "analysis_requirements", "all_tests_target", "analysis_evidence"))
   # Calculations run only for the end points listed in forms.yaml.
@@ -355,12 +360,12 @@ test_that("each card lists only the closing questions that apply to it", {
   e5 <- as.character(card_ui(tree, "E5"))
   expect_no_match(e5, "how reliable your measures are", fixed = TRUE)
   expect_match(e5, "Which version of the test?", fixed = TRUE) # the z test or Fisher's exact test
-  expect_match(e5, "Does your hypothesis predict a direction?", fixed = TRUE)
+  expect_match(e5, "Which directions will your statistical decision test?", fixed = TRUE)
   e6 <- as.character(card_ui(tree, "E6"))
   expect_no_match(e6, "Which version of the test?", fixed = TRUE)
   e9 <- as.character(card_ui(tree, "E9"))
   expect_match(e9, "how reliable your measures are", fixed = TRUE)
-  expect_no_match(e9, "Does your hypothesis predict a direction?", fixed = TRUE)
+  expect_no_match(e9, "Which directions will your statistical decision test?", fixed = TRUE)
   e2 <- as.character(card_ui(tree, "E2"))
   expect_match(e2, "Student&#39;s or Welch&#39;s t-test.|Student's or Welch's t-test.")
   e7 <- as.character(card_ui(tree, "E7"))
@@ -655,4 +660,29 @@ test_that("the start screen stays short: three ways in, a tag on two, and recent
   expect_match(as.character(card_ui(tree, "E2")), 'data-recent-id="E2"', fixed = TRUE)
   expect_no_match(as.character(card_ui(tree, "E2", compact = TRUE)), "data-recent-id", fixed = TRUE)
   expect_match(nav_js, "powerkit-recent", fixed = TRUE)
+})
+
+test_that("the Bayes factor page lists every design with a Bayes factor version, each opening it chosen", {
+  designs <- tree$bayes_designs
+  expect_true(all(c("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E18", "E20", "E25") %in% names(designs)))
+  # Each field named really offers the Bayes factor.
+  for (d in designs) {
+    f <- Filter(function(x) identical(x$id, d$field), form_fields(form_groups(forms, d$id)))
+    expect_length(f, 1)
+    expect_true("bayes_factor" %in% names(f[[1]]$choices), label = d$id)
+  }
+  html <- as.character(card_ui(tree, "E-bayes"))
+  expect_no_match(html, "Not in powerkit yet.", fixed = TRUE)
+  for (id in names(designs)) expect_match(html, sprintf("bayesform:%s(&#39;|')", id), label = id)
+  expect_match(html, "go_labs_bayes", fixed = TRUE)
+  expect_match(html, sprintf("The %d designs powerkit plans with a Bayes factor", length(designs)), fixed = TRUE)
+  # In the list of analyses: no "not in powerkit" badge, and searching
+  # "Bayes" finds the designs that have it.
+  known <- as.character(known_ui(tree))
+  item <- regmatches(known, regexpr('<button[^>]*data-ep="E-bayes"[^>]*>.*?</button>', known))
+  expect_no_match(item, "Not in powerkit yet", fixed = TRUE)
+  expect_match(known, 'data-search="[^"]* bayes [^"]*"[^>]*>\\s*<button[^>]*data-ep="E18"', perl = TRUE)
+  # The app opens the screen with it chosen.
+  app <- paste(readLines(test_path("..", "..", "app.R")), collapse = "\n")
+  expect_match(app, 'kind == "bayesform"', fixed = TRUE)
 })

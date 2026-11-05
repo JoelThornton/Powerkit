@@ -149,7 +149,7 @@ settings:
     ref: "Open question 8"
     question: "Where do Bayes factors enter the tree? Now: the Bayes factor end point (E-bayes) is reachable only from 'I know my analysis', and every card lists 'p-values or Bayes factors?' among the questions asked next."
     options: {start: "Ask 'p-values or Bayes factors?' on the start screen", after_goal: "Ask it after Q1, before the design questions", closing: "Ask it with the closing questions on each card", shortcut: "Shortcut list only (as now)"}
-    value: null
+    value: shortcut
     shown_at: [start]
   - key: parallel_mediators_max
     ref: "Open question 10"
@@ -789,7 +789,7 @@ closing_questions:
   # unreliable scores (maintainer decisions, 16 and 29 October 2026;
   # docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31, E15]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E32, E34, E35, E49, E50, E51, E52, E53, E57, E61, E64, E66]}
+  - {doc_id: Q-dir, text: "Which directions will your statistical decision test?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E32, E34, E35, E49, E50, E51, E52, E53, E57, E61, E64, E66]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
@@ -2019,9 +2019,11 @@ endpoints:
     doc_name: "Bayes factor design (any design)"
     plain_name: "Plan a study analysed with Bayes factors"
     status: not_in_powerkit
-    not_in_powerkit_heading: "For other designs, not in powerkit yet: use "
+    guide: bayes
+    search_words: "Bayes Bayesian Bayes factor BF10 JASP prior"
     card_points:
-      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions, a table of counts, a correlation, a one-way ANOVA or an effect in a two-factor or repeated-measures ANOVA, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation, proportions, tables and ANOVAs, BayesFactor (and bayestestR for an ANOVA effect's inclusion Bayes factor)."
+      - "A Bayes factor says how strongly the data support an effect over no effect, or no effect over an effect. Unlike a p-value, it can give strong evidence that there is no effect. Planning a study for a Bayes factor means finding the sample size that gives a good chance of strong evidence either way."
+      - "powerkit plans this for every design below, with the default priors JASP uses, which you can change. Open one to start with its Bayes factor test already chosen."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}
