@@ -1915,3 +1915,19 @@ unconditional successful-test probabilities under a common stipulated
 population. Conditional power among valid fits alone does not establish
 that guarantee when fits fail; this rule does not fix missingness,
 model misspecification or convergence problems.
+## Simulation outcomes and denominator conventions
+
+Simulation provenance records each recorded sample size's attempted,
+valid, failed and successful decisions. Power4mome's reported rejection
+rate conditions on valid analyses; simr's rate includes failed decisions
+as unsuccessful attempts. These backend conventions are retained rather
+than silently changing the planning result. The record also exposes
+successful / valid and successful / attempted, with the former undefined
+when no decisions are valid. Warnings alone are not classified as failed
+simr decisions when a finite p-value is returned.
+
+For example, 720 successes among 900 valid decisions in 1,000 attempts
+mean 80% conditional success and 72% success per attempted study. Results
+and copied methods identify both when failures occur. Monte Carlo precision
+of a reported rate is separate from fitting failures. Historical saved
+records without these counts do not receive invented zero-failure counts.

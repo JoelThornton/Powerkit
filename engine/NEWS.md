@@ -1,5 +1,10 @@
 # powerkit 0.30.0
 
+* Simulation records retain attempted, valid, failed and successful counts
+  for fixed-N and sample-size searches. Results and methods distinguish
+  conditional success among valid decisions from success per attempted study,
+  while preserving the backend's reported-power denominator convention.
+
 * All-tests planning offers a sufficient per-test target under unknown
   dependence, derived from the union bound, alongside the existing
   independence rule. Alpha is unchanged; notes distinguish a bound from an

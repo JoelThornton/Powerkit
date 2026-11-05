@@ -14,6 +14,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Simulation outcomes:** every recorded sample-size point retains attempted,
+  valid, failed and successful decisions. Power4mome's valid-fit denominator
+  and simr's all-attempt denominator are preserved and identified; results
+  and methods show both conditional and successful-study frequencies when
+  decisions fail. Older saved records are not assigned invented failure counts.
+
 - **Current versus historical guidance:** the README and build guide describe
   the actual routing app and acknowledge sourced Powerkit implementations.
   Obsolete empty screen scaffolds are removed; the optional assistant folder

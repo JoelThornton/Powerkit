@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-04"
+    title: "See when simulated studies fail"
+    text: >-
+      Results report how many simulated studies were attempted, analysable,
+      unsuccessful to analyse, and successful. When analysis fails, the
+      explanation separates success among valid decisions from success per attempt.
+  - date: "2026-11-04"
     title: "Plan when every test must succeed"
     text: >-
       You can choose a sufficient per-test target without assuming independent

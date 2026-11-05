@@ -48,13 +48,14 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
 
   spacing <- step * max(1, round(0.05 * n_guess / step))
   grid <- pmax(n_min, n_guess + spacing * (-3:3))
-  points <- data.frame(n = numeric(), seed = numeric(), rejections = numeric(), nrep = numeric())
+  points <- data.frame(n = numeric(), seed = numeric(), rejections = numeric(), nrep = numeric(), attempted = numeric(), valid = numeric())
   simulate_at <- function(ns) {
     ns <- setdiff(unique(ns), points$n)
     for (n in ns) {
       n_seed <- offset_seed(seed, 10007 * nrow(points))
       sim <- backend$simulate(n, nrep, n_seed, cores)
-      points[nrow(points) + 1, ] <<- c(n, n_seed, sim$rejections, sim$nrep)
+      points[nrow(points) + 1, ] <<- c(n, n_seed, sim$rejections, sim$nrep,
+        sim$attempted %||% sim$nrep, sim$valid %||% sim$nrep)
     }
   }
   simulate_at(grid)
@@ -95,7 +96,8 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
     n_required = estimate,
     curve = data.frame(n = points$n, power = p, mcse = sqrt(p * (1 - p) / points$nrep)),
     simulations = simulation_record(
-      points$n, points$seed, points$rejections, points$nrep, points$n %in% fitted_n
+      points$n, points$seed, points$rejections, points$nrep, points$n %in% fitted_n,
+      points$attempted, points$valid
     )
   )
 }
@@ -104,10 +106,15 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
 # replications, and whether the probit curve for the required n was fitted
 # to it (NA unless the goal is a sample size). Kept in the provenance so
 # that every simulated value can be reproduced (export_script()).
-simulation_record <- function(n, seed, rejections, nrep, fitted = NA) {
+simulation_record <- function(n, seed, rejections, nrep, fitted = NA, attempted = nrep, valid = nrep) {
   data.frame(
     n = n, seed = as.integer(seed), rejections = rejections, nrep = nrep,
-    fitted = fitted, row.names = NULL
+    fitted = fitted, attempted = attempted, valid = valid,
+    failed = attempted - valid, successful = rejections,
+    conditional_power = ifelse(valid > 0, rejections / valid, NA_real_),
+    successful_study_probability = rejections / attempted,
+    denominator = ifelse(valid == attempted, "all_valid", ifelse(nrep == valid, "valid", "attempted")),
+    row.names = NULL
   )
 }
 

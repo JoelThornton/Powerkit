@@ -227,8 +227,11 @@
 #'     size (the most replications simulated in one backend call; `NA` if
 #'     the backend isn't run in batches), `simulations` (for a simulated
 #'     result, a data frame with one row per simulated n: its `seed`,
-#'     `rejections`, analysable replications `nrep`, and `fitted`, whether
-#'     the curve for the required n was fitted to it; `NA` for an exact
+#'     `rejections`, the reported power denominator `nrep`, and `fitted`,
+#'     whether the curve for the required n was fitted to it. It also records
+#'     attempted, valid, failed and successful counts, conditional power
+#'     among valid decisions, successful-study probability per attempt, and
+#'     the denominator convention; `NA` for an exact
 #'     result), backend and backend function, R and package versions, and
 #'     run time. A simulated result is reproduced by the same seed,
 #'     replications and batch size; for a backend run in batches, the
@@ -381,7 +384,8 @@ power_at_n <- function(backend, n, simulating, nrep, seed, cores) {
   p <- sim$rejections / sim$nrep
   list(
     curve = data.frame(n = n, power = p, mcse = sqrt(p * (1 - p) / sim$nrep)),
-    simulations = simulation_record(n, seed, sim$rejections, sim$nrep)
+    simulations = simulation_record(n, seed, sim$rejections, sim$nrep,
+      attempted = sim$attempted %||% sim$nrep, valid = sim$valid %||% sim$nrep)
   )
 }
 
