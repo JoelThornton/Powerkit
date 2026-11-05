@@ -1,7 +1,8 @@
 # powerkit 0.32.0
 
-* The app shows that it is starting, working or disconnected, reconnects
-  when it can, and keeps the answers on an input screen in the browser so a
+* The app shows that it is starting or working, keeps an open page's
+  connection alive, reconnects when it can, reloads a disconnected page
+  when the visitor comes back to it, and keeps the answers on an input screen in the browser so a
   new visit can continue where the last one left off (`R/connection.R`).
 
 * The app starts in about 0.5 s instead of 3: the About tab is built the

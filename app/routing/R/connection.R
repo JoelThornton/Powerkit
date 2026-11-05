@@ -9,7 +9,11 @@
 # * The connection drops after a while away from the page (the server ends
 #   idle sessions), and the app's state goes with it. Shiny tries to
 #   reconnect to the same session while its process is still running
-#   (session$allowReconnect()); and on an input screen the answers are
+#   (session$allowReconnect()); a small message every 20 seconds keeps an
+#   open page's connection from being closed for being quiet; a page that
+#   lost its connection while in the background reloads itself when the
+#   visitor comes back (the host's own message and Reload button cover a
+#   loss while the page is in view); and on an input screen the answers are
 #   saved in this browser (localStorage, never sent anywhere else), in the
 #   same draft format as "Save a draft" (R/drafts.R), so a new session
 #   offers to continue where the visitor left off.
@@ -46,10 +50,6 @@ connection_css <- "
   #pk-busy .pk-busy-label { position: absolute; top: 6px; right: 12px; background: #0a5a8c; color: #fff; font-size: 0.8rem; padding: 0.15rem 0.6rem; border-radius: 6px; }
   @keyframes pk-busy-move { to { background-position: -200% 0; } }
   html.pk-busy-shown #pk-busy { display: block; }
-  #pk-lost { position: fixed; left: 50%; bottom: 1.5rem; transform: translateX(-50%); z-index: 2100; display: none; max-width: 34rem; width: calc(100% - 2rem);
-    background: #fff5df; border: 1px solid #a15b00; border-radius: 10px; padding: 0.9rem 1.1rem; color: #17283d; box-shadow: 0 4px 18px rgba(0,0,0,0.15); }
-  html.pk-lost-shown #pk-lost { display: block; }
-  #shiny-disconnected-overlay { display: none !important; }
   .about-loading { color: #3d4852; }
 "
 
@@ -72,15 +72,32 @@ connection_js <- "
     if (e.name === 'screen') { var s = document.getElementById('pk-starting'); if (s) s.remove(); }
     if (e.name === 'about_page') { $('.about-loading').remove(); }
   });
+  var connected = false, beat = null;
   $(document).on('shiny:connected', function() {
-    document.documentElement.classList.remove('pk-lost-shown');
+    connected = true;
     var saved = null;
     try { saved = window.localStorage.getItem(KEY); } catch (e) {}
     if (saved) Shiny.setInputValue('pk_saved_draft', saved, {priority: 'event'});
+    // A small message every 20 seconds while the page is open, so that the
+    // connection isn't closed for being quiet while the visitor reads or
+    // thinks. Browsers slow timers in background tabs, and phones pause
+    // pages altogether, so this helps most while the page is in view.
+    clearInterval(beat);
+    beat = setInterval(function() { if (connected) Shiny.setInputValue('pk_heartbeat', Date.now()); }, 20000);
   });
   $(document).on('shiny:disconnected', function() {
-    document.documentElement.classList.add('pk-lost-shown');
+    connected = false;
+    clearInterval(beat);
     var s = document.getElementById('pk-starting'); if (s) s.remove();
+  });
+  // Coming back to a page whose connection was lost while away: reload it
+  // by itself, so nobody has to press Reload; answers on an input screen
+  // are offered back from the browser's copy.
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible' && !connected && window.Shiny && Shiny.shinyapp &&
+        !Shiny.shinyapp.isConnected() && !document.getElementById('pk-starting')) {
+      window.location.reload();
+    }
   });
   Shiny.addCustomMessageHandler('pk_autosave', function(text) {
     try { if (text) window.localStorage.setItem(KEY, text); else window.localStorage.removeItem(KEY); } catch (e) {}
@@ -88,7 +105,7 @@ connection_js <- "
 })();
 "
 
-# The starting screen, the busy bar and the connection-lost message, in the
+# The starting screen and the busy bar, in the
 # page as it arrives (before the app has answered).
 connection_ui <- function() {
   tagList(
@@ -98,10 +115,6 @@ connection_ui <- function() {
         tags$p(tags$strong("Starting powerkit…")),
         tags$p(class = "small text-muted", "After a quiet spell the server needs a little while to wake up, up to a minute. The page will appear by itself."))),
     div(id = "pk-busy", role = "status", `aria-live` = "polite",
-      div(class = "pk-busy-bar"), tags$span(class = "pk-busy-label", "Working…")),
-    div(id = "pk-lost", role = "alert",
-      tags$p(tags$strong("The connection to powerkit was lost."),
-        " This happens after a while away from the page. Reload to carry on: answers you had typed on an input screen are kept in this browser, and powerkit will offer to bring them back."),
-      tags$button(type = "button", class = "btn btn-primary btn-sm", onclick = "window.location.reload()", "Reload"))
+      div(class = "pk-busy-bar"), tags$span(class = "pk-busy-label", "Working…"))
   )
 }

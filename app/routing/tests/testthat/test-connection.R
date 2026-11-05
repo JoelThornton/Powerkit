@@ -1,11 +1,14 @@
 # Keeping the visitor's place and showing that the app is working
 # (R/connection.R, 5 November 2026).
 
-test_that("the page arrives with the starting screen, the busy bar and the connection-lost message", {
+test_that("the page arrives with the starting screen and the busy bar, and leaves the host's own lost-connection message alone", {
   html <- as.character(connection_ui())
   expect_match(html, "Starting powerkit", fixed = TRUE)
   expect_match(html, 'id="pk-busy"', fixed = TRUE)
-  expect_match(html, "The connection to powerkit was lost.", fixed = TRUE)
+  expect_no_match(html, "pk-lost", fixed = TRUE)
+  expect_no_match(connection_css, "shiny-disconnected-overlay", fixed = TRUE)
+  expect_match(connection_js, "pk_heartbeat", fixed = TRUE)
+  expect_match(connection_js, "visibilitychange", fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(app, "session$allowReconnect(TRUE)", fixed = TRUE)
   expect_match(app, "connection_ui()", fixed = TRUE)

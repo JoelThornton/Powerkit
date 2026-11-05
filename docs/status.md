@@ -34,7 +34,8 @@ fully validated. Validation runs are recorded in
   (localStorage, same format) and a new visit offers to continue them.
 
 - **Connection and loading:** a starting screen while the server wakes, a
-  "Working…" bar when busy, a plain lost-connection message with Reload, and
+  "Working…" bar when busy, a 20-second heartbeat, a reload by itself on
+  returning to a page whose connection was lost, and
   Shiny reconnection to the same session when its process still runs. The
   About tab is built in the background after start.
 

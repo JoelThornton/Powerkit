@@ -5210,8 +5210,11 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
 - **What:** the app (1) shows "Starting powerkit" while a new server
   process wakes up, instead of a blank page; (2) shows a bar with
   "Working…" whenever it is busy for more than a quarter of a second;
-  (3) says plainly when the connection is lost, with a Reload button,
-  instead of greying the page; (4) asks Shiny to reconnect to the same
+  (3) keeps an open page's connection from being closed for being quiet
+  (a small message every 20 seconds) and reloads a page by itself when the
+  visitor comes back to it after its connection was lost, leaving the
+  host's own lost-connection message and Reload button as they are, so
+  there is only ever one; (4) asks Shiny to reconnect to the same
   session when the connection drops while its process is still running;
   (5) saves the answers on an input screen in the visitor's own browser
   (localStorage, in the draft format "Save a draft" already uses) and, on
