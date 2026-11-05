@@ -21,6 +21,10 @@
   power4mome's standardisation off. Validation chunk `dyadic`: a
   simulation written separately with lavaan.
 
+* Document the current session-bound calculation lifecycle and a staged
+  proposal for durable jobs and statistically valid resumability. No
+  runtime or infrastructure changes.
+
 * Whole-study simulation: X as two groups may now correlate with the
   moderator W and the first measurement B (`population > correlations`
   "X<->W" and "X<->B"; 0 if not given, as for randomised groups). W and B
