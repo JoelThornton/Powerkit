@@ -1443,14 +1443,49 @@ forms:
           - {id: partner_21, writeup_label: "partner effect of member 2 on member 1", label: "Partner effect of member 2 on member 1: member 2's X on member 1's Y", type: number, path: population.partner_21, effect: true, min: -1, max: 1,
              shown_if: {field: distinguishable, is: "true"}}
           - {id: apim_effect, label: "The effect to test (shared effects)", type: select, path: target_test.effect, required: true,
-             shown_if: {field: distinguishable, is: "false"},
+             shown_if: [{field: distinguishable, is: "false"}, {field: apim_moderator, is: "none"}],
              choices: {partner: "The partner effect", actor: "The actor effect", actor_and_partner: "Both: the actor and the partner effect significant in the same study (joint power)"},
              default: partner, default_source: "the partner effect, the one dyadic designs are usually planned for"}
           - {id: apim_effect_d, label: "The effect to test (each member's own)", type: select, path: target_test.effect, required: true,
-             shown_if: {field: distinguishable, is: "true"},
+             shown_if: [{field: distinguishable, is: "true"}, {field: apim_moderator, is: "none"}],
              choices: {partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2", actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect",
                        both_partners: "Both partner effects significant in the same study (joint power)", both_actors: "Both actor effects (joint power)", all_four: "All four effects (joint power)"},
              default: partner_21, default_source: "a partner effect, the kind dyadic designs are usually planned for"}
+      - input: "Whether the actor effect depends on something about the pair"
+        fields:
+          - {id: apim_moderator, label: "Does the actor effect depend on a score that describes the pair (a moderator, such as relationship length)?", type: select, required: true,
+             choices: {none: "No", "yes": "Yes: the pair-level score W moderates each member's actor effect"},
+             sets: {"yes": [{path: variables.W.type, value: continuous}]},
+             default: none, default_source: "no moderator, the actor-partner model on its own"}
+          - {id: W_label, label: "The pair-level moderator (W; one value per pair, for example relationship length)", type: text, path: variables.W.label, required: true,
+             shown_if: {field: apim_moderator, is: "yes"}}
+          - {id: moderation, writeup_label: "moderation of the actor effect", label: "Moderation: how much the actor effect changes per SD of W (the standardised X x W path on a person's own Y)", type: number, path: population.moderation, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "false"}],
+             help: "0 means W doesn't change the actor effect. For example 0.15: one SD more of W makes the actor effect 0.15 larger. With few pairs the test lavaan reports for the moderation is slightly liberal: about 7% false positives at a 5% level with 60 pairs, close to 5% from 200."}
+          - {id: w_y, writeup_label: "W's effect on each member's Y", label: "W's own effect on each member's Y (a standardised path)", type: number, path: population.w_y, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "false"}]}
+          - {id: moderation_1, writeup_label: "moderation of member 1's actor effect", label: "Moderation of member 1's actor effect (X1 x W on member 1's Y)", type: number, path: population.moderation_1, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "true"}]}
+          - {id: moderation_2, writeup_label: "moderation of member 2's actor effect", label: "Moderation of member 2's actor effect (X2 x W on member 2's Y)", type: number, path: population.moderation_2, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "true"}]}
+          - {id: w_y_1, writeup_label: "W's effect on member 1's Y", label: "W's own effect on member 1's Y", type: number, path: population.w_y_1, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "true"}]}
+          - {id: w_y_2, writeup_label: "W's effect on member 2's Y", label: "W's own effect on member 2's Y", type: number, path: population.w_y_2, effect: true, min: -1, max: 1,
+             shown_if: [{field: apim_moderator, is: "yes"}, {field: distinguishable, is: "true"}]}
+          - {id: r_xw, writeup_label: "correlation of W with each member's X", label: "Correlation of W with each member's X", type: number, path: population.r_xw, required: true, min_exclusive: -1, max_exclusive: 1,
+             default: 0, default_source: "uncorrelated, the simplest assumption; give the correlation from earlier data if you have it",
+             shown_if: {field: apim_moderator, is: "yes"}}
+          - {id: apim_effect_w, label: "The effect to test (shared effects)", type: select, path: target_test.effect, required: true,
+             shown_if: [{field: distinguishable, is: "false"}, {field: apim_moderator, is: "yes"}],
+             choices: {moderation: "The moderation of the actor effect", actor_and_moderation: "Both: the actor effect and its moderation significant in the same study (joint power)",
+                       partner: "The partner effect", actor: "The actor effect", actor_and_partner: "The actor and the partner effect (joint power)"},
+             default: moderation, default_source: "the moderation, the reason for adding W"}
+          - {id: apim_effect_dw, label: "The effect to test (each member's own)", type: select, path: target_test.effect, required: true,
+             shown_if: [{field: distinguishable, is: "true"}, {field: apim_moderator, is: "yes"}],
+             choices: {both_moderations: "Both moderations significant in the same study (joint power)", moderation_1: "The moderation of member 1's actor effect", moderation_2: "The moderation of member 2's actor effect",
+                       actors_and_moderations: "Both actor effects and both moderations (joint power)", partner_21: "Member 2's partner effect on member 1", partner_12: "Member 1's partner effect on member 2",
+                       actor_1: "Member 1's actor effect", actor_2: "Member 2's actor effect", both_partners: "Both partner effects (joint power)", both_actors: "Both actor effects (joint power)", all_four: "All four actor and partner effects (joint power)"},
+             default: both_moderations, default_source: "both members' moderations, the reason for adding W"}
       - input: "How alike the members are"
         fields:
           - {id: r_x, writeup_label: "correlation of the members' X", label: "Correlation of the two members' X", type: number, path: population.r_x, effect: true, min: -1, max: 1}

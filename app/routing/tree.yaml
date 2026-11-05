@@ -1719,19 +1719,20 @@ endpoints:
   E44:
     doc_name: "Dyadic data: actor and partner effects (the actor-partner interdependence model)"
     plain_name: "Pairs of people: how each one's score relates to their own and their partner's outcome"
-    search_words: "dyadic dyads couples APIM actor partner interdependence pairs"
+    search_words: "dyadic dyads couples APIM actor partner interdependence pairs moderation relationship length dyad-level moderator"
     template: "dyadic / apim"
     backend: "power4mome: power4test() on the APIM, fitted with lavaan, the effect tested with test_parameters() (simulation)"
     method: "Simulation"
     status: runs_validation_in_progress
-    validation: {file: test-validation-apim.R, note: "Agrees with a simulation written separately (the data drawn directly, the APIM fitted with lavaan without power4mome) for actor and partner effects in both kinds of dyad, recovers every path and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    validation: {file: test-validation-apim.R, note: "Agrees with a simulation written separately (the data drawn directly, the APIM fitted with lavaan without power4mome) for actor and partner effects in both kinds of dyad, recovers every path and correlation in its check run, and keeps the Type I error at alpha; with a pair-level moderator, the same for the moderation alone and with the actor effect (test-validation-apim-moderation.R). Not yet checked against a published example."}
     card_points:
       - "Pairs of people whose scores are related, such as couples or friends, with something measured on each member (X) and an outcome measured on each (Y): each person's X can affect their own Y (the actor effect) and their partner's Y (the partner effect)."
       - "Members can be distinguishable (for example, a woman and a man, or a parent and child), with their own actor and partner effects, or indistinguishable (for example, same-sex friends), sharing them."
       - "You give the actor and partner effects as standardised paths, the correlation of the two members' X, and how alike the two members' outcomes are beyond their X; powerkit finds the number of pairs."
       - "Several effects can be planned for together: the chance that the actor and partner effects (or both members' partner effects) are all significant in the same study, counted directly in the simulated studies."
+      - "The actor effect can depend on a score that describes the pair, such as relationship length (a pair-level moderator): you give how much the actor effect changes per SD of it, and can plan for the moderation alone or with the actor effect, significant in the same study."
       - "Simulated with power4mome, the model fitted by lavaan in each simulated study, so the answer carries a little random error."
-    inputs: ["The variables, and whether the members can be told apart", "The actor and partner effects", "How alike the members are"]
+    inputs: ["The variables, and whether the members can be told apart", "The actor and partner effects", "Whether the actor effect depends on something about the pair", "How alike the members are"]
     tier: v2
     alternatives: ["conditions given to whole pairs: a cluster-randomised trial with groups of two", "treating the two members as independent people, which can overstate or understate power"]
   E65:

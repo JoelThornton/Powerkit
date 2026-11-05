@@ -1,5 +1,15 @@
 # powerkit 0.31.0
 
+* Dyadic data (template `dyadic / apim`, card E44): an optional pair-level
+  moderator (`variables > W`, `population > moderation` and `w_y`, or one
+  of each per member, and `r_xw`) moderates each member's actor effect.
+  `target_test > effect` adds "moderation" and "actor_and_moderation"
+  (shared effects) and "moderation_1", "moderation_2", "both_moderations"
+  and "actors_and_moderations" (each member's own). Each Y's residual
+  variance comes from the products' exact moments, supplied with
+  power4mome's standardisation off. Validation chunk `dyadic`: a
+  simulation written separately with lavaan.
+
 * Whole-study simulation: X as two groups may now correlate with the
   moderator W and the first measurement B (`population > correlations`
   "X<->W" and "X<->B"; 0 if not given, as for randomised groups). W and B

@@ -9955,7 +9955,7 @@
       }
     },
     "template_apim": {
-      "description": "The actor-partner interdependence model (APIM) for pairs of people (dyads): each member's X predicts their own Y (the actor effect) and their partner's Y (the partner effect), with the two members' X correlated and their Y residuals correlated. Paths are standardised. With distinguishable members (population > distinguishable true, e.g. woman and man) each member has their own actor and partner effect; with indistinguishable members (e.g. same-sex friends) one actor and one partner effect are shared, and the model is fitted with them constrained equal. Simulated with power4mome (data from the population model, the APIM fitted by lavaan), the chosen effect tested by its Wald z test. goal > n is the number of dyads.",
+      "description": "The actor-partner interdependence model (APIM) for pairs of people (dyads): each member's X predicts their own Y (the actor effect) and their partner's Y (the partner effect), with the two members' X correlated and their Y residuals correlated. Paths are standardised. With distinguishable members (population > distinguishable true, e.g. woman and man) each member has their own actor and partner effect; with indistinguishable members (e.g. same-sex friends) one actor and one partner effect are shared, and the model is fitted with them constrained equal. Simulated with power4mome (data from the population model, the APIM fitted by lavaan), the chosen effect tested by its Wald z test. goal > n is the number of dyads. Optionally a pair-level moderator W (one value per pair, such as relationship length) predicts each member's Y and moderates each actor effect (X x W), with joint power for the moderation and the actor effects (5 November 2026).",
       "properties": {
         "variables": {
           "required": [
@@ -9968,6 +9968,10 @@
               "$ref": "#/definitions/variable_continuous"
             },
             "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "W": {
+              "description": "Optional: a pair-level moderator, one value per pair (for example, relationship length), which moderates each member's actor effect.",
               "$ref": "#/definitions/variable_continuous"
             }
           }
@@ -10041,6 +10045,46 @@
             "r_y": {
               "description": "The correlation of the two members' Y beyond what their X explain (the residual correlation, often called non-independence).",
               "$ref": "#/definitions/correlation"
+            },
+            "r_xw": {
+              "description": "With a moderator W: the correlation of W with each member's X (the same for both).",
+              "$ref": "#/definitions/correlation"
+            },
+            "moderation": {
+              "description": "Indistinguishable members, with W: the standardised X x W path on a person's own Y (how much their actor effect changes per SD of W), shared.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "w_y": {
+              "description": "Indistinguishable members, with W: W's standardised path to each member's Y, shared.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "moderation_1": {
+              "description": "Distinguishable members, with W: X1 x W on member 1's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "moderation_2": {
+              "description": "Distinguishable members, with W: X2 x W on member 2's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "w_y_1": {
+              "description": "Distinguishable members, with W: W on member 1's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "w_y_2": {
+              "description": "Distinguishable members, with W: W on member 2's Y.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
             }
           }
         },
@@ -10062,9 +10106,15 @@
                     "actor_and_partner",
                     "both_actors",
                     "both_partners",
-                    "all_four"
+                    "all_four",
+                    "moderation",
+                    "actor_and_moderation",
+                    "moderation_1",
+                    "moderation_2",
+                    "both_moderations",
+                    "actors_and_moderations"
                   ],
-                  "description": "The effect tested, or several tested together (joint power: every one significant in the same study): indistinguishable members 'actor', 'partner' or 'actor_and_partner'; distinguishable members 'actor_1', 'actor_2', 'partner_12', 'partner_21', 'both_actors', 'both_partners' or 'all_four'."
+                  "description": "The effect tested, or several tested together (joint power: every one significant in the same study): indistinguishable members 'actor', 'partner' or 'actor_and_partner'; distinguishable members 'actor_1', 'actor_2', 'partner_12', 'partner_21', 'both_actors', 'both_partners' or 'all_four'. With a moderator W: indistinguishable members 'moderation' or 'actor_and_moderation' (the actor effect and its moderation together); distinguishable members 'moderation_1', 'moderation_2', 'both_moderations' or 'actors_and_moderations' (both actor effects and both moderations)."
                 },
                 "method": {
                   "const": "wald_z"

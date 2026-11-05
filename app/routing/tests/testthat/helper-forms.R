@@ -211,7 +211,7 @@ form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time
 
 # E44: couples, indistinguishable; the partner effect.
 form_examples$E44 <- c(list(X_label = "Daily stress", Y_label = "Relationship satisfaction", distinguishable = "false",
-                            actor = "-0.3", partner = "-0.15", apim_effect = "partner", r_x = "0.2", r_y = "0.3"), closing_ok)
+                            actor = "-0.3", partner = "-0.15", apim_effect = "partner", apim_moderator = "none", r_x = "0.2", r_y = "0.3"), closing_ok)
 
 # E31: a three-way regression interaction.
 form_examples$E31 <- c(list(X_label = "Daily stress", W_label = "Social support", Z_label = "Age", Y_label = "Sleep quality",

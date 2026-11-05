@@ -1544,12 +1544,13 @@ sim_apim_code <- function(spec, n) {
   name <- function(role, i) csv_name(paste(spec$variables[[role]]$label %||% role, members[i]))
   c(
     # power4test() takes its own seed, drawn here from the data set's seed.
-    sprintf("sim <- power4mome::power4test(nrep = 1, model = %s, pop_es = %s, n = %d, do_the_test = FALSE, iseed = sample.int(1e8, 1), progress = FALSE)",
-      r_code(inputs$model), r_code(inputs$pop_es), n),
+    sprintf("sim <- power4mome::power4test(nrep = 1, model = %s, pop_es = %s, n = %d,%s do_the_test = FALSE, iseed = sample.int(1e8, 1), progress = FALSE)",
+      r_code(inputs$model), r_code(inputs$pop_es), n, if (isTRUE(inputs$moderator)) " standardized = FALSE," else ""),
     "pooled <- as.data.frame(power4mome::pool_sim_data(sim))",
     "simulated <- data.frame(",
     "  dyad = seq_len(nrow(pooled)),",
     sprintf("  %s = pooled$X1, %s = pooled$X2,", name("X", 1), name("X", 2)),
+    if (isTRUE(inputs$moderator)) sprintf("  %s = pooled$W,", csv_name(spec$variables$W$label %||% "W")) else NULL,
     sprintf("  %s = pooled$Y1, %s = pooled$Y2", name("Y", 1), name("Y", 2)),
     ")"
   )
