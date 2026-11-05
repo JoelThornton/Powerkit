@@ -36,6 +36,10 @@ test_that("equal-SD Welch populations preserve the original backend call", {
   expect_equal(args$d, spec$population$d)
   expect_equal(args$var.ratio, 1)
   expect_null(spower_inputs(spec)$args(120)$sds)
+  spec$target_test$method <- "student_t"
+  expect_s3_class(validate_spec(spec), "powerkit_spec")
+  spec$population$sd_ratio <- 2
+  expect_error(validate_spec(spec), "only used by")
 })
 
 test_that("Welch example data recover the group spreads and effect", {

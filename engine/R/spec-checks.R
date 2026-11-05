@@ -364,7 +364,8 @@ check_sd_ratio <- function(spec) {
     return("For unequal-SD Welch planning, give raw means and the two SDs, or a mean difference standardised by their root mean square. Point-biserial/published-test conversions and the safeguard need equal-SD assumptions and cannot establish this population.")
   }
   if (is.null(spec$population$sd_ratio) || brunner_munzel_test(spec) ||
-      (identical(spec$template, "independent_t") && identical(spec$target_test$method, "welch_t"))) {
+      (identical(spec$template, "independent_t") && (identical(spec$target_test$method, "welch_t") ||
+        (identical(spec$target_test$method, "student_t") && isTRUE(all.equal(spec$population$sd_ratio, 1)))))) {
     return(character())
   }
   "'population > sd_ratio' is only used by the Brunner-Munzel or Welch test; choose one of those methods, or remove it."
