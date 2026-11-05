@@ -1,5 +1,8 @@
 # powerkit 0.32.0
 
+* The app starts in about 0.5 s instead of 3: the About tab is built the
+  first time it is opened, not when the app starts.
+
 * Results capture a versioned, hashed evidence registry for the selected
   analysis variant. Package agreement, independent references, published
   examples and opt-in method-validation runs remain separate; unmatched

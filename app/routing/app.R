@@ -648,7 +648,16 @@ focus_js <- "
 # The tabs that are the same for everyone, built once when the app starts
 # (About reads every package's citation(), so building it per visitor is
 # slow when many people open the app at once).
-about_tab <- about_ui(tree, forms)
+# The About tab is built the first time anyone opens it, then kept for this
+# R process: building it (the capability table above all) took about 1.9 of
+# the 3.1 seconds a new process spent before it could show the first page,
+# and a visitor arriving after a quiet spell gets a new process, so every
+# such first visit waited for it (docs/decisions.md, 5 November 2026).
+about_tab_cache <- new.env(parent = emptyenv())
+about_tab_html <- function() {
+  if (is.null(about_tab_cache$html)) about_tab_cache$html <- about_ui(tree, forms)
+  about_tab_cache$html
+}
 whats_new_tab <- whats_new_ui(whats_new)
 labs_tab <- labs_ui(tree)
 feedback_tab <- feedback_tab_ui(tree)
@@ -680,7 +689,7 @@ ui <- function(req) fluidPage(
       # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
       selected = page_from_query(req$QUERY_STRING),
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
-      tabPanel("About", div(class = "pt-3", about_tab)),
+      tabPanel("About", div(class = "pt-3", uiOutput("about_page"))),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
       tabPanel("Updates", div(class = "pt-3", whats_new_tab)),
       tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
@@ -692,6 +701,13 @@ ui <- function(req) fluidPage(
 )
 
 server <- function(input, output, session) {
+  # The About page, built on first opening (about_tab_html()).
+  about_opened <- reactiveVal(FALSE)
+  observeEvent(input$tabs, if (identical(input$tabs, "About")) about_opened(TRUE))
+  output$about_page <- renderUI({
+    req(about_opened())
+    about_tab_html()
+  })
   # Placeholders for undecided settings show only in the maintainer's view.
   session$userData$maintainer_view <- maintainer_view_requested(isolate(session$clientData$url_search))
   state <- reactiveValues(
