@@ -17,11 +17,12 @@ form_calculates <- function(forms, ep_id) ep_id %in% unlist(forms$calculates)
 # so on) also runs in the background, so a run of a minute or two neither
 # leaves the screen without a progress bar nor holds up everyone else
 # using the app (the online app has one R process). The basic tests'
-# simulations (Welch's t-test, the rank tests for two groups) take a few
-# seconds, less than starting a background process, so they run here.
+# usual short simulations take less time than starting another process.
+# Higher-accuracy basic runs use that process so they remain cancellable.
 runs_in_background <- function(forms, ep_id, spec = NULL, simulates = engine_function("runs_simulation")) {
   if (ep_id %in% names(forms$background)) return(TRUE)
-  if (is.null(spec) || is.null(simulates) || identical(spec$design, "basic_test")) return(FALSE)
+  if (is.null(spec) || is.null(simulates)) return(FALSE)
+  if (identical(spec$design, "basic_test") && (spec$options$nrep %||% 1000L) <= 1000L) return(FALSE)
   isTRUE(tryCatch(simulates(spec), error = function(e) FALSE))
 }
 usual_seconds <- function(forms, ep_id, goal) forms$background[[ep_id]][[goal]] %||% NA_real_

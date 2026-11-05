@@ -38,6 +38,14 @@ test_that("unfamiliar numeric families have meanings, illustrations, sources and
   }
 })
 
+test_that("higher-accuracy basic simulations are cancellable without slowing the usual short route", {
+  spec <- list(design = "basic_test", options = list(nrep = 1000L))
+  expect_false(runs_in_background(forms, "E2", spec, simulates = function(x) TRUE))
+  spec$options$nrep <- 10000L
+  expect_true(runs_in_background(forms, "E2", spec, simulates = function(x) TRUE))
+  expect_false(runs_in_background(forms, "E2", spec, simulates = function(x) FALSE))
+})
+
 test_that("assumption sources and named nuisance alternatives survive draft and calculation snapshots", {
   fields <- form_fields(form_groups(forms, "E2"))
   v <- modifyList(form_examples$E2, list(method = "student_t", calc_method = "exact", goal = "power", n = "120",

@@ -5,7 +5,9 @@
 * Add pointwise simulation-accuracy presets, conditional controls and
   input guides with definitions, illustrations, source routes and explicit
   unknown-value advice. Population uncertainty remains distinct from Monte
-  Carlo error; precision width is not a maximum-width guarantee.
+  Carlo error; precision width is not a maximum-width guarantee. Basic-test
+  simulations above 1,000 repetitions run in the background with Cancel,
+  while the usual short route retains its lower startup overhead.
 * Preserve sourced assumption statuses and named full-answer alternatives
   in drafts/projects. Formula comparisons use the existing engine and refuse
   simulation or unsupported goals; alternative sources are not certified.

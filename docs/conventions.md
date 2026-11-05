@@ -2126,6 +2126,11 @@ custom counts are available only when selected. Expected precision width is
 an average, not a maximum-width or probability guarantee; assurance is stated
 separately where the backend supports it.
 
+Basic-test simulations with more than 1,000 repetitions use the existing
+background runner so the screen stays responsive and Cancel is available.
+The usual short basic simulation keeps its direct route; formulas do not
+start a simulation job merely because an accuracy choice was saved.
+
 Input-source records are user assessments: reported, derived, assumed or
 unknown. An unknown input has no number; changed values invalidate the match
 to a recorded source. Named alternatives retain their input/source snapshots

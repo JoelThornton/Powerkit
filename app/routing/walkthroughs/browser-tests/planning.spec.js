@@ -115,13 +115,8 @@ test('precision produces width rather than a power result', async ({ page }, inf
 });
 
 test('a real background simulation can be cancelled', async ({ page }) => {
-  await openAnalysis(page, 'E9', 'interaction');
-  await setValue(page, 'goal', 'power');
-  for (const [id, value] of [['r_X_Y', '-0.3'], ['r_W_Y', '0.2'], ['r_XW_Y', '0.1'], ['r_X_W', '-0.1']]) {
-    await setValue(page, id, value);
-  }
-  await setValue(page, 'just_type', 'smallest_effect_of_interest');
-  await setValue(page, 'just_source', 'A justified interaction scenario for cancellation checks.');
+  await tPlan(page);
+  await setValue(page, 'method', 'welch_t');
   await setValue(page, 'simulation_accuracy', 'precise');
   await setValue(page, 'n', '1000');
   await page.locator('#form_check').click();

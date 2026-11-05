@@ -14,10 +14,11 @@ entries:
   - date: "2026-11-05"
     title: "Make the planning choices clearer and keep your reasoning"
     text: >-
-      A directional prediction no longer implies a one-sided test. New input
-      guides explain unfamiliar numbers, simulation accuracy has readable
-      choices, and you can record assumption sources and named alternatives.
-      Results can download a planning document alongside the project file.
+      A directional prediction can accompany a two-sided test; new input
+      guides explain unfamiliar numbers and accuracy choices distinguish
+      simulation error from uncertain assumptions. Record sources and named
+      alternatives, cancel higher-accuracy simulations, and download a
+      planning document with your project.
   - date: "2026-11-05"
     title: "A faster first visit"
     text: >-
