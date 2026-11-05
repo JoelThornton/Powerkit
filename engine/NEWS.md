@@ -1,7 +1,8 @@
 # powerkit 0.33.0
 
-* Input screens explain how to use available raw/published summaries and
-  what to do with genuinely missing information, without imputing numbers.
+* Input screens explain raw/published summaries and genuinely missing inputs.
+  Reported t/F text fills the supported conversion fields; fractional df and
+  unsupported F contrasts are refused without rounding or partial edits.
 * Shared sample descriptions keep analysis, recruitment, comparison and
   planning-document counts in their stated units.
 * Browser checks audit accessibility, keyboard focus and narrow-screen reflow.

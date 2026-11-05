@@ -18,14 +18,16 @@ fully validated. Validation runs are recorded in
   prevent old saved passes being reused for a different calculation context.
   Independent test shards retain test identities, seeds and replication counts.
   Published-value placeholders and the full release run remain unfinished.
-- **Input and maintenance assessment:** matching raw/published summary routes
+- **Input and maintenance assessment:** reported t/F text fills existing
+  engine-conversion fields without guessing or rounding unsupported df; matching raw/published summary routes
   and honest missing-input guidance appear on forms. Shared sample metadata
   supports results, recruitment, plans and exports. `dependency-footprint.md`
   measures locked closures and scopes optional profiles; none is advertised
   or implemented as a partial installation.
 - **Publishing and protection:** a separate `connect-cloud` branch is prepared
   for Posit, retaining exact main source apart from the generated manifest.
-  Main can then require PR checks without a privileged bot bypass. Activation
+  Main can then require aggregate app/engine gates which reject prerequisite
+  failures and accidental skips, without a privileged bot bypass. Activation
   and the Posit branch selection are documented in `repository-protection.md`.
 
 

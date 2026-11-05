@@ -18,9 +18,10 @@ publishing. Do not add an app bypass simply to work around that conflict.
    point. Redeploy and check the app/version. This is a one-time hosting change;
    no new credentials or app permissions are required.
 4. Add an active main ruleset requiring a pull request and these existing,
-   always-created check names: `R-CMD-check`, `engine-tests (part 1 of 3)`,
-   `engine-tests (part 2 of 3)`, `engine-tests (part 3 of 3)`,
-   `app-tests (results)`, `app-tests (the rest)` and `browser-tests`.
+   always-created aggregate checks: `engine-review-gate` and
+   `app-review-gate`. They explicitly reject dependency failures/cancellations
+   and skips caused by failed prerequisites. An engine skip is accepted only
+   when the successful change detector explicitly found no engine changes.
    Pin checks to the GitHub Actions source when available. For one maintainer,
    require zero additional approvals; do not require self-approval. Require
    conversation resolution. Leave no bypass actors. Do not require linear
