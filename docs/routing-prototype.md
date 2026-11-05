@@ -464,3 +464,27 @@ CI image, which holds the package versions in `renv.lock`, and installs
 the engine itself, so the input
 screens' checks with `validate_spec()` run there too; the prototype never
 computes power. They aren't part of the engine's `devtools::test()`.
+
+
+### Browser regression checks
+
+The small browser gate lives in `app/routing/walkthroughs/browser-tests/`.
+It exercises actual engine calculations and Shiny file uploads/downloads,
+edits/staleness, unfinished drafts and scenarios, precision, cancellation and
+Labs browser history. It uses synthetic planning inputs only. The older
+routing screenshots and R walkthroughs remain useful and are separate.
+
+With Node 24, the engine and the locked R packages installed:
+
+```sh
+npm ci --ignore-scripts --prefix app/routing/walkthroughs
+node app/routing/walkthroughs/node_modules/playwright/cli.js install chromium
+node app/routing/walkthroughs/node_modules/playwright/cli.js test --config app/routing/walkthroughs/playwright.config.js
+```
+
+Playwright starts the local R server on port 8765 and closes it afterwards.
+A local existing development server may be reused; CI always owns its server.
+The configuration rejects external app hosts. CI installs Chromium's system
+dependencies, retains failed traces/screenshots for seven days and runs this
+alongside the complete R app suites. These are smoke regressions, not complete
+accessibility, cross-browser or user research coverage.

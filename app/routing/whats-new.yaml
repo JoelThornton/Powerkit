@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Make the planning choices clearer and keep your reasoning"
+    text: >-
+      A directional prediction no longer implies a one-sided test. New input
+      guides explain unfamiliar numbers, simulation accuracy has readable
+      choices, and you can record assumption sources and named alternatives.
+      Results can download a planning document alongside the project file.
+  - date: "2026-11-05"
     title: "A faster first visit"
     text: >-
       The app now starts about two and a half seconds sooner after a quiet

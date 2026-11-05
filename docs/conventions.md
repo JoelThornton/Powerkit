@@ -2103,3 +2103,35 @@ The two SDs, standardisation and normal-score assumption appear in the
 result/write-up and reproduction scripts. Point-biserial, test-statistic
 conversion and safeguard shortcuts are refused for unequal-SD Welch
 populations because their equal-SD inputs do not identify this effect.
+
+
+## Planning decisions, scenarios and numerical accuracy
+
+A directional scientific prediction does not determine whether the statistical
+test is one- or two-sided. The form asks which directions count for the
+precommitted decision and explains that rejecting in the opposite direction
+need not support the prediction. Nonzero significance, exceeding a worthwhile
+threshold, equivalence, precision and overall SEM fit versus a target path
+are separate planning questions. No test formula changes in this interface
+clarification. A minimum-effect test needs both the threshold and an expected
+effect beyond it; ordinary power at that threshold does not test exceedance.
+
+Simulation presets are 400, 1,000 and 10,000 repeated studies per sample-size
+point (rough worst-case pointwise 95% margins of 5, 3 and 1 percentage points,
+respectively, with valid independent decisions). They do not express parameter
+uncertainty, convergence reliability or an adaptive search's accuracy. The
+result's actual interval, valid/failed counts and denominator remain
+controlling. Missing preset answers retain earlier replication settings;
+custom counts are available only when selected. Expected precision width is
+an average, not a maximum-width or probability guarantee; assurance is stated
+separately where the backend supports it.
+
+Input-source records are user assessments: reported, derived, assumed or
+unknown. An unknown input has no number; changed values invalidate the match
+to a recorded source. Named alternatives retain their input/source snapshots
+in the same project/draft metadata. Formula comparisons validate every plan
+before calculation and use existing engine calls; simulation alternatives
+must be loaded and run separately. They do not add missing-data or arbitrary
+score-shape support. The decision document uses the captured calculation,
+not live edited inputs, and is a reviewable planning draft rather than a
+registered preregistration.

@@ -35,6 +35,8 @@ source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "capabilities.R"), local = TRUE)
+source(file.path("R", "planning.R"), local = TRUE)
+source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
@@ -1303,6 +1305,23 @@ server <- function(input, output, session) {
   )
   # Project files: the engine writes and reads them (write_project(),
   # read_project()); the app passes the route and puts the screen back.
+  observeEvent(input$scenario_compare, {
+    values <- isolate(current_form_values())
+    fields <- isolate(current_form_fields())
+    compared <- tryCatch(compare_named_alternatives(forms, state$endpoint, fields, values), error = function(e) conditionMessage(e))
+    output$scenario_comparison <- renderUI(if (is.character(compared)) p(role = "alert", compared) else tagList(
+      p("Formula comparison of saved assumptions; these are separate plans. Recalculate the chosen alternative before exporting its result."),
+      tags$table(class = "table", tags$thead(tags$tr(lapply(names(compared), function(x) tags$th(scope = "col", x)))),
+        tags$tbody(lapply(seq_len(nrow(compared)), function(i) tags$tr(lapply(compared[i, ], tags$td)))))))
+  })
+
+  output$download_planning_document <- downloadHandler(
+    filename = function() "powerkit-study-planning.md",
+    content = function(file) {
+      req(calculation_matches_values(state$calc, current_form_values()))
+      req(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
+      writeLines(planning_document(tree, forms, state$calc), file, useBytes = TRUE)
+    })
   output$download_project <- downloadHandler(
     filename = function() project_file_name(state$endpoint),
     content = function(file) {

@@ -14,6 +14,18 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Planning decisions and assumptions:** prediction is separate from test
+  direction. Accuracy presets explain finite-simulation error and fitting
+  failures; family-specific input guides cover meaning, illustration, source
+  and unknown routes. Named alternatives and reported/derived/assumed/unknown
+  records persist in drafts/projects. Formula comparisons exclude long
+  simulations and unsupported goals. Planning documents use captured answers
+  and the same staleness/reasoning guards as kept plans.
+
+- **Browser regression gate:** pinned Playwright/Chromium checks real
+  calculations, edits, project/draft round trips, precision, cancellation and
+  Labs Back/Forward in an isolated local app; reports retain failed traces.
+
 - **Variant evidence and capabilities:** a versioned case registry separates
   software agreement, independent references, published examples and method
   runs. Results, saved projects and scripts retain its hash and snapshot.

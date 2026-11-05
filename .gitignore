@@ -15,3 +15,8 @@ validation-results/
 
 # Plots R writes when a test draws without a device open
 Rplots.pdf
+
+# Browser-test dependencies and generated reports
+**/node_modules/
+**/playwright-report/
+**/test-results/

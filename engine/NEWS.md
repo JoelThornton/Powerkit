@@ -1,5 +1,20 @@
 # powerkit 0.32.0
 
+* Separate directional predictions from one/two-sided decisions, and explain
+  nonzero, minimum-effect, equivalence, precision and SEM-fit/path goals.
+* Add pointwise simulation-accuracy presets, conditional controls and
+  input guides with definitions, illustrations, source routes and explicit
+  unknown-value advice. Population uncertainty remains distinct from Monte
+  Carlo error; precision width is not a maximum-width guarantee.
+* Preserve sourced assumption statuses and named full-answer alternatives
+  in drafts/projects. Formula comparisons use the existing engine and refuse
+  simulation or unsupported goals; alternative sources are not certified.
+* Export a planning decision draft from captured result answers, with
+  question, assumptions/sources, units, recruitment, alternatives, decision
+  rule, evidence and provenance. Edits and stale reasoning block export.
+* Add an isolated, locked Playwright browser gate for calculation/edit/file
+  round trips, blank drafts/scenarios, precision, cancellation and Labs history.
+
 * The app starts in about 0.5 s instead of 3: the About tab is built the
   first time it is opened, not when the app starts.
 * The Bayes factor of an effect in a two-factor between-participants ANOVA
