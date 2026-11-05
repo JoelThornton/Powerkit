@@ -8,6 +8,8 @@
   preview and an R script (`forms.yaml`, simulations > method_routes).
   Validation chunk `bayes_factorial`.
 
+* The app starts in about 0.5 s instead of 3: the About tab is built the
+  first time it is opened, not when the app starts.
 * The Bayes factor of an effect in a two-factor between-participants ANOVA
   (templates `2x2_between` and `factorial_between`, `target_test > method`
   "bayes_factor", with `prior_scale` 0.5 by default and `inclusion`

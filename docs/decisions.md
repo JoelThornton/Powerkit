@@ -5108,6 +5108,22 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   correlation is the right input for a group, or the groups' standardised
   difference.
 
+## 2026-11-05 · The About tab is built on first opening, for a faster first visit
+
+- **What:** the About tab's content (the capability table above all) is
+  built the first time a visitor opens it and kept for the rest of that R
+  process, instead of when the app starts.
+- **Why:** visitors reported that the site often sat on "loading" until
+  they refreshed. Posit Connect Cloud starts a new R process for a visit
+  after a quiet spell, so that first visit waits for the whole app start;
+  a refresh reaches the process that is by then running. Of the 3.1
+  seconds the app spent before it could answer, building the About tab
+  took 1.9 (the capability table, added on 5 November 2026, 1.7 of them);
+  the app now starts in 0.5. The time Connect Cloud takes to start a
+  process and load R is outside the app.
+- **Trade-off:** the About tab's first opening in a new process takes
+  about 2 seconds; later openings are instant. Search engines read the
+  static guide (`www/guide.html`), not the About tab.
 ## 2026-11-05 · Dyadic data: a pair-level moderator of the actor effects (E44)
 
 - **What:** the actor-partner card (E44) takes an optional pair-level
