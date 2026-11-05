@@ -4863,16 +4863,17 @@ only.
 - **Not covered:** hurdle models (pscl's `hurdle()`), in which every zero
   comes from the binary part; a candidate for a later step if researchers
   ask for it.
-- **Open question for the maintainer:** with negative binomial counts the
-  Wald test of the predictor in the zero part, which `summary()` of
+- **The zero part's Wald test (decided 4 November 2026: keep it):** with
+  negative binomial counts the Wald test of the predictor in the zero part, which `summary()` of
   `zeroinfl()` reports, is conservative: 3.9% of 10,000 studies with no
   zero effect rejected at alpha 0.05 (n = 400, base rate 2, 30% extra
   zeros, k = 0.5), against 5.6% for the likelihood-ratio test of the same
   coefficient (3,000 studies); with Poisson counts the Wald test holds its
   level. powerkit computes power for the Wald test researchers will
   report, so that power is conservative; the input screen says so, and a
-  validation test records the size. Offering the likelihood-ratio test of
-  the zero part instead is the alternative.
+  validation test records the size. The maintainer kept the Wald test,
+  because it is the test researchers report from `summary()`; the
+  likelihood-ratio test of the zero part remains a possible option.
 
 ## 2026-11-04 · The aligned rank transform with a within-participants factor (E8, E55 and E20)
 
