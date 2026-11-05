@@ -27,7 +27,7 @@ test_that("every end-point card renders, with its status and inputs", {
     runs <- tree$endpoints[[id]]$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
     if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, if (runs) "What you('|&#39;)ll need" else "What you would enter", label = id)
     expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
-      runs_validated = "Check record: ", runs_validation_in_progress = "Runs, validation in progress.",
+      runs_validated = "Historical design-level record: ", runs_validation_in_progress = "Runs, validation in progress.",
       coming_soon = "Coming soon.",
       not_in_powerkit = if (isTRUE(tree$endpoints[[id]]$no_ready_made_tool)) "Not in powerkit yet." else tree$endpoints[[id]]$not_in_powerkit_heading %||% "Not in powerkit yet: use")
     expect_match(html, expected, fixed = TRUE, label = id)
@@ -346,7 +346,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
   expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "simulated_data_note", "power_interval", "power_picture", "power_picture_r", "power_picture_paired", "power_picture_anova", "power_picture_2p", "power_picture_chisq", "power_picture_f2", "bayes_planning", "bayes_sequential",
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
-    "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result", "spec_hash", "study_variation", "sample_structure", "analysis_requirements", "all_tests_target"))
+    "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result", "spec_hash", "study_variation", "sample_structure", "analysis_requirements", "all_tests_target", "analysis_evidence"))
   # Calculations run only for the end points listed in forms.yaml.
   expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15", "E59", "E60", "E61", "E64", "E66", "E46", "E44", "E43", "E69", "E70", "E32", "E30", "E35", "E71"))
 })

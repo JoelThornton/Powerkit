@@ -278,10 +278,10 @@ pwrss_inputs <- function(spec) {
         args = function(n) {
           n1 <- round(n / (1 + ratio))
           n2 <- n - n1
-          # pwrss's n.ratio is n1 / n2; var.ratio is sd1^2 / sd2^2 (the
-          # spec's population has one pooled SD, so 1).
+          # pwrss uses n1/n2, SD1^2/SD2^2 and a weighted pooled-SD effect.
           list(
-            d = pop$d, var.ratio = 1, n.ratio = n1 / n2, n2 = n2, alpha = alpha,
+            d = welch_backend_d(spec, n1, n2), var.ratio = 1 / (pop$sd_ratio %||% 1)^2,
+            n.ratio = n1 / n2, n2 = n2, alpha = alpha,
             alternative = alternative, claim.basis = "md.pval", verbose = 0
           )
         }
@@ -532,7 +532,13 @@ pwrss_check_run <- function(spec, inputs) {
       row("yes in the second condition only, passed to pwrss (prob10)", pop$p_second_only, args$prob10),
       row("yes in the first condition only, passed to pwrss (prob01)", pop$p_first_only, args$prob01)
     ),
-    independent_t = row("d passed to pwrss", pop$d, args$d),
+    independent_t = {
+      sds <- welch_population_sds(spec)
+      n1 <- args$n.ratio * args$n2
+      pooled <- sqrt(((n1 - 1) * sds[1]^2 + (args$n2 - 1) * sds[2]^2) / (n1 + args$n2 - 2))
+      rbind(row("mean difference in RMS-SD units", pop$d, args$d * pooled),
+        row("SD1 squared / SD2 squared", 1 / (pop$sd_ratio %||% 1)^2, args$var.ratio))
+    },
     two_proportions = rbind(
       row("p1 passed to pwrss (prob1)", pop$p1, args$prob1),
       row("p2 passed to pwrss (prob2)", pop$p2, args$prob2)

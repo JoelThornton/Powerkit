@@ -221,7 +221,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_no_match(html, "Calculated by simulation with", fixed = TRUE)
   expect_match(html, "Calculated with a formula", fixed = TRUE)          # Departure 9
   expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
-  expect_match(html, "Check record. ", fixed = TRUE)                       # basic chunk rerun after #42
+  expect_match(html, "Historical design-level note", fixed = TRUE)                       # basic chunk rerun after #42
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
   # Departures that change the answer stay in view, with a pointer from the
   # answer; the ones that don't (9, 11) are folded.
@@ -709,7 +709,7 @@ test_that("one-way ANOVA, regression, one proportion and McNemar run on the engi
   expect_equal(calc$result$n_required$n, 129)
   html <- as.character(result_panel_ui(tree, forms, "E26", form_fields(form_groups(forms, "E26")), form_examples$E26, calc))
   expect_match(html, "exact tests of counts", fixed = TRUE)           # Known difference 2
-  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   expect_match(html, "pwrss's formula, pwrss::power.exact.mcnemar(), no simulation", fixed = TRUE)
   for (ep in c("E24", "E25")) {
     calc <- run_calculation(light_spec(ep), run, seed = 1L)
@@ -1163,7 +1163,7 @@ test_that("two dependent correlations run on pwrss's unpooled Steiger test, with
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend_function, "pwrss::power.z.twocors.steiger")
   html <- as.character(result_panel_ui(tree, forms, "E51", fields, form_examples$E51, calc))
-  expect_match(html, "Check record. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   expect_match(html, "139 and 875", fixed = TRUE)                          # Departure 12
   # The G*Power manual's example without a shared variable (28.3.1): 886.
   values <- c(list(comparison = "nonoverlapping_correlations", X1_label = "Stress at 14", Y1_label = "Sleep at 14",
@@ -1197,7 +1197,7 @@ test_that("equivalence tests run on TOSTER for each comparison, with their own w
   expect_match(s[["reading"]], "closer to a bound, fewer would", fixed = TRUE)
   expect_no_match(s[["reading"]], "significant result", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E36", fields, values, calc))
-  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "an equivalence test (two one-sided tests, TOST) of two independent groups (each one-sided test at \u03b1 = .05)", fixed = TRUE)
   expect_match(w[["short"]], "equivalence bound (\u00b1) = 0.5", fixed = TRUE)
@@ -1237,7 +1237,7 @@ test_that("a planned contrast runs on pwrss, and refuses weights that don't add 
   expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.contrasts")
   expect_gt(calc$result$n_required$n, 0)
   html <- as.character(result_panel_ui(tree, forms, "E19", fields, form_examples$E19, calc))
-  expect_match(html, "Check record. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   # Weights that don't add up to 0 are refused in plain English.
   bad <- build_spec(forms, "E19", fields, modifyList(form_examples$E19, list(weights = "-1, 0, 0, 2")))
   expect_error(run(bad), "must add up to 0", fixed = TRUE)
@@ -1251,7 +1251,7 @@ test_that("Poisson regression runs on pwrss, with the exposure and a yes/no pred
   n_one_year <- calc$result$n_required$n
   expect_gt(n_one_year, 0)
   html <- as.character(result_panel_ui(tree, forms, "E28", fields, form_examples$E28, calc))
-  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   # Following people for longer means more events, so fewer people.
   values <- modifyList(form_examples$E28, list(mean_exposure = "2"))
   calc <- run_calculation(build_spec(forms, "E28", fields, values), run, seed = 1L)
@@ -1278,7 +1278,7 @@ test_that("a cluster-randomised trial runs on powertools, with the groups and th
   expect_match(words[["detail"]], "The design effect is 1.95", fixed = TRUE)
   expect_match(words[["detail"]], "intraclass correlation 0.05", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E34", fields, form_examples$E34, calc))
-  expect_match(html, "Validation in progress. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   values <- modifyList(form_examples$E34, list(just_source = "A pilot study."))
   w <- writeup_text(forms$forms$E34, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "the design effect is 1.95", fixed = TRUE)
@@ -1400,7 +1400,7 @@ test_that("logistic regression runs on pwrss, with Known difference 3 only when 
   expect_gt(calc$result$n_required$n, 0)
   expect_length(known_difference_keys(forms, "E27", calc$spec), 0)
   html <- as.character(result_panel_ui(tree, forms, "E27", fields, form_examples$E27, calc))
-  expect_match(html, "Check record. ", fixed = TRUE)
+  expect_match(html, "Historical design-level note", fixed = TRUE)
   expect_no_match(html, "395 against 375", fixed = TRUE)
   # With R-squared above 0, the result screen and the write-up say so.
   values <- modifyList(form_examples$E27, list(r2_other = "0.1", just_source = "A pilot study."))
@@ -1429,7 +1429,7 @@ test_that("the variance tests are calculated exactly, as G*Power does, with no k
     expect_null(forms$forms[[ep]]$known_differences)
     fields <- form_fields(form_groups(forms, ep))
     html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
-    expect_match(html, "Check record. ", fixed = TRUE, label = ep)
+    expect_match(html, "Historical design-level note", fixed = TRUE, label = ep)
     expect_no_match(html, "G*Power computes them exactly", fixed = TRUE, label = ep)
     expect_match(html, "Calculated by the R package\\s*<strong>stats</strong>", label = ep)
     expect_match(html, "G*Power 3.1 manual", fixed = TRUE, label = ep)
@@ -1445,7 +1445,7 @@ test_that("goodness of fit and two correlations run on pwrss, with their notes",
     expect_identical(calc$result$provenance$backend_function, fns[[ep]], label = ep)
     expect_gt(calc$result$n_required$n, 0)
     html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
-    expect_match(html, "Validation in progress. ", fixed = TRUE, label = ep)
+    expect_match(html, "Historical design-level note", fixed = TRUE, label = ep)
   }
 })
 

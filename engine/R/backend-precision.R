@@ -266,6 +266,7 @@ run_precision <- function(spec, seed) {
       recruitment = recruitment_target(spec, found$n),
       check_run = check,
       provenance = list(
+        evidence = analysis_evidence(spec, computation_method = "exact"),
         spec_hash = spec_hash(spec),
         method = "exact",
         seed = seed,

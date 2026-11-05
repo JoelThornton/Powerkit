@@ -232,7 +232,7 @@ basic_method_field <- function(forms, ep_id) {
   field <- forms$basic_method_field
   population <- switch(ep_id,
     E1 = "The ordinary one-sample t-test simulation draws normal scores.",
-    E2 = "The ordinary two-group t-test simulation draws normal scores with equal population SDs. Choosing Welch changes the analysis, not those simulated SDs.",
+    E2 = "The ordinary Student two-group t-test simulation draws normal scores with equal population SDs. Welch planning uses its own stated group spreads.",
     E3 = "The ordinary paired t-test simulation draws normal paired scores with the specified standardised mean difference.",
     E4 = "The Pearson correlation simulation draws bivariate normal scores with the specified correlation. Rank-test shape choices, when shown, are separate inputs.",
     E5 = "The simulation draws binary outcomes at each group's specified proportion.",
@@ -738,6 +738,10 @@ field_applies <- function(field, values) {
   # one test).
   if (!is.null(field$applies_if_claim)) return(isTRUE(values$claim %in% field$applies_if_claim))
   for (cond in shown_if_conditions(field)) {
+    if (!is.null(cond$any)) {
+      if (!any(vapply(cond$any, function(x) field_applies(list(shown_if = x), values), logical(1)))) return(FALSE)
+      next
+    }
     current <- values[[cond$field]]
     current <- if (blank(current)) "" else as.character(current)
     if (!is.null(cond[["is"]]) && !identical(current, cond[["is"]])) return(FALSE)

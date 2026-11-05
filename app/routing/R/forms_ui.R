@@ -91,6 +91,8 @@ add_attrs_to_first <- function(tag, tag_name, attrs) {
 # A field's or a group's `shown_if` as a condition for the browser.
 shown_if_js <- function(item) {
   condition <- vapply(shown_if_conditions(item), function(cond) {
+    if (!is.null(cond$any)) return(paste0("(", paste(vapply(cond$any,
+      function(x) shown_if_js(list(shown_if = x)), character(1)), collapse = " || "), ")"))
     other <- sprintf("input.%s", field_input_id(list(id = cond$field)))
     if (!is.null(cond[["is_one_of"]])) return(sprintf("[%s].indexOf(%s) >= 0", paste0("'", cond[["is_one_of"]], "'", collapse = ", "), other))
     if (!is.null(cond[["is"]])) sprintf("%s == '%s'", other, cond[["is"]]) else sprintf("%s != '%s'", other, cond[["is_not"]])

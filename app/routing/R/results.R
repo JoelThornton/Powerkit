@@ -1852,12 +1852,9 @@ known_differences_for <- function(forms, ep_id, spec = NULL) {
   vapply(keys, function(k) forms$known_differences[[k]], character(1))
 }
 
-validation_ui <- function(ep) {
-  if (identical(ep$status, "runs_validated")) {
-    p(class = "result-validation small text-muted", tags$strong("Check record. "), ep$validation$note, " ", validation_scope_note)
-  } else {
-    div(class = "status status-in-progress", tags$strong("Validation in progress. "), ep$validation$note %||% "", " ", validation_scope_note)
-  }
+validation_ui <- function(ep, result = NULL) {
+  tagList(evidence_ui(result$provenance$evidence),
+    tags$details(tags$summary("Historical design-level note"), p(ep$validation$note %||% "No design-level note is recorded.", " ", validation_scope_note)))
 }
 
 provenance_lines <- function(result) {
@@ -1871,8 +1868,15 @@ provenance_lines <- function(result) {
     sprintf("Packages: %s", paste(sprintf("%s %s", names(p$packages), p$packages), collapse = ", ")),
     sprintf("Check run (does the backend reproduce your population?): %s", if (all(result$check_run$ok)) "passed" else "failed"),
     sprintf("Run time: %.1f seconds", p$run_time_seconds),
-    simulation_outcome_text(result)
+    simulation_outcome_text(result),
+    evidence_lines(p$evidence)
   )
+}
+
+welch_population_note <- function(spec) {
+  if (!identical(spec$template, "independent_t") || !identical(spec$target_test$method, "welch_t")) return(NULL)
+  ratio <- spec$population$sd_ratio %||% 1
+  sprintf("Welch planning assumes normal scores, with group 2's population SD %s times group 1's. The standardised mean difference uses sqrt((SD1 squared + SD2 squared) / 2), independent of allocation. Equal spread is an assumption when the ratio is 1. Simulation uses these same stated spreads.", format(ratio))
 }
 
 simulation_outcome_text <- function(result) {
@@ -2031,7 +2035,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), group_difference_note(spec), binary_x_modmed_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), source_note(values), group_difference_note(spec), binary_x_modmed_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring
@@ -2097,7 +2101,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       if (p_$backend %in% c("pwr", "stats", "pwrss", "powertools")) "powerkit built the call from your answers and checked the effect size it passes. " else
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations above."),
-    validation_ui(ep),
+    validation_ui(ep, result),
     technical_details_ui(result),
     if (length(departures_in_view)) tagList(
       h4(class = "h6", "Where powerkit differs from the tool's defaults"),
@@ -2155,7 +2159,12 @@ writeup_effect <- function(fields, values) {
       rows <- trimws(strsplit(value, "\n", fixed = TRUE)[[1]])
       value <- paste0("(", rows[nzchar(rows)], ")", collapse = ", ")
     }
-    out <- c(out, sprintf("%s = %s", f$writeup_label %||% f$label, value))
+    label <- f$writeup_label %||% f$label
+    if (identical(f$id, "d") && identical(values$method, "welch_t") &&
+        !blank(values$welch_sd_ratio) && isTRUE(parse_number(values$welch_sd_ratio) != 1)) {
+      label <- "standardised mean difference (RMS SD)"
+    }
+    out <- c(out, sprintf("%s = %s", label, value))
   }
   if (length(out)) paste(out, collapse = "; ") else NULL
 }
@@ -2441,6 +2450,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_dyadic(spec)) main <- dyad_units(main)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
+  main <- c(main, welch_population_note(spec))
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
               if (assumes_sphericity(spec)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power)
@@ -2465,6 +2475,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   full <- paste(c(
     paste(c(main, interval, recruit_line, claim), collapse = " "),
     writeup_software(result, full = TRUE),
+    paste(evidence_lines(result$provenance$evidence), collapse = " "),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
   ), collapse = "\n\n")
@@ -2784,7 +2795,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
         "powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
-      validation_ui(ep),
+      validation_ui(ep, result),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),
         tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),
