@@ -67,11 +67,20 @@ planning_document <- function(tree, forms, calc) {
     vapply(active, assumption, ""), assumption_record_lines(values, fields), "",
     "## Sample units and recruitment", paste("N counts", units$unit, ".", units$note),
     paste("Allocation weights/ratio:", paste(unlist(spec$options$allocation_ratio %||% spec$options$cell_ratio %||% spec$options$group_ratio %||% "as specified by the design"), collapse = ", ")),
-    recruitment_lines(result), "",
+    planning_recruitment_lines(result, units), "",
     "## Alternatives considered", alternatives, "",
     "## Result and methods", unname(text["full"]), "",
     "## Evidence and provenance", provenance_lines(result), "",
     "Keep the matching project file for the complete structured specification, raw-to-derived conversions and machine-readable result. Review these assumptions and the selected decision rule before using the plan.")
+}
+
+planning_recruitment_lines <- function(result, units) {
+  r <- result$recruitment
+  if (!is.list(r)) return("No attrition inflation was requested. This does not establish that no observations will be lost.")
+  c(sprintf("Analysed: %s %s. Recruitment target: %s %s.", r$n_analysed, units$unit, r$n_recruit, units$unit),
+    if (length(r$groups_analysed) > 1) paste("Analysed counts in allocation order:", paste(r$groups_analysed, collapse = ", ")),
+    if (length(r$groups_recruit) > 1) paste("Recruitment counts in allocation order:", paste(r$groups_recruit, collapse = ", ")),
+    paste("Assumed loss proportion:", r$attrition, ". The adjustment applies to the counted units; partial-pair or other missing-data mechanisms are not simulated by this inflation."))
 }
 
 input_guide <- function(f) {

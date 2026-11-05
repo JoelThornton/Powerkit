@@ -70,4 +70,15 @@ test_that("assumption sources and named nuisance alternatives survive draft and 
   bad <- library
   bad$assumptions[[1]]$status <- "unknown"
   expect_error(read_scenario_library(jsonlite::toJSON(bad, auto_unbox = TRUE), fields), "invalid field")
+  bad$alternatives <- list("unsupported")
+  expect_error(read_scenario_library(jsonlite::toJSON(bad, auto_unbox = TRUE), fields), "not supported")
+})
+
+test_that("planning recruitment keeps the counted units instead of relabelling pairs as participants", {
+  result <- list(recruitment = list(n_analysed = 40, n_recruit = 50,
+    groups_analysed = 40, groups_recruit = 50, attrition = 0.2))
+  lines <- paste(planning_recruitment_lines(result, list(unit = "pairs")), collapse = " ")
+  expect_match(lines, "Analysed: 40 pairs. Recruitment target: 50 pairs.", fixed = TRUE)
+  expect_no_match(lines, "50 participants", fixed = TRUE)
+  expect_match(planning_recruitment_lines(list(recruitment = NA), list(unit = "pairs")), "does not establish", fixed = TRUE)
 })
