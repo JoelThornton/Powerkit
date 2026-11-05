@@ -5189,3 +5189,28 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
 - **Next:** the repeated-measures designs, by the preview and R script
   route (about 0.8 s per simulated study).
 
+## 2026-11-05 · The Bayes factor of an effect in repeated-measures ANOVAs (E8, E54, E55, E20)
+
+- **What:** the one-way repeated-measures (E54), two-factor
+  within-participants (E20), 2 x 2 mixed (E8) and larger mixed (E55)
+  ANOVA cards offer the Bayes factor of an effect as a test version, the
+  inclusion Bayes factor of JASP's Bayesian repeated-measures ANOVA.
+- **Why:** `next.md` item 2, decided 4 November 2026: repeated measures by
+  the preview and R script route, as mediation does.
+- **How:** the same experiment as the between-participants designs
+  (`p_bayes_factorial()`), with each person's scores sharing their own
+  level (the spec's one correlation r between any two of their scores, a
+  random intercept, as JASP's model assumes) and `anovaBF()` taking the
+  participants as a random factor with JASP's r scale of 1 for random
+  effects. One correlation of at least 0 and equal groups are required.
+  About 0.8 s per simulated study, so in the app this test version gives a
+  rough preview (100 simulated studies, about four minutes with the
+  no-effect side) and an R script for the full analysis; the F test on
+  the same cards still calculates at once (`forms.yaml`, simulations >
+  method_routes, the route chosen by test version).
+- **Validation** (`test-validation-bayes-repeated.R`, chunk
+  `bayes_factorial`): a simulation written separately (each person's
+  scores from a multivariate normal, the inclusion Bayes factor computed by
+  hand) for a two-factor within-participants design and a 2 x 2 mixed
+  design. A published example is a placeholder for the maintainer.
+

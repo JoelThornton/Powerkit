@@ -2897,3 +2897,19 @@ test_that("reliability: the ICC, Cronbach's alpha and kappa build valid specs an
   html <- as.character(result_panel_ui(tree, forms, "E69", fields, form_examples$E69, calc))
   expect_match(html, "ICC", fixed = TRUE)
 })
+
+test_that("repeated-measures ANOVAs: the Bayes factor version takes the preview and R script route, the F test calculates here", {
+  for (ep in c("E8", "E54", "E55", "E20")) {
+    fields <- form_fields(form_groups(forms, ep))
+    values <- modifyList(form_examples[[ep]], list(test_version = "bayes_factor", evidence_threshold = "10", prior_scale = "0.5",
+      inclusion = "all_models", goal = "power", n = "60"))
+    expect_equal(form_problems(fields, values), character(), label = ep)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_identical(spec$target_test$method, "bayes_factor", label = ep)
+    expect_true(runs_long(forms, ep, spec), label = ep)
+    expect_true(has_preview(forms, ep, "power"), label = ep)
+    expect_false(full_run_in_app(forms, ep, "power"), label = ep)
+    f_test <- build_spec(forms, ep, fields, modifyList(form_examples[[ep]], list(goal = "power", n = "60")))
+    expect_false(runs_long(forms, ep, f_test), label = ep)
+  }
+})

@@ -1794,7 +1794,9 @@ Wired into the app on 18 October 2026 (E25, E26).*
   `test-backend-logistic-interaction.R`;
   `test-validation-logistic-interaction.R` [powerkit, `docs/decisions.md`].
 - **The Bayes factor of an effect in a two-factor between-participants
-  ANOVA (E7, E21, E22): JASP's inclusion Bayes factor.** G\*Power has no
+  ANOVA (E7, E21, E22), and since 5 November 2026 in the repeated-measures
+  ANOVAs (E8, E54, E55, E20, participants a random factor with JASP's r
+  scale of 1): JASP's inclusion Bayes factor.** G\*Power has no
   Bayes factors, so nothing is departed from. powerkit follows JASP's
   Bayesian ANOVA: BayesFactor's `anovaBF()` over the models that respect
   marginality, r scale 0.5, and the effect's inclusion Bayes factor across

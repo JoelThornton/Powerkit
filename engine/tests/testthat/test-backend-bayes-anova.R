@@ -120,3 +120,50 @@ test_that("the R script reproduces the factorial Bayes factor run", {
   out <- run_exported_script(spec, run_quietly(spec))
   expect_equal(out$reproduced, out$powerkit, tolerance = 1e-8)
 })
+
+# Repeated measures (5 November 2026): participants a random factor, one
+# correlation r between a person's scores. A full run takes minutes (about
+# 0.8 s per simulated study), so the parts are tested directly here and the
+# whole in test-validation-bayes-repeated.R.
+
+bfr_spec <- function(file, effect = NULL) {
+  spec <- example_spec(file)
+  spec$target_test <- list(effect = effect %||% spec$target_test$effect, method = "bayes_factor", evidence_threshold = 10)
+  validate_spec(spec)
+}
+
+test_that("repeated measures: each person's scores share their level, with the spec's correlation", {
+  inputs <- bffactorial_inputs(bfr_spec("anova_factorial_within"))
+  expect_true(all(inputs$within))
+  data <- with_seed(3, bffactorial_data_within(4000, inputs$means, inputs$sd, inputs$within, inputs$r))
+  expect_equal(nrow(data), 4000 * length(inputs$means))
+  wide <- tapply(data$y, list(data$id, interaction(data$A, data$B)), mean)
+  expect_equal(stats::cor(wide[, 1], wide[, 2]), inputs$r, tolerance = 0.03)
+  expect_equal(unname(colMeans(wide)), as.vector(inputs$means), tolerance = 4 * inputs$sd / sqrt(4000))
+  # A mixed design: each person in one group, with all the within cells.
+  mixed <- bffactorial_inputs(bfr_spec("anova_mixed"))
+  expect_identical(unname(mixed$within), c(FALSE, TRUE))
+  data <- with_seed(3, bffactorial_data_within(60, mixed$means, mixed$sd, mixed$within, mixed$r))
+  expect_true(all(tapply(as.integer(data$A), data$id, function(a) length(unique(a))) == 1))
+  expect_equal(as.vector(table(data$A)), c(30, 30) * ncol(mixed$means))
+})
+
+test_that("repeated measures: anovaBF() takes the participants as a random factor, and the check run recovers the population", {
+  for (file in c("anova_oneway_within", "anova_2x2_mixed")) {
+    spec <- bfr_spec(file)
+    inputs <- bffactorial_inputs(spec)
+    check <- bffactorial_check_run(spec, inputs, 7L)
+    expect_true(all(check$ok), label = file)
+    expect_true("Correlation of a person's scores in two cells" %in% check$parameter, label = file)
+  }
+})
+
+test_that("repeated measures: the Bayes factor needs one non-negative correlation and equal groups", {
+  spec <- example_spec("anova_mixed")
+  spec$target_test <- list(effect = "interaction", method = "bayes_factor", evidence_threshold = 10)
+  spec$population$r <- -0.2
+  expect_spec_problem(spec, "one correlation between a person's scores")
+  spec$population$r <- 0.5
+  spec$options$group_ratio <- list(1, 2)
+  expect_spec_problem(spec, "groups of equal size")
+})
