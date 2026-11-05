@@ -23,6 +23,7 @@ below retain their reproduction information and limitations.
 | powertools: continuous cluster covariates, RsqB/RsqW | Recorded hand-calculated design effect in question 3 | Inputs interpreted as shares within their respective variance components | Documentation or formula changes; rerun the hand calculation and covariate cases |
 | powertools: returned df, critical value and noncentrality | Source inspection; backend does not return these fields | Reporting limitation: no invented details are displayed | Backend starts returning details; compare each with the reported power |
 | bfpwr: t-test Bayes factors at small N | Known difference 6; comparison with simulated t statistics | Normal approximation used and disclosed | Exact/t-based implementation or changed design-prior handling; repeat small-N comparisons |
+| bfpwr: power with an informed prior at small N | Comparison with simulated t statistics and bfpwr's own `tbf01()` (bfpwr question 2) | Informed priors not offered | A corrected `powertbf01()`, or the maintainer's decision on an exact calculation in the engine |
 | metapower: random-effects heterogeneity power | `upstream/metapower-homogeneity.R`; independent simulated Q tests | Bypassed: Powerkit simulates Q with metafor instead of `homogen_power()` | Upstream correction; retain the three discrepant cases before considering a route change |
 | metapower: correlation effect rounded on Fisher's z scale | Known difference 9; recorded rounded/unrounded comparison | `mpower()` convention retained and disclosed | Rounding changes or author clarification; rerun the same correlations |
 | power4mome: models 58/59 population products | `test-path-product-moments.R`; full polynomial moments and independently generated/OLS checks in the validation journal | Workaround: explicit residual variances and `standardized = FALSE`; separate fitted model | Standardisation/product-update changes; recover the population and repeat scoped simulations before removing the workaround |
@@ -113,6 +114,20 @@ Questions about bfpwr 0.1.6, from its source (opened 28 October 2026).
    `docs/conventions.md`). Is an exact version (the noncentral t, or a
    t-based design prior) planned, or is the approximation the intended
    method? powerkit uses the function as it is and states the difference.
+2. **Power with an informed prior at small samples.** With `plocation`
+   away from 0 (for example `plocation = 0.3, pscale = 0.15, pdf = 1`,
+   one-sample, two-sided, design prior N(0.4, 0.1)), `powertbf01()` gives
+   power 1 at n = 3 and 5 and 0 at n = 10, where Bayes factors computed
+   with bfpwr's own `tbf01()` on simulated t statistics give about 0, 0.7%
+   and 5%; from about n = 30 the two agree (36.5% against 38%, 78.1%
+   against 77.7% at n = 80). `tbf01()` itself matches a numerical
+   integration of the t likelihood over the t prior to every digit shown,
+   so the difference is in the power calculation: at small n the
+   threshold can't be reached on one side (an informed prior's Bayes
+   factor is not symmetric in t), and the critical values seem to be
+   taken as if it could. Found 5 November 2026; powerkit doesn't offer
+   informed priors until this is resolved (`decisions.md`, 5 November
+   2026).
 
 ## metapower
 

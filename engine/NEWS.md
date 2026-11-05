@@ -1,5 +1,24 @@
 # powerkit 0.32.0
 
+* Bayes factor t-test results offer "Check as you go?": the plan as a
+  sequential design with its sample size as the largest
+  (`bayes_sequential()`, as in Labs).
+
+* `bayes_robustness()`: a Bayes factor t-test plan's chances under JASP's
+  three widths of the default prior (medium, wide, ultrawide) as well as
+  its own, shown on the result as "Does the prior matter?". The input
+  screen reads the uncertainty about the effect as a range.
+
+* `bayes_companion()`: what a Bayes factor would add to a plan made with a
+  p-value (its chances at thresholds of 3 and 10, the sample size for both
+  tests, and for t-tests how often the two agree, exactly). In the app,
+  "Add a Bayes factor?" on p-value results of the t-tests, the correlation,
+  proportions and the one-way ANOVA.
+
+* "Plan a study analysed with Bayes factors" in the list of analyses is a
+  page of every design with a Bayes factor test version, each opening its
+  input screen with the Bayes factor chosen; searching "Bayes" finds them.
+
 * Input screens hide a box when all its fields are hidden, and means in SD
   units no longer ask for the SD (it is 1).
 
