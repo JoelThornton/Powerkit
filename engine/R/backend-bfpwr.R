@@ -132,6 +132,15 @@ bayes_summary <- function(spec, n, backend = NULL, nrep = NULL, seed = NULL) {
   if (!bayes_factor_test(spec) || is.null(n) || is.na(n)) {
     return(NULL)
   }
+  if (bffactorial_test(spec)) {
+    # Simulated, as for tables: the no-effect side with as many studies.
+    inputs <- bffactorial_inputs(spec)
+    return(c(
+      list(evidence_threshold = inputs$threshold, prior_scale = inputs$prior_scale, inclusion = inputs$inclusion,
+        effect_sd = 0, n = n, hypotheses = bffactorial_hypotheses_words(inputs)),
+      backend$null_side(n, nrep, seed %||% 1L)
+    ))
+  }
   if (bftable_test(spec)) {
     # Simulated: the no-association side with as many studies as the
     # power, under the run's seed.
@@ -227,6 +236,9 @@ bfpwr_script <- function(spec, result) {
   if (bfanova_test(spec)) {
     return(bfanova_script(spec, result))
   }
+  if (bffactorial_test(spec)) {
+    return(bffactorial_script(spec, result))
+  }
   inputs <- bfpwr_inputs(spec)
   effect_name <- if (identical(inputs$type, "paired")) "d_z" else "d"
   size_line <- if (identical(inputs$type, "two.sample")) {
@@ -290,6 +302,9 @@ bayes_design_description <- function(spec, label, levels) {
   }
   if (bfanova_test(spec)) {
     return(bfanova_design_description(spec, label, levels))
+  }
+  if (bffactorial_test(spec)) {
+    return(bffactorial_design_description(spec, label, levels))
   }
   inputs <- bfpwr_inputs(spec)
   test <- switch(

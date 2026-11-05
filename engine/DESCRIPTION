@@ -28,6 +28,7 @@ Imports:
     afex,
     ARTool,
     BayesFactor,
+    bayestestR,
     bfpwr,
     brunnermunzel,
     car,

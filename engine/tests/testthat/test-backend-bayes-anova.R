@@ -59,3 +59,64 @@ test_that("the Bayes factor ANOVA is refused where it doesn't apply", {
   spec$target_test$alpha <- 0.05
   expect_error(validate_spec(spec), class = "powerkit_spec_error")
 })
+
+# The Bayes factor of an effect in a two-factor between-participants ANOVA
+# (5 November 2026): JASP's inclusion Bayes factor, simulated with Spower.
+
+bff_example <- function(effect = "interaction", inclusion = NULL, n = 200L) {
+  spec <- example_spec("anova_2x2_between")
+  spec$target_test <- list(effect = effect, method = "bayes_factor", evidence_threshold = 10)
+  if (!is.null(inclusion)) spec$target_test$inclusion <- inclusion
+  spec$goal <- list(type = "power", n = n)
+  spec$options <- list(nrep = 100L, seed = 5L)
+  spec
+}
+
+test_that("a factorial ANOVA's Bayes factor runs on BayesFactor and bayestestR, with the no-effect side", {
+  result <- run_quietly(bff_example())
+  expect_identical(result$provenance$backend, "BayesFactor")
+  expect_true(all(c("BayesFactor", "bayestestR") %in% names(result$provenance$packages)))
+  expect_true(all(result$check_run$ok))
+  expect_identical(result$bayes$inclusion, "all_models")
+  expect_identical(result$bayes$null_nrep, 100L)
+  expect_lt(result$bayes$misleading_evidence, 0.05)
+})
+
+test_that("the no-effect side removes only the tested effect from the cell means", {
+  means <- matrix(c(10, 10, 10, 13), 2, byrow = TRUE)
+  additive <- bffactorial_null_means(means, "A:B")
+  expect_equal(additive[1, 1] - additive[1, 2], additive[2, 1] - additive[2, 2])
+  no_a <- bffactorial_null_means(means, "A")
+  expect_equal(rowMeans(no_a)[1], rowMeans(no_a)[2])
+  # The interaction is kept when A's main effect is removed.
+  expect_equal(no_a[1, 1] - no_a[1, 2] - no_a[2, 1] + no_a[2, 2], means[1, 1] - means[1, 2] - means[2, 1] + means[2, 2])
+})
+
+test_that("bayestestR's inclusion Bayes factor across all models is posterior over prior inclusion odds", {
+  set.seed(11)
+  data <- bffactorial_data(120, matrix(c(0, 0, 0, 0.6), 2, byrow = TRUE), 1, matrix(1, 2, 2))
+  bf <- BayesFactor::anovaBF(y ~ A * B, data = data, whichModels = "withmain", rscaleFixed = 0.5, progress = FALSE)
+  log_bf <- c(0, BayesFactor::extractBF(bf, logbf = TRUE)$bf)
+  post <- exp(log_bf - max(log_bf))
+  post <- post / sum(post)
+  has <- grepl(":", c("", names(bf)$numerator), fixed = TRUE)
+  by_hand <- log((sum(post[has]) / sum(post[!has])) / (sum(has) / sum(!has)))
+  inc <- bayestestR::bayesfactor_inclusion(bf, match_models = FALSE)
+  expect_equal(inc$log_BF[rownames(inc) == "A:B"], by_hand, tolerance = 1e-8)
+})
+
+test_that("plain-English refusals for a factorial ANOVA's Bayes factor", {
+  spec <- bff_example()
+  spec$target_test$alternative <- "greater"
+  expect_spec_problem(spec, "must be 'two_sided'")
+  spec <- bff_example()
+  spec$options$method <- "exact"
+  expect_spec_problem(spec, "is simulated")
+})
+
+test_that("the R script reproduces the factorial Bayes factor run", {
+  skip_unless_scripts_can_run()
+  spec <- bff_example(n = 120L)
+  out <- run_exported_script(spec, run_quietly(spec))
+  expect_equal(out$reproduced, out$powerkit, tolerance = 1e-8)
+})

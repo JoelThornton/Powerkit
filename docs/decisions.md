@@ -5177,3 +5177,31 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   opening call it one. Psychology examples on the cards and citations of
   psychology journals are unaffected.
 
+## 2026-11-05 · The Bayes factor of an effect in a two-factor between-participants ANOVA (E7, E21, E22)
+
+- **What:** the 2 x 2 (E7), unequal-groups 2 x 2 (E22) and two-factor
+  (E21) between-participants ANOVA cards offer the Bayes factor of the
+  chosen effect (either main effect or the interaction) as a test version:
+  the chance that the study gives strong evidence, an inclusion Bayes
+  factor past the threshold, and the no-effect side. Simulated with Spower.
+- **Why:** `next.md` item 2, decided 4 November 2026: JASP's inclusion
+  Bayes factor across all models, with uniform model priors and the
+  principle of marginality, by default; the comparison across matched
+  models as an option; between-participants designs in the app first.
+- **How:** each simulated study draws normal scores in each cell (the
+  cells' means, one SD, each cell's share of n); BayesFactor's `anovaBF()`
+  fits every model that respects marginality (`whichModels = "withmain"`)
+  with JASP's r scale of 0.5, and bayestestR's `bayesfactor_inclusion()`
+  gives the effect's inclusion Bayes factor (posterior over prior inclusion
+  odds), across all models or matched models. The no-effect side removes
+  only the tested effect from the cell means. About 0.1 s per simulated
+  study.
+- **Validation** (`test-validation-bayes-factorial.R`, chunk
+  `bayes_factorial`): a simulation written separately, with the inclusion
+  Bayes factor across all models computed by hand from the models' Bayes
+  factors, for an interaction and a main effect, equal and unequal cells;
+  the matched-models option against the same loop. A published example is
+  a placeholder for the maintainer.
+- **Next:** the repeated-measures designs, by the preview and R script
+  route (about 0.8 s per simulated study).
+

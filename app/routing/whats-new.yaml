@@ -11,6 +11,13 @@ entries:
       The app now starts about two and a half seconds sooner after a quiet
       spell, so the first page appears faster. The About tab is prepared the
       first time someone opens it.
+    title: "Bayes factors for two-factor ANOVAs"
+    text: >-
+      The two-factor between-participants ANOVA cards can now plan for the
+      Bayes factor of a main effect or the interaction, as JASP's Bayesian
+      ANOVA reports it: the chance that your study gives strong evidence, and
+      what it would show if there were no effect.
+  - date: "2026-11-05"
     title: "Couples and pairs: an actor effect that depends on the pair"
     text: >-
       The card for pairs of people can now plan for an actor effect that
