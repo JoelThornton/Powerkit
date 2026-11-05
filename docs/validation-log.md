@@ -1059,3 +1059,35 @@ these counts give limited numerical accuracy (roughly +/- 0.035 near
 80% power). No expected values were changed. This run supports the
 corrected population translation; it does not supply the missing
 published examples or establish full validation of every variant.
+
+
+## 2026-11-05 · Welch planning with unequal SDs (local)
+
+`welch_spreads` completed on Windows x86_64 with R 4.5.3 and two test
+workers: **3 PASS, 0 FAIL, 0 ERROR, 0 SKIP, 0 NOT RUN**. Each simulation
+or independent reference used 10,000 replications.
+
+The run records local commit `1d1402820510fe71535a9f512590fab939774780`.
+Its full content tree `a83992ba57495974597f83f5e041c9eb7cbf94e3` is identical
+to the public source in
+[79465d9](https://github.com/JoelThornton/Powerkit/commit/79465d9c10ac43a201751adc9d4b1ada2d7fa61d).
+This journal entry is a documentation-only follow-up.
+
+- Formula: agreed with independently generated normal samples analysed by
+  base R's Welch t-test for SDs 5 and 15, mean difference 4, total N 120
+  and allocation ratios 0.5 and 2. The predeclared allowance was four
+  Monte Carlo standard errors plus 0.01 for the approximation.
+- Simulation: power 0.5732 (MCSE 0.0049), versus 0.5749 in the independently
+  generated reference; the 99.9% comparison interval was [0.5501, 0.5963].
+- Null: one-sided Type I error 0.0499 at alpha 0.05, within the validation
+  interval [0.040, 0.060], with unequal SDs and unequal groups.
+
+Packages: powerkit 0.32.0; Spower 0.7 (the locked version); pwrss 1.3.3;
+Superpower 0.2.4.1; InteractionPoweR 0.2.4; power4mome 0.2.1; manymome
+0.3.7; lavaan 0.7.3; testthat 3.3.2.
+
+The focused tests also pass for raw/standardised population equivalence,
+allocation-preserving searches, generated-data spreads, both standalone
+reproduction scripts, input visibility and copied methods text.
+These checks do not establish arbitrary score-shape, missing-data or
+variance-ratio coverage, and supply no published worked-example benchmark.
