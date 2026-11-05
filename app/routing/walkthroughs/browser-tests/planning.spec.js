@@ -21,6 +21,7 @@ async function tPlan(page) {
   await setValue(page, 'alternative', 'two_sided');
   await setValue(page, 'd', '0.4');
   await setValue(page, 'n', '120');
+  await setValue(page, 'just_type', 'smallest_effect_of_interest');
   await setValue(page, 'just_source', 'A justified planning scenario for browser regression checks.');
   await setValue(page, 'research_question', 'Does training improve recall?');
 }
@@ -97,6 +98,8 @@ test('precision produces width rather than a power result', async ({ page }, inf
   await setValue(page, 'goal', 'precision_width');
   await setValue(page, 'p', '0.3');
   await setValue(page, 'n', '120');
+  await setValue(page, 'just_type', 'prior_study');
+  await setValue(page, 'just_adjustment', 'Kept the reference prevalence as an explicit planning assumption.');
   await setValue(page, 'just_source', 'Comparable prevalence of 30%.');
   await calculate(page);
   await expect(page.locator('#form_result')).toContainText('width');
