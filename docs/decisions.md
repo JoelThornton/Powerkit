@@ -4963,3 +4963,49 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   pseudo-F written out from its definition equals `adonis2()`'s F; powerkit
   agrees with a separate permutation test of that pseudo-F, without vegan;
   Type I error with skewed scores. A published example is a placeholder.
+
+## 2026-11-04 · Moderation of a yes/no outcome (E32)
+
+- **What:** E32 calculates moderation of a yes/no outcome: a new template,
+  `logistic_regression / interaction`, simulated by Spower with powerkit's
+  experiment `p_logistic_interaction()` around `glm(family = binomial())`.
+  Goals: power and sample size. A count or categorical outcome, and
+  mediation with an outcome that isn't a score, stay on the card as
+  designs with no ready-made tool.
+- **Why:** `next.md` item 4 (decided 4 November 2026: one PR per design,
+  starting with E30 and E32). Moderation of a yes/no outcome is the most
+  common of E32's designs; no package powerkit uses has its power, and
+  G\*Power's logistic regression has no product term.
+- **Data model:** X and W scores (standard normal, correlated as given) or
+  yes/no groups (coded 0 and 1, drawn on their own); the outcome logistic
+  in X, W and X x W with the base proportion and three odds ratios.
+- **Test:** the Wald z test of the product's coefficient, the test
+  `summary()` of a logistic regression reports; one-sided on request.
+- **Validation** (`test-validation-logistic-interaction.R`, chunk
+  `logistic_interaction`): the large-sample power of the Wald test from
+  the model's expected Fisher information (within 0.02); a separately
+  written simulation; Type I error with both main effects present. A
+  published example is a placeholder.
+
+## 2026-11-05 · Moderation by a factor with three or more groups (E30)
+
+- **What:** E30 calculates: a new template, `regression_interaction /
+  group_moderator`, simulated by Spower with powerkit's experiment
+  `p_group_moderator()` around `lm()`. Goals: power and sample size.
+- **Why:** `next.md` item 4 (decided 4 November 2026: E30 and E32 first).
+  Comparing a relationship across three or more groups (age groups,
+  conditions, sites) is common, and the design finder's moderation route
+  sent it to a custom simulation.
+- **Inputs:** the correlation of X and Y in each group, the effect size
+  researchers usually have for each group, and optionally the groups'
+  means; equal or unequal groups (`options > group_ratio`).
+- **Data model and test:** in each group X standard normal and Y = m_g +
+  r_g X + sqrt(1 - r_g^2) e; the F test of the X x group terms (k - 1 df),
+  comparing `lm(y ~ x * a)` with `lm(y ~ x + a)`. When the correlations
+  differ, so do the groups' residual variances, which the F test assumes
+  equal; the simulation reports the power of the test as researchers run
+  it.
+- **Validation** (`test-validation-group-moderator.R`, chunk
+  `group_moderator`): pwr's F test formula with f^2 from the population
+  (within 0.02), a separately written simulation, and Type I error when the
+  groups differ only in their means.

@@ -788,7 +788,7 @@ closing_questions:
   # unreliable scores (maintainer decisions, 16 and 29 October 2026;
   # docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31, E15]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E34, E49, E50, E51, E52, E53, E57, E61, E64, E66]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E32, E34, E49, E50, E51, E52, E53, E57, E61, E64, E66]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
@@ -1376,12 +1376,20 @@ endpoints:
   E30:
     doc_name: "Moderator with three or more groups"
     plain_name: "Moderation where X or W has three or more groups"
-    status: not_in_powerkit
-    no_ready_made_tool: true
-    inputs: ["Depends on the model you write"]
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
-    tier: later
+    search_words: "categorical moderator group differences in slopes interaction three groups factor by covariate"
+    template: "regression_interaction / group_moderator"
+    backend: "Spower: powerkit's experiment around stats::lm(), the F test of the X x group terms (simulation)"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-group-moderator.R, note: "Recovers each group's correlation, mean and share in its check run and matches Spower called directly in the engine's tests; agrees with the F test's power by pwr's formula (within 0.02) and with a separately written simulation, and keeps the Type I error at alpha when the groups differ only in their means. Not yet checked against a published example."}
+    card_points:
+      - "Whether the relationship between a score X and the outcome differs between three or more groups (for example, age groups or conditions): the test of the X x group terms in a regression, together."
+      - "You give the correlation between X and the outcome in each group, and optionally each group's mean; groups can differ in size."
+      - "If both of your variables are groups, this is a factorial ANOVA instead; if the moderator is a score and X has three or more groups, the same test applies with the roles swapped."
+      - "Simulated, so the answer carries a little random error."
+    inputs: ["Your outcome, the score X and the groups", "The correlation between X and the outcome in each group", "The size of each group"]
+    tier: v2
+    alternatives: ["a factorial ANOVA, if both variables are groups", "moderation with a yes/no moderator, for two groups", "tests of the slope in each group separately, adjusted for the number of groups"]
   E31:
     doc_name: "Three-way interaction"
     plain_name: "Does an interaction itself depend on a third variable?"
@@ -1401,12 +1409,23 @@ endpoints:
   E32:
     doc_name: "Moderation or mediation with a yes/no, count or categorical outcome"
     plain_name: "Moderation or mediation when the outcome isn't a score"
-    status: not_in_powerkit
-    no_ready_made_tool: true
-    inputs: ["Depends on the model you write"]
+    search_words: "logistic moderation interaction binary outcome yes no odds ratio product term"
+    template: "logistic_regression / interaction"
+    no_ready_made_tool: "A count or categorical outcome, and mediation with an outcome that isn't a score"
+    backend: "Spower: powerkit's experiment around stats::glm(family = binomial()), the Wald z test of the X x W coefficient (simulation)"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-logistic-interaction.R, note: "Recovers every coefficient in its check run and matches Spower called directly in the engine's tests; agrees with the Wald test's large-sample power from the logistic model's expected information (within 0.02) and with a separately written simulation, and keeps the Type I error at alpha with both main effects present. Not yet checked against a published example."}
+    card_points:
+      - "Moderation of a yes/no outcome: whether X's effect on the odds of 'yes' depends on W, tested by the X x W product in a logistic regression. X and W can each be a score or a yes/no group."
+      - "You give the proportion of 'yes' with X and W at their averages (or in their first groups), the odds ratios for X and W, and the interaction as a ratio of odds ratios: how many times X's odds ratio is multiplied for each SD (or group) of W."
+      - "Simulated, so the answer carries a little random error. On the log-odds scale an interaction can differ from one on the proportions themselves."
+      - "Not calculated here yet: a count or categorical outcome, and mediation with an outcome that isn't a score."
     packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
-    tier: later
+      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For the designs not calculated here yet: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
+    inputs: ["Your outcome, X and W, and what kind of variable each is", "The proportion of 'yes' at the starting point and the odds ratios", "How X and W relate"]
+    tier: v2
+    alternatives: ["the 2 x 2 factorial logistic regression, for two yes/no factors", "moderation of a score outcome, if the outcome is a score"]
   E33:
     doc_name: "Crossed participants and stimuli"
     plain_name: "Each person responds to many items or stimuli"

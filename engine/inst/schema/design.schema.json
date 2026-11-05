@@ -3216,7 +3216,8 @@
           "template": {
             "enum": [
               "two_way",
-              "three_way"
+              "three_way",
+              "group_moderator"
             ]
           }
         },
@@ -3249,6 +3250,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_three_way"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "group_moderator"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_group_moderator"
             }
           }
         ]
@@ -4387,7 +4403,8 @@
             "enum": [
               "single_predictor",
               "factorial",
-              "multinomial"
+              "multinomial",
+              "interaction"
             ]
           }
         },
@@ -4466,6 +4483,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_multinomial"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "interaction"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_logistic_interaction"
             }
           }
         ]
@@ -8573,6 +8605,169 @@
                     "wald_z"
                   ],
                   "description": "'likelihood_ratio': the likelihood-ratio test of X, all its coefficients at once (K - 1 df), comparing the model with and without X, as SPSS's 'Likelihood Ratio Tests' table and car's Anova() report it. 'wald_z': the Wald z test of X's coefficient for one category (target_test > category) against the first."
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_logistic_interaction": {
+      "description": "Moderation with a yes/no outcome: logistic regression of Y on X, W and their product X x W (each a score, taken as standardised, or a yes/no group coded 0 and 1), and the Wald z test of the product's coefficient, simulated with Spower (stats::glm()).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "W",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "W": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "base_prob",
+            "odds_ratio_x",
+            "odds_ratio_w",
+            "odds_ratio_xw"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "odds_ratio"
+            },
+            "base_prob": {
+              "description": "Proportion with Y = yes (Y's second level) when X and W are at their means (scores) or in their first groups (yes/no).",
+              "$ref": "#/definitions/proportion"
+            },
+            "odds_ratio_x": {
+              "description": "Odds ratio for X when W is at its mean (a score) or in its first group: per SD of X (a score) or X's second group against its first.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "odds_ratio_w": {
+              "description": "Odds ratio for W when X is at its mean or in its first group, per SD of W or W's second group against its first.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "odds_ratio_xw": {
+              "description": "The interaction, as a ratio of odds ratios: how many times X's odds ratio is multiplied per SD of W (a score) or in W's second group (yes/no); for two scores, per SD of each. 1 is no interaction, allowed to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion in X's second group. 0.5 if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "w_prob": {
+              "description": "Yes/no W only: the proportion in W's second group. 0.5 if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "r_xw": {
+              "description": "Two scores only: the correlation between X and W. 0 if omitted.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": false,
+            "effect": {
+              "const": "interaction"
+            },
+            "method": {
+              "const": "wald_z"
+            }
+          }
+        }
+      }
+    },
+    "template_group_moderator": {
+      "description": "Moderation by a factor with three or more groups: does the slope of a score X on a score Y differ between the groups of A? Linear regression of Y on X, A and X x A, and the F test of the X x A terms (k - 1 df), simulated with Spower (stats::lm()). Groups may differ in size (options > group_ratio).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "A",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "A": {
+              "properties": {
+                "type": {
+                  "const": "between_factor"
+                },
+                "levels": {
+                  "minItems": 3,
+                  "maxItems": 10
+                }
+              }
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r_xy"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r_xy": {
+              "description": "The correlation between X and Y within each group of A, in the order of A's levels. The same correlation in every group is no moderation, allowed to check the Type I error rate at a fixed n.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": -1,
+                "exclusiveMaximum": 1
+              }
+            },
+            "means": {
+              "description": "Optional: Y's mean in each group at X's mean, in SD units of Y within a group (0 in every group if omitted). Differences between the groups' means don't change the test of the slopes, but are drawn so the data look as planned.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "effect": {
+                  "const": "interaction"
+                },
+                "method": {
+                  "const": "f_test"
                 }
               }
             }

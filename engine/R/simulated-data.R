@@ -148,7 +148,8 @@ simulated_data_code <- function(spec, n, seed) {
     multiple_regression = sim_regression_code(spec, n),
     precision = sim_precision_code(spec, n),
     equivalence_test = sim_equivalence_code(spec, n),
-    logistic_regression = if (identical(spec$template, "factorial")) sim_logistic_factorial_code(spec, n) else sim_glm_code(spec, n),
+    logistic_regression = switch(spec$template, factorial = sim_logistic_factorial_code(spec, n),
+      interaction = sim_logistic_interaction_code(spec, n), sim_glm_code(spec, n)),
     ordinal_regression = sim_ordinal_code(spec, n),
     dyadic = sim_apim_code(spec, n),
     mixed_model = sim_mixed_code(spec, n),
@@ -163,7 +164,7 @@ simulated_data_code <- function(spec, n, seed) {
     } else if (spec$template %in% c("oneway_ancova", "factorial_ancova")) {
       sim_ancova_code(spec, n)
     },
-    regression_interaction = if (identical(spec$template, "two_way")) sim_interaction_code(spec, n),
+    regression_interaction = switch(spec$template, two_way = sim_interaction_code(spec, n), group_moderator = sim_group_moderator_code(spec, n), NULL),
     mediation = ,
     moderated_mediation = sim_power4mome_code(spec, n, seed),
     NULL
@@ -567,6 +568,49 @@ sim_rank_code <- function(spec, n) {
     }
   )
   c(draw, body)
+}
+
+# Moderation by groups: each group's X and Y drawn as
+# group_moderator_data() draws them.
+sim_group_moderator_code <- function(spec, n) {
+  pop <- spec$population
+  k <- length(spec$variables$A$levels)
+  w <- trend_group_shares(spec)
+  c(
+    sprintf("sizes <- %s # people in each group", r_code(as.integer(round(n * w / sum(w))))),
+    sprintf("r <- %s # correlation of X and Y in each group", r_code(as.numeric(unlist(pop$r_xy)))),
+    sprintf("means <- %s # mean of Y in each group (SD units)", r_code(as.numeric(unlist(pop$means %||% rep(0, k))))),
+    sprintf("groups <- %s", r_code(sim_levels(spec, "A"))),
+    "simulated <- do.call(rbind, lapply(seq_along(sizes), function(g) {",
+    "  x <- stats::rnorm(sizes[g])",
+    sprintf("  data.frame(%s = groups[g], %s = x, %s = means[g] + r[g] * x + sqrt(1 - r[g]^2) * stats::rnorm(sizes[g]))",
+      sim_label(spec, "A"), sim_label(spec, "X"), sim_label(spec, "Y")),
+    "}))"
+  )
+}
+
+# Moderation with a yes/no outcome: X, W and the outcome drawn as
+# logistic_interaction_data() draws them.
+sim_logistic_interaction_code <- function(spec, n) {
+  pop <- spec$population
+  v <- spec$variables
+  xb <- identical(v$X$type, "binary")
+  wb <- identical(v$W$type, "binary")
+  c(
+    if (!xb && !wb) {
+      c(sprintf("x <- stats::rnorm(%d) # standardised", n),
+        sprintf("w <- %s * x + sqrt(1 - %s^2) * stats::rnorm(%d) # standardised, correlation %s with X", r_code(pop$r_xw %||% 0), r_code(pop$r_xw %||% 0), n, format_number(pop$r_xw %||% 0)))
+    } else {
+      c(if (xb) sprintf("x <- sample(rep(c(0, 1), c(%d, %d))) # 1 = %s", n - round(n * (pop$x_prob %||% 0.5)), round(n * (pop$x_prob %||% 0.5)), sim_levels(spec, "X")[2]) else sprintf("x <- stats::rnorm(%d) # standardised", n),
+        if (wb) sprintf("w <- as.numeric(stats::runif(%d) < %s) # 1 = %s", n, r_code(pop$w_prob %||% 0.5), sim_levels(spec, "W")[2]) else sprintf("w <- stats::rnorm(%d) # standardised", n))
+    },
+    sprintf("eta <- stats::qlogis(%s) + log(%s) * x + log(%s) * w + log(%s) * x * w", r_code(pop$base_prob), r_code(pop$odds_ratio_x), r_code(pop$odds_ratio_w), r_code(pop$odds_ratio_xw)),
+    sprintf("y <- %s[stats::rbinom(%d, 1, stats::plogis(eta)) + 1]", r_code(sim_levels(spec, "Y")), n),
+    sprintf("simulated <- data.frame(%s = %s, %s = %s, %s = y)",
+      sim_label(spec, "X"), if (xb) sprintf("%s[x + 1]", r_code(sim_levels(spec, "X"))) else "x",
+      sim_label(spec, "W"), if (wb) sprintf("%s[w + 1]", r_code(sim_levels(spec, "W"))) else "w",
+      sim_label(spec, "Y"))
+  )
 }
 
 # A yes/no outcome with two crossed factors: each cell's 'yes' drawn with

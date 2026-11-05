@@ -20,7 +20,7 @@ test_that("there is an example for every template", {
   expect_setequal(unique(templates), c(
     "one_sample_t", "independent_t", "paired_t", "correlation",
     "two_proportions", "chi_square_independence", "2x2_between", "2x2_mixed",
-    "two_way", "three_way", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "crossed_conditions", "item_predictor", "three_level", "apim", "log_rank", "cox_predictor", "icc", "cronbach_alpha", "kappa", "mean_effect", "subgroups", "dependent_effects", "meta_regression", "heterogeneity", "process_4", "process_6", "process_7", "process_14", "process_8", "process_58", "process_59",
+    "two_way", "three_way", "group_moderator", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "crossed_conditions", "item_predictor", "three_level", "apim", "log_rank", "cox_predictor", "icc", "cronbach_alpha", "kappa", "mean_effect", "subgroups", "dependent_effects", "meta_regression", "heterogeneity", "process_4", "process_6", "process_7", "process_14", "process_8", "process_58", "process_59",
     # Wave 2 (engine only).
     "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase", "single_coefficient",
     # One-way repeated measures.
@@ -29,7 +29,7 @@ test_that("there is an example for every template", {
     "chi_square_gof", "two_correlations", "oneway_ancova", "paired_variances", "manova", "hotelling_one", "proportion_trend",
     "overlapping_correlations", "nonoverlapping_correlations",
     # Logistic regression (engine only), and multinomial logistic regression.
-    "single_predictor", "multinomial",
+    "single_predictor", "multinomial", "interaction",
     # Poisson regression (engine only).
     "single_predictor_count",
     # Clustered designs (powertools).

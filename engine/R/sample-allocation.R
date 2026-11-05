@@ -29,7 +29,7 @@ sample_allocation <- function(spec) {
     return(if (k == 1) single else weights(rep(1, k)))
   }
   if (identical(template, "manova")) return(weights(rep(1, manova_groups(spec))))
-  if (template %in% c("oneway_between", "oneway_contrast", "mixed", "2x2_mixed", "oneway_ancova", "proportion_trend")) {
+  if (template %in% c("oneway_between", "oneway_contrast", "mixed", "2x2_mixed", "oneway_ancova", "proportion_trend", "group_moderator")) {
     return(weights(trend_group_shares(spec)))
   }
   if (template %in% c("cluster_randomised", "multisite", "two_level", "three_level")) {

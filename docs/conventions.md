@@ -1727,6 +1727,24 @@ Wired into the app on 18 October 2026 (E25, E26).*
   the effect's sequential test (`by = "terms"`), equal to its marginal test
   with equal groups. Tests: `test-backend-permanova.R`;
   `test-validation-permanova.R` [powerkit, `docs/decisions.md`].
+- **Moderation by a factor with three or more groups (E30): the F test of
+  the X x group terms.** G\*Power's regression tests take an R-squared
+  increase, not a correlation per group. In each group X is standard
+  normal and Y has SD 1 and the correlation given with X, so the slopes are
+  the correlations; each simulated study is fitted by `lm()` and the test
+  compares the model with the X x group terms against the model without
+  them (k - 1 df). Tests: `test-backend-group-moderator.R`;
+  `test-validation-group-moderator.R` [powerkit, `docs/decisions.md`].
+- **Moderation of a yes/no outcome (E32): the Wald z test of the product.**
+  G\*Power has no logistic interaction test. Two scores X and W are
+  standard normal with the correlation given; a yes/no X or W is coded 0
+  and 1 and drawn on its own. The outcome is logistic in X, W and X x W,
+  with the odds ratios given, so X's odds ratio is for W at its mean (or
+  first group) and the interaction is a ratio of odds ratios. Each
+  simulated study is fitted by `glm()` and the test is the Wald z test of
+  the product's coefficient, as `summary()` reports it. Tests:
+  `test-backend-logistic-interaction.R`;
+  `test-validation-logistic-interaction.R` [powerkit, `docs/decisions.md`].
 - **Multinomial logistic regression (E70): the likelihood-ratio test by
   default.** G\*Power has no multinomial logistic regression, so nothing
   is departed from. The outcome's first category is the reference; the

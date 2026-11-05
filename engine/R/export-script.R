@@ -365,6 +365,15 @@ design_description <- function(spec) {
       if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
+    "regression_interaction/group_moderator" = sprintf(
+      "moderation by groups: does the slope of %s on %s differ between the %d groups of %s (%s)? F test of the X x A terms",
+      label("Y"), label("X"), length(unlist(v$A$levels)), label("A"), levels("A")
+    ),
+    "logistic_regression/interaction" = sprintf(
+      "moderation of a yes/no outcome: logistic regression of %s (%s) on %s%s, %s%s and their product; Wald z test of the product's coefficient",
+      label("Y"), levels("Y"), label("X"), if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
+      label("W"), if (identical(v$W$type, "binary")) sprintf(" (%s)", levels("W")) else ""
+    ),
     "logistic_regression/multinomial" = sprintf(
       "multinomial logistic regression of %s (%s; the first is the reference) on %s%s: %s%s",
       label("Y"), levels("Y"), label("X"),
@@ -1449,6 +1458,23 @@ spower_script_inputs <- function(spec) {
         sprintf("quantile <- %s # the quantile of the outcome tested (0.5: the median)", r_code(pop$quantile %||% 0.5))
       }
     ),
+    group_moderator = c(
+      sprintf("# The groups of %s, in order: %s.", comment_text(v$A$label), paste(comment_text(unlist(v$A$levels)), collapse = ", ")),
+      sprintf("r <- %s # correlation between %s and %s in each group", r_code(as.numeric(unlist(pop$r_xy))), comment_text(v$X$label), comment_text(v$Y$label)),
+      sprintf("means <- %s # mean of %s in each group, in SD units", r_code(as.numeric(unlist(pop$means %||% rep(0, length(unlist(v$A$levels)))))), comment_text(v$Y$label)),
+      sprintf("group_ratio <- %s # each group's share of the sample", r_code(trend_group_shares(spec)))
+    ),
+    interaction = c(
+      sprintf("base_prob <- %s # proportion of %s with X and W at their means or in their first groups", r_code(pop$base_prob), lv("Y", 2)),
+      sprintf("or_x <- %s # odds ratio for %s, with W at its mean or in its first group", r_code(pop$odds_ratio_x), comment_text(v$X$label)),
+      sprintf("or_w <- %s # odds ratio for %s, with X at its mean or in its first group", r_code(pop$odds_ratio_w), comment_text(v$W$label)),
+      sprintf("or_xw <- %s # the interaction: how many times X's odds ratio is multiplied per SD (or group) of W", r_code(pop$odds_ratio_xw)),
+      sprintf("x_binary <- %s # %s", r_code(identical(v$X$type, "binary")), if (identical(v$X$type, "binary")) "X is a yes/no group, coded 0 and 1" else "X is a score, standardised"),
+      sprintf("w_binary <- %s # %s", r_code(identical(v$W$type, "binary")), if (identical(v$W$type, "binary")) "W is a yes/no group, coded 0 and 1" else "W is a score, standardised"),
+      sprintf("x_prob <- %s # proportion in X's second group (yes/no X only)", r_code(pop$x_prob %||% 0.5)),
+      sprintf("w_prob <- %s # proportion in W's second group (yes/no W only)", r_code(pop$w_prob %||% 0.5)),
+      sprintf("r <- %s # correlation between X and W (two scores only)", r_code(pop$r_xw %||% 0))
+    ),
     multinomial = c(
       sprintf("# The categories of %s, in order (the first is the reference): %s.", comment_text(v$Y$label),
         paste(comment_text(unlist(v$Y$levels)), collapse = ", ")),
@@ -1683,6 +1709,16 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "method = method",
       if (identical(spec$target_test$method, "quantile_regression")) "quantile = quantile"
     ),
+    group_moderator = c(
+      "n = batch_n, # sample size",
+      "r = r,", "means = means,", "group_ratio = group_ratio"
+    ),
+    interaction = c(
+      "n = batch_n, # sample size",
+      "base_prob = base_prob,", "or_x = or_x,", "or_w = or_w,", "or_xw = or_xw,",
+      "x_binary = x_binary,", "w_binary = w_binary,", "x_prob = x_prob,", "w_prob = w_prob,",
+      "r = r"
+    ),
     multinomial = c(
       "n = batch_n, # sample size",
       "intercepts = intercepts,",
@@ -1849,6 +1885,49 @@ spower_derived_lines <- function(spec) {
       "  }",
       "  fit <- lm(y ~ ., data = data)",
       "  car::linearHypothesis(fit, \"x = 0\", white.adjust = sub(\"ols_\", \"\", method))[2, \"Pr(>F)\"]",
+      "}"
+    ),
+    group_moderator = c(
+      "# The experiment, as powerkit runs it: n split between the groups in the",
+      "# ratio given; in each group in turn, X standard normal and Y = mean + r X +",
+      "# sqrt(1 - r^2) e (Y has SD 1 within a group and correlates r with X). The",
+      "# p-value is the F test comparing lm(y ~ x * a) with lm(y ~ x + a).",
+      "p_group_moderator <- function(n, r, means, group_ratio) {",
+      "  sizes <- as.integer(round(n * group_ratio / sum(group_ratio)))",
+      "  data <- do.call(rbind, lapply(seq_along(sizes), function(g) {",
+      "    x <- rnorm(sizes[g])",
+      "    data.frame(a = g, x = x, y = means[g] + r[g] * x + sqrt(1 - r[g]^2) * rnorm(sizes[g]))",
+      "  }))",
+      "  data$a <- factor(data$a, levels = seq_along(sizes))",
+      "  anova(lm(y ~ x + a, data = data), lm(y ~ x * a, data = data))[2, \"Pr(>F)\"]",
+      "}"
+    ),
+    interaction = c(
+      "# The experiment, as powerkit runs it: two scores X and W standard normal",
+      "# with correlation r, or a yes/no X with round(n * x_prob) in its second",
+      "# group (coded 1) and a yes/no W that is 1 with probability w_prob, each on",
+      "# its own; then each outcome, yes with probability plogis(qlogis(base_prob)",
+      "# + log(or_x) x + log(or_w) w + log(or_xw) x w). glm() is fitted and the",
+      "# p-value is the Wald z test of the x:w coefficient (one-sided in the",
+      "# direction asked).",
+      "p_logistic_interaction <- function(n, base_prob, or_x, or_w, or_xw, x_binary, w_binary, x_prob, w_prob, r,",
+      "                                   alternative = \"two.sided\") {",
+      "  if (!x_binary && !w_binary) {",
+      "    x <- rnorm(n)",
+      "    w <- r * x + sqrt(1 - r^2) * rnorm(n)",
+      "  } else {",
+      "    x <- if (x_binary) sample(rep(c(0, 1), c(n - round(n * x_prob), round(n * x_prob)))) else rnorm(n)",
+      "    w <- if (w_binary) as.numeric(runif(n) < w_prob) else rnorm(n)",
+      "  }",
+      "  eta <- qlogis(base_prob) + log(or_x) * x + log(or_w) * w + log(or_xw) * x * w",
+      "  y <- rbinom(n, 1, plogis(eta))",
+      "  fit <- suppressWarnings(glm(y ~ x * w, family = binomial()))",
+      "  z <- coef(summary(fit))[\"x:w\", \"z value\"]",
+      "  switch(alternative,",
+      "    two.sided = 2 * pnorm(-abs(z)),",
+      "    greater = pnorm(z, lower.tail = FALSE),",
+      "    less = pnorm(z)",
+      "  )",
       "}"
     ),
     multinomial = c(

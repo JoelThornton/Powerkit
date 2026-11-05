@@ -132,7 +132,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70]
+calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -2845,6 +2845,79 @@ forms:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
              default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
              help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
+
+  # Moderation by a factor with three or more groups (Spower simulation of
+  # powerkit's experiment around lm()): the correlation of X and Y in each
+  # group, optional group means; the F test of the X x group terms.
+  E30:
+    methods_name: "a regression with a score by group interaction (the F test of the interaction terms), simulated"
+    tool: Spower
+    directional: false
+    base: {spec_version: "0.1", design: regression_interaction, template: group_moderator,
+           variables: {X: {type: continuous}, A: {type: between_factor}, "Y": {type: continuous}}, population: {metric: correlation},
+           target_test: {effect: interaction, method: f_test}}
+    groups:
+      - input: "Your outcome, the score X and the groups"
+        fields:
+          - {id: Y_label, label: "Outcome (for example, sleep quality)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "The score whose relationship may differ (X)", type: text, path: variables.X.label, required: true}
+          - {id: A_label, label: "What the groups are (for example, age group)", type: text, path: variables.A.label, required: true}
+          - {id: A_levels, label: "The groups' names (three or more), separated by commas", type: levels, path: variables.A.levels, required: true}
+      - input: "The correlation between X and the outcome in each group"
+        fields:
+          - {id: r_xy, writeup_label: "correlation of X and the outcome in each group", label: "Correlation between X and the outcome in each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.r_xy, effect: true, min_exclusive: -1, max_exclusive: 1,
+             help: "The same correlation in every group means no moderation. The test asks whether the slopes differ, so how much they differ drives the power."}
+          - {id: means, writeup_label: "group means (SD units)", label: "The outcome's mean in each group, in SD units (optional; 0 in each if left empty)", type: numbers, per_levels: A_levels, path: population.means, optional: true,
+             help: "Differences between the groups' means don't change the test of the slopes."}
+      - input: "The size of each group"
+        fields:
+          - {id: group_sizes, label: "Will the groups be the same size?", type: select, required: true,
+             choices: {equal: "Yes, equal groups", unequal: "No: give their relative sizes"},
+             default: equal, default_source: "equal groups, the design spec's default"}
+          - {id: group_ratio, writeup_label: "relative group sizes", label: "Relative group sizes: one whole number for each group, in the same order", type: numbers, per_levels: A_levels, path: options.group_ratio, required: true, min: 1, integer: true,
+             shown_if: {field: group_sizes, is: unequal}}
+
+  # Moderation with a yes/no outcome (Spower simulation of powerkit's
+  # experiment around glm()): X and W each a score (standardised) or a
+  # yes/no group coded 0 and 1; the interaction as a ratio of odds ratios.
+  E32:
+    methods_name: "a logistic regression with an interaction (the Wald z test of the X x W coefficient), simulated"
+    tool: Spower
+    directional: true
+    base: {spec_version: "0.1", design: logistic_regression, template: interaction,
+           variables: {X: {}, W: {}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: odds_ratio},
+           target_test: {effect: interaction, method: wald_z}}
+    groups:
+      - input: "Your outcome, X and W, and what kind of variable each is"
+        fields:
+          - {id: Y_label, label: "Yes/no outcome (for example, sought counselling)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "Main predictor (X)", type: text, path: variables.X.label, required: true}
+          - {id: X_type, label: "What kind of variable X is", type: select, path: variables.X.type, required: true,
+             choices: {continuous: "A score", binary: "A yes/no group (for example, treatment or control)"}}
+          - {id: X_level1, label: "First group of X (the comparison group)", type: text, path: variables.X.levels.1, required: true, shown_if: {field: X_type, is: binary}}
+          - {id: X_level2, label: "Second group of X", type: text, path: variables.X.levels.2, required: true, shown_if: {field: X_type, is: binary}}
+          - {id: W_label, label: "Moderator (W)", type: text, path: variables.W.label, required: true}
+          - {id: W_type, label: "What kind of variable W is", type: select, path: variables.W.type, required: true,
+             choices: {continuous: "A score", binary: "A yes/no group"}}
+          - {id: W_level1, label: "First group of W", type: text, path: variables.W.levels.1, required: true, shown_if: {field: W_type, is: binary}}
+          - {id: W_level2, label: "Second group of W", type: text, path: variables.W.levels.2, required: true, shown_if: {field: W_type, is: binary}}
+      - input: "The proportion of 'yes' at the starting point and the odds ratios"
+        fields:
+          - {id: base_prob, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' with X and W at their averages, or in their first groups (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1}
+          - {id: odds_ratio_x, writeup_label: "odds ratio for X", label: "Odds ratio for X, with W at its average or in its first group", type: number, path: population.odds_ratio_x, effect: true, min_exclusive: 0,
+             help: "Per SD of X for a score, or X's second group against its first."}
+          - {id: odds_ratio_w, writeup_label: "odds ratio for W", label: "Odds ratio for W, with X at its average or in its first group", type: number, path: population.odds_ratio_w, effect: true, min_exclusive: 0}
+          - {id: odds_ratio_xw, writeup_label: "interaction (ratio of odds ratios)", label: "The interaction: how many times X's odds ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.odds_ratio_xw, effect: true, min_exclusive: 0,
+             help: "1 means no moderation. For example 1.25: X's odds ratio is a quarter larger for each SD of W. It is the exponent of the X x W coefficient a logistic regression reports."}
+      - input: "How X and W relate"
+        fields:
+          - {id: x_prob, label: "Proportion of people in X's second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
+             default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)", shown_if: {field: X_type, is: binary}}
+          - {id: w_prob, label: "Proportion of people in W's second group (0 to 1)", type: number, path: population.w_prob, required: true, min_exclusive: 0, max_exclusive: 1,
+             default: 0.5, default_source: "equal groups, the design spec's default (population > w_prob)", shown_if: {field: W_type, is: binary}}
+          - {id: r_xw, label: "Correlation between X and W (two scores only)", type: number, path: population.r_xw, required: true, min_exclusive: -1, max_exclusive: 1,
+             default: 0, default_source: "uncorrelated, the design spec's default (population > r_xw)",
+             shown_if: [{field: X_type, is: continuous}, {field: W_type, is: continuous}]}
 
   # Poisson regression, one predictor (pwrss's Wald z test): a score X is
   # taken as standardised, so its rate ratio is per SD; a yes/no X compares
