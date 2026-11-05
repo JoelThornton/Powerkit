@@ -235,7 +235,9 @@ fully validated. Validation runs are recorded in
   31 October 2026), Spearman's and Kendall's correlations (E4) and, since
   2 November 2026, the Brunner-Munzel test (E2), for groups whose spreads
   may differ, and the aligned rank transform ANOVA (E7, E21, E22: two
-  between-participants factors).
+  between-participants factors; since 4 November 2026 also E8, E55 and
+  E20, with a within-participants factor), and PERMANOVA for several
+  outcomes (E59's test version, vegan's `adonis2()`, 4 November 2026).
 - **Negative binomial regression** (E28's model choice, 2 November 2026)
   for overdispersed counts, simulated with Spower and MASS's `glm.nb()`;
   **zero-inflated Poisson and negative binomial regression** (4 November

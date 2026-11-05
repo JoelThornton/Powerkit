@@ -1715,6 +1715,18 @@ Wired into the app on 18 October 2026 (E25, E26).*
   formula's (pwrss), checked in the validation. Tests:
   `test-backend-negative-binomial.R`; `test-validation-negative-binomial.R`
   [powerkit, `docs/decisions.md`].
+- **PERMANOVA (E59's test version): Euclidean distances between the
+  standardised outcomes, where vegan defaults to Bray-Curtis.** G\*Power
+  has no PERMANOVA. vegan's `adonis2()` uses Bray-Curtis dissimilarities
+  by default, which are for ecological abundance data and need values of
+  0 or more; for scores powerkit standardises each outcome in each data
+  set and uses Euclidean distances, so that an outcome on a larger scale
+  doesn't dominate, with vegan's default 999 permutations. Normal scores
+  are multivariate normal, as for MANOVA; scores of another shape are each
+  person's common level plus a deviation of that shape. With two factors
+  the effect's sequential test (`by = "terms"`), equal to its marginal test
+  with equal groups. Tests: `test-backend-permanova.R`;
+  `test-validation-permanova.R` [powerkit, `docs/decisions.md`].
 - **Multinomial logistic regression (E70): the likelihood-ratio test by
   default.** G\*Power has no multinomial logistic regression, so nothing
   is departed from. The outcome's first category is the reference; the
@@ -1757,6 +1769,23 @@ Wired into the app on 18 October 2026 (E25, E26).*
   shows the two agree, with equal and unequal cells. Tests:
   `test-backend-art.R`; `test-validation-art.R` [powerkit,
   `docs/decisions.md`].
+- **The aligned rank transform with a within-participants factor (E8, E55
+  and E20's test version): ARTool's repeated measures model.** Nothing in
+  G\*Power to depart from. Each person's scores are drawn as Friedman's
+  test draws them: the cell's mean plus its SD times (sqrt(r) times the
+  person's own level plus sqrt(1 - r) times a deviation of the chosen
+  shape), so one correlation holds between any two of their scores (one
+  per group in the 2 x 2 mixed design), and sphericity holds. ARTool's
+  help analyses repeated measures with a random intercept for each person
+  (`art(y ~ a * b + (1 | id))` and its `anova()`, Kenward-Roger F tests);
+  with equal groups powerkit uses the error-term form ARTool also allows
+  (`Error(id)`, `aov()`), which gives the same p-values in a balanced
+  design (a test checks it) several times faster. With unequal groups,
+  where `aov()`'s sequential sums of squares would differ from Type III for
+  the within factor's main effect, powerkit uses the random-intercept
+  model and car's `Anova(type = 3)` with Kenward-Roger F tests (pbkrtest).
+  Tests: `test-backend-art-within.R`; `test-validation-art-within.R`
+  [powerkit, `docs/decisions.md`].
 
 ### 8. MANOVA: simulated, where G\*Power uses a formula
 

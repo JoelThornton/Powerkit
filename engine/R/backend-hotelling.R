@@ -33,7 +33,7 @@ manova_two_groups <- function(spec) {
 
 # The basic tests powerkit computes by a published formula in base R.
 formula_test <- function(spec) {
-  variance_formula_test(spec) || hotelling_formula_test(spec)
+  variance_formula_test(spec) || hotelling_formula_test(spec) && !permanova_test(spec)
 }
 
 hotelling_backend <- function(spec, seed = NULL) {

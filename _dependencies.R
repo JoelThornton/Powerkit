@@ -14,12 +14,14 @@ library(psych)     # safeguard power's confidence interval
 # Backends
 library(afex)        # mixed designs with unequal groups (aov_car())
 library(ARTool) # the aligned rank transform ANOVA (art(), artlm())
+library(pbkrtest) # Kenward-Roger F tests for the aligned rank transform with unequal groups
 library(BayesFactor) # the correlation Bayes factor (correlationBF())
 library(bfpwr)
 library(brunnermunzel) # the Brunner-Munzel test (brunnermunzel.test())
 library(quantreg) # quantile regression (rq(), summary.rq())
 library(nnet)     # multinomial logistic regression (multinom())
 library(pscl)     # zero-inflated count regression (zeroinfl())
+library(vegan)    # PERMANOVA (adonis2())
 library(car)
 library(Hmisc)     # the log-rank test (cpower())
 library(ICC.Sample.Size) # power to show an ICC exceeds a value (calculateIccPower())

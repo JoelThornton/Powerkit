@@ -998,18 +998,20 @@ endpoints:
     tier: MVP
     alternatives: ["tests of the simple effects", "a planned contrast", "the aligned rank transform, if you analyse ranks"]
   E8:
+    rank_test: "the aligned rank transform"
+    rank_test_simulated: true
     doc_name: "2 x 2 mixed ANOVA (incl. group × time)"
     plain_name: "One factor between people, one within (including group x time)"
     search_words: "repeated measures split plot group by time pre post two way anova"
     template: "factorial_anova / 2x2_mixed"
-    backend: "Superpower: ANOVA_exact(); for unequal groups, a Spower simulation analysed with afex's aov_car()"
+    backend: "Superpower: ANOVA_exact(); for unequal groups, a Spower simulation analysed with afex's aov_car(); Spower with ARTool's art() and artlm() for the aligned rank transform"
     refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
     method: "Exact dataset (no repeated simulation)"
-    inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction", "The size of each group"]
+    inputs: ["Names of the factors, their levels and the outcome", "The four expected cell means", "The SD", "The correlation between the two repeated measurements", "Which effect: between factor, within factor or the interaction", "The F test or the aligned rank transform", "The size of each group"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-mixed.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
     tier: MVP
-    alternatives: ["for a before-and-after design, ANCOVA on the after score adjusting for the before score", "for a before-and-after design, a t-test on change scores", "a mixed model"]
+    alternatives: ["for a before-and-after design, ANCOVA on the after score adjusting for the before score", "for a before-and-after design, a t-test on change scores", "a mixed model", "the aligned rank transform, if you analyse ranks (a choice on the next screen)"]
   E9:
     doc_name: "Moderated regression (continuous × continuous)"
     plain_name: "Does the effect of one score depend on another score?"
@@ -1196,11 +1198,13 @@ endpoints:
     tier: v2
     alternatives: ["the overall F test of any difference among the groups (one-way ANOVA)"]
   E20:
+    rank_test: "the aligned rank transform"
+    rank_test_simulated: true
     doc_name: "Two-factor within-participants ANOVA (2 x 2 or larger)"
     plain_name: "Two factors crossed, everyone in every combination"
     search_words: "repeated measures within subjects two way anova"
     template: "factorial_anova / factorial_within"
-    backend: "Superpower: ANOVA_design(\"kw*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
+    backend: "Superpower: ANOVA_design(\"kw*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
     status: runs_validation_in_progress
     validation: {file: test-validation-anova-factorial.R, note: "Matches Superpower's ANOVA_exact() called directly in the engine's tests, for both main effects and the interaction. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
@@ -1208,9 +1212,9 @@ endpoints:
       - "Both factors are measured in everyone, such as cue (valid or invalid) by delay (short, medium or long) in a reaction-time task: each person does every combination."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
       - "One SD and one correlation for every pair of combinations, so that sphericity holds; or an SD for each combination and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one."
-    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two conditions", "Which effect"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two conditions", "Which effect", "The F test or the aligned rank transform"]
     tier: v2
-    alternatives: ["planned contrasts, such as the interaction's linear trend", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
+    alternatives: ["planned contrasts, such as the interaction's linear trend", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures", "the aligned rank transform, if you analyse ranks (a choice on the next screen)"]
   E21:
     rank_test: "the aligned rank transform"
     rank_test_simulated: true
@@ -1849,7 +1853,7 @@ endpoints:
     doc_name: "Several outcomes compared across groups (MANOVA, one or two factors; Hotelling's T-squared for two groups)"
     plain_name: "Do two or more groups differ on several outcomes at once?"
     template: "basic_test / manova"
-    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, sections 5.3.4 and 5.4)"
+    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, sections 5.3.4 and 5.4). PERMANOVA: Spower with powerkit's p_permanova() experiment around vegan's adonis2(), by simulation"
     method: "Simulation (three or more groups) or formula (two groups)"
     status: runs_validation_in_progress
     validation: {file: test-validation-manova.R, note: "With two groups it matches Hotelling's T-squared computed exactly (pwrss); with three it matches a simulation written separately, recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own examples."}
@@ -1860,9 +1864,10 @@ endpoints:
       - "You give each group's expected mean on each outcome, each outcome's SD, and how strongly the outcomes are correlated. That correlation matters: outcomes that go together carry less separate information."
       - "Why means and not one effect size: the simulation draws scores from a population, so it needs each group's means, the SDs and the correlation. A single effect size, such as Pillai's V from a published MANOVA, doesn't say what those are, and no package powerkit builds on turns one into them."
       - "With two groups the answer is calculated exactly, as G*Power does. With three or more it is simulated, so it carries a little random error; G*Power uses an approximation there."
-    inputs: ["The groups and the outcomes", "The expected means on each outcome", "Each outcome's SD, and the correlation between the outcomes"]
+      - "PERMANOVA, a permutation test on the distances between people's standardised scores (vegan's adonis2()), is a choice for scores that aren't normal: you choose their shape, and powerkit simulates it."
+    inputs: ["The groups and the outcomes", "The expected means on each outcome", "Each outcome's SD, and the correlation between the outcomes", "MANOVA or PERMANOVA"]
     tier: v2
-    alternatives: ["a separate ANOVA for each outcome, with the significance level adjusted for the number of outcomes", "a discriminant analysis, if the question is which outcomes separate the groups"]
+    alternatives: ["a separate ANOVA for each outcome, with the significance level adjusted for the number of outcomes", "a discriminant analysis, if the question is which outcomes separate the groups", "PERMANOVA, for scores that aren't normal (a choice on the next screen)"]
   E60:
     doc_name: "Several outcomes in one group compared with fixed values (one-sample Hotelling's T-squared)"
     plain_name: "Does one group differ from fixed values on several outcomes at once?"
@@ -1920,11 +1925,13 @@ endpoints:
     tier: v2
     alternatives: ["planned contrasts among the conditions", "the multivariate (MANOVA) approach to repeated measures", "a mixed-effects model"]
   E55:
+    rank_test: "the aligned rank transform"
+    rank_test_simulated: true
     doc_name: "Mixed ANOVA beyond 2 x 2 (e.g. group by time with three or more timepoints)"
     plain_name: "Groups of different people, each measured in every condition or at every timepoint"
     search_words: "repeated measures split plot group by time anova"
     template: "factorial_anova / mixed"
-    backend: "Superpower: ANOVA_design(\"kb*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); for unequal groups, a Spower simulation analysed with afex's aov_car()"
+    backend: "Superpower: ANOVA_design(\"kb*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); for unequal groups, a Spower simulation analysed with afex's aov_car(); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
     status: runs_validation_in_progress
     validation: {file: test-validation-anova-mixed.R, note: "Matches Superpower's ANOVA_exact() called directly in the engine's tests, for the group effect, the time effect and the interaction. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
@@ -1932,9 +1939,9 @@ endpoints:
       - "One factor is different people (such as therapy or waiting list) and the other is measured in everyone (such as before, after and at follow-up). At least one of them has three or more levels."
       - "Power is for one effect: the groups' difference, the change over time or conditions, or the interaction (whether the change differs between groups), which is usually the hypothesis in a trial."
       - "Equal or unequal group sizes (unequal groups are simulated). One SD and one correlation for every pair of timepoints or conditions, so that sphericity holds; or an SD for each cell and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one, and the MANOVA approach shown beside it."
-    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect", "The size of each group"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect", "The F test or the aligned rank transform", "The size of each group"]
     tier: v2
-    alternatives: ["ANCOVA on the last timepoint, adjusting for the first", "planned contrasts, such as a linear trend over time by group", "a mixed-effects model", "the multivariate (MANOVA) approach to repeated measures"]
+    alternatives: ["ANCOVA on the last timepoint, adjusting for the first", "planned contrasts, such as a linear trend over time by group", "a mixed-effects model", "the multivariate (MANOVA) approach to repeated measures", "the aligned rank transform, if you analyse ranks (a choice on the next screen)"]
   E56:
     doc_name: "Three-factor ANOVA (2 x 2 x 2 or larger; any mix of between and within factors)"
     plain_name: "Three factors crossed, such as group by time by task"

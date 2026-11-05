@@ -868,6 +868,16 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {main_effect_A: "The between factor", main_effect_B: "The within factor", interaction: "The interaction"}}
+      - input: "The F test or the aligned rank transform"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+          - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
+             shown_if: {field: test_version, is: aligned_rank_transform},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
+             help: "Each person's scores are their own level plus a deviation of this shape, so one correlation holds between any two of their scores (one per group in a 2 x 2 design). A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
       - input: "The size of each group"
         fields:
           # options > group_ratio (decided 1 November 2026): unequal groups
@@ -885,7 +895,7 @@ forms:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for the 2 x 2 designs (design spec, options > method)",
-         shown_if: {field: group_sizes, is_not: unequal}}
+         shown_if: [{field: group_sizes, is_not: unequal}, {field: test_version, is: anova_f}]}
 
   E9:
     methods_name: "a moderated regression (continuous × continuous interaction)"
@@ -1902,13 +1912,23 @@ forms:
              shown_if: {field: spread, is: differ},
              help: "With three timepoints: first with second, first with third, second with third."}
           - {id: correction, label: "Sphericity correction of the F tests", type: select, path: target_test.correction, required: true,
-             shown_if: {field: spread, is: differ},
+             shown_if: [{field: spread, is: differ}, {field: test_version, is_not: aligned_rank_transform}],
              choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
              default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
       - input: "Which effect"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does the change differ between groups?", main_effect_A: "The groups' difference, averaged over time or conditions", main_effect_B: "The change over time or conditions, averaged over groups"}}
+      - input: "The F test or the aligned rank transform"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+          - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
+             shown_if: {field: test_version, is: aligned_rank_transform},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
+             help: "Each person's scores are their own level plus a deviation of this shape, so one correlation holds between any two of their scores (one per group in a 2 x 2 design). A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
       - input: "The size of each group"
         fields:
           # options > group_ratio (decided 1 November 2026): unequal groups
@@ -1924,7 +1944,7 @@ forms:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)",
-         shown_if: {field: group_sizes, is_not: unequal}}
+         shown_if: [{field: group_sizes, is_not: unequal}, {field: test_version, is: anova_f}]}
 
 
   # Three-factor ANOVA (28 October 2026): three crossed factors, any mix of
@@ -2035,17 +2055,28 @@ forms:
              shown_if: {field: spread, is: differ},
              help: "For a 2 x 2 design the combinations are A1 B1, A1 B2, A2 B1, A2 B2, and the six pairs come in the order (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4)."}
           - {id: correction, label: "Sphericity correction of the F tests", type: select, path: target_test.correction, required: true,
-             shown_if: {field: spread, is: differ},
+             shown_if: [{field: spread, is: differ}, {field: test_version, is_not: aligned_rank_transform}],
              choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
              default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
       - input: "Which effect"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does one factor's effect depend on the other?", main_effect_A: "The first factor, averaged over the second", main_effect_B: "The second factor, averaged over the first"}}
+      - input: "The F test or the aligned rank transform"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+          - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
+             shown_if: {field: test_version, is: aligned_rank_transform},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
+             help: "Each person's scores are their own level plus a deviation of this shape, so one correlation holds between any two of their scores (one per group in a 2 x 2 design). A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
-         default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
+         default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)",
+         shown_if: {field: test_version, is: anova_f}}
 
   # Two-factor ANOVA, both factors between participants, beyond 2 x 2
   # (28 October 2026): equal cells, one SD. No smallest detectable effect
@@ -2609,6 +2640,17 @@ forms:
              help: "Within a group, in the means' units; the same in every group."}
           - {id: manova_r, writeup_label: "correlation between the outcomes", label: "Correlation between any two outcomes within a group (the same for every pair)", type: number, path: population.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true,
              help: "How strongly people's scores on two outcomes go together, for example 0.5 for related questionnaires."}
+      - input: "MANOVA or PERMANOVA"
+        fields:
+          - {id: manova_test, label: "Test", type: select, path: target_test.method, required: true,
+             choices: {pillai_trace: "MANOVA (Pillai's trace; with two groups, Hotelling's T-squared)", permanova: "PERMANOVA (a permutation test on distances between people), simulated"},
+             default: pillai_trace, default_source: "the MANOVA test of Pillai's trace, as G*Power computes it",
+             help: "PERMANOVA (vegan's adonis2()) compares the groups' average distances on the standardised outcomes with a permutation test, so it doesn't assume normal scores. It can also react to groups that differ in spread rather than in their means."}
+          - {id: score_shape, label: "The shape of the scores", type: select, path: population.score_shape, required: true,
+             shown_if: {field: manova_test, is: permanova},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
+             help: "Every outcome has this shape. With a shape other than normal, each person's scores share a common level, so the correlation between outcomes must be at least 0."}
 
   # One-sample Hotelling's T-squared: one group's outcomes against fixed
   # values (scale norms, midpoints), computed exactly by its noncentral F

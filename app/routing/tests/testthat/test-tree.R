@@ -57,7 +57,7 @@ test_that("the cards with a rank-based counterpart offer it as a simulated test 
   # 2026).
   e4 <- as.character(card_ui(tree, "E4"))
   expect_match(e4, "powerkit simulates the rank test itself, on scores of the shape you choose", fixed = TRUE)
-  for (id in c("E1", "E2", "E3", "E7", "E18", "E21", "E22", "E54")) {
+  for (id in c("E1", "E2", "E3", "E7", "E8", "E18", "E20", "E21", "E22", "E54", "E55")) {
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)
     expect_match(html, "powerkit simulates the rank test itself", fixed = TRUE, label = id)

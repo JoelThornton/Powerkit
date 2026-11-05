@@ -32,8 +32,10 @@ spower_backend <- function(spec, seed = NULL) {
       if (jonckheere_test(spec)) "PMCMRplus",
       # p_brunner_munzel() calls brunnermunzel's brunnermunzel.test().
       if (brunner_munzel_test(spec)) "brunnermunzel",
-      # p_art() calls ARTool's art() and artlm(), then car's Anova().
-      if (aligned_rank_test(spec)) c("ARTool", "car"),
+      # p_art() calls ARTool's art() and artlm(), then car's Anova();
+      # p_art_within() calls aov() through artlm(), or with unequal groups
+      # car's Anova() with pbkrtest's Kenward-Roger F tests.
+      if (aligned_rank_test(spec)) c("ARTool", if (!art_within(spec) || mixed_unequal_groups(spec)) "car", if (art_within(spec) && mixed_unequal_groups(spec)) c("lme4", "pbkrtest")),
       # p_negative_binomial() fits MASS's glm.nb().
       if (negative_binomial_test(spec)) "MASS",
       # p_zero_inflated() fits pscl's zeroinfl().
@@ -43,6 +45,8 @@ spower_backend <- function(spec, seed = NULL) {
       if (robust_regression(spec)) {
         if (identical(spec$target_test$method, "quantile_regression")) "quantreg" else "car"
       },
+      # p_permanova() calls vegan's adonis2().
+      if (permanova_test(spec)) "vegan",
       # p_multinomial() fits nnet's multinom().
       if (identical(spec$template, "multinomial")) "nnet"
     ),
@@ -124,7 +128,18 @@ spower_inputs <- function(spec) {
     # One-way MANOVA: powerkit's own experiment for Spower, p_manova(),
     # draws multivariate normal scores for each group (manova_scores()) and
     # returns the p-value of Pillai's trace from stats::manova().
-    manova = list(
+    # PERMANOVA: powerkit's own experiment, p_permanova(), draws the
+    # groups' scores (permanova_scores(): multivariate normal, or of the
+    # chosen shape) and returns vegan's adonis2() permutation test of the
+    # effect, on Euclidean distances between the standardised outcomes.
+    manova = if (permanova_test(spec)) list(
+      experiment = "p_permanova", own = TRUE, generator = "permanova_scores", generate = permanova_scores,
+      args = function(n) {
+        c(list(n = n / length(pop$means), means = manova_means(spec), sds = as.numeric(unlist(pop$sds)), r = pop$r,
+          shape = pop$score_shape %||% "normal"),
+          if (!is.null(spec$variables$B)) list(b = length(spec$variables$B$levels), term = manova_term(spec)))
+      }
+    ) else list(
       experiment = "p_manova", own = TRUE, generator = "manova_scores", generate = manova_scores,
       args = function(n) {
         c(list(n = n / length(pop$means), means = manova_means(spec), sds = as.numeric(unlist(pop$sds)), r = pop$r),
@@ -324,6 +339,9 @@ spower_inputs <- function(spec) {
       if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
   } else if (welch_anova(spec)) {
     "Spower::Spower(Spower::p_anova.test(var.equal = FALSE))"
+  } else if (identical(template, "manova") && permanova_test(spec)) {
+    sprintf("Spower::Spower(p_permanova()) (vegan::adonis2(method = \"euclidean\", permutations = 999) on the standardised outcomes%s)",
+      if (is.null(spec$variables$B)) "" else sprintf(", the sequential test of %s", manova_term(spec)))
   } else if (identical(template, "manova")) {
     if (is.null(spec$variables$B)) "Spower::Spower(p_manova()) (stats::manova(), Pillai's trace)" else
       sprintf("Spower::Spower(p_manova()) (stats::manova() of A * B, Pillai's trace of %s)", manova_term(spec))
@@ -381,6 +399,26 @@ rank_test_inputs <- function(spec, first_group) {
   # (art_scores()). The experiment's n is one share of the total: each
   # cell has n times its share (options > cell_ratio; 1 each for equal
   # cells).
+  # The aligned rank transform with a within-participants factor:
+  # powerkit's own experiment, p_art_within(), on correlated scores of the
+  # chosen shape (art_within_scores()), the participants an error term.
+  if (art_within(spec)) {
+    cells <- art_cells(spec)
+    shape <- pop$score_shape %||% "normal"
+    term <- art_term(spec$target_test$effect)
+    within_both <- identical(spec$template, "factorial_within")
+    groups <- if (within_both) 1 else nrow(cells$means)
+    r <- art_within_r(spec)
+    ratio <- if (mixed_unequal_groups(spec)) group_ratio_vector(spec) else rep(1, groups)
+    type3 <- mixed_unequal_groups(spec)
+    return(list(
+      experiment = "p_art_within", own = TRUE, rank = "art_within", draw = draw,
+      args = function(n) {
+        list(n = n, means = cells$means, sds = cells$sds, r = r, group_ratio = ratio, shape = shape, term = term,
+          within_both = within_both, type3 = type3)
+      }
+    ))
+  }
   if (aligned_rank_test(spec)) {
     cells <- art_cells(spec)
     shape <- pop$score_shape %||% "normal"
@@ -466,6 +504,13 @@ score_shape_words <- function(shape) {
 rank_test_description <- function(test, template, alternative) {
   if (identical(test$experiment, "p_art")) {
     return("Spower::Spower(p_art()) (ARTool::art(), ARTool::artlm(), car::Anova(type = 3))")
+  }
+  if (identical(test$experiment, "p_art_within")) {
+    return(if (isTRUE(test$args(100)$type3)) {
+      "Spower::Spower(p_art_within()) (ARTool::art() with a random intercept for each person, ARTool::artlm(), car::Anova(type = 3) with Kenward-Roger F tests)"
+    } else {
+      "Spower::Spower(p_art_within()) (ARTool::art() with the participants as an error term, ARTool::artlm(), aov())"
+    })
   }
   if (identical(template, "oneway_within")) {
     return("Spower::Spower(p_friedman()) (stats::friedman.test())")
@@ -607,6 +652,118 @@ p_art <- function(n, means, sds, n.ratios, shape, term) {
   data <- art_scores(n, means, sds, n.ratios, shape)
   model <- ARTool::art(Y ~ A * B, data = data)
   car::Anova(ARTool::artlm(model, term), type = 3)[term, "Pr(>F)"]
+}
+
+# The aligned rank transform with a within-participants factor ----------------
+#
+# The correlation between any two of a person's scores: one per group (a
+# 2 x 2 mixed design may give one per level of A), or one for everyone
+# (spec checks require every pair's to be the same).
+art_within_r <- function(spec) {
+  r <- as.numeric(unlist(spec$population$r))
+  if (identical(spec$template, "2x2_mixed")) rep_len(r, length(spec$variables$A$levels)) else r[1]
+}
+
+# Scores for the aligned rank transform with a within-participants factor,
+# drawn as Friedman's test draws them (friedman_scores()): each score is
+# the cell's mean plus its SD times (sqrt(r) times the person's own level,
+# standard normal, plus sqrt(1 - r) times a deviation of the chosen shape),
+# so that every cell has its SD and any two of a person's scores correlate
+# r. A mixed design (A between, B within): the groups have n split in the
+# ratio given (mixed_group_n()), and in each group in turn the people's
+# levels are drawn, then the deviations in each level of B in turn. Both
+# factors within (within_both): n people, their levels first, then the
+# deviations in each cell, row by row (A's first level with each level of
+# B, then A's second level, ...). Long format: id, A, B, Y.
+art_within_scores <- function(n, means, sds, r, group_ratio, shape, within_both = FALSE) {
+  draw <- score_shape_sampler(shape)
+  k <- nrow(means)
+  m <- ncol(means)
+  person_scores <- function(size, first_id, r, cells) {
+    level <- stats::rnorm(size)
+    do.call(rbind, lapply(seq_len(nrow(cells)), function(i) {
+      a <- cells$a[i]
+      b <- cells$b[i]
+      data.frame(id = first_id + seq_len(size), A = a, B = b,
+        Y = means[a, b] + sds[a, b] * (sqrt(r) * level + sqrt(1 - r) * draw(size)))
+    }))
+  }
+  data <- if (within_both) {
+    person_scores(n, 0, r[1], expand.grid(b = seq_len(m), a = seq_len(k)))
+  } else {
+    sizes <- mixed_group_n(n, group_ratio)
+    first <- c(0, cumsum(sizes))
+    do.call(rbind, lapply(seq_len(k), function(a) {
+      person_scores(sizes[a], first[a], r[min(a, length(r))], data.frame(a = a, b = seq_len(m)))
+    }))
+  }
+  data$id <- factor(data$id)
+  data$A <- factor(data$A, levels = seq_len(k))
+  data$B <- factor(data$B, levels = seq_len(m))
+  data
+}
+
+# The p-value of `term` in the analysis of variance aov() fits with an
+# error term (an "aovlist"): the stratum that holds the term.
+art_aov_p <- function(fit, term) {
+  for (stratum in summary(fit)) {
+    table <- stratum[[1]]
+    at <- match(term, trimws(rownames(table)))
+    if (!is.na(at)) {
+      return(table[at, "Pr(>F)"])
+    }
+  }
+  NA_real_
+}
+
+# Spower experiment for the aligned rank transform with a within-
+# participants factor. ARTool's art() aligns and ranks the scores for every
+# effect, with the participants as an error term (Error(id)), and artlm()
+# gives aov()'s repeated measures ANOVA of the ranks for the effect tested.
+# With equal groups its F test is the one ARTool's documented model, a
+# random intercept for each person ((1 | id)) analysed by its anova() with
+# Kenward-Roger F tests, gives (checked in test-backend-art-within.R), and
+# much faster. With unequal groups (type3), aov()'s sequential sums of
+# squares would differ from Type III for B's main effect, so that model is
+# used: art() with (1 | id), artlm() and car's Anova(type = 3) with
+# Kenward-Roger F tests.
+p_art_within <- function(n, means, sds, r, group_ratio, shape, term, within_both = FALSE, type3 = FALSE) {
+  data <- art_within_scores(n, means, sds, r, group_ratio, shape, within_both)
+  if (type3) {
+    model <- ARTool::art(Y ~ A * B + (1 | id), data = data)
+    return(car::Anova(ARTool::artlm(model, term), type = 3, test.statistic = "F")[term, "Pr(>F)"])
+  }
+  model <- ARTool::art(Y ~ A * B + Error(id), data = data)
+  art_aov_p(ARTool::artlm(model, term), term)
+}
+
+# Check run: one large data set drawn as the simulation draws it; each
+# cell's mean and, per group, the correlation between a person's first two
+# scores.
+art_within_check_run <- function(spec, args, seed) {
+  data <- call_backend("Spower", with_seed(seed, art_within_scores(args$n, args$means, args$sds, args$r, args$group_ratio, args$shape, args$within_both)))
+  a_levels <- unlist(spec$variables$A$levels)
+  b_levels <- unlist(spec$variables$B$levels)
+  cells <- expand.grid(b = seq_along(b_levels), a = seq_along(a_levels))
+  by_cell <- split(data$Y, list(data$A, data$B))
+  cell <- function(i) by_cell[[paste(cells$a[i], cells$b[i], sep = ".")]]
+  index <- cbind(cells$a, cells$b)
+  rows <- check_run_rows(sprintf("mean of %s, %s", a_levels[cells$a], b_levels[cells$b]), args$means[index],
+    vapply(seq_len(nrow(cells)), function(i) mean(cell(i)), numeric(1)),
+    args$sds[index] / sqrt(vapply(seq_len(nrow(cells)), function(i) length(cell(i)), numeric(1))))
+  groups <- if (args$within_both) list(all = data) else split(data, data$A)
+  for (g in seq_along(groups)) {
+    d <- groups[[g]]
+    first <- d$Y[d$B == 1 & (args$within_both | TRUE) & d$A == d$A[1]]
+    second <- d$Y[d$B == 2 & d$A == d$A[1]]
+    r_hat <- stats::cor(first, second)
+    r_spec <- args$r[min(g, length(args$r))]
+    rows <- rbind(rows, check_run_rows(
+      sprintf("correlation between a person's scores%s", if (args$within_both) "" else sprintf(" in %s", a_levels[g])),
+      r_spec, r_hat, (1 - r_spec^2) / sqrt(length(first))
+    ))
+  }
+  rows
 }
 
 # Data for negative binomial regression: n people; the predictor x is a
@@ -1046,6 +1203,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   if (identical(spec$template, "multinomial")) {
     return(multinomial_check_run(spec, args, seed))
   }
+  if (permanova_test(spec) && !identical(args$shape, "normal")) {
+    return(permanova_check_run(spec, args, seed))
+  }
   if (identical(spec$template, "single_predictor_count") && zero_inflated_test(spec)) {
     return(zero_inflated_check_run(args, seed))
   }
@@ -1257,6 +1417,9 @@ rank_check_run <- function(spec, args, seed) {
       r_row
     ))
   }
+  if (art_within(spec)) {
+    return(art_within_check_run(spec, args, seed))
+  }
   if (aligned_rank_test(spec)) {
     data <- call_backend("Spower", with_seed(seed, art_scores(args$n, args$means, args$sds, args$n.ratios, args$shape)))
     a_levels <- unlist(spec$variables$A$levels)
@@ -1433,6 +1596,71 @@ p_manova <- function(n, means, sds, r, b = 1, term = "A") {
   B <- factor((group - 1) %% b + 1)
   fit <- stats::manova(y ~ A * B)
   summary(fit, test = "Pillai")$stats[term, "Pr(>F)"]
+}
+
+# PERMANOVA ----------------------------------------------------------------------
+#
+# Scores for PERMANOVA: n people in each group (or combination of A and
+# B). Normal scores are multivariate normal, as for MANOVA
+# (manova_scores()). Scores of another shape are drawn as each person's
+# common level (standard normal, a share r of the variance) plus a
+# deviation of the chosen shape for each outcome (score_shape_sampler(),
+# the rest), so any two outcomes correlate r (at least 0), each outcome
+# has its SD, and groups differ by their means; in each group in turn, the
+# common levels first, then each outcome's deviations in turn.
+permanova_scores <- function(n, means, sds, r, shape = "normal", ...) {
+  if (identical(shape %||% "normal", "normal")) {
+    return(manova_scores(n, means, sds, r))
+  }
+  draw <- score_shape_sampler(shape)
+  p <- ncol(means)
+  y <- do.call(rbind, lapply(seq_len(nrow(means)), function(g) {
+    common <- stats::rnorm(n)
+    vapply(seq_len(p), function(j) means[g, j] + sds[j] * (sqrt(r) * common + sqrt(1 - r) * draw(n)), numeric(n))
+  }))
+  y <- matrix(y, ncol = p)
+  colnames(y) <- paste0("Y", seq_len(p))
+  data.frame(group = factor(rep(seq_len(nrow(means)), each = n)), y)
+}
+
+# Spower experiment for PERMANOVA (permutational MANOVA; vegan's
+# adonis2(), Anderson, 2001, cited by its help): the outcomes standardised
+# in each data set (scale()), so that an outcome measured on a larger scale
+# doesn't dominate the distances, then Euclidean distances (vegan's default
+# is Bray-Curtis, for ecological abundance data, which needs scores of 0 or
+# more) and vegan's default 999 permutations. One factor: the test of the
+# groups; two factors: the effect's sequential test (by = "terms"), which
+# equals its marginal test with equal groups.
+p_permanova <- function(n, means, sds, r, shape = "normal", b = 1, term = "A") {
+  data <- permanova_scores(n, means, sds, r, shape)
+  y <- scale(as.matrix(data[, -1]))
+  if (b == 1) {
+    fit <- vegan::adonis2(y ~ group, data = data, method = "euclidean", permutations = 999, by = "terms")
+    return(fit["group", "Pr(>F)"])
+  }
+  group <- as.integer(data$group)
+  design <- data.frame(A = factor((group - 1) %/% b + 1), B = factor((group - 1) %% b + 1))
+  fit <- vegan::adonis2(y ~ A * B, data = design, method = "euclidean", permutations = 999, by = "terms")
+  fit[term, "Pr(>F)"]
+}
+
+# Check run for PERMANOVA's scores of a shape other than normal: each
+# group's means, and the average correlation between two outcomes (its
+# allowance three times the normal-theory standard error, since
+# heavy-tailed scores estimate it less precisely).
+permanova_check_run <- function(spec, args, seed) {
+  data <- call_backend("Spower", with_seed(seed, permanova_scores(args$n, args$means, args$sds, args$r, args$shape)))
+  y <- as.matrix(data[, -1])
+  groups <- split(seq_len(nrow(data)), data$group)
+  centred <- do.call(rbind, lapply(groups, function(i) scale(y[i, , drop = FALSE], scale = FALSE)))
+  within_r <- mean(stats::cor(centred)[upper.tri(diag(ncol(y)))])
+  cells <- expand.grid(g = seq_len(nrow(args$means)), j = seq_len(ncol(args$means)))
+  rbind(
+    check_run_rows(sprintf("mean of Y%d in group %d", cells$j, cells$g), args$means[cbind(cells$g, cells$j)],
+      vapply(seq_len(nrow(cells)), function(i) mean(y[groups[[cells$g[i]]], cells$j[i]]), numeric(1)),
+      args$sds[cells$j] / sqrt(args$n)),
+    check_run_rows("correlation between two outcomes (average)", args$r, within_r, 3 * (1 - args$r^2) / sqrt(nrow(y)))
+  )
 }
 
 # The term of A * B a two-factor MANOVA tests.

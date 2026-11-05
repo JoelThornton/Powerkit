@@ -4863,13 +4863,103 @@ only.
 - **Not covered:** hurdle models (pscl's `hurdle()`), in which every zero
   comes from the binary part; a candidate for a later step if researchers
   ask for it.
-- **Open question for the maintainer:** with negative binomial counts the
-  Wald test of the predictor in the zero part, which `summary()` of
+- **The zero part's Wald test (decided 4 November 2026: keep it):** with
+  negative binomial counts the Wald test of the predictor in the zero part, which `summary()` of
   `zeroinfl()` reports, is conservative: 3.9% of 10,000 studies with no
   zero effect rejected at alpha 0.05 (n = 400, base rate 2, 30% extra
   zeros, k = 0.5), against 5.6% for the likelihood-ratio test of the same
   coefficient (3,000 studies); with Poisson counts the Wald test holds its
   level. powerkit computes power for the Wald test researchers will
   report, so that power is conservative; the input screen says so, and a
-  validation test records the size. Offering the likelihood-ratio test of
-  the zero part instead is the alternative.
+  validation test records the size. The maintainer kept the Wald test,
+  because it is the test researchers report from `summary()`; the
+  likelihood-ratio test of the zero part remains a possible option.
+
+## 2026-11-04 · The aligned rank transform with a within-participants factor (E8, E55 and E20)
+
+- **What:** the 2 x 2 mixed (E8), larger mixed (E55) and two-factor
+  within-participants (E20) cards offer the aligned rank transform ANOVA
+  as a test version, simulated by Spower with powerkit's experiment
+  `p_art_within()`. Goals: power and sample size.
+- **Why:** `next.md` item 5, Ready for this part since 31 October 2026.
+  Researchers use the aligned rank transform for factorial designs with
+  repeated measures as well as between-participants ones (ARTool's help
+  shows a split-plot example), and the between-participants version left
+  group-by-time designs without one.
+- **Data model:** correlated scores of a chosen shape, as Friedman's test
+  draws them (the queue item's wording): each score the cell's mean plus
+  its SD times (sqrt(r) times the person's own level plus sqrt(1 - r)
+  times a deviation of the chosen shape). So one correlation holds between
+  any two of a person's scores, one per group in the 2 x 2 mixed design;
+  the spec checks refuse different correlations per pair and a
+  correlation below 0, and a sphericity correction (which has nothing to
+  correct).
+- **Analysis:** ARTool's documented model for repeated measures is a random
+  intercept per person; with equal groups powerkit fits its error-term
+  equivalent (`Error(id)`), which gives identical p-values in a balanced
+  design and is several times faster; with unequal groups, the random
+  intercept model with car's Type III Kenward-Roger F tests, because
+  `aov()`'s sequential sums of squares would differ from Type III for the
+  within factor's main effect.
+- **Validation** (`test-validation-art-within.R`, chunk
+  `aligned_rank_within`): the procedure written out from its published
+  definition with an error term matches ARTool's p-values; powerkit agrees
+  with a plain loop of it for a 2 x 2 and a 2 x 3 mixed design and two
+  within-participants factors; the interaction's rejection rate stays near
+  alpha with skewed scores and both main effects present. A published
+  example is a placeholder for the maintainer.
+
+## 2026-11-04 · Decisions for the rest of the queue (`next.md` items 2 to 6)
+
+Recommendations made with the 0.31.0 work and accepted by the maintainer.
+
+- **Item 2, the Bayes factor of an effect in factorial and repeated
+  measures ANOVAs:** JASP's inclusion Bayes factor across all models, with
+  uniform model priors and the principle of marginality, as its Bayesian
+  ANOVA's Effects table gives it (jaspAnova's
+  `inst/qml/common/bayesian/DefaultOptions.qml`: `effectsType` "allModels",
+  checked by default; `AdditionalOptions.qml`: `modelPrior` "uniform", r
+  scale 0.5 for fixed and 1 for random effects), by default; the
+  comparison across matched models as an option. Between-participants
+  designs (about 0.1 s per simulated study with BayesFactor) run in the
+  app; repeated measures (about 0.8 s) take the preview and R script route.
+- **Item 3, three or more occasions:** growth curves first, by longpower's
+  closed form (CRAN 1.0.27), checked against a simr simulation; then the
+  random-intercept cross-lagged panel model with powRICLPM (CRAN 0.2.1).
+  Experience sampling waits: PowerAnalysisIL is not on CRAN.
+- **Item 4, designs that need a custom simulation:** one PR per design,
+  starting with a moderator with three or more groups (E30) and moderation
+  with a yes/no outcome (E32); then interrupted time series (E42).
+- **Item 5, the rest of the non-parametric comparisons:** PERMANOVA by
+  simulation with vegan's `adonis2()` (CRAN 2.7-6). Quade's non-parametric
+  ANCOVA is not covered: no package implements it, and base R's
+  `quade.test()` is a different test (Quade's test for unreplicated
+  blocks).
+- **Item 6, psychometric models:** IRT and DIF with irtpwr (CRAN 1.0.3)
+  first; Krippendorff's alpha and two-way ICCs once a package with a
+  sample-size or power method is found; EFA, latent profiles and signal
+  detection each scoped in its own PR.
+
+## 2026-11-04 · PERMANOVA (E59's test version)
+
+- **What:** the MANOVA card offers PERMANOVA (permutational MANOVA) as a
+  test version, for one or two factors, simulated by Spower with
+  powerkit's experiment `p_permanova()` around vegan's `adonis2()`. Goals:
+  power and sample size. This finishes `next.md` item 5 (decided 4
+  November 2026, this page).
+- **Why:** PERMANOVA is the distance-based alternative researchers use when
+  several outcomes are not multivariate normal; no package powerkit uses
+  has a power function for it, and vegan is its reference implementation
+  (CRAN 2.7-6, GPL-2; it brings permute, the only new dependency besides
+  itself, and needs a Fortran compiler to build from source).
+- **Distance:** Euclidean distances between the outcomes standardised in
+  each data set, not vegan's default Bray-Curtis, which is for ecological
+  abundance data and needs values of 0 or more (`conventions.md`).
+  Permutations: vegan's default 999.
+- **Data:** normal scores as for MANOVA; scores of another shape as each
+  person's common level plus a deviation of that shape, so the correlation
+  must be at least 0.
+- **Validation** (`test-validation-permanova.R`, chunk `permanova`): the
+  pseudo-F written out from its definition equals `adonis2()`'s F; powerkit
+  agrees with a separate permutation test of that pseudo-F, without vegan;
+  Type I error with skewed scores. A published example is a placeholder.

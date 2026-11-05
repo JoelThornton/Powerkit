@@ -118,9 +118,13 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
         list(s("brunnermunzel", "whose brunnermunzel.test() is the Brunner-Munzel test powerkit's experiment runs"))
       },
       if ("ARTool" %in% used) {
-        list(
-          s("ARTool", "whose art() and artlm() are the aligned rank transform powerkit's experiment runs"),
-          s("car", "whose Anova() gives the aligned rank transform's Type III F test")
+        c(
+          list(s("ARTool", "whose art() and artlm() are the aligned rank transform powerkit's experiment runs")),
+          if ("car" %in% used) list(s("car", "whose Anova() gives the aligned rank transform's Type III F test")),
+          if ("pbkrtest" %in% used) list(
+            s("lme4", "which fits the aligned rank transform's model with a random intercept for each person"),
+            s("pbkrtest", "whose Kenward-Roger approximation gives that model's F tests")
+          )
         )
       },
       if ("MASS" %in% used) {
@@ -131,6 +135,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       },
       if ("pscl" %in% used) {
         list(s("pscl", "whose zeroinfl() fits the zero-inflated regression powerkit's experiment runs"))
+      },
+      if ("vegan" %in% used) {
+        list(s("vegan", "whose adonis2() is the PERMANOVA powerkit's experiment runs"))
       },
       if ("nnet" %in% used) {
         list(s("nnet", "whose multinom() fits the multinomial logistic regression powerkit's experiment runs"))

@@ -307,14 +307,21 @@ design_description <- function(spec) {
     ),
     "basic_test/manova" = if (is.null(v$B)) {
       sprintf(
-        "one-way MANOVA of %s across the %d groups of %s (%s); Pillai's trace%s",
+        "%s of %s across the %d groups of %s (%s); %s",
+        if (permanova_test(spec)) "one-way PERMANOVA" else "one-way MANOVA",
         paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "), length(unlist(v$A$levels)), label("A"), levels("A"),
-        if (length(unlist(v$A$levels)) == 2) " (with two groups, Hotelling's T-squared)" else ""
+        if (permanova_test(spec)) {
+          sprintf("vegan's adonis2() permutation test on Euclidean distances between the standardised outcomes, %s", score_shape_words(spec$population$score_shape))
+        } else {
+          paste0("Pillai's trace", if (length(unlist(v$A$levels)) == 2) " (with two groups, Hotelling's T-squared)" else "")
+        }
       )
     } else {
       sprintf(
-        "two-way MANOVA of %s by %s (%s) and %s (%s); Pillai's trace of %s",
+        "%s of %s by %s (%s) and %s (%s); %s of %s",
+        if (permanova_test(spec)) "two-way PERMANOVA" else "two-way MANOVA",
         paste(vapply(manova_outcomes(spec), label, character(1)), collapse = ", "), label("A"), levels("A"), label("B"), levels("B"),
+        if (permanova_test(spec)) "vegan's adonis2() permutation test" else "Pillai's trace",
         switch(spec$target_test$effect, main_effect_A = label("A"), main_effect_B = label("B"), interaction = "their interaction")
       )
     },
@@ -605,6 +612,14 @@ tested_mediator_words <- function(spec, label) {
 
 rank_design_description <- function(spec, label, levels) {
   v <- spec$variables
+  if (art_within(spec)) {
+    test <- sprintf(
+      "aligned rank transform ANOVA of %s: the %s, %s (%s) by %s (%s), %s",
+      label("Y"), anova_effect_name(spec), label("A"), levels("A"), label("B"), levels("B"),
+      if (identical(spec$template, "factorial_within")) "both within participants" else "the first between participants, the second within"
+    )
+    return(sprintf("%s, simulated with %s", test, score_shape_words(spec$population$score_shape)))
+  }
   if (aligned_rank_test(spec)) {
     test <- sprintf(
       "aligned rank transform ANOVA of %s: the %s, %s (%s) by %s (%s), both between participants",
@@ -1375,7 +1390,8 @@ spower_script_inputs <- function(spec) {
       ),
       sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE)", r_code(as.numeric(t(manova_means(spec)))), length(pop$means)),
       sprintf("sds <- %s # SD of each outcome within the groups", r_code(as.numeric(unlist(pop$sds)))),
-      sprintf("r <- %s # correlation between every pair of outcomes", r_code(pop$r))
+      sprintf("r <- %s # correlation between every pair of outcomes", r_code(pop$r)),
+      if (permanova_test(spec)) sprintf("shape <- %s # the shape of the scores: %s", r_code(pop$score_shape %||% "normal"), score_shape_words(pop$score_shape))
     ),
     hotelling_one = c(
       sprintf("# Outcomes, in order: %s.",
@@ -1513,6 +1529,9 @@ spower_script_inputs <- function(spec) {
 }
 
 spower_group_size_lines <- function(spec) {
+  if (art_within(spec)) {
+    return(character())
+  }
   if (aligned_rank_test(spec)) {
     return(c(
       "  # The experiment's n is one share of the total: each cell has n times",
@@ -1627,6 +1646,7 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "n = n_group, # size of each group",
       "means = means,",
       "sds = sds,",
+      if (permanova_test(spec)) "shape = shape,",
       if (is.null(spec$variables$B)) "r = r" else c("r = r,", "b = b,", "term = term")
     ),
     hotelling_one = c(
@@ -1984,7 +2004,51 @@ spower_derived_lines <- function(spec) {
       sprintf("# The Wald test of %s: all of its coefficients are 0.", logistic_factorial_effect_words(spec)),
       sprintf("test <- %s", r_code(logistic_factorial_design(spec)$test))
     ),
-    manova = c(
+    manova = if (permanova_test(spec)) c(
+      "# The experiment, as powerkit runs it: each group's scores, multivariate",
+      "# normal, or for another shape each person's common level (a share r of the",
+      "# variance) plus a deviation of that shape for each outcome; then the",
+      "# outcomes standardised, Euclidean distances, and the p-value of vegan's",
+      "# adonis2() permutation test (999 permutations) of the groups or the effect.",
+      "permanova_scores <- function(n, means, sds, r, shape) {",
+      "  p <- ncol(means)",
+      "  if (shape == \"normal\") {",
+      "    correlation <- matrix(r, p, p)",
+      "    diag(correlation) <- 1",
+      "    sigma <- diag(sds, p) %*% correlation %*% diag(sds, p)",
+      "    y <- do.call(rbind, lapply(seq_len(nrow(means)), function(g) SimDesign::rmvnorm(n, means[g, ], sigma)))",
+      "  } else {",
+      "    draw <- switch(shape,",
+      "      skewed = function(n) (rchisq(n, df = 10) - 10) / sqrt(20), # standardised chi-square, 10 df",
+      "      heavy_tailed = function(n) rt(n, df = 3) / sqrt(3) # t with 3 df, rescaled to SD 1",
+      "    )",
+      "    y <- do.call(rbind, lapply(seq_len(nrow(means)), function(g) {",
+      "      common <- rnorm(n)",
+      "      vapply(seq_len(p), function(j) means[g, j] + sds[j] * (sqrt(r) * common + sqrt(1 - r) * draw(n)), numeric(n))",
+      "    }))",
+      "    y <- matrix(y, ncol = p)",
+      "  }",
+      "  colnames(y) <- paste0(\"Y\", seq_len(p))",
+      "  data.frame(group = factor(rep(seq_len(nrow(means)), each = n)), y)",
+      "}",
+      if (is.null(spec$variables$B)) c(
+        "p_permanova <- function(n, means, sds, shape, r) {",
+        "  data <- permanova_scores(n, means, sds, r, shape)",
+        "  y <- scale(as.matrix(data[, -1]))",
+        "  fit <- vegan::adonis2(y ~ group, data = data, method = \"euclidean\", permutations = 999, by = \"terms\")",
+        "  fit[\"group\", \"Pr(>F)\"]",
+        "}"
+      ) else c(
+        "p_permanova <- function(n, means, sds, shape, r, b, term) {",
+        "  data <- permanova_scores(n, means, sds, r, shape)",
+        "  y <- scale(as.matrix(data[, -1]))",
+        "  group <- as.integer(data$group)",
+        "  design <- data.frame(A = factor((group - 1) %/% b + 1), B = factor((group - 1) %% b + 1))",
+        "  fit <- vegan::adonis2(y ~ A * B, data = design, method = \"euclidean\", permutations = 999, by = \"terms\")",
+        "  fit[term, \"Pr(>F)\"]",
+        "}"
+      )
+    ) else c(
       "# The experiment, as powerkit runs it: multivariate normal scores for each",
       "# group, then the p-value of Pillai's trace from stats::manova().",
       "manova_scores <- function(n, means, sds, r) {",
@@ -2057,6 +2121,26 @@ rank_script_inputs <- function(spec) {
     "score_shape <- %s # the shape of the scores: %s",
     r_code(pop$score_shape %||% "normal"), score_shape_words(pop$score_shape)
   )
+  if (art_within(spec)) {
+    cells <- art_cells(spec)
+    a <- nrow(cells$means)
+    rows <- sprintf("one row per level of %s (%s), one column per level of %s (%s)",
+      comment_text(v$A$label), paste(comment_text(unlist(v$A$levels)), collapse = ", "),
+      comment_text(v$B$label), paste(comment_text(unlist(v$B$levels)), collapse = ", "))
+    within_both <- identical(spec$template, "factorial_within")
+    ratio <- if (mixed_unequal_groups(spec)) group_ratio_vector(spec) else rep(1, a)
+    return(c(
+      sprintf("means <- matrix(%s, nrow = %d, byrow = TRUE) # cell means: %s", r_code(as.numeric(t(cells$means))), a, rows),
+      sprintf("sds <- matrix(%s, nrow = %d, byrow = TRUE) # each cell's SD, in the same layout", r_code(as.numeric(t(cells$sds))), a),
+      sprintf("r <- %s # correlation between any two of a person's scores%s", r_code(art_within_r(spec)), if (within_both) "" else " (one per group)"),
+      if (!within_both) sprintf("group_ratio <- %s # each group's share of the sample", r_code(ratio)),
+      sprintf("within_both <- %s # %s", r_code(within_both), if (within_both) "both factors within participants" else "the first factor between participants, the second within"),
+      sprintf("type3 <- %s # %s", r_code(mixed_unequal_groups(spec)),
+        if (mixed_unequal_groups(spec)) "unequal groups: a random intercept per person, Type III F tests" else "equal groups: the participants as an error term in aov()"),
+      sprintf("term <- %s # the effect tested: %s", r_code(art_term(spec$target_test$effect)), anova_effect_name(spec)),
+      shape
+    ))
+  }
   if (aligned_rank_test(spec)) {
     cells <- art_cells(spec)
     a <- nrow(cells$means)
@@ -2121,6 +2205,57 @@ rank_derived_lines <- function(spec) {
     "  )",
     "}"
   )
+  if (art_within(spec)) {
+    return(c(draw, "",
+      "# The experiment, as powerkit runs it: each score is the cell's mean plus",
+      "# its SD times (sqrt(r) times the person's own level plus sqrt(1 - r) times",
+      "# a deviation of the chosen shape), so any two of a person's scores",
+      "# correlate r. In a mixed design the groups have n split by group_ratio,",
+      "# and in each group in turn the people's levels are drawn, then the",
+      "# deviations in each level of B in turn; with both factors within, the",
+      "# levels of n people, then the deviations in each cell, row by row.",
+      "# ARTool's art() aligns and ranks the scores for every effect, with the",
+      "# participants as an error term (aov(), equal groups) or a random",
+      "# intercept for each person (car's Anova(type = 3) with Kenward-Roger F",
+      "# tests, unequal groups).",
+      "p_art_within <- function(n, means, sds, r, group_ratio = 1, term, within_both = FALSE, type3 = FALSE) {",
+      "  k <- nrow(means)",
+      "  m <- ncol(means)",
+      "  person_scores <- function(size, first_id, r, cells) {",
+      "    level <- rnorm(size)",
+      "    do.call(rbind, lapply(seq_len(nrow(cells)), function(i) {",
+      "      a <- cells$a[i]",
+      "      b <- cells$b[i]",
+      "      data.frame(id = first_id + seq_len(size), A = a, B = b,",
+      "        Y = means[a, b] + sds[a, b] * (sqrt(r) * level + sqrt(1 - r) * draw_scores(size)))",
+      "    }))",
+      "  }",
+      "  data <- if (within_both) {",
+      "    person_scores(n, 0, r[1], expand.grid(b = seq_len(m), a = seq_len(k)))",
+      "  } else {",
+      "    sizes <- as.integer(round(n * group_ratio / sum(group_ratio)))",
+      "    first <- c(0, cumsum(sizes))",
+      "    do.call(rbind, lapply(seq_len(k), function(a) {",
+      "      person_scores(sizes[a], first[a], r[min(a, length(r))], data.frame(a = a, b = seq_len(m)))",
+      "    }))",
+      "  }",
+      "  data$id <- factor(data$id)",
+      "  data$A <- factor(data$A, levels = seq_len(k))",
+      "  data$B <- factor(data$B, levels = seq_len(m))",
+      "  if (type3) {",
+      "    model <- ARTool::art(Y ~ A * B + (1 | id), data = data)",
+      "    return(car::Anova(ARTool::artlm(model, term), type = 3, test.statistic = \"F\")[term, \"Pr(>F)\"])",
+      "  }",
+      "  model <- ARTool::art(Y ~ A * B + Error(id), data = data)",
+      "  for (stratum in summary(ARTool::artlm(model, term))) {",
+      "    table <- stratum[[1]]",
+      "    at <- match(term, trimws(rownames(table)))",
+      "    if (!is.na(at)) return(table[at, \"Pr(>F)\"])",
+      "  }",
+      "  NA",
+      "}"
+    ))
+  }
   if (aligned_rank_test(spec)) {
     return(c(draw, "",
       "# The experiment, as powerkit runs it: n times its share in each cell,",
@@ -2210,6 +2345,20 @@ rank_derived_lines <- function(spec) {
 }
 
 rank_experiment_lines <- function(spec, inputs, one_sided) {
+  if (art_within(spec)) {
+    within_both <- identical(spec$template, "factorial_within")
+    args <- ensure_commas(c(
+      "n = batch_n, # participants",
+      "means = means, # cell means",
+      "sds = sds, # cell SDs",
+      "r = r,",
+      if (!within_both) "group_ratio = group_ratio,",
+      "term = term,",
+      "within_both = within_both,",
+      "type3 = type3"
+    ))
+    return(c(sprintf("%s(", inputs$experiment), paste0("  ", args), "),"))
+  }
   if (aligned_rank_test(spec)) {
     args <- ensure_commas(c(
       "n = n_share, # one share of the total",

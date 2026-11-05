@@ -1650,7 +1650,14 @@ rank_test_name <- function(spec) {
     b <- spec$variables$B$label %||% "the second factor"
     effect <- switch(spec$target_test$effect, main_effect_A = sprintf("the main effect of %s", a), main_effect_B = sprintf("the main effect of %s", b),
       interaction = sprintf("the %s by %s interaction", a, b))
-    return(sprintf("an aligned rank transform ANOVA of %s (two between-participants factors), simulated assuming %s", effect, shape))
+    design <- switch(spec$template,
+      "2x2_mixed" = , mixed = sprintf("%s between participants, %s within", a, b),
+      factorial_within = "two within-participants factors",
+      "two between-participants factors")
+    within <- isTRUE(spec$template %in% c("2x2_mixed", "mixed", "factorial_within"))
+    return(sprintf("an aligned rank transform ANOVA of %s (%s), simulated assuming %s%s", effect, design,
+      if (within) sub("scores", "deviations from each person's own level", shape) else shape,
+      if (within) sprintf(" and a correlation of %s between a person's scores", paste(format(unique(unlist(spec$population$r))), collapse = " and ")) else ""))
   }
   if (identical(spec$target_test$method, "brunner_munzel")) {
     ratio <- spec$population$sd_ratio %||% 1
@@ -1827,6 +1834,8 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   # MANOVA with three or more groups; two groups are calculated exactly).
   groups <- form$known_differences_if_groups_above
   keys <- Filter(function(k) is.null(groups[[k]]) || length(spec$variables$A$levels) > groups[[k]] || !is.null(spec$variables$B), keys)
+  # PERMANOVA (E59's test version) has no G*Power counterpart to differ from.
+  if (identical(spec$target_test$method, "permanova")) keys <- setdiff(keys, "8")
   # A known difference may have its own wording for the smallest detectable
   # effect (key "1 sensitivity": E9's comes from the fixed-model formula).
   if (identical(spec$goal$type, "sensitivity")) {
@@ -2250,6 +2259,9 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       ),
       format(100 * spec$population$zero_prob),
       if (identical(spec$target_test$method, "zero_inflated_negative_binomial")) sprintf(", overdispersion k = %s", format(spec$population$dispersion)) else "")
+  }
+  if (identical(spec$target_test$method, "permanova")) {
+    name <- sprintf("a PERMANOVA (vegan's adonis2() permutation test on Euclidean distances between the standardised outcomes), simulated assuming %s", score_shape_text(spec$population$score_shape))
   }
   if (identical(spec$target_test$method, "negative_binomial")) {
     name <- sprintf("a negative binomial regression (the Wald z test of one predictor, overdispersion k = %s), simulated", format(spec$population$dispersion))
