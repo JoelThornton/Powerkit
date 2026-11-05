@@ -121,3 +121,20 @@ jobs:
         run: |
           testthat::test_dir("app/routing/tests/testthat", filter = "^results$",
             invert = ${{ matrix.invert }}, stop_on_failure = TRUE)
+
+
+  app-review-gate:
+    if: ${{ always() }}
+    needs: [image, app-tests, browser-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify gate failure and skip handling
+        run: python3 scripts/test-required-checks.py
+      - name: Require successful prerequisite jobs
+        env:
+          CHECK_KIND: app
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: python3 scripts/required-checks.py

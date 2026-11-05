@@ -161,3 +161,20 @@ jobs:
           testthat::test_dir("engine/tests/testthat", package = "powerkit", load_package = "installed",
             filter = paste0("^(", paste(mine, collapse = "|"), ")$"),
             stop_on_failure = TRUE)
+
+
+  engine-review-gate:
+    if: ${{ always() }}
+    needs: [changes, image, R-CMD-check, engine-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {contents: read}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify gate failure and skip handling
+        run: python3 scripts/test-required-checks.py
+      - name: Require successful prerequisite jobs
+        env:
+          CHECK_KIND: engine
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: python3 scripts/required-checks.py

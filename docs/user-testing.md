@@ -41,10 +41,12 @@ then run another round.
 - Agree how the session is recorded (notes only, screen recording, audio),
   and get the tester's consent for it. Check whether your institution needs
   ethics approval for usability sessions with colleagues.
-- powerkit saves nothing a tester types, but the online version runs on
-  Posit's servers, so what is typed passes through them. Ask testers not
-  to enter anything identifying. Information otherwise leaves only when
-  the tester copies text or downloads a file and gives it to you.
+- Input-screen answers may be retained in browser local storage for recovery.
+  The online version also processes values on Posit's servers, and exported
+  drafts/projects contain entered answers. Use a fresh browser profile for
+  each session, explain this storage before consent, and agree retention.
+  Ask testers not to enter identifying information. See `usability-session-pack.md`
+  for fictional tasks, an observer key and the current privacy briefing.
 
 ## The 20-minute session
 

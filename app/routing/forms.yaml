@@ -3104,7 +3104,7 @@ forms:
       - input: "Sensitivity (d') in each condition"
         fields:
           - {id: d1, writeup_label: "average d' in condition 1", label: "Average d' in condition 1", type: number, path: population.dprime.1, effect: true, min: -5, max: 6,
-             help: "d' is how well people tell signal from noise: 0 is chance, 1 is moderate, 2 or more is good. Take it from earlier studies of the same task."}
+             help: "d' describes sensitivity in signal-detection units; 0 means no separation. Its practical meaning depends on the task. Take it from comparable studies rather than choosing a conventional magnitude label."}
           - {id: d2, writeup_label: "average d' in condition 2", label: "Average d' in condition 2", type: number, path: population.dprime.2, effect: true, min: -5, max: 6,
              help: "The test is of condition 2 minus condition 1."}
       - input: "Trials and how people vary"

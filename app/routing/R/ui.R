@@ -1,3 +1,9 @@
+# Button text already provides the accessible name. Shiny's default font
+# icon carries an aria-label on a generic element in some locked versions.
+download_button <- function(outputId, label = "Download", ...) {
+  shiny::downloadButton(outputId, label, icon = NULL, ...)
+}
+
 # Screen builders for the routing prototype. Each returns htmltools tags
 # built from tree.yaml; none calculates anything. Every button reports its
 # action through one Shiny input ("pick") as a string such as "route:known",

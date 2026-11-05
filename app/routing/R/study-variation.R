@@ -22,7 +22,7 @@ study_variation_ui <- function() {
       plotOutput("variation_grid", height = "330px"),
       plotOutput("variation_pvalues", height = "300px"),
       plotOutput("variation_estimates", height = "330px"),
-      downloadButton("variation_csv", "Download simulated study results (CSV)", class = "btn btn-outline-primary")),
+      download_button("variation_csv", "Download simulated study results (CSV)", class = "btn btn-outline-primary")),
     p(class = "small", "This example teaches sampling variation and significance selection. It is not a power calculation for every study design, and does not show that a non-significant result proves no effect."))
 }
 

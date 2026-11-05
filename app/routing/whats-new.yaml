@@ -158,6 +158,14 @@ entries:
       simulation error from uncertain assumptions. Record sources and named
       alternatives, cancel higher-accuracy simulations, and download a
       planning document with your project.
+  - date: "2026-11-05"
+    title: "Find usable inputs without guessing missing numbers"
+    text: >-
+      Input screens point you to the matching raw-score or published-result
+      options, can fill conversion fields from a reported t or F statistic,
+      and explain when a summary cannot identify the model. Missing
+      values can stay in an unfinished draft. Clearer card labels and shared
+      sample descriptions improve readability and keep count units consistent.
   - date: "2026-11-04"
     title: "Moderation when the outcome is yes or no"
     text: >-
