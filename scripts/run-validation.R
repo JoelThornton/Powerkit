@@ -149,7 +149,7 @@ validation_chunks <- function() {
     equivalence = c("test-validation-equivalence-tests.R", "test-validation-minimum-effect.R"),
     trend = "test-validation-trend.R",
     precision = "test-validation-precision.R",
-    whole_study = c("test-validation-whole-study-crosscheck.R", "test-validation-whole-study-twice.R"),
+    whole_study = c("test-validation-whole-study-crosscheck.R", "test-validation-whole-study-twice.R", "test-validation-whole-study-groups.R"),
     cluster = "test-validation-cluster-randomised.R",
     multisite = "test-validation-multisite.R",
     sem_fit = "test-validation-sem-model-fit.R",

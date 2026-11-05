@@ -57,7 +57,7 @@
           "exclusiveMaximum": 1
         },
         "correlations": {
-          "description": "'X<->W': the correlation of X and W. 'M1<->M2': with parallel mediators, the correlation of their residuals. 'X<->B' and 'W<->B': with a baseline B, its correlations with X (0 for two groups, as when people are randomised) and W.",
+          "description": "'X<->W': the correlation of X and W. 'M1<->M2': with parallel mediators, the correlation of their residuals. 'X<->B' and 'W<->B': with a baseline B, its correlations with X and W. With a two-group X, 'X<->W' and 'X<->B' are 0 unless given (people randomised to the groups); given, as for non-randomised groups, W and B are drawn from X with the standardised regressions that give these correlations.",
           "type": "object",
           "propertyNames": {"enum": ["X<->W", "M1<->M2", "X<->B", "W<->B"]},
           "additionalProperties": {"type": "number", "exclusiveMinimum": -1, "exclusiveMaximum": 1}

@@ -33,7 +33,7 @@ and 80% together, about 89.4% each).
      correlation of their residuals;
    - measured twice (31 October 2026): the outcome's first measurement B
      as an exogenous variable, with a path B -> Y and its correlations
-     with X (0 for two groups, drawn on their own) and W. Every
+     with X and W. Every
      analysis's model then adds B to the equation for Y, as an ANCOVA
      does; the mediators are not adjusted for B, since the population
      has no B -> M path (question 7). Measured twice covers the group
@@ -46,6 +46,22 @@ and 80% together, about 89.4% each).
      (serial mediation, PROCESS model 6; moderated mediation, model 14)
      run at the paths to Y divided by sqrt(1 - p_BY^2)
      (test-validation-whole-study-twice.R).
+
+   - X as two groups (31 October 2026), drawn by power4mome's
+     `rbinary_rs()` and standardised. Randomised groups are uncorrelated
+     with W and B. Non-randomised groups (5 November 2026) may correlate
+     with W and B: power4mome draws a two-group X on its own, so W is
+     regressed on X in the population, and B on X and W, with the
+     standardised coefficients that give the correlations entered. Within
+     each group W is then normal, with the groups' means apart. A product
+     of a two-group X with W no longer has the moments of a product of
+     jointly normal variables (for equal groups its variance is 1 - r^2,
+     not 1 + r^2, and with unequal groups it correlates with X and W), so
+     each residual variance is computed from the exact moments
+     (`whole_study_moments()`: every variable a polynomial in independent
+     sources, X two-valued, as for PROCESS models 58 and 59 in
+     Departure 19), supplied to power4mome explicitly, and power4mome's
+     own standardisation is switched off (question 8).
 
    Every observed variable has variance 1; the residual variances follow
    from the paths (powerkit's existing check, `implied_r_squared()`,
@@ -174,3 +190,12 @@ how InteractionPoweR generates its data compared with power4mome.
    mediator measured at baseline, or a B -> M path, be part of the
    model, and does the moderation's test change in meaning once B is in
    the model?
+8. **Non-randomised groups.** A two-group X correlated with W or B is
+   generated as W (and B) depending on the groups, so the groups differ in
+   their mean W with W normal within each group. Is that the model users
+   have in mind when they enter a correlation of a group with a score
+   (rather than, say, a group formed by a threshold on a normal variable
+   correlated with W), and is the point-biserial correlation the right
+   input, or would the groups' standardised difference in W be easier to
+   give?
+

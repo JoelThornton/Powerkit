@@ -5076,3 +5076,35 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   method is large-sample), and the Type I error with no DIF. The method
   paper's example is a placeholder for the maintainer.
 
+## 2026-11-05 · Whole-study simulation: non-randomised groups
+
+- **What:** in the whole-study simulation, X as two groups may correlate
+  with the moderator W and the first measurement B, as for groups people
+  aren't randomised to (gender with a personality score, for example).
+  Before, the correlation had to be 0. The input screen asks for it, 0 if
+  people are randomised to the groups.
+- **Why:** `next.md` item 1 (decided 31 October 2026: extend the
+  whole-study simulation one design at a time); the first design its row
+  listed as not yet covered.
+- **How:** power4mome draws a two-group X on its own (`rbinary_rs()`), so
+  it can't be given a covariance with W. W is regressed on X in the
+  population, and B on X and W, with the standardised coefficients that
+  give the correlations entered; W is normal within each group, with the
+  groups' means apart. The analyses' own models are unchanged.
+- **Moments:** a product of a two-group X with W doesn't have the moments
+  of a product of jointly normal variables (for equal groups its variance
+  is 1 - r^2, not 1 + r^2), which power4mome's standardisation and
+  powerkit's `implied_r_squared()` assume. Each residual variance is
+  computed from the exact moments (`whole_study_moments()`, the polynomial
+  method of Departure 19 generalised to the whole-study model), supplied
+  explicitly, and power4mome's standardisation is switched off. Randomised
+  groups keep the existing path, so their results don't change.
+- **Validation** (`test-validation-whole-study-groups.R`, chunk
+  `whole_study`): a simulation written separately (Y's residual SD found
+  numerically from a million draws, each analysis fitted by `lm()`), for
+  equal and unequal groups and with a first measurement; each analysis's
+  power and the joint power agree within Monte Carlo error. A question for
+  the statistician (`whole-study-method.md`, question 8): whether a
+  correlation is the right input for a group, or the groups' standardised
+  difference.
+
