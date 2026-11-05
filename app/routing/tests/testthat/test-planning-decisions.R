@@ -38,6 +38,28 @@ test_that("unfamiliar numeric families have meanings, illustrations, sources and
   }
 })
 
+test_that("all declared numeric inputs have structured help without confusing similarly named quantities", {
+  for (id in names(forms$forms)) for (f in form_fields(form_groups(forms, id))) {
+    if (!f$type %in% c("number", "numbers", "table")) next
+    guide <- input_guide(f)
+    expect_true(is.list(guide) && all(nzchar(unlist(guide))), label = paste(id, f$id))
+  }
+  cronbach <- input_guide(list(id = "true_alpha", type = "number", label = "Cronbach's alpha reliability", path = "population.alpha"))
+  expect_match(cronbach$meaning, "Reliability", fixed = TRUE)
+  expect_no_match(cronbach$meaning, "false-positive", fixed = TRUE)
+  raters <- input_guide(list(id = "kappa_raters", type = "number", label = "Number of raters who rate every subject"))
+  expect_match(raters$meaning, "count", fixed = TRUE)
+  ncp <- input_guide(list(id = "ncp", type = "number", label = "Noncentrality parameter"))
+  expect_match(ncp$meaning, "not an observed t or F", fixed = TRUE)
+  hazard <- input_guide(list(id = "hazard_ratio", type = "number", label = "Hazard ratio for a person 1 SD higher on the score"))
+  expect_match(hazard$meaning, "multiplicative", fixed = TRUE)
+  expect_match(hazard$example, "instantaneous hazard", fixed = TRUE)
+  dispersion <- input_guide(list(id = "dispersion", type = "number", label = "Overdispersion k (variance = mean + k * mean squared)"))
+  expect_match(dispersion$meaning, "not the raw variance", fixed = TRUE)
+  zero <- input_guide(list(id = "zero_prob", type = "number", label = "Share of extra zeros"))
+  expect_match(zero$source, "do not substitute the raw fraction", fixed = TRUE)
+})
+
 test_that("higher-accuracy basic simulations are cancellable without slowing the usual short route", {
   spec <- list(design = "basic_test", options = list(nrep = 1000L))
   expect_false(runs_in_background(forms, "E2", spec, simulates = function(x) TRUE))

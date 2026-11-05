@@ -2140,3 +2140,13 @@ must be loaded and run separately. They do not add missing-data or arbitrary
 score-shape support. The decision document uses the captured calculation,
 not live edited inputs, and is a reviewable planning draft rather than a
 registered preregistration.
+
+
+Input guides are checked for every numeric/list/table field in the declared
+forms. Specialist identifiers override keyword families: Cronbach's alpha is
+not significance alpha, a hazard ratio mentioning a predictor SD is not an
+SD input, negative-binomial overdispersion is not raw variance, and structural
+extra-zero probability is not the observed zero fraction. Existing field help
+retains model-specific parameterisations. Illustrations are not defaults or
+recommended assumptions; binary and product-term coding/scaling follow the
+selected model rather than a generic standardised-coefficient shortcut.

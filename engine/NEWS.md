@@ -4,7 +4,10 @@
   nonzero, minimum-effect, equivalence, precision and SEM-fit/path goals.
 * Add pointwise simulation-accuracy presets, conditional controls and
   input guides with definitions, illustrations, source routes and explicit
-  unknown-value advice. Population uncertainty remains distinct from Monte
+  unknown-value advice, including generic-test, Bayes, IRT, SEM and count
+  parameters. Every declared numeric input has a structured guide; specific
+  parameter meanings take precedence over ambiguous keywords. Population
+  uncertainty remains distinct from Monte
   Carlo error; precision width is not a maximum-width guarantee. Basic-test
   simulations above 1,000 repetitions run in the background with Cancel,
   while the usual short route retains its lower startup overhead.
