@@ -81,3 +81,48 @@ test_that("several effects tested together: joint power counts the studies in wh
   expect_error(validate_spec(zero), class = "powerkit_spec_error")
   expect_script_reproduces_power(spec, joint)
 })
+
+# A pair-level moderator W of the actor effects (5 November 2026) ----------
+
+moderated_spec <- function(effect = "actor_and_moderation", ...) {
+  spec <- apim_spec(effect)
+  spec$variables$W <- list(type = "continuous", label = "Relationship length")
+  spec$population <- utils::modifyList(spec$population, list(r_xw = 0.1, w_y = 0.2, moderation = 0.15, ...))
+  spec
+}
+
+test_that("with W: the products' moments give each Y's residual variance, supplied with power4mome's standardisation off", {
+  spec <- validate_spec(moderated_spec())
+  inputs <- apim_inputs(spec)
+  expect_false(inputs$standardized)
+  expect_identical(inputs$label, c("a1", "m1"))
+  expect_match(inputs$fit_model, "m1 == m2", fixed = TRUE)
+  # R-squared: the linear part through the predictors' correlations, plus
+  # the product's variance 1 + r_xw^2.
+  s <- matrix(c(1, 0.2, 0.1, 0.2, 1, 0.1, 0.1, 0.1, 1), 3)
+  b <- c(-0.3, -0.15, 0.2)
+  r2 <- drop(t(b) %*% s %*% b) + 0.15^2 * (1 + 0.1^2)
+  expect_equal(apim_r_squared(spec)[["Y1"]], r2)
+  expect_match(inputs$model, sprintf("Y1 ~~ %s*Y1", format_pop_value(1 - r2)), fixed = TRUE)
+  result <- run_quietly(moderated_spec())
+  expect_true(all(result$check_run$ok))
+  expect_true(all(c("moderation, member 1 (X1 x W->Y1)", "X1<->W", "variance of W") %in% result$check_run$parameter))
+})
+
+test_that("with W: plain-English refusals", {
+  spec <- moderated_spec()
+  spec$population$moderation <- NULL
+  expect_spec_problem(spec, "Give 'population > moderation'")
+  spec <- apim_spec()
+  spec$population$moderation <- 0.1
+  expect_spec_problem(spec, "only with a pair-level moderator")
+  spec <- apim_spec("moderation")
+  expect_spec_problem(spec, "'target_test > effect' should be one of")
+})
+
+test_that("with W: the exported script reproduces the result with power4mome alone", {
+  skip_unless_scripts_can_run()
+  spec <- moderated_spec("moderation")
+  out <- run_exported_script(spec, run_quietly(spec))
+  expect_equal(out$reproduced, out$powerkit, tolerance = 1e-8)
+})

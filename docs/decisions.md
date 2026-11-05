@@ -5124,6 +5124,40 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
 - **Trade-off:** the About tab's first opening in a new process takes
   about 2 seconds; later openings are instant. Search engines read the
   static guide (`www/guide.html`), not the About tab.
+## 2026-11-05 · Dyadic data: a pair-level moderator of the actor effects (E44)
+
+- **What:** the actor-partner card (E44) takes an optional pair-level
+  moderator W (one value per pair, such as relationship length) that
+  predicts each member's outcome and moderates each member's actor effect.
+  The moderation can be tested alone or jointly with the actor effects,
+  counted in the same simulated studies.
+- **Why:** `next.md` item 1 (decided 31 October 2026: extend joint power
+  one design at a time). For independent people the whole-study
+  simulation covers a comparison, a moderation and a mediation on the
+  same data; for pairs the joint claim so far was the actor and partner
+  effects together. Whether the actor effect depends on something about
+  the pair is the moderation dyadic studies most often add, and power4mome
+  fits it with no new engine.
+- **Model:** Y1 ~ X1 + X2 + W + X1:W and Y2 ~ X2 + X1 + W + X2:W, W
+  correlated r_xw with each member's X; for indistinguishable members W's
+  path and the moderation are constrained equal across members, as the
+  actor and partner paths already are. W moderating the partner effects
+  is not offered yet.
+- **Moments:** the two products correlate (r_x + r_xw^2 for jointly normal
+  variables), so each Y's residual variance is computed from the exact
+  moments and supplied explicitly, with power4mome's standardisation off
+  (as for PROCESS models 58 and 59, Departure 19).
+- **Validation** (`test-validation-apim-moderation.R`, chunk `dyadic`): a
+  simulation written separately (the data drawn with MASS, the products
+  formed by hand, each Y's residual variance found numerically from a
+  million draws, lavaan fitted directly) for the moderation alone, with
+  the actor effect, and both members' moderations; Type I error with no
+  moderation. lavaan's Wald z test of the moderation is liberal with few
+  pairs: with no moderation it rejected 7.2% of 4,000 studies at 60 pairs,
+  5.1% at 200 and 800 (the independent simulation, lavaan alone).
+  powerkit reports the power of the test lavaan prints, as for the other
+  tests it simulates; a test records the size, and the input screen says
+  so.
 ## 2026-11-05 · powerkit is not only for psychology
 
 - **What:** the page title, search description and footer of the app,

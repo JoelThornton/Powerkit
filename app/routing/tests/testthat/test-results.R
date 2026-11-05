@@ -2635,6 +2635,27 @@ test_that("dyadic data: the result and the write-up count pairs, and both kinds 
   expect_no_match(html, "120 participants", fixed = TRUE)
 })
 
+test_that("dyadic data with a pair-level moderator: the screen builds W, its paths and the joint test", {
+  fields <- form_fields(form_groups(forms, "E44"))
+  values <- modifyList(form_examples$E44, list(goal = "power", n = "200", apim_moderator = "yes", W_label = "Relationship length",
+    moderation = "0.15", w_y = "0.2", r_xw = "0.1", apim_effect_w = "actor_and_moderation"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E44", fields, values)
+  expect_identical(spec$variables$W, list(type = "continuous", label = "Relationship length"))
+  expect_equal(spec$population$moderation, 0.15)
+  expect_identical(spec$target_test$effect, "actor_and_moderation")
+  # Without the moderator, none of its fields reach the spec.
+  plain <- build_spec(forms, "E44", fields, modifyList(values, list(apim_moderator = "none")))
+  expect_null(plain$variables$W)
+  expect_null(plain$population$moderation)
+  expect_identical(plain$target_test$effect, "partner")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_true(all(calc$result$check_run$ok))
+})
+
 test_that("the t-test and correlation cards find a justified alpha, and say how the errors were weighed", {
   for (ep in c("E1", "E2", "E3", "E4")) {
     fields <- form_fields(form_groups(forms, ep))
