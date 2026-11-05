@@ -1,5 +1,22 @@
 # Saving projects: options
 
+## Current draft recovery
+
+The input screen's **Save unfinished draft** downloads a `.powerkit.json`
+file containing partial editable answers and a saved time. No calculation
+or effect-size justification is required. From the start screen, open it
+with **Or open a saved project or unfinished draft**. Blanks are retained;
+the app clears any previous calculation and identifies the reopened work
+as an unvalidated draft. Check the answers before calculating or saving a
+validated project. A draft is not evidence a reviewer can check as a result.
+
+This is explicit file-based recovery. Answers are not automatically saved
+to browser storage or an account, so download a draft before closing or
+leaving an unfinished form. Project files with calculated results retain
+their separate validation and provenance rules.
+
+## Historical saving-model decision
+
 *18 October 2026.* **Decided and built:** option (a), a project file the
 user saves and reopens (PR #52, merged 18 October 2026; `decisions.md`).
 The rest of this page is the options as they were written before that
