@@ -1,5 +1,14 @@
 # powerkit 0.31.0
 
+* The Bayes factor of an effect in a two-factor between-participants ANOVA
+  (templates `2x2_between` and `factorial_between`, `target_test > method`
+  "bayes_factor", with `prior_scale` 0.5 by default and `inclusion`
+  "all_models" or "matched_models"): JASP's inclusion Bayes factor, from
+  BayesFactor's `anovaBF()` over the models that respect marginality and
+  bayestestR's `bayesfactor_inclusion()`, simulated with Spower
+  (`p_bayes_factorial()`), with the no-effect side. New import: bayestestR
+  (already in `renv.lock`). Validation chunk `bayes_factorial`.
+
 * Dyadic data (template `dyadic / apim`, card E44): an optional pair-level
   moderator (`variables > W`, `population > moderation` and `w_y`, or one
   of each per member, and `r_xw`) moderates each member's actor effect.

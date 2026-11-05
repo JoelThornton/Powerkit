@@ -38,6 +38,7 @@ chunk_sources <- function() {
     mediation_crosscheck_serial = c(power4mome, "engine/tests/testthat/helper-crosscheck.R"),
     whole_study = c(power4mome, "engine/R/whole-study.R"),
     dyadic = c(power4mome, "engine/R/backend-apim.R"),
+    bayes_factorial = "engine/R/backend-bayesfactor-factorial.R",
     mixed_model = "engine/R/backend-simr.R"
   )
 }

@@ -2635,6 +2635,22 @@ test_that("dyadic data: the result and the write-up count pairs, and both kinds 
   expect_no_match(html, "120 participants", fixed = TRUE)
 })
 
+test_that("2 x 2 ANOVA (E7): the Bayes factor of the effect, as JASP's inclusion Bayes factor, simulated", {
+  fields <- form_fields(form_groups(forms, "E7"))
+  values <- modifyList(form_examples$E7, list(test_version = "bayes_factor", evidence_threshold = "10", prior_scale = "0.5",
+    inclusion = "matched_models", goal = "power", n = "200"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E7", fields, values)
+  expect_identical(spec$target_test$method, "bayes_factor")
+  expect_identical(spec$target_test$inclusion, "matched_models")
+  expect_null(spec$options$method)
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$bayes$inclusion, "matched_models")
+})
+
 test_that("dyadic data with a pair-level moderator: the screen builds W, its paths and the joint test", {
   fields <- form_fields(form_groups(forms, "E44"))
   values <- modifyList(form_examples$E44, list(goal = "power", n = "200", apim_moderator = "yes", W_label = "Relationship length",

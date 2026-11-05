@@ -993,7 +993,7 @@ endpoints:
     template: "factorial_anova / 2x2_between"
     backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
-    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test or the aligned rank transform"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test, the aligned rank transform or a Bayes factor"]
     status: runs_validated
     validation: {file: test-validation-anova-2x2-between.R, note: "Full validation run passed. Smallest detectable effect is available for this design."}
     tier: MVP
@@ -1231,7 +1231,7 @@ endpoints:
       - "Two factors crossed, with different people in every combination (cell), and at least one factor with three or more levels, such as feedback (none or praise) by task difficulty (easy, medium or hard)."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
       - "powerkit assumes the same number of people and the same SD in every cell. For three factors, use the three-factor ANOVA."
-    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect", "The F test or the aligned rank transform"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect", "The F test, the aligned rank transform or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts, such as a linear trend in one factor at each level of the other", "simple effects, one factor at each level of the other", "the aligned rank transform, if you analyse ranks"]
   E22:
@@ -1250,7 +1250,7 @@ endpoints:
       - "You give the four expected means, the SD and each group's size (or their ratio, such as 2, 2, 1, 1); the total is split in that ratio."
       - "Effects are tested with Type III sums of squares, as Superpower, SPSS and jamovi do by default; with unequal groups, main effects can differ from a Type II analysis."
       - "Simulated, so the answer carries a little random error. Both factors are between participants here; for unequal groups with a factor measured in everyone, use the mixed ANOVA card."
-    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test or the aligned rank transform", "The size of each group"]
+    inputs: ["Names of the two factors, their levels and the outcome", "The four expected cell means (raw or in SD units)", "The SD (one, or one per cell)", "Which effect: factor A, factor B or the interaction", "The F test, the aligned rank transform or a Bayes factor", "The size of each group"]
     refs: "decision N3; docs/conventions.md, 'Superpower and unequal group sizes'"
     tier: v2
     alternatives: ["tests of the simple effects", "a planned contrast", "the aligned rank transform, if you analyse ranks"]
@@ -2021,7 +2021,7 @@ endpoints:
     status: not_in_powerkit
     not_in_powerkit_heading: "For other designs, not in powerkit yet: use "
     card_points:
-      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions or a correlation, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation and two proportions, BayesFactor."
+      - "For a one-sample, paired or two-group t-test, one proportion, two groups' proportions, a table of counts, a correlation, a one-way ANOVA or an effect in a two-factor between-participants ANOVA, powerkit plans this itself: on that design's card, choose the Bayes factor test as the test version. It finds the chance that the study gives strong evidence (a Bayes factor past your threshold), with bfpwr or, for the correlation, proportions, tables and ANOVAs, BayesFactor (and bayestestR for an ANOVA effect's inclusion Bayes factor)."
     inputs: ["Prior and expected effect"]
     packages:
       - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}

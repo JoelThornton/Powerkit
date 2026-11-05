@@ -596,6 +596,13 @@
         "free_parameters": {
           "type": "string",
           "description": "Differential item functioning only (irt / dif): which parameters of each DIF item the test frees between the groups; see that template."
+        },
+        "inclusion": {
+          "enum": [
+            "all_models",
+            "matched_models"
+          ],
+          "description": "Bayes factor of an effect in a factorial ANOVA only: its inclusion Bayes factor across all models (the default, JASP's) or across matched models."
         }
       },
       "allOf": [
@@ -2428,10 +2435,11 @@
         "target_test": {
           "properties": {
             "method": {
-              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower.",
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower. 'bayes_factor': the effect's inclusion Bayes factor, as JASP's Bayesian ANOVA reports it (BayesFactor's anovaBF() over the models that respect marginality, bayestestR's bayesfactor_inclusion()), simulated with Spower; strong evidence is an inclusion BF of at least 'evidence_threshold'.",
               "enum": [
                 "anova_f",
-                "aligned_rank_transform"
+                "aligned_rank_transform",
+                "bayes_factor"
               ]
             }
           }
@@ -2908,10 +2916,11 @@
               ]
             },
             "method": {
-              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower.",
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() and artlm(), Type III F tests), simulated with Spower. 'bayes_factor': the effect's inclusion Bayes factor, as JASP's Bayesian ANOVA reports it (BayesFactor's anovaBF() over the models that respect marginality, bayestestR's bayesfactor_inclusion()), simulated with Spower; strong evidence is an inclusion BF of at least 'evidence_threshold'.",
               "enum": [
                 "anova_f",
-                "aligned_rank_transform"
+                "aligned_rank_transform",
+                "bayes_factor"
               ]
             }
           }

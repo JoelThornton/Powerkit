@@ -76,6 +76,7 @@ on:
           - manova
           - rank
           - bayes
+          - bayes_factorial
           - meta
           - dyadic
           - survival
