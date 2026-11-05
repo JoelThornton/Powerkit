@@ -26,6 +26,11 @@ fully validated. Validation runs are recorded in
   calculations, edits, project/draft round trips, precision, cancellation and
   Labs Back/Forward in an isolated local app; reports retain failed traces.
 
+- **Long-job assessment:** `hosting-options.md` proposes external durable
+  queueing, ticket recovery and staged checkpointing, with reproducible
+  streams, denominator preservation and failure acceptance tests. No durable
+  service is implemented; current jobs still end with their Shiny session.
+
 - **Variant evidence and capabilities:** a versioned case registry separates
   software agreement, independent references, published examples and method
   runs. Results, saved projects and scripts retain its hash and snapshot.

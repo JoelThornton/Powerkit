@@ -488,3 +488,8 @@ The configuration rejects external app hosts. CI installs Chromium's system
 dependencies, retains failed traces/screenshots for seven days and runs this
 alongside the complete R app suites. These are smoke regressions, not complete
 accessibility, cross-browser or user research coverage.
+
+`app/routing/.rscignore` excludes the test and walkthrough directories from
+the deployed app bundle, including installed Node tools and browser reports.
+They remain in the repository and CI; production serves the app's runtime
+files and public assets.

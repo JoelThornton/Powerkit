@@ -14,6 +14,9 @@
   rule, evidence and provenance. Edits and stale reasoning block export.
 * Add an isolated, locked Playwright browser gate for calculation/edit/file
   round trips, blank drafts/scenarios, precision, cancellation and Labs history.
+  Fixed-N explorer/scenario plots use the analysed N instead of reading a
+  nonexistent required-N record. Development tests/tools are excluded from
+  the production app bundle.
 
 * The app starts in about 0.5 s instead of 3: the About tab is built the
   first time it is opened, not when the app starts.
@@ -35,6 +38,10 @@
   variance comes from the products' exact moments, supplied with
   power4mome's standardisation off. Validation chunk `dyadic`: a
   simulation written separately with lavaan.
+
+* Document the current session-bound calculation lifecycle and a staged
+  proposal for durable jobs and statistically valid resumability. No
+  runtime or infrastructure changes.
 
 * Whole-study simulation: X as two groups may now correlate with the
   moderator W and the first measurement B (`population > correlations`

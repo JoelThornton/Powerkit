@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Explore effects with a fixed sample size"
+    text: >-
+      The results explorer now correctly handles plans asking for power with
+      a fixed number of participants, so its graphs can show how the answer
+      changes with the assumed effect.
+  - date: "2026-11-05"
     title: "Make the planning choices clearer and keep your reasoning"
     text: >-
       A directional prediction no longer implies a one-sided test. New input

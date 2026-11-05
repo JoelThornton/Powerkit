@@ -245,9 +245,9 @@ with_name_default <- function(f) {
   f
 }
 
-# The direction, asked first and not filled in: the choice of a one- or
-# two-sided test should follow from the hypothesis (Rubin, 2022), not from
-# a pre-filled default. The packages' default is still named.
+# The decision rule is chosen before looking at data, without a prefilled
+# direction. A directional prediction can still accompany a two-sided test;
+# it does not by itself select one-sided testing.
 direction_group <- function(tool, shown_if = NULL) {
   list(input = NULL, title = "Your hypothesis", note = direction_note, fields = list(
     list(
