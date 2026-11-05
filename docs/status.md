@@ -152,8 +152,8 @@ fully validated. Validation runs are recorded in
   maintainer's decision of 5 November 2026), reached from Q1, since 5
   November 2026;
   E35, growth curves (two groups' rates of change over three or more
-  occasions, Diggle and colleagues' formula in longpower), since 5
-  November 2026;
+  occasions, Diggle and colleagues' formula in longpower; with drop-out
+  or unequal groups, Hu, Mackey and Thomas's), since 5 November 2026;
   E30, moderation by a factor with three or more groups (the F test of the
   X x group terms, simulated with Spower and lm()), since 5 November 2026;
   E32, moderation of a yes/no outcome (logistic regression with X x W,

@@ -71,7 +71,7 @@ form_examples <- list(
   E36 = c(list(comparison = "tost_independent", X_label = "Condition", X_level1 = "Paper", X_level2 = "Screen", Y_label = "Reading comprehension",
                effect_units = "standardised", bound = "0.5", d = "0", allocation_ratio = "1"), closing_ok),
   E35 = c(list(G_label = "Condition", G_level1 = "Waiting list", G_level2 = "Mindfulness course", Y_label = "Stress score", times = "0, 1, 2, 3",
-               slope_difference = "-1", sd_slope = "2", sd_residual = "4", sd_intercept = "6", r_intercept_slope = "-0.2", alternative = "two_sided"), closing_ok),
+               slope_difference = "-1", sd_slope = "2", sd_residual = "4", sd_intercept = "6", r_intercept_slope = "-0.2", growth_dropout = "none", allocation_ratio = "1", alternative = "two_sided"), closing_ok),
   E71 = c(list(G_label = "Language version", G_level1 = "English", G_level2 = "Spanish", Y_label = "Reading test",
                irt_a = "1.2, 0.9, 1.5, 1.0, 1.3, 0.8, 1.1, 1.4", irt_b = "-1, -0.5, 0, 0.3, 0.6, 1, -0.2, 0.4",
                dif_items = "1", b_shift = "0.4", free_parameters = "both", irt_stat = "likelihood_ratio"), closing_ok),

@@ -1,5 +1,9 @@
 # powerkit 0.32.0
 
+* Growth curves (E35) with drop-out over the occasions (`population >
+  retention`) or unequal groups (`options > allocation_ratio`), by
+  longpower's `hu.mackey.thomas.linear.power()`.
+
 * The app shows that it is starting or working, keeps an open page's
   connection alive, reconnects when it can, reloads a disconnected page
   when the visitor comes back to it, and keeps the answers on an input screen in the browser so a

@@ -13,6 +13,15 @@
 # plus the residual variance on the diagonal. Equal groups and complete
 # data, which the formula assumes; attrition is allowed for by recruiting
 # more (options > attrition), as for every design.
+#
+# With drop-out over the occasions (population > retention: the share
+# still in the study at each one) or unequal groups (options >
+# allocation_ratio), powerkit uses longpower's
+# hu.mackey.thomas.linear.power() instead: Hu, Mackey and Thomas's (2021)
+# formula for random coefficient models with monotone missing data (the
+# reference in longpower's help), which keeps everyone's data up to their
+# last occasion. It assumes both groups start at the same level, as in a
+# randomised trial; Diggle's lets each group have its own.
 
 growth_inputs <- function(spec) {
   pop <- spec$population
@@ -21,11 +30,30 @@ growth_inputs <- function(spec) {
   s_s <- pop$sd_slope
   cov_is <- (pop$r_intercept_slope %||% 0) * s_i * s_s
   R <- outer(t, t, function(a, b) s_i^2 + a * b * s_s^2 + (a + b) * cov_is) + diag(pop$sd_residual^2, length(t))
+  retention <- if (is.null(pop$retention)) rep(1, length(t)) else as.numeric(unlist(pop$retention))
+  ratio <- spec$options$allocation_ratio %||% 1
   list(
     t = t, R = R, delta = pop$slope_difference, alpha = spec$target_test$alpha,
     alternative = spec$target_test$alternative %||% "two_sided",
-    s_i = s_i, s_s = s_s, cov_is = cov_is, s_e = pop$sd_residual
+    s_i = s_i, s_s = s_s, cov_is = cov_is, s_e = pop$sd_residual,
+    r_is = pop$r_intercept_slope %||% 0, retention = retention, ratio = ratio,
+    # The share whose last occasion is each one (longpower's p).
+    last_visit = c(-diff(retention), retention[length(retention)]),
+    hmt = !is.null(pop$retention) || !isTRUE(all.equal(ratio, 1))
   )
+}
+
+# Power at n people in all by Hu, Mackey and Thomas's formula: n1 in the
+# first group, lambda = n1 / n2 (longpower's allocation ratio, the inverse
+# of powerkit's n2 / n1).
+growth_hmt_power <- function(inputs, n) {
+  n1 <- n / (1 + inputs$ratio)
+  longpower::hu.mackey.thomas.linear.power(
+    n = n1, delta = abs(inputs$delta), t = inputs$t, lambda = 1 / inputs$ratio,
+    sig2.i = inputs$s_i^2, cor.s.i = inputs$r_is, sig2.s = inputs$s_s^2, sig2.e = inputs$s_e^2,
+    p = inputs$last_visit, sig.level = inputs$alpha,
+    alternative = if (inputs$alternative == "two_sided") "two.sided" else "one.sided"
+  )$power
 }
 
 # The people per group diggle.linear.power() needs for a given power.
@@ -55,13 +83,13 @@ growth_power <- function(inputs, n) {
 growth_backend <- function(spec, seed = NULL) {
   inputs <- growth_inputs(spec)
   step <- valid_n_step(spec)
-  power_at <- function(n) call_backend("longpower", growth_power(inputs, n))
+  power_at <- function(n) call_backend("longpower", if (inputs$hmt) growth_hmt_power(inputs, n) else growth_power(inputs, n))
   list(
     name = "longpower",
     packages = c("longpower"),
     methods = "exact",
     default_method = "exact",
-    functions = c(exact = "longpower::diggle.linear.power"),
+    functions = c(exact = if (inputs$hmt) "longpower::hu.mackey.thomas.linear.power" else "longpower::diggle.linear.power"),
     n_step = step,
     exact_min_n = step * ceiling(minimum_n(spec) / step),
     exact_power = power_at,
@@ -77,11 +105,11 @@ growth_backend <- function(spec, seed = NULL) {
 # normal), the second group's average rate of change slope_difference
 # higher, and the residuals. Long format: id, group (0, 1), time, y.
 growth_data <- function(n, inputs) {
-  per <- n / 2
-  people <- 2 * per
+  n1 <- round(n / (1 + (inputs$ratio %||% 1)))
+  people <- n
   sigma <- matrix(c(inputs$s_i^2, inputs$cov_is, inputs$cov_is, inputs$s_s^2), 2)
   effects <- if (inputs$s_i == 0 && inputs$s_s == 0) matrix(0, people, 2) else SimDesign::rmvnorm(people, c(0, 0), sigma)
-  group <- rep(c(0, 1), each = per)
+  group <- c(rep(0, n1), rep(1, n - n1))
   m <- length(inputs$t)
   data.frame(
     id = rep(seq_len(people), each = m),
@@ -102,9 +130,9 @@ growth_check_run <- function(spec, inputs, seed) {
   tc <- inputs$t - mean(inputs$t)
   y <- matrix(data$y, ncol = m, byrow = TRUE)
   slopes <- as.vector(y %*% tc / sum(tc^2))
-  group <- rep(c(0, 1), each = n / 2)
+  group <- data$group[seq(1, nrow(data), by = m)]
   d_hat <- mean(slopes[group == 1]) - mean(slopes[group == 0])
-  se_d <- sqrt(stats::var(slopes[group == 1]) / (n / 2) + stats::var(slopes[group == 0]) / (n / 2))
+  se_d <- sqrt(stats::var(slopes[group == 1]) / sum(group == 1) + stats::var(slopes[group == 0]) / sum(group == 0))
   within <- y - outer(group * inputs$delta, inputs$t)
   cov_hat <- stats::cov(within)
   err <- max(abs(cov_hat - inputs$R) / sqrt((inputs$R^2 + outer(diag(inputs$R), diag(inputs$R))) / n))
@@ -123,19 +151,31 @@ check_growth_curve <- function(spec) {
   if (any(diff(t) <= 0)) {
     problems <- c(problems, "'population > times' should be the occasions' times in increasing order, each later than the one before.")
   }
-  if (!is.null(spec$options$allocation_ratio) && spec$options$allocation_ratio != 1) {
-    problems <- c(problems, "Growth curves are calculated for equal groups, as Diggle and colleagues' formula assumes: remove 'options > allocation_ratio'.")
+  r <- spec$population$retention
+  if (!is.null(r)) {
+    r <- as.numeric(unlist(r))
+    if (length(r) != length(t)) {
+      problems <- c(problems, sprintf("'population > retention' needs one share for each occasion (%d), in the order of 'times'.", length(t)))
+    } else if (!isTRUE(all.equal(r[1], 1)) || any(diff(r) > 1e-12)) {
+      problems <- c(problems, "'population > retention' should start at 1 (everyone is measured at the first occasion) and never rise: someone who drops out misses every later occasion.")
+    }
+    if (!is.null(spec$options$attrition) && spec$options$attrition > 0) {
+      problems <- c(problems, "'population > retention' already allows for drop-out over the occasions, and people who drop out are still analysed up to their last occasion: remove 'options > attrition'.")
+    }
   }
   problems
 }
 
 growth_design_description <- function(spec, label, levels) {
-  sprintf("growth curves: does the rate of change in %s differ between %s (%s), measured at times %s? Group x time in a linear mixed model with a random intercept and slope",
-    label("Y"), label("G"), levels("G"), paste(format_number(as.numeric(unlist(spec$population$times))), collapse = ", "))
+  r <- spec$population$retention
+  paste0(sprintf("growth curves: does the rate of change in %s differ between %s (%s), measured at times %s? Group x time in a linear mixed model with a random intercept and slope",
+    label("Y"), label("G"), levels("G"), paste(format_number(as.numeric(unlist(spec$population$times))), collapse = ", ")),
+    if (!is.null(r)) sprintf("; still in the study at each occasion: %s", paste(format_number(as.numeric(unlist(r))), collapse = ", ")) else "")
 }
 
 growth_script <- function(spec, result) {
   inputs <- growth_inputs(spec)
+  if (inputs$hmt) return(growth_hmt_script(spec, result, inputs))
   c(
     script_header(spec, result, "longpower", "longpower::diggle.linear.power"),
     "library(longpower)",
@@ -169,6 +209,44 @@ growth_script <- function(spec, result) {
     "  if (n_for_power(low) >= n_total / 2) return(alpha)",
     "  if (n_for_power(high) <= n_total / 2) return(1)",
     "  uniroot(function(p) n_for_power(p) - n_total / 2, c(low, high), tol = 1e-10)$root",
+    "}",
+    "",
+    pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# The R script for Hu, Mackey and Thomas's formula (drop-out or unequal
+# groups).
+growth_hmt_script <- function(spec, result, inputs) {
+  c(
+    script_header(spec, result, "longpower", "longpower::hu.mackey.thomas.linear.power"),
+    "library(longpower)",
+    "",
+    "# Inputs ----",
+    goal_inputs(spec, result),
+    sprintf("times <- %s # the occasions", r_code(inputs$t)),
+    sprintf("slope_difference <- %s # group 2's average rate of change minus group 1's, per unit of time", r_code(inputs$delta)),
+    sprintf("sd_intercept <- %s # SD of people's starting levels", r_code(inputs$s_i)),
+    sprintf("sd_slope <- %s # SD of people's rates of change", r_code(inputs$s_s)),
+    sprintf("r_intercept_slope <- %s # correlation of starting level and rate of change", r_code(inputs$r_is)),
+    sprintf("sd_residual <- %s # SD around each person's own line", r_code(inputs$s_e)),
+    sprintf("retention <- %s # the share still in the study at each occasion", r_code(inputs$retention)),
+    sprintf("allocation_ratio <- %s # people in group 2 for each one in group 1", r_code(inputs$ratio)),
+    "",
+    "# longpower's p: the share whose last occasion is each one.",
+    "last_visit <- c(-diff(retention), retention[length(retention)])",
+    "",
+    "# Hu, Mackey and Thomas's (2021) formula: everyone's data up to their last",
+    "# occasion, both groups starting at the same level (a randomised trial).",
+    "# longpower's n is group 1's size and lambda = n1 / n2.",
+    "power_at <- function(n_total) {",
+    "  n1 <- n_total / (1 + allocation_ratio)",
+    "  hu.mackey.thomas.linear.power(",
+    "    n = n1, delta = abs(slope_difference), t = times, lambda = 1 / allocation_ratio,",
+    "    sig2.i = sd_intercept^2, cor.s.i = r_intercept_slope, sig2.s = sd_slope^2, sig2.e = sd_residual^2,",
+    sprintf("    p = last_visit, sig.level = alpha, alternative = %s", r_code(if (inputs$alternative == "two_sided") "two.sided" else "one.sided")),
+    "  )$power",
     "}",
     "",
     pwr_goal_section(spec, result),

@@ -831,7 +831,7 @@ check_allocation_allowed <- function(spec) {
     ))
   }
   if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent", "invariance",
-                           "noninf_independent", "noninf_two_proportions", "ordinal_two_groups", "log_rank")) {
+                           "noninf_independent", "noninf_two_proportions", "ordinal_two_groups", "log_rank", "growth_curve")) {
     return(character())
   }
   paste0(
@@ -2974,7 +2974,12 @@ group_split <- function(spec) {
     return(list(rule = "split into 2 equal groups, as irtpwr's DIF model assumes", valid = function(n) n %% 2 == 0))
   }
   if (spec$template == "growth_curve") {
-    return(list(rule = "split into 2 equal groups, as the growth-curve formula assumes", valid = function(n) n %% 2 == 0))
+    w <- c(1, spec$options$allocation_ratio %||% 1)
+    if (isTRUE(all.equal(w[2], 1))) {
+      return(list(rule = "split into 2 equal groups", valid = function(n) n %% 2 == 0))
+    }
+    return(list(rule = sprintf("split into 2 whole groups in the ratio %s", paste(format_number(w), collapse = " : ")),
+      valid = function(n) all(whole(n * w / sum(w)))))
   }
   if (identical(spec$template, "manova") && !is.null(spec$variables$B)) {
     cells <- manova_groups(spec)

@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Growth curves with drop-out and unequal groups"
+    text: >-
+      When people are measured three or more times, you can now say how many
+      are still in the study at each occasion, and make the groups different
+      sizes. People who leave still count up to their last measurement, so
+      you need fewer than if you simply recruited extra.
+  - date: "2026-11-05"
     title: "Your answers survive a lost connection"
     text: >-
       If you leave the page and the connection drops, powerkit now keeps the

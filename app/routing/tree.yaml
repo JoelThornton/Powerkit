@@ -1467,16 +1467,16 @@ endpoints:
     plain_name: "The same people measured three or more times"
     search_words: "repeated measures longitudinal growth curve panel mixed model slope trajectory rate of change waves"
     template: "mixed_model / growth_curve"
-    backend: "longpower: diggle.linear.power() (Diggle, Heagerty, Liang and Zeger's formula for a difference in slopes, by formula)"
+    backend: "longpower: diggle.linear.power() (Diggle, Heagerty, Liang and Zeger's formula for a difference in slopes, by formula); hu.mackey.thomas.linear.power() (Hu, Mackey and Thomas's formula) with drop-out or unequal groups"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
     validation: {file: test-validation-growth.R, note: "Equals longpower's own power where that works and solves its sample size in the engine's tests, and agrees with mixed models (lme4) fitted to simulated studies (within 0.03). Not yet checked against Diggle and colleagues' published table."}
     card_points:
       - "Growth curves: two groups measured at three or more occasions, and whether their average rates of change differ (the group x time interaction in a mixed model with a random intercept and slope for each person)."
       - "You give the occasions, the difference in rates of change, and how much people vary: in their starting levels, in their own rates of change, and around their own lines. These come from earlier data, from a mixed model's variance components."
-      - "Calculated by Diggle and colleagues' formula (longpower), for equal groups and complete data; people expected to drop out are allowed for by recruiting more."
+      - "Calculated by Diggle and colleagues' formula (longpower) for equal groups and complete data. If people drop out along the way or the groups differ in size, by Hu, Mackey and Thomas's formula (longpower), which keeps everyone's measurements up to the one they leave after and assumes both groups start at the same level, as in a randomised trial."
       - "Not calculated here yet: random-intercept cross-lagged panel models and experience sampling; the packages below cover them."
-    inputs: ["Your groups, the outcome and the occasions", "The difference in rates of change", "How much people vary"]
+    inputs: ["Your groups, the outcome and the occasions", "The difference in rates of change", "How much people vary", "Drop-out and the groups' sizes"]
     packages:
       - {name: powRICLPM, url: "https://cran.r-project.org/package=powRICLPM", what: "Simulation power for random-intercept cross-lagged panel models."}
       - {name: PowerAnalysisIL, url: "https://github.com/ginettelafit/PowerAnalysisIL", what: "Shiny app for intensive longitudinal (experience sampling) designs."}

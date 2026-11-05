@@ -5253,3 +5253,32 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   hand) for a two-factor within-participants design and a 2 x 2 mixed
   design. A published example is a placeholder for the maintainer.
 
+## 2026-11-05 · Growth curves with drop-out and unequal groups (E35)
+
+- **What:** the growth-curve screen asks whether anyone drops out before
+  the last occasion and, if so, the share still in the study at each
+  occasion (`population > retention`, the same in both groups), and the
+  second group's size relative to the first (`options >
+  allocation_ratio`). With either, the engine uses longpower's
+  `hu.mackey.thomas.linear.power()` (Hu, Mackey and Thomas, 2021,
+  Biometrical Journal, the reference in longpower's help), which keeps
+  everyone's measurements up to the occasion they leave after (monotone
+  drop-out) and takes unequal allocation. Without them it keeps Diggle and
+  colleagues' formula, as decided on 5 November 2026.
+- **Why:** `next.md` item 3 named attrition and unequal groups as the next
+  step for growth curves. Recruiting more to make up for people who leave
+  (`options > attrition`) wastes their earlier measurements, which a
+  mixed model uses; the two can't be combined, and the spec checks say so.
+- **The model it assumes:** both groups start at the same level, as in a
+  randomised trial (no group main effect), where Diggle's formula lets each
+  group have its own. The card and the screen say so. With complete data
+  and equal groups the two formulas differ (192 against 228 for the
+  example spec), which is why Diggle's stays the default there.
+- **Validation** (`test-validation-growth-dropout.R`, chunk `growth`):
+  lme4 fits of the formula's model to simulated studies with monotone
+  drop-out drawn with the given shares, the group x time term tested by its
+  Wald z test, agree within a point (79.2% against 79.6%; 93.0% against
+  93.7%; 63.9% against 63.4%; 1,000 studies each), inside the 0.03
+  allowance the complete-data formula has. A published example from Hu,
+  Mackey and Thomas is a placeholder for the maintainer.
+
