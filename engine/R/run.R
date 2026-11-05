@@ -354,6 +354,7 @@ run_spec <- function(spec) {
       critical_effect = critical,
       check_run = check,
       provenance = list(
+        evidence = analysis_evidence(spec, computation_method = method),
         spec_hash = spec_hash(spec),
         method = method,
         seed = seed,

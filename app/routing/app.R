@@ -34,6 +34,7 @@ source(file.path("R", "project.R"), local = TRUE)
 source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
+source(file.path("R", "capabilities.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
@@ -45,6 +46,7 @@ whats_new <- load_whats_new("whats-new.yaml")
 # numbers are calculated".
 tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
 tree$calculate_how <- about_endpoint_how(forms)
+tree$evidence_defaults <- setNames(lapply(names(forms$forms), function(id) default_evidence(forms, id)), names(forms$forms))
 options(powerkit.routing_dir = getwd())
 
 app_css <- "
@@ -1198,6 +1200,10 @@ server <- function(input, output, session) {
       export(state$calc$spec, state$calc$result, file = file)
     }
   )
+  output$download_capabilities <- downloadHandler(
+    filename = function() "powerkit-current-capabilities.csv",
+    content = function(file) utils::write.csv(capability_rows(tree, forms), file, row.names = FALSE, na = ""))
+
   output$download_citations <- downloadHandler(
     filename = function() sprintf("powerkit-%s-citations.txt", state$endpoint),
     content = function(file) {

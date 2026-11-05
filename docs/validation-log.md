@@ -1091,3 +1091,23 @@ allocation-preserving searches, generated-data spreads, both standalone
 reproduction scripts, input visibility and copied methods text.
 These checks do not establish arbitrary score-shape, missing-data or
 variance-ratio coverage, and supply no published worked-example benchmark.
+
+## Variant evidence registry
+
+`engine/inst/evidence/records.json` is the machine-readable index of selected
+case records in this journal. `analysis_evidence()` matches the analysis/test
+version and scope conditions, then snapshots four separate categories in the
+result provenance. Records cite observed runs, not merely test definitions.
+A missing link stays unknown; a pending published transcription or a scoped,
+lower-replication run is never promoted by ordinary green CI. Historical
+checks describe their recorded implementation revision, not later replacements
+or all continuous parameter values. A source outside the selected goal or
+mode remains visible as outside scope.
+
+Saved results retain the original registry version and SHA-256. Older files
+without a captured snapshot say so; opening one does not assign today's
+coverage retroactively. Cards describe form defaults only. The generated
+About catalogue lists discrete form choices individually, because multiplying
+all options would include incompatible combinations; the result record uses
+the complete selected specification. Statistician review and the full release
+validation gate remain separate requirements.

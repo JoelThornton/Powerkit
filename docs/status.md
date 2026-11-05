@@ -14,6 +14,13 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Variant evidence and capabilities:** a versioned case registry separates
+  software agreement, independent references, published examples and method
+  runs. Results, saved projects and scripts retain its hash and snapshot.
+  The About catalogue derives discrete choices and limits from current forms;
+  unknown variants stay unknown, and historical records are not release-wide
+  certification.
+
 - **Welch populations:** two-group planning accepts one common SD or separate
   raw SDs, or a ratio alongside a difference in fixed RMS-SD units. Formula
   and simulation use the same population across allocations; scripts and
