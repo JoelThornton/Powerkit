@@ -1,5 +1,8 @@
 # powerkit 0.32.0
 
+* Input screens take the number of groups, conditions or categories in
+  place of their names ("3" for Group 1, Group 2, Group 3).
+
 * The Bayes factor of an effect in the repeated-measures ANOVAs (templates
   `oneway_within`, `factorial_within`, `2x2_mixed` and `mixed`,
   `target_test > method` "bayes_factor"): JASP's inclusion Bayes factor with

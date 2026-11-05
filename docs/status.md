@@ -31,6 +31,9 @@ fully validated. Validation runs are recorded in
   example data preserve it. Point-biserial/test-statistic conversions and
   safeguard planning remain limited to their equal-SD assumptions.
 
+- **Group names:** optional; a levels field takes a count ("3") in place
+  of names.
+
 - **Unfinished drafts:** input screens can download partial answers without
   a calculation or justification. The same file opener restores blanks and
   editable values, clears any previous calculation and labels the draft as

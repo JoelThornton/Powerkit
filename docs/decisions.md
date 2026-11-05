@@ -5230,3 +5230,14 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   hand) for a two-factor within-participants design and a 2 x 2 mixed
   design. A published example is a placeholder for the maintainer.
 
+## 2026-11-05 · Groups by number or by name
+
+A variable's groups, conditions or categories (every `levels` field of a
+variable) may be given as how many there are instead of their names:
+"3" stands for "Group 1, Group 2, Group 3" (or Condition, Category, Time
+or Level, from the field's wording). G\*Power asks only for the number of
+groups; powerkit uses names to label the means, the results and the
+write-up, and they stay available for anyone who wants them. A count is
+written out as names before the screen's checks and the spec
+(`expand_level_counts()`), so the engine sees names as before.
+
