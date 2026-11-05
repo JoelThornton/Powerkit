@@ -17,6 +17,9 @@
   the exact moments of the products (`whole_study_moments()`), and
   power4mome's own standardisation is switched off for these studies.
   Validation (chunk `whole_study`): a simulation written separately.
+* The package title and description, the app's page title, search
+  description and footer, and the guide describe powerkit as power analysis
+  for research studies, not only psychology.
 
 * Results capture a versioned, hashed evidence registry for the selected
   analysis variant. Package agreement, independent references, published
