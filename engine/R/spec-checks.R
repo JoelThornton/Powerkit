@@ -353,12 +353,17 @@ jonckheere_test <- function(spec) identical(spec$target_test$method, "jonckheere
 # differ in spread as well as location.
 brunner_munzel_test <- function(spec) identical(spec$target_test$method, "brunner_munzel")
 
-# The ratio of the groups' SDs is an input to the Brunner-Munzel test only.
+# The ratio of the groups' SDs is explicit for Brunner-Munzel and Welch.
 check_sd_ratio <- function(spec) {
-  if (is.null(spec$population$sd_ratio) || brunner_munzel_test(spec)) {
+  if (unequal_welch(spec) && (identical(spec$population$metric, "point_biserial") ||
+      !is.null(spec$effect_justification$conversion) || !is.null(spec$effect_justification$safeguard))) {
+    return("For unequal-SD Welch planning, give raw means and the two SDs, or a mean difference standardised by their root mean square. Point-biserial/published-test conversions and the safeguard need equal-SD assumptions and cannot establish this population.")
+  }
+  if (is.null(spec$population$sd_ratio) || brunner_munzel_test(spec) ||
+      (identical(spec$template, "independent_t") && identical(spec$target_test$method, "welch_t"))) {
     return(character())
   }
-  "'population > sd_ratio' is only used by the Brunner-Munzel test ('target_test > method' \"brunner_munzel\"); remove it."
+  "'population > sd_ratio' is only used by the Brunner-Munzel or Welch test; choose one of those methods, or remove it."
 }
 
 # The Cochran-Armitage test of a trend in proportions (stats::prop.trend.test()).

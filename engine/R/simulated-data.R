@@ -85,6 +85,9 @@ simulated_data_available <- function(spec) {
 simulated_data_note <- function(spec) {
   spec <- validate_spec(spec)
   pop <- spec$population
+  if (unequal_welch(spec)) return(sprintf(
+    "Normal scores in root-mean-square SD units, with group 2's SD %s times group 1's. Group 1's mean is -d and group 2's is zero; their difference is the planned d. These are model-generated examples, not observed participants.",
+    format(pop$sd_ratio)))
   if (identical(spec$template, "single_coefficient")) {
     return(paste0(
       "The other predictors (Other_1, ...) are drawn unrelated to ", spec$variables$X$label %||% "the tested predictor",

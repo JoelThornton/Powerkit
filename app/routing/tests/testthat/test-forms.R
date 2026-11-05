@@ -273,7 +273,7 @@ test_that("'Copy my answers' gives the route, the end point and the values as te
   expect_match(text, "Route: Help me choose", fixed = TRUE)
   expect_match(text, paste0("- ", tree$nodes$s1$text, " A score or scale"), fixed = TRUE)
   expect_match(text, "End point: E2, ", fixed = TRUE)
-  expect_match(text, "- Cohen's d: 0.4", fixed = TRUE)
+  expect_match(text, "- Standardised mean difference (d): 0.4", fixed = TRUE)
   expect_match(text, "- Test version: Welch's t-test", fixed = TRUE)
   expect_no_match(text, "Number of participants", fixed = TRUE)  # not needed for a sample size
 })

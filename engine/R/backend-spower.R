@@ -91,10 +91,10 @@ spower_inputs <- function(spec) {
     independent_t = list(
       experiment = "p_t.test", generator = "gen_t.test",
       args = function(n) {
-        list(
+        c(list(
           n = first_group(n), d = -pop$d, type = "two.sample", n2_n1 = ratio,
           var.equal = spec$target_test$method == "student_t"
-        )
+        ), if (unequal_welch(spec)) list(sds = welch_population_sds(spec)))
       }
     ),
     paired_t = list(
@@ -1397,6 +1397,16 @@ spower_check_run <- function(spec, inputs, n, seed) {
     independent_t = {
       g1 <- data[[1]]
       g2 <- data[[2]]
+      if (unequal_welch(spec)) {
+        sds <- welch_population_sds(spec)
+        return(rbind(
+          check_run_rows("mean difference / root mean square SD", pop$d,
+            (mean(g2) - mean(g1)) / sqrt((stats::var(g1) + stats::var(g2)) / 2),
+            sqrt(sds[1]^2 / length(g1) + sds[2]^2 / length(g2))),
+          check_run_rows(c("SD group 1 (RMS units)", "SD group 2 (RMS units)"), sds,
+            c(stats::sd(g1), stats::sd(g2)), sds / sqrt(2 * (c(length(g1), length(g2)) - 1))),
+          group_sizes(length(g1), length(g2))))
+      }
       pooled <- sqrt(((length(g1) - 1) * stats::var(g1) + (length(g2) - 1) * stats::var(g2)) /
         (length(g1) + length(g2) - 2))
       rbind(

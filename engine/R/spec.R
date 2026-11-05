@@ -181,13 +181,24 @@ standardise_raw_effect <- function(spec) {
     return(spec)
   }
   raw <- pop$raw
+  independent_sd <- raw$sd
+  if (identical(spec$template, "independent_t") && !is.null(raw$sd1)) {
+    if (!identical(spec$target_test$method, "welch_t")) {
+      abort_spec("Separate group SDs are supported for Welch's test. Choose Welch's test, or give one common SD.")
+    }
+    independent_sd <- sqrt((raw$sd1^2 + raw$sd2^2) / 2)
+    spec$population$sd_ratio <- raw$sd2 / raw$sd1
+  } else if (identical(spec$template, "independent_t") && identical(spec$target_test$method, "welch_t") &&
+      !isTRUE(all.equal(pop$sd_ratio %||% 1, 1))) {
+    abort_spec("One common SD describes equal spreads. For unequal spreads give population > raw > sd1 and sd2 instead.")
+  }
   paired_sd <- function() raw$sd_difference %||% (raw$sd * sqrt(2 * (1 - raw$r)))
   switch(
     spec$template,
     one_sample_t = ,
     tost_one_sample = spec$population$d <- (raw$mean - raw$test_value) / raw$sd,
     independent_t = ,
-    tost_independent = spec$population$d <- (raw$mean_2 - raw$mean_1) / raw$sd,
+    tost_independent = spec$population$d <- (raw$mean_2 - raw$mean_1) / independent_sd,
     paired_t = ,
     tost_paired = spec$population$dz <- (raw$mean_2 - raw$mean_1) / paired_sd()
   )
@@ -254,11 +265,12 @@ effect_from_units <- function(spec) {
   raw <- pop$raw
   paired <- spec$template %in% c("paired_t", "tost_paired")
   list(
-    name = if (paired) "d_z" else "Cohen's d",
+    name = if (paired) "d_z" else if (unequal_welch(spec)) "standardised mean difference (RMS SD)" else "Cohen's d",
     value = if (paired) pop$dz else pop$d,
     difference = if (spec$template %in% c("one_sample_t", "tost_one_sample")) raw$mean - raw$test_value else raw$mean_2 - raw$mean_1,
-    sd = if (paired) raw$sd_difference %||% (raw$sd * sqrt(2 * (1 - raw$r))) else raw$sd,
-    sd_name = if (paired) "the SD of the differences" else "the SD",
+    sd = if (paired) raw$sd_difference %||% (raw$sd * sqrt(2 * (1 - raw$r))) else
+      if (!is.null(raw$sd1)) sqrt((raw$sd1^2 + raw$sd2^2) / 2) else raw$sd,
+    sd_name = if (paired) "the SD of the differences" else if (!is.null(raw$sd1)) "the root mean square of the two SDs" else "the SD",
     # Equivalence tests: the bound in the outcome's units and in SD units.
     bound = raw$bound,
     bound_value = pop$bound

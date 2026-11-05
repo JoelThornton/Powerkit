@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Plan for different group spreads"
+    text: >-
+      Welch planning can use an SD for each group, or an SD ratio with a
+      clearly defined standardised difference. Results, example datasets
+      and downloaded scripts keep those same population assumptions.
+  - date: "2026-11-05"
     title: "Moderation by three or more groups"
     text: >-
       You can now plan a study asking whether a relationship differs between
