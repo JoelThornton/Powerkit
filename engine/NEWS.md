@@ -1,5 +1,8 @@
 # powerkit 0.32.0
 
+* The app fetches the About page in the background once the first screen is
+  up, so opening it takes a fraction of a second.
+
 * Input screens hide a box when all its fields are hidden, and means in SD
   units no longer ask for the SD (it is 1).
 

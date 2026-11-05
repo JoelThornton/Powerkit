@@ -6,6 +6,11 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "The About page opens straight away"
+    text: >-
+      powerkit now loads the About page in the background while you start
+      planning, so it's ready by the time you open it.
+  - date: "2026-11-05"
     title: "Fewer questions that don't apply"
     text: >-
       Input screens no longer leave an empty box behind when a choice hides

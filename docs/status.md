@@ -57,7 +57,8 @@ fully validated. Validation runs are recorded in
   "Working…" bar when busy, a 20-second heartbeat, a reload by itself on
   returning to a page whose connection was lost, and
   Shiny reconnection to the same session when its process still runs. The
-  About tab is built in the background after start.
+  About page is built after the first screen and fetched by the browser
+  in the background, so it opens at once.
 
 - **Simulation outcomes:** every recorded sample-size point retains attempted,
   valid, failed and successful decisions. Power4mome's valid-fit denominator

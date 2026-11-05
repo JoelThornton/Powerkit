@@ -656,15 +656,31 @@ focus_js <- "
 # the 3.1 seconds a new process spent before it could show the first page,
 # and a visitor arriving after a quiet spell gets a new process, so every
 # such first visit waited for it (docs/decisions.md, 5 November 2026).
+# It is kept as finished HTML (about 1.5 MB: turning the tags into text took
+# another 1.2 seconds on every opening), and written to a file the browser
+# fetches in the background once the first screen is up, so the tab is ready
+# before anyone opens it (about_prefetch_js, R/connection.R; 5 November
+# 2026).
 about_tab_cache <- new.env(parent = emptyenv())
+about_cache_dir <- file.path(tempdir(), "powerkit-about")
+dir.create(about_cache_dir, showWarnings = FALSE)
+shiny::addResourcePath("about-cache", about_cache_dir)
 about_tab_html <- function() {
-  if (is.null(about_tab_cache$html)) about_tab_cache$html <- about_ui(tree, forms)
+  if (is.null(about_tab_cache$html)) {
+    html <- as.character(about_ui(tree, forms))
+    # Written under a temporary name and renamed, so the browser never
+    # fetches half a file.
+    part <- file.path(about_cache_dir, "about.part")
+    writeLines(html, part, useBytes = TRUE)
+    file.rename(part, file.path(about_cache_dir, "about.html"))
+    about_tab_cache$html <- HTML(html)
+  }
   about_tab_cache$html
 }
-# Built in the background once the app has started and answered its first
-# visitor, so the tab is usually ready before anyone opens it (later runs
-# it when the app is idle).
-later::later(function() about_tab_html(), delay = 3)
+# Built once the first visitor's first screen has gone out (server(), below),
+# so it never delays that screen; and in any case a minute after starting.
+about_build_soon <- function(delay) later::later(function() about_tab_html(), delay = delay)
+about_build_soon(60)
 whats_new_tab <- whats_new_ui(whats_new)
 labs_tab <- labs_ui(tree)
 feedback_tab <- feedback_tab_ui(tree)
@@ -699,6 +715,7 @@ ui <- function(req) fluidPage(
       tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
       tabPanel("About", div(class = "pt-3",
         tags$p(class = "about-loading", tags$span(class = "pk-spinner pk-spinner-small", `aria-hidden` = "true"), "Loading the About page…"),
+        div(id = "about_static"),
         uiOutput("about_page"))),
       tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
       tabPanel("Updates", div(class = "pt-3", whats_new_tab)),
@@ -715,10 +732,16 @@ server <- function(input, output, session) {
   # Shiny reconnects to it and nothing is lost (R/connection.R).
   session$allowReconnect(TRUE)
   # The About page, built on first opening (about_tab_html()).
+  # If the browser has fetched it already (input$about_prefetched), nothing
+  # is sent.
+  if (is.null(about_tab_cache$scheduled)) {
+    about_tab_cache$scheduled <- TRUE
+    session$onFlushed(function() about_build_soon(0.5), once = TRUE)
+  }
   about_opened <- reactiveVal(FALSE)
   observeEvent(input$tabs, if (identical(input$tabs, "About")) about_opened(TRUE))
   output$about_page <- renderUI({
-    req(about_opened())
+    req(about_opened(), !isTRUE(isolate(input$about_prefetched)))
     about_tab_html()
   })
   # Placeholders for undecided settings show only in the maintainer's view.

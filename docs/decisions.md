@@ -5265,3 +5265,17 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   SD). Separate SDs for Welch's F are still asked, in the same units as
   the means.
 
+## 2026-11-05 · The About page, fetched before it is opened
+
+The About page is about 1.5 MB of HTML (its table of every capability has
+over 1,000 rows). It was built once per R process, but turning it into
+text took 1.2 seconds at every opening, and the whole page then went
+through the Shiny connection. Now the server builds it once as text,
+just after the first visitor's first screen has gone out, and writes it
+to a file (`about-cache/about.html`); the browser fetches that file in the
+background once its first screen is up and puts it in the tab. Opening
+About then takes about a third of a second. If someone opens the tab
+before the file arrives, the server sends its finished copy as before.
+Building it straight after start had delayed the first visitor's first
+screen by about five seconds, so it waits for that screen.
+
