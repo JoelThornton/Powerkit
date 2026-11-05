@@ -14,6 +14,11 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Long-job assessment:** `hosting-options.md` proposes external durable
+  queueing, ticket recovery and staged checkpointing, with reproducible
+  streams, denominator preservation and failure acceptance tests. No durable
+  service is implemented; current jobs still end with their Shiny session.
+
 - **Unfinished drafts:** input screens can download partial answers without
   a calculation or justification. The same file opener restores blanks and
   editable values, clears any previous calculation and labels the draft as

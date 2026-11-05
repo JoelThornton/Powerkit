@@ -317,3 +317,90 @@ but possible for E10–E14 at small numbers of simulations. The blockers
 are Spower (Welch's t-test and simulation on request) and the app's
 separate-process runs, which would need another approach in the
 browser. The spike's code stays on its branch.
+
+## Long calculations: durable jobs assessment (5 November 2026)
+
+This is an architecture proposal, not an implemented service or a hosting
+purchase. The current app starts a `callr` process in
+`app/routing/R/results.R`; `app.R` cancels it on session end or when leaving
+the calculation screen. Progress is an estimate of elapsed time, not a
+persisted count of completed simulations. A local R script/launcher remains
+the supported way to complete a long search independently of a browser.
+Saving a project or unfinished draft does not checkpoint the running job.
+
+### Recommended route
+
+Keep instant formulas in the existing app. For long simulations, separate the
+worker from the Shiny session and persist the job outside the app process.
+A queue and durable result/checkpoint store must survive a worker restart and
+an app redeployment; the host's ephemeral filesystem is insufficient. Which
+provider supplies these is undecided. First measure memory, CPU time, queue
+length and storage for representative mediation, mixed-model and adaptive
+sample-size searches, with a fixed budget and concurrency cap.
+
+The browser submits a validated specification and receives an unguessable,
+expiring retrieval ticket. The ticket is a bearer secret: do not put it in
+public analytics, logs or a shareable page link. Store only its hash; separate
+read and cancellation capabilities. An optional account can follow later.
+Show the retention date and allow deletion. A returning visitor can open the
+job with their ticket and download the result or a project file. Do not
+promise completion if the queue rejects a job or the retention window ends.
+No email service or collection of participant data is needed.
+
+### Statistical and operational contract
+
+- A job records the canonical spec hash, package/engine versions, lockfile and
+  worker-image digest, seed scheme, goal, requested accuracy, allocation and
+  target statistic. Results from another version are a new run, not a resume.
+- Immutable checkpoint keys include job, sample-size point, batch index and
+  deterministic random-stream identity. A committed batch is counted once,
+  even if a worker retries after losing its acknowledgement. Use independent
+  reproducible streams; do not repeat the same seed for every batch or make
+  results depend on the number of workers that happen to be available.
+- Persist attempted, valid, failed and successful decisions with their
+  denominator convention. Do not pool rounded powers, average confidence
+  intervals or silently discard failed fits. Preserve convergence/error
+  diagnostics and the interval method. A partially completed run is labelled
+  incomplete and is never presented as its requested final accuracy.
+- Adaptive sample-size searches must persist the evaluated grid, allocation
+  rounding, bounds, target, stopping rule, remaining budget and seed-stream
+  positions. Restarting a bracket is not resuming it. Parallel batches must
+  not change the stopping rule or accidentally count exploratory draws twice.
+- Several current backends expose whole-run calls rather than resumable
+  batch statistics. Initially checkpoint completed N points and rerun only
+  an interrupted point with its original stream. Within-point resume needs a
+  backend-specific adapter and fresh validation before enabling it; a queue
+  alone cannot provide that guarantee.
+- A lease/heartbeat detects abandoned workers. Enforce per-job CPU/memory/time
+  limits and a global fair queue. Cancellation is idempotent, releases the
+  worker and prevents later publication of a stale success. The user can
+  still download explicitly labelled completed checkpoints before deletion.
+- Publication is atomic: commit a finished result, its diagnostics and its
+  provenance together. The browser only renders that committed record.
+  Input changes create a separate job; they cannot relabel an old result.
+
+### Staged delivery and acceptance
+
+1. Measure current runs and add structured diagnostics; keep current scripts
+   available. Prototype a single worker and external durable state using
+   synthetic specifications only, with spending and retention limits.
+2. Add queueing and ticket recovery for whole jobs. Test browser disconnect,
+   app restart, worker termination, time limit, duplicate submission, expired
+   ticket, cancellation race, full disk and unavailable storage. No job is
+   reported complete until its result is durably committed.
+3. Add completed-point resume, then validated within-point batching per
+   backend. For a fixed image/spec/stream plan, uninterrupted and deliberately
+   interrupted runs must produce the same decisions and denominators.
+   Distributional checks against independent runs must also pass when the
+   backend cannot promise byte-for-byte equivalence. Test mixed worker counts,
+   failures, duplicated messages and adaptive searches near the power target.
+4. Trial bounded real usage, measure completion and cost, and review retention
+   and abuse controls before increasing limits. Publish the supported
+   checkpoint granularity and reproducibility limits in the interface.
+
+The useful first milestone is recovering a finished long job after closing the
+browser. Within-point resumption is a separate statistical engineering task.
+Current Connect Cloud deployment is not evidence that an external queue or
+persistent worker is available; confirm the chosen host's supported deployment
+model before selecting infrastructure. This proposal makes no current vendor
+price, persistence or background-execution guarantee.
