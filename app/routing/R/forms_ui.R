@@ -49,6 +49,24 @@ field_ui <- function(f, value, described_by = character()) {
       if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else paste0(short_source(f$default_source), ".")
     )
   )
+  # The uncertainty about an effect, read as a range (5 November 2026): an
+  # SD around the effect entered is about 95% sure to hold the effect
+  # within 1.96 SDs of it (a normal design prior).
+  if (!is.null(f$range_reading)) field <- tagList(field, p(class = "field-reading small", id = paste0(id, "_reading"), `aria-live` = "polite"),
+    tags$script(HTML(sprintf("(function() {
+  var means = %s, sd = '%s', out = '%s_reading';
+  function update() {
+    var el = document.getElementById(out); if (!el) return;
+    var s = parseFloat((document.getElementById(sd) || {}).value), m = NaN;
+    means.forEach(function(id) { var e = document.getElementById(id); if (e && e.offsetParent !== null && !isNaN(parseFloat(e.value))) m = parseFloat(e.value); });
+    if (isNaN(s) || isNaN(m)) { el.textContent = ''; return; }
+    if (s === 0) { el.textContent = 'You are planning for exactly ' + m + '.'; return; }
+    var lo = (m - 1.96 * s).toFixed(2), hi = (m + 1.96 * s).toFixed(2);
+    el.textContent = 'In words: you are about 95%% sure the true effect is between ' + lo + ' and ' + hi + '.';
+  }
+  document.addEventListener('input', update); document.addEventListener('change', update);
+  setTimeout(update, 0);
+})();", jsonlite::toJSON(paste0("f_", unlist(f$range_reading))), id, id))))
   # A note for each choice that needs one, shown when it is chosen (the
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {

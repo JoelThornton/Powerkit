@@ -5314,3 +5314,31 @@ a study), so they are left out.
   the plan with the p-value test as the main one, and a button switching
   the plan to the Bayes factor test.
 
+## 2026-11-05 · The Bayesian planner on the cards, first part: priors (part 4)
+
+- **Does the prior matter?** A Bayes factor t-test result now shows the
+  same study's chances under its own analysis prior and JASP's three
+  named widths of the default Cauchy prior (medium 1/sqrt(2), wide 1,
+  ultrawide sqrt(2)), each the card's own bfpwr calculation with only the
+  scale changed (`bayes_robustness()`). A wider prior finds small effects
+  less often and shows there is no effect more easily; at sizes where the
+  default prior can't give strong evidence for no effect at all, a wider
+  one often can. The JASP reporting guidelines ask for this kind of
+  robustness check.
+- **The design prior in words.** Under "How unsure you are about the
+  effect", the screen reads the SD as a range: about 95% sure the true
+  effect is within 1.96 SDs of the effect entered (the normal design
+  prior), so the number means something to someone who has not met a
+  design prior before.
+- **Informed analysis priors: not offered yet.** bfpwr's Bayes factor
+  with an informed t prior (`tbf01()` with `plocation` away from 0) is
+  exact, matching a numerical integration, but `powertbf01()` gives wrong
+  power at small samples (1 where simulation gives about 0 at n = 3 and
+  5; 0 against 5% at n = 10), agreeing only from about n = 30. A sample
+  size search starting at the smallest n would stop at 3. The question is
+  with the package (`upstream-questions.md`, bfpwr question 2). An exact
+  calculation in the engine (the Bayes factor's thresholds on t, from
+  `tbf01()`, and the noncentral t over the design prior, checked against
+  simulation) is possible, but it is new maths for the maintainer to
+  decide on.
+

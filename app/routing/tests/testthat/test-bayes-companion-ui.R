@@ -35,3 +35,18 @@ test_that("the Bayes factor side reads its chances, the size for both, the agree
   expect_identical(with_article("80%"), "an 80%")
   expect_identical(with_article("75%"), "a 75%")
 })
+
+test_that("a Bayes factor t-test result shows how the plan changes with the prior's width", {
+  rob <- data.frame(prior = c("Medium (JASP's default), your prior", "Wide"), scale = c(0.707, 1),
+    for_effect = c(0.8, 0.78), for_null = c(0, 0.58), misleading = c(0.002, 0.001))
+  spec <- list(target_test = list(evidence_threshold = 10))
+  html <- as.character(bayes_robustness_ui(spec, rob))
+  expect_match(html, "Does the prior matter?", fixed = TRUE)
+  expect_match(html, "BF01 of at least 10, if there is no effect", fixed = TRUE)
+  expect_match(html, "<td>58%</td>", fixed = TRUE)
+  expect_null(bayes_robustness_ui(spec, NULL))
+  # The SD of the design prior is read as a range on the screen.
+  html <- as.character(form_ui(tree, forms, "E1", form_groups(forms, "E1"), list(method = "bayes_factor")))
+  expect_match(html, 'id="f_effect_sd_reading"', fixed = TRUE)
+  expect_match(html, "95%% sure|95% sure")
+})

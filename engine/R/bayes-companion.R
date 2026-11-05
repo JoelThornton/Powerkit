@@ -177,3 +177,40 @@ companion_agreement_t <- function(spec, b, n, k) {
     cbind(threshold = k, cells(0, "none"))
   )
 }
+
+#' How a Bayes factor t-test plan changes with the analysis prior's width
+#'
+#' For a Bayes factor t-test plan, the chance of strong evidence for the
+#' effect (as planned) and for no effect (if there is none) at a sample
+#' size, under the plan's own analysis prior and under JASP's three named
+#' widths of the default Cauchy prior: medium (1/sqrt(2)), wide (1) and
+#' ultrawide (sqrt(2)). Each row is the design's own calculation (bfpwr,
+#' through [run_spec()]) with only the prior's scale changed.
+#'
+#' @param spec A Bayes factor t-test spec (`target_test > method`
+#'   "bayes_factor", template one_sample_t, paired_t or independent_t).
+#' @param n The total sample size.
+#' @return A data frame: `prior` (its name), `scale`, `for_effect`,
+#'   `for_null`, `misleading`; `NULL` for other specs.
+#' @export
+bayes_robustness <- function(spec, n) {
+  if (!bayes_factor_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t")) return(NULL)
+  own <- spec$target_test$prior_scale %||% bayes_defaults$prior_scale
+  scales <- c(own, 1 / sqrt(2), 1, sqrt(2))
+  names <- c("Your prior", "Medium (JASP's default)", "Wide", "Ultrawide")
+  keep <- c(TRUE, !vapply(scales[-1], function(x) isTRUE(all.equal(x, own, tolerance = 1e-3)), logical(1)))
+  # Your own prior, when it is one of the named ones, takes its name.
+  named <- vapply(scales[-1], function(x) isTRUE(all.equal(x, own, tolerance = 1e-3)), logical(1))
+  if (any(named)) {
+    names[1] <- paste0(names[-1][named][1], ", your prior")
+  }
+  rows <- lapply(which(keep), function(i) {
+    s <- spec
+    s$target_test$prior_scale <- scales[i]
+    s$goal <- list(type = "power", n = as.integer(n))
+    r <- run_spec(s)
+    data.frame(prior = names[i], scale = scales[i], for_effect = r$curve$power[1],
+      for_null = r$bayes$evidence_for_null, misleading = r$bayes$misleading_evidence)
+  })
+  do.call(rbind, rows)
+}

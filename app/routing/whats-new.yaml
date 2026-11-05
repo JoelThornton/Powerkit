@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Does the prior matter?"
+    text: >-
+      Bayes factor t-test results now show how the plan changes if you
+      analyse with a wider or narrower prior, using JASP's three standard
+      widths. And when you say how unsure you are about the effect, the
+      screen puts it in words: "you are about 95% sure the true effect is
+      between ... and ...".
+  - date: "2026-11-05"
     title: "Add a Bayes factor to your plan"
     text: >-
       Results for t-tests, correlations, proportions and the one-way ANOVA

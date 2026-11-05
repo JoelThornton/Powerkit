@@ -66,3 +66,28 @@ test_that("planning for both takes the larger sample size, and plans without a B
   r$target_test$method <- "bayes_factor"
   expect_null(bayes_companion(r, 100))
 })
+
+test_that("the robustness check reruns the Bayes factor t-test under JASP's three prior widths", {
+  skip_if_not_installed("bfpwr")
+  spec <- companion_t_spec("one_sample_t")
+  spec$target_test <- list(effect = spec$target_test$effect, method = "bayes_factor", alternative = "two_sided")
+  rob <- bayes_robustness(spec, 100)
+  # The default prior is "medium", so it is named as the plan's own.
+  expect_identical(rob$prior, c("Medium (JASP's default), your prior", "Wide", "Ultrawide"))
+  expect_equal(rob$scale, c(1 / sqrt(2), 1, sqrt(2)))
+  for (i in seq_len(nrow(rob))) {
+    s <- spec
+    s$target_test$prior_scale <- rob$scale[i]
+    r <- run_spec(s)
+    expect_equal(rob$for_effect[i], r$curve$power[1])
+    expect_equal(rob$for_null[i], r$bayes$evidence_for_null)
+  }
+  # A wider prior finds no effect more easily, an effect less easily.
+  expect_true(all(diff(rob$for_effect) < 0))
+  expect_true(all(diff(rob$for_null) >= 0))
+  # Another prior is listed first, as the plan's own.
+  spec$target_test$prior_scale <- 0.5
+  expect_identical(bayes_robustness(spec, 100)$prior, c("Your prior", "Medium (JASP's default)", "Wide", "Ultrawide"))
+  # Only for the Bayes factor t-tests.
+  expect_null(bayes_robustness(companion_t_spec("one_sample_t"), 100))
+})

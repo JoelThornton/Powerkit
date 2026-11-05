@@ -1,5 +1,10 @@
 # powerkit 0.32.0
 
+* `bayes_robustness()`: a Bayes factor t-test plan's chances under JASP's
+  three widths of the default prior (medium, wide, ultrawide) as well as
+  its own, shown on the result as "Does the prior matter?". The input
+  screen reads the uncertainty about the effect as a range.
+
 * `bayes_companion()`: what a Bayes factor would add to a plan made with a
   p-value (its chances at thresholds of 3 and 10, the sample size for both
   tests, and for t-tests how often the two agree, exactly). In the app,

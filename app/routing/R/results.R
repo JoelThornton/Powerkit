@@ -2048,7 +2048,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   scen <- scenarios_ui(spec, result)
   bayes_card <- bayes_companion_card_ui(tree, ep_id, spec, result)
   sections <- c(`result-answer` = "The answer",
-    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table)) "How sure can you be?",
+    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness)) "How sure can you be?",
     `result-bayes` = if (!is.null(bayes_card)) "Add a Bayes factor?",
     `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
   div(
@@ -2074,10 +2074,11 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
     if (length(known) || length(departures_in_view)) p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
-    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen)) div(class = "result-card result-sure", id = "result-sure",
+    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness)) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
       p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes your plan."),
       if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
+      bayes_robustness_ui(spec, calc$robustness),
       explore,
       scen),
     bayes_card,
@@ -2934,3 +2935,21 @@ companion_side <- function(spec) {
 
 # "an 80%", "a 75%": the article a percentage takes when read aloud.
 with_article <- function(pct) paste(if (grepl("^(8[0-9]?|11|18)%", pct)) "an" else "a", pct)
+
+# Does the prior matter? The plan's chances under its own analysis prior
+# and JASP's three named widths of the default prior (bayes_robustness()),
+# at the same sample size.
+bayes_robustness_ui <- function(spec, rob) {
+  if (is.null(rob) || !nrow(rob)) return(NULL)
+  k <- format(spec$target_test$evidence_threshold %||% 10)
+  tagList(
+    h5(class = "h6", "Does the prior matter?"),
+    p(class = "small", sprintf("The same study analysed with other widths of the analysis prior. A wider prior expects larger effects: it finds small ones less often, and shows that there is no effect more easily. If the plan only works for one prior, say why that prior is right in your plan.")),
+    tags$table(class = "table table-sm result-robustness",
+      tags$thead(tags$tr(tags$th(scope = "col", "Analysis prior"), tags$th(scope = "col", "Scale"),
+        tags$th(scope = "col", sprintf("BF10 of at least %s, if the effect is as planned", k)),
+        tags$th(scope = "col", sprintf("BF01 of at least %s, if there is no effect", k)))),
+      tags$tbody(lapply(seq_len(nrow(rob)), function(i) tags$tr(
+        tags$th(scope = "row", rob$prior[i]), tags$td(format(signif(rob$scale[i], 3))),
+        tags$td(percent(rob$for_effect[i])), tags$td(percent(rob$for_null[i])))))))
+}
