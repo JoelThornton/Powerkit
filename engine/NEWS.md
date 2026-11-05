@@ -1,5 +1,8 @@
 # powerkit 0.32.0
 
+* Input screens take the number of groups, conditions or categories in
+  place of their names ("3" for Group 1, Group 2, Group 3).
+
 * Bayes factor t-test results offer "Check as you go?": the plan as a
   sequential design with its sample size as the largest
   (`bayes_sequential()`, as in Labs).

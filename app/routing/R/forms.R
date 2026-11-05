@@ -158,7 +158,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     groups <- if (isTRUE(form$generic)) c(groups, list(direction)) else c(list(direction), groups)
   }
   if (!is.null(form$extra)) groups <- c(groups, list(list(input = NULL, title = "How power is worked out", fields = form$extra)))
-  groups <- lapply(groups, function(g) { g$fields <- lapply(g$fields, with_name_default); g })
+  groups <- lapply(groups, function(g) { g$fields <- lapply(g$fields, function(f) with_level_count(with_name_default(f))); g })
   groups <- with_sd_units(groups)
   # method_extra: further choices about the formula, shown with the method
   # (E5's z test or Cohen's h).
@@ -244,6 +244,44 @@ with_name_default <- function(f) {
   f$required <- FALSE
   f$name_default <- name_default_text(f)
   f
+}
+
+# A variable's groups, conditions or categories may be given by how many
+# there are instead of by name (5 November 2026): "3" stands for
+# "Group 1, Group 2, Group 3", so naming them is optional, as in G*Power,
+# which asks only for the number.
+level_count_field <- function(f) {
+  identical(f$type, "levels") && !is.null(f$path) && grepl("^variables\\.[^.]+\\.levels$", f$path)
+}
+
+level_prefix <- function(f) {
+  label <- tolower(f$label)
+  if (grepl("group", label)) "Group"
+  else if (grepl("condition", label)) "Condition"
+  else if (grepl("categor", label)) "Category"
+  else if (grepl("timepoint", label)) "Time"
+  else "Level"
+}
+
+with_level_count <- function(f) {
+  if (!level_count_field(f)) return(f)
+  prefix <- level_prefix(f)
+  note <- sprintf("Or just how many there are, such as 3: they are then called %s 1, %s 2 and so on.", prefix, prefix)
+  f$help <- if (is.null(f$help)) note else paste(f$help, note)
+  f$level_prefix <- prefix
+  f
+}
+
+# The values with any count in a levels field written out as names.
+expand_level_counts <- function(fields, values) {
+  for (f in fields) {
+    if (is.null(f$level_prefix) || is.null(f$id)) next
+    v <- values[[f$id]]
+    if (is.null(v) || length(v) != 1 || !grepl("^\\s*[0-9]+\\s*$", as.character(v))) next
+    n <- as.integer(v)
+    if (n >= 2 && n <= 50) values[[f$id]] <- paste(sprintf("%s %d", f$level_prefix, seq_len(n)), collapse = ", ")
+  }
+  values
 }
 
 # Means in SD units have an SD of 1 by definition, so the SD isn't asked:
@@ -839,6 +877,7 @@ quote_label <- function(field) sprintf("“%s”", field$label)
 # Problems the screen can find before the engine sees the spec, in plain
 # English, naming each field by its label.
 form_problems <- function(fields, values) {
+  values <- expand_level_counts(fields, values)
   problems <- character()
   # Each problem is named by its field's id, so the screen can show it next
   # to the field as well as in the list.
@@ -949,6 +988,7 @@ field_value <- function(f, v, values = list()) {
 
 # The design spec for the values entered (assumes form_problems() found none).
 build_spec <- function(forms, ep_id, fields, values) {
+  values <- expand_level_counts(fields, values)
   form <- forms$forms[[ep_id]]
   spec <- form$base
   # Mediators are added for the number chosen; each is a score.

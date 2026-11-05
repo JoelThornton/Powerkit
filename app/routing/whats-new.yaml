@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Naming your groups is optional"
+    text: >-
+      Where a screen asks for the groups', conditions' or categories' names,
+      you can type how many there are instead, such as 3. They are then
+      called Group 1, Group 2 and Group 3.
+  - date: "2026-11-05"
     title: "Check the evidence as you go"
     text: >-
       Planning a Bayes factor t-test? The result now shows how the same study
