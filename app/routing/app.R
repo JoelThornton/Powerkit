@@ -1038,14 +1038,14 @@ server <- function(input, output, session) {
     state$calc <- NULL
     state$long_spec <- NULL
     cancel_job()
-    if (identical(check$status, "ok") && runs_long(forms, state$endpoint) &&
+    if (identical(check$status, "ok") && runs_long(forms, state$endpoint, spec) &&
         !has_preview(forms, state$endpoint, spec$goal$type)) {
       # E10-E14, required N: no preview; the R script straight away.
       if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
       state$long_spec <- spec
       output$form_result <- renderUI(no_preview_ui(forms, state$endpoint, spec))
       session$sendCustomMessage("focus_result", "form_result")
-    } else if (identical(check$status, "ok") && runs_long(forms, state$endpoint)) {
+    } else if (identical(check$status, "ok") && runs_long(forms, state$endpoint, spec)) {
       # E10-E14, power: a rough preview first, in a separate R process. The
       # full run or the R script is offered once the preview is shown.
       if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)

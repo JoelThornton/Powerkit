@@ -4,6 +4,13 @@
   connection alive, reconnects when it can, reloads a disconnected page
   when the visitor comes back to it, and keeps the answers on an input screen in the browser so a
   new visit can continue where the last one left off (`R/connection.R`).
+* The Bayes factor of an effect in the repeated-measures ANOVAs (templates
+  `oneway_within`, `factorial_within`, `2x2_mixed` and `mixed`,
+  `target_test > method` "bayes_factor"): JASP's inclusion Bayes factor with
+  the participants as a random factor (r scale 1), each person's scores
+  sharing their level with the spec's correlation. In the app, a rough
+  preview and an R script (`forms.yaml`, simulations > method_routes).
+  Validation chunk `bayes_factorial`.
 
 * The app starts in about 0.5 s instead of 3: the About tab is built the
   first time it is opened, not when the app starts.
@@ -25,6 +32,10 @@
   variance comes from the products' exact moments, supplied with
   power4mome's standardisation off. Validation chunk `dyadic`: a
   simulation written separately with lavaan.
+
+* Document the current session-bound calculation lifecycle and a staged
+  proposal for durable jobs and statistically valid resumability. No
+  runtime or infrastructure changes.
 
 * Whole-study simulation: X as two groups may now correlate with the
   moderator W and the first measurement B (`population > correlations`

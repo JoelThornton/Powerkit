@@ -42,6 +42,9 @@ route_spec <- function(spec, seed = NULL) {
     "factorial_anova/oneway_between" = if (bfanova_test(spec)) {
       # The Bayes factor ANOVA, exactly, via BayesFactor.
       bfanova_backend(spec, seed)
+    } else if (bffactorial_test(spec)) {
+      # Mixed designs: the Bayes factor of an effect, simulated.
+      bffactorial_backend(spec, seed)
     } else if (rank_test(spec) || welch_anova(spec)) {
       # The Kruskal-Wallis test, Welch's F and the aligned rank transform
       # (2 x 2 between and mixed designs), simulated with Spower.
@@ -49,7 +52,9 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       superpower_backend(spec, seed)
     },
-    "factorial_anova/oneway_within" = if (rank_test(spec)) {
+    "factorial_anova/oneway_within" = if (bffactorial_test(spec)) {
+      bffactorial_backend(spec, seed)
+    } else if (rank_test(spec)) {
       # Friedman's test, simulated with Spower.
       spower_backend(spec, seed)
     } else {
@@ -63,7 +68,9 @@ route_spec <- function(spec, seed = NULL) {
     } else {
       superpower_backend(spec, seed)
     },
-    "factorial_anova/factorial_within" = if (rank_test(spec)) {
+    "factorial_anova/factorial_within" = if (bffactorial_test(spec)) {
+      bffactorial_backend(spec, seed)
+    } else if (rank_test(spec)) {
       # The aligned rank transform ANOVA, simulated with Spower.
       spower_backend(spec, seed)
     } else {

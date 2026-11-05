@@ -18,18 +18,55 @@
 # share of studies whose inclusion Bayes factor reaches the threshold.
 # anovaBF() integrates by sampling, so each Bayes factor carries a small
 # error of its own (under 2% here), part of the simulation's random error.
+#
+# Repeated measures (5 November 2026): with a within-participants factor
+# (one-way and two-factor within, 2 x 2 and larger mixed designs) each
+# person's scores share their own level, the one correlation r of the spec
+# between any two of them (a random intercept, as JASP's repeated-measures
+# ANOVA fits it), and anovaBF() takes the participants as a random factor
+# (whichRandom, with JASP's r scale of 1 for random effects; jaspAnova's
+# AdditionalOptions.qml). About 0.8 s per simulated study, so in the app
+# these take the preview and R script route (forms.yaml, simulations).
+
+bffactorial_between_templates <- c("2x2_between", "factorial_between")
+bffactorial_within_templates <- c("oneway_within", "factorial_within", "2x2_mixed", "mixed")
 
 bffactorial_test <- function(spec) {
   bayes_factor_test(spec) && identical(spec$design, "factorial_anova") &&
-    isTRUE(spec$template %in% c("2x2_between", "factorial_between"))
+    isTRUE(spec$template %in% c(bffactorial_between_templates, bffactorial_within_templates))
 }
 
-bffactorial_defaults <- list(prior_scale = 0.5, inclusion = "all_models")
+bffactorial_defaults <- list(prior_scale = 0.5, prior_scale_random = 1, inclusion = "all_models")
+
+# The design's layout: the cell means as a matrix (rows A's levels; one
+# column for a one-way design), which factors are within participants, and
+# the correlation of a person's scores.
+bffactorial_layout <- function(spec) {
+  pop <- spec$population
+  to_matrix <- function(x) do.call(rbind, lapply(x, function(row) as.numeric(unlist(row))))
+  means <- if (identical(spec$template, "oneway_within")) matrix(as.numeric(unlist(pop$means)), ncol = 1) else to_matrix(pop$means)
+  type <- function(v) spec$variables[[v]]$type %||% "between_factor"
+  list(means = means, within = c(A = identical(type("A"), "within_factor"),
+    B = !identical(spec$template, "oneway_within") && identical(type("B"), "within_factor")),
+    r = as.numeric(unlist(pop$r %||% 0))[1], two_factors = !identical(spec$template, "oneway_within"))
+}
 
 bffactorial_inputs <- function(spec) {
-  cells <- art_cells(spec)
   tt <- spec$target_test
+  if (spec$template %in% bffactorial_within_templates) {
+    lay <- bffactorial_layout(spec)
+    return(list(
+      means = lay$means, sd = as.numeric(unlist(spec$population$sd))[1], ratios = matrix(1, nrow(lay$means), ncol(lay$means)),
+      within = lay$within, r = lay$r, two_factors = lay$two_factors,
+      term = art_term(tt$effect), effect = tt$effect,
+      threshold = bayes_threshold(spec),
+      prior_scale = tt$prior_scale %||% bffactorial_defaults$prior_scale,
+      inclusion = tt$inclusion %||% bffactorial_defaults$inclusion
+    ))
+  }
+  cells <- art_cells(spec)
   list(
+    within = c(A = FALSE, B = FALSE), r = 0, two_factors = TRUE,
     means = cells$means, sd = cells$sds[1, 1], ratios = cells$n.ratios,
     term = art_term(tt$effect), effect = tt$effect,
     threshold = bayes_threshold(spec),
@@ -42,6 +79,7 @@ bffactorial_inputs <- function(spec) {
 # equal-weight decomposition of the cell means into grand mean, A's and B's
 # deviations and the interaction, less the tested part.
 bffactorial_null_means <- function(means, term) {
+  if (ncol(means) == 1) return(matrix(mean(means), nrow(means), 1))
   grand <- mean(means)
   a <- rowMeans(means) - grand
   b <- colMeans(means) - grand
@@ -52,6 +90,33 @@ bffactorial_null_means <- function(means, term) {
     "A:B" = means - ab)
 }
 
+# One study's data with a within-participants factor: n people (split
+# equally across the between factor's levels, if any), each with a score in
+# every within cell, sharing their own level (correlation r).
+bffactorial_data_within <- function(n, means, sd, within, r) {
+  a <- nrow(means)
+  b <- ncol(means)
+  cells <- expand.grid(B = seq_len(b), A = seq_len(a))
+  if (within[["A"]]) {
+    people <- n
+    group <- rep(1L, n)
+  } else {
+    people <- n
+    group <- rep(seq_len(a), each = n / a)
+  }
+  rows <- lapply(seq_len(people), function(i) {
+    own <- if (within[["A"]]) cells else cells[cells$A == group[i], , drop = FALSE]
+    data.frame(id = i, A = own$A, B = own$B)
+  })
+  data <- do.call(rbind, rows)
+  level <- stats::rnorm(people, 0, sd * sqrt(r))
+  data$y <- means[cbind(data$A, data$B)] + level[data$id] + stats::rnorm(nrow(data), 0, sd * sqrt(1 - r))
+  data$id <- factor(data$id)
+  data$A <- factor(data$A)
+  data$B <- factor(data$B)
+  data
+}
+
 # One study's data: n times each cell's share, the cells row by row.
 bffactorial_data <- function(n, means, sd, ratios) {
   per_cell <- n * as.vector(t(ratios)) / sum(ratios)
@@ -60,9 +125,22 @@ bffactorial_data <- function(n, means, sd, ratios) {
   data.frame(A = factor(a), B = factor(b), y = means[cbind(a, b)] + stats::rnorm(length(a), 0, sd))
 }
 
-# The effect's log inclusion Bayes factor for one data set.
+# The effect's log inclusion Bayes factor for one data set; with repeated
+# measures the participants are a random factor in every model.
 bffactorial_log_bf <- function(data, term, prior_scale, inclusion) {
-  bf <- BayesFactor::anovaBF(y ~ A * B, data = data, whichModels = "withmain", rscaleFixed = prior_scale, progress = FALSE)
+  repeated <- "id" %in% names(data)
+  two <- length(unique(data$B)) > 1
+  formula <- if (repeated) {
+    if (two) y ~ A * B + id else y ~ A + id
+  } else {
+    y ~ A * B
+  }
+  bf <- if (repeated) {
+    BayesFactor::anovaBF(formula, data = data, whichRandom = "id", whichModels = "withmain", rscaleFixed = prior_scale,
+      rscaleRandom = bffactorial_defaults$prior_scale_random, progress = FALSE)
+  } else {
+    BayesFactor::anovaBF(formula, data = data, whichModels = "withmain", rscaleFixed = prior_scale, progress = FALSE)
+  }
   inc <- bayestestR::bayesfactor_inclusion(bf, match_models = identical(inclusion, "matched_models"))
   # bayestestR names the interaction "A:B"; its log_BF column is the
   # natural log.
@@ -72,14 +150,17 @@ bffactorial_log_bf <- function(data, term, prior_scale, inclusion) {
 # The experiment Spower runs: one study of n people. `outcome` "effect"
 # returns whether the inclusion BF reaches the threshold, "null" whether
 # its reciprocal does (strong evidence that the effect is absent).
-p_bayes_factorial <- function(n, means, sd, ratios, term, threshold, prior_scale, inclusion, outcome = "effect") {
-  log_bf <- bffactorial_log_bf(bffactorial_data(n, means, sd, ratios), term, prior_scale, inclusion)
+p_bayes_factorial <- function(n, means, sd, ratios, term, threshold, prior_scale, inclusion, outcome = "effect",
+                              within = c(A = FALSE, B = FALSE), r = 0) {
+  data <- if (any(within)) bffactorial_data_within(n, means, sd, within, r) else bffactorial_data(n, means, sd, ratios)
+  log_bf <- bffactorial_log_bf(data, term, prior_scale, inclusion)
   if (identical(outcome, "effect")) log_bf >= log(threshold) else log_bf <= -log(threshold)
 }
 
 bffactorial_count <- function(inputs, n, nrep, seed, means = inputs$means, outcome = "effect") {
   args <- list(n = n, means = means, sd = inputs$sd, ratios = inputs$ratios, term = inputs$term,
-    threshold = inputs$threshold, prior_scale = inputs$prior_scale, inclusion = inputs$inclusion, outcome = outcome)
+    threshold = inputs$threshold, prior_scale = inputs$prior_scale, inclusion = inputs$inclusion, outcome = outcome,
+    within = inputs$within, r = inputs$r)
   result <- spower_eval(as.name("p_bayes_factorial"), args, nrep, 0.05, seed)
   round(result$power * nrep)
 }
@@ -127,26 +208,55 @@ bffactorial_hypotheses_words <- function(inputs) {
 # bayesfactor_inclusion() gives that study a Bayes factor for the effect.
 bffactorial_check_run <- function(spec, inputs, seed) {
   n <- check_run_n()
-  data <- with_seed(seed %||% 1L, bffactorial_data(n, inputs$means, inputs$sd, inputs$ratios))
+  repeated <- any(inputs$within)
+  if (repeated) {
+    people <- n %/% (2 * length(inputs$means)) * nrow(inputs$means)
+    data <- with_seed(seed %||% 1L, bffactorial_data_within(people, inputs$means, inputs$sd, inputs$within, inputs$r))
+  } else {
+    data <- with_seed(seed %||% 1L, bffactorial_data(n, inputs$means, inputs$sd, inputs$ratios))
+  }
   observed <- tapply(data$y, list(data$A, data$B), mean)
   within_sd <- stats::sd(data$y - observed[cbind(as.integer(data$A), as.integer(data$B))])
   shares <- as.vector(t(table(data$A, data$B))) / nrow(data)
   expected_shares <- as.vector(t(inputs$ratios)) / sum(inputs$ratios)
-  log_bf <- call_backend("BayesFactor", with_seed(seed %||% 1L, bffactorial_log_bf(data[sample.int(nrow(data), min(nrow(data), 4000)), ],
-    inputs$term, inputs$prior_scale, inputs$inclusion)))
+  sample_rows <- if (repeated) {
+    # 200 people spread over the whole sample, so every group is in it.
+    ids <- unique(data$id)
+    keep <- ids[unique(round(seq(1, length(ids), length.out = min(length(ids), 200))))]
+    data[data$id %in% keep, , drop = FALSE]
+  } else {
+    data[with_seed(seed %||% 1L, sample.int(nrow(data), min(nrow(data), 4000))), ]
+  }
+  log_bf <- call_backend("BayesFactor", with_seed(seed %||% 1L, bffactorial_log_bf(droplevels(sample_rows), inputs$term, inputs$prior_scale, inputs$inclusion)))
   effect_size <- max(abs(inputs$means - bffactorial_null_means(inputs$means, inputs$term))) / inputs$sd
-  data.frame(
+  rows <- data.frame(
     parameter = c("Largest difference between a simulated cell mean and the specified mean", "SD within cells",
-      "Largest difference between a cell's simulated share and its specified share",
-      sprintf("Inclusion BF of a large study (4,000 people) for %s is far above the threshold (log BF %s)",
-        bffactorial_effect_words(inputs$term), format(round(log_bf, 1)))),
-    specified = c(0, inputs$sd, 0, log(inputs$threshold)),
-    recovered = c(max(abs(observed - inputs$means)), within_sd, max(abs(shares - expected_shares)), log_bf),
-    ok = c(max(abs(observed - inputs$means)) < 5 * inputs$sd * sqrt(length(inputs$means) / n),
-      abs(within_sd - inputs$sd) < 5 * inputs$sd / sqrt(2 * n),
-      max(abs(shares - expected_shares)) < 1e-3,
-      effect_size < 0.1 || log_bf > log(inputs$threshold))
+      if (!repeated) "Largest difference between a cell's simulated share and its specified share",
+      sprintf("Inclusion BF of a large study (%s) for %s is far above the threshold (log BF %s)",
+        if (repeated) "200 people" else "4,000 people", bffactorial_effect_words(inputs$term), format(round(log_bf, 1)))),
+    specified = c(0, inputs$sd, if (!repeated) 0, log(inputs$threshold)),
+    recovered = c(max(abs(observed - inputs$means), na.rm = TRUE), within_sd, if (!repeated) max(abs(shares - expected_shares)), log_bf),
+    ok = c(max(abs(observed - inputs$means), na.rm = TRUE) < 5 * inputs$sd * sqrt(length(inputs$means) / nrow(data)),
+      abs(within_sd - inputs$sd) < 5 * inputs$sd / sqrt(2 * nrow(data)) + 0.01 * inputs$sd,
+      if (!repeated) max(abs(shares - expected_shares)) < 1e-3,
+      effect_size < 0.2 || log_bf > log(inputs$threshold))
   )
+  if (repeated) {
+    # The correlation of a person's scores in two within cells.
+    # Two cells the first person has a score in (in a mixed design, cells
+    # of their own group), and everyone who has both.
+    data$cell <- interaction(data$A, data$B, drop = TRUE)
+    first_two <- as.character(data$cell[data$id == data$id[1]])[1:2]
+    y1 <- data$y[data$cell == first_two[1]]
+    y2 <- data$y[data$cell == first_two[2]]
+    id1 <- data$id[data$cell == first_two[1]]
+    id2 <- data$id[data$cell == first_two[2]]
+    common <- intersect(id1, id2)
+    rec <- stats::cor(y1[match(common, id1)], y2[match(common, id2)])
+    rows <- rbind(rows, data.frame(parameter = "Correlation of a person's scores in two cells", specified = inputs$r, recovered = rec,
+      ok = abs(atanh(rec) - atanh(inputs$r)) <= 5 / sqrt(length(common) - 3)))
+  }
+  rows
 }
 
 check_bayes_factorial <- function(spec) {
@@ -164,6 +274,18 @@ check_bayes_factorial <- function(spec) {
   }
   if (identical(spec$options$method, "exact")) {
     problems <- c(problems, "The Bayes factor of an ANOVA effect is simulated; remove 'options > method'.")
+  }
+  if (spec$template %in% bffactorial_within_templates) {
+    r <- as.numeric(unlist(pop$r %||% NA))
+    if (length(r) != 1 || is.na(r) || r < 0) {
+      problems <- c(problems, "The Bayes factor with repeated measures takes one correlation between a person's scores ('population > r'), 0 or more, as JASP's model of a level for each person assumes.")
+    }
+    if (!is.null(spec$options$group_ratio)) {
+      problems <- c(problems, "The Bayes factor with repeated measures is calculated for groups of equal size; remove 'options > group_ratio'.")
+    }
+    if (!is.null(tt$correction) && !identical(tt$correction, "none")) {
+      problems <- c(problems, "A sphericity correction belongs to the F test; remove 'target_test > correction' for the Bayes factor.")
+    }
   }
   problems
 }

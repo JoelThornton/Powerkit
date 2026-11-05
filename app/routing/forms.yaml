@@ -240,6 +240,15 @@ simulations:
       preview: {power: 200}
       script: {power: "about 30 minutes on one core (an estimate: two mediators take a little longer than one)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
 
+  # One test version of a card that otherwise calculates here: the Bayes
+  # factor of a repeated-measures ANOVA effect (about 0.8 s per simulated
+  # study; the preview simulates the no-effect side too, so about four
+  # minutes). The full analysis is the R script.
+  method_routes:
+    E54: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
+    E20: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
+    E8: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
+    E55: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
 # Whole-study simulation (experimental; R/whole-study.R, docs/conventions.md
 # Departure 13): the choices of how many simulated studies, and the usual
 # run time on one core, from seconds per simulated study for each analysis
@@ -916,11 +925,22 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {main_effect_A: "The between factor", main_effect_B: "The within factor", interaction: "The interaction"}}
-      - input: "The F test or the aligned rank transform"
+      - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -1926,13 +1946,24 @@ forms:
              shown_if: {field: spread, is: differ},
              choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
              default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
-      - input: "The ANOVA, Friedman's test or pairwise comparisons"
+      - input: "The ANOVA, Friedman's test, pairwise comparisons or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "One-way repeated-measures ANOVA (F test)", friedman: "Friedman's test (rank-based), simulated",
-                       t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated"},
+                       t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
              sets: {t_test: [{path: target_test.effect, value: pairwise}]},
              default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)"}
+          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of each person's scores around their own level", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: friedman},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -2002,11 +2033,22 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does the change differ between groups?", main_effect_A: "The groups' difference, averaged over time or conditions", main_effect_B: "The change over time or conditions, averaged over groups"}}
-      - input: "The F test or the aligned rank transform"
+      - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -2145,11 +2187,22 @@ forms:
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              choices: {interaction: "The interaction: does one factor's effect depend on the other?", main_effect_A: "The first factor, averaged over the second", main_effect_B: "The second factor, averaged over the first"}}
-      - input: "The F test or the aligned rank transform"
+      - input: "The F test, the aligned rank transform or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated"},
+             choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
+          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 10, default_source: "the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of the scores in each cell", type: select, path: population.score_shape, required: true,
              shown_if: {field: test_version, is: aligned_rank_transform},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},

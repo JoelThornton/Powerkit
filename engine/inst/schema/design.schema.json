@@ -1488,8 +1488,27 @@
                 "mean_1",
                 "mean_2"
               ],
-              "oneOf": [{"required": ["sd"]}, {"required": ["sd1", "sd2"]}],
-              "dependencies": {"sd1": ["sd2"], "sd2": ["sd1"]},
+              "oneOf": [
+                {
+                  "required": [
+                    "sd"
+                  ]
+                },
+                {
+                  "required": [
+                    "sd1",
+                    "sd2"
+                  ]
+                }
+              ],
+              "dependencies": {
+                "sd1": [
+                  "sd2"
+                ],
+                "sd2": [
+                  "sd1"
+                ]
+              },
               "additionalProperties": false,
               "properties": {
                 "mean_1": {
@@ -1500,8 +1519,16 @@
                   "description": "The expected mean of group 2 (X's second level).",
                   "type": "number"
                 },
-                "sd1": {"description": "Group 1's population SD (Welch's test).", "type": "number", "exclusiveMinimum": 0},
-                "sd2": {"description": "Group 2's population SD (Welch's test).", "type": "number", "exclusiveMinimum": 0},
+                "sd1": {
+                  "description": "Group 1's population SD (Welch's test).",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "sd2": {
+                  "description": "Group 2's population SD (Welch's test).",
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
                 "sd": {
                   "description": "The SD of the outcome within a group, taken as the same in both groups, above 0.",
                   "type": "number",
@@ -2585,10 +2612,11 @@
         "target_test": {
           "properties": {
             "method": {
-              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() with an error term for the participants, the model of a random intercept for each person; Type I F tests, which equal Type III in a balanced design), simulated with Spower; one correlation between every pair of a person's scores (per group, in a 2 x 2 mixed design), at least 0.",
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() with an error term for the participants, the model of a random intercept for each person; Type I F tests, which equal Type III in a balanced design), simulated with Spower; one correlation between every pair of a person's scores (per group, in a 2 x 2 mixed design), at least 0. 'bayes_factor': the effect's inclusion Bayes factor, as JASP's Bayesian repeated-measures ANOVA reports it (participants a random factor), simulated with Spower.",
               "enum": [
                 "anova_f",
-                "aligned_rank_transform"
+                "aligned_rank_transform",
+                "bayes_factor"
               ]
             }
           }
@@ -2778,10 +2806,11 @@
               ]
             },
             "method": {
-              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() with an error term for the participants, the model of a random intercept for each person; Type I F tests, which equal Type III in a balanced design), simulated with Spower; one correlation between every pair of a person's scores (per group, in a 2 x 2 mixed design), at least 0.",
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() with an error term for the participants, the model of a random intercept for each person; Type I F tests, which equal Type III in a balanced design), simulated with Spower; one correlation between every pair of a person's scores (per group, in a 2 x 2 mixed design), at least 0. 'bayes_factor': the effect's inclusion Bayes factor, as JASP's Bayesian repeated-measures ANOVA reports it (participants a random factor), simulated with Spower.",
               "enum": [
                 "anova_f",
-                "aligned_rank_transform"
+                "aligned_rank_transform",
+                "bayes_factor"
               ]
             },
             "correction": {
@@ -3049,10 +3078,11 @@
               ]
             },
             "method": {
-              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() with an error term for the participants, the model of a random intercept for each person; Type I F tests, which equal Type III in a balanced design), simulated with Spower; one correlation between every pair of a person's scores (per group, in a 2 x 2 mixed design), at least 0.",
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'aligned_rank_transform': the aligned rank transform ANOVA (ARTool's art() with an error term for the participants, the model of a random intercept for each person; Type I F tests, which equal Type III in a balanced design), simulated with Spower; one correlation between every pair of a person's scores (per group, in a 2 x 2 mixed design), at least 0. 'bayes_factor': the effect's inclusion Bayes factor, as JASP's Bayesian repeated-measures ANOVA reports it (participants a random factor), simulated with Spower.",
               "enum": [
                 "anova_f",
-                "aligned_rank_transform"
+                "aligned_rank_transform",
+                "bayes_factor"
               ]
             },
             "correction": {
@@ -4216,7 +4246,8 @@
               "enum": [
                 "anova_f",
                 "t_test",
-                "friedman"
+                "friedman",
+                "bayes_factor"
               ]
             },
             "correction": {
