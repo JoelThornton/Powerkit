@@ -49,7 +49,7 @@ planning_document <- function(tree, forms, calc) {
     if (identical(f$type, "select")) value <- f$choices[[value]] %||% value
     paste0("- ", f$label, ": ", value)
   }
-  units <- engine_function("sample_structure")(spec)
+  units <- sample_description(spec)
   text <- if (identical(spec$design, "precision")) precision_writeup(forms$forms[[id]], spec, result, fields, values) else
     writeup_text(forms$forms[[id]], spec, result, fields, values,
       departures = departures_for(forms, id, spec),

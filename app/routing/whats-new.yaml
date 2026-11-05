@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Find usable inputs without guessing missing numbers"
+    text: >-
+      Input screens point you to the matching raw-score or published-result
+      options and explain when a summary cannot identify the model. Missing
+      values can stay in an unfinished draft. Clearer card labels and shared
+      sample descriptions improve readability and keep count units consistent.
+  - date: "2026-11-05"
     title: "Your answers survive a lost connection"
     text: >-
       If you leave the page and the connection drops, powerkit now keeps the

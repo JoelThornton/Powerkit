@@ -361,7 +361,7 @@ whole_study_script_ui <- function(forms, plan, n, rule, mains) {
         tags$code("install.packages(\"remotes\")"), " then ",
         tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\")"), "."),
       tags$li("Then run the script. More cores finish sooner (its first lines say how) without changing the result. It saves the result and the citations.")),
-    downloadButton("ws_download_script", "Download R script for the full simulation", class = "btn btn-primary"))
+    download_button("ws_download_script", "Download R script for the full simulation", class = "btn btn-primary"))
 }
 
 # The spec the script runs: the quick look's spec with the full number of
@@ -483,7 +483,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       writeup_ui(c(short = methods, full = methods_full)),
       script,
       div(class = "nav-buttons mt-2",
-        downloadButton("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary"))),
+        download_button("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary"))),
     div(class = "result-card result-how", id = "ws-how",
       h4(class = "h5", "How it was calculated"),
       p(class = "result-credit", "Simulated with the R package ", tags$strong("power4mome"), sprintf(" (version %s), with lavaan %s and manymome %s. Experimental: a statistician's check is still to come.",

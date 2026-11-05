@@ -176,7 +176,7 @@ validation_minutes <- function() {
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
                             retry_skipped = FALSE, fresh = FALSE,
                             list_only = FALSE, summary_only = FALSE,
-                            cores_per_test = 1) {
+                            cores_per_test = 1, shard_index = 1, shard_count = 1, require_complete = FALSE) {
   cores <- whole_count(cores, "--cores (cores)")
   cores_per_test <- validation_cores_per_test(cores, whole_count(cores_per_test, "--cores-per-test (cores_per_test)"))
   cores_label <- if (cores_per_test == 1) cores else sprintf("%d (%d per test)", cores, cores_per_test)
@@ -191,11 +191,15 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
   }
 
   tests <- validation_tests(root, only)
+  if (!isTRUE(summary_only)) check_test_lists(tests)
+  tests <- validation_shard(tests, shard_index, shard_count)
   tests$done <- tests_done(tests)
   if (isTRUE(summary_only)) {
-    return(invisible(write_summary(tests, results_dir, cores_label)))
+    summary <- write_summary(tests, results_dir, cores_label)
+    if (isTRUE(require_complete) && !validation_status_ok(saved_status(tests), TRUE))
+      stop("The selected validation is not complete; see the saved summary.", call. = FALSE)
+    return(invisible(summary))
   }
-  check_test_lists(tests)
   if (isTRUE(list_only)) {
     return(invisible(print_chunk_progress(tests)))
   }
@@ -224,7 +228,10 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
     run_queue(todo, slots, cores_per_test, nrow(tests) - nrow(todo), nrow(tests))
   }
   tests$done <- tests_done(tests)
-  invisible(write_summary(tests, results_dir, cores_label))
+  summary <- write_summary(tests, results_dir, cores_label)
+  if (!validation_status_ok(saved_status(tests), require_complete))
+    stop("Validation is incomplete or failed; see the saved summary. Skipped tests are not release validation.", call. = FALSE)
+  invisible(summary)
 }
 
 # Cores given to each test (its POWERKIT_CORES). With 1 (the default),
@@ -258,6 +265,38 @@ whole_count <- function(value, what) {
 
 tests_done <- function(tests) {
   vapply(seq_len(nrow(tests)), function(i) !is.null(saved_result(tests[i, ])), logical(1))
+}
+
+# Bind resumable results to the actual calculation sources and environment.
+# Git commit IDs alone would reject harmless documentation edits and miss a
+# changed working tree or a different installed package version.
+validation_fingerprint <- function(root) {
+  files <- c(list.files(file.path(root, "engine"), recursive = TRUE, full.names = TRUE),
+    file.path(root, c("renv.lock", "scripts/run-validation.R")))
+  files <- sort(files[file.exists(files) & !dir.exists(files)])
+  files <- files[!grepl("/engine/(src/.*[.](o|so|dll)|.*[.]Rcheck)/", gsub("\\\\", "/", files))]
+  hashes <- unname(tools::md5sum(files))
+  paths <- substring(gsub("\\\\", "/", files), nchar(gsub("\\\\", "/", root)) + 2L)
+  lock <- jsonlite::fromJSON(file.path(root, "renv.lock"), simplifyVector = FALSE)
+  versions <- vapply(sort(names(lock$Packages)), function(p)
+    tryCatch(as.character(utils::packageVersion(p)), error = function(e) "not installed"), "")
+  digest::digest(list(paths = paths, hashes = hashes, packages = versions,
+    R = R.version.string, platform = R.version$platform), algo = "sha256")
+}
+
+# Stable positions, never random seeds or changed benchmarks. The union of
+# all shards is the original catalogue, with no overlap and no lost tests.
+validation_shard <- function(tests, index = 1, count = 1) {
+  index <- whole_count(index, "--shard-index")
+  count <- whole_count(count, "--shard-count")
+  if (index > count) stop("--shard-index cannot exceed --shard-count.", call. = FALSE)
+  out <- tests[(seq_len(nrow(tests)) - 1L) %% count + 1L == index, , drop = FALSE]
+  attr(out, "validation_partition") <- c(index, count)
+  out
+}
+
+validation_status_ok <- function(status, require_complete = FALSE) {
+  length(status) > 0 && all(status %in% if (isTRUE(require_complete)) "PASS" else c("PASS", "SKIP"))
 }
 
 # The saved status of each test ("NOT RUN" if it has no saved result).
@@ -341,7 +380,9 @@ validation_tests <- function(root, only) {
   if (grid) {
     rows <- c(rows, list(interaction_grid_rows(root)))
   }
-  do.call(rbind, rows)
+  out <- do.call(rbind, rows)
+  out$fingerprint <- validation_fingerprint(root)
+  out
 }
 
 # Interaction grid ----------------------------------------------------------------
@@ -409,6 +450,7 @@ interaction_grid_spec <- function(cell, seed) {
 # the 99.9% Monte Carlo interval of the simulation (the validation
 # tolerance rule; the analytic value has no Monte Carlo error).
 run_one_cell <- function(index, result_path) {
+  fingerprint <- validation_fingerprint(validation_root())
   started <- Sys.time()
   cell <- interaction_grid()[index, ]
   label <- interaction_grid_rows(".")$test[index]
@@ -442,11 +484,15 @@ run_one_cell <- function(index, result_path) {
   result <- c(
     result,
     list(
-      test = label, index = index,
+      test = label, index = index, fingerprint = fingerprint,
       minutes = as.numeric(difftime(Sys.time(), started, units = "mins")),
       finished = format(Sys.time(), "%Y-%m-%d %H:%M")
     )
   )
+  if (!identical(fingerprint, validation_fingerprint(validation_root()))) {
+    result$status <- "ERROR"
+    result$messages <- c(result$messages, "Sources or packages changed during the run; rerun in a stable checkout.")
+  }
   tmp <- paste0(result_path, ".tmp")
   saveRDS(result, tmp)
   file.rename(tmp, result_path)
@@ -619,7 +665,8 @@ saved_result <- function(row) {
     return(NULL)
   }
   r <- tryCatch(readRDS(row$result), error = function(e) NULL)
-  if (is.null(r) || !identical(r$test, row$test) || !identical(as.integer(r$index), as.integer(row$index))) {
+  if (is.null(r) || is.null(row$fingerprint) || !identical(r$test, row$test) || !identical(as.integer(r$index), as.integer(row$index)) ||
+      !identical(r$fingerprint, row$fingerprint)) {
     return(NULL)
   }
   r
@@ -704,6 +751,7 @@ run_queue <- function(todo, cores, cores_per_test, already, total) {
 # that one test, the result is an ERROR.
 run_one_test <- function(file, index, result_path) {
   Sys.setenv(POWERKIT_FULL_VALIDATION = "true")
+  fingerprint <- validation_fingerprint(validation_root())
   path <- file.path("engine", "tests", "testthat", file)
   description <- test_descriptions(path)[[index]]
   started <- Sys.time()
@@ -748,10 +796,14 @@ run_one_test <- function(file, index, result_path) {
     }
   }
   result <- list(
-    status = status, file = file, index = index, test = description,
+    status = status, file = file, index = index, test = description, fingerprint = fingerprint,
     minutes = as.numeric(difftime(Sys.time(), started, units = "mins")),
     messages = messages, finished = format(Sys.time(), "%Y-%m-%d %H:%M")
   )
+  if (!identical(fingerprint, validation_fingerprint(validation_root()))) {
+    result$status <- "ERROR"
+    result$messages <- c(result$messages, "Sources or packages changed during the run; rerun in a stable checkout.")
+  }
   # Write then rename, so a result file is never half-written.
   tmp <- paste0(result_path, ".tmp")
   saveRDS(result, tmp)
@@ -804,6 +856,8 @@ write_summary <- function(tests, results_dir, cores) {
     "===== powerkit validation summary (copy from here) =====",
     sprintf("Date: %s   Commit: %s   Cores: %s", format(Sys.time(), "%Y-%m-%d %H:%M"), commit, cores),
     sprintf("R: %s   Platform: %s", R.version.string, R.version$platform),
+    paste("Selected chunks:", paste(unique(tests$chunk), collapse = ", ")),
+    sprintf("Partition: %s; totals cover only this selected partition.", paste(attr(tests, "validation_partition") %||% c(1, 1), collapse = " of ")),
     paste0("Packages: ", paste(names(versions), versions, collapse = ", ")),
     sprintf(
       "Totals: %d PASS, %d FAIL, %d ERROR, %d SKIP, %d NOT RUN (of %d)",
@@ -872,11 +926,14 @@ if (!interactive() && sys.nframe() == 0) {
       only = value_of("--only"),
       cores = count_of("--cores", 2),
       cores_per_test = count_of("--cores-per-test", 1),
+      shard_index = count_of("--shard-index", 1),
+      shard_count = count_of("--shard-count", 1),
       retry_failed = "--retry-failed" %in% args,
       retry_skipped = "--retry-skipped" %in% args,
       fresh = "--fresh" %in% args,
       list_only = "--list" %in% args,
-      summary_only = "--summary" %in% args
+      summary_only = "--summary" %in% args,
+      require_complete = "--require-complete" %in% args
     )
   }
 }

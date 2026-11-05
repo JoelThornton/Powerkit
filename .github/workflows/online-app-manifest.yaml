@@ -1,21 +1,8 @@
-# Keeps app/routing/manifest.json up to date, so the online app (Posit
-# Connect Cloud, published from this repository's main branch) updates
-# itself after a merge.
-#
-# Connect Cloud republishes the app whenever main changes, installing the
-# packages listed in manifest.json (it reads that file, next to app.R).
-# The manifest pins powerkit's engine to one commit of this repository, so
-# it has to be rewritten whenever the engine, the app or renv.lock
-# changes; this workflow does that and commits the new manifest to main.
-# That commit is what makes Connect Cloud pick up an engine change.
-# (Its push uses GITHUB_TOKEN, so it doesn't start other workflows or
-# this one again.)
-#
-# On a pull request it only writes the manifest and prints the changes, as
-# a check that the manifest can still be made; nothing is committed.
-#
-# Packages come from renv.lock, as in R-CMD-check.yaml. Setup steps on the
-# Connect Cloud website: docs/hosting-options.md, "Publishing from GitHub".
+# Checks the manifest on PRs. After a merge, publishes checked main source
+# plus its generated manifest to connect-cloud, using a normal fast-forward
+# push. Main itself is never changed by the bot, so it can require PRs and
+# checks without an automation bypass. Posit Connect Cloud must watch the
+# connect-cloud branch (docs/repository-protection.md).
 name: online-app-manifest
 
 on:
@@ -26,6 +13,8 @@ on:
       - "engine/**"
       - "renv.lock"
       - ".github/workflows/online-app-manifest.yaml"
+      - "scripts/prepare-publish-branch.py"
+      - "scripts/test-publish-branch.py"
       - "!app/routing/manifest.json"
   pull_request:
     paths:
@@ -33,6 +22,8 @@ on:
       - "engine/DESCRIPTION"
       - "renv.lock"
       - ".github/workflows/online-app-manifest.yaml"
+      - "scripts/prepare-publish-branch.py"
+      - "scripts/test-publish-branch.py"
       - "!app/routing/manifest.json"
   workflow_dispatch:
 
@@ -53,6 +44,11 @@ jobs:
       LC_ALL: C.UTF-8
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify publishing preserves checked source and branch history
+        run: python3 scripts/test-publish-branch.py
 
       # System libraries the packages in renv.lock need (see
       # full-validation.yaml).
@@ -106,16 +102,12 @@ jobs:
       - name: Show what changed
         run: git diff --stat -- app/routing/manifest.json || true
 
-      - name: Commit the manifest to main
+      - name: Prepare the checked deployment branch
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          CHECKED_MAIN: ${{ github.sha }}
         run: |
-          git add app/routing/manifest.json
-          if git diff --cached --quiet; then
-            echo "manifest.json is already up to date"
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Online app: update manifest.json for Connect Cloud"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          python3 scripts/prepare-publish-branch.py "$CHECKED_MAIN"
+          git push origin HEAD:connect-cloud

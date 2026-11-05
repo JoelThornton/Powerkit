@@ -133,9 +133,31 @@ jobs:
       contents: read
       packages: write
 
-  validation:
-    name: validation (${{ inputs.name || inputs.chunk }})
+  partitions:
     needs: image
+    runs-on: ubuntu-latest
+    permissions: {contents: read, packages: read}
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    env:
+      RENV_ACTIVATE_PROJECT: "FALSE"
+      CHUNK: ${{ inputs.chunk }}
+    outputs:
+      matrix: ${{ steps.partition.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: partition
+        run: echo "matrix=$(Rscript scripts/validation-partitions.R)" >> "$GITHUB_OUTPUT"
+
+  validation:
+    name: validation (${{ inputs.name || inputs.chunk }}, part ${{ matrix.index }})
+    needs: [image, partitions]
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.partitions.outputs.matrix) }}
     runs-on: ubuntu-latest
     timeout-minutes: 360
     permissions:
@@ -149,6 +171,8 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       CHUNK: ${{ inputs.chunk }}
+      SHARD_INDEX: ${{ matrix.index }}
+      SHARD_COUNT: ${{ matrix.count }}
       RENV_ACTIVATE_PROJECT: "FALSE"
       # Cores per test, set here for the whole job so every step has it:
       # 4 for the mediation and moderated mediation chunks (process_*,
@@ -170,20 +194,20 @@ jobs:
       - name: Run the ${{ inputs.chunk }} chunk
         id: run
         timeout-minutes: 330
-        run: Rscript scripts/run-validation.R --only "$CHUNK" --cores 4 --cores-per-test "$PER_TEST"
+        run: Rscript scripts/run-validation.R --only "$CHUNK" --cores 4 --cores-per-test "$PER_TEST" --shard-index "$SHARD_INDEX" --shard-count "$SHARD_COUNT"
 
       # Runs if the chunk ran, even if it failed or hit the time limit, so
       # the summary covers the results saved so far; skipped if the chunk
       # never started (then there is nothing to summarise).
       - name: Write the summary of saved results
         if: always() && steps.run.outcome != 'skipped'
-        run: Rscript scripts/run-validation.R --only "$CHUNK" --cores 4 --cores-per-test "$PER_TEST" --summary
+        run: Rscript scripts/run-validation.R --only "$CHUNK" --cores 4 --cores-per-test "$PER_TEST" --shard-index "$SHARD_INDEX" --shard-count "$SHARD_COUNT" --summary
 
       - name: Upload validation-results
         if: always() && steps.run.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
-          name: validation-results-${{ inputs.name || inputs.chunk }}-run-${{ github.run_number }}
+          name: validation-results-${{ inputs.name || inputs.chunk }}-part-${{ matrix.index }}-run-${{ github.run_number }}
           path: validation-results/
           if-no-files-found: warn
           retention-days: 30

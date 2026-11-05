@@ -26,8 +26,10 @@ source(file.path("R", "tree.R"), local = TRUE)
 source(file.path("R", "ui.R"), local = TRUE)
 source(file.path("R", "forms.R"), local = TRUE)
 source(file.path("R", "forms_ui.R"), local = TRUE)
+source(file.path("R", "input-support.R"), local = TRUE)
 source(file.path("R", "feedback.R"), local = TRUE)
 source(file.path("R", "results.R"), local = TRUE)
+source(file.path("R", "sample.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
 source(file.path("R", "whole-study.R"), local = TRUE)
 source(file.path("R", "project.R"), local = TRUE)
@@ -82,7 +84,7 @@ app_css <- "
   .card-fact { background: #f7f8fa; border: 1px solid var(--pk-line); border-left: 4px solid #1f8a5b; border-radius: 10px; padding: 0.55rem 0.75rem; display: flex; flex-direction: column; gap: 0.1rem; }
   .card-fact.how-background { border-left-color: var(--pk-blue); } .card-fact.how-full { border-left-color: #7b4fb3; } .card-fact.how-script { border-left-color: var(--pk-amber); }
   .card-fact.is-progress { border-left-color: var(--pk-amber); } .card-fact:not([class*='how-']):not(.is-validated):not(.is-progress) { border-left-color: #9aa5b1; }
-  .card-fact-label { font-size: 0.75rem; color: #6b7684; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600; }
+  .card-fact-label { font-size: 0.75rem; color: #586372; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600; }
   .card-fact-value { font-size: 0.92rem; color: var(--pk-navy); font-weight: 500; }
   .card-section-title { font-size: 1rem; font-weight: 600; color: var(--pk-navy); margin: 1.1rem 0 0.4rem; }
   .card-needs ul { padding-left: 0; list-style: none; margin-bottom: 0.5rem; }

@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 5 November 2026 (powerkit 0.32.0). This page says where the
+*Last updated: 5 November 2026 (powerkit 0.33.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -13,6 +13,21 @@ fully validated. Validation runs are recorded in
 `CLAUDE.md` and [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Validation checkpoints:** source/lock/installed-package/R fingerprints
+  prevent old saved passes being reused for a different calculation context.
+  Independent test shards retain test identities, seeds and replication counts.
+  Published-value placeholders and the full release run remain unfinished.
+- **Input and maintenance assessment:** matching raw/published summary routes
+  and honest missing-input guidance appear on forms. Shared sample metadata
+  supports results, recruitment, plans and exports. `dependency-footprint.md`
+  measures locked closures and scopes optional profiles; none is advertised
+  or implemented as a partial installation.
+- **Publishing and protection:** a separate `connect-cloud` branch is prepared
+  for Posit, retaining exact main source apart from the generated manifest.
+  Main can then require PR checks without a privileged bot bypass. Activation
+  and the Posit branch selection are documented in `repository-protection.md`.
+
 
 - **Planning decisions and assumptions:** prediction is separate from test
   direction. Accuracy presets explain finite-simulation error and fitting
