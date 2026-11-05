@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Your answers survive a lost connection"
+    text: >-
+      If you leave the page and the connection drops, powerkit now keeps the
+      answers you had typed on an input screen in your browser and offers to
+      bring them back when you return. It also shows when it is starting up
+      or working, and says clearly when the connection has been lost.
+  - date: "2026-11-05"
     title: "A faster first visit"
     text: >-
       The app now starts about two and a half seconds sooner after a quiet
