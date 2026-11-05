@@ -6,7 +6,7 @@ closing_ok <- list(goal = "sample_size", power = "0.8", alpha = "0.05",
 form_examples <- list(
   E1 = c(list(Y_label = "Change in wellbeing", d = "0.3", method = "t_test", alternative = "two_sided"), closing_ok),
   E2 = c(list(X_label = "Condition", X_level1 = "Control", X_level2 = "Training", Y_label = "Recall score",
-              d = "0.4", allocation_ratio = "1", method = "welch_t", alternative = "two_sided"), closing_ok),
+              d = "0.4", allocation_ratio = "1", method = "welch_t", welch_sd_ratio = "1", alternative = "two_sided"), closing_ok),
   E3 = c(list(X_label = "Session", X_level1 = "Before", X_level2 = "After", Y_label = "Anxiety score",
               dz = "0.35", method = "t_test", alternative = "two_sided"), closing_ok),
   E4 = c(list(X_label = "Trait mindfulness", Y_label = "Rumination", r = "-0.2", method = "pearson", alternative = "two_sided"), closing_ok),

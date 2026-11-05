@@ -35,7 +35,8 @@ otherwise JustifyAlpha's \code{optimal_alpha()} result: the \code{alpha}, the
 \item \code{effect_from_units}: \code{NULL} unless the effect was given in the
 outcome's own units (\code{population > metric} "raw", the t-tests);
 otherwise a list with the standardised effect's \code{name} ("Cohen's d"
-or "d_z") and \code{value}, the \code{difference} in the outcome's units, and
+or "d_z", or an RMS-SD difference for unequal-SD Welch planning)
+and \code{value}, the \code{difference} in the outcome's units, and
 the \code{sd} it was divided by (with its \code{sd_name}), and for a
 sensitivity goal the \code{smallest_difference} in the outcome's units.
 For the two-group t-test given by a point-biserial correlation

@@ -1,3 +1,11 @@
+# powerkit 0.32.0
+
+* Welch two-group planning accepts separate raw SDs or a population SD ratio.
+  Its standardised difference uses a fixed root mean square SD. Formula
+  calls convert to pwrss's weighted units at each actual allocation;
+  simulation, example data and reproduction scripts retain the same spreads.
+  Equal-SD plans retain their existing populations and answers.
+
 # powerkit 0.31.0
 
 * Whole-study simulation: X as two groups may now correlate with the

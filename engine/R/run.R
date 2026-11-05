@@ -178,7 +178,8 @@
 #'   * `effect_from_units`: `NULL` unless the effect was given in the
 #'     outcome's own units (`population > metric` "raw", the t-tests);
 #'     otherwise a list with the standardised effect's `name` ("Cohen's d"
-#'     or "d_z") and `value`, the `difference` in the outcome's units, and
+#'     or "d_z", or an RMS-SD difference for unequal-SD Welch planning)
+#'     and `value`, the `difference` in the outcome's units, and
 #'     the `sd` it was divided by (with its `sd_name`), and for a
 #'     sensitivity goal the `smallest_difference` in the outcome's units.
 #'     For the two-group t-test given by a point-biserial correlation

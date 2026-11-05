@@ -1875,6 +1875,12 @@ provenance_lines <- function(result) {
   )
 }
 
+welch_population_note <- function(spec) {
+  if (!identical(spec$template, "independent_t") || !identical(spec$target_test$method, "welch_t")) return(NULL)
+  ratio <- spec$population$sd_ratio %||% 1
+  sprintf("Welch planning assumes normal scores, with group 2's population SD %s times group 1's. The standardised mean difference uses sqrt((SD1 squared + SD2 squared) / 2), independent of allocation. Equal spread is an assumption when the ratio is 1. Simulation uses these same stated spreads.", format(ratio))
+}
+
 simulation_outcome_text <- function(result) {
   s <- result$provenance$simulations
   if (!is.data.frame(s) || !all(c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability", "denominator") %in% names(s))) return(character())
@@ -2031,7 +2037,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), source_note(values), group_difference_note(spec), binary_x_modmed_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), source_note(values), group_difference_note(spec), binary_x_modmed_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring
@@ -2155,7 +2161,12 @@ writeup_effect <- function(fields, values) {
       rows <- trimws(strsplit(value, "\n", fixed = TRUE)[[1]])
       value <- paste0("(", rows[nzchar(rows)], ")", collapse = ", ")
     }
-    out <- c(out, sprintf("%s = %s", f$writeup_label %||% f$label, value))
+    label <- f$writeup_label %||% f$label
+    if (identical(f$id, "d") && identical(values$method, "welch_t") &&
+        !blank(values$welch_sd_ratio) && isTRUE(parse_number(values$welch_sd_ratio) != 1)) {
+      label <- "standardised mean difference (RMS SD)"
+    }
+    out <- c(out, sprintf("%s = %s", label, value))
   }
   if (length(out)) paste(out, collapse = "; ") else NULL
 }
@@ -2441,6 +2452,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_dyadic(spec)) main <- dyad_units(main)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
+  main <- c(main, welch_population_note(spec))
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
               if (assumes_sphericity(spec)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power)

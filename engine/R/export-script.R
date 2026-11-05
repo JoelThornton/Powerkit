@@ -1377,7 +1377,10 @@ spower_script_inputs <- function(spec) {
       "d <- %s # Cohen's d: (expected mean of %s minus the fixed value) / SD", r_code(pop$d), comment_text(v$Y$label)
     ),
     independent_t = c(
-      sprintf("d <- %s # Cohen's d: (mean of %s minus mean of %s) / pooled SD", r_code(pop$d), lv("X", 2), lv("X", 1)),
+      sprintf("d <- %s # standardised mean difference (%s minus %s) / %s", r_code(pop$d), lv("X", 2), lv("X", 1),
+        if (unequal_welch(spec)) "root mean square SD" else "pooled SD"),
+      if (unequal_welch(spec)) c("# With unequal spreads, d uses sqrt((SD1^2 + SD2^2)/2), independent of allocation.",
+        sprintf("sds <- %s # group SDs in RMS-SD units", r_code(welch_population_sds(spec)))),
       ratio_line
     ),
     paired_t = sprintf(
@@ -1637,6 +1640,7 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "d = d_spower, # -d (see above)",
       "type = \"two.sample\",",
       "n2_n1 = allocation_ratio, # size of group 2 relative to group 1",
+      if (unequal_welch(spec)) "sds = sds, # each group's population SD in RMS-SD units",
       sprintf("var.equal = %s # %s", if (welch) "FALSE" else "TRUE", if (welch) "FALSE: Welch's t-test" else "TRUE: Student's t-test")
     ),
     paired_t = c(
