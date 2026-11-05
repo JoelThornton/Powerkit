@@ -8106,7 +8106,8 @@
               "two_level",
               "crossed_conditions",
               "three_level",
-              "item_predictor"
+              "item_predictor",
+              "growth_curve"
             ]
           }
         },
@@ -8184,6 +8185,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_item_predictor"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "growth_curve"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_growth_curve"
             }
           }
         ]
@@ -8772,6 +8788,86 @@
               }
             }
           ]
+        }
+      }
+    },
+    "template_growth_curve": {
+      "description": "Growth curves: two groups of people measured at three or more occasions, and the difference between the groups' average rates of change (the group x time interaction in a linear mixed model with a random intercept and slope for each person), by Diggle, Heagerty, Liang and Zeger's (2002) formula, longpower's diggle.linear.power(). Equal groups, complete data; goal > n is the total number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "G",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "G": {
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "times",
+            "slope_difference",
+            "sd_slope",
+            "sd_residual"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "raw"
+            },
+            "times": {
+              "description": "The occasions' times, in the units the slopes are per (for example 0, 1, 2, 3 months), in order, three or more.",
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 20,
+              "items": {
+                "type": "number"
+              }
+            },
+            "slope_difference": {
+              "description": "The second group's average rate of change minus the first's, in the outcome's units per unit of time. 0 is allowed, to check the Type I error rate at a fixed n.",
+              "type": "number"
+            },
+            "sd_intercept": {
+              "description": "SD of people's own starting levels (the random intercept), at time 0. 0 if omitted.",
+              "type": "number",
+              "minimum": 0
+            },
+            "sd_slope": {
+              "description": "SD of people's own rates of change (the random slope), per unit of time; 0 would be a random-intercept model.",
+              "type": "number",
+              "minimum": 0
+            },
+            "r_intercept_slope": {
+              "description": "Correlation between people's starting levels and rates of change. 0 if omitted.",
+              "type": "number",
+              "minimum": -1,
+              "maximum": 1
+            },
+            "sd_residual": {
+              "description": "SD of the occasion-to-occasion variation around each person's own line (the residual).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": false,
+            "effect": {
+              "const": "slope_difference"
+            },
+            "method": {
+              "const": "z_test"
+            }
+          }
         }
       }
     },

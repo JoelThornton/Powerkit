@@ -788,7 +788,7 @@ closing_questions:
   # unreliable scores (maintainer decisions, 16 and 29 October 2026;
   # docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31, E15]}
-  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E32, E34, E49, E50, E51, E52, E53, E57, E61, E64, E66]}
+  - {doc_id: Q-dir, text: "Does your hypothesis predict a direction?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E32, E34, E35, E49, E50, E51, E52, E53, E57, E61, E64, E66]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
@@ -1464,14 +1464,23 @@ endpoints:
   E35:
     doc_name: "Longitudinal: three or more occasions (growth curves, cross-lagged panels, experience sampling)"
     plain_name: "The same people measured three or more times"
-    search_words: "repeated measures longitudinal growth curve panel mixed model"
-    status: not_in_powerkit
-    inputs: ["Depends on the model"]
+    search_words: "repeated measures longitudinal growth curve panel mixed model slope trajectory rate of change waves"
+    template: "mixed_model / growth_curve"
+    backend: "longpower: diggle.linear.power() (Diggle, Heagerty, Liang and Zeger's formula for a difference in slopes, by formula)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-growth.R, note: "Equals longpower's own power where that works and solves its sample size in the engine's tests, and agrees with mixed models (lme4) fitted to simulated studies (within 0.03). Not yet checked against Diggle and colleagues' published table."}
+    card_points:
+      - "Growth curves: two groups measured at three or more occasions, and whether their average rates of change differ (the group x time interaction in a mixed model with a random intercept and slope for each person)."
+      - "You give the occasions, the difference in rates of change, and how much people vary: in their starting levels, in their own rates of change, and around their own lines. These come from earlier data, from a mixed model's variance components."
+      - "Calculated by Diggle and colleagues' formula (longpower), for equal groups and complete data; people expected to drop out are allowed for by recruiting more."
+      - "Not calculated here yet: random-intercept cross-lagged panel models and experience sampling; the packages below cover them."
+    inputs: ["Your groups, the outcome and the occasions", "The difference in rates of change", "How much people vary"]
     packages:
-      - {name: longpower, url: "https://cran.r-project.org/package=longpower", what: "Power for longitudinal mixed models, GLS and GEE."}
       - {name: powRICLPM, url: "https://cran.r-project.org/package=powRICLPM", what: "Simulation power for random-intercept cross-lagged panel models."}
       - {name: PowerAnalysisIL, url: "https://github.com/ginettelafit/PowerAnalysisIL", what: "Shiny app for intensive longitudinal (experience sampling) designs."}
-    tier: later
+    tier: v2
+    alternatives: ["a mixed ANOVA, if time is a set of conditions rather than a line", "ANCOVA on the last occasion, adjusting for the first"]
   E36:
     doc_name: "Equivalence test (TOST)"
     plain_name: "Show that an effect is absent or too small to matter (equivalence)"

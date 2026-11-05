@@ -179,6 +179,8 @@ route_spec <- function(spec, seed = NULL) {
     "mixed_model/crossed_conditions" = simr_backend(spec, seed),
     "mixed_model/three_level" = simr_backend(spec, seed),
     "mixed_model/item_predictor" = simr_backend(spec, seed),
+    # Growth curves, by Diggle and colleagues' formula (longpower).
+    "mixed_model/growth_curve" = growth_backend(spec, seed),
     "logistic_regression/factorial" = ,
     # Multinomial logistic regression, simulated with Spower (nnet's
     # multinom()).

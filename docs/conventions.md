@@ -1727,6 +1727,17 @@ Wired into the app on 18 October 2026 (E25, E26).*
   the effect's sequential test (`by = "terms"`), equal to its marginal test
   with equal groups. Tests: `test-backend-permanova.R`;
   `test-validation-permanova.R` [powerkit, `docs/decisions.md`].
+- **Growth curves (E35): Diggle and colleagues' formula, solved for power.**
+  G\*Power has no growth-curve test. The covariance of a person's
+  measurements comes from the random intercept and slope SDs, their
+  correlation and the residual SD, as in `diggle.linear.power()`'s help
+  example; the test is of the group x time interaction with that
+  covariance known (a z test). longpower's power for a given n is found by
+  root-finding that fails for small groups and returns about 0 for large
+  ones, so powerkit finds the power whose required group size is the one
+  asked about, from the same formula. Equal groups and complete data, as
+  the formula assumes. Tests: `test-backend-growth.R`;
+  `test-validation-growth.R` [powerkit, `docs/decisions.md`].
 - **Moderation by a factor with three or more groups (E30): the F test of
   the X x group terms.** G\*Power's regression tests take an R-squared
   increase, not a correlation per group. In each group X is standard

@@ -72,7 +72,7 @@ test_that("a reopened project reproduces the same result", {
 test_that("projects the app can't reopen get a plain-English reason", {
   expect_match(restore_from_project(list(), tree, forms), "wasn't saved from the app")
   route <- project_route(example_state("E2"), list())
-  route$endpoint <- "E35"
+  route$endpoint <- "E45"
   expect_match(restore_from_project(route, tree, forms), "doesn't offer")
 })
 

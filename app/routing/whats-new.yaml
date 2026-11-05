@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-05"
+    title: "Plan a growth-curve study"
+    text: >-
+      You can now plan a study that measures two groups three or more times
+      and compares how fast they change, as a mixed model with each person's
+      own starting level and rate of change. Give the occasions, the
+      difference in rates of change and how much people vary.
+  - date: "2026-11-05"
     title: "Moderation by three or more groups"
     text: >-
       You can now plan a study asking whether a relationship differs between
