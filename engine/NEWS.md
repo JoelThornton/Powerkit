@@ -1,5 +1,22 @@
 # powerkit 0.32.0
 
+* Dyadic data (template `dyadic / apim`, card E44): an optional pair-level
+  moderator (`variables > W`, `population > moderation` and `w_y`, or one
+  of each per member, and `r_xw`) moderates each member's actor effect.
+  `target_test > effect` adds "moderation" and "actor_and_moderation"
+  (shared effects) and "moderation_1", "moderation_2", "both_moderations"
+  and "actors_and_moderations" (each member's own). Each Y's residual
+  variance comes from the products' exact moments, supplied with
+  power4mome's standardisation off. Validation chunk `dyadic`: a
+  simulation written separately with lavaan.
+
+* Whole-study simulation: X as two groups may now correlate with the
+  moderator W and the first measurement B (`population > correlations`
+  "X<->W" and "X<->B"; 0 if not given, as for randomised groups). W and B
+  are drawn from X in the population, each residual variance comes from
+  the exact moments of the products (`whole_study_moments()`), and
+  power4mome's own standardisation is switched off for these studies.
+  Validation (chunk `whole_study`): a simulation written separately.
 * The package title and description, the app's page title, search
   description and footer, and the guide describe powerkit as power analysis
   for research studies, not only psychology.
@@ -18,14 +35,6 @@
   Equal-SD plans retain their existing populations and answers.
 
 # powerkit 0.31.0
-
-* Whole-study simulation: X as two groups may now correlate with the
-  moderator W and the first measurement B (`population > correlations`
-  "X<->W" and "X<->B"; 0 if not given, as for randomised groups). W and B
-  are drawn from X in the population, each residual variance comes from
-  the exact moments of the products (`whole_study_moments()`), and
-  power4mome's own standardisation is switched off for these studies.
-  Validation (chunk `whole_study`): a simulation written separately.
 
 * Differential item functioning (template `irt / dif`, card E71): whether
   some items of a test with yes/no answers work differently in two groups,

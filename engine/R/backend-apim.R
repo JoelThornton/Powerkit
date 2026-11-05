@@ -10,29 +10,72 @@
 # constrained equal, and so are the partner effects, as the model for
 # exchangeable dyads is fitted; the population then has the same actor
 # and partner effect for both members.
+#
+# Optionally a pair-level moderator W (one value per pair) predicts each
+# member's Y and moderates each actor effect (X1 x W on Y1, X2 x W on Y2),
+# W correlated r_xw with each member's X. The two products correlate with
+# each other (r_x + r_xw^2 for jointly normal X1, X2 and W; Isserlis, 1918,
+# doi:10.1093/biomet/12.1-2.134, as in path-product-moments.R), so each Y's
+# residual variance is computed here and supplied explicitly, with
+# power4mome's own standardisation switched off, as for PROCESS models 58
+# and 59 (Departure 19). The fitted model adds W and X x W to each
+# equation, constrained equal across members when they are
+# indistinguishable.
+
+apim_has_w <- function(spec) !is.null(spec$variables$W)
 
 apim_paths <- function(spec) {
   pop <- spec$population
-  if (isTRUE(pop$distinguishable)) {
+  b <- if (isTRUE(pop$distinguishable)) {
     c(a1 = pop$actor_1, p21 = pop$partner_21, a2 = pop$actor_2, p12 = pop$partner_12)
   } else {
     c(a1 = pop$actor, p21 = pop$partner, a2 = pop$actor, p12 = pop$partner)
   }
+  if (apim_has_w(spec)) {
+    b <- c(b, if (isTRUE(pop$distinguishable)) {
+      c(w1 = pop$w_y_1, w2 = pop$w_y_2, m1 = pop$moderation_1, m2 = pop$moderation_2)
+    } else {
+      c(w1 = pop$w_y, w2 = pop$w_y, m1 = pop$moderation, m2 = pop$moderation)
+    })
+  }
+  b
 }
 
-# The share of each Y's variance the members' X explain (all standardised):
-# for Y1 = a1 X1 + p21 X2 + e, a1^2 + p21^2 + 2 a1 p21 r_x.
+# The share of each Y's variance the predictors explain (all standardised):
+# for Y1 = a1 X1 + p21 X2 + e, a1^2 + p21^2 + 2 a1 p21 r_x. With W, add
+# W's path, its correlations r_xw with both X, and the product X1 x W, whose
+# variance is 1 + r_xw^2 and which is uncorrelated with X1, X2 and W
+# (jointly normal, so their third moments are 0).
 apim_r_squared <- function(spec) {
   b <- apim_paths(spec)
   r <- spec$population$r_x
-  c(Y1 = b[["a1"]]^2 + b[["p21"]]^2 + 2 * b[["a1"]] * b[["p21"]] * r,
-    Y2 = b[["a2"]]^2 + b[["p12"]]^2 + 2 * b[["a2"]] * b[["p12"]] * r)
+  if (!apim_has_w(spec)) {
+    return(c(Y1 = b[["a1"]]^2 + b[["p21"]]^2 + 2 * b[["a1"]] * b[["p21"]] * r,
+      Y2 = b[["a2"]]^2 + b[["p12"]]^2 + 2 * b[["a2"]] * b[["p12"]] * r))
+  }
+  rw <- spec$population$r_xw
+  s <- matrix(c(1, r, rw, r, 1, rw, rw, rw, 1), 3)
+  explained <- function(own, partner, w, m) {
+    coefs <- c(own, partner, w)
+    drop(t(coefs) %*% s %*% coefs) + m^2 * (1 + rw^2)
+  }
+  # Y1: X1 (own), X2 (partner), W; Y2: X2 (own), X1 (partner), W. The
+  # matrix is symmetric in X1 and X2, so the same s serves both.
+  c(Y1 = explained(b[["a1"]], b[["p21"]], b[["w1"]], b[["m1"]]),
+    Y2 = explained(b[["a2"]], b[["p12"]], b[["w2"]], b[["m2"]]))
 }
+
+apim_effect_labels <- list(actor = "a1", partner = "p21", actor_1 = "a1", actor_2 = "a2", partner_12 = "p12",
+  partner_21 = "p21", actor_and_partner = c("a1", "p21"), both_actors = c("a1", "a2"),
+  both_partners = c("p12", "p21"), all_four = c("a1", "a2", "p12", "p21"),
+  moderation = "m1", actor_and_moderation = c("a1", "m1"), moderation_1 = "m1", moderation_2 = "m2",
+  both_moderations = c("m1", "m2"), actors_and_moderations = c("a1", "a2", "m1", "m2"))
 
 apim_inputs <- function(spec) {
   b <- apim_paths(spec)
   r2 <- apim_r_squared(spec)
   pop <- spec$population
+  w <- apim_has_w(spec)
   # power4mome's value for 'Y1 ~~ Y2' between endogenous variables is the
   # residual covariance (all observed variables standardised), so the
   # residual correlation is multiplied by the two residual SDs, as
@@ -41,20 +84,39 @@ apim_inputs <- function(spec) {
   distinguishable <- isTRUE(pop$distinguishable)
   # One effect, or several tested together (joint power: every one
   # significant in the same simulated study).
-  label <- switch(spec$target_test$effect, actor = "a1", partner = "p21", actor_1 = "a1", actor_2 = "a2",
-    partner_12 = "p12", partner_21 = "p21", actor_and_partner = c("a1", "p21"), both_actors = c("a1", "a2"),
-    both_partners = c("p12", "p21"), all_four = c("a1", "a2", "p12", "p21"))
+  label <- apim_effect_labels[[spec$target_test$effect]]
+  pop_lines <- c(
+    sprintf("Y1 ~ X1: %s", format_pop_value(b[["a1"]])), sprintf("Y1 ~ X2: %s", format_pop_value(b[["p21"]])),
+    sprintf("Y2 ~ X2: %s", format_pop_value(b[["a2"]])), sprintf("Y2 ~ X1: %s", format_pop_value(b[["p12"]])),
+    if (w) c(sprintf("Y1 ~ W: %s", format_pop_value(b[["w1"]])), sprintf("Y1 ~ X1:W: %s", format_pop_value(b[["m1"]])),
+      sprintf("Y2 ~ W: %s", format_pop_value(b[["w2"]])), sprintf("Y2 ~ X2:W: %s", format_pop_value(b[["m2"]])),
+      sprintf("X1 ~~ W: %s", format_pop_value(pop$r_xw)), sprintf("X2 ~~ W: %s", format_pop_value(pop$r_xw))),
+    sprintf("X1 ~~ X2: %s", format_pop_value(pop$r_x)), sprintf("Y1 ~~ Y2: %s", format_pop_value(residual_cov))
+  )
+  model <- if (w) {
+    c("Y1 ~ X1 + X2 + W + X1:W", "Y2 ~ X2 + X1 + W + X2:W", "X1 ~~ X2", "X1 ~~ W", "X2 ~~ W", "Y1 ~~ Y2",
+      sprintf("Y1 ~~ %s*Y1", format_pop_value(1 - r2[["Y1"]])), sprintf("Y2 ~~ %s*Y2", format_pop_value(1 - r2[["Y2"]])))
+  } else {
+    c("Y1 ~ X1 + X2", "Y2 ~ X2 + X1", "X1 ~~ X2", "Y1 ~~ Y2")
+  }
+  # The fitted model. With W, the predictors' covariances are left to
+  # lavaan's default (fixed at their sample values), since the products'
+  # covariances with them would otherwise have to be written out too; the
+  # tests of the paths are the same.
+  fit_model <- if (w) {
+    c("Y1 ~ a1*X1 + p21*X2 + w1*W + m1*X1:W", "Y2 ~ a2*X2 + p12*X1 + w2*W + m2*X2:W",
+      if (!distinguishable) c("a1 == a2", "p21 == p12", "w1 == w2", "m1 == m2"), "Y1 ~~ Y2")
+  } else {
+    c("Y1 ~ a1*X1 + p21*X2", "Y2 ~ a2*X2 + p12*X1", if (!distinguishable) c("a1 == a2", "p21 == p12"), "X1 ~~ X2", "Y1 ~~ Y2")
+  }
   list(
-    model = paste("Y1 ~ X1 + X2", "Y2 ~ X2 + X1", "X1 ~~ X2", "Y1 ~~ Y2", sep = "\n"),
-    pop_es = paste(
-      sprintf("Y1 ~ X1: %s", format_pop_value(b[["a1"]])), sprintf("Y1 ~ X2: %s", format_pop_value(b[["p21"]])),
-      sprintf("Y2 ~ X2: %s", format_pop_value(b[["a2"]])), sprintf("Y2 ~ X1: %s", format_pop_value(b[["p12"]])),
-      sprintf("X1 ~~ X2: %s", format_pop_value(pop$r_x)), sprintf("Y1 ~~ Y2: %s", format_pop_value(residual_cov)),
-      sep = "\n"),
-    fit_model = paste(c("Y1 ~ a1*X1 + p21*X2", "Y2 ~ a2*X2 + p12*X1",
-      if (!distinguishable) c("a1 == a2", "p21 == p12"), "X1 ~~ X2", "Y1 ~~ Y2"), collapse = "\n"),
+    model = paste(model, collapse = "\n"),
+    pop_es = paste(pop_lines, collapse = "\n"),
+    standardized = if (w) FALSE,
+    fit_model = paste(fit_model, collapse = "\n"),
     label = label,
     distinguishable = distinguishable,
+    moderator = w,
     paths = b,
     r_squared = r2,
     alpha = spec$target_test$alpha
@@ -121,8 +183,14 @@ apim_check_run <- function(spec, inputs, seed) {
   n <- check_run_n()
   sim <- power4mome_call(inputs, n, 1, seed, do_the_test = FALSE)
   data <- as.data.frame(power4mome::pool_sim_data(sim))
-  fit1 <- stats::lm(Y1 ~ X1 + X2, data = data)
-  fit2 <- stats::lm(Y2 ~ X2 + X1, data = data)
+  w <- isTRUE(inputs$moderator)
+  if (w) {
+    fit1 <- stats::lm(Y1 ~ X1 + X2 + W + X1:W, data = data)
+    fit2 <- stats::lm(Y2 ~ X2 + X1 + W + X2:W, data = data)
+  } else {
+    fit1 <- stats::lm(Y1 ~ X1 + X2, data = data)
+    fit2 <- stats::lm(Y2 ~ X2 + X1, data = data)
+  }
   c1 <- summary(fit1)$coefficients
   c2 <- summary(fit2)$coefficients
   b <- inputs$paths
@@ -130,18 +198,22 @@ apim_check_run <- function(spec, inputs, seed) {
     data.frame(parameter = label, specified = specified, recovered = recovered,
       ok = abs(atanh(recovered) - atanh(specified)) <= 5 / sqrt(n - 3))
   }
-  rows <- list(
+  rows <- Filter(Negate(is.null), list(
     check_run_rows(c("actor, member 1 (X1->Y1)", "partner, member 2 on 1 (X2->Y1)"), b[c("a1", "p21")],
       c1[c("X1", "X2"), "Estimate"], c1[c("X1", "X2"), "Std. Error"]),
     check_run_rows(c("actor, member 2 (X2->Y2)", "partner, member 1 on 2 (X1->Y2)"), b[c("a2", "p12")],
       c2[c("X2", "X1"), "Estimate"], c2[c("X2", "X1"), "Std. Error"]),
-    do.call(rbind, lapply(c("X1", "X2", "Y1", "Y2"), function(v) {
+    if (w) check_run_rows(c("W on member 1 (W->Y1)", "moderation, member 1 (X1 x W->Y1)", "W on member 2 (W->Y2)", "moderation, member 2 (X2 x W->Y2)"),
+      b[c("w1", "m1", "w2", "m2")], c(c1[c("W", "X1:W"), "Estimate"], c2[c("W", "X2:W"), "Estimate"]),
+      c(c1[c("W", "X1:W"), "Std. Error"], c2[c("W", "X2:W"), "Std. Error"])),
+    if (w) correlation_row("X1<->W", spec$population$r_xw, stats::cor(data$X1, data$W)),
+    do.call(rbind, lapply(c("X1", "X2", if (w) "W", "Y1", "Y2"), function(v) {
       squares <- (data[[v]] - mean(data[[v]]))^2
       check_run_rows(sprintf("variance of %s", v), 1, mean(squares), stats::sd(squares) / sqrt(n))
     })),
     correlation_row("X1<->X2", spec$population$r_x, stats::cor(data$X1, data$X2)),
     correlation_row("residual Y1<->Y2", spec$population$r_y, stats::cor(stats::residuals(fit1), stats::residuals(fit2)))
-  )
+  ))
   check <- do.call(rbind, rows)
   rownames(check) <- NULL
   check
@@ -159,6 +231,7 @@ apim_script <- function(spec, result) {
     "# Inputs ----",
     sprintf("# X is %s and Y is %s, measured on both members of each pair (1: %s; 2: %s);",
       comment_text(v$X$label), comment_text(v$Y$label), comment_text(members[1]), comment_text(members[2])),
+    if (isTRUE(inputs$moderator)) sprintf("# W is %s, one value per pair, moderating each actor effect (X x W);", comment_text(v$W$label)) else NULL,
     "# every path standardised.",
     sprintf("population_model <- %s", r_code(inputs$model)),
     sprintf("population_values <- %s # residual covariance = r_y x both residual SDs", r_code(inputs$pop_es)),
@@ -172,6 +245,7 @@ apim_script <- function(spec, result) {
     "run_batch <- function(batch_n, batch_replications, batch_seed) {",
     "  set.seed(batch_seed)",
     "  result <- power4test(nrep = batch_replications, model = population_model, pop_es = population_values,",
+    if (isTRUE(inputs$moderator)) "    standardized = FALSE, # with W, the residual variances are supplied in population_model" else NULL,
     "    n = batch_n, fit_model_args = list(model = fitted_model), do_the_test = FALSE, iseed = batch_seed,",
     "    parallel = FALSE, progress = FALSE)",
     "  # Each effect tested on the same fitted models; with several, a study",

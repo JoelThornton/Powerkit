@@ -145,7 +145,7 @@ fully validated. Validation runs are recorded in
   score in a Cox regression by powerSurvEpi's Hsieh and Lavori formula),
   since 2 November 2026;
   E44, the actor-partner model for pairs (with joint power for actor and partner
-  effects tested together), and E46, precision planning
+  effects tested together, and since 5 November 2026 a pair-level moderator of the actor effects), and E46, precision planning
   (below), since 1 November 2026; E64
   and E66, the Jonckheere-Terpstra and Cochran-Armitage trend tests
   (simulated with Spower; one- or two-sided, equal or unequal groups),
