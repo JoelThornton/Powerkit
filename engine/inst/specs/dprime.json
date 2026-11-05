@@ -1,0 +1,43 @@
+{
+  "spec_version": "0.1",
+  "design": "signal_detection",
+  "template": "dprime",
+  "variables": {
+    "G": {
+      "type": "within_factor",
+      "label": "Encoding task",
+      "levels": ["Shallow", "Deep"]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Recognition memory"
+    }
+  },
+  "population": {
+    "metric": "dprime",
+    "dprime": [1.0, 1.4],
+    "trials_signal": 40,
+    "trials_noise": 40,
+    "sd_dprime": 0.5,
+    "r_dprime": 0.5,
+    "criterion": 0.2,
+    "sd_criterion": 0.3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: replace with your reasoning."
+  },
+  "target_test": {
+    "effect": "dprime_difference",
+    "method": "t_test",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 40
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261105
+  }
+}

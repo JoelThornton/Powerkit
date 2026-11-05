@@ -277,6 +277,21 @@ spower_inputs <- function(spec) {
     # Moderation by groups: powerkit's own experiment, p_group_moderator(),
     # draws each group's X and Y (group_moderator_data()) and returns the F
     # test of the X x A terms in lm().
+    # d' in two conditions or groups: powerkit's own experiment, p_dprime(),
+    # draws each person's hits and false alarms (dprime_data()) and returns
+    # the t-test of the estimated d' values.
+    dprime = list(
+      experiment = "p_dprime", own = TRUE,
+      args = function(n) {
+        list(
+          n = n, d1 = as.numeric(pop$dprime[[1]]), d2 = as.numeric(pop$dprime[[2]]),
+          trials_signal = pop$trials_signal, trials_noise = pop$trials_noise,
+          sd_d = pop$sd_dprime %||% 0, r_d = pop$r_dprime %||% 0.5,
+          criterion = pop$criterion %||% 0, sd_c = pop$sd_criterion %||% 0,
+          within = identical(spec$variables$G$type, "within_factor")
+        )
+      }
+    ),
     group_moderator = list(
       experiment = "p_group_moderator", own = TRUE,
       args = function(n) {
@@ -329,6 +344,9 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+  } else if (identical(template, "dprime")) {
+    sprintf("Spower::Spower(p_dprime()) (each person's d' from hits and false alarms with the log-linear correction, then %s)",
+      if (identical(spec$variables$G$type, "within_factor")) "the paired t-test" else "Student's t-test")
   } else if (identical(template, "group_moderator")) {
     "Spower::Spower(p_group_moderator()) (stats::lm() of Y on X * A, the F test of the X x A terms)"
   } else if (identical(template, "interaction") && identical(spec$design, "logistic_regression")) {
@@ -1013,6 +1031,87 @@ group_moderator_check_run <- function(spec, args, seed) {
   )
 }
 
+# d' in two conditions or groups (signal detection) ---------------------------
+#
+# Data: the equal-variance Gaussian signal detection model (Macmillan and
+# Creelman's standard model): a person with sensitivity d and criterion c
+# says yes on a signal trial with probability pnorm(d / 2 - c) and on a
+# noise trial with probability pnorm(-d / 2 - c). Each person's true d is
+# drawn around the condition's average with SD sd_d (with the same people
+# in both conditions, the two are bivariate normal with correlation r_d),
+# and their criterion around the average with SD sd_c (the same in both
+# conditions). Hits and false alarms are binomial counts of the trials.
+# Each person's d' is then estimated as researchers do, with the log-linear
+# correction (Hautus, 1995: 0.5 added to each count and 1 to each number of
+# trials), which keeps perfect scores finite. Drawn in this order: the
+# true d values, the criteria, then the counts.
+dprime_estimate <- function(hits, fas, trials_signal, trials_noise) {
+  stats::qnorm((hits + 0.5) / (trials_signal + 1)) - stats::qnorm((fas + 0.5) / (trials_noise + 1))
+}
+
+dprime_data <- function(n, d1, d2, trials_signal, trials_noise, sd_d, r_d, criterion, sd_c, within) {
+  if (within) {
+    z1 <- stats::rnorm(n)
+    z2 <- r_d * z1 + sqrt(1 - r_d^2) * stats::rnorm(n)
+    true <- cbind(d1 + sd_d * z1, d2 + sd_d * z2)
+    cond <- NULL
+  } else {
+    cond <- rep(1:2, each = n / 2)
+    true <- matrix(c(d1, d2)[cond] + sd_d * stats::rnorm(n), ncol = 1)
+  }
+  crit <- criterion + sd_c * stats::rnorm(n)
+  draw <- function(d) {
+    hits <- stats::rbinom(length(d), trials_signal, stats::pnorm(d / 2 - crit))
+    fas <- stats::rbinom(length(d), trials_noise, stats::pnorm(-d / 2 - crit))
+    list(hits = hits, fas = fas, estimate = dprime_estimate(hits, fas, trials_signal, trials_noise))
+  }
+  if (within) {
+    a <- draw(true[, 1])
+    b <- draw(true[, 2])
+    list(true = true, crit = crit, first = a, second = b)
+  } else {
+    a <- draw(true[, 1])
+    list(true = true, crit = crit, cond = cond, first = a)
+  }
+}
+
+# Spower experiment: the t-test of the second condition's d' against the
+# first's (paired for the same people; Student's for two groups).
+p_dprime <- function(n, d1, d2, trials_signal, trials_noise, sd_d, r_d, criterion, sd_c, within, alternative = "two.sided") {
+  data <- dprime_data(n, d1, d2, trials_signal, trials_noise, sd_d, r_d, criterion, sd_c, within)
+  if (within) {
+    stats::t.test(data$second$estimate, data$first$estimate, paired = TRUE, alternative = alternative)$p.value
+  } else {
+    e <- data$first$estimate
+    stats::t.test(e[data$cond == 2], e[data$cond == 1], var.equal = TRUE, alternative = alternative)$p.value
+  }
+}
+
+# Check run: one large data set; the people's true d' in each condition,
+# its SD and correlation, and the share of hits and false alarms against
+# their expected values (averaged over people's true d' and criteria by
+# numerical integration).
+dprime_check_run <- function(args, seed) {
+  n <- if (args$within) args$n else 2 * (args$n %/% 2)
+  data <- call_backend("Spower", with_seed(seed, do.call(dprime_data, c(args[setdiff(names(args), c("n", "alternative"))], list(n = n)))))
+  t1 <- if (args$within) data$true[, 1] else data$true[data$cond == 1, 1]
+  t2 <- if (args$within) data$true[, 2] else data$true[data$cond == 2, 1]
+  spread <- sqrt(args$sd_d^2 / 4 + args$sd_c^2)
+  expected_hit <- stats::pnorm((args$d1 / 2 - args$criterion) / sqrt(1 + spread^2))
+  hits <- if (args$within) data$first$hits else data$first$hits[data$cond == 1]
+  observed_hit <- mean(hits) / args$trials_signal
+  m <- length(t1)
+  rows <- rbind(
+    check_run_rows(c("average true d' in the first condition", "average true d' in the second condition"),
+      c(args$d1, args$d2), c(mean(t1), mean(t2)), rep(max(args$sd_d, 1e-9) / sqrt(m), 2)),
+    check_run_rows("share of hits in the first condition", expected_hit, observed_hit, stats::sd(hits / args$trials_signal) / sqrt(m))
+  )
+  if (args$within && args$sd_d > 0) {
+    rows <- rbind(rows, check_run_rows("correlation of a person's true d' in the two conditions", args$r_d, stats::cor(t1, t2), (1 - args$r_d^2) / sqrt(m)))
+  }
+  rows
+}
+
 # Moderation with a yes/no outcome --------------------------------------------
 #
 # Data: n people. Two scores X and W are standard normal with correlation
@@ -1332,6 +1431,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "group_moderator")) {
     return(group_moderator_check_run(spec, args, seed))
+  }
+  if (identical(spec$template, "dprime")) {
+    return(dprime_check_run(args, seed))
   }
   if (permanova_test(spec) && !identical(args$shape, "normal")) {
     return(permanova_check_run(spec, args, seed))

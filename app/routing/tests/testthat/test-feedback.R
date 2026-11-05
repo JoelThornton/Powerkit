@@ -53,7 +53,11 @@ test_that("the card screen and the guided plan include it", {
 test_that("the app sends nothing except a feedback message, when the user clicks Send", {
   files <- c(file.path(routing_dir, "app.R"), list.files(file.path(routing_dir, "R"), full.names = TRUE))
   code <- paste(unlist(lapply(files, readLines)), collapse = "\n")
-  for (pattern in c("fetch(", "XMLHttpRequest", "sendBeacon", "httr", "download.file", "url(", "smtp")) {
+  # One fetch() is allowed: the About page from the app's own server
+  # (about-cache/about.html, a relative address), never another site.
+  fetches <- regmatches(code, gregexpr("fetch\\([^)]*", code))[[1]]
+  expect_identical(fetches, "fetch('about-cache/about.html', {cache: 'no-store'}")
+  for (pattern in c("XMLHttpRequest", "sendBeacon", "httr", "download.file", "url(", "smtp")) {
     expect_false(grepl(pattern, code, fixed = TRUE), label = pattern)
   }
   # The only network call is in send_feedback(), and the only caller is

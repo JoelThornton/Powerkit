@@ -1092,6 +1092,22 @@ reproduction scripts, input visibility and copied methods text.
 These checks do not establish arbitrary score-shape, missing-data or
 variance-ratio coverage, and supply no published worked-example benchmark.
 
+## 2026-11-05 · Growth curves with drop-out and unequal groups (local, cloud session)
+
+`test-validation-growth-dropout.R` (chunk `growth`) on Linux x86_64 with R
+4.5.3: **3 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`), in about a minute. Each case simulated 1,000
+studies analysed with lme4's `lmer()` (common intercept, slope, group x
+time, random intercept and slope), the group x time coefficient tested by
+its Wald z test, against longpower's `hu.mackey.thomas.linear.power()`:
+
+| Case | Formula | Simulation (MCSE) |
+| --- | --- | --- |
+| 4 occasions, retention 1, 0.9, 0.8, 0.7, equal groups, n 240 | 0.7924 | 0.796 (0.013) |
+| 5 occasions, complete data, groups 1 : 2, n 120 | 0.9303 | 0.937 (0.008) |
+| 5 occasions, retention 1, 0.95, 0.85, 0.8, 0.75, groups 1 : 0.5, n 150 | 0.6387 | 0.634 (0.015) |
+
+Packages: powerkit 0.32.0; longpower 1.0.27; lme4 (the image's version).
 ## 2026-11-05 · p-value and Bayes factor agreement on t-tests (local, cloud session)
 
 `test-validation-bayes-companion.R` (in the `bayes` chunk) on Linux x86_64
@@ -1108,6 +1124,22 @@ with R 4.5.3: **36 PASS, 0 FAIL, 1 SKIP** (the published example,
   one-sided towards a negative effect (n 60, d_z -0.3, k 3).
 
 Packages: powerkit 0.32.0; bfpwr 0.1.6; BayesFactor 0.9.12-4.8.
+
+## 2026-11-05 · Signal detection: d' in two conditions or groups (local, cloud session)
+
+`test-validation-signal-detection.R` (chunk `signal_detection`) on Linux
+x86_64 with R 4.5.3: **3 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`). powerkit's `p_dprime()` at 10,000 replications
+against 2,000 studies simulated trial by trial (evidence values against
+each person's criterion), d' with the log-linear correction, `t.test()`:
+
+| Case | powerkit (MCSE) | Independent (MCSE) |
+| --- | --- | --- |
+| Paired, d' 1 and 1.4, 40 trials, SD 0.5, r 0.5, n 30, two-sided | 0.887 (0.003) | 0.881 (0.007) |
+| Two groups, d' 1.5 and 1.1, 30 trials, SD 0.4, n 60, one-sided | 0.880 (0.003) | 0.887 (0.007) |
+| Paired near ceiling, d' 2.5 and 3, 12 trials, n 25, two-sided | 0.595 (0.005) | 0.585 (0.011) |
+
+Packages: powerkit 0.32.0; Spower 0.7; SimDesign 2.28.
 
 ## Variant evidence registry
 

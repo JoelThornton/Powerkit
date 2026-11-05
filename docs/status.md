@@ -68,7 +68,8 @@ fully validated. Validation runs are recorded in
   "Working…" bar when busy, a 20-second heartbeat, a reload by itself on
   returning to a page whose connection was lost, and
   Shiny reconnection to the same session when its process still runs. The
-  About tab is built in the background after start.
+  About page is built after the first screen and fetched by the browser
+  in the background, so it opens at once.
 
 - **Simulation outcomes:** every recorded sample-size point retains attempted,
   valid, failed and successful decisions. Power4mome's valid-fit denominator
@@ -165,9 +166,12 @@ fully validated. Validation runs are recorded in
   method; both of each DIF item's parameters tested by default, the
   maintainer's decision of 5 November 2026), reached from Q1, since 5
   November 2026;
+  E72, signal detection (d' in two conditions or groups, simulated with
+  Spower: hits and false alarms, the log-linear correction, a t-test),
+  reached from Q1, since 5 November 2026;
   E35, growth curves (two groups' rates of change over three or more
-  occasions, Diggle and colleagues' formula in longpower), since 5
-  November 2026;
+  occasions, Diggle and colleagues' formula in longpower; with drop-out
+  or unequal groups, Hu, Mackey and Thomas's), since 5 November 2026;
   E30, moderation by a factor with three or more groups (the F test of the
   X x group terms, simulated with Spower and lm()), since 5 November 2026;
   E32, moderation of a yes/no outcome (logistic regression with X x W,

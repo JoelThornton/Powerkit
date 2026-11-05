@@ -5253,6 +5253,34 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   hand) for a two-factor within-participants design and a 2 x 2 mixed
   design. A published example is a placeholder for the maintainer.
 
+## 2026-11-05 · Growth curves with drop-out and unequal groups (E35)
+
+- **What:** the growth-curve screen asks whether anyone drops out before
+  the last occasion and, if so, the share still in the study at each
+  occasion (`population > retention`, the same in both groups), and the
+  second group's size relative to the first (`options >
+  allocation_ratio`). With either, the engine uses longpower's
+  `hu.mackey.thomas.linear.power()` (Hu, Mackey and Thomas, 2021,
+  Biometrical Journal, the reference in longpower's help), which keeps
+  everyone's measurements up to the occasion they leave after (monotone
+  drop-out) and takes unequal allocation. Without them it keeps Diggle and
+  colleagues' formula, as decided on 5 November 2026.
+- **Why:** `next.md` item 3 named attrition and unequal groups as the next
+  step for growth curves. Recruiting more to make up for people who leave
+  (`options > attrition`) wastes their earlier measurements, which a
+  mixed model uses; the two can't be combined, and the spec checks say so.
+- **The model it assumes:** both groups start at the same level, as in a
+  randomised trial (no group main effect), where Diggle's formula lets each
+  group have its own. The card and the screen say so. With complete data
+  and equal groups the two formulas differ (192 against 228 for the
+  example spec), which is why Diggle's stays the default there.
+- **Validation** (`test-validation-growth-dropout.R`, chunk `growth`):
+  lme4 fits of the formula's model to simulated studies with monotone
+  drop-out drawn with the given shares, the group x time term tested by its
+  Wald z test, agree within a point (79.2% against 79.6%; 93.0% against
+  93.7%; 63.9% against 63.4%; 1,000 studies each), inside the 0.03
+  allowance the complete-data formula has. A published example from Hu,
+  Mackey and Thomas is a placeholder for the maintainer.
 ## 2026-11-05 · Groups by number or by name
 
 A variable's groups, conditions or categories (every `levels` field of a
@@ -5400,4 +5428,54 @@ as a way to run that study, not as a different answer to it.
   (`with_sd_units()`, on every screen with that choice and one common
   SD). Separate SDs for Welch's F are still asked, in the same units as
   the means.
+
+## 2026-11-05 · Signal detection: d' in two conditions or groups (E72)
+
+- **What:** a new card, E72, and design, `signal_detection / dprime`:
+  whether sensitivity (d') differs between two conditions done by the same
+  people, or between two groups, as in recognition memory or perception
+  studies. Reached from Q1 ("That people tell a signal from noise better in
+  one condition or group than another") and the "Other" family.
+- **Why:** `next.md` item 5 (decided 4 November 2026, and the order on 5
+  November 2026: signal detection first). No package plans this: sensR's
+  `d.primePwr()` tests one d' against chance in sensory discrimination
+  protocols, not a difference between conditions as psychologists analyse
+  it.
+- **Method (the maintainer's choice of a simulation, 5 November 2026):**
+  powerkit's Spower experiment `p_dprime()`. People's hits and false alarms
+  come from the equal-variance Gaussian signal detection model (yes on a
+  signal trial with probability pnorm(d / 2 - c), on a noise trial
+  pnorm(-d / 2 - c)), with each person's true d' drawn around the
+  condition's average (correlated across conditions for the same people)
+  and their criterion around its average. Each person's d' is estimated as
+  researchers usually do, with the log-linear correction (Hautus, 1995,
+  which found it less biased than the 1/(2N) rule), and the conditions are
+  compared with the paired t-test or Student's t-test, the analysis most
+  studies report. No new statistics: the model's definition, the published
+  correction and the t-test.
+- **Inputs:** the average d' in each condition, signal and noise trials per
+  person, the SD of people's true d' (and for the same people, its
+  correlation across conditions), and the average criterion and its SD (0
+  by default: unbiased observers).
+- **Validation** (`test-validation-signal-detection.R`, chunk
+  `signal_detection`): a simulation written separately, drawing every trial
+  as an evidence value against the person's criterion, agrees within Monte
+  Carlo error in three cases, including one near ceiling where the
+  correction matters most (88.7% against 88.1%, 88.0% against 88.7%, 59.5%
+  against 58.5%). A published example is a placeholder for the maintainer.
+- **Not covered yet:** rating-scale (confidence) designs, unequal-variance
+  models, and d' fitted in a hierarchical model of the trials.
+## 2026-11-05 · The About page, fetched before it is opened
+
+The About page is about 1.5 MB of HTML (its table of every capability has
+over 1,000 rows). It was built once per R process, but turning it into
+text took 1.2 seconds at every opening, and the whole page then went
+through the Shiny connection. Now the server builds it once as text,
+just after the first visitor's first screen has gone out, and writes it
+to a file (`about-cache/about.html`); the browser fetches that file in the
+background once its first screen is up and puts it in the tab. Opening
+About then takes about a third of a second. If someone opens the tab
+before the file arrives, the server sends its finished copy as before.
+Building it straight after start had delayed the first visitor's first
+screen by about five seconds, so it waits for that screen.
 

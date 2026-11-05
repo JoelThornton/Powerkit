@@ -371,6 +371,12 @@ design_description <- function(spec) {
       if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
+    "signal_detection/dprime" = sprintf(
+      "signal detection: does sensitivity (d') in %s differ between %s (%s, %s)? Each person's d' from their hits and false alarms, then %s",
+      label("Y"), label("G"), levels("G"),
+      if (identical(v$G$type, "within_factor")) "the same people in both" else "different people in each",
+      if (identical(v$G$type, "within_factor")) "the paired t-test" else "Student's t-test"
+    ),
     "regression_interaction/group_moderator" = sprintf(
       "moderation by groups: does the slope of %s on %s differ between the %d groups of %s (%s)? F test of the X x A terms",
       label("Y"), label("X"), length(unlist(v$A$levels)), label("A"), levels("A")
@@ -1468,6 +1474,19 @@ spower_script_inputs <- function(spec) {
         sprintf("quantile <- %s # the quantile of the outcome tested (0.5: the median)", r_code(pop$quantile %||% 0.5))
       }
     ),
+    dprime = c(
+      sprintf("# The %s of %s, in order: %s.", if (identical(v$G$type, "within_factor")) "conditions" else "groups",
+        comment_text(v$G$label), paste(comment_text(unlist(v$G$levels)), collapse = ", ")),
+      sprintf("d1 <- %s # average true d' in the first", r_code(as.numeric(pop$dprime[[1]]))),
+      sprintf("d2 <- %s # average true d' in the second", r_code(as.numeric(pop$dprime[[2]]))),
+      sprintf("trials_signal <- %s # signal trials per person in each condition", r_code(pop$trials_signal)),
+      sprintf("trials_noise <- %s # noise trials per person in each condition", r_code(pop$trials_noise)),
+      sprintf("sd_d <- %s # SD of people's true d'", r_code(pop$sd_dprime %||% 0)),
+      sprintf("r_d <- %s # correlation of a person's true d' in the two conditions (same people only)", r_code(pop$r_dprime %||% 0.5)),
+      sprintf("criterion <- %s # average response criterion c", r_code(pop$criterion %||% 0)),
+      sprintf("sd_c <- %s # SD of people's criterion", r_code(pop$sd_criterion %||% 0)),
+      sprintf("within <- %s # TRUE: the same people in both conditions", r_code(identical(v$G$type, "within_factor")))
+    ),
     group_moderator = c(
       sprintf("# The groups of %s, in order: %s.", comment_text(v$A$label), paste(comment_text(unlist(v$A$levels)), collapse = ", ")),
       sprintf("r <- %s # correlation between %s and %s in each group", r_code(as.numeric(unlist(pop$r_xy))), comment_text(v$X$label), comment_text(v$Y$label)),
@@ -1720,6 +1739,11 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "method = method",
       if (identical(spec$target_test$method, "quantile_regression")) "quantile = quantile"
     ),
+    dprime = c(
+      "n = batch_n, # sample size (people in all)",
+      "d1 = d1,", "d2 = d2,", "trials_signal = trials_signal,", "trials_noise = trials_noise,",
+      "sd_d = sd_d,", "r_d = r_d,", "criterion = criterion,", "sd_c = sd_c,", "within = within"
+    ),
     group_moderator = c(
       "n = batch_n, # sample size",
       "r = r,", "means = means,", "group_ratio = group_ratio"
@@ -1896,6 +1920,41 @@ spower_derived_lines <- function(spec) {
       "  }",
       "  fit <- lm(y ~ ., data = data)",
       "  car::linearHypothesis(fit, \"x = 0\", white.adjust = sub(\"ols_\", \"\", method))[2, \"Pr(>F)\"]",
+      "}"
+    ),
+    dprime = c(
+      "# The experiment, as powerkit runs it: the equal-variance Gaussian signal",
+      "# detection model. Each person's true d is drawn around the average (with",
+      "# the same people in both conditions, the two are correlated r_d) and their",
+      "# criterion around its average; a person says yes on a signal trial with",
+      "# probability pnorm(d / 2 - c) and on a noise trial with pnorm(-d / 2 - c).",
+      "# Each person's d' is estimated with the log-linear correction (Hautus,",
+      "# 1995: 0.5 added to each count, 1 to each number of trials), then the",
+      "# second condition is compared with the first by a t-test.",
+      "p_dprime <- function(n, d1, d2, trials_signal, trials_noise, sd_d, r_d, criterion, sd_c, within,",
+      "                     alternative = \"two.sided\") {",
+      "  estimate <- function(hits, fas) qnorm((hits + 0.5) / (trials_signal + 1)) - qnorm((fas + 0.5) / (trials_noise + 1))",
+      "  if (within) {",
+      "    z1 <- rnorm(n)",
+      "    z2 <- r_d * z1 + sqrt(1 - r_d^2) * rnorm(n)",
+      "    true <- cbind(d1 + sd_d * z1, d2 + sd_d * z2)",
+      "  } else {",
+      "    cond <- rep(1:2, each = n / 2)",
+      "    true <- matrix(c(d1, d2)[cond] + sd_d * rnorm(n), ncol = 1)",
+      "  }",
+      "  crit <- criterion + sd_c * rnorm(n)",
+      "  draw <- function(d) {",
+      "    hits <- rbinom(length(d), trials_signal, pnorm(d / 2 - crit))",
+      "    fas <- rbinom(length(d), trials_noise, pnorm(-d / 2 - crit))",
+      "    estimate(hits, fas)",
+      "  }",
+      "  if (within) {",
+      "    first <- draw(true[, 1])",
+      "    second <- draw(true[, 2])",
+      "    return(t.test(second, first, paired = TRUE, alternative = alternative)$p.value)",
+      "  }",
+      "  e <- draw(true[, 1])",
+      "  t.test(e[cond == 2], e[cond == 1], var.equal = TRUE, alternative = alternative)$p.value",
       "}"
     ),
     group_moderator = c(

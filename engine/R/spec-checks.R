@@ -34,7 +34,8 @@ population_problems <- function(spec) {
     dyadic = check_apim,
     survival = check_survival,
     reliability = check_reliability,
-    irt = check_irt
+    irt = check_irt,
+    signal_detection = check_dprime
   )
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
@@ -831,7 +832,7 @@ check_allocation_allowed <- function(spec) {
     ))
   }
   if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "tost_independent", "invariance",
-                           "noninf_independent", "noninf_two_proportions", "ordinal_two_groups", "log_rank")) {
+                           "noninf_independent", "noninf_two_proportions", "ordinal_two_groups", "log_rank", "growth_curve")) {
     return(character())
   }
   paste0(
@@ -2920,6 +2921,7 @@ minimum_n <- function(spec) {
     reliability = 10,
     # DIF: enough people in each group for the multigroup model.
     irt = 20,
+    signal_detection = if (identical(spec$variables$G$type, "within_factor")) 3 else 4,
     # Two groups in each condition (cluster-randomised), or two groups
     # (multisite), or two groups and as many people again (group
     # treatment): the fewest powertools accepts.
@@ -2973,8 +2975,16 @@ group_split <- function(spec) {
   if (identical(spec$design, "irt")) {
     return(list(rule = "split into 2 equal groups, as irtpwr's DIF model assumes", valid = function(n) n %% 2 == 0))
   }
+  if (identical(spec$design, "signal_detection") && identical(spec$variables$G$type, "binary")) {
+    return(list(rule = "split into 2 equal groups", valid = function(n) n %% 2 == 0))
+  }
   if (spec$template == "growth_curve") {
-    return(list(rule = "split into 2 equal groups, as the growth-curve formula assumes", valid = function(n) n %% 2 == 0))
+    w <- c(1, spec$options$allocation_ratio %||% 1)
+    if (isTRUE(all.equal(w[2], 1))) {
+      return(list(rule = "split into 2 equal groups", valid = function(n) n %% 2 == 0))
+    }
+    return(list(rule = sprintf("split into 2 whole groups in the ratio %s", paste(format_number(w), collapse = " : ")),
+      valid = function(n) all(whole(n * w / sum(w)))))
   }
   if (identical(spec$template, "manova") && !is.null(spec$variables$B)) {
     cells <- manova_groups(spec)
@@ -3216,6 +3226,7 @@ target_effect_is_zero <- function(spec) {
       pop$effect
     },
     irt = max(abs(c(unlist(pop$b_shift %||% 0), unlist(pop$a_change %||% 0)))),
+    signal_detection = diff(as.numeric(unlist(pop$dprime))),
     reliability = switch(spec$template,
       icc = pop$icc - pop$icc_null,
       cronbach_alpha = pop$reliability - pop$reliability_null,
@@ -3462,4 +3473,14 @@ cond_indirect_difference_value <- function(spec) {
   w <- as.numeric(unlist(spec$target_test$w_values %||% list(-1, 1)))
   at <- function(v) (get("X->M") + get("XW->M") * v) * (get("M->Y") + get("MW->Y") * v)
   at(w[2]) - at(w[1])
+}
+
+# Signal detection (d' in two conditions): the correlation of a person's d'
+# belongs to the same people in both conditions.
+check_dprime <- function(spec) {
+  pop <- spec$population
+  if (!is.null(pop$r_dprime) && !identical(spec$variables$G$type, "within_factor")) {
+    return("'population > r_dprime' is the correlation of a person's d' in the two conditions, so it belongs to the same people in both (G a within factor); with two groups, remove it.")
+  }
+  character()
 }

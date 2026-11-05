@@ -125,6 +125,7 @@ endpoints:
   E69: z
   E70: model
   E71: model
+  E72: t
   E-bayes: bayes
 
 relations:
