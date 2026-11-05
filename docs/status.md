@@ -111,8 +111,9 @@ fully validated. Validation runs are recorded in
   E37, E43, E44, E46, E47-E57, E59-E61, E64, E66, E69, E70 and E71 (`forms.yaml`'s `calculates`);
   E71, differential item functioning (whether a test's items work the
   same way in two groups, in a 2PL IRT model, by irtpwr's analytical
-  method; both of each DIF item's parameters tested by default,
-  judgement call B19), reached from Q1, since 5 November 2026;
+  method; both of each DIF item's parameters tested by default, the
+  maintainer's decision of 5 November 2026), reached from Q1, since 5
+  November 2026;
   E35, growth curves (two groups' rates of change over three or more
   occasions, Diggle and colleagues' formula in longpower), since 5
   November 2026;

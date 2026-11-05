@@ -1309,7 +1309,8 @@ Departure 19 is shown on the affected result and in the methods text.
   test by default (2 df per DIF item), through the preset with its
   hypothesis-building functions replaced (`backend-irtpwr.R`), and offers
   irtpwr's choice as `target_test > free_parameters = "differing"`.
-- **Why:** a power analysis should be for the test that will be run;
+- **Why** (the maintainer's decision, 5 November 2026; judgement call
+  B19): a power analysis should be for the test that will be run;
   freeing only the difficulty is more powerful when only the difficulty
   differs but cannot detect a change in discrimination, so it is a
   narrower test than the usual one.

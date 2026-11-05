@@ -832,27 +832,7 @@ results.
 
 ### B19. Differential item functioning (E71): which parameters the test frees by default
 
-- **Question:** should the DIF test powerkit plans for free both of each
-  DIF item's parameters between the groups (discrimination and
-  difficulty, 2 df per item), or only those expected to differ (1 df when
-  only the difficulty changes)?
-- **Options:** (a) both, with irtpwr's choice as an option (what powerkit
-  does now, Departure 20); (b) only those that differ, irtpwr's preset,
-  with both as an option.
-- **What established tools do:** irtpwr 1.0.3's `"DIF2PL"` preset tests
-  the parameters that differ in the population given (its source). mirt
-  1.48's `DIF()` help runs its omnibus tests with `which.par = c('a1',
-  'd')` and tests one parameter as a follow-up (opened).
-- **Who might disagree:** researchers who pre-register a test of uniform
-  DIF only would want (b); its power is higher (64.1% against 53.6% in
-  the example at 600 people).
-- **Knock-on effects:** Departure 20 on the E71 result and in the methods
-  paragraph while (a) stands; none for (b).
-- **Recorded in:** `docs/conventions.md`, Departure 20; `docs/decisions.md`,
-  5 November 2026.
-- **Recommendation:** (a), because a power analysis should be for the test
-  that will be run, and the omnibus test is the one the analysis tools
-  present first.
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#b19-differential-item-functioning-e71-which-parameters-the-test-frees-by-default).
 
 ## C. Which card users reach
 

@@ -5056,8 +5056,8 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
   equal size with standard normal abilities and the other items as
   anchors, as the preset assumes; the spec checks require an anchor item
   and an even n.
-- **Which parameters are tested (judgement call B19, recommendation
-  given):** both of each DIF item's parameters by default (2 df per item),
+- **Which parameters are tested (judgement call B19, decided 5 November
+  2026: both, explained to users):** both of each DIF item's parameters by default (2 df per item),
   the omnibus test in mirt's `DIF()` help; irtpwr's preset tests only the
   parameters that differ, offered as `target_test > free_parameters =
   "differing"`. Departure 20 records the difference (53.6% against 64.1%
