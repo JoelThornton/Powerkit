@@ -12,6 +12,14 @@ entries:
       its questions, and if you give the means in SD units powerkit no
       longer asks for the SD, which is then 1.
   - date: "2026-11-05"
+    title: "Your answers survive a lost connection"
+    text: >-
+      If you leave the page and the connection drops, powerkit now keeps the
+      answers you had typed on an input screen in your browser and offers to
+      bring them back when you return. It also keeps the connection open while
+      the page is open, reloads the page by itself when you come back after
+      the connection dropped, and shows when it is starting up or working.
+  - date: "2026-11-05"
     title: "Bayes factors for repeated-measures ANOVAs"
     text: >-
       The repeated-measures and mixed ANOVA cards can now plan for the Bayes
@@ -80,6 +88,20 @@ entries:
       three or more groups, such as screen time and sleep in three age
       groups. Give the correlation in each group, and powerkit simulates the
       test of the interaction.
+  - date: "2026-11-05"
+    title: "Explore effects with a fixed sample size"
+    text: >-
+      The results explorer now correctly handles plans asking for power with
+      a fixed number of participants, so its graphs can show how the answer
+      changes with the assumed effect.
+  - date: "2026-11-05"
+    title: "Make the planning choices clearer and keep your reasoning"
+    text: >-
+      A directional prediction can accompany a two-sided test; new input
+      guides explain unfamiliar numbers and accuracy choices distinguish
+      simulation error from uncertain assumptions. Record sources and named
+      alternatives, cancel higher-accuracy simulations, and download a
+      planning document with your project.
   - date: "2026-11-04"
     title: "Moderation when the outcome is yes or no"
     text: >-

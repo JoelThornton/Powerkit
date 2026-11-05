@@ -5205,6 +5205,29 @@ Recommendations made with the 0.31.0 work and accepted by the maintainer.
 - **Next:** the repeated-measures designs, by the preview and R script
   route (about 0.8 s per simulated study).
 
+## 2026-11-05 · Keeping the visitor's place, and showing that the app is working
+
+- **What:** the app (1) shows "Starting powerkit" while a new server
+  process wakes up, instead of a blank page; (2) shows a bar with
+  "Working…" whenever it is busy for more than a quarter of a second;
+  (3) keeps an open page's connection from being closed for being quiet
+  (a small message every 20 seconds) and reloads a page by itself when the
+  visitor comes back to it after its connection was lost, leaving the
+  host's own lost-connection message and Reload button as they are, so
+  there is only ever one; (4) asks Shiny to reconnect to the same
+  session when the connection drops while its process is still running;
+  (5) saves the answers on an input screen in the visitor's own browser
+  (localStorage, in the draft format "Save a draft" already uses) and, on
+  a new visit, offers to continue where they left off; and (6) builds the
+  About tab in the background a few seconds after the app starts, with a
+  loading message if it is opened before then.
+- **Why:** visitors reported losing their progress when they came back to
+  the page after a while (the server ends idle sessions, and the app's
+  state lived only in the session), and pages that seemed broken while they
+  loaded, with nothing to say they were loading.
+- **What is not kept:** the position in the design finder before an input
+  screen (a few clicks to redo), and results (the answers are kept, so
+  checking them again recalculates).
 ## 2026-11-05 · The Bayes factor of an effect in repeated-measures ANOVAs (E8, E54, E55, E20)
 
 - **What:** the one-way repeated-measures (E54), two-factor
