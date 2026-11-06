@@ -13,6 +13,18 @@
   against a simulation written separately in lavaan
   (`test-validation-riclpm.R`, chunk `riclpm`). powRICLPM joins the
   engine's imports and `renv.lock`; both sources are in `refs.bib`.
+# powerkit 0.33.2
+
+* The online app costs less to keep running. Its host charges for every
+  hour it runs, and it was being rebuilt on every change to main (about 36
+  a day) and kept awake by open tabs and search crawlers. The
+  `online-app-manifest` workflow now publishes to the `connect-cloud`
+  branch once a day, and only when the app, the engine or `renv.lock`
+  changed, rather than after every merge; the page's keep-open message stops after 20
+  minutes without use or when the tab is hidden, unless a calculation is
+  running; and the pages search engines index (a new landing page, the
+  guide and the sitemap) are static files in `site/`, published to GitHub
+  Pages, while the app's `robots.txt` asks crawlers to stay away.
 
 # powerkit 0.33.1
 

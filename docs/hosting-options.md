@@ -62,10 +62,11 @@ These come from the app and engine as they are now, not from a provider.
 - **What it is.** Connect is Posit's server product, installed on your
   own server (often bought by universities). Connect Cloud is Posit's
   hosted version.
-- **Cost (search result).** Connect Cloud: Free tier with 4 GB, 2 CPUs and
-  20 hours (December 2024, beta); Basic $19 a month (8 GB, 2 CPUs);
-  Enhanced $59 a month (16 GB, 4 CPUs); Advanced from $249 a month for 5
-  seats (2026). Self-hosted Connect is licensed per organisation (price
+- **Cost (search result, plans page, 6 November 2026).** Connect Cloud:
+  Free (4 GB, 1 CPU, 20 usage credits a month); Basic $19 a month (8 GB,
+  2 CPUs, 100 credits); Enhanced $59 a month (16 GB, 4 CPUs, 200 credits);
+  Advanced from $249 a month for 5 seats. Credits build up by the hour
+  while the app runs (below). Self-hosted Connect is licensed per organisation (price
   on request; not found).
 - **Compute.** Self-hosted: whatever the server has; Connect can run
   several R processes per app and scale them. Connect Cloud: the plan's
@@ -74,74 +75,110 @@ These come from the app and engine as they are now, not from a provider.
   university. Connect Cloud: Posit processes it (as shinyapps.io).
 - **Maintenance.** Self-hosted: someone runs the server (updates, R
   versions, packages). Connect Cloud: low.
-- **How to deploy (Connect Cloud).** Connect Cloud publishes the app
-  straight from this GitHub repository’s `connect-cloud` branch. A successful
-  publishing workflow carries checked main source there after a merge
-  (one-time migration: `repository-protection.md`).
-  It installs the packages listed in `app/routing/manifest.json`, which
-  the `online-app-manifest` workflow rewrites and commits to `connect-cloud` after
-  every merge that changes the app, the engine or `renv.lock` (the
-  manifest pins powerkit's engine to one commit, so it must be rewritten
-  for an engine change to reach the online app). The free plan needs the
-  repository to be public (Connect Cloud docs, via search, 18 October
-  2026). `scripts/deploy-online.R` is the fallback: it deploys from R on
-  the maintainer's computer (steps at the top of that file).
+- **How powerkit uses it.** See "How the online app is published" below.
+  The free plan needs the repository to be public (Connect Cloud docs, via
+  search, 18 October 2026).
 
-#### Search discovery after deployment
+#### What uses the plan's credits (6 November 2026)
 
-The app serves `www/robots.txt`, `www/sitemap.xml` and `www/guide.html` as
-public paths. The robots file allows public crawling and advertises the
-sitemap; the guide provides useful text without a Shiny WebSocket session.
-Only stable public pages belong in the sitemap, never session URLs, saved
-plans or invented routes.
+Connect Cloud measures use in credits, which build up for each hour the
+app runs, at a rate set by its CPU and memory settings (Posit's blog,
+"Introducing usage and performance metrics in Posit Connect Cloud"); the
+app's usage page in Connect Cloud estimates the rate for the settings
+chosen. The free plan lists 20 credits a month and Basic ($19) 100 (plans
+page, via search, 6 November 2026; the limit was not yet enforced). What
+costs credits is time the app is running, not the number of visitors:
+several visitors at once share one R process. Between 1 and 5 November
+2026 the app used 63 credits. In those days main changed 179 times (each
+merge and the manifest commit that followed it), and every change made
+Connect Cloud rebuild and restart the app. Two other things kept it awake:
+from 4 November search crawlers were invited to the app's address (each
+visit starts the app), and from 5 November the page sent a keep-open
+message every 20 seconds for as long as any tab stayed open. All three
+were changed on 6 November:
 
-Connect Cloud blocks general crawlers by default. At deployment it probes
-`/robots.txt`; the app must answer HTTP 200 for its custom policy to be used.
-After merging, wait for the manifest workflow and automatic redeployment,
-then check the **public** `/robots.txt`, `/sitemap.xml` and `/guide.html`.
-The robots response must contain `Allow: /`, not the platform's default
-`Disallow: /`. If the old policy remains, redeploy through Connect Cloud and
-check its publishing logs. Reference: [Posit's robots guidance](https://docs.posit.co/connect-cloud/user/share/robots.html).
+- the app is published once a day, only when something it runs changed
+  (below);
+- the keep-open message is sent only while the page is in view and has
+  been used in the last 20 minutes, or while a calculation runs
+  (`R/connection.R`);
+- the pages search engines index are static files on GitHub Pages, which
+  cost nothing to visit, and the app's `robots.txt` asks crawlers to stay
+  away (below).
 
-Once these public checks pass, submit `sitemap.xml` in Google Search Console
-and request indexing of the home and guide pages using URL inspection.
-Crawling permission and a sitemap help discovery; they do not guarantee
-indexing or ranking. Reference: [Google's recrawl guidance](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl).
+The app's CPU and memory settings in Connect Cloud are the other lever:
+the smallest setting that holds the app and its packages uses the fewest
+credits.
 
-#### Publishing from GitHub (once, on the Connect Cloud website)
+#### How the online app is published
 
-Button names are from Connect Cloud's documentation (found by search,
-18 October 2026), not checked against the live site.
+Connect Cloud republishes an app whenever the GitHub branch it watches
+changes. powerkit's app watches the `connect-cloud` branch, not main
+(`repository-protection.md` has the one-time migration). Only the
+`online-app-manifest` workflow writes to it: every day at 04:23 UTC, if
+anything under `app/routing/`, `engine/` (tests aside) or `renv.lock`
+differs between main and `connect-cloud`, it writes
+`app/routing/manifest.json` (the packages Connect Cloud installs, with
+powerkit's engine pinned to main's commit) and publishes main's checked
+source plus that manifest to `connect-cloud` with a fast-forward push
+(`scripts/prepare-publish-branch.py`). Until 6 November 2026 it did this
+after every merge. To publish at once (an urgent fix), open the workflow
+on the Actions tab and click **Run workflow** on main; tick **force** to
+publish even if nothing changed. On a pull request the workflow only
+checks that the manifest can still be written. The copy of
+`manifest.json` on main is not updated by the workflow; Connect Cloud
+reads the one on `connect-cloud`. `scripts/deploy-online.R` is the
+fallback: it deploys from R on the maintainer's computer (steps at the
+top of that file).
 
-1. Wait for a successful publishing run and verify `app/routing/manifest.json`
-   on `connect-cloud`. For an existing app, follow `repository-protection.md`
-   to change its source branch without creating or deleting the app.
-2. Go to https://connect.posit.cloud and sign in.
-3. Click **Publish**, then choose **Shiny** and **GitHub** as the source.
-4. If asked, install the Posit Connect Cloud GitHub App and give it access
-   to the JoelThornton/Powerkit repository.
-5. Choose the repository **JoelThornton/Powerkit**, the branch **connect-cloud**,
-   and the primary file **app/routing/app.R**.
-6. Leave **Automatically publish on push** switched on (the default).
-7. Click **Publish** and wait while it installs the packages (several
-   minutes the first time). Keep the old copy for now: it stays online
-   while the new one is set up.
-8. Open the new copy from the link it shows and check it loads.
-9. Only then delete the old copy (the one published from RStudio): open
-   it in the content list and delete it from its settings or "..." menu.
-   This can't be undone, so do it last.
-10. If the new copy's web address differs from the old one, the links in
-    the README, `status.md` and `user-testing.md` need updating to it.
+#### The public pages and search engines
 
-After the source-branch migration, each successful publishing run following a merge to main updates the app. Main is not modified by the publishing bot.
+The pages search engines index are in `site/`: a landing page
+(`index.html`), the guide (`guide.html`), `sitemap.xml` and Google's
+ownership file. The `site` workflow publishes them to GitHub Pages, at
+<https://joelthornton.github.io/Powerkit/>, whenever `site/` changes on
+main. They are static, so a crawler or a passing visitor costs nothing,
+and they link to the app. The app itself serves a `robots.txt` that
+disallows crawling: Connect Cloud reads it when it publishes the app
+(it must answer HTTP 200; [Posit's robots
+guidance](https://docs.posit.co/connect-cloud/user/share/robots.html)).
+The app's footer links to the guide on the public site (`site_address` in
+`R/ui.R`). Only stable public pages belong in the sitemap, never session
+URLs, saved plans or invented routes.
 
-#### Google Search Console verification
+#### Setting it up (once)
 
-`app/routing/www/google47b320cdc6781b0a.html` is the HTML file Google
-Search Console uses to confirm ownership of the online app's address.
-Shiny serves files in `www/` from the site root, so Google finds it at
-`/google47b320cdc6781b0a.html`. Keep the file: Google checks it again
-from time to time, and removing it ends the verification.
+On GitHub:
+
+1. In the repository's **Settings > Pages**, set **Source** to **GitHub
+   Actions**. Then open the `site` workflow on the Actions tab and click
+   **Run workflow**; the pages appear at the address above a minute or so
+   later.
+2. If `connect-cloud` doesn't exist yet, open the `online-app-manifest`
+   workflow on the Actions tab and click **Run workflow** on main.
+
+On Connect Cloud (https://connect.posit.cloud; button names are from
+Connect Cloud's documentation, found by search, not checked against the
+live site):
+
+3. If the app still publishes from main, change its branch to
+   **connect-cloud** as `repository-protection.md` describes, keeping
+   the primary file **app/routing/app.R** and **Automatically publish on
+   push** on.
+4. On the app's usage page, check its CPU and memory setting, and choose
+   the smallest that runs it.
+
+In Google Search Console:
+
+5. Add the property `https://joelthornton.github.io/Powerkit/`, verify it
+   with the HTML file method (`site/google47b320cdc6781b0a.html` is
+   already published; if Google asks for a different file, put that one
+   in `site/`), submit `sitemap.xml`, and request indexing of the home and
+   guide pages with URL inspection. Crawling permission and a sitemap help
+   discovery; they do not guarantee indexing or ranking ([Google's recrawl
+   guidance](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl)).
+   The app's own property can stay: its verification file
+   (`app/routing/www/google47b320cdc6781b0a.html`) is still served.
 
 ### A university server (Shiny Server, open source)
 
