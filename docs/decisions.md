@@ -5595,6 +5595,7 @@ screen by about five seconds, so it waits for that screen.
 - **Not covered yet:** more than two scores, measurement error estimated
   in the model (the STARTS model), and the traditional cross-lagged panel
   model without random intercepts.
+
 ## 2026-11-06 · The online app: published daily, quiet tabs allowed to close, public pages on GitHub Pages
 
 The online app runs on Posit Connect Cloud, which charges usage credits
