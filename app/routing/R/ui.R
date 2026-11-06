@@ -183,6 +183,13 @@ page_slug <- function(tab) {
 # the page instead.
 public_address <- "https://joelthornton-powerkit.share.connect.posit.cloud"
 
+# The public pages search engines index (the landing page and the guide,
+# site/ in the repository, published to GitHub Pages). They are kept off
+# the app's address because every visit there, a crawler's included,
+# starts the app on a host paid for by the hour (www/robots.txt asks
+# crawlers to stay away; docs/hosting-options.md).
+site_address <- "https://joelthornton.github.io/Powerkit"
+
 # The top bar's button: copies a link to the page on show (and the Labs
 # tool open, as ?page=labs&tool=...).
 # The "Explanations" switch: on by default. Turned off, a setting each

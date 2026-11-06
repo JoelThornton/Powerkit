@@ -1,40 +1,42 @@
-# Keeps app/routing/manifest.json up to date, so the online app (Posit
-# Connect Cloud, published from this repository's main branch) updates
-# itself after a merge.
+# Publishes the online app (Posit Connect Cloud) at most once a day.
 #
-# Connect Cloud republishes the app whenever main changes, installing the
-# packages listed in manifest.json (it reads that file, next to app.R).
-# The manifest pins powerkit's engine to one commit of this repository, so
-# it has to be rewritten whenever the engine, the app or renv.lock
-# changes; this workflow does that and commits the new manifest to main.
-# That commit is what makes Connect Cloud pick up an engine change.
-# (Its push uses GITHUB_TOKEN, so it doesn't start other workflows or
-# this one again.)
+# Connect Cloud republishes the app whenever the branch it follows changes,
+# and the host charges for every hour the app runs, a rebuild and restart
+# included. Main changes dozens of times a day, so the app no longer
+# follows main: it follows the `live` branch, which only this workflow
+# writes (docs/hosting-options.md, "How the online app is published").
+#
+# Once a day, if the app, the engine or renv.lock changed on main since
+# the last publish, this workflow writes app/routing/manifest.json (the
+# packages Connect Cloud installs, with powerkit's engine pinned to main's
+# commit) and adds a commit to `live` holding main's files plus that
+# manifest. "Run workflow" on the Actions tab publishes at once, for an
+# urgent fix; tick "force" to publish even when nothing changed. Each live
+# commit names the main commit it was built from (its Built-from line),
+# which is how the next run knows what changed.
 #
 # On a pull request it only writes the manifest and prints the changes, as
 # a check that the manifest can still be made; nothing is committed.
 #
-# Packages come from renv.lock, as in R-CMD-check.yaml. Setup steps on the
-# Connect Cloud website: docs/hosting-options.md, "Publishing from GitHub".
+# Packages come from renv.lock, as in R-CMD-check.yaml.
 name: online-app-manifest
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "app/routing/**"
-      - "engine/**"
-      - "renv.lock"
-      - ".github/workflows/online-app-manifest.yaml"
-      - "!app/routing/manifest.json"
+  schedule:
+    # 04:23 UTC every day.
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Publish even if the app, the engine and renv.lock haven't changed"
+        type: boolean
+        default: false
   pull_request:
     paths:
       - "app/routing/**"
       - "engine/DESCRIPTION"
       - "renv.lock"
       - ".github/workflows/online-app-manifest.yaml"
-      - "!app/routing/manifest.json"
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -53,21 +55,62 @@ jobs:
       LC_ALL: C.UTF-8
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Whether to build the manifest (always on a pull request, as a check)
+      # and whether to publish it to live (only from main, and only if
+      # something the app runs changed since the last publish).
+      - name: Decide whether to publish
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"; echo "publish=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "The online app is only published from main."
+            echo "build=false" >> "$GITHUB_OUTPUT"; echo "publish=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          base=""
+          if git rev-parse -q --verify origin/live > /dev/null; then
+            base=$(git log -1 --format='%(trailers:key=Built-from,valueonly)' origin/live | tr -d '[:space:]')
+          fi
+          publish=true
+          if [ "$FORCE" = "true" ]; then
+            echo "Publishing on request."
+          elif [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2> /dev/null; then
+            echo "No earlier publish found; publishing."
+          elif git diff --quiet "$base" HEAD -- app/routing engine renv.lock \
+                 ':(exclude)app/routing/tests' ':(exclude)engine/tests' ':(exclude)app/routing/manifest.json'; then
+            echo "Nothing the app runs has changed since $base; not publishing."
+            publish=false
+          else
+            echo "Changed since the last publish ($base):"
+            git diff --stat "$base" HEAD -- app/routing engine renv.lock \
+              ':(exclude)app/routing/tests' ':(exclude)engine/tests' ':(exclude)app/routing/manifest.json' | tail -n 5
+          fi
+          echo "build=$publish" >> "$GITHUB_OUTPUT"; echo "publish=$publish" >> "$GITHUB_OUTPUT"
 
       # System libraries the packages in renv.lock need (see
       # full-validation.yaml).
       - name: Install system libraries
+        if: steps.decide.outputs.build == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y libglpk-dev libgsl-dev
 
       - uses: r-lib/actions/setup-r@v2
+        if: steps.decide.outputs.build == 'true'
         with:
           r-version: renv
           use-public-rspm: true
 
       # Restores the package versions in renv.lock (cached between runs).
       - uses: r-lib/actions/setup-renv@v2
+        if: steps.decide.outputs.build == 'true'
 
       # rsconnect writes the manifest; remotes installs the engine from
       # GitHub. Neither is in renv.lock (they don't affect results).
@@ -75,6 +118,7 @@ jobs:
       # manifest tells Connect Cloud where to get it (a locally installed
       # copy can't be found by the server).
       - name: Install rsconnect and the engine from GitHub
+        if: steps.decide.outputs.build == 'true'
         env:
           ENGINE_REF: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
@@ -85,6 +129,7 @@ jobs:
       # Packages are recorded against the public Posit Package Manager
       # (the repository in renv.lock), not this runner's Linux binaries.
       - name: Write app/routing/manifest.json
+        if: steps.decide.outputs.build == 'true'
         shell: Rscript {0}
         run: |
           ppm <- "https://packagemanager.posit.co/cran/latest"
@@ -103,19 +148,26 @@ jobs:
             stop("powerkit isn't recorded as coming from GitHub, so Connect Cloud couldn't install it.")
           }
 
-      - name: Show what changed
-        run: git diff --stat -- app/routing/manifest.json || true
-
-      - name: Commit the manifest to main
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      - name: Show what changed since the last publish
+        if: steps.decide.outputs.build == 'true'
         run: |
-          git add app/routing/manifest.json
-          if git diff --cached --quiet; then
-            echo "manifest.json is already up to date"
-            exit 0
+          if git show origin/live:app/routing/manifest.json > "$RUNNER_TEMP/published.json" 2> /dev/null; then
+            git diff --no-index --stat "$RUNNER_TEMP/published.json" app/routing/manifest.json || true
+          else
+            echo "Nothing published yet."
           fi
+
+      # A new commit on live with main's files and the manifest (never a
+      # rewrite of live's history), so Connect Cloud republishes once.
+      - name: Publish to the live branch
+        if: steps.decide.outputs.publish == 'true'
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Online app: update manifest.json for Connect Cloud"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          git add -f app/routing/manifest.json
+          tree=$(git write-tree)
+          parent=""
+          if git rev-parse -q --verify origin/live > /dev/null; then parent="-p origin/live"; fi
+          commit=$(printf 'Online app: publish main at %s\n\nBuilt-from: %s\n' "${GITHUB_SHA:0:7}" "$GITHUB_SHA" | git commit-tree "$tree" $parent)
+          git push origin "$commit:refs/heads/live"
+          echo "Published main at $GITHUB_SHA to live as $commit."

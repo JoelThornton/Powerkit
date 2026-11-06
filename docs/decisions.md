@@ -5479,3 +5479,33 @@ before the file arrives, the server sends its finished copy as before.
 Building it straight after start had delayed the first visitor's first
 screen by about five seconds, so it waits for that screen.
 
+## 2026-11-06 · The online app: published daily, quiet tabs allowed to close, public pages on GitHub Pages
+
+The online app runs on Posit Connect Cloud, which charges usage credits
+for each hour an app runs (Basic, $19 a month: 100 credits). Between 1
+and 5 November 2026 the app used 63 credits. The causes were in the
+repository: Connect Cloud republished on every change to main (179 in
+those days, as each merge was followed by a manifest commit), search
+crawlers were invited to the app's address from 4 November, and from 5
+November the page kept its connection open for as long as any tab stayed
+open. Decided by the maintainer on 6 November 2026, on the condition that
+the site stays findable by search engines.
+
+- **Publishing:** Connect Cloud follows a `live` branch, which the
+  `online-app-manifest` workflow writes once a day (04:23 UTC), and only
+  when the app, the engine or `renv.lock` changed since the last publish;
+  "Run workflow" publishes at once. Each publish is a new commit on
+  `live`, never a rewrite, naming the main commit it came from. The
+  manifest is no longer committed to main.
+- **Keep-open message:** sent every 20 seconds only while the page is in
+  view and has been used in the last 20 minutes, or while a calculation
+  reports progress. A page left alone may lose its connection; its answers
+  on an input screen come back from the browser's copy (5 November).
+- **Search engines:** the pages they index (a new landing page, the guide
+  and the sitemap) are static files in `site/`, published to GitHub Pages
+  by the `site` workflow, and link to the app. The app's `robots.txt`
+  disallows crawling, so crawlers no longer start the app.
+- **Not changed:** the host. With these changes the credits measure real
+  use; whether real use outgrows the plan, and what to move to then (a
+  fixed-price server, `hosting-options.md`), is for when there are usage
+  figures.

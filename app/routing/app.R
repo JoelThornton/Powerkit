@@ -728,7 +728,7 @@ ui <- function(req) fluidPage(
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
     tags$footer(class = "small text-muted mt-4", "Powerkit helps plan research studies. ",
-      tags$a(href = "guide.html", "Read the guide and current limitations"), ".")
+      tags$a(href = paste0(site_address, "/guide.html"), "Read the guide and current limitations"), ".")
   )
 )
 
