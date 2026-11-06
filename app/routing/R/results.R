@@ -229,6 +229,12 @@ group_text <- function(spec, n) {
 }
 
 test_text <- function(spec) {
+  if (identical(spec$template, "efa")) {
+    return(sprintf("psych's fa() (minimum residual, oblimin rotation), every factor's loadings with Tucker's congruence of at least %s", format(spec$target_test$congruence %||% 0.95)))
+  }
+  if (identical(spec$template, "lpa")) {
+    return(sprintf("the BIC choosing among latent profile models with 1 to %d profiles (mclust)", as.integer(spec$population$profiles) + 1L))
+  }
   if (is_sem_fit(spec)) {
     return(sprintf("%s at alpha = %s", sem_fit_test_name(spec$target_test$method, spec$population$rmsea_null %||% 0.05), alpha_text(spec$target_test$alpha)))
   }
@@ -565,6 +571,8 @@ simulation_note <- function(result) {
 # The headline and supporting sentences for a result (draft wording; setting
 # result_wording).
 result_sentences <- function(spec, result) {
+  if (identical(spec$template, "lpa")) return(lpa_sentences(spec, result))
+  if (identical(spec$template, "efa")) return(efa_sentences(spec, result))
   if (is_precision(spec)) return(precision_sentences(spec, result))
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
   if (identical(spec$design, "meta_analysis")) return(meta_sentences(spec, result))
@@ -1189,7 +1197,8 @@ explore_ui <- function(spec, result = NULL) {
     h5(class = "h6", "If the effect were different"),
     p(class = "small", "Move the slider: the line shows power at each sample size for that effect, and the circle marks your plan. Exploring doesn't change your plan."),
     sliderInput("explore_effect", e$label, min = 0.05, max = e$max, value = round(start, 2), step = 0.01, width = "100%"),
-    plotOutput("explore_plot", height = "300px")
+    plotOutput("explore_plot", height = "300px"),
+    tags$details(tags$summary("Read the exploration values as a table"), uiOutput("explore_table"))
   )
 }
 
@@ -1279,7 +1288,24 @@ scenarios_ui <- function(spec, result = NULL) {
       numericInput("scenario_optimistic", sprintf("Optimistic %s", e$label), value = NA, step = 0.01, width = "14rem")),
     conditionalPanel("input.scenario_conservative != null || input.scenario_optimistic != null",
       plotOutput("scenario_plot", height = "300px"),
-      uiOutput("scenario_n")))
+      uiOutput("scenario_n"),
+      tags$details(tags$summary("Read the scenario values as a table"), uiOutput("scenario_table"))))
+}
+
+# The very same engine-produced points as the plot, with explicit units.
+# Missing/failed points stay missing instead of becoming zero power.
+curve_points_ui <- function(df, spec, caption) {
+  if (!is.data.frame(df) || !nrow(df)) return(p("No curve values are available."))
+  scenario <- "scenario" %in% names(df)
+  div(style = "max-width:100%; overflow-x:auto", tabindex = "0", role = "region", `aria-label` = caption,
+    tags$table(class = "table table-sm",
+      tags$caption(caption),
+      tags$thead(tags$tr(if (scenario) tags$th(scope = "col", "Assumption"),
+        tags$th(scope = "col", paste0("N (", sample_description(spec)$unit, ")")), tags$th(scope = "col", "Power (%)"))),
+      tags$tbody(lapply(seq_len(nrow(df)), function(i) tags$tr(
+        if (scenario) tags$td(unname(scenario_names[df$scenario[i]]) %||% df$scenario[i]),
+        tags$td(whole(df$n[i])),
+        tags$td(if (is.na(df$power[i])) "Not calculated" else sprintf("%.2f", 100 * df$power[i])))))))
 }
 
 # "The smallest effect I could detect across a range of sample sizes": the
@@ -1520,14 +1546,13 @@ technical_details_ui <- function(result) {
 }
 
 # The n the result is about: the required n, or the goal's n.
-n_analysed <- function(result) {
-  if (identical(result$goal_type, "sample_size")) result$n_required$n else result$curve$n[1]
-}
+
 
 # Analysed and to recruit, when the user gave an attrition rate (the
 # maintainer's decision of 17 October 2026). The engine works out the
 # number to recruit (run_spec()'s `recruitment`); this only words it.
-recruitment_lines <- function(result) {
+recruitment_lines <- function(result, spec = NULL) {
+  sample_unit <- sample_description(spec)$unit
   r <- result$recruitment
   if (!is.list(r)) return(NULL)
   groups <- function(sizes) {
@@ -1536,10 +1561,10 @@ recruitment_lines <- function(result) {
     sprintf(" (%s)", paste(sprintf("%s in %s %d", whole(sizes), r$unit, seq_along(sizes)), collapse = " and "))
   }
   c(
-    analysed = sprintf("Analysed: %s participants%s.", whole(r$n_analysed), groups(r$groups_analysed)),
+    analysed = sprintf("Analysed: %s %s%s.", whole(r$n_analysed), sample_unit, groups(r$groups_analysed)),
     recruit = sprintf(
-      "To recruit: %s participants%s, allowing for %s attrition (each group's analysed number divided by %s, rounded up).",
-      whole(r$n_recruit), groups(r$groups_recruit), percent_attrition(r$attrition), format(1 - r$attrition)
+      "To recruit: %s %s%s, allowing for %s attrition (each group's analysed number divided by %s, rounded up).",
+      whole(r$n_recruit), sample_unit, groups(r$groups_recruit), percent_attrition(r$attrition), format(1 - r$attrition)
     ),
     caveat = attrition_caveat
   )
@@ -2070,7 +2095,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
-    if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
+    if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
       p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
       p(class = "small", recruit[["caveat"]])),
     p(class = "result-detail", words[["detail"]]),
@@ -2095,10 +2120,10 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       tags$strong("To save this plan, download its R script or get its write-up, "),
       "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again. Exploring doesn't need it; a plan you keep or share does."),
     div(class = "nav-buttons",
-      if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
-      downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
-      if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary"),
-      if (can_export) downloadButton("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
+      if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
+      download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
+      if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
+      if (can_export) download_button("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
     if (can_export) uiOutput("study_plan_bar"),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     simulated_data_ui(spec, result)),
@@ -2581,7 +2606,7 @@ simulated_data_ui <- function(spec, result) {
     return(p(class = "small simulated-data-unavailable", "A simulated data set isn't available for this design yet."))
   }
   div(class = "simulated-data",
-    downloadButton("download_simulated_data", sprintf("Simulated data set (CSV, n = %s)", format(n)), class = "btn btn-outline-secondary"),
+    download_button("download_simulated_data", sprintf("Simulated data set (CSV, n = %s)", format(n)), class = "btn btn-outline-secondary"),
     p(class = "small simulated-data-note", tags$strong("Simulated, not real data. "),
       "One made-up data set of the planned size, drawn from the population you entered. Use it to write and check your analysis code (in R, SPSS, JASP, jamovi or Python) before the real data arrive. It is not evidence, not a pilot, and not a substitute for your analysis plan. Every row says SIMULATED_NOT_REAL_DATA in its first column, and the R script builds the same data set.",
       # A choice the data set makes that the plan leaves open (the engine's
@@ -2780,7 +2805,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       p(class = "result-reading", words[["reading"]]),
       if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
       source_stale_ui(fields, values),
-      if (!is.null(recruit <- recruitment_lines(result))) div(class = "result-recruitment",
+      if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
         p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
         p(class = "small", recruit[["caveat"]])),
       p(class = "result-detail", words[["detail"]]),
@@ -2793,10 +2818,10 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         tags$strong("To save this plan, download its R script or get its write-up, "),
         "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again."),
       div(class = "nav-buttons",
-        if (can_export) downloadButton("download_script", "Download R script", class = "btn btn-outline-primary"),
-        downloadButton("download_citations", "Citations", class = "btn btn-outline-primary"),
-        if (can_export) downloadButton("download_project", "Save project", class = "btn btn-outline-primary"),
-      if (can_export) downloadButton("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
+        if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
+        download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
+        if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
+      if (can_export) download_button("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
       if (can_export && !is.na(result$precision$target_width)) uiOutput("study_plan_bar"),
       p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation() and the software used. Save project keeps your answers and result in one file on your computer; open it from the start screen to carry on."),
       simulated_data_ui(spec, result)),
@@ -2996,4 +3021,53 @@ bayes_sequential_args <- function(spec, n, n_min, step, threshold_null) {
     threshold = spec$target_test$evidence_threshold %||% 10, threshold_null = threshold_null,
     alternative = switch(spec$target_test$alternative %||% "two_sided", two_sided = "two.sided", greater = "greater", less = "less"),
     nsim = 2000, seed = spec$options$seed %||% 1L)
+}
+
+# Latent profiles: the chance of finding the right number, in words
+# (no significance test, so no power to detect an effect).
+lpa_sentences <- function(spec, result) {
+  k <- as.integer(spec$population$profiles)
+  found <- sprintf("the BIC chooses the right number of profiles (%d, among models with 1 to %d)", k, k + 1L)
+  outcome <- sprintf("find the %d profiles", k)
+  if (identical(result$goal_type, "sample_size")) {
+    est <- result$n_required
+    c(headline = sprintf("You need %s people for a %s chance that %s.", whole(est$n), percent(spec$goal$power), found),
+      detail = sprintf("This N comes from simulation (%s replications per sample size); the 95%% interval for the required N is %s to %s.",
+        whole(result$provenance$nrep), whole(est$lower), whole(est$upper)),
+      reading = plain_reading(spec$goal$power, outcome = outcome,
+        if_not = "If the profiles are closer together or one of them is small, fewer would.",
+        condition = "the profiles are as you entered"))
+  } else {
+    row <- result$curve[1, ]
+    c(headline = sprintf("With %s people, there is a %s chance that %s.", whole(row$n), percent(row$power), found),
+      detail = sprintf("Estimated by simulation from %s replications (Monte Carlo standard error %.1f percentage points).",
+        whole(result$provenance$nrep), 100 * row$mcse),
+      reading = plain_reading(row$power, outcome = outcome,
+        if_not = "If the profiles are closer together or one of them is small, fewer would.",
+        condition = "the profiles are as you entered"))
+  }
+}
+
+# Exploratory factor analysis: the chance of recovering every factor's
+# loadings, in words.
+efa_sentences <- function(spec, result) {
+  k <- as.integer(spec$population$factors)
+  found <- sprintf("%s loadings are recovered (Tucker's congruence of at least %s with the true ones)",
+    if (k == 1) "the factor's" else sprintf("all %d factors'", k), format(spec$target_test$congruence %||% 0.95))
+  outcome <- if (k == 1) "recover the factor" else sprintf("recover all %d factors", k)
+  if_not <- "If the loadings are weaker or the factors have fewer items, fewer would."
+  condition <- "the factors are as you entered"
+  if (identical(result$goal_type, "sample_size")) {
+    est <- result$n_required
+    c(headline = sprintf("You need %s people for a %s chance that %s.", whole(est$n), percent(spec$goal$power), found),
+      detail = sprintf("This N comes from simulation (%s replications per sample size); the 95%% interval for the required N is %s to %s.",
+        whole(result$provenance$nrep), whole(est$lower), whole(est$upper)),
+      reading = plain_reading(spec$goal$power, outcome = outcome, if_not = if_not, condition = condition))
+  } else {
+    row <- result$curve[1, ]
+    c(headline = sprintf("With %s people, there is a %s chance that %s.", whole(row$n), percent(row$power), found),
+      detail = sprintf("Estimated by simulation from %s replications (Monte Carlo standard error %.1f percentage points).",
+        whole(result$provenance$nrep), 100 * row$mcse),
+      reading = plain_reading(row$power, outcome = outcome, if_not = if_not, condition = condition))
+  }
 }

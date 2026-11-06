@@ -84,15 +84,17 @@ test_that("search engines are sent to the public pages, not to the app", {
   expect_true(file.exists(file.path(site, "google47b320cdc6781b0a.html")))
 })
 
-test_that("the online app is published from the live branch at most daily, not on every push to main", {
+test_that("the online app is published at most daily, not after every merge", {
   workflow <- yaml::read_yaml(file.path(repo_dir, ".github", "workflows", "online-app-manifest.yaml"))
   triggers <- workflow[[which(names(workflow) %in% c("on", "TRUE"))]]
   expect_null(triggers$push)
   expect_match(triggers$schedule[[1]]$cron, "^\\d+ \\d+ \\* \\* \\*$")
+  # The manifest check still runs on every pull request.
+  expect_true("pull_request" %in% names(triggers))
   steps <- workflow$jobs$manifest$steps
-  publish <- Filter(function(s) identical(s$name, "Publish to the live branch"), steps)[[1]]
-  expect_match(publish$run, "refs/heads/live", fixed = TRUE)
-  expect_no_match(publish$run, "HEAD:main", fixed = TRUE)
-  expect_no_match(publish$run, "--force", fixed = TRUE)
-  expect_false(file.exists(file.path(routing_dir, "manifest.json")))
+  publish <- Filter(function(s) identical(s$name, "Prepare the checked deployment branch"), steps)[[1]]
+  expect_identical(publish$`if`, "steps.decide.outputs.publish == 'true'")
+  expect_match(publish$run, "HEAD:connect-cloud", fixed = TRUE)
+  decide <- Filter(function(s) identical(s$name, "Decide whether to publish"), steps)[[1]]
+  expect_match(decide$run, "git diff --quiet origin/connect-cloud HEAD", fixed = TRUE)
 })

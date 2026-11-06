@@ -1141,6 +1141,51 @@ each person's criterion), d' with the log-linear correction, `t.test()`:
 
 Packages: powerkit 0.32.0; Spower 0.7; SimDesign 2.28.
 
+## 2026-11-05 · Latent profile analysis: finding the right number of profiles (local, cloud session)
+
+`test-validation-lpa.R` (chunk `lpa`) on Linux x86_64 with R 4.5.3:
+**3 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`), in about eight minutes. powerkit's `p_lpa()`
+(mclust's EEI models, BIC) at 2,000 replications against 1,000 studies
+drawn separately and fitted by an expectation-maximisation algorithm
+written in the test (k-means starts, BIC by hand):
+
+| Case | powerkit (MCSE) | Independent (MCSE) |
+| --- | --- | --- |
+| 3 profiles, 8 indicators, separation 0.9, shares .4/.4/.2, n 300 | 0.678 (0.010) | 0.679 (0.015) |
+| 2 profiles, 6 indicators, separation 1, n 150 | 0.998 (0.001) | 0.996 (0.002) |
+| 4 profiles, 10 indicators, separation 1, n 400 | 0.983 (0.003) | 0.992 (0.003) |
+
+The third case's difference (0.009) is inside the test's 99.9% Monte Carlo
+tolerance but the largest of the three; a fit that ends at a poorer local
+optimum chooses differently, and the two algorithms start differently.
+
+Packages: powerkit 0.32.0; Spower 0.7; mclust 6.1.3.
+
+## 2026-11-05 · Exploratory factor analysis: recovering the loadings (local, cloud session)
+
+`test-validation-efa.R` (chunk `efa`) on Linux x86_64 with R 4.5.3:
+**3 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`), in about three minutes. powerkit's `p_efa()`
+(psych's `fa()`, minimum residual, oblimin) at 2,000 replications against
+1,000 studies drawn with MASS's `mvrnorm()` and fitted with base R's
+`factanal()` (maximum likelihood) rotated by GPArotation's `oblimin()`,
+matching and congruence computed in the test; allowance 0.03:
+
+| Case | powerkit (MCSE) | Independent, ML (MCSE) |
+| --- | --- | --- |
+| 3 factors, 5 items each, loading .6, factor r .3, n 150 | 0.892 (0.007) | 0.866 (0.011) |
+| 2 factors, 4 items each, loading .5, factor r 0, n 200 | 0.877 (0.007) | 0.846 (0.011) |
+| 4 factors, 6 items each, loading .7, factor r .2, n 120 | 0.999 (0.001) | 0.998 (0.001) |
+
+In the first two cases minimum residual recovers the loadings about three
+points more often than maximum likelihood: a difference between the
+estimators at these sizes, in the same direction both times, not Monte
+Carlo error. The result is for psych's defaults, which the card names.
+
+Packages: powerkit 0.32.0; Spower 0.7; psych and GPArotation (the locked
+versions).
+
 ## Variant evidence registry
 
 `engine/inst/evidence/records.json` is the machine-readable index of selected
@@ -1160,3 +1205,45 @@ About catalogue lists discrete form choices individually, because multiplying
 all options would include incompatible combinations; the result record uses
 the complete selected specification. Statistician review and the full release
 validation gate remain separate requirements.
+
+
+## Checkpoint and execution safeguards (5 November 2026)
+
+The validation runner now binds saved results to the engine/test sources,
+runner, lock, actual installed package versions, R and platform. Old records
+without that fingerprint, changed contexts and contexts changed during a test
+are not reused as current passes. Historical results above remain historical.
+A failed/errored/unfinished selected run exits unsuccessfully after writing
+its summary. `--require-complete` also rejects skips; an ordinary successful
+run containing published-value skips is not a completed release validation.
+
+Long workflow selections are partitioned into independent test jobs. Each
+summary names selected chunks and its partition; all partitions must be
+collected. Original test identities, seeds, replication counts and benchmark
+constants are unchanged. `--shard-index I --shard-count K` reproduces a part
+locally. A single test may still exceed the hosting limit; sharding is not
+within-test checkpointing. No full release run is claimed by this change.
+
+
+## 2026-11-05: basic and zero-inflated models (local, frozen source)
+
+[Complete summary](validation/2026-11-05-basic-zero.txt), with the exact
+[source snapshot](https://github.com/JoelThornton/Powerkit/commit/6d40bd1b957bde6aae723ec8e2835259ca9ff6c6),
+tree `2f74bdbdec08c68471d9a522ec144b507f02c070`. The local checkout's
+commit ba9e70c has that identical tree. R 4.5.3 on Windows, Spower 0.7,
+powerkit 0.33.0, two validation workers; original opt-in tests and constants.
+**37 PASS, 0 FAIL, 0 ERROR, 5 SKIP, 0 NOT RUN, of 42 selected tests.**
+
+The zero-inflated chunk had three passing test blocks and one published-example
+placeholder skip. Independent likelihood maximisation gave powers .7825,
+.9680 and .9233 versus engine .7867, .9694 and .9193 in the three declared
+cases, within their original Monte Carlo tolerances (no extra allowance).
+Null rates for the two Poisson-component checks were .0529 and .0498 at
+alpha .05. The negative-binomial zero-part Wald test remained conservative
+within the pre-existing recorded-size range; passing that check does not
+establish that it has exact size .05.
+
+The other four skips were published basic-test/justified-alpha/safeguard
+examples awaiting transcription. No placeholder or expected benchmark was
+changed. This run predates the integrated signal-detection/growth/Bayes
+additions and does not validate them or the complete current release.

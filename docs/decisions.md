@@ -5479,6 +5479,79 @@ before the file arrives, the server sends its finished copy as before.
 Building it straight after start had delayed the first visitor's first
 screen by about five seconds, so it waits for that screen.
 
+## 2026-11-05 · Latent profile analysis: the chance of finding the right number of profiles (E58)
+
+- **What:** E58 calculates. A new design, `mixture / lpa`: the chance that
+  a study finds the right number of profiles (class enumeration), which is
+  what sample size planning for a latent profile analysis is about (no
+  significance test is involved). Its published guidance (Tein, Coxe and
+  Cham, 2013; Nylund, Asparouhov and Muthén, 2007; Nylund-Gibson and Choi,
+  2018; Spurk and colleagues, 2020) stays on the card.
+- **Why:** `next.md` item 5, the second of its designs in the order the
+  maintainer chose on 5 November 2026. No package plans it.
+- **Method (the maintainer's choice of a simulation, 5 November 2026):**
+  powerkit's Spower experiment `p_lpa()`. People are drawn into k profiles
+  with the given shares (sizes vary from study to study, as in the
+  published simulations) and their indicators are independent normal
+  scores with SD 1, profile j's mean being (j - 1) times the separation on
+  every indicator, as in Tein, Coxe and Cham's design. mclust (a new
+  dependency, CRAN, base R only) fits its EEI models, the usual latent
+  profile model with equal variances and local independence, with 1 to
+  k + 1 profiles, and the BIC chooses. The share of studies choosing k is
+  the "power"; the experiment returns 0 or 1, so Spower counts it. The BIC
+  is used because it did best, with the bootstrap likelihood ratio test,
+  in those simulations; the bootstrap test fits every model many times
+  per study and is too slow to simulate here.
+- **No alpha:** forms take `no_alpha` (the alpha questions are left out
+  and "Target power" is relabelled), the spec has no `target_test >
+  alpha` (method `bic`, like a Bayes factor), and the result reads as the
+  chance of finding the profiles, not power to detect an effect.
+- **Validation** (`test-validation-lpa.R`, chunk `lpa`): the same model
+  fitted by an expectation-maximisation algorithm written separately
+  (started from k-means, BIC by hand) on studies drawn separately; a
+  published table from Tein, Coxe and Cham is a placeholder for the
+  maintainer.
+- **Not covered yet:** yes/no indicators (latent class analysis), profiles
+  that differ in other patterns or in their spread, and correlated
+  indicators within a profile.
+
+## 2026-11-05 · Exploratory factor analysis: recovering the factors (E73)
+
+- **What:** a new card, E73, and design, `factor_analysis / efa`: the
+  chance that an exploratory factor analysis recovers every factor's
+  loadings. Reached from Q1 ("That a questionnaire's items form the
+  factors you expect, found by exploratory factor analysis") and the
+  latent-variables family.
+- **Why:** `next.md` item 5, the last of its three designs in the order
+  the maintainer chose on 5 November 2026. An EFA has no significance test
+  to power; the sample-size literature asks whether the loadings are
+  recovered, which depends on the communalities and the items per factor
+  more than on any people-per-item rule (MacCallum, Widaman, Zhang and
+  Hong, 1999). No package plans it.
+- **Method (the maintainer's choice of a simulation, 5 November 2026):**
+  powerkit's Spower experiment `p_efa()`. Data come from the common factor
+  model with simple structure (each item loads the same amount on one
+  factor), the factors correlating as given. psych's `fa()` is fitted with
+  its defaults (minimum residual, oblimin rotation), following the package
+  most researchers in R use; each true factor is matched one-to-one to an
+  estimated factor (the matching that makes the congruences largest in
+  total, sign ignored); a study succeeds when every factor's Tucker
+  congruence reaches the level asked, .95 by default, the level at which
+  Lorenzo-Seva and ten Berge (2006) treat factors as equal. Both sources
+  are in `refs.bib`.
+- **No alpha:** as for latent profiles (`no_alpha`, method `congruence`).
+- **Validation** (`test-validation-efa.R`, chunk `efa`): fits by base R's
+  `factanal()` (maximum likelihood, oblimin from GPArotation) on data drawn
+  separately, with matching and congruence computed separately, agree
+  within 0.03 (89.2% against 86.6%, 87.7% against 84.6%, 99.9% against
+  99.8%): minimum residual recovers the loadings about three points more
+  often than maximum likelihood at these sizes, so a plan for an ML
+  analysis would be slightly optimistic (not offered as a choice yet); a
+  published table from MacCallum and colleagues is a placeholder for the
+  maintainer.
+- **Not covered yet:** choosing the number of factors (parallel analysis,
+  for example), cross-loadings, and items with different loadings.
+
 ## 2026-11-06 · The online app: published daily, quiet tabs allowed to close, public pages on GitHub Pages
 
 The online app runs on Posit Connect Cloud, which charges usage credits
@@ -5491,12 +5564,11 @@ November the page kept its connection open for as long as any tab stayed
 open. Decided by the maintainer on 6 November 2026, on the condition that
 the site stays findable by search engines.
 
-- **Publishing:** Connect Cloud follows a `live` branch, which the
-  `online-app-manifest` workflow writes once a day (04:23 UTC), and only
-  when the app, the engine or `renv.lock` changed since the last publish;
-  "Run workflow" publishes at once. Each publish is a new commit on
-  `live`, never a rewrite, naming the main commit it came from. The
-  manifest is no longer committed to main.
+- **Publishing:** the `online-app-manifest` workflow publishes to the
+  `connect-cloud` branch Connect Cloud watches (5 November) once a day
+  (04:23 UTC) instead of after every merge, and only when something the
+  app runs (the app, the engine or `renv.lock`, tests aside) differs
+  between main and `connect-cloud`; "Run workflow" publishes at once.
 - **Keep-open message:** sent every 20 seconds only while the page is in
   view and has been used in the last 20 minutes, or while a calculation
   reports progress. A page left alone may lose its connection; its answers

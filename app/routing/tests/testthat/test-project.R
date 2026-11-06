@@ -94,7 +94,7 @@ test_that("the start screen offers to open a project, and results offer to save 
   expect_true(any(grepl("output$download_project <- downloadHandler", app, fixed = TRUE)))
   expect_true(any(grepl("open_project_ui()", app, fixed = TRUE)))
   results <- readLines(file.path(routing_dir, "R", "results.R"))
-  expect_true(any(grepl("downloadButton(\"download_project\", \"Save project\"", results, fixed = TRUE)))
+  expect_true(any(grepl("download_button(\"download_project\", \"Save project\"", results, fixed = TRUE)))
 })
 
 test_that("the notice after opening names the version and any differences", {

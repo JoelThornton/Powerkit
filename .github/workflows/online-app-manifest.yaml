@@ -1,42 +1,33 @@
-# Publishes the online app (Posit Connect Cloud) at most once a day.
+# Checks the manifest on PRs, and publishes the online app (Posit Connect
+# Cloud) at most once a day.
 #
-# Connect Cloud republishes the app whenever the branch it follows changes,
-# and the host charges for every hour the app runs, a rebuild and restart
-# included. Main changes dozens of times a day, so the app no longer
-# follows main: it follows the `live` branch, which only this workflow
-# writes (docs/hosting-options.md, "How the online app is published").
+# Connect Cloud republishes the app whenever the branch it watches
+# (connect-cloud) changes, and charges for every hour the app runs, a
+# rebuild and restart included. Main changes dozens of times a day, so
+# publishing after every merge kept the app rebuilding (docs/
+# hosting-options.md, "What uses the plan's credits"). Instead, once a day,
+# if anything the app runs (app/routing, engine and renv.lock, tests aside)
+# differs between main and connect-cloud, this workflow writes the manifest
+# and publishes checked main source plus that manifest to connect-cloud,
+# using a normal fast-forward push (scripts/prepare-publish-branch.py).
+# Main itself is never changed by the bot, so it can require PRs and checks
+# without an automation bypass (docs/repository-protection.md).
 #
-# Once a day, if the app, the engine or renv.lock changed on main since
-# the last publish, this workflow writes app/routing/manifest.json (the
-# packages Connect Cloud installs, with powerkit's engine pinned to main's
-# commit) and adds a commit to `live` holding main's files plus that
-# manifest. "Run workflow" on the Actions tab publishes at once, for an
-# urgent fix; tick "force" to publish even when nothing changed. Each live
-# commit names the main commit it was built from (its Built-from line),
-# which is how the next run knows what changed.
-#
-# On a pull request it only writes the manifest and prints the changes, as
-# a check that the manifest can still be made; nothing is committed.
-#
-# Packages come from renv.lock, as in R-CMD-check.yaml.
+# "Run workflow" on the Actions tab publishes at once (an urgent fix); tick
+# "force" to publish even if nothing changed.
 name: online-app-manifest
 
 on:
   schedule:
     # 04:23 UTC every day.
     - cron: "23 4 * * *"
+  pull_request:
   workflow_dispatch:
     inputs:
       force:
-        description: "Publish even if the app, the engine and renv.lock haven't changed"
+        description: "Publish even if nothing the app runs has changed"
         type: boolean
         default: false
-  pull_request:
-    paths:
-      - "app/routing/**"
-      - "engine/DESCRIPTION"
-      - "renv.lock"
-      - ".github/workflows/online-app-manifest.yaml"
 
 permissions:
   contents: write
@@ -58,9 +49,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify publishing preserves checked source and branch history
+        run: python3 scripts/test-publish-branch.py
+
       # Whether to build the manifest (always on a pull request, as a check)
-      # and whether to publish it to live (only from main, and only if
-      # something the app runs changed since the last publish).
+      # and publish it (only from main, and only if something the app runs
+      # differs from what connect-cloud holds, or on request).
       - name: Decide whether to publish
         id: decide
         env:
@@ -74,23 +68,18 @@ jobs:
             echo "The online app is only published from main."
             echo "build=false" >> "$GITHUB_OUTPUT"; echo "publish=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          base=""
-          if git rev-parse -q --verify origin/live > /dev/null; then
-            base=$(git log -1 --format='%(trailers:key=Built-from,valueonly)' origin/live | tr -d '[:space:]')
-          fi
+          paths="app/routing engine renv.lock :(exclude)app/routing/tests :(exclude)engine/tests :(exclude)app/routing/manifest.json"
           publish=true
           if [ "$FORCE" = "true" ]; then
             echo "Publishing on request."
-          elif [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2> /dev/null; then
-            echo "No earlier publish found; publishing."
-          elif git diff --quiet "$base" HEAD -- app/routing engine renv.lock \
-                 ':(exclude)app/routing/tests' ':(exclude)engine/tests' ':(exclude)app/routing/manifest.json'; then
-            echo "Nothing the app runs has changed since $base; not publishing."
+          elif ! git rev-parse -q --verify origin/connect-cloud > /dev/null; then
+            echo "Nothing published yet; publishing."
+          elif git diff --quiet origin/connect-cloud HEAD -- $paths; then
+            echo "Nothing the app runs has changed since the last publish; not publishing."
             publish=false
           else
-            echo "Changed since the last publish ($base):"
-            git diff --stat "$base" HEAD -- app/routing engine renv.lock \
-              ':(exclude)app/routing/tests' ':(exclude)engine/tests' ':(exclude)app/routing/manifest.json' | tail -n 5
+            echo "Changed since the last publish:"
+            git diff --stat origin/connect-cloud HEAD -- $paths | tail -n 5
           fi
           echo "build=$publish" >> "$GITHUB_OUTPUT"; echo "publish=$publish" >> "$GITHUB_OUTPUT"
 
@@ -148,26 +137,16 @@ jobs:
             stop("powerkit isn't recorded as coming from GitHub, so Connect Cloud couldn't install it.")
           }
 
-      - name: Show what changed since the last publish
+      - name: Show what changed
         if: steps.decide.outputs.build == 'true'
-        run: |
-          if git show origin/live:app/routing/manifest.json > "$RUNNER_TEMP/published.json" 2> /dev/null; then
-            git diff --no-index --stat "$RUNNER_TEMP/published.json" app/routing/manifest.json || true
-          else
-            echo "Nothing published yet."
-          fi
+        run: git diff --stat -- app/routing/manifest.json || true
 
-      # A new commit on live with main's files and the manifest (never a
-      # rewrite of live's history), so Connect Cloud republishes once.
-      - name: Publish to the live branch
+      - name: Prepare the checked deployment branch
         if: steps.decide.outputs.publish == 'true'
+        env:
+          CHECKED_MAIN: ${{ github.sha }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
-          git add -f app/routing/manifest.json
-          tree=$(git write-tree)
-          parent=""
-          if git rev-parse -q --verify origin/live > /dev/null; then parent="-p origin/live"; fi
-          commit=$(printf 'Online app: publish main at %s\n\nBuilt-from: %s\n' "${GITHUB_SHA:0:7}" "$GITHUB_SHA" | git commit-tree "$tree" $parent)
-          git push origin "$commit:refs/heads/live"
-          echo "Published main at $GITHUB_SHA to live as $commit."
+          python3 scripts/prepare-publish-branch.py "$CHECKED_MAIN"
+          git push origin HEAD:connect-cloud

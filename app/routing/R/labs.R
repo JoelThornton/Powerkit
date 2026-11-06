@@ -251,7 +251,7 @@ labs_ui <- function(tree) {
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "6. Your notes"),
       uiOutput("labs_next"),
       div(class = "nav-buttons",
-        downloadButton("labs_download", "Download the notes (Markdown)", class = "btn btn-primary"),
+        download_button("labs_download", "Download the notes (Markdown)", class = "btn btn-primary"),
         actionButton("labs_copy", "Copy the notes", class = "btn btn-outline-primary"),
         tags$button(type = "button", class = "btn btn-outline-primary", onclick = "window.print()", "Print or save as PDF"),
         tags$button(type = "button", id = "labs_clear", class = "btn btn-link", onclick = "pkLabsClear()", "Clear notes")),

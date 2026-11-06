@@ -26,8 +26,10 @@ source(file.path("R", "tree.R"), local = TRUE)
 source(file.path("R", "ui.R"), local = TRUE)
 source(file.path("R", "forms.R"), local = TRUE)
 source(file.path("R", "forms_ui.R"), local = TRUE)
+source(file.path("R", "input-support.R"), local = TRUE)
 source(file.path("R", "feedback.R"), local = TRUE)
 source(file.path("R", "results.R"), local = TRUE)
+source(file.path("R", "sample.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
 source(file.path("R", "whole-study.R"), local = TRUE)
 source(file.path("R", "project.R"), local = TRUE)
@@ -55,6 +57,7 @@ options(powerkit.routing_dir = getwd())
 
 app_css <- "
   html { overflow-y: scroll; }
+  summary { min-height: 24px; padding-block: .2rem; }
   body { background: #f7f8fa; }
   .app-main { max-width: 980px; margin: 0 auto 3rem auto; }
   .choices { display: flex; flex-direction: column; gap: 0.6rem; margin: 1rem 0 1.5rem 0; }
@@ -83,7 +86,7 @@ app_css <- "
   .card-fact { background: #f7f8fa; border: 1px solid var(--pk-line); border-left: 4px solid #1f8a5b; border-radius: 10px; padding: 0.55rem 0.75rem; display: flex; flex-direction: column; gap: 0.1rem; }
   .card-fact.how-background { border-left-color: var(--pk-blue); } .card-fact.how-full { border-left-color: #7b4fb3; } .card-fact.how-script { border-left-color: var(--pk-amber); }
   .card-fact.is-progress { border-left-color: var(--pk-amber); } .card-fact:not([class*='how-']):not(.is-validated):not(.is-progress) { border-left-color: #9aa5b1; }
-  .card-fact-label { font-size: 0.75rem; color: #6b7684; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600; }
+  .card-fact-label { font-size: 0.75rem; color: #586372; text-transform: uppercase; letter-spacing: 0.03em; font-weight: 600; }
   .card-fact-value { font-size: 0.92rem; color: var(--pk-navy); font-weight: 500; }
   .card-section-title { font-size: 1rem; font-weight: 600; color: var(--pk-navy); margin: 1.1rem 0 0.4rem; }
   .bayes-guide-list { padding-left: 0; list-style: none; margin: 0.5rem 0 1rem; }
@@ -728,7 +731,7 @@ ui <- function(req) fluidPage(
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
     tags$footer(class = "small text-muted mt-4", "Powerkit helps plan research studies. ",
-      tags$a(href = paste0(site_address, "/guide.html"), "Read the guide and current limitations"), ".")
+      tags$a(href = paste0(site_address, "/guide.html"), "Read the guide and current limitations"), HTML("."), .noWS = "inside")
   )
 )
 
@@ -1165,13 +1168,20 @@ server <- function(input, output, session) {
   })
   # The explore panel: power by N for the effect on the slider. It reads the
   # last calculation and never changes the plan.
-  output$explore_plot <- renderPlot({
+  explore_data <- reactive({
     calc <- state$calc
     req(calc, identical(calc$status, "ok"), input$explore_effect, !is.null(explore_effect(calc$spec)))
-    df <- explore_curve(calc$spec, calc$result, input$explore_effect, seed = forms$default_seed)
-    planned <- n_analysed(calc$result)
-    power_curve_plot(list(list(df = df, col = "#0A5A8C", fill = TRUE)), target = calc$spec$goal$power %||% 0.8, planned_n = planned)
-  }, res = 96)
+    list(calc = calc, df = explore_curve(calc$spec, calc$result, input$explore_effect, seed = forms$default_seed))
+  })
+  output$explore_plot <- renderPlot({
+    x <- explore_data()
+    power_curve_plot(list(list(df = x$df, col = "#0A5A8C", fill = TRUE)),
+      target = x$calc$spec$goal$power %||% 0.8, planned_n = n_analysed(x$calc$result))
+  }, res = 96, alt = "Power against sample size for the selected effect. The same values are available in the exploration table below.")
+  output$explore_table <- renderUI({
+    x <- explore_data()
+    curve_points_ui(x$df, x$calc$spec, "Exploration: power by sample size")
+  })
 
   # Three effects (conservative, the plan's, optimistic): power by N for
   # each, and the N each needs. Reads the last calculation; never changes
@@ -1198,7 +1208,11 @@ server <- function(input, output, session) {
       target = calc$spec$goal$power %||% 0.8, planned_n = n_analysed(calc$result))
     legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
       lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3, bty = "n", inset = c(0, 0.04))
-  }, res = 96)
+  }, res = 96, alt = "Power by sample size for the expected, conservative and optimistic effects. The same values are available in the scenario table below.")
+  output$scenario_table <- renderUI({
+    x <- scenario_results()
+    curve_points_ui(x$curves, x$spec, "Scenarios: power by sample size and assumption")
+  })
   output$scenario_n <- renderUI({
     x <- scenario_results()
     p(class = "small", scenario_sentence(x$spec, x$n))

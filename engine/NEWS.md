@@ -1,17 +1,57 @@
-# powerkit 0.32.1
+# powerkit 0.33.2
 
 * The online app costs less to keep running. Its host charges for every
   hour it runs, and it was being rebuilt on every change to main (about 36
-  a day) and kept awake by open tabs and search crawlers. It is now
-  published once a day, from a `live` branch that the
-  `online-app-manifest` workflow writes, and only when the app, the engine
-  or `renv.lock` changed; the page's keep-open message stops after 20
+  a day) and kept awake by open tabs and search crawlers. The
+  `online-app-manifest` workflow now publishes to the `connect-cloud`
+  branch once a day, and only when the app, the engine or `renv.lock`
+  changed, rather than after every merge; the page's keep-open message stops after 20
   minutes without use or when the tab is hidden, unless a calculation is
   running; and the pages search engines index (a new landing page, the
   guide and the sitemap) are static files in `site/`, published to GitHub
   Pages, while the app's `robots.txt` asks crawlers to stay away.
 
+# powerkit 0.33.1
+
+* Input screens read more plainly, after a walk through the commonest
+  analyses as a first-time user would take them (app only; no calculation
+  changes):
+  * a card's "What you'll need" marks the names as optional, as the input
+    screen does;
+  * the box that chooses the test is headed "Which test you'll run" rather
+    than the card's list of every test version;
+  * the note under a pre-selected choice starts "Selected to start with:",
+    so it no longer reads as a fragment, and no default's note uses
+    developer wording ("the design spec's default", "as decided on");
+  * the note on what a significance plan answers, and the simulation-accuracy
+    note, lead with one plain sentence; the detail is folded away, and
+    nothing it said is dropped;
+  * the footer's full stop no longer has a space before it.
+
+# powerkit 0.33.0
+
+* Input screens explain raw/published summaries and genuinely missing inputs.
+  Reported t/F text fills the supported conversion fields; fractional df and
+  unsupported F contrasts are refused without rounding or partial edits.
+* Shared sample descriptions keep analysis, recruitment, comparison and
+  planning-document counts in their stated units.
+* Browser checks audit accessibility, keyboard focus and narrow-screen reflow.
+* Validation checkpoints are tied to source/package/R fingerprints; long
+  chunks can be split across jobs without reducing replications or benchmarks.
+* A measured dependency assessment scopes optional installations. The complete
+  locked runtime and validation environment is retained.
+* Publishing uses a separate deployment branch so main can require checked
+  pull requests without an app bypass or another credential.
+
 # powerkit 0.32.0
+
+* Exploratory factor analysis (E73, `factor_analysis / efa`): the chance every
+  factor's loadings are recovered (Tucker's congruence), simulated with
+  Spower around psych's `fa()`.
+
+* Latent profile analysis (E58, `mixture / lpa`): the chance the BIC finds
+  the right number of profiles, simulated with Spower around mclust (a new
+  dependency).
 
 * Signal detection (E72, `signal_detection / dprime`): d' in two conditions
   or groups, simulated with Spower (hits and false alarms, d' with the

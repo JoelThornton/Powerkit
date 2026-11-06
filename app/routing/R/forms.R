@@ -189,10 +189,12 @@ simulation_accuracy_group <- function(forms, ep_id) {
     if (length(test)) when <- list(field = test[[1]]$id, is = "hartung_knapp")
   }
   group <- list(input = NULL, title = "Simulation accuracy", note = paste(
-    "Used only when this analysis is simulated; formulas have no Monte Carlo error.",
-    "These are approximate pointwise 95% margins for random simulation error in a probability, assuming every attempted study gives a valid decision.",
+    "Used only when this analysis is simulated. More simulated studies shrink the random error in the answer;",
+    "they do not resolve uncertainty about your effect size, SDs, correlations or other assumptions."),
+    note_more = paste(
+    "The margins below are approximate pointwise 95% margins for the random error in a probability, assuming every simulated study gives a valid decision.",
     "Failures can reduce the effective number of decisions; read the actual interval and failure counts in the result.",
-    "More simulations do not resolve uncertainty about your effect size, SDs, correlations or other population assumptions, and do not guarantee a sample-size search's accuracy."), fields = list(
+    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error."), fields = list(
     list(id = "simulation_accuracy", label = "How precise should the simulation be?", type = "select", optional = TRUE,
       default = "standard", default_source = "1,000 repeated studies, powerkit's usual simulation setting",
       choices = list(quick = "Quick exploration: about +/-5 percentage points (400 studies)",
@@ -447,6 +449,16 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "text", optional = TRUE, shown_if = c(list(list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05))), if (!is.null(no_bayes)) list(no_bayes)))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
+  # No significance test (latent profiles: the BIC chooses the number of
+  # profiles), so no alpha to ask for.
+  if (isTRUE(form$no_alpha)) {
+    test <- Filter(function(f) !f$id %in% c("alpha", "alpha_reason"), test)
+    at <- which(vapply(test, function(f) identical(f$id, "power"), logical(1)))
+    if (length(at)) {
+      test[[at]]$label <- form$power_label %||% "Target chance of success"
+      test[[at]]$help <- form$power_help %||% test[[at]]$help
+    }
+  }
   if (isTRUE(form$precision)) test <- precision_goal_fields(tool)
   if (meta) {
     test <- Filter(function(f) !f$id %in% c("n_max", "situation"), test)

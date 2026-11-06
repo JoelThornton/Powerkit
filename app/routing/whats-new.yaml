@@ -14,6 +14,28 @@ entries:
       after each one, so it restarts less often while you use it. If you
       leave a page alone for 20 minutes the connection may close; your
       answers on an input screen are kept in your browser and offered back.
+  - date: "2026-11-06"
+    title: "Clearer input screens"
+    text: >-
+      The screens where you enter your numbers read more plainly: the box
+      that picks your test asks which test you'll run, notes under the
+      pre-filled choices say why they start that way, and the cards now say
+      which details are optional. Long notes lead with one plain sentence,
+      with the detail a click away.
+  - date: "2026-11-05"
+    title: "Plan an exploratory factor analysis"
+    text: >-
+      Developing a questionnaire? powerkit now works out how likely an
+      exploratory factor analysis of your sample is to recover the factors
+      you expect, from how many items each factor has and how strongly they
+      load, rather than from a rule of thumb about people per item.
+  - date: "2026-11-05"
+    title: "Plan a latent profile analysis"
+    text: >-
+      For studies that look for types or profiles of people, powerkit now
+      works out how likely your sample is to find the right number of
+      profiles, from how far apart you expect them to be, how many scores
+      you measure and how big each profile is.
   - date: "2026-11-05"
     title: "Signal detection: plan a study of d'"
     text: >-
@@ -167,6 +189,14 @@ entries:
       simulation error from uncertain assumptions. Record sources and named
       alternatives, cancel higher-accuracy simulations, and download a
       planning document with your project.
+  - date: "2026-11-05"
+    title: "Find usable inputs without guessing missing numbers"
+    text: >-
+      Input screens point you to the matching raw-score or published-result
+      options, can fill conversion fields from a reported t or F statistic,
+      and explain when a summary cannot identify the model. Missing
+      values can stay in an unfinished draft. Clearer card labels and shared
+      sample descriptions improve readability and keep count units consistent.
   - date: "2026-11-04"
     title: "Moderation when the outcome is yes or no"
     text: >-

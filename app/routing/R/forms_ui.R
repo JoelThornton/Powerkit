@@ -48,7 +48,8 @@ field_ui <- function(f, value, described_by = character()) {
     if (!is.null(f$default_source)) div(id = source_id, class = "default-source", title = f$default_source,
       # A choice's default is already shown selected, so only its source is
       # added (naming it again garbled the sentence).
-      if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else paste0(short_source(f$default_source), ".")
+      if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else if (identical(f$type, "select") && !is.null(f[["default"]])) paste0("Selected to start with: ", short_source(f$default_source), ".")
+      else paste0(short_source(f$default_source), ".")
     )
   )
   # The uncertainty about an effect, read as a range (5 November 2026): an
@@ -143,6 +144,11 @@ group_ui <- function(tree, g, values, index) {
 }
 group_ui_build <- function(tree, g, values, index) {
   legend <- g$input %||% g$title
+  # The card lists every test version in one line ("Student's or Welch's
+  # t-test, the Mann-Whitney ... or a minimum-effect test"); as the box's
+  # heading that reads as a list, not a question, so the box led by the
+  # test-version choice is headed plainly. Its terms stay explained.
+  if (length(g$fields) && identical(g$fields[[1]]$label, "Test version")) legend <- "Which test you'll run"
   hint_id <- sprintf("group-%d-hints", index)
   hints <- if (!is.null(g$input)) glossary_for(tree, g$input) else list()
   # Short name fields sit two to a row on wider screens; a legend that
@@ -159,6 +165,7 @@ group_ui_build <- function(tree, g, values, index) {
       div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term), ": ", h$hint)))),
     if (!is.null(g$note) && identical(g$note, direction_note)) tags$details(class = "form-terms", tags$summary("Why this is asked first"), p(class = "group-note", g$note))
     else if (!is.null(g$note)) p(class = "group-note", g$note),
+    if (!is.null(g$note_more)) tags$details(class = "form-terms", tags$summary("More about this"), p(class = "group-note", g$note_more)),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
   # Names that are all optional fold away (1 November 2026): they only
@@ -202,12 +209,13 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(paste0("Your values: ", ep$plain_name)),
     p(class = "lead", "Everything is needed unless it says optional."),
-    div(class = "mb-3", downloadButton("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary btn-sm"),
+    div(class = "mb-3", download_button("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary btn-sm"),
       p(class = "hint", "Save your answers, including blanks. No calculation or effect-size justification is needed. Reopen the downloaded file from the start screen.")),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), ep$validation$note),
     carried,
     placeholders_at(tree, "form"),
+    input_support_ui(forms$forms[[ep_id]], form_fields(groups)),
     form_sections_ui(tree, groups, values, forms$forms[[ep_id]]),
     action_bar(
       tags$button(type = "button", id = "form_needed", class = "btn btn-link form-needed", hidden = NA,
@@ -294,6 +302,15 @@ form_section <- function(g) {
   starts_set <- vapply(g$fields, function(f) !is.null(f[["default"]]) || isTRUE(f$optional), logical(1))
   if (length(ids) && all(starts_set) && !"n_mediators" %in% ids) return("settings")
   "study"
+}
+
+# The card's "What you'll need" lines whose fields are all optional on the
+# input screen (names that only label the result), so the card can say so.
+optional_input_lines <- function(forms, ep_id) {
+  if (is.null(forms) || is.null(forms$forms[[ep_id]])) return(character())
+  groups <- Filter(function(g) !is.null(g$input) && length(g$fields) &&
+    all(vapply(g$fields, function(f) field_is_optional(f) || !is.null(f$name_default), logical(1))), form_groups(forms, ep_id))
+  vapply(groups, function(g) g$input, character(1))
 }
 
 field_is_optional <- function(f) {

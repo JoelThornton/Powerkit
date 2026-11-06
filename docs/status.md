@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 5 November 2026 (powerkit 0.32.0). This page says where the
+*Last updated: 6 November 2026 (powerkit 0.33.1). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -13,6 +13,34 @@ fully validated. Validation runs are recorded in
 `CLAUDE.md` and [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Input screens, first-time-user pass (6 November 2026):** the commonest
+  cards (t-tests, correlation, one-way, two-way and mixed ANOVA, regression,
+  logistic regression, chi-square, mediation) were walked through in a
+  browser, including wrong entries and a full t-test calculation, which
+  matches `usability-session-pack.md`'s key (200 in total). Plain-wording
+  fixes are in 0.33.1. Still open: the "I don't know my effect size" box
+  is on the basic tests only; regression's effect boxes stay hidden until
+  "What you want to test" is chosen, which leaves that section looking
+  empty; the result page is long. An AI walkthrough is no substitute for
+  the human sessions the pack describes.
+
+- **Validation checkpoints:** source/lock/installed-package/R fingerprints
+  prevent old saved passes being reused for a different calculation context.
+  Independent test shards retain test identities, seeds and replication counts.
+  Published-value placeholders and the full release run remain unfinished.
+- **Input and maintenance assessment:** reported t/F text fills existing
+  engine-conversion fields without guessing or rounding unsupported df; matching raw/published summary routes
+  and honest missing-input guidance appear on forms. Shared sample metadata
+  supports results, recruitment, plans and exports. `dependency-footprint.md`
+  measures locked closures and scopes optional profiles; none is advertised
+  or implemented as a partial installation.
+- **Publishing and protection:** a separate `connect-cloud` branch is prepared
+  for Posit, retaining exact main source apart from the generated manifest.
+  Main can then require aggregate app/engine gates which reject prerequisite
+  failures and accidental skips, without a privileged bot bypass. Activation
+  and the Posit branch selection are documented in `repository-protection.md`.
+
 
 - **Planning decisions and assumptions:** prediction is separate from test
   direction. Accuracy presets explain finite-simulation error and fitting
@@ -145,8 +173,8 @@ fully validated. Validation runs are recorded in
   the app's `robots.txt` asks crawlers to stay away, because every visit
   starts the app on a host paid for by the hour. The page's keep-open
   message stops after 20 minutes without use. Still to do once, by the
-  maintainer: turn on GitHub Pages, create `live`, point Connect Cloud at
-  it, and add the new site to Search Console
+  maintainer: turn on GitHub Pages, point Connect Cloud at `connect-cloud`
+  if it still watches main, and add the new site to Search Console
   ([`hosting-options.md`](hosting-options.md), "Setting it up").
 
 - **Saved-result integrity:** calculations capture their original form
@@ -159,9 +187,9 @@ fully validated. Validation runs are recorded in
 
 - **The app** (`app/routing/`) is online at
   <https://joelthornton-powerkit.share.connect.posit.cloud> and is
-  published once a day from the `live` branch (Posit Connect Cloud; the
-  `online-app-manifest` workflow builds `live` from main when the app, the
-  engine or `renv.lock` changed);
+  published once a day from the `connect-cloud` branch (Posit Connect
+  Cloud; the `online-app-manifest` workflow updates it from main when the
+  app, the engine or `renv.lock` changed);
   [`run-it-yourself.md`](run-it-yourself.md) is for running it locally.
   Parts of screens that repeat (the list of analyses, an input screen's
   groups of fields) are kept as HTML once built (`cached_html()` in
@@ -173,6 +201,11 @@ fully validated. Validation runs are recorded in
   method; both of each DIF item's parameters tested by default, the
   maintainer's decision of 5 November 2026), reached from Q1, since 5
   November 2026;
+  E73, exploratory factor analysis (the chance every factor's loadings are
+  recovered, simulated with Spower around psych's fa()), since 5 November
+  2026;
+  E58, latent profile analysis (the chance the BIC finds the right number
+  of profiles, simulated with Spower around mclust), since 5 November 2026;
   E72, signal detection (d' in two conditions or groups, simulated with
   Spower: hits and false alarms, the log-linear correction, a t-test),
   reached from Q1, since 5 November 2026;

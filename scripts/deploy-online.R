@@ -2,8 +2,8 @@
 # a link. (shinyapps.io is closing to new apps at the end of 2026 and its
 # users move to Connect Cloud, so powerkit starts there.)
 #
-# Usually not needed: Connect Cloud publishes the app from GitHub's `live`
-# branch, which a workflow updates once a day from main
+# Usually not needed: Connect Cloud publishes the app from GitHub's
+# `connect-cloud` branch, which a workflow updates once a day from main
 # (docs/hosting-options.md, "How the online app is published"). This
 # script is the fallback.
 #

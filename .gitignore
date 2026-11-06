@@ -21,7 +21,5 @@ Rplots.pdf
 **/playwright-report/
 **/test-results/
 
-# The online app's package list: written by the online-app-manifest
-# workflow and committed only to the live branch, never to main
-# (docs/hosting-options.md).
-app/routing/manifest.json
+# Python development checks
+__pycache__/

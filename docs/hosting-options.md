@@ -112,21 +112,24 @@ credits.
 
 #### How the online app is published
 
-Connect Cloud republishes an app whenever the GitHub branch it follows
-changes. powerkit's app follows the `live` branch, not main. Only the
-`online-app-manifest` workflow writes to `live`: every day at 04:23 UTC,
-if anything under `app/routing/`, `engine/` (tests aside) or `renv.lock`
-changed on main since the last publish, it writes
+Connect Cloud republishes an app whenever the GitHub branch it watches
+changes. powerkit's app watches the `connect-cloud` branch, not main
+(`repository-protection.md` has the one-time migration). Only the
+`online-app-manifest` workflow writes to it: every day at 04:23 UTC, if
+anything under `app/routing/`, `engine/` (tests aside) or `renv.lock`
+differs between main and `connect-cloud`, it writes
 `app/routing/manifest.json` (the packages Connect Cloud installs, with
-powerkit's engine pinned to main's commit) and adds one commit to `live`
-holding main's files plus that manifest. Each `live` commit names the main
-commit it was built from in a `Built-from:` line. To publish at once (an
-urgent fix), open the workflow on the Actions tab and click **Run
-workflow** on main; tick **force** to publish even if nothing changed. The
-manifest is never committed to main (`.gitignore`). On a pull request
-the workflow only checks that the manifest can still be written.
-`scripts/deploy-online.R` is the fallback: it deploys from R on the
-maintainer's computer (steps at the top of that file).
+powerkit's engine pinned to main's commit) and publishes main's checked
+source plus that manifest to `connect-cloud` with a fast-forward push
+(`scripts/prepare-publish-branch.py`). Until 6 November 2026 it did this
+after every merge. To publish at once (an urgent fix), open the workflow
+on the Actions tab and click **Run workflow** on main; tick **force** to
+publish even if nothing changed. On a pull request the workflow only
+checks that the manifest can still be written. The copy of
+`manifest.json` on main is not updated by the workflow; Connect Cloud
+reads the one on `connect-cloud`. `scripts/deploy-online.R` is the
+fallback: it deploys from R on the maintainer's computer (steps at the
+top of that file).
 
 #### The public pages and search engines
 
@@ -151,22 +154,17 @@ On GitHub:
    Actions**. Then open the `site` workflow on the Actions tab and click
    **Run workflow**; the pages appear at the address above a minute or so
    later.
-2. Open the `online-app-manifest` workflow on the Actions tab and click
-   **Run workflow** on main. This creates the `live` branch.
+2. If `connect-cloud` doesn't exist yet, open the `online-app-manifest`
+   workflow on the Actions tab and click **Run workflow** on main.
 
 On Connect Cloud (https://connect.posit.cloud; button names are from
 Connect Cloud's documentation, found by search, not checked against the
 live site):
 
-3. Open the app's settings and change the branch it publishes from to
-   **live**, keeping the primary file **app/routing/app.R** and
-   **Automatically publish on push** on. If the branch can't be changed,
-   publish a new copy (**Publish**, **Shiny**, **GitHub**, the repository
-   **JoelThornton/Powerkit**, branch **live**, primary file
-   **app/routing/app.R**), check it loads, and only then delete the old
-   copy. A new copy may have a new address: `public_address` in
-   `R/ui.R`, the links in `site/`, the README, `status.md` and
-   `user-testing.md` then need it.
+3. If the app still publishes from main, change its branch to
+   **connect-cloud** as `repository-protection.md` describes, keeping
+   the primary file **app/routing/app.R** and **Automatically publish on
+   push** on.
 4. On the app's usage page, check its CPU and memory setting, and choose
    the smallest that runs it.
 

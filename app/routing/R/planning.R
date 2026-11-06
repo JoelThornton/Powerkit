@@ -6,9 +6,9 @@ planning_decision_ui <- function(form) {
       "This screen plans evidence relative to your equivalence or non-inferiority bounds. A non-significant ordinary test is not evidence of equivalence." else
     if (identical(design, "sem"))
       "Check whether you selected overall model fit or a particular factor correlation/path. Power to detect poor overall fit is not power for a particular path, and the assumed model matters." else
-      "Ordinary significance planning asks how often the selected test rejects its null under your stated population. A study powered at the smallest worthwhile effect does not thereby test that the effect exceeds that threshold."
+      "This plans the chance that your test gives a significant result if the effect you enter is the true one. Powering a study for the smallest effect that would matter does not test that the effect is at least that big: a minimum-effect test does that."
   div(class = "planning-decision small",
-    tags$strong("Check the decision you want. "), current,
+    tags$strong("Check this answers your question. "), current,
     tags$details(tags$summary("Different questions need different planning goals"),
       tags$ul(tags$li("Detect a departure from the null: choose the relevant significance test and expected population effect."),
         tags$li("Establish that an effect exceeds a worthwhile threshold: choose a minimum-effect test, enter the threshold and an expected effect beyond it. T-test screens offer this test version."),
@@ -49,7 +49,7 @@ planning_document <- function(tree, forms, calc) {
     if (identical(f$type, "select")) value <- f$choices[[value]] %||% value
     paste0("- ", f$label, ": ", value)
   }
-  units <- engine_function("sample_structure")(spec)
+  units <- sample_description(spec)
   text <- if (identical(spec$design, "precision")) precision_writeup(forms$forms[[id]], spec, result, fields, values) else
     writeup_text(forms$forms[[id]], spec, result, fields, values,
       departures = departures_for(forms, id, spec),
@@ -88,7 +88,7 @@ input_guide <- function(f) {
   key <- tolower(paste(f$id, f$label, f$path))
   specialist <- f$id %in% c("ncp", "df", "df1", "df2", "d", "dz", "ni_d", "ni_dz", "w", "eta_squared",
     "bound", "raw_bound", "margin", "raw_margin", "ni_margin", "evidence_threshold", "width", "conf_level", "assurance",
-    "w_from", "w_to", "weights", "scores", "dispersion", "zero_prob", "base_rate", "slope_difference", "difference", "mean_difference",
+    "w_from", "w_to", "weights", "scores", "retention", "d1", "d2", "criterion", "trials_signal", "trials_noise", "sd_dprime", "dispersion", "zero_prob", "base_rate", "slope_difference", "difference", "mean_difference",
     "raw_mean", "raw_mean_1", "raw_mean_2", "raw_test_value", "mu0", "means", "m11", "m12", "m21", "m22") ||
     grepl("^(odds_ratio|zero_odds_ratio|rate_ratio|hazard_ratio|prior_|conv_|irt_|meta_effect|fc_loading)", f$id)
   specific <- if (specialist) additional_input_guide(f) else NULL
@@ -136,6 +136,16 @@ additional_input_guide <- function(f) {
   key <- tolower(paste(f$id, f$label, f$path))
   make <- function(meaning, example, source, unknown = NULL) list(
     meaning = f$help %||% meaning, example = example, source = source, unknown = unknown)
+  if (identical(f$id, "retention")) return(make("Cumulative shares still observed at each occasion, in the stated time order, not separate dropout percentages. The first is 1 and later shares cannot increase.",
+    "1, 0.9, 0.8 means everyone starts, 90% remain at the second occasion and 80% at the third.", "Retention schedules from comparable longitudinal studies or a defensible protocol scenario. This does not identify a non-random missingness mechanism."))
+  if (f$id %in% c("d1", "d2")) return(make("Average true signal-detection sensitivity d-prime in the named condition. This is distinct from Cohen's d for a difference between participant scores and from response bias.",
+    "Sensitivities 0.8 and 1.1 differ by 0.3 d-prime units; that is not automatically Cohen's d = 0.3 for the planned t-test.", "Comparable signal-detection results from the same task, with trial counts, bias and measurement variability considered; magnitude labels are task-dependent."))
+  if (identical(f$id, "criterion")) return(make("The signal-detection response criterion c. It describes response bias separately from sensitivity: positive values favour saying no under this parameterisation.",
+    "c = 0 represents the unbiased-observer scenario; it is not evidence that your participants have no bias.", "A matched signal-detection fit or justified bias scenario, using criterion c rather than an unconverted alternative bias index."))
+  if (f$id %in% c("trials_signal", "trials_noise")) return(make("The number of that kind of trial each person completes in each condition; this is not the number of participants.",
+    "40 signal and 60 noise trials means 100 trials per condition per person, rather than N = 100 people.", "Your task protocol and feasible testing duration, with enough trials to estimate individual performance."))
+  if (identical(f$id, "sd_dprime")) return(make("Between-person spread of true sensitivity, separate from estimation noise caused by finite trial counts.",
+    "An observed SD of estimated d-prime from a short task cannot simply be treated as a noise-free SD of true sensitivity.", "A comparable model that separates individual variation from trial noise, or explicitly labelled assumptions when that information is unavailable."))
   if (identical(f$id, "guess")) return(make("Your optional guess for the teaching comparison; it does not enter the power calculation.",
     "A guess of 100 is compared with the calculated answer, in the unit requested.", "Your intuition; no empirical source is required.", "Leave it blank if you do not want to guess."))
   if (identical(f$id, "seed")) return(make("A fixed random-number starting point lets a simulation be repeated; it is not a study assumption or an effect size.",

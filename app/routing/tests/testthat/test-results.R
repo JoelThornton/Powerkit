@@ -57,8 +57,9 @@ test_that("calculating designs calculate; simulated designs preview first, then 
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
   }
-  # E9 and E15 run in the background with no preview, with their usual run times.
-  expect_identical(names(forms$background), c("E9", "E15", "E59", "E60"))
+  # E9, E15, the MANOVAs and latent profiles (E58) run in the background
+  # with no preview, with their usual run times.
+  expect_identical(names(forms$background), c("E9", "E15", "E59", "E58", "E73", "E60"))
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)
   expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)
@@ -479,7 +480,7 @@ test_that("with attrition, the result shows the number analysed and the number t
   n <- calc$result$n_required$n
   expect_equal(r$n_analysed, n)
   expect_equal(r$n_recruit, 2 * ceiling(n / 2 / 0.9 - 1e-9))
-  lines <- recruitment_lines(calc$result)
+  lines <- recruitment_lines(calc$result, calc$spec)
   expect_identical(lines[["analysed"]], sprintf("Analysed: %s participants (%s per group).", n, n / 2))
   expect_match(lines[["recruit"]], sprintf("To recruit: %s participants (%s per group), allowing for 10%% attrition", r$n_recruit, r$n_recruit / 2), fixed = TRUE)
   expect_match(lines[["caveat"]], "common but crude heuristic", fixed = TRUE)
