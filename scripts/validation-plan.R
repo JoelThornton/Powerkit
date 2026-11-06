@@ -41,6 +41,7 @@ chunk_sources <- function() {
     bayes_factorial = "engine/R/backend-bayesfactor-factorial.R",
     lpa = "engine/R/backend-spower.R",
     efa = "engine/R/backend-spower.R",
+    riclpm = "engine/R/backend-spower.R",
     mixed_model = "engine/R/backend-simr.R"
   )
 }

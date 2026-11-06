@@ -106,7 +106,9 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # close and not-close fit for structural equation models (2 November 2026),
   # and the log-linear correction for d' (5 November 2026, from the
   # publisher's record and abstract), and the two sources of the exploratory
-  # factor analysis card (5 November 2026).
+  # factor analysis card (5 November 2026), and the random-intercept
+  # cross-lagged panel model's paper and powRICLPM's method paper
+  # (6 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -127,7 +129,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Perugini2025_critical = "verified", Lakens2022_justification = "verified",
       MacCallum1996_rmsea = "verified", BlitzsteinHwang2019_probability = "verified",
       Hautus1995_loglinear = "verified", MacCallum1999_samplesize = "verified",
-      LorenzoSeva2006_congruence = "verified"
+      LorenzoSeva2006_congruence = "verified", Hamaker2015_riclpm = "verified",
+      Mulder2023_powRICLPM = "verified"
     )
   )
 })

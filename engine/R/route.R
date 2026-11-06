@@ -198,6 +198,8 @@ route_spec <- function(spec, seed = NULL) {
     # Exploratory factor analysis: the chance the loadings are recovered,
     # simulated with Spower around psych's fa().
     "factor_analysis/efa" = spower_backend(spec, seed),
+    # Random-intercept cross-lagged panel model: Spower around powRICLPM.
+    "panel/riclpm" = spower_backend(spec, seed),
     "meta_analysis/subgroups" = if (hartung_knapp_test(spec)) meta_hk_mod_backend(spec, seed) else metapower_mod_backend(spec, seed),
     "meta_analysis/mean_effect" = if (hartung_knapp_test(spec)) meta_hk_backend(spec, seed) else metapower_backend(spec, seed),
     "meta_analysis/dependent_effects" = pomade_backend(spec, seed),

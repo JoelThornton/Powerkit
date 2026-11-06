@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-06"
+    title: "Cross-lagged panel models"
+    text: >-
+      When two scores are measured on the same people three or more times,
+      powerkit can now plan a study of whether each predicts later changes
+      in the other, within people (a random-intercept cross-lagged panel
+      model). A quick preview runs here, then the full calculation, or an R
+      script for the sample size you need.
+  - date: "2026-11-06"
     title: "Clearer input screens"
     text: >-
       The screens where you enter your numbers read more plainly: the box

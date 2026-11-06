@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 6 November 2026 (powerkit 0.33.1). This page says where the
+*Last updated: 6 November 2026 (powerkit 0.34.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -13,6 +13,12 @@ fully validated. Validation runs are recorded in
 `CLAUDE.md` and [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Cross-lagged panel models (E74, 6 November 2026):** power for a lagged
+  effect in a random-intercept cross-lagged panel model, by Spower around
+  powRICLPM, with a preview, a full run and an R script; validated against
+  a separately written lavaan simulation. Experience sampling still waits
+  for a CRAN package (`next.md` item 3).
 
 - **Input screens, first-time-user pass (6 November 2026):** the commonest
   cards (t-tests, correlation, one-way, two-way and mixed ANOVA, regression,

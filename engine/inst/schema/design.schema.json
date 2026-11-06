@@ -46,7 +46,8 @@
         "irt",
         "signal_detection",
         "mixture",
-        "factor_analysis"
+        "factor_analysis",
+        "panel"
       ]
     },
     "template": {
@@ -185,6 +186,9 @@
     },
     {
       "$ref": "#/definitions/design_factor_analysis"
+    },
+    {
+      "$ref": "#/definitions/design_panel"
     }
   ],
   "definitions": {
@@ -11959,6 +11963,160 @@
               }
             }
           ]
+        }
+      }
+    },
+    "design_panel": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "panel"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "riclpm"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "riclpm"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_panel_riclpm"
+            }
+          }
+        ]
+      }
+    },
+    "template_panel_riclpm": {
+      "description": "Random-intercept cross-lagged panel model (Hamaker, Kuiper and Grasman, 2015): two scores, X and Y, measured on the same people at three or more waves. Each person's stable level on each score is a random intercept; the within-person parts carry the lagged effects. Each simulated study is generated and fitted by powRICLPM (Mulder, 2023) with lavaan's maximum likelihood, and the lagged effect named in target_test > effect is tested with lavaan's Wald z test. The lagged effects are standardised: powRICLPM sets the within-person residual variances so that every within-person part has variance 1. goal > n is the number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "description": "The first score (powRICLPM's A).",
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "description": "The second score (powRICLPM's B).",
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "waves",
+            "icc",
+            "autoregressive_x",
+            "autoregressive_y",
+            "cross_lagged_xy",
+            "cross_lagged_yx"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "waves": {
+              "description": "The number of measurement occasions (powRICLPM's time_points; the model needs at least 3).",
+              "type": "integer",
+              "minimum": 3,
+              "maximum": 15
+            },
+            "icc": {
+              "description": "The share of each score's variance that is stable between people (the random intercept's variance over the total; powRICLPM's ICC).",
+              "type": "number",
+              "minimum": 0.05,
+              "maximum": 0.95
+            },
+            "ri_correlation": {
+              "description": "The correlation between the two random intercepts (powRICLPM's RI_cor). Default 0.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "autoregressive_x": {
+              "description": "The standardised effect of X at one wave on X at the next, within people.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "autoregressive_y": {
+              "description": "The standardised effect of Y at one wave on Y at the next, within people.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "cross_lagged_xy": {
+              "description": "The standardised effect of X at one wave on Y at the next, within people.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "cross_lagged_yx": {
+              "description": "The standardised effect of Y at one wave on X at the next, within people.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "within_correlation": {
+              "description": "The correlation between X's and Y's within-person parts at the same wave (powRICLPM's within_cor; the residual correlation at later waves is set so it stays at this value). Default 0.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "reliability": {
+              "description": "Each score's reliability (powRICLPM's reliability): below 1, measurement error is added to the data, and the model, which does not estimate it, is fitted as usual. Default 1, powRICLPM's default.",
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 1
+            },
+            "constraints": {
+              "description": "'none' (powRICLPM's default): each wave's lagged effects are estimated freely, and the effect from the first wave to the second is tested; 'lagged': the lagged effects are held equal over time.",
+              "enum": [
+                "none",
+                "lagged"
+              ]
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": false,
+            "effect": {
+              "enum": [
+                "cross_lagged_xy",
+                "cross_lagged_yx",
+                "autoregressive_x",
+                "autoregressive_y"
+              ]
+            },
+            "method": {
+              "const": "wald_z"
+            }
+          }
         }
       }
     }

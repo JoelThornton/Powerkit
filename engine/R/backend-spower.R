@@ -49,6 +49,9 @@ spower_backend <- function(spec, seed = NULL) {
       if (permanova_test(spec)) "vegan",
       # p_efa() fits psych's fa(), whose oblimin rotation is GPArotation's.
       if (identical(spec$template, "efa")) c("psych", "GPArotation"),
+      # p_riclpm() simulates and fits each study with powRICLPM, which
+      # fits the model with lavaan.
+      if (identical(spec$template, "riclpm")) c("powRICLPM", "lavaan"),
       # p_lpa() fits mclust's models.
       if (identical(spec$template, "lpa")) "mclust",
       # p_multinomial() fits nnet's multinom().
@@ -293,6 +296,19 @@ spower_inputs <- function(spec) {
     # draws people from the factor model (efa_data()), fits psych's fa()
     # and returns 0 when every factor's loadings are recovered (Tucker's
     # congruence at least the level asked), 1 when not.
+    # Random-intercept cross-lagged panel model: powerkit's experiment,
+    # p_riclpm(), has powRICLPM simulate one study and fit the model, and
+    # returns the Wald test's p-value for the lagged effect asked about.
+    riclpm = list(
+      experiment = "p_riclpm", own = TRUE,
+      args = function(n) {
+        list(n = n, waves = pop$waves, icc = pop$icc, ri_cor = pop$ri_correlation %||% 0,
+          ar_x = pop$autoregressive_x, ar_y = pop$autoregressive_y,
+          cl_xy = pop$cross_lagged_xy, cl_yx = pop$cross_lagged_yx,
+          within_cor = pop$within_correlation %||% 0, reliability = pop$reliability %||% 1,
+          constraints = pop$constraints %||% "none", effect = spec$target_test$effect)
+      }
+    ),
     efa = list(
       experiment = "p_efa", own = TRUE,
       args = function(n) {
@@ -374,6 +390,9 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+  } else if (identical(template, "riclpm")) {
+    sprintf("Spower::Spower(p_riclpm()) (powRICLPM simulates each study and fits the random-intercept cross-lagged panel model with lavaan; the Wald z test of the lagged effect%s)",
+      if (alternative == "two_sided") "" else sprintf(", one-sided (%s)", alternative))
   } else if (identical(template, "efa")) {
     "Spower::Spower(p_efa()) (psych's fa() with its defaults, minimum residual and oblimin rotation; every factor's loadings recovered with Tucker's congruence at the level asked)"
   } else if (identical(template, "lpa")) {
@@ -1065,6 +1084,69 @@ group_moderator_check_run <- function(spec, args, seed) {
   )
 }
 
+# Random-intercept cross-lagged panel model ------------------------------------
+#
+# powRICLPM (Mulder, 2023) generates each study and fits the model: X is
+# its variable A and Y its variable B. Its Phi has the outcomes in rows and
+# the predictors in columns, so the effect of X on Y is Phi[2, 1]. With no
+# constraints (powRICLPM's default) each wave's lagged effects are
+# estimated freely, and the effect tested is the one from the first wave
+# to the second, as in powRICLPM's documentation; with constraints =
+# "lagged" they are held equal over time, and all waves' estimates are one.
+riclpm_phi <- function(ar_x, ar_y, cl_xy, cl_yx) matrix(c(ar_x, cl_yx, cl_xy, ar_y), 2, byrow = TRUE)
+
+riclpm_parameter <- function(effect) {
+  switch(effect, cross_lagged_xy = "wB2~wA1", cross_lagged_yx = "wA2~wB1",
+    autoregressive_x = "wA2~wA1", autoregressive_y = "wB2~wB1")
+}
+
+# One powRICLPM study: its estimate and standard error of each parameter
+# (with one replication, its "average" is the estimate and "SEAvg" the
+# standard error), or NULL when the model did not converge or gave an
+# inadmissible solution, which powRICLPM discards.
+riclpm_fit <- function(n, waves, icc, ri_cor, ar_x, ar_y, cl_xy, cl_yx, within_cor, reliability, constraints) {
+  # powRICLPM refuses an integer where it expects a double (a 0 read from
+  # JSON is an integer), so every value is passed as a double.
+  num <- as.numeric
+  out <- tryCatch(suppressMessages(suppressWarnings(powRICLPM::powRICLPM(
+    sample_size = as.integer(n), time_points = as.integer(waves), ICC = num(icc), RI_cor = num(ri_cor),
+    Phi = riclpm_phi(num(ar_x), num(ar_y), num(cl_xy), num(cl_yx)), within_cor = num(within_cor),
+    reliability = num(reliability), reps = 1, constraints = constraints))),
+    error = function(e) NULL)
+  if (is.null(out)) return(NULL)
+  est <- out$conditions[[1]]$estimates
+  if (is.null(est) || !nrow(est) || all(is.na(est$SEAvg))) NULL else est
+}
+
+# Spower experiment: the Wald z test of the lagged effect (lavaan's test),
+# from its estimate and standard error; NA when the fit failed.
+p_riclpm <- function(n, waves, icc, ri_cor, ar_x, ar_y, cl_xy, cl_yx, within_cor, reliability, constraints,
+                     effect, alternative = "two.sided") {
+  est <- riclpm_fit(n, waves, icc, ri_cor, ar_x, ar_y, cl_xy, cl_yx, within_cor, reliability, constraints)
+  if (is.null(est)) return(NA_real_)
+  row <- est[est$parameter == riclpm_parameter(effect), ]
+  if (!nrow(row) || !is.finite(row$SEAvg[1]) || row$SEAvg[1] <= 0) return(NA_real_)
+  z <- row$average[1] / row$SEAvg[1]
+  switch(alternative, two.sided = 2 * stats::pnorm(-abs(z)), greater = stats::pnorm(z, lower.tail = FALSE),
+    less = stats::pnorm(z))
+}
+
+# Check run: one very large study; the four lagged effects' estimates
+# against the population values.
+riclpm_check_run <- function(args, seed) {
+  n <- 20000
+  est <- call_backend("powRICLPM", with_seed(seed, do.call(riclpm_fit,
+    c(args[setdiff(names(args), c("n", "effect", "alternative"))], list(n = n)))))
+  if (is.null(est)) stop("The check run's model did not converge.", call. = FALSE)
+  labels <- c(ar_x = "autoregressive effect of X", ar_y = "autoregressive effect of Y",
+    cl_xy = "cross-lagged effect of X on Y", cl_yx = "cross-lagged effect of Y on X")
+  effects <- c(ar_x = "autoregressive_x", ar_y = "autoregressive_y", cl_xy = "cross_lagged_xy", cl_yx = "cross_lagged_yx")
+  do.call(rbind, lapply(names(labels), function(a) {
+    row <- est[est$parameter == riclpm_parameter(effects[[a]]), ]
+    check_run_rows(labels[[a]], args[[a]], row$average[1], row$SEAvg[1])
+  }))
+}
+
 # Exploratory factor analysis ---------------------------------------------------
 #
 # Data: the common factor model with simple structure: items_per_factor
@@ -1577,6 +1659,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "efa")) {
     return(efa_check_run(args, seed))
+  }
+  if (identical(spec$template, "riclpm")) {
+    return(riclpm_check_run(args, seed))
   }
   if (permanova_test(spec) && !identical(args$shape, "normal")) {
     return(permanova_check_run(spec, args, seed))
