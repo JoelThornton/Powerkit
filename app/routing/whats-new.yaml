@@ -13,6 +13,11 @@ entries:
       scales it. Multiple regression can do it with no effect size at all,
       through the "I don't know my effect size" button.
   - date: "2026-11-06"
+    title: "Links to Labs and About open properly"
+    text: >-
+      A link straight to the Labs or About page could stay stuck on
+      "Starting powerkit". It now opens as soon as the page is ready.
+  - date: "2026-11-06"
     title: "Interrupted time series"
     text: >-
       powerkit can now plan a study of one series measured over time, such
