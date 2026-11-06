@@ -1,3 +1,18 @@
+# powerkit 0.33.0
+
+* Input screens explain raw/published summaries and genuinely missing inputs.
+  Reported t/F text fills the supported conversion fields; fractional df and
+  unsupported F contrasts are refused without rounding or partial edits.
+* Shared sample descriptions keep analysis, recruitment, comparison and
+  planning-document counts in their stated units.
+* Browser checks audit accessibility, keyboard focus and narrow-screen reflow.
+* Validation checkpoints are tied to source/package/R fingerprints; long
+  chunks can be split across jobs without reducing replications or benchmarks.
+* A measured dependency assessment scopes optional installations. The complete
+  locked runtime and validation environment is retained.
+* Publishing uses a separate deployment branch so main can require checked
+  pull requests without an app bypass or another credential.
+
 # powerkit 0.32.0
 
 * Exploratory factor analysis (E73, `factor_analysis / efa`): the chance every

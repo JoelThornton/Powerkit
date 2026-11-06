@@ -1205,3 +1205,45 @@ About catalogue lists discrete form choices individually, because multiplying
 all options would include incompatible combinations; the result record uses
 the complete selected specification. Statistician review and the full release
 validation gate remain separate requirements.
+
+
+## Checkpoint and execution safeguards (5 November 2026)
+
+The validation runner now binds saved results to the engine/test sources,
+runner, lock, actual installed package versions, R and platform. Old records
+without that fingerprint, changed contexts and contexts changed during a test
+are not reused as current passes. Historical results above remain historical.
+A failed/errored/unfinished selected run exits unsuccessfully after writing
+its summary. `--require-complete` also rejects skips; an ordinary successful
+run containing published-value skips is not a completed release validation.
+
+Long workflow selections are partitioned into independent test jobs. Each
+summary names selected chunks and its partition; all partitions must be
+collected. Original test identities, seeds, replication counts and benchmark
+constants are unchanged. `--shard-index I --shard-count K` reproduces a part
+locally. A single test may still exceed the hosting limit; sharding is not
+within-test checkpointing. No full release run is claimed by this change.
+
+
+## 2026-11-05: basic and zero-inflated models (local, frozen source)
+
+[Complete summary](validation/2026-11-05-basic-zero.txt), with the exact
+[source snapshot](https://github.com/JoelThornton/Powerkit/commit/6d40bd1b957bde6aae723ec8e2835259ca9ff6c6),
+tree `2f74bdbdec08c68471d9a522ec144b507f02c070`. The local checkout's
+commit ba9e70c has that identical tree. R 4.5.3 on Windows, Spower 0.7,
+powerkit 0.33.0, two validation workers; original opt-in tests and constants.
+**37 PASS, 0 FAIL, 0 ERROR, 5 SKIP, 0 NOT RUN, of 42 selected tests.**
+
+The zero-inflated chunk had three passing test blocks and one published-example
+placeholder skip. Independent likelihood maximisation gave powers .7825,
+.9680 and .9233 versus engine .7867, .9694 and .9193 in the three declared
+cases, within their original Monte Carlo tolerances (no extra allowance).
+Null rates for the two Poisson-component checks were .0529 and .0498 at
+alpha .05. The negative-binomial zero-part Wald test remained conservative
+within the pre-existing recorded-size range; passing that check does not
+establish that it has exact size .05.
+
+The other four skips were published basic-test/justified-alpha/safeguard
+examples awaiting transcription. No placeholder or expected benchmark was
+changed. This run predates the integrated signal-detection/growth/Bayes
+additions and does not validate them or the complete current release.

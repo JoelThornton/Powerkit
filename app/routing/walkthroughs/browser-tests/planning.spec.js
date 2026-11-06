@@ -138,3 +138,25 @@ test('Labs tool history returns to the tool/menu, then forwards again', async ({
   await page.locator('.labs-back:visible').click();
   await expect(page.locator('button[data-labs-tool="variation"]')).toBeVisible();
 });
+
+
+test('reported-statistic import fills supported fields and refuses unsupported summaries without edits', async ({ page }) => {
+  await tPlan(page);
+  await page.getByText('I have published results, raw scores, or missing information', {exact:true}).click();
+  const entry = page.locator('#reported_statistic');
+  const use = page.getByRole('button', {name:'Use this reported statistic', exact:true});
+  await entry.fill('t(58) = -2.5'); await use.click();
+  await expect(page.locator('#f_conv_from')).toHaveValue('t');
+  await expect(page.locator('#f_conv_df')).toHaveValue('58');
+  await expect(page.locator('#f_conv_value')).toHaveValue('-2.5');
+  await entry.fill('t(31.8) = 2.5'); await use.click();
+  await expect(page.locator('#reported_statistic_message')).toContainText('must not be rounded');
+  await expect(page.locator('#f_conv_value')).toHaveValue('-2.5');
+  await entry.fill('F(2, 58) = 6.25'); await use.click();
+  await expect(page.locator('#reported_statistic_message')).toContainText('only one numerator');
+  await expect(page.locator('#f_conv_from')).toHaveValue('t');
+  await entry.fill('F(1, 58) = 6.25'); await use.click();
+  await expect(page.locator('#f_conv_from')).toHaveValue('F');
+  await expect(page.locator('#f_conv_value')).toHaveValue('6.25');
+  await expect(page.locator('#reported_statistic_message')).toContainText('does not supply an effect direction');
+});

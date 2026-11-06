@@ -96,7 +96,7 @@ capabilities_ui <- function(tree, forms) {
     tags$label(`for` = "capability_search", "Search analyses, test versions or assumptions"),
     tags$input(id = "capability_search", type = "search", class = "form-control", oninput = "pkFilterCapabilities(this.value)"),
     p(id = "capability_count", role = "status", `aria-live` = "polite", sprintf("%d choices", nrow(rows))),
-    downloadButton("download_capabilities", "Download current capability table (CSV)", class = "btn btn-outline-primary"),
+    download_button("download_capabilities", "Download current capability table (CSV)", class = "btn btn-outline-primary"),
     div(style = "overflow-x:auto; max-height:36rem; overflow-y:auto;",
       tags$table(id = "capability_table", class = "table table-sm",
         tags$caption("Current analysis choices, access routes, limits and evidence"),
