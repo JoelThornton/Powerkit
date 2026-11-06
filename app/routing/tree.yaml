@@ -381,6 +381,7 @@ nodes:
       - {label: "The same people in three or more conditions", next: s4, sets: {times: many_conditions}, help: "e.g. everyone completes three tasks, every cell of a 2 x 2 design, or a trial's groups measured before, after and at follow-up."}
       - {label: "Measurements over time, to see whether a trend changes at a known point", next: E45, help: "e.g. weekly scores before and after a policy change (segmented regression, interrupted time series)."}
       - {label: "Measurements over time, to see how people change", next: E35, help: "e.g. growth curves, diary or experience-sampling studies, panel waves."}
+      - {label: "Two scores measured over time, to see whether each predicts later changes in the other", next: E74, help: "e.g. whether stress at one wave predicts sleep problems at the next, within people (a cross-lagged panel model)."}
   s4:
     doc_id: S4
     # The goal (detect, equivalence, estimate) is asked once, on the aim
@@ -791,7 +792,7 @@ closing_questions:
   # unreliable scores (maintainer decisions, 16 and 29 October 2026;
   # docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31, E15]}
-  - {doc_id: Q-dir, text: "Which directions will your statistical decision test?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E32, E34, E35, E49, E50, E51, E52, E53, E57, E61, E64, E66]}
+  - {doc_id: Q-dir, text: "Which directions will your statistical decision test?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E32, E34, E35, E49, E50, E51, E52, E53, E57, E61, E64, E66, E74]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
@@ -1477,10 +1478,9 @@ endpoints:
       - "Growth curves: two groups measured at three or more occasions, and whether their average rates of change differ (the group x time interaction in a mixed model with a random intercept and slope for each person)."
       - "You give the occasions, the difference in rates of change, and how much people vary: in their starting levels, in their own rates of change, and around their own lines. These come from earlier data, from a mixed model's variance components."
       - "Calculated by Diggle and colleagues' formula (longpower) for equal groups and complete data. If people drop out along the way or the groups differ in size, by Hu, Mackey and Thomas's formula (longpower), which keeps everyone's measurements up to the one they leave after and assumes both groups start at the same level, as in a randomised trial."
-      - "Not calculated here yet: random-intercept cross-lagged panel models and experience sampling; the packages below cover them."
+      - "Two scores measured over time, to see whether each predicts later changes in the other (a random-intercept cross-lagged panel model): its own card. Not calculated here yet: experience sampling; the package below covers it."
     inputs: ["Your groups, the outcome and the occasions", "The difference in rates of change", "How much people vary", "Drop-out and the groups' sizes"]
     packages:
-      - {name: powRICLPM, url: "https://cran.r-project.org/package=powRICLPM", what: "Simulation power for random-intercept cross-lagged panel models."}
       - {name: PowerAnalysisIL, url: "https://github.com/ginettelafit/PowerAnalysisIL", what: "Shiny app for intensive longitudinal (experience sampling) designs."}
     tier: v2
     alternatives: ["a mixed ANOVA, if time is a set of conditions rather than a line", "ANCOVA on the last occasion, adjusting for the first"]
@@ -1670,6 +1670,23 @@ endpoints:
     inputs: ["The scores the profiles are formed from", "The profiles you expect"]
     tier: v2
     alternatives: ["the bootstrap likelihood ratio test, which needs many model fits per study (Mplus's Monte Carlo facility, or tidyLPA)", "a cluster analysis, such as k-means, which doesn't model profiles statistically"]
+  E74:
+    doc_name: "Random-intercept cross-lagged panel model (RI-CLPM)"
+    plain_name: "Whether two scores measured over time predict each other's later changes, within people"
+    search_words: "cross-lagged panel model riclpm ri-clpm random intercept cross lagged clpm longitudinal panel waves reciprocal effects within-person lagged effects autoregressive hamaker sem"
+    template: "panel / riclpm"
+    backend: "Spower: powerkit's experiment around powRICLPM's powRICLPM() (each study simulated and the model fitted by lavaan's maximum likelihood; the lagged effect's Wald z test), simulated"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-riclpm.R, note: "Agrees with a simulation written separately (data drawn in base R, the model written out in lavaan syntax) in three cases, with no allowance beyond Monte Carlo error. Not yet checked against a published example."}
+    card_points:
+      - "Two scores, X and Y, measured on the same people at three or more waves. The random-intercept cross-lagged panel model (Hamaker, Kuiper and Grasman, 2015) separates each person's stable level on each score from their ups and downs around it, and asks whether a person's X being higher than usual predicts their Y being higher than usual at the next wave (the cross-lagged effect), and the other way round."
+      - "You give the lagged effects within people (standardised), how much of each score is stable between people, and how X and Y go together. powRICLPM (Mulder, 2023) simulates studies like yours and fits the model, and powerkit counts how often the effect you test is significant."
+      - "Small lagged effects need many people. A quick preview runs here; the full run of power takes a couple of minutes, and a required sample size comes as an R script to run on your computer."
+      - "Not covered yet: more than two scores, measurement error estimated in the model (the STARTS model), and the traditional cross-lagged panel model without random intercepts, which mixes stable differences between people with within-person effects."
+    inputs: ["The two scores and the waves", "The effect you want to test", "The lagged effects within people (standardised)", "How people differ, and how X and Y go together"]
+    tier: v2
+    alternatives: ["the traditional cross-lagged panel model, which doesn't separate stable differences between people", "a growth-curve model of each score, if the question is about trajectories rather than lagged effects", "a dynamic structural equation model, for intensive longitudinal data with many occasions"]
   E73:
     doc_name: "Exploratory factor analysis (EFA): recovering the factors"
     plain_name: "Whether an exploratory factor analysis will recover the factors you expect"
@@ -2285,7 +2302,7 @@ analysis_families:
   - {id: regression, label: "Regression (scores, yes/no and counts)", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
-  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E45, E65]}
+  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E74, E45, E65]}
   - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, EFA, IRT, profiles)", endpoints: [E37, E73, E71, E58]}
   - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
   - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}
@@ -2366,6 +2383,7 @@ glossary:
   - {term: "multilevel or cluster design", pattern: "\\bmultilevel\\b|\\bcluster design\\b", hint: "A design in which people are grouped (for example, pupils within classes, or patients within doctors), so people in the same group tend to be more alike than people in different groups."}
   - {term: "growth curves", pattern: "\\bgrowth curves?\\b", hint: "Models of how each person's scores change over repeated occasions (their trajectory, for example a straight line up or down), and of the average trajectory across people."}
   - {term: "cross-lagged panel", pattern: "\\bcross-lagged panels?\\b", hint: "A model for two measures (X and Y) recorded at several time points that estimates how each one predicts the other at the next time point, alongside how stable each is over time."}
+  - {term: "lagged effect", pattern: "\\blagged effects?\\b", hint: "How much a score at one wave predicts a score at the next. Standardised and within people: in SDs of a person's ups and downs around their own usual level, not of the differences between people."}
   - {term: "experience sampling", pattern: "\\bexperience sampling\\b", hint: "An intensive longitudinal design in which participants answer a questionnaire each time they are prompted (a 'beep'), several times within a day."}
   - {term: "CFA", pattern: "\\bCFA\\b", hint: "Confirmatory factor analysis: a model in which answers to many questionnaire items are explained by fewer underlying, unobserved traits (factors) that you specify."}
   - {term: "SEM and model fit", pattern: "\\bSEM model fit\\b|\\bSEM\\b", hint: "Structural equation modelling: a family of models that combines regressions among variables with unobserved (latent) variables measured by several items; model fit is how closely the relationships the model implies match those in the data."}

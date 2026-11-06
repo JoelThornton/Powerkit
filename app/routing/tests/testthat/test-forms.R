@@ -1019,3 +1019,13 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   acc <- as.character(group_ui_build(tree, simulation_accuracy_group(forms, "E2")[[1]], list(), 1))
   expect_match(acc, "More about this", fixed = TRUE)
 })
+
+test_that("the cross-lagged panel screen builds a valid spec with its names left empty", {
+  v <- values_for("E74")
+  v$X_label <- ""
+  v$Y_label <- ""
+  fields <- fields_for("E74")
+  spec <- build_spec(forms, "E74", fields, v)
+  expect_equal(c(spec$variables$X$label, spec$variables$Y$label), c("X", "Y"))
+  expect_silent(powerkit::validate_spec(spec))
+})

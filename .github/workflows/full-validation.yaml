@@ -96,6 +96,7 @@ on:
           - lpa
           - efa
           - its
+          - riclpm
           - irt
           - process_4
           - process_4_binary

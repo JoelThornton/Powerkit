@@ -14,6 +14,14 @@ entries:
       tells you how often the analysis would find a change that isn't
       there, which short series do more often than you'd expect.
   - date: "2026-11-06"
+    title: "Cross-lagged panel models"
+    text: >-
+      When two scores are measured on the same people three or more times,
+      powerkit can now plan a study of whether each predicts later changes
+      in the other, within people (a random-intercept cross-lagged panel
+      model). A quick preview runs here, then the full calculation, or an R
+      script for the sample size you need.
+  - date: "2026-11-06"
     title: "A home page, and updates once a day"
     text: >-
       powerkit now has a home page, with the guide, at
