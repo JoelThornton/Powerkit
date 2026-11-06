@@ -3108,7 +3108,7 @@ forms:
           - {id: loading, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
              help: "Its square is the item's communality, the share of its variance its factor explains. Loadings around 0.4 are weak, 0.6 moderate, 0.8 strong. Take them from earlier studies of the same or similar items."}
           - {id: factor_correlation, label: "Correlation between the factors", type: number, path: population.factor_correlation, required: true, min: 0, max: 0.9,
-             default: 0, default_source: "uncorrelated factors, the design spec's default"}
+             default: 0, default_source: "uncorrelated factors, powerkit's default"}
       - input: "What counts as recovering the factors"
         fields:
           - {id: congruence, label: "Tucker's congruence each factor's loadings must reach with the true ones", type: number, path: target_test.congruence, required: true, min: 0.8, max: 0.999,
@@ -3139,7 +3139,7 @@ forms:
              help: "Each profile is this far above the one before it on every indicator, in SDs within a profile, as in Tein, Coxe and Cham's simulations. 0.5 is hard to find, 0.8 moderate, 1.5 clear."}
           - {id: profile_sizes, label: "Will the profiles be about the same size?", type: select, required: true,
              choices: {equal: "Yes, about equal", unequal: "No: give each profile's share"},
-             default: equal, default_source: "equal profiles, the design spec's default"}
+             default: equal, default_source: "equal profiles, powerkit's default"}
           - {id: shares, writeup_label: "each profile's share", label: "Each profile's share of the population, in order, adding up to 1 (for example 0.5, 0.3, 0.2)", type: numbers, path: population.shares, required: true,
              shown_if: {field: profile_sizes, is: unequal},
              help: "A small profile is harder to find: with 5% of 200 people, its estimates were poor in Nylund, Asparouhov and Muthén's (2007) simulations."}
