@@ -98,3 +98,8 @@ test_that("the online app is published at most daily, not after every merge", {
   decide <- Filter(function(s) identical(s$name, "Decide whether to publish"), steps)[[1]]
   expect_match(decide$run, "git diff --quiet origin/connect-cloud HEAD", fixed = TRUE)
 })
+
+test_that("the starting screen also goes on a link straight to Labs, where the main screen never draws", {
+  expect_match(connection_js, "$(document).on('shiny:idle', function() { if (connected) dropStarting(); });", fixed = TRUE)
+  expect_match(connection_js, "if (e.name === 'screen') dropStarting();", fixed = TRUE)
+})

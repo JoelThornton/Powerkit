@@ -16,6 +16,11 @@ entries:
       button, then "Save as PDF") or as a Word document you can edit.
       Before, printing gave a picture of powerkit's screen.
   - date: "2026-11-06"
+    title: "Links to Labs open properly"
+    text: >-
+      Opening a link straight to a Labs tool left the "Starting powerkit"
+      screen covering the page. It now goes as soon as the app is ready.
+  - date: "2026-11-06"
     title: "Interrupted time series"
     text: >-
       powerkit can now plan a study of one series measured over time, such

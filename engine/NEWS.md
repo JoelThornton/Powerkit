@@ -20,6 +20,11 @@
   "Change the plan" gives the same section for a redesigned study, leading
   with how the design changes. With no outcome chosen, the full
   question-and-answer notes as before.
+* A link straight to Labs (`?page=labs`, for example the guide's link to
+  a Labs tool) no longer leaves the "Starting powerkit" screen over the
+  page. It went only when the main screen arrived, which a page opened on
+  another tab never draws; it now also goes once the connected app is
+  first idle (`R/connection.R`).
 
 # powerkit 0.34.0
 
