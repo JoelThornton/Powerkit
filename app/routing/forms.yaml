@@ -756,7 +756,7 @@ forms:
           # positive numbers (rows = levels of A), as validate_spec() accepts.
           - {id: sd_mode, label: "One SD, or one per cell", type: select, required: true,
              choices: {one: "One SD for all four cells", per_cell: "A different SD in each cell"},
-             default: one, default_source: "the simpler choice; the design spec accepts either"}
+             default: one, default_source: "the simpler choice; choose one per cell if you expect the spreads to differ"}
           - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: sd_mode, is_not: per_cell}}
           - {id: sd11, label: "SD: A level 1, B level 1", type: number, path: population.sd.1.1, effect: true, min_exclusive: 0,
@@ -831,7 +831,7 @@ forms:
           # positive numbers (rows = levels of A), as validate_spec() accepts.
           - {id: sd_mode, label: "One SD, or one per cell", type: select, required: true,
              choices: {one: "One SD for all four cells", per_cell: "A different SD in each cell"},
-             default: one, default_source: "the simpler choice; the design spec accepts either"}
+             default: one, default_source: "the simpler choice; choose one per cell if you expect the spreads to differ"}
           - {id: sd, label: "SD (one value for all four cells)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: sd_mode, is_not: per_cell}}
           - {id: sd11, label: "SD: A level 1, B level 1", type: number, path: population.sd.1.1, effect: true, min_exclusive: 0,
@@ -1143,7 +1143,7 @@ forms:
              help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer), and every SD below is on the log-odds scale."}
           - {id: crossed_participants, label: "Each participant takes part in", type: select, path: variables.X.type, required: true,
              choices: {within_factor: "Both conditions", between_factor: "One condition (half the participants in each)"},
-             default: within_factor, default_source: "the design as decided on 30 October 2026 (docs/decisions.md); between participants since 31 October 2026"}
+             default: within_factor, default_source: "the design this card was built for first (docs/decisions.md, 30 October 2026; one condition each since 31 October 2026)"}
       - input: "The difference between conditions (the fixed effect) in the outcome's units, or each condition's chance of 'yes'"
         fields:
           - {id: difference, label: "Mean in the second condition minus the first", type: number, path: population.difference, effect: true,
@@ -1184,7 +1184,7 @@ forms:
              shown_if: {field: plan_unit, is: items}}
           - {id: item_design, label: "Items appear", type: select, path: population.item_design, required: true,
              choices: {between: "In one condition each (half the items in each)", within: "In both conditions (with the conditions within participants, every participant sees every item twice)"},
-             default: between, default_source: "the design as decided on 30 October 2026 (docs/decisions.md)"}
+             default: between, default_source: "the design this card was built for first (docs/decisions.md, 30 October 2026)"}
           - {id: sd_item_slope, label: "SD of the condition difference across items (optional; empty = 0)", type: number, path: population.sd_item_slope, optional: true, empty_text: "0", min: 0,
              shown_if: {field: item_design, is: within},
              help: "For example, 4.5 ms in a masked-priming lexical-decision study (response times in ms; Brysbaert & Stevens, 2018, Table 2). Use values from your own task where you can: other tasks and outcomes vary differently."}
@@ -2931,12 +2931,12 @@ forms:
           - {id: base_prob, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' at the starting point (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
              help: "For a score: the proportion at the predictor's average. For a group: the proportion in the first group."}
           - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
-             default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)",
+             default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)",
              shown_if: {field: X_type, is: binary}}
       - input: "How much the other predictors overlap with this one"
         fields:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
-             default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
+             default: 0, default_source: "no other predictors, powerkit's default (the design spec's population > r2_other_predictors)",
              help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
 
   # Multinomial logistic regression, one predictor (Spower simulation of
@@ -2979,7 +2979,7 @@ forms:
              shown_if: {field: effect_as, is: odds_ratios},
              help: "For each category, how many times the odds of being in it rather than the first category change per SD of the score, or in the second group against the first (SPSS calls them Exp(B); some papers call them relative risk ratios). 1 means no effect."}
           - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
-             default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)",
+             default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)",
              shown_if: {field: X_type, is: binary}}
       - input: "Which test"
         fields:
@@ -2992,7 +2992,7 @@ forms:
       - input: "How much the other predictors overlap with this one"
         fields:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
-             default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
+             default: 0, default_source: "no other predictors, powerkit's default (the design spec's population > r2_other_predictors)",
              help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
 
   # Differential item functioning in a 2PL IRT model (irtpwr's analytical
@@ -3069,9 +3069,9 @@ forms:
           - {id: sd_slope, writeup_label: "SD of people's rates of change", label: "SD of people's own rates of change (the random slope SD), per unit of time", type: number, path: population.sd_slope, effect: true, min: 0}
           - {id: sd_residual, writeup_label: "residual SD", label: "SD of each person's scores around their own line (the residual SD)", type: number, path: population.sd_residual, effect: true, min_exclusive: 0}
           - {id: sd_intercept, writeup_label: "SD of people's starting levels", label: "SD of people's starting levels (the random intercept SD, at the first occasion)", type: number, path: population.sd_intercept, required: true, min: 0,
-             default: 0, default_source: "0, the design spec's default; with complete data the starting levels' spread doesn't change the test of the slopes unless they correlate with the rates of change"}
+             default: 0, default_source: "0, powerkit's default; with complete data the starting levels' spread doesn't change the test of the slopes unless they correlate with the rates of change"}
           - {id: r_intercept_slope, label: "Correlation between people's starting levels and rates of change", type: number, path: population.r_intercept_slope, required: true, min: -1, max: 1,
-             default: 0, default_source: "0, the design spec's default (population > r_intercept_slope)"}
+             default: 0, default_source: "0, powerkit's default (population > r_intercept_slope)"}
       - input: "Drop-out and the groups' sizes"
         fields:
           - {id: growth_dropout, label: "Does anyone drop out before the last occasion?", type: select, required: true,
@@ -3108,7 +3108,7 @@ forms:
           - {id: loading, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
              help: "Its square is the item's communality, the share of its variance its factor explains. Loadings around 0.4 are weak, 0.6 moderate, 0.8 strong. Take them from earlier studies of the same or similar items."}
           - {id: factor_correlation, label: "Correlation between the factors", type: number, path: population.factor_correlation, required: true, min: 0, max: 0.9,
-             default: 0, default_source: "uncorrelated factors, the design spec's default"}
+             default: 0, default_source: "uncorrelated factors, powerkit's default"}
       - input: "What counts as recovering the factors"
         fields:
           - {id: congruence, label: "Tucker's congruence each factor's loadings must reach with the true ones", type: number, path: target_test.congruence, required: true, min: 0.8, max: 0.999,
@@ -3139,7 +3139,7 @@ forms:
              help: "Each profile is this far above the one before it on every indicator, in SDs within a profile, as in Tein, Coxe and Cham's simulations. 0.5 is hard to find, 0.8 moderate, 1.5 clear."}
           - {id: profile_sizes, label: "Will the profiles be about the same size?", type: select, required: true,
              choices: {equal: "Yes, about equal", unequal: "No: give each profile's share"},
-             default: equal, default_source: "equal profiles, the design spec's default"}
+             default: equal, default_source: "equal profiles, powerkit's default"}
           - {id: shares, writeup_label: "each profile's share", label: "Each profile's share of the population, in order, adding up to 1 (for example 0.5, 0.3, 0.2)", type: numbers, path: population.shares, required: true,
              shown_if: {field: profile_sizes, is: unequal},
              help: "A small profile is harder to find: with 5% of 200 people, its estimates were poor in Nylund, Asparouhov and Muthén's (2007) simulations."}
@@ -3181,7 +3181,7 @@ forms:
           - {id: criterion, label: "Average response bias (criterion c: 0 for none, positive for a tendency to say no)", type: number, path: population.criterion, required: true, min: -3, max: 3,
              default: 0, default_source: "no bias, the unbiased observer of signal detection theory"}
           - {id: sd_criterion, label: "SD of people's response bias", type: number, path: population.sd_criterion, required: true, min: 0, max: 3,
-             default: 0, default_source: "everyone with the same bias, the design spec's default"}
+             default: 0, default_source: "everyone with the same bias, powerkit's default"}
 
   # Moderation by a factor with three or more groups (Spower simulation of
   # powerkit's experiment around lm()): the correlation of X and Y in each
@@ -3210,7 +3210,7 @@ forms:
         fields:
           - {id: group_sizes, label: "Will the groups be the same size?", type: select, required: true,
              choices: {equal: "Yes, equal groups", unequal: "No: give their relative sizes"},
-             default: equal, default_source: "equal groups, the design spec's default"}
+             default: equal, default_source: "equal groups, powerkit's default"}
           - {id: group_ratio, writeup_label: "relative group sizes", label: "Relative group sizes: one whole number for each group, in the same order", type: numbers, per_levels: A_levels, path: options.group_ratio, required: true, min: 1, integer: true,
              shown_if: {field: group_sizes, is: unequal}}
 
@@ -3249,11 +3249,11 @@ forms:
       - input: "How X and W relate"
         fields:
           - {id: x_prob, label: "Proportion of people in X's second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
-             default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)", shown_if: {field: X_type, is: binary}}
+             default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)", shown_if: {field: X_type, is: binary}}
           - {id: w_prob, label: "Proportion of people in W's second group (0 to 1)", type: number, path: population.w_prob, required: true, min_exclusive: 0, max_exclusive: 1,
-             default: 0.5, default_source: "equal groups, the design spec's default (population > w_prob)", shown_if: {field: W_type, is: binary}}
+             default: 0.5, default_source: "equal groups, powerkit's default (population > w_prob)", shown_if: {field: W_type, is: binary}}
           - {id: r_xw, label: "Correlation between X and W (two scores only)", type: number, path: population.r_xw, required: true, min_exclusive: -1, max_exclusive: 1,
-             default: 0, default_source: "uncorrelated, the design spec's default (population > r_xw)",
+             default: 0, default_source: "uncorrelated, powerkit's default (population > r_xw)",
              shown_if: [{field: X_type, is: continuous}, {field: W_type, is: continuous}]}
 
   # Poisson regression, one predictor (pwrss's Wald z test): a score X is
@@ -3285,10 +3285,10 @@ forms:
           - {id: base_rate, writeup_label: "starting rate of events", label: "Starting rate: events per unit of time", type: number, path: population.base_rate, effect: true, min_exclusive: 0,
              help: "For a score: the expected count per unit of time at the predictor's average. For a group: in the first group."}
           - {id: mean_exposure, label: "Average time each person is followed, in those units", type: number, path: population.mean_exposure, required: true, min_exclusive: 0,
-             default: 1, default_source: "one unit, so the starting rate is the expected count per person: the design spec's and pwrss's default (power.z.poisson(mean.exposure = 1))",
+             default: 1, default_source: "one unit, so the starting rate is the expected count per person: powerkit's and pwrss's default (power.z.poisson(mean.exposure = 1))",
              help: "For example, with a rate per month and a year of follow-up, 12."}
           - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
-             default: 0.5, default_source: "equal groups, the design spec's default (population > x_prob)",
+             default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)",
              shown_if: {field: X_type, is: binary}}
       - input: "Poisson, negative binomial or zero-inflated regression"
         fields:
@@ -3305,7 +3305,7 @@ forms:
              shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
              help: "The share of people who could not have had an event, on top of the zeros among everyone else (for a score, at its average; for a group, in the first group). The rate and the rate ratio above describe everyone else. In pscl's zeroinfl() output, plogis() of the zero model's intercept."}
           - {id: zero_odds_ratio, writeup_label: "odds ratio for being an extra zero", label: "Odds ratio for being an extra zero", type: number, path: population.zero_odds_ratio, required: true, min_exclusive: 0,
-             default: 1, default_source: "the predictor doesn't change the share of extra zeros, the design spec's default (population > zero_odds_ratio)",
+             default: 1, default_source: "the predictor doesn't change the share of extra zeros, powerkit's default (population > zero_odds_ratio)",
              shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
              help: "How many times the odds of being an extra zero change per SD of the score, or in the second group against the first. 1 means the predictor doesn't change it."}
           - {id: count_part, label: "Which part to test", type: select, path: target_test.effect, required: true,
@@ -3316,7 +3316,7 @@ forms:
       - input: "How much the other predictors overlap with this one"
         fields:
           - {id: r2_other, label: "R-squared of this predictor on the other predictors (0 to 1; 0 if there are no others)", type: number, path: population.r2_other_predictors, required: true, min: 0, max_exclusive: 1,
-             default: 0, default_source: "no other predictors, the design spec's default (population > r2_other_predictors)",
+             default: 0, default_source: "no other predictors, powerkit's default (the design spec's population > r2_other_predictors)",
              help: "How much of this predictor the other predictors in your model explain. Their own effects on the outcome aren't needed."}
 
   # Cluster-randomised trial (powertools' crt.parallel.cont()): whole

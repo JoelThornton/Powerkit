@@ -803,7 +803,7 @@ card_versions_ui <- function(tree, ep) {
     tags$ul(lapply(items, tags$li)))
 }
 
-card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
+card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0("forms", envir = environment(card_ui))) {
   ep <- tree$endpoints[[ep_id]]
   # Headings follow the page outline: the full card's title is the screen's
   # h2; a compact card sits under the plan's h2.
@@ -834,7 +834,8 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       # you can gather it before starting (1 November 2026).
       if (!compact && runs && !is.null(ep$inputs)) div(class = "card-needs",
         tags$h3(class = "card-section-title", "What you'll need"),
-        tags$ul(lapply(ep$inputs, tags$li)),
+        tags$ul(lapply(ep$inputs, function(input) tags$li(
+          if (input %in% optional_input_lines(forms, ep_id)) paste0(input, " (optional)") else input))),
         p(class = "card-needs-note", "The next screen asks for each of these, with help on what they mean.")),
       card_versions_ui(tree, ep),
       # Which package calculates it and the questions asked after the
