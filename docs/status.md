@@ -2,7 +2,8 @@
 
 *Last updated: 6 November 2026 (powerkit 0.33.1). This page says where the
 project is now; keep it short and replace old entries rather than adding
-to them. What to do next is [`next.md`](next.md). History is in git,
+to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
+planned work that had no queue item, 6 November 2026). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
 [`archive/status-history.md`](archive/status-history.md), which also holds
 this page as it stood on 30 October 2026.*
