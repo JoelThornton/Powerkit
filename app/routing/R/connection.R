@@ -9,14 +9,21 @@
 # * The connection drops after a while away from the page (the server ends
 #   idle sessions), and the app's state goes with it. Shiny tries to
 #   reconnect to the same session while its process is still running
-#   (session$allowReconnect()); a small message every 20 seconds keeps an
-#   open page's connection from being closed for being quiet; a page that
-#   lost its connection while in the background reloads itself when the
-#   visitor comes back (the host's own message and Reload button cover a
+#   (session$allowReconnect()); a small message every 20 seconds keeps the
+#   connection of a page someone is using from being closed for being
+#   quiet; a page that lost its connection while in the background reloads
+#   itself when the visitor comes back (the host's own message and Reload button cover a
 #   loss while the page is in view); and on an input screen the answers are
 #   saved in this browser (localStorage, never sent anywhere else), in the
 #   same draft format as "Save a draft" (R/drafts.R), so a new session
 #   offers to continue where the visitor left off.
+# * The small message is sent only while the page is in view and has been
+#   used in the last 20 minutes, or while a calculation runs (6 November
+#   2026). The host charges for every hour the app is running, and it
+#   keeps running while any connection is open: a message sent for ever
+#   would keep the app up for as long as a forgotten tab stayed open. A
+#   visitor who comes back after that gets their answers back from the
+#   browser's copy.
 
 autosave_key <- "powerkit-autosave"
 
@@ -73,17 +80,32 @@ connection_js <- "
     if (e.name === 'about_page') { $('.about-loading').remove(); }
   });
   var connected = false, beat = null;
+  // When the visitor last used the page, and when a calculation last
+  // reported progress (calc_progress, every half second while one runs).
+  var IDLE_MS = 20 * 60 * 1000, lastActive = Date.now(), lastProgress = 0;
+  ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart', 'scroll', 'input'].forEach(function(type) {
+    document.addEventListener(type, function() { lastActive = Date.now(); }, {capture: true, passive: true});
+  });
+  $(document).on('shiny:message', function(e) {
+    if (e.message && e.message.custom && e.message.custom.calc_progress) lastProgress = Date.now();
+  });
+  function keepOpen() {
+    var now = Date.now();
+    if (now - lastProgress < 5000) return true;
+    return document.visibilityState === 'visible' && now - lastActive < IDLE_MS;
+  }
   $(document).on('shiny:connected', function() {
     connected = true;
     var saved = null;
     try { saved = window.localStorage.getItem(KEY); } catch (e) {}
     if (saved) Shiny.setInputValue('pk_saved_draft', saved, {priority: 'event'});
-    // A small message every 20 seconds while the page is open, so that the
-    // connection isn't closed for being quiet while the visitor reads or
-    // thinks. Browsers slow timers in background tabs, and phones pause
-    // pages altogether, so this helps most while the page is in view.
+    // A small message every 20 seconds while the page is being used (in
+    // view and used in the last 20 minutes) or a calculation runs, so that
+    // the connection isn't closed for being quiet while the visitor reads
+    // or thinks. A page left alone is allowed to go quiet, so the server
+    // can close it and the host can stop the app.
     clearInterval(beat);
-    beat = setInterval(function() { if (connected) Shiny.setInputValue('pk_heartbeat', Date.now()); }, 20000);
+    beat = setInterval(function() { if (connected && keepOpen()) Shiny.setInputValue('pk_heartbeat', Date.now()); }, 20000);
   });
   $(document).on('shiny:disconnected', function() {
     connected = false;

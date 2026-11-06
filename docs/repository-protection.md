@@ -9,7 +9,8 @@ publishing. Do not add an app bypass simply to work around that conflict.
 1. An active main rule can immediately restrict deletions and force pushes,
    with no bypass actors. This does not block normal merges or publishing.
 2. Merge the publishing change after its CI and branch-preparation tests pass.
-   The manifest workflow then prepares `connect-cloud`: exactly the selected
+   The manifest workflow then prepares `connect-cloud` (at its next daily
+   run, or at once with "Run workflow" on main): exactly the selected
    main tree apart from its generated manifest, with the engine pinned to that
    main commit. Its push is fast-forward only. Stale main jobs refuse to publish.
 3. Verify the first successful publishing run and the deployment branch's

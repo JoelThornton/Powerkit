@@ -1186,6 +1186,27 @@ Carlo error. The result is for psych's defaults, which the card names.
 Packages: powerkit 0.32.0; Spower 0.7; psych and GPArotation (the locked
 versions).
 
+## 2026-11-06 · Interrupted time series (local, cloud session)
+
+`test-validation-its.R` (chunk `its`) on Linux x86_64 with R 4.5.3:
+**2 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`), in about three minutes, all at 2,000 replications
+and with no allowance beyond Monte Carlo error. powerkit's REML route
+against series drawn and fitted separately in the test (base R's AR(1)
+filter, gls() by REML):
+
+| Case | powerkit | Independent |
+| --- | --- | --- |
+| 24 before, 24 after, level change -3, sigma 2.5, rho .4 | 0.378 | 0.357 |
+| 36 before, 24 after, slope change -0.2, sigma 2, rho .2 | 0.655 | 0.659 |
+| 12 before, 18 after, both (-2 and -0.1), sigma 1.5, rho .6 | 0.334 | 0.342 |
+
+powerkit's maximum-likelihood route against PITS's `calculate_power()`:
+0.447 against 0.429, and 0.738 against 0.734 (the first two cases).
+
+Packages: powerkit 0.33.1 (the engine at commit 5d164ab); Spower 0.7;
+PITS 0.1.0; nlme (the locked version).
+
 ## Variant evidence registry
 
 `engine/inst/evidence/records.json` is the machine-readable index of selected

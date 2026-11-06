@@ -298,7 +298,7 @@ whats_new_ui <- function(entries, open_days = 1) {
     tags$h2("Updates"),
     p(class = "about-lead", "Changes to powerkit you would notice, newest first. ",
       "Click a change to read more, or show every description with Full details. ",
-      "The online app updates itself each time a change is approved."),
+      "The online app takes in the approved changes once a day."),
     div(class = "wn-since", id = "wn-since", hidden = NA),
     div(class = "wn-tools",
       tags$input(type = "search", id = "wn-search", class = "form-control", placeholder = "Search the changes, e.g. ANOVA or Labs",

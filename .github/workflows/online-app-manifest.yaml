@@ -1,23 +1,33 @@
-# Checks the manifest on PRs. After a merge, publishes checked main source
-# plus its generated manifest to connect-cloud, using a normal fast-forward
-# push. Main itself is never changed by the bot, so it can require PRs and
-# checks without an automation bypass. Posit Connect Cloud must watch the
-# connect-cloud branch (docs/repository-protection.md).
+# Checks the manifest on PRs, and publishes the online app (Posit Connect
+# Cloud) at most once a day.
+#
+# Connect Cloud republishes the app whenever the branch it watches
+# (connect-cloud) changes, and charges for every hour the app runs, a
+# rebuild and restart included. Main changes dozens of times a day, so
+# publishing after every merge kept the app rebuilding (docs/
+# hosting-options.md, "What uses the plan's credits"). Instead, once a day,
+# if anything the app runs (app/routing, engine and renv.lock, tests aside)
+# differs between main and connect-cloud, this workflow writes the manifest
+# and publishes checked main source plus that manifest to connect-cloud,
+# using a normal fast-forward push (scripts/prepare-publish-branch.py).
+# Main itself is never changed by the bot, so it can require PRs and checks
+# without an automation bypass (docs/repository-protection.md).
+#
+# "Run workflow" on the Actions tab publishes at once (an urgent fix); tick
+# "force" to publish even if nothing changed.
 name: online-app-manifest
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "app/routing/**"
-      - "engine/**"
-      - "renv.lock"
-      - ".github/workflows/online-app-manifest.yaml"
-      - "scripts/prepare-publish-branch.py"
-      - "scripts/test-publish-branch.py"
-      - "!app/routing/manifest.json"
+  schedule:
+    # 04:23 UTC every day.
+    - cron: "23 4 * * *"
   pull_request:
   workflow_dispatch:
+    inputs:
+      force:
+        description: "Publish even if nothing the app runs has changed"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -42,20 +52,54 @@ jobs:
       - name: Verify publishing preserves checked source and branch history
         run: python3 scripts/test-publish-branch.py
 
+      # Whether to build the manifest (always on a pull request, as a check)
+      # and publish it (only from main, and only if something the app runs
+      # differs from what connect-cloud holds, or on request).
+      - name: Decide whether to publish
+        id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"; echo "publish=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "The online app is only published from main."
+            echo "build=false" >> "$GITHUB_OUTPUT"; echo "publish=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          paths="app/routing engine renv.lock :(exclude)app/routing/tests :(exclude)engine/tests :(exclude)app/routing/manifest.json"
+          publish=true
+          if [ "$FORCE" = "true" ]; then
+            echo "Publishing on request."
+          elif ! git rev-parse -q --verify origin/connect-cloud > /dev/null; then
+            echo "Nothing published yet; publishing."
+          elif git diff --quiet origin/connect-cloud HEAD -- $paths; then
+            echo "Nothing the app runs has changed since the last publish; not publishing."
+            publish=false
+          else
+            echo "Changed since the last publish:"
+            git diff --stat origin/connect-cloud HEAD -- $paths | tail -n 5
+          fi
+          echo "build=$publish" >> "$GITHUB_OUTPUT"; echo "publish=$publish" >> "$GITHUB_OUTPUT"
+
       # System libraries the packages in renv.lock need (see
       # full-validation.yaml).
       - name: Install system libraries
+        if: steps.decide.outputs.build == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y libglpk-dev libgsl-dev
 
       - uses: r-lib/actions/setup-r@v2
+        if: steps.decide.outputs.build == 'true'
         with:
           r-version: renv
           use-public-rspm: true
 
       # Restores the package versions in renv.lock (cached between runs).
       - uses: r-lib/actions/setup-renv@v2
+        if: steps.decide.outputs.build == 'true'
 
       # rsconnect writes the manifest; remotes installs the engine from
       # GitHub. Neither is in renv.lock (they don't affect results).
@@ -63,6 +107,7 @@ jobs:
       # manifest tells Connect Cloud where to get it (a locally installed
       # copy can't be found by the server).
       - name: Install rsconnect and the engine from GitHub
+        if: steps.decide.outputs.build == 'true'
         env:
           ENGINE_REF: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
@@ -73,6 +118,7 @@ jobs:
       # Packages are recorded against the public Posit Package Manager
       # (the repository in renv.lock), not this runner's Linux binaries.
       - name: Write app/routing/manifest.json
+        if: steps.decide.outputs.build == 'true'
         shell: Rscript {0}
         run: |
           ppm <- "https://packagemanager.posit.co/cran/latest"
@@ -92,10 +138,11 @@ jobs:
           }
 
       - name: Show what changed
+        if: steps.decide.outputs.build == 'true'
         run: git diff --stat -- app/routing/manifest.json || true
 
       - name: Prepare the checked deployment branch
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: steps.decide.outputs.publish == 'true'
         env:
           CHECKED_MAIN: ${{ github.sha }}
         run: |
