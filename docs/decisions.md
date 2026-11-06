@@ -5552,6 +5552,50 @@ screen by about five seconds, so it waits for that screen.
 - **Not covered yet:** choosing the number of factors (parallel analysis,
   for example), cross-loadings, and items with different loadings.
 
+
+## 2026-11-06 · Random-intercept cross-lagged panel model (E74)
+
+- **What:** a new card, E74, and design, `panel / riclpm`: power for one
+  lagged effect in a random-intercept cross-lagged panel model (Hamaker,
+  Kuiper and Grasman, 2015), two scores measured at three or more waves.
+  Reached from T1 ("Two scores measured over time, to see whether each
+  predicts later changes in the other") and the multilevel and
+  longitudinal family; E35's card now points to it.
+- **Why:** `next.md` item 3, the step after growth curves in the order the
+  maintainer decided on 4 November 2026 (powRICLPM, CRAN 0.2.1).
+- **Method:** powerkit's Spower experiment `p_riclpm()` calls
+  `powRICLPM::powRICLPM()` with one replication for each simulated study,
+  so powRICLPM generates the data and fits the model (lavaan's maximum
+  likelihood), and the experiment returns the Wald z test's p-value of the
+  lagged effect from that fit's estimate and standard error. Wrapping
+  powRICLPM in Spower, rather than calling it once for many replications,
+  gives the design powerkit's own sample-size search, seeds, check run and
+  R script; it costs about twice as long per study (0.13 s against 0.06 s
+  at 200 people and four waves).
+- **powRICLPM's conventions, kept:** the lagged effects are standardised
+  (powRICLPM sets the within-person residual variances so every
+  within-person part has variance 1); `constraints = "none"` by default,
+  with the effect from the first wave to the second tested, as in
+  powRICLPM's documentation, and the lagged effects held equal over time
+  as an option; reliability 1 by default. powRICLPM has no default for the
+  correlation between the random intercepts or the within-person
+  correlation, so the screen asks for both rather than supplying one.
+- **Route:** about 0.13 s per simulated study, so a preview (100 studies,
+  about 15 s), a full run of power in the app (1,000 studies, about two
+  and a half minutes), and a sample size by R script, as for mediation.
+- **Checks:** a spec check refuses lagged effects that aren't stationary
+  (powRICLPM's own condition) or that leave no valid residual covariance
+  with the within-person correlation given; the check run fits one study
+  of 20,000 people and compares the four lagged effects with the
+  population values.
+- **Validation** (`test-validation-riclpm.R`, chunk `riclpm`): a
+  simulation written separately (data drawn in base R, the model written
+  out in lavaan syntax) agrees with no allowance beyond Monte Carlo error;
+  Mulder's (2023) illustration is a placeholder for the maintainer.
+- **Not covered yet:** more than two scores, measurement error estimated
+  in the model (the STARTS model), and the traditional cross-lagged panel
+  model without random intercepts.
+
 ## 2026-11-06 · The online app: published daily, quiet tabs allowed to close, public pages on GitHub Pages
 
 The online app runs on Posit Connect Cloud, which charges usage credits

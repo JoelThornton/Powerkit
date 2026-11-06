@@ -371,6 +371,13 @@ design_description <- function(spec) {
       if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) "its coefficient, adjusting for other predictors" else "its coefficient"
     ),
+    "panel/riclpm" = sprintf(
+      "random-intercept cross-lagged panel model: %s and %s at %d waves; powRICLPM's simulation, lavaan's Wald z test of %s%s",
+      label("X"), label("Y"), as.integer(spec$population$waves),
+      switch(spec$target_test$effect, cross_lagged_xy = "the cross-lagged effect of X on Y", cross_lagged_yx = "the cross-lagged effect of Y on X",
+        autoregressive_x = "X's autoregressive effect", autoregressive_y = "Y's autoregressive effect"),
+      if (identical(spec$population$constraints %||% "none", "lagged")) " (lagged effects equal over time)" else " (from the first wave to the second; lagged effects free over time)"
+    ),
     "factor_analysis/efa" = sprintf(
       "exploratory factor analysis: will %d factor%s of %d items each in %s be recovered (loading %s)? psych's fa(), every factor's loadings with Tucker's congruence of at least %s",
       as.integer(spec$population$factors), if (spec$population$factors > 1) "s" else "", as.integer(spec$population$items_per_factor),
@@ -1487,6 +1494,20 @@ spower_script_inputs <- function(spec) {
         sprintf("quantile <- %s # the quantile of the outcome tested (0.5: the median)", r_code(pop$quantile %||% 0.5))
       }
     ),
+    riclpm = c(
+      sprintf("# X: %s; Y: %s (powRICLPM's A and B).", comment_text(v$X$label), comment_text(v$Y$label)),
+      sprintf("waves <- %s # measurement occasions", r_code(as.integer(pop$waves))),
+      sprintf("icc <- %s # share of each score's variance that is stable between people", r_code(as.numeric(pop$icc))),
+      sprintf("ri_cor <- %s # correlation between the random intercepts", r_code(as.numeric(pop$ri_correlation %||% 0))),
+      sprintf("ar_x <- %s # autoregressive effect of X (standardised, within people)", r_code(as.numeric(pop$autoregressive_x))),
+      sprintf("ar_y <- %s # autoregressive effect of Y", r_code(as.numeric(pop$autoregressive_y))),
+      sprintf("cl_xy <- %s # cross-lagged effect of X on Y", r_code(as.numeric(pop$cross_lagged_xy))),
+      sprintf("cl_yx <- %s # cross-lagged effect of Y on X", r_code(as.numeric(pop$cross_lagged_yx))),
+      sprintf("within_cor <- %s # correlation of X's and Y's within-person parts at each wave", r_code(as.numeric(pop$within_correlation %||% 0))),
+      sprintf("reliability <- %s # each score's reliability (1: no measurement error)", r_code(as.numeric(pop$reliability %||% 1))),
+      sprintf("constraints <- %s # \"none\": lagged effects free over time; \"lagged\": equal over time", r_code(pop$constraints %||% "none")),
+      sprintf("effect <- %s # the lagged effect tested", r_code(spec$target_test$effect))
+    ),
     efa = c(
       sprintf("factors <- %s # the number of factors", r_code(as.integer(pop$factors))),
       sprintf("items <- %s # items loading on each factor (%s)", r_code(as.integer(pop$items_per_factor)), comment_text(v$Y$label)),
@@ -1765,6 +1786,11 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "method = method",
       if (identical(spec$target_test$method, "quantile_regression")) "quantile = quantile"
     ),
+    riclpm = c(
+      "n = batch_n, # sample size (people)",
+      "waves = waves,", "icc = icc,", "ri_cor = ri_cor,", "ar_x = ar_x,", "ar_y = ar_y,", "cl_xy = cl_xy,",
+      "cl_yx = cl_yx,", "within_cor = within_cor,", "reliability = reliability,", "constraints = constraints,", "effect = effect"
+    ),
     efa = c(
       "n = batch_n, # sample size",
       "factors = factors,", "items = items,", "loading = loading,", "phi = phi,", "congruence = congruence"
@@ -1954,6 +1980,30 @@ spower_derived_lines <- function(spec) {
       "  }",
       "  fit <- lm(y ~ ., data = data)",
       "  car::linearHypothesis(fit, \"x = 0\", white.adjust = sub(\"ols_\", \"\", method))[2, \"Pr(>F)\"]",
+      "}"
+    ),
+    riclpm = c(
+      "# The experiment, as powerkit runs it: powRICLPM simulates one study and",
+      "# fits the random-intercept cross-lagged panel model with lavaan (with one",
+      "# replication, its \"average\" is the estimate and \"SEAvg\" the standard",
+      "# error); the lagged effect is tested by the Wald z test. Phi has outcomes",
+      "# in rows and predictors in columns; X is A and Y is B. With constraints",
+      "# \"none\" the effect from the first wave to the second is tested. A fit",
+      "# that fails or is inadmissible (discarded by powRICLPM) gives NA.",
+      "p_riclpm <- function(n, waves, icc, ri_cor, ar_x, ar_y, cl_xy, cl_yx, within_cor, reliability, constraints,",
+      "                     effect, alternative = \"two.sided\") {",
+      "  phi <- matrix(c(ar_x, cl_yx, cl_xy, ar_y), 2, byrow = TRUE)",
+      "  out <- tryCatch(suppressMessages(suppressWarnings(powRICLPM::powRICLPM(sample_size = n, time_points = waves,",
+      "    ICC = icc, RI_cor = ri_cor, Phi = phi, within_cor = within_cor, reliability = reliability, reps = 1,",
+      "    constraints = constraints))), error = function(e) NULL)",
+      "  if (is.null(out)) return(NA_real_)",
+      "  est <- out$conditions[[1]]$estimates",
+      "  parameter <- switch(effect, cross_lagged_xy = \"wB2~wA1\", cross_lagged_yx = \"wA2~wB1\",",
+      "    autoregressive_x = \"wA2~wA1\", autoregressive_y = \"wB2~wB1\")",
+      "  row <- est[est$parameter == parameter, ]",
+      "  if (!nrow(row) || !is.finite(row$SEAvg[1]) || row$SEAvg[1] <= 0) return(NA_real_)",
+      "  z <- row$average[1] / row$SEAvg[1]",
+      "  switch(alternative, two.sided = 2 * pnorm(-abs(z)), greater = pnorm(z, lower.tail = FALSE), less = pnorm(z))",
       "}"
     ),
     efa = c(

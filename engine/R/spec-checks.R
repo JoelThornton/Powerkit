@@ -37,7 +37,8 @@ population_problems <- function(spec) {
     irt = check_irt,
     signal_detection = check_dprime,
     mixture = check_lpa,
-    factor_analysis = function(spec) character()
+    factor_analysis = function(spec) character(),
+    panel = check_riclpm
   )
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
@@ -2949,6 +2950,9 @@ minimum_n <- function(spec) {
       factor_correlation = sum(unlist(spec$population$indicators)) + 1,
       latent_regression = spec$population$indicators * (length(spec$population$slopes) + 1) + 1
     ),
+    # More people than observed scores (two at each wave), so that the
+    # sample covariance matrix can be positive definite.
+    panel = 2 * spec$population$waves + 1,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
   )
@@ -3233,6 +3237,8 @@ target_effect_is_zero <- function(spec) {
     signal_detection = diff(as.numeric(unlist(pop$dprime))),
     mixture = pop$separation,
     factor_analysis = pop$loading,
+    panel = switch(spec$target_test$effect %||% "cross_lagged_xy", cross_lagged_xy = pop$cross_lagged_xy,
+      cross_lagged_yx = pop$cross_lagged_yx, autoregressive_x = pop$autoregressive_x, autoregressive_y = pop$autoregressive_y),
     reliability = switch(spec$template,
       icc = pop$icc - pop$icc_null,
       cronbach_alpha = pop$reliability - pop$reliability_null,
@@ -3503,4 +3509,26 @@ check_lpa <- function(spec) {
     problems <- c(problems, sprintf("'population > shares' should add up to 1; they add up to %s.", format(signif(sum(shares), 4))))
   }
   problems
+}
+
+# Random-intercept cross-lagged panel model: the lagged effects must make a
+# stationary process (the eigenvalues of Phi inside the unit circle, as
+# powRICLPM requires), and with the within-person parts at variance 1 and
+# correlating within_correlation, the residual covariance left after the
+# lagged effects must be a valid covariance matrix.
+check_riclpm <- function(spec) {
+  pop <- spec$population
+  needed <- c("autoregressive_x", "autoregressive_y", "cross_lagged_xy", "cross_lagged_yx")
+  if (!all(vapply(needed, function(k) is.numeric(pop[[k]]), logical(1)))) return(character())
+  phi <- riclpm_phi(pop$autoregressive_x, pop$autoregressive_y, pop$cross_lagged_xy, pop$cross_lagged_yx)
+  if (any(Mod(eigen(phi, only.values = TRUE)$values) >= 1)) {
+    return("These autoregressive and cross-lagged effects are too large together: the scores would grow without limit over the waves. Use smaller lagged effects.")
+  }
+  r <- pop$within_correlation %||% 0
+  within <- matrix(c(1, r, r, 1), 2)
+  residual <- within - phi %*% within %*% t(phi)
+  if (any(eigen(residual, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
+    return("These lagged effects and the correlation between X and Y at the same wave can't all hold: together they would explain more than all of a score's within-person variation. Use smaller lagged effects or a different correlation.")
+  }
+  character()
 }

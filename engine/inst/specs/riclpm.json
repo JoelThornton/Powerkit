@@ -1,0 +1,44 @@
+{
+  "spec_version": "0.1",
+  "design": "panel",
+  "template": "riclpm",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Stress"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Sleep problems"
+    }
+  },
+  "population": {
+    "metric": "standardised",
+    "waves": 4,
+    "icc": 0.5,
+    "ri_correlation": 0.3,
+    "autoregressive_x": 0.4,
+    "autoregressive_y": 0.3,
+    "cross_lagged_xy": 0.15,
+    "cross_lagged_yx": 0.1,
+    "within_correlation": 0.3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: replace with your reasoning."
+  },
+  "target_test": {
+    "effect": "cross_lagged_xy",
+    "method": "wald_z",
+    "alpha": 0.05,
+    "alternative": "two_sided"
+  },
+  "goal": {
+    "type": "power",
+    "n": 300
+  },
+  "options": {
+    "nrep": 200,
+    "seed": 20261106
+  }
+}

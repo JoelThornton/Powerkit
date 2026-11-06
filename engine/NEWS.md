@@ -1,3 +1,18 @@
+# powerkit 0.34.0
+
+* New design `panel / riclpm` (card E74): power for a lagged effect in a
+  random-intercept cross-lagged panel model (Hamaker, Kuiper and Grasman,
+  2015), two scores at three or more waves. powerkit's Spower experiment
+  `p_riclpm()` has powRICLPM (Mulder, 2023) simulate each study and fit the
+  model with lavaan, and tests the lagged effect by its Wald z test; a
+  cross-lagged or autoregressive effect, from the first wave to the second
+  (powRICLPM's default) or held equal over time, with reliability below 1
+  as an option. A preview and a full run of power in the app; a sample
+  size by R script. Spec checks refuse lagged effects that aren't
+  stationary or can't hold with the within-person correlation. Validated
+  against a simulation written separately in lavaan
+  (`test-validation-riclpm.R`, chunk `riclpm`). powRICLPM joins the
+  engine's imports and `renv.lock`; both sources are in `refs.bib`.
 # powerkit 0.33.2
 
 * The online app costs less to keep running. Its host charges for every
