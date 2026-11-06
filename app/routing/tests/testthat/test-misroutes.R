@@ -69,7 +69,9 @@ test_that("answers other than the simple ones leave at an honest end point", {
   # Equivalence is chosen on the aim screen, before the screening.
   expect_all_routes(c(screen_score, "Once"), "E36", ctx = list(goal = "equivalence"))
   expect_identical(start_exit(tree, list(aim = "estimate")), "E46")
-  for (id in c("E65", "E45")) {
+  # Interrupted time series calculate (PITS and REML, 6 November 2026).
+  expect_identical(tree$endpoints$E45$status, "runs_validation_in_progress")
+  for (id in c("E65")) {
     expect_identical(tree$endpoints[[id]]$status, "not_in_powerkit", label = id)
   }
   # Growth curves calculate (longpower, 5 November 2026).
@@ -153,14 +155,16 @@ test_that("segmented regression no longer reaches a t-test or a correlation, in 
   # route reached E2. Now every route stops at the longitudinal card first.
   expect_all_routes(segmented, "E45")
   card <- as.character(card_ui(tree, "E45"))
-  expect_match(card, "known breakpoint", fixed = TRUE)
-  expect_match(card, "added predictor in a regression", fixed = TRUE)
-  expect_match(card, "estimated from the data, a custom simulation is needed", fixed = TRUE)
+  expect_match(card, "intervention at a known point", fixed = TRUE)
+  expect_match(card, "segmented regression", fixed = TRUE)
+  expect_match(card, "breakpoint estimated from the data", fixed = TRUE)
   # Changed 17 October 2026 (maintainer): both directions, sourced to Zhang
   # et al. (2011), Table 1 (docs/card-sources.md).
   expect_match(card, "too optimistic when it's positive, too pessimistic when it's negative", fixed = TRUE)
-  # Until 17 October 2026 the card said "No ready-made tool" (docs/decisions.md).
-  expect_match(card, "A recently released package addresses the known-breakpoint case", fixed = TRUE)
+  # Until 17 October 2026 the card said "No ready-made tool"; until 6
+  # November 2026 that a recent package covered it; now it calculates
+  # (docs/decisions.md).
+  expect_no_match(card, "No ready-made tool", fixed = TRUE)
 })
 
 test_that("two measurements still reach the before/after tests, and one measurement can't reach a same-people test", {

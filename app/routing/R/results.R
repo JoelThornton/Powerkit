@@ -364,6 +364,16 @@ items_units <- function(text, spec) {
   text
 }
 
+# Interrupted time series: the write-up counts time points after the
+# intervention, with those before it fixed.
+its_units <- function(text, spec) {
+  b <- whole(spec$population$n_pre)
+  text <- gsub(" participants are needed in total", sprintf(" time points are needed after the intervention (with %s before it)", b), text, fixed = TRUE)
+  text <- gsub("power at this sample size is", sprintf("power with this many time points after the intervention (and %s before it) is", b), text, fixed = TRUE)
+  text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", sprintf("with \\2 time points after the intervention and %s before it", b), text)
+  text
+}
+
 # Dyadic data: the write-up counts pairs.
 dyad_units <- function(text) {
   text <- gsub(" participants are needed in total", " pairs are needed", text, fixed = TRUE)
@@ -596,6 +606,11 @@ result_sentences <- function(spec, result) {
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   # Dyadic data: n counts pairs.
   if (is_dyadic(spec)) out[] <- gsub(" participants in total", " pairs", out, fixed = TRUE)
+  # Interrupted time series: n counts the points after the intervention.
+  if (identical(spec$template, "its")) {
+    out[] <- gsub(" participants in total", sprintf(" time points after the intervention (and %s before)", whole(spec$population$n_pre)), out, fixed = TRUE)
+    out[] <- gsub("studies like this", "series like this", out, fixed = TRUE)
+  }
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   if (is_minimum_effect(spec)) out[["detail"]] <- paste(out[["detail"]], minimum_effect_sentence(spec))
@@ -2500,6 +2515,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   main <- c(main, critical_effect_sentence(result))
   if (is_meta(spec)) main <- meta_units(main)
   if (is_dyadic(spec)) main <- dyad_units(main)
+  if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, welch_population_note(spec))
@@ -2608,6 +2624,7 @@ ethics_text <- function(spec, result, fields, values) {
     })
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)
+  if (identical(spec$template, "its")) body <- its_units(body, spec)
   if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
