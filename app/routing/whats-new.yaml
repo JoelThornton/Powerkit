@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-06"
+    title: "A home page, and updates once a day"
+    text: >-
+      powerkit now has a home page, with the guide, at
+      joelthornton.github.io/Powerkit. The
+      online app now takes in the day's changes once a day rather than
+      after each one, so it restarts less often while you use it. If you
+      leave a page alone for 20 minutes the connection may close; your
+      answers on an input screen are kept in your browser and offered back.
+  - date: "2026-11-06"
     title: "Clearer input screens"
     text: >-
       The screens where you enter your numbers read more plainly: the box
