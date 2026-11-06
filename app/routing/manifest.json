@@ -4858,6 +4858,34 @@
         "Built": "R 4.5.0; ; 2026-04-23 21:37:20 UTC; unix"
       }
     },
+    "mclust": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "mclust",
+        "Version": "6.1.3",
+        "Date": "2026-07-03",
+        "Title": "Gaussian Mixture Modelling for Model-Based Clustering,\nClassification, and Density Estimation",
+        "Description": "Gaussian finite mixture models fitted via EM algorithm for\n  model-based clustering, classification, and density estimation, \n  including Bayesian regularization, dimension reduction for \n  visualisation, and resampling-based inference.",
+        "Authors@R": "c(person(\"Chris\", \"Fraley\", role = \"aut\"),\n             person(\"Adrian E.\", \"Raftery\", role = \"aut\",\n                    comment = c(ORCID = \"0000-0002-6589-301X\")),\n             person(\"Luca\", \"Scrucca\", role = c(\"aut\", \"cre\"),\n                    email = \"luca.scrucca@unibo.it\",\n                    comment = c(ORCID = \"0000-0003-3826-0484\")),\n             person(\"Thomas Brendan\", \"Murphy\", role = \"ctb\",\n                    comment = c(ORCID = \"0000-0002-5668-7046\")),\n             person(\"Michael\", \"Fop\", role = \"ctb\",\n                    comment = c(ORCID = \"0000-0003-3936-2757\")))",
+        "Depends": "R (>= 3.0)",
+        "Imports": "stats, utils, graphics, grDevices",
+        "Suggests": "knitr (>= 1.4), rmarkdown (>= 2.10), mix (>= 1.0), geometry\n(>= 0.4), MASS",
+        "License": "GPL (>= 2)",
+        "URL": "https://mclust-org.github.io/mclust/",
+        "VignetteBuilder": "knitr",
+        "Repository": "RSPM",
+        "ByteCompile": "true",
+        "NeedsCompilation": "yes",
+        "LazyData": "yes",
+        "Encoding": "UTF-8",
+        "Packaged": "2026-07-03 15:36:03 UTC; luca",
+        "Author": "Chris Fraley [aut],\n  Adrian E. Raftery [aut] (ORCID:\n    <https://orcid.org/0000-0002-6589-301X>),\n  Luca Scrucca [aut, cre] (ORCID:\n    <https://orcid.org/0000-0003-3826-0484>),\n  Thomas Brendan Murphy [ctb] (ORCID:\n    <https://orcid.org/0000-0002-5668-7046>),\n  Michael Fop [ctb] (ORCID: <https://orcid.org/0000-0003-3936-2757>)",
+        "Maintainer": "Luca Scrucca <luca.scrucca@unibo.it>",
+        "Date/Publication": "2026-07-05 06:10:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:40:28 UTC; unix"
+      }
+    },
     "memoise": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6133,7 +6161,7 @@
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, ARTool, BayesFactor, bayestestR, bfpwr, brunnermunzel,\ncar, digest, effectsize, Hmisc, ICC.Sample.Size,\nInteractionPoweR, irtpwr, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, kappaSize, PMCMRplus, POMADE, presize, lme4,\nlmerTest, longpower, manymome, MBESS, nnet, gsl, metafor,\nmetapower, mirt, parallel, pbkrtest, psych, quantreg,\npower4mome, pwr, powertools, powerSurvEpi, pscl, pwrss, PUMP,\nsemPower, simr, SimDesign, statpsych, Spower (>= 0.7), stats,\nSuppDists, survival, Superpower, TOSTER, vegan, utils, WebPower",
+        "Imports": "afex, ARTool, BayesFactor, bayestestR, bfpwr, brunnermunzel,\ncar, digest, effectsize, Hmisc, ICC.Sample.Size,\nInteractionPoweR, irtpwr, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, kappaSize, PMCMRplus, POMADE, presize, lme4,\nlmerTest, longpower, manymome, mclust, MBESS, nnet, gsl,\nmetafor, metapower, mirt, parallel, pbkrtest, psych, quantreg,\npower4mome, pwr, powertools, powerSurvEpi, pscl, pwrss, PUMP,\nsemPower, simr, SimDesign, statpsych, Spower (>= 0.7), stats,\nSuppDists, survival, Superpower, TOSTER, vegan, utils, WebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -6143,19 +6171,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "3340dd8c11a7495c002628e01f5c081a8cd601aa",
-        "RemoteSha": "3340dd8c11a7495c002628e01f5c081a8cd601aa",
+        "RemoteRef": "97abe50565d8a0ffb5934afd0407ca43fa6fbda4",
+        "RemoteSha": "97abe50565d8a0ffb5934afd0407ca43fa6fbda4",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "3340dd8c11a7495c002628e01f5c081a8cd601aa",
-        "GithubSHA1": "3340dd8c11a7495c002628e01f5c081a8cd601aa",
+        "GithubRef": "97abe50565d8a0ffb5934afd0407ca43fa6fbda4",
+        "GithubSHA1": "97abe50565d8a0ffb5934afd0407ca43fa6fbda4",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-05 23:13:41 UTC; runner",
+        "Packaged": "2026-11-06 08:10:40 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-05 23:13:59 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-06 08:10:58 UTC; unix"
       }
     },
     "powertools": {
@@ -8361,10 +8389,10 @@
       "checksum": "b14a1e271c7be7ec6314d81744053c62"
     },
     "forms.yaml": {
-      "checksum": "4006903bfcb8de3b7a66e5c7098e507b"
+      "checksum": "4569fce52ef6d8102e58313f519d1a4c"
     },
     "methods-map.yaml": {
-      "checksum": "6f48dcf1bc6e92e2e8283cd2b7ccf3df"
+      "checksum": "4efc3071c4758bb959c8ae19befec474"
     },
     "R/about.R": {
       "checksum": "a4f5c64a533504a8bc5ffefd5a5fc9b4"
@@ -8385,7 +8413,7 @@
       "checksum": "efa3a12b6ac055c939d58d77ac2381da"
     },
     "R/forms.R": {
-      "checksum": "94bae7e274d2e4cd6537c803303bb746"
+      "checksum": "a9ca4f88a5fe405c5620753b36ab93f9"
     },
     "R/input-support.R": {
       "checksum": "bdf0e5767132a553068c033f7e5f520e"
@@ -8403,7 +8431,7 @@
       "checksum": "23e6eed5ff5f012fdb8a5f2df34c6c0e"
     },
     "R/results.R": {
-      "checksum": "3e49dea5d1a733d6d3edea41ce25ba33"
+      "checksum": "181492f4272d064f7ed4b19397ebae43"
     },
     "R/sample.R": {
       "checksum": "5a2faf0bd5eeff5c04489743edadd733"
@@ -8433,10 +8461,10 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "7f769c04eed0ee4f7b7bb477c357ac03"
+      "checksum": "0076a59a5cf5af6706a036412a3be58a"
     },
     "whats-new.yaml": {
-      "checksum": "0ae41f1a3c78a3e7d05ca6b840663361"
+      "checksum": "8947e4a004ce09eaba6dd980e2517708"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

@@ -126,6 +126,7 @@ endpoints:
   E70: model
   E71: model
   E72: t
+  E73: model
   E-bayes: bayes
 
 relations:
