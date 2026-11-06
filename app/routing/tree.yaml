@@ -442,6 +442,7 @@ nodes:
       - {label: "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)", next: E37}
       - {label: "That a test's items work the same way in two groups (differential item functioning, in item response theory)", next: E71, help: "e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
       - {label: "That people tell a signal from noise better in one condition or group than another (sensitivity, d', in signal detection)", next: E72, help: "e.g. recognition memory is better after deep than after shallow encoding, measured as d' from hits and false alarms."}
+      - {label: "That a questionnaire's items form the factors you expect, found by exploratory factor analysis", next: E73, help: "e.g. that 15 wellbeing items form three factors, without fixing in advance which item belongs to which."}
       - {label: "That people fall into distinct types or profiles", next: E58, help: "e.g. finding groups of students with different patterns of motivation (latent profile or latent class analysis)."}
 
   # A difference ------------------------------------------------------------
@@ -801,12 +802,12 @@ closing_questions:
     card_notes: {E46: "The sample size for a confidence-interval width, or the width at a given sample size; no power.", E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning.", E8: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."}
     setting: [analysis_types, observed_power]
     applies_to: all
-  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all, not_for: [E46]}
+  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all, not_for: [E46, E58, E73]}
   - {doc_id: Q-power, text: "What power do you want?", applies_to: all, not_for: [E46]}
   - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks, applies_to: all}
   - {doc_id: Q-attr, text: "How many participants do you expect to lose?", applies_to: all, not_for: [E50, E61]}
   - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all, not_for: [E46]}
-  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all, not_for: [E46]}
+  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all, not_for: [E46, E58, E73]}
 
 # Added by the app to every question, in every route (and to the end-point
 # list): leads to a card saying powerkit can't advise on the design yet.
@@ -1654,18 +1655,37 @@ endpoints:
   E58:
     doc_name: "Latent profile or latent class analysis (how many types of people, and who belongs to which)"
     plain_name: "Finding types or profiles of people (latent profile or latent class analysis)"
-    status: not_in_powerkit
-    no_ready_made_tool: true
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
+    search_words: "latent profile analysis lpa latent class analysis lca mixture model clusters types subgroups profiles class enumeration bic mclust person-centred"
+    template: "mixture / lpa"
+    backend: "Spower: powerkit's experiment around mclust (latent profile models with equal variances and local independence, fitted with 1 to k + 1 profiles, the BIC choosing among them), simulated"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-lpa.R, note: "Agrees with the same model fitted by an expectation-maximisation algorithm written separately, with the BIC computed by hand, in three cases from a clear to a hard enumeration. Not yet checked against a published simulation table."}
     card_points:
-      - "The question here is not a significance test: it is whether your sample can find the right number of profiles (class enumeration) and sort people into them reliably. No power formula answers that, so it is planned from published simulation studies, or from a simulation of your own model."
+      - "The question here is not a significance test: it is whether your sample can find the right number of profiles (class enumeration). powerkit simulates studies from the profiles you expect, fits latent profile models with 1 up to one more than that number of profiles (mclust), and counts how often the BIC chooses the right number: the study's chance of finding it."
       - "Separation between profiles matters more than sample size. In Tein, Coxe and Cham's (2013) simulations, no sample size up to 1,000 reliably found the right number of profiles when profiles differed by a small or medium amount on each indicator (Cohen's d of .2 or .5); at d = .8, it took at least 500 people and 10 or more indicators; at d = 1.5, 250 people were enough for most criteria."
       - "As a working range, Nylund-Gibson and Choi (2018) suggest that about 300 to 1,000 people is where the usual criteria work adequately; the median sample in published latent profile studies was 377 in Tein and colleagues' review and 494 in Spurk and colleagues' (2020). A small profile needs more people: with a class of 5% of 200 people, its estimates were poor (Nylund, Asparouhov and Muthén, 2007)."
-      - "Choose the number of profiles with the BIC and the bootstrap likelihood ratio test (BLRT), which did best in these simulations (Nylund, Asparouhov and Muthén, 2007; Tein, Coxe and Cham, 2013). Entropy describes how cleanly people are classified (above .80 is usually called good) but is not a way to choose the number of profiles."
-      - "For a plan of your own, simulate data from the profiles you expect and fit the models you will fit: Mplus's Monte Carlo facility does this (Nylund-Gibson and Choi, 2018, point to example 12.4 of its user's guide)."
-    inputs: ["The number of profiles you expect", "How far apart they are on each indicator", "The number of indicators", "The size of the smallest profile"]
-    tier: later
+      - "powerkit uses the BIC, which did best with the bootstrap likelihood ratio test in these simulations (Nylund, Asparouhov and Muthén, 2007; Tein, Coxe and Cham, 2013); the bootstrap test is too slow to simulate here. Entropy describes how cleanly people are classified but is not a way to choose the number of profiles."
+      - "Assumes score indicators, profiles that are equally far apart on every indicator, the same spread within each profile and indicators unrelated within a profile (the usual latent profile model). Yes/no indicators (latent class analysis) and other shapes are not covered yet."
+    inputs: ["The scores the profiles are formed from", "The profiles you expect"]
+    tier: v2
+    alternatives: ["the bootstrap likelihood ratio test, which needs many model fits per study (Mplus's Monte Carlo facility, or tidyLPA)", "a cluster analysis, such as k-means, which doesn't model profiles statistically"]
+  E73:
+    doc_name: "Exploratory factor analysis (EFA): recovering the factors"
+    plain_name: "Whether an exploratory factor analysis will recover the factors you expect"
+    search_words: "exploratory factor analysis efa factor loadings communality factor structure questionnaire scale development principal axis minres oblimin promax congruence tucker sample size subjects per item"
+    template: "factor_analysis / efa"
+    backend: "Spower: powerkit's experiment around psych's fa() (minimum residual, oblimin rotation), every factor's loadings recovered with Tucker's congruence at the level asked, simulated"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-efa.R, note: "Agrees with fits by base R's factanal() (maximum likelihood) on data drawn separately, with congruence and matching computed separately, within 0.03 in three cases. Not yet checked against a published table."}
+    card_points:
+      - "An exploratory factor analysis has no significance test to power: the question is whether your sample is large enough to recover the factors' loadings. powerkit simulates studies from the factor structure you expect, fits the factor analysis researchers usually run (psych's fa(), minimum residual with oblimin rotation), and counts how often every factor's loadings match the true ones (Tucker's congruence of at least .95 by default)."
+      - "The sample size needed depends on how strongly the items measure their factors (the communalities, the loadings squared) and how many items each factor has, not on a fixed ratio of people to items (MacCallum, Widaman, Zhang and Hong, 1999): strong loadings and four or more items per factor can need few people; weak loadings need many."
+      - "Assumes each item loads on one factor (simple structure) with the same loading, and that you fit the right number of factors. Choosing the number of factors (parallel analysis, for example) and cross-loadings are not covered yet."
+    inputs: ["The questionnaire and its factors", "How strongly the items measure their factors", "What counts as recovering the factors"]
+    tier: v2
+    alternatives: ["a confirmatory factor analysis, when you know which item belongs to which factor (the latent-variable card)", "principal components analysis, which summarises the items rather than modelling factors"]
   E71:
     doc_name: "Differential item functioning (DIF) in a 2PL IRT model, two groups"
     plain_name: "Whether a test's items work the same way in two groups (differential item functioning)"
@@ -2267,7 +2287,7 @@ analysis_families:
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
   - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E45, E65]}
-  - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, IRT, profiles)", endpoints: [E37, E71, E58]}
+  - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, EFA, IRT, profiles)", endpoints: [E37, E73, E71, E58]}
   - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
   - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}
   - {id: equivalence, label: "Showing there's no meaningful effect (equivalence, non-inferiority)", endpoints: [E36]}

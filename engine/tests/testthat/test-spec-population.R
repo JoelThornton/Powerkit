@@ -319,6 +319,7 @@ zero_effect_cases <- list(
   growth_curve = function(s) within(s, population$slope_difference <- 0),
   irt_dif = function(s) within(s, population$b_shift <- list(0)),
   dprime = function(s) within(s, population$dprime <- list(1, 1)),
+  lpa = function(s) within(s, population$separation <- 0),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   anova_oneway_ancova = function(s) within(s, population$means <- list(18, 18, 18)),
   # Equal means make every contrast zero, whatever its weights.
@@ -345,8 +346,9 @@ test_that("a zero target effect can't be the basis of a sample size search", {
   # schema requires), so they aren't in this list. Nor is model fit for a
   # structural equation model: the schema refuses an RMSEA of 0, because
   # semPower does. Precision planning has no power goal: an expected
-  # value of zero is a value like any other to estimate.
-  expect_setequal(names(zero_effect_cases), grep("^(generic|tost|noninf|sem|precision)_", example_spec_names(), value = TRUE, invert = TRUE))
+  # value of zero is a value like any other to estimate. An exploratory
+  # factor analysis can't have a loading of 0 either: the schema refuses it.
+  expect_setequal(names(zero_effect_cases), grep("^(generic|tost|noninf|sem|precision)_|^efa$", example_spec_names(), value = TRUE, invert = TRUE))
   for (name in names(zero_effect_cases)) {
     spec <- zero_effect_cases[[name]](example_spec(name))
     spec$goal <- list(type = "sample_size", power = 0.8)
