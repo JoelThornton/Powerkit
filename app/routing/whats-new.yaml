@@ -14,6 +14,20 @@ entries:
       which details are optional. Long notes lead with one plain sentence,
       with the detail a click away.
   - date: "2026-11-05"
+    title: "Plan an exploratory factor analysis"
+    text: >-
+      Developing a questionnaire? powerkit now works out how likely an
+      exploratory factor analysis of your sample is to recover the factors
+      you expect, from how many items each factor has and how strongly they
+      load, rather than from a rule of thumb about people per item.
+  - date: "2026-11-05"
+    title: "Plan a latent profile analysis"
+    text: >-
+      For studies that look for types or profiles of people, powerkit now
+      works out how likely your sample is to find the right number of
+      profiles, from how far apart you expect them to be, how many scores
+      you measure and how big each profile is.
+  - date: "2026-11-05"
     title: "Signal detection: plan a study of d'"
     text: >-
       powerkit can now plan studies that compare how well people tell a

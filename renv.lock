@@ -201,6 +201,20 @@
       ],
       "Hash": "e269e430654fea10590ea3d826598faa"
     },
+    "mclust": {
+      "Package": "mclust",
+      "Version": "6.1.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "grDevices",
+        "graphics",
+        "stats",
+        "utils"
+      ],
+      "Hash": "7649fab3f15e44dc73e7296440d95ee5"
+    },
     "Matrix": {
       "Package": "Matrix",
       "Version": "1.7-4",
