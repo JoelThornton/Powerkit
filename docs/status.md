@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 6 November 2026 (powerkit 0.34.0). This page says where the
+*Last updated: 6 November 2026 (powerkit 0.34.1). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
 planned work that had no queue item, 6 November 2026). History is in git,
@@ -36,6 +36,11 @@ fully validated. Validation runs are recorded in
   "What you want to test" is chosen, which leaves that section looking
   empty; the result page is long. An AI walkthrough is no substitute for
   the human sessions the pack describes.
+
+- **Documents:** the pre-replication notes and the study-planning document
+  save as a typeset PDF through the browser's print window
+  (`R/documents.R`), as well as Markdown for editing. Other downloads (R
+  scripts, citations, project files) are files, not documents.
 
 - **Validation checkpoints:** source/lock/installed-package/R fingerprints
   prevent old saved passes being reused for a different calculation context.

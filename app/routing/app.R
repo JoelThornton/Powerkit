@@ -43,6 +43,7 @@ source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
 source(file.path("R", "connection.R"), local = TRUE)
+source(file.path("R", "documents.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
 forms <- load_forms("forms.yaml")
@@ -704,7 +705,7 @@ ui <- function(req) fluidPage(
   tags$head(tags$title("Powerkit: power analysis and sample size planning (prototype)"),
     tags$meta(name = "description", content = "Plan sample size, statistical power and precision for your study. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
     tags$link(rel = "canonical", href = paste0(public_address, "/")),
-    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
+    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$script(HTML(documents_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
   connection_ui(),
@@ -1463,6 +1464,11 @@ server <- function(input, output, session) {
         tags$tbody(lapply(seq_len(nrow(compared)), function(i) tags$tr(lapply(compared[i, ], tags$td)))))))
   })
 
+  observeEvent(input$planning_document, send_document(session, function() {
+    stopifnot(calculation_matches_values(state$calc, current_form_values()))
+    stopifnot(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
+    printable_document(planning_document(tree, forms, state$calc), powerkit_version())
+  }))
   output$download_planning_document <- downloadHandler(
     filename = function() "powerkit-study-planning.md",
     content = function(file) {
@@ -1705,6 +1711,7 @@ server <- function(input, output, session) {
     filename = function() sprintf("pre-replication-notes-%s.md", format(Sys.Date())),
     content = function(file) writeLines(labs_text(), file, useBytes = TRUE)
   )
+  observeEvent(input$labs_document, send_document(session, function() printable_document(labs_text(), powerkit_version())))
   observeEvent(input$labs_copy, {
     text <- labs_text()
     output$labs_copy_text <- renderUI(div(class = "form-field mt-2",

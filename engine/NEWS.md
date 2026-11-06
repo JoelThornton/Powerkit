@@ -1,3 +1,13 @@
+# powerkit 0.34.1
+
+* The pre-replication notes (Labs) and the study-planning document can be
+  saved as a proper PDF. "Save as PDF or print" and "Planning document
+  (PDF)" typeset the document as a page of its own (`R/documents.R`;
+  title, headings, the citation and powerkit's version, A4 margins) and the
+  browser prints that page alone, so its "Save as PDF" gives a clean
+  document. The old button printed the app's screen. The Markdown downloads
+  stay, for editing. Anything typed is shown as text, never as markup.
+
 # powerkit 0.34.0
 
 * Interrupted time series calculate (card E45, new design

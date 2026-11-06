@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-06"
+    title: "Save your notes and plans as a PDF"
+    text: >-
+      The pre-replication notes in Labs and the planning document on a
+      result now save as a proper document: press the PDF button and choose
+      "Save as PDF" in the print window. Before, printing gave a picture of
+      powerkit's screen. The editable Markdown versions are still there.
+  - date: "2026-11-06"
     title: "Interrupted time series"
     text: >-
       powerkit can now plan a study of one series measured over time, such
