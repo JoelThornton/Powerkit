@@ -3133,16 +3133,15 @@ forms:
     groups:
       - input: "The two scores and the waves"
         fields:
-          - {id: X_label, label: "The first score, X (for example, stress)", type: text, path: variables.X.label, optional: true}
-          - {id: Y_label, label: "The second score, Y (for example, sleep problems)", type: text, path: variables.Y.label, optional: true}
+          - {id: X_label, label: "X, the first score (for example, stress)", type: text, path: variables.X.label, required: true}
+          - {id: Y_label, label: "Y, the second score (for example, sleep problems)", type: text, path: variables.Y.label, required: true}
           - {id: waves, label: "Number of waves (measurement occasions)", type: number, path: population.waves, required: true, min: 3, max: 15, integer: true,
              help: "The model needs at least three. More waves give each lagged effect more information."}
       - input: "The effect you want to test"
         fields:
           - {id: riclpm_effect, label: "Which lagged effect", type: select, path: target_test.effect, required: true,
              choices: {cross_lagged_xy: "X's effect on Y at the next wave (cross-lagged)", cross_lagged_yx: "Y's effect on X at the next wave (cross-lagged)",
-                       autoregressive_x: "X's effect on X at the next wave (autoregressive)", autoregressive_y: "Y's effect on Y at the next wave (autoregressive)"},
-             default: cross_lagged_xy, default_source: "a cross-lagged effect, the usual question of this model"}
+                       autoregressive_x: "X's effect on X at the next wave (autoregressive)", autoregressive_y: "Y's effect on Y at the next wave (autoregressive)"}}
           - {id: constraints, label: "Are the lagged effects the same at every wave?", type: select, path: population.constraints, required: true,
              choices: {none: "Not assumed: each wave's effects are estimated freely, and the effect from the first wave to the second is tested", lagged: "Yes: the lagged effects are held equal over time"},
              default: none, default_source: "estimated freely, powRICLPM's default (powRICLPM(constraints = 'none'))",
@@ -3162,7 +3161,7 @@ forms:
           - {id: within_correlation, label: "Correlation between X and Y at the same wave, within people", type: number, path: population.within_correlation, required: true, min_exclusive: -1, max_exclusive: 1,
              help: "How a person's ups and downs in X and Y go together at the same wave. powRICLPM keeps it the same at every wave."}
           - {id: reliability, label: "Each score's reliability (optional)", type: number, path: population.reliability, optional: true, min: 0.5, max: 1,
-             default: 1, default_source: "1, no measurement error, powRICLPM's default (powRICLPM(reliability = 1))",
+             default: 1, default_source: "no measurement error, powRICLPM's default (powRICLPM(reliability = 1))",
              help: "Below 1, measurement error is added to the simulated scores, and the model, which doesn't separate it out, is fitted as usual: power falls and the lagged effects are underestimated."}
 
   # Latent profile analysis (Spower simulation of powerkit's experiment
