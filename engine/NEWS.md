@@ -1,3 +1,11 @@
+# powerkit 0.34.1
+
+* A link straight to Labs (`?page=labs`, for example the guide's link to
+  a Labs tool) no longer leaves the "Starting powerkit" screen over the
+  page. It went only when the main screen arrived, which a page opened on
+  another tab never draws; it now also goes once the connected app is
+  first idle (`R/connection.R`).
+
 # powerkit 0.34.0
 
 * Interrupted time series calculate (card E45, new design
