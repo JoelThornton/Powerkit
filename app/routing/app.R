@@ -1469,6 +1469,13 @@ server <- function(input, output, session) {
     stopifnot(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
     printable_document(planning_document(tree, forms, state$calc), powerkit_version())
   }))
+  output$download_planning_docx <- downloadHandler(
+    filename = function() "powerkit-study-planning.docx",
+    content = function(file) {
+      req(calculation_matches_values(state$calc, current_form_values()))
+      req(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
+      docx_document(planning_document(tree, forms, state$calc), file, powerkit_version())
+    })
   output$download_planning_document <- downloadHandler(
     filename = function() "powerkit-study-planning.md",
     content = function(file) {
@@ -1706,12 +1713,16 @@ server <- function(input, output, session) {
   })
   observeEvent(input$map_plan_confirm, { removeModal(); map_start_plan(input$map_plan) })
   output$labs_next <- renderUI(labs_next_ui(input$labs_outcome, nzchar(input$labs_test %||% "")))
-  labs_text <- function() labs_markdown(labs_answers(), input$labs_outcome, labs_sde_notes())
+  labs_text <- function() labs_report(labs_answers(), input$labs_outcome, labs_sde_notes())
+  output$labs_docx <- downloadHandler(
+    filename = function() sprintf("%s-%s.docx", labs_file_stem(input$labs_outcome), format(Sys.Date())),
+    content = function(file) docx_document(strsplit(labs_text(), "\n", fixed = TRUE)[[1]], file, powerkit_version())
+  )
   output$labs_download <- downloadHandler(
-    filename = function() sprintf("pre-replication-notes-%s.md", format(Sys.Date())),
+    filename = function() sprintf("%s-%s.md", labs_file_stem(input$labs_outcome), format(Sys.Date())),
     content = function(file) writeLines(labs_text(), file, useBytes = TRUE)
   )
-  observeEvent(input$labs_document, send_document(session, function() printable_document(labs_text(), powerkit_version())))
+  observeEvent(input$labs_document, send_document(session, function() printable_document(strsplit(labs_text(), "\n", fixed = TRUE)[[1]], powerkit_version())))
   observeEvent(input$labs_copy, {
     text <- labs_text()
     output$labs_copy_text <- renderUI(div(class = "form-field mt-2",

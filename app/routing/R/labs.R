@@ -141,11 +141,53 @@ labs_refs_path <- function() {
 
 labs_notes_heading <- function(outcome) {
   switch(outcome %||% "",
-    go = "These notes can go in the replication's preregistration or introduction, as a short justification of why this replication is worth running.",
-    change = "These notes explain why the plan changed from a straight replication, and can go in the new study's preregistration or introduction.",
-    not_worth = "A draft of a negative pre-replication report: a short note, like a correction or an expression of concern, saying why this finding is not worth replicating. It could be shared as a preprint, on OSF or as a commentary.",
+    go = "Your notes become a pre-replication section for the replication itself: the paper suggests a positive pre-replication goes inside the replication study (its preregistration or introduction), set out as the three assessments.",
+    change = "Your notes become a pre-replication section for the redesigned study, leading with how the design changes. The paper's point is to replicate the finding, not the study, with the design best able to reassess it.",
+    not_worth = "Your notes become a negative pre-replication report: a short note, like a correction or an expression of concern, in the shape of the paper's examples (\u201cPre-replication of\u201d the study, why replicating it would not be informative, and what would be more valuable). It could be shared as a preprint, on OSF or as a commentary.",
     "The author's own notes, before replicating a finding."
   )
+}
+
+# The document for where the user landed (Karhulahti et al., 2025): a
+# negative pre-replication report, shaped like the paper's appendix
+# examples, when the finding is not worth replicating; otherwise a
+# pre-replication section for the replication itself, under the paper's
+# three assessments, which the paper says belongs inside the replication
+# study. Built from the user's own answers; blank ones are left out. With
+# no outcome chosen, the full notes (labs_markdown()).
+labs_report <- function(answers, outcome = NULL, sde = NULL, citation = labs_citation()) {
+  if (is.null(outcome) || !outcome %in% names(labs_outcomes)) return(labs_markdown(answers, outcome, sde, citation))
+  a <- function(id) trimws(answers[[id]] %||% "")
+  join <- function(...) { x <- c(...); x <- x[nzchar(x)]; if (length(x)) paste(x, collapse = " ") else character(0) }
+  para <- function(...) { x <- join(...); if (length(x)) c(x, "") else character(0) }
+  sde_text <- if (is.null(sde)) "" else sde$sentence
+  study <- if (nzchar(a("labs_study"))) a("labs_study") else "[the original study]"
+  smallest <- if (nzchar(a("labs_smallest"))) paste("The smallest effect that would matter:", a("labs_smallest")) else ""
+  reference <- c("---", "", sprintf("Pre-replication as proposed by %s", citation))
+  if (identical(outcome, "not_worth")) {
+    lines <- c(sprintf("# Pre-replication of: %s", study), "",
+      para(a("labs_finding"), a("labs_goals"), smallest),
+      para(a("labs_quality"), a("labs_improve"), sde_text),
+      para(a("labs_value"), a("labs_alternatives")),
+      reference)
+  } else {
+    changed <- identical(outcome, "change")
+    lines <- c(if (changed) "# Pre-replication: a redesigned replication" else "# Pre-replication", "",
+      para(sprintf("**Finding:** %s", if (nzchar(a("labs_finding"))) a("labs_finding") else "[the finding]"),
+        sprintf("(original study: %s)", study)),
+      "## Epistemic assessment", "", para(a("labs_goals"), smallest),
+      "## Methodological assessment", "",
+      if (changed && nzchar(a("labs_improve"))) c(paste("**How the design changes:**", a("labs_improve")), ""),
+      para(a("labs_quality"), if (!changed) a("labs_improve"), sde_text),
+      "## Value assessment", "", para(a("labs_value"), a("labs_alternatives")),
+      reference)
+  }
+  paste(lines, collapse = "\n")
+}
+
+# The file name for the document.
+labs_file_stem <- function(outcome) {
+  switch(outcome %||% "", not_worth = "negative-pre-replication-report", go = , change = "pre-replication", "pre-replication-notes")
 }
 
 # `answers`: named list of the free-text boxes (labs_fields ids);
@@ -252,7 +294,8 @@ labs_ui <- function(tree) {
       uiOutput("labs_next"),
       div(class = "nav-buttons",
         print_document_button("labs_document", "Save as PDF or print", class = "btn btn-primary"),
-        download_button("labs_download", "Download (Markdown, to edit)", class = "btn btn-outline-primary"),
+        download_button("labs_docx", "Download for Word (.docx)", class = "btn btn-outline-primary"),
+        download_button("labs_download", "Download (Markdown)", class = "btn btn-outline-primary"),
         actionButton("labs_copy", "Copy the notes", class = "btn btn-outline-primary"),
         tags$button(type = "button", id = "labs_clear", class = "btn btn-link", onclick = "pkLabsClear()", "Clear notes")),
       div(id = "labs-copy-status", class = "visually-hidden", `aria-live` = "polite"),

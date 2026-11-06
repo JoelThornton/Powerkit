@@ -56,6 +56,12 @@ test('calculate, edit, save and reopen an actual project', async ({ page }, info
   const document = info.outputPath('study-planning.md');
   await download(page, 'download_planning_document', document);
   expect(await fs.readFile(document, 'utf8')).toContain('Does training improve recall?');
+  // The Word version is a real .docx (a zip holding word/document.xml).
+  const docx = info.outputPath('study-planning.docx');
+  await download(page, 'download_planning_docx', docx);
+  const bytes = await fs.readFile(docx);
+  expect(bytes.subarray(0, 2).toString()).toBe('PK');
+  expect(bytes.includes(Buffer.from('word/document.xml'))).toBe(true);
   // The PDF button prints a typeset document from a hidden frame: the plan,
   // without powerkit's screens.
   await page.locator('#planning_document_button').click();
@@ -69,6 +75,7 @@ test('calculate, edit, save and reopen an actual project', async ({ page }, info
   await expect(page.locator('#download_project')).toHaveAttribute('aria-disabled', 'true');
   await expect(page.locator('#download_planning_document')).toHaveAttribute('aria-disabled', 'true');
   await expect(page.locator('#planning_document_button')).toBeDisabled();
+  await expect(page.locator('#download_planning_docx')).toHaveAttribute('aria-disabled', 'true');
   await page.getByRole('button', { name: 'Start again', exact: true }).first().click();
   await page.locator('#open_project').setInputFiles(project);
   await expect(page.locator('#f_d')).toHaveValue('0.4');

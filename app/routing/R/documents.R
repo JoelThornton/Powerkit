@@ -46,6 +46,146 @@ printable_document <- function(markdown, version = NULL) {
   )
 }
 
+# --- Word (.docx) --------------------------------------------------------------
+#
+# The same Markdown as an editable Word document. A .docx is a zip of a few
+# XML files (Office Open XML, ECMA-376); it is written here from
+# commonmark's syntax tree with xml2 and zip, two small packages with no
+# system libraries, rather than officer, which brings ragg and its graphics
+# libraries to every publish. Covers what the documents use: headings,
+# paragraphs, lists, bold, italic, code, links and rules. Text is written
+# as text (XML-escaped), so nothing typed becomes markup.
+
+docx_escape <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  gsub(">", "&gt;", x, fixed = TRUE)
+}
+
+# The document.xml body and its hyperlink targets, from the Markdown.
+docx_body <- function(markdown) {
+  tree <- xml2::read_xml(commonmark::markdown_xml(paste(markdown, collapse = "\n"), extensions = TRUE, smart = TRUE))
+  xml2::xml_ns_strip(tree)
+  links <- character()
+  run <- function(text, f) {
+    props <- paste(c(if (isTRUE(f$link)) '<w:rStyle w:val="Hyperlink"/>', if (isTRUE(f$bold)) "<w:b/>",
+      if (isTRUE(f$italic)) "<w:i/>", if (isTRUE(f$code)) '<w:rFonts w:ascii="Consolas" w:hAnsi="Consolas"/>'), collapse = "")
+    sprintf('<w:r>%s<w:t xml:space="preserve">%s</w:t></w:r>', if (nzchar(props)) paste0("<w:rPr>", props, "</w:rPr>") else "", docx_escape(text))
+  }
+  inlines <- function(node, f = list()) {
+    parts <- vapply(xml2::xml_children(node), function(k) {
+      switch(xml2::xml_name(k),
+        text = , html_inline = run(xml2::xml_text(k), f),
+        code = run(xml2::xml_text(k), utils::modifyList(f, list(code = TRUE))),
+        emph = inlines(k, utils::modifyList(f, list(italic = TRUE))),
+        strong = inlines(k, utils::modifyList(f, list(bold = TRUE))),
+        softbreak = run(" ", f),
+        linebreak = "<w:r><w:br/></w:r>",
+        link = {
+          links <<- c(links, xml2::xml_attr(k, "destination"))
+          sprintf('<w:hyperlink r:id="rIdLink%d">%s</w:hyperlink>', length(links), inlines(k, utils::modifyList(f, list(link = TRUE))))
+        },
+        inlines(k, f))
+    }, "")
+    paste(parts, collapse = "")
+  }
+  para <- function(content, style = NULL) {
+    sprintf("<w:p>%s%s</w:p>", if (is.null(style)) "" else sprintf('<w:pPr><w:pStyle w:val="%s"/></w:pPr>', style), content)
+  }
+  blocks <- function(node, style = NULL) {
+    parts <- lapply(xml2::xml_children(node), function(k) {
+      switch(xml2::xml_name(k),
+        heading = para(inlines(k), paste0("Heading", min(3L, as.integer(xml2::xml_attr(k, "level"))))),
+        paragraph = para(inlines(k), style),
+        list = {
+          ordered <- identical(xml2::xml_attr(k, "type"), "ordered")
+          items <- xml2::xml_children(k)
+          unlist(lapply(seq_along(items), function(i) {
+            marker <- if (ordered) sprintf("%d.\t", i) else "•\t"
+            inner <- blocks(items[[i]], "ListParagraph")
+            # The marker opens the item's first paragraph.
+            inner[1] <- sub('</w:pPr>', paste0('</w:pPr>', run(marker, list())), inner[1], fixed = TRUE)
+            inner
+          }))
+        },
+        block_quote = blocks(k, "Quote"),
+        code_block = , html_block = para(run(sub("\n$", "", xml2::xml_text(k)), list(code = TRUE)), style),
+        thematic_break = '<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="A0A0A0"/></w:pBdr></w:pPr></w:p>',
+        blocks(k, style))
+    })
+    unlist(parts)
+  }
+  list(body = paste(blocks(tree), collapse = ""), links = links)
+}
+
+docx_styles <- paste0(
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+  '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">',
+  '<w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Georgia" w:hAnsi="Georgia" w:cs="Georgia"/><w:sz w:val="22"/><w:lang w:val="en-GB"/></w:rPr></w:rPrDefault>',
+  '<w:pPrDefault><w:pPr><w:spacing w:after="140" w:line="300" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>',
+  '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>',
+  '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/>',
+  '<w:pPr><w:keepNext/><w:spacing w:before="0" w:after="240"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:b/><w:sz w:val="34"/></w:rPr></w:style>',
+  '<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/>',
+  '<w:pPr><w:keepNext/><w:spacing w:before="320" w:after="120"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:b/><w:sz w:val="26"/></w:rPr></w:style>',
+  '<w:style w:type="paragraph" w:styleId="Heading3"><w:name w:val="heading 3"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/>',
+  '<w:pPr><w:keepNext/><w:spacing w:before="240" w:after="80"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:b/><w:sz w:val="22"/></w:rPr></w:style>',
+  '<w:style w:type="paragraph" w:styleId="ListParagraph"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normal"/><w:qFormat/>',
+  '<w:pPr><w:spacing w:after="60"/><w:ind w:left="720" w:hanging="360"/></w:pPr></w:style>',
+  '<w:style w:type="paragraph" w:styleId="Quote"><w:name w:val="Quote"/><w:basedOn w:val="Normal"/><w:qFormat/><w:pPr><w:ind w:left="720"/></w:pPr><w:rPr><w:i/></w:rPr></w:style>',
+  '<w:style w:type="paragraph" w:styleId="Footer"><w:name w:val="footer"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:before="360"/></w:pPr><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:color w:val="555555"/><w:sz w:val="18"/></w:rPr></w:style>',
+  '<w:style w:type="character" w:styleId="Hyperlink"><w:name w:val="Hyperlink"/><w:rPr><w:color w:val="0563C1"/><w:u w:val="single"/></w:rPr></w:style>',
+  '</w:styles>')
+
+# Writes the Markdown as a Word document at `file`.
+docx_document <- function(markdown, file, version = NULL) {
+  headings <- markdown[grepl("^#\\s+", markdown)]
+  title <- if (length(headings)) sub("^#\\s+", "", headings[1]) else "powerkit document"
+  built <- docx_body(markdown)
+  footer <- sprintf('<w:p><w:pPr><w:pStyle w:val="Footer"/></w:pPr><w:r><w:t xml:space="preserve">%s</w:t></w:r></w:p>',
+    docx_escape(sprintf("Made with powerkit%s.", if (is.null(version)) "" else paste0(" ", version))))
+  # A4, margins about 2 cm.
+  section <- '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1247" w:bottom="1134" w:left="1247" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>'
+  parts <- list(
+    "[Content_Types].xml" = paste0('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">',
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>',
+      '<Default Extension="xml" ContentType="application/xml"/>',
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>',
+      '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>',
+      '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>'),
+    "_rels/.rels" = paste0('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">',
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>',
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>'),
+    "docProps/core.xml" = paste0('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+      '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/">',
+      '<dc:title>', docx_escape(title), '</dc:title></cp:coreProperties>'),
+    "word/_rels/document.xml.rels" = paste0('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">',
+      '<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>',
+      paste(sprintf('<Relationship Id="rIdLink%d" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="%s" TargetMode="External"/>',
+        seq_along(built$links), docx_escape(built$links)), collapse = ""),
+      '</Relationships>'),
+    "word/styles.xml" = docx_styles,
+    "word/document.xml" = paste0('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" ',
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>',
+      built$body, footer, section, '</w:body></w:document>')
+  )
+  dir <- tempfile("powerkit-docx-")
+  on.exit(unlink(dir, recursive = TRUE), add = TRUE)
+  for (name in names(parts)) {
+    path <- file.path(dir, name)
+    dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+    writeLines(enc2utf8(parts[[name]]), path, useBytes = TRUE)
+  }
+  out <- normalizePath(file, mustWork = FALSE)
+  unlink(out)
+  zip::zip(out, files = names(parts), root = dir, mode = "mirror")
+  invisible(out)
+}
+
 # The button that prints a document: the server builds it when `id` is
 # clicked (observe it with send_document()).
 print_document_button <- function(id, label, class = "btn btn-outline-primary") {

@@ -38,9 +38,11 @@ fully validated. Validation runs are recorded in
   the human sessions the pack describes.
 
 - **Documents:** the pre-replication notes and the study-planning document
-  save as a typeset PDF through the browser's print window
-  (`R/documents.R`), as well as Markdown for editing. Other downloads (R
-  scripts, citations, project files) are files, not documents.
+  save as a typeset PDF (through the browser's print window), an editable
+  Word .docx and Markdown (`R/documents.R`). The pre-replication notes
+  become the document for where the user landed: a negative
+  pre-replication report, or a pre-replication section for the
+  replication (Karhulahti et al., 2025).
 
 - **Validation checkpoints:** source/lock/installed-package/R fingerprints
   prevent old saved passes being reused for a different calculation context.
