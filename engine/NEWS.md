@@ -1,3 +1,17 @@
+# powerkit 0.35.0
+
+* The smallest detectable effect for every equal-groups ANOVA layout
+  (one-way between and within, mixed, factorial between and within, three
+  factors): the pattern of means entered keeps its shape and is scaled
+  until the effect tested reaches the target power, as for the 2x2 designs
+  (`superpower_sensitivity()`). The result gives Cohen's f and the largest
+  difference between the scaled means, in the outcome's units.
+* The smallest detectable R-squared for multiple regression
+  (`regression_sensitivity()`): pwrss's own F-test power searched over the
+  partial R-squared, so no effect size is needed; it matches pwr's
+  `pwr.f2.test()`. The regression screen gets the "I don't know my effect
+  size" route, and a note while "What you want to test" is unchosen.
+
 # powerkit 0.34.0
 
 * Interrupted time series calculate (card E45, new design

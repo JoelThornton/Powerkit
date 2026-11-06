@@ -1070,13 +1070,17 @@ build_spec <- function(forms, ep_id, fields, values) {
 }
 
 # The value an empty effect size stands for: zero; group 1's proportion
-# (two proportions: no difference); or, for a table of proportions, equal
+# (two proportions: no difference); the reduced model's R-squared (no
+# increase); or, for a table of proportions, equal
 # proportions in every combination (no association).
 empty_effect <- function(f, values) {
   switch(
     f$when_empty %||% "zero",
     zero = "0",
     same_as_p1 = values$p1,
+    # Multiple regression's R-squared increase: no increase over the model
+    # without the tested predictors.
+    same_as_r2_reduced = values$r2_reduced %||% "0",
     no_association = {
       rows <- length(parse_levels(values$X_levels))
       cols <- length(parse_levels(values$Y_levels))

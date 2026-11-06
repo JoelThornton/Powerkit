@@ -6,6 +6,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-06"
+    title: "Not sure of your effect size? ANOVAs and regression too"
+    text: >-
+      Every ANOVA screen can now work out the smallest effect your sample
+      could detect: enter the pattern of means you expect and powerkit
+      scales it. Multiple regression can do it with no effect size at all,
+      through the "I don't know my effect size" button.
+  - date: "2026-11-06"
     title: "Interrupted time series"
     text: >-
       powerkit can now plan a study of one series measured over time, such
