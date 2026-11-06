@@ -335,7 +335,24 @@ is_dyadic <- function(spec) identical(spec$design, "dyadic")
 # What n counts, when it isn't participants: studies (a meta-analysis) or
 # pairs (dyadic data).
 n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else
+  if (identical(spec$template, "its")) "time points after the intervention" else
   if (identical(spec$goal$unit, "items")) "items" else NULL
+
+# Interrupted time series: how often the test finds a change that isn't
+# there in a series of the planned length (the engine's `type1`), shown
+# beside the power (the maintainer's decision of 6 November 2026).
+type1_sentence <- function(result) {
+  t1 <- result$type1
+  if (is.null(t1)) return(NULL)
+  sprintf(paste("With no real change, this analysis would still find a significant one in %s of series this long",
+    "(%s simulated, alpha %s; Monte Carlo SE %.1f percentage points). %s"),
+    percent(t1$rate), whole(t1$nrep), alpha_text(t1$alpha), 100 * t1$mcse,
+    if (t1$rate > t1$alpha + 2 * t1$mcse) {
+      "That is more than alpha, so part of the power above comes from false positives: a longer series, especially before the intervention, brings it closer to alpha."
+    } else {
+      "That is close to alpha, as it should be."
+    })
+}
 
 # The number of items as the sample size (E33): the write-up counts items,
 # with the participants fixed.
@@ -2093,6 +2110,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
+    if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
     if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",

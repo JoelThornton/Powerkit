@@ -77,6 +77,8 @@ form_examples <- list(
                alternative = "two_sided"), closing_ok),
   E58 = c(list(Y_label = "Motivation subscales", indicators = "8", profiles = "3", separation = "1.2", profile_sizes = "unequal",
                shares = "0.4, 0.4, 0.2"), closing_ok),
+  E45 = c(list(Y_label = "Monthly admissions", n_pre = "24", baseline = "15", pre_trend = "0", its_effect = "level",
+               level_change = "-3", slope_change = "0", sigma = "2.5", rho = "0.4", its_method = "gls_reml"), closing_ok),
   E73 = c(list(Y_label = "Wellbeing questionnaire", factors = "3", items_per_factor = "5", loading = "0.6", factor_correlation = "0.3",
                congruence = "0.95"), closing_ok),
   E71 = c(list(G_label = "Language version", G_level1 = "English", G_level2 = "Spanish", Y_label = "Reading test",

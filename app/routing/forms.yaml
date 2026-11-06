@@ -141,7 +141,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73]
+calculates: [E45, E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -3114,6 +3114,48 @@ forms:
           - {id: congruence, label: "Tucker's congruence each factor's loadings must reach with the true ones", type: number, path: target_test.congruence, required: true, min: 0.8, max: 0.999,
              default: 0.95, default_source: "0.95, the level at which Lorenzo-Seva and ten Berge (2006) treat two factors as virtually equal",
              help: "1 is a perfect match. Lower values, such as 0.90, accept a rougher recovery."}
+
+  # Interrupted time series (Spower around PITS's simulated series and
+  # nlme's gls(), REML by default; the maintainer's decision of 6 November
+  # 2026): n is the number of time points after the intervention.
+  E45:
+    methods_name: "a segmented regression of the interrupted time series with AR(1) errors, fitted by generalised least squares (nlme's gls(), REML), simulated with PITS's series"
+    tool: Spower
+    directional: false
+    no_attrition: true
+    base: {spec_version: "0.1", design: time_series, template: its,
+           variables: {"Y": {type: continuous}}, population: {metric: raw},
+           target_test: {alternative: two_sided}}
+    groups:
+      - input: "The outcome, and the series before the breakpoint"
+        fields:
+          - {id: Y_label, label: "Outcome (for example, monthly admissions)", type: text, path: variables.Y.label, required: true}
+          - {id: n_pre, label: "Number of time points before the intervention", type: number, path: population.n_pre, required: true, min: 3, max: 500, integer: true,
+             help: "Equally spaced measurements, for example 24 months. A change is judged against the trend before the intervention, so these points limit how precisely it can be measured, however long the series runs after it."}
+          - {id: baseline, label: "The outcome's average at the start of the series", type: number, path: population.baseline, required: true,
+             help: "In the outcome's own units. It doesn't change the power; it keeps the simulated series on a realistic scale."}
+          - {id: pre_trend, label: "Trend per time point before the intervention", type: number, path: population.pre_trend, required: true,
+             default: 0, default_source: "a flat series before the intervention, PITS's default (simulate_its_data(pre_trend = 0))"}
+      - input: "The change you want to detect, in level and slope"
+        fields:
+          - {id: its_effect, label: "Which change", type: select, path: target_test.effect, required: true,
+             choices: {level: "An immediate change in level at the intervention", slope: "A change in the trend after the intervention", both: "Either: the level and the trend tested together"}}
+          - {id: level_change, writeup_label: "change in level", label: "Immediate change in level, in the outcome's units", type: number, path: population.level_change, effect: true,
+             help: "The step at the intervention: negative for a fall. Leave 0 if you expect only a change in trend."}
+          - {id: slope_change, writeup_label: "change in trend", label: "Change in the trend per time point after the intervention", type: number, path: population.slope_change, effect: true,
+             help: "How much steeper (or, negative, flatter) the line becomes after the intervention, per time point. Leave 0 if you expect only a step."}
+      - input: "How noisy the series is, and its autocorrelation"
+        fields:
+          - {id: sigma, label: "SD of the points around the line, in the outcome's units", type: number, path: population.sigma, required: true, min_exclusive: 0,
+             help: "From the series before the intervention: the SD of its points around their trend."}
+          - {id: rho, label: "Autocorrelation from one time point to the next (0 to below 1)", type: number, path: population.rho, required: true, min: 0, max_exclusive: 1,
+             help: "How much a point above the line tends to be followed by another above it (AR(1)). From the series before the intervention. Positive autocorrelation lowers power, and in short series it also makes the test find changes that aren't there more often."}
+      - input: "The analysis"
+        fields:
+          - {id: its_method, label: "How the series is fitted", type: select, path: target_test.method, required: true,
+             choices: {gls_reml: "Generalised least squares with AR(1) errors, by REML", gls_ml: "The same model by maximum likelihood, as PITS's own test"},
+             default: gls_reml, default_source: "REML, powerkit's choice: PITS's maximum-likelihood test finds changes that aren't there more often in short series (docs/decisions.md, 6 November 2026)",
+             help: "Either way, the result also shows how often the test would find a change that isn't there, in a series of the length planned."}
 
   # Latent profile analysis (Spower simulation of powerkit's experiment
   # around mclust): the chance the BIC finds the right number of profiles.
