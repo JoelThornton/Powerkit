@@ -1,3 +1,20 @@
+# powerkit 0.33.1
+
+* Input screens read more plainly, after a walk through the commonest
+  analyses as a first-time user would take them (app only; no calculation
+  changes):
+  * a card's "What you'll need" marks the names as optional, as the input
+    screen does;
+  * the box that chooses the test is headed "Which test you'll run" rather
+    than the card's list of every test version;
+  * the note under a pre-selected choice starts "Selected to start with:",
+    so it no longer reads as a fragment, and no default's note uses
+    developer wording ("the design spec's default", "as decided on");
+  * the note on what a significance plan answers, and the simulation-accuracy
+    note, lead with one plain sentence; the detail is folded away, and
+    nothing it said is dropped;
+  * the footer's full stop no longer has a space before it.
+
 # powerkit 0.33.0
 
 * Input screens explain raw/published summaries and genuinely missing inputs.

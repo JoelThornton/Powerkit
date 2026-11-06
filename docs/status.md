@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 5 November 2026 (powerkit 0.33.0). This page says where the
+*Last updated: 6 November 2026 (powerkit 0.33.1). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -13,6 +13,17 @@ fully validated. Validation runs are recorded in
 `CLAUDE.md` and [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Input screens, first-time-user pass (6 November 2026):** the commonest
+  cards (t-tests, correlation, one-way, two-way and mixed ANOVA, regression,
+  logistic regression, chi-square, mediation) were walked through in a
+  browser, including wrong entries and a full t-test calculation, which
+  matches `usability-session-pack.md`'s key (200 in total). Plain-wording
+  fixes are in 0.33.1. Still open: the "I don't know my effect size" box
+  is on the basic tests only; regression's effect boxes stay hidden until
+  "What you want to test" is chosen, which leaves that section looking
+  empty; the result page is long. An AI walkthrough is no substitute for
+  the human sessions the pack describes.
 
 - **Validation checkpoints:** source/lock/installed-package/R fingerprints
   prevent old saved passes being reused for a different calculation context.

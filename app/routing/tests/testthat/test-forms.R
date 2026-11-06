@@ -994,3 +994,25 @@ test_that("means in SD units fill in an SD of 1 and hide it, and empty headings 
   names_group <- form_groups(forms, "E18")[[1]]
   expect_null(group_shown_js(list(fields = list(list(id = "x"), list(id = "y", shown_if = list(field = "a", is = "b"))))))
 })
+
+test_that("the input screens read plainly: optional names on the card, a test question, and default notes with a subject", {
+  # The card says the names are optional, as the input screen does.
+  expect_true("Names of the two groups and the outcome" %in% optional_input_lines(forms, "E2"))
+  expect_false("The size of group 2 relative to group 1 (1 = equal)" %in% optional_input_lines(forms, "E2"))
+  card <- as.character(card_ui(tree, "E2", forms = forms))
+  expect_match(card, "Names of the two groups and the outcome (optional)", fixed = TRUE)
+  html <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  # The test-version box asks a question, not the card's list of tests.
+  expect_match(html, "Which test you&#39;ll run|Which test you'll run")
+  expect_no_match(html, "<legend class=\"h6\">Student&#39;s or Welch&#39;s", fixed = TRUE)
+  # A pre-selected choice's note says what it is about.
+  expect_match(html, "Selected to start with: the t-test pwr&#39;s formula covers|Selected to start with: the t-test pwr's formula covers")
+  # The direction, which has no default, keeps its own note.
+  expect_match(html, "Not filled in for you.", fixed = TRUE)
+  # No developer wording in a default's note.
+  for (ep in names(forms$forms)) for (f in form_fields(form_groups(forms, ep))) if (!is.null(f$default_source))
+    expect_no_match(short_source(f$default_source), "design spec|decided on", label = paste(ep, f$id))
+  # The simulation note leads with the plain point and folds the detail.
+  acc <- as.character(group_ui_build(tree, simulation_accuracy_group(forms, "E2")[[1]], list(), 1))
+  expect_match(acc, "More about this", fixed = TRUE)
+})
