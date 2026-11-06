@@ -14,6 +14,12 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Interrupted time series (E45) waits on a method decision:** PITS
+  0.1.0, the one package, fits GLS by maximum likelihood, and its test
+  rejected 15 to 18% of the time with no effect for 12 points before and
+  after (`upstream-questions.md`, PITS; `judgement-calls.md` E8 has the
+  options and a recommendation).
+
 - **Input screens, first-time-user pass (6 November 2026):** the commonest
   cards (t-tests, correlation, one-way, two-way and mixed ANOVA, regression,
   logistic regression, chi-square, mediation) were walked through in a
