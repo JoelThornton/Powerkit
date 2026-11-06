@@ -1020,3 +1020,35 @@ The closing question Q-bayes stays on the cards.
   - Most users plan with p-values, and an early question adds friction.
 - **Knock-on effects:** E-bayes is reachable only from the list now.
 - **Recorded in:** open question 8; setting `bayes_entry`.
+
+### E8. Interrupted time series (E45): which test to plan for
+
+**Question:** `next.md` item 4 plans interrupted time series next (the
+queue calls it E42; the card is E45). PITS 0.1.0 (CRAN) calculates power
+for a known breakpoint by simulation: segmented regression with AR(1)
+errors, fitted by `nlme::gls()` with maximum likelihood. On running it,
+that test rejected 15 to 18% of the time with no effect at alpha .05 for
+12 points before and after with autocorrelation 0.4, and 11 to 13% for 24
+and 24 (`upstream-questions.md`, PITS question 1). Planning with it would
+overstate power for short series. Options:
+
+1. PITS as it is, the only package, with the Type I error shown beside
+   the result;
+2. PITS's data generation (`simulate_its_data()`) with the same model
+   fitted by REML (6 to 7% at 24 and 24, still 9 to 11% at 12 and 12),
+   recorded as a departure;
+3. as 2, with the power counted at a critical value calibrated by
+   simulating the study with no effect, so the Type I error is alpha at
+   the planned length;
+4. wait for PITS's methods paper (in preparation) before building.
+
+**Recommendation:** 2 by default, with the Type I error at the planned
+length simulated and shown on the result, and PITS's own test as an
+option. REML is the standard estimator for this model in nlme and roughly
+halves the excess; showing the Type I error keeps the remaining excess in
+view rather than hiding it in the power.
+
+**Where it is recorded:** here and `upstream-questions.md` (PITS); the
+item waits in `next.md`.
+
+**Decided 6 November 2026 by the maintainer:** the recommendation (option 2), built in E45 (`decisions.md`, 6 November 2026).
