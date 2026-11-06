@@ -38,6 +38,7 @@ population_problems <- function(spec) {
     signal_detection = check_dprime,
     mixture = check_lpa,
     factor_analysis = function(spec) character(),
+    time_series = function(spec) character(),
     panel = check_riclpm
   )
   # Precision planning has no test to check, only its interval and goal.
@@ -2950,6 +2951,9 @@ minimum_n <- function(spec) {
       factor_correlation = sum(unlist(spec$population$indicators)) + 1,
       latent_regression = spec$population$indicators * (length(spec$population$slopes) + 1) + 1
     ),
+    # Interrupted time series: at least three points after the
+    # intervention, so the slope after it can be estimated.
+    time_series = 3,
     # More people than observed scores (two at each wave), so that the
     # sample covariance matrix can be positive definite.
     panel = 2 * spec$population$waves + 1,
@@ -3237,6 +3241,8 @@ target_effect_is_zero <- function(spec) {
     signal_detection = diff(as.numeric(unlist(pop$dprime))),
     mixture = pop$separation,
     factor_analysis = pop$loading,
+    time_series = switch(spec$target_test$effect %||% "level", level = pop$level_change %||% 0,
+      slope = pop$slope_change %||% 0, both = max(abs(c(pop$level_change %||% 0, pop$slope_change %||% 0)))),
     panel = switch(spec$target_test$effect %||% "cross_lagged_xy", cross_lagged_xy = pop$cross_lagged_xy,
       cross_lagged_yx = pop$cross_lagged_yx, autoregressive_x = pop$autoregressive_x, autoregressive_y = pop$autoregressive_y),
     reliability = switch(spec$template,

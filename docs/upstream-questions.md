@@ -316,3 +316,23 @@ Questions about irtpwr 1.0.3, from running it (5 November 2026).
    DIF item's parameters by default and offers the preset's choice
    (docs/conventions.md). Would an argument naming the parameters to test
    suit the package?
+
+## PITS
+
+Questions about PITS 0.1.0, from running it (6 November 2026).
+
+1. **The test rejects too often when there is no effect, in short
+   series.** `calculate_power()` fits `nlme::gls()` with AR(1) errors by
+   maximum likelihood (`fit_its_model()`) and counts p < alpha. With no
+   intervention effect (`level_change = 0`, `slope_change = 0`, baseline
+   10, sigma 2, 1,000 simulations, alpha .05), the share of significant
+   results was 15.5% for the level change and 18.2% for the slope change
+   with 12 points before and 12 after and rho 0.4; 11.5% and 12.6% with
+   24 and 24; 6.1% and 8.5% with 48 and 48; and 8.4% and 9.0% with 24 and
+   24 and rho 0. Its power for short series therefore includes false
+   positives. Fitting the same model by REML (nlme's default) gave 9.3%
+   and 11.1% (12 and 12, rho 0.4), 6.3% and 7.4% (24 and 24) and 6.0% and
+   5.9% (24 and 24, rho 0). Would REML, or a small-sample correction to the
+   test's degrees of freedom, suit the package, or a note on the Type I
+   error at the planned length?
+

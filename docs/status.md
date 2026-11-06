@@ -15,6 +15,11 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Interrupted time series (E45, 6 November 2026):** calculates, by
+  PITS's simulated series fitted with gls() by REML (PITS's own
+  maximum-likelihood test as an option), with the Type I error at the
+  planned length shown beside the power; validated against a separately
+  written simulation and PITS's calculate_power().
 - **Cross-lagged panel models (E74, 6 November 2026):** power for a lagged
   effect in a random-intercept cross-lagged panel model, by Spower around
   powRICLPM, with a preview, a full run and an R script; validated against

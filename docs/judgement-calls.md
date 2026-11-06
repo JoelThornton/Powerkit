@@ -1336,6 +1336,10 @@ Setting `consistency_approach` records it.
 
 Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#e7-group-treatment-trials-which-smallest-detectable-d-to-report).
 
+### E8. Interrupted time series (E45): which test to plan for
+
+Decided; moved to [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md#e8-interrupted-time-series-e45-which-test-to-plan-for).
+
 ## F. Validation
 
 ### F1. Known gap: the Monte Carlo interval for two or more mediators

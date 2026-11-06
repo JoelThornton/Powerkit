@@ -77,6 +77,8 @@ form_examples <- list(
                alternative = "two_sided"), closing_ok),
   E58 = c(list(Y_label = "Motivation subscales", indicators = "8", profiles = "3", separation = "1.2", profile_sizes = "unequal",
                shares = "0.4, 0.4, 0.2"), closing_ok),
+  E45 = c(list(Y_label = "Monthly admissions", n_pre = "24", baseline = "15", pre_trend = "0", its_effect = "level",
+               level_change = "-3", slope_change = "0", sigma = "2.5", rho = "0.4", its_method = "gls_reml"), closing_ok),
   E74 = c(list(X_label = "Stress", Y_label = "Sleep problems", waves = "4", riclpm_effect = "cross_lagged_xy", constraints = "none",
                cross_lagged_xy = "0.15", cross_lagged_yx = "0.1", autoregressive_x = "0.4", autoregressive_y = "0.3",
                icc = "0.5", ri_correlation = "0.3", within_correlation = "0.3", alternative = "two_sided"), closing_ok),

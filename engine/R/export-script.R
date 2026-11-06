@@ -378,6 +378,12 @@ design_description <- function(spec) {
         autoregressive_x = "X's autoregressive effect", autoregressive_y = "Y's autoregressive effect"),
       if (identical(spec$population$constraints %||% "none", "lagged")) " (lagged effects equal over time)" else " (from the first wave to the second; lagged effects free over time)"
     ),
+    "time_series/its" = sprintf(
+      "interrupted time series: %s, %d points before the intervention; PITS's simulated series, nlme's gls() with AR(1) errors (%s), %s",
+      label("Y"), as.integer(spec$population$n_pre),
+      if (identical(spec$target_test$method, "gls_ml")) "maximum likelihood, PITS's own test" else "REML",
+      switch(spec$target_test$effect, level = "the level change", slope = "the slope change", both = "the level and slope changes together")
+    ),
     "factor_analysis/efa" = sprintf(
       "exploratory factor analysis: will %d factor%s of %d items each in %s be recovered (loading %s)? psych's fa(), every factor's loadings with Tucker's congruence of at least %s",
       as.integer(spec$population$factors), if (spec$population$factors > 1) "s" else "", as.integer(spec$population$items_per_factor),
@@ -1508,6 +1514,18 @@ spower_script_inputs <- function(spec) {
       sprintf("constraints <- %s # \"none\": lagged effects free over time; \"lagged\": equal over time", r_code(pop$constraints %||% "none")),
       sprintf("effect <- %s # the lagged effect tested", r_code(spec$target_test$effect))
     ),
+    its = c(
+      sprintf("# The outcome: %s. batch_n below is the number of time points after the intervention.", comment_text(v$Y$label)),
+      sprintf("n_pre <- %s # time points before the intervention", r_code(as.integer(pop$n_pre))),
+      sprintf("baseline <- %s # mean at the first time point", r_code(as.numeric(pop$baseline %||% 0))),
+      sprintf("pre_trend <- %s # trend per time point before the intervention", r_code(as.numeric(pop$pre_trend %||% 0))),
+      sprintf("level <- %s # immediate change in level at the intervention", r_code(as.numeric(pop$level_change %||% 0))),
+      sprintf("slope <- %s # change in trend per time point after it", r_code(as.numeric(pop$slope_change %||% 0))),
+      sprintf("sigma <- %s # SD of the errors around the line", r_code(as.numeric(pop$sigma))),
+      sprintf("rho <- %s # AR(1) autocorrelation of the errors", r_code(as.numeric(pop$rho %||% 0))),
+      sprintf("test <- %s # \"level\", \"slope\" or \"both\"", r_code(spec$target_test$effect)),
+      sprintf("method <- %s # \"gls_reml\" (powerkit's default) or \"gls_ml\" (PITS's own test)", r_code(spec$target_test$method))
+    ),
     efa = c(
       sprintf("factors <- %s # the number of factors", r_code(as.integer(pop$factors))),
       sprintf("items <- %s # items loading on each factor (%s)", r_code(as.integer(pop$items_per_factor)), comment_text(v$Y$label)),
@@ -1791,6 +1809,11 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "waves = waves,", "icc = icc,", "ri_cor = ri_cor,", "ar_x = ar_x,", "ar_y = ar_y,", "cl_xy = cl_xy,",
       "cl_yx = cl_yx,", "within_cor = within_cor,", "reliability = reliability,", "constraints = constraints,", "effect = effect"
     ),
+    its = c(
+      "n = batch_n, # time points after the intervention",
+      "n_pre = n_pre,", "baseline = baseline,", "pre_trend = pre_trend,", "level = level,", "slope = slope,",
+      "sigma = sigma,", "rho = rho,", "test = test,", "method = method"
+    ),
     efa = c(
       "n = batch_n, # sample size",
       "factors = factors,", "items = items,", "loading = loading,", "phi = phi,", "congruence = congruence"
@@ -2004,6 +2027,25 @@ spower_derived_lines <- function(spec) {
       "  if (!nrow(row) || !is.finite(row$SEAvg[1]) || row$SEAvg[1] <= 0) return(NA_real_)",
       "  z <- row$average[1] / row$SEAvg[1]",
       "  switch(alternative, two.sided = 2 * pnorm(-abs(z)), greater = pnorm(z, lower.tail = FALSE), less = pnorm(z))",
+      "}"
+    ),
+    its = c(
+      "# The experiment, as powerkit runs it: PITS simulates one series (the",
+      "# segmented regression with AR(1) errors whose SD is sigma), and nlme's",
+      "# gls() fits the same model with AR(1) errors: by REML (powerkit's default),",
+      "# testing the level change or the slope change by its t test and both by",
+      "# the F test of the two coefficients; or, with method \"gls_ml\", by PITS's",
+      "# own fit_its_model() (maximum likelihood; both by a likelihood-ratio test).",
+      "p_its <- function(n, n_pre, baseline, pre_trend, level, slope, sigma, rho, test, method,",
+      "                  alternative = \"two.sided\") {",
+      "  data <- PITS::simulate_its_data(n_pre = as.integer(n_pre), n_post = as.integer(n), baseline = baseline,",
+      "    level_change = level, slope_change = slope, sigma = sigma, rho = rho, pre_trend = pre_trend)",
+      "  if (method == \"gls_ml\") return(PITS::fit_its_model(data, test))",
+      "  fit <- tryCatch(nlme::gls(y ~ time + D + time_after, data = data, correlation = nlme::corAR1(form = ~time),",
+      "    method = \"REML\"), error = function(e) NULL)",
+      "  if (is.null(fit)) return(NA_real_)",
+      "  switch(test, level = summary(fit)$tTable[\"D\", \"p-value\"], slope = summary(fit)$tTable[\"time_after\", \"p-value\"],",
+      "    both = anova(fit, Terms = c(\"D\", \"time_after\"))[[\"p-value\"]])",
       "}"
     ),
     efa = c(

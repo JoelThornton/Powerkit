@@ -1,5 +1,20 @@
 # powerkit 0.34.0
 
+* Interrupted time series calculate (card E45, new design
+  `time_series / its`): powerkit's Spower experiment `p_its()` simulates
+  each series with PITS's `simulate_its_data()` (the segmented regression
+  with AR(1) errors) and fits it with nlme's `gls()` by REML, testing the
+  level change, the slope change or both; PITS's own maximum-likelihood
+  test is an option. PITS's test rejects too often with no effect in short
+  series, so every result also reports the Type I error at the planned
+  length (`its_type1()`, the result's `type1`). n is the number of points
+  after the intervention; the search stops at 240 and explains why a
+  change judged against a fixed number of points before the intervention
+  can level off below the target (`bracket_n()` takes a backend's limit
+  and message). Validated against a separately written simulation and
+  PITS's `calculate_power()` (`test-validation-its.R`, chunk `its`). PITS
+  joins the engine's imports and `renv.lock`.
+
 * New design `panel / riclpm` (card E74): power for a lagged effect in a
   random-intercept cross-lagged panel model (Hamaker, Kuiper and Grasman,
   2015), two scores at three or more waves. powerkit's Spower experiment

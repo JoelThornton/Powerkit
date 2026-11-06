@@ -5625,3 +5625,39 @@ the site stays findable by search engines.
   use; whether real use outgrows the plan, and what to move to then (a
   fixed-price server, `hosting-options.md`), is for when there are usage
   figures.
+
+## 2026-11-06 · Interrupted time series (E45)
+
+- **Decided by the maintainer** (`judgement-calls` E8, now archived): the
+  recommendation. PITS 0.1.0's own test (nlme's `gls()` by maximum
+  likelihood) rejects too often with no effect in short series
+  (`upstream-questions.md`, PITS question 1), so powerkit simulates each
+  series with PITS's `simulate_its_data()` and fits the same segmented
+  regression with AR(1) errors by REML by default, reports the Type I
+  error at the planned length beside the power, and offers PITS's own
+  test as an option.
+- **What:** E45 now calculates: design `time_series / its`, powerkit's
+  Spower experiment `p_its()`. The level change and the slope change are
+  tested by their t tests and both together by the F test of the two
+  coefficients (PITS's likelihood-ratio test under maximum likelihood).
+  n is the number of time points after the intervention, as in PITS
+  ("the primary design lever"); the number before is an input.
+- **The Type I error:** `its_type1()` simulates the same series with no
+  change, as many as the power used, under the run's seed, and the
+  result screen says how often the test finds a change that isn't there,
+  and that part of the power is false positives when it exceeds alpha.
+- **The search's limit:** a change is judged against the trend before the
+  intervention, so with the points before fixed the power can level off
+  below the target however many points come after (with 24 points before,
+  the slope change's standard error stayed at the earlier trend's, 0.10,
+  with 240 after). The search stops at 240 points after the intervention,
+  where gls() still takes under a second (its time grows with the cube of
+  the series' length), and explains the ceiling in plain words.
+  `bracket_n()` takes the backend's limit and message for this.
+- **Validation** (`test-validation-its.R`, chunk `its`): series drawn and
+  fitted separately in the test agree with powerkit's REML route, and
+  powerkit's maximum-likelihood route agrees with PITS's
+  `calculate_power()`, with no allowance beyond Monte Carlo error; a
+  published power table is a placeholder for the maintainer.
+- **Not covered yet:** a breakpoint estimated from the data, several
+  series, a control series, and other error structures than AR(1).

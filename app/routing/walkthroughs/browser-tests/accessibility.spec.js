@@ -1,7 +1,21 @@
 const { test, expect } = require('@playwright/test');
 const axePath = require.resolve('axe-core/axe.min.js');
 
+// Audit a settled page: Shiny dims outputs while it recalculates and the
+// screens fade in, and an audit taken mid-transition reports the dimmed or
+// fading text (colour contrast) and overlapping targets of the screen being
+// left rather than the one under test. Outputs on hidden tabs stay marked
+// as recalculating (Shiny suspends them), as do empty message slots that
+// have never been filled, so only visible outputs with content count.
+async function settle(page) {
+  await page.waitForFunction(() => !document.documentElement.classList.contains('shiny-busy') &&
+    ![...document.querySelectorAll('.recalculating')].some(e => e.offsetParent && e.textContent.trim()) &&
+    document.getAnimations().every(a => a.playState !== 'running'), null, { timeout: 30000 });
+  await page.waitForTimeout(300);
+}
+
 async function audit(page, name, info) {
+  await settle(page);
   await page.addScriptTag({ path: axePath });
   const result = await page.evaluate(async () => axe.run(document, {
     runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'] }

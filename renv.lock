@@ -2562,6 +2562,21 @@
       ],
       "Hash": "b21709e9689035a7e1a3fa828ac3e058"
     },
+    "PITS": {
+      "Package": "PITS",
+      "Version": "0.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "grDevices",
+        "graphics",
+        "nlme",
+        "stats",
+        "utils"
+      ],
+      "Hash": "933068805557107a77d55f42aa6acae9"
+    },
     "performance": {
       "Package": "performance",
       "Version": "0.19.0",

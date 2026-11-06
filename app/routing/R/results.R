@@ -335,7 +335,24 @@ is_dyadic <- function(spec) identical(spec$design, "dyadic")
 # What n counts, when it isn't participants: studies (a meta-analysis) or
 # pairs (dyadic data).
 n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else
+  if (identical(spec$template, "its")) "time points after the intervention" else
   if (identical(spec$goal$unit, "items")) "items" else NULL
+
+# Interrupted time series: how often the test finds a change that isn't
+# there in a series of the planned length (the engine's `type1`), shown
+# beside the power (the maintainer's decision of 6 November 2026).
+type1_sentence <- function(result) {
+  t1 <- result$type1
+  if (is.null(t1)) return(NULL)
+  sprintf(paste("With no real change, this analysis would still find a significant one in %s of series this long",
+    "(%s simulated, alpha %s; Monte Carlo SE %.1f percentage points). %s"),
+    percent(t1$rate), whole(t1$nrep), alpha_text(t1$alpha), 100 * t1$mcse,
+    if (t1$rate > t1$alpha + 2 * t1$mcse) {
+      "That is more than alpha, so part of the power above comes from false positives: a longer series, especially before the intervention, brings it closer to alpha."
+    } else {
+      "That is close to alpha, as it should be."
+    })
+}
 
 # The number of items as the sample size (E33): the write-up counts items,
 # with the participants fixed.
@@ -344,6 +361,16 @@ items_units <- function(text, spec) {
   text <- gsub(" participants are needed in total", sprintf(" items are needed (with %s participants)", p), text, fixed = TRUE)
   text <- gsub("power at this sample size is", sprintf("power with this many items (and %s participants) is", p), text, fixed = TRUE)
   text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", sprintf("with \\2 items and %s participants", p), text)
+  text
+}
+
+# Interrupted time series: the write-up counts time points after the
+# intervention, with those before it fixed.
+its_units <- function(text, spec) {
+  b <- whole(spec$population$n_pre)
+  text <- gsub(" participants are needed in total", sprintf(" time points are needed after the intervention (with %s before it)", b), text, fixed = TRUE)
+  text <- gsub("power at this sample size is", sprintf("power with this many time points after the intervention (and %s before it) is", b), text, fixed = TRUE)
+  text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", sprintf("with \\2 time points after the intervention and %s before it", b), text)
   text
 }
 
@@ -579,6 +606,11 @@ result_sentences <- function(spec, result) {
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   # Dyadic data: n counts pairs.
   if (is_dyadic(spec)) out[] <- gsub(" participants in total", " pairs", out, fixed = TRUE)
+  # Interrupted time series: n counts the points after the intervention.
+  if (identical(spec$template, "its")) {
+    out[] <- gsub(" participants in total", sprintf(" time points after the intervention (and %s before)", whole(spec$population$n_pre)), out, fixed = TRUE)
+    out[] <- gsub("studies like this", "series like this", out, fixed = TRUE)
+  }
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   if (is_minimum_effect(spec)) out[["detail"]] <- paste(out[["detail"]], minimum_effect_sentence(spec))
@@ -2093,6 +2125,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
+    if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
     if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
@@ -2482,6 +2515,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   main <- c(main, critical_effect_sentence(result))
   if (is_meta(spec)) main <- meta_units(main)
   if (is_dyadic(spec)) main <- dyad_units(main)
+  if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, welch_population_note(spec))
@@ -2590,6 +2624,7 @@ ethics_text <- function(spec, result, fields, values) {
     })
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)
+  if (identical(spec$template, "its")) body <- its_units(body, spec)
   if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
