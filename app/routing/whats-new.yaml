@@ -5,6 +5,23 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-06"
+    title: "A home page, and updates once a day"
+    text: >-
+      powerkit now has a home page, with the guide, at
+      joelthornton.github.io/Powerkit. The
+      online app now takes in the day's changes once a day rather than
+      after each one, so it restarts less often while you use it. If you
+      leave a page alone for 20 minutes the connection may close; your
+      answers on an input screen are kept in your browser and offered back.
+  - date: "2026-11-06"
+    title: "Clearer input screens"
+    text: >-
+      The screens where you enter your numbers read more plainly: the box
+      that picks your test asks which test you'll run, notes under the
+      pre-filled choices say why they start that way, and the cards now say
+      which details are optional. Long notes lead with one plain sentence,
+      with the detail a click away.
   - date: "2026-11-05"
     title: "Plan an exploratory factor analysis"
     text: >-

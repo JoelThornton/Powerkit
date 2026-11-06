@@ -6154,7 +6154,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.33.0",
+        "Version": "0.33.2",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6171,19 +6171,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "97abe50565d8a0ffb5934afd0407ca43fa6fbda4",
-        "RemoteSha": "97abe50565d8a0ffb5934afd0407ca43fa6fbda4",
+        "RemoteRef": "205463d9b5fd6039a170e6c7570f784abb3e676e",
+        "RemoteSha": "205463d9b5fd6039a170e6c7570f784abb3e676e",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "97abe50565d8a0ffb5934afd0407ca43fa6fbda4",
-        "GithubSHA1": "97abe50565d8a0ffb5934afd0407ca43fa6fbda4",
+        "GithubRef": "205463d9b5fd6039a170e6c7570f784abb3e676e",
+        "GithubSHA1": "205463d9b5fd6039a170e6c7570f784abb3e676e",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-06 08:10:40 UTC; runner",
+        "Packaged": "2026-11-06 09:23:20 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-06 08:10:58 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-06 09:23:38 UTC; unix"
       }
     },
     "powertools": {
@@ -8386,22 +8386,22 @@
   },
   "files": {
     "app.R": {
-      "checksum": "b14a1e271c7be7ec6314d81744053c62"
+      "checksum": "800fedf135de73741e8abe53cae5159b"
     },
     "forms.yaml": {
-      "checksum": "4569fce52ef6d8102e58313f519d1a4c"
+      "checksum": "13ac51f6cb126f25e83a5b7e50f1b63a"
     },
     "methods-map.yaml": {
       "checksum": "4efc3071c4758bb959c8ae19befec474"
     },
     "R/about.R": {
-      "checksum": "a4f5c64a533504a8bc5ffefd5a5fc9b4"
+      "checksum": "c07fd2fc58fdd4036962407665e7d70e"
     },
     "R/capabilities.R": {
       "checksum": "1d01abd82581e3f0efada5a959c40016"
     },
     "R/connection.R": {
-      "checksum": "f723f8d9f425ac15a0df784a0023a752"
+      "checksum": "86fb1b2a966fb3068041c14edc05a08e"
     },
     "R/drafts.R": {
       "checksum": "642f5e19d07ba6bcc322d38136aefd45"
@@ -8410,10 +8410,10 @@
       "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
     },
     "R/forms_ui.R": {
-      "checksum": "efa3a12b6ac055c939d58d77ac2381da"
+      "checksum": "0cab5aafe0b7b81f6b5df7311c908f41"
     },
     "R/forms.R": {
-      "checksum": "a9ca4f88a5fe405c5620753b36ab93f9"
+      "checksum": "fcf76074a730ba70af351cabea210931"
     },
     "R/input-support.R": {
       "checksum": "bdf0e5767132a553068c033f7e5f520e"
@@ -8425,7 +8425,7 @@
       "checksum": "4a864e016dc04c84f1c5004b2fb35c19"
     },
     "R/planning.R": {
-      "checksum": "335b1c0b36667a512c94e886c1929fde"
+      "checksum": "b110f1126f48dcec62136f19fec794f3"
     },
     "R/project.R": {
       "checksum": "23e6eed5ff5f012fdb8a5f2df34c6c0e"
@@ -8452,7 +8452,7 @@
       "checksum": "944417d267637ddaca7d4b5aaadadd7c"
     },
     "R/ui.R": {
-      "checksum": "9b0b394d4d6c3ae106b4aedfa67cb4bb"
+      "checksum": "cd4ca721b4b7392fdc2b4d0d0dadc301"
     },
     "R/whole-study.R": {
       "checksum": "8612e0fea2b35a09e54642251ad1797f"
@@ -8464,22 +8464,16 @@
       "checksum": "0076a59a5cf5af6706a036412a3be58a"
     },
     "whats-new.yaml": {
-      "checksum": "8947e4a004ce09eaba6dd980e2517708"
+      "checksum": "872441574807ba5ad6837667d3837f14"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
-    },
-    "www/guide.html": {
-      "checksum": "20f2e46a68c783f114a9107d1508703b"
     },
     "www/methods-map.js": {
       "checksum": "16acb40bf4c658dc349173d9f761147c"
     },
     "www/robots.txt": {
-      "checksum": "00c673d2d8ab796fb536442fd64513a3"
-    },
-    "www/sitemap.xml": {
-      "checksum": "d43cc68dfe9aba1e0fb68b2a5a76a97d"
+      "checksum": "d0a2fb80121377ae1b334bd5b0e0a486"
     },
     "www/vendor/cytoscape-dagre.js": {
       "checksum": "ff5646c3014fed38d7976c11cad1c9c9"

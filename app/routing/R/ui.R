@@ -189,6 +189,13 @@ page_slug <- function(tab) {
 # the page instead.
 public_address <- "https://joelthornton-powerkit.share.connect.posit.cloud"
 
+# The public pages search engines index (the landing page and the guide,
+# site/ in the repository, published to GitHub Pages). They are kept off
+# the app's address because every visit there, a crawler's included,
+# starts the app on a host paid for by the hour (www/robots.txt asks
+# crawlers to stay away; docs/hosting-options.md).
+site_address <- "https://joelthornton.github.io/Powerkit"
+
 # The top bar's button: copies a link to the page on show (and the Labs
 # tool open, as ?page=labs&tool=...).
 # The "Explanations" switch: on by default. Turned off, a setting each
@@ -803,7 +810,7 @@ card_versions_ui <- function(tree, ep) {
     tags$ul(lapply(items, tags$li)))
 }
 
-card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
+card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0("forms", envir = environment(card_ui))) {
   ep <- tree$endpoints[[ep_id]]
   # Headings follow the page outline: the full card's title is the screen's
   # h2; a compact card sits under the plan's h2.
@@ -834,7 +841,8 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list()) {
       # you can gather it before starting (1 November 2026).
       if (!compact && runs && !is.null(ep$inputs)) div(class = "card-needs",
         tags$h3(class = "card-section-title", "What you'll need"),
-        tags$ul(lapply(ep$inputs, tags$li)),
+        tags$ul(lapply(ep$inputs, function(input) tags$li(
+          if (input %in% optional_input_lines(forms, ep_id)) paste0(input, " (optional)") else input))),
         p(class = "card-needs-note", "The next screen asks for each of these, with help on what they mean.")),
       card_versions_ui(tree, ep),
       # Which package calculates it and the questions asked after the

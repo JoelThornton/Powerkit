@@ -44,3 +44,57 @@ test_that("the About page is fetched in the background once the first screen is 
   expect_match(connection_js, "about-cache/about.html", fixed = TRUE)
   expect_match(connection_js, "Shiny.setInputValue('about_prefetched', true)", fixed = TRUE)
 })
+
+test_that("the keep-open message stops when the page is left alone, unless a calculation runs", {
+  # A message sent for ever would keep the app (paid for by the hour)
+  # running for as long as a forgotten tab stayed open (6 November 2026).
+  expect_match(connection_js, "connected && keepOpen()", fixed = TRUE)
+  expect_match(connection_js, "IDLE_MS = 20 * 60 * 1000", fixed = TRUE)
+  expect_match(connection_js, "document.visibilityState === 'visible' && now - lastActive < IDLE_MS", fixed = TRUE)
+  expect_match(connection_js, "e.message.custom.calc_progress", fixed = TRUE)
+  expect_no_match(connection_js, "if (connected) Shiny.setInputValue('pk_heartbeat'", fixed = TRUE)
+})
+
+test_that("search engines are sent to the public pages, not to the app", {
+  # Each visit to the app's address starts it on a host paid for by the
+  # hour, so the pages search engines index live in site/ (GitHub Pages).
+  robots <- readLines(file.path(routing_dir, "www", "robots.txt"))
+  expect_true("Disallow: /" %in% robots)
+  expect_false(any(grepl("^(Allow|Sitemap):", robots)))
+  expect_false(file.exists(file.path(routing_dir, "www", "sitemap.xml")))
+  expect_false(file.exists(file.path(routing_dir, "www", "guide.html")))
+  # The app's footer links to the guide on the public site.
+  app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(app, 'paste0(site_address, "/guide.html")', fixed = TRUE)
+
+  site <- file.path(repo_dir, "site")
+  read_page <- function(page) paste(readLines(file.path(site, page), encoding = "UTF-8"), collapse = "\n")
+  sitemap <- read_page("sitemap.xml")
+  locs <- regmatches(sitemap, gregexpr("(?<=<loc>)[^<]+", sitemap, perl = TRUE))[[1]]
+  expect_setequal(locs, paste0(site_address, c("/", "/guide.html")))
+  for (loc in locs) {
+    page <- sub(paste0("^", site_address, "/"), "", loc)
+    if (!nzchar(page)) page <- "index.html"
+    html <- read_page(page)
+    expect_match(html, sprintf('<link rel="canonical" href="%s">', loc), fixed = TRUE, label = page)
+    # Each page opens the app at its public address.
+    expect_match(html, sprintf('href="%s/"', public_address), fixed = TRUE, label = page)
+  }
+  # Google's ownership check is on the public site too.
+  expect_true(file.exists(file.path(site, "google47b320cdc6781b0a.html")))
+})
+
+test_that("the online app is published at most daily, not after every merge", {
+  workflow <- yaml::read_yaml(file.path(repo_dir, ".github", "workflows", "online-app-manifest.yaml"))
+  triggers <- workflow[[which(names(workflow) %in% c("on", "TRUE"))]]
+  expect_null(triggers$push)
+  expect_match(triggers$schedule[[1]]$cron, "^\\d+ \\d+ \\* \\* \\*$")
+  # The manifest check still runs on every pull request.
+  expect_true("pull_request" %in% names(triggers))
+  steps <- workflow$jobs$manifest$steps
+  publish <- Filter(function(s) identical(s$name, "Prepare the checked deployment branch"), steps)[[1]]
+  expect_identical(publish$`if`, "steps.decide.outputs.publish == 'true'")
+  expect_match(publish$run, "HEAD:connect-cloud", fixed = TRUE)
+  decide <- Filter(function(s) identical(s$name, "Decide whether to publish"), steps)[[1]]
+  expect_match(decide$run, "git diff --quiet origin/connect-cloud HEAD", fixed = TRUE)
+})

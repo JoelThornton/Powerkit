@@ -6,9 +6,9 @@ planning_decision_ui <- function(form) {
       "This screen plans evidence relative to your equivalence or non-inferiority bounds. A non-significant ordinary test is not evidence of equivalence." else
     if (identical(design, "sem"))
       "Check whether you selected overall model fit or a particular factor correlation/path. Power to detect poor overall fit is not power for a particular path, and the assumed model matters." else
-      "Ordinary significance planning asks how often the selected test rejects its null under your stated population. A study powered at the smallest worthwhile effect does not thereby test that the effect exceeds that threshold."
+      "This plans the chance that your test gives a significant result if the effect you enter is the true one. Powering a study for the smallest effect that would matter does not test that the effect is at least that big: a minimum-effect test does that."
   div(class = "planning-decision small",
-    tags$strong("Check the decision you want. "), current,
+    tags$strong("Check this answers your question. "), current,
     tags$details(tags$summary("Different questions need different planning goals"),
       tags$ul(tags$li("Detect a departure from the null: choose the relevant significance test and expected population effect."),
         tags$li("Establish that an effect exceeds a worthwhile threshold: choose a minimum-effect test, enter the threshold and an expected effect beyond it. T-test screens offer this test version."),

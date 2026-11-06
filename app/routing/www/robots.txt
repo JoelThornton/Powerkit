@@ -1,4 +1,6 @@
+# Powerkit's public pages, for search engines, are at
+# https://joelthornton.github.io/Powerkit/ (the site/ folder of the
+# repository). Each visit to this address starts the app on its host, which
+# is paid for by the hour, so crawlers are asked not to visit it.
 User-agent: *
-Allow: /
-
-Sitemap: https://joelthornton-powerkit.share.connect.posit.cloud/sitemap.xml
+Disallow: /

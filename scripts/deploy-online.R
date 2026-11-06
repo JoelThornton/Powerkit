@@ -2,9 +2,10 @@
 # a link. (shinyapps.io is closing to new apps at the end of 2026 and its
 # users move to Connect Cloud, so powerkit starts there.)
 #
-# Usually not needed: once Connect Cloud publishes from GitHub
-# (docs/hosting-options.md, "Publishing from GitHub"), every merge to main
-# updates the online app by itself. This script is the fallback.
+# Usually not needed: Connect Cloud publishes the app from GitHub's
+# `connect-cloud` branch, which a workflow updates once a day from main
+# (docs/hosting-options.md, "How the online app is published"). This
+# script is the fallback.
 #
 # Run this in R or RStudio on your own computer, from the powerkit folder
 # (open Powerkit.Rproj, or setwd() to the folder). It takes a few minutes
