@@ -95,6 +95,7 @@ on:
           - signal_detection
           - lpa
           - efa
+          - its
           - irt
           - process_4
           - process_4_binary

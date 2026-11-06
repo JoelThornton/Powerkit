@@ -1,0 +1,39 @@
+{
+  "spec_version": "0.1",
+  "design": "time_series",
+  "template": "its",
+  "variables": {
+    "Y": {
+      "type": "continuous",
+      "label": "Monthly admissions"
+    }
+  },
+  "population": {
+    "metric": "raw",
+    "n_pre": 24,
+    "baseline": 15,
+    "pre_trend": 0,
+    "level_change": -3,
+    "slope_change": 0,
+    "sigma": 2.5,
+    "rho": 0.4
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: replace with your reasoning."
+  },
+  "target_test": {
+    "effect": "level",
+    "method": "gls_reml",
+    "alpha": 0.05,
+    "alternative": "two_sided"
+  },
+  "goal": {
+    "type": "power",
+    "n": 24
+  },
+  "options": {
+    "nrep": 500,
+    "seed": 20261106
+  }
+}

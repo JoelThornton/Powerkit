@@ -120,6 +120,7 @@ validation_chunks <- function() {
     signal_detection = "test-validation-signal-detection.R",
     lpa = "test-validation-lpa.R",
     efa = "test-validation-efa.R",
+    its = "test-validation-its.R",
     growth = c("test-validation-growth.R", "test-validation-growth-dropout.R"),
     irt = "test-validation-irt.R",
     anova = c(
@@ -167,7 +168,7 @@ validation_chunks <- function() {
 # estimate (which is then corrected by how fast tests actually run).
 # Direct-call tests run two simulations, so count double.
 validation_minutes <- function() {
-  c(basic = 0.3, welch_spreads = 3, variances = 2, manova = 3, rank = 3, bayes = 2, bayes_factorial = 90, meta = 12, dyadic = 25, survival = 4, reliability = 2, aligned_rank = 6, aligned_rank_within = 8, permanova = 10, negative_binomial = 4, robust_regression = 8, multinomial = 6, zero_inflated = 6, logistic_interaction = 4, group_moderator = 3, growth = 12, signal_detection = 4, lpa = 20, efa = 15, irt = 12, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60,
+  c(basic = 0.3, welch_spreads = 3, variances = 2, manova = 3, rank = 3, bayes = 2, bayes_factorial = 90, meta = 12, dyadic = 25, survival = 4, reliability = 2, aligned_rank = 6, aligned_rank_within = 8, permanova = 10, negative_binomial = 4, robust_regression = 8, multinomial = 6, zero_inflated = 6, logistic_interaction = 4, group_moderator = 3, growth = 12, signal_detection = 4, lpa = 20, efa = 15, its = 6, irt = 12, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60,
     process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120, modmed_binary = 120, modmed_difference = 120,
     mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,

@@ -58,6 +58,8 @@ Imports:
     mirt,
     parallel,
     pbkrtest,
+    nlme,
+    PITS,
     psych,
     quantreg,
     power4mome,

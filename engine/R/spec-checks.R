@@ -37,7 +37,8 @@ population_problems <- function(spec) {
     irt = check_irt,
     signal_detection = check_dprime,
     mixture = check_lpa,
-    factor_analysis = function(spec) character()
+    factor_analysis = function(spec) character(),
+    time_series = function(spec) character()
   )
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
@@ -2949,6 +2950,9 @@ minimum_n <- function(spec) {
       factor_correlation = sum(unlist(spec$population$indicators)) + 1,
       latent_regression = spec$population$indicators * (length(spec$population$slopes) + 1) + 1
     ),
+    # Interrupted time series: at least three points after the
+    # intervention, so the slope after it can be estimated.
+    time_series = 3,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
   )
@@ -3233,6 +3237,8 @@ target_effect_is_zero <- function(spec) {
     signal_detection = diff(as.numeric(unlist(pop$dprime))),
     mixture = pop$separation,
     factor_analysis = pop$loading,
+    time_series = switch(spec$target_test$effect %||% "level", level = pop$level_change %||% 0,
+      slope = pop$slope_change %||% 0, both = max(abs(c(pop$level_change %||% 0, pop$slope_change %||% 0)))),
     reliability = switch(spec$template,
       icc = pop$icc - pop$icc_null,
       cronbach_alpha = pop$reliability - pop$reliability_null,
