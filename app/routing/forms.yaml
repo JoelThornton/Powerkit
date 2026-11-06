@@ -1912,7 +1912,8 @@ forms:
 
   # One-way repeated measures (27 October 2026): one within-participants
   # factor, one SD and one correlation for every pair of conditions, so
-  # sphericity holds. No smallest detectable effect yet, as for E18.
+  # sphericity holds. The smallest detectable effect scales the pattern
+  # of means entered.
   E54:
     sensitivity: true
     sides: false
@@ -1993,7 +1994,8 @@ forms:
 
   # Mixed ANOVA beyond 2 x 2 (28 October 2026): one between factor by one
   # within factor, at least one with three or more levels; one SD and one
-  # correlation, so sphericity holds. No smallest detectable effect yet.
+  # correlation, so sphericity holds. The smallest detectable effect scales
+  # the pattern of means entered.
   E55:
     sensitivity: true
     sides: false
@@ -2085,8 +2087,8 @@ forms:
   # Three-factor ANOVA (28 October 2026): three crossed factors, any mix of
   # between and within participants, the between factors listed first. One
   # SD; with a within factor, one correlation between every pair of a
-  # participant's cells, so sphericity holds. No smallest detectable effect
-  # yet, as for the two-factor designs.
+  # participant's cells, so sphericity holds. The smallest detectable
+  # effect scales the pattern of means entered (6 November 2026).
   E56:
     sensitivity: true
     sides: false
@@ -2149,7 +2151,8 @@ forms:
 
   # Two-factor ANOVA, both factors within participants (2 x 2 or larger;
   # 28 October 2026): one SD and one correlation between every pair of
-  # cells, so sphericity holds. No smallest detectable effect yet.
+  # cells, so sphericity holds. The smallest detectable effect scales the
+  # pattern of means entered.
   E20:
     sensitivity: true
     sides: false
