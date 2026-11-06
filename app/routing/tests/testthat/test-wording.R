@@ -4,13 +4,15 @@
 # journals with "Psychology" in their names are fine, so the check is on
 # the descriptions themselves.
 
-test_that("the page title, description, footer and guide don't call powerkit a psychology tool", {
+test_that("the page title, description, footer, landing page and guide don't call powerkit a psychology tool", {
   app <- paste(readLines(file.path(routing_dir, "app.R"), encoding = "UTF-8"), collapse = "\n")
   head_and_footer <- regmatches(app, gregexpr("tags\\$(title|meta|footer)\\([^\n]*", app))[[1]]
   expect_gt(length(head_and_footer), 0)
   expect_false(any(grepl("psycholog", head_and_footer, ignore.case = TRUE)))
-  guide <- paste(readLines(file.path(routing_dir, "www", "guide.html"), encoding = "UTF-8"), collapse = "\n")
-  expect_no_match(guide, "psycholog", ignore.case = TRUE)
+  for (page in c("index.html", "guide.html")) {
+    text <- paste(readLines(file.path(repo_dir, "site", page), encoding = "UTF-8"), collapse = "\n")
+    expect_no_match(text, "psycholog", ignore.case = TRUE, label = page)
+  }
 })
 
 test_that("the package's title, description and citation don't call it a psychology tool", {

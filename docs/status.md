@@ -167,9 +167,15 @@ fully validated. Validation runs are recorded in
   (Departure 19), checked against independent populations and the backend
   generator. Their broader validation remains separate from these checks.
 
-- **Search discovery:** the app includes a public robots policy, a sitemap
-  and a static guide. Deployment must be checked at the public URLs before
-  submitting the sitemap to Search Console; search indexing is not guaranteed.
+- **Search discovery and hosting costs:** the pages search engines index
+  (a landing page, the guide, the sitemap) are static files in `site/`,
+  published to GitHub Pages at <https://joelthornton.github.io/Powerkit/>;
+  the app's `robots.txt` asks crawlers to stay away, because every visit
+  starts the app on a host paid for by the hour. The page's keep-open
+  message stops after 20 minutes without use. Still to do once, by the
+  maintainer: turn on GitHub Pages, point Connect Cloud at `connect-cloud`
+  if it still watches main, and add the new site to Search Console
+  ([`hosting-options.md`](hosting-options.md), "Setting it up").
 
 - **Saved-result integrity:** calculations capture their original form
   answers; changed or inconsistent restored answers require recalculation
@@ -180,9 +186,10 @@ fully validated. Validation runs are recorded in
   still tracked separately below.
 
 - **The app** (`app/routing/`) is online at
-  <https://joelthornton-powerkit.share.connect.posit.cloud> and updates
-  itself from main (Posit Connect Cloud, through
-  `app/routing/manifest.json`, which a workflow keeps current);
+  <https://joelthornton-powerkit.share.connect.posit.cloud> and is
+  published once a day from the `connect-cloud` branch (Posit Connect
+  Cloud; the `online-app-manifest` workflow updates it from main when the
+  app, the engine or `renv.lock` changed);
   [`run-it-yourself.md`](run-it-yourself.md) is for running it locally.
   Parts of screens that repeat (the list of analyses, an input screen's
   groups of fields) are kept as HTML once built (`cached_html()` in
