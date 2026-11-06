@@ -1,6 +1,6 @@
 # What to work on next
 
-*6 November 2026: items 6 to 12 added from an audit of `status.md`, the coverage roadmap, the open judgement calls and the build guide for planned work with no queue item (the maintainer's order for them is still to set). 4 November 2026: every item Ready; the maintainer decided items 2 (the Bayes factor of an effect), 3, 4, 5 and 6. 31 October 2026: items 1, 3 to 9, 15 to 17, 19 and 24 decided and Ready. 30 October 2026 (the maintainer's order for the next work is items 1 to 10; Ready items first; every card the app marks "not in powerkit" has an item, checked against a list of the tests psychologists most often report). The ordered answer to "work on the next thing". One
+*6 November 2026: items 6 to 12 added from an audit of `status.md`, the coverage roadmap, the open judgement calls and the build guide for planned work with no queue item (the maintainer kept them in this order). 4 November 2026: every item Ready; the maintainer decided items 2 (the Bayes factor of an effect), 3, 4, 5 and 6. 31 October 2026: items 1, 3 to 9, 15 to 17, 19 and 24 decided and Ready. 30 October 2026 (the maintainer's order for the next work is items 1 to 10; Ready items first; every card the app marks "not in powerkit" has an item, checked against a list of the tests psychologists most often report). The ordered answer to "work on the next thing". One
 queue, newest decisions folded in; [`status.md`](status.md) says where the
 project is, this says what to do.*
 
@@ -89,5 +89,4 @@ call), and nodes for approaches powerkit doesn't compute.
 - **The AI assistant** (build guide phase 7: words or a diagram to a
   suggested design, always confirmed by the user): whether and when to
   start it. It comes last by design (`CLAUDE.md`).
-- **Which batch comes next**, if the order above is wrong; items 6 to 12
-  were added on 6 November 2026 in no particular order.
+- **Which batch comes next**, if the order above is wrong.
