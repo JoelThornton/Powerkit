@@ -1076,6 +1076,31 @@ corrected population translation; it does not supply the missing
 published examples or establish full validation of every variant.
 
 
+## 2026-11-07 · Two seeded checks rerun with new seeds (local, cloud session)
+
+The scheduled runs of 6 and 7 November failed the same two checks on their
+fixed seeds. Each was rerun outside the test file with new seeds, at the
+test's own settings and 10,000 replications, with no expected value or
+tolerance changed.
+
+- **Mixed design, Greenhouse-Geisser: the exact data set agrees with
+  simulation** (`test-validation-anova-within-covariance.R`; two groups by
+  three occasions, n 40). Superpower's exact route gives power 0.2313.
+  Its simulated route gave 0.2169 (MCSE 0.0041) with seed 7061 and 0.2158
+  (0.0041) with seed 7062, against 0.2130 on the test's seed: about 0.216
+  over 30,000 simulated studies, some six standard errors below the exact
+  value. The difference holds, so it is not Monte Carlo error. A likely
+  source is that the exact route applies the population's epsilon, while
+  each simulated study estimates epsilon from its own data, which makes
+  the corrected test more conservative. Which one describes the planned
+  analysis is a question for the statistician; the test stays as it is.
+- **Model 7 with a yes/no X: the Monte Carlo interval keeps the Type I
+  error at most alpha** (`test-validation-modmed-binary.R`): rerun at
+  10,000 replications with seed 17031; the result is added here when the
+  run finishes.
+
+Packages: powerkit 0.35.0; Superpower 0.2.4.1; power4mome 0.2.1; R 4.5.3.
+
 ## 2026-11-05 · Welch planning with unequal SDs (local)
 
 `welch_spreads` completed on Windows x86_64 with R 4.5.3 and two test

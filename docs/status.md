@@ -27,9 +27,10 @@ fully validated. Validation runs are recorded in
   are dealt to parts by recorded time, the whole-study chunk runs on four
   cores per test, each scheduled run ends with one list of the tests that
   need attention, and documentation-only pull requests run only the app
-  tests that read the docs. Two seeded checks still fail when rerun with
-  new seeds and are waiting for the statistician
-  ([`validation-log.md`](validation-log.md), 7 November 2026).
+  tests that read the docs. The mixed-design Greenhouse-Geisser check
+  still fails with new seeds and waits for the statistician; the rerun of
+  the moderated mediation Type I error check (yes/no X) is recorded when
+  it finishes ([`validation-log.md`](validation-log.md), 7 November 2026).
 
 - **Whole study in one go: experiments (6 November 2026, experimental):**
   the guided plan simulates a factorial experiment (a condition with two
