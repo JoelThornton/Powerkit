@@ -100,14 +100,16 @@ capability_rows <- function(tree, forms) {
           if (!is.null(f$min_exclusive)) paste("greater than", f$min_exclusive),
           if (!is.null(f$max)) paste("maximum", f$max), f$help), collapse = "; "))
       }))), collapse = " ")
-    add(id, "Form defaults (population values still required)", access, restrictions, capability_metadata(form, fields, defaults))
+    add(id, "The screen as it starts (you still enter the effect and sample)", access, restrictions, capability_metadata(form, fields, defaults))
     choices <- Filter(function(f) identical(f$type, "select") && ((!is.null(f$path) && grepl("^(target_test|population|variables|goal|template|design)([.]|$)", f$path)) || length(f$sets)), fields)
     for (f in choices) for (value in names(f$choices)) {
       values <- defaults
       values[[f$id]] <- value
       note <- paste(c(f$choice_notes[[value]], if (!is.null(f$shown_if)) "Shown only when the form's other conditions apply."), collapse = " ")
-      add(id, paste(f$label, f$choices[[value]], sep = ": "), access,
-        paste(note, "Other limits are listed in this analysis's form-default row."), capability_metadata(form, fields, values))
+      # "Which directions ...?: Positive effects only" read badly: the
+      # question's own question mark goes.
+      add(id, paste(sub("\\?$", "", f$label), f$choices[[value]], sep = ": "), access,
+        paste(note, "Other limits are listed in this analysis's row for the screen as it starts."), capability_metadata(form, fields, values))
     }
   }
   do.call(rbind, rows)
@@ -115,7 +117,9 @@ capability_rows <- function(tree, forms) {
 
 capabilities_ui <- function(tree, forms) {
   rows <- capability_rows(tree, forms)
-  tagList(
+  # Folded: the table has over a thousand rows, which pushed the rest of
+  # About far down the page.
+  tags$details(class = "capabilities-fold", tags$summary(sprintf("Every test version and its checks (%s)", format(nrow(rows), big.mark = ","))),
     p("Generated from the current cards and input forms. Each row is one available choice, not a claim that every combination works. Conditional fields, mathematical limits and population assumptions still apply. Evidence for your complete, selected analysis is captured with its result."),
     tags$label(`for` = "capability_search", "Search analyses, test versions or assumptions"),
     tags$input(id = "capability_search", type = "search", class = "form-control", oninput = "pkFilterCapabilities(this.value)"),

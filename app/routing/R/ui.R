@@ -164,6 +164,13 @@ page_slugs <- function() {
     labs = labs_tab_title, feedback = "Feedback", maintainer = "For the maintainer: undecided settings")
 }
 
+# A tab's name: in full, and a short name that phones show so that all
+# five tabs fit on one row.
+tab_title <- function(full, short) {
+  if (identical(full, short)) return(full)
+  tagList(tags$span(class = "tab-long", full), tags$span(class = "tab-short", short))
+}
+
 # The tab an address asks for, or NULL for the plan tab or a page that
 # isn't there (the maintainer's tab only in the maintainer's view).
 page_from_query <- function(query = "") {
@@ -806,7 +813,7 @@ validation_scope_note <- "Checks apply to the cases described in this record, no
 card_facts_ui <- function(tree, ep_id, ep) {
   how <- unname(tree$calculate_how[ep_id])
   if (!length(how) || is.na(how) || !ep$status %in% c("runs_validated", "runs_validation_in_progress")) return(NULL)
-  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded; see their scope below" else "Validation in progress"
+  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded; see \"More about this analysis\" below" else "Validation in progress"
   fact <- function(label, value, cls = NULL) div(class = paste("card-fact", cls), tags$span(class = "card-fact-label", label), tags$span(class = "card-fact-value", value))
   div(class = "card-facts",
     fact("Calculates", card_how_words[[how]], paste0("how-", how)),
@@ -862,7 +869,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
       # Which package calculates it and the questions asked after the
       # numbers: useful to some, so folded (22 October 2026).
       if ((!is.null(ep$inputs) || runs) && is.null(ep$guide)) tags$details(class = "card-more",
-        tags$summary(if (!compact && runs) "More about this analysis: which package calculates it, and what you'd be asked next"
+        tags$summary(if (!compact && runs) "More about this analysis: which package calculates it, its checks, and what you'd be asked next"
           else "More about this analysis: what you'd enter, and which package calculates it"),
         if (!is.null(ep$inputs) && !compact && runs) tagList(section_heading("What the terms mean"),
           hints_ui(tree, paste(ep$inputs, collapse = " "))),

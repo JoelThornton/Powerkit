@@ -54,5 +54,40 @@ draft_opened_ui <- function(saved_at) {
   div(class = "alert alert-info", role = "status",
     tags$strong("Unfinished draft opened. "),
     "Your editable answers were restored, including blanks. No calculated or validated result was restored. Complete or change the answers, then check them before calculating.",
-    if (is.character(saved_at) && length(saved_at) == 1) p(class = "mb-0", paste("Draft saved:", saved_at)))
+    if (is.character(saved_at) && length(saved_at) == 1) p(class = "mb-0", "Draft saved ", saved_time_ui(saved_at), "."))
+}
+
+# When a draft was saved, in the visitor's own time and plain words
+# ("today at 13:05"): the record holds UTC ("2026-11-07 13:05:16 UTC"),
+# which the browser turns into local time. Without JavaScript the UTC
+# time stays.
+saved_time_ui <- function(saved_at) {
+  when <- as.POSIXct(sub(" UTC$", "", saved_at), tz = "UTC", format = "%Y-%m-%d %H:%M:%S")
+  if (is.na(when)) return(saved_at)
+  tagList(tags$time(class = "pk-local-time", datetime = format(when, "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
+      paste("on", format(when, "%d %B %Y at %H:%M UTC", tz = "UTC"))),
+    tags$script(HTML("(function() {
+  document.querySelectorAll('time.pk-local-time:not([data-done])').forEach(function(el) {
+    var t = new Date(el.getAttribute('datetime')); if (isNaN(t)) return;
+    var day = function(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+    var diff = Math.round((day(new Date()) - day(t)) / 86400000);
+    var clock = t.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    var date = diff === 0 ? 'today' : diff === 1 ? 'yesterday' : 'on ' + t.toLocaleDateString([], {day: 'numeric', month: 'long'});
+    el.textContent = date + ' at ' + clock; el.setAttribute('data-done', '1');
+  });
+})();")))
+}
+
+# The offer to continue an unfinished plan, on the plan tab's first
+# screen only (it covered every tab as a dialog until 7 November 2026).
+# "Not now" keeps the draft; only "Discard my draft" deletes it.
+draft_offer_ui <- function(name, saved_at) {
+  div(class = "draft-offer", role = "region", `aria-labelledby` = "draft_offer_title",
+    h3(id = "draft_offer_title", class = "h5", "Continue your unfinished plan?"),
+    p(sprintf("You were filling in \"%s\", saved ", name), saved_time_ui(saved_at),
+      ". Your answers are kept in this browser."),
+    div(class = "draft-offer-actions",
+      actionButton("pk_restore_yes", "Continue my plan", class = "btn-primary"),
+      actionButton("pk_restore_later", "Not now", class = "btn-outline-secondary"),
+      actionButton("pk_restore_no", "Discard my draft", class = "btn-outline-danger")))
 }

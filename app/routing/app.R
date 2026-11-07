@@ -302,6 +302,9 @@ app_css <- "
           --pk-radius: 14px; --pk-shadow: 0 1px 2px rgba(20,40,75,.06), 0 4px 16px rgba(20,40,75,.06); }
   body { background: var(--pk-bg); color: #1d2733; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
   h2 { font-weight: 650; color: var(--pk-navy); letter-spacing: -0.01em; font-size: 1.75rem; }
+  /* One heading style everywhere: Labs, About and dialogs used
+     Bootstrap's lighter default. */
+  .labs h3, .labs h4, .about h3, .modal-title { font-weight: 650; color: var(--pk-navy); }
   .lead { font-size: 1.05rem; color: #44505e; }
   /* Edge to edge: the page's side padding is half Bootstrap's gutter, which grows with the root font size. */
   .topbar { background: var(--pk-navy); color: #fff; margin: 0 calc(var(--bs-gutter-x, 1.5rem) * -0.5);
@@ -340,8 +343,24 @@ app_css <- "
   .app-main > .tabbable > .nav-tabs .nav-link { border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: #44505e; font-weight: 500; padding: 0.7rem 0.9rem; }
   .app-main > .tabbable > .nav-tabs .nav-link.active { background: transparent; color: var(--pk-blue); border-bottom-color: var(--pk-blue); }
   /* On a phone the tabs stay on one row and scroll sideways, so every page starts at the same height. */
-  @media (max-width: 767px) { .app-main > .tabbable > .nav-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-    .app-main > .tabbable > .nav-tabs .nav-link { white-space: nowrap; padding: 0.7rem 0.7rem; } }
+  /* On a phone the tabs take short names so all five fit on one row
+     (tab_title(), R/ui.R), and every page starts at the same height. */
+  .tab-short { display: none; }
+  .draft-offer { background: #e8f3fa; border: 1px solid #b9d9ec; border-radius: var(--pk-radius); padding: 0.9rem 1.1rem; margin: 0 0 1rem 0; }
+  .draft-offer h3 { color: var(--pk-navy); font-weight: 650; margin-bottom: 0.3rem; }
+  .draft-offer-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  /* Slider tick labels at the app's small text size (ionRangeSlider's
+     default is 9px); on phones every other label, so they don't crowd. */
+  .irs-grid-text { font-size: 0.78rem; color: #44505e; bottom: -0.4rem; }
+  .irs--shiny .irs-min, .irs--shiny .irs-max { font-size: 0.78rem; }
+  .irs--shiny .irs-single { font-size: 0.85rem; }
+  .irs--shiny { margin-bottom: 0.4rem; }
+  @media (max-width: 767px) { .irs-grid-text.js-grid-text-1, .irs-grid-text.js-grid-text-3, .irs-grid-text.js-grid-text-5,
+    .irs-grid-text.js-grid-text-7, .irs-grid-text.js-grid-text-9 { display: none; } }
+  .capabilities-fold > summary { font-weight: 600; color: var(--pk-blue); cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+  @media (max-width: 767px) { .app-main > .tabbable > .nav-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 0; justify-content: space-between; }
+    .app-main > .tabbable > .nav-tabs .nav-link { white-space: nowrap; padding: 0.7rem 0.55rem; }
+    .tab-long { display: none; } .tab-short { display: inline; } }
   .progress-steps ol { margin: 0.25rem 0 1rem 0; }
   .screen-nav { display: flex; justify-content: space-between; align-items: center; margin: -0.25rem 0 0.5rem 0; }
   .screen-nav .btn-link { padding: 0.35rem 0; text-decoration: none; font-weight: 500; min-height: 44px; }
@@ -721,14 +740,14 @@ ui <- function(req) fluidPage(
       id = "tabs",
       # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
       selected = page_from_query(req$QUERY_STRING),
-      tabPanel("Plan a power analysis", div(class = "pt-3", uiOutput("progress"), uiOutput("screen"))),
-      tabPanel("About", div(class = "pt-3",
+      tabPanel(tab_title("Plan a power analysis", "Plan"), value = "Plan a power analysis", div(class = "pt-3", uiOutput("draft_offer"), uiOutput("progress"), uiOutput("screen"))),
+      tabPanel(tab_title("About", "About"), value = "About", div(class = "pt-3",
         tags$p(class = "about-loading", tags$span(class = "pk-spinner pk-spinner-small", `aria-hidden` = "true"), "Loading the About page…"),
         div(id = "about_static"),
         uiOutput("about_page"))),
-      tabPanel(labs_tab_title, div(class = "pt-3", labs_tab)),
-      tabPanel("Updates", div(class = "pt-3", whats_new_tab)),
-      tabPanel("Feedback", div(class = "pt-3", feedback_tab)),
+      tabPanel(tab_title(labs_tab_title, "Labs"), value = labs_tab_title, div(class = "pt-3", labs_tab)),
+      tabPanel(tab_title("Updates", "Updates"), value = "Updates", div(class = "pt-3", whats_new_tab)),
+      tabPanel(tab_title("Feedback", "Feedback"), value = "Feedback", div(class = "pt-3", feedback_tab)),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
     tags$footer(class = "small text-muted mt-4", "Powerkit helps plan research studies. ",
@@ -857,7 +876,8 @@ server <- function(input, output, session) {
     session$sendCustomMessage("pk_autosave", as.character(jsonlite::toJSON(autosave_record(route), auto_unbox = TRUE, null = "null")))
   })
   # A new session that finds saved answers in the browser offers to bring
-  # them back, once, while the visitor hasn't started anything yet.
+  # them back, on the plan tab's first screen, while the visitor hasn't
+  # started anything yet (draft_offer_ui()).
   saved_draft <- reactiveVal(NULL)
   observeEvent(input$pk_saved_draft, {
     record <- autosave_from_browser(input$pk_saved_draft)
@@ -868,23 +888,23 @@ server <- function(input, output, session) {
       return()
     }
     saved_draft(list(record = record, restored = restored))
-    name <- tree$endpoints[[record$route$endpoint]]$plain_name %||% record$route$endpoint
-    showModal(modalDialog(
-      title = "Continue where you left off?",
-      tags$p(sprintf("You were filling in \"%s\" (saved %s). Your answers are kept in this browser.", name, record$saved_at)),
-      footer = tagList(actionButton("pk_restore_no", "Start fresh", class = "btn-outline-secondary"),
-        actionButton("pk_restore_yes", "Continue", class = "btn-primary")),
-      easyClose = FALSE))
   }, once = TRUE)
+  output$draft_offer <- renderUI({
+    saved <- saved_draft()
+    if (is.null(saved) || !identical(state$screen, "start") || length(state$history)) return(NULL)
+    record <- saved$record
+    draft_offer_ui(tree$endpoints[[record$route$endpoint]]$plain_name %||% record$route$endpoint, record$saved_at)
+  })
   observeEvent(input$pk_restore_yes, {
     saved <- saved_draft()
-    removeModal()
     req(saved)
+    saved_draft(NULL)
     for (name in names(saved$restored)) state[[name]] <- saved$restored[[name]]
     output$form_result <- renderUI(draft_opened_ui(saved$record$saved_at))
   })
+  # Not now: hidden for this visit; the draft stays in the browser.
+  observeEvent(input$pk_restore_later, saved_draft(NULL))
   observeEvent(input$pk_restore_no, {
-    removeModal()
     saved_draft(NULL)
     session$sendCustomMessage("pk_autosave", "")
   })

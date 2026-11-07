@@ -282,7 +282,7 @@ labs_ui <- function(tree) {
           textInput("labs_cols", "Number of categories in the second variable", width = "100%")),
         textInput("labs_power", "Power (the chance of detecting the effect)", value = "0.8", width = "100%"),
         textInput("labs_alpha", "Significance level", value = "0.05", width = "100%"),
-        actionButton("labs_sde_run", "Find the smallest detectable effect", class = "btn btn-outline-primary"),
+        actionButton("labs_sde_run", "Show the smallest detectable effect", class = "btn btn-primary"),
         uiOutput("labs_sde_result"))),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Value"),
       p(class = "group-note", "Why a replication, rather than another way of reaching the same goal."),
@@ -775,7 +775,7 @@ published_ui <- function() {
         textInput("pub_n", "People in the published study", width = "100%")),
       selectInput("pub_protection", "Protection against the estimate being too large", selectize = FALSE, width = "100%",
         choices = c("80% (the lower end of a 60% confidence interval)" = "0.8", "95% (the lower end of a 90% confidence interval)" = "0.95"))),
-    actionButton("pub_run", "Work it out", class = "btn btn-primary"),
+    actionButton("pub_run", "Show the result", class = "btn btn-primary"),
     uiOutput("pub_result"))
 }
 
@@ -823,7 +823,7 @@ bayes_ui <- function() {
         numericInput("bayes_step", "Then look again after every", value = 1, min = 1, max = 1000, step = 1, width = "100%"),
         radioButtons("bayes_threshold_null", "Stop for no effect at a Bayes factor of at least", choices = bayes_thresholds, selected = "10", inline = TRUE),
         p(class = "group-note", "It can differ from the threshold for an effect: a lower one for no effect stops sooner when there is none, at the cost of more misleading evidence for no effect."))),
-    actionButton("bayes_run", "Work it out", class = "btn btn-primary"),
+    actionButton("bayes_run", "Show the result", class = "btn btn-primary"),
     uiOutput("bayes_result"))
 }
 
