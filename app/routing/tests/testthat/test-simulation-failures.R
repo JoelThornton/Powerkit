@@ -21,5 +21,6 @@ test_that("whole-study output distinguishes failed fits in each and joint decisi
   expect_length(words, 2)
   expect_true(all(grepl("80%", words, fixed = TRUE)))
   expect_true(all(grepl("72%", words, fixed = TRUE)))
-  expect_match(words[2], "Joint all criterion", fixed = TRUE)
+  expect_match(words[2], "The chance that every main analysis was significant", fixed = TRUE)
+  expect_no_match(words[2], "Joint all criterion", fixed = TRUE)
 })
