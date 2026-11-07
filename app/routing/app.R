@@ -361,6 +361,7 @@ app_css <- "
   @media (max-width: 767px) { .app-main > .tabbable > .nav-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 0; justify-content: space-between; }
     .app-main > .tabbable > .nav-tabs .nav-link { white-space: nowrap; padding: 0.7rem 0.55rem; }
     .tab-long { display: none; } .tab-short { display: inline; } }
+  @media (max-width: 360px) { .app-main > .tabbable > .nav-tabs .nav-link { padding: 0.7rem 0.3rem; font-size: 0.9rem; } }
   .progress-steps ol { margin: 0.25rem 0 1rem 0; }
   .screen-nav { display: flex; justify-content: space-between; align-items: center; margin: -0.25rem 0 0.5rem 0; }
   .screen-nav .btn-link { padding: 0.35rem 0; text-decoration: none; font-weight: 500; min-height: 44px; }
