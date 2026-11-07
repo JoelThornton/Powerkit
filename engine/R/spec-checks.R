@@ -2727,7 +2727,11 @@ check_goal <- function(spec, check_effect = TRUE) {
         "one_sample_t", "independent_t", "paired_t", "correlation",
         "two_proportions", "chi_square_independence"
       )
-  ) && !identical(spec$design, "generic_test") && !identical(spec$design, "cluster_trial")
+  ) && !identical(spec$design, "generic_test") && !identical(spec$design, "cluster_trial") &&
+    # Multiple regression: pwrss's F test is searched for the smallest
+    # R-squared (regression_sensitivity()), so none is needed.
+    !(identical(spec$design, "multiple_regression") && spec$template %in% c("r2_zero", "r2_increase", "single_coefficient") &&
+      identical(goal$type, "sensitivity"))
   if (check_effect && goal$type %in% c("sample_size", "sensitivity") &&
     needs_effect && target_effect_is_zero(spec)) {
     consequence <- if (goal$type == "sample_size") {

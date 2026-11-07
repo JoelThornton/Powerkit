@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 6 November 2026 (powerkit 0.34.1). This page says where the
+*Last updated: 6 November 2026 (powerkit 0.35.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
 planned work that had no queue item, 6 November 2026). History is in git,
@@ -27,15 +27,12 @@ fully validated. Validation runs are recorded in
   for a CRAN package (`next.md` item 3).
 
 - **Input screens, first-time-user pass (6 November 2026):** the commonest
-  cards (t-tests, correlation, one-way, two-way and mixed ANOVA, regression,
-  logistic regression, chi-square, mediation) were walked through in a
-  browser, including wrong entries and a full t-test calculation, which
-  matches `usability-session-pack.md`'s key (200 in total). Plain-wording
-  fixes are in 0.33.1. Still open: the "I don't know my effect size" box
-  is on the basic tests only; regression's effect boxes stay hidden until
-  "What you want to test" is chosen, which leaves that section looking
-  empty; the result page is long. An AI walkthrough is no substitute for
-  the human sessions the pack describes.
+  cards were walked through in a browser. Plain-wording fixes are in
+  0.33.1; since 0.35.0 every ANOVA can find the smallest detectable effect
+  (by scaling the pattern entered) and regression can with no effect size,
+  and regression's effect section says what to choose first. Still open:
+  the result page is long. An AI walkthrough is no substitute for the
+  human sessions in `usability-session-pack.md`.
 
 - **Documents:** the pre-replication notes and the study-planning document
   save as a typeset PDF (through the browser's print window), an editable

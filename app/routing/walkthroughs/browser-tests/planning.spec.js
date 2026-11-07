@@ -177,6 +177,11 @@ test('reported-statistic import fills supported fields and refuses unsupported s
   await expect(page.locator('#reported_statistic_message')).toContainText('does not supply an effect direction');
 });
 
+for (const page_ of ['labs', 'about', 'updates']) test(`a link straight to ${page_} is not covered by the starting screen`, async ({ page }) => {
+  await page.goto(`/?page=${page_}`);
+  await expect(page.locator('#pk-starting')).toHaveCount(0, { timeout: 30000 });
+});
+
 test('a link straight to a Labs tool opens it, not the starting screen', async ({ page }) => {
   await page.goto('?page=labs&tool=prereplication');
   await expect(page.locator('#pk-starting')).toHaveCount(0);

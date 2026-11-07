@@ -1847,6 +1847,7 @@ forms:
   # proportion and McNemar. No smallest detectable effect yet: the engine
   # doesn't offer it for these.
   E18:
+    sensitivity: true
     sides: false
     methods_name: "a one-way between-subjects ANOVA"
     tool: Superpower
@@ -1911,8 +1912,10 @@ forms:
 
   # One-way repeated measures (27 October 2026): one within-participants
   # factor, one SD and one correlation for every pair of conditions, so
-  # sphericity holds. No smallest detectable effect yet, as for E18.
+  # sphericity holds. The smallest detectable effect scales the pattern
+  # of means entered.
   E54:
+    sensitivity: true
     sides: false
     methods_name: "a one-way repeated-measures ANOVA"
     tool: Superpower
@@ -1991,8 +1994,10 @@ forms:
 
   # Mixed ANOVA beyond 2 x 2 (28 October 2026): one between factor by one
   # within factor, at least one with three or more levels; one SD and one
-  # correlation, so sphericity holds. No smallest detectable effect yet.
+  # correlation, so sphericity holds. The smallest detectable effect scales
+  # the pattern of means entered.
   E55:
+    sensitivity: true
     sides: false
     methods_name: "a mixed ANOVA (between- by within-participants factor)"
     departures: ["3"]
@@ -2082,9 +2087,10 @@ forms:
   # Three-factor ANOVA (28 October 2026): three crossed factors, any mix of
   # between and within participants, the between factors listed first. One
   # SD; with a within factor, one correlation between every pair of a
-  # participant's cells, so sphericity holds. No smallest detectable effect
-  # yet, as for the two-factor designs.
+  # participant's cells, so sphericity holds. The smallest detectable
+  # effect scales the pattern of means entered (6 November 2026).
   E56:
+    sensitivity: true
     sides: false
     methods_name: "a three-factor ANOVA"
     departures: ["3"]
@@ -2145,8 +2151,10 @@ forms:
 
   # Two-factor ANOVA, both factors within participants (2 x 2 or larger;
   # 28 October 2026): one SD and one correlation between every pair of
-  # cells, so sphericity holds. No smallest detectable effect yet.
+  # cells, so sphericity holds. The smallest detectable effect scales the
+  # pattern of means entered.
   E20:
+    sensitivity: true
     sides: false
     methods_name: "a two-factor within-participants ANOVA"
     departures: ["3"]
@@ -2225,6 +2233,7 @@ forms:
   # (28 October 2026): equal cells, one SD. No smallest detectable effect
   # yet.
   E21:
+    sensitivity: true
     sides: false
     methods_name: "a two-factor between-participants ANOVA"
     departures: ["3"]
@@ -2335,6 +2344,9 @@ forms:
     base: {spec_version: "0.1", design: multiple_regression,
            variables: {"Y": {type: continuous}}, population: {metric: r_squared},
            target_test: {method: f_test}}
+    sensitivity_without_effect: true
+    sensitivity_note: "For the smallest effect you could detect, this can stay empty: powerkit works out the smallest R-squared (or increase) your sample could detect."
+    effect_waits_for: question
     groups:
       - input: "Your outcome's name and what you want to test"
         fields:
@@ -2352,7 +2364,7 @@ forms:
         fields:
           - {id: r2, writeup_label: "R²", label: "R-squared of the model (0 to 1)", type: number, path: population.r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: r2_zero}}
-          - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors (0 to 1)", type: number, path: population.r2_full, effect: true, min: 0, max_exclusive: 1,
+          - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors (0 to 1)", type: number, path: population.r2_full, effect: true, when_empty: same_as_r2_reduced, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: r2_increase}}
           - {id: r2_reduced, writeup_label: "R² without the tested predictors", label: "R-squared without the predictors you are testing (0 to 1; 0 if there are no others)", type: number, path: population.r2_reduced, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: r2_increase}}

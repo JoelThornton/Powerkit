@@ -58,7 +58,7 @@ test_that("one-way ANOVA equals Superpower's ANOVA_exact() called directly, and 
   expect_equal(power, pwr::pwr.anova.test(k = 3, n = 40, f = f, sig.level = 0.05)$power, tolerance = 1e-6)
 })
 
-test_that("one-way ANOVA needs equal groups, one mean per level, and has no sensitivity yet", {
+test_that("one-way ANOVA needs equal groups, one mean per level, and scales the means for sensitivity", {
   spec <- wave2_spec("anova_oneway_between", list(type = "power", n = 100))
   expect_spec_problem(spec, "split into 3 equal groups")
   spec$goal$n <- 120
@@ -69,7 +69,9 @@ test_that("one-way ANOVA needs equal groups, one mean per level, and has no sens
   spec$population$means <- list(10, 13)
   expect_error(validate_spec(spec), class = "powerkit_spec_error")
   sens <- wave2_spec("anova_oneway_between", list(type = "sensitivity", n = 120, power = 0.8))
-  expect_error(run_spec(sens), class = "powerkit_not_available")
+  s <- run_spec(sens)$sensitivity
+  expect_equal(s$power, 0.8, tolerance = 1e-6)
+  expect_equal(s$effect, max(s$means) - min(s$means))
 })
 
 test_that("R-squared against 0 equals pwrss::power.f.regression() called directly", {

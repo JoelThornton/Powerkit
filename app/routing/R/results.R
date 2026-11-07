@@ -960,7 +960,7 @@ goal_sentences <- function(spec, result) {
       if (is.null(s$cohen_f)) {
         # Basic tests (pwr): the effect is solved for directly.
         name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
-          r_XW_Y = "the correlation of the interaction with Y", "the effect")
+          r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared", "the effect")
         c(
           headline = sprintf(
             "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s = %s. The effect: %s.",
@@ -1369,7 +1369,7 @@ run_sensitivity_curve <- function(spec, run = engine_function("run_spec"), seed 
 }
 
 curve_table_ui <- function(spec, result, table) {
-  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "p2", "effect")
+  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "p2", r2 = "R-squared", partial_r2 = "partial R-squared", "effect")
   # Two proportions: the column is group 2's proportion, not a size.
   heading <- function(power) {
     if (identical(name, "p2")) sprintf("Group 2's proportion, %s power", power) else sprintf("Smallest %s, %s power", name, power)
@@ -1979,7 +1979,7 @@ result_figure <- function(spec, result) {
     sensitivity = {
       s <- result$sensitivity
       if (is.null(s$effect) || is.na(s$effect)) NULL else {
-        name <- if (!is.null(s$cohen_f)) "Cohen's f" else switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion", "effect")
+        name <- if (!is.null(s$cohen_f)) "Cohen's f" else switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion", r2 = "R-squared", partial_r2 = "partial R-squared", "effect")
         value <- if (!is.null(s$cohen_f)) sprintf("%.3f", s$cohen_f) else format(round(s$effect, 3), nsmall = 2)
         list(value = value, label = if (identical(name, "group 2's proportion")) "group 2's proportion you could detect" else paste("the smallest", name, "you could detect"),
           sub = sprintf("with %s %s, at %s power", whole(spec$goal$n), unit, percent(spec$goal$power)))

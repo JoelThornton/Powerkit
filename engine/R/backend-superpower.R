@@ -79,9 +79,12 @@ superpower_backend <- function(spec, seed = NULL) {
       }
       superpower_simulate(design_at(n), inputs, nrep, seed, cores)
     },
-    # Sensitivity for the one-way designs (which effect pattern to scale)
-    # is not settled yet; it is available for the 2x2 designs.
-    sensitivity = if (spec$template %in% c("oneway_between", "oneway_within", "mixed", "factorial_between", "factorial_within", "factorial_three")) NULL else function(n, power) {
+    # Sensitivity: the pattern of means entered keeps its shape and is
+    # scaled until the effect tested reaches the target power, as for the
+    # 2x2 designs (6 November 2026: the same rule for every layout, so a
+    # researcher who knows the pattern but not its size can plan any
+    # ANOVA). Exact only: unequal cells and pairwise tests are simulated.
+    sensitivity = if (simulated_only) NULL else function(n, power) {
       superpower_sensitivity(spec, inputs, exact_at, n, power)
     },
     # The check reads the cell means and SDs back from ANOVA_exact()'s data
@@ -407,6 +410,22 @@ superpower_sensitivity <- function(spec, inputs, exact_at, n, target) {
     lower = 0, upper = upper, tol = 1e-10
   )$root
   at_scale <- exact_at(n, mu_at(scale))
+  if (!spec$template %in% c("2x2_between", "2x2_within", "2x2_mixed")) {
+    # Other layouts: the size of the scaled pattern in the outcome's units
+    # is the largest difference between two of its means.
+    scaled <- mu_at(scale)
+    return(list(
+      scale = scale,
+      means = scaled,
+      effect = max(scaled) - min(scaled),
+      effect_description = sprintf(
+        "the largest difference between two of the means of %s, with the pattern you entered kept and scaled (means %s)",
+        spec$variables$Y$label %||% "the outcome", paste(vapply(scaled, function(x) format(signif(x, 3)), character(1)), collapse = ", ")
+      ),
+      cohen_f = at_scale$cohen_f,
+      power = at_scale$power
+    ))
+  }
   means <- matrix(mu_at(scale), nrow = 2, byrow = TRUE)
   contrast <- anova_effect_in_units(spec, means)
   list(
