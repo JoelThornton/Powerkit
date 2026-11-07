@@ -535,13 +535,10 @@
    "Independent people",
    "Twice",
    "A difference between groups or conditions",
-   "Two, crossed (every combination appears)",
-   "Yes: 2 x 2",
-   "One factor different people, the other everyone got both",
-   "Yes: the same number in every group",
+   "Two, each with exactly two levels (a 2 x 2 design)",
    "Yes: before and after",
    "Yes, randomly assigned",
-   "ANCOVA: the after score, adjusting for the before score"
+   "ANCOVA: the after score, adjusting for the before score (recommended)"
   ],
   "known": {
    "answers": [
@@ -798,6 +795,7 @@
    "A score or scale",
    "Independent people",
    "Once",
+   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
    "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
   ],
   "known": {
@@ -839,6 +837,7 @@
    "A score or scale",
    "Independent people",
    "Once",
+   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
    "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
   ],
   "known": {
@@ -880,6 +879,7 @@
    "A score or scale",
    "Independent people",
    "Once",
+   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
    "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
   ],
   "known": {
@@ -953,6 +953,7 @@
    "A score or scale",
    "Independent people",
    "Once",
+   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
    "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
   ],
   "known": {
@@ -994,6 +995,7 @@
    "A score or scale",
    "Independent people",
    "Once",
+   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
    "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
   ],
   "known": {
@@ -1452,8 +1454,7 @@
    "Independent people",
    "Twice",
    "A difference between groups or conditions",
-   "One",
-   "Two, with the same people in both (or one group measured twice)"
+   "One"
   ],
   "known": {
    "answers": [
@@ -1505,8 +1506,7 @@
    "Independent people",
    "Twice",
    "A difference between groups or conditions",
-   "One",
-   "Two, with the same people in both (or one group measured twice)"
+   "One"
   ],
   "known": {
    "answers": [
@@ -1557,8 +1557,7 @@
    "Yes/no, or one of several categories",
    "Independent people",
    "Twice",
-   "A difference between groups or conditions",
-   "The same people in every condition"
+   "A difference between groups or conditions"
   ],
   "known": {
    "answers": [
@@ -1752,7 +1751,6 @@
    "The same people in three or more conditions",
    "A difference between groups or conditions",
    "One",
-   "Three or more",
    "Any difference among the conditions"
   ],
   "known": {
@@ -1774,7 +1772,6 @@
    "continue": [
     "A difference between groups or conditions",
     "One",
-    "Three or more",
     "Any difference among the conditions"
    ]
   },
@@ -1797,7 +1794,6 @@
    "The same people in three or more conditions",
    "A difference between groups or conditions",
    "One",
-   "Three or more",
    "Any difference among the conditions"
   ],
   "known": {
@@ -1819,7 +1815,6 @@
    "continue": [
     "A difference between groups or conditions",
     "One",
-    "Three or more",
     "Any difference among the conditions"
    ]
   },
@@ -1840,8 +1835,7 @@
    "Independent people",
    "Many times",
    "The same people in three or more conditions",
-   "A difference between groups or conditions",
-   "The same people in every condition"
+   "A difference between groups or conditions"
   ],
   "known": {
    "answers": [
@@ -1860,8 +1854,7 @@
     "The same people in three or more conditions"
    ],
    "continue": [
-    "A difference between groups or conditions",
-    "The same people in every condition"
+    "A difference between groups or conditions"
    ]
   },
   "reaches": {
@@ -1881,9 +1874,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two, crossed (every combination appears)",
-   "Yes: 2 x 2",
-   "Both factors: different people",
+   "Two, each with exactly two levels (a 2 x 2 design)",
    "Yes: the same number in every group",
    "Whether the effect of one depends on the other (the interaction)",
    "One effect shrinks"
@@ -2444,6 +2435,7 @@
    "A score or scale",
    "Independent people",
    "Once",
+   "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people",
    "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"
   ],
   "known": {

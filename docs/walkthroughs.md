@@ -429,7 +429,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *Two, crossed (every combination appears)* → *Yes: 2 x 2* → *One factor different people, the other everyone got both* → *Yes: the same number in every group* → *Yes: before and after* → *Yes, randomly assigned* → *ANCOVA: the after score, adjusting for the before score*
+- **Help me choose:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *Two, each with exactly two levels (a 2 x 2 design)* → *Yes: before and after* → *Yes, randomly assigned* → *ANCOVA: the after score, adjusting for the before score (recommended)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → list: *Compare groups adjusting for a covariate (e.g. the before score)*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: A baseline (before) measure of the outcome → analysis ticked: *The effect of X on the outcome* → *ANCOVA: the outcome adjusting for the baseline*
 
@@ -555,7 +555,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A measured score; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -576,7 +576,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -595,7 +595,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -633,7 +633,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -654,7 +654,7 @@ One note per end card reached by the walkthroughs, for a reader without statisti
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -887,7 +887,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with the same people in both (or one group measured twice)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *One*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → list: *Compare the same people in two conditions (or before and after)*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): The same people in two conditions, or before and after; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -910,7 +910,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Two, with the same people in both (or one group measured twice)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *One*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): The same people in two conditions, or before and after; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -933,7 +933,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions* → *The same people in every condition*
+- **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Twice* → *Detect an effect* → *A difference between groups or conditions*
 - **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Twice* → *Detect an effect* → list: *The same people, a yes/no outcome in each condition*
 - **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Twice* → *Detect an effect* → variables: Main predictor (X): The same people in two conditions, or before and after; Outcome (Y): Yes/no; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 
@@ -1021,7 +1021,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Three or more* → *Any difference among the groups*
+- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Any difference among the groups*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → list: *Any difference among three or more groups or conditions*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *Continue in 'Help me choose'* → *A difference between groups or conditions* → *One* → *Three or more* → *Any difference among the groups*
 
@@ -1040,7 +1040,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Three or more* → *Any difference among the groups*
+- **Help me choose:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions* → *One* → *Any difference among the groups*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → list: *None of these fit / I'm not sure*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *Continue in 'Help me choose'* → *A difference between groups or conditions* → *One* → *Three or more* → *Any difference among the groups*
 
@@ -1061,7 +1061,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions* → *The same people in every condition*
+- **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions*
 - **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → list: *The same people, a yes/no outcome in each condition*
 - **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *Continue in 'Help me choose'* → *A difference between groups or conditions* → *The same people in every condition*
 
@@ -1082,7 +1082,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *Two, crossed (every combination appears)* → *Yes: 2 x 2* → *Both factors: different people* → *Yes: the same number in every group* → *Whether the effect of one depends on the other (the interaction)* → *One effect shrinks*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *A difference between groups or conditions* → *Two, each with exactly two levels (a 2 x 2 design)* → *Yes: the same number in every group* → *Whether the effect of one depends on the other (the interaction)* → *One effect shrinks*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Two factors crossed, different people in each of the four groups*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): A condition with two groups (or two existing groups); Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): Two groups or conditions; Covariates: None → analysis ticked: *Whether the effect of X depends on the moderator (X x W)*
 
@@ -1349,7 +1349,7 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
+- **Help me choose:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → *Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people* → *Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)*
 - **I know my analysis:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → list: *Models with latent variables: model fit, measurement invariance, factor correlations and paths*
 - **Plan my whole study:** *A score or scale* → *Independent people* → *Once* → *Detect an effect* → variables: Main predictor (X): None of these fit / I'm not sure; Outcome (Y): A score or scale; Mediators (go-betweens): None; Moderator (W): None; Covariates: None → analysis ticked: *The effect of X on the outcome*
 

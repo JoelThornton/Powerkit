@@ -6,6 +6,9 @@
 routes <- c("choose", "known", "guided")
 screen_score <- c("A score or scale", "Independent people")
 cluster_conditions <- "Conditions or treatments given to whole groups, or to people within the groups"
+MORE <- "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people"
+TWO_BY_TWO <- "Two, each with exactly two levels (a 2 x 2 design)"
+LARGER <- "Two, crossed, at least one with three or more levels"
 cluster_measured <- "Something measured on each person, or on each group, and how it relates to the outcome"
 
 # Where a list of answers leads in each route.
@@ -168,12 +171,13 @@ test_that("segmented regression no longer reaches a t-test or a correlation, in 
 })
 
 test_that("two measurements still reach the before/after tests, and one measurement can't reach a same-people test", {
-  twice <- c(screen_score, "Twice", "A difference between groups or conditions", "One")
-  expect_identical(follow_answers(tree, c(twice, "Two, with the same people in both (or one group measured twice)")), "E3")
+  # One factor measured twice can only be the same people in both
+  # conditions, so it goes straight to the paired test.
+  expect_identical(follow_answers(tree, c(screen_score, "Twice", "A difference between groups or conditions", "One")), "E3")
   once <- c(screen_score, "Once", "A difference between groups or conditions", "One")
   expect_identical(follow_answers(tree, c(once, "Two, with different people in each")), "E2")
-  expect_error(follow_answers(tree, c(once, "Two, with the same people in both (or one group measured twice)")), "not offered")
-  expect_error(follow_answers(tree, c(twice, "Two, with different people in each")), "not offered")
+  f2 <- vapply(visible_options(tree, tree$nodes$f2, list(outcome = "score", times = "once")), `[[`, "", "label")
+  expect_false(any(grepl("same people", f2, fixed = TRUE)))
 })
 
 test_that("time series reach the longitudinal card, not a count or score test", {
@@ -242,7 +246,7 @@ test_that("equivalence in the guided route reaches the equivalence card", {
 
 test_that("SEM with latent variables is named on Q1 and reaches the SEM card", {
   base <- c(screen_score, "Once")
-  expect_identical(follow_answers(tree, c(base, "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)")), "E37")
+  expect_identical(follow_answers(tree, c(base, MORE, "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)")), "E37")
 })
 
 test_that("a yes/no outcome with two or more factors reaches its own card, not the two-proportions test", {
@@ -272,17 +276,17 @@ test_that("two correlations in the same people reach their own card, not the ind
 })
 
 test_that("a hypothesis about how much scores vary reaches the variance tests, for a score measured once or twice", {
-  base <- c("A score or scale", "Independent people", "Once",
+  base <- c("A score or scale", "Independent people", "Once", MORE,
     "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")
   expect_identical(follow_answers(tree, c(base, "One group's, against a fixed value (for example, a published norm)")), "E52")
   expect_identical(follow_answers(tree, c(base, "Two groups', with different people in each")), "E53")
   # Measured twice: the same people's spread, the Pitman-Morgan test (E57).
-  twice <- c("A score or scale", "Independent people", "Twice",
+  twice <- c("A score or scale", "Independent people", "Twice", MORE,
     "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")
-  expect_identical(follow_answers(tree, c(twice, "The same people's, measured twice (before and after, or in two conditions)")), "E57")
-  v1 <- vapply(visible_options(tree, tree$nodes$v1, list(outcome = "score", times = "twice")), `[[`, "", "label")
-  expect_false(any(grepl("Two groups'", v1, fixed = TRUE)))
-  q1 <- vapply(visible_options(tree, tree$nodes$q1, list(outcome = "score", times = "many_conditions")), `[[`, "", "label")
+  # Measured twice, the same people's spread is the only answer, so the
+  # question is skipped.
+  expect_identical(follow_answers(tree, twice), "E57")
+  q1 <- vapply(visible_options(tree, tree$nodes$q1_more, list(outcome = "score", times = "many_conditions")), `[[`, "", "label")
   expect_false(any(grepl("spread out", q1, fixed = TRUE)))
 })
 
@@ -299,24 +303,24 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "Two independent samples t-test" = list(c(once(score), diff, "One", "Two, with different people in each"), "E2"),
     "Chi-square test of independence" = list(c(once(yesno), diff, "Different people, outcome in categories"), "E6"),
     "Chi-square test, relationship path" = list(c(once(yesno), rel, "One of several categories (and the other variable is categories too)"), "E6"),
-    "Paired t-test" = list(c(twice(score), diff, "One", "Two, with the same people in both (or one group measured twice)"), "E3"),
-    "McNemar's test" = list(c(twice(yesno), diff, "The same people in every condition"), "E26"),
+    "Paired t-test" = list(c(twice(score), diff, "One"), "E3"),
+    "McNemar's test" = list(c(twice(yesno), diff), "E26"),
     "One-way ANOVA" = list(c(once(score), diff, "One", "Three or more", "Any difference among the groups"), "E18"),
     "Three-factor ANOVA, group by time by task" = list(c(twice(score), diff, "Three, crossed (every combination appears)"), "E56"),
-    "One-way repeated measures ANOVA" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "One", "Three or more", "Any difference among the conditions"), "E54"),
-    "Mixed ANOVA, group by three timepoints" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "Two, crossed (every combination appears)", "No: at least one factor has three or more", "One factor different people, the other everyone got every level"), "E55"),
-    "Mixed ANOVA, three groups before and after" = list(c(twice(score), diff, "Two, crossed (every combination appears)", "No: at least one factor has three or more", "One factor different people, the other everyone got every level"), "E55"),
-    "Two-factor within ANOVA, 2 x 3" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "Two, crossed (every combination appears)", "No: at least one factor has three or more", "Both factors: everyone got every level"), "E20"),
-    "Two-factor within ANOVA, 2 x 2" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "Both factors: everyone got both"), "E20"),
-    "Two-factor between ANOVA, 2 x 3" = list(c(once(score), diff, "Two, crossed (every combination appears)", "No: at least one factor has three or more", "Both factors: different people"), "E21"),
-    "Factorial ANOVA" = list(c(once(score), diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "Both factors: different people", "Yes: the same number in every group", "Whether the effect of one depends on the other (the interaction)", "One effect shrinks"), "E7"),
+    "One-way repeated measures ANOVA" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "One", "Any difference among the conditions"), "E54"),
+    "Mixed ANOVA, group by three timepoints" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, LARGER, "One factor different people, the other everyone got every level"), "E55"),
+    "Mixed ANOVA, three groups before and after" = list(c(twice(score), diff, LARGER), "E55"),
+    "Two-factor within ANOVA, 2 x 3" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, LARGER, "Both factors: everyone got every level"), "E20"),
+    "Two-factor within ANOVA, 2 x 2" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, TWO_BY_TWO), "E20"),
+    "Two-factor between ANOVA, 2 x 3" = list(c(once(score), diff, LARGER), "E21"),
+    "Factorial ANOVA" = list(c(once(score), diff, TWO_BY_TWO, "Yes: the same number in every group", "Whether the effect of one depends on the other (the interaction)", "One effect shrinks"), "E7"),
     "Ordered logistic regression" = list(c("Ordered categories (e.g. a single rating item)", "As ordered categories", "Independent people", "Once", diff), "E29"),
     "Factorial logistic regression" = list(c(once(yesno), diff, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"), "E47"),
     "Correlation and simple linear regression" = list(c(once(score), rel, "A score or scale"), "E4"),
     "Simple and multiple logistic regression" = list(c(once(yesno), rel, "Yes/no"), "E27"),
     "Multiple regression" = list(c(once(score), rel, "Several predictors at once, or controlling for other variables"), "E24"),
-    "Analysis of covariance" = list(c(twice(score), diff, "Two, crossed (every combination appears)", "Yes: 2 x 2", "One factor different people, the other everyone got both", "Yes: the same number in every group", "Yes: before and after", "Yes, randomly assigned", "ANCOVA: the after score, adjusting for the before score"), "E23"),
-    "Factor analysis (confirmatory)" = list(c(once(score), "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"), "E37")
+    "Analysis of covariance" = list(c(twice(score), diff, TWO_BY_TWO, "Yes: before and after", "Yes, randomly assigned", "ANCOVA: the after score, adjusting for the before score (recommended)"), "E23"),
+    "Factor analysis (confirmatory)" = list(c(once(score), MORE, "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)"), "E37")
   )
   for (name in names(rows)) expect_identical(follow_answers(tree, rows[[name]][[1]]), rows[[name]][[2]], label = name)
 })
@@ -340,4 +344,68 @@ test_that("the audit has a row for each of the 31 analyses in the UCLA OARC tabl
   expect_length(names, 32)
   expect_identical(sum(startsWith(names, "chi-square test (")), 2L)
   expect_setequal(unique(sub(" \\(two (groups|or more groups)\\)$", "", names)), expected)
+})
+
+# Design-finder routes (review of 7 November 2026) ----------------------
+
+
+test_that("a two-arm before/after study reaches the cards that take unequal groups, without a question that changes nothing", {
+  path <- c(screen_score, "Twice", "A difference between groups or conditions", TWO_BY_TWO)
+  expect_identical(follow_answers(tree, path), "f4b")
+  expect_match(tree$nodes$f4b$help, "differ", fixed = TRUE)
+  expect_null(tree$nodes$f4a_mixed)
+})
+
+test_that("a randomised before/after trial is pointed to ANCOVA, keeping the mixed interaction as an option", {
+  path <- c(screen_score, "Twice", "A difference between groups or conditions", TWO_BY_TWO, "Yes: before and after", "Yes, randomly assigned")
+  expect_identical(follow_answers(tree, c(path, "ANCOVA: the after score, adjusting for the before score (recommended)")), "E23")
+  expect_identical(follow_answers(tree, c(path, "The 2 x 2 mixed ANOVA interaction (group x time)")), "f6_mixed")
+  expect_match(tree$nodes$pp2_random$options[[1]]$label, "(recommended)", fixed = TRUE)
+})
+
+test_that("a moderation in a before/after trial reaches the regression card, and a group-by-condition one the ANOVA questions", {
+  path <- c(screen_score, "Twice", "That an effect depends on something else (moderation)")
+  expect_identical(follow_answers(tree, path), "mo_within")
+  expect_identical(follow_answers(tree, c(path, "A treatment or group, and a measured score, with the outcome measured before and after")), "E24")
+  expect_identical(follow_answers(tree, c(path, "Both are groups or conditions (for example, the emotion effect is bigger in the clinical group, or the treatment group improves more over time)")), "f1")
+  expect_identical(follow_answers(tree, c(path, "Things measured within each person (for example, daily stress and sleep in a diary study)")), "E41")
+  expect_identical(whole_study_twice_endpoints[["moderation"]], "E24")
+})
+
+test_that("one factor measured twice goes straight to the paired card, with crossover guidance", {
+  expect_identical(follow_answers(tree, c(screen_score, "Twice", "A difference between groups or conditions", "One")), "E3")
+  expect_true(any(grepl("crossover", tolower(unlist(tree$endpoints$E3$card_points)), fixed = TRUE)))
+  expect_true(any(grepl("crossover", tolower(unlist(tree$endpoints$E8$card_points)), fixed = TRUE)))
+})
+
+test_that("the rarer hypotheses sit behind one choice, and still reach their cards", {
+  expect_lte(length(tree$nodes$q1$options), 6)
+  expect_identical(follow_answers(tree, c(screen_score, "Once", MORE)), "q1_more")
+  expect_identical(follow_answers(tree, c(screen_score, "Twice", MORE,
+    "That scores are more spread out (or more consistent) in one group than another, or than a fixed value")), "E57")
+})
+
+test_that("no question in the design finder has only one answer for the answers given before it", {
+  single <- character()
+  walk <- function(id, ctx, seen) {
+    id <- resolve_target(tree, id, ctx, "choose")
+    node <- if (is.na(id)) NULL else tree$nodes[[id]]
+    if (is.null(node) || id %in% seen) return(invisible())
+    opts <- visible_options(tree, node, ctx, safety = FALSE)
+    if (length(opts) == 1) single <<- c(single, id)
+    for (o in opts) walk(o$`next`, apply_sets(ctx, o), c(seen, id))
+  }
+  walk(start_node(tree), list(), character())
+  expect_identical(unique(single), character())
+})
+
+test_that("search on \"I know my analysis\" finds the names researchers type", {
+  words <- function(id) tolower(paste(unlist(tree$endpoints[[id]]$search_words), collapse = " "))
+  expect_match(words("E2"), "cohen's d", fixed = TRUE)
+  expect_match(words("E3"), "crossover", fixed = TRUE)
+  expect_match(words("E23"), "ancova", fixed = TRUE)
+})
+
+test_that("a whole-study plan with nested data, pairs or many trials says it becomes one analysis", {
+  expect_match(tree$guided$single_analysis_note, "one analysis at a time", fixed = TRUE)
 })

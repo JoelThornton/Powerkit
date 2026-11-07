@@ -5760,3 +5760,34 @@ the site stays findable by search engines.
   average power over your uncertainty"; "assurance" in precision planning
   keeps its meaning (the chance the interval is narrow enough).
 
+
+## 2026-11-07 · Design-finder routes: ANCOVA for randomised trials, moderation before and after, no one-answer questions
+
+- **Why:** the project review of 7 November 2026 followed researchers'
+  descriptions through "Help me choose" and found routes that ask
+  questions with one answer, a two-group before/after study sent away
+  when its groups are unequal, no recommendation between ANCOVA and the
+  group by time interaction for a randomised trial, no route for a
+  treatment effect moderated by a measured score in a before/after
+  trial, and goals offered that the chosen test cannot answer.
+- **Randomised before/after trials:** ANCOVA on the after score,
+  adjusting for the before score, is marked recommended; the mixed
+  interaction stays an option. With randomisation the groups are equal
+  at baseline in expectation, so ANCOVA is unbiased and has more power;
+  without randomisation the two answer different questions (Lord's
+  paradox) and powerkit still asks rather than recommends.
+- **Moderation in a before/after trial:** routed to the multiple
+  regression card (E24), the standard adjusted analysis: the after score
+  on the before score, the treatment, the moderator and their product,
+  testing the product (one of four predictors). "Plan my whole study"
+  uses the same card.
+- **Crossover (AB/BA) designs:** guidance on the paired and mixed ANOVA
+  cards (plan with the paired card's difference-score effect size;
+  adding order as a factor uses the same differences with one fewer
+  degree of freedom) until a dedicated card is built (`next.md`).
+- **One-answer questions:** a question whose answers, given the answers
+  before it, leave only one choice is skipped by an automatic node, and
+  a test walks every route of the design finder to keep it so.
+- **Goals:** a choice can be offered only with other answers
+  (`choices_shown_if`); the justified significance level is hidden with
+  a Bayes factor test version and refused in words if chosen anyway.

@@ -1029,3 +1029,22 @@ test_that("the cross-lagged panel screen builds a valid spec with its names left
   expect_equal(c(spec$variables$X$label, spec$variables$Y$label), c("X", "Y"))
   expect_silent(powerkit::validate_spec(spec))
 })
+
+test_that("a justified significance level is not offered with a Bayes factor test, and is refused in words if chosen", {
+  fields <- fields_for("E2")
+  goal <- Filter(function(f) f$id == "goal", fields)[[1]]
+  expect_false(is.null(goal$choices_shown_if$justified_alpha))
+  html <- as.character(field_ui(goal, ""))
+  expect_match(html, "bayes_factor", fixed = TRUE)
+  method <- offers_bayes_factor(forms$forms$E2)
+  values <- stats::setNames(list("justified_alpha", "bayes_factor"), c("goal", method))
+  problems <- form_problems(list(goal), values)
+  expect_match(problems[["goal"]], "isn't available with the other answers", fixed = TRUE)
+  values[[method]] <- "student_t"
+  expect_length(form_problems(list(goal), values), 0)
+  # The planning line has a Bayes factor wording, and no engine function
+  # names reach the checker's messages.
+  expect_match(as.character(planning_decision_ui(forms$forms$E2)), "strong evidence", fixed = TRUE)
+  code <- readLines(file.path(routing_dir, "R", "forms_ui.R"))
+  expect_false(any(grepl("validate_spec()", code[!grepl("^\\s*#", code)], fixed = TRUE)))
+})

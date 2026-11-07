@@ -7,6 +7,15 @@ planning_decision_ui <- function(form) {
     if (identical(design, "sem"))
       "Check whether you selected overall model fit or a particular factor correlation/path. Power to detect poor overall fit is not power for a particular path, and the assumed model matters." else
       "This plans the chance that your test gives a significant result if the effect you enter is the true one. Powering a study for the smallest effect that would matter does not test that the effect is at least that big: a minimum-effect test does that."
+  # A form whose test version can be a Bayes factor test (E1-E3) words
+  # the line for that version as well.
+  bayes_field <- offers_bayes_factor(form)
+  if (!is.null(bayes_field) && !isTRUE(form$precision) && !identical(design, "equivalence_test") && !identical(design, "sem")) {
+    input_id <- sprintf("input.%s", field_input_id(list(id = bayes_field)))
+    current <- tagList(conditionalPanel(sprintf("%s != 'bayes_factor'", input_id), inline = TRUE, current),
+      conditionalPanel(sprintf("%s == 'bayes_factor'", input_id), inline = TRUE,
+        "This plans the chance that your study reaches strong evidence (a Bayes factor past your threshold) if the effect you enter is the true one. A Bayes factor test has no significance level."))
+  }
   div(class = "planning-decision small",
     tags$strong("Check this answers your question. "), current,
     tags$details(tags$summary("Different questions need different planning goals"),
