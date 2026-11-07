@@ -513,7 +513,9 @@ test_that("each tab has its own address, so a page can be shared by link", {
   })
   # Every tab in app.R has an address, and back again.
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  for (tab in setdiff(page_slugs(), labs_tab_title)) expect_match(code, sprintf('tabPanel("%s"', tab), fixed = TRUE)
+  # (A tab's value is its full name; phones show a short title.)
+  for (tab in setdiff(page_slugs(), labs_tab_title)) expect_true(grepl(sprintf('tabPanel("%s"', tab), code, fixed = TRUE) ||
+    grepl(sprintf('value = "%s"', tab), code, fixed = TRUE), label = tab)
   for (slug in names(page_slugs())) expect_identical(page_slug(page_slugs()[[slug]]), slug)
   expect_identical(page_slug(NULL), "plan")
   expect_match(code, "selected = page_from_query(req$QUERY_STRING)", fixed = TRUE)
@@ -620,7 +622,7 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   html <- as.character(card_ui(tree, "E2"))
   expect_match(html, "class=\"card-facts\"", fixed = TRUE)
   expect_match(html, "In a second or two", fixed = TRUE)
-  expect_match(html, "Checks recorded; see their scope below", fixed = TRUE)
+  expect_match(html, "Checks recorded; see \"More about this analysis\" below", fixed = TRUE)
   # Its other versions (rank test, Bayes factor) are gathered in one box.
   expect_match(html, "Other versions, chosen on the next screen", fixed = TRUE)
   expect_match(as.character(card_ui(tree, "E13")), "A preview here, then an R script", fixed = TRUE)

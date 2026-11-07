@@ -161,8 +161,8 @@ about_ui <- function(tree, forms) {
       tags$nav(class = "about-toc", `aria-label` = "On this page",
         tags$a(href = "#about-how", "How it works"),
         tags$a(href = "#about-plans", "What it can plan"),
-        tags$a(href = "#about-capabilities", "Capabilities and checks"),
         tags$a(href = "#about-trust", "Can you trust it?"),
+        tags$a(href = "#about-capabilities", "Capabilities and checks"),
         tags$a(href = "#about-feedback", "Feedback"),
         tags$a(href = "#about-credits", "Credits"))),
 
@@ -179,11 +179,11 @@ about_ui <- function(tree, forms) {
         "Start planning")),
 
     about_section("about-plans", "What it can plan",
-      p(sprintf("%d of the %d analyses calculate in the app. Click one to plan it. ", length(how), length(tree$endpoints)),
+      # Counted as the methods map counts them: the analyses in the
+      # families, without the "not sure" card.
+      p(sprintf("%d of the %d analyses calculate in the app. Click one to plan it. ", length(how), length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))),
         "The other cards say which analysis fits a study and point to a tool that does it."),
       about_plans_ui(tree, forms)),
-
-    about_section("about-capabilities", "Capabilities and checks", capabilities_ui(tree, forms)),
 
     about_section("about-trust", "Can you trust it?",
       div(class = "about-cards",
@@ -210,6 +210,8 @@ about_ui <- function(tree, forms) {
               "and the write-up is fixed wording filled in with your numbers."),
             tags$li(tags$strong("It doesn't replace a statistician for unusual designs. "), "If no card fits your study, ",
               "or a card gives guidance only, ask someone who knows your design."))))),
+
+    about_section("about-capabilities", "Capabilities and checks", capabilities_ui(tree, forms)),
 
     about_section("about-feedback", "Reporting a problem or giving feedback",
       div(class = "about-card about-feedback",

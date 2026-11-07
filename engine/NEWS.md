@@ -1,3 +1,26 @@
+# powerkit 0.38.0
+
+* App: an unfinished draft is offered on the plan tab's first screen
+  only, as "Continue my plan", "Not now" (keeps the draft) or "Discard
+  my draft" (the only button that deletes it), instead of a dialog over
+  every tab whose "Start fresh" deleted it; the saved time shows in the
+  visitor's own time ("today at 13:05").
+* On phones the tabs take short names (Plan, About, Labs, Updates,
+  Feedback) so all five fit on one row.
+* One heading style in Labs, About and dialogs; Labs' calculate buttons
+  read "Show the result" (or "Show the smallest detectable effect") as
+  filled primary buttons; the draft download and "I don't know my effect
+  size" buttons are the usual size.
+* The analysis card's "Checks recorded" points to "More about this
+  analysis", which now says it holds the checks.
+* About: "Can you trust it?" comes before the capability table, which is
+  folded behind "Every test version and its checks"; its rows no longer
+  read "?:" and the screen-as-it-starts row is named in words. About
+  counts analyses as the methods map does (the "not sure" card is not an
+  analysis).
+* Slider tick labels at the app's small text size, every other one on
+  phones.
+
 # powerkit 0.37.0
 
 * Design finder (app): a two-group before/after study no longer asks

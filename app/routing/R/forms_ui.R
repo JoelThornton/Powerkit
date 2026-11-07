@@ -228,8 +228,6 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(paste0("Your values: ", ep$plain_name)),
     p(class = "lead", "Everything is needed unless it says optional."),
-    div(class = "mb-3", download_button("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary btn-sm"),
-      p(class = "hint", "Save your answers, including blanks. No calculation or effect-size justification is needed. Reopen the downloaded file from the start screen.")),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), ep$validation$note),
     carried,
@@ -242,6 +240,10 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
       actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
       actionButton("form_check", "Check my answers", class = "btn btn-primary")
     ),
+    # Saving a draft is a secondary action, so it sits after the fields
+    # rather than above them.
+    div(class = "form-draft-save mt-3", download_button("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary"),
+      p(class = "hint", "Not finished? Save your answers, including blanks. No calculation or effect-size justification is needed. Reopen the downloaded file from the start screen.")),
     div(id = "copy-status", class = "visually-hidden", `aria-live` = "polite"),
     uiOutput("form_copy_text"),
     uiOutput("form_result")
@@ -483,7 +485,7 @@ effect_unsure_ui <- function(form) {
   if (isTRUE(form$sensitivity_without_effect)) {
     return(div(class = "effect-unsure",
       tags$strong("Don't know what effect to expect? "), "That's common. Tell powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough.",
-      div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
+      div(tags$button(type = "button", class = "btn btn-outline-primary mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
   }
   if (isTRUE(form$sensitivity)) {
     return(div(class = "effect-unsure",

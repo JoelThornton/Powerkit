@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-07"
+    title: "Your unfinished plan waits on the plan tab"
+    text: >-
+      An unfinished plan is now offered only on the plan tab, with
+      "Continue my plan", "Not now" or "Discard my draft", so opening
+      About, Labs or Feedback no longer asks about it and only the
+      discard button deletes it. On phones every tab now fits on one
+      row, and About is shorter, with the full table of test versions
+      folded away.
+  - date: "2026-11-07"
     title: "Help me choose finds more designs, with fewer questions"
     text: >-
       Help me choose no longer asks questions that have only one answer,

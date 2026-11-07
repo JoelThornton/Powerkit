@@ -32,3 +32,17 @@ test_that("drafts allow no answers and reject unsupported fields and malformed v
   expect_type(restore_draft(record, tree, forms), "character")
   expect_match(as.character(draft_opened_ui("2026-11-04")), "No calculated or validated result", fixed = TRUE)
 })
+
+test_that("an unfinished draft is offered on the plan tab with continue, not now and discard, and its time in plain words", {
+  html <- as.character(draft_offer_ui("Compare two separate groups on a score", "2026-11-07 13:05:16 UTC"))
+  expect_match(html, "Continue my plan", fixed = TRUE)
+  expect_match(html, "Not now", fixed = TRUE)
+  expect_match(html, "Discard my draft", fixed = TRUE)
+  expect_no_match(html, "Start fresh", fixed = TRUE)
+  expect_match(html, 'datetime="2026-11-07T13:05:16Z"', fixed = TRUE)
+  expect_match(html, "on 07 November 2026 at 13:05 UTC", fixed = TRUE)
+  # The offer sits in the plan tab, and is no longer a dialog over every tab.
+  app <- readLines(file.path(routing_dir, "app.R"))
+  expect_true(any(grepl('value = "Plan a power analysis", div(class = "pt-3", uiOutput("draft_offer")', app, fixed = TRUE)))
+  expect_false(any(grepl("Continue where you left off", app, fixed = TRUE)))
+})

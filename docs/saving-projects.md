@@ -74,7 +74,7 @@ route, the inputs and the results.
 ### (b) Autosave in the browser's storage
 
 The app saves the current answers in the browser (local storage) as the
-user goes, and offers to restore them next time.
+user goes, and offers to restore them next time, on the plan tab's first screen ("Continue my plan", "Not now", or "Discard my draft", the only choice that deletes it; since 7 November 2026).
 
 - **For users.** Nothing to remember to do; a closed tab or crash loses
   nothing. But it lives in one browser on one computer, can be cleared
