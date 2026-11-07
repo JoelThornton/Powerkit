@@ -165,3 +165,10 @@ for (const page_ of ['labs', 'about', 'updates']) test(`a link straight to ${pag
   await page.goto(`/?page=${page_}`);
   await expect(page.locator('#pk-starting')).toHaveCount(0, { timeout: 30000 });
 });
+
+test('a link straight to a Labs tool opens it, not the starting screen', async ({ page }) => {
+  await page.goto('?page=labs&tool=prereplication');
+  await expect(page.locator('#pk-starting')).toHaveCount(0);
+  await page.locator('#labs_study').fill('Smith (2019)');
+  await expect(page.locator('#labs_study')).toHaveValue('Smith (2019)');
+});

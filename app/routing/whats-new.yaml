@@ -13,10 +13,10 @@ entries:
       scales it. Multiple regression can do it with no effect size at all,
       through the "I don't know my effect size" button.
   - date: "2026-11-06"
-    title: "Links to Labs and About open properly"
+    title: "Links to Labs open properly"
     text: >-
-      A link straight to the Labs or About page could stay stuck on
-      "Starting powerkit". It now opens as soon as the page is ready.
+      Opening a link straight to a Labs tool left the "Starting powerkit"
+      screen covering the page. It now goes as soon as the app is ready.
   - date: "2026-11-06"
     title: "Interrupted time series"
     text: >-

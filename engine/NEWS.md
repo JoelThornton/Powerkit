@@ -11,10 +11,14 @@
   partial R-squared, so no effect size is needed; it matches pwr's
   `pwr.f2.test()`. The regression screen gets the "I don't know my effect
   size" route, and a note while "What you want to test" is unchosen.
-* The app: a link that opens straight at another tab (`?page=labs`,
-  `?page=about`) was left under the "Starting powerkit" screen, which
-  waited for the plan screen that tab never shows; it now goes as soon as
-  the server sends anything.
+
+# powerkit 0.34.1
+
+* A link straight to Labs (`?page=labs`, for example the guide's link to
+  a Labs tool) no longer leaves the "Starting powerkit" screen over the
+  page. It went only when the main screen arrived, which a page opened on
+  another tab never draws; it now also goes once the connected app is
+  first idle (`R/connection.R`).
 
 # powerkit 0.34.0
 

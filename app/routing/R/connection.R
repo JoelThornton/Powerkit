@@ -74,18 +74,16 @@ connection_js <- "
     clearTimeout(busyTimer);
     document.documentElement.classList.remove('pk-busy-shown');
   });
-  // The starting screen goes once the server has sent anything: the first
-  // screen, or, on a link that opens another tab (?page=labs, ?page=about),
-  // whatever that tab shows, or the first quiet moment after connecting.
-  // (Waiting for the plan screen alone left the starting screen over a
-  // page opened at another tab, whose plan screen is hidden and so never
-  // sent, 6 November 2026.)
-  function startingDone() { var s = document.getElementById('pk-starting'); if (s) s.remove(); }
+  // The starting screen goes once the first screen has arrived, or once
+  // the connected app is first idle: a link straight to another tab (Labs,
+  // ?page=labs) never draws the main screen, which left the starting
+  // screen over the page (6 November 2026).
+  function dropStarting() { var s = document.getElementById('pk-starting'); if (s) s.remove(); }
   $(document).on('shiny:value', function(e) {
-    startingDone();
+    if (e.name === 'screen') dropStarting();
     if (e.name === 'about_page') { $('.about-loading').remove(); }
   });
-  $(document).on('shiny:idle', function() { if (connected) startingDone(); });
+  $(document).on('shiny:idle', function() { if (connected) dropStarting(); });
   var connected = false, beat = null;
   // When the visitor last used the page, and when a calculation last
   // reported progress (calc_progress, every half second while one runs).
