@@ -98,6 +98,21 @@ CI image, so the run starts straight away.
 **Versions.** The run uses R and the package versions in `renv.lock`, as
 on your machine, so its results can be compared with local ones.
 
+**Parts and times.** A chunk with long tests runs in up to four parts,
+side by side. Tests are dealt to the parts by their time, longest first,
+each to the part with the least time so far: the time recorded for the
+test in `scripts/validation-times.csv` (minutes on one core), or the
+chunk's rough estimate in `validation_minutes()` where none is recorded.
+Each part saves the times its tests took to `timings.csv` in its artifact,
+in the same columns; copy rows from there to keep the file current when a
+test gets much faster or slower.
+
+**Reading the scheduled run.** The summary page of each nightly-validation
+run ends with "Validation: tests that need attention": every test that
+failed, erred or did not run, in any part. A green run means every test
+that ran passed or was skipped for a placeholder. Each part's
+`summary.txt` also lists these tests first, under "Needs attention".
+
 ## Independent cross-check for mediation
 
 **Why.** The mediation chunks compare powerkit with direct power4mome

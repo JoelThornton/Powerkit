@@ -89,6 +89,9 @@ engine-side change alone will fail the app suite.
   long chunks every night the engine changed, and every chunk every
   Sunday (scripts/validation-plan.R). A full local run is the
   maintainer's choice, and comes before a release.
+- Before starting work, read the last scheduled run of nightly-validation
+  (Actions tab): its summary page lists every test that failed, erred or
+  did not run. Add a row to docs/next.md for any failure that has none.
 
 ## Working process (maintainer, 18 October 2026)
 The maintainer is the only reviewer and decider, so keep what they have

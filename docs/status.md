@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 7 November 2026 (powerkit 0.35.0). This page says where the
+*Last updated: 7 November 2026 (powerkit 0.35.1). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
 planned work that had no queue item, 6 November 2026). History is in git,
@@ -23,6 +23,13 @@ fully validated. Validation runs are recorded in
   long calculations, scheduled validation failing unnoticed) and about 110
   smaller ones are grouped into fix batches at the top of
   [`next.md`](next.md), with the maintainer's decisions folded in.
+  The first batch (validation runs that finish and report) is done: tests
+  are dealt to parts by recorded time, the whole-study chunk runs on four
+  cores per test, each scheduled run ends with one list of the tests that
+  need attention, and documentation-only pull requests run only the app
+  tests that read the docs. Two seeded checks still fail when rerun with
+  new seeds and are waiting for the statistician
+  ([`validation-log.md`](validation-log.md), 7 November 2026).
 
 - **Whole study in one go: experiments (6 November 2026, experimental):**
   the guided plan simulates a factorial experiment (a condition with two

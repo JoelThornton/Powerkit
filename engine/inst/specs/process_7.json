@@ -9,8 +9,7 @@
     },
     "W": {
       "type": "continuous",
-      "label": "Group identification",
-      "reliability": 0.85
+      "label": "Group identification"
     },
     "M": {
       "type": "continuous",

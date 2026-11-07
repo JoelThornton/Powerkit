@@ -1,0 +1,13 @@
+chunk,test,minutes,measured
+whole_study,"whole study A: the correlation and the indirect effect agree with their separate calculations, and departure 13's size",157,"GitHub nightly run 25, 7 November 2026, 1 core"
+whole_study,"whole study B: the interaction and the correlation agree with their separate calculations",30,"GitHub nightly run 25, 7 November 2026, 1 core (at most the part's 32 minutes)"
+whole_study,"whole study: Type I error with every path 0",49,"GitHub nightly run 25, 7 November 2026, 1 core"
+whole_study,"whole study C: a two-group X's comparison agrees with the t test at the implied d",9,"GitHub nightly run 25, 7 November 2026, 1 core"
+whole_study,"whole study C: with every path 0, both tests keep the Type I error near alpha",11,"GitHub nightly run 25, 7 November 2026, 1 core"
+whole_study,"whole study D: measured twice, the adjusted comparison agrees with the ANCOVA card at the implied values",13,"GitHub nightly run 25, 7 November 2026, 1 core"
+whole_study,"whole study D: measured twice, with every effect 0, both tests keep the Type I error near alpha",6,"GitHub nightly run 25, 7 November 2026, 1 core"
+whole_study,"whole study, a two-group X correlated with W: agrees with a simulation written separately (simulation)",30,"GitHub nightly run 25, 7 November 2026, 1 core"
+whole_study,"measured twice, two mediators in a chain: the indirect effect agrees with the serial mediation card",189,"GitHub nightly run 25, 7 November 2026, 1 core"
+whole_study,"measured twice, moderated mediation (the mediator to the outcome): the index agrees with the moderated mediation card",400,"GitHub nightly run 25, 7 November 2026: unfinished after 330 minutes on 1 core, so at least that"
+modmed_parallel,"moderated mediation, two mediators: powerkit matches a direct power4mome call",828,"GitHub nightly run 25, 7 November 2026, 207 minutes on 4 cores"
+modmed_parallel,"moderated mediation, two mediators: Type I error is near alpha when XW->M1 is 0",400,"GitHub nightly run 25, 7 November 2026, 100 minutes on 4 cores"

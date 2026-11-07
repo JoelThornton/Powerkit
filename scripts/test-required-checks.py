@@ -17,6 +17,25 @@ class GateTests(unittest.TestCase):
                 changed[key]["result"] = status
                 self.assertFalse(gates.accepted("app", changed))
 
+    def test_app_docs_only_runs_the_docs_tests_alone(self):
+        base = {"changes": {"result": "success", "outputs": {"docs_only": "true"}}, "image": {"result": "success"},
+                "docs-tests": {"result": "success"}, "app-tests": {"result": "skipped"}, "browser-tests": {"result": "skipped"}}
+        self.assertTrue(gates.accepted("app", base))
+        for key, status in (("docs-tests", "failure"), ("docs-tests", "skipped"), ("image", "failure"), ("changes", "failure")):
+            changed = {k: dict(v) for k, v in base.items()}
+            changed[key]["result"] = status
+            self.assertFalse(gates.accepted("app", changed))
+        full = {k: dict(v) for k, v in base.items()}
+        full["changes"]["outputs"] = {"docs_only": "false"}
+        self.assertFalse(gates.accepted("app", full))
+        full.update({"docs-tests": {"result": "skipped"}, "app-tests": {"result": "success"}, "browser-tests": {"result": "success"}})
+        self.assertTrue(gates.accepted("app", full))
+        full["browser-tests"]["result"] = "skipped"
+        self.assertFalse(gates.accepted("app", full))
+        missing = {k: dict(v) for k, v in base.items()}
+        missing["changes"]["outputs"] = {}
+        self.assertFalse(gates.accepted("app", missing))
+
     def test_engine_skips_are_allowed_only_after_successful_no_change_detection(self):
         needs = {k: {"result": "skipped"} for k in ("image", "R-CMD-check", "engine-tests")}
         needs["changes"] = {"result": "success", "outputs": {"engine": "false"}}
