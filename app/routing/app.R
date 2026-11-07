@@ -1309,6 +1309,8 @@ server <- function(input, output, session) {
     plan <- whole_study_plan(tree, answers, state$ticked, state$primary, state$asks)
     if (!isTRUE(plan$ok)) return(list(plan = plan))
     labels <- whole_study_labels(plan$roles, state$plan_values)
+    # An experiment (a factorial ANOVA) needs no path model.
+    if (isTRUE(plan$experiment)) return(list(plan = plan, labels = labels, params = list(experiment = TRUE)))
     skeleton <- whole_study_skeleton(plan, labels)
     parameters <- engine_function("whole_study_parameters")
     params <- if (is.null(parameters)) NULL else tryCatch(parameters(skeleton), error = function(e) NULL)
@@ -1316,14 +1318,32 @@ server <- function(input, output, session) {
   })
   save_whole_study_values <- function() {
     ws <- whole_study_screen()
-    if (!is.null(ws$params)) state$ws_values <- whole_study_values(input, ws$params)
+    if (isTRUE(ws$plan$experiment)) state$ws_values <- whole_study_experiment_values(input, ws$plan)
+    else if (!is.null(ws$params)) state$ws_values <- whole_study_values(input, ws$params)
   }
+  # An experiment's grid of cell means follows the levels typed, keeping
+  # the means already entered.
+  output$ws_means_grid <- renderUI({
+    ws <- whole_study_screen()
+    req(isTRUE(ws$plan$experiment))
+    values <- list(x_levels = input$ws_x_levels %||% isolate(state$ws_values$x_levels),
+      w_levels = input$ws_w_levels %||% isolate(state$ws_values$w_levels))
+    values$means <- isolate(c(whole_study_experiment_values(input, ws$plan)$means, state$ws_values$means))
+    values$means <- values$means[!duplicated(names(values$means)) & nzchar(unlist(values$means))]
+    whole_study_means_grid_ui(ws$plan, ws$labels, values)
+  })
   observeEvent(input$ws_run, {
     ws <- whole_study_screen()
     req(ws$params)
-    values <- whole_study_values(input, ws$params)
-    state$ws_values <- values
-    built <- whole_study_spec(ws$skeleton, ws$params, values, state$rule %||% "each", nrep = forms$whole_study$quick_nrep)
+    if (isTRUE(ws$plan$experiment)) {
+      values <- whole_study_experiment_values(input, ws$plan)
+      state$ws_values <- values
+      built <- whole_study_experiment_spec(ws$plan, ws$labels, values, state$rule %||% "each", nrep = forms$whole_study$quick_nrep)
+    } else {
+      values <- whole_study_values(input, ws$params)
+      state$ws_values <- values
+      built <- whole_study_spec(ws$skeleton, ws$params, values, state$rule %||% "each", nrep = forms$whole_study$quick_nrep)
+    }
     problems <- built$problems %||% whole_study_check(built$spec)
     if (length(problems)) {
       output$ws_result <- renderUI(div(class = "form-problems", role = "alert", tabindex = "-1",
@@ -1886,6 +1906,9 @@ server <- function(input, output, session) {
           tagList(screen_nav_ui("guided:plan", "Back to your plan"), h2("Simulate the whole study"),
             if (!isTRUE(ws$plan$ok)) whole_study_entry_ui(ws$plan)
             else p("The simulation needs powerkit's engine, which isn't installed where this prototype is running."))
+        } else if (isTRUE(ws$plan$experiment)) {
+          isolate(whole_study_experiment_ui(forms, ws$plan, ws$labels,
+            whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each", values = state$ws_values))
         } else {
           isolate(whole_study_ui(forms, ws$plan, ws$params, ws$labels, whole_study_prefill(state$plan_shared),
             whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each",

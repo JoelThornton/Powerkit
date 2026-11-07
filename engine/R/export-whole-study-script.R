@@ -34,8 +34,9 @@ export_whole_study_script <- function(spec, file = NULL, run_time = NULL) {
       "export_whole_study_script() needs a seed in the spec ('options > seed'), so the result can be reproduced."
     )
   }
-  inputs <- whole_study_inputs(spec)
-  backend_packages <- c("power4mome", "manymome", "lavaan", "lmhelprs")
+  experiment <- whole_study_is_experiment(spec)
+  inputs <- if (experiment) whole_study_experiment_inputs(spec) else whole_study_inputs(spec)
+  backend_packages <- if (experiment) c("Superpower", "afex") else c("power4mome", "manymome", "lavaan", "lmhelprs")
   versions <- package_versions(c("powerkit", backend_packages))
   needs_r <- r_requirement(backend_packages)
   json <- strsplit(as.character(jsonlite::prettify(spec_to_json(unclass(spec)), indent = 2)), "\n", fixed = TRUE)[[1]]

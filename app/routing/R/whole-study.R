@@ -59,6 +59,8 @@ whole_study_input_id <- function(key) paste0("ws_", gsub("[^A-Za-z0-9]", "_", ke
 # engine's analyses and variables. Returns list(ok, reasons, analyses,
 # variables, mediators, path_choices).
 whole_study_plan <- function(tree, answers, ticked, primary, asks) {
+  experiment <- whole_study_experiment_plan(tree, answers, ticked, primary)
+  if (!is.null(experiment)) return(experiment)
   reasons <- character()
   if (!answers$x %in% c("score", "cond2")) reasons <- c(reasons, "the main predictor (X) is a measured score or two groups or conditions")
   if (!identical(answers$outcome, "score")) reasons <- c(reasons, "the outcome is a score")
@@ -112,6 +114,58 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
     mediators = if (length(mediators) == 2 && any(tests %in% c("indirect", "index_of_mome"))) (if (serial) "serial" else "parallel"),
     path_choices = path_choices)
 }
+
+# Experiments (next.md item 1, 6 November 2026): conditions or groups,
+# between or within participants, crossed with a moderator of two or more
+# groups, a score outcome and no covariates or mediators, analysed with a
+# factorial ANOVA (Superpower, through the engine's experiment route). The
+# effect of X is the ANOVA's main effect of X, the moderation its X x W
+# interaction, both read from the same simulated data sets. Measured once:
+# X a condition with two or more groups (the two-group comparison with no
+# moderator stays on power4mome's route, as before); measured twice: the
+# same people in X's two conditions, crossed with groups of W. NULL when
+# the plan isn't an experiment of this kind.
+whole_study_experiment_plan <- function(tree, answers, ticked, primary) {
+  x <- answers$x %||% ""
+  w <- answers$moderator %||% "none"
+  times <- answers$times %||% "once"
+  between_x <- x %in% c("cond2", "cond3") && identical(times, "once")
+  within_x <- identical(x, "within2") && identical(times, "twice")
+  if (!(between_x || within_x)) return(NULL)
+  if (!w %in% c("none", "two", "three")) return(NULL)
+  if (identical(x, "cond2") && identical(w, "none")) return(NULL)
+  # Other outcomes, covariates and mediators: the general route says why
+  # it can't simulate the plan.
+  if (!identical(answers$outcome, "score") || !identical(answers$covariate %||% "none", "none") ||
+    !identical(answers$mediators %||% "none", "none")) return(NULL)
+  reasons <- character()
+  outside <- setdiff(ticked, c("compare", "moderation"))
+  if (length(outside)) reasons <- c(reasons, sprintf("every analysis is one the simulation covers (not yet: %s)",
+    paste(vapply(outside, function(id) analysis_by_id(tree, id)$label, ""), collapse = "; ")))
+  if (length(ticked) == 0) reasons <- c(reasons, "at least one analysis is planned")
+  if (length(intersect(ticked, primary)) == 0) reasons <- c(reasons, "at least one analysis is a main analysis")
+  if (length(reasons)) return(list(ok = FALSE, reasons = reasons))
+  has_w <- !identical(w, "none")
+  template <- if (within_x) {
+    if (!has_w) "oneway_within" else if (identical(w, "two")) "2x2_mixed" else "mixed"
+  } else {
+    if (!has_w) "oneway_between" else if (identical(x, "cond2") && identical(w, "two")) "2x2_between" else "factorial_between"
+  }
+  # Factor A is the between factor: X measured once, W in a mixed design.
+  # With W measured once, X is A and W is B.
+  x_factor <- if (within_x && has_w) "B" else "A"
+  effect_of <- c(compare = if (x_factor == "A") "main_effect_A" else "main_effect_B", moderation = "interaction")
+  analyses <- lapply(ticked, function(id) {
+    list(id = id, label = whole_study_experiment_labels[[id]], test = "anova_effect", effect = effect_of[[id]],
+      role = if (id %in% primary) "main" else "extra")
+  })
+  list(ok = TRUE, experiment = TRUE, analyses = analyses, template = template, x_factor = x_factor,
+    x_within = within_x, has_w = has_w, x_levels = if (identical(x, "cond3")) 3L else 2L,
+    w_levels = if (identical(w, "three")) 3L else 2L, roles = c("X", if (has_w) "W", "Y"))
+}
+
+whole_study_experiment_labels <- c(compare = "The main effect of X (in the factorial ANOVA)",
+  moderation = "Whether the effect of X depends on the moderator (the X x W interaction)")
 
 # The variables' names: from what the user typed on the plan's input
 # screens, else the role names.
@@ -320,7 +374,8 @@ whole_study_value_label <- function(key) {
     c_X_W = "Correlation of X with W", indirect = "Indirect effect (product of its paths)",
     index = "Index of moderated mediation", rc_M1_M2 = "Residual correlation of M1 with M2",
     d = "Cohen's d of the groups (not adjusted for a first measurement)",
-    r_B_Y = "Correlation of the first measurement B with the outcome Y")
+    r_B_Y = "Correlation of the first measurement B with the outcome Y",
+    cohen_f = "Cohen's f of the effect (Superpower)", power_alone = "Power of this test on its own (exact)")
   if (key %in% names(fixed)) return(fixed[[key]])
   if (grepl("^p_", key)) {
     parts <- strsplit(sub("^p_", "", key), "_", fixed = TRUE)[[1]]
@@ -334,7 +389,7 @@ whole_study_value_label <- function(key) {
 # full number of simulated studies, or the smallest N for a target power.
 whole_study_script_ui <- function(forms, plan, n, rule, mains) {
   ws <- forms$whole_study
-  r_needs <- backend_r_requirement("power4mome")
+  r_needs <- backend_r_requirement(if (isTRUE(plan$experiment)) "Superpower" else "power4mome")
   one_run <- whole_study_seconds(forms, plan, ws$full_nrep)
   search <- ws$search_runs * one_run
   target_of <- if (mains == 1) "your main analysis" else switch(rule,
@@ -419,6 +474,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
   joint <- r$joint
   rule_text <- c(all = "all of your main analyses are significant", any = "at least one of your main analyses is significant")
   pv <- r$provenance
+  experiment <- identical(pv$backend, "Superpower")
   show_joint <- !is.null(joint) && !identical(r$claim, "each")
   methods <- whole_study_methods(r)
   methods_full <- paste(methods, sprintf("Spec hash: %s. Check run (n = 100,000): %s.", pv$spec_hash,
@@ -461,11 +517,15 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       if (identical(r$claim, "each")) p(class = "text-muted", "Each main result is a separate claim, so each analysis's own power is what matters."),
       if (identical(r$claim, "any")) p(class = "text-muted",
         "Your claim counts any one significant main result, so each main analysis is tested at alpha divided by the number of main analyses (Bonferroni), as on the plan's input screens."),
-      p(class = "small", sprintf("From %s simulated studies of %s participants. Each analysis is fitted with its own model, as it would be analysed on its own: the power of each comes from the same simulated studies, so the chance that several succeed together is counted directly, not assumed.",
+      p(class = "small", sprintf(if (experiment)
+        "From %s simulated studies of %s participants. Every F test comes from the same ANOVA on the same simulated studies, so the chance that several succeed together is counted directly, not assumed."
+        else "From %s simulated studies of %s participants. Each analysis is fitted with its own model, as it would be analysed on its own: the power of each comes from the same simulated studies, so the chance that several succeed together is counted directly, not assumed.",
         whole(pv$nrep), whole(r$n)))),
     div(class = "result-card", id = "ws-inputs",
       h4(class = "h5", "What your study model means for each analysis's own input screen"),
-      p(class = "small", "Estimated from one very large simulated sample. If you calculated an analysis separately, compare these with what you entered: where they differ, the separate calculations describe different studies."),
+      p(class = "small", if (experiment)
+        "Each test's effect size (Cohen's f) and its power when it is the only test, calculated exactly from your means (Superpower's ANOVA_exact()), as its own card would give them."
+        else "Estimated from one very large simulated sample. If you calculated an analysis separately, compare these with what you entered: where they differ, the separate calculations describe different studies."),
       lapply(r$implied, function(imp) {
         own <- plan_values[[imp$id]] %||% list()
         label <- a$label[a$id == imp$id]
@@ -486,20 +546,22 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
         download_button("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary"))),
     div(class = "result-card result-how", id = "ws-how",
       h4(class = "h5", "How it was calculated"),
-      p(class = "result-credit", "Simulated with the R package ", tags$strong("power4mome"), sprintf(" (version %s), with lavaan %s and manymome %s. Experimental: a statistician's check is still to come.",
+      if (experiment) p(class = "result-credit", "Simulated with the R package ", tags$strong("Superpower"), sprintf(" (version %s), with afex %s fitting each ANOVA. Experimental: a statistician's check is still to come.",
+        pv$packages[["Superpower"]], pv$packages[["afex"]]))
+      else p(class = "result-credit", "Simulated with the R package ", tags$strong("power4mome"), sprintf(" (version %s), with lavaan %s and manymome %s. Experimental: a statistician's check is still to come.",
         pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]])),
       h5(class = "h6", "How this differs from calculating each analysis separately"),
       p(departure %||% "Separate calculations each describe their own study; this simulation uses one model of your study for all of them."),
       p(class = "small text-muted", "This is recorded as a departure from the established tools in powerkit's conventions."),
       tags$details(class = "result-more", tags$summary("Details for a statistician"),
-        tags$pre(class = "small", paste0("Population model (lavaan syntax):\n", r$models$population,
+        tags$pre(class = "small", paste0(if (experiment) "Design (Superpower):\n" else "Population model (lavaan syntax):\n", r$models$population,
           "\n\nPopulation values:\n", r$models$population_values,
           "\n\nAnalysis models:\n", paste(sprintf("%s: %s", a$id, gsub("\n", "; ", r$models$analyses)), collapse = "\n"),
           sprintf("\n\nCheck run (n = 100,000): %s", if (all(r$check_run$ok)) "passed" else "FAILED"))),
-        p(class = "small", sprintf("Seed %s; %s simulated studies%s; spec hash %s; %s; power4mome %s, lavaan %s, manymome %s; powerkit %s. Run time %s seconds.",
+        p(class = "small", sprintf("Seed %s; %s simulated studies%s; spec hash %s; %s; %s; powerkit %s. Run time %s seconds.",
           pv$seed, whole(pv$nrep), if (!is.na(pv$ci_draws)) sprintf("; %s Monte Carlo draws per confidence interval", whole(pv$ci_draws)) else "",
-          pv$spec_hash, pv$r_version, pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]], pv$packages[["powerkit"]],
-          round(pv$run_time_seconds)))))
+          pv$spec_hash, pv$r_version, paste(names(pv$packages)[names(pv$packages) != "powerkit"], pv$packages[names(pv$packages) != "powerkit"], collapse = ", "),
+          pv$packages[["powerkit"]], round(pv$run_time_seconds)))))
   )
 }
 
@@ -516,6 +578,16 @@ whole_study_methods <- function(r) {
     " The proportion of simulated studies in which %s was %s.",
     if (r$joint$rule == "all") "every main analysis was significant" else "at least one main analysis was significant",
     percent(r$joint$power)) else ""
+  if (identical(pv$backend, "Superpower")) {
+    return(paste(sprintf(paste0(
+      "Power was estimated by simulating the whole experiment (powerkit %s, experimental) with the R package Superpower %s (ANOVA_power(), ANOVAs fitted by afex %s). ",
+      "The expected cell means, SD%s generated %s data sets of N = %s; every planned F test was read from the same ANOVA of each data set at alpha = %s%s. ",
+      "Estimated power was %s.%s Random seed %s."),
+      pv$packages[["powerkit"]], pv$packages[["Superpower"]], pv$packages[["afex"]],
+      if (grepl("w", r$models$population)) " and correlation" else "", whole(pv$nrep), whole(r$n), format(r$alpha),
+      if (identical(r$claim, "any")) " divided by the number of main analyses (Bonferroni)" else "",
+      powers, joint, pv$seed), paste(whole_study_outcomes(r), collapse = " ")))
+  }
   paste(sprintf(paste0(
     "Power was estimated by simulating the whole study (powerkit %s, experimental) with the R package power4mome %s. ",
     "One population model, specified as standardised paths, generated %s data sets of N = %s; each planned analysis was fitted to every data set with its own model ",
@@ -524,4 +596,164 @@ whole_study_methods <- function(r) {
     pv$packages[["powerkit"]], pv$packages[["power4mome"]], whole(pv$nrep), whole(r$n), format(r$alpha),
     if (identical(r$claim, "any")) " divided by the number of main analyses (Bonferroni)" else "",
     baseline, powers, joint, pv$seed), paste(whole_study_outcomes(r), collapse = " "))
+}
+
+# Experiments: the screen asks for the levels of each factor, the cell
+# means in a grid (rows: the between factor, or X when both are between;
+# columns: the other factor), one SD and, with a within factor, one
+# correlation, then builds the whole study around a factorial ANOVA design
+# spec (the engine's `experiment`).
+whole_study_experiment_levels <- function(text) {
+  levels <- trimws(strsplit(text %||% "", ",", fixed = TRUE)[[1]])
+  levels[nzchar(levels)]
+}
+
+whole_study_experiment_default_levels <- function(prefix, k) paste(sprintf("%s %d", prefix, seq_len(k)), collapse = ", ")
+
+# The grid's factors: list(rows, columns), each list(role, levels).
+whole_study_experiment_axes <- function(plan, values) {
+  x <- whole_study_experiment_levels(values$x_levels)
+  w <- if (plan$has_w) whole_study_experiment_levels(values$w_levels)
+  if (!plan$has_w) return(list(rows = list(role = "X", levels = x), columns = NULL))
+  if (identical(plan$x_factor, "A")) list(rows = list(role = "X", levels = x), columns = list(role = "W", levels = w))
+  else list(rows = list(role = "W", levels = w), columns = list(role = "X", levels = x))
+}
+
+whole_study_mean_id <- function(i, j) sprintf("ws_mean_%d_%d", i, j)
+
+whole_study_means_grid_ui <- function(plan, labels, values) {
+  axes <- whole_study_experiment_axes(plan, values)
+  rows <- axes$rows$levels
+  cols <- if (is.null(axes$columns)) "Mean" else axes$columns$levels
+  if (length(rows) < 2 || (!is.null(axes$columns) && length(cols) < 2)) {
+    return(p(class = "text-muted", "Name at least two levels of each factor above to enter the means."))
+  }
+  cell <- function(i, j) {
+    id <- whole_study_mean_id(i, j)
+    name <- if (is.null(axes$columns)) rows[i] else sprintf("%s, %s", rows[i], cols[j])
+    tags$td(tags$input(id = id, type = "text", inputmode = "decimal", class = "form-control",
+      value = values$means[[id]] %||% "", `aria-label` = sprintf("Mean of %s: %s", labels[["Y"]], name)))
+  }
+  div(class = "table-responsive", tags$table(class = "table table-sm ws-means",
+    tags$caption(sprintf("Expected mean of %s in each %s", labels[["Y"]], if (is.null(axes$columns)) "condition" else "cell")),
+    tags$thead(tags$tr(tags$th(scope = "col", labels[[axes$rows$role]]),
+      lapply(cols, function(c) tags$th(scope = "col", if (is.null(axes$columns)) c else sprintf("%s: %s", labels[[axes$columns$role]], c))))),
+    tags$tbody(lapply(seq_along(rows), function(i) tags$tr(tags$th(scope = "row", rows[i]),
+      lapply(seq_along(cols), function(j) cell(i, j)))))))
+}
+
+whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = list(), problem = NULL) {
+  rule_words <- c(each = "each main result is a separate claim", all = "the claim needs every main result to be significant",
+    any = "any one significant main result supports the claim")
+  value_of <- function(key, default = "") values[[key]] %||% default
+  design_words <- if (!plan$has_w) {
+    if (plan$x_within) "the same people in each condition: a repeated-measures ANOVA" else "different people in each condition: a one-way ANOVA"
+  } else if (plan$x_within) {
+    sprintf("%s within participants crossed with groups of %s: a mixed ANOVA", labels[["X"]], labels[["W"]])
+  } else {
+    sprintf("%s crossed with %s, different people in each cell: a two-way ANOVA", labels[["X"]], labels[["W"]])
+  }
+  tagList(
+    screen_nav_ui("guided:plan", "Back to your plan"),
+    h2("Simulate the whole study ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
+    p(class = "lead", "Describe your experiment once. Every planned test is then run on the same simulated studies."),
+    div(class = "alert alert-warning", role = "note",
+      "The method is new in powerkit and is waiting for a statistician's check. The results may change. Use them to explore your plan, not to report."),
+    if (!is.null(problem)) div(class = "form-problems", role = "alert", tabindex = "-1", h3(class = "h5", "Please check"), tags$ul(lapply(problem, tags$li))),
+    h3(class = "h5", "Your analyses"),
+    p(sprintf("Your study is an experiment with %s. Each analysis is one of its F tests, all from the same ANOVA on the same data.", design_words)),
+    tags$ul(lapply(plan$analyses, function(a) tags$li(whole_study_experiment_label(a$id, labels), " ",
+      tags$span(class = if (a$role == "main") "badge bg-primary" else "badge bg-secondary", if (a$role == "main") "Main analysis" else "Extra analysis")))),
+    p(tags$strong("Your claim:"), paste0(" ", rule_words[[rule]], ".")),
+    h3(class = "h5", "Your experiment"),
+    textInput("ws_x_levels", sprintf("Levels of %s (separate them with commas)", labels[["X"]]),
+      value = value_of("x_levels", whole_study_experiment_default_levels("Condition", plan$x_levels)), width = "100%"),
+    if (plan$has_w) textInput("ws_w_levels", sprintf("Levels of %s (separate them with commas)", labels[["W"]]),
+      value = value_of("w_levels", whole_study_experiment_default_levels("Group", plan$w_levels)), width = "100%"),
+    p(class = "text-muted", "The means you expect, in the outcome's own units. Their pattern sets every effect: equal means in a row and a column mean no effect there, and parallel rows mean no interaction."),
+    uiOutput("ws_means_grid"),
+    textInput("ws_sd", sprintf("SD of %s within each cell (the same in every cell)", labels[["Y"]]), value = value_of("sd"), width = "100%"),
+    if (plan$x_within) textInput("ws_r", sprintf("Correlation between a person's scores in the conditions of %s", labels[["X"]]),
+      value = value_of("r"), width = "100%"),
+    h3(class = "h5", "Sample size and precision"),
+    textInput("ws_n", "Total participants analysed (N)", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
+    p(class = "text-muted small", if (plan$x_within && !plan$has_w) "Everyone takes part in every condition." else "Split equally between the groups."),
+    textInput("ws_alpha", "Significance level (alpha)", value = value_of("alpha", "0.05"), width = "100%"),
+    p(class = "text-muted", sprintf(
+      "This screen runs a quick look: %s simulated studies, so each power is within about ±%s percentage points (%s). For numbers to report, and to find the sample size you need, run the full simulation on your computer: the R script is offered with the result.",
+      whole(forms$whole_study$quick_nrep), whole_study_precision(forms$whole_study$quick_nrep),
+      duration_text(whole_study_seconds(forms, plan, forms$whole_study$quick_nrep)))),
+    textInput("ws_seed", "Random seed (the same seed gives the same result)", value = value_of("seed", as.character(forms$default_seed)), width = "100%"),
+    p(class = "text-muted small", "It runs in a separate process: you can cancel it, and leaving this screen stops it."),
+    action_bar(actionButton("ws_run", "Run the simulation", class = "btn btn-primary")),
+    uiOutput("ws_result")
+  )
+}
+
+whole_study_experiment_label <- function(id, labels) {
+  switch(id,
+    compare = sprintf("The main effect of %s", labels[["X"]]),
+    moderation = sprintf("Whether the effect of %s depends on %s (the interaction)", labels[["X"]], labels[["W"]]),
+    id)
+}
+
+whole_study_experiment_values <- function(input, plan) {
+  values <- list(x_levels = input$ws_x_levels %||% "", w_levels = input$ws_w_levels %||% "",
+    sd = input$ws_sd %||% "", r = input$ws_r %||% "", n = input$ws_n %||% "", alpha = input$ws_alpha %||% "",
+    seed = input$ws_seed %||% "")
+  axes <- whole_study_experiment_axes(plan, values)
+  cols <- max(1, length(axes$columns$levels))
+  ids <- unlist(lapply(seq_along(axes$rows$levels), function(i) vapply(seq_len(cols), function(j) whole_study_mean_id(i, j), "")))
+  values$means <- stats::setNames(lapply(ids, function(id) input[[id]] %||% ""), ids)
+  values
+}
+
+# The whole-study spec for an experiment, or the problems in plain words.
+whole_study_experiment_spec <- function(plan, labels, values, rule, nrep) {
+  problems <- character()
+  num <- function(x) suppressWarnings(as.numeric(trimws(x %||% "")))
+  axes <- whole_study_experiment_axes(plan, values)
+  rows <- axes$rows$levels
+  cols <- axes$columns$levels
+  if (length(rows) < 2) problems <- c(problems, sprintf("Levels of %s: name at least two, separated by commas.", labels[[axes$rows$role]]))
+  if (!is.null(axes$columns) && length(cols) < 2) problems <- c(problems, sprintf("Levels of %s: name at least two, separated by commas.", labels[[axes$columns$role]]))
+  if (anyDuplicated(c(rows)) || anyDuplicated(cols)) problems <- c(problems, "Give each level of a factor its own name.")
+  if (length(problems)) return(list(problems = problems))
+  ncols <- max(1, length(cols))
+  means <- lapply(seq_along(rows), function(i) vapply(seq_len(ncols), function(j) num(values$means[[whole_study_mean_id(i, j)]]), numeric(1)))
+  if (any(is.na(unlist(means)))) problems <- c(problems, "Means: enter a number in every cell.")
+  sd <- num(values$sd)
+  if (is.na(sd) || sd <= 0) problems <- c(problems, "SD: enter a number above 0.")
+  r <- NULL
+  if (plan$x_within) {
+    r <- num(values$r)
+    if (is.na(r) || r <= -1 || r >= 1) problems <- c(problems, "Correlation: enter a number strictly between -1 and 1, such as 0.5.")
+  }
+  n <- num(values$n)
+  if (is.na(n) || n != round(n) || n < 4) problems <- c(problems, "Total participants: enter a whole number.")
+  alpha <- num(values$alpha)
+  if (is.na(alpha) || alpha <= 0 || alpha >= 1) problems <- c(problems, "Significance level: enter a number between 0 and 1, such as 0.05.")
+  seed <- num(values$seed)
+  if (is.na(seed) || seed != round(seed) || seed < 1 || seed > 2147483647) problems <- c(problems, "Random seed: enter a whole number of 1 or more.")
+  if (length(problems)) return(list(problems = problems))
+  factor_type <- function(role) if (identical(role, "X") && plan$x_within) "within_factor" else "between_factor"
+  variables <- list(A = list(type = factor_type(axes$rows$role), label = labels[[axes$rows$role]], levels = as.list(rows)))
+  if (!is.null(axes$columns)) variables$B <- list(type = factor_type(axes$columns$role), label = labels[[axes$columns$role]], levels = as.list(cols))
+  variables$Y <- list(type = "continuous", label = labels[["Y"]])
+  template <- if (is.null(axes$columns)) {
+    if (plan$x_within) "oneway_within" else "oneway_between"
+  } else if (plan$x_within) {
+    if (length(rows) == 2 && length(cols) == 2) "2x2_mixed" else "mixed"
+  } else {
+    if (length(rows) == 2 && length(cols) == 2) "2x2_between" else "factorial_between"
+  }
+  population <- list(metric = "raw", means = if (is.null(axes$columns)) as.list(unlist(means)) else lapply(means, as.list), sd = sd)
+  if (!is.null(r)) population$r <- r
+  experiment <- list(spec_version = "0.1", design = "factorial_anova", template = template, variables = variables,
+    population = population, target_test = list(method = "anova_f"))
+  analyses <- lapply(plan$analyses, function(a) { a$label <- whole_study_experiment_label(a$id, labels); a })
+  list(spec = list(spec_version = "0.1", kind = "whole_study", experiment = experiment, analyses = analyses,
+    claim = rule, alpha = alpha, effect_justification = list(type = "none"),
+    goal = list(type = "power", n = as.integer(n)),
+    options = list(nrep = as.integer(nrep), seed = as.integer(seed))))
 }
