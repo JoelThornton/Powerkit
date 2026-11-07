@@ -109,9 +109,8 @@ call), and nodes for approaches powerkit doesn't compute.
   metapower, power4mome, powertools and bfpwr each have an open question
   in [`upstream-questions.md`](upstream-questions.md), with the evidence
   ready.
-- **On the GitHub website** (from the 7 November review): the repository
-  description, which says "for psychology" and "validated"; deleting the
-  merged branches (sessions can't); and the feedback service's privacy
+- **On the GitHub website** (from the 7 November review): deleting the
+  merged branches (sessions can't), and the feedback service's privacy
   settings, which can't be checked from the repository.
 - **The AI assistant** (build guide phase 7: words or a diagram to a
   suggested design, always confirmed by the user): whether and when to
