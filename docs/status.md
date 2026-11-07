@@ -27,7 +27,8 @@ fully validated. Validation runs are recorded in
 - **Releases (7 November 2026):** each finished version is tagged
   (`v0.34.1`) and published as a pre-release on GitHub with its NEWS
   section, automatically once main moves on to the next number
-  (`scripts/tag-releases.sh`). Main requires a pull request with passing
+  (`scripts/tag-releases.sh`, pushing with the `RELEASE_TOKEN` secret).
+  Main requires a pull request with passing
   checks, and release tags can't be moved or deleted
   ([`repository-protection.md`](repository-protection.md)).
 
