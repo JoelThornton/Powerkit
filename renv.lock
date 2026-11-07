@@ -3764,6 +3764,19 @@
       ],
       "Hash": "963d31271610fe02db20d76dc4b2c773"
     },
+    "xml2": {
+      "Package": "xml2",
+      "Version": "1.6.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cli",
+        "methods",
+        "rlang"
+      ],
+      "Hash": "568fe669c645b2007e4e8fcf5cde40e7"
+    },
     "xtable": {
       "Package": "xtable",
       "Version": "1.8-8",
@@ -3783,6 +3796,14 @@
       "Source": "Repository",
       "Repository": "RSPM",
       "Hash": "7cd77cb32abd9220d744307e9fc94ffb"
+    },
+    "zip": {
+      "Package": "zip",
+      "Version": "3.0.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [],
+      "Hash": "5807bea03035bfdd7535c1d3eb258cb0"
     },
     "zoo": {
       "Package": "zoo",
