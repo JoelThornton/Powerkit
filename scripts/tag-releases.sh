@@ -65,8 +65,8 @@ for v in $finished; do
     git show "$commit:engine/NEWS.md" 2>/dev/null |
       awk -v head="# powerkit $v" '
         $0 == head { on = 1; next }
-        on && /^# powerkit / { exit }
-        on { print }
+        on && /^# powerkit / { on = 0; done = 1 }
+        on && !done { print }
       '
   } > "$notes"
   gh release create "$tag" --verify-tag --prerelease \
