@@ -71,3 +71,12 @@ workflow updated on 7 November 2026. Release tags are created by
 `.github/workflows/release-tags.yaml` (`scripts/tag-releases.sh`): each
 finished version is tagged at main's last commit carrying it, with its
 `engine/NEWS.md` section as the release notes.
+The workflow pushes with the `RELEASE_TOKEN` secret (a fine-grained
+token for this repository with Contents and Workflows write), because
+GitHub refuses a tag from the workflow's own token when the tagged
+commit's workflow files differ from main's.
+
+The feedback database (Supabase) was checked in its dashboard on
+7 November 2026: the `powerkit_feedback` table has row-level security on,
+no policies and its Data API access off, so the app's public key can call
+`send_powerkit_feedback()` but can't read messages.

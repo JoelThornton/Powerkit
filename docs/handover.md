@@ -26,9 +26,11 @@ and the write-up all need the user's reasoning.
 - **What to work on, and what the maintainer owes:** in
   [`next.md`](next.md). Open pull requests are on GitHub; git history
   holds everything merged.
-- **Branches:** sessions can't delete remote branches (403), so merged
-  branches pile up until the maintainer deletes them; the one to keep is
-  `claude/project-thread-uqcark-webr-spike` (never merged).
+- **Branches and tags:** sessions can't delete remote branches or push
+  tags (403). Merged branches delete themselves; the one other branch to
+  keep is `claude/project-thread-uqcark-webr-spike` (the webR trial,
+  linked from `hosting-options.md`). Tags come from the release-tags
+  workflow.
 
 ## What to work on next
 
