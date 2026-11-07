@@ -70,6 +70,25 @@ field_ui <- function(f, value, described_by = character()) {
   document.addEventListener('input', update); document.addEventListener('change', update);
   setTimeout(update, 0);
 })();", jsonlite::toJSON(paste0("f_", unlist(f$range_reading))), id, id))))
+  # Choices offered only with some other answers (`choices_shown_if`):
+  # hidden in the browser as the other answers change, and refused by
+  # form_problems() if chosen anyway.
+  if (!is.null(f$choices_shown_if)) field <- tagList(field, tags$script(HTML(sprintf("(function() {
+  var id = '%s', rules = %s;
+  function update() {
+    var el = document.getElementById(id); if (!el || !window.Shiny || !Shiny.shinyapp) return;
+    var input = Shiny.shinyapp.$inputValues;
+    Array.prototype.forEach.call(el.options, function(o) {
+      if (!(o.value in rules)) return;
+      var ok = true; try { ok = (new Function('input', 'return ' + rules[o.value]))(input); } catch (e) {}
+      o.hidden = !ok; o.disabled = !ok;
+      if (!ok && el.value === o.value) { el.value = ''; el.dispatchEvent(new Event('change', {bubbles: true})); }
+    });
+  }
+  document.addEventListener('change', function() { setTimeout(update, 0); });
+  document.addEventListener('shiny:connected', update);
+  setTimeout(update, 0);
+})();", id, jsonlite::toJSON(lapply(f$choices_shown_if, function(cond) shown_if_js(list(shown_if = cond))), auto_unbox = TRUE)))))
   # A note for each choice that needs one, shown when it is chosen (the
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
@@ -248,11 +267,11 @@ form_result_ui <- function(ep, local_problems, check, spec = NULL) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
       h3(class = "h5", "powerkit's checker found a problem"),
       tags$ul(lapply(check$problems, tags$li)),
-      p(class = "small", "These messages come from powerkit's engine (validate_spec()).")))
+      p(class = "small", "These messages come from powerkit's engine, which checks every design before calculating it.")))
   }
   div(class = "engine-placeholder not-wired", role = "status", tabindex = "-1",
     h3(class = "h5", "Calculation not wired in yet"),
-    p("Your answers make a valid design spec: powerkit's checker (validate_spec()) accepted it. The calculation for this design isn't wired into the prototype yet; in the full app this spec would go to powerkit's engine."),
+    p("Your answers make a valid design spec: powerkit's checker accepted it. The calculation for this design isn't wired into the prototype yet; in the full app this spec would go to powerkit's engine."),
     if (length(check$advice)) tagList(p(tags$strong("Notes from the checker:")), tags$ul(lapply(check$advice, tags$li))),
     tags$details(tags$summary("The checked design spec (JSON)"), tags$pre(class = "spec-json", spec_json(spec)))
   )

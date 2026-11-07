@@ -344,32 +344,30 @@ flowchart TD
   F1 -->|One| F2{"F2 How many groups<br/>or conditions?"}
   F2 -->|One, against<br/>a fixed value| E1["E1 One-sample t-test"]
   F2 -->|Two, different people| E2["E2 Independent-samples t-test"]
-  F2 -->|Two, the same people| E3["E3 Paired t-test"]
+  F1 -->|One, measured twice| E3["E3 Paired t-test"]
   F2 -->|Three or more| F2a{"F2a A specific comparison,<br/>or any difference?"}
   F2a -->|A specific comparison| E19["E19 Planned contrast"]
   F2a -->|Any difference,<br/>different people| E18["E18 One-way ANOVA"]
   F2a -->|Any difference,<br/>the same people| E54["E54 One-way<br/>repeated-measures ANOVA"]
   F1 -->|Three, crossed| E56["E56 Three-factor ANOVA"]
   F1 -->|Four or more| UNS1["E-unsure (safety net)"]
-  F1 -->|Two, crossed| F3{"F3 Does each factor<br/>have two levels?"}
-  F3 -->|No| F3a{"F3a For each factor: different<br/>people, or everyone in every level?"}
+  F1 -->|Two, at least one with<br/>three or more levels| F3a{"F3a For each factor: different<br/>people, or everyone in every level?<br/>(skipped when S3 answers it)"}
   F3a -->|One between,<br/>one within| E55["E55 Mixed ANOVA<br/>beyond 2 x 2"]
   F3a -->|Both between| E21
   F3a -->|Both within| E20
-  F3 -->|Yes| F4{"F4 For each factor: different<br/>people, or everyone got both?"}
-  F4 -->|Both within| E20["E20 Two-factor within ANOVA"]
-  F4 -->|At least one between| F4a{"F4a Will the groups be<br/>equal in size?"}
-  F4a -->|No, both between| E22["E22 2 x 2 ANOVA with<br/>unequal groups"]
-  F4a -->|No, one within| UNS2["E-unsure (safety net)"]
-  F4a -->|Yes, both between| F5b["F5 Which effect?<br/>F6 Which shape?"]
+  F1 -->|Two, each with<br/>two levels| F4{"F4 Between or within?<br/>(answered by S3)"}
+  F4 -->|Many times: both within| E20["E20 Two-factor within ANOVA"]
+  F4 -->|Once: both between| F4a{"F4a Will the groups be<br/>equal in size?"}
+  F4a -->|No| E22["E22 2 x 2 ANOVA with<br/>unequal groups"]
+  F4a -->|Yes| F5b["F5 Which effect?<br/>F6 Which shape?"]
   F5b --> E7["E7 2 x 2 between ANOVA"]
-  F4a -->|Yes, one within| F4b{"F4b Is the within factor<br/>before and after?"}
+  F4 -->|Twice: one within| F4b{"F4b Is the within factor<br/>before and after?"}
   F4b -->|No| F5m["F5 Which effect?<br/>F6 Which shape?"]
   F5m --> E8["E8 2 x 2 mixed ANOVA"]
   F4b -->|Yes| PP{"PP1 Randomised?<br/>PP2 Which analysis?"}
   PP -->|The mixed interaction| E8
-  PP -->|ANCOVA| E23["E23 ANCOVA"]
-  class F1,F2,F2a,F3,F3a,F4,F4a,F4b,PP,F5b,F5m q
+  PP -->|ANCOVA, recommended<br/>when randomised| E23["E23 ANCOVA"]
+  class F1,F2,F2a,F3a,F4,F4a,F4b,PP,F5b,F5m q
   class E1,E2,E3,E7,E8,E18,E19,E20,E21,E22,E23,E54,E55,E56 avail
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
@@ -548,15 +546,17 @@ engine can use the answer today.
 | O5a | How will you analyse this rating? (after S1 "ordered categories", every route) | As a score / as ordered categories (decision D1) | Score → `continuous` | Score: yes, the route continues as a score. Ordered: the route continues to S2 and S3 with the outcome ordinal; a difference between two groups of different people, measured once, reaches E29 (since 29 October 2026, when E29 began to calculate); measured more than once, the safety net; a relationship, the safety net; moderation or mediation, E32. The choice and the note for the write-up aren't stored: **flag**, see open question 4 |
 | Q3 | Who gives the data? | Answered by S2 and S3 and not asked again (an ordinal difference measured once reaches E29), except for a yes/no or categorical difference: two groups, yes/no (E5); categories (E6); one group against a fixed proportion (E25); two or more factors with a yes/no outcome (E47, factorial logistic regression), each when measured once; the same people (E26) when measured twice or more | `variables.*.type` (`between_factor`, `within_factor`, `binary`); `template` (`independent_t` vs `paired_t`; `2x2_between` vs `2x2_mixed`) | Yes |
 | V1 | Whose spread of scores are you comparing? | Measured once: one group's, against a fixed value (E52); two groups', different people in each (E53). Measured twice: the same people's (E57) | `template` (`one_variance`, `two_variances`, `paired_variances`) | Yes |
-| F1–F3 | How many factors (one, two crossed, three crossed, four or more)? How many groups? Two levels each? | (design finder) | `template`; `variables.A/B/X.levels` | Yes for the templates that exist |
+| F1, F2 | How many factors (one; two, each with two levels; two, at least one with three or more levels; three crossed; four or more)? How many groups? (Two levels each was a separate question, F3, until 7 November 2026) | (design finder) | `template`; `variables.A/B/X.levels` | Yes for the templates that exist |
+| Q1b | Something else? (after Q1 "something else", since 7 November 2026) | Scores more spread out (V1); latent variables (SEM); item bias (DIF); signal detection; exploratory factor analysis; types of people | `template` | Yes |
 | F2a | Specific comparison or any difference? | (decision D8) | — | **No (flag):** neither contrasts nor one-way ANOVA are in the spec |
 | F3a | For each factor: different people, or everyone got every level? (at least one factor with three or more levels) | One between, one within (E55); both between (E21); both within (E20) | `variables.A.type`, `variables.B.type` (A is the between factor in `mixed`) | Yes for one between and one within; routing only otherwise |
 | F4 | For each factor: different people, or everyone got both? | (design finder) | `variables.A.type`, `variables.B.type` (A is the between factor in `2x2_mixed`) | Yes |
-| F4a | Will the groups be equal in size? | Yes / no (decisions D5, N1–N3) | 2x2 between: `options.cell_ratio`. Two groups: `options.allocation_ratio` | 2x2 between: yes. 2x2 mixed: routing only (unequal → safety net). Two-group tests: yes |
+| F4a | Will the groups be equal in size? (both factors between participants; with one within, both cards take unequal groups, so it is skipped since 7 November 2026) | Yes / no (decisions D5, N1–N3) | 2x2 between: `options.cell_ratio`. Two groups: `options.allocation_ratio` | 2x2 between: yes. 2x2 mixed: routing only (unequal → safety net). Two-group tests: yes |
 | F4b, PP1, PP2 | Before and after? Randomised? ANCOVA or mixed interaction? | (decision D2) | `factorial_anova / 2x2_mixed`, `target_test.effect = interaction` | Routing only. Randomisation and the reason for the choice aren't stored for the write-up: **flag** (open question 4). ANCOVA: **no (flag)** |
 | F5 | Which result matters most for your study? | Effect of A; effect of B; the interaction | `target_test.effect`: `main_effect_A`, `main_effect_B`, `interaction` | Yes |
 | F6 | Which picture matches your prediction? (interaction) | Lines cross; one effect shrinks; one disappears (decision D6) | — | **No (flag):** the shape is used only for a warning on the form. It isn't stored, so the write-up can't mention it (open question 4) |
 | R1 | What is the other variable like? | Score; a relationship that differs between two separate groups; one correlation stronger than another in the same people; groups; several predictors | `variables.X.type` | Score / groups: yes. Several predictors: **no (flag)** |
+| MO0 | What are the two things whose combination matters? (moderation, measured twice or more, since 7 November 2026) | Both groups or conditions (→ F1); a treatment or group and a measured score, before and after (→ E24, the after score on the before score, the treatment, the moderator and their product); things measured within each person (E41) | `template` | Yes |
 | MO1 | What is your main predictor (X)? | Two conditions you assigned or two groups that exist; a score; three or more groups | `variables.X.type`: `binary` or `continuous` | Score: yes. Binary: the spec accepts it but `run_spec()` refuses it until phase 3b. Three or more groups: **no (flag)**, goes to E30. "Assigned vs existing" isn't stored (only used for wording): **flag** |
 | MO2 | What does the effect depend on (the moderator, W)? | Two conditions or two groups; a score; three or more groups. Asked after either answer to MO1; with a yes/no X, "two groups" leads to the 2 x 2 factor questions | `variables.W.type`: `binary` or `continuous` | Score × score: yes. Binary: refused until phase 3b. Three or more groups: **no (flag)**, goes to E30 |
 | MO3 | Does a third variable change the interaction again? | No / yes | — | Yes → **no (flag)**, three-way not in spec |

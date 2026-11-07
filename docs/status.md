@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 7 November 2026 (powerkit 0.36.0). This page says where the
+*Last updated: 7 November 2026 (powerkit 0.37.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
 planned work that had no queue item, 6 November 2026). History is in git,
@@ -33,7 +33,12 @@ fully validated. Validation runs are recorded in
   whole-study paragraph states its population, every author-year
   reference in user text is in `refs.bib` or a package's citation() (a
   test checks), and "validated" has the validation log's meaning
-  everywhere. The mixed-design Greenhouse-Geisser check
+  everywhere. The third batch (design-finder routes) is done: no
+  question with one answer, ANCOVA recommended for randomised
+  before/after trials, moderation in a before/after trial routed to the
+  regression card, goals the chosen test can't answer hidden, search
+  words researchers type, and crossover guidance on the paired and mixed
+  cards (a crossover card is queued). The mixed-design Greenhouse-Geisser check
   still fails with new seeds and waits for the statistician; the rerun of
   the moderated mediation Type I error check (yes/no X) is recorded when
   it finishes ([`validation-log.md`](validation-log.md), 7 November 2026).

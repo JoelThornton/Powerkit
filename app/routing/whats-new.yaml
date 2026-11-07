@@ -6,6 +6,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-07"
+    title: "Help me choose finds more designs, with fewer questions"
+    text: >-
+      Help me choose no longer asks questions that have only one answer,
+      keeps the rarer hypotheses behind "Something else", recommends
+      ANCOVA for a randomised before-and-after trial, and sends a
+      treatment whose effect depends on a measured score to the
+      regression card. Input screens no longer offer goals the chosen
+      test can't answer, and search knows names such as Cohen's d,
+      crossover and between-subjects.
+  - date: "2026-11-07"
     title: "Clearer methods paragraphs and planning documents"
     text: >-
       The methods paragraph now keeps to the methods: the record of checks

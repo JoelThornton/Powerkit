@@ -474,7 +474,7 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
     help <- tagList(tags$span(class = "name-tech-alt", shown_name(id)), tags$span(class = "name-plain-alt", ep$plain_name))
     words <- search_text(ep$plain_name, ep$doc_name, family$label, ep$rank_test, ep$search_words,
       if (id %in% names(tree$bayes_designs)) "Bayes factor Bayesian")
-    div(class = "known-item", `data-search` = words,
+    div(class = "known-item", `data-search` = words, `data-name` = search_text(ep$plain_name, ep$doc_name),
       tags$button(type = "button", `data-ep` = id,
         class = if (identical(ep$status, "not_in_powerkit") && is.null(ep$guide)) "btn choice known-choice known-choice-not" else "btn choice known-choice",
         onclick = sprintf("Shiny.setInputValue('pick', 'ep:%s', {priority: 'event'})", id),
@@ -530,7 +530,7 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
           tags$span(class = "known-family-label", f$label),
           tags$span(class = "known-family-count", `data-total` = length(ids),
             `aria-label` = sprintf("%d analyses", length(ids)), length(ids))),
-        div(class = "known-family-items", lapply(ids, item, family = f)))
+        div(class = "known-family-items", lapply(seq_along(ids), function(i) tagAppendAttributes(item(ids[i], f), `data-index` = i))))
     })),
     div(class = "choices list mt-4",
       pick_button(tree$safety_net$label, paste0("ep:", tree$safety_net$endpoint), class = "btn btn-outline-secondary choice choice-safety"),
@@ -570,6 +570,9 @@ search_text <- function(...) {
 # or two letters (such as "t" or "r") must be a whole word. Groups with
 # matches open and show how many match, the rest hide, and the common
 # starting points step aside; an empty box shows every group closed again.
+# Within a group, analyses whose own name holds every word come first (so
+# "ANCOVA" lists the ANCOVA card before the ANOVAs that mention a
+# covariate); an empty box restores the usual order.
 # The search and the open groups are remembered in the page (not stored
 # anywhere), so Back from a card returns to the same place in the list.
 known_search_js <- "
@@ -579,12 +582,23 @@ function powerkitFilterAnalyses(query) {
   var any = false, items = 0, groups = 0;
   document.querySelectorAll('.known-family').forEach(function(family) {
     var shown = 0;
-    family.querySelectorAll('.known-item').forEach(function(item) {
+    var has = function(text, w) { return text.indexOf(w.length <= 2 ? ' ' + w + ' ' : w) >= 0; };
+    var list = family.querySelector('.known-family-items');
+    var rows = Array.prototype.slice.call(family.querySelectorAll('.known-item'));
+    rows.forEach(function(item) {
       var text = item.getAttribute('data-search');
-      var match = words.every(function(w) { return text.indexOf(w.length <= 2 ? ' ' + w + ' ' : w) >= 0; });
+      var match = words.every(function(w) { return has(text, w); });
       item.hidden = !match;
       if (match) shown++;
     });
+    if (list) {
+      var rank = function(item) {
+        var name = item.getAttribute('data-name') || '';
+        return words.length > 0 && words.every(function(w) { return has(name, w); }) ? 0 : 1;
+      };
+      rows.sort(function(a, b) { return rank(a) - rank(b) || Number(a.getAttribute('data-index')) - Number(b.getAttribute('data-index')); });
+      rows.forEach(function(item) { list.appendChild(item); });
+    }
     family.hidden = shown === 0;
     family.open = words.length > 0 && shown > 0;
     var count = family.querySelector('.known-family-count');

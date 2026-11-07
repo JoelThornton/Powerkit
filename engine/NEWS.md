@@ -1,3 +1,31 @@
+# powerkit 0.37.0
+
+* Design finder (app): a two-group before/after study no longer asks
+  whether the groups are equal in size, since its cards (the mixed ANOVA
+  and the ANCOVA) take groups of either kind; a randomised before/after
+  trial is pointed to ANCOVA as the recommended analysis, with the group
+  by time interaction kept as an option; a moderation in a before/after
+  trial (a treatment and a measured score) reaches the multiple
+  regression card, with what to enter, and "Plan my whole study" plans it
+  the same way; one factor measured twice goes straight to the paired
+  t-test.
+* Questions with one possible answer are skipped (a test checks every
+  route), the hypothesis list shows the five common hypotheses with the
+  rarer ones behind "Something else", and the factorial question asks
+  about two factors in two forms (2 x 2, or larger) without a follow-up.
+* Input screens: a goal the chosen test version can't answer is not
+  offered (a justified significance level with a Bayes factor test), and
+  is refused in words if chosen; the planning line and the target power's
+  source are worded for the Bayes factor test; the checker's messages no
+  longer name the engine's functions.
+* Search on "I know my analysis" knows the names researchers type
+  (Cohen's d, between-subjects, crossover, ANCOVA, partial correlation)
+  and lists analyses whose name has every word first.
+* The paired t-test and mixed ANOVA cards say how to plan a crossover
+  (AB/BA) study; the t-test cards point to the sequential Bayes factor
+  plan; "Plan my whole study" says that nested data, pairs and many
+  trials per person are planned one analysis at a time.
+
 # powerkit 0.36.0
 
 * Exported text names powerkit as a prototype until version 1.0: the

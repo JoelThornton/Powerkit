@@ -36,7 +36,7 @@ whole_study_names <- c(X = "the predictor (X)", Y = "the outcome (Y)", W = "the 
 # Measured twice: the analysis that each planned analysis becomes once Y
 # is adjusted for its first measurement (whole_study_plan()).
 whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect", modmed = "index_of_mome")
-whole_study_twice_endpoints <- c(compare = "E23", moderation = "E41", mediation = "E41", modmed = "E41")
+whole_study_twice_endpoints <- c(compare = "E23", moderation = "E24", mediation = "E41", modmed = "E41")
 
 # Measured twice, the routes ask how two mediators connect and which link
 # W moderates (tree.yaml: ME3 and MM4, every answer going to E41); the

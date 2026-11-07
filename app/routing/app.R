@@ -1904,6 +1904,8 @@ server <- function(input, output, session) {
         screen_nav_ui(),
         if (isTRUE(state$from_labs)) labs_return_ui(),
         trail_ui(state$history, tree),
+        if (identical(state$route, "guided") && !identical(state$ctx$grouping, "independent"))
+          div(class = "status status-soon guided-single-note", tree$guided$single_analysis_note),
         card_ui(tree, state$endpoint, history = state$history),
         card_nav_ui(forms, state$endpoint),
         mismatch_ui("mismatch-path", path_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint))

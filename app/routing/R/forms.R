@@ -407,6 +407,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # level for that version: "power" is the chance of strong evidence.
   bayes_field <- offers_bayes_factor(form)
   no_bayes <- if (!is.null(bayes_field)) list(field = bayes_field, is_not = "bayes_factor")
+  # So a justified significance level is offered only with a test that
+  # has one (`choices_shown_if`: the choice is hidden otherwise).
+  if (!is.null(no_bayes) && !is.null(goals$justified_alpha)) goal$choices_shown_if <- list(justified_alpha = list(no_bayes))
   if (identical(start$situation, "fixed")) {
     goal$default <- if (isTRUE(form$sensitivity)) "sensitivity" else "power"
     goal$default_source <- "you said your sample size is fixed"
@@ -423,7 +426,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
     goal,
     list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor test, the chance that the study finds strong evidence for the effect." else "The chance the selected test rejects its null under the population you specify. For example 0.9 means 90% of repeated studies under those assumptions; it does not mean a 90% chance your theory is true.",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
-         default = tool[["power"]], default_source = tool[["power_source"]]),
+         default = tool[["power"]], default_source = if (!is.null(no_bayes) && identical(form$tool, "pwr"))
+           "pwr and bfpwr have no default target power (pwr.t.test(power = NULL), bfpwr's powertbf01(power = NULL)); enter one" else tool[["power_source"]]),
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
          type = "text", optional = TRUE, shown_for_goals = c("sample_size", "sensitivity")),
     list(id = "n", label = "Number of participants analysed",
@@ -898,6 +902,12 @@ form_problems <- function(fields, values) {
   for (f in fields) {
     if (!field_applies(f, values)) next
     v <- values[[f$id]]
+    # A choice offered only with some other answers (`choices_shown_if`).
+    hidden_choice <- if (!blank(v)) f$choices_shown_if[[as.character(v)]]
+    if (!is.null(hidden_choice) && !field_applies(list(shown_if = hidden_choice), values)) {
+      add(sprintf("%s: \"%s\" isn't available with the other answers you chose. Choose another.", quote_label(f), f$choices[[as.character(v)]]))
+      next
+    }
     # Required: marked so, an effect size, or needed for the goal chosen.
     needed <- isTRUE(f$required) || isTRUE(f$effect) || !is.null(f$needed_for) || !is.null(f$needed_if_just)
     if (blank(v)) {
