@@ -253,3 +253,47 @@ test_that("two groups or conditions: the group comparison, moderation and mediat
   expect_true("X<->W" %in% params$correlations)
   expect_match(whole_study_path_label("X<->W"), "0 if people are randomised", fixed = TRUE)
 })
+
+test_that("experiments: conditions crossed with groups are simulated as one factorial ANOVA", {
+  exp_answers <- list(x = "cond2", outcome = "score", mediators = "none", moderator = "two", covariate = "none", times = "once")
+  plan <- whole_study_plan(tree, exp_answers, c("compare", "moderation"), c("compare", "moderation"), list())
+  expect_true(plan$ok)
+  expect_true(plan$experiment)
+  expect_equal(vapply(plan$analyses, function(a) a$effect, ""), c("main_effect_A", "interaction"))
+  labels <- whole_study_labels(plan$roles, list())
+  values <- list(x_levels = "Control, Training", w_levels = "Young, Old", sd = "10", n = "200", alpha = "0.05", seed = "1",
+    means = list(ws_mean_1_1 = "50", ws_mean_1_2 = "50", ws_mean_2_1 = "55", ws_mean_2_2 = "52"))
+  built <- whole_study_experiment_spec(plan, labels, values, "all", 200)
+  expect_null(built$problems)
+  expect_equal(built$spec$experiment$template, "2x2_between")
+  expect_equal(built$spec$experiment$population$means, list(list(50, 50), list(55, 52)))
+  expect_equal(built$spec$analyses[[2]]$label, sprintf("Whether the effect of %s depends on %s (the interaction)", labels[["X"]], labels[["W"]]))
+  # A missing mean and an SD of 0 are said plainly.
+  values$means$ws_mean_2_2 <- ""
+  values$sd <- "0"
+  problems <- whole_study_experiment_spec(plan, labels, values, "all", 200)$problems
+  expect_true(any(grepl("every cell", problems)) && any(grepl("SD", problems)))
+
+  # The same people in two conditions, crossed with three groups: a mixed
+  # ANOVA, X the within factor (B) and the groups between (A).
+  mixed <- modifyList(exp_answers, list(x = "within2", moderator = "three", times = "twice"))
+  plan <- whole_study_plan(tree, mixed, c("compare", "moderation"), "moderation", list())
+  expect_true(plan$experiment)
+  expect_equal(plan$x_factor, "B")
+  expect_equal(vapply(plan$analyses, function(a) a$role, ""), c("extra", "main"))
+  values <- list(x_levels = "Before, After", w_levels = "A, B, C", sd = "1", r = "0.5", n = "90", alpha = "0.05", seed = "1",
+    means = list(ws_mean_1_1 = "0", ws_mean_1_2 = "0", ws_mean_2_1 = "0", ws_mean_2_2 = "0.3", ws_mean_3_1 = "0", ws_mean_3_2 = "0.5"))
+  built <- whole_study_experiment_spec(plan, whole_study_labels(plan$roles, list()), values, "each", 200)
+  expect_equal(built$spec$experiment$template, "mixed")
+  expect_equal(built$spec$experiment$variables$B$type, "within_factor")
+  expect_equal(built$spec$experiment$population$r, 0.5)
+  expect_length(whole_study_check(built$spec), 0)
+
+  # Three conditions and no moderator: a one-way ANOVA. Two conditions
+  # with no moderator stay on the general route, as before.
+  plan <- whole_study_plan(tree, modifyList(exp_answers, list(x = "cond3", moderator = "none")), "compare", "compare", list())
+  expect_true(plan$experiment)
+  expect_null(whole_study_plan(tree, modifyList(exp_answers, list(moderator = "none")), "compare", "compare", list())$experiment)
+  # A mediator or a yes/no outcome: the general route's reasons.
+  expect_false(whole_study_plan(tree, modifyList(exp_answers, list(outcome = "yesno")), "compare", "compare", list())$ok)
+})

@@ -5684,3 +5684,48 @@ the site stays findable by search engines.
 - **Why now:** a first-time-user pass (status.md) found the "I don't know
   my effect size" route only on the basic tests, while the ANOVAs and
   regression are among the commonest analyses.
+
+## 2026-11-06 · Whole-study simulation: experiments analysed with a factorial ANOVA
+
+- **Why:** the whole-study simulation covered a measured predictor or two
+  groups (power4mome), so the commonest experiment in psychology, two
+  conditions crossed with a second factor and analysed with a two-way or
+  mixed ANOVA, could only be planned card by card, and the chance that
+  both the main effect and the interaction come out significant was the
+  guided plan's rule of thumb (as if the tests were unrelated). The
+  maintainer's priority (6 November 2026): planning a whole study in one
+  go for most psychology studies (`next.md` item 1).
+- **What:** a whole-study spec can now give an `experiment` instead of
+  `variables` and `population`: a factorial ANOVA design spec (one or two
+  factors, between or within participants: templates oneway_between,
+  oneway_within, 2x2_between, 2x2_mixed, factorial_between,
+  factorial_within, mixed), whose cell means, SD and correlation are the
+  population. Each analysis is one of its F tests (`test: anova_effect`,
+  with `effect` main_effect_A, main_effect_B or interaction).
+  `run_whole_study()` runs Superpower's `ANOVA_power()` once per batch and
+  reads every F test's p-value for every simulated data set from its
+  `sim_data`, so each test's power and the joint power come from the same
+  replications. No new statistics: Superpower builds the data and afex
+  fits the ANOVA; powerkit counts. The sample size search is powerkit's
+  `search_n()`, as for the other whole studies.
+- **On the guided plan:** a condition with three or more groups, or two
+  or three groups of a moderator crossed with a condition, measured once,
+  and two conditions within participants crossed with groups of a
+  moderator (or none), with a score outcome and no covariates or
+  mediators, go to the experiment route. "The effect of X" is then the
+  ANOVA's main effect of X, and the moderation its X x W interaction, as a
+  researcher analysing a factorial experiment would test them; the card
+  the plan opens for the effect of X alone (the t test, E2) ignores W.
+  The screen asks for the levels, a grid of cell means, one SD and, with a
+  within factor, one correlation. Two groups and no moderator stay on the
+  power4mome route, as before.
+- **Checks** (`test-whole-study-experiment.R`; 4,000 replications, the
+  2 x 2 between example, N = 160): the main effect 35.6% and the
+  interaction 35.0% against Superpower's exact 34.9% each; both
+  significant together 12.7% against 12.3% from a simulation written
+  separately with `stats::aov()` (and 12.2% if the tests were unrelated);
+  Type I error 5.1% and 5.0% with equal means.
+- **Not covered yet:** within factors with three or more levels on the
+  guided plan (the plan's screening sends three or more conditions per
+  person elsewhere), three factors, unequal groups in a design with a
+  within factor, pairwise comparisons and contrasts as analyses.

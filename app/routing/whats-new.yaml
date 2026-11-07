@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-06"
+    title: "Plan a whole experiment in one go"
+    text: >-
+      Planning an experiment with two factors, such as two conditions for
+      younger and older people, or two tasks everyone does, in two groups? Plan my
+      whole study now simulates it as one ANOVA: you enter the means you
+      expect in each cell, and see the power of the main effect, of the
+      interaction, and the chance that both come out significant in the
+      same study.
+  - date: "2026-11-06"
     title: "Not sure of your effect size? ANOVAs and regression too"
     text: >-
       Every ANOVA screen can now work out the smallest effect your sample

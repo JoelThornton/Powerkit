@@ -1051,6 +1051,17 @@ as an experimental option, for a statistician's check
   joint power all agree with a simulation written separately within the
   99.9% Monte Carlo interval; both are simulations of the same model, so
   this checks the exact moments and the population, not a departure.
+  Experiments (6 November 2026): a factorial ANOVA's F tests read from the
+  same simulated data sets (Superpower's `ANOVA_power()`, `sim_data`). In
+  the 2 x 2 between example (N = 160, 4,000 replications) the main effect
+  had 35.6% and the interaction 35.0% power against Superpower's exact
+  34.9% for each on its own; both were significant together in 12.7% of
+  studies, against 12.3% in a simulation written separately with
+  `stats::aov()` and 12.2% if the two tests were unrelated: here the
+  shared error term makes little difference, and the gain is that the
+  joint chance is counted, not assumed. On the guided plan the effect of
+  X is then the ANOVA's main effect of X, not the two-group t test its own
+  card computes, which ignores the second factor.
   Every analysis adjusts Y for B, as the
   ANCOVA option the guided plan offers for two groups measured twice
   does, so this follows E23 rather than departing from it; the mixed

@@ -45,7 +45,7 @@ validate_whole_study <- function(spec) {
     problems <- schema_problems(spec, whole_study_validator())
   }
   if (length(problems) == 0) {
-    problems <- whole_study_problems(spec)
+    problems <- if (whole_study_is_experiment(spec)) whole_study_experiment_problems(spec) else whole_study_problems(spec)
   }
   if (length(problems) > 0) {
     abort_spec(problems)
@@ -546,6 +546,9 @@ whole_study_fit <- function(a, spec) {
 #' @export
 run_whole_study <- function(spec) {
   spec <- validate_whole_study(spec)
+  if (whole_study_is_experiment(spec)) {
+    return(run_whole_study_experiment(spec))
+  }
   seed <- spec$options$seed %||% sample.int(2147483646L, 1)
   nrep <- spec$options$nrep %||% 1000L
   inputs <- whole_study_inputs(spec)

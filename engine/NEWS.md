@@ -11,6 +11,19 @@
   partial R-squared, so no effect size is needed; it matches pwr's
   `pwr.f2.test()`. The regression screen gets the "I don't know my effect
   size" route, and a note while "What you want to test" is unchosen.
+* Whole-study simulation of experiments (experimental): a whole-study spec
+  may give an `experiment`, a factorial ANOVA design spec with one or two
+  factors between or within participants, in place of `variables` and
+  `population`, and analyses with `test: "anova_effect"` and an `effect`
+  (main_effect_A, main_effect_B or interaction). `run_whole_study()` reads
+  every F test's p-value per simulated data set from Superpower's
+  `ANOVA_power()` (`sim_data`), so each test's power and the joint power
+  (claims "each", "all", "any") come from the same replications; the
+  sample size search is `search_n()`, and the R script runs the same.
+  Each test's power agrees with Superpower's exact power for it, and the
+  joint power with a separately written `stats::aov()` simulation
+  (`test-whole-study-experiment.R`). The guided plan sends factorial
+  experiments with a score outcome here (`whole_study_experiment_plan()`).
 
 # powerkit 0.34.1
 

@@ -2776,6 +2776,7 @@ check_n <- function(spec, n) {
 minimum_n <- function(spec) {
   # A whole study (experimental): the smallest n its schema allows.
   if (identical(spec$kind, "whole_study")) {
+    if (whole_study_is_experiment(spec)) return(whole_study_experiment_min_n(whole_study_experiment_inputs(spec)))
     return(20)
   }
   switch(

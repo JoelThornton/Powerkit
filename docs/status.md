@@ -15,6 +15,15 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Whole study in one go: experiments (6 November 2026, experimental):**
+  the guided plan simulates a factorial experiment (a condition with two
+  or more groups crossed with a moderator's groups, or two conditions
+  within participants crossed with groups) as one ANOVA, every F test
+  read from the same simulated studies with Superpower, so the chance
+  that both the main effect and the interaction succeed is counted, not
+  assumed. Still card by card: three or more conditions per person,
+  three factors, yes/no and count outcomes, nested data, three or more
+  waves (`next.md` item 1).
 - **Interrupted time series (E45, 6 November 2026):** calculates, by
   PITS's simulated series fitted with gls() by REML (PITS's own
   maximum-likelihood test as an option), with the Type I error at the
@@ -372,7 +381,8 @@ fully validated. Validation runs are recorded in
 - **Pairwise comparisons** after a one-way ANOVA (E18, E54): the power of a
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).
-- **Experimental:** whole-study simulation on the guided plan, for a
+- **Experimental:** whole-study simulation on the guided plan, for
+  factorial experiments (Superpower, 6 November 2026), and for a
   measured predictor or two groups (randomised, or since 5 November 2026 non-randomised groups correlated with the moderator or the first measurement), people measured once or twice (each analysis adjusted for the first measurement, including two mediators and moderated mediation of one link; power4mome; waiting for a statistician's check, `next.md`, "Waiting on the maintainer");
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP: independent t-tests,

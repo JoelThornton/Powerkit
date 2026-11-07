@@ -116,6 +116,18 @@ powerkit writes no statistical computation of its own here: the data, the
 fits, the tests and the joint rates are power4mome's (and lavaan's,
 lmhelprs's and manymome's).
 
+### Experiments (6 November 2026)
+
+An experiment analysed with a factorial ANOVA (one or two factors,
+between or within participants) is given as a design spec (`experiment`)
+rather than as standardised paths: its cell means, SD and correlation are
+the population. Superpower's `ANOVA_power()` simulates the data sets and
+afex fits the ANOVA; every F test's p-value for every data set is in its
+`sim_data`, from which powerkit counts each test's power and the joint
+power, under the same claims ("each", "all", "any" with Bonferroni) as the
+path-model studies. The guided plan's "effect of X" is the ANOVA's main
+effect of X there, and the moderation the X x W interaction.
+
 ## What it is checked against
 
 `engine/tests/testthat/test-whole-study.R` (every CI run):
@@ -154,6 +166,10 @@ Study B's two small gaps (both about 1.5 Monte Carlo SEs, the whole-study
 power the lower) are the first thing to look at: they may be chance, or a
 real effect of the terms an analysis leaves out (question 1 below) and of
 how InteractionPoweR generates its data compared with power4mome.
+
+Experiments: each F test's power against Superpower's exact power for it
+alone, and the joint power against a simulation written separately with
+`stats::aov()` (`test-whole-study-experiment.R`).
 
 ## Questions for the statistician
 
