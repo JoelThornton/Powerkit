@@ -32,6 +32,14 @@ fully validated. Validation runs are recorded in
   the moderated mediation Type I error check (yes/no X) is recorded when
   it finishes ([`validation-log.md`](validation-log.md), 7 November 2026).
 
+- **Releases (7 November 2026):** each finished version is tagged
+  (`v0.34.1`) and published as a pre-release on GitHub with its NEWS
+  section, automatically once main moves on to the next number
+  (`scripts/tag-releases.sh`, pushing with the `RELEASE_TOKEN` secret).
+  Main requires a pull request with passing
+  checks, and release tags can't be moved or deleted
+  ([`repository-protection.md`](repository-protection.md)).
+
 - **Whole study in one go: experiments (6 November 2026, experimental):**
   the guided plan simulates a factorial experiment (a condition with two
   or more groups crossed with a moderator's groups, or two conditions

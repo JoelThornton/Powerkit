@@ -1,0 +1,55 @@
+# Tags each finished powerkit version (vX.Y.Z) and publishes it as a
+# GitHub release, so a version quoted in an export or a methods paragraph
+# can be found and checked out. A version is finished once main moves on
+# to the next one; the version main is on now waits until then
+# (scripts/tag-releases.sh). Earlier versions are filled in on the first
+# run; later runs only add what is missing.
+#
+# Most finished versions point at a commit whose workflow files differ
+# from main's, and GitHub refuses such a tag from the workflow's own token
+# (GITHUB_TOKEN can't hold the "workflows" permission). So the job uses
+# the RELEASE_TOKEN secret: a fine-grained personal access token for this
+# repository only, with Contents and Workflows set to "Read and write".
+# Without it the job stops with a message saying so.
+#
+# Release tags can't be moved or deleted (the "Protect release tags"
+# ruleset, docs/repository-protection.md). Releases are marked
+# pre-release until 1.0.0, the first validated release.
+name: release-tags
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "engine/DESCRIPTION"
+      - "scripts/tag-releases.sh"
+      - ".github/workflows/release-tags.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-tags
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
+      - name: Tag finished versions and publish their releases
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::The RELEASE_TOKEN secret is not set (see the comment at the top of this workflow)."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          bash scripts/tag-releases.sh

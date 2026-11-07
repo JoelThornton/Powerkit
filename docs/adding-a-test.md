@@ -276,6 +276,9 @@ same heading. Never reserve a number ahead for a pull request that isn't
 in the current batch: parallel pull requests that each took their own
 number are how 0.4.0 became 0.8.0 in about a day. The Updates tab is
 dated rather than numbered, so users still see each change as it lands.
+Once main moves on to the next number, a workflow tags the finished
+version (`v0.34.1`) and publishes it as a GitHub release with its NEWS
+section (`scripts/tag-releases.sh`); nobody tags by hand.
 
 Shipped so far: 0.1.0 the first working prototype (17 October 2026),
 0.2.0 the four-screen design and the app going online (18 October), 0.3.0
