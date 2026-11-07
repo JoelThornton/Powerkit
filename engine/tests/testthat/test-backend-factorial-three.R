@@ -108,10 +108,16 @@ test_that("the three-factor design refuses plainly what it can't do", {
   spec <- example_spec("anova_factorial_three")
   spec$population$means[[2]][[2]] <- list(81, 61)
   expect_spec_problem(spec, "The effect you want to detect is zero")
-  # No smallest detectable effect yet, as for the two-factor designs.
+})
+
+test_that("the three-factor design finds the smallest detectable effect by scaling the pattern", {
   spec <- example_spec("anova_factorial_three")
   spec$goal <- list(type = "sensitivity", n = 60, power = 0.8)
-  expect_error(run_spec(spec), "isn't available yet")
+  s <- run_spec(spec)$sensitivity
+  expect_equal(s$power, 0.8, tolerance = 1e-6)
+  expect_gt(s$cohen_f, 0)
+  expect_equal(s$effect, max(s$means) - min(s$means))
+  expect_match(s$effect_description, "pattern you entered kept and scaled")
 })
 
 test_that("the three-factor effect size check is zero only when the effect is absent", {

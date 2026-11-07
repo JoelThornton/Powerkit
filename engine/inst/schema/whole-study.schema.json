@@ -5,11 +5,18 @@
   "description": "Experimental. One population model for a whole study, from which every planned analysis is simulated on the same data sets (run_whole_study()). Each analysis is fitted with its own model, as it would be analysed on its own. The schema checks structure; validate_whole_study() in R checks that the analyses, variables and paths fit together and that the population is possible.",
   "$comment": "spec_version 0.1. Keep old versions readable when the format changes.",
   "type": "object",
-  "required": ["spec_version", "kind", "variables", "population", "analyses", "claim", "alpha", "effect_justification", "goal"],
+  "required": ["spec_version", "kind", "analyses", "claim", "alpha", "effect_justification", "goal"],
   "additionalProperties": false,
+  "if": {"required": ["experiment"]},
+  "then": {"properties": {"variables": false, "population": false, "mediators": false}},
+  "else": {"required": ["variables", "population"]},
   "properties": {
     "spec_version": {"const": "0.1"},
     "kind": {"const": "whole_study"},
+    "experiment": {
+      "description": "An experiment with two crossed factors (or one), between or within participants: a factorial ANOVA design spec (design.schema.json, design 'factorial_anova', template oneway_between, oneway_within, 2x2_between, 2x2_mixed, factorial_between, factorial_within or mixed), whose cell means, SD and correlation are the population. Every analysis is then one of its ANOVA F tests ('test': 'anova_effect'), read from the same simulated data sets (Superpower::ANOVA_power()). Its own goal, alpha and target effect are replaced by the whole study's. validate_whole_study() checks it with validate_spec(). Instead of 'variables' and 'population'.",
+      "type": "object"
+    },
     "variables": {
       "description": "Keyed by role: X (predictor), Y (outcome), W (moderator, if any analysis has one), M, or M1 and M2, for the mediators, and B, the outcome measured at baseline when each person is measured twice (every analysis then adjusts Y for B, as an ANCOVA does). All are scores (continuous), except that X may be two groups or conditions (binary).",
       "type": "object",
@@ -75,15 +82,17 @@
         "properties": {
           "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
           "label": {"type": "string", "minLength": 1},
-          "test": {"enum": ["x_y", "interaction", "indirect", "index_of_mome"]},
+          "test": {"enum": ["x_y", "interaction", "indirect", "index_of_mome", "anova_effect"]},
           "role": {"enum": ["main", "extra"]},
           "path": {"type": "string", "pattern": "^X->(M|M1|M2)(->M2)?->Y$"},
-          "moderated_link": {"enum": ["x_m", "m_y"]}
+          "moderated_link": {"enum": ["x_m", "m_y"]},
+          "effect": {"enum": ["main_effect_A", "main_effect_B", "interaction"]}
         },
         "allOf": [
           {"if": {"properties": {"test": {"const": "indirect"}}}, "then": {"required": ["path"], "properties": {"moderated_link": false}}},
           {"if": {"properties": {"test": {"const": "index_of_mome"}}}, "then": {"required": ["moderated_link"], "properties": {"path": false}}},
-          {"if": {"properties": {"test": {"enum": ["x_y", "interaction"]}}}, "then": {"properties": {"path": false, "moderated_link": false}}}
+          {"if": {"properties": {"test": {"enum": ["x_y", "interaction"]}}}, "then": {"properties": {"path": false, "moderated_link": false}}},
+          {"if": {"properties": {"test": {"const": "anova_effect"}}}, "then": {"required": ["effect"], "properties": {"path": false, "moderated_link": false}}, "else": {"properties": {"effect": false}}}
         ]
       }
     },

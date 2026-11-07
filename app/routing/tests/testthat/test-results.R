@@ -2914,3 +2914,14 @@ test_that("repeated-measures ANOVAs: the Bayes factor version takes the preview 
     expect_false(runs_long(forms, ep, f_test), label = ep)
   }
 })
+
+test_that("an interrupted time series result counts time points and shows the Type I error", {
+  spec <- powerkit::validate_spec(jsonlite::read_json(system.file("specs/its.json", package = "powerkit")))
+  spec$options$nrep <- 100L
+  result <- suppressWarnings(powerkit::run_spec(spec))
+  words <- result_sentences(spec, result)
+  expect_match(words[["headline"]], "time points after the intervention (and 24 before)", fixed = TRUE)
+  expect_no_match(words[["headline"]], "participants", fixed = TRUE)
+  expect_match(type1_sentence(result), "With no real change, this analysis would still find a significant one", fixed = TRUE)
+  expect_null(type1_sentence(list()))
+})

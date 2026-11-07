@@ -1,8 +1,9 @@
 # Project status
 
-*Last updated: 6 November 2026 (powerkit 0.33.1). This page says where the
+*Last updated: 6 November 2026 (powerkit 0.35.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
-to them. What to do next is [`next.md`](next.md). History is in git,
+to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
+planned work that had no queue item, 6 November 2026). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
 [`archive/status-history.md`](archive/status-history.md), which also holds
 this page as it stood on 30 October 2026.*
@@ -14,16 +15,40 @@ fully validated. Validation runs are recorded in
 
 ## Where things are
 
+- **Whole study in one go: experiments (6 November 2026, experimental):**
+  the guided plan simulates a factorial experiment (a condition with two
+  or more groups crossed with a moderator's groups, or two conditions
+  within participants crossed with groups) as one ANOVA, every F test
+  read from the same simulated studies with Superpower, so the chance
+  that both the main effect and the interaction succeed is counted, not
+  assumed. Still card by card: three or more conditions per person,
+  three factors, yes/no and count outcomes, nested data, three or more
+  waves (`next.md` item 1).
+- **Interrupted time series (E45, 6 November 2026):** calculates, by
+  PITS's simulated series fitted with gls() by REML (PITS's own
+  maximum-likelihood test as an option), with the Type I error at the
+  planned length shown beside the power; validated against a separately
+  written simulation and PITS's calculate_power().
+- **Cross-lagged panel models (E74, 6 November 2026):** power for a lagged
+  effect in a random-intercept cross-lagged panel model, by Spower around
+  powRICLPM, with a preview, a full run and an R script; validated against
+  a separately written lavaan simulation. Experience sampling still waits
+  for a CRAN package (`next.md` item 3).
+
 - **Input screens, first-time-user pass (6 November 2026):** the commonest
-  cards (t-tests, correlation, one-way, two-way and mixed ANOVA, regression,
-  logistic regression, chi-square, mediation) were walked through in a
-  browser, including wrong entries and a full t-test calculation, which
-  matches `usability-session-pack.md`'s key (200 in total). Plain-wording
-  fixes are in 0.33.1. Still open: the "I don't know my effect size" box
-  is on the basic tests only; regression's effect boxes stay hidden until
-  "What you want to test" is chosen, which leaves that section looking
-  empty; the result page is long. An AI walkthrough is no substitute for
-  the human sessions the pack describes.
+  cards were walked through in a browser. Plain-wording fixes are in
+  0.33.1; since 0.35.0 every ANOVA can find the smallest detectable effect
+  (by scaling the pattern entered) and regression can with no effect size,
+  and regression's effect section says what to choose first. Still open:
+  the result page is long. An AI walkthrough is no substitute for the
+  human sessions in `usability-session-pack.md`.
+
+- **Documents:** the pre-replication notes and the study-planning document
+  save as a typeset PDF (through the browser's print window), an editable
+  Word .docx and Markdown (`R/documents.R`). The pre-replication notes
+  become the document for where the user landed: a negative
+  pre-replication report, or a pre-replication section for the
+  replication (Karhulahti et al., 2025).
 
 - **Validation checkpoints:** source/lock/installed-package/R fingerprints
   prevent old saved passes being reused for a different calculation context.
@@ -356,7 +381,8 @@ fully validated. Validation runs are recorded in
 - **Pairwise comparisons** after a one-way ANOVA (E18, E54): the power of a
   chosen pair, adjusted by Holm's (the default, Departure 17) or
   Bonferroni's method, simulated with Superpower (31 October 2026).
-- **Experimental:** whole-study simulation on the guided plan, for a
+- **Experimental:** whole-study simulation on the guided plan, for
+  factorial experiments (Superpower, 6 November 2026), and for a
   measured predictor or two groups (randomised, or since 5 November 2026 non-randomised groups correlated with the moderator or the first measurement), people measured once or twice (each analysis adjusted for the first measurement, including two mediators and moderated mediation of one link; power4mome; waiting for a statistician's check, `next.md`, "Waiting on the maintainer");
   joint power in a study plan when every analysis compares the same
   randomised groups on different outcomes (PUMP: independent t-tests,

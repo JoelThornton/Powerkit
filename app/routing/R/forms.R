@@ -490,7 +490,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
            type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study",
            shown_if = list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is_not = "yes")))
     ), safeguard_fields(form$base$template))),
-    if (!isTRUE(form$generic) && !meta) list(input = NULL, title = "Participants you expect to lose", fields = list(
+    # A single time series has no participants to lose (`no_attrition`).
+    if (!isTRUE(form$generic) && !meta && !isTRUE(form$no_attrition)) list(input = NULL, title = "Participants you expect to lose", fields = list(
       list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%.", type = "number",
            path = "options.attrition", optional = TRUE, min = 0, max_exclusive = 1)
     )),
@@ -1069,13 +1070,17 @@ build_spec <- function(forms, ep_id, fields, values) {
 }
 
 # The value an empty effect size stands for: zero; group 1's proportion
-# (two proportions: no difference); or, for a table of proportions, equal
+# (two proportions: no difference); the reduced model's R-squared (no
+# increase); or, for a table of proportions, equal
 # proportions in every combination (no association).
 empty_effect <- function(f, values) {
   switch(
     f$when_empty %||% "zero",
     zero = "0",
     same_as_p1 = values$p1,
+    # Multiple regression's R-squared increase: no increase over the model
+    # without the tested predictors.
+    same_as_r2_reduced = values$r2_reduced %||% "0",
     no_association = {
       rows <- length(parse_levels(values$X_levels))
       cols <- length(parse_levels(values$Y_levels))

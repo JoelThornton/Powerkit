@@ -1186,6 +1186,49 @@ Carlo error. The result is for psych's defaults, which the card names.
 Packages: powerkit 0.32.0; Spower 0.7; psych and GPArotation (the locked
 versions).
 
+## 2026-11-06 · Interrupted time series (local, cloud session)
+
+`test-validation-its.R` (chunk `its`) on Linux x86_64 with R 4.5.3:
+**2 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`), in about three minutes, all at 2,000 replications
+and with no allowance beyond Monte Carlo error. powerkit's REML route
+against series drawn and fitted separately in the test (base R's AR(1)
+filter, gls() by REML):
+
+| Case | powerkit | Independent |
+| --- | --- | --- |
+| 24 before, 24 after, level change -3, sigma 2.5, rho .4 | 0.378 | 0.357 |
+| 36 before, 24 after, slope change -0.2, sigma 2, rho .2 | 0.655 | 0.659 |
+| 12 before, 18 after, both (-2 and -0.1), sigma 1.5, rho .6 | 0.334 | 0.342 |
+
+powerkit's maximum-likelihood route against PITS's `calculate_power()`:
+0.447 against 0.429, and 0.738 against 0.734 (the first two cases).
+
+Packages: powerkit 0.33.1 (the engine at commit 5d164ab); Spower 0.7;
+PITS 0.1.0; nlme (the locked version).
+## 2026-11-06 · Random-intercept cross-lagged panel model (local, cloud session)
+
+`test-validation-riclpm.R` (chunk `riclpm`) on Linux x86_64 with R 4.5.3:
+**1 PASS, 0 FAIL, 1 SKIP** (the published example,
+`TODO_PUBLISHED_VALUE`), in about eleven minutes. powerkit's `p_riclpm()`
+(powRICLPM simulating each study and fitting the model with lavaan, the
+Wald z test) at 1,000 replications against 1,000 studies drawn in base R
+and fitted with the model written out in lavaan syntax (Hamaker, Kuiper
+and Grasman, 2015); no allowance beyond Monte Carlo error:
+
+| Case | powerkit | Independent |
+| --- | --- | --- |
+| 4 waves, ICC .5, X on Y .15 (free over time), n 300 | 0.415 | 0.413 |
+| 5 waves, ICC .3, Y on X .1 (equal over time), n 200 | 0.489 | 0.480 |
+| 3 waves, ICC .6, X's autoregressive effect .2, n 250 | 0.300 | 0.308 |
+
+An earlier run in the same session failed its second case before the
+check run's fix: a correlation of exactly 0, read from JSON as an integer,
+was refused by powRICLPM, which accepts only doubles; the values are now
+passed as doubles, with a test.
+
+Packages: powerkit 0.34.0; Spower 0.7; powRICLPM 0.2.1; lavaan 0.7.3.
+
 ## Variant evidence registry
 
 `engine/inst/evidence/records.json` is the machine-readable index of selected

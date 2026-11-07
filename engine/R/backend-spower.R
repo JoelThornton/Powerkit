@@ -21,6 +21,17 @@ spower_backend <- function(spec, seed = NULL) {
   n_min <- step * ceiling(minimum_n(spec) / step)
   list(
     name = "Spower",
+    # Interrupted time series: n is the number of points after the
+    # intervention, and gls()'s time grows with the cube of the series'
+    # length, so the search stops at 240 (20 years of monthly data). With
+    # the points before fixed, a level change's power can level off below
+    # the target however many points come after.
+    n_max = if (identical(spec$template, "its")) 240L,
+    n_max_message = if (identical(spec$template, "its")) paste(
+      "The target power of %s isn't reached with up to %s time points after the intervention.",
+      "A change in level or slope is measured against the trend before the intervention, so with the points before it fixed,",
+      "power levels off however long the series runs after it. More points before the intervention, a larger change or less noise",
+      "would raise it; check the power at a given number of points to see where it levels off."),
     # EnvStats carries the chi-square test of one variance that
     # p_var.test() calls, so its version belongs in the provenance.
     packages = c(
@@ -49,6 +60,11 @@ spower_backend <- function(spec, seed = NULL) {
       if (permanova_test(spec)) "vegan",
       # p_efa() fits psych's fa(), whose oblimin rotation is GPArotation's.
       if (identical(spec$template, "efa")) c("psych", "GPArotation"),
+      # p_riclpm() simulates and fits each study with powRICLPM, which
+      # fits the model with lavaan.
+      if (identical(spec$template, "riclpm")) c("powRICLPM", "lavaan"),
+      # p_its() simulates each series with PITS and fits nlme's gls().
+      if (identical(spec$template, "its")) c("PITS", "nlme"),
       # p_lpa() fits mclust's models.
       if (identical(spec$template, "lpa")) "mclust",
       # p_multinomial() fits nnet's multinom().
@@ -293,6 +309,32 @@ spower_inputs <- function(spec) {
     # draws people from the factor model (efa_data()), fits psych's fa()
     # and returns 0 when every factor's loadings are recovered (Tucker's
     # congruence at least the level asked), 1 when not.
+    # Random-intercept cross-lagged panel model: powerkit's experiment,
+    # p_riclpm(), has powRICLPM simulate one study and fit the model, and
+    # returns the Wald test's p-value for the lagged effect asked about.
+    riclpm = list(
+      experiment = "p_riclpm", own = TRUE,
+      args = function(n) {
+        list(n = n, waves = pop$waves, icc = pop$icc, ri_cor = pop$ri_correlation %||% 0,
+          ar_x = pop$autoregressive_x, ar_y = pop$autoregressive_y,
+          cl_xy = pop$cross_lagged_xy, cl_yx = pop$cross_lagged_yx,
+          within_cor = pop$within_correlation %||% 0, reliability = pop$reliability %||% 1,
+          constraints = pop$constraints %||% "none", effect = spec$target_test$effect)
+      }
+    ),
+    # Interrupted time series: powerkit's experiment, p_its(), has PITS
+    # simulate the series and fits the segmented regression with AR(1)
+    # errors by nlme's gls() (REML by default; PITS's own maximum-likelihood
+    # test on request). n is the number of time points after the
+    # intervention.
+    its = list(
+      experiment = "p_its", own = TRUE,
+      args = function(n) {
+        list(n = n, n_pre = pop$n_pre, baseline = pop$baseline %||% 0, pre_trend = pop$pre_trend %||% 0,
+          level = pop$level_change %||% 0, slope = pop$slope_change %||% 0, sigma = pop$sigma, rho = pop$rho %||% 0,
+          test = spec$target_test$effect, method = spec$target_test$method)
+      }
+    ),
     efa = list(
       experiment = "p_efa", own = TRUE,
       args = function(n) {
@@ -374,6 +416,14 @@ spower_inputs <- function(spec) {
     rank_test_description(test, template, alternative)
   } else if (identical(template, "factorial")) {
     "Spower::Spower(Spower::p_glm(family = binomial()), Wald test of the effect's coefficients)"
+  } else if (identical(template, "riclpm")) {
+    sprintf("Spower::Spower(p_riclpm()) (powRICLPM simulates each study and fits the random-intercept cross-lagged panel model with lavaan; the Wald z test of the lagged effect%s)",
+      if (alternative == "two_sided") "" else sprintf(", one-sided (%s)", alternative))
+  } else if (identical(template, "its")) {
+    sprintf("Spower::Spower(p_its()) (PITS's simulate_its_data(); nlme's gls() with AR(1) errors, %s; the %s)",
+      if (identical(spec$target_test$method, "gls_ml")) "maximum likelihood, PITS's fit_its_model()" else "REML",
+      switch(spec$target_test$effect, level = "t test of the level change", slope = "t test of the slope change",
+        both = if (identical(spec$target_test$method, "gls_ml")) "likelihood-ratio test of both" else "F test of both"))
   } else if (identical(template, "efa")) {
     "Spower::Spower(p_efa()) (psych's fa() with its defaults, minimum residual and oblimin rotation; every factor's loadings recovered with Tucker's congruence at the level asked)"
   } else if (identical(template, "lpa")) {
@@ -1065,6 +1115,132 @@ group_moderator_check_run <- function(spec, args, seed) {
   )
 }
 
+# Random-intercept cross-lagged panel model ------------------------------------
+#
+# powRICLPM (Mulder, 2023) generates each study and fits the model: X is
+# its variable A and Y its variable B. Its Phi has the outcomes in rows and
+# the predictors in columns, so the effect of X on Y is Phi[2, 1]. With no
+# constraints (powRICLPM's default) each wave's lagged effects are
+# estimated freely, and the effect tested is the one from the first wave
+# to the second, as in powRICLPM's documentation; with constraints =
+# "lagged" they are held equal over time, and all waves' estimates are one.
+riclpm_phi <- function(ar_x, ar_y, cl_xy, cl_yx) matrix(c(ar_x, cl_yx, cl_xy, ar_y), 2, byrow = TRUE)
+
+riclpm_parameter <- function(effect) {
+  switch(effect, cross_lagged_xy = "wB2~wA1", cross_lagged_yx = "wA2~wB1",
+    autoregressive_x = "wA2~wA1", autoregressive_y = "wB2~wB1")
+}
+
+# One powRICLPM study: its estimate and standard error of each parameter
+# (with one replication, its "average" is the estimate and "SEAvg" the
+# standard error), or NULL when the model did not converge or gave an
+# inadmissible solution, which powRICLPM discards.
+riclpm_fit <- function(n, waves, icc, ri_cor, ar_x, ar_y, cl_xy, cl_yx, within_cor, reliability, constraints) {
+  # powRICLPM refuses an integer where it expects a double (a 0 read from
+  # JSON is an integer), so every value is passed as a double.
+  num <- as.numeric
+  out <- tryCatch(suppressMessages(suppressWarnings(powRICLPM::powRICLPM(
+    sample_size = as.integer(n), time_points = as.integer(waves), ICC = num(icc), RI_cor = num(ri_cor),
+    Phi = riclpm_phi(num(ar_x), num(ar_y), num(cl_xy), num(cl_yx)), within_cor = num(within_cor),
+    reliability = num(reliability), reps = 1, constraints = constraints))),
+    error = function(e) NULL)
+  if (is.null(out)) return(NULL)
+  est <- out$conditions[[1]]$estimates
+  if (is.null(est) || !nrow(est) || all(is.na(est$SEAvg))) NULL else est
+}
+
+# Spower experiment: the Wald z test of the lagged effect (lavaan's test),
+# from its estimate and standard error; NA when the fit failed.
+p_riclpm <- function(n, waves, icc, ri_cor, ar_x, ar_y, cl_xy, cl_yx, within_cor, reliability, constraints,
+                     effect, alternative = "two.sided") {
+  est <- riclpm_fit(n, waves, icc, ri_cor, ar_x, ar_y, cl_xy, cl_yx, within_cor, reliability, constraints)
+  if (is.null(est)) return(NA_real_)
+  row <- est[est$parameter == riclpm_parameter(effect), ]
+  if (!nrow(row) || !is.finite(row$SEAvg[1]) || row$SEAvg[1] <= 0) return(NA_real_)
+  z <- row$average[1] / row$SEAvg[1]
+  switch(alternative, two.sided = 2 * stats::pnorm(-abs(z)), greater = stats::pnorm(z, lower.tail = FALSE),
+    less = stats::pnorm(z))
+}
+
+# Check run: one very large study; the four lagged effects' estimates
+# against the population values.
+riclpm_check_run <- function(args, seed) {
+  n <- 20000
+  est <- call_backend("powRICLPM", with_seed(seed, do.call(riclpm_fit,
+    c(args[setdiff(names(args), c("n", "effect", "alternative"))], list(n = n)))))
+  if (is.null(est)) stop("The check run's model did not converge.", call. = FALSE)
+  labels <- c(ar_x = "autoregressive effect of X", ar_y = "autoregressive effect of Y",
+    cl_xy = "cross-lagged effect of X on Y", cl_yx = "cross-lagged effect of Y on X")
+  effects <- c(ar_x = "autoregressive_x", ar_y = "autoregressive_y", cl_xy = "cross_lagged_xy", cl_yx = "cross_lagged_yx")
+  do.call(rbind, lapply(names(labels), function(a) {
+    row <- est[est$parameter == riclpm_parameter(effects[[a]]), ]
+    check_run_rows(labels[[a]], args[[a]], row$average[1], row$SEAvg[1])
+  }))
+}
+
+# Interrupted time series -------------------------------------------------------
+#
+# PITS (de Lorenzo, 2026) generates each series: the segmented regression
+# y_t = baseline + pre_trend t + level_change D_t + slope_change T*_t + e_t,
+# D_t = 1 after the intervention, T*_t the time since it, and AR(1) errors
+# whose SD is sigma. PITS's own test, fit_its_model(), fits nlme's gls() by
+# maximum likelihood; in short series it rejects too often when there is no
+# effect (upstream-questions.md, PITS question 1), so powerkit fits the
+# same model by REML by default (the maintainer's decision of 6 November
+# 2026, judgement-calls E8) and reports the Type I error at the planned
+# length beside the power (its_type1()).
+its_data <- function(n, n_pre, baseline, pre_trend, level, slope, sigma, rho) {
+  PITS::simulate_its_data(n_pre = as.integer(n_pre), n_post = as.integer(n), baseline = baseline,
+    level_change = level, slope_change = slope, sigma = sigma, rho = rho, pre_trend = pre_trend)
+}
+
+its_p_value <- function(data, test, method) {
+  if (identical(method, "gls_ml")) return(PITS::fit_its_model(data, test))
+  fit <- tryCatch(nlme::gls(y ~ time + D + time_after, data = data, correlation = nlme::corAR1(form = ~time),
+    method = "REML"), error = function(e) NULL)
+  if (is.null(fit)) return(NA_real_)
+  switch(test,
+    level = summary(fit)$tTable["D", "p-value"],
+    slope = summary(fit)$tTable["time_after", "p-value"],
+    both = stats::anova(fit, Terms = c("D", "time_after"))[["p-value"]]
+  )
+}
+
+# Spower experiment: the test's p-value for one simulated series.
+p_its <- function(n, n_pre, baseline, pre_trend, level, slope, sigma, rho, test, method, alternative = "two.sided") {
+  its_p_value(its_data(n, n_pre, baseline, pre_trend, level, slope, sigma, rho), test, method)
+}
+
+# The Type I error at the planned length: the same series with no level or
+# slope change, as many as the power used, under the run's seed.
+its_type1 <- function(spec, n, nrep, seed) {
+  if (!identical(spec$template, "its") || is.null(n) || is.na(n)) return(NULL)
+  args <- spower_inputs(spec)$args(n)
+  args$level <- 0
+  args$slope <- 0
+  p <- call_backend("PITS", with_seed(seed, vapply(seq_len(nrep), function(i) do.call(p_its, args), numeric(1))))
+  ok <- p[!is.na(p)]
+  rate <- mean(ok < spec$target_test$alpha)
+  list(n = n, alpha = spec$target_test$alpha, rate = rate, mcse = sqrt(rate * (1 - rate) / length(ok)),
+    nrep = length(ok), method = spec$target_test$method)
+}
+
+# Check run: one long series (400 points on each side: gls()'s time grows
+# with the cube of the length); the level change, slope change and
+# autocorrelation estimated by gls against the values given.
+its_check_run <- function(args, seed) {
+  n <- 400
+  d <- call_backend("PITS", with_seed(seed, its_data(n, n, args$baseline, args$pre_trend, args$level, args$slope, args$sigma, args$rho)))
+  fit <- nlme::gls(y ~ time + D + time_after, data = d, correlation = nlme::corAR1(form = ~time), method = "REML")
+  est <- summary(fit)$tTable
+  phi <- unname(stats::coef(fit$modelStruct$corStruct, unconstrained = FALSE))
+  rbind(
+    check_run_rows("level change", args$level, est["D", "Value"], est["D", "Std.Error"]),
+    check_run_rows("slope change", args$slope, est["time_after", "Value"], est["time_after", "Std.Error"]),
+    check_run_rows("autocorrelation", args$rho, phi, sqrt((1 - args$rho^2) / (2 * n)))
+  )
+}
+
 # Exploratory factor analysis ---------------------------------------------------
 #
 # Data: the common factor model with simple structure: items_per_factor
@@ -1577,6 +1753,12 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "efa")) {
     return(efa_check_run(args, seed))
+  }
+  if (identical(spec$template, "its")) {
+    return(its_check_run(args, seed))
+  }
+  if (identical(spec$template, "riclpm")) {
+    return(riclpm_check_run(args, seed))
   }
   if (permanova_test(spec) && !identical(args$shape, "normal")) {
     return(permanova_check_run(spec, args, seed))

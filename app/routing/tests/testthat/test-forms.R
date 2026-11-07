@@ -283,7 +283,7 @@ test_that("'Copy my answers' gives the route, the end point and the values as te
 
 test_that("cards with an input screen offer it; others don't", {
   expect_match(as.character(card_nav_ui(forms, "E2")), "Enter your values", fixed = TRUE)
-  expect_no_match(as.character(card_nav_ui(forms, "E45")), "Enter your values", fixed = TRUE)
+  expect_no_match(as.character(card_nav_ui(forms, "E42")), "Enter your values", fixed = TRUE)
 })
 
 test_that("effect sizes start empty (decided 22 October 2026), shown as a decision in the maintainer's view", {
@@ -1018,4 +1018,14 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   # The simulation note leads with the plain point and folds the detail.
   acc <- as.character(group_ui_build(tree, simulation_accuracy_group(forms, "E2")[[1]], list(), 1))
   expect_match(acc, "More about this", fixed = TRUE)
+})
+
+test_that("the cross-lagged panel screen builds a valid spec with its names left empty", {
+  v <- values_for("E74")
+  v$X_label <- ""
+  v$Y_label <- ""
+  fields <- fields_for("E74")
+  spec <- build_spec(forms, "E74", fields, v)
+  expect_equal(c(spec$variables$X$label, spec$variables$Y$label), c("X", "Y"))
+  expect_silent(powerkit::validate_spec(spec))
 })

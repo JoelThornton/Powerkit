@@ -5552,6 +5552,50 @@ screen by about five seconds, so it waits for that screen.
 - **Not covered yet:** choosing the number of factors (parallel analysis,
   for example), cross-loadings, and items with different loadings.
 
+
+## 2026-11-06 · Random-intercept cross-lagged panel model (E74)
+
+- **What:** a new card, E74, and design, `panel / riclpm`: power for one
+  lagged effect in a random-intercept cross-lagged panel model (Hamaker,
+  Kuiper and Grasman, 2015), two scores measured at three or more waves.
+  Reached from T1 ("Two scores measured over time, to see whether each
+  predicts later changes in the other") and the multilevel and
+  longitudinal family; E35's card now points to it.
+- **Why:** `next.md` item 3, the step after growth curves in the order the
+  maintainer decided on 4 November 2026 (powRICLPM, CRAN 0.2.1).
+- **Method:** powerkit's Spower experiment `p_riclpm()` calls
+  `powRICLPM::powRICLPM()` with one replication for each simulated study,
+  so powRICLPM generates the data and fits the model (lavaan's maximum
+  likelihood), and the experiment returns the Wald z test's p-value of the
+  lagged effect from that fit's estimate and standard error. Wrapping
+  powRICLPM in Spower, rather than calling it once for many replications,
+  gives the design powerkit's own sample-size search, seeds, check run and
+  R script; it costs about twice as long per study (0.13 s against 0.06 s
+  at 200 people and four waves).
+- **powRICLPM's conventions, kept:** the lagged effects are standardised
+  (powRICLPM sets the within-person residual variances so every
+  within-person part has variance 1); `constraints = "none"` by default,
+  with the effect from the first wave to the second tested, as in
+  powRICLPM's documentation, and the lagged effects held equal over time
+  as an option; reliability 1 by default. powRICLPM has no default for the
+  correlation between the random intercepts or the within-person
+  correlation, so the screen asks for both rather than supplying one.
+- **Route:** about 0.13 s per simulated study, so a preview (100 studies,
+  about 15 s), a full run of power in the app (1,000 studies, about two
+  and a half minutes), and a sample size by R script, as for mediation.
+- **Checks:** a spec check refuses lagged effects that aren't stationary
+  (powRICLPM's own condition) or that leave no valid residual covariance
+  with the within-person correlation given; the check run fits one study
+  of 20,000 people and compares the four lagged effects with the
+  population values.
+- **Validation** (`test-validation-riclpm.R`, chunk `riclpm`): a
+  simulation written separately (data drawn in base R, the model written
+  out in lavaan syntax) agrees with no allowance beyond Monte Carlo error;
+  Mulder's (2023) illustration is a placeholder for the maintainer.
+- **Not covered yet:** more than two scores, measurement error estimated
+  in the model (the STARTS model), and the traditional cross-lagged panel
+  model without random intercepts.
+
 ## 2026-11-06 · The online app: published daily, quiet tabs allowed to close, public pages on GitHub Pages
 
 The online app runs on Posit Connect Cloud, which charges usage credits
@@ -5581,3 +5625,107 @@ the site stays findable by search engines.
   use; whether real use outgrows the plan, and what to move to then (a
   fixed-price server, `hosting-options.md`), is for when there are usage
   figures.
+
+## 2026-11-06 · Interrupted time series (E45)
+
+- **Decided by the maintainer** (`judgement-calls` E8, now archived): the
+  recommendation. PITS 0.1.0's own test (nlme's `gls()` by maximum
+  likelihood) rejects too often with no effect in short series
+  (`upstream-questions.md`, PITS question 1), so powerkit simulates each
+  series with PITS's `simulate_its_data()` and fits the same segmented
+  regression with AR(1) errors by REML by default, reports the Type I
+  error at the planned length beside the power, and offers PITS's own
+  test as an option.
+- **What:** E45 now calculates: design `time_series / its`, powerkit's
+  Spower experiment `p_its()`. The level change and the slope change are
+  tested by their t tests and both together by the F test of the two
+  coefficients (PITS's likelihood-ratio test under maximum likelihood).
+  n is the number of time points after the intervention, as in PITS
+  ("the primary design lever"); the number before is an input.
+- **The Type I error:** `its_type1()` simulates the same series with no
+  change, as many as the power used, under the run's seed, and the
+  result screen says how often the test finds a change that isn't there,
+  and that part of the power is false positives when it exceeds alpha.
+- **The search's limit:** a change is judged against the trend before the
+  intervention, so with the points before fixed the power can level off
+  below the target however many points come after (with 24 points before,
+  the slope change's standard error stayed at the earlier trend's, 0.10,
+  with 240 after). The search stops at 240 points after the intervention,
+  where gls() still takes under a second (its time grows with the cube of
+  the series' length), and explains the ceiling in plain words.
+  `bracket_n()` takes the backend's limit and message for this.
+- **Validation** (`test-validation-its.R`, chunk `its`): series drawn and
+  fitted separately in the test agree with powerkit's REML route, and
+  powerkit's maximum-likelihood route agrees with PITS's
+  `calculate_power()`, with no allowance beyond Monte Carlo error; a
+  published power table is a placeholder for the maintainer.
+- **Not covered yet:** a breakpoint estimated from the data, several
+  series, a control series, and other error structures than AR(1).
+
+## 2026-11-06 · The smallest detectable effect for every ANOVA layout and for regression
+
+- **What:** the sensitivity goal, decided first-class in judgement call G9,
+  now reaches the one-way, mixed, factorial and three-factor ANOVAs
+  (E18, E20, E21, E54, E55, E56) and multiple regression (E24).
+- **ANOVAs:** the rule the 2x2 designs already used: keep the pattern of
+  means entered and scale its deviations from the grand mean until the
+  effect tested reaches the target power by Superpower's exact
+  calculation. A code comment had left the one-way designs out ("which
+  pattern to scale is not settled yet"); scaling the researcher's own
+  pattern is the only choice that needs no pattern powerkit would have to
+  invent. The result gives Cohen's f and the largest difference between
+  the scaled means. Unequal cells and pairwise tests, which are simulated,
+  still have no sensitivity goal.
+- **Regression:** pwrss's `power.f.regression()` searched over the partial
+  R-squared (no new formula); for R-squared against 0 it agrees with
+  pwr's `pwr.f2.test()`. No effect size is needed, so the screen offers
+  "I don't know my effect size"; an empty R-squared with all the
+  predictors means no increase.
+- **Why now:** a first-time-user pass (status.md) found the "I don't know
+  my effect size" route only on the basic tests, while the ANOVAs and
+  regression are among the commonest analyses.
+
+## 2026-11-06 · Whole-study simulation: experiments analysed with a factorial ANOVA
+
+- **Why:** the whole-study simulation covered a measured predictor or two
+  groups (power4mome), so the commonest experiment in psychology, two
+  conditions crossed with a second factor and analysed with a two-way or
+  mixed ANOVA, could only be planned card by card, and the chance that
+  both the main effect and the interaction come out significant was the
+  guided plan's rule of thumb (as if the tests were unrelated). The
+  maintainer's priority (6 November 2026): planning a whole study in one
+  go for most psychology studies (`next.md` item 1).
+- **What:** a whole-study spec can now give an `experiment` instead of
+  `variables` and `population`: a factorial ANOVA design spec (one or two
+  factors, between or within participants: templates oneway_between,
+  oneway_within, 2x2_between, 2x2_mixed, factorial_between,
+  factorial_within, mixed), whose cell means, SD and correlation are the
+  population. Each analysis is one of its F tests (`test: anova_effect`,
+  with `effect` main_effect_A, main_effect_B or interaction).
+  `run_whole_study()` runs Superpower's `ANOVA_power()` once per batch and
+  reads every F test's p-value for every simulated data set from its
+  `sim_data`, so each test's power and the joint power come from the same
+  replications. No new statistics: Superpower builds the data and afex
+  fits the ANOVA; powerkit counts. The sample size search is powerkit's
+  `search_n()`, as for the other whole studies.
+- **On the guided plan:** a condition with three or more groups, or two
+  or three groups of a moderator crossed with a condition, measured once,
+  and two conditions within participants crossed with groups of a
+  moderator (or none), with a score outcome and no covariates or
+  mediators, go to the experiment route. "The effect of X" is then the
+  ANOVA's main effect of X, and the moderation its X x W interaction, as a
+  researcher analysing a factorial experiment would test them; the card
+  the plan opens for the effect of X alone (the t test, E2) ignores W.
+  The screen asks for the levels, a grid of cell means, one SD and, with a
+  within factor, one correlation. Two groups and no moderator stay on the
+  power4mome route, as before.
+- **Checks** (`test-whole-study-experiment.R`; 4,000 replications, the
+  2 x 2 between example, N = 160): the main effect 35.6% and the
+  interaction 35.0% against Superpower's exact 34.9% each; both
+  significant together 12.7% against 12.3% from a simulation written
+  separately with `stats::aov()` (and 12.2% if the tests were unrelated);
+  Type I error 5.1% and 5.0% with equal means.
+- **Not covered yet:** within factors with three or more levels on the
+  guided plan (the plan's screening sends three or more conditions per
+  person elsewhere), three factors, unequal groups in a design with a
+  within factor, pairwise comparisons and contrasts as analyses.

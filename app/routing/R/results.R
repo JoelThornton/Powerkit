@@ -335,7 +335,24 @@ is_dyadic <- function(spec) identical(spec$design, "dyadic")
 # What n counts, when it isn't participants: studies (a meta-analysis) or
 # pairs (dyadic data).
 n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else
+  if (identical(spec$template, "its")) "time points after the intervention" else
   if (identical(spec$goal$unit, "items")) "items" else NULL
+
+# Interrupted time series: how often the test finds a change that isn't
+# there in a series of the planned length (the engine's `type1`), shown
+# beside the power (the maintainer's decision of 6 November 2026).
+type1_sentence <- function(result) {
+  t1 <- result$type1
+  if (is.null(t1)) return(NULL)
+  sprintf(paste("With no real change, this analysis would still find a significant one in %s of series this long",
+    "(%s simulated, alpha %s; Monte Carlo SE %.1f percentage points). %s"),
+    percent(t1$rate), whole(t1$nrep), alpha_text(t1$alpha), 100 * t1$mcse,
+    if (t1$rate > t1$alpha + 2 * t1$mcse) {
+      "That is more than alpha, so part of the power above comes from false positives: a longer series, especially before the intervention, brings it closer to alpha."
+    } else {
+      "That is close to alpha, as it should be."
+    })
+}
 
 # The number of items as the sample size (E33): the write-up counts items,
 # with the participants fixed.
@@ -344,6 +361,16 @@ items_units <- function(text, spec) {
   text <- gsub(" participants are needed in total", sprintf(" items are needed (with %s participants)", p), text, fixed = TRUE)
   text <- gsub("power at this sample size is", sprintf("power with this many items (and %s participants) is", p), text, fixed = TRUE)
   text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", sprintf("with \\2 items and %s participants", p), text)
+  text
+}
+
+# Interrupted time series: the write-up counts time points after the
+# intervention, with those before it fixed.
+its_units <- function(text, spec) {
+  b <- whole(spec$population$n_pre)
+  text <- gsub(" participants are needed in total", sprintf(" time points are needed after the intervention (with %s before it)", b), text, fixed = TRUE)
+  text <- gsub("power at this sample size is", sprintf("power with this many time points after the intervention (and %s before it) is", b), text, fixed = TRUE)
+  text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", sprintf("with \\2 time points after the intervention and %s before it", b), text)
   text
 }
 
@@ -579,6 +606,11 @@ result_sentences <- function(spec, result) {
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   # Dyadic data: n counts pairs.
   if (is_dyadic(spec)) out[] <- gsub(" participants in total", " pairs", out, fixed = TRUE)
+  # Interrupted time series: n counts the points after the intervention.
+  if (identical(spec$template, "its")) {
+    out[] <- gsub(" participants in total", sprintf(" time points after the intervention (and %s before)", whole(spec$population$n_pre)), out, fixed = TRUE)
+    out[] <- gsub("studies like this", "series like this", out, fixed = TRUE)
+  }
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   if (is_minimum_effect(spec)) out[["detail"]] <- paste(out[["detail"]], minimum_effect_sentence(spec))
@@ -928,7 +960,7 @@ goal_sentences <- function(spec, result) {
       if (is.null(s$cohen_f)) {
         # Basic tests (pwr): the effect is solved for directly.
         name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
-          r_XW_Y = "the correlation of the interaction with Y", "the effect")
+          r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared", "the effect")
         c(
           headline = sprintf(
             "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s = %s. The effect: %s.",
@@ -1337,7 +1369,7 @@ run_sensitivity_curve <- function(spec, run = engine_function("run_spec"), seed 
 }
 
 curve_table_ui <- function(spec, result, table) {
-  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "p2", "effect")
+  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "p2", r2 = "R-squared", partial_r2 = "partial R-squared", "effect")
   # Two proportions: the column is group 2's proportion, not a size.
   heading <- function(power) {
     if (identical(name, "p2")) sprintf("Group 2's proportion, %s power", power) else sprintf("Smallest %s, %s power", name, power)
@@ -1947,7 +1979,7 @@ result_figure <- function(spec, result) {
     sensitivity = {
       s <- result$sensitivity
       if (is.null(s$effect) || is.na(s$effect)) NULL else {
-        name <- if (!is.null(s$cohen_f)) "Cohen's f" else switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion", "effect")
+        name <- if (!is.null(s$cohen_f)) "Cohen's f" else switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion", r2 = "R-squared", partial_r2 = "partial R-squared", "effect")
         value <- if (!is.null(s$cohen_f)) sprintf("%.3f", s$cohen_f) else format(round(s$effect, 3), nsmall = 2)
         list(value = value, label = if (identical(name, "group 2's proportion")) "group 2's proportion you could detect" else paste("the smallest", name, "you could detect"),
           sub = sprintf("with %s %s, at %s power", whole(spec$goal$n), unit, percent(spec$goal$power)))
@@ -2093,6 +2125,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
+    if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
     if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
@@ -2123,7 +2156,9 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
       download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
       if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
-      if (can_export) download_button("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
+      if (can_export) print_document_button("planning_document", "Planning document (PDF)"),
+      if (can_export) download_button("download_planning_docx", "Planning document (Word)", class = "btn btn-outline-primary"),
+      if (can_export) download_button("download_planning_document", "Planning document (Markdown)", class = "btn btn-outline-primary")),
     if (can_export) uiOutput("study_plan_bar"),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     simulated_data_ui(spec, result)),
@@ -2482,6 +2517,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   main <- c(main, critical_effect_sentence(result))
   if (is_meta(spec)) main <- meta_units(main)
   if (is_dyadic(spec)) main <- dyad_units(main)
+  if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, welch_population_note(spec))
@@ -2590,6 +2626,7 @@ ethics_text <- function(spec, result, fields, values) {
     })
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)
+  if (identical(spec$template, "its")) body <- its_units(body, spec)
   if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
   p <- result$provenance
   paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
@@ -2821,7 +2858,9 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
         download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
         if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
-      if (can_export) download_button("download_planning_document", "Planning document", class = "btn btn-outline-primary")),
+      if (can_export) print_document_button("planning_document", "Planning document (PDF)"),
+      if (can_export) download_button("download_planning_docx", "Planning document (Word)", class = "btn btn-outline-primary"),
+      if (can_export) download_button("download_planning_document", "Planning document (Markdown)", class = "btn btn-outline-primary")),
       if (can_export && !is.na(result$precision$target_width)) uiOutput("study_plan_bar"),
       p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation() and the software used. Save project keeps your answers and result in one file on your computer; open it from the start screen to carry on."),
       simulated_data_ui(spec, result)),

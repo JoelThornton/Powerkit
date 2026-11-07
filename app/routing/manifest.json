@@ -485,6 +485,36 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-03 06:49:25 UTC; unix"
       }
     },
+    "PITS": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "PITS",
+        "Title": "Power of Interrupted Time Series (ITS) Studies",
+        "Version": "0.1.0",
+        "Authors@R": "\n    person(\"David\", \"de Lorenzo\", email = \"drdaviddelorenzo@gmail.com\",\n           role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0003-2042-0961\",\n                       affiliation = \"UCL Great Ormond Street Institute of Child Health, London, UK; Neotree, London, UK (https://neotree.org/)\"))",
+        "Description": "Provides tools for estimating the statistical power of Interrupted\n    Time Series (ITS) designs, with a focus on healthcare applications. The\n    package supports prospective power calculations before a study begins, and\n    retrospective assessments of whether a completed study was adequately powered.\n    It includes functions to estimate nuisance parameters (baseline, residual\n    standard deviation, autocorrelation) from data observed before the\n    intervention, and to\n    estimate power via Monte Carlo simulation for single-site and multi-site\n    designs. Utility functions for design optimisation sweeps and publication-\n    ready plots are also provided.",
+        "License": "MIT + file LICENSE",
+        "Language": "en-GB",
+        "Encoding": "UTF-8",
+        "Depends": "R (>= 4.0.0)",
+        "Imports": "nlme, stats, graphics, grDevices, utils",
+        "Suggests": "knitr, rmarkdown, testthat (>= 3.0.0)",
+        "VignetteBuilder": "knitr",
+        "Config/testthat/edition": "3",
+        "LazyData": "true",
+        "URL": "https://github.com/drdaviddelorenzo/PITS",
+        "BugReports": "https://github.com/drdaviddelorenzo/PITS/issues",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-06-23 16:20:24 UTC; daviddelorenzo",
+        "Author": "David de Lorenzo [aut, cre] (ORCID:\n    <https://orcid.org/0000-0003-2042-0961>, affiliation: UCL Great\n    Ormond Street Institute of Child Health, London, UK; Neotree,\n    London, UK (https://neotree.org/))",
+        "Maintainer": "David de Lorenzo <drdaviddelorenzo@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-06-30 10:10:02 UTC",
+        "Built": "R 4.5.0; ; 2026-07-01 05:38:08 UTC; unix"
+      }
+    },
     "PMCMRplus": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6095,6 +6125,35 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:40:40 UTC; unix"
       }
     },
+    "powRICLPM": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "powRICLPM",
+        "Title": "Perform Power Analysis for the RI-CLPM and STARTS Model",
+        "Version": "0.2.1",
+        "Date": "2024-10-26",
+        "Authors@R": "c(\n    person(\"Jeroen\", \"Mulder\", , \"j.d.mulder@uu.nl\", role = c(\"aut\", \"cre\", \"cph\"),\n           comment = c(ORCID = \"0000-0002-5553-0856\")),\n    person(\"Netherlands Organization for Scientific Research\", role = \"fnd\")\n  )",
+        "Maintainer": "Jeroen Mulder <j.d.mulder@uu.nl>",
+        "Description": "Perform user-friendly power analyses for the random\n    intercept cross-lagged panel model (RI-CLPM) and the bivariate stable trait \n    autoregressive trait state (STARTS) model. The strategy as proposed by \n    Mulder (2023) <doi:10.1080/10705511.2022.2122467> is implemented. Extensions \n    include the use of parameter constraints over time, bounded estimation,\n    generation of data with skewness and kurtosis, and the option to setup the power \n    analysis for Mplus. ",
+        "License": "MIT + file LICENSE",
+        "URL": "https://jeroendmulder.github.io/powRICLPM/",
+        "BugReports": "https://github.com/JeroenDMulder/powRICLPM/issues/",
+        "Depends": "R (>= 4.0.0), stats, utils",
+        "Imports": "cli, future.apply, lavaan (>= 0.6.7), lifecycle, progressr,\nrlang, ggplot2, future",
+        "Suggests": "knitr, rmarkdown, testthat",
+        "VignetteBuilder": "knitr",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.2",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-10-26 13:36:53 UTC; 5879167",
+        "Author": "Jeroen Mulder [aut, cre, cph] (<https://orcid.org/0000-0002-5553-0856>),\n  Netherlands Organization for Scientific Research [fnd]",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-10-26 13:50:03 UTC",
+        "Built": "R 4.5.0; ; 2026-04-24 02:02:59 UTC; unix"
+      }
+    },
     "power4mome": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6154,14 +6213,14 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.33.2",
+        "Version": "0.35.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, ARTool, BayesFactor, bayestestR, bfpwr, brunnermunzel,\ncar, digest, effectsize, Hmisc, ICC.Sample.Size,\nInteractionPoweR, irtpwr, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, kappaSize, PMCMRplus, POMADE, presize, lme4,\nlmerTest, longpower, manymome, mclust, MBESS, nnet, gsl,\nmetafor, metapower, mirt, parallel, pbkrtest, psych, quantreg,\npower4mome, pwr, powertools, powerSurvEpi, pscl, pwrss, PUMP,\nsemPower, simr, SimDesign, statpsych, Spower (>= 0.7), stats,\nSuppDists, survival, Superpower, TOSTER, vegan, utils, WebPower",
+        "Imports": "afex, ARTool, BayesFactor, bayestestR, bfpwr, brunnermunzel,\ncar, digest, effectsize, Hmisc, ICC.Sample.Size,\nInteractionPoweR, irtpwr, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, kappaSize, PMCMRplus, POMADE, presize, lme4,\nlmerTest, longpower, manymome, mclust, MBESS, nnet, gsl,\nmetafor, metapower, mirt, parallel, pbkrtest, nlme, PITS,\npowRICLPM, psych, quantreg, power4mome, pwr, powertools,\npowerSurvEpi, pscl, pwrss, PUMP, semPower, simr, SimDesign,\nstatpsych, Spower (>= 0.7), stats, SuppDists, survival,\nSuperpower, TOSTER, vegan, utils, WebPower",
         "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
@@ -6171,19 +6230,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "205463d9b5fd6039a170e6c7570f784abb3e676e",
-        "RemoteSha": "205463d9b5fd6039a170e6c7570f784abb3e676e",
+        "RemoteRef": "ac8dd5c3f66d8aada8e202b04383b403fe7fdd48",
+        "RemoteSha": "ac8dd5c3f66d8aada8e202b04383b403fe7fdd48",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "205463d9b5fd6039a170e6c7570f784abb3e676e",
-        "GithubSHA1": "205463d9b5fd6039a170e6c7570f784abb3e676e",
+        "GithubRef": "ac8dd5c3f66d8aada8e202b04383b403fe7fdd48",
+        "GithubSHA1": "ac8dd5c3f66d8aada8e202b04383b403fe7fdd48",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-06 09:23:20 UTC; runner",
+        "Packaged": "2026-11-07 08:03:59 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-06 09:23:38 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-07 08:04:17 UTC; unix"
       }
     },
     "powertools": {
@@ -8302,6 +8361,37 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-17 04:05:52 UTC; unix"
       }
     },
+    "xml2": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "xml2",
+        "Title": "Parse XML",
+        "Version": "1.6.0",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", role = \"aut\"),\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Jeroen\", \"Ooms\", email = \"jeroenooms@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")),\n    person(\"R Foundation\", role = \"ctb\",\n           comment = \"Copy of R-project homepage cached as example\")\n  )",
+        "Description": "Bindings to 'libxml2' for working with XML data using a simple, \n    consistent interface based on 'XPath' expressions. Also supports XML schema\n    validation; for 'XSLT' transformations see the 'xslt' package.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://xml2.r-lib.org, https://r-lib.r-universe.dev/xml2",
+        "BugReports": "https://github.com/r-lib/xml2/issues",
+        "Depends": "R (>= 3.6.0)",
+        "Imports": "cli, methods, rlang (>= 1.1.0)",
+        "Suggests": "covr, curl, httr, knitr, mockery, rmarkdown, testthat (>=\n3.2.0), xslt",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.3",
+        "SystemRequirements": "libxml2: libxml2-dev (deb), libxml2-devel (rpm)",
+        "Collate": "'S4.R' 'as_list.R' 'xml_parse.R' 'as_xml_document.R'\n'classes.R' 'format.R' 'import-standalone-obj-type.R'\n'import-standalone-purrr.R' 'import-standalone-types-check.R'\n'init.R' 'nodeset_apply.R' 'paths.R' 'utils.R' 'xml2-package.R'\n'xml_attr.R' 'xml_children.R' 'xml_document.R' 'xml_find.R'\n'xml_missing.R' 'xml_modify.R' 'xml_name.R' 'xml_namespaces.R'\n'xml_node.R' 'xml_nodeset.R' 'xml_path.R' 'xml_schema.R'\n'xml_serialize.R' 'xml_structure.R' 'xml_text.R' 'xml_type.R'\n'xml_url.R' 'xml_write.R'",
+        "Config/testthat/edition": "3",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-06-22 13:32:25 UTC; jeroen",
+        "Author": "Hadley Wickham [aut],\n  Jim Hester [aut],\n  Jeroen Ooms [aut, cre],\n  Posit Software, PBC [cph, fnd],\n  R Foundation [ctb] (Copy of R-project homepage cached as example)",
+        "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-06-22 15:40:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:43:24 UTC; unix"
+      }
+    },
     "xtable": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -8356,6 +8446,36 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:42:08 UTC; unix"
       }
     },
+    "zip": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "zip",
+        "Title": "Cross-Platform 'zip' Compression",
+        "Version": "3.0.2",
+        "Authors@R": "c(\n    person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"Kuba\", \"Podgórski\", role = \"ctb\"),\n    person(\"Rich\", \"Geldreich\", role = \"ctb\"),\n    person(\"Arm Limited\", role = c(\"ctb\", \"cph\"),\n           comment = \"bundled Mbed TLS crypto subset in src/mbedtls/ (Apache-2.0)\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n           comment = c(ROR = \"03wc8by49\"))\n  )",
+        "Description": "Cross-Platform 'zip' Compression Library. A replacement for\n    the 'zip' function, that does not require any additional external\n    tools on any platform.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://github.com/r-lib/zip, https://r-lib.github.io/zip/",
+        "BugReports": "https://github.com/r-lib/zip/issues",
+        "LinkingTo": "cli",
+        "Suggests": "callr, cli, curl, pillar, processx, R6, testthat, webfakes,\nwithr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "true",
+        "Config/testthat/start-first": "large-files, http",
+        "Config/usethis/last-upkeep": "2025-05-07",
+        "Encoding": "UTF-8",
+        "Config/roxygen2/version": "8.0.0",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-07-31 21:25:10 UTC; gaborcsardi",
+        "Author": "Gábor Csárdi [aut, cre],\n  Kuba Podgórski [ctb],\n  Rich Geldreich [ctb],\n  Arm Limited [ctb, cph] (bundled Mbed TLS crypto subset in src/mbedtls/\n    (Apache-2.0)),\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
+        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-08-04 18:00:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:42:09 UTC; unix"
+      }
+    },
     "zoo": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -8386,13 +8506,13 @@
   },
   "files": {
     "app.R": {
-      "checksum": "800fedf135de73741e8abe53cae5159b"
+      "checksum": "6080433994d70851b852d63c36b58b95"
     },
     "forms.yaml": {
-      "checksum": "13ac51f6cb126f25e83a5b7e50f1b63a"
+      "checksum": "58928252ca4c27c1f19d776f46197011"
     },
     "methods-map.yaml": {
-      "checksum": "4efc3071c4758bb959c8ae19befec474"
+      "checksum": "9ffc2793e9b3428cf24cdf6dc2415943"
     },
     "R/about.R": {
       "checksum": "c07fd2fc58fdd4036962407665e7d70e"
@@ -8401,7 +8521,10 @@
       "checksum": "1d01abd82581e3f0efada5a959c40016"
     },
     "R/connection.R": {
-      "checksum": "86fb1b2a966fb3068041c14edc05a08e"
+      "checksum": "938ae87749c78fbc96266750f20a28a8"
+    },
+    "R/documents.R": {
+      "checksum": "97e2f2b6418c566d43360272f48b4086"
     },
     "R/drafts.R": {
       "checksum": "642f5e19d07ba6bcc322d38136aefd45"
@@ -8410,28 +8533,28 @@
       "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
     },
     "R/forms_ui.R": {
-      "checksum": "0cab5aafe0b7b81f6b5df7311c908f41"
+      "checksum": "8fd20cfb81246a1760731fc222e20640"
     },
     "R/forms.R": {
-      "checksum": "fcf76074a730ba70af351cabea210931"
+      "checksum": "dd8a210fc2286aa08e6fdad39ce05e9e"
     },
     "R/input-support.R": {
       "checksum": "bdf0e5767132a553068c033f7e5f520e"
     },
     "R/labs.R": {
-      "checksum": "08ad821fb1739380c07cb21a9240904d"
+      "checksum": "7097b9ef5c1bc188b89ff48739fa4d3d"
     },
     "R/map.R": {
       "checksum": "4a864e016dc04c84f1c5004b2fb35c19"
     },
     "R/planning.R": {
-      "checksum": "b110f1126f48dcec62136f19fec794f3"
+      "checksum": "69ea4201e7b9bcef68b969f529f39cd8"
     },
     "R/project.R": {
       "checksum": "23e6eed5ff5f012fdb8a5f2df34c6c0e"
     },
     "R/results.R": {
-      "checksum": "181492f4272d064f7ed4b19397ebae43"
+      "checksum": "8495025e85fe05414dcf6beacf0872f2"
     },
     "R/sample.R": {
       "checksum": "5a2faf0bd5eeff5c04489743edadd733"
@@ -8452,19 +8575,19 @@
       "checksum": "944417d267637ddaca7d4b5aaadadd7c"
     },
     "R/ui.R": {
-      "checksum": "cd4ca721b4b7392fdc2b4d0d0dadc301"
+      "checksum": "13e5574579082b4468a705e3944d6301"
     },
     "R/whole-study.R": {
-      "checksum": "8612e0fea2b35a09e54642251ad1797f"
+      "checksum": "a054a9e21eea60bdedf72e4dcff7089b"
     },
     "README.md": {
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "0076a59a5cf5af6706a036412a3be58a"
+      "checksum": "b244336bb892d65d01f7b13ee96b9264"
     },
     "whats-new.yaml": {
-      "checksum": "872441574807ba5ad6837667d3837f14"
+      "checksum": "2a7fd0ceab4c063d5a9fb98e3e0489f6"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

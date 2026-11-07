@@ -40,11 +40,15 @@ test_that("E7 and E8 describe ANOVA_exact() in Superpower's own terms", {
   }
 })
 
-test_that("E45 says a recent package covers the known-breakpoint case, without naming it", {
+test_that("E45 calculates with PITS's series fitted by REML, and says why (6 November 2026)", {
+  # Until 6 November 2026 the card said only that a recent package covers
+  # the known-breakpoint case; the maintainer then chose PITS's series with
+  # a REML fit, PITS's own test as an option (decisions.md).
   html <- as.character(card_ui(tree, "E45"))
-  expect_match(html, "A recently released package addresses the known-breakpoint case; powerkit hasn't checked it.", fixed = TRUE)
   expect_no_match(html, "No ready-made tool", fixed = TRUE)
-  expect_no_match(html, "PITS", fixed = TRUE)
+  expect_match(html, "PITS", fixed = TRUE)
+  expect_match(html, "REML", fixed = TRUE)
+  expect_match(html, "more often than alpha", fixed = TRUE)
 })
 
 test_that("E45's autocorrelation point gives both directions (Zhang et al., 2011, Table 1)", {

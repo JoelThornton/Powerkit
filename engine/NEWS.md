@@ -1,3 +1,88 @@
+# powerkit 0.35.0
+
+* The smallest detectable effect for every equal-groups ANOVA layout
+  (one-way between and within, mixed, factorial between and within, three
+  factors): the pattern of means entered keeps its shape and is scaled
+  until the effect tested reaches the target power, as for the 2x2 designs
+  (`superpower_sensitivity()`). The result gives Cohen's f and the largest
+  difference between the scaled means, in the outcome's units.
+* The smallest detectable R-squared for multiple regression
+  (`regression_sensitivity()`): pwrss's own F-test power searched over the
+  partial R-squared, so no effect size is needed; it matches pwr's
+  `pwr.f2.test()`. The regression screen gets the "I don't know my effect
+  size" route, and a note while "What you want to test" is unchosen.
+* Whole-study simulation of experiments (experimental): a whole-study spec
+  may give an `experiment`, a factorial ANOVA design spec with one or two
+  factors between or within participants, in place of `variables` and
+  `population`, and analyses with `test: "anova_effect"` and an `effect`
+  (main_effect_A, main_effect_B or interaction). `run_whole_study()` reads
+  every F test's p-value per simulated data set from Superpower's
+  `ANOVA_power()` (`sim_data`), so each test's power and the joint power
+  (claims "each", "all", "any") come from the same replications; the
+  sample size search is `search_n()`, and the R script runs the same.
+  Each test's power agrees with Superpower's exact power for it, and the
+  joint power with a separately written `stats::aov()` simulation
+  (`test-whole-study-experiment.R`). The guided plan sends factorial
+  experiments with a score outcome here (`whole_study_experiment_plan()`).
+
+# powerkit 0.34.1
+
+* The pre-replication notes (Labs) and the study-planning document can be
+  saved as a proper PDF or as a Word document. "Save as PDF or print" and
+  "Planning document (PDF)" typeset the document as a page of its own
+  (`R/documents.R`; title, headings, the citation and powerkit's version, A4
+  margins) and the browser prints that page alone, so its "Save as PDF"
+  gives a clean document; the old button printed the app's screen. "Download
+  for Word (.docx)" and "Planning document (Word)" write an editable .docx,
+  built from the same Markdown with xml2 and zip (new app dependencies,
+  without system libraries). The Markdown downloads stay. Anything typed is
+  shown as text, never as markup.
+* The pre-replication notes now become the document Karhulahti, Martončik
+  and Adamkovič (2025) describe for where the user landed: "Not worth
+  replicating" gives a negative pre-replication report in the shape of the
+  paper's appendix examples ("Pre-replication of:" the study, then short
+  prose); "Go ahead" gives a pre-replication section for the replication
+  itself under the paper's three assessments (epistemic, methodological,
+  value), which the paper says belongs inside the replication study; and
+  "Change the plan" gives the same section for a redesigned study, leading
+  with how the design changes. With no outcome chosen, the full
+  question-and-answer notes as before.
+* A link straight to Labs (`?page=labs`, for example the guide's link to
+  a Labs tool) no longer leaves the "Starting powerkit" screen over the
+  page. It went only when the main screen arrived, which a page opened on
+  another tab never draws; it now also goes once the connected app is
+  first idle (`R/connection.R`).
+
+# powerkit 0.34.0
+
+* Interrupted time series calculate (card E45, new design
+  `time_series / its`): powerkit's Spower experiment `p_its()` simulates
+  each series with PITS's `simulate_its_data()` (the segmented regression
+  with AR(1) errors) and fits it with nlme's `gls()` by REML, testing the
+  level change, the slope change or both; PITS's own maximum-likelihood
+  test is an option. PITS's test rejects too often with no effect in short
+  series, so every result also reports the Type I error at the planned
+  length (`its_type1()`, the result's `type1`). n is the number of points
+  after the intervention; the search stops at 240 and explains why a
+  change judged against a fixed number of points before the intervention
+  can level off below the target (`bracket_n()` takes a backend's limit
+  and message). Validated against a separately written simulation and
+  PITS's `calculate_power()` (`test-validation-its.R`, chunk `its`). PITS
+  joins the engine's imports and `renv.lock`.
+
+* New design `panel / riclpm` (card E74): power for a lagged effect in a
+  random-intercept cross-lagged panel model (Hamaker, Kuiper and Grasman,
+  2015), two scores at three or more waves. powerkit's Spower experiment
+  `p_riclpm()` has powRICLPM (Mulder, 2023) simulate each study and fit the
+  model with lavaan, and tests the lagged effect by its Wald z test; a
+  cross-lagged or autoregressive effect, from the first wave to the second
+  (powRICLPM's default) or held equal over time, with reliability below 1
+  as an option. A preview and a full run of power in the app; a sample
+  size by R script. Spec checks refuse lagged effects that aren't
+  stationary or can't hold with the within-person correlation. Validated
+  against a simulation written separately in lavaan
+  (`test-validation-riclpm.R`, chunk `riclpm`). powRICLPM joins the
+  engine's imports and `renv.lock`; both sources are in `refs.bib`.
 # powerkit 0.33.2
 
 * The online app costs less to keep running. Its host charges for every

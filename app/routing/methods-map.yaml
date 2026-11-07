@@ -127,6 +127,7 @@ endpoints:
   E71: model
   E72: t
   E73: model
+  E74: model
   E-bayes: bayes
 
 relations:
@@ -197,6 +198,7 @@ relations:
   - {from: E33, to: E63, label: "with three or more conditions becomes"}
   - {from: E33, to: E67, label: "with a score measured on each item becomes"}
   - {from: E54, to: E35, label: "over many occasions, as a growth model, becomes"}
+  - {from: E35, to: E74, label: "with two scores predicting each other over the waves, becomes"}
   - {from: E62, to: E41, label: "for relationships within people is"}
   - {from: E34, to: E68, label: "with groups inside larger groups becomes"}
   - {from: E62, to: E44, label: "for pairs of people becomes"}

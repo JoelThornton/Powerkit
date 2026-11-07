@@ -41,9 +41,10 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
     # Very small samples can fail to fit; start the coarse pass at 20 (the
     # grid still widens down to n_min if the answer is lower).
     coarse_start <- max(n_start, step * ceiling(20 / step))
-    bracket_n(coarse_power(backend, seed, cores), power, coarse_start, step, rel_tol = 0.1)
+    bracket_n(coarse_power(backend, seed, cores), power, coarse_start, step, n_max = backend$n_max %||% 1e5, rel_tol = 0.1,
+      cap_message = backend$n_max_message)
   } else {
-    bracket_n(fast_power, power, n_start, step)
+    bracket_n(fast_power, power, n_start, step, n_max = backend$n_max %||% 1e5, cap_message = backend$n_max_message)
   }
 
   spacing <- step * max(1, round(0.05 * n_guess / step))
@@ -135,7 +136,7 @@ coarse_nrep <- function() 100L
 # reaches the target: doubling, then bisection. With `rel_tol`, bisection
 # stops once the bracket is within that proportion of its upper end (for
 # noisy, simulated power, where finer bisection would be wasted).
-bracket_n <- function(power_at, target, n_min, step, n_max = 1e5, rel_tol = 0) {
+bracket_n <- function(power_at, target, n_min, step, n_max = 1e5, rel_tol = 0, cap_message = NULL) {
   # Search whole allocations only, including the last valid allocation
   # below the limit when doubling would otherwise jump past it.
   cap <- step * floor(n_max / step)
@@ -151,6 +152,7 @@ bracket_n <- function(power_at, target, n_min, step, n_max = 1e5, rel_tol = 0) {
   high <- n_min
   repeat {
     if (high == cap) {
+      if (!is.null(cap_message)) abort_run(sprintf(cap_message, target, format(cap, big.mark = ",")))
       abort_run(sprintf(
         "The target power of %s was not reached by the search limit (%s, the largest valid sample size checked). A larger sample may still reach it. Check your assumptions or assess power at a specified sample size.",
         target, format(cap, big.mark = ",")

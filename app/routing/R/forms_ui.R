@@ -357,6 +357,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     if (any(section == "study")) div(class = "form-section", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
     div(class = "form-section form-section-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
       effect_unsure_ui(form),
+      effect_waits_ui(form, groups),
       effect_help_ui(form, groups),
       part("effect")),
     if (any(section == "accuracy")) div(class = "form-section", part("accuracy")),
@@ -471,6 +472,18 @@ effect_unsure_ui <- function(form) {
       div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(false)", "Find the smallest effect I could detect"))))
   }
   NULL
+}
+
+# A form whose effect boxes depend on an earlier choice (`effect_waits_for`,
+# E24's "What you want to test") says so while that choice is unmade, so
+# the effect section never looks empty or broken (6 November 2026).
+effect_waits_ui <- function(form, groups) {
+  id <- form$effect_waits_for
+  if (is.null(id)) return(NULL)
+  f <- Filter(function(f) identical(f$id, id), form_fields(groups))
+  if (!length(f)) return(NULL)
+  conditionalPanel(sprintf("!input.%s", field_input_id(f[[1]])),
+    p(class = "effect-waits", sprintf("Choose \u201c%s\u201d above first: the boxes for its effect size appear here.", f[[1]]$label)))
 }
 
 # "Not sure what number to put here?": the four honest routes.

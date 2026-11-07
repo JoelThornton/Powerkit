@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Common Research Designs
-Version: 0.33.2
+Version: 0.35.0
 Authors@R:
     person("Joel", "Thornton", , "58643641+JoelThornton@users.noreply.github.com",
            role = c("aut", "cre"))
@@ -58,6 +58,9 @@ Imports:
     mirt,
     parallel,
     pbkrtest,
+    nlme,
+    PITS,
+    powRICLPM,
     psych,
     quantreg,
     power4mome,
