@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 6 November 2026 (powerkit 0.35.0). This page says where the
+*Last updated: 7 November 2026 (powerkit 0.35.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
 planned work that had no queue item, 6 November 2026). History is in git,
@@ -14,6 +14,15 @@ fully validated. Validation runs are recorded in
 `CLAUDE.md` and [`handover.md`](handover.md).
 
 ## Where things are
+
+- **Whole-project review (7 November 2026):** numbers, methods, the app
+  working and its speed, a researcher's view, the repository and process,
+  whole-study planning, and look and feel with Labs. No wrong number was
+  found and nothing critical; 21 serious problems (misleading wording in
+  write-ups, design-finder dead ends, the app freezing for everyone during
+  long calculations, scheduled validation failing unnoticed) and about 110
+  smaller ones are grouped into fix batches at the top of
+  [`next.md`](next.md), with the maintainer's decisions folded in.
 
 - **Whole study in one go: experiments (6 November 2026, experimental):**
   the guided plan simulates a factorial experiment (a condition with two

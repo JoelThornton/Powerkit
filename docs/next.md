@@ -1,12 +1,13 @@
 # What to work on next
 
-*6 November 2026: items 6 to 12 added from an audit of `status.md`, the coverage roadmap, the open judgement calls and the build guide for planned work with no queue item (the maintainer kept them in this order). 4 November 2026: every item Ready; the maintainer decided items 2 (the Bayes factor of an effect), 3, 4, 5 and 6. 31 October 2026: items 1, 3 to 9, 15 to 17, 19 and 24 decided and Ready. 30 October 2026 (the maintainer's order for the next work is items 1 to 10; Ready items first; every card the app marks "not in powerkit" has an item, checked against a list of the tests psychologists most often report). The ordered answer to "work on the next thing". One
+*7 November 2026: "Review fixes first" added from a review of the whole project; those rows come before the queue. 6 November 2026: items 6 to 12 added from an audit of `status.md`, the coverage roadmap, the open judgement calls and the build guide for planned work with no queue item (the maintainer kept them in this order). 4 November 2026: every item Ready; the maintainer decided items 2 (the Bayes factor of an effect), 3, 4, 5 and 6. 31 October 2026: items 1, 3 to 9, 15 to 17, 19 and 24 decided and Ready. 30 October 2026 (the maintainer's order for the next work is items 1 to 10; Ready items first; every card the app marks "not in powerkit" has an item, checked against a list of the tests psychologists most often report). The ordered answer to "work on the next thing". One
 queue, newest decisions folded in; [`status.md`](status.md) says where the
 project is, this says what to do.*
 
 **How a thread uses this page**
 
-1. Read the top of the queue. Take the **first item marked Ready**.
+1. Take the first Ready item in **Review fixes first** below, while any
+   remain; then the first item marked Ready in the queue.
 2. If an item says *Needs a decision*, it is not yours to start: say what
    the decision is and move to the next Ready item, or ask the maintainer.
 3. Follow [`adding-a-test.md`](adding-a-test.md) for anything that adds a
@@ -16,6 +17,31 @@ project is, this says what to do.*
 5. **Check the top item still makes sense before starting.** This page is
    dated; a queue written three weeks ago can be stale, and the
    maintainer's priorities beat it.
+
+## Review fixes first (7 November 2026)
+
+A review of the whole project on 7 November 2026 (powerkit 0.35.0) found no
+wrong number and nothing critical, but 21 serious problems and about 110
+smaller ones. They are grouped below into pull requests by area of the app,
+in the order to take them; two or three can run at once when they touch
+different areas. The maintainer decided the choices marked "decided".
+
+| Order | What | Includes | Size | State |
+| --- | --- | --- | --- | --- |
+| R1 | **Validation runs that finish and report** | Deal validation tests to parts by estimated time, not position (one whole-study test hits the 330-minute limit, so it never runs; another check times out each night); list failing and not-run tests in the run summary and add reading the last scheduled run to the working process; skip the engine check when only `engine/NEWS.md` or the Version line changed; for docs-only PRs run only the app tests that read the docs (queue shape, docs-match, repo consistency) instead of the whole app suite; balance the engine-test parts; record the commit in validation summaries; update GitHub Actions on the deprecated runtime; fix the example spec that can't run; rerun the two checks failing on fixed seeds (Greenhouse-Geisser mixed design; Type I error for moderated mediation with a yes/no X) at 10,000 replications without editing expected values, and pass any that still fail to the statistician (decided) | S | Ready |
+| R2 | **What the app says** | Methods paragraph keeps to methods, with the evidence registry in a separate, readable "Validation evidence" section of the planning document; whole-study paragraph states the effect sizes and fixes its broken sentence; exports say powerkit is a prototype until 1.0 (decided); planning document without screen labels; small write-up wording faults; README brought up to date; About says answers stay in the browser; open each user-facing reference missing from `refs.bib` by its DOI and add it, or remove it from user text, with a test that every author-year matches `refs.bib` (decided); one meaning of "validated" (the validation log's) in CLAUDE.md and the README (decided); retire Departure 9 and keep Departure 3 off the methods paragraph (decided); "average power over your uncertainty" for the Bayes design-prior sense of assurance | M | Ready |
+| R3 | **Design-finder routes** | Two-arm before/after with unequal arms reaches the cards that take unequal groups; a group-by-condition hypothesis worded as "depends on" reaches the mixed ANOVA cards; recommend ANCOVA for randomised pre/post, keeping the mixed interaction as an option (decided); a moderation in a pre-post trial goes to the regression card with what to enter (decided: it is the standard adjusted analysis); goals the chosen test can't do aren't offered; no one-answer questions; shorter hypothesis list and factorial routes; search words researchers type; the sequential route reachable from the finder; nested data, pairs and many trials on "plan my whole study" say they become one analysis; crossover (AB/BA) guidance on the paired and mixed cards (decided); a misroute test for each | M | Ready |
+| R4 | **Draft box and page structure** | Offer an unfinished draft only on the plan tab, as "Continue my plan" / "Not now", deleting only on an explicit "Discard my draft" (today it covers every tab and "Start fresh" deletes it); phone tab bar shows every tab; one heading weight; one name and style per action; card scope link named as the text says; shorter About page; readable slider labels; the methods map and About count analyses the same way | S | Ready |
+| R5 | **Effect-size guidance** | Safeguard-power results name the effect actually used, with the original in brackets; a pilot effect gets the same "how you adjusted it" and safeguard option as a published one, and the note uses the screen's label; guidance on pilots and meta-analytic effects; the converter refuses impossible values (r above 1), checks df against the sample size, and doesn't ask for protection it can't give; the pre-replication notes' smallest detectable effect without engine messages, and with its source | M | Ready |
+| R6 | **Speed for real users** | Calculations over a second or two go to the background process the simulations use (several common cards take 4 to 16 s and freeze the app for everyone); Labs, Updates and Feedback built once at start-up, as About is (each visit rebuilds 531 KB); no frozen first click after a restart; the methods map's library loaded when opened. Evidence for item 8 (hosting): prefer a host that runs two or more app processes (decided) | M | Ready |
+| R7 | **Whole-study planning** (two PRs) | The whole-experiment script's print method names the result's own backend, and the script saves before printing; "baseline" in a pre-post trial is the first measurement; the guided plan and whole-study inputs save and reopen; a manipulation check beside a mediation; the script's R version is powerkit's; labels and notes in plain words; matching look. Decided: a rough in-app power curve over a few sample sizes for ANOVA and regression plans, with the script for the precise number; the guided plan feeds the same study plan; analyses of the same people on different cards share one sample size when unit, allocation and grouping match; accept Cohen's d for a two-group predictor through the engine's implied-value routine. Item 1's order becomes: covariates, fully within-people designs, yes/no outcomes, nested data, pairs | L | Ready |
+| R8 | **Input screens** | Test version and optional extras placed the same way on every card; plain names for internal ones; honest time estimates (ten simulated cards say "a second or two"); messages that don't point to settings the app hides; "with NA participants" on the generic test; probabilities as fractions; one-tail formulas that show 2.5% with no effect. Decided: target power empty on every card, with 80/90/95% compared on the result; no Cohen's small/medium/large labels in help; moderation asks "what do you have?" first and starts at the R-squared change for a published effect | M | Ready |
+| R9 | **Labs** | One chart style shared with the result page; the visualiser's cut-off curve and spikes explained; methods-map colours and labels; one labelling and header style per tool; number boxes sized to their content; links from common results to the power visualiser and the 1,000 studies tool (decided). Decided: Labs stays, each tool saying what it is for and how sure it is; Bayesian planning and the converter stay as stand-alone tools but use the main app's engine code and wording, and the "uncertain effect" option is added to the main Bayes factor results | M | Ready |
+| R10 | **Docs and start-up reading** (docs only) | `status.md` to about 8 KB and `next.md` rows to what is left; `docs/README.md` lists every page; current dependency counts; unused functions removed; the app takes simulation precision from the engine; the stale manifest copy removed; rules that agree. Decided: locally, run the tests for changed files plus `test-repo-consistency.R` and let required checks be the gate; "work from `next.md`" replaces "one build phase at a time"; single-card packages move to Suggests card by card when a PR touches them; large files are split only when a PR touches them; a short visual style section in `accessibility-review.md` | S | Ready |
+| R11 | **Change notes without catch-up merges** | One small change-note file per PR (engine news and Updates entries) joined by a script and checked by the existing tests, with the version and NEWS heading set once when a batch closes (decided; changes the version rule in CLAUDE.md and `adding-a-test.md`). Since 1 November, 26 of 32 PRs needed a catch-up merge over these files | M | Ready |
+| R12 | **Welch's test by default** | Welch's t-test by formula as the default on the two-group card, Student's as an option, recorded as a departure from G*Power in all four places; the same question for the one-way ANOVA; Delacre, Lakens and Leys (2017) through `refs.bib` first (decided) | M | Ready |
+| R13 | **Small telescopes for replications** | Offer Simonsohn's (2015) small-telescopes sample size beside safeguard power on the t-test and correlation cards, if a package implements it; source through `refs.bib` (decided) | M | Ready |
+| R14 | **Keep the review's scripts** | The property checks over every example spec and the every-card browser run, added so they can be rerun before each release (decided) | S | Ready |
 
 ## The queue
 
@@ -83,6 +109,11 @@ call), and nodes for approaches powerkit doesn't compute.
   metapower, power4mome, powertools and bfpwr each have an open question
   in [`upstream-questions.md`](upstream-questions.md), with the evidence
   ready.
+- **On the GitHub website** (from the 7 November review): the repository
+  description, which says "for psychology" and "validated"; deleting the
+  21 merged branches; a tag or release for each minor version; and the
+  feedback service's privacy settings, which can't be checked from the
+  repository.
 - **Main's protection rules**: the steps in
   [`repository-protection.md`](repository-protection.md) (the ruleset and
   the Connect Cloud branch) are for the repository's owner.
