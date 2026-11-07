@@ -24,6 +24,13 @@ fully validated. Validation runs are recorded in
   smaller ones are grouped into fix batches at the top of
   [`next.md`](next.md), with the maintainer's decisions folded in.
 
+- **Releases (7 November 2026):** each finished version is tagged
+  (`v0.34.1`) and published as a pre-release on GitHub with its NEWS
+  section, automatically once main moves on to the next number
+  (`scripts/tag-releases.sh`). Main requires a pull request with passing
+  checks, and release tags can't be moved or deleted
+  ([`repository-protection.md`](repository-protection.md)).
+
 - **Whole study in one go: experiments (6 November 2026, experimental):**
   the guided plan simulates a factorial experiment (a condition with two
   or more groups crossed with a moderator's groups, or two conditions
