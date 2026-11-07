@@ -1,3 +1,56 @@
+# powerkit 0.36.0
+
+* Exported text names powerkit as a prototype until version 1.0: the
+  methods paragraph's software sentence, the ethics and precision
+  versions, the whole-study paragraph and the planning document say
+  "powerkit (version x, a prototype in development whose results are not
+  yet fully validated)" (`powerkit_cited()` in the app).
+* The methods paragraph keeps to methods. The evidence registry's lines
+  ("Software agreement: ...", "Evidence registry ...; SHA-256 ...") are no
+  longer pasted into the full write-up or the reproducibility record; the
+  planning document has a "Validation evidence" section that says in
+  words what was checked, followed by a "Reproducibility record".
+* The planning document's assumptions use the write-up's wording rather
+  than the input screen's labels, and its decision rule reads "A
+  significance test at alpha = 0.05, two-sided." rather than "Selected
+  significance test at alpha 0.05 with alternative two sided ;".
+* Write-up wording: effect sizes are named in lower case without the
+  screen's ranges ("correlation r = -0.2", not "Correlation r (-1 to 1) =
+  -0.2"); the time-to-event write-up names the test used (the log-rank
+  test or a Cox regression); Welch's paragraph says "equal population SDs"
+  when the ratio is 1 and mentions the simulation only when one was run.
+* The whole-study methods paragraph states the population assumed (the
+  cell means and SD of an experiment, or the standardised paths and
+  correlations of a path model), fixes the broken sentence about cell
+  means, words the joint power as the study's claim, and reports counts of
+  simulated studies that could not be analysed only in the full version
+  and only when some failed ("Joint all criterion" is gone).
+* Departure 9 (the basic tests' formula) is retired: using pwr's formula
+  is pwr's default and G*Power's practice, so it departs from no
+  established tool; it moves to "Not departures, but worth stating" in
+  `docs/conventions.md`. Departure 3 (Superpower's exact dataset built
+  under the run's seed, about 1e-15) stays on the result screen but not
+  in the methods paragraph.
+* Bayes factor results and Labs call power averaged over a design prior
+  "the average power over your uncertainty", keeping "assurance" as
+  O'Hagan, Stevens and Campbell's (2005) name for it, so that "assurance"
+  in precision planning (the chance the interval is narrow enough) has one
+  meaning.
+* References: seven sources named in user-facing text are added to
+  `refs.bib`, each opened by its DOI (Boos and Zhang, 2000; Dziak et al.,
+  2020; Bonett and Wright, 2015; Demidenko, 2007; Hsieh and Lavori, 2000;
+  Shieh, 2020; Sommet et al., 2023). Anderson's (2003) textbook, which has
+  no DOI, is no longer named in the Hotelling's T-squared cards, provenance
+  or R scripts; the engine's source comments still cite it. A new app test
+  checks that every author-year reference in user-facing text matches
+  `refs.bib` or a package's `citation()`.
+* About says that the browser keeps unfinished answers, recently opened
+  analyses and display choices, that they are not sent anywhere, and how
+  to clear them on a shared computer.
+* The README describes the current app (70 analyses that run, the
+  families and packages), and "validated" has one meaning throughout, the
+  validation log's.
+
 # powerkit 0.35.1
 
 * The example spec `process_7.json` runs again: it gave the moderator a

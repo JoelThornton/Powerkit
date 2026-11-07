@@ -893,7 +893,7 @@ bayes_numbers <- function(plan) {
     tags$ul(class = "bayes-notes",
       tags$li(needed),
       if (plan$effect_sd > 0) tags$li(sprintf(
-        "Averaged over your uncertainty like this, the %s chance of strong evidence for an effect is the study's assurance: the chance it succeeds given what you believe now, rather than if one guessed effect were exactly right (O'Hagan, Stevens and Campbell, 2005, who define it for clinical trials).",
+        "Averaged over your uncertainty like this, the %s chance of strong evidence for an effect is the average power over your uncertainty: the chance it succeeds given what you believe now, rather than if one guessed effect were exactly right (O'Hagan, Stevens and Campbell, 2005, who call it assurance and define it for clinical trials).",
         pct(belief$for_effect))),
       if (!is.na(plan$largest_bf01)) tags$li(sprintf(
         "The most evidence for no effect this study can give is a Bayes factor of %.1f (when the observed effect is exactly 0)%s.",

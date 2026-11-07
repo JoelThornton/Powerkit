@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 7 November 2026 (powerkit 0.35.1). This page says where the
+*Last updated: 7 November 2026 (powerkit 0.36.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
 planned work that had no queue item, 6 November 2026). History is in git,
@@ -27,7 +27,13 @@ fully validated. Validation runs are recorded in
   are dealt to parts by recorded time, the whole-study chunk runs on four
   cores per test, each scheduled run ends with one list of the tests that
   need attention, and documentation-only pull requests run only the app
-  tests that read the docs. The mixed-design Greenhouse-Geisser check
+  tests that read the docs. The second batch (what the app says) is done:
+  methods paragraphs keep to methods and name powerkit as a prototype,
+  the planning document has a worded "Validation evidence" section, the
+  whole-study paragraph states its population, every author-year
+  reference in user text is in `refs.bib` or a package's citation() (a
+  test checks), and "validated" has the validation log's meaning
+  everywhere. The mixed-design Greenhouse-Geisser check
   still fails with new seeds and waits for the statistician; the rerun of
   the moderated mediation Type I error check (yes/no X) is recorded when
   it finishes ([`validation-log.md`](validation-log.md), 7 November 2026).
@@ -355,9 +361,10 @@ fully validated. Validation runs are recorded in
   calls, plus Type I error; independent checks exist for the basic tests
   (G\*Power screenshots), mediation (pwrss and simsem) and the two-group
   MANOVA (pwrss's exact F). 17 published examples are transcribed and
-  pass; the rest keep `TODO_PUBLISHED_VALUE` for the maintainer. Six cards
-  are marked validated; eight still say "validation in progress"
-  ([`next.md`](next.md), "Waiting on the maintainer"). Validation runs per design before a PR
+  pass; the rest keep `TODO_PUBLISHED_VALUE` for the maintainer. 20 of
+  the 70 analyses that run are marked validated, in the validation log's
+  sense (a recorded full run agrees with the backend and analytic results
+  and keeps Type I error); the other 50 say "validation in progress". Validation runs per design before a PR
   merges, every night the engine changed and in full every Sunday, from
   00:05 UTC (`scripts/validation-plan.R`, `nightly-validation.yaml`).
   The Sunday run of 1 November passed 27 of 28 chunks; the two-mediator

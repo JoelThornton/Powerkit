@@ -282,7 +282,6 @@ departures:
   "1": "Required N for a 2 x 2 interaction: powerkit gives the smallest N at which the exact F test reaches the target power. Sommet et al.'s (2023) z approximation gives slightly smaller numbers: 4 participants fewer (one per cell) in their two published examples."
   "2": "Mixed design: powerkit uses Superpower's ANOVA_exact(), which reproduces the G*Power values Superpower's vignette reports, not ANOVA_exact2(). The two differ slightly (91.2% vs 90.5% in the vignette's example)."
   "3": "Superpower's exact dataset is built under this run's seed, so the result is identical each time with the same seed. The size of this difference is about 1e-15 in power, with no practical effect."
-  "9": "Calculated with a formula (pwr's, or base R's power.prop.test() for two proportions), not Spower's simulation (powerkit's earlier default): exact for the t-tests and the chi-square test, and approximate for a correlation (Fisher's z) and two proportions (a normal approximation), with no simulation noise. In the examples checked, the two differ by less than 0.01 in power, within the simulation's own noise."
   "10": "Correlation: pwr's formula uses Fisher's z, an approximation; G*Power uses the exact distribution of r. For r = .3 to .5 and N = 20 to 100 they differ by at most 0.004 in power, and the required N by at most 1 participant (85 rather than 84 for r = .3 and 80% power)."
   "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power; powerkit keeps the groups in the exact ratio you give, so its required N can be a few higher (for 95% power with group 2 twice the size of group 1, 372 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
   "12": "Two dependent correlations: Steiger's z test as G*Power computes it, with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. powerkit reproduces the G*Power manual's two examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
@@ -302,7 +301,7 @@ departures:
 # "How it was calculated"; the others stay in view, with a pointer from
 # the answer (docs/decisions.md, "Mentioning other tools", 28 October 2026).
 # The methods paragraph states every departure.
-departures_folded: ["2", "3", "8", "9", "11"]
+departures_folded: ["2", "3", "8", "11"]
 
 # Known differences between established tools, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Known
@@ -345,7 +344,7 @@ known_differences_methods:
 forms:
   E1:
     methods_name: "a one-sample t-test"
-    departures: ["9", "15"]
+    departures: ["15"]
     known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
     known_differences: ["5", "6", "10", "11"]
     known_differences_if_goal: {"11": justified_alpha}
@@ -406,7 +405,7 @@ forms:
 
   E2:
     methods_name: "an independent-samples t-test"
-    departures: ["9", "15"]
+    departures: ["15"]
     known_differences_if_method: {"5": mann_whitney, "6": bayes_factor, "10": minimum_effect}
     known_differences: ["5", "6", "10", "11"]
     known_differences_if_goal: {"11": justified_alpha}
@@ -506,7 +505,7 @@ forms:
 
   E3:
     methods_name: "a paired-samples t-test"
-    departures: ["9", "15"]
+    departures: ["15"]
     known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
     known_differences: ["5", "6", "10", "11"]
     known_differences_if_goal: {"11": justified_alpha}
@@ -578,7 +577,7 @@ forms:
 
   E4:
     methods_name: "a Pearson correlation"
-    departures: ["9", "10", "15"]
+    departures: ["10", "15"]
     known_differences: ["11", "12"]
     known_differences_if_goal: {"11": justified_alpha}
     known_differences_if_method: {"12": bayes_factor}
@@ -621,11 +620,11 @@ forms:
           - {id: r_sd, label: "How unsure you are about the correlation, as an SD (0 = exactly this correlation)", type: number, path: population.r_sd, required: true, min: 0,
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the correlation you entered, as a usual power analysis does (docs/conventions.md, Departure 15)",
-             help: "Above 0, powerkit averages over correlations spread around yours (a stretched beta design prior with this SD): the study's assurance."}
+             help: "Above 0, powerkit averages over correlations spread around yours (a stretched beta design prior with this SD): the average power over your uncertainty."}
 
   E5:
     methods_name: "a test of two proportions (z test)"
-    departures: ["9", "11", "5", "15"]
+    departures: ["11", "5", "15"]
     tool: pwr
     sensitivity: true
     sensitivity_without_effect: true
@@ -666,7 +665,7 @@ forms:
           - {id: p_sd, label: "How unsure you are about each group's proportion, as an SD (0 = exactly these proportions)", type: number, path: population.p_sd, required: true, min: 0,
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the proportions you entered, as a usual power analysis does (docs/conventions.md, Departure 15)",
-             help: "Above 0, powerkit averages over proportions spread around yours in each group (a beta design prior with this SD): the study's assurance."}
+             help: "Above 0, powerkit averages over proportions spread around yours in each group (a beta design prior with this SD): the average power over your uncertainty."}
     # Known differences that apply only with one test version.
     known_differences_if_method: {"2": fisher_exact, "13": bayes_factor}
     known_differences: ["2", "13"]
@@ -679,7 +678,7 @@ forms:
   E6:
     sides: false
     methods_name: "a chi-square test of independence"
-    departures: ["9", "5"]
+    departures: ["5"]
     tool: pwr
     sensitivity: true
     sensitivity_without_effect: true
@@ -2444,7 +2443,7 @@ forms:
           - {id: p_sd, label: "How unsure you are about the proportion, as an SD (0 = exactly this proportion)", type: number, path: population.p_sd, required: true, min: 0,
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the proportion you entered, as a usual power analysis does (docs/conventions.md, Departure 15)",
-             help: "Above 0, powerkit averages over proportions spread around yours (a beta design prior with this SD): the study's assurance."}
+             help: "Above 0, powerkit averages over proportions spread around yours (a beta design prior with this SD): the average power over your uncertainty."}
 
   E26:
     methods_name: "an exact McNemar's test"

@@ -220,15 +220,14 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_match(html, "base R's formula, stats::power.prop.test(), no simulation", fixed = TRUE)
   expect_match(html, "Seed: 5.", fixed = TRUE)
   expect_no_match(html, "Calculated by simulation with", fixed = TRUE)
-  expect_match(html, "Calculated with a formula", fixed = TRUE)          # Departure 9
+  expect_no_match(html, "Calculated with a formula", fixed = TRUE)       # Departure 9, retired 7 November 2026
   expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
   expect_match(html, "Historical design-level note", fixed = TRUE)                       # basic chunk rerun after #42
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
   # Departures that change the answer stay in view, with a pointer from the
-  # answer; the ones that don't (9, 11) are folded.
+  # answer; the ones that don't (11) are folded.
   expect_match(html, "slightly different answer for this design", fixed = TRUE)
   minor <- regmatches(html, regexpr("result-departures-minor.*?</details>", html))
-  expect_match(minor, "Calculated with a formula", fixed = TRUE)
   expect_match(minor, "the z test as G*Power runs it", fixed = TRUE)
   expect_no_match(minor, "No continuity correction", fixed = TRUE)
   expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
@@ -637,7 +636,12 @@ test_that("the write-up states the test, alpha, power and its reason, the effect
   expect_match(w[["short"]], sprintf("%s participants are needed in total (%s per group)", n, n / 2), fixed = TRUE)
   expect_match(w[["short"]], sprintf("pwr (version %s", calc$result$provenance$packages[["pwr"]]), fixed = TRUE)
   expect_no_match(w[["short"]], "supplement|depart", ignore.case = TRUE)
-  expect_match(w[["full"]], "Departures from the established tools' defaults: Calculated with a formula", fixed = TRUE)
+  # Using pwr's formula is not a departure (Departure 9, retired), and the
+  # evidence record is not part of the paragraph; powerkit is named as a
+  # prototype until 1.0.
+  expect_no_match(w[["full"]], "Departures from the established tools' defaults", fixed = TRUE)
+  expect_no_match(w[["full"]], "Evidence registry|SHA-256|Software agreement")
+  expect_match(w[["full"]], "a prototype in development whose results are not yet fully validated", fixed = TRUE)
   expect_match(w[["full"]], calc$result$provenance$spec_hash, fixed = TRUE)
   expect_no_match(paste(w, collapse = " "), "noncentrality|critical value", ignore.case = TRUE)
 })

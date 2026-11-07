@@ -1814,11 +1814,11 @@ bayes_sentence <- function(spec, result) {
   k <- format(b$evidence_threshold)
   c(
     if (b$effect_sd > 0) sprintf(paste(
-      if (is_bayes_binomial(spec) || is_bayes_proportions(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the study's assurance:" else
-      if (is_bayes_correlation(spec)) "This averages over true correlations spread around yours with an SD of %s (a stretched beta design prior), so it is the study's assurance:" else
-      "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the study's assurance:",
+      if (is_bayes_binomial(spec) || is_bayes_proportions(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the average power over your uncertainty:" else
+      if (is_bayes_correlation(spec)) "This averages over true correlations spread around yours with an SD of %s (a stretched beta design prior), so it is the average power over your uncertainty:" else
+      "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the average power over your uncertainty:",
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
-      "(O'Hagan, Stevens and Campbell, 2005)."), format(b$effect_sd)),
+      "(O'Hagan, Stevens and Campbell, 2005, call this assurance)."), format(b$effect_sd)),
     if (!is.null(b$null_nrep)) sprintf(
       "If there were no association, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an association %s of the time (from %s simulated studies with no association).",
       whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence), whole(b$null_nrep)
@@ -1926,15 +1926,18 @@ provenance_lines <- function(result) {
     sprintf("Packages: %s", paste(sprintf("%s %s", names(p$packages), p$packages), collapse = ", ")),
     sprintf("Check run (does the backend reproduce your population?): %s", if (all(result$check_run$ok)) "passed" else "failed"),
     sprintf("Run time: %.1f seconds", p$run_time_seconds),
-    simulation_outcome_text(result),
-    evidence_lines(p$evidence)
+    simulation_outcome_text(result)
   )
 }
 
 welch_population_note <- function(spec) {
   if (!identical(spec$template, "independent_t") || !identical(spec$target_test$method, "welch_t")) return(NULL)
   ratio <- spec$population$sd_ratio %||% 1
-  sprintf("Welch planning assumes normal scores, with group 2's population SD %s times group 1's. The standardised mean difference uses sqrt((SD1 squared + SD2 squared) / 2), independent of allocation. Equal spread is an assumption when the ratio is 1. Simulation uses these same stated spreads.", format(ratio))
+  if (isTRUE(all.equal(as.numeric(ratio), 1))) {
+    return("Welch planning assumes normal scores with equal population SDs in the two groups; Welch's test does not rely on that equality when the data are analysed.")
+  }
+  sprintf("Welch planning assumes normal scores, with group 2's population SD %s times group 1's. The standardised mean difference uses sqrt((SD1 squared + SD2 squared) / 2), independent of allocation.%s", format(ratio),
+    if (identical(spec$options$method, "simulation")) " The simulation uses these same SDs." else "")
 }
 
 simulation_outcome_text <- function(result) {
@@ -2228,7 +2231,7 @@ writeup_effect <- function(fields, values) {
       rows <- trimws(strsplit(value, "\n", fixed = TRUE)[[1]])
       value <- paste0("(", rows[nzchar(rows)], ")", collapse = ", ")
     }
-    label <- f$writeup_label %||% f$label
+    label <- writeup_field_label(f)
     if (identical(f$id, "d") && identical(values$method, "welch_t") &&
         !blank(values$welch_sd_ratio) && isTRUE(parse_number(values$welch_sd_ratio) != 1)) {
       label <- "standardised mean difference (RMS SD)"
@@ -2236,6 +2239,21 @@ writeup_effect <- function(fields, values) {
     out <- c(out, sprintf("%s = %s", label, value))
   }
   if (length(out)) paste(out, collapse = "; ") else NULL
+}
+
+# A field's name as it reads inside a sentence: its writeup_label, else its
+# screen label without the screen's hints (ranges such as "(0 to 1)",
+# notes in brackets, explanations after a colon), starting lower case
+# unless it starts with a name or an abbreviation (Cohen's d, SD).
+writeup_field_label <- function(f) {
+  if (!is.null(f$writeup_label)) return(f$writeup_label)
+  label <- f$label %||% f$id
+  label <- sub("\\s*\\((0 to 1|for a |for an |0 when |per SD|one value )[^)]*\\)\\s*$", "", label)
+  label <- sub(":\\s*(how |one |\\().*$", "", label)
+  if (grepl("^(Correlation|Mean|Path|Proportions?|Residual|Standardised|Odds|Difference|Expected|Number)\\b", label)) {
+    label <- paste0(tolower(substr(label, 1, 1)), substring(label, 2))
+  }
+  label
 }
 
 writeup_sides <- function(spec) {
@@ -2263,6 +2281,16 @@ writeup_alpha <- function(a) sub("^0\\.", ".", format(signif(a, 3)))
 
 writeup_quote <- function(x) sprintf("“%s”", trimws(gsub("\\s+", " ", as.character(x))))
 
+# powerkit as named in exported text. Until version 1.0 every export says
+# that powerkit is a prototype, since text copied out of the app loses the
+# app's own banner (decided 7 November 2026).
+powerkit_cited <- function(version) {
+  version <- as.character(version %||% "unknown")
+  major <- suppressWarnings(as.integer(sub("\\..*$", "", version)))
+  if (!is.na(major) && major >= 1) return(sprintf("powerkit (version %s)", version))
+  sprintf("powerkit (version %s, a prototype in development whose results are not yet fully validated)", version)
+}
+
 writeup_software <- function(result, full = FALSE) {
   p <- result$provenance
   how <- if (simulated(result)) {
@@ -2272,8 +2300,8 @@ writeup_software <- function(result, full = FALSE) {
     "by formula (no simulation)"
   }
   fun <- if (grepl("(", p$backend_function, fixed = TRUE)) p$backend_function else paste0(p$backend_function, "()")
-  s <- sprintf("Power was calculated %s, with the R package %s (version %s; %s), set up by powerkit (version %s) in %s.",
-    how, p$backend, p$packages[[p$backend]], fun, p$packages[["powerkit"]], p$r_version)
+  s <- sprintf("Power was calculated %s, with the R package %s (version %s; %s), set up by %s in %s.",
+    how, p$backend, p$packages[[p$backend]], fun, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   if (full) {
     s <- paste(s, sprintf("Seed: %s. Spec hash: %s. Check that the backend reproduces the population entered: %s.",
       p$seed, p$spec_hash, if (all(result$check_run$ok)) "passed" else "failed"))
@@ -2330,6 +2358,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  if (identical(spec$design, "survival")) {
+    name <- switch(spec$target_test$method %||% "",
+      log_rank = "a time-to-event analysis (the log-rank test)",
+      cox_regression = "a time-to-event analysis (a Cox regression)", name)
+  }
   if (isTRUE(spec$target_test$method %in% c("zero_inflated_poisson", "zero_inflated_negative_binomial"))) {
     name <- sprintf("a zero-inflated %s regression (%s, %s%% extra zeros%s), simulated",
       if (identical(spec$target_test$method, "zero_inflated_poisson")) "Poisson" else "negative binomial",
@@ -2542,10 +2575,13 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size")) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
   }
+  # Departure 3 (Superpower's exact dataset built under the run's seed, a
+  # difference of about 1e-15) stays on the result screen but not in the
+  # paper's paragraph (decided 7 November 2026; docs/conventions.md).
+  departures <- departures[setdiff(names(departures), "3")]
   full <- paste(c(
     paste(c(main, interval, recruit_line, claim), collapse = " "),
     writeup_software(result, full = TRUE),
-    paste(evidence_lines(result$provenance$evidence), collapse = " "),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
   ), collapse = "\n\n")
@@ -2629,7 +2665,7 @@ ethics_text <- function(spec, result, fields, values) {
   if (identical(spec$template, "its")) body <- its_units(body, spec)
   if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
   p <- result$provenance
-  paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
+  paste(c(body, sprintf("The calculation was made with %s and the R package %s (version %s) and can be reproduced from the saved plan.", powerkit_cited(p$packages[["powerkit"]]),
     p$backend, p$packages[[p$backend]])), collapse = " ")
 }
 
@@ -2779,8 +2815,8 @@ precision_writeup <- function(form, spec, result, fields, values) {
   }
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, we will recruit %s.", percent_attrition(recruit$attrition), whole(recruit$n_recruit))
-  software <- sprintf("The calculation used the R package %s (version %s; %s()), set up by powerkit (version %s) in %s.",
-    p$backend, p$packages[[p$backend]], pr$function_used, p$packages[["powerkit"]], p$r_version)
+  software <- sprintf("The calculation used the R package %s (version %s; %s()), set up by %s in %s.",
+    p$backend, p$packages[[p$backend]], pr$function_used, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
   full <- paste(c(short, sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
   ethics <- paste(c(
@@ -2789,7 +2825,7 @@ precision_writeup <- function(form, spec, result, fields, values) {
     sprintf("With this many, the range of plausible values the study reports (its %s) is expected to be about %s wide, which we judged narrow enough to be informative. Fewer people would give a wider, less informative range.",
       interval, precision_number(pr$width)),
     basis,
-    sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.", p$backend, p$packages[[p$backend]])
+    sprintf("The calculation was made with %s and the R package %s (version %s) and can be reproduced from the saved plan.", powerkit_cited(p$packages[["powerkit"]]), p$backend, p$packages[[p$backend]])
   ), collapse = " ")
   c(short = short, full = full, ethics = ethics)
 }

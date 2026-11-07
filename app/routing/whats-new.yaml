@@ -5,6 +5,15 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-07"
+    title: "Clearer methods paragraphs and planning documents"
+    text: >-
+      The methods paragraph now keeps to the methods: the record of checks
+      moves to its own section of the planning document, written in words,
+      and every export says powerkit is a prototype until version 1.0. The
+      whole-study paragraph states the means or paths it assumed, and
+      About says what this browser remembers between visits and how to
+      clear it.
   - date: "2026-11-06"
     title: "Plan a whole experiment in one go"
     text: >-

@@ -26,10 +26,12 @@ decision_rule_text <- function(spec) {
   if (identical(spec$design, "equivalence_test")) return("Equivalence/non-inferiority decision relative to the stated bounds and selected test; a non-significant ordinary test does not establish equivalence.")
   if (identical(spec$target_test$method, "minimum_effect")) return("Minimum-effect decision: the effect exceeds the stated worthwhile threshold in the chosen direction. The expected population effect and threshold are separate assumptions.")
   if (identical(spec$target_test$method, "bayes_factor")) return("Bayes factor evidence decision using the stated prior and evidence threshold, rather than a p-value significance rule.")
-  paste("Selected significance test at alpha", spec$target_test$alpha,
-    "with alternative", gsub("_", " ", spec$target_test$alternative %||% "two_sided"),
-    if (identical(spec$design, "sem")) "; distinguish the selected model-fit hypothesis from a target path/correlation." else
-      "; rejection concerns the selected null hypothesis, not proof of practical importance or of the scientific theory.")
+  sides <- c(two_sided = "two-sided", greater = "one-sided (greater)", less = "one-sided (less)")
+  alternative <- spec$target_test$alternative %||% "two_sided"
+  side <- if (alternative %in% names(sides)) sides[[alternative]] else gsub("_", " ", alternative)
+  paste0("A significance test at alpha = ", spec$target_test$alpha, ", ", side, ". ",
+    if (identical(spec$design, "sem")) "Overall model fit and a particular path or correlation are different hypotheses; the plan tests the one selected." else
+      "A significant result rejects the selected null hypothesis; it does not show that the effect matters in practice or that the theory is true.")
 }
 
 # Build from the calculation's captured answers, never the live input boxes.
@@ -47,7 +49,7 @@ planning_document <- function(tree, forms, calc) {
   assumption <- function(f) {
     value <- as.character(values[[f$id]])
     if (identical(f$type, "select")) value <- f$choices[[value]] %||% value
-    paste0("- ", f$label, ": ", value)
+    paste0("- ", writeup_field_label(f), ": ", value)
   }
   units <- sample_description(spec)
   text <- if (identical(spec$design, "precision")) precision_writeup(forms$forms[[id]], spec, result, fields, values) else
@@ -57,7 +59,7 @@ planning_document <- function(tree, forms, calc) {
       known = known_differences_for(forms, id, spec))
   alternatives <- named_alternative_lines(values, fields)
   c("# Study planning decision document", "",
-    "Planning draft for review. This file does not register a preregistration or guarantee the assumptions are correct.", "",
+    sprintf("Planning draft for review, made with %s. This file does not register a preregistration or guarantee the assumptions are correct.", powerkit_cited(result$provenance$packages[["powerkit"]])), "",
     "## Scientific question", if (blank(values$research_question)) "Not recorded." else values$research_question, "",
     "## Analysis and decision", tree$endpoints[[id]]$plain_name %||% tree$endpoints[[id]]$doc_name,
     decision_rule_text(spec),
@@ -70,7 +72,8 @@ planning_document <- function(tree, forms, calc) {
     planning_recruitment_lines(result, units), "",
     "## Alternatives considered", alternatives, "",
     "## Result and methods", unname(text["full"]), "",
-    "## Evidence and provenance", provenance_lines(result), "",
+    "## Validation evidence", evidence_reader_lines(result$provenance$evidence), "",
+    "## Reproducibility record", provenance_lines(result), "",
     "Keep the matching project file for the complete structured specification, raw-to-derived conversions and machine-readable result. Review these assumptions and the selected decision rule before using the plan.")
 }
 
