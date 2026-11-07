@@ -1955,7 +1955,7 @@ endpoints:
     doc_name: "Several outcomes compared across groups (MANOVA, one or two factors; Hotelling's T-squared for two groups)"
     plain_name: "Do two or more groups differ on several outcomes at once?"
     template: "basic_test / manova"
-    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, sections 5.3.4 and 5.4). PERMANOVA: Spower with powerkit's p_permanova() experiment around vegan's adonis2(), by simulation"
+    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution. PERMANOVA: Spower with powerkit's p_permanova() experiment around vegan's adonis2(), by simulation"
     method: "Simulation (three or more groups) or formula (two groups)"
     status: runs_validation_in_progress
     validation: {file: test-validation-manova.R, note: "With two groups it matches Hotelling's T-squared computed exactly (pwrss); with three it matches a simulation written separately, recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own examples."}
@@ -1974,7 +1974,7 @@ endpoints:
     doc_name: "Several outcomes in one group compared with fixed values (one-sample Hotelling's T-squared)"
     plain_name: "Does one group differ from fixed values on several outcomes at once?"
     template: "basic_test / hotelling_one"
-    backend: "powerkit's formula with base R's stats::pf(): Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, section 5.4); Spower's simulation with powerkit's p_hotelling_one() experiment on request"
+    backend: "powerkit's formula with base R's stats::pf(): Hotelling's T-squared by its noncentral F distribution; Spower's simulation with powerkit's p_hotelling_one() experiment on request"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
     validation: {file: test-backend-hotelling-exact.R, note: "Gives the same power as pwrss's generic noncentral F test and agrees with Spower's simulation of the same test (31 October 2026). Not yet checked against G*Power's own example."}

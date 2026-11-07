@@ -4,7 +4,7 @@
 A unified power analysis tool for research studies (built with psychology's
 designs in mind, but not only for psychology: never describe it to users as
 a psychology tool; docs/decisions.md, 5 November 2026). One design specification format,
-routed to validated R backends (Spower, power4mome, Superpower, InteractionPoweR),
+routed to established R backends (Spower, power4mome, Superpower, InteractionPoweR),
 with a Shiny front end (design finder, design forms, full-model builder,
 confirmation screen, results and exports). An optional AI assistant comes last.
 Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present).
@@ -104,8 +104,11 @@ to read small.
   way. Until then, make the best method decision the literature supports,
   as if no later review were coming: never defer, simplify or skip a
   design, a method question or a validation because a statistician will
-  check it later. Cards still say "validation in progress" until their
-  published checks are in, because that is what users need to know.
+  check it later. "Validated" has one meaning, the validation log's
+  (docs/validation-log.md, "What 'validated' means"): a card says
+  "validation in progress" until a recorded full run of its design meets
+  that definition, because that is what users need to know. Published
+  examples are added as the maintainer transcribes them.
 - Build each design properly the first time when that saves coming back
   to it (every variant researchers commonly need, with its validation),
   rather than a small first version; split it into several PRs by

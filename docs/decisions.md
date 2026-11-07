@@ -5729,3 +5729,34 @@ the site stays findable by search engines.
   guided plan (the plan's screening sends three or more conditions per
   person elsewhere), three factors, unequal groups in a design with a
   within factor, pairwise comparisons and contrasts as analyses.
+
+## 2026-11-07 · What exports say: prototype status, methods only, one meaning of "validated"
+
+- **Why:** the project review of 7 November 2026 found the methods
+  paragraph carrying the evidence registry's codes, exports that did not
+  say powerkit is a prototype, the whole-study paragraph without its
+  effect sizes, references in user text that were not in `refs.bib`, and
+  two meanings of "validated". The maintainer agreed the fixes.
+- **Exports:** every exported sentence that names powerkit says "a
+  prototype in development whose results are not yet fully validated"
+  until version 1.0 (`powerkit_cited()`), since text copied out of the
+  app loses its banner. The evidence record moves out of the methods
+  paragraph into a worded "Validation evidence" section of the planning
+  document.
+- **Departures:** Departure 9 (the basic tests' formula) is retired, as
+  it departs from no established tool, only from powerkit's own earlier
+  default; its comparison stays under "Not departures, but worth stating"
+  in `docs/conventions.md`. Departure 3 (about 1e-15) stays on the result
+  screen and leaves the methods paragraph, which names only departures
+  that can change a number.
+- **References:** each author-year reference shown to users is either in
+  `refs.bib`, opened by its DOI, or a package's `citation()`, or is taken
+  out of user text. Seven were added; Anderson (2003), a textbook with no
+  DOI, is cited in the engine's source comments only. A test in the app
+  suite (`test-user-references.R`) keeps it that way.
+- **"Validated":** one meaning, the validation log's ("What 'validated'
+  means"), in CLAUDE.md, the README and status.md.
+- **Assurance:** power averaged over a design prior is called "the
+  average power over your uncertainty"; "assurance" in precision planning
+  keeps its meaning (the chance the interval is narrow enough).
+

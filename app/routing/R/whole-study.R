@@ -457,7 +457,7 @@ whole_study_outcomes <- function(r) {
   if (!is.null(r$joint) && !is.null(r$joint$failed)) {
     a <- rbind(a[, c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability")],
       as.data.frame(r$joint[c("attempted", "valid", "failed", "successful", "conditional_power", "successful_study_probability")]))
-    labels <- c(labels, paste("Joint", r$joint$rule, "criterion"))
+    labels <- c(labels, if (identical(r$joint$rule, "all")) "The chance that every main analysis was significant" else "The chance that at least one main analysis was significant")
   }
   a$n <- r$n
   a$denominator <- ifelse(a$failed > 0, "valid", "all_valid")
@@ -477,7 +477,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
   experiment <- identical(pv$backend, "Superpower")
   show_joint <- !is.null(joint) && !identical(r$claim, "each")
   methods <- whole_study_methods(r)
-  methods_full <- paste(methods, sprintf("Spec hash: %s. Check run (n = 100,000): %s.", pv$spec_hash,
+  methods_full <- paste(whole_study_methods(r, full = TRUE), sprintf("Spec hash: %s. Check run (n = 100,000): %s.", pv$spec_hash,
     if (all(r$check_run$ok)) "passed" else "failed"))
   # As on every result: the answer, each analysis, then saving and how it
   # was calculated.
@@ -565,7 +565,34 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
   )
 }
 
-whole_study_methods <- function(r) {
+# The population the simulation assumed, in words, so that a reader can
+# judge or reproduce it: cell means and SD for an experiment, the
+# standardised paths and correlations for a path model.
+whole_study_population_text <- function(r) {
+  values <- r$models$population_values %||% ""
+  if (identical(r$provenance$backend, "Superpower")) {
+    m <- regmatches(values, regexec("^Cell means \\(Superpower's order, ([^)]*)\\): ([^;]*); SD: ([^;]*)(; correlation: (.*))?$", values))[[1]]
+    if (length(m) == 0) return(sprintf("The assumed population was: %s. ", values))
+    return(sprintf("The assumed population had cell means of %s (in Superpower's order, %s) and an SD of %s%s. ",
+      m[3], m[2], m[4], if (nzchar(m[6])) sprintf(", with a correlation of %s between a person's repeated measurements", m[6]) else ""))
+  }
+  lines <- trimws(strsplit(values, "\n", fixed = TRUE)[[1]])
+  lines <- lines[nzchar(lines)]
+  if (length(lines) == 0) return("")
+  words <- vapply(lines, function(l) {
+    if (grepl("^M1 ~~ M2: ", l)) return(sprintf("residual covariance of M1 and M2 %s", sub("^M1 ~~ M2: ", "", l)))
+    if (grepl(" ~~ ", l, fixed = TRUE)) {
+      m <- regmatches(l, regexec("^(\\S+) ~~ (\\S+): (.*)$", l))[[1]]
+      return(sprintf("correlation of %s and %s %s", m[2], m[3], m[4]))
+    }
+    m <- regmatches(l, regexec("^(\\S+) ~ (\\S+): (.*)$", l))[[1]]
+    if (length(m) == 0) return(l)
+    sprintf("%s to %s %s", gsub(":", " x ", m[3], fixed = TRUE), m[2], m[4])
+  }, character(1), USE.NAMES = FALSE)
+  sprintf("The assumed population values (standardised) were: %s. ", paste(words, collapse = "; "))
+}
+
+whole_study_methods <- function(r, full = FALSE) {
   a <- r$analyses
   pv <- r$provenance
   lower_first <- function(x) paste0(tolower(substr(x, 1, 1)), substr(x, 2, nchar(x)))
@@ -575,27 +602,33 @@ whole_study_methods <- function(r) {
   twice <- any(vapply(r$implied, function(i) "r_B_Y" %in% names(i$values), logical(1)))
   baseline <- if (twice) "Each person was measured twice, and every analysis adjusted the second measurement of the outcome for the first, as an analysis of covariance does. " else ""
   joint <- if (!is.null(r$joint) && !identical(r$claim, "each")) sprintf(
-    " The proportion of simulated studies in which %s was %s.",
-    if (r$joint$rule == "all") "every main analysis was significant" else "at least one main analysis was significant",
+    " The study's claim needs %s to be significant: the chance that %s was significant in the same simulated study was %s.",
+    if (r$joint$rule == "all") "every main analysis" else "at least one main analysis",
+    if (r$joint$rule == "all") "every main analysis" else "at least one main analysis",
     percent(r$joint$power)) else ""
+  # Counts of simulated studies that could not be analysed go in the full
+  # version only, and only when some failed.
+  failed <- ("failed" %in% names(a) && any(a$failed > 0)) || isTRUE(r$joint$failed > 0)
+  failures <- if (full && failed) paste(whole_study_outcomes(r), collapse = " ") else ""
+  population <- whole_study_population_text(r)
   if (identical(pv$backend, "Superpower")) {
-    return(paste(sprintf(paste0(
-      "Power was estimated by simulating the whole experiment (powerkit %s, experimental) with the R package Superpower %s (ANOVA_power(), ANOVAs fitted by afex %s). ",
-      "The expected cell means, SD%s generated %s data sets of N = %s; every planned F test was read from the same ANOVA of each data set at alpha = %s%s. ",
+    return(trimws(paste(sprintf(paste0(
+      "Power was estimated by simulating the whole experiment (%s; the whole-study simulation is experimental) with the R package Superpower %s (ANOVA_power(), ANOVAs fitted by afex %s). ",
+      "%sThis population generated %s data sets of N = %s; every planned F test was read from the same ANOVA of each data set at alpha = %s%s. ",
       "Estimated power was %s.%s Random seed %s."),
-      pv$packages[["powerkit"]], pv$packages[["Superpower"]], pv$packages[["afex"]],
-      if (grepl("w", r$models$population)) " and correlation" else "", whole(pv$nrep), whole(r$n), format(r$alpha),
+      powerkit_cited(pv$packages[["powerkit"]]), pv$packages[["Superpower"]], pv$packages[["afex"]],
+      population, whole(pv$nrep), whole(r$n), format(r$alpha),
       if (identical(r$claim, "any")) " divided by the number of main analyses (Bonferroni)" else "",
-      powers, joint, pv$seed), paste(whole_study_outcomes(r), collapse = " ")))
+      powers, joint, pv$seed), failures)))
   }
-  paste(sprintf(paste0(
-    "Power was estimated by simulating the whole study (powerkit %s, experimental) with the R package power4mome %s. ",
+  trimws(paste(sprintf(paste0(
+    "Power was estimated by simulating the whole study (%s; the whole-study simulation is experimental) with the R package power4mome %s. ",
     "One population model, specified as standardised paths, generated %s data sets of N = %s; each planned analysis was fitted to every data set with its own model ",
     "(regressions by ordinary least squares; mediation models in lavaan, with indirect effects tested by Monte Carlo confidence intervals) at alpha = %s%s. ",
-    "%sEstimated power was %s.%s Random seed %s."),
-    pv$packages[["powerkit"]], pv$packages[["power4mome"]], whole(pv$nrep), whole(r$n), format(r$alpha),
+    "%s%sEstimated power was %s.%s Random seed %s."),
+    powerkit_cited(pv$packages[["powerkit"]]), pv$packages[["power4mome"]], whole(pv$nrep), whole(r$n), format(r$alpha),
     if (identical(r$claim, "any")) " divided by the number of main analyses (Bonferroni)" else "",
-    baseline, powers, joint, pv$seed), paste(whole_study_outcomes(r), collapse = " "))
+    population, baseline, powers, joint, pv$seed), failures))
 }
 
 # Experiments: the screen asks for the levels of each factor, the cell

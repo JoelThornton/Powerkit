@@ -23,7 +23,7 @@ interaction_grid.
 
 A design is marked validated (`status: runs_validated` in
 `app/routing/tree.yaml`, a green "Runs in powerkit" card; "Yes" in table
-2.3 of `docs/decision-tree.md`; "Working" in the README) when a full run
+2.3 of `docs/decision-tree.md`; "validated" in the README) when a full run
 of its chunk, recorded in this log, shows all of the following:
 
 1. **No failures or errors.** The only skips allowed are published-value

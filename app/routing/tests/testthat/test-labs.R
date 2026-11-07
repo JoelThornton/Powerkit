@@ -373,7 +373,7 @@ test_that("Bayesian planning shows the engine's outcomes under the belief and wi
   expect_match(refusal, "^The sample size should be")
   expect_match(bayes_problem(simpleError("subscript out of bounds")), "something went wrong", fixed = TRUE)
   # With uncertainty about the effect, the chance is named assurance, with its source.
-  expect_match(text, "the study's assurance", fixed = TRUE)
+  expect_match(text, "the average power over your uncertainty", fixed = TRUE)
   expect_match(text, "O'Hagan", fixed = TRUE)
   expect_no_match(as.character(bayes_numbers(plan_of(120, effect = 0.5))), "assurance", fixed = TRUE)
 })

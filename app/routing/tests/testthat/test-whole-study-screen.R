@@ -184,6 +184,15 @@ test_that("the result shows each analysis, the joint power for the claim, the im
   expect_match(html, "Methods paragraph", fixed = TRUE)
   expect_match(html, "power4mome", fixed = TRUE)
   expect_match(html, "experimental)", fixed = TRUE)
+  # The paragraph states the population, words the joint power as the
+  # claim, names powerkit as a prototype and leaves out failure counts
+  # when none failed.
+  methods <- whole_study_methods(calc$result)
+  expect_match(methods, "The assumed population values (standardised) were: X to Y 0.2", fixed = TRUE)
+  expect_match(methods, "correlation of X and W -0.2", fixed = TRUE)
+  expect_match(methods, "The study's claim needs every main analysis to be significant", fixed = TRUE)
+  expect_match(methods, "a prototype in development", fixed = TRUE)
+  expect_no_match(methods, "Joint all criterion|studies attempted")
   # Laid out like every result: section links, the joint chance as the big
   # figure, each analysis's power as a bar, and a methods paragraph to copy.
   expect_match(html, "result-sections", fixed = TRUE)

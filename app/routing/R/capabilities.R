@@ -16,6 +16,30 @@ evidence_lines <- function(record) {
     sprintf("Evidence registry %s; record %s; SHA-256 %s.", record$registry_version, record$record_id, record$registry_sha256))
 }
 
+# The same record for a reader of the planning document: what was checked,
+# in words, with the registry's identifiers last.
+evidence_reader_lines <- function(record) {
+  if (!is.list(record) || !isTRUE(record$format_version == 1))
+    return("No record of the checks behind this analysis was saved with this result.")
+  labels <- c(package_agreement = "Agreement with other software", independent = "Agreement with an independent calculation",
+    published = "Agreement with a published example", full_validation = "Large simulation check of the method")
+  states <- c(recorded = "checked on the example cases recorded in the validation log",
+    scoped_only = "checked only in limited settings",
+    pending = "a published benchmark is still to be transcribed",
+    not_linked = "no record yet, so how well it is covered is unknown",
+    outside_scope = "your settings fall outside the cases that were checked")
+  c("These checks cover representative cases, not every value you could enter. powerkit is a prototype until version 1.0, and a statistician's review of its methods is still to come.",
+    vapply(names(labels), function(k) {
+      item <- record$categories[[k]]
+      state <- unname(states[item$status %||% "not_linked"])
+      if (length(state) != 1 || is.na(state)) state <- "status not recognised"
+      note <- trimws(item$note %||% "")
+      paste0("- ", labels[[k]], ": ", state, ".", if (nzchar(note)) paste0(" ", note) else "")
+    }, "", USE.NAMES = FALSE),
+    paste("Cases covered:", record$scope),
+    sprintf("(Evidence record %s, registry version %s.)", record$record_id, record$registry_version))
+}
+
 evidence_ui <- function(record, title = "Evidence for this analysis variant") {
   tags$details(class = "result-validation small",
     tags$summary(title),

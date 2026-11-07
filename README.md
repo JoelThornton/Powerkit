@@ -61,41 +61,45 @@ An optional AI assistant may come last.
 > yet.** Most published-value checks are still to come, and the interface
 > may change.
 
-The app lists every analysis it knows, about 60, from **runs in powerkit
-(validated)** and **runs, validation in progress** to **coming soon** and
-**not in powerkit yet** (those cards point to the tools that do the job).
-The ones that run, and the package each one uses:
+The app lists every analysis it knows: 70 that run and a few that are
+not in powerkit yet (those cards point to the tools that do the job). An
+analysis that runs is marked either **validated** or **validation in
+progress**. Validated has one meaning, the one defined at the top of the
+[validation log](docs/validation-log.md): a recorded full run of its checks
+agrees with the package that computes it and with analytic results, and
+keeps the Type I error rate. Published examples are added as they are
+transcribed, so a validated analysis may not have one yet. The analyses
+that run, and the packages they use:
 
-| Family | Analyses | Package |
+| Family | Analyses | Packages |
 | --- | --- | --- |
-| t-tests | one sample, paired, two groups (Student's or Welch's), with the rank-based and Bayes factor versions | pwr, pwrss, Spower, bfpwr |
-| Correlations and proportions | Pearson's r; two independent or two dependent correlations; one or two proportions, Fisher's exact test, McNemar's test; chi-square tests of independence and goodness of fit | pwr, pwrss |
-| Variances | one variance against a value, two groups' variances | Spower (simulation) |
-| ANOVA | one-way (between or within; Welch's F and the Kruskal-Wallis test as options), 2 x 2 and larger factorial designs (between, within or mixed, with the MANOVA approach beside the F), three factors, planned contrasts, ANCOVA | Superpower, pwrss, Spower |
-| Regression | multiple regression R², logistic and Poisson regression, interactions between two scores | pwrss, InteractionPoweR |
-| Mediation | simple, parallel and serial mediation; first- and second-stage moderated mediation (PROCESS models 4, 6, 7 and 14) | power4mome (simulation) |
-| Clustered designs | cluster-randomised and multisite trials, score or yes/no outcome | powertools |
-| Equivalence and non-inferiority | equivalence (TOST) for two groups, paired, one sample, a correlation, two proportions; non-inferiority for two groups, paired, one sample, two proportions | TOSTER, pwrss |
-| Structural equation models | model fit (RMSEA), measurement invariance (across groups or over time), factor correlations, latent regression | semPower |
+| t-tests | one sample, paired, two groups (Student's or Welch's), with the rank-based, Bayes factor and minimum-effect versions | pwr, pwrss, Spower, bfpwr |
+| Correlations and proportions | Pearson's r and the rank correlations; two independent or two dependent correlations; one or two proportions, Fisher's exact test, McNemar's test; chi-square tests of independence and goodness of fit; a trend in proportions | pwr, pwrss, Spower, BayesFactor |
+| Variances | one variance against a value, two groups' variances (by formula, as the G\*Power manual gives them), paired variances | base R, Spower |
+| ANOVA | one-way (between or within; Welch's F, the Kruskal-Wallis and Jonckheere-Terpstra tests and the Bayes factor as options), factorial designs with two or three factors (between, within or mixed, with the aligned rank transform), planned contrasts, ANCOVA, MANOVA and Hotelling's T-squared | Superpower, pwrss, Spower |
+| Regression | multiple regression, logistic, multinomial, ordinal, Poisson, negative binomial and zero-inflated regression; interactions between scores or with groups, and three-way interactions | pwrss, InteractionPoweR, powertools, Spower |
+| Mediation | simple, parallel and serial mediation; moderated mediation (PROCESS models 7, 14, 58, 59 and more); X or W as two groups; pairs of people (the actor-partner model) | power4mome |
+| Multilevel and longitudinal | cluster-randomised and multisite trials; people in groups, and groups in larger groups; many items or stimuli per person; growth curves; cross-lagged panels; interrupted time series | powertools, simr, longpower, powRICLPM, PITS |
+| Equivalence and non-inferiority | two one-sided tests for means, a correlation and two proportions; non-inferiority | TOSTER, pwrss |
+| Latent variables and measurement | structural equation models (model fit, measurement invariance, factor correlations and paths), exploratory factor analysis, latent profiles, differential item functioning, reliability and rater agreement, signal detection (d') | semPower, WebPower, psych, mclust, irtpwr, ICC.Sample.Size, statpsych, kappaSize |
+| Other designs | time-to-event outcomes (log-rank test, Cox regression), meta-analysis, precision planning for a confidence-interval width | Hmisc, powerSurvEpi, metafor, metapower, MBESS, presize |
 | Generic tests | t, F, chi-square and z from a noncentrality parameter | pwrss |
 
-What "validated" means is defined at the top of the
-[validation log](docs/validation-log.md); where each design stands, and
-what comes next, is in [`docs/status.md`](docs/status.md).
+Each card names the exact functions it calls. Where each design stands,
+and what comes next, is in [`docs/status.md`](docs/status.md).
 
 For each design except the generic tests, powerkit can find the sample
-size that reaches a target power, or the power at a given sample size. For the t-tests, Pearson's r,
-two proportions, the chi-square test of independence, the 2 x 2 ANOVAs,
-regression interactions and clustered designs it can also find the
-smallest effect you could detect at a given sample size. Power is computed
-by formula where one exists, and by simulation otherwise (mediation, the
-variance tests, the rank-based tests and Welch's F) or on request.
+size that reaches a target power, or the power at a given sample size;
+most can also find the smallest effect you could detect at a given sample
+size, including every ANOVA and regression. Power is computed by formula
+where one exists, and by simulation otherwise or on request. A
+whole-study planner simulates several analyses of one study together.
 
 ## Try the app (no R experience needed)
 
 Open <https://joelthornton-powerkit.share.connect.posit.cloud> in a
-browser: nothing to install. It is a prototype; results are not yet
-validated, so don't use them for real studies.
+browser: nothing to install. It is a prototype; its results are not yet
+fully validated, so don't use them for real studies.
 
 To run it on your own computer instead, follow [`docs/run-it-yourself.md`](docs/run-it-yourself.md): install R,
 download this repository as a ZIP, and run one line,

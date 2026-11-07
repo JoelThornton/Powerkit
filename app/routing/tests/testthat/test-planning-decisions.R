@@ -89,6 +89,12 @@ test_that("assumption sources and named nuisance alternatives survive draft and 
   calc$route <- route
   doc <- paste(planning_document(tree, forms, calc), collapse = "\n")
   for (word in c(v$research_question, "Equal groups", "assumed", calc$result$provenance$spec_hash, "not register a preregistration")) expect_match(doc, word, fixed = TRUE)
+  # Readers' wording: a prototype until 1.0, the checks in words in their own
+  # section, and no registry codes or screen-only labels in the methods text.
+  for (word in c("a prototype in development", "## Validation evidence", "## Reproducibility record", "A significance test at alpha = 0.05, two-sided."))
+    expect_match(doc, word, fixed = TRUE)
+  methods <- sub("## Validation evidence.*$", "", sub("^.*## Result and methods", "", doc))
+  expect_no_match(methods, "Evidence registry|SHA-256|Software agreement")
   comparison <- compare_named_alternatives(forms, "E2", fields, v)
   expect_equal(nrow(comparison), 2)
   expect_false(identical(comparison$value[1], comparison$value[2]))
