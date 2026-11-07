@@ -24,6 +24,7 @@ source(file.path(routing_dir, "R", "labs.R"), local = FALSE)
 source(file.path(routing_dir, "R", "study-variation.R"), local = FALSE)
 source(file.path(routing_dir, "R", "map.R"), local = FALSE)
 source(file.path(routing_dir, "R", "connection.R"), local = FALSE)
+source(file.path(routing_dir, "R", "documents.R"), local = FALSE)
 tree <- load_tree(file.path(routing_dir, "tree.yaml"))
 forms <- load_forms(file.path(routing_dir, "forms.yaml"))
 # As in app.R: cards for end points that calculate.

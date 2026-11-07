@@ -34,6 +34,13 @@ fully validated. Validation runs are recorded in
   the result page is long. An AI walkthrough is no substitute for the
   human sessions in `usability-session-pack.md`.
 
+- **Documents:** the pre-replication notes and the study-planning document
+  save as a typeset PDF (through the browser's print window), an editable
+  Word .docx and Markdown (`R/documents.R`). The pre-replication notes
+  become the document for where the user landed: a negative
+  pre-replication report, or a pre-replication section for the
+  replication (Karhulahti et al., 2025).
+
 - **Validation checkpoints:** source/lock/installed-package/R fingerprints
   prevent old saved passes being reused for a different calculation context.
   Independent test shards retain test identities, seeds and replication counts.

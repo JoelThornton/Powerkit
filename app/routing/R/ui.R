@@ -241,7 +241,7 @@ share_page_ui <- function() {
 # with ?page= opens that page.
 nav_js <- "
   Shiny.addCustomMessageHandler('calculation_current', function(current) {
-    document.querySelectorAll('#download_project, #download_planning_document, #plan_add').forEach(function(el) {
+    document.querySelectorAll('#download_project, #download_planning_document, #download_planning_docx, #planning_document_button, #plan_add').forEach(function(el) {
       el.classList.toggle('disabled', !current);
       el.setAttribute('aria-disabled', current ? 'false' : 'true');
       if (el.tagName === 'BUTTON') el.disabled = !current;
