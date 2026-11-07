@@ -1,3 +1,19 @@
+# powerkit 0.35.1
+
+* The example spec `process_7.json` runs again: it gave the moderator a
+  reliability, which moderated mediation doesn't offer yet, so running it
+  stopped with "not available yet". A test now checks that every bundled
+  mediation example asks only for what the mediation route offers.
+* Validation on GitHub: tests are dealt to a chunk's parts by their
+  recorded or estimated time, longest first, instead of by position, so
+  the longest whole-study tests no longer share a part and run out of time;
+  the whole-study chunk runs one test at a time on four cores, as the
+  mediation chunks do. Each run saves the time every test took
+  (`validation-results/timings.csv`), lists the tests that failed or did
+  not run at the top of its summary, and names the commit it checked. The
+  scheduled run ends with one list, on its summary page, of every test
+  that needs attention.
+
 # powerkit 0.35.0
 
 * The smallest detectable effect for every equal-groups ANOVA layout

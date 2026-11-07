@@ -9,6 +9,33 @@ test_that("validation shards cover the original test catalogue exactly once", {
   expect_error(runner$validation_shard(tests, 1, 0), "positive whole")
 })
 
+test_that("validation parts are dealt by estimated time, longest first", {
+  runner <- new.env()
+  sys.source(file.path(repo_dir, "scripts", "run-validation.R"), runner)
+  # Dealt by position, the two longest tests (rows 1 and 5) would share part 1.
+  tests <- data.frame(id = 1:8, estimate = c(400, 10, 10, 10, 190, 150, 10, 10))
+  parts <- lapply(1:4, function(i) runner$validation_shard(tests, i, 4))
+  expect_setequal(unlist(lapply(parts, `[[`, "id")), tests$id)
+  expect_equal(parts[[1]]$id, 1L)
+  expect_equal(parts[[2]]$id, 5L)
+  expect_lte(max(vapply(parts, function(p) sum(p$estimate), numeric(1))), 400)
+  # The same tests are dealt the same way on every call (the run and its
+  # summary step must agree).
+  expect_identical(runner$validation_shard(tests, 3, 4), runner$validation_shard(tests, 3, 4))
+})
+
+test_that("every recorded validation time names a test that exists", {
+  runner <- new.env()
+  sys.source(file.path(repo_dir, "scripts", "run-validation.R"), runner)
+  recorded <- runner$validation_recorded_minutes(repo_dir)
+  expect_gt(nrow(recorded), 0)
+  expect_true(all(recorded$minutes > 0))
+  tests <- runner$validation_tests(repo_dir, paste(unique(recorded$chunk), collapse = ","))
+  missing <- setdiff(paste(recorded$chunk, recorded$test, sep = " / "), paste(tests$chunk, tests$test, sep = " / "))
+  expect_equal(missing, character())
+  expect_false(anyDuplicated(paste(recorded$chunk, recorded$test)) > 0)
+})
+
 test_that("failed or unfinished validation cannot exit as a successful run", {
   runner <- new.env()
   sys.source(file.path(repo_dir, "scripts", "run-validation.R"), runner)

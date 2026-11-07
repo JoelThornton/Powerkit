@@ -15,6 +15,20 @@ test_that("every bundled example spec is valid", {
   }
 })
 
+# Valid is not enough: an example that asks for something powerkit doesn't
+# offer yet (process_7 once gave W a reliability) fails as soon as it runs.
+test_that("every bundled mediation example asks only for what power4mome's route offers", {
+  for (name in example_spec_names()) {
+    spec <- validate_spec(example_spec(name))
+    if (!spec$design %in% c("mediation", "moderated_mediation")) next
+    result <- tryCatch({
+      check_power4mome_supported(spec)
+      "offered"
+    }, error = conditionMessage)
+    expect_identical(result, "offered", label = name)
+  }
+})
+
 test_that("there is an example for every template", {
   templates <- vapply(example_spec_names(), function(n) example_spec(n)$template, character(1))
   expect_setequal(unique(templates), c(

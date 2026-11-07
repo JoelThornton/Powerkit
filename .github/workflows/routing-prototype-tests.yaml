@@ -1,6 +1,7 @@
 # Tests for the routing prototype (app/routing/), on every pull request and
 # on pushes to main (a pull request's own pushes are covered by its
-# pull_request runs, so they aren't tested twice). The job runs in the CI
+# pull_request runs, so they aren't tested twice). A pull request that
+# changes only documentation runs only the tests that read it. The job runs in the CI
 # image (ci-image.yaml): R and the package versions in renv.lock are
 # already installed, so the app is tested with the versions recorded there. See docs/routing-prototype.md.
 name: routing-prototype-tests
@@ -21,6 +22,40 @@ permissions:
   contents: read
 
 jobs:
+  # Whether a pull request changes only documentation: files under docs/
+  # and Markdown files at the top of the repository (README.md, CLAUDE.md).
+  # Then only the app tests that read those files run (docs-tests below),
+  # in place of the whole suite and the browser tests, since nothing the
+  # app runs has changed. Pushes to main and manual runs always run
+  # everything.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docs_only: ${{ steps.diff.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Does this pull request change only documentation?
+        id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          docs_only=false
+          if [ "$EVENT" = "pull_request" ]; then
+            base="$(git merge-base "origin/$BASE_REF" HEAD 2>/dev/null || true)"
+            if [ -n "$base" ]; then
+              changed="$(git diff --name-only "$base" HEAD)"
+              if [ -n "$changed" ] && ! printf '%s\n' "$changed" | grep -qvE '^(docs/.*|[^/]+\.md)$'; then
+                docs_only=true
+              fi
+            fi
+          fi
+          echo "Documentation only: $docs_only"
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+
   image:
     uses: ./.github/workflows/ci-image.yaml
     permissions:
@@ -28,7 +63,8 @@ jobs:
       packages: write
 
   browser-tests:
-    needs: image
+    needs: [changes, image]
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -46,8 +82,8 @@ jobs:
       LC_ALL: C.UTF-8
       CI: "true"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "24"
           cache: npm
@@ -59,7 +95,7 @@ jobs:
           node app/routing/walkthroughs/node_modules/playwright/cli.js install --with-deps chromium
       - name: Check calculations, files, precision, cancellation and navigation in Chromium
         run: node app/routing/walkthroughs/node_modules/playwright/cli.js test --config app/routing/walkthroughs/playwright.config.js
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: browser-regression-report
@@ -72,7 +108,8 @@ jobs:
   # exported scripts and takes about two thirds of the time, and every
   # other test file. Together they are the whole suite.
   app-tests:
-    needs: image
+    needs: [changes, image]
+    if: needs.changes.outputs.docs_only != 'true'
     name: app-tests (${{ matrix.part }})
     strategy:
       fail-fast: false
@@ -104,7 +141,7 @@ jobs:
       # this makes them run.
       NOT_CRAN: "true"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # The input screens check specs with the engine's validate_spec()
       # (read-only). Install the engine so those tests run here instead of
@@ -122,15 +159,50 @@ jobs:
           testthat::test_dir("app/routing/tests/testthat", filter = "^results$",
             invert = ${{ matrix.invert }}, stop_on_failure = TRUE)
 
+  # For a documentation-only pull request: the app tests that read docs/
+  # or the top-level Markdown files (the docs-match checks, the queue and
+  # status checks in repo consistency, the maintainer decisions, the
+  # routing audit's misroutes and the wording rules).
+  docs-tests:
+    needs: [changes, image]
+    if: needs.changes.outputs.docs_only == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ${{ needs.image.outputs.image }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      RENV_ACTIVATE_PROJECT: "FALSE"
+      NOT_CRAN: "true"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install the engine
+        run: Rscript -e 'utils::install.packages("engine", repos = NULL, type = "source", lib = .libPaths()[1])'
+      - name: Run the app tests that read the documentation
+        env:
+          POWERKIT_APP_TESTS_NEED_ENGINE: "true"
+        shell: Rscript {0}
+        run: |
+          testthat::test_dir("app/routing/tests/testthat",
+            filter = "^(docs-match|repo-consistency|maintainer-decisions|misroutes|wording)$",
+            stop_on_failure = TRUE)
 
   app-review-gate:
     if: ${{ always() }}
-    needs: [image, app-tests, browser-tests]
+    needs: [changes, image, app-tests, browser-tests, docs-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {contents: read}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Verify gate failure and skip handling
         run: python3 scripts/test-required-checks.py
       - name: Require successful prerequisite jobs
