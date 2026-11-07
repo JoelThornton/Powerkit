@@ -5662,6 +5662,29 @@ the site stays findable by search engines.
 - **Not covered yet:** a breakpoint estimated from the data, several
   series, a control series, and other error structures than AR(1).
 
+## 2026-11-06 · The smallest detectable effect for every ANOVA layout and for regression
+
+- **What:** the sensitivity goal, decided first-class in judgement call G9,
+  now reaches the one-way, mixed, factorial and three-factor ANOVAs
+  (E18, E20, E21, E54, E55, E56) and multiple regression (E24).
+- **ANOVAs:** the rule the 2x2 designs already used: keep the pattern of
+  means entered and scale its deviations from the grand mean until the
+  effect tested reaches the target power by Superpower's exact
+  calculation. A code comment had left the one-way designs out ("which
+  pattern to scale is not settled yet"); scaling the researcher's own
+  pattern is the only choice that needs no pattern powerkit would have to
+  invent. The result gives Cohen's f and the largest difference between
+  the scaled means. Unequal cells and pairwise tests, which are simulated,
+  still have no sensitivity goal.
+- **Regression:** pwrss's `power.f.regression()` searched over the partial
+  R-squared (no new formula); for R-squared against 0 it agrees with
+  pwr's `pwr.f2.test()`. No effect size is needed, so the screen offers
+  "I don't know my effect size"; an empty R-squared with all the
+  predictors means no increase.
+- **Why now:** a first-time-user pass (status.md) found the "I don't know
+  my effect size" route only on the basic tests, while the ANOVAs and
+  regression are among the commonest analyses.
+
 ## 2026-11-06 · Whole-study simulation: experiments analysed with a factorial ANOVA
 
 - **Why:** the whole-study simulation covered a measured predictor or two

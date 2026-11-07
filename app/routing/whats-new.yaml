@@ -15,6 +15,28 @@ entries:
       interaction, and the chance that both come out significant in the
       same study.
   - date: "2026-11-06"
+    title: "Not sure of your effect size? ANOVAs and regression too"
+    text: >-
+      Every ANOVA screen can now work out the smallest effect your sample
+      could detect: enter the pattern of means you expect and powerkit
+      scales it. Multiple regression can do it with no effect size at all,
+      through the "I don't know my effect size" button.
+  - date: "2026-11-06"
+    title: "Pre-replication reports, and documents as PDF or Word"
+    text: >-
+      The pre-replication notes in Labs now turn into the document that fits
+      where you landed: a short negative pre-replication report if the
+      finding isn't worth replicating, or a pre-replication section for
+      your replication if you go ahead or change the plan. These and the
+      planning document on a result save as a proper PDF (press the PDF
+      button, then "Save as PDF") or as a Word document you can edit.
+      Before, printing gave a picture of powerkit's screen.
+  - date: "2026-11-06"
+    title: "Links to Labs open properly"
+    text: >-
+      Opening a link straight to a Labs tool left the "Starting powerkit"
+      screen covering the page. It now goes as soon as the app is ready.
+  - date: "2026-11-06"
     title: "Interrupted time series"
     text: >-
       powerkit can now plan a study of one series measured over time, such
