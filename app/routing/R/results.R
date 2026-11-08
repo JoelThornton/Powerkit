@@ -2736,7 +2736,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (!is.null(telescopes)) {
     name <- sprintf(paste0("a small-telescopes replication test (Simonsohn, 2015): a one-sided test of whether the effect is smaller ",
       "than %s, the effect the original study (%s) had 33%% power to detect (%s), computed with pwrss"),
-      telescope_effect_text(telescopes), telescope_original_text(telescopes), sub("^pwr::", "pwr's ", telescopes$function_used))
+      telescope_effect_text(telescopes), telescope_original_text(telescopes), sub("^pwr[:]+", "pwr's ", telescopes$function_used))
   }
   if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   equivalence <- identical(spec$design, "equivalence_test")
