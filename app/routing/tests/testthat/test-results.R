@@ -1697,6 +1697,38 @@ test_that("safeguard power: the form asks for the earlier study's size, and the 
   expect_null(plain$effect_justification$safeguard)
 })
 
+test_that("small telescopes: a replication is planned against the original's d33, on the result and in the write-up", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E2"))
+  use <- Filter(function(f) identical(f$id, "sg_use"), fields)[[1]]
+  expect_true("telescopes" %in% names(use$choices))
+  # Offered for a published study, not a pilot.
+  expect_identical(use$choices_shown_if$telescopes, list(list(field = "just_type", is = "prior_study")))
+  values <- modifyList(form_examples$E2, list(just_type = "prior_study", just_source = "The original study", sg_use = "telescopes",
+    st_n1 = 20, st_n2 = 20, goal = "sample_size", power = 0.8))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_equal(spec$effect_justification$small_telescopes$n1, 20)
+  expect_null(spec$effect_justification$safeguard)
+  expect_null(spec$effect_justification$adjustment)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_equal(calc$result$n_required$n, 102)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, "the replication needs 102 participants in total", fixed = TRUE)
+  expect_match(html, "small-telescopes test (Simonsohn, 2015)", fixed = TRUE)
+  expect_match(html, "d33 = 0.496", fixed = TRUE)
+  text <- paste(writeup_text(forms$forms$E2, spec, calc$result, fields, values), collapse = " ")
+  expect_match(text, "small-telescopes replication test (Simonsohn, 2015)", fixed = TRUE)
+  expect_match(text, "its size does not enter the plan", fixed = TRUE)
+  ethics <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)[["ethics"]]
+  expect_match(ethics, "the possibility that the effect is zero", fixed = TRUE)
+  expect_no_match(ethics, "We are planning for an effect of", fixed = TRUE)
+  # The correlation card offers it too.
+  e4 <- form_fields(form_groups(forms, "E4"))
+  expect_true("st_n" %in% vapply(e4, `[[`, "", "id"))
+})
+
 test_that("effect-size conversion: the form offers each card's forms, and the engine converts them", {
   # The app offers the forms the engine converts from.
   for (template in names(conversion_choices)) {

@@ -497,7 +497,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
       # less precise, so it gets the same question.
       list(id = "just_adjustment", label = "How you adjusted it", help = "One study's effect tends to be too large: published ones through publication bias, pilots because they are small. For example, halved, or the lower end of its confidence interval. If you kept it as it was, say so and why.",
            type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
-           shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes")))
+           shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
+             list(field = "sg_use", is_not = "telescopes")))
     ), safeguard_fields(form$base$template))),
     # A single time series has no participants to lose (`no_attrition`).
     if (!isTRUE(form$generic) && !meta && !isTRUE(form$no_attrition)) list(input = NULL, title = "Participants you expect to lose", fields = list(
@@ -533,15 +534,30 @@ safeguard_fields <- function(template) {
   using <- list(from_one_study, list(field = "sg_use", is = "yes"))
   size_field <- function(id, label, min) list(id = paste0("sg_", id), label = label, type = "number", integer = TRUE, min = min,
     required = TRUE, path = paste0("effect_justification.safeguard.", id), shown_if = using)
+  # Small telescopes (Simonsohn, 2015), for a replication of a published
+  # study: the original's sample size sets d33, the effect it could detect
+  # a third of the time.
+  telescoping <- list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is = "telescopes"))
+  original_field <- function(id, label, min) list(id = paste0("st_", id), label = label, type = "number", integer = TRUE, min = min,
+    required = TRUE, path = paste0("effect_justification.small_telescopes.", id), shown_if = telescoping)
   c(list(
-    list(id = "sg_use", label = "Plan with the safeguard effect size?", type = "select", default = "no",
+    list(id = "sg_use", label = "How to plan from this one study", type = "select", default = "no",
          help = paste("One study's estimate is uncertain, and may be too large. Safeguard power plans with the lower end of a",
                       "confidence interval around it instead, so the study is protected if the true effect is smaller (Perugini, Gallucci & Costantini, 2014).",
-                      "Enter the earlier study's effect size above as it was reported."),
-         choices = list(no = "No: plan with the effect size as it is", yes = "Yes: use the safeguard effect size"),
+                      "For a replication, small telescopes plans the study to test whether the effect is smaller than the original study could have",
+                      "detected (Simonsohn, 2015). Enter the earlier study's effect size above as it was reported."),
+         choices = list(no = "Plan with the effect size as it is", yes = "Use the safeguard effect size",
+                        telescopes = "This is a replication: plan it by small telescopes"),
+         choices_shown_if = list(telescopes = list(list(field = "just_type", is = "prior_study"))),
+         choice_notes = list(telescopes = paste("The replication is planned to show, if the true effect is zero, that the effect is smaller than d33:",
+           "the effect the original study had a one-in-three chance to detect. That needs about 2.5 times the original sample.",
+           "The test is Student's t-test (or the correlation's test), whichever version you chose above, so it matches the original;",
+           "report Welch's test beside it if the groups' spreads may differ.")),
          shown_if = from_one_study)),
     if (identical(sizes, "n")) list(size_field("n", "How many people the earlier study had", 4))
     else list(size_field("n1", "People in group 1 of the earlier study", 2), size_field("n2", "People in group 2 of the earlier study", 2)),
+    if (identical(sizes, "n")) list(original_field("n", "How many people the original study had", 4))
+    else list(original_field("n1", "People in group 1 of the original study", 2), original_field("n2", "People in group 2 of the original study", 2)),
     list(list(id = "sg_protection", label = "Protection against the estimate being too large", type = "number",
          help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one.",
          path = "effect_justification.safeguard.protection", required = TRUE, default = 0.8, min_exclusive = 0.5, max_exclusive = 1,

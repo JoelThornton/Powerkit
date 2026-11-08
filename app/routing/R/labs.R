@@ -122,6 +122,46 @@ labs_sde <- function(forms, ep_id, n, power = "0.8", alpha = "0.05", p1 = NULL,
   calc
 }
 
+# Small telescopes (Simonsohn, 2015) for the t-tests and the correlation:
+# d33, the effect the original study could detect a third of the time, and
+# the replication's sample size to show the effect is smaller than d33 if
+# the true effect is zero. Built through the input screen's own fields,
+# as labs_sde() is; the effect entered only sets the direction. Returns
+# run_calculation()'s list, or NULL for a test small telescopes doesn't
+# cover or an entry the panel has already refused.
+labs_telescope_tests <- c("E1", "E2", "E3", "E4")
+
+labs_telescopes <- function(forms, ep_id, n, alpha = "0.05", run = engine_function("run_spec")) {
+  if (!isTRUE(ep_id %in% labs_telescope_tests)) return(NULL)
+  total <- suppressWarnings(as.integer(trimws(as.character(n %||% ""))))
+  if (length(total) != 1 || is.na(total) || total < 4) return(NULL)
+  fields <- unlist(lapply(form_groups(forms, ep_id, 2L, list()), `[[`, "fields"), recursive = FALSE)
+  values <- list()
+  for (f in fields) if (!is.null(f[["default"]])) values[[f$id]] <- as.character(f[["default"]])
+  sizes <- if (identical(ep_id, "E2")) list(st_n1 = as.character(total %/% 2), st_n2 = as.character(total - total %/% 2)) else list(st_n = as.character(total))
+  effect <- switch(ep_id, E3 = list(dz = "0.5"), E4 = list(r = "0.3"), list(d = "0.5"))
+  values <- utils::modifyList(values, c(list(
+    X_label = "Group", X_level1 = "Group 1", X_level2 = "Group 2", Y_label = "Outcome", W_label = "Second measure",
+    goal = "sample_size", power = "0.8", alpha = as.character(alpha %||% ""), alternative = "two_sided",
+    just_type = "prior_study", just_source = "The original study", sg_use = "telescopes"), effect, sizes))
+  if (length(form_problems(fields, values))) return(NULL)
+  spec <- build_spec(forms, ep_id, fields, values)
+  calc <- run_calculation(spec, run = run, seed = forms$default_seed)
+  if (!identical(calc$status, "ok")) return(NULL)
+  calc
+}
+
+labs_telescope_sentence <- function(calc) {
+  if (is.null(calc)) return(NULL)
+  st <- calc$result$small_telescopes
+  n <- calc$result$n_required$n
+  sprintf(paste0("Small telescopes (Simonsohn, 2015): the original study had a one-in-three chance to detect %s = %s. ",
+    "To have 80%% power to show the effect is smaller than that, if the true effect is zero, a replication needs %s ",
+    "participants in total, about %s times the original sample. When you replicate, run the test the original used ",
+    "(for example Student's t-test or the classical F test) so the two can be compared, and report Welch's version beside it."),
+    st$effect_name, format(round(st$effect, 3), nsmall = 2), n, format(round(n / st$original_n, 1), nsmall = 1))
+}
+
 labs_sde_problems <- function(ep_id, n, power, alpha, p1, rows, cols) {
   num <- function(x) suppressWarnings(as.numeric(trimws(as.character(x %||% ""))))
   is_whole <- function(x, min) { v <- num(x); !is.na(v) && v == round(v) && v >= min }

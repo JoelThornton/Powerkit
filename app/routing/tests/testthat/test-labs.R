@@ -49,6 +49,22 @@ test_that("the smallest detectable effect matches the engine's own sensitivity",
   expect_equal(labs_sde(forms, "E1", "")$status, "problems")
 })
 
+test_that("the smallest-effect panel adds small telescopes for the t-tests and the correlation", {
+  skip_if(is.null(engine_function("run_spec")), "needs powerkit's engine")
+  # 40 in total in two groups: d33 = 0.496, and 102 for the replication.
+  calc <- labs_telescopes(forms, "E2", "40")
+  expect_equal(calc$result$n_required$n, 102)
+  text <- labs_telescope_sentence(calc)
+  expect_match(text, "d33 = 0.496", fixed = TRUE)
+  expect_match(text, "a replication needs 102 participants in total, about 2.5 times", fixed = TRUE)
+  expect_match(text, "run the test the original used", fixed = TRUE)
+  for (ep in labs_telescope_tests) expect_equal(labs_telescopes(forms, ep, "60")$status, "ok", info = ep)
+  # Not for proportions or tables, and nothing for a missing size.
+  expect_null(labs_telescopes(forms, "E5", "60"))
+  expect_null(labs_telescopes(forms, "E1", ""))
+  expect_null(labs_telescope_sentence(NULL))
+})
+
 test_that("the notes follow where the user landed", {
   answers <- list(labs_finding = "Priming changes walking speed", labs_goals = "Theory test")
   go <- labs_markdown(answers, "go", citation = "CITATION", date = as.Date("2026-10-20"))

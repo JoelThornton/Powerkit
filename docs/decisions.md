@@ -6084,3 +6084,26 @@ the site stays findable by search engines.
 - **Still the classical F test:** the experimental whole-study plan's
   factorial experiments, which simulate every effect of one Superpower
   design together; Welch's F has no factorial form there.
+
+## 2026-11-08 · Small telescopes for replications
+
+- **Decided with the review (7 November 2026):** offer Simonsohn's (2015)
+  small-telescopes plan beside safeguard power on the t-test and
+  correlation cards (`next.md`, R13), and in the Labs pre-replication
+  notes.
+- **How, without new maths:** no R package plans a small-telescopes
+  replication (RSmallTelescopes 1.0.4 analyses one that is finished), so
+  powerkit composes it from pwr (d33: the effect the original study had
+  33% power to detect) and pwrss (the replication's one-sided test of
+  whether the effect is smaller than d33, for a true effect of 0, as a
+  test against a margin). The answers match Simonsohn's rule of thumb of
+  about 2.5 times the original sample (`conventions.md`, "Small
+  telescopes for replications").
+- **Student's test:** the replication's test is Student's t-test, as in
+  the method and the original studies it is usually applied to, whatever
+  version the card has selected; the card's note says to report Welch's
+  test beside it. The Labs panel says to run the test the original used.
+- **What it doesn't do:** it plans the test of d33 only. Power to detect
+  the original effect, if it is real, is a separate plan, and the result
+  says so.
+

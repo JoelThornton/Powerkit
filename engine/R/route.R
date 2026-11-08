@@ -27,6 +27,11 @@ route_spec <- function(spec, seed = NULL) {
   if (eta_squared_anova(spec)) {
     return(pwrss_backend(spec, seed))
   }
+  # Small telescopes: the replication's one-sided test against the
+  # original's d33 (or r33), by pwrss's formula (small-telescopes.R).
+  if (identical(spec$design, "basic_test") && small_telescopes_test(spec)) {
+    return(telescope_backend(spec, seed))
+  }
   switch(
     key,
     "factorial_anova/2x2_between" = if (bffactorial_test(spec)) {
