@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.49.0). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.50.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -33,8 +33,9 @@ rules are in `CLAUDE.md`.
   release"). A check of every review finding against what merged
   (8 November) found a few left: the small ones are fixed, and the
   larger ones are `next.md` items 15 to 20. Effects that vary between
-  studies are on the t-test cards (8 November). Next: the queue in
-  `next.md`, and a Bayes mode (item 21, waiting on a decision).
+  studies are on the t-test cards, and an opt-in Bayes mode is on the
+  start screen (8 November). Next: the queue in `next.md`; the rest of
+  Bayes mode (item 21) waits on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
@@ -64,6 +65,9 @@ rules are in `CLAUDE.md`.
   fifteen designs, with JASP's default priors; p-value results of the
   exact ones offer "Add a Bayes factor?", and Bayes factor t-test results
   show three prior widths, a sequential plan and an uncertain effect.
+  Bayes mode, an opt-in switch on the start screen, opens every card on
+  its Bayes factor version and asks how unsure the user is about the
+  effect instead of assuming 0.
   Informed priors wait on a bfpwr fault (`upstream-questions.md`).
 
 - **Effect sizes:** the commonest cards take what researchers have: a

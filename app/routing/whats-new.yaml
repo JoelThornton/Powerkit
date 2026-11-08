@@ -8,6 +8,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Bayes mode"
+    text: >-
+      If you will analyse with Bayes factors, turn on Bayes mode on the start
+      screen. Every design with a Bayes factor version then opens with it
+      chosen, and a design without one says so. Instead of assuming the
+      effect is exactly the one you enter, Bayes mode asks how unsure you are
+      about it, so the plan averages over the effects you think plausible.
+      It stays on until you close the tab, and you can still choose a
+      p-value on any card.
+  - date: "2026-11-08"
     title: "Effects that vary between studies, on the t-test cards"
     text: >-
       The one-sample, two-group and paired t-test cards can now allow for a
