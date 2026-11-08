@@ -65,11 +65,12 @@ jobs:
             echo "engine=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # engine/NEWS.md and the Version line of engine/DESCRIPTION
+          # engine/NEWS.md, the change notes in engine/news.d/ and the
+          # Version line of engine/DESCRIPTION
           # change in almost every PR and nothing the check or the engine's
           # tests run depends on them; the app's tests check that the
           # version, NEWS.md and CITATION.cff agree.
-          changed="$(git diff --name-only "$base" HEAD | grep -vx 'engine/NEWS.md' || true)"
+          changed="$(git diff --name-only "$base" HEAD | grep -vx 'engine/NEWS.md' | grep -v '^engine/news\.d/' || true)"
           if printf '%s\n' "$changed" | grep -qx 'engine/DESCRIPTION'; then
             other="$(git diff -U0 "$base" HEAD -- engine/DESCRIPTION | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ' | grep -vE '^[+-]Version:' || true)"
             if [ -z "$other" ]; then

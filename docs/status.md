@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.44.0). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.45.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -16,11 +16,13 @@ rules are in `CLAUDE.md`.
 - **Review fixes (7 November 2026):** a review of the whole project found
   no wrong number and nothing critical, and grouped 21 serious problems
   and about 110 smaller ones into fix batches at the top of
-  [`next.md`](next.md). Ten batches are done: validation runs that finish
-  and report, what the app says, design-finder routes, the draft box and
-  page structure, effect-size guidance, speed, whole-study planning, input
-  screens, Labs, and docs and start-up reading. Next: change notes without
-  catch-up merges, Welch's test by default, small telescopes for
+  [`next.md`](next.md). Eleven batches are done: validation runs that
+  finish and report, what the app says, design-finder routes, the draft
+  box and page structure, effect-size guidance, speed, whole-study
+  planning, input screens, Labs, docs and start-up reading, and change
+  notes that no longer need catch-up merges (each pull request writes its
+  own note files; `scripts/close-batch.R` sets the version when a batch
+  closes). Next: Welch's test by default, small telescopes for
   replications, and keeping the review's scripts.
 
 - **What calculates:** 70 of the 76 cards run in the app (`tree.yaml`'s

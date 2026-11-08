@@ -48,13 +48,17 @@ Every box ticked, in one PR:
    size papers usually report for that analysis (as G\*Power asks for it),
    or a published statistic converted into it, besides any more detailed
    input the backend needs. If that isn't possible, the card says why.
-6. A plain-words entry is in `app/routing/whats-new.yaml` — no internal
-   codes, name the analysis. `test-whats-new.R` checks the shape of
+6. A plain-words entry is in a new file of its own in
+   `app/routing/whats-new.d/` ("Change notes and version numbers" below)
+   — no internal codes, name the analysis. `test-whats-new.R` checks the shape of
    entries (date, title, text, newest first, no codes) but **cannot tell
    that you wrote one**: that box is on the author, so say in the PR
    description which entry you added.
-7. `engine/DESCRIPTION` has the batch's version ("Version numbers" below)
-   and `engine/NEWS.md` has its entry (*test:* the version agreement test).
+7. Its developer note is in a new file of its own in `engine/news.d/`,
+   and the pull request that finishes the batch gives the notes their
+   version with `scripts/close-batch.R` ("Change notes and version
+   numbers" below; *test:* the version agreement test and the change-note
+   checks in `test-repo-consistency.R`).
 8. [`status.md`](status.md) and [`coverage-roadmap.md`](coverage-roadmap.md)
    say where it now stands (*test:* `test-repo-consistency.R` keeps the
    roadmap's summary counts honest).
@@ -230,21 +234,19 @@ result screen and the methods paragraph say so.
 
 ## 6. Tell the user
 
-- `app/routing/whats-new.yaml`: one entry, newest first, in the words a
-  psychologist would use. No E-numbers, no "Departure 6".
-- `engine/DESCRIPTION`: the batch's version (see below: the first pull
-  request of a batch raises it, the rest keep it), and `CITATION.cff` (at
-  the repository root, not in `engine/`) with it.
-- `engine/NEWS.md`: the developer-facing entry.
+- `app/routing/whats-new.d/<topic>.yaml`: the Updates entry, in the words
+  a researcher would use. No E-numbers, no "Departure 6".
+- `engine/news.d/<topic>.md`: the developer-facing entry.
+- The version: only in the pull request that finishes the batch, by
+  `scripts/close-batch.R` (below).
 - [`status.md`](status.md): where the project now is, replacing the old
   entry rather than adding to it.
 
 ## 7. Before you finish
 
-- The engine's tests and R CMD check in `engine/`: both clean (the
-  commands are in `CLAUDE.md`, "Before finishing any task").
-- The app's suite: `testthat::test_dir("tests/testthat")` in
-  `app/routing/`.
+- The tests for what you changed and `test-repo-consistency.R` pass
+  locally, and the pull request's required checks pass (`CLAUDE.md`,
+  "Before finishing any task").
 - Read the eight boxes again. The tests catch a missed card, a missed
   Updates entry, a stale roadmap count and a version out of step —
   but not a card that says the wrong thing.
@@ -269,16 +271,56 @@ The number is major.minor.patch, and each part means something:
   the maintainer wants in it) or changing what the site runs on. This is
   the maintainer's call.
 
-In practice: the first pull request of a batch sets the next number in
-`engine/DESCRIPTION`, `CITATION.cff` and a new `engine/NEWS.md` heading;
-the rest of the batch keep that number and add their entries under the
-same heading. Never reserve a number ahead for a pull request that isn't
-in the current batch: parallel pull requests that each took their own
-number are how 0.4.0 became 0.8.0 in about a day. The Updates tab is
-dated rather than numbered, so users still see each change as it lands.
-Once main moves on to the next number, a workflow tags the finished
-version (`v0.34.1`) and publishes it as a GitHub release with its NEWS
-section (`scripts/tag-releases.sh`); nobody tags by hand.
+In practice, see "Change notes and version numbers" below: notes wait in
+files of their own, and the pull request that finishes a batch sets the
+number once. Never reserve a number ahead for work that isn't in the
+current batch: parallel pull requests that each took their own number are
+how 0.4.0 became 0.8.0 in about a day. Once main moves on to the next
+number, a workflow tags the finished version (`v0.34.1`) and publishes it
+as a GitHub release with its NEWS section (`scripts/tag-releases.sh`);
+nobody tags by hand.
+
+## Change notes and version numbers
+
+Until November 2026 every pull request edited the top of `engine/NEWS.md`,
+`whats-new.yaml`, `DESCRIPTION` and `CITATION.cff`, so almost every one
+needed a catch-up merge from main and another round of checks. Since
+0.45.0 (decided 7 November 2026) each pull request writes its notes as
+new files of its own, which never conflict:
+
+- `engine/news.d/<topic>.md`: the developer notes, as the Markdown
+  bullets that will go under the version's heading in `NEWS.md`.
+- `app/routing/whats-new.d/<topic>.yaml`: the Updates entries, written
+  exactly as in `whats-new.yaml` (an `entries:` list, each with a date, a
+  title and text). The app shows them on the Updates tab as soon as they
+  are on main.
+
+Name the files after the change (`welch-default.md`), not the branch, so
+two pull requests never pick the same name. A pull request that changes
+nothing users or developers would notice writes neither.
+
+The pull request that finishes a batch (the last of a thread's queue
+item, or a lone fix) runs, from the repository root:
+
+```sh
+Rscript scripts/close-batch.R minor   # a batch of features: 0.44.0 -> 0.45.0
+Rscript scripts/close-batch.R patch   # fixes only: 0.44.0 -> 0.44.1
+```
+
+It sets the number in `engine/DESCRIPTION` and `CITATION.cff`, puts every
+waiting engine note under one `# powerkit X.Y.Z` heading at the top of
+`NEWS.md`, moves every waiting Updates entry to the top of
+`whats-new.yaml`, and deletes the files it used. Every note waiting on
+main joins that version, including another thread's, which is right:
+they are all in the code that version names. Between closes, results
+record the previous number with their spec hash and seed, so close a
+batch as soon as its last pull request is ready rather than letting notes
+pile up. Since that one pull request is the only one to change the
+version, no other pull request conflicts over it.
+
+The tests check each waiting file (an Updates file has the same shape as
+`whats-new.yaml`; an engine note starts with a bullet) and that
+`DESCRIPTION`, `CITATION.cff` and the top heading of `NEWS.md` agree.
 
 Shipped so far: 0.1.0 the first working prototype (17 October 2026),
 0.2.0 the four-screen design and the app going online (18 October), 0.3.0

@@ -1,3 +1,20 @@
+# powerkit 0.45.0
+
+* Change notes no longer go straight into `engine/NEWS.md` and
+  `app/routing/whats-new.yaml`: each pull request writes its own files in
+  `engine/news.d/` and `app/routing/whats-new.d/`, and
+  `scripts/close-batch.R` gives them their version when a batch closes,
+  setting `DESCRIPTION`, `CITATION.cff` and the NEWS heading in one step.
+  Parallel pull requests no longer edit the same lines, so they no longer
+  need catch-up merges over these files.
+* The Updates tab shows entries still waiting for a version beside the
+  rest (`load_whats_new()` reads `whats-new.d/`).
+* From 0.45.0, `scripts/tag-releases.sh` tags a version at the commit that
+  set it, since the number is now set when its batch closes.
+* Tests check that waiting notes are well formed, that the top heading of
+  `NEWS.md` is the version in `DESCRIPTION`, and that closing a batch joins
+  and removes the notes.
+
 # powerkit 0.44.0
 
 * New `simulation_margin()`: the half-width of a 95% interval around a

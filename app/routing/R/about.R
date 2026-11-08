@@ -267,8 +267,14 @@ about_js <- "
 # each opening its description, with "Full details" showing them all. A search box filters them, and the
 # browser remembers the newest change you have seen, so changes since your
 # last visit are marked (and the tab shows a dot until you look).
+#
+# Entries not yet given a version wait in whats-new.d/ beside it, one file
+# per pull request (scripts/close-batch.R moves them into whats-new.yaml),
+# and show with the rest.
 load_whats_new <- function(path) {
-  entries <- yaml::read_yaml(path, fileEncoding = "UTF-8")$entries
+  waiting <- sort(Sys.glob(file.path(dirname(path), "whats-new.d", "*.yaml")))
+  entries <- unlist(lapply(c(waiting, path), function(f) yaml::read_yaml(f, fileEncoding = "UTF-8")$entries),
+    recursive = FALSE)
   dates <- as.Date(vapply(entries, `[[`, "", "date"))
   entries[order(dates, decreasing = TRUE)]
 }
