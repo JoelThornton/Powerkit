@@ -136,7 +136,10 @@ differs between main and `connect-cloud`, it writes
 powerkit's engine pinned to main's commit) and publishes main's checked
 source plus that manifest to `connect-cloud` with a fast-forward push
 (`scripts/prepare-publish-branch.py`). Until 6 November 2026 it did this
-after every merge. To publish at once (an urgent fix), open the workflow
+after every merge. GitHub starts timed runs late or skips them when it
+is busy (no run started on 8 November 2026), so a second scheduled run at
+16:23 UTC publishes if the last publish is more than 20 hours old; on a
+normal day it does nothing. To publish at once (an urgent fix), open the workflow
 on the Actions tab and click **Run workflow** on main; tick **force** to
 publish even if nothing changed. On a pull request the workflow only
 checks that the manifest can still be written. Main holds no

@@ -8,6 +8,11 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "The online app no longer misses a day's changes"
+    text: >-
+      If the morning update of the online app doesn't run, a second check
+      later in the day now brings it up to date.
+  - date: "2026-11-08"
     title: "Updates show up as soon as a change is in"
     text: >-
       The Updates tab now lists each change as soon as it reaches the

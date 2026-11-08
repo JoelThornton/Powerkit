@@ -1,5 +1,5 @@
 # Checks the manifest on PRs, and publishes the online app (Posit Connect
-# Cloud) at most once a day.
+# Cloud) once a day.
 #
 # Connect Cloud republishes the app whenever the branch it watches
 # (connect-cloud) changes, and charges for every hour the app runs, a
@@ -7,7 +7,8 @@
 # publishing after every merge kept the app rebuilding (docs/
 # hosting-options.md, "What uses the plan's credits"). Instead, once a day,
 # if anything the app runs (app/routing, engine and renv.lock, tests aside)
-# differs between main and connect-cloud, this workflow writes the manifest
+# differs between main and connect-cloud, and the last publish is more than
+# 20 hours old, this workflow writes the manifest
 # and publishes checked main source plus that manifest to connect-cloud,
 # using a normal fast-forward push (scripts/prepare-publish-branch.py).
 # Main itself is never changed by the bot, so it can require PRs and checks
@@ -19,8 +20,13 @@ name: online-app-manifest
 
 on:
   schedule:
-    # 04:23 UTC every day.
+    # 04:23 UTC every day, and a second look at 16:23. GitHub starts timed
+    # runs late, or not at all, when it is busy (8 November 2026 had none),
+    # so a scheduled run publishes only if the last publish is more than 20
+    # hours old: the second look catches a missed morning without a second
+    # rebuild on a normal day.
     - cron: "23 4 * * *"
+    - cron: "23 16 * * *"
   pull_request:
   workflow_dispatch:
     inputs:
@@ -76,6 +82,9 @@ jobs:
             echo "Nothing published yet; publishing."
           elif git diff --quiet origin/connect-cloud HEAD -- $paths; then
             echo "Nothing the app runs has changed since the last publish; not publishing."
+            publish=false
+          elif [ "$EVENT" = "schedule" ] && [ $(( $(date +%s) - $(git log -1 --format=%ct origin/connect-cloud) )) -lt 72000 ]; then
+            echo "Published less than 20 hours ago; the next scheduled run publishes."
             publish=false
           else
             echo "Changed since the last publish:"
