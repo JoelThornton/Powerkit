@@ -1050,3 +1050,14 @@ test_that("a justified significance level is not offered with a Bayes factor tes
   code <- readLines(file.path(routing_dir, "R", "forms_ui.R"))
   expect_false(any(grepl("validate_spec()", code[!grepl("^\\s*#", code)], fixed = TRUE)))
 })
+
+test_that("engine messages name the screen's settings, and drop sentences about settings it doesn't show", {
+  accuracy <- list(id = "simulation_accuracy", label = "How precise should the simulation be?")
+  msg <- "The sample size search could not pin down the required n: the simulated power didn't settle near the target. Try more replications ('options > nrep') or another seed."
+  expect_match(plain_engine_message(msg, list(accuracy)), "“How precise should the simulation be?”", fixed = TRUE)
+  big <- "This effect is so large that 4 or fewer participants reach the target power, and exact calculation can't go lower here: check that the effect size is right. To find the smallest n anyway, set 'options > method' to 'simulation'."
+  plain <- plain_engine_message(big, list())
+  expect_match(plain, "check that the effect size is right.", fixed = TRUE)
+  expect_no_match(plain, "options >", fixed = TRUE)
+  expect_identical(plain_engine_message("A target power of 0.9999 is too close to 100%.", list()), "A target power of 0.9999 is too close to 100%.")
+})

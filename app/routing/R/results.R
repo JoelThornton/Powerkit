@@ -2233,7 +2233,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
 result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
-      h3(class = "h5", "The calculation didn't finish"), p(calc$message)))
+      h3(class = "h5", "The calculation didn't finish"), p(plain_engine_message(calc$message %||% "", fields))))
   }
   if (is_precision(calc$spec)) return(precision_panel_ui(tree, forms, ep_id, fields, values, calc))
   ep <- tree$endpoints[[ep_id]]

@@ -88,7 +88,10 @@ search_n <- function(spec, backend, power, nrep, seed, cores = 1L, level = 0.95)
     estimate <- n_from_curve(near(), power, step, level)
   }
   if (is.na(estimate$upper)) {
-    abort_run("The sample size search could not pin down the required n. Try more replications (options > nrep).")
+    if (power > 0.99) {
+      abort_run(sprintf("A target power of %s is too close to 100%% for a simulation to pin down the sample size. Choose a target of 0.99 or lower.", format(power)))
+    }
+    abort_run("The sample size search could not pin down the required n: the simulated power didn't settle near the target. Try more replications ('options > nrep') or another seed.")
   }
 
   points <- points[order(points$n), ]
@@ -216,7 +219,7 @@ search_n_exact <- function(spec, backend, power) {
   n <- bracket_n(backend$exact_power, power, n_start, step)
   if (n == n_start && n_start > n_min) {
     abort_run(sprintf(
-      "This effect reaches the target power with %d or fewer participants, and exact calculation can't go lower here. Set 'options > method' to 'simulation' to find the smallest n.",
+      "This effect is so large that %d or fewer participants reach the target power, and exact calculation can't go lower here: check that the effect size is right. To find the smallest n anyway, set 'options > method' to 'simulation'.",
       n_start
     ))
   }

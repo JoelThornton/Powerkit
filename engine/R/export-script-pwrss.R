@@ -154,6 +154,9 @@ pwrss_script_inputs <- function(spec) {
       if (!is.null(pop$null_probabilities)) {
         sprintf("null_probabilities <- %s # the fixed proportions they are compared with", r_code(as.numeric(unlist(pop$null_probabilities))))
       },
+      "# Rescaled to sum to exactly 1, as pwrss requires (they already sum to 1 within rounding).",
+      "probabilities <- probabilities / sum(probabilities)",
+      if (!is.null(pop$null_probabilities)) "null_probabilities <- null_probabilities / sum(null_probabilities)",
       "# Cohen's w and its degrees of freedom (categories - 1), from pwrss.",
       if (is.null(pop$null_probabilities)) "# Compared with equal proportions (pwrss's default when none are given).",
       sprintf(

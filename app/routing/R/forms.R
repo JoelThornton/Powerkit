@@ -1150,11 +1150,22 @@ routing_root <- function() getOption("powerkit.routing_dir", getwd())
 # Put the user's field labels in place of spec paths in the engine's
 # messages (e.g. 'target_test > alpha' becomes "Significance level (alpha)").
 plain_engine_message <- function(message, fields) {
+  ids <- vapply(fields, function(f) f$id %||% "", "")
+  # The number of simulated studies is chosen by "How precise should the
+  # simulation be?"; its custom field is hidden until asked for.
+  if ("simulation_accuracy" %in% ids) {
+    message <- gsub("'options > nrep'", quote_label(fields[[match("simulation_accuracy", ids)]]), message, fixed = TRUE)
+  }
   for (f in fields) {
     if (is.null(f$path)) next
     engine_path <- gsub(".", " > ", f$path, fixed = TRUE)
     message <- gsub(sprintf("'%s'", engine_path), quote_label(f), message, fixed = TRUE)
   }
+  # A sentence that still names a setting this screen doesn't show can't be
+  # acted on here, so it is left out.
+  sentences <- strsplit(message, "(?<=[.!?])\\s+", perl = TRUE)[[1]]
+  hidden <- grepl("'options > ", sentences, fixed = TRUE)
+  if (any(hidden) && !all(hidden)) message <- paste(sentences[!hidden], collapse = " ")
   message
 }
 
