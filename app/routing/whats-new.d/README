@@ -1,0 +1,6 @@
+Updates entries waiting for a version: one YAML file per pull request
+(for example app/routing/whats-new.d/welch-default.yaml), written exactly
+like whats-new.yaml (an "entries:" list of date, title and text). The app
+shows them with the rest; scripts/close-batch.R moves them into
+whats-new.yaml when a batch closes. docs/adding-a-test.md, "Change notes
+and version numbers", has the rules.

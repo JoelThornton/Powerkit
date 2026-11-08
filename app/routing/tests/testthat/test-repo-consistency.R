@@ -252,3 +252,61 @@ test_that("the docs map lists every page in docs/", {
   expect_length(missing, 0)
   if (length(missing)) message("Not in docs/README.md: ", paste(missing, collapse = ", "))
 })
+
+# Change notes (docs/adding-a-test.md, "Change notes and version numbers") ---
+
+test_that("NEWS.md's top heading is the version in DESCRIPTION", {
+  version <- unname(read.dcf(file.path(repo_dir, "engine", "DESCRIPTION"))[1, "Version"])
+  news <- readLines(file.path(repo_dir, "engine", "NEWS.md"), encoding = "UTF-8", warn = FALSE)
+  expect_identical(grep("^# powerkit ", news, value = TRUE)[1], paste("# powerkit", version))
+})
+
+test_that("every engine note waiting for a version is a list of bullets", {
+  # The folder stays (its README says what goes there) when no notes wait.
+  expect_true(file.exists(file.path(repo_dir, "engine", "news.d", "README")))
+  for (path in Sys.glob(file.path(repo_dir, "engine", "news.d", "*.md"))) {
+    lines <- readLines(path, encoding = "UTF-8", warn = FALSE)
+    lines <- lines[nzchar(trimws(lines))]
+    expect_gt(length(lines), 0, label = basename(path))
+    expect_match(lines[1], "^\\* ", label = basename(path))
+    # A heading would split the version's section in two.
+    expect_false(any(grepl("^#", lines)), label = basename(path))
+  }
+})
+
+test_that("closing a batch gives the waiting notes their version and removes them", {
+  root <- withr::local_tempdir()
+  dir.create(file.path(root, "engine", "news.d"), recursive = TRUE)
+  dir.create(file.path(root, "app", "routing", "whats-new.d"), recursive = TRUE)
+  writeLines(c("Package: powerkit", "Version: 0.44.0", "Title: x"), file.path(root, "engine", "DESCRIPTION"))
+  writeLines(c("cff-version: 1.2.0", "version: 0.44.0", "title: x"), file.path(root, "CITATION.cff"))
+  writeLines(c("# powerkit 0.44.0", "", "* Older."), file.path(root, "engine", "NEWS.md"))
+  writeLines(c("# header", "entries:", "  - date: \"2026-11-08\"", "    title: \"Old\"", "    text: >-", "      Old text."),
+    file.path(root, "app", "routing", "whats-new.yaml"))
+  writeLines(c("* First change."), file.path(root, "engine", "news.d", "a-first.md"))
+  writeLines(c("", "* Second change,", "  over two lines.", ""), file.path(root, "engine", "news.d", "b-second.md"))
+  writeLines(c("entries:", "  - date: \"2026-11-09\"", "    title: \"Earlier\"", "    text: >-", "      One."),
+    file.path(root, "app", "routing", "whats-new.d", "z-earlier.yaml"))
+  writeLines(c("entries:", "  - date: \"2026-11-10\"", "    title: \"Later\"", "    text: >-", "      Two."),
+    file.path(root, "app", "routing", "whats-new.d", "a-later.yaml"))
+
+  script <- new.env()
+  sys.source(file.path(repo_dir, "scripts", "close-batch.R"), envir = script)
+  done <- script$close_batch("minor", root = root)
+  expect_identical(done$version, "0.45.0")
+  expect_true("Version: 0.45.0" %in% readLines(file.path(root, "engine", "DESCRIPTION")))
+  expect_true("version: 0.45.0" %in% readLines(file.path(root, "CITATION.cff")))
+  expect_identical(readLines(file.path(root, "engine", "NEWS.md")),
+    c("# powerkit 0.45.0", "", "* First change.", "", "* Second change,", "  over two lines.", "",
+      "# powerkit 0.44.0", "", "* Older."))
+  updates <- yaml::read_yaml(file.path(root, "app", "routing", "whats-new.yaml"))$entries
+  expect_identical(vapply(updates, `[[`, "", "title"), c("Later", "Earlier", "Old"))
+  expect_identical(readLines(file.path(root, "app", "routing", "whats-new.yaml"))[1], "# header")
+  expect_length(Sys.glob(file.path(root, "engine", "news.d", "*.md")), 0)
+  expect_length(Sys.glob(file.path(root, "app", "routing", "whats-new.d", "*.yaml")), 0)
+  # Nothing waiting: nothing to close. A patch and a chosen number.
+  expect_error(script$close_batch("patch", root = root), "No change notes")
+  expect_identical(script$next_version("0.45.0", "patch"), "0.45.1")
+  expect_identical(script$next_version("0.45.0", "1.0.0"), "1.0.0")
+  expect_error(script$next_version("0.45.0", "0.44.9"), "not later")
+})

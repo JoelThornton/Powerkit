@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # Tags each finished powerkit version and publishes it as a GitHub release.
 #
-# A version is finished once main has moved on to the next one: the first
-# pull request of a batch sets the new number in engine/DESCRIPTION, and the
-# rest of the batch keep it (docs/adding-a-test.md, "Version numbers"). So
-# version X.Y.Z is tagged vX.Y.Z at the last commit on main's first-parent
-# history whose engine/DESCRIPTION still says X.Y.Z, and the version main
-# is on now stays untagged until the next one starts. The release notes
-# are that version's section of engine/NEWS.md at the tagged commit.
+# Since 0.45.0 a version is set once, by the pull request that closes its
+# batch (scripts/close-batch.R; docs/adding-a-test.md, "Change notes and
+# version numbers"), and the next batch's pull requests keep that number
+# until they close in turn. So version X.Y.Z (0.45.0 or later) is tagged
+# vX.Y.Z at the first commit on main's first-parent history whose
+# engine/DESCRIPTION says X.Y.Z: the commit that closed it. Before 0.45.0
+# the first pull request of a batch set the number and the rest kept it,
+# so those versions are tagged at the last commit that still says X.Y.Z.
+# A version is finished once main has moved on to the next one; the
+# version main is on now stays untagged until then. The release notes are
+# that version's section of engine/NEWS.md at the tagged commit.
 #
 # Run from a full clone of main (fetch-depth 0). Safe to run again: a
 # version that already has its tag and release is left alone, and release
@@ -26,11 +30,20 @@ version_at() {
   { git show "$1:engine/DESCRIPTION" 2>/dev/null || true; } | awk '/^Version:/ {print $2}'
 }
 
+# The first version whose tag goes on the commit that set it.
+set_at_close=0.45.0
+closes_batch() { [[ "$(printf '%s\n%s\n' "$set_at_close" "$1" | sort -V | head -n 1)" == "$set_at_close" ]]; }
+
 current=$(version_at HEAD)
 declare -A last_commit=()
 while read -r commit; do
   v=$(version_at "$commit")
-  [[ "$v" =~ $semver ]] && last_commit[$v]=$commit
+  [[ "$v" =~ $semver ]] || continue
+  if closes_batch "$v"; then
+    [[ -n "${last_commit[$v]:-}" ]] || last_commit[$v]=$commit
+  else
+    last_commit[$v]=$commit
+  fi
 done < <(git rev-list --first-parent --reverse HEAD)
 
 # Finished versions, oldest first.

@@ -26,7 +26,6 @@ different areas. The maintainer decided the choices marked "decided".
 
 | Order | What | Includes | Size | State |
 | --- | --- | --- | --- | --- |
-| R11 | **Change notes without catch-up merges** | One small change-note file per PR (engine news and Updates entries) joined by a script and checked by the existing tests, with the version and NEWS heading set once when a batch closes (decided; changes the version rule in CLAUDE.md and `adding-a-test.md`). Since 1 November, 26 of 32 PRs needed a catch-up merge over these files | M | Ready |
 | R12 | **Welch's test by default** | Welch's t-test by formula as the default on the two-group card, Student's as an option, recorded as a departure from G*Power in all four places; the same question for the one-way ANOVA; Delacre, Lakens and Leys (2017) through `refs.bib` first (decided) | M | Ready |
 | R13 | **Small telescopes for replications** | Offer Simonsohn's (2015) small-telescopes sample size beside safeguard power on the t-test and correlation cards, if a package implements it; source through `refs.bib` (decided) | M | Ready |
 | R14 | **Keep the review's scripts** | The property checks over every example spec and the every-card browser run, added so they can be rerun before each release (decided) | S | Ready |

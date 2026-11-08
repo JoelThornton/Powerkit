@@ -6000,3 +6000,29 @@ the site stays findable by search engines.
   and `prepare-publish-branch.py` works with or without a tracked copy
   (its test covers both).
 
+## 2026-11-08 · Change notes in files of their own; the version set when a batch closes
+
+- **Why:** the project review of 7 November 2026 found that since 1
+  November 26 of 32 pull requests needed a catch-up merge from main,
+  almost all over the tops of `engine/NEWS.md`, `whats-new.yaml`,
+  `DESCRIPTION` and `CITATION.cff`, each costing a conflict read and
+  another round of checks.
+- **Decided with the review (7 November 2026):** one small change-note
+  file per pull request, joined by a script and checked by the tests, with
+  the version and NEWS heading set once when a batch closes.
+- **How:** engine notes go in `engine/news.d/<topic>.md` (left out of the
+  built package) and Updates entries in `app/routing/whats-new.d/<topic>.yaml`,
+  which the app shows at once. The pull request that finishes a batch runs
+  `scripts/close-batch.R minor` (or `patch`, or a chosen number), which
+  sets `DESCRIPTION` and `CITATION.cff`, writes the notes under one NEWS
+  heading, moves the Updates entries into `whats-new.yaml` and deletes the
+  files. Every note waiting on main joins that version.
+- **Releases:** from 0.45.0 a version's tag goes on the commit that set it
+  (`scripts/tag-releases.sh`); earlier versions keep the last-commit rule
+  they were made under.
+- **Trade-off:** between closes, main's code is newer than its number, so
+  a result computed then records the previous version (with its spec hash
+  and seed). Batches are therefore closed as soon as their last pull
+  request is ready. Recording the engine's commit beside the version
+  would remove the ambiguity; it is a question for the maintainer.
+
