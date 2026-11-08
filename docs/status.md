@@ -27,8 +27,8 @@ rules are in `CLAUDE.md`.
   default (decided 8 November 2026), small telescopes for replications
   and keeping the review's scripts.
 
-- **What calculates:** 70 of the 76 cards run in the app (`tree.yaml`'s
-  statuses); the other six say powerkit can't plan them yet and point
+- **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
+  statuses); the other seven say powerkit can't plan them yet and point
   elsewhere. 55 calculate in the app directly (`forms.yaml`'s
   `calculates`), by a package's formula where one exists, otherwise by
   simulation with Spower, Superpower, simr, power4mome, metafor or PITS.
@@ -37,7 +37,11 @@ rules are in `CLAUDE.md`.
   (mediation and moderated mediation, participants and items, multilevel
   models, Bayes factors of repeated-measures effects). Every design but the
   generic tests is reached from the design finder, and "I know my
-  analysis" lists all of them by family with a search.
+  analysis" lists all of them by family with a search. No answer leads to
+  "No matching design" unless the user chooses it, apart from a short list
+  of known gaps that two tests in `test-misroutes.R` hold fixed: a new
+  gap fails them (8 November 2026, after counts and ratings measured twice
+  had reached it).
 
 - **Test versions researchers commonly need:** rank tests for skewed or
   heavy-tailed scores; robust standard errors and quantile regression;

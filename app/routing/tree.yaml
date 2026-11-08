@@ -621,29 +621,52 @@ nodes:
       - {label: "The same people's, measured twice (before and after, or in two conditions)", next: E57, when: {times: twice}}
 
   # A count outcome: Poisson regression (E28) when each person is measured
-  # once; repeated counts need a mixed model powerkit doesn't have.
+  # once; a difference in counts measured more than once on the same people
+  # needs a generalised mixed model, which powerkit doesn't calculate yet
+  # (E75, which names the tools that do).
   q3_count:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
     branch_on: times
-    routes: {once: E28, twice: E-unsure, many_conditions: E-unsure}
+    routes: {once: E28, twice: E75, many_conditions: E75}
 
   # An outcome in ordered categories, analysed as ordinal: two groups of
   # different people, each measured once (E29, whose card says it compares
-  # two groups only); repeated ordinal measurements need a model powerkit
-  # doesn't have.
+  # two groups only); repeated ordinal measurements need a cumulative link
+  # mixed model, which powerkit doesn't calculate yet (E75).
   q3_ord:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
     branch_on: times
-    routes: {once: E29, twice: E-unsure, many_conditions: E-unsure}
+    routes: {once: E29, twice: E75, many_conditions: E75}
 
   # A relationship ----------------------------------------------------------
   q2_rel:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: q3_rel, yesno: q2_rel_cat, count: q3_count, ordinal: E-unsure}
+    routes: {score: q3_rel, yesno: q3_rel_cat, count: q3_rel_count, ordinal: q3_rel_ord}
+  # A relationship measured within people (the same people measured twice
+  # or more) is a within-person relationship whatever the outcome, as for a
+  # score (q3_rel): E41. Measured once, a yes/no or categorical outcome goes
+  # on to its regressions and a count to Poisson regression (E28). An
+  # ordinal outcome measured once has no card for a measured predictor:
+  # E29 compares two groups only, which is a difference, so the safety net.
+  q3_rel_cat:
+    doc_id: Q3
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: q2_rel_cat, twice: E41, many_conditions: E41}
+  q3_rel_count:
+    doc_id: Q3
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: E28, twice: E41, many_conditions: E41}
+  q3_rel_ord:
+    doc_id: Q3
+    text: "Who gives the data? (answered by S3)"
+    branch_on: times
+    routes: {once: E-unsure, twice: E41, many_conditions: E41}
   q2_rel_cat:
     doc_id: Q2
     text: "Which kind of categorical outcome?"
@@ -1624,6 +1647,20 @@ endpoints:
       - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models (moderation, cross-level effects). No tool found for within-person mediation."}
       - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4."}
     tier: later
+  E75:
+    doc_name: "Repeated measures with a yes/no, count or ordinal outcome (generalised mixed model)"
+    plain_name: "The same people measured more than once, with a count, ordered categories or yes/no"
+    search_words: "repeated counts paired counts before after count poisson mixed model negative binomial mixed model glmm generalised linear mixed model generalized cumulative link mixed model clmm ordinal repeated measures logistic mixed model gee"
+    status: not_in_powerkit
+    card_points:
+      - "The same people give a count, or a rating in ordered categories, more than once: for example, the number of cigarettes smoked in the week before and the week after a programme, or the errors each person makes in two conditions. Two groups measured more than once on a yes/no outcome belong here too."
+      - "Such data are usually analysed with a generalised linear mixed model, with a random intercept for each person: Poisson or negative binomial for a count, logistic for yes/no, and a cumulative link mixed model for ordered categories."
+      - "For ordered categories, powerkit hasn't found a ready-made power tool: the model can be fitted with the R package ordinal's clmm(), and power simulated with Spower, writing the simulation yourself."
+    inputs: ["Depends on the model"]
+    packages:
+      - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4, including generalised mixed models for yes/no and count outcomes built with makeGlmer()."}
+      - {name: mixpower, url: "https://cran.r-project.org/package=mixpower", what: "Design-first simulation power for mixed models with a score, yes/no or count (Poisson or negative binomial) outcome."}
+    tier: later
   E62:
     doc_name: "Multilevel model: a person-level and a group-level predictor, and their cross-level interaction"
     plain_name: "People in groups: how something measured on each person, or on each group, relates to the outcome"
@@ -2180,7 +2217,10 @@ guided:
       rules:
         - {when: {x: within2, outcome: score}, endpoint: E3}
         - {when: {x: within2, outcome: [yesno, categories]}, endpoint: E26}
-        - {when: {x: [cond2, cond3], outcome: [yesno, categories], times: twice}, endpoint: E-unsure}
+        # Groups measured twice with a yes/no outcome: a logistic mixed
+        # model (E75). Unordered categories measured twice have no card.
+        - {when: {x: [cond2, cond3], outcome: yesno, times: twice}, endpoint: E75}
+        - {when: {x: [cond2, cond3], outcome: categories, times: twice}, endpoint: E-unsure}
         - {when: {x: cond3, times: twice, outcome: score}, endpoint: E55}
         - {when: {x: score, times: twice, covariate: none}, endpoint: E41}
         - {when: {outcome: categories, x: [cond2, cond3]}, endpoint: E6}
@@ -2189,8 +2229,9 @@ guided:
         - {when: {outcome: yesno, x: cond2}, endpoint: E5}
         - {when: {outcome: yesno}, endpoint: E27}
         - {when: {outcome: count, times: once}, endpoint: E28}
-        - {when: {outcome: count}, endpoint: E-unsure}
+        - {when: {outcome: count}, endpoint: E75}
         - {when: {outcome: ordinal, x: cond2, times: once}, endpoint: E29}
+        - {when: {outcome: ordinal, times: twice}, endpoint: E75}
         - {when: {outcome: ordinal}, endpoint: E-unsure}
         - when: {x: cond2, covariate: baseline}
           ask:
@@ -2375,7 +2416,7 @@ analysis_families:
   - {id: regression, label: "Regression (scores, yes/no and counts)", short: "Regression", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, label: "Mediation and moderated mediation", short: "Mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
-  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", short: "Multilevel and longitudinal", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E74, E45, E65]}
+  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", short: "Multilevel and longitudinal", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E75, E35, E74, E45, E65]}
   - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, EFA, IRT, profiles)", short: "Latent variables", endpoints: [E37, E73, E71, E58]}
   - {id: outcomes, label: "Several outcomes at once (MANOVA)", short: "Several outcomes", endpoints: [E59, E60]}
   - {id: spread, label: "Spread of scores (variances)", short: "Spread of scores", endpoints: [E52, E53, E57]}
