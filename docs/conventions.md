@@ -612,6 +612,29 @@ likelihood ratio; not a departure.
 | BFDA (Schönbrodt and Wagenmakers, 2018; on GitHub only, not compared) | Monte Carlo simulation of the Sequential Bayes Factor design, the JZS t-test Bayes factor at every look | d, fixed or drawn from a design prior | A first look at `n_min`, then after every participant (or every few), thresholds for H1 and H0, an optional maximum N |
 | **powerkit** | `bayes_sequential()`: the same procedure, simulated by powerkit with bfpwr's `tbf01()` (the JZS Bayes factor, a Cauchy analysis prior) at every look (Labs, from 1 November 2026) [powerkit] | d (d_z for pairs), the true effect drawn from a normal design prior for every simulated study, and again with no effect | `n_min`, `step`, `n_max`, a BF10 threshold for an effect and a BF01 threshold for no effect (may differ), one- or two-sided; 2,000 simulated studies under each (seed 1) in the app. Each look's thresholds are found as values of t, which gives the same decisions as computing the Bayes factor every time (tested). Not a departure: it follows the published procedure, whose examples it reproduces to within about a percentage point |
 
+## Replication planner (Labs)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No replication planning; a replication is planned as an ordinary test with the original's effect | — | — |
+| BayesRepDesign (Pawel, Consonni & Held, 2026) | `ssdSig()`, `ssdMeta()`, `ssdEqu()`, `ssdTOST()`, `ssdBFr()`, `ssdBFs()` and their `pors*()` chances, on the normal-normal hierarchical model: the effect estimate is normal with a known standard error | The original estimate and its standard error; a design prior (`designPrior()`, conditional, predictive or empirical Bayes) with a heterogeneity SD `tau` | Levels as the user passes them; `se2n(se, unitSD = 2)` turns a standard error into a total sample size for a standardised mean difference |
+| **powerkit** | `replication_planning()` (Labs, from 8 November 2026): every goal judged against the original's effect is BayesRepDesign's, under all three design priors; small telescopes is the card's own pwr and pwrss calculation (above), so the two agree [powerkit] | d (two groups, one sample), d_z (pairs) or r (on Fisher's z); the original's standard error from the paper's equation 9 for two groups, 1/sqrt(n) for one sample or pairs, 1/sqrt(n - 3) for r | The paper's worked levels: the two-trials rule at one-sided alpha/2, the pooled estimate at (alpha/2)^2, agreement by a (1 - 2 alpha) interval for the difference, Bayes factors at 1/threshold (10 by default), and TOST at alpha (BayesRepDesign's `level` set to 2 alpha, because `porsTOST()` uses `qnorm(1 - level/2)`; `upstream-questions.md`). `tau` applies to the uncertain and shrunk priors only: the conditional prior is a point mass. Two equal groups in the replication |
+
+**The normal approximation against the t-test cards.** With the "as
+reported" prior and no heterogeneity, the significance goal is a classical
+power analysis, but by the normal approximation, where the t-test cards use
+the t distribution. For an original d = 0.7, BayesRepDesign gives 66 in
+total (33 per group) and a t-test power analysis (pwr) 68: the planner asks
+for slightly fewer people at small samples, and the difference shrinks as
+the sample grows. This follows the method's published form rather than
+mixing two models in one table; it is stated on the result and in the
+methods paragraph ("the normal-normal hierarchical model"), and
+`engine/tests/testthat/test-replication-planning.R` ("as reported, the
+significance goal is a power analysis by the normal approximation") shows
+its size. An independent simulation of Student's t-tests, with true effects
+drawn from the uncertain prior, agrees with the planner's chance to within
+3 percentage points at 60 per group (same file).
+
 ## Participants and items in three or more conditions (E63)
 
 | Tool | Test | Effect size | Settings |

@@ -24,6 +24,7 @@ below retain their reproduction information and limitations.
 | powertools: returned df, critical value and noncentrality | Source inspection; backend does not return these fields | Reporting limitation: no invented details are displayed | Backend starts returning details; compare each with the reported power |
 | bfpwr: t-test Bayes factors at small N | Known difference 6; comparison with simulated t statistics | Normal approximation used and disclosed | Exact/t-based implementation or changed design-prior handling; repeat small-N comparisons |
 | bfpwr: power with an informed prior at small N | Comparison with simulated t statistics and bfpwr's own `tbf01()` (bfpwr question 2) | Informed priors not offered | A corrected `powertbf01()`, or the maintainer's decision on an exact calculation in the engine |
+| BayesRepDesign: the meaning of `level` in `porsTOST()` and `ssdTOST()` | BayesRepDesign question 1; closed-form TOST check in `test-replication-planning.R` | Called with `level = 2 * alpha`, so TOST is at alpha | Help or code changes in a new version; rerun the closed-form check |
 | metapower: random-effects heterogeneity power | `upstream/metapower-homogeneity.R`; independent simulated Q tests | Bypassed: Powerkit simulates Q with metafor instead of `homogen_power()` | Upstream correction; retain the three discrepant cases before considering a route change |
 | metapower: correlation effect rounded on Fisher's z scale | Known difference 9; recorded rounded/unrounded comparison | `mpower()` convention retained and disclosed | Rounding changes or author clarification; rerun the same correlations |
 | power4mome: models 58/59 population products | `test-path-product-moments.R`; full polynomial moments and independently generated/OLS checks in the validation journal | Workaround: explicit residual variances and `standardized = FALSE`; separate fitted model | Standardisation/product-update changes; recover the population and repeat scoped simulations before removing the workaround |
@@ -128,6 +129,21 @@ Questions about bfpwr 0.1.6, from its source (opened 28 October 2026).
    taken as if it could. Found 5 November 2026; powerkit doesn't offer
    informed priors until this is resolved (`decisions.md`, 5 November
    2026).
+
+## BayesRepDesign
+
+Questions about BayesRepDesign 0.42, from its help and source (opened 8
+November 2026).
+
+1. **The level of `porsTOST()` and `ssdTOST()`.** The help calls `level`
+   the "Significance level for the TOST p-value", but the code uses
+   `qnorm(1 - level / 2)`, so `level = 0.05` gives two one-sided tests at
+   0.025 each (a 95% interval inside the margins), not the usual TOST at
+   0.05 (a 90% interval). `ssdEqu()` documents its `level` as "1 -
+   confidence level", which matches the same code. powerkit passes
+   `level = 2 * alpha` to both, and `test-replication-planning.R` checks the
+   TOST sample size against the closed form for two one-sided tests at
+   alpha. Is the help or the code the intended meaning?
 
 ## metapower
 

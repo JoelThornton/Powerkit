@@ -803,6 +803,17 @@
       ],
       "Hash": "b8b6b9c7b553d66d5722dde893d93915"
     },
+    "BayesRepDesign": {
+      "Package": "BayesRepDesign",
+      "Version": "0.42",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "lamW",
+        "methods"
+      ],
+      "Hash": "8a0326f15b4e060c4787dfa957c9fa23"
+    },
     "bayestestR": {
       "Package": "bayestestR",
       "Version": "0.20.0",

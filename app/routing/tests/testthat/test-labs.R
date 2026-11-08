@@ -14,9 +14,10 @@ test_that("nothing is required, scored or marked complete", {
   expect_no_match(html, "score[ds]? (out of|of )|complete[d]?\\b|incomplete|badge", ignore.case = TRUE, perl = TRUE)
   # The outcome starts unchosen, and all three outcomes are offered. (The
   # picture of power's alpha starts at .05 and its test two-sided, and the Bayesian planning tool's
-  # hypothesis, design and thresholds at their defaults.)
+  # hypothesis, design and thresholds at their defaults, and the replication
+  # planner's section and Bayes factor threshold.)
   checked <- regmatches(html, gregexpr("<input[^>]*checked=\"checked\"[^>]*>", html))[[1]]
-  expect_true(all(grepl("name=\"(picture_alpha|picture_sides|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design)\"", checked)))
+  expect_true(all(grepl("name=\"(picture_alpha|picture_sides|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design|rep_section|rep_threshold)\"", checked)))
   for (o in labs_outcomes) expect_match(html, o, fixed = TRUE)
 })
 
@@ -121,7 +122,7 @@ test_that("Labs opens on a list of tools; the notes appear once their tool is ch
   expect_match(html, "data-display-if=\"input.labs_tool == &#39;prereplication&#39;\"|data-display-if=\"input.labs_tool == 'prereplication'\"")
   expect_match(html, "Open Pre-replication notes", fixed = TRUE)
   expect_match(html, "All Labs tools", fixed = TRUE)
-  expect_length(labs_tools, 6)
+  expect_length(labs_tools, 7)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
 

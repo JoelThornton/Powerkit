@@ -40,6 +40,7 @@ source(file.path("R", "capabilities.R"), local = TRUE)
 source(file.path("R", "planning.R"), local = TRUE)
 source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
+source(file.path("R", "replication.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
 source(file.path("R", "connection.R"), local = TRUE)
@@ -966,7 +967,14 @@ server <- function(input, output, session) {
       # then doesn't ask it again.
       state$history <- list(); state$ctx <- aim_context(tree, state$start)
       exit <- start_exit(tree, state$start)
-      if (!is.null(exit)) {
+      labs_tool <- aim_question(tree)$options[[value]]$labs
+      if (!is.null(labs_tool)) {
+        # Replicating a published finding opens the replication planner
+        # in Labs (aim "replicate"); the start screen stays behind it.
+        state$screen <- "aim"
+        session$sendCustomMessage("labs_open", labs_tool)
+        updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+      } else if (!is.null(exit)) {
         state$endpoint <- exit; state$came_from <- "node"; state$screen <- "card"
       } else {
         # Every route starts with the screening questions.
@@ -1961,6 +1969,13 @@ server <- function(input, output, session) {
     session$sendCustomMessage("labs_open", "prereplication")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
+  observeEvent(input$go_labs_replication, {
+    session$sendCustomMessage("labs_open", "replication")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  })
+  # Labs: the replication planner (R/replication.R), with the notes' study
+  # and smallest effect to hand.
+  replication_server(input, output, session, notes = function() labs_answers(), notes_outcome = function() input$labs_outcome)
   # The Feedback tab: from the header link, or from "Something doesn't fit?"
   # (which picks "confusing").
   observeEvent(input$go_feedback, {
