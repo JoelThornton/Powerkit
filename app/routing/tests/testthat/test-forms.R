@@ -93,13 +93,13 @@ test_that("other settings start at the wrapped tool's default, and say whose def
   }
   power <- function(ep) Filter(function(f) f$id == "power", fields_for(ep))[[1]]
   expect_null(power("E1")$default)
-  expect_match(power("E1")$default_source, "no default target power", fixed = TRUE)
+  expect_match(power("E1")$default_source, "Empty on every card", fixed = TRUE)
   # Empty on every card, including where the package starts at 0.8 (8 November 2026).
   for (ep in names(forms$forms)) {
     p <- Filter(function(f) identical(f$id, "power"), fields_for(ep))
     if (length(p)) expect_null(p[[1]]$default, label = ep)
   }
-  expect_match(power("E10")$default_source, "leaves it empty on every card", fixed = TRUE)
+  expect_match(power("E10")$default_source, "Empty on every card", fixed = TRUE)
   direction <- Filter(function(f) f$id == "alternative", fields_for("E2"))[[1]]
   # Asked, not pre-filled, and first (docs/decisions.md, 19 October 2026).
   expect_null(direction[["default"]])
@@ -1064,4 +1064,14 @@ test_that("engine messages name the screen's settings, and drop sentences about 
   expect_match(plain, "check that the effect size is right.", fixed = TRUE)
   expect_no_match(plain, "options >", fixed = TRUE)
   expect_identical(plain_engine_message("A target power of 0.9999 is too close to 100%.", list()), "A target power of 0.9999 is too close to 100%.")
+})
+
+test_that("which test you'll run is in view on every card that offers more than one", {
+  for (ep in names(forms$forms)) {
+    for (g in form_groups(forms, ep)) {
+      if (length(g$fields) && identical(g$fields[[1]]$label, "Test version") && length(g$fields[[1]]$choices) > 1) {
+        expect_identical(form_section(g), "study", label = ep)
+      }
+    }
+  }
 })

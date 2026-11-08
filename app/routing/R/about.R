@@ -76,7 +76,7 @@ about_credit_ui <- function(tool) {
 about_endpoint_how <- function(forms) {
   instant <- unlist(forms$calculates)
   sims <- forms$simulations$endpoints %||% list()
-  background <- names(forms$background %||% list())
+  background <- c(names(forms$background %||% list()), names(forms$simulated_times %||% list()))
   how <- c(
     stats::setNames(ifelse(instant %in% background, "background", "now"), instant),
     vapply(sims, function(s) if ("power" %in% unlist(s$full_run)) "full" else "script", "")

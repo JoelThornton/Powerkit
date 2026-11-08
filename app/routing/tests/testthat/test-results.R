@@ -60,6 +60,10 @@ test_that("calculating designs calculate; simulated designs preview first, then 
   # E9, E15, the MANOVAs and latent profiles (E58) run in the background
   # with no preview, with their usual run times.
   expect_identical(names(forms$background), c("E9", "E15", "E59", "E58", "E73", "E60"))
+  # Cards whose default version simulates say so, and their bars estimate.
+  expect_setequal(names(forms$simulated_times), c("E44", "E22", "E61", "E47", "E64", "E70", "E30", "E32", "E45", "E72"))
+  expect_equal(usual_seconds(forms, "E44", "sample_size"), 520)
+  expect_identical(unname(about_endpoint_how(forms)["E44"]), "background")
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)
   expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)

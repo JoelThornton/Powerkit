@@ -1152,7 +1152,9 @@ server <- function(input, output, session) {
       # below, with a progress bar and a Cancel button, so nobody else's
       # screen waits for them (search_in_background(), R/results.R).
       if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
-      usual <- usual_seconds(forms, state$endpoint, spec$goal$type)
+      # A simulated card's usual time applies only when this version simulates.
+      usual <- if (state$endpoint %in% names(forms$background) || runs_in_background(forms, state$endpoint, spec))
+        usual_seconds(forms, state$endpoint, spec$goal$type) else NA_real_
       output$form_result <- renderUI(calculating_background_ui(usual))
       # The comparison line's two searches run there too (cost_line()).
       cost_powers <- if (!state$endpoint %in% names(forms$background)) cost_line_powers(values)

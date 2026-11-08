@@ -33,7 +33,9 @@ runs_in_background <- function(forms, ep_id, spec = NULL, simulates = engine_fun
 # process, while there is room (background_limit()); when there isn't, it
 # runs here as before rather than asking the user to wait.
 search_in_background <- function(spec) identical(spec$goal$type, "sample_size")
-usual_seconds <- function(forms, ep_id, goal) forms$background[[ep_id]][[goal]] %||% NA_real_
+usual_seconds <- function(forms, ep_id, goal) {
+  forms$background[[ep_id]][[goal]] %||% forms$simulated_times[[ep_id]][[goal]] %||% NA_real_
+}
 
 # Run the engine on a checked spec. The input screen puts the seed in the
 # spec (a fixed default the user can change; forms.yaml, default_seed); a

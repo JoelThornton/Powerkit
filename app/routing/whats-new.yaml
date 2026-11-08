@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Input screens that ask less and say more"
+    text: >-
+      Target power now starts empty on every card, and the result compares
+      80%, 90% and 95% so you can choose. Every card with more than one
+      test shows "Which test you'll run" up front, moderation starts at
+      the R-squared change papers report, and cards that simulate show
+      how long they usually take instead of "a second or two".
+  - date: "2026-11-08"
     title: "Save your whole-study plan, and see roughly how many people you need"
     text: >-
       "Save this plan" keeps your whole-study plan and everything you

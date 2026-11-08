@@ -428,8 +428,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          # Empty on every card (8 November 2026): the target is the user's
          # choice to justify, and the result compares 80%, 90% and 95%.
-         default = NULL, default_source = if (!is.null(no_bayes) && identical(form$tool, "pwr"))
-           "pwr and bfpwr have no default target power (pwr.t.test(power = NULL), bfpwr's powertbf01(power = NULL)); enter one" else tool[["power_source"]]),
+         default = NULL, default_source = target_power_source),
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
          type = "text", optional = TRUE, shown_for_goals = c("sample_size", "sensitivity")),
     list(id = "n", label = "Number of participants analysed",
@@ -1216,3 +1215,7 @@ answers_text <- function(tree, route_label, history, ep_id, fields, values) {
   }
   paste(lines, collapse = "\n")
 }
+
+# Target power starts empty on every card (8 November 2026), whatever the
+# package's own default, so the user chooses it and says why.
+target_power_source <- "Empty on every card: choose the power your study needs and say why; the result compares 80%, 90% and 95%"

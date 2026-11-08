@@ -5893,3 +5893,26 @@ the site stays findable by search engines.
   the same two groups therefore share one sample size; the plan still
   says that a shared count also needs the same population and schedule.
 
+## 2026-11-08 · Input screens: target power, test versions, moderation's input, benchmarks
+
+- **Why:** the project review of 7 November 2026 found target power
+  pre-filled at 0.8 on two cards and empty on the rest; the test version
+  in view on some cards and folded into Settings on others (hiding
+  Fisher's exact test and Spearman's rho); moderation starting at four
+  correlations most researchers don't have; and Cohen's small/medium/
+  large labels in the help while that question was open.
+- **Target power:** empty on every card, whatever the package's own
+  default, because the target is the researcher's choice to justify; the
+  result compares 80%, 90% and 95% power. Not a departure: no result
+  changes for a given target.
+- **Test version:** "Which test you'll run" is in section 2 on every card
+  with more than one version.
+- **Moderation:** asks "What do you have for the interaction?" and starts
+  at the R-squared change, as papers report it and G*Power takes it; the
+  correlations (InteractionPoweR's inputs) remain the other choice. The
+  R-squared route's difference from InteractionPoweR is already shown and
+  recorded (Known difference 7).
+- **Benchmarks:** no small/medium/large labels are shown (`tree.yaml`,
+  `effect_size_benchmarks: hide`); whether to offer bias-corrected
+  planning stays a separate question.
+
