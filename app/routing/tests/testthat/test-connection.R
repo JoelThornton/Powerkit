@@ -101,6 +101,10 @@ test_that("the online app is published at most daily, not after every merge", {
   expect_match(publish$run, "HEAD:connect-cloud", fixed = TRUE)
   decide <- Filter(function(s) identical(s$name, "Decide whether to publish"), steps)[[1]]
   expect_match(decide$run, "git diff --quiet origin/connect-cloud HEAD", fixed = TRUE)
+  # A second daily look catches a morning run GitHub skipped, and publishes
+  # only when the last publish is more than 20 hours old.
+  expect_length(triggers$schedule, 2)
+  expect_match(decide$run, "-lt 72000", fixed = TRUE)
 })
 
 test_that("the starting screen also goes on a link straight to Labs, where the main screen never draws", {

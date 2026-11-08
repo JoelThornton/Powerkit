@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.45.0). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.45.1). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -121,7 +121,8 @@ check with a yes/no X is recorded when the run of 8 November finishes.
 
 The app is online at
 <https://joelthornton-powerkit.share.connect.posit.cloud>, published at
-most once a day from the `connect-cloud` branch, which the
+most once a day from the `connect-cloud` branch (at 04:23 UTC, with a
+second look at 16:23 in case GitHub skips the first), which the
 `online-app-manifest` workflow writes with the manifest Connect Cloud
 installs from ([`hosting-options.md`](hosting-options.md)). The pages
 search engines index are static, in `site/`, on GitHub Pages. Main

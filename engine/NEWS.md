@@ -1,3 +1,10 @@
+# powerkit 0.45.1
+
+* The online app's daily publish has a second scheduled look at 16:23 UTC,
+  which publishes only if the last publish is more than 20 hours old, so a
+  morning run that GitHub starts late or skips no longer leaves the app a
+  day behind.
+
 # powerkit 0.45.0
 
 * Change notes no longer go straight into `engine/NEWS.md` and
