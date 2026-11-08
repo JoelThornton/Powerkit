@@ -490,9 +490,11 @@ closing_groups <- function(forms, ep_id, start = list()) {
       list(id = "just_source", label = "Why this effect size? (needed to save or export the plan)",
            help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. You can calculate without it.",
            type = "text", path = "effect_justification.source", optional = TRUE),
-      list(id = "just_adjustment", label = "How you adjusted it", help = "Published effects tend to be too large; for example, halved for publication bias. If you kept it as published, say so and why.",
-           type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study",
-           shown_if = list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is_not = "yes")))
+      # A pilot is as much one study's estimate as a published one, and
+      # less precise, so it gets the same question.
+      list(id = "just_adjustment", label = "How you adjusted it", help = "One study's effect tends to be too large: published ones through publication bias, pilots because they are small. For example, halved, or the lower end of its confidence interval. If you kept it as it was, say so and why.",
+           type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
+           shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes")))
     ), safeguard_fields(form$base$template))),
     # A single time series has no participants to lose (`no_attrition`).
     if (!isTRUE(form$generic) && !meta && !isTRUE(form$no_attrition)) list(input = NULL, title = "Participants you expect to lose", fields = list(
@@ -878,7 +880,7 @@ field_applies <- function(field, values) {
   }
   if (!is.null(field$needed_for)) return(isTRUE(values$goal %in% field$needed_for))
   if (!is.null(field$shown_for_goals)) return(isTRUE(values$goal %in% field$shown_for_goals))
-  if (!is.null(field$needed_if_just)) return(identical(values$just_type, field$needed_if_just))
+  if (!is.null(field$needed_if_just)) return(isTRUE((values$just_type %||% "") %in% field$needed_if_just))
   TRUE
 }
 

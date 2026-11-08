@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-07"
+    title: "Clearer safeguard power, and pilots treated with care"
+    text: >-
+      With safeguard power on, the result now names the smaller effect it
+      actually planned for, with yours in brackets. A pilot study's effect
+      size now asks how you adjusted it, as a published one does, and the
+      effect-size help explains pilots and biased meta-analyses. In Labs,
+      the effect size converter refuses impossible values and catches
+      degrees of freedom that don't match the study's size.
+  - date: "2026-11-07"
     title: "Your unfinished plan waits on the plan tab"
     text: >-
       An unfinished plan is now offered only on the plan tab, with

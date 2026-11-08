@@ -218,7 +218,8 @@ test_that("plan from a published result: the engine converts and gives the safeg
   expect_match(out$lines[1], "Converted: Cohen's d = 0.645, with the psych package's t2d(), by the formula in Lakens (2013).", fixed = TRUE)
   lower <- safeguard(convert("t", 2.5, "independent_t", df_error = 58)$value, "independent_t", n1 = 30, n2 = 30, protection = 0.8)$lower
   expect_match(out$lines[2], sprintf("plan with Cohen's d = %s", format(round(lower, 3), nsmall = 2)), fixed = TRUE)
-  expect_match(out$lines[2], "for an 80% chance", fixed = TRUE)
+  # Read as repeated sampling, not as a probability about one interval.
+  expect_match(out$lines[2], "a bound found this way falls below the true effect 80% of the time", fixed = TRUE)
   expect_match(out$lines[3], "Published effects tend to be larger", fixed = TRUE)
   # Groups of different sizes enter the conversion: d = t sqrt(1/n1 + 1/n2).
   uneven <- published_result(list(pub_design = "independent_t", pub_from = "t", pub_value = "3", pub_df = "38",
@@ -238,6 +239,33 @@ test_that("plan from a published result: the engine converts and gives the safeg
   # A wide interval: no safeguard value, and the reason.
   wide <- published_result(list(pub_design = "correlation", pub_from = "as_is", pub_value = "0.1", pub_n = "20"), convert, safeguard)
   expect_match(wide$lines[1], "includes zero", fixed = TRUE)
+  # Impossible values are refused in words, not explained.
+  expect_match(published_result(list(pub_design = "correlation", pub_from = "as_is", pub_value = "1.5", pub_n = "100"), convert, safeguard)$problems,
+    "A correlation must be between -1 and 1", fixed = TRUE)
+  expect_match(published_result(list(pub_design = "oneway_between", pub_from = "as_is", pub_value = "1.2"), convert, safeguard)$problems,
+    "Partial eta-squared must be", fixed = TRUE)
+  # The degrees of freedom and the study's size must agree.
+  clash <- published_result(list(pub_design = "paired_t", pub_from = "t", pub_value = "2.5", pub_df = "29", pub_n = "300"), convert, safeguard)
+  expect_match(clash$problems, "The degrees of freedom (29) mean the published study had 30 pairs, but you entered 300.", fixed = TRUE)
+  expect_length(published_result(list(pub_design = "paired_t", pub_from = "t", pub_value = "2.5", pub_df = "29", pub_n = "30"), convert, safeguard)$problems, 0)
+  expect_match(published_df_problems("independent_t", "t", 58L, NA, 30L, 40L), "had 60 people, but you entered 70", fixed = TRUE)
+  # An ANOVA isn't asked for a protection it can't use.
+  html <- as.character(labs_ui(tree))
+  expect_match(html, "input.pub_design != &#39;oneway_between&#39;|input.pub_design != 'oneway_between'")
+})
+
+test_that("the smallest detectable effect panel checks its own boxes in its own words and keeps its source", {
+  expect_identical(labs_sde(forms, "E2", "2")$problems, "Enter the number of participants as a whole number, at least 4.")
+  expect_identical(labs_sde(forms, "E2", "abc")$problems, "Enter the number of participants as a whole number, at least 4.")
+  expect_match(labs_sde(forms, "E6", "60", rows = "1", cols = "3")$problems, "number of categories", fixed = TRUE)
+  expect_identical(labs_plain_problems("This design spec has a problem:\n* 'goal > n' is 2, but this design needs at least 4 participants."),
+    "The number of participants is 2, but this design needs at least 4 participants.")
+  calc <- labs_sde(forms, "E2", "40")
+  sde <- list(sentence = labs_sde_sentence(tree, calc, "0.8"), provenance = labs_provenance(calc))
+  expect_match(sde$sentence, "alpha = 0.05", fixed = TRUE)
+  doc <- labs_report(list(labs_study = "Smith 2010", labs_quality = "Small sample."), "go", sde, citation = "the paper")
+  expect_match(doc, "Calculated by powerkit's engine with the R package", fixed = TRUE)
+  expect_match(doc, "## Value assessment\n\n_(not answered)_", fixed = TRUE)
 })
 
 

@@ -109,7 +109,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # factor analysis card (5 November 2026), and the random-intercept
   # cross-lagged panel model's paper and powRICLPM's method paper
   # (6 November 2026), and seven sources named in user-facing text, each
-  # opened by its DOI (7 November 2026).
+  # opened by its DOI (7 November 2026), and two sources on adjusting pilot
+  # and meta-analytic effect sizes (7 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -135,7 +136,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       BoosZhang2000_montecarlo = "verified", Dziak2020_interpretation = "verified",
       BonettWright2015_alpha = "verified", Demidenko2007_logistic = "verified",
       HsiehLavori2000_cox = "verified", Shieh2020_ancova = "verified",
-      Sommet2023_interaction = "verified"
+      Sommet2023_interaction = "verified",
+      AlbersLakens2018_pilot = "verified", Carter2019_biascorrection = "verified"
     )
   )
 })

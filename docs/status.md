@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 7 November 2026 (powerkit 0.38.0). This page says where the
+*Last updated: 7 November 2026 (powerkit 0.39.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
 planned work that had no queue item, 6 November 2026). History is in git,
@@ -41,7 +41,9 @@ fully validated. Validation runs are recorded in
   cards (a crossover card is queued). The fourth batch (draft box and
   page structure) is done: the unfinished-draft offer sits on the plan
   tab only and deletes nothing unless asked, phones show every tab, and
-  About is shorter. The mixed-design Greenhouse-Geisser check
+  About is shorter. The fifth batch (effect-size guidance) is done:
+  safeguard results name the effect used, pilots are treated like a
+  previous study, and the Labs converter refuses impossible values. The mixed-design Greenhouse-Geisser check
   still fails with new seeds and waits for the statistician; the rerun of
   the moderated mediation Type I error check (yes/no X) is recorded when
   it finishes ([`validation-log.md`](validation-log.md), 7 November 2026).
