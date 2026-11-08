@@ -32,10 +32,11 @@ rules are in `CLAUDE.md`.
   every card in a browser (`repository-protection.md`, "Checks before a
   release"). A check of every review finding against what merged
   (8 November) found a few left: the small ones are fixed, and the
-  larger ones are `next.md` items 15 to 20. Effects that vary between
+  larger ones are in `next.md`; two proportions now take a published
+  odds ratio or risk ratio. Effects that vary between
   studies are on the t-test cards, and an opt-in Bayes mode is on the
   start screen (8 November). Next: the queue in `next.md`; the rest of
-  Bayes mode (item 21) waits on a decision.
+  Bayes mode (item 20) waits on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point

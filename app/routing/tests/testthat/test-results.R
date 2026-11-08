@@ -1786,7 +1786,7 @@ test_that("effect-size conversion: the form offers each card's forms, and the en
   fields <- form_fields(form_groups(forms, "E2"))
   ids <- vapply(fields, `[[`, "", "id")
   expect_identical(ids[match("d", ids) + 1], "conv_from")
-  expect_false("conv_from" %in% vapply(form_fields(form_groups(forms, "E3")), `[[`, "", "id"))
+  expect_false("conv_from" %in% vapply(form_fields(form_groups(forms, "E6")), `[[`, "", "id"))
   by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
   values <- modifyList(form_examples$E2, list(goal = "power", n = 64, conv_from = "t", conv_value = 2.5, conv_df = 58,
     just_type = "meta_analysis", just_source = "A published trial"))

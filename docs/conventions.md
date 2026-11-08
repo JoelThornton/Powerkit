@@ -697,7 +697,7 @@ intercepts and X slopes, `y ~ x + w + z + x:w + x:z + (1 + x | site) +
 Departure 16, or for a yes/no outcome glmer's Wald z test or the
 likelihood ratio).
 
-## Effect-size conversion (a published t, F, r, d or odds ratio)
+## Effect-size conversion (a published t, F, r, d, odds ratio or risk ratio)
 
 | Tool | t or F into d or d_z | Two groups of different sizes | Other conversions |
 | --- | --- | --- | --- |
@@ -720,6 +720,18 @@ against 0.688 (2.6% larger); two equal groups of 20 give 0.949 against
 sizes. Under 0.3% with 200 people. The result screen and the write-up
 name the function used. A plan saved by 0.24.0 keeps the value it was
 converted to, and the result says so.
+
+Two proportions take an odds ratio or a risk ratio with group 1's
+proportion p1 and convert it into group 2's proportion, which the test
+then uses as if entered. An odds ratio goes through effectsize's
+`oddsratio_to_riskratio(OR, p0 = p1)`, times p1, which is the definition
+p2 = OR p1 / (1 - p1 + OR p1) (odds2 = OR odds1); a risk ratio gives
+p2 = RR p1. G\*Power's two-proportion test takes the two proportions
+only, so there is nothing to diverge from; the result and the methods
+paragraph give group 1's proportion, the ratio and group 2's proportion.
+An odds ratio from a logistic model with covariates is conditional and
+usually further from 1 than the groups' marginal odds ratio, which the
+input screen's help says.
 
 ## Departures
 
