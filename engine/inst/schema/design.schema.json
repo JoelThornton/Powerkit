@@ -373,7 +373,7 @@
           }
         },
         "conversion": {
-          "description": "The effect size as published in another form, converted into the effect this design uses (with psych's t2d() for a t or F statistic into d or d_z, and the effectsize package otherwise) (Cohen's d for the one-sample and independent t-tests, d_z for the paired t-test, r for the correlation, partial eta-squared for a between-participants ANOVA given that way). Give the conversion instead of the population effect: validation fills that in and records it as 'result'.",
+          "description": "The effect size as published in another form, converted into the effect this design uses (with psych's t2d() for a t or F statistic into d or d_z, and the effectsize package otherwise) (Cohen's d for the one-sample and independent t-tests, d_z for the paired t-test, r for the correlation, partial eta-squared for a between-participants ANOVA given that way, group 2's proportion for two proportions). Give the conversion instead of the population effect: validation fills that in and records it as 'result'.",
           "type": "object",
           "required": [
             "from",
@@ -382,13 +382,14 @@
           "additionalProperties": false,
           "properties": {
             "from": {
-              "description": "The form of the published effect: a t statistic, an F statistic, r, Cohen's d, an odds ratio or Cohen's f. Which forms a design accepts: independent t-test t, F (one numerator df), r, odds_ratio; one-sample t-test t; paired t-test t, F (one numerator df); correlation t, F (one numerator df), d, odds_ratio; between-participants ANOVA given by partial eta-squared (oneway_between, 2x2_between, factorial_between with population > metric 'eta_squared') F with both dfs, f.",
+              "description": "The form of the published effect: a t statistic, an F statistic, r, Cohen's d, an odds ratio, a risk ratio or Cohen's f. Which forms a design accepts: independent t-test t, F (one numerator df), r, odds_ratio; one-sample t-test t; paired t-test t, F (one numerator df); correlation t, F (one numerator df), d, odds_ratio; between-participants ANOVA given by partial eta-squared (oneway_between, 2x2_between, factorial_between with population > metric 'eta_squared') F with both dfs, f; two proportions (two_proportions) odds_ratio or risk_ratio, with group 1's proportion in population > p1.",
               "enum": [
                 "t",
                 "F",
                 "r",
                 "d",
                 "odds_ratio",
+                "risk_ratio",
                 "f"
               ]
             },

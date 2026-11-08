@@ -1746,6 +1746,38 @@ test_that("small telescopes: a replication is planned against the original's d33
   expect_true("st_n" %in% vapply(e4, `[[`, "", "id"))
 })
 
+test_that("two proportions from a published odds ratio or risk ratio", {
+  fields <- form_fields(form_groups(forms, "E5"))
+  ids <- vapply(fields, `[[`, "", "id")
+  # The ratio replaces group 2's proportion and keeps group 1's.
+  expect_identical(ids[match("p2", ids) + 1], "conv_from")
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  expect_setequal(setdiff(names(by_id("conv_from")$choices), "none"), c("odds_ratio", "risk_ratio"))
+  values <- modifyList(form_examples$E5, list(goal = "sample_size", conv_from = "odds_ratio", conv_value = 2, p2 = "",
+    just_type = "meta_analysis", just_source = "A published trial"))
+  expect_false(field_applies(by_id("p2"), values))
+  expect_true(field_applies(by_id("p1"), values))
+  expect_false(field_applies(by_id("conv_df"), values))
+  spec <- build_spec(forms, "E5", fields, values)
+  expect_null(spec$population$p2)
+  expect_identical(spec$effect_justification$conversion$from, "odds_ratio")
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  p1 <- parse_number(values$p1)
+  expect_equal(calc$result$effect_conversion$converted, 2 * p1 / (1 - p1 + 2 * p1))
+  expect_match(conversion_sentence(calc$result), "the published odds ratio of 2 gives group 2's proportion = ", fixed = TRUE)
+  expect_match(conversion_sentence(calc$result), "oddsratio_to_riskratio()", fixed = TRUE)
+  # The methods paragraph gives group 1's proportion and the conversion.
+  text <- paste(writeup_text(forms$forms$E5, spec, calc$result, fields, values), collapse = " ")
+  expect_match(text, "converted from the published odds ratio of 2", fixed = TRUE)
+  expect_match(text, sprintf("= %s;", values$p1), fixed = TRUE)
+  rr <- run_calculation(build_spec(forms, "E5", fields, modifyList(values, list(conv_from = "risk_ratio", conv_value = 1.2))),
+    run, seed = forms$default_seed)
+  expect_equal(rr$result$effect_conversion$converted, 1.2 * p1)
+  expect_match(conversion_sentence(rr$result), "as group 1's proportion times the risk ratio", fixed = TRUE)
+})
+
 test_that("effect-size conversion: the form offers each card's forms, and the engine converts them", {
   # The app offers the forms the engine converts from.
   for (template in names(conversion_choices)) {
@@ -1754,7 +1786,7 @@ test_that("effect-size conversion: the form offers each card's forms, and the en
   fields <- form_fields(form_groups(forms, "E2"))
   ids <- vapply(fields, `[[`, "", "id")
   expect_identical(ids[match("d", ids) + 1], "conv_from")
-  expect_false("conv_from" %in% vapply(form_fields(form_groups(forms, "E5")), `[[`, "", "id"))
+  expect_false("conv_from" %in% vapply(form_fields(form_groups(forms, "E3")), `[[`, "", "id"))
   by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
   values <- modifyList(form_examples$E2, list(goal = "power", n = 64, conv_from = "t", conv_value = 2.5, conv_df = 58,
     just_type = "meta_analysis", just_source = "A published trial"))

@@ -1336,7 +1336,10 @@ conversion_by <- function(conv) {
 
 conversion_package_text <- function(package, function_used) {
   fun <- sub("\\(.*", "", sub("^[A-Za-z.]+::", "", function_used))
-  if (identical(package, "effectsize")) {
+  if (identical(package, "base")) {
+    # A risk ratio into group 2's proportion: the ratio times group 1's.
+    "as group 1's proportion times the risk ratio"
+  } else if (identical(package, "effectsize")) {
     sprintf("with the effectsize package's %s() (Ben-Shachar, L\u00fcdecke & Makowski, 2020)", fun)
   } else if (identical(fun, "t2d")) {
     # The formulas are Lakens's (2013, equations 2 and 7; refs.bib).
@@ -2843,11 +2846,13 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     sprintf("Power to show the effect is smaller than %s, if the true effect is zero, is %%.1f%%%%.", telescopes$effect_name)
   } else "Power to detect this effect is %.1f%%."
   effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values)
-  # A converted effect: the published value, what it became and how.
-  if (is.null(effect) && !is.null(conv <- result$effect_conversion)) {
-    effect <- sprintf("%s = %s, converted from the published %s of %s%s %s",
+  # A converted effect: the published value, what it became and how,
+  # after any other values the reader needs (two proportions: group 1's).
+  if (!is.null(conv <- result$effect_conversion)) {
+    converted <- sprintf("%s = %s, converted from the published %s of %s%s %s",
       conv$effect_name, format(round(conv$converted, 3), nsmall = 2), sub("^an? ", "", conv$from_name), format(conv$value),
       conversion_details(conv), conversion_by(conv))
+    effect <- if (is.null(effect)) converted else paste0(effect, "; ", converted)
   }
   # Means and SD: the standardised effect the engine worked out from them.
   u <- result$effect_from_units

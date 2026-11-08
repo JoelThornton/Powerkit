@@ -688,13 +688,14 @@ conversion_choices <- list(
   factorial_ancova = c("F", "f"),
   oneway_within = "F",
   "2x2_mixed" = "F",
-  mixed = "F"
+  mixed = "F",
+  two_proportions = c("odds_ratio", "risk_ratio")
 )
 
 conversion_labels <- list(
   t = "A t statistic", F = "An F statistic with one numerator df (two groups or two conditions)",
   r = "A correlation r", d = "Cohen's d (two groups)", odds_ratio = "An odds ratio",
-  f = "Cohen's f"
+  f = "Cohen's f", risk_ratio = "A risk ratio"
 )
 
 # `when`: the effect field's own conditions (for example, not while the
@@ -703,6 +704,11 @@ conversion_fields <- function(template, when = list()) {
   from <- conversion_choices[[template]]
   labels <- conversion_labels[from]
   if (isTRUE(template %in% eta_squared_templates)) labels$F <- "An F statistic, with its two degrees of freedom"
+  proportions <- identical(template, "two_proportions")
+  if (proportions) {
+    labels$odds_ratio <- "An odds ratio (group 2's odds of 'yes' over group 1's), with group 1's proportion above"
+    labels$risk_ratio <- "A risk ratio (group 2's proportion over group 1's), with group 1's proportion above"
+  }
   choices <- c(list(none = "No: I'll enter the effect size myself"), labels)
   sets <- stats::setNames(lapply(from, function(x) list(list(path = "effect_justification.conversion.from", value = x))), from)
   planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size"))),
@@ -724,7 +730,11 @@ conversion_fields <- function(template, when = list()) {
   c(Filter(Negate(is.null), list(
     list(id = "conv_from", label = "Is your effect size published in another form?", type = "select", default = "none",
          choices = choices, sets = sets, shown_if = planning,
-         help = paste("powerkit converts it with the psych package (a t or F statistic, by the formula in Lakens, 2013) or the",
+         help = if (proportions) paste(
+           "powerkit works out group 2's proportion from the ratio and group 1's proportion (an odds ratio with the effectsize",
+           "package, Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result. An odds ratio from a logistic regression",
+           "with covariates is a conditional one, usually further from 1 than the two groups' raw odds ratio. Published effects",
+           "tend to be larger than the true effect: say how you adjusted it.") else paste("powerkit converts it with the psych package (a t or F statistic, by the formula in Lakens, 2013) or the",
                       "effectsize package (Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result and the function used. Published effects",
                       "tend to be larger than the true effect: say how you adjusted it, or use safeguard power below if it comes",
                       "from one study.")),
@@ -746,7 +756,7 @@ with_conversion <- function(group, template) {
   # A field marked no_conversion (the two-group card's point-biserial r)
   # is another way to give the effect, not the one a conversion fills.
   at <- which(vapply(group$fields, function(f) isTRUE(f$effect) && !isTRUE(f$no_conversion) &&
-    grepl("^population\\.(d|dz|r|eta_squared)$", f$path %||% ""), logical(1)))
+    grepl("^population\\.(d|dz|r|eta_squared|p2)$", f$path %||% ""), logical(1)))
   if (length(at) != 1) return(group)
   effect <- group$fields[[at]]
   when <- shown_if_conditions(effect)

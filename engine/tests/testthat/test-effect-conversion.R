@@ -116,3 +116,32 @@ test_that("conversion problems are explained in plain words", {
   other$effect_justification$conversion <- list(from = "t", value = 2.5, df_error = 58L)
   expect_spec_problem(other, "not for this design yet")
 })
+
+test_that("two proportions: an odds ratio or a risk ratio with group 1's proportion gives group 2's", {
+  # An odds ratio through effectsize's oddsratio_to_riskratio(), checked
+  # against the definition: odds2 = OR x odds1, so p2 = OR p1 / (1 - p1 + OR p1).
+  out <- convert_effect("odds_ratio", 2, "two_proportions", p0 = 0.6)
+  expect_equal(out$value, 2 * 0.6 / (1 - 0.6 + 2 * 0.6))
+  expect_identical(out$function_used, "effectsize::oddsratio_to_riskratio(OR = 2, p0 = 0.6) * 0.6")
+  expect_identical(out$package$name, "effectsize")
+  # An odds ratio below 1 gives a lower proportion.
+  expect_lt(convert_effect("odds_ratio", 0.5, "two_proportions", p0 = 0.6)$value, 0.6)
+  # A risk ratio is group 2's proportion over group 1's.
+  out <- convert_effect("risk_ratio", 1.5, "two_proportions", p0 = 0.3)
+  expect_equal(out$value, 0.45)
+  expect_identical(out$package$name, "base")
+  # Without group 1's proportion, or a ratio that would push group 2 to 1 or more, it says so.
+  expect_error(convert_effect("odds_ratio", 2, "two_proportions"), "group 1's proportion")
+  expect_error(convert_effect("risk_ratio", 4, "two_proportions", p0 = 0.3), "1.2, 1 or more")
+  expect_error(convert_effect("risk_ratio", 0, "two_proportions", p0 = 0.3), "above 0")
+  # In a spec: validation fills group 2's proportion from population > p1,
+  # and the plan matches one given p2 directly.
+  spec <- conversion_spec("two_proportions", list(from = "odds_ratio", value = 2))
+  checked <- validate_spec(spec)
+  expect_equal(checked$population$p2, 0.75)
+  expect_equal(checked$effect_justification$conversion$result, 0.75)
+  direct <- read_spec(example_path("two_proportions"), validate = FALSE)
+  direct$population$p2 <- 0.75
+  expect_identical(run_spec(checked)$n_required, run_spec(validate_spec(direct))$n_required)
+  expect_identical(conversion_record(checked)$function_used, "effectsize::oddsratio_to_riskratio(OR = 2, p0 = 0.6) * 0.6")
+})
