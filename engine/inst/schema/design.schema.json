@@ -1933,6 +1933,12 @@
             "r": {
               "$ref": "#/definitions/correlation"
             },
+            "tau": {
+              "description": "Pearson's test by formula only: how much the true correlation varies between studies, as an SD on Fisher's z scale (McShane & Bockenholt, 2014). r is then the average correlation. 0 or absent: the same correlation in every study.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
+            },
             "r_sd": {
               "description": "Bayes factor test only: uncertainty about the correlation, as the SD of a stretched beta design prior with mean r (0, the default: exactly r). Power is then averaged over it: the study's assurance. Must be below sqrt(1 - r^2).",
               "type": "number",
