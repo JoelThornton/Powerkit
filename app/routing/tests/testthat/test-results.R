@@ -1100,7 +1100,7 @@ test_that("the two-proportion Bayes factor version runs on BayesFactor, with JAS
   known <- vapply(known_difference_keys(forms, "E5", calc$spec), function(k) forms$known_differences_methods[[k]], character(1))
   w <- writeup_text(forms$forms$E5, calc$spec, calc$result, fields, values, known_methods = known)
   expect_match(w[["short"]], "Bayes factor test of two proportions", fixed = TRUE)
-  expect_match(w[["short"]], "prior concentration 1", fixed = TRUE)
+  expect_match(w[["short"]], "an analysis prior of concentration 1", fixed = TRUE)
   expect_no_match(w[["short"]], "α", fixed = TRUE)
   expect_no_match(w[["ethics"]], "NA", fixed = TRUE)
   expect_false("13" %in% known_difference_keys(forms, "E5", build_spec(forms, "E5", fields, form_examples$E5)))

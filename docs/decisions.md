@@ -6286,3 +6286,28 @@ the site stays findable by search engines.
   that plans them has been checked, and Bayesian wording in methods
   paragraphs and scripts. Bayesian replication goals are in the Labs
   replication planner.
+
+## 2026-11-08 · Bayesian write-ups, and a write-up for plans that report both
+
+- **Decided (8 November 2026):** the methods paragraph and plain-words
+  version of every Bayes factor result are worded as a Bayes factor
+  design analysis (Schönbrodt & Wagenmakers, 2018), not as a power
+  analysis with words swapped. The paragraph names the analysis prior
+  (the prior the Bayes factor is computed with) and the design prior (the
+  belief about the true effect the plan averages over) separately; says
+  whether the design prior is a point or spread, and that a spread one
+  gives assurance (O'Hagan, Stevens & Campbell, 2005); gives the
+  probability of strong evidence for the effect, and, if there were no
+  effect, of strong evidence for its absence and of misleading evidence;
+  and speaks in the third person, as a paper does.
+- **Both together:** a p-value plan with "Add a Bayes factor?" opened now
+  gets a "Write-up for both": the card's own methods paragraph, then the
+  Bayes factor as the pre-stated secondary analysis (its test and prior,
+  the evidence thresholds, which analysis decides if they disagree, the
+  probabilities at the planned size, how often both find the effect for
+  the t-tests, and the size needed for both), with a full and a
+  plain-words version. It uses the companion's numbers only; nothing new
+  is computed.
+- **Left for now:** goals without a Bayes factor threshold (next.md item
+  20), at the maintainer's request.
+

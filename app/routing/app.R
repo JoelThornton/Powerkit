@@ -1210,7 +1210,10 @@ server <- function(input, output, session) {
     target <- if (identical(calc$result$goal_type, "sample_size")) calc$spec$goal$power
     comp <- tryCatch(engine_function("bayes_companion")(calc$spec, n, target = target),
       error = function(e) list(available = FALSE, reason = "powerkit couldn't work out the Bayes factor side of this plan."))
-    output$bayes_companion <- renderUI(bayes_companion_ui(calc$spec, calc$result, comp))
+    # The write-up for both, from the card's own answers when they allow one.
+    writeup <- tryCatch(bayes_companion_writeup(forms$forms[[state$endpoint]], calc$spec, calc$result,
+      current_form_fields(), current_form_values(), comp), error = function(e) NULL)
+    output$bayes_companion <- renderUI(bayes_companion_ui(calc$spec, calc$result, comp, writeup))
   })
   observeEvent(state$calc, {
     output$bayes_companion <- renderUI(NULL)
