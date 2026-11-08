@@ -317,8 +317,14 @@ form_section <- function(g) {
   if (identical(g$title, "Assumptions and named alternatives")) return("scenarios")
   # Choosing the estimate changes the scientific question, even when it
   # starts at a default. Keep it visible before its conditional inputs.
-  if (any(c("estimate", "research_question") %in% ids)) return("study")
+  # The scientific question only labels the planning document, so it folds
+  # away below the study's section (8 November 2026).
+  if ("research_question" %in% ids) return("question")
+  if ("estimate" %in% ids) return("study")
   if ("guess" %in% ids) return("guess")
+  # Which test you'll run is in view on every card that offers more than
+  # one (8 November 2026), never folded into Settings.
+  if (length(g$fields) && identical(g$fields[[1]]$label, "Test version") && length(g$fields[[1]]$choices) > 1) return("study")
   if ("just_type" %in% ids || any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) return("effect")
   starts_set <- vapply(g$fields, function(f) !is.null(f[["default"]]) || isTRUE(f$optional), logical(1))
   if (length(ids) && all(starts_set) && !"n_mediators" %in% ids) return("settings")
@@ -376,6 +382,8 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     div(class = "form-section", h3(class = "h5 form-section-title", "1. Your goal"), part("goal")),
     planning_decision_ui(form),
     if (any(section == "study")) div(class = "form-section", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
+    if (any(section == "question")) tags$details(class = "form-question", open = if (nzchar(values$research_question %||% "")) NA,
+      tags$summary("Your scientific question, for the planning document (optional)"), part("question")),
     div(class = "form-section form-section-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
       effect_unsure_ui(form),
       effect_waits_ui(form, groups),

@@ -58,7 +58,9 @@ settings:
     ref: "Judgement call 3.2; open question 5"
     question: "Should small / medium / large benchmarks be shown, even as context? Should bias-corrected planning (e.g. BUCSS) be offered?"
     options: {hide: "Don't show benchmarks", context: "Show as context only, never as defaults", bucss: "Show as context, and offer bias-corrected planning"}
-    value: null
+    # Decided 8 November 2026: no small/medium/large labels anywhere in the
+    # help; bias-corrected planning stays a separate question.
+    value: hide
     shown_at: [card]
   - key: one_sided_tests
     ref: "Judgement call 3.3; open question 5"
@@ -731,7 +733,7 @@ nodes:
   me1:
     doc_id: ME1
     text: "What is the cause (X)?"
-    help: "The M -> Y path is not randomised, even when X is manipulated."
+    help: "Even when you assign X, the go-between (mediator) isn't assigned, so its effect on the outcome is observational."
     refs: "decision D9"
     options:
       - {label: "Two conditions you assigned, or two groups", next: me4_xbin}
@@ -739,7 +741,7 @@ nodes:
       - {label: "Three or more conditions or groups", next: E42}
   me4_xbin:
     doc_id: ME4
-    text: "Are your mediators scores?"
+    text: "Is each go-between (mediator) a score?"
     options:
       - {label: "Yes", next: me2_xbin}
       - {label: "No, at least one is yes/no or a category", next: E39}
@@ -759,7 +761,7 @@ nodes:
       - {label: "In a chain: X affects the first, which affects the next", next: E12}
   me4:
     doc_id: ME4
-    text: "Are your mediators scores?"
+    text: "Is each go-between (mediator) a score?"
     options:
       - {label: "Yes", next: me2}
       - {label: "No, at least one is yes/no or a category", next: E39}
@@ -1007,7 +1009,7 @@ endpoints:
     plain_name: "Compare two groups on a yes/no outcome"
     search_words: "two proportions fisher exact"
     template: "basic_test / two_proportions"
-    backend: "The z test as in G*Power, no continuity correction: base R's power.prop.test() for equal groups, pwrss for unequal groups (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher(); the Bayes factor test if you choose it: BayesFactor's contingencyTableBF() (JASP's default contingency table Bayes factor), summed exactly over every possible table"
+    backend: "base R's power.prop.test() for equal groups and pwrss for unequal groups, by the z test as in G*Power with no continuity correction (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher(); the Bayes factor test if you choose it: BayesFactor's contingencyTableBF() (JASP's default contingency table Bayes factor), summed exactly over every possible table"
     refs: "Departures 5, 9, 11 and 15, Known difference 13 (docs/conventions.md)"
     method: "Formula (no simulation)"
     inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1", "The z test, Fisher's exact test or a Bayes factor test"]
@@ -1071,7 +1073,7 @@ endpoints:
     template: "regression_interaction / two_way"
     backend: "InteractionPoweR: power_interaction() (power_interaction_r2() only brackets N)"
     method: Simulation
-    inputs: ["Correlations: X with Y, W with Y, the interaction XW with Y, and X with W", "Optional: reliability of X, W and Y"]
+    inputs: ["The interaction's size: the R-squared it adds, or the correlations of X, W and the interaction XW with Y", "Optional: reliability of X, W and Y"]
     status: runs_validated
     validation: {file: test-validation-regression-interaction.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
@@ -1082,7 +1084,7 @@ endpoints:
     template: "mediation / process_4 (mediator M)"
     backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI"
     method: Simulation
-    inputs: ["Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
+    inputs: ["Standardised paths X -> M, M -> Y and X -> Y"]
     status: runs_validated
     validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
@@ -1162,7 +1164,7 @@ endpoints:
       - "You give standardised paths, as for a score X (per SD of X); the result shows the difference between the groups in M that the path from X means."
       - "You can give the share of people in each group (equal by default)."
       - "With two or more mediators and a yes/no X, use the parallel or serial mediation screen and choose two groups for X."
-    inputs: ["X's two groups or conditions, and the share in each", "Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
+    inputs: ["X's two groups or conditions, and the share in each", "Standardised paths X -> M, M -> Y and X -> Y"]
     refs: "phase 3b decisions, 29 October 2026 (docs/decisions.md)"
     tier: MVP
     alternatives: ["a bootstrap confidence interval", "the joint-significance test", "the Sobel test"]
@@ -2111,7 +2113,7 @@ endpoints:
     tier: v2
     alternatives: ["planned contrasts, such as the two-way interaction at each level of the third factor", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
   E-unsure:
-    doc_name: "No matching design (safety net)"
+    doc_name: "No matching design"
     plain_name: "None of these fit, or I'm not sure"
     status: not_in_powerkit
     generic: true
@@ -2397,7 +2399,6 @@ glossary:
   - {term: "reliability", pattern: "\\breliabilit(y|ies)\\b", hint: "How consistently a measure gives the same result; 1 means no measurement error."}
   - {term: "standardised paths", pattern: "standardised paths|fully standardised", hint: "The strength of each arrow in the model (for example, X to M), expressed in standard deviations so that arrows between differently scaled measures can be compared."}
   - {term: "standardised coefficient", pattern: "standardised coefficient", hint: "A regression coefficient with every variable measured in standard deviations: how many SDs the outcome changes when the predictor (here, the three-way product) is one SD higher."}
-  - {term: "Monte Carlo draws per CI", pattern: "Monte Carlo draws", hint: "How many random draws are used to build each confidence interval for the indirect effect; more draws give a more stable interval."}
   - {term: "residuals", pattern: "residuals", hint: "The part of each mediator that X doesn't explain; their correlation says how much the mediators overlap beyond X."}
   - {term: "indirect path", pattern: "indirect (path|effect)", hint: "The route from X to the outcome through a mediator (X to M to Y)."}
   - {term: "contrast weights", pattern: "contrast weights", hint: "Numbers that say which groups a specific comparison sets against which (for example, 1, 1 and -2 compare the first two groups together with the third)."}

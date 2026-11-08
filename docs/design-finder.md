@@ -698,7 +698,7 @@ increases effort, which raises grades.*
 → ME4, then `mediation / process_6` (2 to 4 mediators; more is **Coming later
 (not in spec)**). Analysis name: *serial mediation (PROCESS model 6).*
 
-### ME4. Are your mediators scores?
+### ME4. Is each go-between (mediator) a score?
 
 **Yes** → the form for the template chosen in ME2 or ME3: **Available**
 when X is a measured score; **Coming later (spec ready)** when X is

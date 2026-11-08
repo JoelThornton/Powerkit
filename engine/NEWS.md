@@ -1,3 +1,41 @@
+# powerkit 0.42.0
+
+* Goodness-of-fit proportions given as exact fractions (1/6, 1/6, 2/3)
+  are rescaled to sum to exactly 1 before pwrss's `probs.to.w()`, which
+  refused them after the spec's own check had accepted them; the
+  exported script does the same.
+* A simulated sample-size search that can't settle says so plainly, and
+  a target power above 0.99 is named as the reason when it is. A formula
+  search stopped by a very large effect asks the user to check the
+  effect size first.
+* `docs/conventions.md` notes that powertools' formulas for yes/no
+  outcomes in clustered trials, and powerSurvEpi's Cox formula, count
+  one tail (2.5% power with no effect at a two-sided 5%).
+* The app's input screens:
+  - target power starts empty on every card, including mediation and
+    reliability where the package starts at 0.8, and the result compares
+    80%, 90% and 95% power;
+  - "Which test you'll run" is in view on every card with more than one
+    test (two proportions with Fisher's exact test, the correlation with
+    Spearman's rho, and others), not folded into Settings;
+  - the scientific question folds away below the study's section, and
+    the Monte Carlo draws for mediation are in Settings rather than on the
+    card's list of what you need;
+  - moderation asks "What do you have for the interaction?" and starts at
+    the R-squared change, as papers and G*Power give it, with the
+    correlations as the other choice;
+  - no small/medium/large labels for Cohen's w in the help;
+  - the ten cards whose default test is simulated show their measured
+    usual run times, not "in a second or two", and their progress bars
+    estimate from them; exploratory factor analysis's time is updated to
+    its measured 320 seconds;
+  - engine messages name the screen's own settings, and sentences about
+    settings the screen doesn't show are left out;
+  - the generic noncentrality tests no longer say "with NA participants";
+  - plain names: the mediation questions name the go-between before
+    asking about it, the safety net is "No matching design", and two
+    proportions is "Calculated by" its packages.
+
 # powerkit 0.41.0
 
 * Whole-study simulation (experimental): `run_whole_study()` offers a new

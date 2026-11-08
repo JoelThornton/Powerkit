@@ -26,7 +26,7 @@ form_examples <- list(
   E8 = c(list(test_version = "anova_f", group_sizes = "equal", A_label = "Group", A_level1 = "Waitlist", A_level2 = "Therapy", B_label = "Time",
               B_level1 = "Pre", B_level2 = "Post", Y_label = "Depression score", metric = "standardised",
               m11 = "0", m12 = "0", m21 = "0", m22 = "-0.4", spread = "same", sd = "1", r = "0.6", effect = "interaction", method = "exact"), closing_ok),
-  E9 = c(list(X_label = "Daily stress", W_label = "Social support", Y_label = "Sleep quality",
+  E9 = c(list(X_label = "Daily stress", W_label = "Social support", Y_label = "Sleep quality", interaction_metric = "correlation",
               r_X_Y = "-0.3", r_W_Y = "0.2", r_XW_Y = "0.1", r_X_W = "-0.1", rel_X = "0.8", rel_W = "0.85"), closing_ok),
   E10 = c(list(X_label = "Workload", M_label = "Exhaustion", Y_label = "Turnover intention",
                p_X_M = "0.3", p_M_Y = "0.3", p_X_Y = "0.1"), closing_ok),

@@ -616,7 +616,7 @@ picture_ui <- function() {
       sliderInput("picture_n_r", "Number of participants", min = 10, max = 400, value = 84, step = 1, width = "100%"),
       sliderInput("picture_r", "Correlation in the population", min = 0, max = 0.8, value = 0.3, step = 0.05, width = "100%")),
     conditionalPanel("input.picture_design == 'chisq'",
-      p(class = "small text-muted", "Cohen's w measures how far the observed counts depart from what no effect predicts (0.1 small, 0.3 medium, 0.5 large, in Cohen's terms). The degrees of freedom are the categories minus 1 for goodness of fit, or (rows - 1) × (columns - 1) for a table."),
+      p(class = "small text-muted", "Cohen's w measures how far the observed counts depart from what no effect predicts. The degrees of freedom are the categories minus 1 for goodness of fit, or (rows - 1) × (columns - 1) for a table."),
       sliderInput("picture_n_chisq", "Number of participants", min = 10, max = 500, value = 88, step = 1, width = "100%"),
       sliderInput("picture_w", "Cohen's w in the population", min = 0, max = 0.8, value = 0.3, step = 0.05, width = "100%"),
       sliderInput("picture_df_chisq", "Degrees of freedom", min = 1, max = 8, value = 1, step = 1, width = "100%")),

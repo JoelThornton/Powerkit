@@ -60,6 +60,10 @@ test_that("calculating designs calculate; simulated designs preview first, then 
   # E9, E15, the MANOVAs and latent profiles (E58) run in the background
   # with no preview, with their usual run times.
   expect_identical(names(forms$background), c("E9", "E15", "E59", "E58", "E73", "E60"))
+  # Cards whose default version simulates say so, and their bars estimate.
+  expect_setequal(names(forms$simulated_times), c("E44", "E22", "E61", "E47", "E64", "E70", "E30", "E32", "E45", "E72"))
+  expect_equal(usual_seconds(forms, "E44", "sample_size"), 520)
+  expect_identical(unname(about_endpoint_how(forms)["E44"]), "background")
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)
   expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)
@@ -568,6 +572,7 @@ test_that("the result reads in plain words, shows 80% and 95% side by side, the 
   n95 <- 2 * ceiling(pwr::pwr.t.test(d = 0.4, power = 0.95)$n)
   expect_match(calc$cost_line, sprintf("80%% power needs %s participants", n80), fixed = TRUE)
   expect_match(calc$cost_line, sprintf("95%% power needs %s", n95), fixed = TRUE)
+  expect_match(calc$cost_line, sprintf("90%% power needs %s", 2 * ceiling(pwr::pwr.t.test(d = 0.4, power = 0.9)$n)), fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), values, calc))
   expect_match(html, "about 9 in 10 studies like this would get a significant result", fixed = TRUE)
   expect_match(html, "Your reasoning: “Smallest difference our clinic would act on.”", fixed = TRUE)
@@ -2956,7 +2961,7 @@ test_that("sample-size searches run in the background while there is room, with 
   spec <- light_spec("E1", goal = list(type = "sample_size", power = 0.9))
   result <- list(goal_type = "sample_size", n_required = list(n = 120), provenance = list(method = "formula"))
   never <- function(spec) stop("no search should run here")
-  expect_match(cost_line(spec, result, run = never, ns = c(97, 160)), "80% power needs 97 participants; 95% power needs 160", fixed = TRUE)
+  expect_match(cost_line(spec, result, run = never, ns = c(97, 130, 160)), "80% power needs 97 participants; 90% power needs 130; 95% power needs 160", fixed = TRUE)
 })
 
 test_that("the warm spare process gives the same result as the engine, and its comparison-line sizes", {
@@ -2993,4 +2998,11 @@ test_that("the warm spare process gives the same result as the engine, and its c
   slow$kill()
   expect_false(slow$is_alive())
   expect_match(collect_background_calculation(slow)$message, "stopped unexpectedly", fixed = TRUE)
+})
+
+test_that("a generic test's power has no participant count under it", {
+  fig <- result_figure(list(design = "generic_test", template = "generic_t", variables = list(), population = list()),
+    list(goal_type = "power", curve = data.frame(n = NA_real_, power = 0.68)))
+  expect_identical(fig$value, "68%")
+  expect_identical(fig$sub, "for the noncentrality you entered")
 })

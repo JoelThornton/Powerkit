@@ -52,7 +52,10 @@ fully validated. Validation runs are recorded in
   printing and saving, the variables' names, saving and reopening the
   plan, a rough power curve, Cohen's d for two groups, one study plan,
   shared sample sizes across cards and the plan screens' look. The
-  eighth batch is next. The mixed-design Greenhouse-Geisser check
+  eighth batch (input screens) is done: target power empty everywhere
+  with 80/90/95% compared, test versions in view, moderation starting at
+  the R-squared change, measured run times and plainer messages. The
+  ninth batch (Labs) is next. The mixed-design Greenhouse-Geisser check
   still fails with new seeds and waits for the statistician; the rerun of
   the moderated mediation Type I error check (yes/no X) is recorded when
   it finishes ([`validation-log.md`](validation-log.md), 7 November 2026).

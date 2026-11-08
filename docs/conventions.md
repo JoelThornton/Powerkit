@@ -1577,6 +1577,19 @@ Wired into the app on 18 October 2026 (E25, E26).*
 
 ## Not departures, but worth stating
 
+- **One tail counted for some yes/no outcomes in clustered trials, and for
+  Cox regression** (noted 8 November 2026). The normal-approximation
+  formulas that powertools uses for yes/no outcomes in cluster-randomised,
+  group-treatment and multisite trials, and powerSurvEpi's formula for a
+  Cox regression predictor, count only the tail in the direction of the
+  effect. With no effect they therefore report 2.5% power for a two-sided
+  test at alpha = .05, where G*Power and powerkit's other two-sided
+  formulas give 5%. At realistic effects the other tail adds almost
+  nothing (about 0.1 percentage points at 20% power, and less above it), so the
+  results stand; only power for very small effects is slightly
+  understated. powerkit follows the packages, as the textbook formulas
+  they implement do.
+
 - **Basic tests (E1–E6): a formula, not simulation** (formerly Departure 9).
 
   - **Before 17 October 2026:** powerkit's default was simulation with Spower for every basic test

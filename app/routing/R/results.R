@@ -33,7 +33,9 @@ runs_in_background <- function(forms, ep_id, spec = NULL, simulates = engine_fun
 # process, while there is room (background_limit()); when there isn't, it
 # runs here as before rather than asking the user to wait.
 search_in_background <- function(spec) identical(spec$goal$type, "sample_size")
-usual_seconds <- function(forms, ep_id, goal) forms$background[[ep_id]][[goal]] %||% NA_real_
+usual_seconds <- function(forms, ep_id, goal) {
+  forms$background[[ep_id]][[goal]] %||% forms$simulated_times[[ep_id]][[goal]] %||% NA_real_
+}
 
 # Run the engine on a checked spec. The input screen puts the seed in the
 # spec (a fixed default the user can change; forms.yaml, default_seed); a
@@ -1297,7 +1299,7 @@ source_stale_ui <- function(fields, values) {
 # (`values`), 80% and 95% are for all of them together.
 # `ns`: the two sample sizes when a background run has found them already
 # (background_worker(), cost_line_powers()).
-cost_line_powers <- function(values) c(claim_power(0.8, values), claim_power(0.95, values))
+cost_line_powers <- function(values) c(claim_power(0.8, values), claim_power(0.9, values), claim_power(0.95, values))
 cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L, values = list(), ns = NULL) {
   if (!identical(result$goal_type, "sample_size") || simulated(result)) return(NULL)
   n_at <- function(power) {
@@ -1308,12 +1310,13 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
     if (identical(calc$status, "ok")) calc$result$n_required$n else NA
   }
   powers <- cost_line_powers(values)
-  if (length(ns) == 2) { n80 <- ns[[1]]; n95 <- ns[[2]] } else { n80 <- n_at(powers[[1]]); n95 <- n_at(powers[[2]]) }
-  if (is.na(n80) || is.na(n95)) return(NULL)
+  n <- if (length(ns) == length(powers)) unlist(ns) else vapply(powers, function(p) as.numeric(n_at(p)), numeric(1))
+  if (anyNA(n)) return(NULL)
   together <- if (!identical(claim_power(0.8, values), 0.8)) " (for all the tests together)" else ""
   sprintf(
-    "For comparison: 80%% power%s needs %s %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your write-up.",
-    together, whole(n80), n_unit(spec) %||% "participants", group_text(spec, n80), whole(n95), group_text(spec, n95)
+    "For comparison: 80%% power%s needs %s %s%s; 90%% power needs %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your write-up.",
+    together, whole(n[[1]]), n_unit(spec) %||% "participants", group_text(spec, n[[1]]),
+    whole(n[[2]]), group_text(spec, n[[2]]), whole(n[[3]]), group_text(spec, n[[3]])
   )
 }
 
@@ -2121,7 +2124,8 @@ result_figure <- function(spec, result) {
     power = {
       row <- result$curve[1, ]
       if (is.null(row$power) || is.na(row$power)) NULL else list(value = percent(row$power), label = "power",
-        sub = sprintf("with %s %s%s", whole(row$n), unit, group_text(spec, row$n)))
+        # The generic tests have no sample size: the noncentrality carries it.
+        sub = if (is.null(row$n) || is.na(row$n)) "for the noncentrality you entered" else sprintf("with %s %s%s", whole(row$n), unit, group_text(spec, row$n)))
     },
     sensitivity = {
       s <- result$sensitivity
@@ -2233,7 +2237,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
 result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
-      h3(class = "h5", "The calculation didn't finish"), p(calc$message)))
+      h3(class = "h5", "The calculation didn't finish"), p(plain_engine_message(calc$message %||% "", fields))))
   }
   if (is_precision(calc$spec)) return(precision_panel_ui(tree, forms, ep_id, fields, values, calc))
   ep <- tree$endpoints[[ep_id]]
