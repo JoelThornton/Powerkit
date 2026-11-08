@@ -165,7 +165,8 @@ plan_questions <- function(values, result, alpha_default = 0.05) {
     out <- c(out, "The effect size is the finished study's own result, so this is observed power. Ask why it was needed: observed power is widely discouraged, and a new study should be planned from a smallest effect of interest.")
   }
   if (identical(type, "pilot_study")) {
-    out <- c(out, "The effect size comes from a pilot study. A pilot is usually small, so its estimate is uncertain. Ask how far the true effect could be from it, and what happens to the plan if it is smaller.")
+    out <- c(out, sprintf("The effect size comes from a pilot study%s. A pilot is usually small, so its estimate is uncertain. Ask how far the true effect could be from it, and what happens to the plan if it is smaller.",
+      if (!is.null(v("just_adjustment"))) sprintf(", adjusted as follows: “%s”", v("just_adjustment")) else ""))
   }
   if (identical(type, "prior_study")) {
     out <- c(out, sprintf("The effect size comes from a previous study%s. Ask how the adjustment was chosen and whether that study is like this one.",

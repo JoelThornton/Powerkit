@@ -611,6 +611,9 @@ result_sentences <- function(spec, result) {
     out[] <- gsub(" participants in total", sprintf(" time points after the intervention (and %s before)", whole(spec$population$n_pre)), out, fixed = TRUE)
     out[] <- gsub("studies like this", "series like this", out, fixed = TRUE)
   }
+  # Safeguard power plans for a smaller effect than the one entered, so
+  # the sentences name the effect the calculation used.
+  out[] <- safeguard_wording(out, result)
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   if (is_minimum_effect(spec)) out[["detail"]] <- paste(out[["detail"]], minimum_effect_sentence(spec))
@@ -1060,6 +1063,28 @@ reasoning_line <- function(values) {
   sprintf("Effect size source: %s. Your reasoning: \u201c%s\u201d", label, trimws(values$just_source))
 }
 
+# The effect safeguard power used, in words ("Cohen's d = 0.258, the
+# safeguard value for the earlier estimate of 0.45"), or NULL without it.
+safeguard_effect_text <- function(result) {
+  sg <- result$safeguard
+  if (is.null(sg)) return(NULL)
+  sprintf("%s = %s (the safeguard value; the earlier estimate was %s)", sg$effect_name,
+    format(round(sg$lower, 3), nsmall = 2), format(round(sg$estimate, 3)))
+}
+
+# "a 60% chance", "an 80% chance": the article for a percentage.
+a_percent <- function(x) {
+  text <- percent(x)
+  paste(if (grepl("^(8|11|18)([^0-9]|$)|^8[0-9]", text)) "an" else "a", text)
+}
+
+safeguard_wording <- function(text, result) {
+  effect <- safeguard_effect_text(result)
+  if (is.null(effect)) return(text)
+  text <- gsub("the true effect is the one you entered", paste("the true effect is", effect), text, fixed = TRUE)
+  gsub("the effect you entered", paste("the effect", effect), text, fixed = TRUE)
+}
+
 # Safeguard power, in words beside the result: the earlier estimate, the
 # interval and the effect size the calculation used (worked out by the
 # engine, with psych).
@@ -1068,8 +1093,9 @@ safeguard_sentence <- function(result) {
   if (is.null(sg)) return(NULL)
   sizes <- if (!is.null(sg$n1)) sprintf("%s and %s people in its two groups", sg$n1, sg$n2) else sprintf("%s people", sg$n)
   sprintf(paste0("Safeguard power: the earlier study's estimate was %s = %s, with %s. The calculation uses the lower end ",
-    "of the %d%% confidence interval around it, %s = %s, so the study keeps its power if the true effect is that small ",
-    "(a %d%% chance, if the earlier estimate is unbiased; Perugini, Gallucci & Costantini, 2014)."),
+    "of the %d%% confidence interval around it, %s = %s, so the study keeps its power if the true effect is that small. ",
+    "Across studies like the earlier one, a bound found this way falls below the true effect %d%% of the time, if the ",
+    "earlier estimate is unbiased (Perugini, Gallucci & Costantini, 2014)."),
     sg$effect_name, format(round(sg$estimate, 3)), sizes, round(100 * sg$conf_level), sg$effect_name,
     format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
 }
@@ -2011,6 +2037,11 @@ result_assumptions <- function(spec, result, fields, values) {
     test = paste0(toupper(substr(test, 1, 1)), substr(test, 2, nchar(test))),
     target = if (!is.null(spec$goal$power) && !identical(result$goal_type, "power")) sprintf("Target power %s", percent(spec$goal$power)) else NA_character_
   )
+  # With safeguard power, the effect the calculation used, with the one
+  # entered in brackets.
+  if (!is.null(sg <- result$safeguard) && !is.na(out[["effect"]])) {
+    out[["effect"]] <- sprintf("%s = %s, the safeguard value (%s)", sg$effect_name, format(round(sg$lower, 3), nsmall = 2), out[["effect"]])
+  }
   out <- out[!is.na(out) & nzchar(out)]
   if (is_bayes_test(spec)) out[] <- vapply(out, bayes_wording, character(1))
   out
@@ -2657,8 +2688,8 @@ ethics_text <- function(spec, result, fields, values) {
     justified_alpha = {
       j <- result$justified_alpha
       c(include, recruit_line, set_by, basis,
-        sprintf("Rather than use the usual %s threshold for statistical significance, we chose one by weighing the two mistakes a study can make: finding an effect that isn't there, and missing one that is. %s. That gives a threshold of %s%%, with a %s chance of finding the effect if it is real.",
-          alpha, justified_alpha_weights_text(j, brief = TRUE), format(signif(100 * j$alpha, 3)), percent(j$power)))
+        sprintf("Rather than use the usual %s threshold for statistical significance, we chose one by weighing the two mistakes a study can make: finding an effect that isn't there, and missing one that is. %s. That gives a threshold of %s%%, with %s chance of finding the effect if it is real.",
+          alpha, justified_alpha_weights_text(j, brief = TRUE), format(signif(100 * j$alpha, 3)), a_percent(j$power)))
     })
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)
@@ -3106,7 +3137,7 @@ lpa_sentences <- function(spec, result) {
   outcome <- sprintf("find the %d profiles", k)
   if (identical(result$goal_type, "sample_size")) {
     est <- result$n_required
-    c(headline = sprintf("You need %s people for a %s chance that %s.", whole(est$n), percent(spec$goal$power), found),
+    c(headline = sprintf("You need %s people for %s chance that %s.", whole(est$n), a_percent(spec$goal$power), found),
       detail = sprintf("This N comes from simulation (%s replications per sample size); the 95%% interval for the required N is %s to %s.",
         whole(result$provenance$nrep), whole(est$lower), whole(est$upper)),
       reading = plain_reading(spec$goal$power, outcome = outcome,
@@ -3114,7 +3145,7 @@ lpa_sentences <- function(spec, result) {
         condition = "the profiles are as you entered"))
   } else {
     row <- result$curve[1, ]
-    c(headline = sprintf("With %s people, there is a %s chance that %s.", whole(row$n), percent(row$power), found),
+    c(headline = sprintf("With %s people, there is %s chance that %s.", whole(row$n), a_percent(row$power), found),
       detail = sprintf("Estimated by simulation from %s replications (Monte Carlo standard error %.1f percentage points).",
         whole(result$provenance$nrep), 100 * row$mcse),
       reading = plain_reading(row$power, outcome = outcome,
@@ -3134,13 +3165,13 @@ efa_sentences <- function(spec, result) {
   condition <- "the factors are as you entered"
   if (identical(result$goal_type, "sample_size")) {
     est <- result$n_required
-    c(headline = sprintf("You need %s people for a %s chance that %s.", whole(est$n), percent(spec$goal$power), found),
+    c(headline = sprintf("You need %s people for %s chance that %s.", whole(est$n), a_percent(spec$goal$power), found),
       detail = sprintf("This N comes from simulation (%s replications per sample size); the 95%% interval for the required N is %s to %s.",
         whole(result$provenance$nrep), whole(est$lower), whole(est$upper)),
       reading = plain_reading(spec$goal$power, outcome = outcome, if_not = if_not, condition = condition))
   } else {
     row <- result$curve[1, ]
-    c(headline = sprintf("With %s people, there is a %s chance that %s.", whole(row$n), percent(row$power), found),
+    c(headline = sprintf("With %s people, there is %s chance that %s.", whole(row$n), a_percent(row$power), found),
       detail = sprintf("Estimated by simulation from %s replications (Monte Carlo standard error %.1f percentage points).",
         whole(result$provenance$nrep), 100 * row$mcse),
       reading = plain_reading(row$power, outcome = outcome, if_not = if_not, condition = condition))

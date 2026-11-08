@@ -534,9 +534,11 @@ effect_help_ui <- function(form, groups) {
       tags$dd("Start in your measure's own units: the smallest difference that would matter for your theory or in practice (for example, 3 points on a questionnaire). ", convert,
         " Choose \u201cThe smallest effect that would matter\u201d as the source and say why that difference matters."),
       tags$dt("A meta-analysis"),
-      tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate, say which estimate you took, and why. Choose \u201cA meta-analysis\u201d as the source."),
+      tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate, say which estimate you took, and why. Pooled estimates are inflated by publication bias too, so prefer one adjusted for bias where the meta-analysis reports it (Carter, Sch\u00f6nbrodt, Gervais & Hilgard, 2019). Choose \u201cA meta-analysis\u201d as the source."),
       tags$dt("One previous study"),
       tags$dd("A single published effect tends to be larger than the true one, so reduce it and say how; powerkit asks you to. Choose \u201cA previous study\u201d as the source."),
+      tags$dt("A pilot study"),
+      tags$dd("A pilot is for checking that the study can be run, not for finding the effect: its estimate is very uncertain, and planning only after a promising pilot makes the plan too small on average (Albers & Lakens, 2018). If you use it anyway, plan for a smaller effect (the safeguard value, where this screen offers it) and say how. Choose \u201cA pilot study\u201d as the source."),
       unsure))
 }
 

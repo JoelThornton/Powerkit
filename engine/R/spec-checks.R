@@ -84,8 +84,9 @@ spec_advice <- function(spec) {
     advice <- c(advice, paste0(
       "The effect size comes from a pilot study. Pilot estimates are very ",
       "imprecise, so a sample size based on one can be far too small or too ",
-      "large. Consider a smallest effect of interest instead, or adjust the ",
-      "pilot estimate and say how in 'effect_justification > adjustment'."
+      "large. Consider a smallest effect of interest instead, plan with the ",
+      "safeguard effect size, or adjust the pilot estimate and say how ",
+      "(\"How you adjusted it\" on the input screen)."
     ))
   }
   # Observed power: allowed, with a warning (judgement call 3.1, decided

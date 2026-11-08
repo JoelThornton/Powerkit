@@ -2929,3 +2929,16 @@ test_that("an interrupted time series result counts time points and shows the Ty
   expect_match(type1_sentence(result), "With no real change, this analysis would still find a significant one", fixed = TRUE)
   expect_null(type1_sentence(list()))
 })
+
+test_that("a safeguard-power result names the effect the calculation used, with the entered one in brackets", {
+  result <- list(goal_type = "sample_size", safeguard = list(effect_name = "Cohen's d", estimate = 0.45, lower = 0.258, conf_level = 0.6, protection = 0.8, n1 = 40, n2 = 40))
+  text <- safeguard_wording(c(headline = "You need 634 participants in total for 90% power to detect the effect you entered.",
+    reading = "if the true effect is the one you entered, about 9 in 10 studies"), result)
+  expect_match(text[["headline"]], "to detect the effect Cohen's d = 0.258 (the safeguard value; the earlier estimate was 0.45)", fixed = TRUE)
+  expect_match(text[["reading"]], "if the true effect is Cohen's d = 0.258", fixed = TRUE)
+  expect_match(safeguard_sentence(result), "falls below the true effect 80% of the time", fixed = TRUE)
+  expect_identical(safeguard_wording("the effect you entered", list()), "the effect you entered")
+  expect_identical(a_percent(0.8), "an 80%")
+  expect_identical(a_percent(0.9), "a 90%")
+  expect_identical(a_percent(0.11), "an 11%")
+})

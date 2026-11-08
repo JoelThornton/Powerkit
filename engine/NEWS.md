@@ -1,3 +1,33 @@
+# powerkit 0.39.0
+
+* Safeguard power results name the effect the calculation used: the
+  headline, the plain-words reading and the "Assuming" box say "Cohen's d
+  = 0.258 (the safeguard value; the earlier estimate was 0.45)" instead of
+  "the effect you entered". The safeguard sentence reads the interval as
+  repeated sampling ("across studies like the earlier one, a bound found
+  this way falls below the true effect 80% of the time"), as Perugini,
+  Gallucci and Costantini (2014) motivate it, rather than as a probability
+  about the true effect; "a 80%" reads "an 80%" throughout.
+* A pilot study's effect size is treated like a previous study's: "How
+  you adjusted it" is shown and needed (unless safeguard power is used),
+  and the engine's advice names that box instead of a spec path
+  (`spec_advice()`).
+* "Not sure what number to put here?" covers pilot studies (for checking
+  feasibility, not for the effect; Albers & Lakens, 2018) and says to
+  prefer a bias-adjusted meta-analytic estimate where one is reported
+  (Carter, Schönbrodt, Gervais & Hilgard, 2019). Both added to `refs.bib`
+  from their Crossref records.
+* Labs, effect size converter: refuses impossible values (a correlation
+  outside -1 to 1, partial eta-squared outside 0 to 1, a non-positive F
+  or odds ratio); refuses a t whose degrees of freedom disagree with the
+  study's size (n = df + 1 for one group or pairs, n1 + n2 = df + 2 for
+  two groups, n = df + 2 for a correlation); and no longer asks an ANOVA
+  for a safeguard protection it can't use.
+* Labs, pre-replication notes: the smallest detectable effect checks its
+  own boxes in its own words, passes engine refusals without spec paths,
+  states the significance level, and keeps its provenance line in the
+  downloaded document; empty sections read "(not answered)".
+
 # powerkit 0.38.0
 
 * App: an unfinished draft is offered on the plan tab's first screen

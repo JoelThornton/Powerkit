@@ -85,12 +85,36 @@ labs_sde <- function(forms, ep_id, n, power = "0.8", alpha = "0.05", p1 = NULL,
     # original study's test, taken as two-sided (the packages' default).
     alternative = "two_sided"
   ))
+  # The panel's own boxes are checked first, in their own words: the
+  # input screen's messages name fields this panel doesn't show.
+  own <- labs_sde_problems(ep_id, n, power, alpha, p1, rows, cols)
+  if (length(own)) return(list(status = "problems", problems = own))
   problems <- form_problems(fields, values)
-  if (length(problems)) return(list(status = "problems", problems = problems))
+  if (length(problems)) return(list(status = "problems", problems = unname(problems)))
   spec <- build_spec(forms, ep_id, fields, values)
   calc <- run_calculation(spec, run = run, seed = forms$default_seed)
   calc$ep_id <- ep_id
+  # An engine refusal in words, without the spec's field paths.
+  if (identical(calc$status, "problems")) calc$problems <- labs_plain_problems(calc$problems)
   calc
+}
+
+labs_sde_problems <- function(ep_id, n, power, alpha, p1, rows, cols) {
+  num <- function(x) suppressWarnings(as.numeric(trimws(as.character(x %||% ""))))
+  is_whole <- function(x, min) { v <- num(x); !is.na(v) && v == round(v) && v >= min }
+  out <- character()
+  if (!is_whole(n, 4)) out <- c(out, "Enter the number of participants as a whole number, at least 4.")
+  if (is.na(num(power)) || num(power) <= 0 || num(power) >= 1) out <- c(out, "Enter the power as a proportion between 0 and 1, for example 0.8.")
+  if (is.na(num(alpha)) || num(alpha) <= 0 || num(alpha) > 0.5) out <- c(out, "Enter the significance level as a proportion, for example 0.05.")
+  if (identical(ep_id, "E5") && (is.na(num(p1)) || num(p1) <= 0 || num(p1) >= 1)) out <- c(out, "Enter group 1's proportion between 0 and 1, for example 0.3.")
+  if (identical(ep_id, "E6") && !(is_whole(rows, 2) && is_whole(cols, 2))) out <- c(out, "Enter each variable's number of categories as a whole number, at least 2.")
+  out
+}
+
+labs_plain_problems <- function(problems) {
+  problems <- sub("^This design spec has an? problems?:\\s*\\*?\\s*", "", unlist(problems))
+  problems <- gsub("'goal > n'", "The number of participants", problems, fixed = TRUE)
+  gsub("'[a-z_]+( > [a-z_0-9]+)+'", "One of the numbers", problems)
 }
 
 # One line for the panel and the notes.
@@ -100,9 +124,9 @@ labs_sde_sentence <- function(tree, calc, power) {
     return(sprintf("For %s, no effect could reach %s%% power at this sample size.",
       tolower(tree$endpoints[[calc$ep_id]]$plain_name), round(100 * as.numeric(power))))
   }
-  sprintf("With %s analysed, the original study (%s) would detect an effect of %s or larger %s%% of the time, measured as %s.",
+  sprintf("With %s analysed, the original study (%s) would detect an effect of %s or larger %s%% of the time, measured as %s, with a two-sided test at alpha = %s.",
     calc$spec$goal$n, tolower(tree$endpoints[[calc$ep_id]]$plain_name),
-    format(round(abs(s$effect), 3), nsmall = 2), round(100 * as.numeric(power)), s$effect_description)
+    format(round(abs(s$effect), 3), nsmall = 2), round(100 * as.numeric(power)), s$effect_description, calc$spec$target_test$alpha)
 }
 
 labs_provenance <- function(calc) {
@@ -160,7 +184,11 @@ labs_report <- function(answers, outcome = NULL, sde = NULL, citation = labs_cit
   a <- function(id) trimws(answers[[id]] %||% "")
   join <- function(...) { x <- c(...); x <- x[nzchar(x)]; if (length(x)) paste(x, collapse = " ") else character(0) }
   para <- function(...) { x <- join(...); if (length(x)) c(x, "") else character(0) }
-  sde_text <- if (is.null(sde)) "" else sde$sentence
+  # A heading with nothing under it says so, rather than standing empty.
+  answered <- function(...) { x <- para(...); if (length(x)) x else c("_(not answered)_", "") }
+  # The sentence keeps its settings and source, so it can be checked in a
+  # preregistration.
+  sde_text <- if (is.null(sde)) "" else paste(sde$sentence, sde$provenance)
   study <- if (nzchar(a("labs_study"))) a("labs_study") else "[the original study]"
   smallest <- if (nzchar(a("labs_smallest"))) paste("The smallest effect that would matter:", a("labs_smallest")) else ""
   reference <- c("---", "", sprintf("Pre-replication as proposed by %s", citation))
@@ -175,11 +203,11 @@ labs_report <- function(answers, outcome = NULL, sde = NULL, citation = labs_cit
     lines <- c(if (changed) "# Pre-replication: a redesigned replication" else "# Pre-replication", "",
       para(sprintf("**Finding:** %s", if (nzchar(a("labs_finding"))) a("labs_finding") else "[the finding]"),
         sprintf("(original study: %s)", study)),
-      "## Epistemic assessment", "", para(a("labs_goals"), smallest),
+      "## Epistemic assessment", "", answered(a("labs_goals"), smallest),
       "## Methodological assessment", "",
       if (changed && nzchar(a("labs_improve"))) c(paste("**How the design changes:**", a("labs_improve")), ""),
-      para(a("labs_quality"), if (!changed) a("labs_improve"), sde_text),
-      "## Value assessment", "", para(a("labs_value"), a("labs_alternatives")),
+      if (changed && nzchar(a("labs_improve"))) para(a("labs_quality"), sde_text) else answered(a("labs_quality"), if (!changed) a("labs_improve"), sde_text),
+      "## Value assessment", "", answered(a("labs_value"), a("labs_alternatives")),
       reference)
   }
   paste(lines, collapse = "\n")
@@ -474,6 +502,16 @@ published_result <- function(values, convert, safeguard) {
   if (identical(from, "F") && identical(design, "oneway_between") && is.na(whole(values$pub_df1))) {
     problems <- c(problems, "Enter the F statistic's first degrees of freedom (the effect's df) as a whole number.")
   }
+  # Values no study can report: a typo (15 for .15) is refused rather than
+  # explained.
+  if (!is.na(value) && design %in% names(published_designs)) {
+    kind <- if (identical(from, "as_is")) design else from
+    if (kind %in% c("correlation", "r") && abs(value) >= 1) problems <- c(problems, "A correlation must be between -1 and 1 (for example 0.15, not 15).")
+    if (identical(kind, "oneway_between") && (value < 0 || value >= 1)) problems <- c(problems, "Partial eta-squared must be at least 0 and less than 1 (for example 0.06).")
+    if (identical(kind, "F") && value <= 0) problems <- c(problems, "An F statistic must be more than 0.")
+    if (identical(kind, "odds_ratio") && value <= 0) problems <- c(problems, "An odds ratio must be more than 0.")
+  }
+  problems <- c(problems, published_df_problems(design, from, whole(values$pub_df), whole(values$pub_n), whole(values$pub_n1), whole(values$pub_n2)))
   if (length(problems)) return(list(lines = character(), problems = problems))
   d <- published_designs[[design]]
   lines <- character()
@@ -512,10 +550,12 @@ published_result <- function(values, convert, safeguard) {
         lines <- c(lines, sprintf(paste0("Safeguard: the %d%% confidence interval around this estimate includes zero, so this study ",
           "can't tell you how large the effect is. Plan from the smallest effect that would matter instead."), round(100 * (2 * protection - 1))))
       } else {
-        lines <- c(lines, sprintf(paste0("Safeguard: plan with %s = %s, the lower end of the %d%% confidence interval around it, ",
-          "for %s %d%% chance that the true effect is at least that large if the published estimate is unbiased ",
-          "(Perugini, Gallucci & Costantini, 2014)."), d$effect, format(round(sg$lower, 3), nsmall = 2),
-          round(100 * sg$conf_level), if (round(100 * sg$protection) %in% c(8, 11, 18, 80:89)) "an" else "a", round(100 * sg$protection)))
+        # Read as repeated sampling, as Perugini, Gallucci and Costantini
+        # motivate it, not as a probability about this one interval.
+        lines <- c(lines, sprintf(paste0("Safeguard: plan with %s = %s, the lower end of the %d%% confidence interval around it: ",
+          "across studies like the published one, a bound found this way falls below the true effect %d%% of the time, ",
+          "if the published estimate is unbiased (Perugini, Gallucci & Costantini, 2014)."), d$effect, format(round(sg$lower, 3), nsmall = 2),
+          round(100 * sg$conf_level), round(100 * sg$protection)))
       }
     }
   }
@@ -523,6 +563,19 @@ published_result <- function(values, convert, safeguard) {
     "more likely to be published. A single study's estimate is also uncertain. The safeguard value allows for the",
     "second; neither number corrects for the first."))
   list(lines = lines, problems = character())
+}
+
+# The degrees of freedom and the published study's size must agree, since
+# the conversion uses one and the safeguard value the other: n = df + 1
+# for one group or pairs, n1 + n2 = df + 2 for two groups and n = df + 2
+# for a correlation from its t.
+published_df_problems <- function(design, from, df, n, n1, n2) {
+  if (!identical(from, "t") || is.na(df)) return(character())
+  implied <- switch(design, one_sample_t = , paired_t = df + 1, correlation = df + 2, independent_t = df + 2, NA)
+  given <- if (identical(design, "independent_t")) { if (is.na(n1) || is.na(n2)) NA else n1 + n2 } else n
+  if (is.na(implied) || is.na(given) || implied == given) return(character())
+  sprintf("The degrees of freedom (%d) mean the published study had %d %s, but you entered %d. Check both numbers: the conversion uses the degrees of freedom and the safeguard value uses the study's size.",
+    df, implied, if (identical(design, "paired_t")) "pairs" else "people", given)
 }
 
 # Power visualiser (Labs, "A picture of power" until 0.25.1): the engine's power_picture() gives the curves
@@ -758,7 +811,7 @@ published_ui <- function() {
     div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
       "The numbers come from powerkit's engine (effectsize and psych for the conversion, psych for the safeguard interval); nothing is sent anywhere."),
     h3("Effect size converter"),
-    p("Enter an effect as a paper reported it. powerkit shows it as the effect size a power analysis uses and, where it can, a safeguard value to plan with instead."),
+    p("Enter an effect as a paper reported it. powerkit shows it as the effect size a power analysis uses and, for the t-tests and correlations, a safeguard value to plan with instead."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published result"),
       selectInput("pub_design", "What kind of study was it?", choices = c("Choose one" = "", designs), selectize = FALSE, width = "100%"),
       uiOutput("pub_from_ui"),
@@ -767,6 +820,9 @@ published_ui <- function() {
         textInput("pub_df1", "Its first degrees of freedom (the effect's df, the first number in F(df1, df2))", width = "100%")),
       conditionalPanel("input.pub_from == 't' || input.pub_from == 'F'",
         textInput("pub_df", "Its error degrees of freedom (the second df of F, or the df of t)", width = "100%"))),
+    # The safeguard value is for the t-tests and the correlation, so an
+    # ANOVA isn't asked for the study's size or a protection.
+    conditionalPanel("input.pub_design != 'oneway_between'",
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published study's size (for the safeguard value, and for converting a t or F from groups of different sizes)"),
       conditionalPanel("input.pub_design == 'independent_t'",
         textInput("pub_n1", "People in group 1 of the published study", width = "100%"),
@@ -774,7 +830,7 @@ published_ui <- function() {
       conditionalPanel("input.pub_design == 'paired_t' || input.pub_design == 'one_sample_t' || input.pub_design == 'correlation'",
         textInput("pub_n", "People in the published study", width = "100%")),
       selectInput("pub_protection", "Protection against the estimate being too large", selectize = FALSE, width = "100%",
-        choices = c("80% (the lower end of a 60% confidence interval)" = "0.8", "95% (the lower end of a 90% confidence interval)" = "0.95"))),
+        choices = c("80% (the lower end of a 60% confidence interval)" = "0.8", "95% (the lower end of a 90% confidence interval)" = "0.95")))),
     actionButton("pub_run", "Show the result", class = "btn btn-primary"),
     uiOutput("pub_result"))
 }

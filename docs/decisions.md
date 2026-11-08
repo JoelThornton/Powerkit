@@ -5791,3 +5791,23 @@ the site stays findable by search engines.
 - **Goals:** a choice can be offered only with other answers
   (`choices_shown_if`); the justified significance level is hidden with
   a Bayes factor test version and refused in words if chosen anyway.
+
+## 2026-11-07 · Effect sizes from one study: pilots like published studies, safeguard power read as repeated sampling
+
+- **Why:** the project review of 7 November 2026 found that a pilot
+  study's effect size met less scrutiny than a published one, although
+  pilot estimates are the least precise source, and that a safeguard
+  result's headline named the effect entered rather than the smaller one
+  the calculation used.
+- **Pilots:** "How you adjusted it" is shown and needed for a pilot as
+  for a previous study (unless safeguard power is used), and the effect
+  guidance says a pilot is for feasibility, citing Albers and Lakens
+  (2018) on the bias of planning from pilot effects. The meta-analysis
+  guidance prefers bias-adjusted estimates (Carter et al., 2019).
+- **Safeguard wording:** the bound is described by repeated sampling
+  (across studies like the original, a bound found this way falls below
+  the true effect at the protection rate), following Perugini, Gallucci
+  and Costantini (2014), not as a probability that the true effect
+  exceeds it.
+- **Converter checks:** a t's degrees of freedom must match the study's
+  size, since the conversion uses one and the safeguard value the other.
