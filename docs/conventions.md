@@ -635,6 +635,30 @@ its size. An independent simulation of Student's t-tests, with true effects
 drawn from the uncertain prior, agrees with the planner's chance to within
 3 percentage points at 60 per group (same file).
 
+## Effects that vary between studies (t-test cards)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No allowance for heterogeneity: the true effect is the same in every study | — | — |
+| Kenny and Judd (2019) | Their formula for a t-test when each study's true effect is drawn from a normal distribution with mean mu and SD tau: q = se0 / sqrt(se0^2 + tau^2), critical t = q t_crit (the "effective alpha"), noncentrality mu / sqrt(se0^2 + tau^2), with the usual df; their appendix gives it as an R function, and they note a conventional power program gives the same answer when given the effective alpha and the adjusted effect | d (the average effect) and tau, both in d | Representative tau 0.05, 0.125 and 0.20 (small, medium, large); they argue zero should not be the default |
+| **powerkit** | pwr's own t-test power (`pwr.t.test()`, `pwr.t2n.test()`) given Kenny and Judd's effective alpha as `sig.level` and q times the average effect as `d`, which gives their noncentrality (E1, E2 and E3, from 8 November 2026) [powerkit] | d (d_z for pairs), the average across studies, and tau, optional | se0 = sqrt(1/n1 + 1/n2) for two groups of any sizes, sqrt(1/n) for one sample or pairs (the two-equal-groups case is theirs; the others follow the same rule). Student's t-test, or Welch's with equal SDs, by formula only; not with small telescopes. Empty or 0 is the usual analysis, unchanged |
+
+**Size and checks.** Kenny and Judd's worked example (mu 0.3, tau 0.2, 50
+per group) gives power .375 against .318 with no heterogeneity, and an
+effective alpha of about .16; powerkit reproduces both, and their appendix
+function. For 80% power at d = 0.3, two equal groups, the total sample size
+is 352 with no variation, 376 with tau 0.05, 522 with 0.125 and 830 with
+0.20. Below a power of one half, variation raises power rather than
+lowering it, as Kenny and Judd show. An independent simulation that draws
+every study's true effect agrees within 2.5 percentage points for all three
+designs, and with the effective alpha (`engine/tests/testthat/test-heterogeneity.R`).
+Welch's test with equal SDs is planned by the same formula: on the
+two-group card its power with equal SDs is Student's (0.318 for both in
+the example, pwrss), so this is not a departure. With tau = 0 the answer
+is the card's usual one, so this is an option, not a departure; the
+starting value stays empty, as in every other tool, until the maintainer
+decides otherwise.
+
 ## Participants and items in three or more conditions (E63)
 
 | Tool | Test | Effect size | Settings |

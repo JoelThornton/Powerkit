@@ -32,6 +32,11 @@ route_spec <- function(spec, seed = NULL) {
   if (identical(spec$design, "basic_test") && small_telescopes_test(spec)) {
     return(telescope_backend(spec, seed))
   }
+  # A t-test whose true effect varies between studies (Kenny & Judd, 2019):
+  # pwr with their adjustment (heterogeneity.R).
+  if (heterogeneity_test(spec) && !bayes_factor_test(spec) && !minimum_effect_test(spec)) {
+    return(heterogeneity_backend(spec, seed))
+  }
   switch(
     key,
     "factorial_anova/2x2_between" = if (bffactorial_test(spec)) {

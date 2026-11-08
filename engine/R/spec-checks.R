@@ -58,6 +58,7 @@ population_problems <- function(spec) {
     check_bayes_factor(spec),
     check_minimum_effect(spec),
     small_telescopes_problems(spec),
+    heterogeneity_problems(spec),
     check_justified_alpha(spec),
     check_precision(spec),
     check_proportions_formula_allowed(spec),

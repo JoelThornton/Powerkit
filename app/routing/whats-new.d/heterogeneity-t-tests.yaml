@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-08"
+    title: "Effects that vary between studies, on the t-test cards"
+    text: >-
+      The one-sample, two-group and paired t-test cards can now allow for a
+      true effect that differs from study to study, as it does between labs,
+      samples and materials. Enter how much it might vary, and the effect you
+      plan for becomes the average across studies. The result shows the power
+      with and without the variation, and how often one study would be
+      significant with no average effect. It is optional, following Kenny and
+      Judd (2019).

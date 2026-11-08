@@ -48,7 +48,9 @@ export_script <- function(spec, result, file = NULL) {
   } else switch(
     result$provenance$backend,
     pwr = ,
-    stats = if (variance_formula_test(spec)) {
+    stats = if (heterogeneity_test(spec)) {
+      heterogeneity_script(spec, result)
+    } else if (variance_formula_test(spec)) {
       variance_script(spec, result)
     } else if (hotelling_formula_test(spec)) {
       hotelling_script(spec, result)
