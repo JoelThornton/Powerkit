@@ -5856,3 +5856,40 @@ the site stays findable by search engines.
 - **Order of the whole-study simulation's next designs:** covariates;
   fully within-people designs; yes/no and other outcomes; nested data;
   pairs (`next.md`, item 1).
+
+## 2026-11-08 · Whole-study planning: saving the plan, a rough curve, Cohen's d, one study plan
+
+- **Why:** the project review of 7 November 2026 found that the guided
+  plan and the whole-study inputs couldn't be saved; that the simulation
+  couldn't say how many people a study needs without leaving the app;
+  that a two-group predictor had to be entered as a standardised path;
+  that the guided plan and the study plan were two separate plans on one
+  screen; and that analyses of the same people on different cards never
+  shared a sample size.
+- **Saving:** "Save this plan" writes a `powerkit-guided-plan` file
+  (answers, analyses, claim, the values entered for each analysis and the
+  whole-study inputs). Like a draft it holds inputs, not results: card
+  sample sizes are kept as a summary and calculations are run again from
+  the same values and seed.
+- **Rough curve:** `whole_study_curve()` simulates the whole study at five
+  sample sizes (0.5 to 2 times the N entered, 200 replications each) for
+  experiments and regressions, read by the claim's criterion. It is
+  labelled rough (each power within about 7 points); the sample size to
+  report comes from the script's search. Mediation is left to the script,
+  since its intervals make even a rough curve take minutes.
+- **Cohen's d for two groups:** `population > group_d` gives d for the
+  outcome or the mediator; the engine finds the path whose large
+  simulated sample (100,000 people, the spec's seed) gives that d, with
+  `uniroot()`. This uses the engine's own implied-value routine rather
+  than a conversion formula, since no sourced conversion is in
+  `refs.bib`. The mediator's path is found first, as the outcome's d
+  depends on it.
+- **One study plan:** an analysis calculated from the guided plan joins
+  the study plan itself, replacing its own earlier result.
+- **Shared sample size:** the compatibility key keeps the sample unit,
+  the design family, the grouping variables (with their names and
+  levels), the allocation, attrition and fixed structure, and drops the
+  outcome and the template. An independent t-test and two proportions on
+  the same two groups therefore share one sample size; the plan still
+  says that a shared count also needs the same population and schedule.
+

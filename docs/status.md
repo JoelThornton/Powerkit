@@ -47,11 +47,12 @@ fully validated. Validation runs are recorded in
   sixth batch (speed) is done: sample-size searches run in a warm spare
   process rather than the app's own, About is built in a separate
   process, and the fixed tabs are rendered once. The seventh batch
-  (whole-study planning) is half done: a manipulation check beside a
+  (whole-study planning) is done: a manipulation check beside a
   mediation, "baseline" in a before/after trial, the experiment script's
-  printing and saving, and the variables' names; saving and reopening the
-  plan, a rough power curve, one study plan and shared sample sizes are
-  next. The mixed-design Greenhouse-Geisser check
+  printing and saving, the variables' names, saving and reopening the
+  plan, a rough power curve, Cohen's d for two groups, one study plan,
+  shared sample sizes across cards and the plan screens' look. The
+  eighth batch is next. The mixed-design Greenhouse-Geisser check
   still fails with new seeds and waits for the statistician; the rerun of
   the moderated mediation Type I error check (yes/no X) is recorded when
   it finishes ([`validation-log.md`](validation-log.md), 7 November 2026).
