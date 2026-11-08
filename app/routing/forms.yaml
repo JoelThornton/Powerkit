@@ -1158,10 +1158,10 @@ forms:
           - {id: d_Y, writeup_label: "Cohen's d of the groups on Y overall", label: "Cohen's d of the groups on Y overall (through M as well as directly), in standard deviations", type: number, path: population.group_d.Y, effect: true,
              shown_if: {field: x_effects, is: d}}
           - {id: p_X_M, label: "Path X -> M (per SD of X; the result shows the group difference it means)", type: number, path: "population.paths.X->M", effect: true,
-             shown_if: {field: x_effects, is: paths}}
+             shown_if: {field: x_effects, is_not: d}}
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true,
-             shown_if: {field: x_effects, is: paths}}
+             shown_if: {field: x_effects, is_not: d}}
       # An expert setting: in Settings, not in the card's list of what you need.
       - title: "Monte Carlo draws"
         fields:
