@@ -184,6 +184,22 @@ page_from_query <- function(query = "") {
   if (is.na(tab)) NULL else unname(tab)
 }
 
+# The card an address asks for (?card=E8), or NULL when there is none or
+# it isn't a card in the tree. A link to a card opens it as the list of
+# every analysis does, so a supervisor can send a student to one design.
+card_from_query <- function(query = "", tree) {
+  id <- shiny::parseQueryString(query %||% "")$card
+  if (is.null(id) || !is.null(shiny::parseQueryString(query %||% "")$page)) return(NULL)
+  id <- toupper(trimws(id))
+  if (id %in% names(tree$endpoints)) id else NULL
+}
+
+# The card in the address while one is open on the plan tab: its card or
+# input screen ("" otherwise).
+card_in_address <- function(screen, endpoint, tab) {
+  if (identical(tab %||% "", page_slugs()[["plan"]]) && screen %in% c("card", "form") && !is.null(endpoint)) endpoint else ""
+}
+
 # The address name for a tab ("plan" is the plain address).
 page_slug <- function(tab) {
   slug <- names(page_slugs())[match(tab %||% "", page_slugs())]
@@ -292,16 +308,18 @@ nav_js <- "
   document.addEventListener('shown.bs.tab', function(e) {
     if (e.target && e.target.scrollIntoView) e.target.scrollIntoView({block: 'nearest', inline: 'nearest'});
   });
-  window.pkPageUrl = function(page, tool) {
+  window.pkPageUrl = function(page, tool, card) {
     var url = new URL(window.location.href);
     if (page && page !== 'plan') url.searchParams.set('page', page); else url.searchParams.delete('page');
     if (page === 'labs' && tool) url.searchParams.set('tool', tool); else url.searchParams.delete('tool');
+    if (card) url.searchParams.set('card', card); else url.searchParams.delete('card');
     return url.toString();
   };
   Shiny.addCustomMessageHandler('pk_nav', function(m) {
     var entry = { pk: m.pos };
     window.pkPage = m.page;
-    var url = pkPageUrl(m.page, m.tool);
+    window.pkCard = m.card || '';
+    var url = pkPageUrl(m.page, m.tool, m.card);
     if (m.replace) history.replaceState(entry, '', url);
     else history.pushState(entry, '', url);
   });
@@ -317,6 +335,7 @@ nav_js <- "
     var params = new URLSearchParams();
     if (page !== 'plan') params.set('page', page);
     if (page === 'labs' && window.pkLabsTool) params.set('tool', window.pkLabsTool);
+    if (page === 'plan' && window.pkCard) params.set('card', window.pkCard);
     var link = base + (params.toString() ? '?' + params.toString() : '');
     var status = btn.parentNode.querySelector('.share-page-status');
     pkCopyText(link, null);

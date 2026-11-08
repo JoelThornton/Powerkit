@@ -142,7 +142,9 @@ The app is online at
 most once a day from the `connect-cloud` branch (at 04:23 UTC, with a
 second look at 16:23 in case GitHub skips the first), which the
 `online-app-manifest` workflow writes with the manifest Connect Cloud
-installs from ([`hosting-options.md`](hosting-options.md)). The pages
+installs from ([`hosting-options.md`](hosting-options.md)). "Copy page
+link" gives the open tab, the Labs tool or the open card (`?card=E8`,
+which opens that card as the list of every analysis does). The pages
 search engines index are static, in `site/`, on GitHub Pages. Main
 requires a pull request with passing checks; each finished version is
 tagged and published as a GitHub pre-release
