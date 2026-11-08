@@ -1,3 +1,27 @@
+# powerkit 0.41.0
+
+* Whole-study simulation (experimental): `run_whole_study()` offers a new
+  analysis, `x_m`, the effect of X on the mediator alone (a manipulation
+  check), fitted as M on X by OLS and tested by power4mome's
+  `test_parameters()` on the same simulated data sets as the mediation.
+  Its implied values are the correlation and, for two groups, Cohen's d
+  on the mediator. It needs one mediator, named M. A test checks its
+  power against the two-sample t test's.
+* An experiment's whole-study result prints its own backend (Superpower)
+  instead of failing on power4mome's version, and the exported script
+  saves the result and the citations before printing, so a long run is
+  never lost.
+* The app: "Plan my whole study" offers the manipulation check beside a
+  mediation, card by card (the two-group comparison or the correlation,
+  on the mediator) and in the simulation. In a study measured twice, "a
+  baseline measure" as the covariate is the first measurement already, so
+  the plan is simulated as it is with "None". The simulation screens ask
+  what the variables are called, so results no longer say "Predictor" and
+  "Moderator"; the "You entered on its screen" column appears only when
+  something was entered; the script's R minimum is the higher of
+  powerkit's and the backend's; and the "all results" note says when
+  89.4% each holds (independent tests) and that 90% each always does.
+
 # powerkit 0.40.0
 
 * The app stays responsive while people calculate. Every sample-size

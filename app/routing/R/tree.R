@@ -373,6 +373,7 @@ compute_endpoints_for_context <- function(tree, ctx) {
     for (i in seq_len(nrow(grid))) {
       answers <- guided_answers(tree, as.list(grid[i, , drop = FALSE]), ctx)
       for (a in applicable_analyses(tree, answers)) {
+        if (isTRUE(a$outcome_is_mediator)) next
         res <- resolve_analysis(tree, a, answers)
         if (!is.null(res$endpoint)) reached <- union(reached, res$endpoint)
         if (!is.null(res$ask)) reached <- union(reached, vapply(res$ask$options, function(o) o$endpoint, character(1)))

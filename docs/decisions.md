@@ -5834,3 +5834,25 @@ the site stays findable by search engines.
   the map is shown.
 - **Hosting:** the measurements are in `hosting-options.md`; a host that
   runs two or more app processes is preferred (queue item 8).
+
+## 2026-11-08 · Whole-study planning: the manipulation check, and a baseline in a study measured twice
+
+- **Why:** the project review of 7 November 2026 found that a mediation's
+  manipulation check (the effect of X on the mediator), a very common
+  companion analysis that often sets the minimum sample, couldn't be
+  planned beside it, and that answering "a baseline measure" for a study
+  measured twice switched the whole-study simulation off although it is
+  the same study as answering "None".
+- **Manipulation check:** a new guided analysis, X on the mediator alone,
+  on the card for a score outcome (the two-group comparison, the paired
+  comparison, the one-way ANOVA or the correlation). The whole-study
+  simulation fits it as M on X by OLS, tested by power4mome's
+  `test_parameters()` (`x_m`), with one mediator; not adjusted for the
+  outcome's first measurement, which is not the mediator's. Its power
+  agrees with the two-sample t test's in a test.
+- **Baseline:** measured twice, "a baseline measure" is the first
+  measurement, which every analysis already adjusts for; other covariates
+  are still outside the simulation.
+- **Order of the whole-study simulation's next designs:** covariates;
+  fully within-people designs; yes/no and other outcomes; nested data;
+  pairs (`next.md`, item 1).

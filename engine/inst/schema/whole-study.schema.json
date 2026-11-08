@@ -72,7 +72,7 @@
       }
     },
     "analyses": {
-      "description": "The planned analyses, each fitted to every simulated data set with its own model. x_y: the regression of Y on X alone (the test of the correlation). interaction: Y on X, W and X x W, testing X x W. indirect: the mediation model, testing the indirect effect along 'path' by a Monte Carlo confidence interval. index_of_mome: moderated mediation (PROCESS model 7 if W moderates X -> M, model 14 if W moderates M -> Y), testing the index of moderated mediation by a Monte Carlo confidence interval.",
+      "description": "The planned analyses, each fitted to every simulated data set with its own model. x_y: the regression of Y on X alone (the test of the correlation). x_m: the regression of the mediator M on X alone (a manipulation check; one mediator). interaction: Y on X, W and X x W, testing X x W. indirect: the mediation model, testing the indirect effect along 'path' by a Monte Carlo confidence interval. index_of_mome: moderated mediation (PROCESS model 7 if W moderates X -> M, model 14 if W moderates M -> Y), testing the index of moderated mediation by a Monte Carlo confidence interval.",
       "type": "array",
       "minItems": 1,
       "items": {
@@ -82,7 +82,7 @@
         "properties": {
           "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
           "label": {"type": "string", "minLength": 1},
-          "test": {"enum": ["x_y", "interaction", "indirect", "index_of_mome", "anova_effect"]},
+          "test": {"enum": ["x_y", "x_m", "interaction", "indirect", "index_of_mome", "anova_effect"]},
           "role": {"enum": ["main", "extra"]},
           "path": {"type": "string", "pattern": "^X->(M|M1|M2)(->M2)?->Y$"},
           "moderated_link": {"enum": ["x_m", "m_y"]},
@@ -91,7 +91,7 @@
         "allOf": [
           {"if": {"properties": {"test": {"const": "indirect"}}}, "then": {"required": ["path"], "properties": {"moderated_link": false}}},
           {"if": {"properties": {"test": {"const": "index_of_mome"}}}, "then": {"required": ["moderated_link"], "properties": {"path": false}}},
-          {"if": {"properties": {"test": {"enum": ["x_y", "interaction"]}}}, "then": {"properties": {"path": false, "moderated_link": false}}},
+          {"if": {"properties": {"test": {"enum": ["x_y", "x_m", "interaction"]}}}, "then": {"properties": {"path": false, "moderated_link": false}}},
           {"if": {"properties": {"test": {"const": "anova_effect"}}}, "then": {"required": ["effect"], "properties": {"path": false, "moderated_link": false}}, "else": {"properties": {"effect": false}}}
         ]
       }

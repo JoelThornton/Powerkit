@@ -152,7 +152,7 @@ whole_study_structure_problems <- function(spec) {
   if (!needs_w && "W" %in% roles) {
     problems <- c(problems, "W is in 'variables' but no analysis uses a moderator; remove it.")
   }
-  needs_m <- any(tests %in% c("indirect", "index_of_mome"))
+  needs_m <- any(tests %in% c("indirect", "index_of_mome", "x_m"))
   if (needs_m && length(mediators) == 0) {
     problems <- c(problems, "A mediation analysis needs a mediator (M, or M1 and M2) in 'variables'.")
   }
@@ -168,6 +168,9 @@ whole_study_structure_problems <- function(spec) {
   }
   if (!two && !is.null(spec$mediators)) {
     problems <- c(problems, "'mediators' applies only with two mediators (M1 and M2).")
+  }
+  if ("x_m" %in% tests && !identical(mediators, "M")) {
+    problems <- c(problems, "The effect of X on the mediator (x_m) is available with one mediator, named M.")
   }
   if ("index_of_mome" %in% tests && !identical(mediators, "M")) {
     problems <- c(problems, "Moderated mediation is available with one mediator, named M.")
@@ -434,6 +437,7 @@ whole_study_inputs <- function(spec) {
     test <- switch(
       a$test,
       x_y = list(fun = "test_parameters", args = list(pars = "Y~X", level = level)),
+      x_m = list(fun = "test_parameters", args = list(pars = "M~X", level = level)),
       interaction = list(fun = "test_moderation", args = list(level = level)),
       indirect = {
         nodes <- strsplit(a$path, "->", fixed = TRUE)[[1]]
@@ -486,6 +490,10 @@ whole_study_fit <- function(a, spec) {
   switch(
     a$test,
     x_y = regression("Y ~ X"),
+    # The effect of X on the mediator (a manipulation check), as its own
+    # card analyses it: M on X alone. It is not adjusted for B, which is
+    # the outcome's first measurement.
+    x_m = list(fun = "lm", text = "M ~ X", args = list(fit_function = "lm", model = list("M ~ X"))),
     interaction = regression("Y ~ X + W + X:W"),
     indirect = if (identical(mediators, "M")) {
       sem(c("M ~ X", "Y ~ M + X"))
@@ -827,6 +835,7 @@ whole_study_implied <- function(spec, inputs, data) {
       # A two-group X: also the d the two-group card asks for, the groups'
       # mean difference over their pooled SD, estimated from the data.
       x_y = c(r = stats::cor(data$X, data$Y), if (!is.null(inputs$x_prob)) c(d = whole_study_group_d(data))),
+      x_m = c(r = stats::cor(data$X, data$M), if (!is.null(inputs$x_prob)) c(d = whole_study_group_d(data, "M"))),
       interaction = c(
         r_X_Y = stats::cor(data$X, data$Y), r_W_Y = stats::cor(data$W, data$Y),
         r_XW_Y = stats::cor(data$X * data$W, data$Y), r_X_W = stats::cor(data$X, data$W)
@@ -841,11 +850,11 @@ whole_study_implied <- function(spec, inputs, data) {
   })
 }
 
-whole_study_group_d <- function(data) {
+whole_study_group_d <- function(data, outcome = "Y") {
   second <- data$X == max(data$X)
-  y1 <- data$Y[!second]
-  y2 <- data$Y[second]
-  pooled <- sqrt(((length(y1) - 1) * stats::var(y1) + (length(y2) - 1) * stats::var(y2)) / (length(data$Y) - 2))
+  y1 <- data[[outcome]][!second]
+  y2 <- data[[outcome]][second]
+  pooled <- sqrt(((length(y1) - 1) * stats::var(y1) + (length(y2) - 1) * stats::var(y2)) / (length(data[[outcome]]) - 2))
   (mean(y2) - mean(y1)) / pooled
 }
 
@@ -908,7 +917,10 @@ print.powerkit_whole_study_result <- function(x, ...) {
       format(100 * s$target), s$criterion, s$n_required$n, s$n_required$lower, s$n_required$upper))
   }
   p <- x$provenance
-  cat(sprintf("Check run: %s\nBackend: power4mome %s (simulation, %s replications, seed %s)\nSpec hash: %s\n",
-    if (all(x$check_run$ok)) "passed" else "FAILED", p$packages[["power4mome"]], p$nrep, p$seed, p$spec_hash))
+  # The result's own backend: power4mome for a path model, Superpower for
+  # an experiment.
+  backend <- p$backend %||% "power4mome"
+  cat(sprintf("Check run: %s\nBackend: %s %s (simulation, %s replications, seed %s)\nSpec hash: %s\n",
+    if (all(x$check_run$ok)) "passed" else "FAILED", backend, p$packages[[backend]] %||% "", p$nrep, p$seed, p$spec_hash))
   invisible(x)
 }

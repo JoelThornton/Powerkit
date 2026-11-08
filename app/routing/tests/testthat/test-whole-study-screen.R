@@ -306,3 +306,55 @@ test_that("experiments: conditions crossed with groups are simulated as one fact
   # A mediator or a yes/no outcome: the general route's reasons.
   expect_false(whole_study_plan(tree, modifyList(exp_answers, list(outcome = "yesno")), "compare", "compare", list())$ok)
 })
+
+test_that("measured twice, a baseline covariate is the first measurement, so the plan is simulated as without one", {
+  none <- modifyList(ws_answers, list(x = "cond2", times = "twice"))
+  base <- modifyList(none, list(covariate = "baseline"))
+  plan_none <- whole_study_plan(tree, none, c("compare", "moderation"), c("compare", "moderation"),
+    list(compare = "ANCOVA: the second measurement adjusting for the first"))
+  plan_base <- whole_study_plan(tree, base, c("compare", "moderation"), c("compare", "moderation"),
+    list(compare = "ANCOVA: the outcome adjusting for the baseline"))
+  expect_true(plan_base$ok)
+  expect_identical(plan_base$analyses, plan_none$analyses)
+  expect_identical(plan_base$roles, plan_none$roles)
+  # Other covariates still aren't simulated, and the reason says so.
+  other <- whole_study_plan(tree, modifyList(none, list(covariate = "other")), "moderation", "moderation", list())
+  expect_false(other$ok)
+  expect_true(any(grepl("other than the first measurement", other$reasons, fixed = TRUE)))
+})
+
+test_that("a manipulation check beside a mediation is planned and simulated as M on X alone", {
+  answers <- modifyList(ws_answers, list(x = "cond2", moderator = "none"))
+  check <- analysis_by_id(tree, "check")
+  expect_identical(resolve_analysis(tree, check, answers)$endpoint, "E2")
+  expect_identical(resolve_analysis(tree, check, modifyList(answers, list(x = "score")))$endpoint, "E4")
+  # Offered only with mediators.
+  expect_false("check" %in% vapply(applicable_analyses(tree, modifyList(answers, list(mediators = "none"))), `[[`, "", "id"))
+  expect_true("check" %in% vapply(applicable_analyses(tree, answers), `[[`, "", "id"))
+  plan <- whole_study_plan(tree, answers, c("check", "mediation"), "mediation", list())
+  expect_true(plan$ok)
+  expect_equal(vapply(plan$analyses, function(a) a$test, ""), c("x_m", "indirect"))
+  expect_equal(plan$roles, c("X", "M", "Y"))
+  # Measured twice too, with the outcome's first measurement in the model.
+  twice <- whole_study_plan(tree, modifyList(answers, list(times = "twice")), c("check", "mediation"), "mediation", list())
+  expect_true(twice$ok)
+  expect_equal(twice$roles, c("X", "M", "B", "Y"))
+  # Two mediators: the check is planned card by card, not simulated.
+  two <- whole_study_plan(tree, modifyList(answers, list(mediators = "several")), c("check"), "check", list())
+  expect_false(two$ok)
+  params_of <- engine_function("whole_study_parameters")
+  skip_if(is.null(params_of), "engine not available")
+  skeleton <- whole_study_skeleton(plan, whole_study_labels(plan$roles, list()))
+  expect_setequal(params_of(skeleton)$paths, c("X->M", "M->Y", "X->Y"))
+})
+
+test_that("names typed on the simulation screen come first, and the screen asks for them", {
+  labels <- whole_study_labels(c("X", "W", "B", "Y"), list(compare = list(Y_label = "Exhaustion")),
+    named = list(X = "Workload", Y = "Burnout"))
+  expect_identical(unname(labels[c("X", "W", "B", "Y")]), c("Workload", "Moderator", "Burnout, first measurement", "Burnout"))
+  html <- as.character(whole_study_name_inputs(c("X", "W", "B", "Y"), labels))
+  expect_match(html, "ws_name_X", fixed = TRUE)
+  expect_false(grepl("ws_name_B", html, fixed = TRUE))
+  input <- list(ws_name_X = " Workload ", ws_name_W = "", ws_name_Y = "Burnout")
+  expect_identical(whole_study_names_from_input(input, c("X", "W", "B", "Y")), list(X = "Workload", Y = "Burnout"))
+})

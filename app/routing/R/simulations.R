@@ -71,14 +71,21 @@ preview_sentence <- function(range, nrep) {
 
 preview_range <- function(result, interval = engine_function("power_interval")) interval(result)
 
-# The R version a backend package needs, from its installed DESCRIPTION
-# (for the "what you need" list); NULL if it doesn't say.
+# The R version a script needs: the higher of the backend's minimum and
+# powerkit's, from their installed DESCRIPTIONs (for the "what you need"
+# list); NULL if neither says.
 backend_r_requirement <- function(package) {
-  depends <- tryCatch(utils::packageDescription(package, fields = "Depends"), error = function(e) NA)
-  if (is.na(depends)) return(NULL)
-  found <- regmatches(depends, regexpr("R \\(>=\\s*[0-9.]+\\)", depends))
+  one <- function(pkg) {
+    depends <- tryCatch(utils::packageDescription(pkg, fields = "Depends"), error = function(e) NA)
+    if (is.na(depends)) return(NULL)
+    found <- regmatches(depends, regexpr("R \\(>=\\s*[0-9.]+\\)", depends))
+    if (length(found) == 0) return(NULL)
+    sub("^R \\(>=\\s*([0-9.]+)\\)$", "\\1", found)
+  }
+  # The script runs powerkit too, so the higher of the two minimums.
+  found <- unlist(lapply(unique(c(package, "powerkit")), one))
   if (length(found) == 0) return(NULL)
-  sub("^R \\(>=\\s*([0-9.]+)\\)$", "\\1", found)
+  as.character(max(numeric_version(found)))
 }
 
 # The preview panel: the range and its warning, then either the full run's
