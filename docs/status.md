@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.46.0). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.45.2). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -23,9 +23,9 @@ rules are in `CLAUDE.md`.
   that no longer need catch-up merges (each pull request writes its own
   note files; `scripts/close-batch.R` sets the version when a batch
   closes), and Welch's t-test by default on the two-group card, by
-  formula (Departure 21). Next: small telescopes for replications and
-  keeping the review's scripts; whether Welch's F becomes the one-way
-  ANOVA's default is with the maintainer.
+  formula (Departure 21). Next: Welch's F as the one-way ANOVA's
+  default (decided 8 November 2026), small telescopes for replications
+  and keeping the review's scripts.
 
 - **What calculates:** 70 of the 76 cards run in the app (`tree.yaml`'s
   statuses); the other six say powerkit can't plan them yet and point

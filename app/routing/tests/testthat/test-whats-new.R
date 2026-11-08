@@ -36,7 +36,9 @@ test_that("the Updates tab shows entries still waiting for a version with the re
     file.path(dir, "whats-new.d", "waiting-change.yaml"))
   entries <- load_whats_new(file.path(dir, "whats-new.yaml"))
   expect_identical(entries[[1]]$title, "A waiting change")
-  expect_length(entries, length(load_whats_new(whats_new_path)) + 1)
+  # The copy has whats-new.yaml's entries and the one waiting file (the
+  # repository's own whats-new.d may hold others).
+  expect_length(entries, length(yaml::read_yaml(whats_new_path)$entries) + 1)
 })
 
 test_that("the Updates tab shows the entries newest first, grouped by day", {

@@ -6051,6 +6051,6 @@ the site stays findable by search engines.
   variances (1 November 2026), and joint power for several outcomes,
   which uses PUMP's pooled-variance t-test (the study plan now says to
   choose Student's test for it).
-- **The one-way ANOVA** (the same question for Welch's F) is with the
-  maintainer, with a recommendation (`next.md`, "Waiting on the
-  maintainer").
+- **The one-way ANOVA:** Welch's F becomes its default too (maintainer,
+  8 November 2026: follow best practice), in the next pull request of
+  this batch (`next.md`, R12b).
