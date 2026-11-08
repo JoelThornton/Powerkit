@@ -151,6 +151,8 @@ test_that("each wired end point: the app's result equals the engine's, and the s
 test_that("a sample-size result and a sensitivity result are worded from the engine's numbers", {
   skip_without_run()
   spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  # Welch's t-test simulated (its formula is the default), for the interval.
+  spec$options$method <- "simulation"
   calc <- run_calculation(spec, run, seed = 3L)
   words <- result_sentences(calc$spec, calc$result)
   n <- calc$result$n_required$n
@@ -2540,9 +2542,13 @@ test_that("a design the engine simulates runs in the background, whatever its ca
   simulates <- engine_function("runs_simulation", file.path(repo_dir, "engine"))
   expect_true(runs_in_background(forms, "E61", hk, simulates = simulates))
   expect_false(runs_in_background(forms, "E61", z, simulates = simulates))
-  # Welch's t-test (E2's default) is simulated, but in a few seconds.
-  expect_false(runs_in_background(forms, "E2", light_spec("E2"), simulates = simulates))
-  expect_true(simulates(light_spec("E2")))
+  # Welch's t-test is worked out by formula by default; simulated on
+  # request, it takes a few seconds and stays in the foreground.
+  expect_false(simulates(light_spec("E2")))
+  welch_simulated <- light_spec("E2")
+  welch_simulated$options$method <- "simulation"
+  expect_false(runs_in_background(forms, "E2", welch_simulated, simulates = simulates))
+  expect_true(simulates(welch_simulated))
 })
 
 test_that("a meta-analysis's result, write-up and ethics version count studies and name its test and effect", {
