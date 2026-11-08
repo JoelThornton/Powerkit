@@ -6228,3 +6228,28 @@ the site stays findable by search engines.
   simulation, small telescopes, a justified alpha, the power curve), so
   those plans are unchanged; Welch's test with unequal SDs is refused in
   plain words, asking the user to empty the field.
+
+## 2026-11-08 · Bayes mode: an opt-in switch, Bayes factor versions first, a design prior by default
+
+- **Decided (8 November 2026):** an opt-in "Bayes mode" switch on the start
+  screen, for researchers who will analyse with Bayes factors. It keeps the
+  5 November 2026 decision not to ask everyone "p-values or Bayes factors?":
+  the switch is off unless chosen, and is kept for the browser tab only.
+- **What it does:** every card with a Bayes factor version opens its input
+  screen with that version chosen (the test version's note says why, and
+  any other version can still be picked); a card without one says so
+  before the input screen. Results already lead with the chance of strong
+  evidence for an effect, strong evidence for none and misleading
+  evidence, so they are unchanged.
+- **A design prior by default (the maintainer's decision):** in Bayes mode
+  every "how unsure you are" field starts empty, so the plan waits for the
+  user's own SD and averages over the effects they think plausible
+  (assurance; O'Hagan, Stevens & Campbell, 2005). powerkit suggests no
+  value, as on the results screen, because any default SD would be one
+  more convention; 0 still plans for exactly the value entered. Recorded
+  under Departure 15 in `conventions.md`.
+- **Still to come (`next.md`):** goals without a threshold (a posterior
+  interval's width, or a region of practical equivalence), once a package
+  that plans them has been checked, and Bayesian wording in methods
+  paragraphs and scripts. Bayesian replication goals are in the Labs
+  replication planner.

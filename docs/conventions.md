@@ -1227,6 +1227,14 @@ as an experimental option, for a statistician's check
   (`test-backend-bayes-proportions.R`, "Departure 15's size for two
   proportions"). Shown on the two-proportion result screen (E5) when the
   Bayes factor test is chosen and the SD is left at 0.
+- **In Bayes mode (8 November 2026, the maintainer's decision):** the
+  start screen's opt-in Bayes mode makes the design prior the default
+  instead. Every "how unsure you are" field (the effect, the correlation,
+  the proportions) starts empty and must be filled in before the plan
+  runs; powerkit suggests no value, as on the results screen, and 0 still
+  plans for exactly the value entered (then this departure is shown as
+  usual). Outside Bayes mode nothing changes. `app/routing/R/bayes-mode.R`;
+  `app/routing/tests/testthat/test-bayes-mode.R`.
 
 ### 16. Mixed models: Satterthwaite's t test, not simr's default z test
 
