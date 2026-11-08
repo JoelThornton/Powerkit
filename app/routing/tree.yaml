@@ -2254,6 +2254,20 @@ guided:
             options:
               - {label: "Side by side: X affects each one separately", endpoint: E11}
               - {label: "In a chain: X affects the first, which affects the next", endpoint: E12}
+    # The manipulation check beside a mediation: X's effect on the
+    # mediator, analysed on its own (8 November 2026). The mediator is a
+    # score, so the card is the one for a score outcome.
+    - id: check
+      label: "The effect of X on the mediator (a manipulation check)"
+      requires: {mediators: [one, several]}
+      # Its outcome is the mediator, not the study's outcome, so it doesn't
+      # widen the cards that fit the screening answers (R/tree.R).
+      outcome_is_mediator: true
+      rules:
+        - {when: {x: within2}, endpoint: E3}
+        - {when: {x: cond2}, endpoint: E2}
+        - {when: {x: cond3}, endpoint: E18}
+        - {when: {x: score}, endpoint: E4}
     - id: modmed
       label: "Whether the mediation depends on the moderator (moderated mediation)"
       requires: {mediators: [one, several, notscore], moderator: [score, two, three]}
@@ -2295,7 +2309,7 @@ guided:
       note: "Each analysis answers its own question and is tested at the usual significance level (alpha). No adjustment is needed (Rubin, 2021). Not everyone agrees: under the more common error-statistical view of significance testing, an adjustment may be expected when the analyses form a related group, especially if some could go unreported (Mayo, 2018)."
     - id: all
       label: "The claim needs every result to be significant"
-      note: "No adjustment to alpha is needed, because the claim only stands if every test succeeds. But the chance that all of them succeed together is lower than each test's power, so each test needs a higher target power (for two tests and 80% together, about 89.4% each)."
+      note: "No adjustment to alpha is needed, because the claim only stands if every test succeeds. But the chance that all of them succeed together is lower than each test's power, so each test needs a higher target power (for two tests and 80% together, about 89.4% each if the tests are independent; 90% each is enough whatever their relationship)."
     - id: any
       label: "Any one significant result supports the claim"
       note: "Several chances to find an effect raise the risk of a false positive, so it needs an alpha correction: each test uses a stricter alpha, divided by the number of main analyses (the Bonferroni correction). This raises the sample size needed."

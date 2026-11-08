@@ -86,3 +86,12 @@ test_that("an experiment's sample size search finds the n for joint power", {
   expect_lt(abs(r$n - exact) / exact, 0.2)
   expect_match(export_whole_study_script(spec), "Superpower")
 })
+
+test_that("an experiment's result prints with its own backend, and its script saves before printing", {
+  skip_on_cran()
+  r <- run_whole_study(experiment_whole_study(nrep = 100L))
+  out <- capture.output(print(r))
+  expect_true(any(grepl(sprintf("Backend: Superpower %s", utils::packageVersion("Superpower")), out, fixed = TRUE)))
+  script <- export_whole_study_script(experiment_whole_study(nrep = 100L))
+  expect_lt(regexpr("saveRDS(result", script, fixed = TRUE), regexpr("print(result)", script, fixed = TRUE))
+})

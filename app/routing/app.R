@@ -1367,7 +1367,7 @@ server <- function(input, output, session) {
     answers <- routed_answers()
     plan <- whole_study_plan(tree, answers, state$ticked, state$primary, state$asks)
     if (!isTRUE(plan$ok)) return(list(plan = plan))
-    labels <- whole_study_labels(plan$roles, state$plan_values)
+    labels <- whole_study_labels(plan$roles, state$plan_values, state$ws_names %||% list())
     # An experiment (a factorial ANOVA) needs no path model.
     if (isTRUE(plan$experiment)) return(list(plan = plan, labels = labels, params = list(experiment = TRUE)))
     skeleton <- whole_study_skeleton(plan, labels)
@@ -1394,6 +1394,9 @@ server <- function(input, output, session) {
   observeEvent(input$ws_run, {
     ws <- whole_study_screen()
     req(ws$params)
+    # The names typed on this screen, then the screen's model with them.
+    state$ws_names <- whole_study_names_from_input(input, ws$plan$roles)
+    ws <- whole_study_screen()
     if (isTRUE(ws$plan$experiment)) {
       values <- whole_study_experiment_values(input, ws$plan)
       state$ws_values <- values

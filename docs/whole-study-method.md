@@ -76,6 +76,7 @@ and 80% together, about 89.4% each).
    | Analysis | Model | Test |
    | --- | --- | --- |
    | Effect of X on Y (`x_y`) | Y ~ X, OLS | t test of the slope (the test of the correlation) |
+   | Effect of X on the mediator, a manipulation check (`x_m`; one mediator M) | M ~ X, OLS (not adjusted for the outcome's first measurement) | t test of the slope |
    | Interaction (`interaction`) | Y ~ X + W + X:W, OLS | t test of X:W |
    | Mediation (`indirect`) | lavaan ML: M ~ X, Y ~ M + X (two mediators: parallel with residual covariance free, or serial) | Monte Carlo CI of the indirect effect (1,000 draws) |
    | Moderated mediation (`index_of_mome`) | lavaan ML, PROCESS model 7 or 14 | Monte Carlo CI of the index of moderated mediation |

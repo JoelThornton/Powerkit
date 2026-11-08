@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Whole-study planning: manipulation checks, and fewer dead ends"
+    text: >-
+      "Plan my whole study" can now plan a manipulation check (the effect
+      of your condition on the mediator) beside a mediation, and simulate
+      both together. A before/after trial with "a baseline measure" no
+      longer loses the whole-study simulation, the simulation screens ask
+      what your variables are called, and the R script for an experiment
+      saves its result before printing it.
+  - date: "2026-11-08"
     title: "No more waiting for other people's calculations"
     text: >-
       Working out a sample size now runs on its own, with a progress bar

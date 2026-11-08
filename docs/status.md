@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.40.0). This page says where the
+*Last updated: 8 November 2026 (powerkit 0.41.0). This page says where the
 project is now; keep it short and replace old entries rather than adding
 to them. What to do next is [`next.md`](next.md) (items 6 to 12 came from an audit for
 planned work that had no queue item, 6 November 2026). History is in git,
@@ -46,7 +46,12 @@ fully validated. Validation runs are recorded in
   previous study, and the Labs converter refuses impossible values. The
   sixth batch (speed) is done: sample-size searches run in a warm spare
   process rather than the app's own, About is built in a separate
-  process, and the fixed tabs are rendered once. The mixed-design Greenhouse-Geisser check
+  process, and the fixed tabs are rendered once. The seventh batch
+  (whole-study planning) is half done: a manipulation check beside a
+  mediation, "baseline" in a before/after trial, the experiment script's
+  printing and saving, and the variables' names; saving and reopening the
+  plan, a rough power curve, one study plan and shared sample sizes are
+  next. The mixed-design Greenhouse-Geisser check
   still fails with new seeds and waits for the statistician; the rerun of
   the moderated mediation Type I error check (yes/no X) is recorded when
   it finishes ([`validation-log.md`](validation-log.md), 7 November 2026).

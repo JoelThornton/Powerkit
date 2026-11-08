@@ -353,3 +353,54 @@ test_that("measured twice, a mediation adjusts Y, not the mediator, for the base
     expect_false(any(grepl("^M[12]? ~ .*B", lines_of(a$fit_model))), label = a$id)
   }
 })
+
+# Two groups, one mediator: the mediation and its manipulation check.
+check_study <- function(nrep = 400, seed = 31) {
+  list(
+    spec_version = "0.1", kind = "whole_study",
+    variables = list(
+      X = list(type = "binary", label = "Condition"),
+      M = list(type = "continuous", label = "Felt control"),
+      Y = list(type = "continuous", label = "Persistence")
+    ),
+    population = list(paths = list("X->M" = 0.25, "M->Y" = 0.3, "X->Y" = 0.05)),
+    analyses = list(
+      list(id = "check", label = "The effect of X on the mediator", test = "x_m", role = "extra"),
+      list(id = "mediation", label = "The mediation", test = "indirect", path = "X->M->Y", role = "main")
+    ),
+    claim = "each", alpha = 0.05,
+    effect_justification = list(type = "none"),
+    goal = list(type = "power", n = 200),
+    options = list(nrep = nrep, seed = seed)
+  )
+}
+
+test_that("the effect of X on the mediator (a manipulation check) is M on X alone, and its power is the t test's", {
+  skip_on_cran()
+  spec <- check_study()
+  inputs <- whole_study_inputs(validate_whole_study(spec))
+  fit <- Filter(function(a) identical(a$id, "check"), inputs$analyses)[[1]]
+  expect_identical(fit$fit_model, "M ~ X")
+  expect_identical(fit$test_args$pars, "M~X")
+  r <- run_whole_study(spec)
+  expect_true(all(r$check_run$ok))
+  # Implied values: the correlation and the d the two-group card asks for.
+  imp <- r$implied$check$values
+  expect_named(imp, c("r", "d"))
+  # Two equal groups with a standardised X -> M path of 0.25: d = 2 * 0.25 /
+  # sqrt(1 - 0.25^2), and the power is the two-sample t test's at that d,
+  # within 4.5 Monte Carlo standard errors.
+  d <- 2 * 0.25 / sqrt(1 - 0.25^2)
+  expect_equal(unname(imp[["d"]]), d, tolerance = 0.03)
+  exact <- stats::power.t.test(n = 100, delta = d, sd = 1)$power
+  power <- r$analyses$power[r$analyses$id == "check"]
+  expect_lt(abs(power - exact), 4.5 * sqrt(exact * (1 - exact) / 400))
+  # It needs one mediator, named M.
+  two <- spec
+  two$variables$M <- NULL
+  two$variables$M1 <- list(type = "continuous", label = "a")
+  two$variables$M2 <- list(type = "continuous", label = "b")
+  two$mediators <- "parallel"
+  two$analyses[[2]]$path <- "X->M1->Y"
+  expect_error(validate_whole_study(two), "one mediator, named M")
+})

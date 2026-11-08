@@ -35,8 +35,13 @@ whole_study_names <- c(X = "the predictor (X)", Y = "the outcome (Y)", W = "the 
 
 # Measured twice: the analysis that each planned analysis becomes once Y
 # is adjusted for its first measurement (whole_study_plan()).
-whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect", modmed = "index_of_mome")
+whole_study_twice_tests <- c(compare = "x_y", moderation = "interaction", mediation = "indirect", modmed = "index_of_mome", check = "x_m")
 whole_study_twice_endpoints <- c(compare = "E23", moderation = "E24", mediation = "E41", modmed = "E41")
+
+# The effect of X on the mediator (a manipulation check, tree.yaml's
+# `check`): M on X alone, whatever card it leads to (the two-group
+# comparison or the correlation), with one mediator that is a score.
+whole_study_check_endpoints <- c("E2", "E4")
 
 # Measured twice, the routes ask how two mediators connect and which link
 # W moderates (tree.yaml: ME3 and MM4, every answer going to E41); the
@@ -64,8 +69,13 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   reasons <- character()
   if (!answers$x %in% c("score", "cond2")) reasons <- c(reasons, "the main predictor (X) is a measured score or two groups or conditions")
   if (!identical(answers$outcome, "score")) reasons <- c(reasons, "the outcome is a score")
-  if (!identical(answers$covariate %||% "none", "none")) reasons <- c(reasons, "there are no covariates")
   twice <- identical(answers$times, "twice")
+  # Measured twice, the first measurement is the baseline already (B, which
+  # every analysis adjusts for), so "a baseline measure" is the same study
+  # as "none" (8 November 2026).
+  covariate <- answers$covariate %||% "none"
+  if (twice && identical(covariate, "baseline")) covariate <- "none"
+  if (!identical(covariate, "none")) reasons <- c(reasons, "there are no covariates other than the first measurement of the outcome")
   if (!(answers$times %||% "once") %in% c("once", "twice")) reasons <- c(reasons, "each person is measured once or twice")
   if (!answers$moderator %in% c("none", "score")) reasons <- c(reasons, "the moderator, if any, is a measured score")
   if (!answers$mediators %in% c("none", "one", "several")) reasons <- c(reasons, "the mediators, if any, are scores")
@@ -76,12 +86,14 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   covered <- if (twice) {
     vapply(seq_along(ticked), function(i) {
       id <- ticked[i]
+      if (identical(id, "check")) return(endpoints[[i]] %in% whole_study_check_endpoints && identical(answers$mediators, "one"))
       identical(unname(whole_study_twice_endpoints[id]), endpoints[[i]]) &&
         (!identical(id, "modmed") || (identical(answers$x, "score") && identical(answers$mediators, "one") &&
           (asks[[id]] %||% "") %in% names(whole_study_twice_links)))
     }, logical(1))
   } else {
-    endpoints %in% names(whole_study_tests)
+    ifelse(ticked == "check", endpoints %in% whole_study_check_endpoints & identical(answers$mediators, "one"),
+      endpoints %in% names(whole_study_tests))
   }
   outside <- ticked[!covered]
   if (length(outside)) {
@@ -98,7 +110,7 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
     id <- ticked[i]
     ep <- endpoints[[i]]
     a <- list(id = id, label = analysis_by_id(tree, id)$label,
-      test = if (twice) whole_study_twice_tests[[id]] else whole_study_tests[[ep]],
+      test = if (twice || identical(id, "check")) whole_study_twice_tests[[id]] else whole_study_tests[[ep]],
       role = if (id %in% primary) "main" else "extra")
     if (identical(a$test, "indirect")) a$path <- if (length(mediators) == 1) "X->M->Y" else if (serial) "X->M1->M2->Y" else "X->M1->Y"
     if (identical(a$test, "index_of_mome")) a$moderated_link <- if (twice) whole_study_twice_links[[asks[[id]]]] else link[[ep]]
@@ -106,12 +118,12 @@ whole_study_plan <- function(tree, answers, ticked, primary, asks) {
   })
   tests <- vapply(analyses, function(a) a$test, "")
   roles <- c("X", if (any(tests %in% c("interaction", "index_of_mome"))) "W",
-    if (any(tests %in% c("indirect", "index_of_mome"))) mediators, if (twice) "B", "Y")
+    if (any(tests %in% c("indirect", "index_of_mome", "x_m"))) mediators, if (twice) "B", "Y")
   path_choices <- if (length(mediators) == 2 && "indirect" %in% tests) {
     if (serial) c("X->M1->M2->Y", "X->M1->Y", "X->M2->Y") else c("X->M1->Y", "X->M2->Y")
   }
   list(ok = TRUE, analyses = analyses, roles = roles, binary_x = identical(answers$x, "cond2"),
-    mediators = if (length(mediators) == 2 && any(tests %in% c("indirect", "index_of_mome"))) (if (serial) "serial" else "parallel"),
+    mediators = if (length(mediators) == 2 && any(tests %in% c("indirect", "index_of_mome", "x_m"))) (if (serial) "serial" else "parallel"),
     path_choices = path_choices)
 }
 
@@ -169,9 +181,12 @@ whole_study_experiment_labels <- c(compare = "The main effect of X (in the facto
 
 # The variables' names: from what the user typed on the plan's input
 # screens, else the role names.
-whole_study_labels <- function(roles, plan_values) {
+# `named`: names typed on the simulation screen itself
+# (whole_study_name_inputs()), which come first.
+whole_study_labels <- function(roles, plan_values, named = list()) {
   defaults <- c(X = "Predictor", Y = "Outcome", B = "Outcome, first measurement", W = "Moderator", M = "Mediator", M1 = "First mediator", M2 = "Second mediator")
   out <- defaults[roles]
+  if (length(named)) plan_values <- c(list(stats::setNames(named, paste0(names(named), "_label"))), plan_values)
   for (r in roles) {
     for (values in plan_values) {
       typed <- values[[paste0(r, "_label")]]
@@ -184,6 +199,28 @@ whole_study_labels <- function(roles, plan_values) {
   # The first measurement of the outcome is named after the outcome.
   if ("B" %in% roles && identical(out[["B"]], defaults[["B"]])) out[["B"]] <- paste0(out[["Y"]], ", first measurement")
   out
+}
+
+# The variables' names, on the simulation screen: filled in from the plan's
+# input screens where they were typed there, so the result and its write-up
+# never fall back on "Predictor" or "Moderator" unasked (8 November 2026).
+# The outcome's first measurement is named after the outcome.
+whole_study_name_roles <- function(roles) setdiff(roles, "B")
+whole_study_name_words <- c(X = "The predictor or condition (X)", W = "The moderator (W)", M = "The mediator (M)",
+  M1 = "The first mediator (M1)", M2 = "The second mediator (M2)", Y = "The outcome (Y)")
+whole_study_name_inputs <- function(roles, labels) {
+  tagList(
+    h3(class = "h5", "What your variables are called"),
+    p(class = "text-muted small", "Used in the result and the methods paragraph."),
+    div(class = "ws-names", lapply(whole_study_name_roles(roles), function(r) {
+      textInput(paste0("ws_name_", r), whole_study_name_words[[r]], value = if (r %in% names(labels)) labels[[r]] else "", width = "100%")
+    }))
+  )
+}
+whole_study_names_from_input <- function(input, roles) {
+  out <- lapply(whole_study_name_roles(roles), function(r) trimws(input[[paste0("ws_name_", r)]] %||% ""))
+  names(out) <- whole_study_name_roles(roles)
+  Filter(nzchar, out)
 }
 
 # The spec without its population, for whole_study_parameters().
@@ -276,6 +313,7 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
     tags$ul(lapply(plan$analyses, function(a) tags$li(a$label, " ",
       tags$span(class = if (a$role == "main") "badge bg-primary" else "badge bg-secondary", if (a$role == "main") "Main analysis" else "Extra analysis")))),
     p(tags$strong("Your claim:"), paste0(" ", rule_words[[rule]], ".")),
+    whole_study_name_inputs(plan$roles, labels),
     if (!is.null(plan$path_choices)) selectInput("ws_path", "Which indirect effect does the mediation analysis test?",
       choices = plan$path_choices, selected = path %||% plan$path_choices[1], width = "100%"),
     h3(class = "h5", "Your study: standardised paths"),
@@ -526,17 +564,24 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       p(class = "small", if (experiment)
         "Each test's effect size (Cohen's f) and its power when it is the only test, calculated exactly from your means (Superpower's ANOVA_exact()), as its own card would give them."
         else "Estimated from one very large simulated sample. If you calculated an analysis separately, compare these with what you entered: where they differ, the separate calculations describe different studies."),
-      lapply(r$implied, function(imp) {
-        own <- plan_values[[imp$id]] %||% list()
-        label <- a$label[a$id == imp$id]
-        div(class = "ws-implied-block",
-          tags$p(class = "ws-implied-title", tags$strong(label)),
-          div(class = "table-responsive", tags$table(class = "table table-sm ws-implied",
-            tags$thead(tags$tr(tags$th("Value"), tags$th("Implied by your study model"), tags$th("You entered on its screen"))),
-            tags$tbody(lapply(names(imp$values), function(k) tags$tr(
-              tags$td(whole_study_value_label(k)), tags$td(sprintf("%.3f", imp$values[[k]])),
-              tags$td(own[[k]] %||% "\u2014")))))))
-      })),
+      {
+        # "You entered" only when something was entered on a card's screen.
+        entered <- any(vapply(r$implied, function(imp) {
+          own <- plan_values[[imp$id]] %||% list()
+          any(vapply(names(imp$values), function(k) length(own[[k]]) == 1 && nzchar(as.character(own[[k]])), logical(1)))
+        }, logical(1)))
+        lapply(r$implied, function(imp) {
+          own <- plan_values[[imp$id]] %||% list()
+          label <- a$label[a$id == imp$id]
+          div(class = "ws-implied-block",
+            tags$p(class = "ws-implied-title", tags$strong(label)),
+            div(class = "table-responsive", tags$table(class = "table table-sm ws-implied",
+              tags$thead(tags$tr(tags$th("Value"), tags$th("Implied by your study model"), if (entered) tags$th("You entered on its screen"))),
+              tags$tbody(lapply(names(imp$values), function(k) tags$tr(
+                tags$td(whole_study_value_label(k)), tags$td(sprintf("%.3f", imp$values[[k]])),
+                if (entered) tags$td(own[[k]] %||% "\u2014")))))))
+        })
+      }),
     div(class = "result-card result-save", id = "ws-take",
       h4(class = "h5", "Write it up and save it"),
       h5(class = "h6", "Methods paragraph (draft)"),
@@ -698,6 +743,7 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
     tags$ul(lapply(plan$analyses, function(a) tags$li(whole_study_experiment_label(a$id, labels), " ",
       tags$span(class = if (a$role == "main") "badge bg-primary" else "badge bg-secondary", if (a$role == "main") "Main analysis" else "Extra analysis")))),
     p(tags$strong("Your claim:"), paste0(" ", rule_words[[rule]], ".")),
+    whole_study_name_inputs(plan$roles, labels),
     h3(class = "h5", "Your experiment"),
     textInput("ws_x_levels", sprintf("Levels of %s (separate them with commas)", labels[["X"]]),
       value = value_of("x_levels", whole_study_experiment_default_levels("Condition", plan$x_levels)), width = "100%"),
