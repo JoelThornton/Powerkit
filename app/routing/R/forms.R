@@ -572,27 +572,45 @@ safeguard_fields <- function(template) {
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
 }
 
-# Effects that vary between studies (Kenny & Judd, 2019), for the
-# t-tests: the SD of the true effect around the one planned for, which
-# then is the average effect. Starts at Kenny and Judd's small 0.05
-# (Departure 23); empty or 0 is the usual analysis.
-heterogeneity_field_templates <- c("independent_t", "one_sample_t", "paired_t")
+# Effects that vary between studies, for the t-tests (Kenny & Judd, 2019)
+# and a Pearson correlation (McShane & Bockenholt, 2014, on Fisher's z):
+# the SD of the true effect around the one planned for, which then is the
+# average effect. The t-tests start at Kenny and Judd's small 0.05 in d
+# (Departure 23), the correlation at 0.025, their rule of 25% of a small
+# effect applied to r = .1 (Departure 24); empty or 0 is the usual
+# analysis.
+heterogeneity_field_templates <- c("independent_t", "one_sample_t", "paired_t", "correlation")
 
 heterogeneity_fields <- function(template) {
   if (!isTRUE(template %in% heterogeneity_field_templates)) return(list())
+  # The formulas are for the test by formula, for power, the sample size
+  # or the smallest detectable effect.
+  common <- list(list(field = "sg_use", is_not = "telescopes"),
+    list(field = "calc_method", is_not = "simulation"), list(field = "welch_method", is_not = "simulation"),
+    list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))
+  if (identical(template, "correlation")) {
+    return(list(list(id = "het_tau", label = "How much might the true correlation vary between studies? (as an SD on Fisher's z)",
+      type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.025,
+      default_source = "Kenny and Judd's (2019) rule for small variation, 25% of a small effect, applied to a correlation of .1: they argue zero should not be the default",
+      help = paste("Labs, samples, materials and procedures differ, so a study's true correlation can differ from the one you plan for.",
+        "This is its SD between studies on Fisher's z scale, which is close to r for small values. Kenny and Judd (2019) take",
+        "25% of a small, medium and large effect as small, medium and large variation; for r = .1, .3 and .5 that is about",
+        "0.025, 0.075 and 0.125. The correlation above is then the average across studies (McShane & Bockenholt, 2014).",
+        "If a meta-analysis of this correlation reports how much it varies (tau, on Fisher's z), use that instead.",
+        "Empty or 0 plans for the same correlation in every study, as G*Power and most power analyses do. The results show",
+        "the answer with no, small, medium and large variation."),
+      shown_if = c(list(list(field = "method", is = "pearson")), common))))
+  }
   list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
     type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.05,
     default_source = "Kenny and Judd's (2019) small variation between studies: they argue zero should not be the default",
     help = paste("Labs, samples, materials and procedures differ, so a study's true effect can differ from the one you plan for.",
       "Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 as small, medium and large variation, and argue that zero",
-      "should not be the default. The effect above is then the average across studies. Empty or 0 plans for the same effect",
-      "in every study, as G*Power and most power analyses do. It needs equal SDs in the two groups."),
-    # Kenny and Judd's formula is for the t-test by formula, for power,
-    # the sample size or the smallest detectable effect.
-    shown_if = list(list(field = "sg_use", is_not = "telescopes"),
-      list(field = "method", is_one_of = c("t_test", "student_t", "welch_t")),
-      list(field = "calc_method", is_not = "simulation"), list(field = "welch_method", is_not = "simulation"),
-      list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))))
+      "should not be the default. If a meta-analysis of this effect reports how much it varies (tau, in d), use that instead.",
+      "The effect above is then the average across studies. Empty or 0 plans for the same effect in every study, as G*Power",
+      "and most power analyses do. The results show the answer with no, small, medium and large variation.",
+      "It needs equal SDs in the two groups."),
+    shown_if = c(list(list(field = "method", is_one_of = c("t_test", "student_t", "welch_t"))), common)))
 }
 
 # ANOVA and ANCOVA by its effect size: the "Units of the means"

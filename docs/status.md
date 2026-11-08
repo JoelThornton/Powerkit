@@ -33,8 +33,9 @@ rules are in `CLAUDE.md`.
   release"). A check of every review finding against what merged
   (8 November) found a few left: the small ones are fixed, and the
   larger ones are `next.md` items 15 to 20. Effects that vary between
-  studies are on the t-test cards, and an opt-in Bayes mode is on the
-  start screen (8 November). Next: the queue in `next.md`; the rest of
+  studies are on the t-test and correlation cards, with a table of the
+  answer at no, small, medium and large variation, and an opt-in Bayes
+  mode is on the start screen (8 November). Next: the queue in `next.md`; the rest of
   Bayes mode (item 21) waits on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
@@ -59,7 +60,9 @@ rules are in `CLAUDE.md`.
   equivalence tests; a justified alpha; pairwise comparisons with Holm's
   adjustment; effects that vary between studies on the three t-test
   cards (Kenny & Judd, 2019, through pwr; an SD of 0.05 in d to start
-  with, Departure 23);
+  with, Departure 23) and the correlation card (McShane & Böckenholt,
+  2014, through pwr; 0.025 on Fisher's z, Departure 24), each result
+  showing the answer at no, small, medium and large variation;
   precision planning (a confidence interval's width, by MBESS
   and presize) as a goal beside power. Bayes factor versions exist for
   fifteen designs, with JASP's default priors; p-value results of the

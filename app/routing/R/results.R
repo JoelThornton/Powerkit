@@ -1237,11 +1237,47 @@ heterogeneity_sentence <- function(result) {
   h <- result$heterogeneity
   if (is.null(h)) return(NULL)
   pct <- function(x) sprintf("%.0f%%", 100 * x)
-  sprintf(paste0("Variation between studies: the true effect is planned to vary from study to study with an SD of %s, ",
-    "so the effect entered is the average across studies (Kenny & Judd, 2019). At %s in total, power is %s with this variation, ",
-    "against %s if every study had the same effect. With no average effect at all, one study like this would still be ",
-    "significant %s of the time rather than at the significance level, because its own true effect is rarely exactly zero."),
-    format(h$tau), whole(h$n), pct(h$power), pct(h$power_without), pct(h$effective_alpha))
+  r <- identical(h$scale, "Fisher's z")
+  sprintf(paste0("Variation between studies: the true %s is planned to vary from study to study with an SD of %s%s, ",
+    "so the %s entered is the average across studies (%s). At %s in total, power is %s with this variation, ",
+    "against %s if every study had the same %s. With no average %s at all, one study like this would still be ",
+    "significant %s of the time rather than at the significance level, because its own true %s is rarely exactly zero."),
+    if (r) "correlation" else "effect", format(h$tau), if (r) " on Fisher's z scale" else "",
+    if (r) "correlation" else "effect", if (r) "McShane & B\u00f6ckenholt, 2014" else "Kenny & Judd, 2019",
+    whole(h$n), pct(h$power), pct(h$power_without), if (r) "correlation" else "effect",
+    if (r) "correlation" else "effect", pct(h$effective_alpha), if (r) "correlation" else "effect")
+}
+
+# The same answer with no, small, medium and large variation (Kenny and
+# Judd's 25% of a small, medium and large effect), so the starting value is
+# a visible assumption, not an answer the researcher inherits.
+heterogeneity_range_ui <- function(result) {
+  h <- result$heterogeneity
+  range <- h$range
+  if (is.null(range) || !NROW(range)) return(NULL)
+  r <- identical(h$scale, "Fisher's z")
+  goal <- h$range_goal %||% result$goal_type
+  header <- switch(goal, power = sprintf("Power at %s", whole(h$n)), sample_size = "People needed",
+    sensitivity = if (r) "Smallest average correlation" else "Smallest average effect", "Answer")
+  show <- function(v) {
+    if (is.na(v)) return("not reached")
+    switch(goal, power = percent(v), sample_size = whole(v), format(round(v, 3), nsmall = 2))
+  }
+  names <- c(none = "None (the same in every study)", small = "Small", medium = "Medium", large = "Large", entered = "Your value")
+  rows <- lapply(seq_len(nrow(range)), function(i) {
+    label <- names[[range$level[i]]]
+    if (isTRUE(range$entered[i]) && !identical(range$level[i], "entered")) label <- paste0(label, " (your value)")
+    row <- tags$tr(tags$td(label), tags$td(format(range$tau[i])), tags$td(show(range$value[i])))
+    if (isTRUE(range$entered[i])) row <- tagAppendAttributes(row, class = "table-active")
+    row
+  })
+  div(class = "result-heterogeneity-range",
+    p(paste0("How much the answer depends on the variation you assume. Small, medium and large are Kenny and Judd's (2019) ",
+      "25% of a small, medium and large ", if (r) "correlation" else "effect",
+      ". If a meta-analysis of this effect reports how much it varies (tau), that is better evidence than any of these.")),
+    tags$table(class = "table table-sm result-heterogeneity-table",
+      tags$thead(tags$tr(tags$th("Variation between studies"), tags$th(if (r) "SD (Fisher's z)" else "SD (d)"), tags$th(header))),
+      tags$tbody(rows)))
 }
 
 # Small telescopes (Simonsohn, 2015), worked out by the engine: d33 from
@@ -2086,9 +2122,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 22 (Welch's F by default) applies when Welch's F is planned
   # for.
   if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
-  # Departure 23 (variation between studies, 0.05 to start with) applies
+  # Departures 23 and 24 (variation between studies, 0.05 or 0.025 to start with) apply
   # when the plan allows for it.
-  if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, "23")
+  if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, c("23", "24"))
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
@@ -2499,6 +2535,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
     if (!is.null(het <- heterogeneity_sentence(result))) p(class = "result-heterogeneity", het),
+    heterogeneity_range_ui(result),
     if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
@@ -2868,9 +2905,16 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
         sub("\\(.*", "()", sub("^psych::", "", sg$function_used)), sg$effect_name, format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
     }
     if (!is.null(h <- result$heterogeneity)) {
-      adj <- paste0(adj, sprintf(paste0(" The true effect was allowed to vary between studies with a standard deviation of %s, ",
-        "following Kenny and Judd (2019): the effect size is the average across studies, and power was computed with pwr ",
-        "using their effective significance level (%s) and adjusted noncentrality."), format(h$tau), format(signif(h$effective_alpha, 3))))
+      adj <- paste0(adj, if (identical(h$scale, "Fisher's z")) {
+        sprintf(paste0(" The true correlation was allowed to vary between studies with a standard deviation of %s on Fisher's z scale, ",
+          "following McShane and B\u00f6ckenholt (2014): the correlation is the average across studies, and power was computed with pwr's ",
+          "Fisher z approximation using the effective significance level (%s) and correlation that give their normal model's power."),
+          format(h$tau), format(signif(h$effective_alpha, 3)))
+      } else {
+        sprintf(paste0(" The true effect was allowed to vary between studies with a standard deviation of %s, ",
+          "following Kenny and Judd (2019): the effect size is the average across studies, and power was computed with pwr ",
+          "using their effective significance level (%s) and adjusted noncentrality."), format(h$tau), format(signif(h$effective_alpha, 3)))
+      })
     }
     if (!is.null(telescopes)) {
       sprintf("The original study's effect size, %s, set the test's direction (%s); its size does not enter the plan.", effect, reasoning)

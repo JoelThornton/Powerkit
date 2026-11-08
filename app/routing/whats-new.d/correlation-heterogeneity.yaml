@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-08"
+    title: "Correlations that vary between studies, and what the variation costs"
+    text: >-
+      The correlation card now asks how much the true correlation might
+      vary between studies, as the t-test cards do. It starts at a small
+      value, and you can empty it for the usual analysis. On the t-test
+      and correlation results, a new table shows the people needed (or
+      the power) with no, small, medium and large variation, so you can
+      see what the assumption costs. If a meta-analysis of your effect
+      reports how much it varies, use that value instead.
