@@ -6118,7 +6118,7 @@ the site stays findable by search engines.
   `every-card-list.R` (the browser run, beside the other Playwright
   scripts). Both exit with status 1 on any problem; how to run them is
   in `repository-protection.md`, "Checks before a release".
-- **Not in CI:** each takes about an hour, and the full validation run
+- **Not in CI:** each takes one to two hours, and the full validation run
   already covers the published values. A test in the app suite runs the
   property checks on one formula design and writes the card list, so
   neither script falls out of step with the engine or the forms
