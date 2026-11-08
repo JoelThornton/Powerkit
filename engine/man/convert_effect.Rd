@@ -11,12 +11,13 @@ convert_effect(
   df_error = NULL,
   n1 = NULL,
   n2 = NULL,
-  df = NULL
+  df = NULL,
+  p0 = NULL
 )
 }
 \arguments{
 \item{from}{The form of the published effect: \code{"t"}, \code{"F"}, \code{"r"},
-\code{"d"}, \code{"odds_ratio"} or \code{"f"}.}
+\code{"d"}, \code{"odds_ratio"}, \code{"risk_ratio"} or \code{"f"}.}
 
 \item{value}{The published value.}
 
@@ -33,6 +34,9 @@ can't exceed n1 + n2 - 2.}
 
 \item{df}{The numerator degrees of freedom, for an F statistic converted
 into an ANOVA's partial eta-squared.}
+
+\item{p0}{Group 1's proportion, for an odds ratio or a risk ratio
+converted into group 2's proportion (\code{"two_proportions"}).}
 }
 \value{
 A list: \code{effect_name} and \code{value} (the converted effect),
@@ -49,7 +53,8 @@ ratio, into Cohen's d (one-sample and independent t-tests), d_z (paired
 t-test) or r (correlation); and an F statistic (with both its degrees of
 freedom) or Cohen's f into the partial eta-squared of a
 between-participants ANOVA (\code{"oneway_between"}, \code{"2x2_between"},
-\code{"factorial_between"}).
+\code{"factorial_between"}); and an odds ratio or a risk ratio, with group
+1's proportion, into group 2's proportion (\code{"two_proportions"}).
 }
 \examples{
 convert_effect("t", 2.5, "independent_t", df_error = 58)
