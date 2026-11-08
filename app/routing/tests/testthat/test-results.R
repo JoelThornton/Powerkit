@@ -2994,3 +2994,10 @@ test_that("the warm spare process gives the same result as the engine, and its c
   expect_false(slow$is_alive())
   expect_match(collect_background_calculation(slow)$message, "stopped unexpectedly", fixed = TRUE)
 })
+
+test_that("a generic test's power has no participant count under it", {
+  fig <- result_figure(list(design = "generic_test", template = "generic_t", variables = list(), population = list()),
+    list(goal_type = "power", curve = data.frame(n = NA_real_, power = 0.68)))
+  expect_identical(fig$value, "68%")
+  expect_identical(fig$sub, "for the noncentrality you entered")
+})

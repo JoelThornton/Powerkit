@@ -2121,7 +2121,8 @@ result_figure <- function(spec, result) {
     power = {
       row <- result$curve[1, ]
       if (is.null(row$power) || is.na(row$power)) NULL else list(value = percent(row$power), label = "power",
-        sub = sprintf("with %s %s%s", whole(row$n), unit, group_text(spec, row$n)))
+        # The generic tests have no sample size: the noncentrality carries it.
+        sub = if (is.null(row$n) || is.na(row$n)) "for the noncentrality you entered" else sprintf("with %s %s%s", whole(row$n), unit, group_text(spec, row$n)))
     },
     sensitivity = {
       s <- result$sensitivity

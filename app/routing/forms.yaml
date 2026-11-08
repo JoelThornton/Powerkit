@@ -152,8 +152,22 @@ background:
   E15: {power: 5, sample_size: 80}
   E59: {power: 4, sample_size: 30}
   E58: {power: 25, sample_size: 120}
-  E73: {power: 35, sample_size: 150}
+  E73: {power: 35, sample_size: 320}
   E60: {power: 4, sample_size: 30}
+  # Cards whose default test is simulated (runs_simulation()), measured on
+  # 7 November 2026 with the example values (sample size; power estimated
+  # as about a ninth, since a search simulates 7 to 13 sizes), so their
+  # cards no longer say "in a second or two" and their bars can estimate.
+  E44: {power: 60, sample_size: 520}
+  E22: {power: 20, sample_size: 175}
+  E61: {power: 8, sample_size: 65}
+  E47: {power: 6, sample_size: 50}
+  E64: {power: 5, sample_size: 40}
+  E70: {power: 5, sample_size: 40}
+  E30: {power: 4, sample_size: 35}
+  E32: {power: 4, sample_size: 30}
+  E45: {power: 2, sample_size: 10}
+  E72: {power: 2, sample_size: 10}
 # At most this many background calculations (E9 and E10-E14's preview and
 # full run) at once, across everyone using the app; others are asked to try
 # again shortly (R/results.R, background_limit()). Two suits a server with
