@@ -1,0 +1,11 @@
+entries:
+  - date: "2026-11-08"
+    title: "Write-ups for Bayes factor plans, and for reporting both"
+    text: >-
+      The methods paragraph for a Bayes factor plan now reads as a Bayes
+      factor design analysis. It names the prior the Bayes factor uses and
+      your belief about the true effect separately, and gives the chances
+      of evidence for an effect, evidence for no effect and misleading
+      evidence. If you open "Add a Bayes factor?" on a p-value plan, you
+      now also get a write-up for reporting both, with the Bayes factor as
+      the secondary analysis.

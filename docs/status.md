@@ -36,7 +36,9 @@ rules are in `CLAUDE.md`.
   odds ratio or risk ratio. Effects that vary between
   studies are on the t-test and correlation cards, with a table of the
   answer at no, small, medium and large variation, and an opt-in Bayes
-  mode is on the start screen (8 November). Next: the queue in `next.md`; the rest of
+  mode is on the start screen, with Bayes factor write-ups worded as
+  design analyses and a write-up for plans that report a p-value and a
+  Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
   Bayes mode (item 20) waits on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
