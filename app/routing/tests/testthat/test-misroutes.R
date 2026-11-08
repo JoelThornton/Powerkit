@@ -48,10 +48,10 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
 test_that("answers other than the simple ones leave at an honest end point", {
   # Ordered categories go through the grouping questions: two groups of
   # different people, measured once, reach the ordinal card; repeated
-  # ordinal measurements the safety net.
+  # ordinal measurements the card for generalised mixed models (E75).
   ordinal <- c("Ordered categories (e.g. a single rating item)", "As ordered categories", "Independent people")
   expect_identical(follow_answers(tree, c(ordinal, "Once", "A difference between groups or conditions")), "E29")
-  expect_identical(follow_answers(tree, c(ordinal, "Twice", "A difference between groups or conditions")), "E-unsure")
+  expect_identical(follow_answers(tree, c(ordinal, "Twice", "A difference between groups or conditions")), "E75")
   expect_all_routes("The time until something happens", "E43")
   # People within groups: the goal is asked before the cluster-randomised
   # trial (which calculates) is suggested; with a score outcome, C1 then
@@ -265,8 +265,92 @@ test_that("counts no longer reach the correlation through the relationship path"
   expect_identical(follow_answers(tree, "A count"), "s2")
   expect_identical(follow_answers(tree, c(once, "A relationship between two things you measure")), "E28")
   expect_identical(follow_answers(tree, c(once, "A difference between groups or conditions")), "E28")
-  expect_identical(follow_answers(tree, c("A count", "Independent people", "Twice", "A difference between groups or conditions")), "E-unsure")
+  expect_identical(follow_answers(tree, c("A count", "Independent people", "Twice", "A difference between groups or conditions")), "E75")
   expect_identical(follow_answers(tree, c("A count", "People within groups")), "E34")
+})
+
+test_that("an outcome measured twice or more never falls through to the safety net unasked", {
+  # A count or ordered categories measured twice (before and after, or in
+  # two conditions) is a common design, and the questions had nowhere to
+  # send it: a difference reaches the generalised mixed model card (E75),
+  # a relationship the within-person card (E41), as for a score.
+  ordinal <- c("Ordered categories (e.g. a single rating item)", "As ordered categories")
+  diff <- "A difference between groups or conditions"
+  rel <- "A relationship between two things you measure"
+  many <- c("Many times", "The same people in three or more conditions")
+  for (outcome in list("A count", ordinal)) {
+    for (times in list("Twice", many)) {
+      base <- c(outcome, "Independent people", times)
+      expect_identical(follow_answers(tree, c(base, diff)), "E75", label = paste(c(base, diff), collapse = " > "))
+      expect_identical(follow_answers(tree, c(base, rel)), "E41", label = paste(c(base, rel), collapse = " > "))
+    }
+  }
+  # A yes/no relationship measured twice went to logistic regression, which
+  # assumes separate people; measured once it still does.
+  yesno <- c("Yes/no, or one of several categories", "Independent people")
+  expect_identical(follow_answers(tree, c(yesno, "Twice", rel)), "E41")
+  expect_identical(follow_answers(tree, c(yesno, "Once", rel, "Yes/no")), "E27")
+  expect_identical(follow_answers(tree, c("A count", "Independent people", "Once", rel)), "E28")
+  # Walking every answer in "Help me choose", only "Four or more" factors
+  # and an ordinal outcome with a measured predictor, measured once, still
+  # reach the safety net without choosing it.
+  ends <- character()
+  walk <- function(id, ctx, trail, depth = 0) {
+    id <- resolve_target(tree, id, ctx, "choose")
+    if (identical(id, "E-unsure")) { ends <<- c(ends, paste(trail, collapse = " > ")); return(invisible()) }
+    node <- tree$nodes[[id]]
+    if (is.null(node) || depth > 40) return(invisible())
+    for (o in visible_options(tree, node, ctx)) {
+      if (!isTRUE(o$safety)) walk(o$`next`, apply_sets(ctx, o), c(trail, o$label), depth + 1)
+    }
+  }
+  walk(start_node(tree), list(), character())
+  expect_gt(length(ends), 0)
+  allowed <- grepl("Four or more$", ends) | grepl(paste0("As ordered categories > Independent people > Once > ", rel, "$"), ends, fixed = FALSE)
+  expect_identical(ends[!allowed], character())
+})
+
+test_that("the guided route reaches the safety net unasked only for the gaps listed here", {
+  # Every combination of answers, none of them "None of these fit": a
+  # combination that ends at the safety net must be a known gap with no
+  # card (coverage-roadmap.md), never a common design the questions forgot.
+  allowed <- c(
+    # Unordered categories measured twice: no card or ready-made tool.
+    "categories cond2 twice", "categories cond3 twice", "categories score twice",
+    # Ordered categories with three or more groups or a measured predictor:
+    # E29 compares two groups only (coverage-roadmap.md, B29).
+    "ordinal cond3 once", "ordinal score once"
+  )
+  vars <- tree$guided$variables
+  opts <- lapply(vars, function(v) setdiff(names(v$options), "notsure"))
+  names(opts) <- vapply(vars, `[[`, "", "id")
+  grid <- expand.grid(c(opts, list(times = c("once", "twice"))), stringsAsFactors = FALSE)
+  gaps <- character()
+  for (i in seq_len(nrow(grid))) {
+    a <- as.list(grid[i, ])
+    if ((a$x == "within2" || a$covariate == "baseline") && a$times != "twice") next
+    for (an in applicable_analyses(tree, a)) {
+      if (identical(resolve_analysis(tree, an, a)$endpoint, "E-unsure")) gaps <- c(gaps, paste(a$outcome, a$x, a$times))
+    }
+  }
+  expect_setequal(unique(gaps), allowed)
+})
+
+test_that("the guided route sends repeated counts, ratings and yes/no groups to the generalised mixed model card", {
+  compare <- analysis_by_id(tree, "compare")
+  base <- list(mediators = "none", moderator = "none", covariate = "none", times = "twice")
+  for (outcome in c("count", "ordinal")) {
+    for (x in c("within2", "cond2", "cond3")) {
+      expect_identical(resolve_analysis(tree, compare, modifyList(base, list(x = x, outcome = outcome)))$endpoint, "E75", label = paste(outcome, x))
+    }
+  }
+  for (x in c("cond2", "cond3")) {
+    expect_identical(resolve_analysis(tree, compare, modifyList(base, list(x = x, outcome = "yesno")))$endpoint, "E75", label = x)
+  }
+  expect_identical(resolve_analysis(tree, compare, modifyList(base, list(x = "within2", outcome = "yesno")))$endpoint, "E26")
+  once <- modifyList(base, list(times = "once"))
+  expect_identical(resolve_analysis(tree, compare, modifyList(once, list(x = "cond2", outcome = "count")))$endpoint, "E28")
+  expect_identical(resolve_analysis(tree, compare, modifyList(once, list(x = "cond2", outcome = "ordinal")))$endpoint, "E29")
 })
 
 test_that("two correlations in the same people reach their own card, not the independent-groups test", {

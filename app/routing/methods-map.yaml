@@ -135,6 +135,7 @@ endpoints:
   E72: t
   E73: model
   E74: model
+  E75: model
   E-bayes: bayes
 
 relations:
@@ -207,6 +208,7 @@ relations:
   - {from: E54, to: E35, label: "over many occasions, as a growth model, becomes"}
   - {from: E35, to: E74, label: "with two scores predicting each other over the waves, becomes"}
   - {from: E62, to: E41, label: "for relationships within people is"}
+  - {from: E28, to: E75, label: "with the same people counted more than once becomes"}
   - {from: E34, to: E68, label: "with groups inside larger groups becomes"}
   - {from: E62, to: E44, label: "for pairs of people becomes"}
   - {from: E44, to: E65, label: "in other designs for pairs is"}

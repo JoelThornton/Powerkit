@@ -31,7 +31,7 @@ cites `coverage.md`, that page's own source tags ([Sp], [SP], [p4m], [IP],
 first-hand. Sources outside the repository are cited only if they were
 opened and read on 16 October 2026; nothing is cited from memory.
 
-**Counts:** partly sourced: 24, sourced: 179, no claim: 1
+**Counts:** partly sourced: 26, sourced: 181, no claim: 2
 
 ## Contradictions
 
@@ -218,6 +218,11 @@ None open. Resolved:
 | E40 | Card point | Simulated with power4mome, as for one mediator: the full run can take a while, so the app gives a quick preview and an R script for the full analysis. | app/routing/forms.yaml (simulations > endpoints > E40) | — | — | sourced |
 | E41 | Tool: mlmpower | Power for multilevel models (moderation, cross-level effects). No tool found for within-person mediation. | coverage.md (the row or section naming mlmpower; its source tags give the original) | — | — | sourced |
 | E41 | Tool: simr | Simulation power for mixed models fitted with lme4. | coverage.md (the row or section naming simr; its source tags give the original) | — | — | sourced |
+| E75 | Card point | The same people give a count, or a rating in ordered categories, more than once: for example, the number of cigarettes smoked in the week before and the week after a programme, or the errors each … | — | — | Describes the design only. | no claim |
+| E75 | Card point | Such data are usually analysed with a generalised linear mixed model, with a random intercept for each person: Poisson or negative binomial for a count, logistic for yes/no, and a cumulative link … | lme4 2.0.6 help for glmer() ("Fit a generalized linear mixed-effects model (GLMM)", with its family argument) and glmer.nb(); ordinal 2026.7.26 help for clmm() ("Cumulative Link Mixed Models"); coverage.md (the mixed-model rows, simr and mixpower) | — | Supports that these models exist and are fitted by these packages for each outcome. "Usually" is not supported by a source opened here. | partly sourced |
+| E75 | Card point | For ordered categories, powerkit hasn't found a ready-made power tool: the model can be fitted with the R package ordinal's clmm(), and power simulated with Spower, writing the simulation yourself. | coverage.md (the ordinal rows list tools for group comparisons only; Spower as a general Monte Carlo engine); ordinal 2026.7.26 help for clmm() | — | Supports clmm() and Spower's role. That no ready-made tool exists is the absence of one in coverage.md's review, not a proof. | partly sourced |
+| E75 | Tool: simr | Simulation power for mixed models fitted with lme4, including generalised mixed models for yes/no and count outcomes built with makeGlmer(). | coverage.md (the row naming simr and makeGlmer()); simr 1.0.11 help for makeGlmer() (a family argument, as for glmer()) | — | — | sourced |
+| E75 | Tool: mixpower | Design-first simulation power for mixed models with a score, yes/no or count (Poisson or negative binomial) outcome. | coverage.md (the row naming mixpower: "design-first LMM/GLMM simulation (Gaussian, binomial, Poisson, negative binomial)"; its source tags give the original) | — | — | sourced |
 | E42 | Tool: Spower | For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself. | coverage.md (Spower as a general Monte Carlo engine); Spower documentation | — | — | sourced |
 | E42 | Status | Not covered by the five tools powerkit builds on | coverage.md (the row for this design) | — | — | sourced |
 | E42 | Status | No ready-made tool (Mediation with a condition of three or more groups (multi-category X)) | coverage.md (row for this design: no tool found) | — | — | sourced |
