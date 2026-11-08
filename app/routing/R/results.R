@@ -1076,7 +1076,20 @@ goal_sentences <- function(spec, result) {
     },
     sensitivity = {
       s <- result$sensitivity
-      if (is.null(s$cohen_f)) {
+      if (isTRUE(s$simulated)) {
+        # Welch's F: the pattern of means scaled by simulation.
+        c(
+          headline = sprintf(
+            "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s (95%% interval %s to %s). The effect: %s.",
+            whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
+            format(signif(s$effect, 3)), format(signif(s$effect_lower, 3)), format(signif(s$effect_upper, 3)), s$effect_description
+          ),
+          detail = sprintf(
+            "The pattern of means you entered keeps its shape and is scaled until the simulated power reaches the target (Spower, %s replications at each of %s sizes of the pattern). The interval is the simulation's uncertainty about where power reaches %s.",
+            whole(result$provenance$nrep), nrow(result$provenance$simulations), percent(spec$goal$power)
+          )
+        )
+      } else if (is.null(s$cohen_f)) {
         # Basic tests (pwr): the effect is solved for directly.
         name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
           r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared", "the effect")
@@ -1994,6 +2007,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 21 (Welch's t-test by default) applies when Welch's test is
   # the one planned for.
   if (!identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, "21")
+  # Departure 22 (Welch's F by default) applies when Welch's F is planned
+  # for.
+  if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
@@ -2776,7 +2792,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     },
     sensitivity = {
       s <- result$sensitivity
-      size <- if (is.null(s$cohen_f)) {
+      size <- if (isTRUE(s$simulated)) {
+        sprintf("%s (95%% simulation interval %s to %s; %s)", format(signif(s$effect, 3)),
+          format(signif(s$effect_lower, 3)), format(signif(s$effect_upper, 3)), s$effect_description)
+      } else if (is.null(s$cohen_f)) {
         sprintf("%s = %s (%s)", s$effect_name %||% "effect", format(round(s$effect, 3), nsmall = 2), s$effect_description)
       } else {
         sprintf("Cohen's f = %.3f (%s)", s$cohen_f, s$effect_description)

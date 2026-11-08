@@ -8,6 +8,32 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Counts and ratings measured twice now reach a card"
+    text: >-
+      A count or a single rating item measured twice or more on the same
+      people no longer ends at "No matching design": the questions now lead
+      to a card that names the analysis and the tools that plan it, or, for
+      a relationship, to the card for relationships measured within people.
+  - date: "2026-11-08"
+    title: "One-way ANOVA: Welch's F by default"
+    text: >-
+      The one-way ANOVA now plans for Welch's F test unless you choose the
+      classical F test. Welch's F stays accurate when the groups' spreads
+      differ and needs only a few more people when they don't. You can
+      give one SD for every group, with the means in SD units if you like,
+      or an SD for each group, and you can now find the smallest effect
+      you could detect with it too. A note under each test says when to
+      choose it.
+  - date: "2026-11-08"
+    title: "Two groups: Welch's t-test by default"
+    text: >-
+      The two-group t-test now plans for Welch's t-test unless you choose
+      Student's. Welch's test stays accurate when the groups' spreads
+      differ and needs the same number of people when they don't. Its
+      answer now comes from a formula rather than a simulation, so it is
+      instant and exact, and it now offers the smallest detectable effect
+      and a justified significance level too.
+  - date: "2026-11-08"
     title: "The online app no longer misses a day's changes"
     text: >-
       If the morning update of the online app doesn't run, a second check

@@ -287,11 +287,11 @@ with Superpower 0.2.4.1 under R 4.5.3 on 29 October 2026.
 - **Welch's F** (groups whose SDs differ) is a test version on the
   one-way ANOVA card, simulated with Spower's
   `p_anova.test(var.equal = FALSE)`, which runs `stats::oneway.test()` on
-  groups drawn with each group's mean and SD. G\*Power has no Welch
-  ANOVA, so there is no G\*Power convention to follow; the classic F
-  stays the default (the maintainer's decision, 29 October 2026). Not a
-  departure: Spower's own experiment function. Each group's SD is given in
-  the outcome's own units, since there is no single SD to standardise by.
+  groups drawn with each group's mean and SD. Since 8 November 2026 it is
+  the card's default, recorded as Departure 22 (G\*Power and Superpower
+  plan for the classical F test). Each group's SD is given in the
+  outcome's own units, since there is no single SD to standardise by; with
+  one SD for every group the means can also be in SD units.
 - **The MANOVA approach** to a repeated-measures effect (Pillai's trace,
   no sphericity assumed) is reported beside the univariate F, from the
   same `Superpower::ANOVA_exact()` run (`manova_results`), when the
@@ -1349,6 +1349,41 @@ Departure 19 is shown on the affected result and in the methods text.
   paragraph. The critical effect size is shown with Student's test only:
   Welch's critical d depends on the sample variances, so it has no single
   value before the data are in (`decisions.md`, 1 November 2026).
+
+### 22. One-way ANOVA: Welch's F by default, not the classical F test (G\*Power and Superpower)
+
+- **Established convention:** G\*Power's one-way ANOVA and Superpower's
+  `ANOVA_exact()` plan for the classical F test, which assumes the same SD
+  in every group.
+- **powerkit:** the one-way ANOVA card (E18) plans for Welch's F
+  (`stats::oneway.test(var.equal = FALSE)`) unless the user chooses the
+  classical F test. No package gives Welch's F's power by formula, so it
+  is simulated with Spower (`p_anova.test(var.equal = FALSE)`), from one
+  SD for every group or an SD for each. The smallest detectable effect is
+  simulated too (`welch_f_sensitivity()`): the pattern of means is scaled,
+  starting from the F test's exact answer, and the scale is read from a
+  probit curve of the simulated rejections, with a 95% interval.
+- **Why** (the maintainer's decision, 8 November 2026, with
+  `Delacre2019_welch_f`): Welch's F keeps the false-positive rate at
+  alpha when the groups' SDs differ and loses little power when they
+  don't, so Delacre, Leys, Mora and Lakens (2019) recommend it by default
+  over the classical F test.
+- **Size** (80% power, means 10, 11 and 13, three equal groups): with
+  one SD of 6 the F test needs 228 and Welch's F 231 (95% interval 228 to
+  234; 10,000 replications per point). With SDs 4, 6 and 9, Welch's F
+  needs 300 (297 to 303); the F test can't take three SDs, and with their
+  root mean square (6.66) it plans 279. With those SDs and 30 per group
+  the classical F test's false-positive rate is about 6.1% against 5.3%
+  for Welch's F; with groups of 45, 30 and 15, the smallest group having
+  the largest SD, it is about 13.5% against 5.0% (20,000 simulated studies
+  each, powerkit's own check, not a published figure).
+- **Test:** `engine/tests/testthat/test-welch-anova-default.R`; Welch's F
+  against separately simulated `oneway.test()` studies, its false-positive
+  rate and its smallest detectable effect in the `welch_spreads`
+  validation chunk.
+- **Shown to users:** on the E18 result whenever Welch's F is planned for
+  (`app/routing/R/results.R`, `departures_for()`), and in the methods
+  paragraph.
 
 ## Known differences
 

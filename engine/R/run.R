@@ -148,10 +148,12 @@
 #' confidence interval), keeping only each batch's counts, so memory use
 #' doesn't grow with `options > nrep`.
 #'
-#' **Sensitivity.** For 2x2 designs, the shape of the specified pattern is
+#' **Sensitivity.** For the ANOVAs, the shape of the specified pattern is
 #' kept and its size scaled (each cell mean's deviation from the grand mean)
-#' until the target effect reaches the target power at n. Sensitivity is not
-#' yet available for other designs (the one-way ANOVA included).
+#' until the target effect reaches the target power at n: exactly for the F
+#' test, and by simulation for Welch's F ([welch_f_sensitivity()], with a
+#' 95% interval for the scale and the effect). Simulated tests otherwise
+#' have no sensitivity analysis.
 #'
 #' @param spec A spec as a named list, a JSON string or a path to a JSON file.
 #'
@@ -167,9 +169,11 @@
 #'     interval;
 #'   * `sensitivity`: `NA` unless the goal is `sensitivity`; otherwise a list
 #'     with the smallest detectable `effect` (with an `effect_description`)
-#'     and the `power` reached there. For 2x2 ANOVAs it also has the `scale`
+#'     and the `power` reached there. For the ANOVAs it also has the `scale`
 #'     applied to the specified pattern, the scaled cell `means` and the
-#'     `cohen_f`; for the basic tests on pwr, the `effect_name` (`d`, `d_z`,
+#'     `cohen_f`; for Welch's F, no `cohen_f` but `simulated = TRUE` and the
+#'     95% interval (`scale_lower`, `scale_upper`, `effect_lower`,
+#'     `effect_upper`); for the basic tests on pwr, the `effect_name` (`d`, `d_z`,
 #'     `r`, `w` or `p2`);
 #'   * `justified_alpha`: `NULL` unless the goal is `justified_alpha`;
 #'     otherwise JustifyAlpha's `optimal_alpha()` result: the `alpha`, the
@@ -299,7 +303,10 @@ run_spec <- function(spec) {
         n_required = NA, sensitivity = NA, justified_alpha = found
       )
     },
-    sensitivity = {
+    sensitivity = if (simulating && !is.null(backend$simulated_sensitivity)) {
+      found <- backend$simulated_sensitivity(goal$n, goal$power, nrep, seed, cores)
+      list(curve = found$curve, n_required = NA, sensitivity = found$sensitivity, simulations = found$simulations)
+    } else {
       if (is.null(backend$sensitivity)) {
         abort_not_available(
           "The smallest detectable effect (a sensitivity analysis) isn't available yet for this design or test version: choose the sample size you need, or the power at a given sample size."

@@ -784,7 +784,7 @@ test_that("the rank tests (E1, E2, E3 and E18's test version) are simulated with
 test_that("Welch's F (E18's test version) is simulated with Spower from each group's SD", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E18"))
-  values <- modifyList(form_examples$E18, list(test_version = "welch_f", sds = "4, 6, 9", sd = NULL, method = NULL))
+  values <- modifyList(form_examples$E18, list(test_version = "welch_f", welch_sd_input = "separate", sds = "4, 6, 9", sd = NULL, method = NULL))
   expect_equal(form_problems(fields, values), character())
   spec <- build_spec(forms, "E18", fields, values)
   expect_equal(unlist(spec$population$sds), c(4, 6, 9))
@@ -802,6 +802,47 @@ test_that("Welch's F (E18's test version) is simulated with Spower from each gro
   # Each group's SD is asked only for Welch's F; the F test keeps one SD.
   sds <- Filter(function(f) identical(f$id, "sds"), fields)[[1]]
   expect_false(field_applies(sds, form_examples$E18))
+})
+
+test_that("Welch's F is the one-way ANOVA's default, shown as a departure, with one SD unless the spreads differ", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E18"))
+  test_version <- Filter(function(f) identical(f$id, "test_version"), fields)[[1]]
+  expect_identical(test_version$default, "welch_f")
+  expect_match(test_version$default_source, "Delacre, Leys, Mora and Lakens (2019)", fixed = TRUE)
+  expect_identical(names(test_version$choices)[1], "welch_f")
+  # One SD for every group by default, so means in SD units work too.
+  values <- modifyList(form_examples$E18, list(test_version = "welch_f", welch_sd_input = "common", metric = "standardised",
+    means = "0, 0.2, 0.5", sd = "1", method = NULL))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E18", fields, values)
+  expect_null(spec$population$sds)
+  spec$goal <- list(type = "power", n = 60L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_true("22" %in% names(departures_for(forms, "E18", calc$spec)))
+  html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
+  expect_match(html, "powerkit plans for Welch&#39;s F unless you choose the classical F test|powerkit plans for Welch's F unless you choose the classical F test")
+  # The classical F test: no departure.
+  f_test <- build_spec(forms, "E18", fields, form_examples$E18)
+  expect_false("22" %in% names(departures_for(forms, "E18", f_test)))
+})
+
+test_that("Welch's F's smallest detectable effect is simulated, with its interval on the result and in the methods", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E18"))
+  values <- modifyList(form_examples$E18, list(test_version = "welch_f", welch_sd_input = "separate", sds = "4, 6, 9", sd = NULL, method = NULL))
+  spec <- build_spec(forms, "E18", fields, values)
+  spec$goal <- list(type = "sensitivity", n = 90L, power = 0.8)
+  spec$options$nrep <- 200L
+  calc <- run_calculation(spec, run, seed = 1L)
+  s <- calc$result$sensitivity
+  expect_true(s$simulated)
+  html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
+  expect_match(html, "(95% interval", fixed = TRUE)
+  expect_match(html, "until the simulated power reaches the target", fixed = TRUE)
+  w <- writeup_text(forms$forms$E18, calc$spec, calc$result, fields, values)
+  expect_match(paste(w, collapse = " "), "95% simulation interval", fixed = TRUE)
 })
 
 test_that("equivalence for a correlation or two proportions (E36) runs on TOSTER's z tests, in its own words", {

@@ -26,7 +26,6 @@ different areas. The maintainer decided the choices marked "decided".
 
 | Order | What | Includes | Size | State |
 | --- | --- | --- | --- | --- |
-| R12b | **Welch's F by default** | Welch's F as the one-way ANOVA's default, the classical F test as a choice, recorded as a departure in all four places; the two-group card's Welch default landed on 8 November 2026 (decided 8 November 2026: best practice) | M | Ready |
 | R13 | **Small telescopes for replications** | Offer Simonsohn's (2015) small-telescopes sample size beside safeguard power on the t-test and correlation cards, if a package implements it; source through `refs.bib` (decided) | M | Ready |
 | R14 | **Keep the review's scripts** | The property checks over every example spec and the every-card browser run, added so they can be rerun before each release (decided) | S | Ready |
 

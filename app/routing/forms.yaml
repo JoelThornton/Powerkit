@@ -296,6 +296,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "22": "One-way ANOVA: powerkit plans for Welch's F unless you choose the classical F test, as Delacre, Leys, Mora and Lakens (2019) recommend, because Welch's F keeps the chance of a false positive at alpha when the groups' SDs differ and loses little power when they don't; G*Power and Superpower plan for the classical F test. With one SD of 6 and means 10, 11 and 13, 80% power needs about 231 people with Welch's F against 228 with the F test."
   "21": "Two groups: powerkit plans for Welch's t-test unless you choose Student's, as Delacre, Lakens and Leys (2017) recommend, because Welch's test keeps the chance of a false positive at alpha when the groups' spreads differ; G*Power and pwr plan for Student's. With equal spreads and equal groups the two need the same number of people; with unequal groups Welch's needs a few more: 147 rather than 144 for d = 0.5 and 80% power when group 2 is twice the size of group 1."
   "19": "Moderation of both mediation links: powerkit calculates residual variances from the full product moments and supplies them directly to power4mome. Its default standardisation can use the mediator's old values in the later product and generate the wrong outcome variance. Impossible combinations of paths are rejected before running."
   "20": "Differential item functioning: the test frees both of each DIF item's parameters (discrimination and difficulty) between the groups, whichever you expect to differ, because that is the test usually run (the omnibus test in mirt's DIF() help) and a power analysis should be for the test you will run. irtpwr's DIF preset tests only the parameters that differ, which is more powerful when only the difficulty changes: for the 8-item example with one item 0.4 harder, 53.6% against 64.1% at 600 people. That test is a choice on the input screen."
@@ -1878,7 +1879,7 @@ forms:
     sides: false
     methods_name: "a one-way between-subjects ANOVA"
     tool: Superpower
-    departures: ["3", "17"]
+    departures: ["22", "3", "17"]
     known_differences_if_method: {"5": kruskal_wallis}
     known_differences: ["5"]
     directional: false
@@ -1898,19 +1899,27 @@ forms:
           - {id: means, writeup_label: "group means", label: "Means: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.means, effect: true}
       - input: "The SD"
         fields:
-          - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
-             shown_if: {field: test_version, is_not: welch_f}}
-          - {id: sds, writeup_label: "group SDs", label: "SDs: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.sds, effect: true,
+          - {id: welch_sd_input, label: "Do you expect the groups to vary by the same amount?", type: select,
              shown_if: {field: test_version, is: welch_f},
-             help: "In the same units as the means. Welch's F doesn't assume the groups vary equally."}
+             choices: {common: "Yes, or I don't know: one SD for every group", separate: "No: an SD for each group, in the outcome's own units"}, default: common,
+             default_source: "one SD for every group, as the F test assumes; Welch's F still guards against spreads that turn out to differ",
+             help: "Welch's F doesn't assume the groups vary equally, so either way the test stays accurate. Give an SD for each group if earlier studies show the spreads differ: the sample size then allows for them."}
+          - {id: sd, writeup_label: "SD", label: "SD (the same in every group; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
+             shown_if: [{any: [{field: test_version, is_not: welch_f}, {field: welch_sd_input, is_not: separate}]}]}
+          - {id: sds, writeup_label: "group SDs", label: "SDs: one for each group, in the same order, separated by commas", type: numbers, per_levels: A_levels, path: population.sds, effect: true,
+             shown_if: [{field: test_version, is: welch_f}, {field: welch_sd_input, is: separate}],
+             help: "In the same units as the means."}
       - input: "The ANOVA, Welch's F, the Kruskal-Wallis test, pairwise comparisons or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {anova_f: "One-way ANOVA (F test)", welch_f: "Welch's F test (the groups' SDs may differ), simulated", kruskal_wallis: "Kruskal-Wallis test (rank-based), simulated",
+             choices: {welch_f: "Welch's F test (recommended: stays accurate if the groups' spreads differ), simulated", anova_f: "Classical F test (only if you're sure the spreads are equal, or your analysis must use it)",
+                       kruskal_wallis: "Kruskal-Wallis test (rank-based), simulated",
                        t_test: "Pairwise comparisons between groups (t-tests, adjusted for their number), simulated",
                        bayes_factor: "Bayes factor ANOVA (as in JASP's Bayesian ANOVA, equal groups), instead of a p-value"},
              sets: {t_test: [{path: target_test.effect, value: pairwise}]},
-             default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)"}
+             default: welch_f, default_source: "Welch's F, as Delacre, Leys, Mora and Lakens (2019) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses little power when they don't. G*Power and Superpower plan for the classical F test",
+             choice_notes: {welch_f: "No package has a formula for Welch's F's power, so powerkit simulates it (Spower, stats::oneway.test()): a sample size takes up to a minute. With one SD for every group it needs only a few more people than the classical F test.",
+                            anova_f: "Choose the classical F test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or an ANOVA that is one part of a larger model assuming equal spreads. Reporting Welch's F beside it is good practice. Its power is worked out exactly (Superpower), with no simulation."}}
           - {id: comparison, label: "The pair you'll compare: two groups' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
              shown_if: {field: test_version, is: t_test},
              help: "The t-test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}

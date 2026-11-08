@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.45.2). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.46.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -22,10 +22,11 @@ rules are in `CLAUDE.md`.
   planning, input screens, Labs, docs and start-up reading, change notes
   that no longer need catch-up merges (each pull request writes its own
   note files; `scripts/close-batch.R` sets the version when a batch
-  closes), and Welch's t-test by default on the two-group card, by
-  formula (Departure 21). Next: Welch's F as the one-way ANOVA's
-  default (decided 8 November 2026), small telescopes for replications
-  and keeping the review's scripts.
+  closes), and Welch's tests by default: Welch's t-test on the two-group
+  card, by formula (Departure 21), and Welch's F on the one-way ANOVA
+  card, simulated, with its smallest detectable effect simulated too
+  (Departure 22). Next: small telescopes for replications and keeping
+  the review's scripts.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
@@ -58,8 +59,8 @@ rules are in `CLAUDE.md`.
   published t, F, r, d or odds ratio, partial eta-squared, Cohen's w, the
   R-squared change; safeguard power for an effect from one study or a
   pilot; the smallest detectable effect on the t-tests, the correlation,
-  proportions, the ANOVAs, regression and the clustered design (the rest
-  is `next.md` item 6). Results show the critical effect size for the
+  proportions, the ANOVAs (Welch's F by simulation), regression and the
+  clustered design (the rest is `next.md` item 6). Results show the critical effect size for the
   t-tests (Student's) and the correlation.
 
 - **Results and documents:** a result opens with the answer and what it
