@@ -32,11 +32,11 @@ test_that("the smallest detectable effect matches the engine's own sensitivity",
   skip_if(is.null(engine_function("run_spec")), "needs powerkit's engine")
   run <- engine_function("run_spec")
   # Two groups, 40 analysed in total: the same as the input screen's
-  # smallest-effect goal for that design.
+  # smallest-effect goal for that design, with its default test (Welch's).
   calc <- labs_sde(forms, "E2", "40", "0.8", "0.05")
   expect_equal(calc$status, "ok")
   fields <- unlist(lapply(form_groups(forms, "E2", 2L, list()), `[[`, "fields"), recursive = FALSE)
-  values <- utils::modifyList(form_examples$E2, list(goal = "sensitivity", n = "40", power = "0.8", d = "", method = "student_t"))
+  values <- utils::modifyList(form_examples$E2, list(goal = "sensitivity", n = "40", power = "0.8", d = "", method = "welch_t"))
   direct <- run_calculation(build_spec(forms, "E2", fields, values), run = run, seed = forms$default_seed)
   expect_equal(abs(calc$result$sensitivity$effect), abs(direct$result$sensitivity$effect), tolerance = 1e-8)
   expect_match(labs_sde_sentence(tree, calc, "0.8"), "With 40 analysed", fixed = TRUE)
