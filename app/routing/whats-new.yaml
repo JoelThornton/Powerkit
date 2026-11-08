@@ -6,6 +6,16 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Save your whole-study plan, and see roughly how many people you need"
+    text: >-
+      "Save this plan" keeps your whole-study plan and everything you
+      entered in a file you can open again. The simulation can now show a
+      rough power curve over a few sample sizes, takes Cohen's d for a
+      two-group comparison, and every analysis you calculate from the plan
+      joins your study plan. Analyses of the same people on different
+      cards, such as a score and a yes/no outcome compared between the
+      same two groups, now share one sample size there.
+  - date: "2026-11-08"
     title: "Whole-study planning: manipulation checks, and fewer dead ends"
     text: >-
       "Plan my whole study" can now plan a manipulation check (the effect

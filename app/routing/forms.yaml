@@ -273,6 +273,10 @@ whole_study:
   target_powers: [0.8, 0.85, 0.9, 0.95]
   seconds_per_replication: {x_y: 0.02, x_m: 0.02, interaction: 0.03, indirect: 0.6, index_of_mome: 1.6, anova_effect: 0.01}
   overhead_seconds: 15
+  # A rough power curve in the app (whole_study_curve()), for experiments
+  # and regressions only: a mediation's intervals are too slow to run here.
+  curve_nrep: 200
+  curve_multipliers: [0.5, 0.75, 1, 1.5, 2]
 
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".

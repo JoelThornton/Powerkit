@@ -611,7 +611,7 @@ test_that("the explore panel shows power by N for another effect size, without t
   expect_equal(df$power[1], pwr::pwr.t.test(n = df$n[1] / 2, d = 0.6)$power)
   expect_true(all(diff(df$power) > 0))
   expect_equal(calc$spec$population$d, 0.4) # the plan is unchanged
-  expect_match(as.character(explore_ui(calc$spec)), "Exploring doesn&#39;t change your plan|Exploring doesn't change your plan")
+  expect_match(as.character(explore_ui(calc$spec)), "Exploring doesn(&#39;|')t change it")
   # Not offered for simulation or for designs other than the t-tests and the correlation.
   expect_null(explore_ui(light_spec("E7")))
   sim <- spec; sim$options$method <- "simulation"

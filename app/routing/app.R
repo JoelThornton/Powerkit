@@ -817,6 +817,7 @@ server <- function(input, output, session) {
     plan_shared = list(),    # guided route: values entered once for several analyses (shared_values)
     plan_filled = character(), # guided route: shared values filled in on the open input screen
     ws_values = list(),      # whole-study simulation: the values typed on its screen
+    plan_opened = NULL,      # guided route: the saved plan just reopened, for its notice
     ws_calc = NULL,          # whole-study simulation: the last run (run_whole_study())
     ws_spec = NULL,          # whole-study simulation: the spec of the last run, for its download
     study_plan = list()      # the study plan any card can join (plan_entry()), kept until "Start a new plan"
@@ -989,6 +990,7 @@ server <- function(input, output, session) {
       state$route <- value
       go_to(resolve_target(tree, "continue", state$ctx, value))
     } else if (pick == "back") {
+      if (state$screen == "g_vars") save_guided_variables()
       if (state$screen == "card" && identical(state$came_from, "known")) {
         state$screen <- "known"
       } else {
@@ -1048,6 +1050,7 @@ server <- function(input, output, session) {
       if (state$screen == "g_analyses") save_guided_analyses()
       if (state$screen == "g_sim") save_whole_study_values()
       if (identical(value, "simulate")) state$ws_calc <- NULL
+      state$plan_opened <- NULL
       state$screen <- switch(value, variables = "g_vars", analyses = "g_analyses", plan = "g_plan", simulate = "g_sim")
     }
   })
@@ -1068,6 +1071,10 @@ server <- function(input, output, session) {
       state$plan_results[[state$plan_id]] <- list(endpoint = state$endpoint, goal = goal,
         n = if (identical(goal, "sample_size")) calc$result$n_required$n)
       keep_plan_values(calc$route$form_values %||% isolate(current_form_values()))
+      # The same result joins the study plan, in place of this analysis's
+      # earlier one, so the two plans are one.
+      state$study_plan <- plan_upsert(isolate(state$study_plan),
+        c(plan_entry(tree, state$endpoint, calc, calc$route), list(plan_id = state$plan_id)))
     }
   }, ignoreNULL = TRUE)
 
@@ -1287,7 +1294,7 @@ server <- function(input, output, session) {
   # Nothing starts while the server is at its limit (background_limit()).
   # `target`: the output the run's result is shown in (the input screen's,
   # or the whole-study simulation's).
-  start_job <- function(kind, spec, usual, shown, target = "form_result", cost_powers = NULL) {
+  start_job <- function(kind, spec, usual, shown, target = "form_result", cost_powers = NULL, curve = NULL) {
     if (background_running() >= background_limit(forms)) {
       output[[target]] <- renderUI(busy_ui())
       session$sendCustomMessage("focus_result", target)
@@ -1296,7 +1303,7 @@ server <- function(input, output, session) {
     job$kind <- kind
     job$target <- target
     job$screen <- isolate(state$screen)
-    job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed, cost_powers = cost_powers))
+    job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed, cost_powers = cost_powers, curve = curve))
     job$started <- Sys.time()
     job$usual <- usual
     job$shown <- shown
@@ -1330,8 +1337,14 @@ server <- function(input, output, session) {
         whole_study_script_ui(forms, isolate(whole_study_screen())$plan, spec$goal$n, spec$claim,
           sum(vapply(spec$analyses, function(a) identical(a$role, "main"), logical(1))))
       }
-      output$ws_result <- renderUI(whole_study_result_ui(calc, state$plan_values, departure = forms$departures[["13"]], script = script))
+      output$ws_result <- renderUI(whole_study_result_ui(calc, state$plan_values, departure = forms$departures[["13"]], script = script,
+        curve = if (identical(calc$status, "ok") && whole_study_curve_offered(state$ws_spec))
+          whole_study_curve_offer_ui(forms, isolate(whole_study_screen())$plan)))
       session$sendCustomMessage("focus_result", "ws_result")
+      return()
+    } else if (identical(job$kind, "ws_curve")) {
+      output$ws_curve <- renderUI(whole_study_curve_ui(calc))
+      session$sendCustomMessage("focus_result", "ws_curve")
       return()
     } else {
       # A search gets what the in-process route adds (finish_calc()); the
@@ -1422,6 +1435,16 @@ server <- function(input, output, session) {
     start_job("whole_study", built$spec, usual, list(), target = "ws_result")
     session$sendCustomMessage("focus_result", "ws_result")
   })
+  # A rough power curve over a few sample sizes, around the quick look's N.
+  observeEvent(input$ws_curve_run, {
+    spec <- state$ws_spec
+    if (is.null(spec) || !whole_study_curve_offered(spec) || job_running()) return()
+    plan <- whole_study_screen()$plan
+    usual <- whole_study_curve_seconds(forms, plan)
+    output$ws_curve <- renderUI(calculating_background_ui(usual, "Simulating the study at a few sample sizes\u2026"))
+    start_job("ws_curve", spec, usual, list(), target = "ws_curve",
+      curve = list(multipliers = forms$whole_study$curve_multipliers, nrep = forms$whole_study$curve_nrep))
+  })
   # The R script for the full run, or the sample size search, on the
   # user's computer (export_whole_study_script()).
   output$ws_download_script <- downloadHandler(
@@ -1488,7 +1511,7 @@ server <- function(input, output, session) {
     if (!calculation_matches_values(calc, current_form_values())) return(calculation_stale_ui())
     hash <- calc$result$provenance$spec_hash
     in_plan <- any(vapply(state$study_plan, function(e) identical(e$result$provenance$spec_hash, hash), logical(1)))
-    study_plan_bar_ui(state$study_plan, in_plan)
+    study_plan_bar_ui(state$study_plan, in_plan, from_guided = identical(state$came_from, "plan") && !is.null(state$plan_id))
   })
   observeEvent(input$plan_add, {
     calc <- state$calc
@@ -1579,8 +1602,31 @@ server <- function(input, output, session) {
       write_draft(project_route(reactiveValuesToList(state), isolate(current_form_values())), file)
     }
   )
+  # "Save this plan": the guided plan and the whole-study inputs, as a file.
+  output$download_guided_plan <- downloadHandler(
+    filename = function() sprintf("powerkit-plan-%s.powerkit.json", format(Sys.Date())),
+    content = function(file) {
+      if (identical(state$screen, "g_sim")) save_whole_study_values()
+      write_guided_plan(reactiveValuesToList(state), file)
+    },
+    contentType = "application/json")
+
   observeEvent(input$open_project, {
     path <- input$open_project$datapath
+    plan_record <- read_guided_plan_record(path)
+    if (!is.null(plan_record)) {
+      restored <- restore_guided_plan(plan_record, tree)
+      if (is.character(restored)) {
+        output$open_project_message <- renderUI(div(class = "alert alert-warning", role = "alert", restored))
+        return()
+      }
+      cancel_job()
+      state$from_labs <- FALSE; state$labs_seed <- NULL
+      for (name in names(restored)) state[[name]] <- restored[[name]]
+      state$plan_opened <- plan_record
+      output$open_project_message <- renderUI(NULL)
+      return()
+    }
     draft <- read_draft_record(path)
     if (!is.null(draft)) {
       restored <- restore_draft(draft, tree, forms)
@@ -1594,6 +1640,10 @@ server <- function(input, output, session) {
       for (name in names(restored)) state[[name]] <- restored[[name]]
       output$open_project_message <- renderUI(NULL)
       output$form_result <- renderUI(draft_opened_ui(draft$saved_at))
+      return()
+    }
+    if (whole_study_spec_file(path)) {
+      output$open_project_message <- renderUI(div(class = "alert alert-warning", role = "alert", whole_study_spec_message))
       return()
     }
     # A study plan file opens as the plan; anything else as a project.
@@ -1978,9 +2028,12 @@ server <- function(input, output, session) {
           carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled))),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
-      g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
-        history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
-        results = state$plan_results, shared = state$plan_shared),
+      g_plan = tagList(
+        if (!is.null(state$plan_opened)) guided_plan_opened_ui(state$plan_opened),
+        guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
+          history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
+          results = state$plan_results, shared = state$plan_shared),
+        guided_plan_save_ui(length(state$study_plan))),
       g_sim = {
         ws <- whole_study_screen()
         if (!isTRUE(ws$plan$ok) || is.null(ws$params)) {
@@ -1991,7 +2044,7 @@ server <- function(input, output, session) {
           isolate(whole_study_experiment_ui(forms, ws$plan, ws$labels,
             whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each", values = state$ws_values))
         } else {
-          isolate(whole_study_ui(forms, ws$plan, ws$params, ws$labels, whole_study_prefill(state$plan_shared),
+          isolate(whole_study_ui(forms, ws$plan, ws$params, ws$labels, whole_study_prefill(state$plan_shared, ws$plan, state$plan_values),
             whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each",
             values = state$ws_values, path = state$ws_values$path))
         }

@@ -358,3 +358,48 @@ test_that("names typed on the simulation screen come first, and the screen asks 
   input <- list(ws_name_X = " Workload ", ws_name_W = "", ws_name_Y = "Burnout")
   expect_identical(whole_study_names_from_input(input, c("X", "W", "B", "Y")), list(X = "Workload", Y = "Burnout"))
 })
+
+test_that("a rough power curve is offered for experiments and regressions, and read in plain words", {
+  regression <- list(goal = list(type = "power", n = 200), analyses = list(list(test = "x_y"), list(test = "interaction")))
+  expect_true(whole_study_curve_offered(regression))
+  mediation <- regression
+  mediation$analyses[[2]]$test <- "indirect"
+  expect_false(whole_study_curve_offered(mediation))
+  plan <- list(analyses = list(list(test = "x_y"), list(test = "interaction")))
+  html <- as.character(whole_study_curve_offer_ui(forms, plan))
+  expect_match(html, "Show a rough power curve", fixed = TRUE)
+  expect_match(html, "5 sample sizes", fixed = TRUE)
+  calc <- list(status = "ok", result = list(rule = "all",
+    curve = data.frame(n = c(100, 150, 200, 300), power = c(0.4, 0.6, 0.78, 0.93), lower = c(0.33, 0.53, 0.72, 0.89),
+      upper = c(0.47, 0.67, 0.84, 0.96), nrep = 200),
+    provenance = list(nrep = 200, seed = 1, backend = "power4mome", packages = list(power4mome = "0.1"))))
+  html <- as.character(whole_study_curve_ui(calc))
+  expect_match(html, "between N = 200 and N = 300", fixed = TRUE)
+  expect_match(html, "every main analysis", fixed = TRUE)
+  calc$result$curve$power <- c(0.1, 0.2, 0.3, 0.4)
+  expect_match(as.character(whole_study_curve_ui(calc)), "stays below 80% up to N = 300", fixed = TRUE)
+  expect_match(as.character(whole_study_curve_ui(list(status = "error", message = "Plain."))), "Plain.", fixed = TRUE)
+})
+
+test_that("a two-group predictor can be given as Cohen's d, which the engine turns into the path", {
+  plan <- list(binary_x = TRUE, analyses = list(list(id = "total", test = "x_y", label = "Total", role = "main")), roles = c("X", "Y"))
+  params <- list(paths = c("X->Y"), correlations = character())
+  expect_identical(whole_study_d_keys(plan, params), "X->Y")
+  expect_identical(whole_study_d_keys(modifyList(plan, list(binary_x = FALSE)), params), character())
+  html <- as.character(whole_study_ui(forms, plan, params, list(X = "X", Y = "Y"), list(d_Y = "0.4"), NULL, "each"))
+  expect_match(html, "Cohen.{1,6}s d of the groups on the outcome \\(Y\\)")
+  expect_match(html, "value=\"0.4\"", fixed = TRUE)
+  expect_identical(whole_study_prefill(list(), plan, list(total = list(d = "0.5")))$d_Y, "0.5")
+  skeleton <- list(spec_version = "0.1", kind = "whole_study", variables = list(X = list(type = "binary", label = "X"), Y = list(type = "continuous", label = "Y")),
+    analyses = plan$analyses, effect_justification = list(type = "none"))
+  values <- list(`X->Y` = "", x_effect = "d", d_Y = "0.4", n = "100", alpha = "0.05", seed = "1")
+  built <- whole_study_spec(skeleton, params, values, "each", nrep = 200)
+  expect_null(built$problems)
+  expect_identical(built$spec$population$group_d, list(Y = 0.4))
+  expect_null(built$spec$population$paths$`X->Y`)
+  expect_length(whole_study_check(built$spec), 0)
+  values$x_effect <- "path"
+  expect_match(paste(whole_study_spec(skeleton, params, values, "each", nrep = 200)$problems, collapse = " "), "Path X")
+  r <- list(group_d = list(Y = 0.4), found_paths = list(`X->Y` = 0.1987))
+  expect_match(whole_study_group_d_text(r), "path from X to Y (0.199) gives a Cohen's d of 0.4", fixed = TRUE)
+})

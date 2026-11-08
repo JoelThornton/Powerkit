@@ -124,7 +124,7 @@ project_file_name <- function(endpoint) {
 open_project_ui <- function() {
   div(
     class = "open-project mt-4",
-    fileInput("open_project", "Or open a saved project or unfinished draft", accept = c(".json", "application/json"),
+    fileInput("open_project", "Or open a saved project, plan or unfinished draft", accept = c(".json", "application/json"),
       buttonLabel = "Choose file…", placeholder = "a .powerkit.json file"),
     uiOutput("open_project_message")
   )

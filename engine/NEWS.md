@@ -21,6 +21,36 @@
   something was entered; the script's R minimum is the higher of
   powerkit's and the backend's; and the "all results" note says when
   89.4% each holds (independent tests) and that 90% each always does.
+* `whole_study_curve()`: a rough power curve for a whole study, simulated
+  at a few sample sizes around the spec's n (by default 0.5 to 2 times,
+  200 replications each) with the same routine and seed as
+  `run_whole_study()`, read by the claim's criterion as in its sample
+  size search. For experiments and regressions; a mediation is refused,
+  since its confidence intervals make even a rough curve slow.
+* Whole-study specs accept Cohen's d for a two-group X
+  (`population > group_d`, for the outcome `Y` and the mediator `M`) in
+  place of the path. `run_whole_study()` finds the standardised path that
+  gives this d in the large simulated data set its implied values come
+  from (the engine's own `whole_study_group_d()`, by `uniroot()`), so no
+  conversion formula is introduced; the result records the d and the
+  path found (`group_d`, `found_paths`). A d the other paths make
+  impossible is refused with the range they allow.
+* `sample_structure()`: analyses of the same people on different cards
+  (an independent t-test and two proportions on the same two groups, a
+  paired t-test and McNemar's test) now share a compatibility key when
+  their unit, allocation, grouping variables, attrition and fixed
+  structure match. The outcome and the template no longer enter the key,
+  so a study plan gives one sample size for them.
+* The app: "Save this plan" saves the guided plan (variables, analyses,
+  claim, the values entered on each analysis's screen and the
+  whole-study inputs) to a file that reopens on the plan screen; a
+  whole-study specification opened there is pointed to R. Every analysis
+  calculated from the guided plan joins the study plan, replacing its
+  earlier result, so the two plans are one. The whole-study result offers
+  the rough power curve, and its screen asks for Cohen's d of the groups
+  when X is two groups. The variables screen has a Back link and boxed
+  questions, a single possible analysis starts as the main one, and the
+  single-analysis result says "this analysis" where it said "your plan".
 
 # powerkit 0.40.0
 

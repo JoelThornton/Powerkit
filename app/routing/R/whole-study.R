@@ -245,12 +245,20 @@ whole_study_skeleton <- function(plan, labels, path = NULL) {
 
 # Values for the path inputs from what was entered on the plan's input
 # screens (shared values), where the meaning is the same.
-whole_study_prefill <- function(shared) {
+whole_study_prefill <- function(shared, plan = NULL, plan_values = list()) {
   from <- c("X->M" = "p_x_m", "M->Y" = "p_m_y", "X->Y" = "p_x_y", "X<->W" = "r_x_w")
   out <- list()
   for (key in names(from)) {
     v <- shared[[from[[key]]]]$value
     if (!is.null(v) && nzchar(v)) out[[key]] <- v
+  }
+  # Cohen's d entered on the two-group cards of the effect of X on the
+  # outcome and on the mediator.
+  for (a in plan$analyses %||% list()) {
+    if (!isTRUE(a$test %in% c("x_y", "x_m"))) next
+    outcome <- if (identical(a$test, "x_y")) "Y" else "M"
+    d <- plan_values[[a$id]]$d
+    if (length(d) == 1 && nzchar(d)) out[[paste0("d_", outcome)]] <- d
   }
   out
 }
@@ -299,6 +307,7 @@ whole_study_entry_ui <- function(plan, ticked = NULL, labels = NULL, badge = NUL
 # The simulation screen: the population, the sample size and the run.
 whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values = list(), path = NULL, problem = NULL) {
   value_of <- function(key) values[[key]] %||% prefill[[key]] %||% ""
+  d_keys <- whole_study_d_keys(plan, params)
   rule_words <- c(each = "each main result is a separate claim", all = "the claim needs every main result to be significant",
     any = "any one significant main result supports the claim")
   nrep_choices <- forms$whole_study$nrep_choices
@@ -318,9 +327,19 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
       choices = plan$path_choices, selected = path %||% plan$path_choices[1], width = "100%"),
     h3(class = "h5", "Your study: standardised paths"),
     p(class = "text-muted", "Each path is the change in the outcome of that arrow, in standard deviations, for a one standard deviation change in its cause, holding the arrow's other causes constant. Use 0 for no effect. Values entered on your plan's input screens are filled in where they mean the same thing; check them, since in the whole model each path holds every other cause constant."),
+    if (length(d_keys)) radioButtons("ws_x_effect", "How will you give the difference between the groups?",
+      choices = c("Cohen's d of the groups" = "d", "A standardised path" = "path"),
+      selected = values$x_effect %||% "d", inline = TRUE),
     div(class = "ws-paths", lapply(c(params$paths, params$correlations), function(key) {
-      textInput(whole_study_input_id(key), whole_study_path_label(key), value = value_of(key), width = "100%")
+      field <- textInput(whole_study_input_id(key), whole_study_path_label(key), value = value_of(key), width = "100%")
+      if (!key %in% d_keys) return(field)
+      outcome <- sub("^X->", "", key)
+      tagList(
+        conditionalPanel("input.ws_x_effect == 'd'",
+          textInput(whole_study_d_input_id(outcome), whole_study_d_label(outcome), value = values[[paste0("d_", outcome)]] %||% prefill[[paste0("d_", outcome)]] %||% "", width = "100%")),
+        conditionalPanel("input.ws_x_effect == 'path'", field))
     })),
+    if (length(d_keys)) p(class = "text-muted small", "Cohen's d is the difference between the groups' means in pooled within-group standard deviations, as on the two-group card. powerkit finds the path that gives this d, from a very large simulated sample, when the simulation runs; the result shows it."),
     h3(class = "h5", "Sample size and precision"),
     textInput("ws_n", "Total participants analysed (N)", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
     if (!is.null(n)) p(class = "text-muted small", "Filled in with the largest sample size calculated on your plan for a main analysis."),
@@ -341,8 +360,26 @@ whole_study_values <- function(input, params) {
   keys <- c(params$paths, params$correlations)
   out <- lapply(keys, function(k) input[[whole_study_input_id(k)]] %||% "")
   names(out) <- keys
+  if (!is.null(input$ws_x_effect)) {
+    out$x_effect <- input$ws_x_effect
+    for (outcome in c("Y", "M")) {
+      v <- input[[whole_study_d_input_id(outcome)]]
+      if (!is.null(v)) out[[paste0("d_", outcome)]] <- v
+    }
+  }
   c(out, list(n = input$ws_n %||% "", alpha = input$ws_alpha %||% "",
     seed = input$ws_seed %||% "", path = input$ws_path))
+}
+
+# A two-group X: the paths from X that can be given as Cohen's d of the
+# groups instead (the engine's population > group_d).
+whole_study_d_keys <- function(plan, params) {
+  if (!isTRUE(plan$binary_x)) return(character())
+  intersect(c("X->Y", "X->M"), params$paths)
+}
+whole_study_d_input_id <- function(outcome) paste0("ws_d_", outcome)
+whole_study_d_label <- function(outcome) {
+  sprintf("Cohen's d of the groups on %s: the difference between the groups' means, in standard deviations", whole_study_names[[outcome]])
 }
 
 # The spec from the screen's values, or the problems in plain words.
@@ -361,8 +398,15 @@ whole_study_spec <- function(skeleton, params, values, rule, nrep = values$nrep)
     }
     x
   }
-  paths <- lapply(params$paths, function(k) number(k, whole_study_path_label(k)))
-  names(paths) <- params$paths
+  by_d <- if (identical(values$x_effect, "d")) intersect(c("X->Y", "X->M"), params$paths) else character()
+  path_keys <- setdiff(params$paths, by_d)
+  paths <- lapply(path_keys, function(k) number(k, whole_study_path_label(k)))
+  names(paths) <- path_keys
+  group_d <- lapply(by_d, function(k) {
+    outcome <- sub("^X->", "", k)
+    number(paste0("d_", outcome), whole_study_d_label(outcome), lower = -5, upper = 5)
+  })
+  names(group_d) <- sub("^X->", "", by_d)
   correlations <- lapply(params$correlations, function(k) number(k, whole_study_path_label(k), open = TRUE))
   names(correlations) <- params$correlations
   n <- suppressWarnings(as.numeric(values$n))
@@ -380,6 +424,7 @@ whole_study_spec <- function(skeleton, params, values, rule, nrep = values$nrep)
     })
   }
   spec$population <- list(paths = paths)
+  if (length(group_d)) spec$population$group_d <- group_d
   if (length(correlations)) spec$population$correlations <- correlations
   spec$claim <- rule
   spec$alpha <- alpha
@@ -502,7 +547,7 @@ whole_study_outcomes <- function(r) {
   paste0(labels, ": ", simulation_outcome_text(list(provenance = list(simulations = a))))
 }
 
-whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, script = NULL) {
+whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, script = NULL, curve = NULL) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
       h3(class = "h5", "The simulation didn't finish"), p(calc$message)))
@@ -544,6 +589,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       if (!is.null(script)) p(class = "ws-quick-note", role = "note", sprintf(
         "A quick look, from %s simulated studies: each power is within about \u00b1%s percentage points. For numbers to report, and for the sample size you need, run the full simulation on your computer (under \u201cWrite it up and save it\u201d).",
         whole(r$provenance$nrep), whole_study_precision(r$provenance$nrep))),
+      if (length(r$group_d)) p(class = "small", whole_study_group_d_text(r)),
       h4(class = "h6 mt-3", "Each analysis"),
       div(class = "table-responsive", tags$table(class = "table table-sm ws-table",
         tags$thead(tags$tr(tags$th("Analysis"), tags$th("Role"), tags$th("Tested at alpha"), tags$th("Power"), tags$th(class = "ws-bar-col", "95% interval"))),
@@ -558,7 +604,8 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       p(class = "small", sprintf(if (experiment)
         "From %s simulated studies of %s participants. Every F test comes from the same ANOVA on the same simulated studies, so the chance that several succeed together is counted directly, not assumed."
         else "From %s simulated studies of %s participants. Each analysis is fitted with its own model, as it would be analysed on its own: the power of each comes from the same simulated studies, so the chance that several succeed together is counted directly, not assumed.",
-        whole(pv$nrep), whole(r$n)))),
+        whole(pv$nrep), whole(r$n))),
+      curve),
     div(class = "result-card", id = "ws-inputs",
       h4(class = "h5", "What your study model means for each analysis's own input screen"),
       p(class = "small", if (experiment)
@@ -588,7 +635,9 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       writeup_ui(c(short = methods, full = methods_full)),
       script,
       div(class = "nav-buttons mt-2",
-        download_button("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary"))),
+        download_button("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary"),
+        download_button("download_guided_plan", "Save this plan", class = "btn btn-outline-primary")),
+      p(class = "small text-muted", "\u201cSave this plan\u201d keeps your plan and these inputs in a file you can open again on the start screen; the specification is for running the simulation in R.")),
     div(class = "result-card result-how", id = "ws-how",
       h4(class = "h5", "How it was calculated"),
       if (experiment) p(class = "result-credit", "Simulated with the R package ", tags$strong("Superpower"), sprintf(" (version %s), with afex %s fitting each ANOVA. Experimental: a statistician's check is still to come.",
@@ -637,6 +686,14 @@ whole_study_population_text <- function(r) {
   sprintf("The assumed population values (standardised) were: %s. ", paste(words, collapse = "; "))
 }
 
+# A path given as the groups' Cohen's d: the d and the path found for it.
+whole_study_group_d_text <- function(r) {
+  if (!length(r$group_d)) return("")
+  parts <- vapply(names(r$group_d), function(outcome) sprintf("the path from X to %s (%s) gives a Cohen's d of %s between the groups on %s",
+    outcome, format(round(r$found_paths[[paste0("X->", outcome)]], 3)), format(r$group_d[[outcome]]), outcome), character(1))
+  sprintf("With the groups' difference given as Cohen's d, %s, found from a simulated sample of 100,000 people. ", paste(parts, collapse = "; and "))
+}
+
 whole_study_methods <- function(r, full = FALSE) {
   a <- r$analyses
   pv <- r$provenance
@@ -655,7 +712,7 @@ whole_study_methods <- function(r, full = FALSE) {
   # version only, and only when some failed.
   failed <- ("failed" %in% names(a) && any(a$failed > 0)) || isTRUE(r$joint$failed > 0)
   failures <- if (full && failed) paste(whole_study_outcomes(r), collapse = " ") else ""
-  population <- whole_study_population_text(r)
+  population <- paste0(whole_study_population_text(r), whole_study_group_d_text(r))
   if (identical(pv$backend, "Superpower")) {
     return(trimws(paste(sprintf(paste0(
       "Power was estimated by simulating the whole experiment (%s; the whole-study simulation is experimental) with the R package Superpower %s (ANOVA_power(), ANOVAs fitted by afex %s). ",
@@ -835,4 +892,68 @@ whole_study_experiment_spec <- function(plan, labels, values, rule, nrep) {
     claim = rule, alpha = alpha, effect_justification = list(type = "none"),
     goal = list(type = "power", n = as.integer(n)),
     options = list(nrep = as.integer(nrep), seed = as.integer(seed))))
+}
+
+# --- A rough power curve (whole_study_curve()) -------------------------------------
+
+# Offered for experiments and regressions; a mediation's confidence
+# intervals make each run too slow for the app.
+whole_study_curve_offered <- function(spec) {
+  is.list(spec) && identical(spec$goal$type, "power") &&
+    !any(vapply(spec$analyses, function(a) (a$test %||% "") %in% c("indirect", "index_of_mome"), logical(1)))
+}
+
+whole_study_curve_seconds <- function(forms, plan) {
+  ws <- forms$whole_study
+  per <- ws$seconds_per_replication
+  tests <- vapply(plan$analyses, function(a) a$test, "")
+  # Larger samples take a little longer per replication; the mean multiple
+  # stands in for that.
+  sum(unlist(per[tests])) * ws$curve_nrep * sum(unlist(ws$curve_multipliers)) + (ws$overhead_seconds %||% 15)
+}
+
+whole_study_curve_offer_ui <- function(forms, plan) {
+  ws <- forms$whole_study
+  div(class = "ws-curve mt-3",
+    h4(class = "h6", "How many people do you need?"),
+    p(class = "small", sprintf(
+      "See roughly how power changes with N: powerkit simulates the study at %d sample sizes around this one, %s simulated studies each (about %s). It is a guide for choosing N; the sample size to report comes from the R script\u2019s search.",
+      length(ws$curve_multipliers), whole(ws$curve_nrep), duration_words(whole_study_curve_seconds(forms, plan)))),
+    actionButton("ws_curve_run", "Show a rough power curve", class = "btn btn-outline-primary"),
+    uiOutput("ws_curve"))
+}
+
+whole_study_curve_ui <- function(calc, target = 0.8) {
+  if (!identical(calc$status, "ok")) {
+    return(div(class = "form-problems", role = "alert", tabindex = "-1",
+      h3(class = "h5", "The power curve didn't finish"), p(calc$message)))
+  }
+  r <- calc$result
+  cv <- r$curve
+  reached <- cv$n[cv$power >= target]
+  what <- c(single = "Power of the main analysis", all = "Chance that every main analysis is significant",
+    any = "Chance that at least one main analysis is significant", each = "Power of the weakest main analysis")[[r$rule]]
+  verdict <- if (length(reached)) {
+    below <- cv$n[cv$n < min(reached)]
+    if (length(below)) sprintf("Roughly, power reaches %s between N = %s and N = %s.", percent(target), whole(max(below)), whole(min(reached)))
+    else sprintf("Power is at least %s at every size tried, from N = %s: a smaller study may be enough.", percent(target), whole(min(cv$n)))
+  } else {
+    sprintf("Power stays below %s up to N = %s: the study needs more people than this, or a larger effect.", percent(target), whole(max(cv$n)))
+  }
+  div(class = "ws-curve-result", role = "status", tabindex = "-1",
+    p(tags$strong(verdict)),
+    div(class = "table-responsive", tags$table(class = "table table-sm ws-table",
+      tags$thead(tags$tr(tags$th("N"), tags$th(what), tags$th(class = "ws-bar-col", "95% interval"))),
+      tags$tbody(lapply(seq_len(nrow(cv)), function(i) tags$tr(
+        tags$td(whole(cv$n[i])), tags$td(tags$strong(percent(cv$power[i]))),
+        tags$td(class = "ws-bar-col", whole_study_power_bar(cv$power[i], cv$lower[i], cv$upper[i]),
+          tags$span(class = "ws-bar-text", sprintf("%s to %s", percent(cv$lower[i]), percent(cv$upper[i]))))))))),
+    p(class = "small text-muted", sprintf(
+      "Rough: %s simulated studies at each N, so each power is within about \u00b1%s percentage points (seed %s, %s %s). For the sample size to report, download the R script under \u201cWrite it up and save it\u201d and choose the sample size search.",
+      whole(r$provenance$nrep), whole_study_precision(r$provenance$nrep), r$provenance$seed,
+      r$provenance$backend, r$provenance$packages[[r$provenance$backend]])))
+}
+
+duration_words <- function(seconds) {
+  if (seconds < 120) sprintf("%s seconds", whole(10 * ceiling(seconds / 10))) else sprintf("%s minutes", whole(round(seconds / 60)))
 }

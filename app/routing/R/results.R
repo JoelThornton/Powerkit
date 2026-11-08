@@ -71,15 +71,20 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
 # `cost_powers`: the powers for the result's comparison line (cost_line()),
 # whose sample sizes are two more searches, so they are run here too rather
 # than in the app's own process.
-background_worker <- function(spec, seed, engine_dir, cores, run_calculation, cost_powers = NULL) {
+background_worker <- function(spec, seed, engine_dir, cores, run_calculation, cost_powers = NULL, curve = NULL) {
   options(powerkit.cores = cores)
-  # A whole-study simulation (experimental) runs run_whole_study().
-  fun <- if (identical(spec$kind, "whole_study")) "run_whole_study" else "run_spec"
+  # A whole-study simulation (experimental) runs run_whole_study(), and its
+  # rough power curve whole_study_curve().
+  fun <- if (!is.null(curve)) "whole_study_curve" else if (identical(spec$kind, "whole_study")) "run_whole_study" else "run_spec"
   run <- if (requireNamespace("powerkit", quietly = TRUE)) {
     getExportedValue("powerkit", fun)
   } else {
     suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
     get(fun, envir = asNamespace("powerkit"))
+  }
+  if (!is.null(curve)) {
+    curve_fun <- run
+    run <- function(spec) curve_fun(spec, multipliers = unlist(curve$multipliers), nrep = curve$nrep)
   }
   calc <- run_calculation(spec, run, seed)
   if (length(cost_powers) && identical(calc$status, "ok") && identical(calc$result$goal_type, "sample_size") &&
@@ -101,12 +106,13 @@ background_worker <- function(spec, seed, engine_dir, cores, run_calculation, co
 # is_alive(), kill(), wait() and get_result().
 start_background_calculation <- function(spec, seed = 1L,
                                          engine_dir = file.path(routing_root(), "..", "..", "engine"),
-                                         cost_powers = NULL, spare = isTRUE(getOption("powerkit.warm_spare"))) {
+                                         cost_powers = NULL, spare = isTRUE(getOption("powerkit.warm_spare")),
+                                         curve = NULL) {
   calc_fun <- run_calculation
   environment(calc_fun) <- baseenv()
   engine_dir <- normalizePath(engine_dir, mustWork = FALSE)
   args <- list(spec = spec, seed = seed, engine_dir = engine_dir,
-               cores = getOption("powerkit.cores"), run_calculation = calc_fun, cost_powers = cost_powers)
+               cores = getOption("powerkit.cores"), run_calculation = calc_fun, cost_powers = cost_powers, curve = curve)
   warm <- if (spare) take_spare()
   if (spare) keep_spare(engine_dir)
   if (!is.null(warm)) return(session_job(warm, background_worker, args))
@@ -1306,7 +1312,7 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
   if (is.na(n80) || is.na(n95)) return(NULL)
   together <- if (!identical(claim_power(0.8, values), 0.8)) " (for all the tests together)" else ""
   sprintf(
-    "For comparison: 80%% power%s needs %s %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your plan.",
+    "For comparison: 80%% power%s needs %s %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your write-up.",
     together, whole(n80), n_unit(spec) %||% "participants", group_text(spec, n80), whole(n95), group_text(spec, n95)
   )
 }
@@ -1365,7 +1371,7 @@ explore_ui <- function(spec, result = NULL) {
   start <- if (is.null(planned) || planned == 0) 0.3 else abs(planned)
   div(class = "explore-panel",
     h5(class = "h6", "If the effect were different"),
-    p(class = "small", "Move the slider: the line shows power at each sample size for that effect, and the circle marks your plan. Exploring doesn't change your plan."),
+    p(class = "small", "Move the slider: the line shows power at each sample size for that effect, and the circle marks this analysis's answer. Exploring doesn't change it."),
     sliderInput("explore_effect", e$label, min = 0.05, max = e$max, value = round(start, 2), step = 0.01, width = "100%"),
     plotOutput("explore_plot", height = "300px"),
     tags$details(tags$summary("Read the exploration values as a table"), uiOutput("explore_table"))
@@ -1377,7 +1383,7 @@ explore_ui <- function(spec, result = NULL) {
 # hides how much the answer depends on being right about the effect; three
 # lines show it. powerkit suggests neither value. The same designs as the
 # explore panel; the app only calls the engine.
-scenario_names <- c(conservative = "Conservative", expected = "Your plan's effect", optimistic = "Optimistic")
+scenario_names <- c(conservative = "Conservative", expected = "The effect you entered", optimistic = "Optimistic")
 
 # The plan's effect, standardised (worked out by the engine where the
 # effect was given in the measure's own units).
@@ -1450,7 +1456,7 @@ scenarios_ui <- function(spec, result = NULL) {
   div(class = "scenario-panel",
     h5(class = "h6", "A cautious and a hopeful guess"),
     p(class = "small", sprintf(paste0(
-      "Your plan uses %s = %s. Enter a smaller effect you would still find plausible (conservative) and a larger one (optimistic), ",
+      "This analysis uses %s = %s. Enter a smaller effect you would still find plausible (conservative) and a larger one (optimistic), ",
       "and powerkit draws power for all three. Choose values you could defend; powerkit won't suggest them."),
       e$label, format(round(planned, 3)))),
     div(class = "d-flex gap-3 flex-wrap",
@@ -2209,7 +2215,7 @@ power_curve_plot <- function(lines, target = NULL, planned_n = NULL, xlab = "Par
       y <- stats::approx(d$n, d$power, xout = planned_n)$y
       segments(planned_n, 0, planned_n, y, col = navy, lty = 3, lwd = 1.5)
       points(planned_n, y, pch = 21, bg = "#ffffff", col = navy, cex = 1.8, lwd = 2.5)
-      text(planned_n, y - 0.1, sprintf("Your plan: %s", whole(planned_n)), pos = 4, offset = 0.6, col = navy, font = 2, cex = 0.9)
+      text(planned_n, y - 0.1, sprintf("This analysis: %s", whole(planned_n)), pos = 4, offset = 0.6, col = navy, font = 2, cex = 0.9)
     }
   }
   invisible()
@@ -2283,7 +2289,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
     if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness)) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
-      p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes your plan."),
+      p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
       if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
       bayes_robustness_ui(spec, calc$robustness),
       explore,

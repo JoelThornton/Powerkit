@@ -147,3 +147,16 @@ test_that("a precision result shows its sample size first and can join the plan"
   expect_match(entry$headline, "confidence interval", fixed = TRUE)
   expect_identical(entry$label, tree$endpoints$E46$plain_name)
 })
+
+test_that("an analysis calculated from the whole-study plan joins the study plan once, replacing its earlier result", {
+  entries <- list(list(label = "From a card", n = 100))
+  entries <- plan_upsert(entries, list(label = "Total effect", n = 200, plan_id = "total"))
+  entries <- plan_upsert(entries, list(label = "Total effect", n = 250, plan_id = "total"))
+  entries <- plan_upsert(entries, list(label = "Indirect effect", n = 300, plan_id = "indirect"))
+  expect_length(entries, 3)
+  expect_identical(entries[[2]]$n, 250)
+  html <- as.character(study_plan_bar_ui(entries, in_plan = TRUE, from_guided = TRUE))
+  expect_match(html, "with the other analyses of your whole-study plan", fixed = TRUE)
+  expect_no_match(html, "plan_add", fixed = TRUE)
+  expect_match(as.character(guided_plan_save_ui(3)), "See your study plan (3 analyses)", fixed = TRUE)
+})
