@@ -70,6 +70,12 @@ call), and nodes for approaches powerkit doesn't compute.
 - Split a very large file, or move a single-card package to Suggests, only
   as part of a PR that already touches it (`CLAUDE.md`, "Conventions";
   `routing-prototype.md`, "Splitting the large files").
+- Small extras from the 7 November review, for a PR that touches the
+  area: a "longer than usual, still running" note once a simulation passes
+  its usual time; one automatic retry, with more runs, for a sample-size
+  search that fails by chance; a smaller About page (its HTML is about
+  1.6 MB); and check that the sticky "answers still needed" bar doesn't
+  cover the alpha help at 1100 px.
 - Raise the Spower faults upstream: the reproducible example is ready at
   `docs/upstream/spower-var-test.R`
   ([`upstream-questions.md`](upstream-questions.md)).
