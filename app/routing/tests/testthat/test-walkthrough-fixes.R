@@ -37,7 +37,7 @@ test_that("F2: the guided route offers an outcome with several categories, which
 
 test_that("F3: a yes/no outcome with two crossed factors reaches E47 in 'Help me choose' and in the guided route", {
   base <- c("Yes/no, or one of several categories", "Independent people", "Once", "A difference between groups or conditions")
-  expect_identical(follow_answers(tree, c(base, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome")), "E47")
+  expect_identical(follow_answers(tree, c(base, "Two or more factors (for example, a 2 x 2 design)")), "E47")
   moderation <- analysis_by_id(tree, "moderation")
   expect_identical(resolve_analysis(tree, moderation, guided(list(outcome = "yesno", times = "once"), outcome = "yesno", moderator = "two"))$endpoint, "E47")
   html <- withr::with_options(list(powerkit.maintainer_view = TRUE), as.character(card_ui(tree, "E47")))

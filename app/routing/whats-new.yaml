@@ -8,6 +8,98 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Effects that vary between studies, on the t-test cards"
+    text: >-
+      The one-sample, two-group and paired t-test cards can now allow for a
+      true effect that differs from study to study, as it does between labs,
+      samples and materials. Enter how much it might vary, and the effect you
+      plan for becomes the average across studies. The result shows the power
+      with and without the variation, and how often one study would be
+      significant with no average effect. Following Kenny and Judd (2019),
+      who argue the usual assumption of no variation should not be the
+      default, it starts at their small value, 0.05, which needs a few more
+      people; empty the box for the usual analysis.
+  - date: "2026-11-08"
+    title: "Links that open an analysis"
+    text: >-
+      With an analysis open, "Copy page link" now gives a link to that
+      analysis, so a supervisor can send a student straight to, for example,
+      the mixed ANOVA. The link opens it as the list of every analysis does,
+      and Back goes to that list.
+  - date: "2026-11-08"
+    title: "Labs: a replication planner"
+    text: >-
+      A new Labs tool for planning a replication of a published finding.
+      Enter the original study's effect and sample size, and see the
+      sample size for each goal a replication can have: a significant
+      result, agreement with the original, Bayes factors, small
+      telescopes, or showing the effect is too small to matter. Each is
+      shown three ways: taking the original's effect at face value, with
+      its uncertainty, and shrunk towards zero, with an option for effects
+      that vary between studies. Record how the replication differs from
+      the original, and download a plan with an R script. It works in
+      sections you can come back to, and opens from the pre-replication
+      notes or from "Replicate a published finding" on the start screen.
+  - date: "2026-11-08"
+    title: "Methods paragraphs that let a reader redo the plan"
+    text: >-
+      The methods paragraph now gives every value a reader needs to repeat
+      the calculation: the contrast weights for a planned contrast, the
+      value to beat and the number of ratings or items for reliability and
+      agreement, and the occasions and starting-level spread for growth
+      curves. The question about yes/no outcomes now asks "What are you
+      comparing?", with shorter answers, and About names the "Discard my
+      draft" button for deleting saved answers on a shared computer.
+  - date: "2026-11-08"
+    title: "Small telescopes: the original study's significance level"
+    text: >-
+      When you plan a replication by small telescopes, the input screen now
+      asks which significance level the original study used (usually 0.05),
+      and uses it only to work out the effect the original could detect.
+      Before, the replication's own level was used for both, so a stricter
+      replication was given fewer people instead of more. The result now
+      also shows how the replication's power drops if the true effect is
+      small but not zero, and says more carefully what a result would and
+      wouldn't show about the original study.
+  - date: "2026-11-08"
+    title: "Plan a replication by small telescopes"
+    text: >-
+      When your effect size comes from a published study you want to
+      replicate, the t-test and correlation cards can now plan the
+      replication by small telescopes (Simonsohn, 2015). The replication
+      gets enough people to show, if the true effect is zero, that the
+      effect is smaller than the original study could have detected:
+      usually about 2.5 times the original sample. The pre-replication
+      notes in Labs give the same number beside the original study's
+      smallest detectable effect, with a reminder to run the test the
+      original used.
+  - date: "2026-11-08"
+    title: "Counts and ratings measured twice now reach a card"
+    text: >-
+      A count or a single rating item measured twice or more on the same
+      people no longer ends at "No matching design": the questions now lead
+      to a card that names the analysis and the tools that plan it, or, for
+      a relationship, to the card for relationships measured within people.
+  - date: "2026-11-08"
+    title: "One-way ANOVA: Welch's F by default"
+    text: >-
+      The one-way ANOVA now plans for Welch's F test unless you choose the
+      classical F test. Welch's F stays accurate when the groups' spreads
+      differ and needs only a few more people when they don't. You can
+      give one SD for every group, with the means in SD units if you like,
+      or an SD for each group, and you can now find the smallest effect
+      you could detect with it too. A note under each test says when to
+      choose it.
+  - date: "2026-11-08"
+    title: "Two groups: Welch's t-test by default"
+    text: >-
+      The two-group t-test now plans for Welch's t-test unless you choose
+      Student's. Welch's test stays accurate when the groups' spreads
+      differ and needs the same number of people when they don't. Its
+      answer now comes from a formula rather than a simulation, so it is
+      instant and exact, and it now offers the smallest detectable effect
+      and a justified significance level too.
+  - date: "2026-11-08"
     title: "The online app no longer misses a day's changes"
     text: >-
       If the morning update of the online app doesn't run, a second check

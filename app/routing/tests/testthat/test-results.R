@@ -151,6 +151,8 @@ test_that("each wired end point: the app's result equals the engine's, and the s
 test_that("a sample-size result and a sensitivity result are worded from the engine's numbers", {
   skip_without_run()
   spec <- light_spec("E2", goal = list(type = "sample_size", power = 0.8))
+  # Welch's t-test simulated (its formula is the default), for the interval.
+  spec$options$method <- "simulation"
   calc <- run_calculation(spec, run, seed = 3L)
   words <- result_sentences(calc$spec, calc$result)
   n <- calc$result$n_required$n
@@ -782,7 +784,7 @@ test_that("the rank tests (E1, E2, E3 and E18's test version) are simulated with
 test_that("Welch's F (E18's test version) is simulated with Spower from each group's SD", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E18"))
-  values <- modifyList(form_examples$E18, list(test_version = "welch_f", sds = "4, 6, 9", sd = NULL, method = NULL))
+  values <- modifyList(form_examples$E18, list(test_version = "welch_f", welch_sd_input = "separate", sds = "4, 6, 9", sd = NULL, method = NULL))
   expect_equal(form_problems(fields, values), character())
   spec <- build_spec(forms, "E18", fields, values)
   expect_equal(unlist(spec$population$sds), c(4, 6, 9))
@@ -800,6 +802,47 @@ test_that("Welch's F (E18's test version) is simulated with Spower from each gro
   # Each group's SD is asked only for Welch's F; the F test keeps one SD.
   sds <- Filter(function(f) identical(f$id, "sds"), fields)[[1]]
   expect_false(field_applies(sds, form_examples$E18))
+})
+
+test_that("Welch's F is the one-way ANOVA's default, shown as a departure, with one SD unless the spreads differ", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E18"))
+  test_version <- Filter(function(f) identical(f$id, "test_version"), fields)[[1]]
+  expect_identical(test_version$default, "welch_f")
+  expect_match(test_version$default_source, "Delacre, Leys, Mora and Lakens (2019)", fixed = TRUE)
+  expect_identical(names(test_version$choices)[1], "welch_f")
+  # One SD for every group by default, so means in SD units work too.
+  values <- modifyList(form_examples$E18, list(test_version = "welch_f", welch_sd_input = "common", metric = "standardised",
+    means = "0, 0.2, 0.5", sd = "1", method = NULL))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E18", fields, values)
+  expect_null(spec$population$sds)
+  spec$goal <- list(type = "power", n = 60L)
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_true("22" %in% names(departures_for(forms, "E18", calc$spec)))
+  html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
+  expect_match(html, "powerkit plans for Welch&#39;s F unless you choose the classical F test|powerkit plans for Welch's F unless you choose the classical F test")
+  # The classical F test: no departure.
+  f_test <- build_spec(forms, "E18", fields, form_examples$E18)
+  expect_false("22" %in% names(departures_for(forms, "E18", f_test)))
+})
+
+test_that("Welch's F's smallest detectable effect is simulated, with its interval on the result and in the methods", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E18"))
+  values <- modifyList(form_examples$E18, list(test_version = "welch_f", welch_sd_input = "separate", sds = "4, 6, 9", sd = NULL, method = NULL))
+  spec <- build_spec(forms, "E18", fields, values)
+  spec$goal <- list(type = "sensitivity", n = 90L, power = 0.8)
+  spec$options$nrep <- 200L
+  calc <- run_calculation(spec, run, seed = 1L)
+  s <- calc$result$sensitivity
+  expect_true(s$simulated)
+  html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
+  expect_match(html, "(95% interval", fixed = TRUE)
+  expect_match(html, "until the simulated power reaches the target", fixed = TRUE)
+  w <- writeup_text(forms$forms$E18, calc$spec, calc$result, fields, values)
+  expect_match(paste(w, collapse = " "), "95% simulation interval", fixed = TRUE)
 })
 
 test_that("equivalence for a correlation or two proportions (E36) runs on TOSTER's z tests, in its own words", {
@@ -1652,6 +1695,55 @@ test_that("safeguard power: the form asks for the earlier study's size, and the 
   # Without "yes" nothing about the safeguard reaches the spec.
   plain <- build_spec(forms, "E2", fields, modifyList(values, list(sg_use = "no")))
   expect_null(plain$effect_justification$safeguard)
+})
+
+test_that("small telescopes: a replication is planned against the original's d33, on the result and in the write-up", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E2"))
+  use <- Filter(function(f) identical(f$id, "sg_use"), fields)[[1]]
+  expect_true("telescopes" %in% names(use$choices))
+  # Offered for a published study, not a pilot.
+  expect_identical(use$choices_shown_if$telescopes, list(list(field = "just_type", is = "prior_study")))
+  values <- modifyList(form_examples$E2, list(just_type = "prior_study", just_source = "The original study", sg_use = "telescopes",
+    st_n1 = 20, st_n2 = 20, goal = "sample_size", power = 0.8))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_equal(spec$effect_justification$small_telescopes$n1, 20)
+  expect_null(spec$effect_justification$safeguard)
+  expect_null(spec$effect_justification$adjustment)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_equal(calc$result$n_required$n, 102)
+  html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(html, "the replication needs 102 participants in total", fixed = TRUE)
+  expect_match(html, "small-telescopes test (Simonsohn, 2015)", fixed = TRUE)
+  expect_match(html, "d33 = 0.496", fixed = TRUE)
+  # What it claims, and what it doesn't.
+  expect_match(html, "doesn't show the original result was a false positive", fixed = TRUE)
+  expect_no_match(html, "whatever the true effect is", fixed = TRUE)
+  # How sure: the power if the true effect is small but not zero.
+  expect_match(html, "result-telescope-if-small", fixed = TRUE)
+  expect_match(html, "The plan assumes the true effect is zero", fixed = TRUE)
+  expect_match(html, "the equivalence test", fixed = TRUE)
+  # The original study's significance level is its own field: a stricter
+  # replication needs more people, not fewer.
+  # (0.05 unless the user changes it; a project saved before the field
+  # existed still opens.)
+  expect_equal(calc$result$small_telescopes$original_alpha, 0.05)
+  strict <- build_spec(forms, "E2", fields, modifyList(values, list(alpha = 0.005, st_alpha = 0.05)))
+  expect_equal(strict$effect_justification$small_telescopes$alpha, 0.05)
+  expect_gt(run_calculation(strict, run, seed = forms$default_seed)$result$n_required$n, 102)
+  other <- build_spec(forms, "E2", fields, modifyList(values, list(st_alpha = 0.1)))
+  expect_equal(run_calculation(other, run, seed = forms$default_seed)$result$small_telescopes$original_alpha, 0.1)
+  text <- paste(writeup_text(forms$forms$E2, spec, calc$result, fields, values), collapse = " ")
+  expect_match(text, "small-telescopes replication test (Simonsohn, 2015)", fixed = TRUE)
+  expect_match(text, "its size does not enter the plan", fixed = TRUE)
+  ethics <- writeup_text(forms$forms$E2, spec, calc$result, fields, values)[["ethics"]]
+  expect_match(ethics, "the possibility that the effect is zero", fixed = TRUE)
+  expect_no_match(ethics, "We are planning for an effect of", fixed = TRUE)
+  # The correlation card offers it too.
+  e4 <- form_fields(form_groups(forms, "E4"))
+  expect_true("st_n" %in% vapply(e4, `[[`, "", "id"))
 })
 
 test_that("effect-size conversion: the form offers each card's forms, and the engine converts them", {
@@ -2540,9 +2632,13 @@ test_that("a design the engine simulates runs in the background, whatever its ca
   simulates <- engine_function("runs_simulation", file.path(repo_dir, "engine"))
   expect_true(runs_in_background(forms, "E61", hk, simulates = simulates))
   expect_false(runs_in_background(forms, "E61", z, simulates = simulates))
-  # Welch's t-test (E2's default) is simulated, but in a few seconds.
-  expect_false(runs_in_background(forms, "E2", light_spec("E2"), simulates = simulates))
-  expect_true(simulates(light_spec("E2")))
+  # Welch's t-test is worked out by formula by default; simulated on
+  # request, it takes a few seconds and stays in the foreground.
+  expect_false(simulates(light_spec("E2")))
+  welch_simulated <- light_spec("E2")
+  welch_simulated$options$method <- "simulation"
+  expect_false(runs_in_background(forms, "E2", welch_simulated, simulates = simulates))
+  expect_true(simulates(welch_simulated))
 })
 
 test_that("a meta-analysis's result, write-up and ethics version count studies and name its test and effect", {

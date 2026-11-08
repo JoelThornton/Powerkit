@@ -336,8 +336,10 @@ direction_note <- paste(
 
 # E1-E6: pwr's formula or Spower's simulation (forms.yaml,
 # basic_method_field). Where the form has a test version (`method`), the
-# choice is shown only with its default version: Welch's t-test (E2) has no
-# pwr formula, and Fisher's exact test (E5) is pwrss's formula only.
+# choice is shown only with the version pwr covers: its default, or the
+# form's `basic_method_with` (E2's Student's t-test; Welch's, the default,
+# has its own choice of formula or simulation). Fisher's exact test (E5) is
+# pwrss's formula only.
 basic_method_field <- function(forms, ep_id) {
   field <- forms$basic_method_field
   population <- switch(ep_id,
@@ -350,7 +352,7 @@ basic_method_field <- function(forms, ep_id) {
     NULL)
   field$help <- paste(c(population, field$help), collapse = " ")
   version <- Filter(function(f) identical(f$id, "method"), form_fields(forms$forms[[ep_id]]$groups))
-  if (length(version)) field$shown_if <- list(field = "method", is = version[[1]][["default"]])
+  if (length(version)) field$shown_if <- list(field = "method", is = forms$forms[[ep_id]]$basic_method_with %||% version[[1]][["default"]])
   field
 }
 
@@ -495,8 +497,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
       # less precise, so it gets the same question.
       list(id = "just_adjustment", label = "How you adjusted it", help = "One study's effect tends to be too large: published ones through publication bias, pilots because they are small. For example, halved, or the lower end of its confidence interval. If you kept it as it was, say so and why.",
            type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
-           shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes")))
-    ), safeguard_fields(form$base$template))),
+           shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
+             list(field = "sg_use", is_not = "telescopes")))
+    ), safeguard_fields(form$base$template), heterogeneity_fields(form$base$template))),
     # A single time series has no participants to lose (`no_attrition`).
     if (!isTRUE(form$generic) && !meta && !isTRUE(form$no_attrition)) list(input = NULL, title = "Participants you expect to lose", fields = list(
       list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%.", type = "number",
@@ -531,19 +534,65 @@ safeguard_fields <- function(template) {
   using <- list(from_one_study, list(field = "sg_use", is = "yes"))
   size_field <- function(id, label, min) list(id = paste0("sg_", id), label = label, type = "number", integer = TRUE, min = min,
     required = TRUE, path = paste0("effect_justification.safeguard.", id), shown_if = using)
+  # Small telescopes (Simonsohn, 2015), for a replication of a published
+  # study: the original's sample size sets d33, the effect it could detect
+  # a third of the time.
+  telescoping <- list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is = "telescopes"))
+  original_field <- function(id, label, min) list(id = paste0("st_", id), label = label, type = "number", integer = TRUE, min = min,
+    required = TRUE, path = paste0("effect_justification.small_telescopes.", id), shown_if = telescoping)
   c(list(
-    list(id = "sg_use", label = "Plan with the safeguard effect size?", type = "select", default = "no",
+    list(id = "sg_use", label = "How to plan from this one study", type = "select", default = "no",
          help = paste("One study's estimate is uncertain, and may be too large. Safeguard power plans with the lower end of a",
                       "confidence interval around it instead, so the study is protected if the true effect is smaller (Perugini, Gallucci & Costantini, 2014).",
-                      "Enter the earlier study's effect size above as it was reported."),
-         choices = list(no = "No: plan with the effect size as it is", yes = "Yes: use the safeguard effect size"),
+                      "For a replication, small telescopes plans the study to test whether the effect is smaller than the original study could have",
+                      "detected (Simonsohn, 2015). Enter the earlier study's effect size above as it was reported."),
+         choices = list(no = "Plan with the effect size as it is", yes = "Use the safeguard effect size",
+                        telescopes = "This is a replication: plan it by small telescopes"),
+         choices_shown_if = list(telescopes = list(list(field = "just_type", is = "prior_study"))),
+         choice_notes = list(telescopes = paste("For a close replication of one original study. The replication is planned to test whether the effect",
+           "is smaller than d33, the effect the original study had a one-in-three chance to detect, if the true effect is zero.",
+           "A result below d33 means the original study was too small to have reliably seen an effect that size; it doesn't show the",
+           "original was a false positive, and it says something about the original only if the replication recreated its conditions",
+           "(the same manipulation, of similar strength, measured the same way, in a comparable sample).",
+           "The test is Student's t-test (or the correlation's test), whichever version you chose above, so it matches the original;",
+           "report Welch's test beside it if the groups' spreads may differ.")),
          shown_if = from_one_study)),
     if (identical(sizes, "n")) list(size_field("n", "How many people the earlier study had", 4))
     else list(size_field("n1", "People in group 1 of the earlier study", 2), size_field("n2", "People in group 2 of the earlier study", 2)),
+    if (identical(sizes, "n")) list(original_field("n", "How many people the original study had", 4))
+    else list(original_field("n1", "People in group 1 of the original study", 2), original_field("n2", "People in group 2 of the original study", 2)),
+    # d33 uses the original's own significance level, not the replication's.
+    list(list(id = "st_alpha", label = "Significance level the original study used", type = "number",
+         help = "Two-sided, as the original study tested it; usually 0.05. It sets d33 only: the replication's own significance level is set above.",
+         path = "effect_justification.small_telescopes.alpha", optional = TRUE, default = 0.05, min_exclusive = 0, max_exclusive = 0.5,
+         default_source = "The usual two-sided level; change it if the original study used another", shown_if = telescoping)),
     list(list(id = "sg_protection", label = "Protection against the estimate being too large", type = "number",
          help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one.",
          path = "effect_justification.safeguard.protection", required = TRUE, default = 0.8, min_exclusive = 0.5, max_exclusive = 1,
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
+}
+
+# Effects that vary between studies (Kenny & Judd, 2019), for the
+# t-tests: the SD of the true effect around the one planned for, which
+# then is the average effect. Starts at Kenny and Judd's small 0.05
+# (Departure 23); empty or 0 is the usual analysis.
+heterogeneity_field_templates <- c("independent_t", "one_sample_t", "paired_t")
+
+heterogeneity_fields <- function(template) {
+  if (!isTRUE(template %in% heterogeneity_field_templates)) return(list())
+  list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
+    type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.05,
+    default_source = "Kenny and Judd's (2019) small variation between studies: they argue zero should not be the default",
+    help = paste("Labs, samples, materials and procedures differ, so a study's true effect can differ from the one you plan for.",
+      "Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 as small, medium and large variation, and argue that zero",
+      "should not be the default. The effect above is then the average across studies. Empty or 0 plans for the same effect",
+      "in every study, as G*Power and most power analyses do. It needs equal SDs in the two groups."),
+    # Kenny and Judd's formula is for the t-test by formula, for power,
+    # the sample size or the smallest detectable effect.
+    shown_if = list(list(field = "sg_use", is_not = "telescopes"),
+      list(field = "method", is_one_of = c("t_test", "student_t", "welch_t")),
+      list(field = "calc_method", is_not = "simulation"), list(field = "welch_method", is_not = "simulation"),
+      list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))))
 }
 
 # ANOVA and ANCOVA by its effect size: the "Units of the means"

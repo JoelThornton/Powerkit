@@ -719,6 +719,7 @@ result_sentences <- function(spec, result) {
   if (is_precision(spec)) return(precision_sentences(spec, result))
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
   if (identical(spec$design, "meta_analysis")) return(meta_sentences(spec, result))
+  if (!is.null(result$small_telescopes)) return(telescope_sentences(spec, result))
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   # Dyadic data: n counts pairs.
   if (is_dyadic(spec)) out[] <- gsub(" participants in total", " pairs", out, fixed = TRUE)
@@ -1076,7 +1077,20 @@ goal_sentences <- function(spec, result) {
     },
     sensitivity = {
       s <- result$sensitivity
-      if (is.null(s$cohen_f)) {
+      if (isTRUE(s$simulated)) {
+        # Welch's F: the pattern of means scaled by simulation.
+        c(
+          headline = sprintf(
+            "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s (95%% interval %s to %s). The effect: %s.",
+            whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
+            format(signif(s$effect, 3)), format(signif(s$effect_lower, 3)), format(signif(s$effect_upper, 3)), s$effect_description
+          ),
+          detail = sprintf(
+            "The pattern of means you entered keeps its shape and is scaled until the simulated power reaches the target (Spower, %s replications at each of %s sizes of the pattern). The interval is the simulation's uncertainty about where power reaches %s.",
+            whole(result$provenance$nrep), nrow(result$provenance$simulations), percent(spec$goal$power)
+          )
+        )
+      } else if (is.null(s$cohen_f)) {
         # Basic tests (pwr): the effect is solved for directly.
         name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
           r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared", "the effect")
@@ -1214,6 +1228,81 @@ safeguard_sentence <- function(result) {
     "earlier estimate is unbiased (Perugini, Gallucci & Costantini, 2014)."),
     sg$effect_name, format(round(sg$estimate, 3)), sizes, round(100 * sg$conf_level), sg$effect_name,
     format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
+}
+
+# Effects that vary between studies (Kenny & Judd, 2019), worked out by
+# the engine: what the variation does to power, and how often one study is
+# significant with no average effect.
+heterogeneity_sentence <- function(result) {
+  h <- result$heterogeneity
+  if (is.null(h)) return(NULL)
+  pct <- function(x) sprintf("%.0f%%", 100 * x)
+  sprintf(paste0("Variation between studies: the true effect is planned to vary from study to study with an SD of %s, ",
+    "so the effect entered is the average across studies (Kenny & Judd, 2019). At %s in total, power is %s with this variation, ",
+    "against %s if every study had the same effect. With no average effect at all, one study like this would still be ",
+    "significant %s of the time rather than at the significance level, because its own true effect is rarely exactly zero."),
+    format(h$tau), whole(h$n), pct(h$power), pct(h$power_without), pct(h$effective_alpha))
+}
+
+# Small telescopes (Simonsohn, 2015), worked out by the engine: d33 from
+# pwr, the replication's one-sided test against it from pwrss.
+
+# "How sure can you be?" for small telescopes: the plan assumes a true
+# effect of 0, so show the power if the effect is real but smaller than
+# d33 (the engine's `if_small` table, from pwrss).
+telescope_if_small_ui <- function(spec, result) {
+  table <- result$small_telescopes$if_small
+  if (is.null(table) || !nrow(table)) return(NULL)
+  st <- result$small_telescopes
+  share <- c("0 (the plan)", "a quarter of", "half of", "three quarters of")
+  rows <- lapply(seq_len(nrow(table)), function(i) tags$tr(
+    tags$td(if (i == 1) share[1] else sprintf("%s = %s (%s %s)", sub("33$", "", st$effect_name), format(round(table$true_effect[i], 3), nsmall = 2), share[i], st$effect_name)),
+    tags$td(percent(table$power[i]))))
+  div(class = "result-telescope-if-small",
+    p(sprintf(paste0("The plan assumes the true effect is zero. If the effect is real but smaller than %s, the replication is less ",
+      "likely to show it is below %s, and a result that is neither significant nor below %s is inconclusive:"),
+      st$effect_name, st$effect_name, st$effect_name)),
+    tags$table(class = "table table-sm result-telescope-table",
+      tags$thead(tags$tr(tags$th("True effect"), tags$th(sprintf("Power to show it is smaller than %s", st$effect_name)))),
+      tags$tbody(rows)))
+}
+telescope_effect_text <- function(st) {
+  sprintf("%s = %s", st$effect_name, format(round(st$effect, 3), nsmall = 2))
+}
+
+telescope_original_text <- function(st) {
+  if (!is.null(st$n1)) sprintf("%s and %s people in its two groups", st$n1, st$n2) else sprintf("%s people", st$n)
+}
+
+telescope_sentences <- function(spec, result) {
+  st <- result$small_telescopes
+  yardstick <- telescope_effect_text(st)
+  what <- sprintf("the original study (%s) had a one-in-three chance to detect", telescope_original_text(st))
+  headline <- switch(result$goal_type,
+    sample_size = {
+      n <- result$n_required$n
+      sprintf(paste0("To have %s power to show that the effect is smaller than %s if the true effect is zero, the replication needs ",
+        "%s participants in total%s, about %s times the original study's sample. %s is the effect %s."),
+        percent(spec$goal$power), yardstick, whole(n), group_text(spec, n), format(round(n / st$original_n, 1), nsmall = 1),
+        st$effect_name, what)
+    },
+    sprintf(paste0("With %s participants in total%s, the replication has %s power to show that the effect is smaller than %s ",
+      "if the true effect is zero. %s is the effect %s."),
+      whole(spec$goal$n), group_text(spec, spec$goal$n), percent(result$curve$power[1]), yardstick, st$effect_name, what)
+  )
+  c(
+    headline = headline,
+    detail = sprintf(paste0("This is the small-telescopes test (Simonsohn, 2015). If the replication finds the effect is smaller ",
+      "than %s, a study the size of the original could not reliably have detected an effect that small. That doesn't show the ",
+      "original result was a false positive, and it says something about the original study only as far as the replication ",
+      "recreated its conditions: the same manipulation, of similar strength, measured the same way, in a comparable sample. ",
+      "The original estimate (%s) only sets the direction. Worked out by formula: %s from pwr's power function at a power of one ",
+      "third and the original study's significance level (%s, two-sided), and the replication's one-sided test against it from %s, ",
+      "no simulation. To also have power to detect the original effect if it is real, plan that test separately; if the effect ",
+      "might matter only above some size, the equivalence test asks whether it is too small to matter, which suits a very large original study."),
+      st$effect_name, format(round(st$original_effect, 3)), st$effect_name, alpha_text(st$original_alpha %||% 0.05),
+      sub(" \\(H0.*", "", result$provenance$backend_function))
+  )
 }
 
 # An effect converted from another form, in words beside the result: what
@@ -1571,7 +1660,7 @@ guess_gap <- function(guess, answer) {
 
 # A short warning for effect sizes taken from one earlier study.
 source_note <- function(values) {
-  if (!identical(values$just_type, "prior_study") || identical(values$sg_use, "yes")) return(NULL)
+  if (!identical(values$just_type, "prior_study") || isTRUE(values$sg_use %in% c("yes", "telescopes"))) return(NULL)
   "Your effect size comes from one earlier study. Published effects from single studies tend to be larger than the true effect, so a sample size based on one can be too small. Adjusting it (and saying how) helps; the BUCSS R package offers a bias-corrected approach."
 }
 
@@ -1991,6 +2080,15 @@ departures_for <- function(forms, ep_id, spec) {
   # correlation; the z test for two proportions) apply only when the formula was used, not to simulation
   # or Welch's t-test (whose formula, pwrss's, is chosen by the user).
   if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_rank_correlation(spec) || is_bayes_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
+  # Departure 21 (Welch's t-test by default) applies when Welch's test is
+  # the one planned for.
+  if (!identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, "21")
+  # Departure 22 (Welch's F by default) applies when Welch's F is planned
+  # for.
+  if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
+  # Departure 23 (variation between studies, 0.05 to start with) applies
+  # when the plan allows for it.
+  if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, "23")
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
@@ -2079,6 +2177,8 @@ provenance_lines <- function(result) {
 
 welch_population_note <- function(spec) {
   if (!identical(spec$template, "independent_t") || !identical(spec$target_test$method, "welch_t")) return(NULL)
+  # Small telescopes plans Student's test against d33 (small-telescopes.R).
+  if (!is.null(spec$effect_justification$small_telescopes)) return(NULL)
   ratio <- spec$population$sd_ratio %||% 1
   if (isTRUE(all.equal(as.numeric(ratio), 1))) {
     return("Welch planning assumes normal scores with equal population SDs in the two groups; Welch's test does not rely on that equality when the data are analysed.")
@@ -2163,6 +2263,12 @@ result_assumptions <- function(spec, result, fields, values) {
   # entered in brackets.
   if (!is.null(sg <- result$safeguard) && !is.na(out[["effect"]])) {
     out[["effect"]] <- sprintf("%s = %s, the safeguard value (%s)", sg$effect_name, format(round(sg$lower, 3), nsmall = 2), out[["effect"]])
+  }
+  # Small telescopes: planned for a true effect of 0, tested one-sided
+  # against the original's d33.
+  if (!is.null(st <- result$small_telescopes)) {
+    out[["effect"]] <- "A true effect of 0 (the original estimate sets the direction)"
+    out[["test"]] <- sprintf("A one-sided test of %s at alpha = %s", telescope_effect_text(st), alpha_text(spec$target_test$alpha))
   }
   out <- out[!is.na(out) & nzchar(out)]
   if (is_bayes_test(spec)) out[] <- vapply(out, bayes_wording, character(1))
@@ -2314,6 +2420,9 @@ labs_variation_settings <- function(spec, result) {
 
 # The links themselves, under "How sure can you be?".
 labs_learn_ui <- function(spec, result) {
+  # The learning aids draw the usual test of the effect entered, not a
+  # small-telescopes test against d33.
+  if (!is.null(result$small_telescopes)) return(NULL)
   picture <- labs_picture_settings(spec, result)
   variation <- labs_variation_settings(spec, result)
   if (is.null(picture)) return(NULL)
@@ -2361,12 +2470,17 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   # details a reader rarely needs (the values used, the seed, what power
   # can't tell you) are folded under "More about this result".
   hero <- result_hero_ui(spec, result, fields, values)
-  explore <- explore_ui(spec, result)
-  scen <- scenarios_ui(spec, result)
-  bayes_card <- bayes_companion_card_ui(tree, ep_id, spec, result)
+  # Small telescopes is its own test against d33, planned for an effect of
+  # 0: the effect slider, the scenarios and the Bayes factor companion
+  # would describe a two-sided test of the original effect instead.
+  telescopes <- !is.null(result$small_telescopes)
+  telescope_sure <- if (telescopes) telescope_if_small_ui(spec, result)
+  explore <- if (!telescopes) explore_ui(spec, result)
+  scen <- if (!telescopes) scenarios_ui(spec, result)
+  bayes_card <- if (!telescopes) bayes_companion_card_ui(tree, ep_id, spec, result)
   sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
-    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
+    `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
     `result-bayes` = if (!is.null(bayes_card)) "Add a Bayes factor?",
     `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
@@ -2384,6 +2498,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
+    if (!is.null(het <- heterogeneity_sentence(result))) p(class = "result-heterogeneity", het),
     if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
@@ -2394,9 +2509,10 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
     if (length(known) || length(departures_in_view)) p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
-    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
+    if (!is.null(telescope_sure) || !is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
-      p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
+      if (is.null(telescope_sure)) p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
+      telescope_sure,
       if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
       bayes_robustness_ui(spec, calc$robustness),
       bayes_uncertain_ui(spec, result),
@@ -2660,6 +2776,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_minimum_effect(spec)) name <- sprintf("%s as a minimum-effect test against a smallest effect of interest of %s (pwrss's t-test against the margin)",
     name, minimum_effect_margin_text(spec))
   if (identical(spec$design, "sem") && !is_sem_fit(spec)) name <- sem_test_name(spec)
+  telescopes <- result$small_telescopes
+  if (!is.null(telescopes)) {
+    name <- sprintf(paste0("a small-telescopes replication test (Simonsohn, 2015): a one-sided test of whether the effect is smaller ",
+      "than %s, the effect the original study (%s) had 33%% power to detect (%s), computed with pwrss"),
+      telescope_effect_text(telescopes), telescope_original_text(telescopes), sub("^pwr[:]+", "pwr's ", telescopes$function_used))
+  }
   if (spec$template %in% c("2x2_between", "2x2_mixed", "mixed", "factorial_between", "factorial_within", "factorial_ancova", "factorial_three")) name <- sprintf("%s (target effect: %s)", name, gsub("_", " ", spec$target_test$effect))
   equivalence <- identical(spec$design, "equivalence_test")
   if (equivalence) {
@@ -2706,6 +2828,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)), format(tt$evidence_threshold %||% 10))
   }
+  if (!is.null(telescopes)) test <- sprintf("%s (one-sided, α = %s)", name, writeup_alpha(spec$target_test$alpha))
   if (equivalence) test <- if (is_noninferiority(spec)) {
     sprintf("%s (α = %s, one-sided; margin %s, %s values better)", name, writeup_alpha(spec$target_test$alpha), format(spec$population$margin), spec$population$better %||% "higher")
   } else sprintf("%s (each one-sided test at α = %s)", name, writeup_alpha(spec$target_test$alpha))
@@ -2716,6 +2839,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     sprintf("Power to show equivalence (the %s lying inside the bounds), if the true %s is as expected, is %%.1f%%%%.", what, what)
   } else if (is_minimum_effect(spec)) {
     "Power to show the effect is larger than the smallest effect of interest, if it is as expected, is %.1f%%."
+  } else if (!is.null(telescopes)) {
+    sprintf("Power to show the effect is smaller than %s, if the true effect is zero, is %%.1f%%%%.", telescopes$effect_name)
   } else "Power to detect this effect is %.1f%%."
   effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values)
   # A converted effect: the published value, what it became and how.
@@ -2742,7 +2867,16 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
         round(100 * sg$conf_level), if (!is.null(sg$n1)) sprintf("n = %s and %s", sg$n1, sg$n2) else sprintf("n = %s", sg$n),
         sub("\\(.*", "()", sub("^psych::", "", sg$function_used)), sg$effect_name, format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
     }
-    sprintf("The effect size, %s, was based on %s: %s.%s", effect, writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning, adj)
+    if (!is.null(h <- result$heterogeneity)) {
+      adj <- paste0(adj, sprintf(paste0(" The true effect was allowed to vary between studies with a standard deviation of %s, ",
+        "following Kenny and Judd (2019): the effect size is the average across studies, and power was computed with pwr ",
+        "using their effective significance level (%s) and adjusted noncentrality."), format(h$tau), format(signif(h$effective_alpha, 3))))
+    }
+    if (!is.null(telescopes)) {
+      sprintf("The original study's effect size, %s, set the test's direction (%s); its size does not enter the plan.", effect, reasoning)
+    } else {
+      sprintf("The effect size, %s, was based on %s: %s.%s", effect, writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning, adj)
+    }
   } else {
     sprintf("The reasoning about the effect size: %s.", reasoning)
   }
@@ -2773,7 +2907,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     },
     sensitivity = {
       s <- result$sensitivity
-      size <- if (is.null(s$cohen_f)) {
+      size <- if (isTRUE(s$simulated)) {
+        sprintf("%s (95%% simulation interval %s to %s; %s)", format(signif(s$effect, 3)),
+          format(signif(s$effect_lower, 3)), format(signif(s$effect_upper, 3)), s$effect_description)
+      } else if (is.null(s$cohen_f)) {
         sprintf("%s = %s (%s)", s$effect_name %||% "effect", format(round(s$effect, 3), nsmall = 2), s$effect_description)
       } else {
         sprintf("Cohen's f = %.3f (%s)", s$cohen_f, s$effect_description)
@@ -2884,6 +3021,16 @@ ethics_text <- function(spec, result, fields, values) {
   if (is_sem_fit(spec)) chance <- function(p) sprintf(
     "If our model is wrong by the amount we set, the chance that a study of this size detects it (a statistically significant test of the model's fit, using a %s threshold) is %s, and the chance that it misses it is %s. Smaller errors in the model are more likely to be missed.",
     alpha, percent(p), percent(1 - p))
+  # Small telescopes: the replication is planned for an effect of 0, to
+  # show the effect is smaller than the original study could detect.
+  if (!is.null(st <- result$small_telescopes)) {
+    basis <- sprintf(paste0("This is a replication. We are planning for the possibility that the effect is zero, and asking whether ",
+      "it is smaller than the original study (%s) could have detected (Simonsohn, 2015). The original study's effect, %s, sets ",
+      "the direction of the test: %s."), telescope_original_text(st), effect %||% "as reported", reasoning)
+    chance <- function(p) sprintf(
+      "If there is no effect, the chance that a study of this size shows the effect is too small for the original study to have detected (a one-sided test using a %s threshold) is %s, and the chance that it fails to show this is %s.",
+      alpha, percent(p), percent(1 - p))
+  }
   include <- sprintf("We plan to include %s participants in the analysis%s.", whole(n), group_text(spec, n))
   if (is_meta(spec)) {
     include <- sprintf("We plan to include %s studies in the meta-analysis.", whole(n))

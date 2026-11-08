@@ -222,7 +222,7 @@ about_ui <- function(tree, forms) {
         p(class = "about-small", "Nothing is sent from this app without you: the only thing it ever sends is a feedback message, ",
           "when you click Send, including the optional answers and browser information disclosed on the Feedback tab. Calculations use your answers where this app is running: on the host for the online app, or on your computer for a local installation. ",
           "This browser keeps the answers on an input screen you haven't finished, the analyses you opened recently and a few display choices, so that you can carry on next time; they stay in this browser and are not sent anywhere. ",
-          "On a shared computer, choose Start fresh when asked whether to continue (it deletes the saved answers), or clear this site's data in your browser's settings to remove everything."),
+          "On a shared computer, choose \u201cDiscard my draft\u201d when the plan tab offers to continue (it deletes the saved answers), or clear this site's data in your browser's settings to remove everything."),
         tags$button(type = "button", class = "btn btn-outline-primary", onclick = "pkAboutTab('Feedback')", "Give feedback"))),
 
     about_section("about-credits", "Credits",

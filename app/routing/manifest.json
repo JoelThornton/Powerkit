@@ -6213,7 +6213,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.45.2",
+        "Version": "0.49.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6221,7 +6221,7 @@
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
         "Imports": "afex, ARTool, BayesFactor, bayestestR, bfpwr, brunnermunzel,\ncar, digest, effectsize, Hmisc, ICC.Sample.Size,\nInteractionPoweR, irtpwr, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, kappaSize, PMCMRplus, POMADE, presize, lme4,\nlmerTest, longpower, manymome, mclust, MBESS, nnet, gsl,\nmetafor, metapower, mirt, parallel, pbkrtest, nlme, PITS,\npowRICLPM, psych, quantreg, power4mome, pwr, powertools,\npowerSurvEpi, pscl, pwrss, PUMP, semPower, simr, SimDesign,\nstatpsych, Spower (>= 0.7), stats, SuppDists, survival,\nSuperpower, TOSTER, vegan, utils, WebPower",
-        "Suggests": "lavaan, MASS, simsem, testthat (>= 3.0.0)",
+        "Suggests": "BayesRepDesign, lavaan, MASS, simsem, testthat (>= 3.0.0)",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
         "Config/testthat/start-first": "export-script, whole-study,\nbackend-modmed-parallel, backend-mixed-model",
@@ -6230,19 +6230,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "3cb1045188febdfc3f13db8c813c9eac7052e7b7",
-        "RemoteSha": "3cb1045188febdfc3f13db8c813c9eac7052e7b7",
+        "RemoteRef": "013325c1d56581e84962ef3f5dd54271d3f8641e",
+        "RemoteSha": "013325c1d56581e84962ef3f5dd54271d3f8641e",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "3cb1045188febdfc3f13db8c813c9eac7052e7b7",
-        "GithubSHA1": "3cb1045188febdfc3f13db8c813c9eac7052e7b7",
+        "GithubRef": "013325c1d56581e84962ef3f5dd54271d3f8641e",
+        "GithubSHA1": "013325c1d56581e84962ef3f5dd54271d3f8641e",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-08 11:24:57 UTC; runner",
+        "Packaged": "2026-11-08 20:33:52 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-08 11:25:08 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-08 20:34:12 UTC; unix"
       }
     },
     "powertools": {
@@ -8506,16 +8506,16 @@
   },
   "files": {
     "app.R": {
-      "checksum": "8c31c8e89c3965fefe754b3e5feb4302"
+      "checksum": "0734f4b0a9cb36fb64747ab8b72de03b"
     },
     "forms.yaml": {
-      "checksum": "064b7a8f8d1245b609f212fc53b794b9"
+      "checksum": "86769caf8d372e8c358b442c53a1f7eb"
     },
     "methods-map.yaml": {
       "checksum": "95e47c58f2b5274b63cde74efa7a08f0"
     },
     "R/about.R": {
-      "checksum": "c408eedebf2b2c39b86fa75f481dd1b7"
+      "checksum": "ab381b490aa8f104e25b574b483998b9"
     },
     "R/capabilities.R": {
       "checksum": "4d92ba2ad8773fba4f81d554585fe274"
@@ -8536,13 +8536,13 @@
       "checksum": "428a9ee39beefea4458e66bd7f3dfe72"
     },
     "R/forms.R": {
-      "checksum": "eab71a295ba06dcfe8375eaf61c624b3"
+      "checksum": "3212abd658dc293aed27fda4861516df"
     },
     "R/input-support.R": {
       "checksum": "bdf0e5767132a553068c033f7e5f520e"
     },
     "R/labs.R": {
-      "checksum": "b28e72ab71ea06ed396efe1092a7019e"
+      "checksum": "3585de7d80e4c806e6cd5d3277fd8f82"
     },
     "R/map.R": {
       "checksum": "87b57d42599be4d23ca3b702f7faff13"
@@ -8553,8 +8553,11 @@
     "R/project.R": {
       "checksum": "741364b7e92a0ac1d8e5bcb34c314fd3"
     },
+    "R/replication.R": {
+      "checksum": "c7fca3888c73999e36b13b7400984760"
+    },
     "R/results.R": {
-      "checksum": "7b31c1b75254a8deb00f434e6c1dfa13"
+      "checksum": "8d0bf119c075cd3d5136fcd6a540c57a"
     },
     "R/sample.R": {
       "checksum": "5a2faf0bd5eeff5c04489743edadd733"
@@ -8566,7 +8569,7 @@
       "checksum": "e10eb734b5bc01d9c0ee9ddd5bb89871"
     },
     "R/study-plan.R": {
-      "checksum": "f463fe2b557a09c375bf93955844e4cb"
+      "checksum": "cf4957166553569722cefad749a21995"
     },
     "R/study-variation.R": {
       "checksum": "6a14c13df303825e8d6afafd84888024"
@@ -8575,7 +8578,7 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "e2b6576cdc823d8500d9755f92b73dcd"
+      "checksum": "b77819a85963c8e2e79701626da7f627"
     },
     "R/whole-study.R": {
       "checksum": "406f77b8c7d033ee6d375d9d91417f0a"
@@ -8584,16 +8587,13 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "27e1ef108c45052caefd5ce83dc150f0"
+      "checksum": "5279ab2978d2cebdbd3f9ac46c38a9f3"
     },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
     },
-    "whats-new.d/repeated-counts-routing.yaml": {
-      "checksum": "82939937e101f74d16ac04fff83b95a2"
-    },
     "whats-new.yaml": {
-      "checksum": "8c042de32c29f45af26b87ec4b40a377"
+      "checksum": "4501d77a1dddcf153ea1a4fb585b56e7"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

@@ -23,9 +23,11 @@ simulation; all equal for exact results), or \code{NA} unless the goal is
 interval;
 \item \code{sensitivity}: \code{NA} unless the goal is \code{sensitivity}; otherwise a list
 with the smallest detectable \code{effect} (with an \code{effect_description})
-and the \code{power} reached there. For 2x2 ANOVAs it also has the \code{scale}
+and the \code{power} reached there. For the ANOVAs it also has the \code{scale}
 applied to the specified pattern, the scaled cell \code{means} and the
-\code{cohen_f}; for the basic tests on pwr, the \code{effect_name} (\code{d}, \code{d_z},
+\code{cohen_f}; for Welch's F, no \code{cohen_f} but \code{simulated = TRUE} and the
+95\% interval (\code{scale_lower}, \code{scale_upper}, \code{effect_lower},
+\code{effect_upper}); for the basic tests on pwr, the \code{effect_name} (\code{d}, \code{d_z},
 \code{r}, \code{w} or \code{p2});
 \item \code{justified_alpha}: \code{NULL} unless the goal is \code{justified_alpha};
 otherwise JustifyAlpha's \code{optimal_alpha()} result: the \code{alpha}, the
@@ -115,8 +117,9 @@ ANOVA on Superpower's \code{ANOVA_exact()}; multiple regression R-squared
 (against 0, or an increase) on \code{pwrss::power.f.regression()}; one
 proportion and McNemar's test on pwrss's exact tests
 (\code{power.exact.oneprop()}, \code{power.exact.mcnemar()}); and Welch's t-test
-by formula on request (\code{options > method = "exact"},
-\code{pwrss::power.t.welch()}). These have no simulation option. For the two
+by formula (\code{pwrss::power.t.welch()}, unless
+\code{options > method = "simulation"} asks for Spower's simulation). The
+others have no simulation option. For the two
 exact tests of counts, whose power goes up and down with n, the required
 n is the smallest that reaches the target power.
 More tests by formula (engine only, not yet in the app), each on one
@@ -246,10 +249,12 @@ Mediation and moderated-mediation simulations run in batches of at most
 confidence interval), keeping only each batch's counts, so memory use
 doesn't grow with \code{options > nrep}.
 
-\strong{Sensitivity.} For 2x2 designs, the shape of the specified pattern is
+\strong{Sensitivity.} For the ANOVAs, the shape of the specified pattern is
 kept and its size scaled (each cell mean's deviation from the grand mean)
-until the target effect reaches the target power at n. Sensitivity is not
-yet available for other designs (the one-way ANOVA included).
+until the target effect reaches the target power at n: exactly for the F
+test, and by simulation for Welch's F (\code{\link[=welch_f_sensitivity]{welch_f_sensitivity()}}, with a
+95\% interval for the scale and the effect). Simulated tests otherwise
+have no sensitivity analysis.
 }
 \examples{
 \donttest{

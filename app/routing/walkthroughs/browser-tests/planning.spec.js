@@ -135,6 +135,8 @@ test('precision produces width rather than a power result', async ({ page }, inf
 test('a real background simulation can be cancelled', async ({ page }) => {
   await tPlan(page);
   await setValue(page, 'method', 'welch_t');
+  // Welch's test is worked out by formula unless simulation is chosen.
+  await setValue(page, 'welch_method', 'simulation');
   await setValue(page, 'simulation_accuracy', 'precise');
   await setValue(page, 'n', '1000');
   await page.locator('#form_check').click();
@@ -182,6 +184,13 @@ test('reported-statistic import fills supported fields and refuses unsupported s
 for (const page_ of ['labs', 'about', 'updates']) test(`a link straight to ${page_} is not covered by the starting screen`, async ({ page }) => {
   await page.goto(`/?page=${page_}`);
   await expect(page.locator('#pk-starting')).toHaveCount(0, { timeout: 30000 });
+});
+
+test('a link to a card opens that card, and the address names the open card', async ({ page }) => {
+  await page.goto('?card=E8');
+  await expect(page.locator('#pk-starting')).toHaveCount(0, { timeout: 30000 });
+  await expect(page.locator('#screen [data-recent-id="E8"]')).toHaveCount(1);
+  await expect(page).toHaveURL(/card=E8/);
 });
 
 test('a link straight to a Labs tool opens it, not the starting screen', async ({ page }) => {

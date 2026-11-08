@@ -48,3 +48,56 @@ test_that("Welch simulation holds alpha with unequal SDs and unequal groups", {
   result <- run_spec(spec)
   expect_type1_near(binomial_estimate(result$curve$power, validation_nrep()), spec$target_test$alpha)
 })
+
+# Welch's one-way ANOVA (the one-way card's default since November 2026):
+# stats::oneway.test() on separately generated groups with each group's SD.
+welch_anova_validation_spec <- function(goal, means = list(10, 11, 13), sds = list(4, 6, 9)) {
+  spec <- example_spec("anova_oneway_between")
+  spec$target_test$method <- "welch_f"
+  spec$population$means <- means
+  spec$population$sds <- sds
+  spec$goal <- goal
+  spec$options <- list(seed = 2611L, nrep = validation_nrep())
+  validate_spec(spec)
+}
+
+independent_welch_anova_rate <- function(means, sds, n_per_group, nrep, seed, alpha = 0.05) {
+  group <- factor(rep(seq_along(means), each = n_per_group))
+  with_seed(seed, mean(replicate(nrep, {
+    y <- stats::rnorm(length(group), rep(means, each = n_per_group), rep(sds, each = n_per_group))
+    stats::oneway.test(y ~ group, var.equal = FALSE)$p.value < alpha
+  })))
+}
+
+test_that("Welch's F simulation agrees with separately generated and analysed groups", {
+  skip_unless_full_validation()
+  spec <- welch_anova_validation_spec(list(type = "power", n = 90))
+  result <- run_spec(spec)
+  reference <- independent_welch_anova_rate(c(10, 11, 13), c(4, 6, 9), 30, validation_nrep(), 4127)
+  expect_power_near(binomial_estimate(result$curve$power, validation_nrep()), reference,
+    reference_nrep = validation_nrep())
+})
+
+test_that("Welch's F simulation holds alpha with unequal SDs", {
+  skip_unless_full_validation()
+  spec <- welch_anova_validation_spec(list(type = "power", n = 60), means = list(10, 10, 10))
+  result <- run_spec(spec)
+  expect_type1_near(binomial_estimate(result$curve$power, validation_nrep()), spec$target_test$alpha)
+})
+
+test_that("at Welch's F's smallest detectable effect, separately simulated studies reach the target power", {
+  skip_unless_full_validation()
+  spec <- welch_anova_validation_spec(list(type = "sensitivity", n = 90, power = 0.8))
+  spec$options$nrep <- 2000L
+  s <- run_spec(spec)$sensitivity
+  reference <- independent_welch_anova_rate(s$means, c(4, 6, 9), 30, validation_nrep(), 5113)
+  # The scale is read from a fitted curve, so the reference is compared
+  # with the target, allowing the curve's own 95% interval as well.
+  power_at <- function(scale) {
+    means <- mean(c(10, 11, 13)) + scale * (c(10, 11, 13) - mean(c(10, 11, 13)))
+    independent_welch_anova_rate(means, c(4, 6, 9), 30, 2000L, 5113)
+  }
+  expect_power_near(binomial_estimate(0.8, validation_nrep()), reference, reference_nrep = validation_nrep())
+  expect_lte(power_at(s$scale_lower), 0.8 + 0.03)
+  expect_gte(power_at(s$scale_upper), 0.8 - 0.03)
+})

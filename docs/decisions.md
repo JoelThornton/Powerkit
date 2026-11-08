@@ -6026,3 +6026,205 @@ the site stays findable by search engines.
   request is ready. Recording the engine's commit beside the version
   would remove the ambiguity; it is a question for the maintainer.
 
+
+## 2026-11-08 · Welch's t-test by default on the two-group card
+
+- **Decided with the review (7 November 2026):** the two-group t-test
+  plans for Welch's t-test by default, worked out by formula, with
+  Student's as a choice, recorded as a departure from G\*Power
+  (`conventions.md`, Departure 21) and cited to Delacre, Lakens and Leys
+  (2017, `Delacre2017_welch`), who recommend Welch's test by default
+  because it keeps the false-positive rate when the groups' spreads differ
+  and loses almost nothing when they don't.
+- **The formula by default:** pwrss's `power.t.welch()`, which the
+  `welch_spreads` validation chunk checks against simulated studies, now
+  answers unless simulation is asked for; Spower's simulation stays a
+  choice. With equal spreads and equal groups it gives Student's answer
+  exactly (its df are n - 2); with unequal groups Welch's needs a few
+  more people (147 rather than 144 for d = 0.5 with group 2 twice the
+  size of group 1, `test-welch-default.R`).
+- **Nothing lost by the default:** the smallest detectable effect (d
+  searched with pwrss's own power, as for regression) and a justified
+  alpha (JustifyAlpha on `power.t.welch()`) now cover Welch's test, with
+  scripts that reproduce both. Two things stay with Student's test only:
+  the critical effect size, which for Welch's test depends on the sample
+  variances (1 November 2026), and joint power for several outcomes,
+  which uses PUMP's pooled-variance t-test (the study plan now says to
+  choose Student's test for it).
+- **The one-way ANOVA:** Welch's F becomes its default too (maintainer,
+  8 November 2026: follow best practice), in the next pull request of
+  this batch (`next.md`, R12b).
+
+## 2026-11-08 · Welch's F by default on the one-way ANOVA card
+
+- **Decided by the maintainer (8 November 2026: follow best practice):**
+  the one-way ANOVA card plans for Welch's F by default, with the
+  classical F test as a choice, recorded as a departure from G\*Power and
+  Superpower (`conventions.md`, Departure 22) and cited to Delacre, Leys,
+  Mora and Lakens (2019, `Delacre2019_welch_f`), who recommend Welch's F
+  over the classical F test by default.
+- **Simulated, because no package has a formula:** Welch's F's power is
+  simulated with Spower (`p_anova.test(var.equal = FALSE)`), as it was as
+  a choice. No R package gives it in closed form, and the published
+  approximations are not implemented in one, so none is written into the
+  engine. With one SD of 6 and means 10, 11 and 13 it needs 231 people
+  for 80% power against the F test's 228 (`test-welch-anova-default.R`).
+- **Nothing lost by the default:** the smallest detectable effect, which
+  the F test has exactly, is now simulated for Welch's F
+  (`welch_f_sensitivity()`): the pattern of means is scaled, starting
+  from the F test's exact answer, and read from a probit curve of the
+  simulated rejections, as the simulated sample size is, with a 95%
+  interval and a script that reproduces it. Means in SD units now work
+  with one SD for every group; the card asks whether the spreads are
+  expected to differ, and only then for an SD per group.
+- **When to choose the classical F test:** the card's note names a direct
+  replication or preregistration that fixes it, or an ANOVA inside a
+  larger equal-variance model, and suggests reporting Welch's F beside
+  it, as the two-group card does for Student's test.
+- **Still the classical F test:** the experimental whole-study plan's
+  factorial experiments, which simulate every effect of one Superpower
+  design together; Welch's F has no factorial form there.
+
+## 2026-11-08 · Small telescopes for replications
+
+- **Decided with the review (7 November 2026):** offer Simonsohn's (2015)
+  small-telescopes plan beside safeguard power on the t-test and
+  correlation cards (`next.md`, R13), and in the Labs pre-replication
+  notes.
+- **How, without new maths:** no R package plans a small-telescopes
+  replication (RSmallTelescopes 1.0.4 analyses one that is finished), so
+  powerkit composes it from pwr (d33: the effect the original study had
+  33% power to detect) and pwrss (the replication's one-sided test of
+  whether the effect is smaller than d33, for a true effect of 0, as a
+  test against a margin). The answers match Simonsohn's rule of thumb of
+  about 2.5 times the original sample (`conventions.md`, "Small
+  telescopes for replications").
+- **Student's test:** the replication's test is Student's t-test, as in
+  the method and the original studies it is usually applied to, whatever
+  version the card has selected; the card's note says to report Welch's
+  test beside it. The Labs panel says to run the test the original used.
+- **What it doesn't do:** it plans the test of d33 only. Power to detect
+  the original effect, if it is real, is a separate plan, and the result
+  says so.
+- **The original's own significance level (0.47.2):** d33 is worked out
+  at the level the original study used (0.05 unless the user gives
+  another), and only the replication's test uses the card's alpha, as in
+  Simonsohn's definition of d33 as the effect the original study had 33%
+  power to detect. One alpha for both had made a stricter replication
+  smaller (38 rather than 96 per group at .005 for an original of 20 per
+  group).
+- **What a result claims (0.47.2):** the result, the choice note and the
+  Labs sentence say that a result below d33 means a study the size of the
+  original could not reliably have detected an effect that small, not
+  that the original was a false positive (Simonsohn, 2015, p. 567), and
+  that it bears on the original only as far as the replication recreated
+  its conditions (manipulation, its strength, measurement, sample). "How
+  sure can you be?" shows the power if the true effect is a quarter, half
+  or three quarters of d33, since the plan assumes exactly 0. The "about
+  2.5 times" rule of thumb is named once, as Simonsohn's, beside the
+  computed ratio.
+
+
+## 2026-11-08 · The review's checks, kept for releases
+
+- **Decided with the review (7 November 2026):** keep the review's
+  property checks over every example spec and its run of every card in a
+  browser, so they can be rerun before each release (`next.md`, R14).
+- **Where:** `scripts/release-checks/` (the property checks, in R) and
+  `app/routing/walkthroughs/every-card.js` with
+  `every-card-list.R` (the browser run, beside the other Playwright
+  scripts). Both exit with status 1 on any problem; how to run them is
+  in `repository-protection.md`, "Checks before a release".
+- **Not in CI:** each takes one to two hours, and the full validation run
+  already covers the published values. A test in the app suite runs the
+  property checks on one formula design and writes the card list, so
+  neither script falls out of step with the engine or the forms
+  unnoticed.
+- **Changed from the review's versions:** the browser run opens folded
+  sections before filling a field and doesn't count the Bayes factor
+  box, which stays empty until asked for, as a blank output; its
+  thirteen "blank" findings in the review were that box.
+
+
+## 2026-11-08 · Labs: a replication planner
+
+- **Decided (8 November 2026):** build a replication planner, with its
+  Bayesian goals, as its own Labs tool rather than a design card: a
+  replication is a set of decisions (what counts as success, how far to
+  trust the original's effect, how the new study differs), not one test.
+  It comes after the pre-replication notes (Karhulahti et al., 2025),
+  which stay their own tool and decide whether to replicate at all; the
+  planner reads their study and smallest effect and includes the notes in
+  its write-up, and is not offered when the notes end at "not worth
+  replicating". It is in four sections that can be filled in any order
+  and saved to a file, since a replication is rarely planned in one sitting.
+- **Ways in:** "Replicate a published finding" on the start screen's aim
+  question, the notes' "go ahead" and "redesign" outcomes, and the main
+  route's signpost beside a previous study as the effect's source.
+- **Goals:** Anderson and Maxwell's (2016) goals beyond significance, each
+  planned with BayesRepDesign (Pawel, Consonni & Held, 2026): a
+  significant result in the original's direction, a significant pooled
+  estimate, agreement with the original, the replication and sceptical
+  Bayes factors, and showing the effect is too small to matter (TOST,
+  planned for no effect); small telescopes is the card's own calculation.
+  ReplicationSuccess (Held and colleagues) was the other candidate; it
+  adds the sceptical p-value, which BayesRepDesign also has (`ssdPs()`),
+  so one package covers every goal. The sceptical p-value is left out
+  for now: it is rarely used in psychology, and each goal shown needs
+  words that explain it.
+- **Three beliefs, side by side:** every goal is shown under the original
+  estimate as reported, with its uncertainty, and shrunk towards zero
+  (BayesRepDesign's conditional, predictive and empirical Bayes design
+  priors), so the table shows how much the answer rests on trusting the
+  original. The write-up's default belief is "with its uncertainty",
+  following the paper's argument that ignoring the original's uncertainty
+  makes replications too small; "as reported" stays for comparison with
+  the usual power analysis.
+- **Variation between studies:** none, or Kenny and Judd's (2019)
+  representative 0.05, 0.125 and 0.20 in d, for the uncertain and shrunk
+  beliefs. None stays the starting value here, so the planner's first
+  table matches the usual analysis; the note under the field gives Kenny
+  and Judd's argument that zero should not be the default. Whether to
+  start at a non-zero value is the maintainer's call (the heterogeneity
+  option for the t-test cards is the next queue item).
+- **The normal approximation:** BayesRepDesign's model is normal, so the
+  significance goal under "as reported" asks for slightly fewer people
+  than the t-test cards (66 against 68 for d = 0.7); stated in
+  `conventions.md`, "Replication planner (Labs)", on the result and in
+  the methods paragraph.
+
+## 2026-11-08 · Effects that vary between studies, on the t-test cards
+
+- **Decided (8 November 2026):** the one-sample, two-group and paired
+  t-test cards take an optional "how much might the true effect vary
+  between studies", an SD in d (d_z for pairs), following Kenny and Judd
+  (2019): a power analysis that assumes the new study's true effect is
+  exactly the planned one ignores the variation between labs, samples
+  and procedures, and Kenny and Judd show it changes the sample size
+  needed (352 in total for 80% power at d = 0.3 with none, 830 with
+  their "large" 0.20).
+- **Method:** Kenny and Judd's published formula, not a simulation: no
+  package computes power averaged over a normal distribution of true
+  effects for a t-test (BayesRepDesign does it on a normal model for a
+  replication of a given original, which is the Labs planner's job, not a
+  new study's). Their paper notes that a conventional power program gives
+  their answer when given the effective significance level and the
+  adjusted effect, so powerkit calls pwr that way and writes no
+  noncentral-t maths of its own. Checked against their worked example,
+  their appendix function and an independent simulation
+  (`conventions.md`, "Effects that vary between studies").
+- **Scope:** Student's t-test, or Welch's with equal SDs (whose power then
+  equals Student's on the card's own backend), for power, the sample size
+  and the smallest detectable effect. Refused in plain words with rank
+  tests, Bayes factors, simulation, unequal SDs and small telescopes
+  (which plans for no effect). The other cards follow if it is useful.
+- **Starting value (the maintainer's decision, 8 November 2026):** 0.05,
+  Kenny and Judd's small variation, following their argument that zero
+  should not be the default; emptying the field gives the usual analysis.
+  It is Departure 23 (`conventions.md`), shown on the result whenever the
+  variation is above 0 and stated in the methods paragraph: 376 people
+  against 352 for d = 0.3 at 80% power. The field is hidden where the
+  formula doesn't apply (rank tests, Bayes factors, minimum-effect tests,
+  simulation, small telescopes, a justified alpha, the power curve), so
+  those plans are unchanged; Welch's test with unequal SDs is refused in
+  plain words, asking the user to empty the field.

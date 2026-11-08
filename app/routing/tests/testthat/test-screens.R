@@ -349,7 +349,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   # these (CLAUDE.md: the app builds specs and calls the engine).
   used <- regmatches(code, gregexpr('engine_function\\("[^"]+"', code))[[1]]
   used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
-  expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "simulated_data_note", "power_interval", "power_picture", "power_picture_r", "power_picture_paired", "power_picture_anova", "power_picture_2p", "power_picture_chisq", "power_picture_f2", "bayes_planning", "bayes_sequential", "bayes_companion", "bayes_robustness",
+  expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "simulated_data_note", "power_interval", "power_picture", "power_picture_r", "power_picture_paired", "power_picture_anova", "power_picture_2p", "power_picture_chisq", "power_picture_f2", "bayes_planning", "bayes_sequential", "bayes_companion", "bayes_robustness", "replication_planning", "replication_planning_script",
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
     "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result", "spec_hash", "study_variation", "sample_structure", "analysis_requirements", "all_tests_target", "analysis_evidence", "simulation_margin"))
   # Calculations run only for the end points listed in forms.yaml.
@@ -521,6 +521,25 @@ test_that("each tab has its own address, so a page can be shared by link", {
   expect_match(code, "selected = page_from_query(req$QUERY_STRING)", fixed = TRUE)
   expect_match(code, "page = page_slug(input$tabs)", fixed = TRUE)
   expect_match(nav_js, "searchParams.set('page'", fixed = TRUE)
+})
+
+test_that("a link can open a card, not only a tab", {
+  # ?card=E8 opens that card as the list of every analysis does.
+  expect_identical(card_from_query("?card=E8", tree), "E8")
+  expect_identical(card_from_query("?card=e8", tree), "E8")
+  expect_null(card_from_query("?card=E999", tree))
+  expect_null(card_from_query("", tree))
+  # A card belongs to the plan tab; a link to another tab opens that tab.
+  expect_null(card_from_query("?page=labs&card=E8", tree))
+  # The address names the card while its card or input screen is open.
+  expect_identical(card_in_address("card", "E8", "Plan a power analysis"), "E8")
+  expect_identical(card_in_address("form", "E8", "Plan a power analysis"), "E8")
+  expect_identical(card_in_address("node", "E8", "Plan a power analysis"), "")
+  expect_identical(card_in_address("card", "E8", "About"), "")
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "card_from_query(isolate(session$clientData$url_search), tree)", fixed = TRUE)
+  expect_match(code, "card = card_in_address(", fixed = TRUE)
+  expect_match(nav_js, "params.set('card', window.pkCard)", fixed = TRUE)
 })
 
 test_that("the top bar's share button copies a working link to the page", {

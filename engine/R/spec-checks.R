@@ -57,6 +57,8 @@ population_problems <- function(spec) {
     check_welch_sds(spec),
     check_bayes_factor(spec),
     check_minimum_effect(spec),
+    small_telescopes_problems(spec),
+    heterogeneity_problems(spec),
     check_justified_alpha(spec),
     check_precision(spec),
     check_proportions_formula_allowed(spec),
@@ -128,8 +130,10 @@ spec_advice <- function(spec) {
 # 2x2 ANOVA designs and the basic tests pwr covers are computed exactly
 # unless simulation is requested; every other design is simulated.
 uses_simulation <- function(spec) {
-  # Welch's t-test is simulated unless the formula is requested.
-  default <- if (exact_available(spec) && !identical(spec$target_test$method, "welch_t")) "exact" else "simulation"
+  # Welch's t-test too is worked out by pwrss's formula unless simulation is
+  # requested (8 November 2026: the formula and a simulation agree, and the
+  # formula has no random error).
+  default <- if (exact_available(spec)) "exact" else "simulation"
   identical(spec$options$method %||% default, "simulation")
 }
 
@@ -137,7 +141,7 @@ uses_simulation <- function(spec) {
 # ANOVA_exact()), the basic tests pwr covers, and the tests pwrss covers
 # (one proportion, McNemar, R-squared, Fisher's exact test, goodness of
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
-# regression, and Welch's t-test on request).
+# regression, and Welch's t-test).
 exact_available <- function(spec) {
   bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !simulated_count_test(spec) && !robust_regression(spec) &&
@@ -740,10 +744,13 @@ check_bayes_proportions <- function(spec) {
 # Each group's SD is an input to Welch's F only, and needs one per group.
 check_welch_sds <- function(spec) {
   sds <- spec$population$sds
-  if (welch_anova(spec) && identical(spec$population$metric, "standardised")) {
+  # With one SD for every group, the means can be in SD units; with an SD
+  # for each group there is no single SD to put them in units of.
+  if (welch_anova(spec) && identical(spec$population$metric, "standardised") && !is.null(sds)) {
     return(paste0(
-      "Welch's F is for groups whose SDs differ, so there is no single SD to put the means ",
-      "in units of: give the means and each group's SD in the outcome's own units (metric 'raw')."
+      "With an SD for each group there is no single SD to put the means in units of: ",
+      "give the means and each group's SD in the outcome's own units (metric 'raw'), ",
+      "or one SD for every group ('population > sd')."
     ))
   }
   # MANOVA's sds are one per outcome (check_manova()).
@@ -945,7 +952,7 @@ check_direction_allowed <- function(spec) {
     group_treatment = if (identical(pop$metric, "proportion")) pop$p2 - pop$p1 else pop$d,
     two_proportions = if (identical(spec$target_test$method, "fisher_exact")) pop$p2 - pop$p1,
     independent_t = if (identical(spec$target_test$method, "welch_t") &&
-      identical(spec$options$method, "exact")) pop$d
+      !identical(spec$options$method, "simulation")) pop$d
   )
   if (is.null(diff) || diff == 0 || (alternative == "greater") == (diff > 0)) {
     return(character())

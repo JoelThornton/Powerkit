@@ -1,11 +1,10 @@
 # What to work on next
 
-*8 November 2026: rows trimmed to what is left; what landed is in `status.md` and `engine/NEWS.md`. 7 November 2026: "Review fixes first" added from a review of the whole project; those rows come before the queue. The ordered answer to "work on the next thing": [`status.md`](status.md) says where the project is, this says what to do.*
+*8 November 2026: the review fixes of 7 November 2026 are all done (`status.md`); what landed is in `status.md` and `engine/NEWS.md`. The ordered answer to "work on the next thing": [`status.md`](status.md) says where the project is, this says what to do.*
 
 **How a thread uses this page**
 
-1. Take the first Ready item in **Review fixes first** below, while any
-   remain; then the first item marked Ready in the queue.
+1. Take the first item marked Ready in the queue.
 2. If an item says *Needs a decision*, it is not yours to start: say what
    the decision is and move to the next Ready item, or ask the maintainer.
 3. Follow [`adding-a-test.md`](adding-a-test.md) for anything that adds a
@@ -15,20 +14,6 @@
 5. **Check the top item still makes sense before starting.** This page is
    dated; a queue written three weeks ago can be stale, and the
    maintainer's priorities beat it.
-
-## Review fixes first (7 November 2026)
-
-A review of the whole project on 7 November 2026 (powerkit 0.35.0) found no
-wrong number and nothing critical, but 21 serious problems and about 110
-smaller ones. They are grouped below into pull requests by area of the app,
-in the order to take them; two or three can run at once when they touch
-different areas. The maintainer decided the choices marked "decided".
-
-| Order | What | Includes | Size | State |
-| --- | --- | --- | --- | --- |
-| R12 | **Welch's test by default** | Welch's t-test by formula as the default on the two-group card, Student's as an option, recorded as a departure from G*Power in all four places; the same question for the one-way ANOVA; Delacre, Lakens and Leys (2017) through `refs.bib` first (decided) | M | Ready |
-| R13 | **Small telescopes for replications** | Offer Simonsohn's (2015) small-telescopes sample size beside safeguard power on the t-test and correlation cards, if a package implements it; source through `refs.bib` (decided) | M | Ready |
-| R14 | **Keep the review's scripts** | The property checks over every example spec and the every-card browser run, added so they can be rerun before each release (decided) | S | Ready |
 
 ## The queue
 
@@ -48,6 +33,13 @@ different areas. The maintainer decided the choices marked "decided".
 | 12 | **A variant-by-variant evidence register** | No single register says, for each test version on each card, which checks it has (package agreement, Type I error, published example, independent simulation) | M | Ready: generate it from the validation files and `forms.yaml`, as the capability table is, so it cannot drift; show it on About beside the capability table |
 | 13 | **A crossover (AB/BA) card** | The paired and mixed ANOVA cards say how to plan a crossover, but no card asks for the period effect or the carry-over assumption, and the design finder can only send a crossover to the paired card (roadmap B33) | M | Ready: a card that takes the treatment effect, the period effect and the correlation between periods, with the test of the treatment effect adjusted for period, from a package that implements it (Superpower's 2b*2w design is the candidate to check); routed from "the same people in both conditions" when the order is counterbalanced |
 | 14 | **Counts and ratings measured more than once** | A count, or ordered categories, measured twice or more on the same people (before and after, or in two conditions) is common: the design finder now sends it to a card (E75) that says powerkit doesn't calculate it and names simr and mixpower. The same card takes groups measured twice on a yes/no outcome | M | Needs a decision: which method to build. Recommendation: a Poisson or negative binomial mixed model with a random intercept for each person, simulated with simr, as E33 already does for yes/no trials, with ordered categories (a cumulative link mixed model, ordinal's `clmm()` in a Spower simulation) as a second PR; the conditional binomial test of paired counts is a closed-form alternative for two conditions only, if a package implements it |
+| 15 | **Mediation with a two-group X: paths as Cohen's d** | The mediation cards ask a two-group X's paths "per SD of X"; a researcher thinks "the intervention raises motivation by d = 0.4" and has to guess the conversion. The whole-study simulation already accepts d for a two-group predictor and finds the path with the engine's implied-value routine (`run_whole_study()`, 8 November 2026) | M | Ready: the same route on the mediation cards with a yes/no X (E16, E17), showing the d entered and the path found; no new conversion formula |
+| 16 | **Two proportions from an odds ratio or risk ratio** | Papers and logistic models report odds ratios, but two proportions (E5) takes only the two proportions, so researchers convert by hand; the t-test screens already convert a published odds ratio | S | Ready: offer "an odds ratio (or risk ratio) and group 1's proportion" as an effect format, converted by the engine from a sourced formula in `refs.bib` (or a package's own conversion) and shown beside the result |
+| 17 | **Joint power on the two-level card** | The two-level card (people in groups, with a cross-level interaction) tests one effect at a time, although simr fits the same model to every simulated data set; the dyadic card already offers "both significant (joint power)". The same option would give nested designs joint power before the whole-study route reaches them | M | Ready |
+| 18 | **A planning document for the whole-study plan** | Cards produce a planning document (PDF, Word, Markdown); the whole-study result has only the methods paragraph, the R script and a JSON. A researcher citing a whole-study plan needs every analysis and its role, the claim, the population assumed, the joint and separate powers, and one script that reproduces the plan | M | Ready, after the statistician's check of the method if it is to be cited (below the queue) |
+| 19 | **Two method defaults for the maintainer** | (a) Precision planning by MBESS targets the expected interval width, so about half of studies get an interval wider than planned; Kelley and Rausch's assurance fixes that chance. (b) Mediation is planned with a Monte Carlo interval, while most researchers analyse with PROCESS's percentile bootstrap; nothing on the result says the planned test differs from the usual analysis | S | Needs a decision: two defaults. Recommendation: (a) assurance 0.8 by default on the MBESS routes, recorded as a departure; (b) one sentence on the result and in the methods paragraph, and a percentile-bootstrap cross-check in the mediation validation file |
+| 20 | **Archive the long records** | `decisions.md` is about 360 KB and `whats-new.yaml` keeps growing; a thread that opens one by mistake reads it all | S | Ready: decisions before 1 November 2026 to `docs/archive/decisions-2026-10.md` with a dated index left at the top, and Updates entries older than a month to an archive the app can still show |
+| 21 | **A Bayes mode** | Researchers who analyse with Bayes factors or posterior estimates meet them card by card. An opt-in switch could route every card to its Bayesian version, lead results with the three outcomes, plan with a design prior by default, offer goals without a threshold (a posterior interval's width or a region of practical equivalence) and write Bayesian methods paragraphs, while keeping the 5 November 2026 decision not to ask everyone | L | Needs a decision: what the mode covers and which packages plan the threshold-free goals (the maintainer asked for it on 8 November 2026; a sketch is held outside the repository) |
 
 ## The direction behind the methods map
 
@@ -78,6 +70,12 @@ call), and nodes for approaches powerkit doesn't compute.
 - Split a very large file, or move a single-card package to Suggests, only
   as part of a PR that already touches it (`CLAUDE.md`, "Conventions";
   `routing-prototype.md`, "Splitting the large files").
+- Small extras from the 7 November review, for a PR that touches the
+  area: a "longer than usual, still running" note once a simulation passes
+  its usual time; one automatic retry, with more runs, for a sample-size
+  search that fails by chance; a smaller About page (its HTML is about
+  1.6 MB); and check that the sticky "answers still needed" bar doesn't
+  cover the alpha help at 1100 px.
 - Raise the Spower faults upstream: the reproducible example is ready at
   `docs/upstream/spower-var-test.R`
   ([`upstream-questions.md`](upstream-questions.md)).
@@ -109,4 +107,11 @@ call), and nodes for approaches powerkit doesn't compute.
 - **The AI assistant** (build guide phase 7: words or a diagram to a
   suggested design, always confirmed by the user): whether and when to
   start it. It comes last by design (`CLAUDE.md`).
-- **Which batch comes next**, if the order above is wrong.
+- **Two validation checks that fail every run** (`validation-log.md`, 7
+  and 8 November 2026): the mixed design's Greenhouse-Geisser check
+  (Superpower's exact route applies the population's epsilon, a simulated
+  study estimates its own; which describes the planned analysis is for
+  the statistician), and moderated mediation's Type I error with a yes/no
+  X (power4mome's question 6 in `upstream-questions.md`). Neither test is
+  changed until then.
+- **Which queue item comes next**, if the order above is wrong.

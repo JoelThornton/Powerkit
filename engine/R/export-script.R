@@ -48,7 +48,9 @@ export_script <- function(spec, result, file = NULL) {
   } else switch(
     result$provenance$backend,
     pwr = ,
-    stats = if (variance_formula_test(spec)) {
+    stats = if (heterogeneity_test(spec)) {
+      heterogeneity_script(spec, result)
+    } else if (variance_formula_test(spec)) {
       variance_script(spec, result)
     } else if (hotelling_formula_test(spec)) {
       hotelling_script(spec, result)
@@ -57,6 +59,8 @@ export_script <- function(spec, result, file = NULL) {
     },
     pwrss = if (spec$design == "generic_test") {
       generic_script(spec, result)
+    } else if (small_telescopes_test(spec)) {
+      telescope_script(spec, result)
     } else if (startsWith(spec$template, "noninf_")) {
       noninf_script(spec, result)
     } else if (minimum_effect_test(spec)) {
@@ -857,6 +861,9 @@ simulation_goal_section <- function(spec, result, n_step) {
       ""
     ))
   }
+  if (spec$goal$type == "sensitivity") {
+    return(simulated_sensitivity_section(result))
+  }
   est <- result$n_required
   c(
     "# Required n ----",
@@ -903,6 +910,70 @@ simulation_goal_section <- function(spec, result, n_step) {
     "powerkit_result <- list(",
     sprintf("  n = %s, lower = %s, upper = %s,", r_code(est$n), r_code(est$lower), r_code(est$upper)),
     sprintf("  power = %s", r_code(result$curve$power)),
+    ")",
+    ""
+  )
+}
+
+# The smallest detectable effect of Welch's F (welch_f_sensitivity()):
+# the simulations at each scale of the pattern of means, and the probit
+# curve of the rejections on the scale.
+simulated_sensitivity_section <- function(result) {
+  sims <- result$provenance$simulations
+  s <- result$sensitivity
+  c(
+    "# Smallest detectable effect ----",
+    "# powerkit keeps the shape of the pattern of means and scales its size",
+    "# (each mean's deviation from the grand mean). It simulated power at these",
+    "# scales, each with its own seed (it chose them from the F test's exact",
+    "# answer, not repeated here). `fitted` marks the scales its power curve was",
+    "# fitted to: those within 20% of its first estimate.",
+    "base_means <- means",
+    "grand_mean <- mean(base_means)",
+    "simulated <- data.frame(",
+    sprintf("  scale = %s,", r_code(sims$scale)),
+    sprintf("  seed = %s,", r_code(sims$seed)),
+    sprintf("  fitted = %s", r_code(sims$fitted)),
+    ")",
+    "counts <- t(vapply(seq_len(nrow(simulated)), function(i) {",
+    "  means <<- grand_mean + simulated$scale[i] * (base_means - grand_mean)",
+    "  simulate_power(n_total, simulated$seed[i])",
+    "}, numeric(2)))",
+    "means <- base_means",
+    "simulated$rejections <- counts[, 1]",
+    "simulated$valid <- counts[, 2]",
+    "simulated$power <- simulated$rejections / simulated$valid",
+    "print(simulated)",
+    "",
+    "# powerkit smooths the simulated power with a probit regression of the",
+    "# rejections on the scale. The smallest detectable scale is where the",
+    "# fitted power reaches the target; its 95% interval runs between the scales",
+    "# where the curve's upper and lower confidence limits reach it.",
+    "fitted_points <- simulated[simulated$fitted, ]",
+    "fit <- suppressWarnings(glm(",
+    "  cbind(rejections, valid - rejections) ~ scale,",
+    "  family = binomial(link = \"probit\"),",
+    "  data = fitted_points",
+    "))",
+    "candidates <- data.frame(scale = seq(min(fitted_points$scale), max(fitted_points$scale), length.out = 2001))",
+    "link <- predict(fit, candidates, se.fit = TRUE)",
+    "z <- qnorm(0.975)",
+    "first_reaching <- function(p) {",
+    "  hit <- which(p >= target_power)",
+    "  if (length(hit) == 0 || hit[1] == 1) NA else candidates$scale[hit[1]]",
+    "}",
+    "scale <- first_reaching(pnorm(link$fit))",
+    "scale_lower <- first_reaching(pnorm(link$fit + z * link$se.fit))",
+    "scale_upper <- first_reaching(pnorm(link$fit - z * link$se.fit))",
+    "spread <- max(base_means) - min(base_means)",
+    "cat(sprintf(\"Smallest detectable largest difference between two means: %.4g (95%% interval %.4g to %.4g)\\n\",",
+    "  scale * spread, scale_lower * spread, scale_upper * spread))",
+    "cat(\"Scaled means:\", format(signif(grand_mean + scale * (base_means - grand_mean), 4)), \"\\n\")",
+    "",
+    "reproduced <- list(scale = scale, lower = scale_lower, upper = scale_upper, effect = scale * spread)",
+    "powerkit_result <- list(",
+    sprintf("  scale = %s, lower = %s, upper = %s,", r_code(s$scale), r_code(s$scale_lower), r_code(s$scale_upper)),
+    sprintf("  effect = %s", r_code(s$effect)),
     ")",
     ""
   )

@@ -40,6 +40,7 @@ source(file.path("R", "capabilities.R"), local = TRUE)
 source(file.path("R", "planning.R"), local = TRUE)
 source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
+source(file.path("R", "replication.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
 source(file.path("R", "connection.R"), local = TRUE)
@@ -826,6 +827,13 @@ server <- function(input, output, session) {
     ws_spec = NULL,          # whole-study simulation: the spec of the last run, for its download
     study_plan = list()      # the study plan any card can join (plan_entry()), kept until "Start a new plan"
   )
+  # A link to a card (?card=E8; card_from_query(), R/ui.R) opens it as the
+  # list of every analysis does, so Back goes to that list.
+  linked_card <- card_from_query(isolate(session$clientData$url_search), tree)
+  if (!is.null(linked_card)) {
+    state$route <- "known"; state$skip_screening <- TRUE
+    state$endpoint <- linked_card; state$came_from <- "known"; state$screen <- "card"
+  }
 
   # Keep the guided route's inputs in state as they change.
   save_guided_variables <- function() {
@@ -966,7 +974,14 @@ server <- function(input, output, session) {
       # then doesn't ask it again.
       state$history <- list(); state$ctx <- aim_context(tree, state$start)
       exit <- start_exit(tree, state$start)
-      if (!is.null(exit)) {
+      labs_tool <- aim_question(tree)$options[[value]]$labs
+      if (!is.null(labs_tool)) {
+        # Replicating a published finding opens the replication planner
+        # in Labs (aim "replicate"); the start screen stays behind it.
+        state$screen <- "aim"
+        session$sendCustomMessage("labs_open", labs_tool)
+        updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+      } else if (!is.null(exit)) {
         state$endpoint <- exit; state$came_from <- "node"; state$screen <- "card"
       } else {
         # Every route starts with the screening questions.
@@ -1751,8 +1766,10 @@ server <- function(input, output, session) {
   labs_answers <- function() stats::setNames(lapply(labs_fields, function(f) input[[f$id]] %||% ""),
     vapply(labs_fields, `[[`, character(1), "id"))
   labs_sde_calc <- reactiveVal(NULL)
+  labs_telescope_calc <- reactiveVal(NULL)
   observeEvent(input$labs_sde_run, {
     labs_sde_calc(NULL)
+    labs_telescope_calc(NULL)
     if (!nzchar(input$labs_test %||% "")) {
       output$labs_sde_result <- renderUI(div(class = "form-problems", role = "alert", "Choose the original study's test first."))
       return()
@@ -1765,9 +1782,11 @@ server <- function(input, output, session) {
       return()
     }
     labs_sde_calc(calc)
+    labs_telescope_calc(labs_telescopes(forms, input$labs_test, input$labs_n, input$labs_alpha))
     smallest <- trimws(input$labs_smallest %||% "")
     output$labs_sde_result <- renderUI(div(class = "result-panel mt-2", role = "status",
       p(tags$strong(labs_sde_sentence(tree, calc, input$labs_power))),
+      if (!is.null(telescope <- labs_telescope_sentence(labs_telescope_calc()))) p(telescope),
       p(if (nzchar(smallest)) paste0("The smallest effect that matters, from step 2: \u201c", smallest, "\u201d")
         else "Step 2 has no smallest effect that matters yet; writing one there gives this number something to be compared with."),
       p(class = "small", labs_provenance(calc))))
@@ -1775,7 +1794,8 @@ server <- function(input, output, session) {
   labs_sde_notes <- function() {
     calc <- labs_sde_calc()
     if (is.null(calc)) return(NULL)
-    list(sentence = labs_sde_sentence(tree, calc, calc$spec$goal$power), provenance = labs_provenance(calc))
+    list(sentence = paste(c(labs_sde_sentence(tree, calc, calc$spec$goal$power), labs_telescope_sentence(labs_telescope_calc())), collapse = " "),
+      provenance = labs_provenance(calc))
   }
   # Labs: plan from a published result (R/labs.R). The engine converts and
   # gives the safeguard value; the app only shows them.
@@ -1956,6 +1976,13 @@ server <- function(input, output, session) {
     session$sendCustomMessage("labs_open", "prereplication")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
+  observeEvent(input$go_labs_replication, {
+    session$sendCustomMessage("labs_open", "replication")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  })
+  # Labs: the replication planner (R/replication.R), with the notes' study
+  # and smallest effect to hand.
+  replication_server(input, output, session, notes = function() labs_answers(), notes_outcome = function() input$labs_outcome)
   # The Feedback tab: from the header link, or from "Something doesn't fit?"
   # (which picks "confusing").
   observeEvent(input$go_feedback, {
@@ -2043,7 +2070,8 @@ server <- function(input, output, session) {
       nav$snaps[[nav$pos + 1L]] <- snap
       nav$pos <- nav$pos + 1L
       session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L,
-        page = page_slug(input$tabs), tool = if (identical(input$tabs, labs_tab_title)) input$labs_tool %||% "" else ""))
+        page = page_slug(input$tabs), tool = if (identical(input$tabs, labs_tab_title)) input$labs_tool %||% "" else "",
+        card = card_in_address(state$screen, state$endpoint, input$tabs)))
     })
   })
   observeEvent(input$pk_nav_to, {

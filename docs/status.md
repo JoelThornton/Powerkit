@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.45.2). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.49.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -15,15 +15,26 @@ rules are in `CLAUDE.md`.
 
 - **Review fixes (7 November 2026):** a review of the whole project found
   no wrong number and nothing critical, and grouped 21 serious problems
-  and about 110 smaller ones into fix batches at the top of
-  [`next.md`](next.md). Eleven batches are done: validation runs that
-  finish and report, what the app says, design-finder routes, the draft
-  box and page structure, effect-size guidance, speed, whole-study
-  planning, input screens, Labs, docs and start-up reading, and change
-  notes that no longer need catch-up merges (each pull request writes its
-  own note files; `scripts/close-batch.R` sets the version when a batch
-  closes). Next: Welch's test by default, small telescopes for
-  replications, and keeping the review's scripts.
+  and about 110 smaller ones into fourteen fix batches, all done by
+  8 November: validation runs that finish and report, what the app says,
+  design-finder routes, the draft box and page structure, effect-size
+  guidance, speed, whole-study planning, input screens, Labs, docs and
+  start-up reading, change notes that no longer need catch-up merges
+  (each pull request writes its own note files; `scripts/close-batch.R`
+  sets the version when a batch closes), Welch's tests by default
+  (Welch's t-test on the two-group card, by formula, Departure 21;
+  Welch's F on the one-way ANOVA card, simulated, Departure 22), small
+  telescopes for replications (0.47.2: d33 at the original study's own
+  significance level, the power if the true effect is small but not
+  zero, and wording that says what a result below d33 does and doesn't
+  show), and the review's own checks kept for
+  each release: property checks over every example spec and a run of
+  every card in a browser (`repository-protection.md`, "Checks before a
+  release"). A check of every review finding against what merged
+  (8 November) found a few left: the small ones are fixed, and the
+  larger ones are `next.md` items 15 to 20. Effects that vary between
+  studies are on the t-test cards (8 November). Next: the queue in
+  `next.md`, and a Bayes mode (item 21, waiting on a decision).
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
@@ -45,7 +56,10 @@ rules are in `CLAUDE.md`.
   heavy-tailed scores; robust standard errors and quantile regression;
   negative binomial and zero-inflated counts; minimum-effect and
   equivalence tests; a justified alpha; pairwise comparisons with Holm's
-  adjustment; precision planning (a confidence interval's width, by MBESS
+  adjustment; effects that vary between studies on the three t-test
+  cards (Kenny & Judd, 2019, through pwr; an SD of 0.05 in d to start
+  with, Departure 23);
+  precision planning (a confidence interval's width, by MBESS
   and presize) as a goal beside power. Bayes factor versions exist for
   fifteen designs, with JASP's default priors; p-value results of the
   exact ones offer "Add a Bayes factor?", and Bayes factor t-test results
@@ -55,10 +69,11 @@ rules are in `CLAUDE.md`.
 - **Effect sizes:** the commonest cards take what researchers have: a
   published t, F, r, d or odds ratio, partial eta-squared, Cohen's w, the
   R-squared change; safeguard power for an effect from one study or a
-  pilot; the smallest detectable effect on the t-tests, the correlation,
-  proportions, the ANOVAs, regression and the clustered design (the rest
-  is `next.md` item 6). Results show the critical effect size for the
-  t-tests and the correlation.
+  pilot, or small telescopes for a replication (Simonsohn, 2015); the
+  smallest detectable effect on the t-tests, the correlation,
+  proportions, the ANOVAs (Welch's F by simulation), regression and the
+  clustered design (the rest is `next.md` item 6). Results show the critical effect size for the
+  t-tests (Student's) and the correlation.
 
 - **Results and documents:** a result opens with the answer and what it
   assumes, then "How sure can you be?", the write-up with a methods
@@ -79,10 +94,17 @@ rules are in `CLAUDE.md`.
   statistician's check ([`whole-study-method.md`](whole-study-method.md));
   the designs still to add are in `next.md` item 1.
 
-- **Experimental: Labs.** The pre-replication notes, the methods map, the
-  effect-size converter, the power visualiser, the repeated-studies tool
-  and Bayesian planning (fixed and sequential), all on the cards' engine
-  code and one chart style.
+- **Experimental: Labs.** The pre-replication notes, the replication
+  planner, the methods map, the effect-size converter, the power
+  visualiser, the repeated-studies tool and Bayesian planning (fixed and
+  sequential), all on the cards' engine code and one chart style. The
+  replication planner (8 November 2026) follows the notes: for an
+  original t-test or correlation finding, the sample size for each
+  replication goal (Anderson & Maxwell, 2016) under three beliefs about
+  the true effect, with BayesRepDesign (Pawel, Consonni & Held, 2026)
+  and the small-telescopes card's own calculation, how the replication
+  differs, and a write-up with an R script, in sections saved to a file.
+  It opens from the start screen's "Replicate a published finding".
 
 ## Validation
 
@@ -97,9 +119,11 @@ for a design before its PR merges, every night the engine changed, and in
 full every Sunday from 00:05 UTC (`scripts/validation-plan.R`), with
 tests dealt to parts by their recorded times so each part ends within
 GitHub's six hours, and one list at the end of each run of the tests that
-need attention. Open: the mixed-design Greenhouse-Geisser check fails with
-new seeds and waits for the statistician; the moderated mediation Type I
-check with a yes/no X is recorded when the run of 8 November finishes.
+need attention. The full run of 8 November took 4 hours 13
+minutes (389 pass, 2 fail, 110 skipped). Its two failures are known: the
+mixed-design Greenhouse-Geisser check, which fails with new seeds too and
+waits for the statistician, and moderated mediation's Type I error with a
+yes/no X (7.5% of 1,000 studies), a question for power4mome's author.
 
 ## Known gaps on cards that run
 
@@ -128,7 +152,9 @@ The app is online at
 most once a day from the `connect-cloud` branch (at 04:23 UTC, with a
 second look at 16:23 in case GitHub skips the first), which the
 `online-app-manifest` workflow writes with the manifest Connect Cloud
-installs from ([`hosting-options.md`](hosting-options.md)). The pages
+installs from ([`hosting-options.md`](hosting-options.md)). "Copy page
+link" gives the open tab, the Labs tool or the open card (`?card=E8`,
+which opens that card as the list of every analysis does). The pages
 search engines index are static, in `site/`, on GitHub Pages. Main
 requires a pull request with passing checks; each finished version is
 tagged and published as a GitHub pre-release

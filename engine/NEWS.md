@@ -1,3 +1,151 @@
+# powerkit 0.49.0
+
+* New: `population > tau` on the one-sample, two-group and paired t-test
+  templates plans for a true effect that varies between studies, with the
+  given SD in d (d_z for pairs) around the planned average effect, following
+  Kenny and Judd (2019). Power is pwr's own t-test power given their
+  effective significance level and adjusted effect, for power, the sample
+  size and the smallest detectable effect. Results record it in
+  `result$heterogeneity` (tau, the effective alpha, q, and the power with
+  and without the variation), and the R script reproduces it with pwr alone.
+  It reproduces Kenny and Judd's worked example and agrees with an
+  independent simulation. Student's t-test, or Welch's with equal SDs, by
+  formula; not with rank tests, Bayes factors, simulation or small
+  telescopes. Empty or 0 leaves the usual analysis unchanged; the app's
+  t-test cards start at 0.05, Kenny and Judd's small variation
+  (Departure 23 in `docs/conventions.md`).
+
+# powerkit 0.48.1
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.48.0
+
+* New: `replication_planning()` and `replication_planning_script()`, for the
+  Labs replication planner. For an original study's effect and sample size
+  (two groups, one sample, pairs or a correlation), the replication's sample
+  size for each goal Anderson and Maxwell (2016) describe, under three design
+  priors (the original estimate as reported, with its uncertainty, and
+  shrunk by empirical Bayes) and an optional between-study heterogeneity:
+  a significant result in the original's direction, a significant pooled
+  estimate, agreement with the original, the replication and sceptical Bayes
+  factors (BayesRepDesign, Pawel, Consonni & Held, 2026), showing the effect
+  is too small to matter (TOST, planned for no effect) and small telescopes
+  (the card's own pwr and pwrss calculation). Goals no replication can reach
+  report the highest chance reachable. BayesRepDesign is in Suggests, with a
+  plain message when it is missing, and pinned in `renv.lock`.
+* `porsTOST()` and `ssdTOST()` in BayesRepDesign 0.42 take the confidence
+  interval's level (they use `qnorm(1 - level / 2)`), so the usual TOST at
+  alpha is called with `level = 2 * alpha`, as `ssdEqu()` is; recorded in
+  `docs/upstream-questions.md`.
+* New references: Pawel, Consonni & Held (2026), Anderson & Maxwell (2016)
+  and Kenny & Judd (2019), each checked against the published PDF.
+
+# powerkit 0.47.3
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.47.2
+
+* Small telescopes: d33 (r33) is now worked out at the significance level
+  the original study used (`effect_justification > small_telescopes >
+  alpha`, two-sided, 0.05 unless given), and only the replication's test
+  uses the card's alpha. Before, one alpha did both jobs, so a stricter
+  replication moved the yardstick and got a smaller sample: at alpha .005,
+  d33 for an original of 20 per group was 0.79 rather than 0.50, and the
+  plan 38 per group rather than 96. The R script sets `original_alpha`.
+* Small telescopes results record `if_small`: the replication's power to
+  show the effect is smaller than d33 when the true effect is 0, a
+  quarter, half and three quarters of d33 (pwrss, at the replication's
+  sample size), shown under "How sure can you be?".
+* The wording says what a result below d33 shows (the original study was
+  too small to reliably detect an effect that size) and what it doesn't
+  (that the original was a false positive), and that it bears on the
+  original only as far as the replication recreated its conditions
+  (Simonsohn, 2015, p. 567). It points to the equivalence test for an
+  effect that matters only above some size.
+
+# powerkit 0.47.1
+
+* The review's checks are kept for releases. `scripts/release-checks/property-checks.R`
+  runs property checks on every example spec (the example runs and records
+  its provenance; the recommended n reaches the target power and, by
+  formula, one fewer doesn't; power grows with n; the same seed gives the
+  same answer; with no effect, power is about alpha).
+  `app/routing/walkthroughs/every-card.js` opens every card in a browser,
+  calculates its example and fetches every download. Both exit with
+  status 1 on any problem; `docs/repository-protection.md` says how to run
+  them.
+
+# powerkit 0.47.0
+
+* Small telescopes for replications (Simonsohn, 2015;
+  `Simonsohn2015_telescopes` in `refs.bib`): `effect_justification >
+  small_telescopes` with the original study's sample size plans the
+  replication's one-sided test of whether the effect is smaller than d33
+  (r33), the effect the original study had 33% power to detect, for a
+  true effect of 0. d33 comes from pwr at `power = 1/3`, the test's power
+  from pwrss (`power.t.student()` with the margin d33, `power.z.onecor()`
+  with `null.rho = r33`). For the one-sample, paired and two-group
+  t-tests and the correlation; power and sample size goals. Results
+  record `small_telescopes` (d33, the original sizes and estimate), and
+  the exported script reproduces both steps. The answers match
+  Simonsohn's 2.5-times rule (`test-small-telescopes.R`).
+
+# powerkit 0.46.0
+
+* The design finder no longer ends at "No matching design" for a count or
+  an outcome in ordered categories measured twice or more on the same
+  people. A difference goes to a new card (E75, a generalised mixed model,
+  which powerkit doesn't calculate yet; it names simr and mixpower), and a
+  relationship to the within-person card (E41), as for a score. The guided
+  route does the same, and also sends groups measured twice on a yes/no
+  outcome to E75.
+* A yes/no outcome measured twice, with a relationship as the aim, now
+  reaches the within-person card instead of logistic regression, which
+  assumes separate people.
+* Two tests walk every answer in "Help me choose" and every combination in
+  the guided route, and fail when one reaches "No matching design" without
+  the user choosing it, unless it is on a short list of known gaps.
+
+* Welch's F has a smallest detectable effect, by simulation
+  (`welch_f_sensitivity()`): the pattern of means keeps its shape and its
+  size is scaled, starting from the F test's exact answer (Superpower),
+  and the scale is read from a probit curve of Spower's simulated
+  rejections, with a 95% interval. `run_spec()` calls a backend's
+  `simulated_sensitivity` when it has one; the exported script repeats the
+  simulations at each scale and fits the same curve.
+
+* Welch's F takes means in SD units when every group has the same SD
+  (`population > sd`, no `sds`).
+
+* The one-way ANOVA card plans for Welch's F by default, the classical F
+  test as a choice (Departure 22, `docs/conventions.md`;
+  `Delacre2019_welch_f` in `refs.bib`). `test-welch-anova-default.R`
+  shows the size of the difference: 231 rather than 228 people with one
+  SD of 6 and means 10, 11 and 13. The `welch_spreads` validation chunk
+  now checks Welch's F against separately simulated `oneway.test()`
+  studies, its false-positive rate with unequal SDs, and its smallest
+  detectable effect.
+
+* Welch's t-test is worked out by pwrss's formula (`power.t.welch()`)
+  unless `options > method = "simulation"` asks for Spower's simulation;
+  before, it was simulated unless the formula was requested. The two
+  agree (the `welch_spreads` validation chunk), and the formula has no
+  random error and takes a fraction of a second.
+
+* Welch's t-test gains the smallest detectable effect
+  (`welch_sensitivity()`: d searched with pwrss's own power, keeping the
+  spread ratio and the group sizes) and a justified alpha (JustifyAlpha's
+  `optimal_alpha()` on `power.t.welch()`), with scripts that reproduce
+  both.
+
+* The two-group card plans for Welch's t-test by default, Student's as a
+  choice (Departure 21, `docs/conventions.md`; `Delacre2017_welch` in
+  `refs.bib`). `test-welch-default.R` shows the size of the difference:
+  none with equal spreads and equal groups, and 147 rather than 144
+  people for d = 0.5 when group 2 is twice the size of group 1.
+
 # powerkit 0.45.2
 
 * Only the afternoon publishing run waits for a gap since the last

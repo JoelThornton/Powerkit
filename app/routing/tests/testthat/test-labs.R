@@ -14,9 +14,10 @@ test_that("nothing is required, scored or marked complete", {
   expect_no_match(html, "score[ds]? (out of|of )|complete[d]?\\b|incomplete|badge", ignore.case = TRUE, perl = TRUE)
   # The outcome starts unchosen, and all three outcomes are offered. (The
   # picture of power's alpha starts at .05 and its test two-sided, and the Bayesian planning tool's
-  # hypothesis, design and thresholds at their defaults.)
+  # hypothesis, design and thresholds at their defaults, and the replication
+  # planner's section and Bayes factor threshold.)
   checked <- regmatches(html, gregexpr("<input[^>]*checked=\"checked\"[^>]*>", html))[[1]]
-  expect_true(all(grepl("name=\"(picture_alpha|picture_sides|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design)\"", checked)))
+  expect_true(all(grepl("name=\"(picture_alpha|picture_sides|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design|rep_section|rep_threshold)\"", checked)))
   for (o in labs_outcomes) expect_match(html, o, fixed = TRUE)
 })
 
@@ -32,11 +33,11 @@ test_that("the smallest detectable effect matches the engine's own sensitivity",
   skip_if(is.null(engine_function("run_spec")), "needs powerkit's engine")
   run <- engine_function("run_spec")
   # Two groups, 40 analysed in total: the same as the input screen's
-  # smallest-effect goal for that design.
+  # smallest-effect goal for that design, with its default test (Welch's).
   calc <- labs_sde(forms, "E2", "40", "0.8", "0.05")
   expect_equal(calc$status, "ok")
   fields <- unlist(lapply(form_groups(forms, "E2", 2L, list()), `[[`, "fields"), recursive = FALSE)
-  values <- utils::modifyList(form_examples$E2, list(goal = "sensitivity", n = "40", power = "0.8", d = "", method = "student_t"))
+  values <- utils::modifyList(form_examples$E2, list(goal = "sensitivity", n = "40", power = "0.8", d = "", method = "welch_t"))
   direct <- run_calculation(build_spec(forms, "E2", fields, values), run = run, seed = forms$default_seed)
   expect_equal(abs(calc$result$sensitivity$effect), abs(direct$result$sensitivity$effect), tolerance = 1e-8)
   expect_match(labs_sde_sentence(tree, calc, "0.8"), "With 40 analysed", fixed = TRUE)
@@ -47,6 +48,23 @@ test_that("the smallest detectable effect matches the engine's own sensitivity",
   expect_equal(labs_sde(forms, "E6", "60", rows = "2", cols = "3")$status, "ok")
   # A missing sample size is a plain-words problem, not an error.
   expect_equal(labs_sde(forms, "E1", "")$status, "problems")
+})
+
+test_that("the smallest-effect panel adds small telescopes for the t-tests and the correlation", {
+  skip_if(is.null(engine_function("run_spec")), "needs powerkit's engine")
+  # 40 in total in two groups: d33 = 0.496, and 102 for the replication.
+  calc <- labs_telescopes(forms, "E2", "40")
+  expect_equal(calc$result$n_required$n, 102)
+  text <- labs_telescope_sentence(calc)
+  expect_match(text, "d33 = 0.496", fixed = TRUE)
+  expect_match(text, "a replication needs 102 participants in total, 2.5 times", fixed = TRUE)
+  expect_match(text, "not that it was a false positive", fixed = TRUE)
+  expect_match(text, "run the test the original used", fixed = TRUE)
+  for (ep in labs_telescope_tests) expect_equal(labs_telescopes(forms, ep, "60")$status, "ok", info = ep)
+  # Not for proportions or tables, and nothing for a missing size.
+  expect_null(labs_telescopes(forms, "E5", "60"))
+  expect_null(labs_telescopes(forms, "E1", ""))
+  expect_null(labs_telescope_sentence(NULL))
 })
 
 test_that("the notes follow where the user landed", {
@@ -104,7 +122,7 @@ test_that("Labs opens on a list of tools; the notes appear once their tool is ch
   expect_match(html, "data-display-if=\"input.labs_tool == &#39;prereplication&#39;\"|data-display-if=\"input.labs_tool == 'prereplication'\"")
   expect_match(html, "Open Pre-replication notes", fixed = TRUE)
   expect_match(html, "All Labs tools", fixed = TRUE)
-  expect_length(labs_tools, 6)
+  expect_length(labs_tools, 7)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
 

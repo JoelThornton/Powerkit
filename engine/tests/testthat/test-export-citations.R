@@ -137,7 +137,10 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       BonettWright2015_alpha = "verified", Demidenko2007_logistic = "verified",
       HsiehLavori2000_cox = "verified", Shieh2020_ancova = "verified",
       Sommet2023_interaction = "verified",
-      AlbersLakens2018_pilot = "verified", Carter2019_biascorrection = "verified"
+      AlbersLakens2018_pilot = "verified", Carter2019_biascorrection = "verified",
+      Delacre2017_welch = "verified", Delacre2019_welch_f = "verified",
+      Simonsohn2015_telescopes = "verified", Pawel2026_replication = "verified",
+      Anderson2016_replication = "verified", Kenny2019_heterogeneity = "verified"
     )
   )
 })

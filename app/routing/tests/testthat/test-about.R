@@ -54,6 +54,9 @@ test_that("the About panel explains how to report problems: the Feedback tab and
   expect_match(html, "Something doesn&#39;t fit?|Something doesn't fit?")
   expect_match(html, "Nothing is sent from this app", fixed = TRUE)
   expect_match(html, "they stay in this browser and are not sent anywhere", fixed = TRUE)
+  # The way to delete the saved answers is named as the plan tab names it.
+  expect_match(html, "Discard my draft", fixed = TRUE)
+  expect_no_match(html, "Start fresh", fixed = TRUE)
   # The same words as the link on the cards.
   expect_match(as.character(mismatch_ui("x", "path")), "Something doesn&#39;t fit?|Something doesn't fit?")
 })

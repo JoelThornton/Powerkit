@@ -305,12 +305,40 @@
           "minLength": 1
         },
         "adjustment": {
-          "description": "Any correction applied to the source effect (e.g. 'halved for publication bias'). Required for prior_study unless safeguard power is used.",
+          "description": "Any correction applied to the source effect (e.g. 'halved for publication bias'). Required for prior_study unless safeguard power or small telescopes is used.",
           "type": "string",
           "minLength": 1
         },
         "notes": {
           "type": "string"
+        },
+        "small_telescopes": {
+          "description": "Small telescopes (Simonsohn, 2015), for a replication of one original study: plan the replication's one-sided test of whether the effect is smaller than d33 (r33 for a correlation), the effect the original study had 33% power to detect with its sample size at its own significance level, for a true effect of 0. For prior_study, with the one-sample, paired and independent t-tests and the correlation. The population value given is the original study's estimate, which sets the direction.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "n": {
+              "description": "The original study's number of participants (one-sample, paired, correlation).",
+              "type": "integer",
+              "minimum": 4
+            },
+            "n1": {
+              "description": "The original study's size of group 1 (independent groups).",
+              "type": "integer",
+              "minimum": 2
+            },
+            "n2": {
+              "description": "The original study's size of group 2 (independent groups).",
+              "type": "integer",
+              "minimum": 2
+            },
+            "alpha": {
+              "description": "The significance level the original study used (two-sided); 0.05 if not given. It sets d33 (r33) only; the replication's own test uses target_test > alpha.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 0.5
+            }
+          }
         },
         "safeguard": {
           "description": "Safeguard power (Perugini, Gallucci & Costantini, 2014): plan with the lower bound of a two-sided confidence interval around one earlier study's effect size. For prior_study and pilot_study, with the one-sample, paired and independent t-tests and the correlation. The population value given is the earlier estimate; validation replaces it with the safeguard effect and records the estimate here.",
@@ -450,8 +478,27 @@
                 "required": [
                   "safeguard"
                 ]
+              },
+              {
+                "required": [
+                  "small_telescopes"
+                ]
               }
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "small_telescopes"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "prior_study"
+              }
+            }
           }
         },
         {
@@ -902,7 +949,7 @@
           ]
         },
         "method": {
-          "description": "How power is computed. exact: exact calculation for the specified population (the default for ANOVA designs, via Superpower; for basic tests other than Welch's t-test, via pwr's analytic formulas; for one proportion and McNemar's test, via pwrss's exact tests; for multiple regression, via pwrss's F test; and for Fisher's exact test, the goodness-of-fit test, two correlations and ANCOVA, via pwrss's formulas). For Welch's t-test, exact uses pwrss's analytic formula and must be requested. The rank tests (Wilcoxon signed-rank, Mann-Whitney, Kruskal-Wallis) have no exact method. simulation: Monte Carlo simulation with nrep replications (the default for every other design, and for Welch's t-test; available for the t-tests, correlation, two proportions, the chi-square test and ANOVA designs on request, and the only method for the rank tests).",
+          "description": "How power is computed. exact: exact calculation for the specified population (the default for ANOVA designs, via Superpower; for basic tests other than Welch's t-test, via pwr's analytic formulas; for Welch's t-test, via pwrss's analytic formula; for one proportion and McNemar's test, via pwrss's exact tests; for multiple regression, via pwrss's F test; and for Fisher's exact test, the goodness-of-fit test, two correlations and ANCOVA, via pwrss's formulas). The rank tests (Wilcoxon signed-rank, Mann-Whitney, Kruskal-Wallis) have no exact method. simulation: Monte Carlo simulation with nrep replications (the default for every other design; available for the t-tests, correlation, two proportions, the chi-square test and ANOVA designs on request, and the only method for the rank tests).",
           "enum": [
             "exact",
             "simulation"
@@ -1430,6 +1477,12 @@
               "description": "Minimum-effect tests only (target_test > method 'minimum_effect'): the smallest effect of interest, in the same SD units as d, above 0. The test shows that the effect is larger than this (in the direction of 'target_test > alternative'; two-sided: further from 0 than it in either direction). With metric 'raw', powerkit works it out from population > raw > margin.",
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "tau": {
+              "description": "How much the true effect varies between studies (Kenny & Judd, 2019): the SD of the true standardised effect (d, or d_z for pairs) around the population value, which is then the average effect. 0 or absent for the usual analysis, with the same effect in every study. Planned with Kenny and Judd's formula through pwr (Student's or Welch's t-test with equal SDs, by formula only).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
             }
           },
           "allOf": [
@@ -1598,6 +1651,12 @@
             "r": {
               "description": "With metric 'point_biserial': the point-biserial correlation between the group (group 1 coded 0, group 2 coded 1) and the outcome; positive when group 2 scores higher. powerkit works out d from it (population > d).",
               "$ref": "#/definitions/correlation"
+            },
+            "tau": {
+              "description": "How much the true effect varies between studies (Kenny & Judd, 2019): the SD of the true standardised effect (d, or d_z for pairs) around the population value, which is then the average effect. 0 or absent for the usual analysis, with the same effect in every study. Planned with Kenny and Judd's formula through pwr (Student's or Welch's t-test with equal SDs, by formula only).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
             }
           },
           "allOf": [
@@ -1791,6 +1850,12 @@
               "description": "Minimum-effect tests only (target_test > method 'minimum_effect'): the smallest effect of interest, in the same SD units as dz, above 0. The test shows that the effect is larger than this (in the direction of 'target_test > alternative'; two-sided: further from 0 than it in either direction). With metric 'raw', powerkit works it out from population > raw > margin.",
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "tau": {
+              "description": "How much the true effect varies between studies (Kenny & Judd, 2019): the SD of the true standardised effect (d, or d_z for pairs) around the population value, which is then the average effect. 0 or absent for the usual analysis, with the same effect in every study. Planned with Kenny and Judd's formula through pwr (Student's or Welch's t-test with equal SDs, by formula only).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
             }
           },
           "allOf": [

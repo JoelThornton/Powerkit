@@ -25,7 +25,7 @@ listed here (a test checks).
 ## For the statistician
 
 - [`conventions.md`](conventions.md): what each backend does by default,
-  every departure (1-20) and known difference (1-13), and where each is
+  every departure (1-22) and known difference (1-13), and where each is
   shown.
 - [`validation-log.md`](validation-log.md): every full validation run,
   and what "validated" means; [`validation/`](validation/) holds the raw

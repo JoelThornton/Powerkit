@@ -88,6 +88,16 @@ joint_power_offered <- function(entries) {
   length(unique(templates)) == 1 && templates[[1]] %in% c("independent_t", "cluster_randomised", "multisite")
 }
 
+# Two-group t-tests that would get joint power with Student's test: every
+# analysis is one, and at least one uses Welch's (the card's default).
+joint_power_needs_student <- function(entries) {
+  specs <- plan_specs(entries)
+  length(specs) >= 2 &&
+    all(vapply(specs, function(s) identical(s$template, "independent_t") &&
+      (s$target_test$method %||% "student_t") %in% c("student_t", "welch_t"), logical(1))) &&
+    any(vapply(specs, function(s) identical(s$target_test$method, "welch_t"), logical(1)))
+}
+
 # The largest sample size in the plan, which joint power is calculated at.
 plan_largest_n <- function(entries) {
   n <- unlist(lapply(entries, function(e) e$n %||% e$spec$goal$n %||% e$project$spec$goal$n))
@@ -194,6 +204,8 @@ study_plan_ui <- function(entries) {
     if (k > 1 && !length(comparable)) p(class = "plan-note",
       "These analyses have different or incomplete sample requirements. Their counts are kept separate; there is no single study-wide sample size here. Participants, pairs, items and studies cannot be compared just by taking the largest number. Matching units also need compatible allocation and measurement schedules."),
     if (joint_power_offered(entries)) joint_power_ui(entries)
+    else if (joint_power_needs_student(entries)) p(class = "study-plan-joint plan-note",
+      "Each analysis has the power its card shows. The chance that all of them are significant in the same study is calculated for Student's t-test only (PUMP's test), and these analyses use Welch's: choose Student's test on each card to see it. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each.")
     else if (k >= 2) p(class = "study-plan-joint plan-note",
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
     div(class = "nav-buttons",

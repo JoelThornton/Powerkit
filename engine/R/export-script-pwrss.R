@@ -400,10 +400,42 @@ pwrss_script_call_lines <- function(spec, inputs) {
 }
 
 pwrss_goal_section <- function(spec, result) {
+  if (identical(spec$goal$type, "sensitivity") && identical(spec$template, "independent_t")) {
+    return(welch_sensitivity_section(spec, result))
+  }
   if (spec$goal$type != "sample_size" || !isTRUE(pwrss_backend(spec)$sawtooth)) {
     return(pwr_goal_section(spec, result))
   }
   sawtooth_goal_section(spec, result)
+}
+
+# Welch's smallest detectable effect, found as powerkit finds it
+# (welch_sensitivity()): d searched with pwrss's own power, the spread
+# ratio and the group sizes kept.
+welch_sensitivity_section <- function(spec, result) {
+  s <- result$sensitivity
+  c(
+    "# Smallest detectable effect ----",
+    "# pwrss's power.t.welch() has no option to solve for d, so powerkit searches",
+    "# d with the same power call (power_at() above), keeping the spread ratio",
+    "# and the group sizes; the sign is the direction of the effect you specified.",
+    sprintf("direction <- %s", r_code(if (isTRUE(s$effect < 0)) -1 else 1)),
+    "power_with_d <- function(x) {",
+    "  d <<- direction * x",
+    "  power_at(n_total)",
+    "}",
+    "found <- uniroot(function(x) power_with_d(x) - target_power, lower = 1e-6, upper = 10, tol = 1e-10)$root",
+    "d <- direction * found",
+    "power <- power_at(n_total)",
+    sprintf(
+      "cat(sprintf(\"Smallest detectable effect: %s = %%.4g (power %%.4f)\\n\", d, power))",
+      gsub("%", "%%", gsub("\"", "'", comment_text(s$effect_description)), fixed = TRUE)
+    ),
+    "",
+    "reproduced <- list(effect = d, power = power)",
+    sprintf("powerkit_result <- list(effect = %s, power = %s)", r_code(s$effect), r_code(s$power)),
+    ""
+  )
 }
 
 # The required-n section for a test whose exact power goes up and down

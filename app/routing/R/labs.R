@@ -21,6 +21,10 @@ labs_tools <- list(
        text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect.",
        purpose = "For researchers deciding whether, why and how to replicate a finding.",
        sure = "The questions are Karhulahti, Martončik and Adamkovič's (2025); the one number, the smallest detectable effect, comes from the same engine as the main cards. Nothing you write is scored, checked or sent anywhere. Your notes stay in this browser tab, so reloading the page keeps them; closing the tab or pressing “Clear notes” removes them."),
+  list(id = "replication", title = "Replication planner",
+       text = "Plan a replication of a published finding: the original study, the sample size for each goal a replication can have (from a significant result to agreement with the original, small telescopes and Bayes factors), how the replication differs, and a write-up with an R script. In sections you can come back to.",
+       purpose = "For planning a replication once you have decided to run one.",
+       sure = "Every number comes from powerkit's engine: the R package BayesRepDesign (Pawel, Consonni and Held), and pwr and pwrss for small telescopes, as on the cards. Not yet part of powerkit's validation."),
   list(id = "picture", title = "Power visualiser",
        text = "For seven common tests (t-tests, ANOVA, two proportions, a correlation, chi-square and a regression's R-squared): move the sample size and the effect, choose alpha, and see the two distributions behind power, with power, its complement and the smallest effect that would be significant.",
        purpose = "For learning what power means, not for planning a study.",
@@ -49,7 +53,7 @@ labs_tool_head <- function(id) {
     h2(class = "h3 labs-tool-title", tool$title),
     div(class = "labs-notice", role = "note", tags$strong("Experimental. "), tool$purpose, " ", tool$sure))
 }
-labs_tool_sections <- list("Research tools" = c("map", "prereplication", "bayes", "published"),
+labs_tool_sections <- list("Research tools" = c("map", "prereplication", "replication", "bayes", "published"),
   "Educational tools" = c("picture", "variation"))
 labs_ref_key <- "Karhulahti2025_prereplication"
 
@@ -94,6 +98,9 @@ labs_sde <- function(forms, ep_id, n, power = "0.8", alpha = "0.05", p1 = NULL,
   fields <- unlist(lapply(form_groups(forms, ep_id, 2L, list()), `[[`, "fields"), recursive = FALSE)
   values <- list()
   for (f in fields) if (!is.null(f[["default"]])) values[[f$id]] <- as.character(f[["default"]])
+  # What the original study's own design could detect: one study's true
+  # effect, so no variation between studies.
+  values$het_tau <- NULL
   levels_of <- function(k) {
     k <- suppressWarnings(as.integer(k))
     if (length(k) != 1 || is.na(k) || k < 2) return("")
@@ -120,6 +127,48 @@ labs_sde <- function(forms, ep_id, n, power = "0.8", alpha = "0.05", p1 = NULL,
   # An engine refusal in words, without the spec's field paths.
   if (identical(calc$status, "problems")) calc$problems <- labs_plain_problems(calc$problems)
   calc
+}
+
+# Small telescopes (Simonsohn, 2015) for the t-tests and the correlation:
+# d33, the effect the original study could detect a third of the time, and
+# the replication's sample size to show the effect is smaller than d33 if
+# the true effect is zero. Built through the input screen's own fields,
+# as labs_sde() is; the effect entered only sets the direction. Returns
+# run_calculation()'s list, or NULL for a test small telescopes doesn't
+# cover or an entry the panel has already refused.
+labs_telescope_tests <- c("E1", "E2", "E3", "E4")
+
+labs_telescopes <- function(forms, ep_id, n, alpha = "0.05", run = engine_function("run_spec")) {
+  if (!isTRUE(ep_id %in% labs_telescope_tests)) return(NULL)
+  total <- suppressWarnings(as.integer(trimws(as.character(n %||% ""))))
+  if (length(total) != 1 || is.na(total) || total < 4) return(NULL)
+  fields <- unlist(lapply(form_groups(forms, ep_id, 2L, list()), `[[`, "fields"), recursive = FALSE)
+  values <- list()
+  for (f in fields) if (!is.null(f[["default"]])) values[[f$id]] <- as.character(f[["default"]])
+  sizes <- if (identical(ep_id, "E2")) list(st_n1 = as.character(total %/% 2), st_n2 = as.character(total - total %/% 2)) else list(st_n = as.character(total))
+  effect <- switch(ep_id, E3 = list(dz = "0.5"), E4 = list(r = "0.3"), list(d = "0.5"))
+  values <- utils::modifyList(values, c(list(
+    X_label = "Group", X_level1 = "Group 1", X_level2 = "Group 2", Y_label = "Outcome", W_label = "Second measure",
+    goal = "sample_size", power = "0.8", alpha = as.character(alpha %||% ""), alternative = "two_sided",
+    just_type = "prior_study", just_source = "The original study", sg_use = "telescopes"), effect, sizes))
+  if (length(form_problems(fields, values))) return(NULL)
+  spec <- build_spec(forms, ep_id, fields, values)
+  calc <- run_calculation(spec, run = run, seed = forms$default_seed)
+  if (!identical(calc$status, "ok")) return(NULL)
+  calc
+}
+
+labs_telescope_sentence <- function(calc) {
+  if (is.null(calc)) return(NULL)
+  st <- calc$result$small_telescopes
+  n <- calc$result$n_required$n
+  sprintf(paste0("Small telescopes (Simonsohn, 2015): the original study had a one-in-three chance to detect %s = %s ",
+    "(at a two-sided .05). To have 80%% power to show the effect is smaller than that, if the true effect is zero, a replication ",
+    "needs %s participants in total, %s times the original sample (Simonsohn's rule of thumb is about 2.5). This fits a close ",
+    "replication, and a result below %s says the original study was too small to see an effect that size, not that it was a ",
+    "false positive. For a close replication, run the test the original used (for example Student's t-test or the classical F test) ",
+    "so the two can be compared, and report Welch's version beside it; a redesigned replication is better planned on the card for its design."),
+    st$effect_name, format(round(st$effect, 3), nsmall = 2), n, format(round(n / st$original_n, 1), nsmall = 1), st$effect_name)
 }
 
 labs_sde_problems <- function(ep_id, n, power, alpha, p1, rows, cols) {
@@ -304,6 +353,7 @@ labs_ui <- function(tree) {
     study_variation_ui(),
     bayes_ui(),
     published_ui(),
+    replication_ui(),
     conditionalPanel("input.labs_tool == 'prereplication'",
     labs_tool_head("prereplication"),
     p("Before replicating a finding, answer three questions in your own words. They come from Karhulahti, Martončik and Adamkovič (2025), who describe the purpose as “to make researchers critically reflect on their work before having started it”. Write as much or as little as you like."),
@@ -390,10 +440,14 @@ labs_next_ui <- function(outcome, has_test) {
   plan_label <- if (has_test) "the same test" else "the start screen"
   switch(outcome %||% "",
     go = tagList(p(labs_notes_heading("go")),
-      actionButton("labs_plan", "Plan the replication's sample size", class = "btn btn-primary"),
+      tags$button(type = "button", class = "btn btn-primary", onclick = "pkLabsOpen('replication')", "Open the replication planner"),
+      p(class = "small", "Sample sizes for each goal a replication can have, how it differs from the original, and a write-up. Your notes go into it."),
+      actionButton("labs_plan", "Or plan it as one test in the main app", class = "btn btn-outline-primary"),
       p(class = "small", sprintf("Opens the main app on %s.", plan_label))),
     change = tagList(p(labs_notes_heading("change")),
-      actionButton("labs_plan", "Plan the sample size for the new design", class = "btn btn-primary"),
+      tags$button(type = "button", class = "btn btn-primary", onclick = "pkLabsOpen('replication')", "Open the replication planner"),
+      p(class = "small", "For a redesigned replication of a t-test or correlation finding."),
+      actionButton("labs_plan", "Or plan the sample size for the new design in the main app", class = "btn btn-outline-primary"),
       p(class = "small", "Opens the main app on the start screen, so you can choose the new design's analysis.")),
     not_worth = p(labs_notes_heading("not_worth")),
     p(class = "small", "Choose where you landed (step 5) to see what comes next. You can download or copy the notes at any time.")
@@ -406,8 +460,8 @@ labs_next_ui <- function(outcome, has_test) {
 labs_signpost_ui <- function() {
   conditionalPanel("input.f_just_type == 'prior_study'",
     div(class = "labs-signpost",
-      "Planning a replication? ", actionLink("go_labs", "Pre-replication notes in Labs"),
-      " can help you think it through first (optional). ",
+      "Planning a replication? ", actionLink("go_labs", "Pre-replication notes"), " and the ",
+      actionLink("go_labs_replication", "replication planner"), " in Labs can help (optional). ",
       tags$button(type = "button", class = "btn btn-link btn-sm labs-hide", onclick = "pkLabsHideHint()", "Hide this")))
 }
 
@@ -439,6 +493,8 @@ labs_js <- "
       if (!window.confirm('Clear all your pre-replication notes from this tab?')) return;
       var s = store();
       fields().forEach(function(el) {
+        // The replication planner's fields are kept: they are cleared there.
+        if (el.id && el.id.indexOf('rep_') === 0) return;
         if (s) { try { s.removeItem(key + el.id); } catch (e) {} }
         el.value = (el.id === 'labs_power') ? '0.8' : (el.id === 'labs_alpha') ? '0.05' : '';
         $(el).trigger('change');

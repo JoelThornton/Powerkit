@@ -393,6 +393,7 @@ test_that("an effect size from the finished study itself (observed power) gives 
 
 test_that("low replication counts and high attrition give warnings", {
   spec <- example_spec("independent_t")
+  spec$options$method <- "simulation"
   spec$options$nrep <- 200
   expect_warning(validate_spec(spec), "only accurate to about +/- 0.055", fixed = TRUE, class = "powerkit_spec_warning")
 

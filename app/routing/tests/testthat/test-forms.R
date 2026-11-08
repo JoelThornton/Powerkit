@@ -645,10 +645,13 @@ test_that("long labels are short, with the detail as help linked to the field", 
   expect_match(html, 'aria-describedby="f_just_source_help"', fixed = TRUE)
   for (f in fields) expect_lt(nchar(f$label), 80, label = f$id)
   # The adjustment appears for one study's estimate, published or a
-  # pilot, unless safeguard power is used instead; it is needed for both.
+  # pilot, unless safeguard power or small telescopes is used instead; it
+  # is needed for both.
   adj <- Filter(function(f) f$id == "just_adjustment", fields)[[1]]
-  expect_identical(adj$shown_if, list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes")))
+  expect_identical(adj$shown_if, list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
+    list(field = "sg_use", is_not = "telescopes")))
   expect_true(field_applies(adj, list(just_type = "pilot_study", sg_use = "no")))
+  expect_false(field_applies(adj, list(just_type = "prior_study", sg_use = "telescopes")))
   expect_false(field_applies(adj, list(just_type = "meta_analysis")))
 })
 
@@ -1015,7 +1018,7 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   expect_match(html, "Which test you&#39;ll run|Which test you'll run")
   expect_no_match(html, "<legend class=\"h6\">Student&#39;s or Welch&#39;s", fixed = TRUE)
   # A pre-selected choice's note says what it is about.
-  expect_match(html, "Selected to start with: the t-test pwr&#39;s formula covers|Selected to start with: the t-test pwr's formula covers")
+  expect_match(html, "Selected to start with: Welch&#39;s t-test, as Delacre|Selected to start with: Welch's t-test, as Delacre")
   # The direction, which has no default, keeps its own note.
   expect_match(html, "Not filled in for you.", fixed = TRUE)
   # No developer wording in a default's note.

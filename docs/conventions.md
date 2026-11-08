@@ -87,7 +87,7 @@ power while matching G\*Power) is folded there instead
 | InteractionPoweR | Not covered (interactions only): to check | | |
 | power4mome | Not covered: to check | | |
 | Spower | `p_t.test()`: `t.test()` on simulated normal data; Student's by default (`var.equal = TRUE`), Welch's with `var.equal = FALSE`; two-sided by default [Spower-src] | `d` is the standardised mean of the **first** group (two-sample) or first time point (paired); the other is 0, both with SD 1. For paired data the two time points are drawn **independently**, so the differences have SD sqrt(2) and Spower's `d` is sqrt(2) * d_z [Spower-src] | One-sided tests: `alternative` (`"two.sided"`, `"greater"`, `"less"`; Spower 0.7), or `two.tailed = FALSE`, which means `"greater"` in Spower's orientation (group 1 minus group 2). Spower 0.6.4's `two.tailed = FALSE` halved the two-sided p-value regardless of direction (Departure 4, retired); `n` is group 1's size (pairs, for paired data), `n2_n1` the allocation ratio [Spower-src] |
-| **powerkit** | **By default, pwr's formula** (Departure 9): `pwr.t.test()` (one-sample; paired, with d_z; two equal groups) or `pwr.t2n.test()` (unequal groups), Student's only. **On request, and for Welch's:** Spower's `p_t.test()`; one-sided tests pass `alternative`, translated to Spower's orientation (for two-sample and paired tests powerkit's `"greater"` is Spower's `"less"`). Student's or Welch's as the spec says; the finder pre-selects Student's (decision D7) [powerkit] | `d` = (mean of group 2 - mean of group 1) / SD; `dz` = mean of (second condition - first) / SD of the differences, stated when a paired spec is printed. Passed to Spower as -d and -sqrt(2) * d_z [powerkit] | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the effect is positive); `allocation_ratio`; `goal.n` is the total |
+| **powerkit** | **By default, pwr's formula**: `pwr.t.test()` (one-sample; paired, with d_z; two equal groups) or `pwr.t2n.test()` (unequal groups), Student's only. **Two groups:** Welch's t-test by default (Departure 21), by pwrss's `power.t.welch()`. **On request:** Spower's `p_t.test()`; one-sided tests pass `alternative`, translated to Spower's orientation (for two-sample and paired tests powerkit's `"greater"` is Spower's `"less"`). Student's or Welch's as the spec says; the two-group card pre-selects Welch's (Departure 21) [powerkit] | `d` = (mean of group 2 - mean of group 1) / SD; `dz` = mean of (second condition - first) / SD of the differences, stated when a paired spec is printed. Passed to Spower as -d and -sqrt(2) * d_z [powerkit] | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the effect is positive); `allocation_ratio`; `goal.n` is the total |
 
 ### Correlation, two proportions, chi-square test of independence
 
@@ -116,6 +116,44 @@ power while matching G\*Power) is folded there instead
 | G*Power | Two independent r's: "z test: Correlation - inequality of two independent Pearson r's". H0 is N(0, 1) and H1 is N(q/s, 1) with s = sqrt(1/(N1 - 3) + 1/(N2 - 3)) [GP-man, 27, 27.5, pp. 65-66]. Generic t: "t test: Generic case", the central t(df) against the noncentral t(df, delta); it has **no a priori analysis**, "the reason being that there is no definite association between N and df" [GP-man, 25, 25.5, p. 63]. The manual has no section for the generic F, chi-square or z test | Two independent r's: q = z1 - z2, the difference of the Fisher-transformed correlations, with Cohen's (1969) small .1, medium .3, large .5; an effect-size drawer converts between q and the pair of correlations [GP-man, 27.1]. Generic t: the noncentrality delta itself [GP-man, 25.1] | Both "have no options" [GP-man, 25.2, 27.2]. Two independent r's takes the two sample sizes separately, or an allocation ratio N2/N1 for an a priori analysis. One-sided generic t: the critical value takes the sign of delta. Validated against Cohen (1969, chap. 4) and GPower 2.0 respectively [GP-man, 25.6, 27.6] |
 | pwrss | Two independent r's: `power.z.twocors()`, Fisher's z test. Generic tests: `power.t.test()`, `power.f.test()`, `power.chisq.test()`, `power.z.test()`, each taking a noncentrality and degrees of freedom | The two correlations themselves, not q; a noncentrality for the generic tests | **`n.ratio` is n1 / n2**, the inverse of powerkit's `allocation_ratio` (n2 / n1), and the adapter inverts it [powerkit, `backend-pwrss.R`] |
 | **powerkit** | pwrss's `power.z.twocors()` and the four generic functions, by formula; no simulation option (two correlations: engine and app, E49; generic tests: E50, from "I know my analysis" only) [powerkit] | `r1` and `r2`; `ncp` with `df` (or `df1` and `df2`) | `allocation_ratio` is n2 / n1 and `goal.n` is the total, so a published pair of group sizes is entered as their sum with their ratio. A generic test has no sample size: the curve has one row with `n` `NA`. Both reproduce the manual's worked examples: power 0.7263517 against 0.726352 and a required 168 against 84 per group (27.3), and 0.2245240 against 0.224525 (25.3), the last agreeing to five decimals and differing in the sixth |
+### Small telescopes for replications (from 8 November 2026, 0.47.0)
+
+- **What it is:** Simonsohn's (2015, `Simonsohn2015_telescopes`) plan for
+  a replication of one original study: d33 (r33 for a correlation) is the
+  effect the original study had 33% power to detect with its own sample
+  size (two-sided, at the significance level the original study used,
+  0.05 unless the user says otherwise; from 0.47.2, before which the
+  card's alpha was used, see below), and the replication is planned so
+  that, if the true effect is zero, a one-sided test can show the effect
+  is smaller than d33. Offered on the one-sample, paired and two-group
+  t-tests and the correlation, beside safeguard power, when the effect
+  comes from a previous study (`effect_justification > small_telescopes`).
+- **powerkit:** d33 from pwr (`pwr.t.test()`, `pwr.t2n.test()`,
+  `pwr.r.test()` at `power = 1/3`); the replication's test from pwrss
+  (`power.t.student(d = 0, margin = d33, alternative = "one.sided")`,
+  Student's t-test as in the method, and `power.z.onecor(rho = 0,
+  null.rho = r33)`). No package implements the planning
+  (RSmallTelescopes analyses a finished replication), so the method is
+  composed from these two packages' functions; no new maths is written.
+- **Not a departure:** G\*Power and the other tools have no
+  small-telescopes option. The result matches Simonsohn's rule of thumb of
+  about 2.5 times the original sample: 51 per group for an original 20 per
+  group, 75 for an original 30 in a paired design and 103 for a
+  correlation from an original 40 (`test-small-telescopes.R`).
+- **Two significance levels (0.47.2):** d33 uses the original study's
+  level, the replication's test the card's. With one alpha for both, a
+  replication at .005 got d33 = 0.79 instead of 0.50 for an original of
+  20 per group, and 38 per group instead of 96 (`test-small-telescopes.R`).
+- **What a result shows:** a result below d33 means a study the size of
+  the original could not reliably have detected an effect that small; it
+  doesn't show the original was a false positive (Simonsohn, 2015, p.
+  567), and it bears on the original only as far as the replication
+  recreated its conditions. The result says so, and its "How sure can you
+  be?" section shows the power if the true effect is a quarter, half or
+  three quarters of d33 rather than 0 (59%, 35% and 15% for an original
+  of 20 per group and a replication of 51 per group at alpha .05, against
+  80% for a true effect of 0).
+
 ### Variance tests (one group, two groups)
 
 | Tool | Test | Effect size | Settings |
@@ -287,11 +325,11 @@ with Superpower 0.2.4.1 under R 4.5.3 on 29 October 2026.
 - **Welch's F** (groups whose SDs differ) is a test version on the
   one-way ANOVA card, simulated with Spower's
   `p_anova.test(var.equal = FALSE)`, which runs `stats::oneway.test()` on
-  groups drawn with each group's mean and SD. G\*Power has no Welch
-  ANOVA, so there is no G\*Power convention to follow; the classic F
-  stays the default (the maintainer's decision, 29 October 2026). Not a
-  departure: Spower's own experiment function. Each group's SD is given in
-  the outcome's own units, since there is no single SD to standardise by.
+  groups drawn with each group's mean and SD. Since 8 November 2026 it is
+  the card's default, recorded as Departure 22 (G\*Power and Superpower
+  plan for the classical F test). Each group's SD is given in the
+  outcome's own units, since there is no single SD to standardise by; with
+  one SD for every group the means can also be in SD units.
 - **The MANOVA approach** to a repeated-measures effect (Pillai's trace,
   no sphericity assumed) is reported beside the univariate F, from the
   same `Superpower::ANOVA_exact()` run (`manova_results`), when the
@@ -573,6 +611,52 @@ likelihood ratio; not a departure.
 | G\*Power | No Bayes factor tests | — | — |
 | BFDA (Schönbrodt and Wagenmakers, 2018; on GitHub only, not compared) | Monte Carlo simulation of the Sequential Bayes Factor design, the JZS t-test Bayes factor at every look | d, fixed or drawn from a design prior | A first look at `n_min`, then after every participant (or every few), thresholds for H1 and H0, an optional maximum N |
 | **powerkit** | `bayes_sequential()`: the same procedure, simulated by powerkit with bfpwr's `tbf01()` (the JZS Bayes factor, a Cauchy analysis prior) at every look (Labs, from 1 November 2026) [powerkit] | d (d_z for pairs), the true effect drawn from a normal design prior for every simulated study, and again with no effect | `n_min`, `step`, `n_max`, a BF10 threshold for an effect and a BF01 threshold for no effect (may differ), one- or two-sided; 2,000 simulated studies under each (seed 1) in the app. Each look's thresholds are found as values of t, which gives the same decisions as computing the Bayes factor every time (tested). Not a departure: it follows the published procedure, whose examples it reproduces to within about a percentage point |
+
+## Replication planner (Labs)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No replication planning; a replication is planned as an ordinary test with the original's effect | — | — |
+| BayesRepDesign (Pawel, Consonni & Held, 2026) | `ssdSig()`, `ssdMeta()`, `ssdEqu()`, `ssdTOST()`, `ssdBFr()`, `ssdBFs()` and their `pors*()` chances, on the normal-normal hierarchical model: the effect estimate is normal with a known standard error | The original estimate and its standard error; a design prior (`designPrior()`, conditional, predictive or empirical Bayes) with a heterogeneity SD `tau` | Levels as the user passes them; `se2n(se, unitSD = 2)` turns a standard error into a total sample size for a standardised mean difference |
+| **powerkit** | `replication_planning()` (Labs, from 8 November 2026): every goal judged against the original's effect is BayesRepDesign's, under all three design priors; small telescopes is the card's own pwr and pwrss calculation (above), so the two agree [powerkit] | d (two groups, one sample), d_z (pairs) or r (on Fisher's z); the original's standard error from the paper's equation 9 for two groups, 1/sqrt(n) for one sample or pairs, 1/sqrt(n - 3) for r | The paper's worked levels: the two-trials rule at one-sided alpha/2, the pooled estimate at (alpha/2)^2, agreement by a (1 - 2 alpha) interval for the difference, Bayes factors at 1/threshold (10 by default), and TOST at alpha (BayesRepDesign's `level` set to 2 alpha, because `porsTOST()` uses `qnorm(1 - level/2)`; `upstream-questions.md`). `tau` applies to the uncertain and shrunk priors only: the conditional prior is a point mass. Two equal groups in the replication |
+
+**The normal approximation against the t-test cards.** With the "as
+reported" prior and no heterogeneity, the significance goal is a classical
+power analysis, but by the normal approximation, where the t-test cards use
+the t distribution. For an original d = 0.7, BayesRepDesign gives 66 in
+total (33 per group) and a t-test power analysis (pwr) 68: the planner asks
+for slightly fewer people at small samples, and the difference shrinks as
+the sample grows. This follows the method's published form rather than
+mixing two models in one table; it is stated on the result and in the
+methods paragraph ("the normal-normal hierarchical model"), and
+`engine/tests/testthat/test-replication-planning.R` ("as reported, the
+significance goal is a power analysis by the normal approximation") shows
+its size. An independent simulation of Student's t-tests, with true effects
+drawn from the uncertain prior, agrees with the planner's chance to within
+3 percentage points at 60 per group (same file).
+
+## Effects that vary between studies (t-test cards)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No allowance for heterogeneity: the true effect is the same in every study | — | — |
+| Kenny and Judd (2019) | Their formula for a t-test when each study's true effect is drawn from a normal distribution with mean mu and SD tau: q = se0 / sqrt(se0^2 + tau^2), critical t = q t_crit (the "effective alpha"), noncentrality mu / sqrt(se0^2 + tau^2), with the usual df; their appendix gives it as an R function, and they note a conventional power program gives the same answer when given the effective alpha and the adjusted effect | d (the average effect) and tau, both in d | Representative tau 0.05, 0.125 and 0.20 (small, medium, large); they argue zero should not be the default |
+| **powerkit** | pwr's own t-test power (`pwr.t.test()`, `pwr.t2n.test()`) given Kenny and Judd's effective alpha as `sig.level` and q times the average effect as `d`, which gives their noncentrality (E1, E2 and E3, from 8 November 2026) [powerkit] | d (d_z for pairs), the average across studies, and tau, optional | se0 = sqrt(1/n1 + 1/n2) for two groups of any sizes, sqrt(1/n) for one sample or pairs (the two-equal-groups case is theirs; the others follow the same rule). Student's t-test, or Welch's with equal SDs, by formula only; not with small telescopes. Empty or 0 is the usual analysis, unchanged |
+
+**Size and checks.** Kenny and Judd's worked example (mu 0.3, tau 0.2, 50
+per group) gives power .375 against .318 with no heterogeneity, and an
+effective alpha of about .16; powerkit reproduces both, and their appendix
+function. For 80% power at d = 0.3, two equal groups, the total sample size
+is 352 with no variation, 376 with tau 0.05, 522 with 0.125 and 830 with
+0.20. Below a power of one half, variation raises power rather than
+lowering it, as Kenny and Judd show. An independent simulation that draws
+every study's true effect agrees within 2.5 percentage points for all three
+designs, and with the effective alpha (`engine/tests/testthat/test-heterogeneity.R`).
+Welch's test with equal SDs is planned by the same formula: on the
+two-group card its power with equal SDs is Student's (0.318 for both in
+the example, pwrss), so this is not a departure. With tau = 0 the answer
+is the card's usual one. The cards start at tau = 0.05, which is
+Departure 23.
 
 ## Participants and items in three or more conditions (E63)
 
@@ -1316,6 +1400,95 @@ Departure 19 is shown on the affected result and in the methods text.
 - **Shown to users:** on the E71 result unless the user chose irtpwr's
   test (`app/routing/R/results.R`, `departures_for()`), and in the
   methods paragraph.
+
+### 21. Two groups: Welch's t-test by default, not Student's (G\*Power and pwr)
+
+- **Established convention:** G\*Power's two-group t-test and pwr's
+  `pwr.t.test()` and `pwr.t2n.test()` plan for Student's t-test, which
+  pools the two groups' variances; Spower's `p_t.test()` runs it unless
+  `var.equal = FALSE`.
+- **powerkit:** the two-group card (E2) plans for Welch's t-test unless the
+  user chooses Student's, worked out by pwrss's formula
+  (`power.t.welch()`, pwrss 1.3.3), with Spower's simulation on request
+  (`options > method = "simulation"`). The smallest detectable effect and
+  a justified alpha use the same formula: d searched with pwrss's power
+  (`welch_sensitivity()`), and JustifyAlpha's `optimal_alpha()` on
+  `power.t.welch()`.
+- **Why** (the maintainer's decision, 7 November 2026, with
+  `Delacre2017_welch`): Welch's test keeps the false-positive rate at
+  alpha when the groups' spreads differ, above all when the smaller group
+  has the larger spread, and loses almost nothing when they don't, so
+  Delacre, Lakens and Leys (2017) recommend it by default; R's own
+  `t.test()` runs it unless told otherwise. The formula, not a
+  simulation, is the default because the two agree (the `welch_spreads`
+  validation chunk) and the formula has no random error.
+- **Size:** with equal spreads and equal groups the two tests need the same
+  N (788, 128 and 52 for d = 0.2, 0.5 and 0.8 at 80% power: pwrss's Welch
+  df are then n - 2, as Student's). With unequal groups Welch's needs a few
+  more: 147 rather than 144 for d = 0.5 when group 2 is twice the size of
+  group 1, and 176 rather than 172 when it is three times the size.
+- **Test:** `engine/tests/testthat/test-welch-default.R`.
+- **Shown to users:** on the E2 result whenever Welch's test is planned
+  for (`app/routing/R/results.R`, `departures_for()`), and in the methods
+  paragraph. The critical effect size is shown with Student's test only:
+  Welch's critical d depends on the sample variances, so it has no single
+  value before the data are in (`decisions.md`, 1 November 2026).
+
+### 22. One-way ANOVA: Welch's F by default, not the classical F test (G\*Power and Superpower)
+
+- **Established convention:** G\*Power's one-way ANOVA and Superpower's
+  `ANOVA_exact()` plan for the classical F test, which assumes the same SD
+  in every group.
+- **powerkit:** the one-way ANOVA card (E18) plans for Welch's F
+  (`stats::oneway.test(var.equal = FALSE)`) unless the user chooses the
+  classical F test. No package gives Welch's F's power by formula, so it
+  is simulated with Spower (`p_anova.test(var.equal = FALSE)`), from one
+  SD for every group or an SD for each. The smallest detectable effect is
+  simulated too (`welch_f_sensitivity()`): the pattern of means is scaled,
+  starting from the F test's exact answer, and the scale is read from a
+  probit curve of the simulated rejections, with a 95% interval.
+- **Why** (the maintainer's decision, 8 November 2026, with
+  `Delacre2019_welch_f`): Welch's F keeps the false-positive rate at
+  alpha when the groups' SDs differ and loses little power when they
+  don't, so Delacre, Leys, Mora and Lakens (2019) recommend it by default
+  over the classical F test.
+- **Size** (80% power, means 10, 11 and 13, three equal groups): with
+  one SD of 6 the F test needs 228 and Welch's F 231 (95% interval 228 to
+  234; 10,000 replications per point). With SDs 4, 6 and 9, Welch's F
+  needs 300 (297 to 303); the F test can't take three SDs, and with their
+  root mean square (6.66) it plans 279. With those SDs and 30 per group
+  the classical F test's false-positive rate is about 6.1% against 5.3%
+  for Welch's F; with groups of 45, 30 and 15, the smallest group having
+  the largest SD, it is about 13.5% against 5.0% (20,000 simulated studies
+  each, powerkit's own check, not a published figure).
+- **Test:** `engine/tests/testthat/test-welch-anova-default.R`; Welch's F
+  against separately simulated `oneway.test()` studies, its false-positive
+  rate and its smallest detectable effect in the `welch_spreads`
+  validation chunk.
+- **Shown to users:** on the E18 result whenever Welch's F is planned for
+  (`app/routing/R/results.R`, `departures_for()`), and in the methods
+  paragraph.
+
+### 23. t-tests: a small variation between studies by default, not one effect in every study (G\*Power and pwr)
+
+- **Established convention:** G\*Power and pwr plan for a true effect that
+  is exactly the same in the new study as the one entered.
+- **powerkit:** the one-sample, two-group and paired t-test cards (E1, E2,
+  E3) start "How much might the true effect vary between studies?" at an
+  SD of 0.05 in d (d_z for pairs), Kenny and Judd's (2019) small value,
+  and plan by their formula (above, "Effects that vary between studies").
+  The effect entered is then the average across studies. Emptying the
+  field, or 0, gives the usual analysis.
+- **Why** (the maintainer's decision, 8 November 2026, with
+  `Kenny2019_heterogeneity`): Kenny and Judd show that true effects vary
+  between studies, that ignoring it understates the people needed when
+  power is high, and argue that zero should not be the default.
+- **Size** (d = 0.3, two equal groups, 80% power): 376 in total against
+  352 without the variation; at 100 people, power .323 against .318.
+- **Test:** `engine/tests/testthat/test-heterogeneity.R`, "Departure 23".
+- **Shown to users:** on the t-test results whenever the variation is
+  above 0 (`app/routing/R/results.R`, `departures_for()`), in the result's
+  own sentence on the variation, and in the methods paragraph.
 
 ## Known differences
 
