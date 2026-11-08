@@ -2,11 +2,9 @@
 # come from the engine; this file displays and exports the returned run.
 study_variation_ui <- function() {
   conditionalPanel("input.labs_tool == 'variation'",
-    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
-    h3("1,000 studies"),
+    labs_tool_head("variation"),
     p("Imagine repeating the same study 1,000 times, drawing new participants each time. The population effect stays fixed, but the estimates and p-values vary."),
-    div(class = "labs-notice", role = "note", tags$strong("Educational simulation. "),
-      "Two independent, equal-sized groups; normally distributed scores; equal population SDs; a two-sided Student t-test. No missing data or publication selection is generated. The highlighted subset simply shows what happens if you look only at significant results."),
+    p(class = "small", "The studies have two independent, equal-sized groups, normally distributed scores with equal population SDs, and a two-sided Student t-test. No missing data or publication selection is generated. The highlighted subset simply shows what happens if you look only at significant results."),
     sliderInput("variation_n", "Total participants in each study (both groups together)", min = 6, max = 1000, value = 64, step = 2, width = "100%"),
     sliderInput("variation_d", "True population effect, Cohen's d (group 2 minus group 1)", min = -1, max = 1, value = 0.3, step = 0.05, width = "100%"),
     p(class = "small", "Cohen's d is the difference between the population means divided by the within-group SD. Zero means no difference; a negative value reverses the direction. The starting value is an illustration, not a recommended assumption."),
@@ -19,9 +17,9 @@ study_variation_ui <- function() {
     actionButton("variation_run", "Run 1,000 studies", class = "btn btn-primary"),
     uiOutput("variation_summary"),
     conditionalPanel("input.variation_run > 0",
-      plotOutput("variation_grid", height = "330px"),
-      plotOutput("variation_pvalues", height = "300px"),
-      plotOutput("variation_estimates", height = "330px"),
+      plotOutput("variation_grid", height = "360px"),
+      plotOutput("variation_pvalues", height = "320px"),
+      plotOutput("variation_estimates", height = "380px"),
       download_button("variation_csv", "Download simulated study results (CSV)", class = "btn btn-outline-primary")),
     p(class = "small", "This example teaches sampling variation and significance selection. It is not a power calculation for every study design, and does not show that a non-significant result proves no effect."))
 }
@@ -49,29 +47,40 @@ study_variation_summary <- function(run, changed = FALSE) {
         paste(paste(names(run$provenance$packages), run$provenance$packages), collapse = "; "), run$provenance$spec_hash))))
 }
 
+# The three charts, in the result page's chart style: significant studies
+# in the app's blue, the rest pale, the threshold and the true effect as
+# dashed lines, and the key below each chart.
 study_variation_plot <- function(run, view) {
   data <- run$studies
   selected <- data$significant
-  graphics::par(mar = c(4, 4, 3, 1))
+  blue <- chart_colours$blue
+  pale <- chart_colours$pale
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(op))
   if (identical(view, "grid")) {
+    chart_start(chart_key_rows(2), top = 2.4, bottom = 0.5, left = 0.5)
     i <- seq_len(nrow(data)) - 1L
-    graphics::plot(i %% 40, -(i %/% 40), pch = 16, cex = 0.7,
-      col = ifelse(selected, "#007c83", "#bbc3cc"), axes = FALSE, xlab = "", ylab = "", main = "Each dot is one simulated study")
-    graphics::legend("bottom", inset = -0.14, xpd = TRUE, bty = "n", horiz = TRUE, pch = 16,
-      col = c("#007c83", "#bbc3cc"), legend = c("Significant", "Not significant"), cex = 0.85)
+    graphics::plot(i %% 40, -(i %/% 40), pch = 16, cex = 0.75, col = ifelse(selected, blue, pale), axes = FALSE, xlab = "", ylab = "")
+    chart_title("Each dot is one simulated study")
+    chart_key(pch = 16, pt.cex = 1.4, col = c(blue, pale), legend = c("Significant", "Not significant"))
   } else if (identical(view, "pvalues")) {
-    graphics::hist(data$p_value, breaks = seq(0, 1, by = 0.05), col = "#bbc3cc", border = "white",
-      main = "P-values from all studies", xlab = "Two-sided p-value", ylab = "Number of studies", xlim = c(0, 1))
-    graphics::abline(v = run$settings$alpha, col = "#007c83", lwd = 2, lty = 2)
-    graphics::legend("topright", bty = "n", lty = 2, lwd = 2, col = "#007c83", legend = "Alpha threshold")
+    chart_start(chart_key_rows(1), top = 2.4)
+    graphics::hist(data$p_value, breaks = seq(0, 1, by = 0.05), col = pale, border = "white", axes = FALSE,
+      main = "", xlab = "Two-sided p-value", ylab = "Number of studies", xlim = c(0, 1))
+    chart_axes()
+    graphics::abline(v = run$settings$alpha, col = chart_colours$navy, lwd = 2, lty = 2)
+    chart_title("P-values from all studies")
+    chart_key(lty = 2, lwd = 2, col = chart_colours$navy, legend = "The significance threshold (alpha)")
   } else {
-    h <- graphics::hist(data$estimate, breaks = 30, col = "#bbc3cc", border = "white",
-      main = "Effect estimates", xlab = "Estimated Cohen's d", ylab = "Number of studies")
-    if (any(selected)) graphics::hist(data$estimate[selected], breaks = h$breaks, add = TRUE, col = "#007c83", border = "white")
-    graphics::abline(v = run$settings$d, col = "#a33100", lwd = 2, lty = 2)
-    graphics::legend("topright", bty = "n", cex = 0.8,
-      pch = c(15, 15, NA), lty = c(NA, NA, 2),
-      col = c("#bbc3cc", "#007c83", "#a33100"), legend = c("All studies", "Significant subset", "True population effect"))
+    chart_start(chart_key_rows(3), top = 2.4)
+    h <- graphics::hist(data$estimate, breaks = 30, col = pale, border = "white", axes = FALSE,
+      main = "", xlab = "Estimated Cohen's d", ylab = "Number of studies")
+    chart_axes()
+    if (any(selected)) graphics::hist(data$estimate[selected], breaks = h$breaks, add = TRUE, col = blue, border = "white")
+    graphics::abline(v = run$settings$d, col = chart_colours$red, lwd = 2, lty = 2)
+    chart_title("Effect estimates")
+    chart_key(pch = c(15, 15, NA), pt.cex = 1.8, lty = c(NA, NA, 2), lwd = c(NA, NA, 2),
+      col = c(pale, blue, chart_colours$red), legend = c("All studies", "The significant ones", "The true population effect"))
   }
 }
 
@@ -114,7 +123,7 @@ study_variation_server <- function(input, output, session) {
     output[[paste0("variation_", kind)]] <- shiny::renderPlot({
       shiny::req(run(), is.null(run()$problem))
       study_variation_plot(run(), kind)
-    }, alt = shiny::reactive({
+    }, res = 96, alt = shiny::reactive({
       shiny::req(run(), is.null(run()$problem))
       sprintf("%s plot of %s simulated studies with true d %s. %s studies were significant. Numerical summaries and a CSV are provided alongside the plots.", kind,
         run()$settings$replications, run()$settings$d, run()$summary$significant)

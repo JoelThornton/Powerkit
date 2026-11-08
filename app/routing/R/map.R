@@ -230,7 +230,7 @@ map_graph <- function(tree, meta = map_meta()) {
   # as regions of the map, and how the analyses relate.
   on_map <- names(nodes)[vapply(nodes, function(n) identical(n$kind, "endpoint"), logical(1))]
   for (f in tree$analysis_families) {
-    if (any(unlist(f$endpoints) %in% on_map)) add_node(paste0("fam_", f$id), "family", f$label, list(family = f$id))
+    if (any(unlist(f$endpoints) %in% on_map)) add_node(paste0("fam_", f$id), "family", f$short %||% f$label, list(family = f$id, long = f$label))
   }
   for (r in meta$relations) {
     if (r$from %in% on_map && r$to %in% on_map) {
@@ -303,7 +303,6 @@ map_ui <- function(tree, meta = map_meta()) {
   tagList(
     tags$script(id = "map-data", type = "application/json", HTML(map_json(tree, meta))),
     tags$script(src = "methods-map.js"),
-    h3("Methods map"),
     p("Every analysis powerkit knows about, on one map. Find a study like yours to see what it is, which test it uses, the simpler designs that lead to it and the ways to change it, then plan it."),
     tags$button(type = "button", class = "btn btn-primary mb-3", onclick = "pkMapFull(true)", "Open the map full screen"),
     div(class = "map-stage", id = "map-stage", role = "region", `aria-label` = "Methods map",
@@ -447,6 +446,15 @@ map_css <- "
   .map-key-items button:hover, .map-key-items button:focus { background: rgba(255, 255, 255, 0.1); }
   .map-key-items button[aria-pressed='false'] { opacity: 0.4; text-decoration: line-through; }
   .map-stage .dot { width: 0.65rem; height: 0.65rem; border-radius: 50%; flex: none; display: inline-block; }
+  /* Each test's shape, as on the map, so the key reads without colour. */
+  .map-stage .dot.shape-diamond { border-radius: 0; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+  .map-stage .dot.shape-triangle { border-radius: 0; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .map-stage .dot.shape-hexagon { border-radius: 0; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+  .map-stage .dot.shape-pentagon { border-radius: 0; clip-path: polygon(50% 0, 100% 38%, 82% 100%, 18% 100%, 0 38%); }
+  .map-stage .dot.shape-octagon { border-radius: 0; clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%); }
+  .map-stage .dot.shape-star { border-radius: 0; width: 0.8rem; height: 0.8rem; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+  .map-stage .dot.shape-vee { border-radius: 0; clip-path: polygon(0 0, 50% 40%, 100% 0, 50% 100%); }
+  .map-stage .dot.shape-round-rectangle { border-radius: 25%; }
   .map-zoom { position: absolute; right: 0.9rem; bottom: 0.9rem; z-index: 3; display: flex; flex-direction: column; gap: 0.35rem; }
   .map-zoom .map-hud-btn { padding: 0; width: 40px; height: 40px; font-size: 1.1rem; line-height: 1; }
   .map-trail { position: absolute; top: 3.7rem; left: 0.9rem; right: 24rem; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem;

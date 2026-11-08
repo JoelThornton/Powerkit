@@ -449,3 +449,88 @@ test_that("Labs, Updates and Feedback are rendered once, with the app's theme an
   expect_true(all(c("selectize", "ionrangeslider-javascript") %in% deps))
   expect_match(as.character(done), "Open Methods map", fixed = TRUE)
 })
+
+# Labs' look and links (project review, 7 November 2026)
+
+test_that("every Labs tool opens with one header: its name and a notice saying what it is for and how far it is checked", {
+  for (tool in labs_tools) {
+    expect_true(nzchar(tool$purpose %||% "") && nzchar(tool$sure %||% ""), info = tool$id)
+    html <- as.character(labs_tool_head(tool$id))
+    expect_match(html, tool$title, fixed = TRUE)
+    expect_match(html, "Experimental. ", fixed = TRUE)
+    expect_match(html, "labs-back", fixed = TRUE)
+  }
+  html <- as.character(labs_ui(tree))
+  # The Labs heading and its lead belong to the menu, not to each tool.
+  expect_gt(regexpr("Labs (experimental)</h2>", html, fixed = TRUE), regexpr('data-display-if="!input.labs_tool"', html, fixed = TRUE))
+  expect_no_match(html, "Educational simulation|Experimental and not validated")
+  # The menu's description of the visualiser names all its tests.
+  picture <- Filter(function(t) t$id == "picture", labs_tools)[[1]]
+  expect_match(picture$text, "seven common tests", fixed = TRUE)
+})
+
+test_that("the visualiser says when a curve is cut off or rises at 0, and only then", {
+  skip_if(is.null(engine_function("power_picture_chisq")), "powerkit's engine isn't available here")
+  expect_null(picture_note(engine_function("power_picture")(64, 0.5)))
+  chisq <- engine_function("power_picture_chisq")(88, 0.3, df = 1)
+  expect_match(picture_note(chisq), "With 1 degree of freedom", fixed = TRUE)
+  expect_match(picture_note(chisq), "cut off", fixed = TRUE)
+  anova <- engine_function("power_picture_anova")(156, 0.25, k = 3)
+  expect_no_match(picture_note(anova) %||% "", "1 degree of freedom", fixed = TRUE)
+})
+
+test_that("Labs charts share the result page's style, with the key below the chart", {
+  skip_if(is.null(engine_function("power_picture")), "powerkit's engine isn't available here")
+  file <- tempfile(fileext = ".png")
+  grDevices::png(file, width = 360, height = 380)
+  on.exit(grDevices::dev.off())
+  expect_equal(chart_key_rows(4), 4)
+  expect_no_error(picture_plot(engine_function("power_picture")(64, 0.5)))
+  code <- paste(c(deparse(picture_plot), deparse(bayes_priors_plot), deparse(bayes_curves_plot), deparse(bayes_stops_plot),
+    deparse(study_variation_plot)), collapse = "\n")
+  expect_match(code, "chart_start", fixed = TRUE)
+  expect_no_match(code, 'legend("topright"', fixed = TRUE)
+  expect_no_match(code, "#2166ac", fixed = TRUE)
+})
+
+test_that("the methods map gives each test its own colour and shape", {
+  meta <- map_meta()
+  colours <- vapply(meta$tests, `[[`, "", "colour")
+  shapes <- vapply(meta$tests, function(t) t$shape %||% "", "")
+  expect_false(any(duplicated(colours)))
+  expect_false(any(duplicated(shapes)))
+  expect_true(all(nzchar(shapes)))
+  # Every key colour is far from every other (in RGB distance).
+  rgb <- grDevices::col2rgb(colours)
+  d <- as.matrix(stats::dist(t(rgb)))
+  expect_gt(min(d[upper.tri(d)]), 60)
+  expect_true(all(unlist(meta$endpoints) %in% names(meta$tests)))
+  # Long family names have short ones for the map's regions.
+  long <- Filter(function(f) nchar(f$label) > 40, tree$analysis_families)
+  expect_true(all(vapply(long, function(f) !is.null(f$short), logical(1))))
+})
+
+test_that("common results link to the visualiser and 1,000 studies at their own settings", {
+  skip_if(is.null(engine_function("run_spec")), "needs powerkit's engine")
+  run <- engine_function("run_spec")
+  calc_for <- function(ep, change = list()) {
+    fields <- unlist(lapply(form_groups(forms, ep, 2L, list()), `[[`, "fields"), recursive = FALSE)
+    values <- utils::modifyList(form_examples[[ep]], change)
+    run_calculation(build_spec(forms, ep, fields, values), run = run, seed = forms$default_seed)
+  }
+  two <- calc_for("E2", list(goal = "power", n = "100", d = "0.4", method = "student_t"))
+  pic <- labs_picture_settings(two$spec, two$result)
+  expect_identical(pic$design, "t")
+  expect_equal(pic$sliders, list(picture_n = 100, picture_d = 0.4))
+  expect_identical(pic$alpha, "0.05")
+  expect_equal(labs_variation_settings(two$spec, two$result)$n, 100)
+  html <- as.character(labs_learn_ui(two$spec, two$result))
+  expect_match(html, "learn_picture", fixed = TRUE)
+  expect_match(html, "learn_variation", fixed = TRUE)
+  r <- calc_for("E4", list(goal = "power", n = "84", r = "0.3"))
+  expect_identical(labs_picture_settings(r$spec, r$result)$design, "r")
+  expect_null(labs_variation_settings(r$spec, r$result))
+  # A design the visualiser doesn't draw gets no link.
+  anova <- calc_for("E18")
+  expect_null(labs_learn_ui(anova$spec, anova$result))
+})

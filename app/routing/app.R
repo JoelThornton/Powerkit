@@ -304,7 +304,7 @@ app_css <- "
   h2 { font-weight: 650; color: var(--pk-navy); letter-spacing: -0.01em; font-size: 1.75rem; }
   /* One heading style everywhere: Labs, About and dialogs used
      Bootstrap's lighter default. */
-  .labs h3, .labs h4, .about h3, .modal-title { font-weight: 650; color: var(--pk-navy); }
+  .labs h2, .labs h3, .labs h4, .about h3, .modal-title { font-weight: 650; color: var(--pk-navy); }
   .lead { font-size: 1.05rem; color: #44505e; }
   /* Edge to edge: the page's side padding is half Bootstrap's gutter, which grows with the root font size. */
   .topbar { background: var(--pk-navy); color: #fff; margin: 0 calc(var(--bs-gutter-x, 1.5rem) * -0.5);
@@ -457,6 +457,7 @@ app_css <- "
   .result-main.has-hero .result-reading { font-size: 1rem; }
   .result-save .nav-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .result-sure .explore-panel, .result-sure .scenario-panel { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--pk-line); }
+  .result-learn { margin: 0.75rem 0 1rem; color: #3d4852; }
   .writeup-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0 0.3rem 0; }
   .writeup-head label { margin: 0; font-weight: 600; }
   .writeup-copied { color: #1e6b3a; }
@@ -565,6 +566,9 @@ app_css <- "
   .form-field .form-control:focus, .form-field .form-select:focus { border-color: var(--pk-blue); box-shadow: 0 0 0 0.2rem rgba(10,90,140,.18); }
   @media (min-width: 768px) {
     .form-field input[inputmode='decimal'] { max-width: 16rem; }
+    /* Labs' number boxes are sized like the input screen's. */
+    .labs input[type='number'], #labs_n, #labs_p1, #labs_rows, #labs_cols, #labs_power, #labs_alpha,
+    #pub_value, #pub_df, #pub_df1, #pub_n, #pub_n1, #pub_n2 { max-width: 16rem; }
     .form-field .form-select, .form-field select.form-control { max-width: 42rem; }
   }
   .field-help, .default-source { color: #5a6573; }
@@ -1256,9 +1260,9 @@ server <- function(input, output, session) {
     style <- list(conservative = list(col = "#b45309", lty = 2), expected = list(col = "#14284B", lty = 1), optimistic = list(col = "#0A5A8C", lty = 3))
     calc <- state$calc
     power_curve_plot(lapply(keys, function(k) list(df = df[df$scenario == k, ], col = style[[k]]$col, lty = style[[k]]$lty)),
-      target = calc$spec$goal$power %||% 0.8, planned_n = n_analysed(calc$result))
-    legend("bottomright", legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
-      lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3, bty = "n", inset = c(0, 0.04))
+      target = calc$spec$goal$power %||% 0.8, planned_n = n_analysed(calc$result),
+      key = list(legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
+        lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3))
   }, res = 96, alt = "Power by sample size for the expected, conservative and optimistic effects. The same values are available in the scenario table below.")
   output$scenario_table <- renderUI({
     x <- scenario_results()
@@ -1775,10 +1779,10 @@ server <- function(input, output, session) {
   output$picture_plot <- renderPlot({
     req(picture())
     picture_plot(picture())
-  }, alt = reactive(picture_alt(picture())))
+  }, res = 96, alt = reactive(picture_alt(picture())))
   output$picture_numbers <- renderUI(if (is.null(picture())) {
     p("The picture needs powerkit's engine.")
-  } else picture_numbers(picture()))
+  } else tagList(if (!is.null(note <- picture_note(picture()))) p(class = "small picture-note", note), picture_numbers(picture())))
   # Labs: Bayesian planning, from the engine's bayes_planning().
   bayes_plan <- eventReactive(input$bayes_run, {
     num <- function(x, default) { v <- suppressWarnings(as.numeric(x)); if (length(v) != 1 || is.na(v)) default else v }
@@ -1806,29 +1810,29 @@ server <- function(input, output, session) {
       return(div(class = "result-panel mt-2", role = "status",
         bayes_sequential_numbers(plan),
         h4(class = "h5", "When the studies stop"),
-        plotOutput("bayes_stops_plot", height = "280px"),
+        plotOutput("bayes_stops_plot", height = "320px"),
         h4(class = "h5", "The two priors"),
-        plotOutput("bayes_priors_plot", height = "260px")))
+        plotOutput("bayes_priors_plot", height = "300px")))
     }
     div(class = "result-panel mt-2", role = "status",
       bayes_numbers(plan),
       h4(class = "h5", "The two priors"),
-      plotOutput("bayes_priors_plot", height = "260px"),
+      plotOutput("bayes_priors_plot", height = "300px"),
       h4(class = "h5", "As the sample size grows"),
-      plotOutput("bayes_curves_plot", height = "280px"))
+      plotOutput("bayes_curves_plot", height = "320px"))
   })
   output$bayes_stops_plot <- renderPlot({
     req(is.null(bayes_plan()$problem), !is.null(bayes_plan()$stops))
     bayes_stops_plot(bayes_plan())
-  }, alt = "The share of simulated studies that have stopped by each sample size, if the belief is right and if there is no effect.")
+  }, res = 96, alt = "The share of simulated studies that have stopped by each sample size, if the belief is right and if there is no effect.")
   output$bayes_priors_plot <- renderPlot({
     req(is.null(bayes_plan()$problem))
     bayes_priors_plot(bayes_plan())
-  }, alt = "The analysis prior and the design prior, drawn over the true standardised effect.")
+  }, res = 96, alt = "The analysis prior and the design prior, drawn over the true standardised effect.")
   output$bayes_curves_plot <- renderPlot({
     req(is.null(bayes_plan()$problem))
     bayes_curves_plot(bayes_plan())
-  }, alt = "The chance of strong evidence for an effect, and for no effect, against the sample size.")
+  }, res = 96, alt = "The chance of strong evidence for an effect, and for no effect, against the sample size.")
   # Labs map: the page of the analysis clicked on the map.
   output$map_page <- renderUI(map_page_ui(tree, input$map_endpoint))
   # "Plan this study" on the map opens that analysis's card on "Plan a
@@ -1885,6 +1889,37 @@ server <- function(input, output, session) {
   observeEvent(input$labs_plan_confirm, { removeModal(); labs_start_plan() })
   observeEvent(input$labs_back, {
     session$sendCustomMessage("labs_open", "prereplication")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  })
+  # From a result to Labs' teaching tools, set to the result's sample size,
+  # effect and alpha (labs_learn_ui()). A slider is widened when the result
+  # lies beyond it.
+  picture_slider_max <- c(picture_n = 400, picture_d = 1.5, picture_n_paired = 200, picture_dz = 1.5,
+    picture_n_r = 400, picture_r = 0.8, picture_n_2p = 600, picture_p1 = 0.95, picture_p2 = 0.95)
+  observeEvent(input$learn_picture, {
+    calc <- state$calc
+    req(identical(calc$status, "ok"))
+    pic <- labs_picture_settings(calc$spec, calc$result)
+    req(pic)
+    updateSelectInput(session, "picture_design", selected = pic$design)
+    for (id in names(pic$sliders)) {
+      value <- pic$sliders[[id]]
+      updateSliderInput(session, id, value = value, max = max(picture_slider_max[[id]], if (value > 1) ceiling(value) else min(1, value)))
+    }
+    if (!is.null(pic$sides)) updateRadioButtons(session, "picture_sides", selected = pic$sides)
+    if (pic$alpha %in% picture_alphas) updateRadioButtons(session, "picture_alpha", selected = pic$alpha)
+    session$sendCustomMessage("labs_open", "picture")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  })
+  observeEvent(input$learn_variation, {
+    calc <- state$calc
+    req(identical(calc$status, "ok"))
+    v <- labs_variation_settings(calc$spec, calc$result)
+    req(v)
+    updateSliderInput(session, "variation_n", value = v$n)
+    updateSliderInput(session, "variation_d", value = v$d, min = min(-1, floor(v$d)), max = max(1, ceiling(v$d)))
+    if (!is.null(v$alpha)) updateSelectInput(session, "variation_alpha", selected = v$alpha)
+    session$sendCustomMessage("labs_open", "variation")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
   # From the Bayes factor page (bayes_guide_ui()).

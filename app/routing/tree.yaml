@@ -2364,22 +2364,24 @@ known_shortcuts: [E2, E3, E4, E18, E8, E24, E27, E10]
 
 # The families "I know my analysis" groups its list into, in order (the
 # maintainer's decision of 31 October 2026, docs/decisions.md): every end
-# point but the safety net is in exactly one (a test checks).
+# point but the safety net is in exactly one (a test checks). `short`, where
+# given, names the family's region on the Labs methods map, where a long
+# name would run over its neighbours; the panel shows the full name.
 analysis_families:
   - {id: means, label: "Comparing averages (t-tests)", endpoints: [E1, E2, E3]}
   - {id: anova, label: "ANOVA and ANCOVA", endpoints: [E18, E54, E7, E8, E22, E21, E20, E55, E56, E19, E23, E64]}
   - {id: correlation, label: "Correlations", endpoints: [E4, E49, E51]}
-  - {id: categories, label: "Yes/no, categories and ordered categories", endpoints: [E25, E5, E26, E6, E48, E70, E29, E66]}
-  - {id: regression, label: "Regression (scores, yes/no and counts)", endpoints: [E24, E27, E47, E28]}
+  - {id: categories, label: "Yes/no, categories and ordered categories", short: "Categories", endpoints: [E25, E5, E26, E6, E48, E70, E29, E66]}
+  - {id: regression, label: "Regression (scores, yes/no and counts)", short: "Regression", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
-  - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
-  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E74, E45, E65]}
-  - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, EFA, IRT, profiles)", endpoints: [E37, E73, E71, E58]}
-  - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
-  - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}
-  - {id: equivalence, label: "Showing there's no meaningful effect (equivalence, non-inferiority)", endpoints: [E36]}
+  - {id: mediation, label: "Mediation and moderated mediation", short: "Mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
+  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", short: "Multilevel and longitudinal", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E74, E45, E65]}
+  - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, EFA, IRT, profiles)", short: "Latent variables", endpoints: [E37, E73, E71, E58]}
+  - {id: outcomes, label: "Several outcomes at once (MANOVA)", short: "Several outcomes", endpoints: [E59, E60]}
+  - {id: spread, label: "Spread of scores (variances)", short: "Spread of scores", endpoints: [E52, E53, E57]}
+  - {id: equivalence, label: "Showing there's no meaningful effect (equivalence, non-inferiority)", short: "Equivalence", endpoints: [E36]}
   - {id: meta, label: "Meta-analysis", endpoints: [E61]}
-  - {id: other, label: "Other: time-to-event, signal detection, reliability, precision, Bayes factors and generic tests", endpoints: [E43, E72, E69, E46, E-bayes, E50]}
+  - {id: other, label: "Other: time-to-event, signal detection, reliability, precision, Bayes factors and generic tests", short: "Other", endpoints: [E43, E72, E69, E46, E-bayes, E50]}
 
 glossary:
   - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}

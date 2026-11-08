@@ -1466,7 +1466,7 @@ scenarios_ui <- function(spec, result = NULL) {
       numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
       numericInput("scenario_optimistic", sprintf("Optimistic %s", e$label), value = NA, step = 0.01, width = "14rem")),
     conditionalPanel("input.scenario_conservative != null || input.scenario_optimistic != null",
-      plotOutput("scenario_plot", height = "300px"),
+      plotOutput("scenario_plot", height = "340px"),
       uiOutput("scenario_n"),
       tags$details(tags$summary("Read the scenario values as a table"), uiOutput("scenario_table"))))
 }
@@ -2190,20 +2190,64 @@ result_sections_ui <- function(items) {
       "var e = document.getElementById('%s'); if (e) { e.scrollIntoView({behavior: 'smooth', block: 'start'}); } return false;", id), items[[id]])))
 }
 
+# powerkit's chart style, shared by the result page and Labs: the app's
+# colours and font, light horizontal gridlines, axis numbers upright, and
+# the key in its own strip below the chart, so that it never covers a line.
+chart_colours <- list(navy = "#14284B", blue = "#0A5A8C", red = "#b2182b", amber = "#b45309",
+  grey = "#6b7280", pale = "#bbc3cc", grid = "#e3e7ef", ink = "#4a5568", target = "#d08a1c")
+
+# Rows the key needs: two entries a row on a wide chart, one on a narrow
+# one (a phone).
+chart_key_wide <- function() grDevices::dev.size("in")[1] >= 6
+chart_key_rows <- function(entries) if (chart_key_wide()) ceiling(entries / 2) else entries
+
+# Starts a chart: the style, and room below it for `key_rows` rows of key.
+# `top` is the top margin in lines (more for a title or a note).
+chart_start <- function(key_rows = 0, top = 1.2, bottom = 4.4, left = 4.6) {
+  if (key_rows > 0) graphics::layout(matrix(1:2), heights = c(1, graphics::lcm(0.3 + 0.62 * key_rows)))
+  graphics::par(mar = c(bottom, left, top, 1.2), mgp = c(2.8, 0.7, 0), family = "sans",
+    col.axis = chart_colours$ink, col.lab = chart_colours$ink, col.main = chart_colours$navy,
+    cex.lab = 1.05, cex.axis = 0.95, las = 1, bty = "n")
+}
+
+# The axes: gridlines at the y axis's numbers (none for a density, whose
+# height means little to a reader) and a light x axis.
+chart_axes <- function(y = TRUE, yat = NULL, ylabels = TRUE) {
+  if (y) {
+    at <- yat %||% graphics::axTicks(2)
+    graphics::abline(h = at, col = chart_colours$grid, lwd = 1)
+    graphics::axis(2, at = at, labels = ylabels, col = NA, col.ticks = NA)
+  }
+  graphics::axis(1, col = chart_colours$grid, col.ticks = chart_colours$grid, tcl = -0.3)
+}
+
+# A chart's title, in the app's heading colour, at the top left.
+chart_title <- function(text) graphics::mtext(text, side = 3, line = 0.6, adj = 0, font = 2, cex = 1.05, col = chart_colours$navy)
+
+# The key, in the strip chart_start() kept below the chart; takes
+# legend()'s arguments.
+chart_key <- function(...) {
+  args <- list(...)
+  graphics::par(mar = c(0, 0, 0, 0))
+  graphics::plot.new()
+  do.call(graphics::legend, c(list("top", bty = "n", cex = 0.95, text.col = chart_colours$ink,
+    ncol = if (chart_key_wide()) min(2, length(args$legend)) else 1, seg.len = 2.2), args))
+}
+
 # A power curve drawn in powerkit's style: power by N, the target power,
 # and the plan's N marked. `df` has n and power; more lines (scenarios)
-# come as a list of data frames with their colours and labels.
-power_curve_plot <- function(lines, target = NULL, planned_n = NULL, xlab = "Participants analysed") {
-  navy <- "#14284B"; grid <- "#e3e7ef"; ink <- "#4a5568"
+# come as a list of data frames with their colours and labels, and `key`
+# (legend()'s arguments) adds a key below the chart.
+power_curve_plot <- function(lines, target = NULL, planned_n = NULL, xlab = "Participants analysed", key = NULL) {
+  navy <- chart_colours$navy
   ns <- unlist(lapply(lines, function(l) l$df$n))
-  op <- par(mar = c(4.4, 4.6, 1.2, 1.2), mgp = c(2.8, 0.7, 0), family = "sans", col.axis = ink, col.lab = ink, cex.lab = 1.05)
-  on.exit(par(op))
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(op))
+  chart_start(if (is.null(key)) 0 else chart_key_rows(length(key$legend)))
   plot(NA, xlim = range(c(ns, planned_n), na.rm = TRUE), ylim = c(0, 1), axes = FALSE, xlab = xlab, ylab = "Power")
-  abline(h = seq(0, 1, 0.2), col = grid, lwd = 1)
-  axis(1, col = NA, col.ticks = grid, tcl = -0.3)
-  axis(2, at = seq(0, 1, 0.2), labels = paste0(seq(0, 100, 20), "%"), las = 1, col = NA, col.ticks = NA)
+  chart_axes(yat = seq(0, 1, 0.2), ylabels = paste0(seq(0, 100, 20), "%"))
   if (!is.null(target)) {
-    abline(h = target, col = "#d08a1c", lty = 2, lwd = 1.5)
+    abline(h = target, col = chart_colours$target, lty = 2, lwd = 1.5)
     text(par("usr")[2], target, sprintf("Target %s", percent(target)), adj = c(1, -0.5), col = "#a0660a", cex = 0.85)
   }
   for (l in lines) {
@@ -2222,7 +2266,66 @@ power_curve_plot <- function(lines, target = NULL, planned_n = NULL, xlab = "Par
       text(planned_n, y - 0.1, sprintf("This analysis: %s", whole(planned_n)), pos = 4, offset = 0.6, col = navy, font = 2, cex = 0.9)
     }
   }
+  if (!is.null(key)) do.call(chart_key, key)
   invisible()
+}
+
+# Labs' teaching tools, opened from a result at its own settings: the
+# power visualiser for the tests it draws, and "1,000 studies" for two
+# groups. NULL when the result has no picture (a design the visualiser
+# doesn't draw, a rank or Bayes factor test, a simulation-only setting or
+# an effect not given as a standardised size).
+labs_picture_settings <- function(spec, result) {
+  if (!identical(spec$design, "basic_test") || is_rank_test(spec) || is_rank_correlation(spec) ||
+      identical(spec$target_test$method, "bayes_factor")) return(NULL)
+  pop <- spec$population
+  sens <- if (identical(result$goal_type, "sensitivity")) result$sensitivity$effect
+  effect <- function(name) {
+    v <- sens %||% pop[[name]]
+    if (is.numeric(v) && length(v) == 1 && is.finite(v)) abs(v)
+  }
+  n <- n_analysed(result)
+  if (is.null(n) || is.na(n)) return(NULL)
+  even <- function(x) 2 * ceiling(x / 2)
+  sides <- if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) "two_sided" else "greater"
+  out <- switch(spec$template,
+    independent_t = if (!is.null(d <- effect("d"))) list(design = "t", sliders = list(picture_n = even(n), picture_d = d), sides = sides),
+    paired_t = if (!is.null(d <- effect("dz"))) list(design = "paired", sliders = list(picture_n_paired = n, picture_dz = d), sides = sides),
+    one_sample_t = if (!is.null(d <- effect("d"))) list(design = "paired", sliders = list(picture_n_paired = n, picture_dz = d), sides = sides),
+    correlation = if (!is.null(r <- effect("r"))) list(design = "r", sliders = list(picture_n_r = n, picture_r = r)),
+    two_proportions = if (is.null(sens) && is.numeric(pop$p1) && is.numeric(pop$p2)) {
+      list(design = "two_proportions", sliders = list(picture_n_2p = even(n), picture_p1 = pop$p1, picture_p2 = pop$p2))
+    },
+    NULL)
+  if (is.null(out)) return(NULL)
+  alpha <- format(spec$target_test$alpha %||% 0.05)
+  out$alpha <- if (alpha %in% c("0.1", "0.10")) "0.10" else alpha
+  out
+}
+
+labs_variation_settings <- function(spec, result) {
+  pic <- labs_picture_settings(spec, result)
+  if (is.null(pic) || !identical(spec$template, "independent_t")) return(NULL)
+  n <- pic$sliders$picture_n
+  if (n > 1000) return(NULL)
+  list(n = max(6, n), d = pic$sliders$picture_d * sign(spec$population$d %||% 1),
+    alpha = if (pic$alpha %in% c("0.005", "0.01", "0.05", "0.10")) pic$alpha)
+}
+
+# The links themselves, under "How sure can you be?".
+labs_learn_ui <- function(spec, result) {
+  picture <- labs_picture_settings(spec, result)
+  variation <- labs_variation_settings(spec, result)
+  if (is.null(picture)) return(NULL)
+  # One sentence, written out so that no space falls before its
+  # punctuation.
+  link <- function(id, words) as.character(actionLink(id, words))
+  div(class = "result-learn small", HTML(paste0(
+    "<strong>Learning aids in Labs:</strong> ",
+    link("learn_picture", "see what this power means"), " (the power visualiser, at this sample size and effect)",
+    if (!is.null(variation)) paste0("; ", link("learn_variation", "see why significant results overestimate effects"),
+      " (this study repeated 1,000 times)"),
+    ". They draw the textbook version of the test, so their power can differ slightly from this result's.")))
 }
 
 result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
@@ -2298,6 +2401,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       bayes_robustness_ui(spec, calc$robustness),
       explore,
       scen),
+    labs_learn_ui(spec, result),
     bayes_card,
     sequential_card,
     div(class = "result-card result-save", id = "result-take",
