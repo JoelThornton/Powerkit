@@ -2366,7 +2366,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   bayes_card <- bayes_companion_card_ui(tree, ep_id, spec, result)
   sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
-    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness)) "How sure can you be?",
+    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
     `result-bayes` = if (!is.null(bayes_card)) "Add a Bayes factor?",
     `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
@@ -2394,11 +2394,12 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
     if (length(known) || length(departures_in_view)) p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
-    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness)) div(class = "result-card result-sure", id = "result-sure",
+    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
       p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
       if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
       bayes_robustness_ui(spec, calc$robustness),
+      bayes_uncertain_ui(spec, result),
       explore,
       scen),
     labs_learn_ui(spec, result),
@@ -3315,6 +3316,44 @@ bayes_robustness_ui <- function(spec, rob) {
       tags$tbody(lapply(seq_len(nrow(rob)), function(i) tags$tr(
         tags$th(scope = "row", rob$prior[i]), tags$td(format(signif(rob$scale[i], 3))),
         tags$td(percent(rob$for_effect[i])), tags$td(percent(rob$for_null[i])))))))
+}
+
+# Not sure of the effect? (the project review of 7 November 2026): for a
+# Bayes factor t-test planned for exactly one effect, the same study
+# averaged over true effects spread around it (a normal design prior with
+# the SD the user gives), as Labs' Bayesian planning shows. The numbers are
+# the engine's run_spec() with population.effect_sd set, worked out on
+# request; the plan itself doesn't change.
+bayes_uncertain_ui <- function(spec, result) {
+  if (!is_bayes_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t") ||
+      !result$goal_type %in% c("sample_size", "power") || bayes_design_sd(spec) > 0) return(NULL)
+  effect <- if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d
+  if (is.null(effect)) return(NULL)
+  tagList(
+    h5(class = "h6", "Not sure of the effect?"),
+    p(class = "small", sprintf(paste(
+      "This plan assumes the effect is exactly %s. If you are unsure, say how unsure as an SD, and powerkit averages over",
+      "true effects spread around it (a normal design prior): the chance of strong evidence given what you believe now",
+      "(O'Hagan, Stevens and Campbell, 2005, call it assurance). Choose an SD you could defend; powerkit won't suggest one.",
+      "Nothing here changes the plan: to plan with it, enter the SD under Settings and check your answers again."), format(effect))),
+    div(class = "d-flex flex-wrap align-items-end gap-2",
+      numericInput("bayes_uncertain_sd", "How unsure you are about the effect, as an SD", value = NA, min = 0, max = 5, step = 0.05, width = "16rem"),
+      actionButton("bayes_uncertain_run", "Show the average chance", class = "btn btn-outline-primary mb-3")),
+    uiOutput("bayes_uncertain_result"))
+}
+
+# The answer, in words: the chance at the plan's n, and the n for the
+# plan's target, both averaged over the design prior.
+bayes_uncertain_words <- function(spec, sd, at_n, needed) {
+  unit <- if (identical(spec$template, "independent_t")) "people in total" else if (identical(spec$template, "paired_t")) "pairs" else "people"
+  effect <- if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d
+  c(sprintf("If the true effect is about %s give or take %s, a study of %s %s has %s chance of strong evidence for it (BF10 of at least %s), averaged over that uncertainty.",
+      format(effect), format(sd), whole(n_analysed(at_n)), unit, a_percent(at_n$curve$power[1]), format(spec$target_test$evidence_threshold %||% 10)),
+    if (!is.null(needed)) {
+      n <- needed$n_required$n
+      if (is.null(n) || is.na(n)) sprintf("No sample size up to powerkit's limit reaches %s on average: with this much uncertainty, part of the plausible effects are too small to give strong evidence.", percent(spec$goal$power))
+      else sprintf("For %s on average, you would need %s %s.", percent(spec$goal$power), whole(n), unit)
+    })
 }
 
 # Check as you go? (5 November 2026): the same Bayes factor t-test plan as

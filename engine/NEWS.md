@@ -20,6 +20,18 @@
   - results for the t-tests, the correlation and two proportions link to
     the power visualiser at their own sample size, effect and alpha, and
     two-group results to "1,000 studies".
+* Bayesian planning (Labs) and the Bayes factor t-test cards share one
+  set of bfpwr calls (`bfpwr_chance()`), so the same study gives the same
+  numbers in both (a test checks); the sequential planner's fixed-design
+  comparison uses them too. No number changes.
+* Labs uses the cards' wording: the Bayesian planning labels are the
+  cards' own, and the effect size converter gives the cards' safeguard
+  sentence.
+* A Bayes factor t-test planned for exactly one effect offers "Not sure of
+  the effect?" under "How sure can you be?": given an SD, it shows the
+  chance of strong evidence averaged over true effects spread around the
+  planned one (assurance), and the sample size for the target on average,
+  without changing the plan.
 
 # powerkit 0.42.0
 

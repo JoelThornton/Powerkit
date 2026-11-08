@@ -1214,6 +1214,30 @@ server <- function(input, output, session) {
     output$seq_result <- renderUI(if (!is.null(plan$problem)) div(class = "form-problems mt-2", role = "alert", p(plan$problem))
       else div(class = "mt-2", role = "status", bayes_sequential_numbers(plan)))
   })
+  # Not sure of the effect? (bayes_uncertain_ui()): the last calculation's
+  # Bayes factor t-test with a design prior SD, by the engine's run_spec().
+  observeEvent(state$calc, output$bayes_uncertain_result <- renderUI(NULL), ignoreNULL = FALSE)
+  observeEvent(input$bayes_uncertain_run, {
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"))
+    sd <- suppressWarnings(as.numeric(input$bayes_uncertain_sd))
+    if (length(sd) != 1 || is.na(sd) || sd <= 0 || sd > 5) {
+      output$bayes_uncertain_result <- renderUI(div(class = "form-problems mt-2", role = "alert",
+        p("Enter how unsure you are as an SD above 0 and at most 5 (for a standardised effect, for example a few tenths).")))
+      return()
+    }
+    run <- engine_function("run_spec")
+    spec <- calc$spec
+    spec$population$effect_sd <- sd
+    at_n <- spec
+    at_n$goal <- list(type = "power", n = n_analysed(calc$result))
+    needed <- if (!is.null(spec$goal$power)) utils::modifyList(spec, list(goal = list(type = "sample_size", power = spec$goal$power)))
+    out <- tryCatch(list(at_n = run(at_n), needed = if (!is.null(needed)) run(needed)), error = function(e) list(problem = e))
+    output$bayes_uncertain_result <- renderUI(if (!is.null(out$problem)) {
+      div(class = "form-problems mt-2", role = "alert", p(if (inherits(out$problem, "powerkit_error"))
+        plain_engine_message(conditionMessage(out$problem), list()) else "powerkit couldn't work this out. Please report it, with the values you entered."))
+    } else div(class = "mt-2", role = "status", lapply(bayes_uncertain_words(spec, sd, out$at_n, out$needed), p)))
+  })
   # Switch the plan's test version to its Bayes factor test.
   observeEvent(input$bayes_companion_switch, {
     d <- tree$bayes_designs[[state$endpoint]]

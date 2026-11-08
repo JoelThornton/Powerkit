@@ -74,3 +74,33 @@ test_that("a Bayes factor t-test result offers the same plan as a sequential des
   freq <- build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), form_examples$E2)
   expect_null(bayes_sequential_card_ui(freq, result))
 })
+
+test_that("a Bayes factor t-test planned for one exact effect offers the average over an uncertain effect", {
+  spec_with <- function(sd) {
+    v <- modifyList(form_examples$E2, list(method = "bayes_factor", evidence_threshold = "10", prior_scale = "0.707", effect_sd = sd))
+    v$welch_sd_ratio <- NULL
+    build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), v)
+  }
+  result <- list(goal_type = "sample_size", n_required = list(n = 200))
+  html <- as.character(bayes_uncertain_ui(spec_with("0"), result))
+  expect_match(html, "Not sure of the effect?", fixed = TRUE)
+  expect_match(html, "bayes_uncertain_sd", fixed = TRUE)
+  expect_match(html, "assurance", fixed = TRUE)
+  # Not when the plan already spreads the effect, and not on a p-value test.
+  expect_null(bayes_uncertain_ui(spec_with("0.1"), result))
+  expect_null(bayes_uncertain_ui(build_spec(forms, "E2", form_fields(form_groups(forms, "E2")), form_examples$E2), result))
+  # The engine's answer, in words: the average chance at the plan's n,
+  # and the n for the target on average.
+  skip_if(is.null(engine_function("run_spec")), "needs powerkit's engine")
+  run <- engine_function("run_spec")
+  spec <- spec_with("0")
+  spec$population$effect_sd <- 0.2
+  with_goal <- function(spec, goal) { spec$goal <- goal; spec }
+  at_n <- run(with_goal(spec, list(type = "power", n = 200L)))
+  needed <- run(with_goal(spec, list(type = "sample_size", power = 0.8)))
+  words <- bayes_uncertain_words(spec, 0.2, at_n, needed)
+  expect_match(words[1], "give or take 0.2, a study of 200 people in total has", fixed = TRUE)
+  expect_match(words[2], sprintf("you would need %s people in total", whole(needed$n_required$n)), fixed = TRUE)
+  # Averaging changes the chance (here, below 50%, it raises it).
+  expect_false(isTRUE(all.equal(at_n$curve$power, run(with_goal(spec_with("0"), list(type = "power", n = 200L)))$curve$power)))
+})

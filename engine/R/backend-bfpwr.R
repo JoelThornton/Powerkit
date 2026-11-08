@@ -110,20 +110,27 @@ bfpwr_power <- function(inputs, n) {
   out$power
 }
 
+# The chance that the Bayes factor is strong, by bfpwr's ptbf01(): strong
+# for an effect (BF10 >= threshold) or for no effect (BF01 >= threshold), at
+# powerkit's n (through inputs$size), with the true effect drawn from a
+# normal design prior N(dpm, dpsd^2). The cards, Labs' Bayesian planning
+# and the sequential planner's fixed comparison all use this.
+bfpwr_chance <- function(inputs, n, for_effect = TRUE, dpm = inputs$effect, dpsd = inputs$effect_sd) {
+  args <- list(
+    n = inputs$size(n), plocation = 0, pscale = inputs$prior_scale, pdf = 1,
+    type = inputs$type, alternative = inputs$alternative, dpm = dpm, dpsd = dpsd
+  )
+  side <- if (for_effect) list(k = 1 / inputs$threshold) else list(k = inputs$threshold, lower.tail = FALSE)
+  call_backend("bfpwr", quietly(do.call(bfpwr::ptbf01, c(side, args))))
+}
+
 # What the same sample would show if there were no effect: the chance of
 # strong evidence for no effect, and of misleading strong evidence for one.
 bfpwr_null_side <- function(inputs, n) {
-  args <- list(
-    n = inputs$size(n), plocation = 0, pscale = inputs$prior_scale, pdf = 1,
-    type = inputs$type, alternative = inputs$alternative, dpm = 0, dpsd = 0
+  list(
+    evidence_for_null = bfpwr_chance(inputs, n, for_effect = FALSE, dpm = 0, dpsd = 0),
+    misleading_evidence = bfpwr_chance(inputs, n, for_effect = TRUE, dpm = 0, dpsd = 0)
   )
-  for_null <- call_backend("bfpwr", quietly(do.call(
-    bfpwr::ptbf01, c(list(k = inputs$threshold, lower.tail = FALSE), args)
-  )))
-  misleading <- call_backend("bfpwr", quietly(do.call(
-    bfpwr::ptbf01, c(list(k = 1 / inputs$threshold), args)
-  )))
-  list(evidence_for_null = for_null, misleading_evidence = misleading)
 }
 
 # The Bayes factor settings and the no-effect side, for the result

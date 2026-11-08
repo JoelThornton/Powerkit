@@ -55,12 +55,12 @@ fully validated. Validation runs are recorded in
   eighth batch (input screens) is done: target power empty everywhere
   with 80/90/95% compared, test versions in view, moderation starting at
   the R-squared change, measured run times and plainer messages. The
-  ninth batch (Labs) is half done: one chart style for Labs and the
-  result page, the visualiser's cut-off curves explained, the methods
-  map's colours and shapes, one frame per tool and links from results to
-  the teaching tools; Bayesian planning and the converter moving onto the
-  main cards' engine code and wording, with the "not sure of the effect"
-  option on the main Bayes factor results, come next. The mixed-design Greenhouse-Geisser check
+  ninth batch (Labs) is done: one chart style for Labs and the result
+  page, the visualiser's cut-off curves explained, the methods map's
+  colours and shapes, one frame per tool, links from results to the
+  teaching tools, Bayesian planning and the converter on the cards'
+  engine code and wording, and "Not sure of the effect?" on Bayes factor
+  t-test results. The tenth batch (docs and start-up reading) is next. The mixed-design Greenhouse-Geisser check
   still fails with new seeds and waits for the statistician; the rerun of
   the moderated mediation Type I error check (yes/no X) is recorded when
   it finishes ([`validation-log.md`](validation-log.md), 7 November 2026).

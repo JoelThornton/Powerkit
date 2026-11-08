@@ -15,7 +15,9 @@
 #   strong evidence for an effect   P(BF01 <= 1/k) = ptbf01(1/k)
 #   strong evidence for no effect   P(BF01 >= k)   = ptbf01(k, lower.tail = FALSE)
 #   neither                         the rest
-# The app only draws what this returns.
+# The calls are the Bayes factor cards' own (bfpwr_chance() and bfpwr_args()
+# in backend-bfpwr.R), so Labs and the cards give the same numbers. The app
+# only draws what this returns.
 
 #' Plan a Bayes factor t-test at a fixed sample size
 #'
@@ -80,12 +82,17 @@ bayes_planning <- function(n, type = "two.sample", effect = 0.5, effect_sd = 0, 
   }
   if (!one_number(target) || target <= 0 || target >= 1) abort_run("'target' should be a chance between 0 and 1.")
 
-  fixed <- list(plocation = 0, pscale = prior_scale, pdf = 1, type = type, alternative = alternative)
+  # The same inputs, and the same bfpwr calls, as the Bayes factor cards
+  # (backend-bfpwr.R); n here is already per group.
+  inputs <- list(
+    type = type, effect = effect, effect_sd = effect_sd, threshold = threshold,
+    prior_scale = prior_scale, alternative = alternative, size = function(m) m
+  )
   outcome_row <- function(at_n, dpm, dpsd) {
-    args <- c(fixed, list(n = at_n, dpm = dpm, dpsd = dpsd))
-    for_effect <- call_backend("bfpwr", quietly(do.call(bfpwr::ptbf01, c(list(k = 1 / threshold), args))))
-    for_null <- call_backend("bfpwr", quietly(do.call(bfpwr::ptbf01, c(list(k = threshold, lower.tail = FALSE), args))))
-    c(for_effect = for_effect, for_null = for_null)
+    c(
+      for_effect = bfpwr_chance(inputs, at_n, for_effect = TRUE, dpm = dpm, dpsd = dpsd),
+      for_null = bfpwr_chance(inputs, at_n, for_effect = FALSE, dpm = dpm, dpsd = dpsd)
+    )
   }
   belief <- outcome_row(n, effect, effect_sd)
   null <- outcome_row(n, 0, 0)
@@ -96,25 +103,24 @@ bayes_planning <- function(n, type = "two.sample", effect = 0.5, effect_sd = 0, 
   )
   outcomes$neither <- pmax(0, 1 - outcomes$for_effect - outcomes$for_null)
 
+  args <- bfpwr_args(inputs, n)
+  fixed <- args[c("plocation", "pscale", "pdf", "type", "alternative")]
   largest <- if (identical(alternative, "two.sided")) {
     call_backend("bfpwr", quietly(do.call(bfpwr::tbf01, c(list(t = 0, n = n), fixed))))
   } else {
     NA_real_
   }
+  args$n <- NULL
   search <- call_backend("bfpwr", quietly(suppressWarnings(do.call(bfpwr::powertbf01,
-    c(list(power = target, k = 1 / threshold, dpm = effect, dpsd = effect_sd, nrange = c(3, 10000)), fixed)))))
+    c(list(power = target, nrange = c(3, 10000)), args)))))
   n_needed <- if (is.finite(search$n %||% NA_real_)) ceiling(search$n) else NA_integer_
 
   top <- max(2 * n, if (is.na(n_needed)) 0 else n_needed, 50)
   sizes <- unique(round(seq(3, top, length.out = grid)))
-  chance <- function(m, k, dpm, dpsd, lower) {
-    call_backend("bfpwr", quietly(do.call(bfpwr::ptbf01,
-      c(fixed, list(k = k, n = m, dpm = dpm, dpsd = dpsd, lower.tail = lower)))))
-  }
   curves <- data.frame(
     n = sizes,
-    for_effect = vapply(sizes, chance, 0, k = 1 / threshold, dpm = effect, dpsd = effect_sd, lower = TRUE),
-    for_null = vapply(sizes, chance, 0, k = threshold, dpm = 0, dpsd = 0, lower = FALSE)
+    for_effect = vapply(sizes, function(m) bfpwr_chance(inputs, m, for_effect = TRUE), 0),
+    for_null = vapply(sizes, function(m) bfpwr_chance(inputs, m, for_effect = FALSE, dpm = 0, dpsd = 0), 0)
   )
 
   list(

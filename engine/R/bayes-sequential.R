@@ -138,14 +138,13 @@ bayes_sequential <- function(n_min = 20, n_max = 200, step = 1, type = "two.samp
   )
 
   # One test at n_max, for comparison: bfpwr's own closed form.
-  fixed_args <- list(n = n_max, plocation = 0, pscale = prior_scale, pdf = 1, type = type, alternative = alternative)
-  fixed_chance <- function(k, dpm, dpsd, lower) {
-    call_backend("bfpwr", quietly(do.call(bfpwr::ptbf01, c(fixed_args, list(k = k, dpm = dpm, dpsd = dpsd, lower.tail = lower)))))
-  }
+  # The same calls as the Bayes factor cards (bfpwr_chance()).
+  for_effect_at <- list(type = type, threshold = threshold, prior_scale = prior_scale, alternative = alternative, size = function(m) m)
+  for_null_at <- utils::modifyList(for_effect_at, list(threshold = threshold_null))
   fixed <- data.frame(
     truth = c("belief", "null"),
-    for_effect = c(fixed_chance(1 / threshold, effect, effect_sd, TRUE), fixed_chance(1 / threshold, 0, 0, TRUE)),
-    for_null = c(fixed_chance(threshold_null, effect, effect_sd, FALSE), fixed_chance(threshold_null, 0, 0, FALSE))
+    for_effect = c(bfpwr_chance(for_effect_at, n_max, TRUE, effect, effect_sd), bfpwr_chance(for_effect_at, n_max, TRUE, 0, 0)),
+    for_null = c(bfpwr_chance(for_null_at, n_max, FALSE, effect, effect_sd), bfpwr_chance(for_null_at, n_max, FALSE, 0, 0))
   )
 
   list(
