@@ -1,5 +1,10 @@
 # powerkit 0.45.1
 
+* `renv.lock` takes curl 8.1.0 and V8 8.2.1. CRAN now serves Windows and
+  macOS binaries only for these versions, so with 8.0.0 and 8.2.0 a
+  run-it-yourself install had to build both from source, which fails
+  whenever the libraries they download while building can't be fetched.
+
 * The online app's daily publish has a second scheduled look at 16:23 UTC,
   which publishes only if the last publish is more than 20 hours old, so a
   morning run that GitHub starts late or skips no longer leaves the app a
