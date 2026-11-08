@@ -6230,19 +6230,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "06015c228a5244e733a5e9141694e5567d77c308",
-        "RemoteSha": "06015c228a5244e733a5e9141694e5567d77c308",
+        "RemoteRef": "3cb1045188febdfc3f13db8c813c9eac7052e7b7",
+        "RemoteSha": "3cb1045188febdfc3f13db8c813c9eac7052e7b7",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "06015c228a5244e733a5e9141694e5567d77c308",
-        "GithubSHA1": "06015c228a5244e733a5e9141694e5567d77c308",
+        "GithubRef": "3cb1045188febdfc3f13db8c813c9eac7052e7b7",
+        "GithubSHA1": "3cb1045188febdfc3f13db8c813c9eac7052e7b7",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-08 10:37:51 UTC; runner",
+        "Packaged": "2026-11-08 11:24:57 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-08 10:38:07 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-08 11:25:08 UTC; unix"
       }
     },
     "powertools": {
@@ -8512,7 +8512,7 @@
       "checksum": "064b7a8f8d1245b609f212fc53b794b9"
     },
     "methods-map.yaml": {
-      "checksum": "2c7860f11f70e39ac0623ff4b2b1ae2d"
+      "checksum": "95e47c58f2b5274b63cde74efa7a08f0"
     },
     "R/about.R": {
       "checksum": "c408eedebf2b2c39b86fa75f481dd1b7"
@@ -8584,10 +8584,13 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "daa2cac4daedfc37f7a88fe94c333801"
+      "checksum": "27e1ef108c45052caefd5ce83dc150f0"
     },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
+    },
+    "whats-new.d/repeated-counts-routing.yaml": {
+      "checksum": "82939937e101f74d16ac04fff83b95a2"
     },
     "whats-new.yaml": {
       "checksum": "8c042de32c29f45af26b87ec4b40a377"
