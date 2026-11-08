@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.52.0). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.53.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -37,7 +37,9 @@ rules are in `CLAUDE.md`.
   effects as Cohen's d. Effects that vary between
   studies are on the t-test and correlation cards, with a table of the
   answer at no, small, medium and large variation, and an opt-in Bayes
-  mode is on the start screen (8 November). Next: the queue in `next.md`; the rest of
+  mode is on the start screen, with Bayes factor write-ups worded as
+  design analyses and a write-up for plans that report a p-value and a
+  Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
   Bayes mode (item 19) waits on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s

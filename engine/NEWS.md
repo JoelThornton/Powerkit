@@ -1,3 +1,7 @@
+# powerkit 0.53.0
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.52.0
 
 * Two proportions (`two_proportions`) take a published odds ratio or risk
