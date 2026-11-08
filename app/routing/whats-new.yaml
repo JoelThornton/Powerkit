@@ -8,6 +8,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Two proportions from an odds ratio or a risk ratio"
+    text: >-
+      The two-proportions screen now takes a published odds ratio or risk
+      ratio with group 1's proportion, and works out group 2's proportion
+      for you. The result and the methods paragraph show the ratio, both
+      proportions and how the conversion was done.
+  - date: "2026-11-08"
     title: "Correlations that vary between studies, and what the variation costs"
     text: >-
       The correlation card now asks how much the true correlation might
