@@ -91,3 +91,89 @@ draft_offer_ui <- function(name, saved_at) {
       actionButton("pk_restore_later", "Not now", class = "btn-outline-secondary"),
       actionButton("pk_restore_no", "Discard my draft", class = "btn-outline-danger")))
 }
+
+# --- The guided plan ("Plan my whole study") --------------------------------------
+
+# "Save this plan": the variables, the analyses and their roles, the claim,
+# the values entered on each analysis's input screen (with the sample sizes
+# found there) and the whole-study simulation's inputs. Like a draft it
+# holds answers, not a result: reopening puts the plan back on its screen,
+# and a calculation is run again from the same values and seed (8 November
+# 2026). The whole-study spec of the last run is kept for its R script.
+guided_plan_fields <- c("route", "start", "ctx", "answers", "ticked", "primary", "asks", "rule",
+  "plan_values", "plan_shared", "plan_results", "ws_values", "ws_names", "ws_spec")
+
+write_guided_plan <- function(state, file) {
+  plan <- state[guided_plan_fields]
+  names(plan) <- guided_plan_fields
+  plan$history <- lapply(state$history, function(h) list(node = h$node, answer = h$answer, ctx = h$ctx))
+  record <- list(format = "powerkit-guided-plan", version = 1L,
+    saved_at = format(Sys.time(), "%Y-%m-%d %H:%M:%S UTC", tz = "UTC"),
+    powerkit_version = powerkit_version(), plan = plan)
+  jsonlite::write_json(record, file, auto_unbox = TRUE, pretty = TRUE, null = "null", digits = NA)
+  invisible(record)
+}
+
+read_guided_plan_record <- function(path) {
+  if (!file.exists(path) || file.info(path)$size > 5e6) return(NULL)
+  record <- tryCatch(jsonlite::read_json(path, simplifyVector = FALSE), error = function(e) NULL)
+  if (!is.list(record) || !identical(record$format, "powerkit-guided-plan")) NULL else record
+}
+
+# What to put back into the app's state, or a plain-English problem.
+restore_guided_plan <- function(record, tree) {
+  bad <- "This plan cannot be reopened by this version of Powerkit."
+  if (!identical(as.character(record$version), "1") || !is.list(record$plan)) return(bad)
+  p <- record$plan
+  chars <- function(x) as.character(unlist(x %||% list(), use.names = FALSE))
+  g <- tree$guided
+  variables <- stats::setNames(lapply(g$variables, function(v) names(v$options)), vapply(g$variables, `[[`, "", "id"))
+  answers <- lapply(p$answers %||% list(), function(x) chars(x))
+  if (!all(names(answers) %in% names(variables)) ||
+      !all(vapply(names(answers), function(k) length(answers[[k]]) == 1 && answers[[k]] %in% variables[[k]], logical(1)))) return(bad)
+  ids <- vapply(g$analyses, `[[`, "", "id")
+  ticked <- chars(p$ticked)
+  primary <- chars(p$primary)
+  rules <- vapply(g$combination_rules, `[[`, "", "id")
+  rule <- chars(p$rule %||% "each")
+  if (!all(ticked %in% ids) || !all(primary %in% ticked) || length(rule) != 1 || !rule %in% rules) return(bad)
+  history <- p$history %||% list()
+  if (length(history) > 500 || any(!vapply(history, function(h) {
+    is.list(h) && length(chars(h$node)) == 1 && chars(h$node) %in% names(tree$nodes) &&
+      length(chars(h$answer)) == 1 && is.list(h$ctx %||% list())
+  }, logical(1)))) return(bad)
+  history <- lapply(history, function(h) list(node = chars(h$node), answer = chars(h$answer), ctx = h$ctx %||% list()))
+  values_of <- function(x) lapply(x %||% list(), function(v) lapply(v, function(y) if (is.list(y)) chars(y) else y))
+  list(
+    screen = "g_plan", route = chars(p$route %||% "plan"), start = p$start %||% list(), ctx = p$ctx %||% list(),
+    history = history, answers = answers, ticked = ticked, primary = primary,
+    asks = lapply(p$asks %||% list(), chars), rule = rule,
+    plan_values = values_of(p$plan_values), plan_shared = p$plan_shared %||% list(),
+    plan_results = p$plan_results %||% list(), ws_values = lapply(p$ws_values %||% list(), function(y) if (is.list(y)) lapply(y, chars) else y),
+    ws_names = lapply(p$ws_names %||% list(), chars), ws_spec = p$ws_spec,
+    plan_id = NULL, endpoint = NULL, came_from = NULL, calc = NULL, long_spec = NULL, ws_calc = NULL
+  )
+}
+
+guided_plan_opened_ui <- function(record) {
+  div(class = "alert alert-info", role = "status",
+    tags$strong("Plan opened. "),
+    "Your variables, analyses, claim and the values you entered were restored. Sample sizes found earlier are shown; open an analysis and check your answers to calculate it again, or run the whole-study simulation again (the same seed gives the same numbers).",
+    if (is.character(record$saved_at) && length(record$saved_at) == 1) p(class = "mb-0", "Plan saved ", saved_time_ui(record$saved_at),
+      if (is.character(record$powerkit_version)) sprintf(" with powerkit %s.", record$powerkit_version) else "."))
+}
+
+guided_plan_save_ui <- function() {
+  div(class = "plan-save mt-3",
+    download_button("download_guided_plan", "Save this plan", class = "btn btn-outline-primary"),
+    p(class = "text-muted small mt-1", "A file on your computer: open it later from the start screen (“Open a saved project”) to carry on where you left off."))
+}
+
+# A whole-study specification downloaded from the simulation's result is
+# for R, not for reopening here: say so in plain words.
+whole_study_spec_file <- function(path) {
+  if (!file.exists(path) || file.info(path)$size > 5e6) return(FALSE)
+  spec <- tryCatch(jsonlite::read_json(path, simplifyVector = FALSE), error = function(e) NULL)
+  is.list(spec) && identical(spec$kind, "whole_study")
+}
+whole_study_spec_message <- "This is a whole-study specification: it runs in R with powerkit's run_whole_study(), or with the R script under “Write it up and save it”. To carry on with the plan here, use “Save this plan” and open that file."

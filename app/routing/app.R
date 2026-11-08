@@ -817,6 +817,7 @@ server <- function(input, output, session) {
     plan_shared = list(),    # guided route: values entered once for several analyses (shared_values)
     plan_filled = character(), # guided route: shared values filled in on the open input screen
     ws_values = list(),      # whole-study simulation: the values typed on its screen
+    plan_opened = NULL,      # guided route: the saved plan just reopened, for its notice
     ws_calc = NULL,          # whole-study simulation: the last run (run_whole_study())
     ws_spec = NULL,          # whole-study simulation: the spec of the last run, for its download
     study_plan = list()      # the study plan any card can join (plan_entry()), kept until "Start a new plan"
@@ -1048,6 +1049,7 @@ server <- function(input, output, session) {
       if (state$screen == "g_analyses") save_guided_analyses()
       if (state$screen == "g_sim") save_whole_study_values()
       if (identical(value, "simulate")) state$ws_calc <- NULL
+      state$plan_opened <- NULL
       state$screen <- switch(value, variables = "g_vars", analyses = "g_analyses", plan = "g_plan", simulate = "g_sim")
     }
   })
@@ -1579,8 +1581,31 @@ server <- function(input, output, session) {
       write_draft(project_route(reactiveValuesToList(state), isolate(current_form_values())), file)
     }
   )
+  # "Save this plan": the guided plan and the whole-study inputs, as a file.
+  output$download_guided_plan <- downloadHandler(
+    filename = function() sprintf("powerkit-plan-%s.powerkit.json", format(Sys.Date())),
+    content = function(file) {
+      if (identical(state$screen, "g_sim")) save_whole_study_values()
+      write_guided_plan(reactiveValuesToList(state), file)
+    },
+    contentType = "application/json")
+
   observeEvent(input$open_project, {
     path <- input$open_project$datapath
+    plan_record <- read_guided_plan_record(path)
+    if (!is.null(plan_record)) {
+      restored <- restore_guided_plan(plan_record, tree)
+      if (is.character(restored)) {
+        output$open_project_message <- renderUI(div(class = "alert alert-warning", role = "alert", restored))
+        return()
+      }
+      cancel_job()
+      state$from_labs <- FALSE; state$labs_seed <- NULL
+      for (name in names(restored)) state[[name]] <- restored[[name]]
+      state$plan_opened <- plan_record
+      output$open_project_message <- renderUI(NULL)
+      return()
+    }
     draft <- read_draft_record(path)
     if (!is.null(draft)) {
       restored <- restore_draft(draft, tree, forms)
@@ -1594,6 +1619,10 @@ server <- function(input, output, session) {
       for (name in names(restored)) state[[name]] <- restored[[name]]
       output$open_project_message <- renderUI(NULL)
       output$form_result <- renderUI(draft_opened_ui(draft$saved_at))
+      return()
+    }
+    if (whole_study_spec_file(path)) {
+      output$open_project_message <- renderUI(div(class = "alert alert-warning", role = "alert", whole_study_spec_message))
       return()
     }
     # A study plan file opens as the plan; anything else as a project.
@@ -1978,9 +2007,12 @@ server <- function(input, output, session) {
           carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled))),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
-      g_plan = guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
-        history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
-        results = state$plan_results, shared = state$plan_shared),
+      g_plan = tagList(
+        if (!is.null(state$plan_opened)) guided_plan_opened_ui(state$plan_opened),
+        guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
+          history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
+          results = state$plan_results, shared = state$plan_shared),
+        guided_plan_save_ui()),
       g_sim = {
         ws <- whole_study_screen()
         if (!isTRUE(ws$plan$ok) || is.null(ws$params)) {
