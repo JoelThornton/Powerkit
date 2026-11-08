@@ -1,3 +1,7 @@
+# powerkit 0.50.0
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.49.0
 
 * New: `population > tau` on the one-sample, two-group and paired t-test
