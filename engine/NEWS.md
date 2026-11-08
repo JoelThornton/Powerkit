@@ -1,3 +1,15 @@
+# powerkit 0.47.1
+
+* The review's checks are kept for releases. `scripts/release-checks/property-checks.R`
+  runs property checks on every example spec (the example runs and records
+  its provenance; the recommended n reaches the target power and, by
+  formula, one fewer doesn't; power grows with n; the same seed gives the
+  same answer; with no effect, power is about alpha).
+  `app/routing/walkthroughs/every-card.js` opens every card in a browser,
+  calculates its example and fetches every download. Both exit with
+  status 1 on any problem; `docs/repository-protection.md` says how to run
+  them.
+
 # powerkit 0.47.0
 
 * Small telescopes for replications (Simonsohn, 2015;
