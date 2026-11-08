@@ -15,7 +15,7 @@ test_that("one-sample Hotelling's T-squared is computed by formula by default", 
   result <- run_spec(exact_hotelling_spec())
   expect_identical(result$provenance$backend, "stats")
   expect_identical(result$provenance$method, "exact")
-  expect_match(result$provenance$backend_function, "Anderson, 2003", fixed = TRUE)
+  expect_match(result$provenance$backend_function, "noncentral F distribution", fixed = TRUE)
   expect_true(all(result$check_run$ok))
   # F with p and n - p df; noncentrality n times the Mahalanobis distance.
   sigma <- diag(c(6, 5, 7)) %*% (matrix(0.5, 3, 3) + diag(0.5, 3)) %*% diag(c(6, 5, 7))

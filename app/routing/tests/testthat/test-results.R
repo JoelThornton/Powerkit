@@ -60,6 +60,10 @@ test_that("calculating designs calculate; simulated designs preview first, then 
   # E9, E15, the MANOVAs and latent profiles (E58) run in the background
   # with no preview, with their usual run times.
   expect_identical(names(forms$background), c("E9", "E15", "E59", "E58", "E73", "E60"))
+  # Cards whose default version simulates say so, and their bars estimate.
+  expect_setequal(names(forms$simulated_times), c("E44", "E22", "E61", "E47", "E64", "E70", "E30", "E32", "E45", "E72"))
+  expect_equal(usual_seconds(forms, "E44", "sample_size"), 520)
+  expect_identical(unname(about_endpoint_how(forms)["E44"]), "background")
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)
   expect_equal(usual_seconds(forms, "E9", "sample_size"), 80)
@@ -220,15 +224,14 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_match(html, "base R's formula, stats::power.prop.test(), no simulation", fixed = TRUE)
   expect_match(html, "Seed: 5.", fixed = TRUE)
   expect_no_match(html, "Calculated by simulation with", fixed = TRUE)
-  expect_match(html, "Calculated with a formula", fixed = TRUE)          # Departure 9
+  expect_no_match(html, "Calculated with a formula", fixed = TRUE)       # Departure 9, retired 7 November 2026
   expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
   expect_match(html, "Historical design-level note", fixed = TRUE)                       # basic chunk rerun after #42
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
   # Departures that change the answer stay in view, with a pointer from the
-  # answer; the ones that don't (9, 11) are folded.
+  # answer; the ones that don't (11) are folded.
   expect_match(html, "slightly different answer for this design", fixed = TRUE)
   minor <- regmatches(html, regexpr("result-departures-minor.*?</details>", html))
-  expect_match(minor, "Calculated with a formula", fixed = TRUE)
   expect_match(minor, "the z test as G*Power runs it", fixed = TRUE)
   expect_no_match(minor, "No continuity correction", fixed = TRUE)
   expect_match(html, "in group 1 (0 to 1): 0.6", fixed = TRUE)            # an input it used
@@ -569,6 +572,7 @@ test_that("the result reads in plain words, shows 80% and 95% side by side, the 
   n95 <- 2 * ceiling(pwr::pwr.t.test(d = 0.4, power = 0.95)$n)
   expect_match(calc$cost_line, sprintf("80%% power needs %s participants", n80), fixed = TRUE)
   expect_match(calc$cost_line, sprintf("95%% power needs %s", n95), fixed = TRUE)
+  expect_match(calc$cost_line, sprintf("90%% power needs %s", 2 * ceiling(pwr::pwr.t.test(d = 0.4, power = 0.9)$n)), fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), values, calc))
   expect_match(html, "about 9 in 10 studies like this would get a significant result", fixed = TRUE)
   expect_match(html, "Your reasoning: “Smallest difference our clinic would act on.”", fixed = TRUE)
@@ -612,7 +616,7 @@ test_that("the explore panel shows power by N for another effect size, without t
   expect_equal(df$power[1], pwr::pwr.t.test(n = df$n[1] / 2, d = 0.6)$power)
   expect_true(all(diff(df$power) > 0))
   expect_equal(calc$spec$population$d, 0.4) # the plan is unchanged
-  expect_match(as.character(explore_ui(calc$spec)), "Exploring doesn&#39;t change your plan|Exploring doesn't change your plan")
+  expect_match(as.character(explore_ui(calc$spec)), "Exploring doesn(&#39;|')t change it")
   # Not offered for simulation or for designs other than the t-tests and the correlation.
   expect_null(explore_ui(light_spec("E7")))
   sim <- spec; sim$options$method <- "simulation"
@@ -637,7 +641,12 @@ test_that("the write-up states the test, alpha, power and its reason, the effect
   expect_match(w[["short"]], sprintf("%s participants are needed in total (%s per group)", n, n / 2), fixed = TRUE)
   expect_match(w[["short"]], sprintf("pwr (version %s", calc$result$provenance$packages[["pwr"]]), fixed = TRUE)
   expect_no_match(w[["short"]], "supplement|depart", ignore.case = TRUE)
-  expect_match(w[["full"]], "Departures from the established tools' defaults: Calculated with a formula", fixed = TRUE)
+  # Using pwr's formula is not a departure (Departure 9, retired), and the
+  # evidence record is not part of the paragraph; powerkit is named as a
+  # prototype until 1.0.
+  expect_no_match(w[["full"]], "Departures from the established tools' defaults", fixed = TRUE)
+  expect_no_match(w[["full"]], "Evidence registry|SHA-256|Software agreement")
+  expect_match(w[["full"]], "a prototype in development whose results are not yet fully validated", fixed = TRUE)
   expect_match(w[["full"]], calc$result$provenance$spec_hash, fixed = TRUE)
   expect_no_match(paste(w, collapse = " "), "noncentrality|critical value", ignore.case = TRUE)
 })
@@ -2924,4 +2933,76 @@ test_that("an interrupted time series result counts time points and shows the Ty
   expect_no_match(words[["headline"]], "participants", fixed = TRUE)
   expect_match(type1_sentence(result), "With no real change, this analysis would still find a significant one", fixed = TRUE)
   expect_null(type1_sentence(list()))
+})
+
+test_that("a safeguard-power result names the effect the calculation used, with the entered one in brackets", {
+  result <- list(goal_type = "sample_size", safeguard = list(effect_name = "Cohen's d", estimate = 0.45, lower = 0.258, conf_level = 0.6, protection = 0.8, n1 = 40, n2 = 40))
+  text <- safeguard_wording(c(headline = "You need 634 participants in total for 90% power to detect the effect you entered.",
+    reading = "if the true effect is the one you entered, about 9 in 10 studies"), result)
+  expect_match(text[["headline"]], "to detect the effect Cohen's d = 0.258 (the safeguard value; the earlier estimate was 0.45)", fixed = TRUE)
+  expect_match(text[["reading"]], "if the true effect is Cohen's d = 0.258", fixed = TRUE)
+  expect_match(safeguard_sentence(result), "falls below the true effect 80% of the time", fixed = TRUE)
+  expect_identical(safeguard_wording("the effect you entered", list()), "the effect you entered")
+  expect_identical(a_percent(0.8), "an 80%")
+  expect_identical(a_percent(0.9), "a 90%")
+  expect_identical(a_percent(0.11), "an 11%")
+})
+
+test_that("sample-size searches run in the background while there is room, with the comparison line", {
+  expect_true(search_in_background(list(goal = list(type = "sample_size"))))
+  expect_false(search_in_background(list(goal = list(type = "power", n = 40L))))
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  # Only while there is room: at the limit a search runs in the app's
+  # process, as before, rather than asking the user to wait.
+  expect_match(code, "(search_in_background(spec) && background_running() < background_limit(forms))", fixed = TRUE)
+  expect_match(code, "cost_powers <- if (!state$endpoint %in% names(forms$background)) cost_line_powers(values)", fixed = TRUE)
+  expect_match(code, "options(powerkit.warm_spare = TRUE)", fixed = TRUE)
+  # The comparison line uses the sample sizes the background run found.
+  spec <- light_spec("E1", goal = list(type = "sample_size", power = 0.9))
+  result <- list(goal_type = "sample_size", n_required = list(n = 120), provenance = list(method = "formula"))
+  never <- function(spec) stop("no search should run here")
+  expect_match(cost_line(spec, result, run = never, ns = c(97, 130, 160)), "80% power needs 97 participants; 90% power needs 130; 95% power needs 160", fixed = TRUE)
+})
+
+test_that("the warm spare process gives the same result as the engine, and its comparison-line sizes", {
+  skip_without_run()
+  skip_on_cran()
+  old <- background_spare$session
+  on.exit({ if (!is.null(background_spare$session)) background_spare$session$close(); background_spare$session <- old }, add = TRUE)
+  background_spare$session <- NULL
+  keep_spare(file.path(repo_dir, "engine"))
+  waited <- 0
+  while (!spare_ready() && waited < 120) { Sys.sleep(0.25); waited <- waited + 0.25 }
+  expect_true(spare_ready())
+  spec <- light_spec("E1", goal = list(type = "sample_size", power = 0.9))
+  spec$options$seed <- 1L
+  job <- start_background_calculation(spec, seed = 1L, engine_dir = file.path(repo_dir, "engine"),
+    cost_powers = c(0.8, 0.95), spare = TRUE)
+  # It took the spare, and a new spare is on its way for the next run.
+  expect_false(is.null(background_spare$session))
+  job$wait(60000)
+  expect_false(job$is_alive())
+  calc <- collect_background_calculation(job)
+  expect_identical(calc$status, "ok")
+  direct <- quiet_run(spec)
+  expect_identical(calc$result$n_required$n, direct$n_required$n)
+  expect_identical(calc$result$provenance$spec_hash, direct$provenance$spec_hash)
+  at <- function(power) { s <- spec; s$goal$power <- power; quiet_run(s)$n_required$n }
+  expect_equal(unname(calc$cost_ns), c(at(0.8), at(0.95)))
+  # A spare-process run can be cancelled like any other.
+  keep_spare(file.path(repo_dir, "engine"))
+  waited <- 0
+  while (!spare_ready() && waited < 120) { Sys.sleep(0.25); waited <- waited + 0.25 }
+  slow <- session_job(take_spare(), function() Sys.sleep(60), list())
+  expect_true(slow$is_alive())
+  slow$kill()
+  expect_false(slow$is_alive())
+  expect_match(collect_background_calculation(slow)$message, "stopped unexpectedly", fixed = TRUE)
+})
+
+test_that("a generic test's power has no participant count under it", {
+  fig <- result_figure(list(design = "generic_test", template = "generic_t", variables = list(), population = list()),
+    list(goal_type = "power", curve = data.frame(n = NA_real_, power = 0.68)))
+  expect_identical(fig$value, "68%")
+  expect_identical(fig$sub, "for the noncentrality you entered")
 })

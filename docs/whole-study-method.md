@@ -76,6 +76,7 @@ and 80% together, about 89.4% each).
    | Analysis | Model | Test |
    | --- | --- | --- |
    | Effect of X on Y (`x_y`) | Y ~ X, OLS | t test of the slope (the test of the correlation) |
+   | Effect of X on the mediator, a manipulation check (`x_m`; one mediator M) | M ~ X, OLS (not adjusted for the outcome's first measurement) | t test of the slope |
    | Interaction (`interaction`) | Y ~ X + W + X:W, OLS | t test of X:W |
    | Mediation (`indirect`) | lavaan ML: M ~ X, Y ~ M + X (two mediators: parallel with residual covariance free, or serial) | Monte Carlo CI of the indirect effect (1,000 draws) |
    | Moderated mediation (`index_of_mome`) | lavaan ML, PROCESS model 7 or 14 | Monte Carlo CI of the index of moderated mediation |
@@ -111,6 +112,24 @@ and 80% together, about 89.4% each).
    run on the user's computer from an R script
    (`export_whole_study_script()`), since a search simulates every
    analysis at many sample sizes (hours, for mediation).
+8. **Rough power curve** (powerkit 0.41.0). For experiments and
+   regressions the app can also simulate the study at five sample sizes
+   (0.5, 0.75, 1, 1.5 and 2 times the N entered, 200 replications each,
+   the spec's seed) with `whole_study_curve()`, read by the same criterion
+   as the search. Each point is within about 7 percentage points; it is
+   shown as a guide for choosing N, with the script's search for the
+   number to report.
+9. **Cohen's d for a two-group X** (powerkit 0.41.0). The user may give
+   the groups' d on the outcome or the mediator (`population > group_d`)
+   instead of the path. Before simulating, the path is found by
+   `uniroot()` so that the groups' standardised mean difference (mean
+   difference over the pooled within-group SD) in the check run's data
+   set (100,000 people, the spec's seed) equals the d given; the search is
+   kept within the paths that leave every outcome a residual variance
+   (95% of the largest), and a d outside that range is refused with the
+   range. The d on Y is the total difference between the groups (through
+   any mediator), as the two-group card would use; the mediator's path is
+   found first. The result records the d and the path found.
 
 powerkit writes no statistical computation of its own here: the data, the
 fits, the tests and the joint rates are power4mome's (and lavaan's,

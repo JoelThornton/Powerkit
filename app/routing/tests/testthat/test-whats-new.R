@@ -55,6 +55,7 @@ test_that("Updates can be searched and marks changes since your last visit", {
 test_that("the app has an Updates tab, between Labs and Feedback", {
   app <- readLines(file.path(routing_dir, "app.R"))
   tabs <- grep("^\\s*tabPanel\\(", app, value = TRUE)
-  expect_identical(sub("^\\s*tabPanel\\(([^,]+),.*", "\\1", tabs)[1:5],
+  # Each tab's value is its full name (the title has a short phone name).
+  expect_identical(sub("^.*value = ([^,]+),.*", "\\1", tabs)[1:5],
     c('"Plan a power analysis"', '"About"', "labs_tab_title", '"Updates"', '"Feedback"'))
 })

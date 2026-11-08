@@ -716,7 +716,7 @@ methods paragraph, and covered by a test showing the size of the difference
 - **Size:** about 1e-15 in power, so this has no practical effect.
 - **Test:** `engine/tests/testthat/test-run-spec.R`, "exact results are
   reproducible bit for bit and leave the RNG alone".
-- **Shown to users / in the methods paragraph:** shown on the result screen for E7 and E8 (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
+- **Shown to users / in the methods paragraph:** shown on the result screen for E7 and E8 (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`), among the minor differences. Left out of the methods paragraph since 7 November 2026 (maintainer's decision; `docs/decisions.md`): a difference of about 1e-15 is not one a reader of the paper needs, so the paragraph names only departures that can change a number.
 
 ### 4. One-sided basic tests (retired 17 October 2026: Spower 0.7 has the fix)
 
@@ -850,43 +850,15 @@ kept so later departures keep theirs.
   bug, so the explicit argument stays after the fix reaches CRAN.
 - **Shown to users / in the methods paragraph:** shown on the result screen for E10–E14 (18 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
 
-### 9. Basic tests (E1–E6): pwr's formula by default, not Spower's simulation
+### 9. Basic tests (E1–E6): pwr's formula by default (retired 7 November 2026: not a departure)
 
-- **Established convention:** powerkit's earlier default, and the
-  convention it followed, was simulation with Spower for every basic test
-  (`Spower()` with `p_t.test()`, `p_r()`, `p_prop.test()`,
-  `p_chisq.test()`) [Spower-src]. pwr gives the same tests by formula.
-- **powerkit:** pwr's formula by default (maintainer's decision,
-  17 October 2026; `docs/decisions.md`): exact where an exact answer
-  exists (the t-tests, by the noncentral t; the chi-square test, by the
-  noncentral chi-square), and no Monte Carlo noise. For a correlation
-  (Fisher's z) and two proportions (a normal approximation: the z test by
-  `power.prop.test()`, Departure 11, or Cohen's h) the formulas are
-  approximations. Spower simulation stays available on request, and is
-  used for Welch's t-test, which pwr doesn't cover. The two variance
-  templates have their own exact formula since 31 October 2026 (see
-  "Variance tests"; Known difference 4 retired).
-- **Size:** the example designs below, alpha = .05 two-sided, formula
-  against Spower simulation with 5,000 seeded replications (seed 9, one
-  core). Every difference is within 2 Monte Carlo standard errors, so it
-  is simulation noise; the formula removes it. The two-proportions row is
-  `power.prop.test()`'s z test since Departure 11 (with pwr's Cohen's h it
-  was 0.4911).
-
-  | Test | n | Formula (pwr) | Simulation (Spower) | Difference |
-  | --- | --- | --- | --- | --- |
-  | One-sample t, d = 0.3 | 90 | 0.8038 | 0.8060 | +0.0022 |
-  | Independent t (Student's), d = 0.4 | 200 | 0.8036 | 0.7954 | -0.0082 |
-  | Paired t, d_z = 0.35 | 60 | 0.7601 | 0.7580 | -0.0021 |
-  | Correlation, r = -0.2 | 120 | 0.5952 | 0.5926 | -0.0026 |
-  | Two proportions, .6 vs .7 | 340 | 0.4892 | 0.4858 | -0.0034 |
-  | Chi-square, 3 x 2 table (example spec) | 150 | 0.0855 | 0.0870 | +0.0015 |
-
-- **Test:** `test-backend-pwr.R`, "departure: pwr's formula vs Spower's
-  simulation (Departure 9)", which checks each size below.
-- **Shown to users / in the methods paragraph:** shown on the result
-  screen when the formula was used (`app/routing/forms.yaml`,
-  `departures`). Stated in the full version of the write-up (18 October 2026).
+**Retired.** Using pwr's formula is pwr's own default and G\*Power's
+practice, so it departs from no established tool; it was recorded as a
+departure only from powerkit's own earlier default, Spower's simulation.
+The number is kept so later departures keep theirs, and the comparison is
+kept under "Not departures, but worth stating" ("Basic tests: a formula,
+not simulation"). The result screen and the methods paragraph no longer
+list it (maintainer's decision, 7 November 2026; `docs/decisions.md`).
 
 ### 10. Correlation (E4): Fisher's z, not G\*Power's exact method
 
@@ -1604,6 +1576,56 @@ Wired into the app on 18 October 2026 (E25, E26).*
   paragraphs are unchanged.
 
 ## Not departures, but worth stating
+
+- **One tail counted for some yes/no outcomes in clustered trials, and for
+  Cox regression** (noted 8 November 2026). The normal-approximation
+  formulas that powertools uses for yes/no outcomes in cluster-randomised,
+  group-treatment and multisite trials, and powerSurvEpi's formula for a
+  Cox regression predictor, count only the tail in the direction of the
+  effect. With no effect they therefore report 2.5% power for a two-sided
+  test at alpha = .05, where G*Power and powerkit's other two-sided
+  formulas give 5%. At realistic effects the other tail adds almost
+  nothing (about 0.1 percentage points at 20% power, and less above it), so the
+  results stand; only power for very small effects is slightly
+  understated. powerkit follows the packages, as the textbook formulas
+  they implement do.
+
+- **Basic tests (E1–E6): a formula, not simulation** (formerly Departure 9).
+
+  - **Before 17 October 2026:** powerkit's default was simulation with Spower for every basic test
+    (`Spower()` with `p_t.test()`, `p_r()`, `p_prop.test()`,
+    `p_chisq.test()`) [Spower-src]. pwr gives the same tests by formula.
+  - **powerkit:** pwr's formula by default (maintainer's decision,
+    17 October 2026; `docs/decisions.md`): exact where an exact answer
+    exists (the t-tests, by the noncentral t; the chi-square test, by the
+    noncentral chi-square), and no Monte Carlo noise. For a correlation
+    (Fisher's z) and two proportions (a normal approximation: the z test by
+    `power.prop.test()`, Departure 11, or Cohen's h) the formulas are
+    approximations. Spower simulation stays available on request, and is
+    used for Welch's t-test, which pwr doesn't cover. The two variance
+    templates have their own exact formula since 31 October 2026 (see
+    "Variance tests"; Known difference 4 retired).
+  - **Size:** the example designs below, alpha = .05 two-sided, formula
+    against Spower simulation with 5,000 seeded replications (seed 9, one
+    core). Every difference is within 2 Monte Carlo standard errors, so it
+    is simulation noise; the formula removes it. The two-proportions row is
+    `power.prop.test()`'s z test since Departure 11 (with pwr's Cohen's h it
+    was 0.4911).
+
+    | Test | n | Formula (pwr) | Simulation (Spower) | Difference |
+    | --- | --- | --- | --- | --- |
+    | One-sample t, d = 0.3 | 90 | 0.8038 | 0.8060 | +0.0022 |
+    | Independent t (Student's), d = 0.4 | 200 | 0.8036 | 0.7954 | -0.0082 |
+    | Paired t, d_z = 0.35 | 60 | 0.7601 | 0.7580 | -0.0021 |
+    | Correlation, r = -0.2 | 120 | 0.5952 | 0.5926 | -0.0026 |
+    | Two proportions, .6 vs .7 | 340 | 0.4892 | 0.4858 | -0.0034 |
+    | Chi-square, 3 x 2 table (example spec) | 150 | 0.0855 | 0.0870 | +0.0015 |
+
+  - **Test:** `test-backend-pwr.R`, "departure: pwr's formula vs Spower's
+    simulation (Departure 9)", which checks each size above.
+  - **Shown to users:** the result's software sentence names the formula
+    ("base R's formula, ..., no simulation"); this is not listed as a
+    departure (retired as Departure 9, 7 November 2026).
 
 - **Default method for 2 x 2 designs:** exact (`ANOVA_exact()`), with
   simulation on request. This matches G*Power and the published values

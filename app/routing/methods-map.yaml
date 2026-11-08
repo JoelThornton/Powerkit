@@ -4,7 +4,9 @@
 # two analyses that exist.
 #
 # `tests`: the kind of test (or other basis for a decision) each analysis
-# usually reports, with a plain explanation shown on the map. These are
+# usually reports, with a plain explanation shown on the map. Each has a
+# colour and a shape, so that the key reads without colour too; the colours
+# are kept far apart on the map's dark background. These are
 # textbook classifications, listed for the statistician's review with the
 # rest of the methods; they cite nothing.
 # `endpoints`: each analysis's test, by the id in `tests`.
@@ -15,43 +17,48 @@ tests:
   t:
     label: "t test"
     colour: "#5cc8ff"
+    shape: ellipse
     text: "Compares a difference (or a slope) with how much it would vary by chance, using the t distribution."
   F:
     label: "F test"
     colour: "#ff7eb6"
+    shape: diamond
     text: "Compares the variation explained by a model (differences among groups, or predictors) with the variation left over, using the F distribution. With one numerator degree of freedom it is a t test squared."
   chi2:
     label: "Chi-square test"
     colour: "#ffd166"
+    shape: triangle
     text: "Compares counts, or a model's misfit, with what would be expected by chance, using the chi-square distribution."
   z:
     label: "z test"
     colour: "#4fe0b6"
+    shape: hexagon
     text: "Compares an estimate with its standard error on the normal distribution: common for proportions and for comparing correlations."
   rank:
     label: "Rank test"
     colour: "#c792ea"
+    shape: pentagon
     text: "Works on the ranks of the scores rather than the scores themselves, so it needs fewer assumptions about their shape."
   model:
     label: "Test in a fitted model"
     colour: "#9be15d"
+    shape: octagon
     text: "A coefficient's test (Wald z or t) or a likelihood-ratio test in a model such as logistic, multilevel or survival regression."
   ci:
     label: "Confidence interval"
-    colour: "#ff9f68"
+    colour: "#ff6b4a"
+    shape: star
     text: "Decides from whether a confidence interval excludes zero (mediation's indirect effects, by Monte Carlo or bootstrap), or plans for how narrow the interval will be."
   bayes:
     label: "Bayes factor"
-    colour: "#f78fb3"
+    colour: "#f5f5f5"
+    shape: vee
     text: "Weighs how much more likely the data are under one hypothesis than another, instead of a p-value."
-  any:
-    label: "Any of these"
-    colour: "#b0c4de"
-    text: "A general tool for any test that has a known distribution."
   other:
     label: "Other"
-    colour: "#9aa7c7"
-    text: "Decided by comparing models (for example, how many classes or profiles fit best) rather than by a single test."
+    colour: "#7b8494"
+    shape: round-rectangle
+    text: "Not one of the usual tests: a general tool for any test with a known distribution, or a decision made by comparing models (for example, how many classes or profiles fit best)."
 
 endpoints:
   E1: t
@@ -103,7 +110,7 @@ endpoints:
   E47: model
   E48: chi2
   E49: z
-  E50: any
+  E50: other
   E51: z
   E52: chi2
   E53: F

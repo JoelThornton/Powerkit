@@ -5,6 +5,101 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-08"
+    title: "Simulation precision stated one way everywhere"
+    text: >-
+      How precise a simulated power is ("within about 3 percentage points")
+      is now worked out the same way on every screen, including the
+      whole-study plan and Labs' sequential Bayesian planning.
+  - date: "2026-11-08"
+    title: "Not sure of the effect? Bayes factor plans can now say"
+    text: >-
+      A Bayes factor t-test result can now show the chance of strong
+      evidence averaged over a range of true effects, if you say how unsure
+      you are, and how many people that would need. Labs' Bayesian planning
+      and effect size converter now give exactly the same numbers and
+      wording as the main cards.
+  - date: "2026-11-08"
+    title: "Labs looks like the rest of powerkit, and results link to it"
+    text: >-
+      Every chart in Labs now matches the result page's, with its key
+      below the chart. The power visualiser explains its cut-off curves,
+      the methods map gives each kind of test its own colour and shape,
+      and each tool says what it is for and how far it is checked. A
+      t-test, correlation or two-proportions result can open the power
+      visualiser at its own numbers.
+  - date: "2026-11-08"
+    title: "Input screens that ask less and say more"
+    text: >-
+      Target power now starts empty on every card, and the result compares
+      80%, 90% and 95% so you can choose. Every card with more than one
+      test shows "Which test you'll run" up front, moderation starts at
+      the R-squared change papers report, and cards that simulate show
+      how long they usually take instead of "a second or two".
+  - date: "2026-11-08"
+    title: "Save your whole-study plan, and see roughly how many people you need"
+    text: >-
+      "Save this plan" keeps your whole-study plan and everything you
+      entered in a file you can open again. The simulation can now show a
+      rough power curve over a few sample sizes, takes Cohen's d for a
+      two-group comparison, and every analysis you calculate from the plan
+      joins your study plan. Analyses of the same people on different
+      cards, such as a score and a yes/no outcome compared between the
+      same two groups, now share one sample size there.
+  - date: "2026-11-08"
+    title: "Whole-study planning: manipulation checks, and fewer dead ends"
+    text: >-
+      "Plan my whole study" can now plan a manipulation check (the effect
+      of your condition on the mediator) beside a mediation, and simulate
+      both together. A before/after trial with "a baseline measure" no
+      longer loses the whole-study simulation, the simulation screens ask
+      what your variables are called, and the R script for an experiment
+      saves its result before printing it.
+  - date: "2026-11-08"
+    title: "No more waiting for other people's calculations"
+    text: >-
+      Working out a sample size now runs on its own, with a progress bar
+      and a Cancel button, so one person's search no longer freezes the
+      app for everyone else. The app also opens faster, especially the
+      first click after it has been asleep, and the methods map loads
+      its graphics only when you open it.
+  - date: "2026-11-07"
+    title: "Clearer safeguard power, and pilots treated with care"
+    text: >-
+      With safeguard power on, the result now names the smaller effect it
+      actually planned for, with yours in brackets. A pilot study's effect
+      size now asks how you adjusted it, as a published one does, and the
+      effect-size help explains pilots and biased meta-analyses. In Labs,
+      the effect size converter refuses impossible values and catches
+      degrees of freedom that don't match the study's size.
+  - date: "2026-11-07"
+    title: "Your unfinished plan waits on the plan tab"
+    text: >-
+      An unfinished plan is now offered only on the plan tab, with
+      "Continue my plan", "Not now" or "Discard my draft", so opening
+      About, Labs or Feedback no longer asks about it and only the
+      discard button deletes it. On phones every tab now fits on one
+      row, and About is shorter, with the full table of test versions
+      folded away.
+  - date: "2026-11-07"
+    title: "Help me choose finds more designs, with fewer questions"
+    text: >-
+      Help me choose no longer asks questions that have only one answer,
+      keeps the rarer hypotheses behind "Something else", recommends
+      ANCOVA for a randomised before-and-after trial, and sends a
+      treatment whose effect depends on a measured score to the
+      regression card. Input screens no longer offer goals the chosen
+      test can't answer, and search knows names such as Cohen's d,
+      crossover and between-subjects.
+  - date: "2026-11-07"
+    title: "Clearer methods paragraphs and planning documents"
+    text: >-
+      The methods paragraph now keeps to the methods: the record of checks
+      moves to its own section of the planning document, written in words,
+      and every export says powerkit is a prototype until version 1.0. The
+      whole-study paragraph states the means or paths it assumed, and
+      About says what this browser remembers between visits and how to
+      clear it.
   - date: "2026-11-06"
     title: "Plan a whole experiment in one go"
     text: >-

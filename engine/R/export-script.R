@@ -1037,16 +1037,15 @@ hotelling_script <- function(spec, result) {
       c(
         "# With two equal groups, T^2 (N - p - 1) / ((N - 2) p) follows the noncentral",
         "# F distribution with p and N - p - 1 df and noncentrality N1 N2 / N = N / 4",
-        "# times the squared Mahalanobis distance between the groups' means",
-        "# (Anderson, 2003, An Introduction to Multivariate Statistical Analysis,",
-        "# 3rd ed., sections 5.3.4 and 5.4)."
+        "# times the squared Mahalanobis distance between the groups' means (the",
+        "# standard distribution of the two-sample Hotelling's T-squared)."
       )
     } else {
       c(
         "# (T^2 / (n - 1)) (n - p) / p follows the noncentral F distribution with p",
         "# and n - p df and noncentrality n times the squared Mahalanobis distance",
-        "# of the means from the fixed values (Anderson, 2003, An Introduction to",
-        "# Multivariate Statistical Analysis, 3rd ed., section 5.4)."
+        "# of the means from the fixed values (the standard distribution of the",
+        "# one-sample Hotelling's T-squared)."
       )
     },
     "p <- length(sds)",

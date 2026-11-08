@@ -501,8 +501,15 @@ gof_w <- function(spec) {
   pop <- spec$population
   # Cohen's w given directly (as G*Power takes it), with its df.
   if (chisq_by_w(spec)) return(list(w = pop$w, df = chisq_df(spec)))
-  args <- list(prob.matrix = as.numeric(unlist(pop$probabilities)), verbose = 0)
-  if (!is.null(pop$null_probabilities)) args$null.prob.matrix <- as.numeric(unlist(pop$null_probabilities))
+  # The spec's check accepts proportions that sum to 1 within rounding
+  # (1/3 each, written to 15 digits); probs.to.w() demands an exact sum,
+  # so they are rescaled to sum to 1 first.
+  exact <- function(p) {
+    p <- as.numeric(unlist(p))
+    p / sum(p)
+  }
+  args <- list(prob.matrix = exact(pop$probabilities), verbose = 0)
+  if (!is.null(pop$null_probabilities)) args$null.prob.matrix <- exact(pop$null_probabilities)
   call_backend("pwrss", quietly(do.call(pwrss::probs.to.w, args)))
 }
 

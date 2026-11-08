@@ -5729,3 +5729,274 @@ the site stays findable by search engines.
   guided plan (the plan's screening sends three or more conditions per
   person elsewhere), three factors, unequal groups in a design with a
   within factor, pairwise comparisons and contrasts as analyses.
+
+## 2026-11-07 · What exports say: prototype status, methods only, one meaning of "validated"
+
+- **Why:** the project review of 7 November 2026 found the methods
+  paragraph carrying the evidence registry's codes, exports that did not
+  say powerkit is a prototype, the whole-study paragraph without its
+  effect sizes, references in user text that were not in `refs.bib`, and
+  two meanings of "validated". The maintainer agreed the fixes.
+- **Exports:** every exported sentence that names powerkit says "a
+  prototype in development whose results are not yet fully validated"
+  until version 1.0 (`powerkit_cited()`), since text copied out of the
+  app loses its banner. The evidence record moves out of the methods
+  paragraph into a worded "Validation evidence" section of the planning
+  document.
+- **Departures:** Departure 9 (the basic tests' formula) is retired, as
+  it departs from no established tool, only from powerkit's own earlier
+  default; its comparison stays under "Not departures, but worth stating"
+  in `docs/conventions.md`. Departure 3 (about 1e-15) stays on the result
+  screen and leaves the methods paragraph, which names only departures
+  that can change a number.
+- **References:** each author-year reference shown to users is either in
+  `refs.bib`, opened by its DOI, or a package's `citation()`, or is taken
+  out of user text. Seven were added; Anderson (2003), a textbook with no
+  DOI, is cited in the engine's source comments only. A test in the app
+  suite (`test-user-references.R`) keeps it that way.
+- **"Validated":** one meaning, the validation log's ("What 'validated'
+  means"), in CLAUDE.md, the README and status.md.
+- **Assurance:** power averaged over a design prior is called "the
+  average power over your uncertainty"; "assurance" in precision planning
+  keeps its meaning (the chance the interval is narrow enough).
+
+
+## 2026-11-07 · Design-finder routes: ANCOVA for randomised trials, moderation before and after, no one-answer questions
+
+- **Why:** the project review of 7 November 2026 followed researchers'
+  descriptions through "Help me choose" and found routes that ask
+  questions with one answer, a two-group before/after study sent away
+  when its groups are unequal, no recommendation between ANCOVA and the
+  group by time interaction for a randomised trial, no route for a
+  treatment effect moderated by a measured score in a before/after
+  trial, and goals offered that the chosen test cannot answer.
+- **Randomised before/after trials:** ANCOVA on the after score,
+  adjusting for the before score, is marked recommended; the mixed
+  interaction stays an option. With randomisation the groups are equal
+  at baseline in expectation, so ANCOVA is unbiased and has more power;
+  without randomisation the two answer different questions (Lord's
+  paradox) and powerkit still asks rather than recommends.
+- **Moderation in a before/after trial:** routed to the multiple
+  regression card (E24), the standard adjusted analysis: the after score
+  on the before score, the treatment, the moderator and their product,
+  testing the product (one of four predictors). "Plan my whole study"
+  uses the same card.
+- **Crossover (AB/BA) designs:** guidance on the paired and mixed ANOVA
+  cards (plan with the paired card's difference-score effect size;
+  adding order as a factor uses the same differences with one fewer
+  degree of freedom) until a dedicated card is built (`next.md`).
+- **One-answer questions:** a question whose answers, given the answers
+  before it, leave only one choice is skipped by an automatic node, and
+  a test walks every route of the design finder to keep it so.
+- **Goals:** a choice can be offered only with other answers
+  (`choices_shown_if`); the justified significance level is hidden with
+  a Bayes factor test version and refused in words if chosen anyway.
+
+## 2026-11-07 · Effect sizes from one study: pilots like published studies, safeguard power read as repeated sampling
+
+- **Why:** the project review of 7 November 2026 found that a pilot
+  study's effect size met less scrutiny than a published one, although
+  pilot estimates are the least precise source, and that a safeguard
+  result's headline named the effect entered rather than the smaller one
+  the calculation used.
+- **Pilots:** "How you adjusted it" is shown and needed for a pilot as
+  for a previous study (unless safeguard power is used), and the effect
+  guidance says a pilot is for feasibility, citing Albers and Lakens
+  (2018) on the bias of planning from pilot effects. The meta-analysis
+  guidance prefers bias-adjusted estimates (Carter et al., 2019).
+- **Safeguard wording:** the bound is described by repeated sampling
+  (across studies like the original, a bound found this way falls below
+  the true effect at the protection rate), following Perugini, Gallucci
+  and Costantini (2014), not as a probability that the true effect
+  exceeds it.
+- **Converter checks:** a t's degrees of freedom must match the study's
+  size, since the conversion uses one and the safeguard value the other.
+
+## 2026-11-08 · Speed: sample-size searches and the About page leave the app's own process
+
+- **Why:** the project review of 7 November 2026 measured that a
+  sample-size search on the common ANOVA, Welch and trend cards took 2 to
+  20 seconds in the app's single R process, during which nobody else's
+  screen moved; that the About page, built there after a restart, froze
+  the first visitor's first click for about 7 seconds; and that rendering
+  the fixed tabs for every visit made twenty people arriving together
+  wait 13 to 16 seconds.
+- **Searches:** every sample-size goal runs in a separate process (with
+  the comparison line's two searches), while the background limit allows;
+  at the limit it runs in the app's process rather than refusing, since a
+  search is seconds, not minutes. A spare process with the engine and
+  common backends loaded is kept ready, because starting R and loading
+  Superpower takes two to three seconds; each process serves one
+  calculation and is closed, so no state passes between visitors.
+- **Pages:** About is built in a separate process at start-up (built in
+  the app's process only if that fails); Labs, Updates and Feedback are
+  rendered once with the app's theme; the methods map's library loads when
+  the map is shown.
+- **Hosting:** the measurements are in `hosting-options.md`; a host that
+  runs two or more app processes is preferred (queue item 8).
+
+## 2026-11-08 · Whole-study planning: the manipulation check, and a baseline in a study measured twice
+
+- **Why:** the project review of 7 November 2026 found that a mediation's
+  manipulation check (the effect of X on the mediator), a very common
+  companion analysis that often sets the minimum sample, couldn't be
+  planned beside it, and that answering "a baseline measure" for a study
+  measured twice switched the whole-study simulation off although it is
+  the same study as answering "None".
+- **Manipulation check:** a new guided analysis, X on the mediator alone,
+  on the card for a score outcome (the two-group comparison, the paired
+  comparison, the one-way ANOVA or the correlation). The whole-study
+  simulation fits it as M on X by OLS, tested by power4mome's
+  `test_parameters()` (`x_m`), with one mediator; not adjusted for the
+  outcome's first measurement, which is not the mediator's. Its power
+  agrees with the two-sample t test's in a test.
+- **Baseline:** measured twice, "a baseline measure" is the first
+  measurement, which every analysis already adjusts for; other covariates
+  are still outside the simulation.
+- **Order of the whole-study simulation's next designs:** covariates;
+  fully within-people designs; yes/no and other outcomes; nested data;
+  pairs (`next.md`, item 1).
+
+## 2026-11-08 · Whole-study planning: saving the plan, a rough curve, Cohen's d, one study plan
+
+- **Why:** the project review of 7 November 2026 found that the guided
+  plan and the whole-study inputs couldn't be saved; that the simulation
+  couldn't say how many people a study needs without leaving the app;
+  that a two-group predictor had to be entered as a standardised path;
+  that the guided plan and the study plan were two separate plans on one
+  screen; and that analyses of the same people on different cards never
+  shared a sample size.
+- **Saving:** "Save this plan" writes a `powerkit-guided-plan` file
+  (answers, analyses, claim, the values entered for each analysis and the
+  whole-study inputs). Like a draft it holds inputs, not results: card
+  sample sizes are kept as a summary and calculations are run again from
+  the same values and seed.
+- **Rough curve:** `whole_study_curve()` simulates the whole study at five
+  sample sizes (0.5 to 2 times the N entered, 200 replications each) for
+  experiments and regressions, read by the claim's criterion. It is
+  labelled rough (each power within about 7 points); the sample size to
+  report comes from the script's search. Mediation is left to the script,
+  since its intervals make even a rough curve take minutes.
+- **Cohen's d for two groups:** `population > group_d` gives d for the
+  outcome or the mediator; the engine finds the path whose large
+  simulated sample (100,000 people, the spec's seed) gives that d, with
+  `uniroot()`. This uses the engine's own implied-value routine rather
+  than a conversion formula, since no sourced conversion is in
+  `refs.bib`. The mediator's path is found first, as the outcome's d
+  depends on it.
+- **One study plan:** an analysis calculated from the guided plan joins
+  the study plan itself, replacing its own earlier result.
+- **Shared sample size:** the compatibility key keeps the sample unit,
+  the design family, the grouping variables (with their names and
+  levels), the allocation, attrition and fixed structure, and drops the
+  outcome and the template. An independent t-test and two proportions on
+  the same two groups therefore share one sample size; the plan still
+  says that a shared count also needs the same population and schedule.
+
+## 2026-11-08 · Input screens: target power, test versions, moderation's input, benchmarks
+
+- **Why:** the project review of 7 November 2026 found target power
+  pre-filled at 0.8 on two cards and empty on the rest; the test version
+  in view on some cards and folded into Settings on others (hiding
+  Fisher's exact test and Spearman's rho); moderation starting at four
+  correlations most researchers don't have; and Cohen's small/medium/
+  large labels in the help while that question was open.
+- **Target power:** empty on every card, whatever the package's own
+  default, because the target is the researcher's choice to justify; the
+  result compares 80%, 90% and 95% power. Not a departure: no result
+  changes for a given target.
+- **Test version:** "Which test you'll run" is in section 2 on every card
+  with more than one version.
+- **Moderation:** asks "What do you have for the interaction?" and starts
+  at the R-squared change, as papers report it and G*Power takes it; the
+  correlations (InteractionPoweR's inputs) remain the other choice. The
+  R-squared route's difference from InteractionPoweR is already shown and
+  recorded (Known difference 7).
+- **Benchmarks:** no small/medium/large labels are shown (`tree.yaml`,
+  `effect_size_benchmarks: hide`); whether to offer bias-corrected
+  planning stays a separate question.
+
+## 2026-11-08 · Labs: one chart style, one frame per tool, links from results
+
+- **Why:** the project review of 7 November 2026 found the Labs charts in
+  R's default look beside the result page's (small keys over the lines,
+  sideways axis numbers), the visualiser's curves cut off without saying
+  so, two pairs of near-identical colours on the methods map, three ways
+  of labelling a Labs tool, and the two teaching tools reachable only
+  through Labs.
+- **Charts:** one style in `app/routing/R/results.R` (`chart_start()`,
+  `chart_axes()`, `chart_key()`), used by the result page and every Labs
+  chart. A density has no axis numbers, since its height means little to
+  a reader. The Type I error area is hatched so the overlap with power
+  reads in greyscale; a cut-off curve and the rise at 0 with one degree of
+  freedom are explained under the chart.
+- **Methods map:** each test has a colour and a shape (`methods-map.yaml`),
+  the colours kept apart (a test checks the distance), and "Any of these"
+  joins "Other". Long family names have a short name for the map region
+  (`tree.yaml`, `short`).
+- **Labs tools:** each opens with its name and one notice: what it is for
+  and how far it is checked (`labs_tools`, `labs_tool_head()`). Labs stays
+  a home for research and teaching aids, as decided with the review.
+- **Links from results:** the t-tests, the correlation and two
+  proportions link to the power visualiser at the result's n, effect and
+  alpha; two-group results also to "1,000 studies". The link says the
+  picture is the textbook version of the test, so its power can differ
+  slightly from the result's (Welch's test, unequal groups).
+
+## 2026-11-08 · Labs' Bayesian planning and converter share the cards' code; the uncertain effect on Bayes factor results
+
+- **Why:** the project review of 7 November 2026 found that Bayesian
+  planning and the effect size converter repeated the main cards with
+  their own code and words, and that the design prior (planning over an
+  uncertain effect) was easy to miss on the cards.
+- **Decided with the review:** both tools stay in Labs as stand-alone
+  tools, sharing the main app's engine code and wording.
+- **Shared code:** `bfpwr_chance()` (backend-bfpwr.R) is the one bfpwr
+  call for the chance of strong evidence. The cards, `bayes_planning()`
+  and `bayes_sequential()`'s fixed comparison all use it, and a test
+  checks that Labs and the card give the same numbers for the same
+  study. No number changed (checked against the previous code before
+  the change). The converter already used `convert_effect()` and
+  `safeguard_effect()`; it now also gives the cards' safeguard sentence.
+- **Uncertain effect on the cards:** a Bayes factor t-test planned for
+  exactly one effect (design prior SD 0, powerkit's default, Departure
+  15) offers "Not sure of the effect?": the user gives an SD and sees the
+  chance of strong evidence averaged over it (assurance; O'Hagan, Stevens
+  and Campbell, 2005) and the sample size for the target on average, from
+  `run_spec()` with `population.effect_sd` set. The plan doesn't change,
+  and powerkit suggests no SD, since the size of one's uncertainty is the
+  researcher's to defend.
+
+## 2026-11-08 · Docs and start-up reading: rules in one place, current-state pages, one precision rule
+
+- **Why:** the project review of 7 November 2026 found that a new thread
+  read about 70 KB before starting, that `status.md` and `next.md` had
+  become histories, that the working rules disagreed between `CLAUDE.md`
+  and `handover.md`, that the docs map missed six pages, that the
+  dependency counts were old, and that the app worked out simulation
+  precision by a different rule from the engine.
+- **Decided with the review (7 November 2026):** locally, run the tests
+  for the changed files plus `test-repo-consistency.R`, and let the
+  required checks be the gate; "work from `next.md`" replaces "one build
+  phase at a time"; single-card packages move to Suggests card by card
+  when a PR touches them; very large files are split only when a PR
+  touches them; a short visual style section in `accessibility-review.md`.
+  All are now in `CLAUDE.md`, with the file layout in
+  `routing-prototype.md`, "Splitting the large files".
+- **Pages:** `status.md` is one short paragraph per area (under 8 KB; the
+  old page is in `archive/status-history.md`); `next.md` rows say only
+  what is left; `handover.md` points to `CLAUDE.md` for the rules and
+  keeps only where things live; `docs/README.md` lists every page, with a
+  group for the statistician, and a test checks it stays complete.
+- **Dependencies:** `docs/dependency-footprint.md` is written by
+  `scripts/dependency-footprint.R` from `renv.lock` and `DESCRIPTION`
+  (58 Imports, 304 locked packages), and a test checks the page matches.
+- **Precision:** `simulation_margin()` in the engine is the one formula,
+  1.96 times the binomial standard error, stated at 50% power (the widest
+  margin) unless a power is given. The app calls it rather than computing
+  its own.
+- **Manifest:** `app/routing/manifest.json` is removed from main and
+  ignored there; the publishing workflow writes it on `connect-cloud`,
+  and `prepare-publish-branch.py` works with or without a tracked copy
+  (its test covers both).
+

@@ -27,9 +27,13 @@ def prepare(head):
     exists = git("ls-remote", "--exit-code", "--heads", "origin", BRANCH, check=False).returncode
     if exists not in (0, 2):
         raise RuntimeError("Could not inspect the deployment branch; nothing was published.")
-    # Discard only the generated manifest in this disposable CI checkout,
-    # before switching branches. The bytes above are restored below.
-    git("restore", "--", MANIFEST)
+    # Remove only the generated manifest in this disposable CI checkout,
+    # before switching branches. The bytes above are restored below. Main
+    # doesn't track it (it is in .gitignore there); an older main did.
+    if git("ls-files", "--error-unmatch", MANIFEST, check=False).returncode == 0:
+        git("restore", "--", MANIFEST)
+    else:
+        Path(MANIFEST).unlink()
     if exists == 0:
         git("fetch", "origin", f"{BRANCH}:refs/remotes/origin/{BRANCH}")
         git("switch", "-c", BRANCH, f"origin/{BRANCH}")
@@ -40,7 +44,7 @@ def prepare(head):
     else:
         git("switch", "-c", BRANCH, head)
     Path(MANIFEST).write_bytes(manifest)
-    git("add", MANIFEST)
+    git("add", "--force", MANIFEST)
     merging = git("rev-parse", "--verify", "--quiet", "MERGE_HEAD", check=False).returncode == 0
     changed = git("diff", "--cached", "--quiet", check=False).returncode != 0
     if merging or changed:

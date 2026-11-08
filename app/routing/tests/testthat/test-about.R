@@ -53,6 +53,7 @@ test_that("the About panel explains how to report problems: the Feedback tab and
   expect_match(html, "<strong>Feedback</strong> tab", fixed = TRUE)
   expect_match(html, "Something doesn&#39;t fit?|Something doesn't fit?")
   expect_match(html, "Nothing is sent from this app", fixed = TRUE)
+  expect_match(html, "they stay in this browser and are not sent anywhere", fixed = TRUE)
   # The same words as the link on the cards.
   expect_match(as.character(mismatch_ui("x", "path")), "Something doesn&#39;t fit?|Something doesn't fit?")
 })
@@ -76,7 +77,7 @@ test_that("the About panel credits every foundation tool, from its own citation(
 
 test_that("the app has an About tab", {
   app <- readLines(file.path(routing_dir, "app.R"))
-  expect_true(any(grepl('tabPanel("About"', app, fixed = TRUE)))
+  expect_true(any(grepl('tabPanel(tab_title("About", "About"), value = "About"', app, fixed = TRUE)))
 })
 
 test_that("the About panel says what powerkit doesn't do and how far along it is", {
@@ -95,4 +96,28 @@ test_that("the analysis families fold, and start folded on a phone", {
   expect_match(html, '<details class="about-family" open>', fixed = TRUE)
   expect_match(html, '<summary class="about-family-head">', fixed = TRUE)
   expect_match(about_js, "(max-width: 767px)", fixed = TRUE)
+})
+
+test_that("About counts the analyses as the methods map does, folds the capability table and puts trust first", {
+  html <- as.character(about_ui(tree, forms))
+  in_families <- length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))
+  expect_match(html, sprintf("of the %d analyses calculate", in_families), fixed = TRUE)
+  expect_match(html, "Every test version and its checks (", fixed = TRUE)
+  expect_lt(regexpr('id="about-trust"', html, fixed = TRUE), regexpr('id="about-capabilities"', html, fixed = TRUE))
+  expect_no_match(html, "?:", fixed = TRUE)
+})
+
+test_that("phones show short tab names so every tab fits", {
+  html <- as.character(tab_title("Plan a power analysis", "Plan"))
+  expect_match(html, '<span class="tab-short">Plan</span>', fixed = TRUE)
+  expect_identical(tab_title("About", "About"), "About")
+})
+
+test_that("the About page built in a separate process is the same page", {
+  skip_on_cran()
+  out <- withr::local_tempdir()
+  callr::r(about_build_worker, args = list(routing_dir = routing_dir, out_dir = out))
+  built <- paste(readLines(file.path(out, "about.html"), encoding = "UTF-8", warn = FALSE), collapse = "\n")
+  expect_identical(built, paste(as.character(about_ui(tree, forms)), collapse = "\n"))
+  expect_false(file.exists(file.path(out, "about.part")))
 })

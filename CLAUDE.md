@@ -4,7 +4,7 @@
 A unified power analysis tool for research studies (built with psychology's
 designs in mind, but not only for psychology: never describe it to users as
 a psychology tool; docs/decisions.md, 5 November 2026). One design specification format,
-routed to validated R backends (Spower, power4mome, Superpower, InteractionPoweR),
+routed to established R backends (Spower, power4mome, Superpower, InteractionPoweR),
 with a Shiny front end (design finder, design forms, full-model builder,
 confirmation screen, results and exports). An optional AI assistant comes last.
 Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present).
@@ -64,8 +64,9 @@ engine-side change alone will fail the app suite.
   conventional one as an option where researchers commonly use it. Which method is right is the
   maintainer's call, with the literature behind it; never the thread's quiet
   decision, and never settled by what is already installed.
-- Work one build phase at a time (docs/build-guide.md section 8). Stop at the end of
-  a phase and summarise what was done, what's untested, and open questions.
+- Work from docs/next.md, one queue item or group of related items at a
+  time (see "What to work on"); the build guide's phases are history, and
+  its remaining phase (hosting) is a queue item.
 - engine/DESCRIPTION's Version is powerkit's version, shown to users and in
   every export, as major.minor.patch. Patch (last): bug fixes and very small
   changes. Minor (middle): one batch of new features, the work merged
@@ -89,6 +90,17 @@ engine-side change alone will fail the app suite.
   long chunks every night the engine changed, and every chunk every
   Sunday (scripts/validation-plan.R). A full local run is the
   maintainer's choice, and comes before a release.
+- Grow the code in place, not by rewrites (decided 7 November 2026): a
+  very large file (app.R's server, results.R, export-script.R,
+  spec-checks.R, backend-spower.R) is split only when a pull request
+  already touches it, by moving that design's or screen's code to its own
+  file (the target layout is in docs/routing-prototype.md, "Splitting the
+  large files"). A backend used by one card only moves from Imports to
+  Suggests, with a `requireNamespace()` guard and a plain message, when a
+  pull request touches that card (docs/dependency-footprint.md).
+- Before starting work, read the last scheduled run of nightly-validation
+  (Actions tab): its summary page lists every test that failed, erred or
+  did not run. Add a row to docs/next.md for any failure that has none.
 
 ## Working process (maintainer, 18 October 2026)
 The maintainer is the only reviewer and decider, so keep what they have
@@ -101,8 +113,11 @@ to read small.
   way. Until then, make the best method decision the literature supports,
   as if no later review were coming: never defer, simplify or skip a
   design, a method question or a validation because a statistician will
-  check it later. Cards still say "validation in progress" until their
-  published checks are in, because that is what users need to know.
+  check it later. "Validated" has one meaning, the validation log's
+  (docs/validation-log.md, "What 'validated' means"): a card says
+  "validation in progress" until a recorded full run of its design meets
+  that definition, because that is what users need to know. Published
+  examples are added as the maintainer transcribes them.
 - Build each design properly the first time when that saves coming back
   to it (every variant researchers commonly need, with its validation),
   rather than a small first version; split it into several PRs by
@@ -140,23 +155,22 @@ to read small.
   --build-from-source`.
 
 ## Before finishing any task
-- Run the engine's tests and R CMD check in engine/, as CI does; both must
-  pass: `testthat::test_local()` and
-  `rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning")`
-  (devtools isn't in the CI image that cloud sessions copy; where it is
-  installed, devtools::test() and devtools::check() do the same). After
-  changing roxygen comments, regenerate man/ with roxygen2 at the version
-  in engine/DESCRIPTION (also not in the image: install it into a scratch
-  library) rather than editing .Rd files by hand.
-- Run the app's suite too when anything outside engine/ changed:
-  testthat::test_dir("tests/testthat") in app/routing/, after installing
-  the engine (`R CMD INSTALL engine`), since the suite tests the installed
-  one. The cross-checks that tie the engine, the docs and the app together
-  live there, so an engine-only run will not see them. test-results.R takes
-  about two thirds of its time; CI runs it beside the rest (`filter =
-  "^results$"`, with `invert = TRUE` for the rest), and two R sessions can
-  do the same locally.
-  (validation tests with TODO placeholders may be skipped, not deleted).
+- Test locally what you changed, and let the required checks on the pull
+  request be the gate (decided 7 November 2026): run the test files for
+  the code you changed (`testthat::test_local(filter = ...)` in engine/,
+  `testthat::test_dir("tests/testthat", filter = ...)` in app/routing/)
+  plus app/routing/tests/testthat/test-repo-consistency.R, which ties the
+  engine, the docs and the app together. The app's suite tests the
+  installed engine, so run `R CMD INSTALL engine` first when the engine
+  changed. Don't run the full suites or R CMD check locally: CI runs both
+  (the engine's tests and `rcmdcheck::rcmdcheck(args = "--no-manual",
+  error_on = "warning")`, and the app's suite in two parts). Report only
+  failures, and check CI once at the end.
+- After changing roxygen comments, regenerate man/ with roxygen2 at the
+  version in engine/DESCRIPTION (not in the CI image that cloud sessions
+  copy: install it into a scratch library) rather than editing .Rd files
+  by hand.
+  (Validation tests with TODO placeholders may be skipped, not deleted.)
 - Update NEWS.md with user-visible changes, and add a plain-words entry to
   app/routing/whats-new.yaml (the app's Updates tab) for any change users see.
 - Update docs/status.md (where the project is and what's next) in every PR.

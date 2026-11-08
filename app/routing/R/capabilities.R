@@ -16,6 +16,30 @@ evidence_lines <- function(record) {
     sprintf("Evidence registry %s; record %s; SHA-256 %s.", record$registry_version, record$record_id, record$registry_sha256))
 }
 
+# The same record for a reader of the planning document: what was checked,
+# in words, with the registry's identifiers last.
+evidence_reader_lines <- function(record) {
+  if (!is.list(record) || !isTRUE(record$format_version == 1))
+    return("No record of the checks behind this analysis was saved with this result.")
+  labels <- c(package_agreement = "Agreement with other software", independent = "Agreement with an independent calculation",
+    published = "Agreement with a published example", full_validation = "Large simulation check of the method")
+  states <- c(recorded = "checked on the example cases recorded in the validation log",
+    scoped_only = "checked only in limited settings",
+    pending = "a published benchmark is still to be transcribed",
+    not_linked = "no record yet, so how well it is covered is unknown",
+    outside_scope = "your settings fall outside the cases that were checked")
+  c("These checks cover representative cases, not every value you could enter. powerkit is a prototype until version 1.0, and a statistician's review of its methods is still to come.",
+    vapply(names(labels), function(k) {
+      item <- record$categories[[k]]
+      state <- unname(states[item$status %||% "not_linked"])
+      if (length(state) != 1 || is.na(state)) state <- "status not recognised"
+      note <- trimws(item$note %||% "")
+      paste0("- ", labels[[k]], ": ", state, ".", if (nzchar(note)) paste0(" ", note) else "")
+    }, "", USE.NAMES = FALSE),
+    paste("Cases covered:", record$scope),
+    sprintf("(Evidence record %s, registry version %s.)", record$record_id, record$registry_version))
+}
+
 evidence_ui <- function(record, title = "Evidence for this analysis variant") {
   tags$details(class = "result-validation small",
     tags$summary(title),
@@ -76,14 +100,16 @@ capability_rows <- function(tree, forms) {
           if (!is.null(f$min_exclusive)) paste("greater than", f$min_exclusive),
           if (!is.null(f$max)) paste("maximum", f$max), f$help), collapse = "; "))
       }))), collapse = " ")
-    add(id, "Form defaults (population values still required)", access, restrictions, capability_metadata(form, fields, defaults))
+    add(id, "The screen as it starts (you still enter the effect and sample)", access, restrictions, capability_metadata(form, fields, defaults))
     choices <- Filter(function(f) identical(f$type, "select") && ((!is.null(f$path) && grepl("^(target_test|population|variables|goal|template|design)([.]|$)", f$path)) || length(f$sets)), fields)
     for (f in choices) for (value in names(f$choices)) {
       values <- defaults
       values[[f$id]] <- value
       note <- paste(c(f$choice_notes[[value]], if (!is.null(f$shown_if)) "Shown only when the form's other conditions apply."), collapse = " ")
-      add(id, paste(f$label, f$choices[[value]], sep = ": "), access,
-        paste(note, "Other limits are listed in this analysis's form-default row."), capability_metadata(form, fields, values))
+      # "Which directions ...?: Positive effects only" read badly: the
+      # question's own question mark goes.
+      add(id, paste(sub("\\?$", "", f$label), f$choices[[value]], sep = ": "), access,
+        paste(note, "Other limits are listed in this analysis's row for the screen as it starts."), capability_metadata(form, fields, values))
     }
   }
   do.call(rbind, rows)
@@ -91,7 +117,9 @@ capability_rows <- function(tree, forms) {
 
 capabilities_ui <- function(tree, forms) {
   rows <- capability_rows(tree, forms)
-  tagList(
+  # Folded: the table has over a thousand rows, which pushed the rest of
+  # About far down the page.
+  tags$details(class = "capabilities-fold", tags$summary(sprintf("Every test version and its checks (%s)", format(nrow(rows), big.mark = ","))),
     p("Generated from the current cards and input forms. Each row is one available choice, not a claim that every combination works. Conditional fields, mathematical limits and population assumptions still apply. Evidence for your complete, selected analysis is captured with its result."),
     tags$label(`for` = "capability_search", "Search analyses, test versions or assumptions"),
     tags$input(id = "capability_search", type = "search", class = "form-control", oninput = "pkFilterCapabilities(this.value)"),

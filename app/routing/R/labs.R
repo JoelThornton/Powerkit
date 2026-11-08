@@ -14,18 +14,41 @@ labs_tab_title <- "Labs (experimental)"
 # so that more can be added.
 labs_tools <- list(
   list(id = "map", title = "Methods map",
-       text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page."),
+       text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page.",
+       purpose = "For finding your way among designs: what each analysis is and what it is next to.",
+       sure = "Drawn from powerkit's design finder. It shows where each question leads, not which analysis is right for your study."),
   list(id = "prereplication", title = "Pre-replication notes",
-       text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect."),
+       text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect.",
+       purpose = "For researchers deciding whether, why and how to replicate a finding.",
+       sure = "The questions are Karhulahti, Martončik and Adamkovič's (2025); the one number, the smallest detectable effect, comes from the same engine as the main cards. Nothing you write is scored, checked or sent anywhere. Your notes stay in this browser tab, so reloading the page keeps them; closing the tab or pressing “Clear notes” removes them."),
   list(id = "picture", title = "Power visualiser",
-       text = "For a two-group t-test or a correlation: move the sample size and the effect, choose alpha, and see the two distributions behind power (no effect, and the effect you set), with power, its complement and the smallest effect that would be significant."),
+       text = "For seven common tests (t-tests, ANOVA, two proportions, a correlation, chi-square and a regression's R-squared): move the sample size and the effect, choose alpha, and see the two distributions behind power, with power, its complement and the smallest effect that would be significant.",
+       purpose = "For learning what power means, not for planning a study.",
+       sure = "Power from pwr through powerkit's engine, and the curves from R's t, F, chi-square and normal distributions. Not part of powerkit's validation."),
   list(id = "variation", title = "1,000 studies",
-       text = "Repeat a two-group study 1,000 times. See how p-values and effect estimates vary, and how looking only at significant results can exaggerate the effect."),
+       text = "Repeat a two-group study 1,000 times. See how p-values and effect estimates vary, and how looking only at significant results can exaggerate the effect.",
+       purpose = "For learning how results vary from study to study, and how looking only at significant results exaggerates effects.",
+       sure = "Simulated by powerkit's engine (R's t.test() and effectsize's cohens_d()). Not part of powerkit's validation."),
   list(id = "bayes", title = "Bayesian planning",
-       text = "For a Bayes factor t-test: choose the prior the Bayes factor will use and, separately, what you believe about the effect, and see how often a study of the size you set would give strong evidence for an effect, strong evidence for none, or neither."),
+       text = "For a Bayes factor t-test: choose the prior the Bayes factor will use and, separately, what you believe about the effect, and see how often a study of the size you set would give strong evidence for an effect, strong evidence for none, or neither.",
+       purpose = "For seeing a Bayes factor t-test's priors and outcomes in detail. To plan a study, use the Bayes factor version of the t-test cards, which give the same numbers with a write-up and a script.",
+       sure = "Every number comes from the R package bfpwr (Pawel and Held) through powerkit's engine, as on the main cards. Not part of powerkit's validation."),
   list(id = "published", title = "Effect size converter",
-       text = "Enter an effect as a paper reported it (for example t(58) = 2.5, an F or an odds ratio) and see it as the effect size a power analysis uses, with a safeguard value that allows for published effects being too large.")
+       text = "Enter an effect as a paper reported it (for example t(58) = 2.5, an F or an odds ratio) and see it as the effect size a power analysis uses, with a safeguard value that allows for published effects being too large.",
+       purpose = "For turning a published result into the effect size a power analysis uses. The t-test and correlation cards do the same under “Is your effect size published in another form?”.",
+       sure = "Conversions and safeguard values from powerkit's engine (psych and effectsize), the same code the cards use. Not part of powerkit's validation.")
 )
+
+# The top of every Labs tool: the way back, the tool's name, and one notice
+# in the same pattern for every tool: what it is for and how far it is
+# checked.
+labs_tool_head <- function(id) {
+  tool <- Filter(function(t) identical(t$id, id), labs_tools)[[1]]
+  tagList(
+    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "← All Labs tools"),
+    h2(class = "h3 labs-tool-title", tool$title),
+    div(class = "labs-notice", role = "note", tags$strong("Experimental. "), tool$purpose, " ", tool$sure))
+}
 labs_tool_sections <- list("Research tools" = c("map", "prereplication", "bayes", "published"),
   "Educational tools" = c("picture", "variation"))
 labs_ref_key <- "Karhulahti2025_prereplication"
@@ -85,12 +108,36 @@ labs_sde <- function(forms, ep_id, n, power = "0.8", alpha = "0.05", p1 = NULL,
     # original study's test, taken as two-sided (the packages' default).
     alternative = "two_sided"
   ))
+  # The panel's own boxes are checked first, in their own words: the
+  # input screen's messages name fields this panel doesn't show.
+  own <- labs_sde_problems(ep_id, n, power, alpha, p1, rows, cols)
+  if (length(own)) return(list(status = "problems", problems = own))
   problems <- form_problems(fields, values)
-  if (length(problems)) return(list(status = "problems", problems = problems))
+  if (length(problems)) return(list(status = "problems", problems = unname(problems)))
   spec <- build_spec(forms, ep_id, fields, values)
   calc <- run_calculation(spec, run = run, seed = forms$default_seed)
   calc$ep_id <- ep_id
+  # An engine refusal in words, without the spec's field paths.
+  if (identical(calc$status, "problems")) calc$problems <- labs_plain_problems(calc$problems)
   calc
+}
+
+labs_sde_problems <- function(ep_id, n, power, alpha, p1, rows, cols) {
+  num <- function(x) suppressWarnings(as.numeric(trimws(as.character(x %||% ""))))
+  is_whole <- function(x, min) { v <- num(x); !is.na(v) && v == round(v) && v >= min }
+  out <- character()
+  if (!is_whole(n, 4)) out <- c(out, "Enter the number of participants as a whole number, at least 4.")
+  if (is.na(num(power)) || num(power) <= 0 || num(power) >= 1) out <- c(out, "Enter the power as a proportion between 0 and 1, for example 0.8.")
+  if (is.na(num(alpha)) || num(alpha) <= 0 || num(alpha) > 0.5) out <- c(out, "Enter the significance level as a proportion, for example 0.05.")
+  if (identical(ep_id, "E5") && (is.na(num(p1)) || num(p1) <= 0 || num(p1) >= 1)) out <- c(out, "Enter group 1's proportion between 0 and 1, for example 0.3.")
+  if (identical(ep_id, "E6") && !(is_whole(rows, 2) && is_whole(cols, 2))) out <- c(out, "Enter each variable's number of categories as a whole number, at least 2.")
+  out
+}
+
+labs_plain_problems <- function(problems) {
+  problems <- sub("^This design spec has an? problems?:\\s*\\*?\\s*", "", unlist(problems))
+  problems <- gsub("'goal > n'", "The number of participants", problems, fixed = TRUE)
+  gsub("'[a-z_]+( > [a-z_0-9]+)+'", "One of the numbers", problems)
 }
 
 # One line for the panel and the notes.
@@ -100,9 +147,9 @@ labs_sde_sentence <- function(tree, calc, power) {
     return(sprintf("For %s, no effect could reach %s%% power at this sample size.",
       tolower(tree$endpoints[[calc$ep_id]]$plain_name), round(100 * as.numeric(power))))
   }
-  sprintf("With %s analysed, the original study (%s) would detect an effect of %s or larger %s%% of the time, measured as %s.",
+  sprintf("With %s analysed, the original study (%s) would detect an effect of %s or larger %s%% of the time, measured as %s, with a two-sided test at alpha = %s.",
     calc$spec$goal$n, tolower(tree$endpoints[[calc$ep_id]]$plain_name),
-    format(round(abs(s$effect), 3), nsmall = 2), round(100 * as.numeric(power)), s$effect_description)
+    format(round(abs(s$effect), 3), nsmall = 2), round(100 * as.numeric(power)), s$effect_description, calc$spec$target_test$alpha)
 }
 
 labs_provenance <- function(calc) {
@@ -160,7 +207,11 @@ labs_report <- function(answers, outcome = NULL, sde = NULL, citation = labs_cit
   a <- function(id) trimws(answers[[id]] %||% "")
   join <- function(...) { x <- c(...); x <- x[nzchar(x)]; if (length(x)) paste(x, collapse = " ") else character(0) }
   para <- function(...) { x <- join(...); if (length(x)) c(x, "") else character(0) }
-  sde_text <- if (is.null(sde)) "" else sde$sentence
+  # A heading with nothing under it says so, rather than standing empty.
+  answered <- function(...) { x <- para(...); if (length(x)) x else c("_(not answered)_", "") }
+  # The sentence keeps its settings and source, so it can be checked in a
+  # preregistration.
+  sde_text <- if (is.null(sde)) "" else paste(sde$sentence, sde$provenance)
   study <- if (nzchar(a("labs_study"))) a("labs_study") else "[the original study]"
   smallest <- if (nzchar(a("labs_smallest"))) paste("The smallest effect that would matter:", a("labs_smallest")) else ""
   reference <- c("---", "", sprintf("Pre-replication as proposed by %s", citation))
@@ -175,11 +226,11 @@ labs_report <- function(answers, outcome = NULL, sde = NULL, citation = labs_cit
     lines <- c(if (changed) "# Pre-replication: a redesigned replication" else "# Pre-replication", "",
       para(sprintf("**Finding:** %s", if (nzchar(a("labs_finding"))) a("labs_finding") else "[the finding]"),
         sprintf("(original study: %s)", study)),
-      "## Epistemic assessment", "", para(a("labs_goals"), smallest),
+      "## Epistemic assessment", "", answered(a("labs_goals"), smallest),
       "## Methodological assessment", "",
       if (changed && nzchar(a("labs_improve"))) c(paste("**How the design changes:**", a("labs_improve")), ""),
-      para(a("labs_quality"), if (!changed) a("labs_improve"), sde_text),
-      "## Value assessment", "", para(a("labs_value"), a("labs_alternatives")),
+      if (changed && nzchar(a("labs_improve"))) para(a("labs_quality"), sde_text) else answered(a("labs_quality"), if (!changed) a("labs_improve"), sde_text),
+      "## Value assessment", "", answered(a("labs_value"), a("labs_alternatives")),
       reference)
   }
   paste(lines, collapse = "\n")
@@ -239,27 +290,22 @@ labs_ui <- function(tree) {
   test_choices <- c("Choose one" = "", stats::setNames(labs_tests,
     vapply(labs_tests, function(e) tree$endpoints[[e]]$plain_name, character(1))))
   div(id = "labs-notes", class = "labs",
-    h2("Labs (experimental)"),
-    p(class = "lead", "Tools that may help you think about a study before you plan it. They are not part of the main route, nothing here is required, and they may change or disappear."),
-    # First screen: the list of tools.
+    # First screen: the list of tools. A tool's own page starts with its
+    # name, not the whole Labs header again.
     conditionalPanel("!input.labs_tool",
+      h2("Labs (experimental)"),
+      p(class = "lead", "Tools that may help you think about a study before you plan it. They are not part of the main route, nothing here is required, and they may change or disappear."),
       lapply(names(labs_tool_sections), labs_menu_section),
       p(class = "small text-muted", "More tools will be added here.")),
     conditionalPanel("input.labs_tool == 'map'",
-      tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
-      div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
-        "The map is drawn from powerkit's design finder; it shows where each question leads, not which analysis is right for your study."),
+      labs_tool_head("map"),
       map_ui(tree)),
     picture_ui(),
     study_variation_ui(),
     bayes_ui(),
     published_ui(),
     conditionalPanel("input.labs_tool == 'prereplication'",
-    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
-    div(class = "labs-notice", role = "note",
-      tags$strong("Experimental and not validated. "),
-      "Nothing you write is scored, checked or sent anywhere. Your notes stay in this browser tab, so reloading the page keeps them; closing the tab or pressing “Clear notes” removes them."),
-    h3("Pre-replication notes"),
+    labs_tool_head("prereplication"),
     p("Before replicating a finding, answer three questions in your own words. They come from Karhulahti, Martončik and Adamkovič (2025), who describe the purpose as “to make researchers critically reflect on their work before having started it”. Write as much or as little as you like."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The finding"),
       p(class = "group-note", "The paper asks you to replicate findings, not studies: name the finding you care about, not only the paper it came from."),
@@ -282,7 +328,7 @@ labs_ui <- function(tree) {
           textInput("labs_cols", "Number of categories in the second variable", width = "100%")),
         textInput("labs_power", "Power (the chance of detecting the effect)", value = "0.8", width = "100%"),
         textInput("labs_alpha", "Significance level", value = "0.05", width = "100%"),
-        actionButton("labs_sde_run", "Find the smallest detectable effect", class = "btn btn-outline-primary"),
+        actionButton("labs_sde_run", "Show the smallest detectable effect", class = "btn btn-primary"),
         uiOutput("labs_sde_result"))),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Value"),
       p(class = "group-note", "Why a replication, rather than another way of reaching the same goal."),
@@ -474,6 +520,16 @@ published_result <- function(values, convert, safeguard) {
   if (identical(from, "F") && identical(design, "oneway_between") && is.na(whole(values$pub_df1))) {
     problems <- c(problems, "Enter the F statistic's first degrees of freedom (the effect's df) as a whole number.")
   }
+  # Values no study can report: a typo (15 for .15) is refused rather than
+  # explained.
+  if (!is.na(value) && design %in% names(published_designs)) {
+    kind <- if (identical(from, "as_is")) design else from
+    if (kind %in% c("correlation", "r") && abs(value) >= 1) problems <- c(problems, "A correlation must be between -1 and 1 (for example 0.15, not 15).")
+    if (identical(kind, "oneway_between") && (value < 0 || value >= 1)) problems <- c(problems, "Partial eta-squared must be at least 0 and less than 1 (for example 0.06).")
+    if (identical(kind, "F") && value <= 0) problems <- c(problems, "An F statistic must be more than 0.")
+    if (identical(kind, "odds_ratio") && value <= 0) problems <- c(problems, "An odds ratio must be more than 0.")
+  }
+  problems <- c(problems, published_df_problems(design, from, whole(values$pub_df), whole(values$pub_n), whole(values$pub_n1), whole(values$pub_n2)))
   if (length(problems)) return(list(lines = character(), problems = problems))
   d <- published_designs[[design]]
   lines <- character()
@@ -512,10 +568,10 @@ published_result <- function(values, convert, safeguard) {
         lines <- c(lines, sprintf(paste0("Safeguard: the %d%% confidence interval around this estimate includes zero, so this study ",
           "can't tell you how large the effect is. Plan from the smallest effect that would matter instead."), round(100 * (2 * protection - 1))))
       } else {
-        lines <- c(lines, sprintf(paste0("Safeguard: plan with %s = %s, the lower end of the %d%% confidence interval around it, ",
-          "for %s %d%% chance that the true effect is at least that large if the published estimate is unbiased ",
-          "(Perugini, Gallucci & Costantini, 2014)."), d$effect, format(round(sg$lower, 3), nsmall = 2),
-          round(100 * sg$conf_level), if (round(100 * sg$protection) %in% c(8, 11, 18, 80:89)) "an" else "a", round(100 * sg$protection)))
+        # The cards' own sentence (safeguard_sentence()), read as repeated
+        # sampling, as Perugini, Gallucci and Costantini motivate it.
+        lines <- c(lines, safeguard_sentence(list(safeguard = c(list(effect_name = d$effect, estimate = estimate,
+          lower = sg$lower, conf_level = sg$conf_level, protection = sg$protection), n))))
       }
     }
   }
@@ -525,16 +581,26 @@ published_result <- function(values, convert, safeguard) {
   list(lines = lines, problems = character())
 }
 
+# The degrees of freedom and the published study's size must agree, since
+# the conversion uses one and the safeguard value the other: n = df + 1
+# for one group or pairs, n1 + n2 = df + 2 for two groups and n = df + 2
+# for a correlation from its t.
+published_df_problems <- function(design, from, df, n, n1, n2) {
+  if (!identical(from, "t") || is.na(df)) return(character())
+  implied <- switch(design, one_sample_t = , paired_t = df + 1, correlation = df + 2, independent_t = df + 2, NA)
+  given <- if (identical(design, "independent_t")) { if (is.na(n1) || is.na(n2)) NA else n1 + n2 } else n
+  if (is.na(implied) || is.na(given) || implied == given) return(character())
+  sprintf("The degrees of freedom (%d) mean the published study had %d %s, but you entered %d. Check both numbers: the conversion uses the degrees of freedom and the safeguard value uses the study's size.",
+    df, implied, if (identical(design, "paired_t")) "pairs" else "people", given)
+}
+
 # Power visualiser (Labs, "A picture of power" until 0.25.1): the engine's power_picture() gives the curves
 # and the numbers (pwr's power, base R's t densities); the app draws them.
 picture_alphas <- c("0.005", "0.01", "0.05", "0.10")
 
 picture_ui <- function() {
   conditionalPanel("input.labs_tool == 'picture'",
-    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "← All Labs tools"),
-    div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
-      "For learning what power means, not for planning a study: the numbers come from powerkit's engine (pwr for power; R's t, F, chi-square and normal distributions for the curves)."),
-    h3("Power visualiser"),
+    labs_tool_head("picture"),
     selectInput("picture_design", "Which test?", choices = c("A two-group t-test (equal groups)" = "t",
       "A paired-samples t-test (the same people twice)" = "paired", "A one-way ANOVA (equal groups)" = "anova",
       "Two groups' proportions (equal groups)" = "two_proportions", "A correlation (Pearson's r)" = "r",
@@ -563,7 +629,7 @@ picture_ui <- function() {
       sliderInput("picture_n_r", "Number of participants", min = 10, max = 400, value = 84, step = 1, width = "100%"),
       sliderInput("picture_r", "Correlation in the population", min = 0, max = 0.8, value = 0.3, step = 0.05, width = "100%")),
     conditionalPanel("input.picture_design == 'chisq'",
-      p(class = "small text-muted", "Cohen's w measures how far the observed counts depart from what no effect predicts (0.1 small, 0.3 medium, 0.5 large, in Cohen's terms). The degrees of freedom are the categories minus 1 for goodness of fit, or (rows - 1) × (columns - 1) for a table."),
+      p(class = "small text-muted", "Cohen's w measures how far the observed counts depart from what no effect predicts. The degrees of freedom are the categories minus 1 for goodness of fit, or (rows - 1) × (columns - 1) for a table."),
       sliderInput("picture_n_chisq", "Number of participants", min = 10, max = 500, value = 88, step = 1, width = "100%"),
       sliderInput("picture_w", "Cohen's w in the population", min = 0, max = 0.8, value = 0.3, step = 0.05, width = "100%"),
       sliderInput("picture_df_chisq", "Degrees of freedom", min = 1, max = 8, value = 1, step = 1, width = "100%")),
@@ -576,7 +642,7 @@ picture_ui <- function() {
       radioButtons("picture_sides", "Test", choices = c("Two-sided" = "two_sided", "One-sided (an effect in the expected direction)" = "greater"),
         selected = "two_sided", inline = TRUE)),
     radioButtons("picture_alpha", "Alpha", choices = picture_alphas, selected = "0.05", inline = TRUE),
-    plotOutput("picture_plot", height = "320px"),
+    plotOutput("picture_plot", height = "380px"),
     uiOutput("picture_numbers"))
 }
 
@@ -629,8 +695,37 @@ picture_alt <- function(picture) {
       power, format(picture$d), format(picture$n), format(picture$alpha)))
 }
 
+# The F and chi-square curves with one degree of freedom (the effect's)
+# rise without limit at 0: that is their shape, so the chart says so.
+picture_df1 <- function(picture) {
+  switch(picture_design(picture), chisq = identical(as.numeric(picture$df), 1), regression = identical(as.numeric(picture$u), 1),
+    anova = identical(as.numeric(picture$k), 2), FALSE)
+}
+
+# The chart's height. The F and chi-square densities can be very tall near
+# 0 with one or two degrees of freedom, so the chart is cut at three times
+# the blue curve's height, and picture_note() says so.
+picture_top <- function(picture) {
+  curves <- picture$curves
+  if (picture_design(picture) %in% c("anova", "chisq", "regression")) {
+    min(max(curves$null, curves$alternative), 3 * max(curves$alternative))
+  } else max(curves$null, curves$alternative)
+}
+
+# What the chart can't show by itself: a curve cut off at the top, and why
+# the curves rise at 0. NULL when there is nothing to say.
+picture_note <- function(picture) {
+  clipped <- max(picture$curves$null, picture$curves$alternative) > picture_top(picture) * 1.05
+  words <- c(if (picture_df1(picture)) "With 1 degree of freedom both curves rise steeply at 0: that is the shape of these distributions, not an error.",
+    if (clipped) "Near 0 the grey curve runs above the top of the chart and is cut off there. The areas that matter, beyond the dashed line, are drawn in full.")
+  if (length(words)) paste(words, collapse = " ")
+}
+
 # The picture: both densities, the critical values, power shaded under the
-# blue curve beyond them and alpha under the grey one.
+# blue curve beyond them and alpha hatched under the grey one (so that
+# where they overlap, both still read, in colour or in grey), in the
+# result page's chart style. The height of a density means little to a
+# reader, so it has no axis numbers.
 picture_plot <- function(picture) {
   curves <- picture$curves
   design <- picture_design(picture)
@@ -642,22 +737,16 @@ picture_plot <- function(picture) {
   one_tail <- picture_one_tail(picture)
   skewed <- design %in% c("anova", "chisq", "regression")
   beyond <- if (one_tail) t >= crit else abs(t) >= crit
-  shade <- function(y, keep, colour) {
+  blue <- chart_colours$blue
+  red <- chart_colours$red
+  grey <- chart_colours$grey
+  power_fill <- grDevices::adjustcolor(blue, alpha.f = 0.3)
+  shade <- function(y, keep, colour, density = NULL) {
     runs <- split(seq_along(t)[keep], cumsum(c(1, diff(seq_along(t)[keep]) != 1)))
-    for (i in runs) graphics::polygon(c(t[i], rev(t[i])), c(y[i], rep(0, length(i))), col = colour, border = NA)
+    for (i in runs) graphics::polygon(c(t[i], rev(t[i])), c(y[i], rep(0, length(i))), col = colour, border = NA,
+      density = density, angle = 45, lwd = 1.2)
   }
-  # The F density can be very tall near 0 with one or two numerator df.
-  top <- if (skewed) min(max(curves$null, curves$alternative), 3 * max(curves$alternative)) else max(curves$null, curves$alternative)
-  graphics::par(mar = c(4, 4, 1, 1))
-  graphics::plot(t, curves$null, type = "n", ylim = c(0, top * 1.05),
-    xlab = switch(design, r = "Observed correlation, as Fisher's z", two_proportions = "Test statistic (z)", anova = "F statistic",
-      regression = "F statistic", chisq = "Chi-square statistic", "t statistic"),
-    ylab = "Density", las = 1, bty = "l")
-  shade(curves$alternative, beyond, grDevices::adjustcolor("#2166ac", alpha.f = 0.35))
-  shade(curves$null, beyond, grDevices::adjustcolor("#b2182b", alpha.f = 0.5))
-  graphics::lines(t, curves$null, col = "grey40", lwd = 2)
-  graphics::lines(t, curves$alternative, col = "#2166ac", lwd = 2)
-  graphics::abline(v = if (one_tail) crit else c(-1, 1) * crit, lty = 2)
+  top <- picture_top(picture)
   labels <- switch(design,
     r = c("No correlation", sprintf("r = %s", format(picture$r))),
     paired = c("No effect (central t)", sprintf("d_z = %s (noncentral t)", format(picture$dz))),
@@ -666,10 +755,21 @@ picture_plot <- function(picture) {
     chisq = c("No effect (central chi-square)", sprintf("w = %s (noncentral chi-square)", format(picture$w))),
     two_proportions = c("No difference", sprintf("%s against %s", format(picture$p1), format(picture$p2))),
     c("No effect (central t)", sprintf("d = %s (noncentral t)", format(picture$d))))
-  graphics::legend("topright", bty = "n", cex = 0.85,
-    legend = c(labels, "Power (shaded blue)", "Type I error (shaded red)"),
-    col = c("grey40", "#2166ac", grDevices::adjustcolor("#2166ac", alpha.f = 0.35), grDevices::adjustcolor("#b2182b", alpha.f = 0.5)),
-    lwd = c(2, 2, 8, 8))
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(op))
+  chart_start(chart_key_rows(4), left = 1.5)
+  graphics::plot(t, curves$null, type = "n", ylim = c(0, top * 1.05), axes = FALSE, ylab = "",
+    xlab = switch(design, r = "Observed correlation, as Fisher's z", two_proportions = "Test statistic (z)", anova = "F statistic",
+      regression = "F statistic", chisq = "Chi-square statistic", "t statistic"))
+  chart_axes(y = FALSE)
+  shade(curves$alternative, beyond, power_fill)
+  shade(curves$null, beyond, red, density = 22)
+  graphics::lines(t, curves$null, col = grey, lwd = 2.5)
+  graphics::lines(t, curves$alternative, col = blue, lwd = 2.5)
+  graphics::abline(v = if (one_tail) crit else c(-1, 1) * crit, lty = 2, col = chart_colours$navy)
+  chart_key(legend = c(labels, "Power: the blue area", "Type I error (alpha): the red hatched area"),
+    col = c(grey, blue, NA, NA), lwd = c(2.5, 2.5, NA, NA), fill = c("transparent", "transparent", power_fill, red),
+    density = c(NA, NA, NA, 30), border = c("transparent", "transparent", blue, red))
 }
 
 # The numbers behind the picture, in words.
@@ -754,11 +854,8 @@ picture_numbers <- function(picture) {
 published_ui <- function() {
   designs <- stats::setNames(names(published_designs), vapply(published_designs, `[[`, "", "label"))
   conditionalPanel("input.labs_tool == 'published'",
-    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "\u2190 All Labs tools"),
-    div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
-      "The numbers come from powerkit's engine (effectsize and psych for the conversion, psych for the safeguard interval); nothing is sent anywhere."),
-    h3("Effect size converter"),
-    p("Enter an effect as a paper reported it. powerkit shows it as the effect size a power analysis uses and, where it can, a safeguard value to plan with instead."),
+    labs_tool_head("published"),
+    p("Enter an effect as a paper reported it. powerkit shows it as the effect size a power analysis uses and, for the t-tests and correlations, a safeguard value to plan with instead."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published result"),
       selectInput("pub_design", "What kind of study was it?", choices = c("Choose one" = "", designs), selectize = FALSE, width = "100%"),
       uiOutput("pub_from_ui"),
@@ -767,6 +864,9 @@ published_ui <- function() {
         textInput("pub_df1", "Its first degrees of freedom (the effect's df, the first number in F(df1, df2))", width = "100%")),
       conditionalPanel("input.pub_from == 't' || input.pub_from == 'F'",
         textInput("pub_df", "Its error degrees of freedom (the second df of F, or the df of t)", width = "100%"))),
+    # The safeguard value is for the t-tests and the correlation, so an
+    # ANOVA isn't asked for the study's size or a protection.
+    conditionalPanel("input.pub_design != 'oneway_between'",
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published study's size (for the safeguard value, and for converting a t or F from groups of different sizes)"),
       conditionalPanel("input.pub_design == 'independent_t'",
         textInput("pub_n1", "People in group 1 of the published study", width = "100%"),
@@ -774,8 +874,8 @@ published_ui <- function() {
       conditionalPanel("input.pub_design == 'paired_t' || input.pub_design == 'one_sample_t' || input.pub_design == 'correlation'",
         textInput("pub_n", "People in the published study", width = "100%")),
       selectInput("pub_protection", "Protection against the estimate being too large", selectize = FALSE, width = "100%",
-        choices = c("80% (the lower end of a 60% confidence interval)" = "0.8", "95% (the lower end of a 90% confidence interval)" = "0.95"))),
-    actionButton("pub_run", "Work it out", class = "btn btn-primary"),
+        choices = c("80% (the lower end of a 60% confidence interval)" = "0.8", "95% (the lower end of a 90% confidence interval)" = "0.95")))),
+    actionButton("pub_run", "Show the result", class = "btn btn-primary"),
     uiOutput("pub_result"))
 }
 
@@ -795,10 +895,7 @@ bayes_directions <- c("Either direction (two-sided)" = "two.sided",
 
 bayes_ui <- function() {
   conditionalPanel("input.labs_tool == 'bayes'",
-    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "← All Labs tools"),
-    div(class = "labs-notice", role = "note", tags$strong("Experimental. "),
-      "Every number comes from powerkit's engine, with the R package bfpwr (Pawel and Held); nothing is sent anywhere."),
-    h3("Bayesian planning"),
+    labs_tool_head("bayes"),
     p("A Bayes factor compares how well two hypotheses predict the data: an effect against no effect. A study can end three ways: strong evidence for an effect, strong evidence for no effect, or neither. This tool shows how often each happens, for the study size you set, in two worlds: if the effect is what you believe, and if there is no effect."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The study"),
       selectInput("bayes_type", "The design", choices = bayes_types, selectize = FALSE, width = "100%"),
@@ -806,13 +903,13 @@ bayes_ui <- function() {
       radioButtons("bayes_alternative", "The hypothesis", choices = bayes_directions, selected = "two.sided", width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "2. The analysis prior: what the Bayes factor will assume"),
       p(class = "group-note", "When the data are in, the Bayes factor compares no effect with a spread of possible effects: a Cauchy distribution centred on 0. Its scale says how large effects are expected to be; 0.707 is the usual default (bfpwr's, and JASP's). A reader should be able to accept it, so it is chosen before the data and reported."),
-      numericInput("bayes_scale", "Scale of the Cauchy prior", value = 0.707, min = 0.05, max = 5, step = 0.05, width = "100%")),
+      numericInput("bayes_scale", "Scale of the analysis prior (a Cauchy distribution centred on 0)", value = 0.707, min = 0.05, max = 5, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "3. The design prior: what you believe about the effect now"),
       p(class = "group-note", "Separate from the analysis prior. This is your honest belief about the true standardised effect (Cohen's d, or d_z for pairs), with your uncertainty about it as an SD. An SD of 0 plans for exactly that effect, as most power analyses do; a larger SD averages over the effects you think plausible, which usually lowers the chances."),
       numericInput("bayes_effect", "The effect you expect", value = 0.5, min = -5, max = 5, step = 0.05, width = "100%"),
-      numericInput("bayes_effect_sd", "Your uncertainty about it (an SD; 0 for none)", value = 0.15, min = 0, max = 5, step = 0.05, width = "100%")),
+      numericInput("bayes_effect_sd", "How unsure you are about the effect, as an SD (0 = exactly this effect)", value = 0.15, min = 0, max = 5, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. What counts as strong evidence"),
-      radioButtons("bayes_threshold", "A Bayes factor of at least (either way)", choices = bayes_thresholds, selected = "10", inline = TRUE),
+      radioButtons("bayes_threshold", "Strong evidence: the Bayes factor you want the study to reach (BF10 for an effect, BF01 for no effect)", choices = bayes_thresholds, selected = "10", inline = TRUE),
       p(class = "group-note", "There is no correct threshold: a higher one asks more of the data, and evidence for no effect needs larger studies than evidence for an effect."),
       numericInput("bayes_target", "Find the sample size that gives strong evidence for an effect with this chance", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. When you look at the data"),
@@ -823,7 +920,7 @@ bayes_ui <- function() {
         numericInput("bayes_step", "Then look again after every", value = 1, min = 1, max = 1000, step = 1, width = "100%"),
         radioButtons("bayes_threshold_null", "Stop for no effect at a Bayes factor of at least", choices = bayes_thresholds, selected = "10", inline = TRUE),
         p(class = "group-note", "It can differ from the threshold for an effect: a lower one for no effect stops sooner when there is none, at the cost of more misleading evidence for no effect."))),
-    actionButton("bayes_run", "Work it out", class = "btn btn-primary"),
+    actionButton("bayes_run", "Show the result", class = "btn btn-primary"),
     uiOutput("bayes_result"))
 }
 
@@ -834,8 +931,8 @@ bayes_problem <- function(e) {
   if (!inherits(e, "powerkit_error")) {
     return("powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
   }
-  labels <- c("'n'" = "The sample size", "'effect_sd' (the uncertainty about the effect)" = "Your uncertainty about the effect",
-    "'effect'" = "The effect you expect", "'prior_scale'" = "The scale of the Cauchy prior",
+  labels <- c("'n'" = "The sample size", "'effect_sd' (the uncertainty about the effect)" = "How unsure you are about the effect",
+    "'effect'" = "The effect you expect", "'prior_scale'" = "The scale of the analysis prior",
     "'threshold'" = "The threshold", "'target'" = "The chance to aim for",
     "'n_min' (the first look)" = "The first look", "'n_max' (the largest sample size)" = "The sample size",
     "'step' (participants between looks)" = "The number between looks",
@@ -893,7 +990,7 @@ bayes_numbers <- function(plan) {
     tags$ul(class = "bayes-notes",
       tags$li(needed),
       if (plan$effect_sd > 0) tags$li(sprintf(
-        "Averaged over your uncertainty like this, the %s chance of strong evidence for an effect is the study's assurance: the chance it succeeds given what you believe now, rather than if one guessed effect were exactly right (O'Hagan, Stevens and Campbell, 2005, who define it for clinical trials).",
+        "Averaged over your uncertainty like this, the %s chance of strong evidence for an effect is the average power over your uncertainty: the chance it succeeds given what you believe now, rather than if one guessed effect were exactly right (O'Hagan, Stevens and Campbell, 2005, who call it assurance and define it for clinical trials).",
         pct(belief$for_effect))),
       if (!is.na(plan$largest_bf01)) tags$li(sprintf(
         "The most evidence for no effect this study can give is a Bayes factor of %.1f (when the observed effect is exactly 0)%s.",
@@ -926,7 +1023,7 @@ bayes_sequential_numbers <- function(plan) {
       truth, pct(row$at_max), format(plan$n_max), pct(row$at_max_toward_effect), pct(row$at_max_toward_null), pct(row$at_max_neither))
   }
   f <- plan$fixed
-  mc <- max(o$mcse_for_effect, sqrt(0.25 / plan$nsim))
+  mc <- max(1.96 * o$mcse_for_effect, engine_function("simulation_margin")(plan$nsim))
   tagList(
     h4(class = "h5 mt-3", sprintf("Looking from %s%s, %s, up to %s%s", format(plan$n_min), unit, looks, format(plan$n_max), unit)),
     tags$table(class = "table table-sm bayes-outcomes",
@@ -947,7 +1044,7 @@ bayes_sequential_numbers <- function(plan) {
         at_max_words(null, "With no effect")),
       tags$li("Looking more often raises the chance of misleading evidence a little, and most of it happens at the early looks, so a later first look, or a higher threshold, lowers it (Schönbrodt and Wagenmakers, 2018)."),
       tags$li(sprintf("Simulated: %s studies under your belief and %s with no effect (seed %s), each with its own true effect drawn from your design prior; each chance is within about %s points either way.",
-        format(plan$nsim, big.mark = ","), format(plan$nsim, big.mark = ","), format(plan$seed), sprintf("%.1f", 200 * mc)))),
+        format(plan$nsim, big.mark = ","), format(plan$nsim, big.mark = ","), format(plan$seed), sprintf("%.1f", 100 * mc)))),
     p(class = "small text-muted", sprintf("From %s, with the Bayes factor from bfpwr version %s (tbf01()).", plan$function_used, plan$package$version)),
     p(class = "small text-muted", "References: ", bayes_sequential_citations()))
 }
@@ -966,30 +1063,37 @@ bayes_sequential_citations <- function(path = labs_refs_path()) {
 # under the belief and with no effect.
 bayes_stops_plot <- function(plan) {
   st <- plan$stops
-  graphics::par(mar = c(4, 4, 1, 1))
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(op))
+  chart_start(chart_key_rows(2))
   belief <- st[st$truth == "belief", ]
   null <- st[st$truth == "null", ]
-  graphics::plot(belief$n, 100 * cumsum(belief$count) / plan$nsim, type = "s", lwd = 2, col = "#2166ac", ylim = c(0, 100),
-    xlim = range(st$n), las = 1, bty = "l",
+  graphics::plot(belief$n, 100 * cumsum(belief$count) / plan$nsim, type = "n", ylim = c(0, 100), xlim = range(st$n), axes = FALSE,
     xlab = if (identical(plan$type, "two.sample")) "Sample size in each group" else "Sample size",
-    ylab = "Studies stopped by this size (%)")
-  graphics::lines(null$n, 100 * cumsum(null$count) / plan$nsim, type = "s", lwd = 2, col = "#b2182b", lty = 2)
-  graphics::legend("bottomright", bty = "n", cex = 0.85, lwd = 2, col = c("#2166ac", "#b2182b"), lty = c(1, 2),
+    ylab = "Studies stopped by this size")
+  chart_axes(yat = seq(0, 100, 20), ylabels = paste0(seq(0, 100, 20), "%"))
+  graphics::lines(belief$n, 100 * cumsum(belief$count) / plan$nsim, type = "s", lwd = 2.5, col = chart_colours$blue)
+  graphics::lines(null$n, 100 * cumsum(null$count) / plan$nsim, type = "s", lwd = 2.5, col = chart_colours$red, lty = 2)
+  chart_key(lwd = 2.5, col = c(chart_colours$blue, chart_colours$red), lty = c(1, 2),
     legend = c("If your belief is right", "If there is no effect"))
 }
 
 # The two priors: the analysis prior (Cauchy) and the design prior (normal,
-# or a line at the effect when there is no uncertainty).
+# or a line at the effect when there is no uncertainty). Densities, so no
+# axis numbers.
 bayes_priors_plot <- function(plan) {
   pr <- plan$priors
   top <- max(pr$analysis, pr$design, na.rm = TRUE) * 1.05
-  graphics::par(mar = c(4, 4, 1, 1))
-  graphics::plot(pr$x, pr$analysis, type = "l", lwd = 2, col = "grey40", ylim = c(0, top), las = 1, bty = "l",
-    xlab = "True standardised effect", ylab = "Density")
-  if (plan$effect_sd > 0) graphics::lines(pr$x, pr$design, lwd = 2, col = "#2166ac") else
-    graphics::abline(v = plan$effect, lwd = 2, col = "#2166ac")
-  graphics::legend("topright", bty = "n", cex = 0.85, lwd = 2, col = c("grey40", "#2166ac"),
-    legend = c(sprintf("Analysis prior (Cauchy, scale %s)", format(plan$prior_scale)),
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(op))
+  chart_start(chart_key_rows(2), left = 1.5)
+  graphics::plot(pr$x, pr$analysis, type = "n", ylim = c(0, top), axes = FALSE, xlab = "True standardised effect", ylab = "")
+  chart_axes(y = FALSE)
+  graphics::lines(pr$x, pr$analysis, lwd = 2.5, col = chart_colours$grey)
+  if (plan$effect_sd > 0) graphics::lines(pr$x, pr$design, lwd = 2.5, col = chart_colours$blue) else
+    graphics::abline(v = plan$effect, lwd = 2.5, col = chart_colours$blue)
+  chart_key(lwd = 2.5, col = c(chart_colours$grey, chart_colours$blue),
+    legend = c(sprintf("Analysis prior (Cauchy, scale %s)", format(signif(plan$prior_scale, 3))),
       if (plan$effect_sd > 0) sprintf("Design prior (normal, %s ± %s)", format(plan$effect), format(plan$effect_sd)) else
         sprintf("Design prior (exactly %s)", format(plan$effect))))
 }
@@ -998,12 +1102,16 @@ bayes_priors_plot <- function(plan) {
 # effect (with none), as the sample size grows.
 bayes_curves_plot <- function(plan) {
   cu <- plan$curves
-  graphics::par(mar = c(4, 4, 1, 1))
-  graphics::plot(cu$n, 100 * cu$for_effect, type = "l", lwd = 2, col = "#2166ac", ylim = c(0, 100), las = 1, bty = "l",
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(op))
+  chart_start(chart_key_rows(2))
+  graphics::plot(cu$n, 100 * cu$for_effect, type = "n", ylim = c(0, 100), axes = FALSE,
     xlab = if (identical(plan$type, "two.sample")) "Sample size in each group" else "Sample size",
-    ylab = "Chance of strong evidence (%)")
-  graphics::lines(cu$n, 100 * cu$for_null, lwd = 2, col = "#b2182b", lty = 2)
-  graphics::abline(v = plan$n, lty = 3)
-  graphics::legend("bottomright", bty = "n", cex = 0.85, lwd = 2, col = c("#2166ac", "#b2182b"), lty = c(1, 2),
+    ylab = "Chance of strong evidence")
+  chart_axes(yat = seq(0, 100, 20), ylabels = paste0(seq(0, 100, 20), "%"))
+  graphics::lines(cu$n, 100 * cu$for_effect, lwd = 2.5, col = chart_colours$blue)
+  graphics::lines(cu$n, 100 * cu$for_null, lwd = 2.5, col = chart_colours$red, lty = 2)
+  graphics::abline(v = plan$n, lty = 3, col = chart_colours$navy)
+  chart_key(lwd = 2.5, col = c(chart_colours$blue, chart_colours$red), lty = c(1, 2),
     legend = c("For an effect, if your belief is right", "For no effect, if there is none"))
 }

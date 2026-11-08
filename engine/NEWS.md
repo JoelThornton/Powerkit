@@ -1,3 +1,324 @@
+# powerkit 0.44.0
+
+* New `simulation_margin()`: the half-width of a 95% interval around a
+  power estimated from a number of simulated studies (at 50% power by
+  default, the widest it can be). The engine's advice on few replications,
+  the whole-study screens and Labs' sequential Bayesian planning all take
+  their precision from it, so one number of studies is never described two
+  ways. Labs' sequential plan now states its margin with 1.96 rather than
+  2 standard errors, so it reads about 2% smaller.
+* Removed `cronbach_size()`, an internal function nothing called.
+* Repository: the stale copy of the online app's manifest is gone from main
+  (it is written on the `connect-cloud` branch when the app is published);
+  `docs/dependency-footprint.md` is written by its script and a test keeps
+  its counts current; the docs map lists every page (a test checks);
+  `status.md` is one short paragraph per area and `next.md` rows say only
+  what is left; the working rules live in `CLAUDE.md` alone, with local
+  testing of the changed files plus the repository checks, and a short
+  visual style guide in `docs/accessibility-review.md`.
+
+# powerkit 0.43.0
+
+* Labs, the app's experimental tools, and the result page:
+  - every chart (the result page's curves, the power visualiser, Bayesian
+    planning and 1,000 studies) is drawn in one style: the app's colours,
+    upright axis numbers, light gridlines, and the key in its own strip
+    below the chart, where it can't cover a line;
+  - the power visualiser hatches the Type I error area, so it still reads
+    where it overlaps the power area, and says in words when a curve is
+    cut off at the top or rises steeply at 0 (F and chi-square with one
+    degree of freedom);
+  - the methods map gives each kind of test its own colour and shape,
+    merges "Any of these" into "Other", and names its long regions
+    briefly ("Equivalence", "Latent variables"), with the full name in the
+    panel;
+  - every Labs tool opens with its name and one notice saying what it is
+    for and how far it is checked, without the whole Labs header above
+    it; Labs headings use the app's heading style, and its number boxes
+    are sized like the input screen's;
+  - results for the t-tests, the correlation and two proportions link to
+    the power visualiser at their own sample size, effect and alpha, and
+    two-group results to "1,000 studies".
+* Bayesian planning (Labs) and the Bayes factor t-test cards share one
+  set of bfpwr calls (`bfpwr_chance()`), so the same study gives the same
+  numbers in both (a test checks); the sequential planner's fixed-design
+  comparison uses them too. No number changes.
+* Labs uses the cards' wording: the Bayesian planning labels are the
+  cards' own, and the effect size converter gives the cards' safeguard
+  sentence.
+* A Bayes factor t-test planned for exactly one effect offers "Not sure of
+  the effect?" under "How sure can you be?": given an SD, it shows the
+  chance of strong evidence averaged over true effects spread around the
+  planned one (assurance), and the sample size for the target on average,
+  without changing the plan.
+
+# powerkit 0.42.0
+
+* Goodness-of-fit proportions given as exact fractions (1/6, 1/6, 2/3)
+  are rescaled to sum to exactly 1 before pwrss's `probs.to.w()`, which
+  refused them after the spec's own check had accepted them; the
+  exported script does the same.
+* A simulated sample-size search that can't settle says so plainly, and
+  a target power above 0.99 is named as the reason when it is. A formula
+  search stopped by a very large effect asks the user to check the
+  effect size first.
+* `docs/conventions.md` notes that powertools' formulas for yes/no
+  outcomes in clustered trials, and powerSurvEpi's Cox formula, count
+  one tail (2.5% power with no effect at a two-sided 5%).
+* The app's input screens:
+  - target power starts empty on every card, including mediation and
+    reliability where the package starts at 0.8, and the result compares
+    80%, 90% and 95% power;
+  - "Which test you'll run" is in view on every card with more than one
+    test (two proportions with Fisher's exact test, the correlation with
+    Spearman's rho, and others), not folded into Settings;
+  - the scientific question folds away below the study's section, and
+    the Monte Carlo draws for mediation are in Settings rather than on the
+    card's list of what you need;
+  - moderation asks "What do you have for the interaction?" and starts at
+    the R-squared change, as papers and G*Power give it, with the
+    correlations as the other choice;
+  - no small/medium/large labels for Cohen's w in the help;
+  - the ten cards whose default test is simulated show their measured
+    usual run times, not "in a second or two", and their progress bars
+    estimate from them; exploratory factor analysis's time is updated to
+    its measured 320 seconds;
+  - engine messages name the screen's own settings, and sentences about
+    settings the screen doesn't show are left out;
+  - the generic noncentrality tests no longer say "with NA participants";
+  - plain names: the mediation questions name the go-between before
+    asking about it, the safety net is "No matching design", and two
+    proportions is "Calculated by" its packages.
+
+# powerkit 0.41.0
+
+* Whole-study simulation (experimental): `run_whole_study()` offers a new
+  analysis, `x_m`, the effect of X on the mediator alone (a manipulation
+  check), fitted as M on X by OLS and tested by power4mome's
+  `test_parameters()` on the same simulated data sets as the mediation.
+  Its implied values are the correlation and, for two groups, Cohen's d
+  on the mediator. It needs one mediator, named M. A test checks its
+  power against the two-sample t test's.
+* An experiment's whole-study result prints its own backend (Superpower)
+  instead of failing on power4mome's version, and the exported script
+  saves the result and the citations before printing, so a long run is
+  never lost.
+* The app: "Plan my whole study" offers the manipulation check beside a
+  mediation, card by card (the two-group comparison or the correlation,
+  on the mediator) and in the simulation. In a study measured twice, "a
+  baseline measure" as the covariate is the first measurement already, so
+  the plan is simulated as it is with "None". The simulation screens ask
+  what the variables are called, so results no longer say "Predictor" and
+  "Moderator"; the "You entered on its screen" column appears only when
+  something was entered; the script's R minimum is the higher of
+  powerkit's and the backend's; and the "all results" note says when
+  89.4% each holds (independent tests) and that 90% each always does.
+* `whole_study_curve()`: a rough power curve for a whole study, simulated
+  at a few sample sizes around the spec's n (by default 0.5 to 2 times,
+  200 replications each) with the same routine and seed as
+  `run_whole_study()`, read by the claim's criterion as in its sample
+  size search. For experiments and regressions; a mediation is refused,
+  since its confidence intervals make even a rough curve slow.
+* Whole-study specs accept Cohen's d for a two-group X
+  (`population > group_d`, for the outcome `Y` and the mediator `M`) in
+  place of the path. `run_whole_study()` finds the standardised path that
+  gives this d in the large simulated data set its implied values come
+  from (the engine's own `whole_study_group_d()`, by `uniroot()`), so no
+  conversion formula is introduced; the result records the d and the
+  path found (`group_d`, `found_paths`). A d the other paths make
+  impossible is refused with the range they allow.
+* `sample_structure()`: analyses of the same people on different cards
+  (an independent t-test and two proportions on the same two groups, a
+  paired t-test and McNemar's test) now share a compatibility key when
+  their unit, allocation, grouping variables, attrition and fixed
+  structure match. The outcome and the template no longer enter the key,
+  so a study plan gives one sample size for them.
+* The app: "Save this plan" saves the guided plan (variables, analyses,
+  claim, the values entered on each analysis's screen and the
+  whole-study inputs) to a file that reopens on the plan screen; a
+  whole-study specification opened there is pointed to R. Every analysis
+  calculated from the guided plan joins the study plan, replacing its
+  earlier result, so the two plans are one. The whole-study result offers
+  the rough power curve, and its screen asks for Cohen's d of the groups
+  when X is two groups. The variables screen has a Back link and boxed
+  questions, a single possible analysis starts as the main one, and the
+  single-analysis result says "this analysis" where it said "your plan".
+
+# powerkit 0.40.0
+
+* The app stays responsive while people calculate. Every sample-size
+  search (and the result's "80% and 95% power" comparison line, two more
+  searches) runs in a separate R process instead of the app's own one,
+  while there is room under the background limit; at the limit it runs in
+  the app's process as before. The ANOVAs, Welch's t-test, the trend test
+  and the three-way interaction took 2 to 20 seconds there, and nobody
+  else's screen moved meanwhile. A spare process with the engine and the
+  common backends (pwr, pwrss, Superpower, Spower) loaded waits for the
+  next search, so it starts at once; each process runs one calculation
+  and is closed.
+* The About page is built in a separate process started with the app,
+  not in the app's own process, so the first click after a restart no
+  longer waits about 7 seconds for it.
+* Labs, Updates and Feedback are rendered to HTML once at start-up, with
+  the app's theme, instead of for every visit (about 0.6 seconds of the
+  app's process each, which made twenty people arriving together wait 13
+  to 16 seconds for the first screen).
+* The methods map's graph library (373 KB) is fetched when the map is
+  first shown, not with every first page.
+* `docs/hosting-options.md` records what one R process holds (memory by
+  number of visitors and background runs) and why a host with two or more
+  app processes still helps.
+
+# powerkit 0.39.0
+
+* Safeguard power results name the effect the calculation used: the
+  headline, the plain-words reading and the "Assuming" box say "Cohen's d
+  = 0.258 (the safeguard value; the earlier estimate was 0.45)" instead of
+  "the effect you entered". The safeguard sentence reads the interval as
+  repeated sampling ("across studies like the earlier one, a bound found
+  this way falls below the true effect 80% of the time"), as Perugini,
+  Gallucci and Costantini (2014) motivate it, rather than as a probability
+  about the true effect; "a 80%" reads "an 80%" throughout.
+* A pilot study's effect size is treated like a previous study's: "How
+  you adjusted it" is shown and needed (unless safeguard power is used),
+  and the engine's advice names that box instead of a spec path
+  (`spec_advice()`).
+* "Not sure what number to put here?" covers pilot studies (for checking
+  feasibility, not for the effect; Albers & Lakens, 2018) and says to
+  prefer a bias-adjusted meta-analytic estimate where one is reported
+  (Carter, Schönbrodt, Gervais & Hilgard, 2019). Both added to `refs.bib`
+  from their Crossref records.
+* Labs, effect size converter: refuses impossible values (a correlation
+  outside -1 to 1, partial eta-squared outside 0 to 1, a non-positive F
+  or odds ratio); refuses a t whose degrees of freedom disagree with the
+  study's size (n = df + 1 for one group or pairs, n1 + n2 = df + 2 for
+  two groups, n = df + 2 for a correlation); and no longer asks an ANOVA
+  for a safeguard protection it can't use.
+* Labs, pre-replication notes: the smallest detectable effect checks its
+  own boxes in its own words, passes engine refusals without spec paths,
+  states the significance level, and keeps its provenance line in the
+  downloaded document; empty sections read "(not answered)".
+
+# powerkit 0.38.0
+
+* App: an unfinished draft is offered on the plan tab's first screen
+  only, as "Continue my plan", "Not now" (keeps the draft) or "Discard
+  my draft" (the only button that deletes it), instead of a dialog over
+  every tab whose "Start fresh" deleted it; the saved time shows in the
+  visitor's own time ("today at 13:05").
+* On phones the tabs take short names (Plan, About, Labs, Updates,
+  Feedback) so all five fit on one row.
+* One heading style in Labs, About and dialogs; Labs' calculate buttons
+  read "Show the result" (or "Show the smallest detectable effect") as
+  filled primary buttons; the draft download and "I don't know my effect
+  size" buttons are the usual size.
+* The analysis card's "Checks recorded" points to "More about this
+  analysis", which now says it holds the checks.
+* About: "Can you trust it?" comes before the capability table, which is
+  folded behind "Every test version and its checks"; its rows no longer
+  read "?:" and the screen-as-it-starts row is named in words. About
+  counts analyses as the methods map does (the "not sure" card is not an
+  analysis).
+* Slider tick labels at the app's small text size, every other one on
+  phones.
+
+# powerkit 0.37.0
+
+* Design finder (app): a two-group before/after study no longer asks
+  whether the groups are equal in size, since its cards (the mixed ANOVA
+  and the ANCOVA) take groups of either kind; a randomised before/after
+  trial is pointed to ANCOVA as the recommended analysis, with the group
+  by time interaction kept as an option; a moderation in a before/after
+  trial (a treatment and a measured score) reaches the multiple
+  regression card, with what to enter, and "Plan my whole study" plans it
+  the same way; one factor measured twice goes straight to the paired
+  t-test.
+* Questions with one possible answer are skipped (a test checks every
+  route), the hypothesis list shows the five common hypotheses with the
+  rarer ones behind "Something else", and the factorial question asks
+  about two factors in two forms (2 x 2, or larger) without a follow-up.
+* Input screens: a goal the chosen test version can't answer is not
+  offered (a justified significance level with a Bayes factor test), and
+  is refused in words if chosen; the planning line and the target power's
+  source are worded for the Bayes factor test; the checker's messages no
+  longer name the engine's functions.
+* Search on "I know my analysis" knows the names researchers type
+  (Cohen's d, between-subjects, crossover, ANCOVA, partial correlation)
+  and lists analyses whose name has every word first.
+* The paired t-test and mixed ANOVA cards say how to plan a crossover
+  (AB/BA) study; the t-test cards point to the sequential Bayes factor
+  plan; "Plan my whole study" says that nested data, pairs and many
+  trials per person are planned one analysis at a time.
+
+# powerkit 0.36.0
+
+* Exported text names powerkit as a prototype until version 1.0: the
+  methods paragraph's software sentence, the ethics and precision
+  versions, the whole-study paragraph and the planning document say
+  "powerkit (version x, a prototype in development whose results are not
+  yet fully validated)" (`powerkit_cited()` in the app).
+* The methods paragraph keeps to methods. The evidence registry's lines
+  ("Software agreement: ...", "Evidence registry ...; SHA-256 ...") are no
+  longer pasted into the full write-up or the reproducibility record; the
+  planning document has a "Validation evidence" section that says in
+  words what was checked, followed by a "Reproducibility record".
+* The planning document's assumptions use the write-up's wording rather
+  than the input screen's labels, and its decision rule reads "A
+  significance test at alpha = 0.05, two-sided." rather than "Selected
+  significance test at alpha 0.05 with alternative two sided ;".
+* Write-up wording: effect sizes are named in lower case without the
+  screen's ranges ("correlation r = -0.2", not "Correlation r (-1 to 1) =
+  -0.2"); the time-to-event write-up names the test used (the log-rank
+  test or a Cox regression); Welch's paragraph says "equal population SDs"
+  when the ratio is 1 and mentions the simulation only when one was run.
+* The whole-study methods paragraph states the population assumed (the
+  cell means and SD of an experiment, or the standardised paths and
+  correlations of a path model), fixes the broken sentence about cell
+  means, words the joint power as the study's claim, and reports counts of
+  simulated studies that could not be analysed only in the full version
+  and only when some failed ("Joint all criterion" is gone).
+* Departure 9 (the basic tests' formula) is retired: using pwr's formula
+  is pwr's default and G*Power's practice, so it departs from no
+  established tool; it moves to "Not departures, but worth stating" in
+  `docs/conventions.md`. Departure 3 (Superpower's exact dataset built
+  under the run's seed, about 1e-15) stays on the result screen but not
+  in the methods paragraph.
+* Bayes factor results and Labs call power averaged over a design prior
+  "the average power over your uncertainty", keeping "assurance" as
+  O'Hagan, Stevens and Campbell's (2005) name for it, so that "assurance"
+  in precision planning (the chance the interval is narrow enough) has one
+  meaning.
+* References: seven sources named in user-facing text are added to
+  `refs.bib`, each opened by its DOI (Boos and Zhang, 2000; Dziak et al.,
+  2020; Bonett and Wright, 2015; Demidenko, 2007; Hsieh and Lavori, 2000;
+  Shieh, 2020; Sommet et al., 2023). Anderson's (2003) textbook, which has
+  no DOI, is no longer named in the Hotelling's T-squared cards, provenance
+  or R scripts; the engine's source comments still cite it. A new app test
+  checks that every author-year reference in user-facing text matches
+  `refs.bib` or a package's `citation()`.
+* About says that the browser keeps unfinished answers, recently opened
+  analyses and display choices, that they are not sent anywhere, and how
+  to clear them on a shared computer.
+* The README describes the current app (70 analyses that run, the
+  families and packages), and "validated" has one meaning throughout, the
+  validation log's.
+
+# powerkit 0.35.1
+
+* The example spec `process_7.json` runs again: it gave the moderator a
+  reliability, which moderated mediation doesn't offer yet, so running it
+  stopped with "not available yet". A test now checks that every bundled
+  mediation example asks only for what the mediation route offers.
+* Validation on GitHub: tests are dealt to a chunk's parts by their
+  recorded or estimated time, longest first, instead of by position, so
+  the longest whole-study tests no longer share a part and run out of time;
+  the whole-study chunk runs one test at a time on four cores, as the
+  mediation chunks do. Each run saves the time every test took
+  (`validation-results/timings.csv`), lists the tests that failed or did
+  not run at the top of its summary, and names the commit it checked. The
+  scheduled run ends with one list, on its summary page, of every test
+  that needs attention.
+
 # powerkit 0.35.0
 
 * The smallest detectable effect for every equal-groups ANOVA layout

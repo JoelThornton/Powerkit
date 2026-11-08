@@ -20,19 +20,15 @@ sample_structure <- function(spec) {
   if (unknown) unit <- "analysis units"
   allocation <- sample_allocation(spec)
   step <- if (identical(allocation$kind, "weights")) integer_allocation_step(allocation$weights) else allocation$step %||% 1
-  variables <- lapply(names(spec$variables), function(role) {
-    variable <- spec$variables[[role]]
-    # Outcomes may differ across analyses of the same design. Group and
-    # occasion identities remain part of the sample structure.
-    if (identical(role, "Y")) variable$label <- NULL
-    variable
-  })
-  names(variables) <- names(spec$variables)
+  # The outcome, and the test run on it, may differ across analyses of the
+  # same people: a score and a yes/no outcome compared between the same
+  # two groups share one sample (8 November 2026). Group and occasion
+  # identities, the allocation and the grouping structure stay in the key.
+  variables <- spec$variables[setdiff(names(spec$variables), "Y")]
   fixed <- c("cluster_size", "group_size", "groups_per_site", "assignment", "n_groups", "over",
     "items", "participants", "item_design", "raters", "occasions", "n_times", "measurements",
     "study_size", "effects_per_study")
-  structure <- list(unit = unit, design = spec$design, template = spec$template,
-    variables = variables, allocation = allocation,
+  structure <- list(unit = unit, design = spec$design, variables = variables, allocation = allocation,
     attrition = spec$options$attrition %||% 0,
     fixed = spec$population[intersect(fixed, names(spec$population))])
   note <- switch(unit,

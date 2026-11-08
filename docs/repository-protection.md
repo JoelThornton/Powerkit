@@ -53,7 +53,30 @@ does not justify bypassing scientific validation or weakening main's checks.
 
 ## Observed configuration
 
-On 5 November 2026, the maintainer created **Protect main history**, ruleset
-**26634634**, and GitHub reports it as **active**. Required-check and hosting
-migration steps above are still pending; this is not recorded as the full
-protection item being complete.
+Checked through the GitHub API on 7 November 2026. Three rulesets are
+active, none with bypass actors:
+
+- **Protect main history** (26634634, 5 November 2026): blocks deletion
+  and force pushes on main.
+- **Require checked pull requests** (26659017, 5 November 2026): main
+  takes changes only through a pull request (no approvals required,
+  conversations resolved) whose `engine-review-gate`, `app-review-gate`
+  and `manifest` checks, from GitHub Actions, pass on an up-to-date
+  branch.
+- **Protect release tags** (26659045, 5 November 2026): tags matching
+  `v*` can't be updated or deleted.
+
+Publishing goes through `connect-cloud` (step 3), which the manifest
+workflow updated on 7 November 2026. Release tags are created by
+`.github/workflows/release-tags.yaml` (`scripts/tag-releases.sh`): each
+finished version is tagged at main's last commit carrying it, with its
+`engine/NEWS.md` section as the release notes.
+The workflow pushes with the `RELEASE_TOKEN` secret (a fine-grained
+token for this repository with Contents and Workflows write), because
+GitHub refuses a tag from the workflow's own token when the tagged
+commit's workflow files differ from main's.
+
+The feedback database (Supabase) was checked in its dashboard on
+7 November 2026: the `powerkit_feedback` table has row-level security on,
+no policies and its Data API access off, so the app's public key can call
+`send_powerkit_feedback()` but can't read messages.

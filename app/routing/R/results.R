@@ -25,7 +25,17 @@ runs_in_background <- function(forms, ep_id, spec = NULL, simulates = engine_fun
   if (identical(spec$design, "basic_test") && (spec$options$nrep %||% 1000L) <= 1000L) return(FALSE)
   isTRUE(tryCatch(simulates(spec), error = function(e) FALSE))
 }
-usual_seconds <- function(forms, ep_id, goal) forms$background[[ep_id]][[goal]] %||% NA_real_
+# A sample-size search calls the engine again and again (and the result's
+# comparison line, cost_line(), searches twice more), so the ANOVAs, Welch's
+# test, the trend test and others took 2 to 20 seconds in the app's own
+# process, freezing the app for everyone using it (measured 7 November
+# 2026). Every search therefore runs in the background, in the warm spare
+# process, while there is room (background_limit()); when there isn't, it
+# runs here as before rather than asking the user to wait.
+search_in_background <- function(spec) identical(spec$goal$type, "sample_size")
+usual_seconds <- function(forms, ep_id, goal) {
+  forms$background[[ep_id]][[goal]] %||% forms$simulated_times[[ep_id]][[goal]] %||% NA_real_
+}
 
 # Run the engine on a checked spec. The input screen puts the seed in the
 # spec (a fixed default the user can change; forms.yaml, default_seed); a
@@ -60,30 +70,136 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
 # The background R process's job: load the engine (the installed package, or
 # the source in engine_dir, as engine_function() does) and run
 # run_calculation(), passed in, so it's the same code as the in-session run.
-background_worker <- function(spec, seed, engine_dir, cores, run_calculation) {
+# `cost_powers`: the powers for the result's comparison line (cost_line()),
+# whose sample sizes are two more searches, so they are run here too rather
+# than in the app's own process.
+background_worker <- function(spec, seed, engine_dir, cores, run_calculation, cost_powers = NULL, curve = NULL) {
   options(powerkit.cores = cores)
-  # A whole-study simulation (experimental) runs run_whole_study().
-  fun <- if (identical(spec$kind, "whole_study")) "run_whole_study" else "run_spec"
+  # A whole-study simulation (experimental) runs run_whole_study(), and its
+  # rough power curve whole_study_curve().
+  fun <- if (!is.null(curve)) "whole_study_curve" else if (identical(spec$kind, "whole_study")) "run_whole_study" else "run_spec"
   run <- if (requireNamespace("powerkit", quietly = TRUE)) {
     getExportedValue("powerkit", fun)
   } else {
     suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
     get(fun, envir = asNamespace("powerkit"))
   }
-  run_calculation(spec, run, seed)
+  if (!is.null(curve)) {
+    curve_fun <- run
+    run <- function(spec) curve_fun(spec, multipliers = unlist(curve$multipliers), nrep = curve$nrep)
+  }
+  calc <- run_calculation(spec, run, seed)
+  if (length(cost_powers) && identical(calc$status, "ok") && identical(calc$result$goal_type, "sample_size") &&
+      !identical(calc$result$provenance$method, "simulation")) {
+    calc$cost_ns <- vapply(cost_powers, function(power) {
+      if (isTRUE(all.equal(power, spec$goal$power))) return(as.numeric(calc$result$n_required$n))
+      s <- spec
+      s$goal$power <- power
+      again <- run_calculation(s, run, seed)
+      if (identical(again$status, "ok")) as.numeric(again$result$n_required$n) else NA_real_
+    }, numeric(1))
+  }
+  calc
 }
 
-# Start a calculation in a separate R process (callr), so the app stays
-# responsive and the run can be cancelled. Returns the process.
+# Start a calculation in a separate R process, so the app stays responsive
+# and the run can be cancelled. It uses the warm spare process when one is
+# ready (below), and otherwise starts a new one (callr). Returns the job:
+# is_alive(), kill(), wait() and get_result().
 start_background_calculation <- function(spec, seed = 1L,
-                                         engine_dir = file.path(routing_root(), "..", "..", "engine")) {
+                                         engine_dir = file.path(routing_root(), "..", "..", "engine"),
+                                         cost_powers = NULL, spare = isTRUE(getOption("powerkit.warm_spare")),
+                                         curve = NULL) {
   calc_fun <- run_calculation
   environment(calc_fun) <- baseenv()
-  callr::r_bg(
-    background_worker,
-    args = list(spec = spec, seed = seed, engine_dir = normalizePath(engine_dir, mustWork = FALSE),
-                cores = getOption("powerkit.cores"), run_calculation = calc_fun),
-    supervise = TRUE
+  engine_dir <- normalizePath(engine_dir, mustWork = FALSE)
+  args <- list(spec = spec, seed = seed, engine_dir = engine_dir,
+               cores = getOption("powerkit.cores"), run_calculation = calc_fun, cost_powers = cost_powers, curve = curve)
+  warm <- if (spare) take_spare()
+  if (spare) keep_spare(engine_dir)
+  if (!is.null(warm)) return(session_job(warm, background_worker, args))
+  callr::r_bg(background_worker, args = args, supervise = TRUE)
+}
+
+# --- A warm spare process --------------------------------------------------------
+
+# Starting R and loading the backends takes two or three seconds (Superpower
+# above all), longer than many of the calculations themselves. So the app
+# keeps one spare R process with the engine and the common backends already
+# loaded; a calculation takes it, and a new spare starts at once for the
+# next. Each process runs one calculation and is then closed, so nothing
+# carries over from one visitor's run to another's. The online app turns
+# this on (options(powerkit.warm_spare = TRUE) in app.R).
+spare_packages <- c("pwr", "pwrss", "Superpower", "Spower")
+background_spare <- new.env()
+
+spare_preload <- function(engine_dir, packages) {
+  if (!requireNamespace("powerkit", quietly = TRUE)) {
+    suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
+  }
+  for (p in packages) requireNamespace(p, quietly = TRUE)
+  TRUE
+}
+
+# Start a spare if there isn't one, and look after it until it is ready.
+keep_spare <- function(engine_dir) {
+  if (!is.null(background_spare$session)) return(invisible(FALSE))
+  background_spare$session <- callr::r_session$new(wait = FALSE, options = callr::r_session_options(supervise = TRUE))
+  background_spare$stage <- "starting"
+  background_spare$engine_dir <- engine_dir
+  tend <- function() if (!is.null(background_spare$session) && !spare_ready()) later::later(tend, 0.5)
+  later::later(tend, 0.5)
+  invisible(TRUE)
+}
+
+# Move the spare on without waiting: once R has started, load the engine
+# and backends; TRUE once that has finished.
+spare_ready <- function() {
+  rs <- background_spare$session
+  if (is.null(rs)) return(FALSE)
+  if (!rs$is_alive()) { background_spare$session <- NULL; return(FALSE) }
+  while (!identical(background_spare$stage, "ready") && identical(rs$poll_process(0), "ready")) {
+    msg <- rs$read()
+    if (identical(background_spare$stage, "starting")) {
+      background_spare$stage <- "loading"
+      rs$call(spare_preload, list(background_spare$engine_dir, spare_packages))
+    } else if (isTRUE(msg$code %in% c(200, 500))) {
+      if (!is.null(msg$error)) { rs$close(); background_spare$session <- NULL; return(FALSE) }
+      background_spare$stage <- "ready"
+    }
+  }
+  identical(background_spare$stage, "ready")
+}
+
+# The spare, if it is ready (it is then no longer the spare); otherwise NULL.
+take_spare <- function() {
+  if (!spare_ready()) return(NULL)
+  rs <- background_spare$session
+  background_spare$session <- NULL
+  rs
+}
+
+# A calculation in a spare process, with the same methods as callr::r_bg()'s
+# process, so the rest of the app treats both alike.
+session_job <- function(rs, fun, args) {
+  rs$call(fun, args)
+  done <- NULL
+  collect <- function(timeout) {
+    while (is.null(done) && rs$is_alive() && identical(rs$poll_process(timeout), "ready")) {
+      msg <- rs$read()
+      if (isTRUE(msg$code %in% c(200, 500))) { done <<- msg; rs$close() }
+    }
+  }
+  list(
+    is_alive = function() { collect(0); is.null(done) && rs$is_alive() },
+    kill = function() if (rs$is_alive()) rs$kill(),
+    wait = function(timeout = -1) collect(timeout),
+    get_result = function() {
+      collect(0)
+      if (is.null(done)) stop("The calculation stopped before it finished.")
+      if (!is.null(done$error)) stop(done$error)
+      done$result
+    }
   )
 }
 
@@ -611,6 +727,9 @@ result_sentences <- function(spec, result) {
     out[] <- gsub(" participants in total", sprintf(" time points after the intervention (and %s before)", whole(spec$population$n_pre)), out, fixed = TRUE)
     out[] <- gsub("studies like this", "series like this", out, fixed = TRUE)
   }
+  # Safeguard power plans for a smaller effect than the one entered, so
+  # the sentences name the effect the calculation used.
+  out[] <- safeguard_wording(out, result)
   units <- units_sentence(result)
   if (!is.null(units)) out[["detail"]] <- paste(out[["detail"]], units)
   if (is_minimum_effect(spec)) out[["detail"]] <- paste(out[["detail"]], minimum_effect_sentence(spec))
@@ -1060,6 +1179,28 @@ reasoning_line <- function(values) {
   sprintf("Effect size source: %s. Your reasoning: \u201c%s\u201d", label, trimws(values$just_source))
 }
 
+# The effect safeguard power used, in words ("Cohen's d = 0.258, the
+# safeguard value for the earlier estimate of 0.45"), or NULL without it.
+safeguard_effect_text <- function(result) {
+  sg <- result$safeguard
+  if (is.null(sg)) return(NULL)
+  sprintf("%s = %s (the safeguard value; the earlier estimate was %s)", sg$effect_name,
+    format(round(sg$lower, 3), nsmall = 2), format(round(sg$estimate, 3)))
+}
+
+# "a 60% chance", "an 80% chance": the article for a percentage.
+a_percent <- function(x) {
+  text <- percent(x)
+  paste(if (grepl("^(8|11|18)([^0-9]|$)|^8[0-9]", text)) "an" else "a", text)
+}
+
+safeguard_wording <- function(text, result) {
+  effect <- safeguard_effect_text(result)
+  if (is.null(effect)) return(text)
+  text <- gsub("the true effect is the one you entered", paste("the true effect is", effect), text, fixed = TRUE)
+  gsub("the effect you entered", paste("the effect", effect), text, fixed = TRUE)
+}
+
 # Safeguard power, in words beside the result: the earlier estimate, the
 # interval and the effect size the calculation used (worked out by the
 # engine, with psych).
@@ -1068,8 +1209,9 @@ safeguard_sentence <- function(result) {
   if (is.null(sg)) return(NULL)
   sizes <- if (!is.null(sg$n1)) sprintf("%s and %s people in its two groups", sg$n1, sg$n2) else sprintf("%s people", sg$n)
   sprintf(paste0("Safeguard power: the earlier study's estimate was %s = %s, with %s. The calculation uses the lower end ",
-    "of the %d%% confidence interval around it, %s = %s, so the study keeps its power if the true effect is that small ",
-    "(a %d%% chance, if the earlier estimate is unbiased; Perugini, Gallucci & Costantini, 2014)."),
+    "of the %d%% confidence interval around it, %s = %s, so the study keeps its power if the true effect is that small. ",
+    "Across studies like the earlier one, a bound found this way falls below the true effect %d%% of the time, if the ",
+    "earlier estimate is unbiased (Perugini, Gallucci & Costantini, 2014)."),
     sg$effect_name, format(round(sg$estimate, 3)), sizes, round(100 * sg$conf_level), sg$effect_name,
     format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
 }
@@ -1155,7 +1297,10 @@ source_stale_ui <- function(fields, values) {
 # no silent default for target power). Exact results only: two more engine
 # calls, instant for the formula designs. With "all of several" tests
 # (`values`), 80% and 95% are for all of them together.
-cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L, values = list()) {
+# `ns`: the two sample sizes when a background run has found them already
+# (background_worker(), cost_line_powers()).
+cost_line_powers <- function(values) c(claim_power(0.8, values), claim_power(0.9, values), claim_power(0.95, values))
+cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L, values = list(), ns = NULL) {
   if (!identical(result$goal_type, "sample_size") || simulated(result)) return(NULL)
   n_at <- function(power) {
     if (isTRUE(all.equal(power, spec$goal$power))) return(result$n_required$n)
@@ -1164,12 +1309,14 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
     calc <- run_calculation(s, run, seed)
     if (identical(calc$status, "ok")) calc$result$n_required$n else NA
   }
-  n80 <- n_at(claim_power(0.8, values)); n95 <- n_at(claim_power(0.95, values))
-  if (is.na(n80) || is.na(n95)) return(NULL)
+  powers <- cost_line_powers(values)
+  n <- if (length(ns) == length(powers)) unlist(ns) else vapply(powers, function(p) as.numeric(n_at(p)), numeric(1))
+  if (anyNA(n)) return(NULL)
   together <- if (!identical(claim_power(0.8, values), 0.8)) " (for all the tests together)" else ""
   sprintf(
-    "For comparison: 80%% power%s needs %s %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your plan.",
-    together, whole(n80), n_unit(spec) %||% "participants", group_text(spec, n80), whole(n95), group_text(spec, n95)
+    "For comparison: 80%% power%s needs %s %s%s; 90%% power needs %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your write-up.",
+    together, whole(n[[1]]), n_unit(spec) %||% "participants", group_text(spec, n[[1]]),
+    whole(n[[2]]), group_text(spec, n[[2]]), whole(n[[3]]), group_text(spec, n[[3]])
   )
 }
 
@@ -1227,7 +1374,7 @@ explore_ui <- function(spec, result = NULL) {
   start <- if (is.null(planned) || planned == 0) 0.3 else abs(planned)
   div(class = "explore-panel",
     h5(class = "h6", "If the effect were different"),
-    p(class = "small", "Move the slider: the line shows power at each sample size for that effect, and the circle marks your plan. Exploring doesn't change your plan."),
+    p(class = "small", "Move the slider: the line shows power at each sample size for that effect, and the circle marks this analysis's answer. Exploring doesn't change it."),
     sliderInput("explore_effect", e$label, min = 0.05, max = e$max, value = round(start, 2), step = 0.01, width = "100%"),
     plotOutput("explore_plot", height = "300px"),
     tags$details(tags$summary("Read the exploration values as a table"), uiOutput("explore_table"))
@@ -1239,7 +1386,7 @@ explore_ui <- function(spec, result = NULL) {
 # hides how much the answer depends on being right about the effect; three
 # lines show it. powerkit suggests neither value. The same designs as the
 # explore panel; the app only calls the engine.
-scenario_names <- c(conservative = "Conservative", expected = "Your plan's effect", optimistic = "Optimistic")
+scenario_names <- c(conservative = "Conservative", expected = "The effect you entered", optimistic = "Optimistic")
 
 # The plan's effect, standardised (worked out by the engine where the
 # effect was given in the measure's own units).
@@ -1312,14 +1459,14 @@ scenarios_ui <- function(spec, result = NULL) {
   div(class = "scenario-panel",
     h5(class = "h6", "A cautious and a hopeful guess"),
     p(class = "small", sprintf(paste0(
-      "Your plan uses %s = %s. Enter a smaller effect you would still find plausible (conservative) and a larger one (optimistic), ",
+      "This analysis uses %s = %s. Enter a smaller effect you would still find plausible (conservative) and a larger one (optimistic), ",
       "and powerkit draws power for all three. Choose values you could defend; powerkit won't suggest them."),
       e$label, format(round(planned, 3)))),
     div(class = "d-flex gap-3 flex-wrap",
       numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
       numericInput("scenario_optimistic", sprintf("Optimistic %s", e$label), value = NA, step = 0.01, width = "14rem")),
     conditionalPanel("input.scenario_conservative != null || input.scenario_optimistic != null",
-      plotOutput("scenario_plot", height = "300px"),
+      plotOutput("scenario_plot", height = "340px"),
       uiOutput("scenario_n"),
       tags$details(tags$summary("Read the scenario values as a table"), uiOutput("scenario_table"))))
 }
@@ -1814,11 +1961,11 @@ bayes_sentence <- function(spec, result) {
   k <- format(b$evidence_threshold)
   c(
     if (b$effect_sd > 0) sprintf(paste(
-      if (is_bayes_binomial(spec) || is_bayes_proportions(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the study's assurance:" else
-      if (is_bayes_correlation(spec)) "This averages over true correlations spread around yours with an SD of %s (a stretched beta design prior), so it is the study's assurance:" else
-      "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the study's assurance:",
+      if (is_bayes_binomial(spec) || is_bayes_proportions(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the average power over your uncertainty:" else
+      if (is_bayes_correlation(spec)) "This averages over true correlations spread around yours with an SD of %s (a stretched beta design prior), so it is the average power over your uncertainty:" else
+      "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the average power over your uncertainty:",
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
-      "(O'Hagan, Stevens and Campbell, 2005)."), format(b$effect_sd)),
+      "(O'Hagan, Stevens and Campbell, 2005, call this assurance)."), format(b$effect_sd)),
     if (!is.null(b$null_nrep)) sprintf(
       "If there were no association, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an association %s of the time (from %s simulated studies with no association).",
       whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence), whole(b$null_nrep)
@@ -1926,15 +2073,18 @@ provenance_lines <- function(result) {
     sprintf("Packages: %s", paste(sprintf("%s %s", names(p$packages), p$packages), collapse = ", ")),
     sprintf("Check run (does the backend reproduce your population?): %s", if (all(result$check_run$ok)) "passed" else "failed"),
     sprintf("Run time: %.1f seconds", p$run_time_seconds),
-    simulation_outcome_text(result),
-    evidence_lines(p$evidence)
+    simulation_outcome_text(result)
   )
 }
 
 welch_population_note <- function(spec) {
   if (!identical(spec$template, "independent_t") || !identical(spec$target_test$method, "welch_t")) return(NULL)
   ratio <- spec$population$sd_ratio %||% 1
-  sprintf("Welch planning assumes normal scores, with group 2's population SD %s times group 1's. The standardised mean difference uses sqrt((SD1 squared + SD2 squared) / 2), independent of allocation. Equal spread is an assumption when the ratio is 1. Simulation uses these same stated spreads.", format(ratio))
+  if (isTRUE(all.equal(as.numeric(ratio), 1))) {
+    return("Welch planning assumes normal scores with equal population SDs in the two groups; Welch's test does not rely on that equality when the data are analysed.")
+  }
+  sprintf("Welch planning assumes normal scores, with group 2's population SD %s times group 1's. The standardised mean difference uses sqrt((SD1 squared + SD2 squared) / 2), independent of allocation.%s", format(ratio),
+    if (identical(spec$options$method, "simulation")) " The simulation uses these same SDs." else "")
 }
 
 simulation_outcome_text <- function(result) {
@@ -1974,7 +2124,8 @@ result_figure <- function(spec, result) {
     power = {
       row <- result$curve[1, ]
       if (is.null(row$power) || is.na(row$power)) NULL else list(value = percent(row$power), label = "power",
-        sub = sprintf("with %s %s%s", whole(row$n), unit, group_text(spec, row$n)))
+        # The generic tests have no sample size: the noncentrality carries it.
+        sub = if (is.null(row$n) || is.na(row$n)) "for the noncentrality you entered" else sprintf("with %s %s%s", whole(row$n), unit, group_text(spec, row$n)))
     },
     sensitivity = {
       s <- result$sensitivity
@@ -2008,6 +2159,11 @@ result_assumptions <- function(spec, result, fields, values) {
     test = paste0(toupper(substr(test, 1, 1)), substr(test, 2, nchar(test))),
     target = if (!is.null(spec$goal$power) && !identical(result$goal_type, "power")) sprintf("Target power %s", percent(spec$goal$power)) else NA_character_
   )
+  # With safeguard power, the effect the calculation used, with the one
+  # entered in brackets.
+  if (!is.null(sg <- result$safeguard) && !is.na(out[["effect"]])) {
+    out[["effect"]] <- sprintf("%s = %s, the safeguard value (%s)", sg$effect_name, format(round(sg$lower, 3), nsmall = 2), out[["effect"]])
+  }
   out <- out[!is.na(out) & nzchar(out)]
   if (is_bayes_test(spec)) out[] <- vapply(out, bayes_wording, character(1))
   out
@@ -2034,20 +2190,64 @@ result_sections_ui <- function(items) {
       "var e = document.getElementById('%s'); if (e) { e.scrollIntoView({behavior: 'smooth', block: 'start'}); } return false;", id), items[[id]])))
 }
 
+# powerkit's chart style, shared by the result page and Labs: the app's
+# colours and font, light horizontal gridlines, axis numbers upright, and
+# the key in its own strip below the chart, so that it never covers a line.
+chart_colours <- list(navy = "#14284B", blue = "#0A5A8C", red = "#b2182b", amber = "#b45309",
+  grey = "#6b7280", pale = "#bbc3cc", grid = "#e3e7ef", ink = "#4a5568", target = "#d08a1c")
+
+# Rows the key needs: two entries a row on a wide chart, one on a narrow
+# one (a phone).
+chart_key_wide <- function() grDevices::dev.size("in")[1] >= 6
+chart_key_rows <- function(entries) if (chart_key_wide()) ceiling(entries / 2) else entries
+
+# Starts a chart: the style, and room below it for `key_rows` rows of key.
+# `top` is the top margin in lines (more for a title or a note).
+chart_start <- function(key_rows = 0, top = 1.2, bottom = 4.4, left = 4.6) {
+  if (key_rows > 0) graphics::layout(matrix(1:2), heights = c(1, graphics::lcm(0.3 + 0.62 * key_rows)))
+  graphics::par(mar = c(bottom, left, top, 1.2), mgp = c(2.8, 0.7, 0), family = "sans",
+    col.axis = chart_colours$ink, col.lab = chart_colours$ink, col.main = chart_colours$navy,
+    cex.lab = 1.05, cex.axis = 0.95, las = 1, bty = "n")
+}
+
+# The axes: gridlines at the y axis's numbers (none for a density, whose
+# height means little to a reader) and a light x axis.
+chart_axes <- function(y = TRUE, yat = NULL, ylabels = TRUE) {
+  if (y) {
+    at <- yat %||% graphics::axTicks(2)
+    graphics::abline(h = at, col = chart_colours$grid, lwd = 1)
+    graphics::axis(2, at = at, labels = ylabels, col = NA, col.ticks = NA)
+  }
+  graphics::axis(1, col = chart_colours$grid, col.ticks = chart_colours$grid, tcl = -0.3)
+}
+
+# A chart's title, in the app's heading colour, at the top left.
+chart_title <- function(text) graphics::mtext(text, side = 3, line = 0.6, adj = 0, font = 2, cex = 1.05, col = chart_colours$navy)
+
+# The key, in the strip chart_start() kept below the chart; takes
+# legend()'s arguments.
+chart_key <- function(...) {
+  args <- list(...)
+  graphics::par(mar = c(0, 0, 0, 0))
+  graphics::plot.new()
+  do.call(graphics::legend, c(list("top", bty = "n", cex = 0.95, text.col = chart_colours$ink,
+    ncol = if (chart_key_wide()) min(2, length(args$legend)) else 1, seg.len = 2.2), args))
+}
+
 # A power curve drawn in powerkit's style: power by N, the target power,
 # and the plan's N marked. `df` has n and power; more lines (scenarios)
-# come as a list of data frames with their colours and labels.
-power_curve_plot <- function(lines, target = NULL, planned_n = NULL, xlab = "Participants analysed") {
-  navy <- "#14284B"; grid <- "#e3e7ef"; ink <- "#4a5568"
+# come as a list of data frames with their colours and labels, and `key`
+# (legend()'s arguments) adds a key below the chart.
+power_curve_plot <- function(lines, target = NULL, planned_n = NULL, xlab = "Participants analysed", key = NULL) {
+  navy <- chart_colours$navy
   ns <- unlist(lapply(lines, function(l) l$df$n))
-  op <- par(mar = c(4.4, 4.6, 1.2, 1.2), mgp = c(2.8, 0.7, 0), family = "sans", col.axis = ink, col.lab = ink, cex.lab = 1.05)
-  on.exit(par(op))
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(op))
+  chart_start(if (is.null(key)) 0 else chart_key_rows(length(key$legend)))
   plot(NA, xlim = range(c(ns, planned_n), na.rm = TRUE), ylim = c(0, 1), axes = FALSE, xlab = xlab, ylab = "Power")
-  abline(h = seq(0, 1, 0.2), col = grid, lwd = 1)
-  axis(1, col = NA, col.ticks = grid, tcl = -0.3)
-  axis(2, at = seq(0, 1, 0.2), labels = paste0(seq(0, 100, 20), "%"), las = 1, col = NA, col.ticks = NA)
+  chart_axes(yat = seq(0, 1, 0.2), ylabels = paste0(seq(0, 100, 20), "%"))
   if (!is.null(target)) {
-    abline(h = target, col = "#d08a1c", lty = 2, lwd = 1.5)
+    abline(h = target, col = chart_colours$target, lty = 2, lwd = 1.5)
     text(par("usr")[2], target, sprintf("Target %s", percent(target)), adj = c(1, -0.5), col = "#a0660a", cex = 0.85)
   }
   for (l in lines) {
@@ -2063,10 +2263,69 @@ power_curve_plot <- function(lines, target = NULL, planned_n = NULL, xlab = "Par
       y <- stats::approx(d$n, d$power, xout = planned_n)$y
       segments(planned_n, 0, planned_n, y, col = navy, lty = 3, lwd = 1.5)
       points(planned_n, y, pch = 21, bg = "#ffffff", col = navy, cex = 1.8, lwd = 2.5)
-      text(planned_n, y - 0.1, sprintf("Your plan: %s", whole(planned_n)), pos = 4, offset = 0.6, col = navy, font = 2, cex = 0.9)
+      text(planned_n, y - 0.1, sprintf("This analysis: %s", whole(planned_n)), pos = 4, offset = 0.6, col = navy, font = 2, cex = 0.9)
     }
   }
+  if (!is.null(key)) do.call(chart_key, key)
   invisible()
+}
+
+# Labs' teaching tools, opened from a result at its own settings: the
+# power visualiser for the tests it draws, and "1,000 studies" for two
+# groups. NULL when the result has no picture (a design the visualiser
+# doesn't draw, a rank or Bayes factor test, a simulation-only setting or
+# an effect not given as a standardised size).
+labs_picture_settings <- function(spec, result) {
+  if (!identical(spec$design, "basic_test") || is_rank_test(spec) || is_rank_correlation(spec) ||
+      identical(spec$target_test$method, "bayes_factor")) return(NULL)
+  pop <- spec$population
+  sens <- if (identical(result$goal_type, "sensitivity")) result$sensitivity$effect
+  effect <- function(name) {
+    v <- sens %||% pop[[name]]
+    if (is.numeric(v) && length(v) == 1 && is.finite(v)) abs(v)
+  }
+  n <- n_analysed(result)
+  if (is.null(n) || is.na(n)) return(NULL)
+  even <- function(x) 2 * ceiling(x / 2)
+  sides <- if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) "two_sided" else "greater"
+  out <- switch(spec$template,
+    independent_t = if (!is.null(d <- effect("d"))) list(design = "t", sliders = list(picture_n = even(n), picture_d = d), sides = sides),
+    paired_t = if (!is.null(d <- effect("dz"))) list(design = "paired", sliders = list(picture_n_paired = n, picture_dz = d), sides = sides),
+    one_sample_t = if (!is.null(d <- effect("d"))) list(design = "paired", sliders = list(picture_n_paired = n, picture_dz = d), sides = sides),
+    correlation = if (!is.null(r <- effect("r"))) list(design = "r", sliders = list(picture_n_r = n, picture_r = r)),
+    two_proportions = if (is.null(sens) && is.numeric(pop$p1) && is.numeric(pop$p2)) {
+      list(design = "two_proportions", sliders = list(picture_n_2p = even(n), picture_p1 = pop$p1, picture_p2 = pop$p2))
+    },
+    NULL)
+  if (is.null(out)) return(NULL)
+  alpha <- format(spec$target_test$alpha %||% 0.05)
+  out$alpha <- if (alpha %in% c("0.1", "0.10")) "0.10" else alpha
+  out
+}
+
+labs_variation_settings <- function(spec, result) {
+  pic <- labs_picture_settings(spec, result)
+  if (is.null(pic) || !identical(spec$template, "independent_t")) return(NULL)
+  n <- pic$sliders$picture_n
+  if (n > 1000) return(NULL)
+  list(n = max(6, n), d = pic$sliders$picture_d * sign(spec$population$d %||% 1),
+    alpha = if (pic$alpha %in% c("0.005", "0.01", "0.05", "0.10")) pic$alpha)
+}
+
+# The links themselves, under "How sure can you be?".
+labs_learn_ui <- function(spec, result) {
+  picture <- labs_picture_settings(spec, result)
+  variation <- labs_variation_settings(spec, result)
+  if (is.null(picture)) return(NULL)
+  # One sentence, written out so that no space falls before its
+  # punctuation.
+  link <- function(id, words) as.character(actionLink(id, words))
+  div(class = "result-learn small", HTML(paste0(
+    "<strong>Learning aids in Labs:</strong> ",
+    link("learn_picture", "see what this power means"), " (the power visualiser, at this sample size and effect)",
+    if (!is.null(variation)) paste0("; ", link("learn_variation", "see why significant results overestimate effects"),
+      " (this study repeated 1,000 times)"),
+    ". They draw the textbook version of the test, so their power can differ slightly from this result's.")))
 }
 
 result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
@@ -2081,7 +2340,7 @@ result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advi
 result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
-      h3(class = "h5", "The calculation didn't finish"), p(calc$message)))
+      h3(class = "h5", "The calculation didn't finish"), p(plain_engine_message(calc$message %||% "", fields))))
   }
   if (is_precision(calc$spec)) return(precision_panel_ui(tree, forms, ep_id, fields, values, calc))
   ep <- tree$endpoints[[ep_id]]
@@ -2107,7 +2366,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   bayes_card <- bayes_companion_card_ui(tree, ep_id, spec, result)
   sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
-    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness)) "How sure can you be?",
+    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
     `result-bayes` = if (!is.null(bayes_card)) "Add a Bayes factor?",
     `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
@@ -2135,13 +2394,15 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
     if (length(known) || length(departures_in_view)) p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
-    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness)) div(class = "result-card result-sure", id = "result-sure",
+    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
-      p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes your plan."),
+      p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
       if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
       bayes_robustness_ui(spec, calc$robustness),
+      bayes_uncertain_ui(spec, result),
       explore,
       scen),
+    labs_learn_ui(spec, result),
     bayes_card,
     sequential_card,
     div(class = "result-card result-save", id = "result-take",
@@ -2228,7 +2489,7 @@ writeup_effect <- function(fields, values) {
       rows <- trimws(strsplit(value, "\n", fixed = TRUE)[[1]])
       value <- paste0("(", rows[nzchar(rows)], ")", collapse = ", ")
     }
-    label <- f$writeup_label %||% f$label
+    label <- writeup_field_label(f)
     if (identical(f$id, "d") && identical(values$method, "welch_t") &&
         !blank(values$welch_sd_ratio) && isTRUE(parse_number(values$welch_sd_ratio) != 1)) {
       label <- "standardised mean difference (RMS SD)"
@@ -2236,6 +2497,21 @@ writeup_effect <- function(fields, values) {
     out <- c(out, sprintf("%s = %s", label, value))
   }
   if (length(out)) paste(out, collapse = "; ") else NULL
+}
+
+# A field's name as it reads inside a sentence: its writeup_label, else its
+# screen label without the screen's hints (ranges such as "(0 to 1)",
+# notes in brackets, explanations after a colon), starting lower case
+# unless it starts with a name or an abbreviation (Cohen's d, SD).
+writeup_field_label <- function(f) {
+  if (!is.null(f$writeup_label)) return(f$writeup_label)
+  label <- f$label %||% f$id
+  label <- sub("\\s*\\((0 to 1|for a |for an |0 when |per SD|one value )[^)]*\\)\\s*$", "", label)
+  label <- sub(":\\s*(how |one |\\().*$", "", label)
+  if (grepl("^(Correlation|Mean|Path|Proportions?|Residual|Standardised|Odds|Difference|Expected|Number)\\b", label)) {
+    label <- paste0(tolower(substr(label, 1, 1)), substring(label, 2))
+  }
+  label
 }
 
 writeup_sides <- function(spec) {
@@ -2263,6 +2539,16 @@ writeup_alpha <- function(a) sub("^0\\.", ".", format(signif(a, 3)))
 
 writeup_quote <- function(x) sprintf("“%s”", trimws(gsub("\\s+", " ", as.character(x))))
 
+# powerkit as named in exported text. Until version 1.0 every export says
+# that powerkit is a prototype, since text copied out of the app loses the
+# app's own banner (decided 7 November 2026).
+powerkit_cited <- function(version) {
+  version <- as.character(version %||% "unknown")
+  major <- suppressWarnings(as.integer(sub("\\..*$", "", version)))
+  if (!is.na(major) && major >= 1) return(sprintf("powerkit (version %s)", version))
+  sprintf("powerkit (version %s, a prototype in development whose results are not yet fully validated)", version)
+}
+
 writeup_software <- function(result, full = FALSE) {
   p <- result$provenance
   how <- if (simulated(result)) {
@@ -2272,8 +2558,8 @@ writeup_software <- function(result, full = FALSE) {
     "by formula (no simulation)"
   }
   fun <- if (grepl("(", p$backend_function, fixed = TRUE)) p$backend_function else paste0(p$backend_function, "()")
-  s <- sprintf("Power was calculated %s, with the R package %s (version %s; %s), set up by powerkit (version %s) in %s.",
-    how, p$backend, p$packages[[p$backend]], fun, p$packages[["powerkit"]], p$r_version)
+  s <- sprintf("Power was calculated %s, with the R package %s (version %s; %s), set up by %s in %s.",
+    how, p$backend, p$packages[[p$backend]], fun, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   if (full) {
     s <- paste(s, sprintf("Seed: %s. Spec hash: %s. Check that the backend reproduces the population entered: %s.",
       p$seed, p$spec_hash, if (all(result$check_run$ok)) "passed" else "failed"))
@@ -2330,6 +2616,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  if (identical(spec$design, "survival")) {
+    name <- switch(spec$target_test$method %||% "",
+      log_rank = "a time-to-event analysis (the log-rank test)",
+      cox_regression = "a time-to-event analysis (a Cox regression)", name)
+  }
   if (isTRUE(spec$target_test$method %in% c("zero_inflated_poisson", "zero_inflated_negative_binomial"))) {
     name <- sprintf("a zero-inflated %s regression (%s, %s%% extra zeros%s), simulated",
       if (identical(spec$target_test$method, "zero_inflated_poisson")) "Poisson" else "negative binomial",
@@ -2542,10 +2833,13 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size")) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
   }
+  # Departure 3 (Superpower's exact dataset built under the run's seed, a
+  # difference of about 1e-15) stays on the result screen but not in the
+  # paper's paragraph (decided 7 November 2026; docs/conventions.md).
+  departures <- departures[setdiff(names(departures), "3")]
   full <- paste(c(
     paste(c(main, interval, recruit_line, claim), collapse = " "),
     writeup_software(result, full = TRUE),
-    paste(evidence_lines(result$provenance$evidence), collapse = " "),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
   ), collapse = "\n\n")
@@ -2621,15 +2915,15 @@ ethics_text <- function(spec, result, fields, values) {
     justified_alpha = {
       j <- result$justified_alpha
       c(include, recruit_line, set_by, basis,
-        sprintf("Rather than use the usual %s threshold for statistical significance, we chose one by weighing the two mistakes a study can make: finding an effect that isn't there, and missing one that is. %s. That gives a threshold of %s%%, with a %s chance of finding the effect if it is real.",
-          alpha, justified_alpha_weights_text(j, brief = TRUE), format(signif(100 * j$alpha, 3)), percent(j$power)))
+        sprintf("Rather than use the usual %s threshold for statistical significance, we chose one by weighing the two mistakes a study can make: finding an effect that isn't there, and missing one that is. %s. That gives a threshold of %s%%, with %s chance of finding the effect if it is real.",
+          alpha, justified_alpha_weights_text(j, brief = TRUE), format(signif(100 * j$alpha, 3)), a_percent(j$power)))
     })
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)
   if (identical(spec$template, "its")) body <- its_units(body, spec)
   if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
   p <- result$provenance
-  paste(c(body, sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.",
+  paste(c(body, sprintf("The calculation was made with %s and the R package %s (version %s) and can be reproduced from the saved plan.", powerkit_cited(p$packages[["powerkit"]]),
     p$backend, p$packages[[p$backend]])), collapse = " ")
 }
 
@@ -2779,8 +3073,8 @@ precision_writeup <- function(form, spec, result, fields, values) {
   }
   recruit <- result$recruitment
   recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, we will recruit %s.", percent_attrition(recruit$attrition), whole(recruit$n_recruit))
-  software <- sprintf("The calculation used the R package %s (version %s; %s()), set up by powerkit (version %s) in %s.",
-    p$backend, p$packages[[p$backend]], pr$function_used, p$packages[["powerkit"]], p$r_version)
+  software <- sprintf("The calculation used the R package %s (version %s; %s()), set up by %s in %s.",
+    p$backend, p$packages[[p$backend]], pr$function_used, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
   full <- paste(c(short, sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
   ethics <- paste(c(
@@ -2789,7 +3083,7 @@ precision_writeup <- function(form, spec, result, fields, values) {
     sprintf("With this many, the range of plausible values the study reports (its %s) is expected to be about %s wide, which we judged narrow enough to be informative. Fewer people would give a wider, less informative range.",
       interval, precision_number(pr$width)),
     basis,
-    sprintf("The calculation was made with powerkit and the R package %s (version %s) and can be reproduced from the saved plan.", p$backend, p$packages[[p$backend]])
+    sprintf("The calculation was made with %s and the R package %s (version %s) and can be reproduced from the saved plan.", powerkit_cited(p$packages[["powerkit"]]), p$backend, p$packages[[p$backend]])
   ), collapse = " ")
   c(short = short, full = full, ethics = ethics)
 }
@@ -3024,6 +3318,44 @@ bayes_robustness_ui <- function(spec, rob) {
         tags$td(percent(rob$for_effect[i])), tags$td(percent(rob$for_null[i])))))))
 }
 
+# Not sure of the effect? (the project review of 7 November 2026): for a
+# Bayes factor t-test planned for exactly one effect, the same study
+# averaged over true effects spread around it (a normal design prior with
+# the SD the user gives), as Labs' Bayesian planning shows. The numbers are
+# the engine's run_spec() with population.effect_sd set, worked out on
+# request; the plan itself doesn't change.
+bayes_uncertain_ui <- function(spec, result) {
+  if (!is_bayes_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t") ||
+      !result$goal_type %in% c("sample_size", "power") || bayes_design_sd(spec) > 0) return(NULL)
+  effect <- if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d
+  if (is.null(effect)) return(NULL)
+  tagList(
+    h5(class = "h6", "Not sure of the effect?"),
+    p(class = "small", sprintf(paste(
+      "This plan assumes the effect is exactly %s. If you are unsure, say how unsure as an SD, and powerkit averages over",
+      "true effects spread around it (a normal design prior): the chance of strong evidence given what you believe now",
+      "(O'Hagan, Stevens and Campbell, 2005, call it assurance). Choose an SD you could defend; powerkit won't suggest one.",
+      "Nothing here changes the plan: to plan with it, enter the SD under Settings and check your answers again."), format(effect))),
+    div(class = "d-flex flex-wrap align-items-end gap-2",
+      numericInput("bayes_uncertain_sd", "How unsure you are about the effect, as an SD", value = NA, min = 0, max = 5, step = 0.05, width = "16rem"),
+      actionButton("bayes_uncertain_run", "Show the average chance", class = "btn btn-outline-primary mb-3")),
+    uiOutput("bayes_uncertain_result"))
+}
+
+# The answer, in words: the chance at the plan's n, and the n for the
+# plan's target, both averaged over the design prior.
+bayes_uncertain_words <- function(spec, sd, at_n, needed) {
+  unit <- if (identical(spec$template, "independent_t")) "people in total" else if (identical(spec$template, "paired_t")) "pairs" else "people"
+  effect <- if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d
+  c(sprintf("If the true effect is about %s give or take %s, a study of %s %s has %s chance of strong evidence for it (BF10 of at least %s), averaged over that uncertainty.",
+      format(effect), format(sd), whole(n_analysed(at_n)), unit, a_percent(at_n$curve$power[1]), format(spec$target_test$evidence_threshold %||% 10)),
+    if (!is.null(needed)) {
+      n <- needed$n_required$n
+      if (is.null(n) || is.na(n)) sprintf("No sample size up to powerkit's limit reaches %s on average: with this much uncertainty, part of the plausible effects are too small to give strong evidence.", percent(spec$goal$power))
+      else sprintf("For %s on average, you would need %s %s.", percent(spec$goal$power), whole(n), unit)
+    })
+}
+
 # Check as you go? (5 November 2026): the same Bayes factor t-test plan as
 # a sequential design, with the planned sample size as the largest
 # (Schonbrodt and Wagenmakers's design with a maximum N). The numbers are
@@ -3070,7 +3402,7 @@ lpa_sentences <- function(spec, result) {
   outcome <- sprintf("find the %d profiles", k)
   if (identical(result$goal_type, "sample_size")) {
     est <- result$n_required
-    c(headline = sprintf("You need %s people for a %s chance that %s.", whole(est$n), percent(spec$goal$power), found),
+    c(headline = sprintf("You need %s people for %s chance that %s.", whole(est$n), a_percent(spec$goal$power), found),
       detail = sprintf("This N comes from simulation (%s replications per sample size); the 95%% interval for the required N is %s to %s.",
         whole(result$provenance$nrep), whole(est$lower), whole(est$upper)),
       reading = plain_reading(spec$goal$power, outcome = outcome,
@@ -3078,7 +3410,7 @@ lpa_sentences <- function(spec, result) {
         condition = "the profiles are as you entered"))
   } else {
     row <- result$curve[1, ]
-    c(headline = sprintf("With %s people, there is a %s chance that %s.", whole(row$n), percent(row$power), found),
+    c(headline = sprintf("With %s people, there is %s chance that %s.", whole(row$n), a_percent(row$power), found),
       detail = sprintf("Estimated by simulation from %s replications (Monte Carlo standard error %.1f percentage points).",
         whole(result$provenance$nrep), 100 * row$mcse),
       reading = plain_reading(row$power, outcome = outcome,
@@ -3098,13 +3430,13 @@ efa_sentences <- function(spec, result) {
   condition <- "the factors are as you entered"
   if (identical(result$goal_type, "sample_size")) {
     est <- result$n_required
-    c(headline = sprintf("You need %s people for a %s chance that %s.", whole(est$n), percent(spec$goal$power), found),
+    c(headline = sprintf("You need %s people for %s chance that %s.", whole(est$n), a_percent(spec$goal$power), found),
       detail = sprintf("This N comes from simulation (%s replications per sample size); the 95%% interval for the required N is %s to %s.",
         whole(result$provenance$nrep), whole(est$lower), whole(est$upper)),
       reading = plain_reading(spec$goal$power, outcome = outcome, if_not = if_not, condition = condition))
   } else {
     row <- result$curve[1, ]
-    c(headline = sprintf("With %s people, there is a %s chance that %s.", whole(row$n), percent(row$power), found),
+    c(headline = sprintf("With %s people, there is %s chance that %s.", whole(row$n), a_percent(row$power), found),
       detail = sprintf("Estimated by simulation from %s replications (Monte Carlo standard error %.1f percentage points).",
         whole(result$provenance$nrep), 100 * row$mcse),
       reading = plain_reading(row$power, outcome = outcome, if_not = if_not, condition = condition))

@@ -200,7 +200,7 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
   tests <- validation_shard(tests, shard_index, shard_count)
   tests$done <- tests_done(tests)
   if (isTRUE(summary_only)) {
-    summary <- write_summary(tests, results_dir, cores_label)
+    summary <- write_summary(tests, results_dir, cores_label, cores_per_test)
     if (isTRUE(require_complete) && !validation_status_ok(saved_status(tests), TRUE))
       stop("The selected validation is not complete; see the saved summary.", call. = FALSE)
     return(invisible(summary))
@@ -233,7 +233,7 @@ run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,
     run_queue(todo, slots, cores_per_test, nrow(tests) - nrow(todo), nrow(tests))
   }
   tests$done <- tests_done(tests)
-  summary <- write_summary(tests, results_dir, cores_label)
+  summary <- write_summary(tests, results_dir, cores_label, cores_per_test)
   if (!validation_status_ok(saved_status(tests), require_complete))
     stop("Validation is incomplete or failed; see the saved summary. Skipped tests are not release validation.", call. = FALSE)
   invisible(summary)
@@ -289,15 +289,39 @@ validation_fingerprint <- function(root) {
     R = R.version.string, platform = R.version$platform), algo = "sha256")
 }
 
-# Stable positions, never random seeds or changed benchmarks. The union of
-# all shards is the original catalogue, with no overlap and no lost tests.
+# Deal the tests to `count` parts by their estimated time: longest first,
+# each to the part with the least time so far (ties go to the earlier test
+# and the lower part, so every run deals the same way). The union of all
+# parts is the original catalogue, with no overlap and no lost tests.
+# Dealing by position instead put two of whole_study's longest tests in one
+# part, which then hit GitHub's time limit every night.
 validation_shard <- function(tests, index = 1, count = 1) {
   index <- whole_count(index, "--shard-index")
   count <- whole_count(count, "--shard-count")
   if (index > count) stop("--shard-index cannot exceed --shard-count.", call. = FALSE)
-  out <- tests[(seq_len(nrow(tests)) - 1L) %% count + 1L == index, , drop = FALSE]
+  estimate <- if (is.null(tests$estimate)) rep(1, nrow(tests)) else tests$estimate
+  load <- numeric(count)
+  part <- integer(nrow(tests))
+  for (i in order(-estimate, seq_len(nrow(tests)))) {
+    part[i] <- which.min(load)
+    load[part[i]] <- load[part[i]] + estimate[i]
+  }
+  out <- tests[part == index, , drop = FALSE]
   attr(out, "validation_partition") <- c(index, count)
   out
+}
+
+# Minutes on one core that tests took in earlier runs on GitHub
+# (scripts/validation-times.csv: chunk, test, minutes), used in place of the
+# chunk's rough estimate where a test has a recorded time. Each run saves
+# the times it measured to validation-results/timings.csv in the same
+# columns; copy rows from there to keep the file current.
+validation_recorded_minutes <- function(root) {
+  path <- file.path(root, "scripts", "validation-times.csv")
+  if (!file.exists(path)) {
+    return(data.frame(chunk = character(), test = character(), minutes = numeric()))
+  }
+  utils::read.csv(path, stringsAsFactors = FALSE)
 }
 
 validation_status_ok <- function(status, require_complete = FALSE) {
@@ -386,6 +410,9 @@ validation_tests <- function(root, only) {
     rows <- c(rows, list(interaction_grid_rows(root)))
   }
   out <- do.call(rbind, rows)
+  recorded <- validation_recorded_minutes(root)
+  known <- match(paste(out$chunk, out$test), paste(recorded$chunk, recorded$test))
+  out$estimate[!is.na(known)] <- recorded$minutes[known[!is.na(known)]]
   out$fingerprint <- validation_fingerprint(root)
   out
 }
@@ -835,7 +862,7 @@ print_chunk_progress <- function(tests) {
   tests
 }
 
-write_summary <- function(tests, results_dir, cores) {
+write_summary <- function(tests, results_dir, cores, cores_per_test = 1) {
   saved <- lapply(seq_len(nrow(tests)), function(i) saved_result(tests[i, ]))
   status <- vapply(saved, function(r) if (is.null(r)) "NOT RUN" else r$status, character(1))
   versions <- c(
@@ -853,6 +880,9 @@ write_summary <- function(tests, results_dir, cores) {
     )
   }
   commit <- paste(git("rev-parse", "--short", "HEAD"), collapse = "")
+  # In GitHub's containers git may refuse the checkout (a different owner);
+  # the workflow still names the commit it checked out.
+  if (!nzchar(commit)) commit <- substr(Sys.getenv("GITHUB_SHA"), 1, 7)
   if (!nzchar(commit)) commit <- "unknown"
   if (length(git("status", "--porcelain", "--untracked-files=no")) > 0) {
     commit <- paste(commit, "(with uncommitted changes)")
@@ -871,6 +901,12 @@ write_summary <- function(tests, results_dir, cores) {
     ),
     ""
   )
+  # The tests that need someone to look, first, so they can't be missed in
+  # a long list of passes.
+  attention <- which(status %in% c("FAIL", "ERROR", "NOT RUN"))
+  if (length(attention) > 0) {
+    lines <- c(lines, "Needs attention:", sprintf("  %-7s %s / %s", status[attention], tests$chunk[attention], tests$test[attention]), "")
+  }
   for (i in seq_len(nrow(tests))) {
     r <- saved[[i]]
     # Grid cells with results are shown in the grid table below.
@@ -887,9 +923,27 @@ write_summary <- function(tests, results_dir, cores) {
   }
   lines <- c(lines, grid_summary_lines(saved[tests$kind == "cell"]), "===== end of summary =====")
   writeLines(lines, file.path(results_dir, "summary.txt"))
+  write_timings(tests, saved, status, results_dir, cores_per_test)
+  step_summary <- Sys.getenv("GITHUB_STEP_SUMMARY")
+  if (nzchar(step_summary)) {
+    cat(c("```", lines, "```"), file = step_summary, sep = "\n", append = TRUE)
+  }
   cat("\n", paste(lines, collapse = "\n"), "\n", sep = "")
   cat(sprintf("\nSaved to %s\n", file.path(results_dir, "summary.txt")))
   invisible(lines)
+}
+
+# The minutes each finished test took, on one core (wall time times the
+# cores it had), in the columns of scripts/validation-times.csv. Skipped
+# tests are left out: a placeholder skip takes seconds and says nothing
+# about the test's time once its values are filled in.
+write_timings <- function(tests, saved, status, results_dir, cores_per_test = 1) {
+  done <- which(status %in% c("PASS", "FAIL", "ERROR") & tests$kind == "test")
+  minutes <- vapply(saved[done], function(r) as.numeric(r$minutes %||% NA_real_), numeric(1))
+  utils::write.csv(
+    data.frame(chunk = tests$chunk[done], test = tests$test[done], minutes = round(minutes * cores_per_test, 1)),
+    file.path(results_dir, "timings.csv"), row.names = FALSE
+  )
 }
 
 format_minutes <- function(minutes) {

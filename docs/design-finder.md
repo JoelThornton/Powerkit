@@ -312,7 +312,10 @@ training.*
 Not sure? Two factors where every combination appears. Example: *feedback
 (none vs praise) crossed with task difficulty (easy vs hard), giving four
 combinations.*
-→ Score outcome (O1): F3.
+→ Score outcome (O1): since 7 November 2026 F1 asks this in two answers,
+"Two, each with exactly two levels (a 2 x 2 design)" (→ F4) and "Two,
+crossed, at least one with three or more levels" (the larger factorial
+cards), so F3 below is no longer asked.
 → Yes/no or categories (O2, O3): **Coming later (not in spec):** logistic or
 log-linear models for two factors.
 
@@ -372,7 +375,7 @@ Example: *the three feedback types will differ in persistence.*
 → **Coming later (not in spec):** omnibus *one-way ANOVA* (different people)
 or *repeated-measures ANOVA* (same people).
 
-### F3. Does each factor have exactly two levels? *(two factors, score outcome)*
+### F3. Does each factor have exactly two levels? *(two factors, score outcome; folded into F1 on 7 November 2026)*
 
 **Yes: 2 x 2** *(picture: a 2 x 2 grid)*
 Not sure? Each factor has two versions. Example: *praise vs none, and easy vs
@@ -403,6 +406,12 @@ got both.*
 | Everyone got both | Everyone got both | **Coming later (not in spec):** *2 x 2 within-participants ANOVA* |
 
 ### F4a. Will the groups be equal in size? *(at least one factor between; decisions D5, N1, N2 and N3)*
+
+Since 7 November 2026 F4a is asked only when both factors are between
+participants. With one factor within, both cards it can lead to (the
+mixed ANOVA, which simulates unequal groups, and the ANCOVA) take groups
+of different sizes, so F4b follows directly; the "One factor within"
+lines below are the earlier routes.
 
 Help line: *What matters is whether every group (every combination, if both
 factors are between participants) will have the same number of people, not
@@ -441,7 +450,8 @@ independent-samples t-test) as a stand-in (decision N2).
 Not sure? Everyone is measured before and after something, and the groups
 differ in what happens in between. Example: *therapy vs waitlist, anxiety
 measured before and after.*
-→ PP1.
+→ PP1. With random assignment (since 7 November 2026), ANCOVA on the after
+score is marked recommended and the mixed interaction stays an option.
 
 **No: another within-participants condition** *(picture: one person, two
 conditions)*
@@ -688,7 +698,7 @@ increases effort, which raises grades.*
 → ME4, then `mediation / process_6` (2 to 4 mediators; more is **Coming later
 (not in spec)**). Analysis name: *serial mediation (PROCESS model 6).*
 
-### ME4. Are your mediators scores?
+### ME4. Is each go-between (mediator) a score?
 
 **Yes** → the form for the template chosen in ME2 or ME3: **Available**
 when X is a measured score; **Coming later (spec ready)** when X is

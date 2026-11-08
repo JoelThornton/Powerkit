@@ -93,9 +93,13 @@ test_that("other settings start at the wrapped tool's default, and say whose def
   }
   power <- function(ep) Filter(function(f) f$id == "power", fields_for(ep))[[1]]
   expect_null(power("E1")$default)
-  expect_match(power("E1")$default_source, "no default target power", fixed = TRUE)
-  expect_equal(power("E10")$default, 0.8)
-  expect_match(power("E10")$default_source, "target_power = 0.8", fixed = TRUE)
+  expect_match(power("E1")$default_source, "Empty on every card", fixed = TRUE)
+  # Empty on every card, including where the package starts at 0.8 (8 November 2026).
+  for (ep in names(forms$forms)) {
+    p <- Filter(function(f) identical(f$id, "power"), fields_for(ep))
+    if (length(p)) expect_null(p[[1]]$default, label = ep)
+  }
+  expect_match(power("E10")$default_source, "Empty on every card", fixed = TRUE)
   direction <- Filter(function(f) f$id == "alternative", fields_for("E2"))[[1]]
   # Asked, not pre-filled, and first (docs/decisions.md, 19 October 2026).
   expect_null(direction[["default"]])
@@ -640,10 +644,12 @@ test_that("long labels are short, with the detail as help linked to the field", 
   expect_match(html, 'id="f_just_source_help"', fixed = TRUE)
   expect_match(html, 'aria-describedby="f_just_source_help"', fixed = TRUE)
   for (f in fields) expect_lt(nchar(f$label), 80, label = f$id)
-  # The adjustment appears only for a previous study, unless safeguard
-  # power is used instead.
+  # The adjustment appears for one study's estimate, published or a
+  # pilot, unless safeguard power is used instead; it is needed for both.
   adj <- Filter(function(f) f$id == "just_adjustment", fields)[[1]]
-  expect_identical(adj$shown_if, list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is_not = "yes")))
+  expect_identical(adj$shown_if, list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes")))
+  expect_true(field_applies(adj, list(just_type = "pilot_study", sg_use = "no")))
+  expect_false(field_applies(adj, list(just_type = "meta_analysis")))
 })
 
 test_that("definitions and the direction's reason open on request; warnings and needed notes stay in view", {
@@ -1028,4 +1034,44 @@ test_that("the cross-lagged panel screen builds a valid spec with its names left
   spec <- build_spec(forms, "E74", fields, v)
   expect_equal(c(spec$variables$X$label, spec$variables$Y$label), c("X", "Y"))
   expect_silent(powerkit::validate_spec(spec))
+})
+
+test_that("a justified significance level is not offered with a Bayes factor test, and is refused in words if chosen", {
+  fields <- fields_for("E2")
+  goal <- Filter(function(f) f$id == "goal", fields)[[1]]
+  expect_false(is.null(goal$choices_shown_if$justified_alpha))
+  html <- as.character(field_ui(goal, ""))
+  expect_match(html, "bayes_factor", fixed = TRUE)
+  method <- offers_bayes_factor(forms$forms$E2)
+  values <- stats::setNames(list("justified_alpha", "bayes_factor"), c("goal", method))
+  problems <- form_problems(list(goal), values)
+  expect_match(problems[["goal"]], "isn't available with the other answers", fixed = TRUE)
+  values[[method]] <- "student_t"
+  expect_length(form_problems(list(goal), values), 0)
+  # The planning line has a Bayes factor wording, and no engine function
+  # names reach the checker's messages.
+  expect_match(as.character(planning_decision_ui(forms$forms$E2)), "strong evidence", fixed = TRUE)
+  code <- readLines(file.path(routing_dir, "R", "forms_ui.R"))
+  expect_false(any(grepl("validate_spec()", code[!grepl("^\\s*#", code)], fixed = TRUE)))
+})
+
+test_that("engine messages name the screen's settings, and drop sentences about settings it doesn't show", {
+  accuracy <- list(id = "simulation_accuracy", label = "How precise should the simulation be?")
+  msg <- "The sample size search could not pin down the required n: the simulated power didn't settle near the target. Try more replications ('options > nrep') or another seed."
+  expect_match(plain_engine_message(msg, list(accuracy)), "“How precise should the simulation be?”", fixed = TRUE)
+  big <- "This effect is so large that 4 or fewer participants reach the target power, and exact calculation can't go lower here: check that the effect size is right. To find the smallest n anyway, set 'options > method' to 'simulation'."
+  plain <- plain_engine_message(big, list())
+  expect_match(plain, "check that the effect size is right.", fixed = TRUE)
+  expect_no_match(plain, "options >", fixed = TRUE)
+  expect_identical(plain_engine_message("A target power of 0.9999 is too close to 100%.", list()), "A target power of 0.9999 is too close to 100%.")
+})
+
+test_that("which test you'll run is in view on every card that offers more than one", {
+  for (ep in names(forms$forms)) {
+    for (g in form_groups(forms, ep)) {
+      if (length(g$fields) && identical(g$fields[[1]]$label, "Test version") && length(g$fields[[1]]$choices) > 1) {
+        expect_identical(form_section(g), "study", label = ep)
+      }
+    }
+  }
 })

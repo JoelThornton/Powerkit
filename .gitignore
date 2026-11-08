@@ -23,3 +23,7 @@ Rplots.pdf
 
 # Python development checks
 __pycache__/
+
+# The online app's manifest is written when it is published, on the
+# connect-cloud branch only (.github/workflows/online-app-manifest.yaml)
+app/routing/manifest.json

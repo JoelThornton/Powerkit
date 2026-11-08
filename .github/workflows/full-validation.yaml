@@ -42,10 +42,10 @@
 #                         1.4 s each). The closest to the limit: if the
 #                         runner is twice as slow as the laptop, they
 #                         might not finish in 6 hours.
-#   whole_study           about 2 to 3 hours (3 tests at a time; the
-#                         longest is a whole-study simulation and a
-#                         mediation simulation of 10,000 replications at
-#                         about 0.6 s each; an estimate)
+#   whole_study           10 tests, about 15 hours on one core in all
+#                         (scripts/validation-times.csv); one test at a
+#                         time on 4 cores, in 4 parts of about 1.5 hours
+#                         at most
 # Required-n tests (now skipped until their published values are filled
 # in) run several simulations each and will make the chunks longer.
 name: full-validation
@@ -153,7 +153,7 @@ jobs:
     outputs:
       matrix: ${{ steps.partition.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: partition
         run: echo "matrix=$(Rscript scripts/validation-partitions.R)" >> "$GITHUB_OUTPUT"
 
@@ -180,12 +180,14 @@ jobs:
       SHARD_COUNT: ${{ matrix.count }}
       RENV_ACTIVATE_PROJECT: "FALSE"
       # Cores per test, set here for the whole job so every step has it:
-      # 4 for the mediation and moderated mediation chunks (process_*,
-      # modmed_*); 2 for the parallel and serial cross-checks (2 tests
+      # 4 for the mediation, moderated mediation and whole-study chunks
+      # (process_*, modmed_*, whole_study), whose single tests can take
+      # hours on one core (one whole-study test did not finish in 330
+      # minutes); 2 for the parallel and serial cross-checks (2 tests
       # each, so both run at once); 1 for the others.
-      PER_TEST: ${{ (startsWith(inputs.chunk, 'process_') || startsWith(inputs.chunk, 'modmed_')) && '4' || (startsWith(inputs.chunk, 'mediation_crosscheck_') && '2' || '1') }}
+      PER_TEST: ${{ (startsWith(inputs.chunk, 'process_') || startsWith(inputs.chunk, 'modmed_') || inputs.chunk == 'whole_study') && '4' || (startsWith(inputs.chunk, 'mediation_crosscheck_') && '2' || '1') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Stops here, before the long run, if a package doesn't load.
       - name: Check that the packages load
@@ -210,7 +212,7 @@ jobs:
 
       - name: Upload validation-results
         if: always() && steps.run.outcome != 'skipped'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: validation-results-${{ inputs.name || inputs.chunk }}-part-${{ matrix.index }}-run-${{ github.run_number }}
           path: validation-results/

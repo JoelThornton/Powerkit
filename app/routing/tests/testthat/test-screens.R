@@ -351,7 +351,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
   used <- unique(sub('engine_function\\("', "", sub('"$', "", used)))
   expect_setequal(used, c("validate_spec", "run_spec", "export_script", "export_citations", "export_run_script", "simulated_data", "simulated_data_available", "simulated_data_note", "power_interval", "power_picture", "power_picture_r", "power_picture_paired", "power_picture_anova", "power_picture_2p", "power_picture_chisq", "power_picture_f2", "bayes_planning", "bayes_sequential", "bayes_companion", "bayes_robustness",
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
-    "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result", "spec_hash", "study_variation", "sample_structure", "analysis_requirements", "all_tests_target", "analysis_evidence"))
+    "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result", "spec_hash", "study_variation", "sample_structure", "analysis_requirements", "all_tests_target", "analysis_evidence", "simulation_margin"))
   # Calculations run only for the end points listed in forms.yaml.
   expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15", "E59", "E60", "E61", "E64", "E66", "E46", "E44", "E43", "E69", "E70", "E32", "E30", "E35", "E71", "E72", "E58", "E73", "E45"))
 })
@@ -513,7 +513,9 @@ test_that("each tab has its own address, so a page can be shared by link", {
   })
   # Every tab in app.R has an address, and back again.
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  for (tab in setdiff(page_slugs(), labs_tab_title)) expect_match(code, sprintf('tabPanel("%s"', tab), fixed = TRUE)
+  # (A tab's value is its full name; phones show a short title.)
+  for (tab in setdiff(page_slugs(), labs_tab_title)) expect_true(grepl(sprintf('tabPanel("%s"', tab), code, fixed = TRUE) ||
+    grepl(sprintf('value = "%s"', tab), code, fixed = TRUE), label = tab)
   for (slug in names(page_slugs())) expect_identical(page_slug(page_slugs()[[slug]]), slug)
   expect_identical(page_slug(NULL), "plan")
   expect_match(code, "selected = page_from_query(req$QUERY_STRING)", fixed = TRUE)
@@ -620,7 +622,7 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   html <- as.character(card_ui(tree, "E2"))
   expect_match(html, "class=\"card-facts\"", fixed = TRUE)
   expect_match(html, "In a second or two", fixed = TRUE)
-  expect_match(html, "Checks recorded; see their scope below", fixed = TRUE)
+  expect_match(html, "Checks recorded; see \"More about this analysis\" below", fixed = TRUE)
   # Its other versions (rank test, Bayes factor) are gathered in one box.
   expect_match(html, "Other versions, chosen on the next screen", fixed = TRUE)
   expect_match(as.character(card_ui(tree, "E13")), "A preview here, then an R script", fixed = TRUE)

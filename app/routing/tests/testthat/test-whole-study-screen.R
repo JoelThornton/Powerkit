@@ -184,6 +184,15 @@ test_that("the result shows each analysis, the joint power for the claim, the im
   expect_match(html, "Methods paragraph", fixed = TRUE)
   expect_match(html, "power4mome", fixed = TRUE)
   expect_match(html, "experimental)", fixed = TRUE)
+  # The paragraph states the population, words the joint power as the
+  # claim, names powerkit as a prototype and leaves out failure counts
+  # when none failed.
+  methods <- whole_study_methods(calc$result)
+  expect_match(methods, "The assumed population values (standardised) were: X to Y 0.2", fixed = TRUE)
+  expect_match(methods, "correlation of X and W -0.2", fixed = TRUE)
+  expect_match(methods, "The study's claim needs every main analysis to be significant", fixed = TRUE)
+  expect_match(methods, "a prototype in development", fixed = TRUE)
+  expect_no_match(methods, "Joint all criterion|studies attempted")
   # Laid out like every result: section links, the joint chance as the big
   # figure, each analysis's power as a bar, and a methods paragraph to copy.
   expect_match(html, "result-sections", fixed = TRUE)
@@ -296,4 +305,101 @@ test_that("experiments: conditions crossed with groups are simulated as one fact
   expect_null(whole_study_plan(tree, modifyList(exp_answers, list(moderator = "none")), "compare", "compare", list())$experiment)
   # A mediator or a yes/no outcome: the general route's reasons.
   expect_false(whole_study_plan(tree, modifyList(exp_answers, list(outcome = "yesno")), "compare", "compare", list())$ok)
+})
+
+test_that("measured twice, a baseline covariate is the first measurement, so the plan is simulated as without one", {
+  none <- modifyList(ws_answers, list(x = "cond2", times = "twice"))
+  base <- modifyList(none, list(covariate = "baseline"))
+  plan_none <- whole_study_plan(tree, none, c("compare", "moderation"), c("compare", "moderation"),
+    list(compare = "ANCOVA: the second measurement adjusting for the first"))
+  plan_base <- whole_study_plan(tree, base, c("compare", "moderation"), c("compare", "moderation"),
+    list(compare = "ANCOVA: the outcome adjusting for the baseline"))
+  expect_true(plan_base$ok)
+  expect_identical(plan_base$analyses, plan_none$analyses)
+  expect_identical(plan_base$roles, plan_none$roles)
+  # Other covariates still aren't simulated, and the reason says so.
+  other <- whole_study_plan(tree, modifyList(none, list(covariate = "other")), "moderation", "moderation", list())
+  expect_false(other$ok)
+  expect_true(any(grepl("other than the first measurement", other$reasons, fixed = TRUE)))
+})
+
+test_that("a manipulation check beside a mediation is planned and simulated as M on X alone", {
+  answers <- modifyList(ws_answers, list(x = "cond2", moderator = "none"))
+  check <- analysis_by_id(tree, "check")
+  expect_identical(resolve_analysis(tree, check, answers)$endpoint, "E2")
+  expect_identical(resolve_analysis(tree, check, modifyList(answers, list(x = "score")))$endpoint, "E4")
+  # Offered only with mediators.
+  expect_false("check" %in% vapply(applicable_analyses(tree, modifyList(answers, list(mediators = "none"))), `[[`, "", "id"))
+  expect_true("check" %in% vapply(applicable_analyses(tree, answers), `[[`, "", "id"))
+  plan <- whole_study_plan(tree, answers, c("check", "mediation"), "mediation", list())
+  expect_true(plan$ok)
+  expect_equal(vapply(plan$analyses, function(a) a$test, ""), c("x_m", "indirect"))
+  expect_equal(plan$roles, c("X", "M", "Y"))
+  # Measured twice too, with the outcome's first measurement in the model.
+  twice <- whole_study_plan(tree, modifyList(answers, list(times = "twice")), c("check", "mediation"), "mediation", list())
+  expect_true(twice$ok)
+  expect_equal(twice$roles, c("X", "M", "B", "Y"))
+  # Two mediators: the check is planned card by card, not simulated.
+  two <- whole_study_plan(tree, modifyList(answers, list(mediators = "several")), c("check"), "check", list())
+  expect_false(two$ok)
+  params_of <- engine_function("whole_study_parameters")
+  skip_if(is.null(params_of), "engine not available")
+  skeleton <- whole_study_skeleton(plan, whole_study_labels(plan$roles, list()))
+  expect_setequal(params_of(skeleton)$paths, c("X->M", "M->Y", "X->Y"))
+})
+
+test_that("names typed on the simulation screen come first, and the screen asks for them", {
+  labels <- whole_study_labels(c("X", "W", "B", "Y"), list(compare = list(Y_label = "Exhaustion")),
+    named = list(X = "Workload", Y = "Burnout"))
+  expect_identical(unname(labels[c("X", "W", "B", "Y")]), c("Workload", "Moderator", "Burnout, first measurement", "Burnout"))
+  html <- as.character(whole_study_name_inputs(c("X", "W", "B", "Y"), labels))
+  expect_match(html, "ws_name_X", fixed = TRUE)
+  expect_false(grepl("ws_name_B", html, fixed = TRUE))
+  input <- list(ws_name_X = " Workload ", ws_name_W = "", ws_name_Y = "Burnout")
+  expect_identical(whole_study_names_from_input(input, c("X", "W", "B", "Y")), list(X = "Workload", Y = "Burnout"))
+})
+
+test_that("a rough power curve is offered for experiments and regressions, and read in plain words", {
+  regression <- list(goal = list(type = "power", n = 200), analyses = list(list(test = "x_y"), list(test = "interaction")))
+  expect_true(whole_study_curve_offered(regression))
+  mediation <- regression
+  mediation$analyses[[2]]$test <- "indirect"
+  expect_false(whole_study_curve_offered(mediation))
+  plan <- list(analyses = list(list(test = "x_y"), list(test = "interaction")))
+  html <- as.character(whole_study_curve_offer_ui(forms, plan))
+  expect_match(html, "Show a rough power curve", fixed = TRUE)
+  expect_match(html, "5 sample sizes", fixed = TRUE)
+  calc <- list(status = "ok", result = list(rule = "all",
+    curve = data.frame(n = c(100, 150, 200, 300), power = c(0.4, 0.6, 0.78, 0.93), lower = c(0.33, 0.53, 0.72, 0.89),
+      upper = c(0.47, 0.67, 0.84, 0.96), nrep = 200),
+    provenance = list(nrep = 200, seed = 1, backend = "power4mome", packages = list(power4mome = "0.1"))))
+  html <- as.character(whole_study_curve_ui(calc))
+  expect_match(html, "between N = 200 and N = 300", fixed = TRUE)
+  expect_match(html, "every main analysis", fixed = TRUE)
+  calc$result$curve$power <- c(0.1, 0.2, 0.3, 0.4)
+  expect_match(as.character(whole_study_curve_ui(calc)), "stays below 80% up to N = 300", fixed = TRUE)
+  expect_match(as.character(whole_study_curve_ui(list(status = "error", message = "Plain."))), "Plain.", fixed = TRUE)
+})
+
+test_that("a two-group predictor can be given as Cohen's d, which the engine turns into the path", {
+  plan <- list(binary_x = TRUE, analyses = list(list(id = "total", test = "x_y", label = "Total", role = "main")), roles = c("X", "Y"))
+  params <- list(paths = c("X->Y"), correlations = character())
+  expect_identical(whole_study_d_keys(plan, params), "X->Y")
+  expect_identical(whole_study_d_keys(modifyList(plan, list(binary_x = FALSE)), params), character())
+  html <- as.character(whole_study_ui(forms, plan, params, list(X = "X", Y = "Y"), list(d_Y = "0.4"), NULL, "each"))
+  expect_match(html, "Cohen.{1,6}s d of the groups on the outcome \\(Y\\)")
+  expect_match(html, "value=\"0.4\"", fixed = TRUE)
+  expect_identical(whole_study_prefill(list(), plan, list(total = list(d = "0.5")))$d_Y, "0.5")
+  skeleton <- list(spec_version = "0.1", kind = "whole_study", variables = list(X = list(type = "binary", label = "X"), Y = list(type = "continuous", label = "Y")),
+    analyses = plan$analyses, effect_justification = list(type = "none"))
+  values <- list(`X->Y` = "", x_effect = "d", d_Y = "0.4", n = "100", alpha = "0.05", seed = "1")
+  built <- whole_study_spec(skeleton, params, values, "each", nrep = 200)
+  expect_null(built$problems)
+  expect_identical(built$spec$population$group_d, list(Y = 0.4))
+  expect_null(built$spec$population$paths$`X->Y`)
+  expect_length(whole_study_check(built$spec), 0)
+  values$x_effect <- "path"
+  expect_match(paste(whole_study_spec(skeleton, params, values, "each", nrep = 200)$problems, collapse = " "), "Path X")
+  r <- list(group_d = list(Y = 0.4), found_paths = list(`X->Y` = 0.1987))
+  expect_match(whole_study_group_d_text(r), "path from X to Y (0.199) gives a Cohen's d of 0.4", fixed = TRUE)
 })

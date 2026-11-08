@@ -85,9 +85,9 @@ hotelling_inputs <- function(spec) {
     # the means from the fixed values.
     distance2 = as.numeric(t(difference) %*% solve(sigma, difference)),
     description = if (two) {
-      "stats::pf() (two-sample Hotelling's T-squared by its noncentral F distribution, Anderson, 2003, sections 5.3.4 and 5.4)"
+      "stats::pf() (two-sample Hotelling's T-squared by its noncentral F distribution)"
     } else {
-      "stats::pf() (one-sample Hotelling's T-squared by its noncentral F distribution, Anderson, 2003, section 5.4)"
+      "stats::pf() (one-sample Hotelling's T-squared by its noncentral F distribution)"
     }
   )
 }

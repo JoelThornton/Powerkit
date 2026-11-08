@@ -154,7 +154,10 @@ test_that("the methods map is drawn from the design finder and reaches every ana
   html <- as.character(map_ui(tree))
   expect_match(html, "Calculates in powerkit", fixed = TRUE)
   expect_match(html, "Not in powerkit yet", fixed = TRUE)
-  expect_match(html, "vendor/cytoscape.min.js", fixed = TRUE)
+  # The graph library is fetched when the map is first shown, not with the page.
+  expect_false(grepl("vendor/cytoscape.min.js", html, fixed = TRUE))
+  map_js_code <- paste(readLines(test_path("..", "..", "www", "methods-map.js")), collapse = "\n")
+  expect_match(map_js_code, "s.src = 'vendor/cytoscape.min.js'", fixed = TRUE)
   expect_true(grepl("pkMapOpen(&#39;E2&#39;)", html, fixed = TRUE) || grepl("pkMapOpen('E2')", html, fixed = TRUE))
   expect_match(html, "The map as a list", fixed = TRUE)
   expect_true(file.exists(file.path("..", "..", "www", "vendor", "cytoscape.min.js")) ||
@@ -217,8 +220,11 @@ test_that("plan from a published result: the engine converts and gives the safeg
   expect_length(out$problems, 0)
   expect_match(out$lines[1], "Converted: Cohen's d = 0.645, with the psych package's t2d(), by the formula in Lakens (2013).", fixed = TRUE)
   lower <- safeguard(convert("t", 2.5, "independent_t", df_error = 58)$value, "independent_t", n1 = 30, n2 = 30, protection = 0.8)$lower
-  expect_match(out$lines[2], sprintf("plan with Cohen's d = %s", format(round(lower, 3), nsmall = 2)), fixed = TRUE)
-  expect_match(out$lines[2], "for an 80% chance", fixed = TRUE)
+  # The cards' own safeguard sentence.
+  expect_match(out$lines[2], sprintf("the 60%% confidence interval around it, Cohen's d = %s", format(round(lower, 3), nsmall = 2)), fixed = TRUE)
+  expect_match(out$lines[2], "with 30 and 30 people in its two groups", fixed = TRUE)
+  # Read as repeated sampling, not as a probability about one interval.
+  expect_match(out$lines[2], "a bound found this way falls below the true effect 80% of the time", fixed = TRUE)
   expect_match(out$lines[3], "Published effects tend to be larger", fixed = TRUE)
   # Groups of different sizes enter the conversion: d = t sqrt(1/n1 + 1/n2).
   uneven <- published_result(list(pub_design = "independent_t", pub_from = "t", pub_value = "3", pub_df = "38",
@@ -238,6 +244,33 @@ test_that("plan from a published result: the engine converts and gives the safeg
   # A wide interval: no safeguard value, and the reason.
   wide <- published_result(list(pub_design = "correlation", pub_from = "as_is", pub_value = "0.1", pub_n = "20"), convert, safeguard)
   expect_match(wide$lines[1], "includes zero", fixed = TRUE)
+  # Impossible values are refused in words, not explained.
+  expect_match(published_result(list(pub_design = "correlation", pub_from = "as_is", pub_value = "1.5", pub_n = "100"), convert, safeguard)$problems,
+    "A correlation must be between -1 and 1", fixed = TRUE)
+  expect_match(published_result(list(pub_design = "oneway_between", pub_from = "as_is", pub_value = "1.2"), convert, safeguard)$problems,
+    "Partial eta-squared must be", fixed = TRUE)
+  # The degrees of freedom and the study's size must agree.
+  clash <- published_result(list(pub_design = "paired_t", pub_from = "t", pub_value = "2.5", pub_df = "29", pub_n = "300"), convert, safeguard)
+  expect_match(clash$problems, "The degrees of freedom (29) mean the published study had 30 pairs, but you entered 300.", fixed = TRUE)
+  expect_length(published_result(list(pub_design = "paired_t", pub_from = "t", pub_value = "2.5", pub_df = "29", pub_n = "30"), convert, safeguard)$problems, 0)
+  expect_match(published_df_problems("independent_t", "t", 58L, NA, 30L, 40L), "had 60 people, but you entered 70", fixed = TRUE)
+  # An ANOVA isn't asked for a protection it can't use.
+  html <- as.character(labs_ui(tree))
+  expect_match(html, "input.pub_design != &#39;oneway_between&#39;|input.pub_design != 'oneway_between'")
+})
+
+test_that("the smallest detectable effect panel checks its own boxes in its own words and keeps its source", {
+  expect_identical(labs_sde(forms, "E2", "2")$problems, "Enter the number of participants as a whole number, at least 4.")
+  expect_identical(labs_sde(forms, "E2", "abc")$problems, "Enter the number of participants as a whole number, at least 4.")
+  expect_match(labs_sde(forms, "E6", "60", rows = "1", cols = "3")$problems, "number of categories", fixed = TRUE)
+  expect_identical(labs_plain_problems("This design spec has a problem:\n* 'goal > n' is 2, but this design needs at least 4 participants."),
+    "The number of participants is 2, but this design needs at least 4 participants.")
+  calc <- labs_sde(forms, "E2", "40")
+  sde <- list(sentence = labs_sde_sentence(tree, calc, "0.8"), provenance = labs_provenance(calc))
+  expect_match(sde$sentence, "alpha = 0.05", fixed = TRUE)
+  doc <- labs_report(list(labs_study = "Smith 2010", labs_quality = "Small sample."), "go", sde, citation = "the paper")
+  expect_match(doc, "Calculated by powerkit's engine with the R package", fixed = TRUE)
+  expect_match(doc, "## Value assessment\n\n_(not answered)_", fixed = TRUE)
 })
 
 
@@ -373,7 +406,7 @@ test_that("Bayesian planning shows the engine's outcomes under the belief and wi
   expect_match(refusal, "^The sample size should be")
   expect_match(bayes_problem(simpleError("subscript out of bounds")), "something went wrong", fixed = TRUE)
   # With uncertainty about the effect, the chance is named assurance, with its source.
-  expect_match(text, "the study's assurance", fixed = TRUE)
+  expect_match(text, "the average power over your uncertainty", fixed = TRUE)
   expect_match(text, "O'Hagan", fixed = TRUE)
   expect_no_match(as.character(bayes_numbers(plan_of(120, effect = 0.5))), "assurance", fixed = TRUE)
 })
@@ -402,4 +435,104 @@ test_that("a sequential design shows how often the study stops each way, and its
   expect_match(refusal, "^The sample size should be")
   refusal <- tryCatch(seq_of(30, 60, threshold_null = 1), error = bayes_problem)
   expect_match(refusal, "^The threshold for no effect should be")
+})
+
+test_that("Labs, Updates and Feedback are rendered once, with the app's theme and their scripts", {
+  code <- paste(readLines(test_path("..", "..", "app.R")), collapse = "\n")
+  expect_match(code, "labs_tab <- prerender(labs_ui(tree))", fixed = TRUE)
+  expect_match(code, "whats_new_tab <- prerender(whats_new_ui(whats_new))", fixed = TRUE)
+  expect_match(code, "theme = app_theme,", fixed = TRUE)
+  # prerender() keeps the sliders' and menus' scripts and styles.
+  env <- new.env()
+  eval(parse(text = regmatches(code, regexpr("app_theme <- [^\n]+", code))), env)
+  eval(parse(text = sub("(?s).*(prerender <- function\\(x\\) \\{.*?\n\\})\n.*", "\\1", code, perl = TRUE)), env)
+  done <- env$prerender(labs_ui(tree))
+  deps <- vapply(htmltools::htmlDependencies(done), `[[`, "", "name")
+  expect_true(all(c("selectize", "ionrangeslider-javascript") %in% deps))
+  expect_match(as.character(done), "Open Methods map", fixed = TRUE)
+})
+
+# Labs' look and links (project review, 7 November 2026)
+
+test_that("every Labs tool opens with one header: its name and a notice saying what it is for and how far it is checked", {
+  for (tool in labs_tools) {
+    expect_true(nzchar(tool$purpose %||% "") && nzchar(tool$sure %||% ""), info = tool$id)
+    html <- as.character(labs_tool_head(tool$id))
+    expect_match(html, tool$title, fixed = TRUE)
+    expect_match(html, "Experimental. ", fixed = TRUE)
+    expect_match(html, "labs-back", fixed = TRUE)
+  }
+  html <- as.character(labs_ui(tree))
+  # The Labs heading and its lead belong to the menu, not to each tool.
+  expect_gt(regexpr("Labs (experimental)</h2>", html, fixed = TRUE), regexpr('data-display-if="!input.labs_tool"', html, fixed = TRUE))
+  expect_no_match(html, "Educational simulation|Experimental and not validated")
+  # The menu's description of the visualiser names all its tests.
+  picture <- Filter(function(t) t$id == "picture", labs_tools)[[1]]
+  expect_match(picture$text, "seven common tests", fixed = TRUE)
+})
+
+test_that("the visualiser says when a curve is cut off or rises at 0, and only then", {
+  skip_if(is.null(engine_function("power_picture_chisq")), "powerkit's engine isn't available here")
+  expect_null(picture_note(engine_function("power_picture")(64, 0.5)))
+  chisq <- engine_function("power_picture_chisq")(88, 0.3, df = 1)
+  expect_match(picture_note(chisq), "With 1 degree of freedom", fixed = TRUE)
+  expect_match(picture_note(chisq), "cut off", fixed = TRUE)
+  anova <- engine_function("power_picture_anova")(156, 0.25, k = 3)
+  expect_no_match(picture_note(anova) %||% "", "1 degree of freedom", fixed = TRUE)
+})
+
+test_that("Labs charts share the result page's style, with the key below the chart", {
+  skip_if(is.null(engine_function("power_picture")), "powerkit's engine isn't available here")
+  file <- tempfile(fileext = ".png")
+  grDevices::png(file, width = 360, height = 380)
+  on.exit(grDevices::dev.off())
+  expect_equal(chart_key_rows(4), 4)
+  expect_no_error(picture_plot(engine_function("power_picture")(64, 0.5)))
+  code <- paste(c(deparse(picture_plot), deparse(bayes_priors_plot), deparse(bayes_curves_plot), deparse(bayes_stops_plot),
+    deparse(study_variation_plot)), collapse = "\n")
+  expect_match(code, "chart_start", fixed = TRUE)
+  expect_no_match(code, 'legend("topright"', fixed = TRUE)
+  expect_no_match(code, "#2166ac", fixed = TRUE)
+})
+
+test_that("the methods map gives each test its own colour and shape", {
+  meta <- map_meta()
+  colours <- vapply(meta$tests, `[[`, "", "colour")
+  shapes <- vapply(meta$tests, function(t) t$shape %||% "", "")
+  expect_false(any(duplicated(colours)))
+  expect_false(any(duplicated(shapes)))
+  expect_true(all(nzchar(shapes)))
+  # Every key colour is far from every other (in RGB distance).
+  rgb <- grDevices::col2rgb(colours)
+  d <- as.matrix(stats::dist(t(rgb)))
+  expect_gt(min(d[upper.tri(d)]), 60)
+  expect_true(all(unlist(meta$endpoints) %in% names(meta$tests)))
+  # Long family names have short ones for the map's regions.
+  long <- Filter(function(f) nchar(f$label) > 40, tree$analysis_families)
+  expect_true(all(vapply(long, function(f) !is.null(f$short), logical(1))))
+})
+
+test_that("common results link to the visualiser and 1,000 studies at their own settings", {
+  skip_if(is.null(engine_function("run_spec")), "needs powerkit's engine")
+  run <- engine_function("run_spec")
+  calc_for <- function(ep, change = list()) {
+    fields <- unlist(lapply(form_groups(forms, ep, 2L, list()), `[[`, "fields"), recursive = FALSE)
+    values <- utils::modifyList(form_examples[[ep]], change)
+    run_calculation(build_spec(forms, ep, fields, values), run = run, seed = forms$default_seed)
+  }
+  two <- calc_for("E2", list(goal = "power", n = "100", d = "0.4", method = "student_t"))
+  pic <- labs_picture_settings(two$spec, two$result)
+  expect_identical(pic$design, "t")
+  expect_equal(pic$sliders, list(picture_n = 100, picture_d = 0.4))
+  expect_identical(pic$alpha, "0.05")
+  expect_equal(labs_variation_settings(two$spec, two$result)$n, 100)
+  html <- as.character(labs_learn_ui(two$spec, two$result))
+  expect_match(html, "learn_picture", fixed = TRUE)
+  expect_match(html, "learn_variation", fixed = TRUE)
+  r <- calc_for("E4", list(goal = "power", n = "84", r = "0.3"))
+  expect_identical(labs_picture_settings(r$spec, r$result)$design, "r")
+  expect_null(labs_variation_settings(r$spec, r$result))
+  # A design the visualiser doesn't draw gets no link.
+  anova <- calc_for("E18")
+  expect_null(labs_learn_ui(anova$spec, anova$result))
 })

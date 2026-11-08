@@ -31,10 +31,18 @@ class PublishingTests(unittest.TestCase):
             run(source, "remote", "add", "origin", str(origin)); run(source, "push", "origin", "main")
             previous = None
             try:
-                for i in (1, 2):
+                # 1: main tracks a manifest (as it did before 8 November 2026);
+                # 2: main stops tracking it and ignores it; 3: main without it.
+                for i in (1, 2, 3):
                     if i == 2:
                         (source / "app/routing/app.R").write_text("checked source two")
+                        run(source, "rm", "-q", publisher.MANIFEST)
+                        (source / ".gitignore").write_text(publisher.MANIFEST + "\n")
+                        run(source, "add", ".gitignore")
                         run(source, "commit", "-am", "Next checked source"); run(source, "push", "origin", "main")
+                    if i == 3:
+                        (source / "app/routing/app.R").write_text("checked source three")
+                        run(source, "commit", "-am", "Third checked source"); run(source, "push", "origin", "main")
                     head = run(source, "rev-parse", "HEAD")
                     clone = folder / f"runner{i}"
                     subprocess.run(["git", "clone", "--branch", "main", str(origin), str(clone)], check=True, capture_output=True)
@@ -43,7 +51,7 @@ class PublishingTests(unittest.TestCase):
                     os.chdir(clone)
                     record = {"packages": {"powerkit": {"description": {"RemoteSha": head}}}}
                     Path(publisher.MANIFEST).write_text(json.dumps(record))
-                    if i == 2:
+                    if i >= 2:
                         old = run(source, "rev-parse", "HEAD^")
                         record["packages"]["powerkit"]["description"]["RemoteSha"] = old
                         Path(publisher.MANIFEST).write_text(json.dumps(record))
@@ -52,7 +60,9 @@ class PublishingTests(unittest.TestCase):
                         record["packages"]["powerkit"]["description"]["RemoteSha"] = head
                         Path(publisher.MANIFEST).write_text(json.dumps(record))
                     published = publisher.prepare(head)
-                    self.assertEqual(Path("app/routing/app.R").read_text(), f"checked source {'one' if i == 1 else 'two'}")
+                    self.assertEqual(Path("app/routing/app.R").read_text(), f"checked source {['one', 'two', 'three'][i - 1]}")
+                    self.assertEqual(json.loads(Path(publisher.MANIFEST).read_text()), {"packages": {"powerkit": {"description": {"RemoteSha": head}}}})
+                    self.assertEqual(run(clone, "ls-files", publisher.MANIFEST), publisher.MANIFEST)
                     if previous:
                         run(clone, "merge-base", "--is-ancestor", previous, published)
                     run(clone, "diff", "--exit-code", head, "HEAD", "--", ".", f":(exclude){publisher.MANIFEST}")

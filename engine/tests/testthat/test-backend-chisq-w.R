@@ -68,3 +68,14 @@ test_that("the exported scripts reproduce the result from Cohen's w", {
     expect_script_reproduces_power(spec, run_spec(spec))
   }
 })
+
+test_that("proportions given as exact fractions are rescaled for pwrss, not refused", {
+  spec <- example_spec("chi_square_gof")
+  spec$population$probabilities <- list(1 / 6, 1 / 6, 2 / 3)
+  spec$goal <- list(type = "power", n = 120L)
+  r <- run_spec(spec)
+  expect_true(r$curve$power > 0 && r$curve$power < 1)
+  rounded <- spec
+  rounded$population$probabilities <- list(1 / 6, 1 / 6, 1 - 2 / 6)
+  expect_equal(run_spec(rounded)$curve$power, r$curve$power, tolerance = 1e-10)
+})

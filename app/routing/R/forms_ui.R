@@ -70,6 +70,25 @@ field_ui <- function(f, value, described_by = character()) {
   document.addEventListener('input', update); document.addEventListener('change', update);
   setTimeout(update, 0);
 })();", jsonlite::toJSON(paste0("f_", unlist(f$range_reading))), id, id))))
+  # Choices offered only with some other answers (`choices_shown_if`):
+  # hidden in the browser as the other answers change, and refused by
+  # form_problems() if chosen anyway.
+  if (!is.null(f$choices_shown_if)) field <- tagList(field, tags$script(HTML(sprintf("(function() {
+  var id = '%s', rules = %s;
+  function update() {
+    var el = document.getElementById(id); if (!el || !window.Shiny || !Shiny.shinyapp) return;
+    var input = Shiny.shinyapp.$inputValues;
+    Array.prototype.forEach.call(el.options, function(o) {
+      if (!(o.value in rules)) return;
+      var ok = true; try { ok = (new Function('input', 'return ' + rules[o.value]))(input); } catch (e) {}
+      o.hidden = !ok; o.disabled = !ok;
+      if (!ok && el.value === o.value) { el.value = ''; el.dispatchEvent(new Event('change', {bubbles: true})); }
+    });
+  }
+  document.addEventListener('change', function() { setTimeout(update, 0); });
+  document.addEventListener('shiny:connected', update);
+  setTimeout(update, 0);
+})();", id, jsonlite::toJSON(lapply(f$choices_shown_if, function(cond) shown_if_js(list(shown_if = cond))), auto_unbox = TRUE)))))
   # A note for each choice that needs one, shown when it is chosen (the
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
@@ -209,8 +228,6 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(paste0("Your values: ", ep$plain_name)),
     p(class = "lead", "Everything is needed unless it says optional."),
-    div(class = "mb-3", download_button("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary btn-sm"),
-      p(class = "hint", "Save your answers, including blanks. No calculation or effect-size justification is needed. Reopen the downloaded file from the start screen.")),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), ep$validation$note),
     carried,
@@ -223,6 +240,10 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
       actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
       actionButton("form_check", "Check my answers", class = "btn btn-primary")
     ),
+    # Saving a draft is a secondary action, so it sits after the fields
+    # rather than above them.
+    div(class = "form-draft-save mt-3", download_button("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary"),
+      p(class = "hint", "Not finished? Save your answers, including blanks. No calculation or effect-size justification is needed. Reopen the downloaded file from the start screen.")),
     div(id = "copy-status", class = "visually-hidden", `aria-live` = "polite"),
     uiOutput("form_copy_text"),
     uiOutput("form_result")
@@ -248,11 +269,11 @@ form_result_ui <- function(ep, local_problems, check, spec = NULL) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
       h3(class = "h5", "powerkit's checker found a problem"),
       tags$ul(lapply(check$problems, tags$li)),
-      p(class = "small", "These messages come from powerkit's engine (validate_spec()).")))
+      p(class = "small", "These messages come from powerkit's engine, which checks every design before calculating it.")))
   }
   div(class = "engine-placeholder not-wired", role = "status", tabindex = "-1",
     h3(class = "h5", "Calculation not wired in yet"),
-    p("Your answers make a valid design spec: powerkit's checker (validate_spec()) accepted it. The calculation for this design isn't wired into the prototype yet; in the full app this spec would go to powerkit's engine."),
+    p("Your answers make a valid design spec: powerkit's checker accepted it. The calculation for this design isn't wired into the prototype yet; in the full app this spec would go to powerkit's engine."),
     if (length(check$advice)) tagList(p(tags$strong("Notes from the checker:")), tags$ul(lapply(check$advice, tags$li))),
     tags$details(tags$summary("The checked design spec (JSON)"), tags$pre(class = "spec-json", spec_json(spec)))
   )
@@ -296,8 +317,14 @@ form_section <- function(g) {
   if (identical(g$title, "Assumptions and named alternatives")) return("scenarios")
   # Choosing the estimate changes the scientific question, even when it
   # starts at a default. Keep it visible before its conditional inputs.
-  if (any(c("estimate", "research_question") %in% ids)) return("study")
+  # The scientific question only labels the planning document, so it folds
+  # away below the study's section (8 November 2026).
+  if ("research_question" %in% ids) return("question")
+  if ("estimate" %in% ids) return("study")
   if ("guess" %in% ids) return("guess")
+  # Which test you'll run is in view on every card that offers more than
+  # one (8 November 2026), never folded into Settings.
+  if (length(g$fields) && identical(g$fields[[1]]$label, "Test version") && length(g$fields[[1]]$choices) > 1) return("study")
   if ("just_type" %in% ids || any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) return("effect")
   starts_set <- vapply(g$fields, function(f) !is.null(f[["default"]]) || isTRUE(f$optional), logical(1))
   if (length(ids) && all(starts_set) && !"n_mediators" %in% ids) return("settings")
@@ -355,6 +382,8 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     div(class = "form-section", h3(class = "h5 form-section-title", "1. Your goal"), part("goal")),
     planning_decision_ui(form),
     if (any(section == "study")) div(class = "form-section", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
+    if (any(section == "question")) tags$details(class = "form-question", open = if (nzchar(values$research_question %||% "")) NA,
+      tags$summary("Your scientific question, for the planning document (optional)"), part("question")),
     div(class = "form-section form-section-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
       effect_unsure_ui(form),
       effect_waits_ui(form, groups),
@@ -464,7 +493,7 @@ effect_unsure_ui <- function(form) {
   if (isTRUE(form$sensitivity_without_effect)) {
     return(div(class = "effect-unsure",
       tags$strong("Don't know what effect to expect? "), "That's common. Tell powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough.",
-      div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
+      div(tags$button(type = "button", class = "btn btn-outline-primary mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
   }
   if (isTRUE(form$sensitivity)) {
     return(div(class = "effect-unsure",
@@ -513,9 +542,11 @@ effect_help_ui <- function(form, groups) {
       tags$dd("Start in your measure's own units: the smallest difference that would matter for your theory or in practice (for example, 3 points on a questionnaire). ", convert,
         " Choose \u201cThe smallest effect that would matter\u201d as the source and say why that difference matters."),
       tags$dt("A meta-analysis"),
-      tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate, say which estimate you took, and why. Choose \u201cA meta-analysis\u201d as the source."),
+      tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate, say which estimate you took, and why. Pooled estimates are inflated by publication bias too, so prefer one adjusted for bias where the meta-analysis reports it (Carter, Sch\u00f6nbrodt, Gervais & Hilgard, 2019). Choose \u201cA meta-analysis\u201d as the source."),
       tags$dt("One previous study"),
       tags$dd("A single published effect tends to be larger than the true one, so reduce it and say how; powerkit asks you to. Choose \u201cA previous study\u201d as the source."),
+      tags$dt("A pilot study"),
+      tags$dd("A pilot is for checking that the study can be run, not for finding the effect: its estimate is very uncertain, and planning only after a promising pilot makes the plan too small on average (Albers & Lakens, 2018). If you use it anyway, plan for a smaller effect (the safeguard value, where this screen offers it) and say how. Choose \u201cA pilot study\u201d as the source."),
       unsure))
 }
 

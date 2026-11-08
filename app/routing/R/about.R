@@ -76,7 +76,7 @@ about_credit_ui <- function(tool) {
 about_endpoint_how <- function(forms) {
   instant <- unlist(forms$calculates)
   sims <- forms$simulations$endpoints %||% list()
-  background <- names(forms$background %||% list())
+  background <- c(names(forms$background %||% list()), names(forms$simulated_times %||% list()))
   how <- c(
     stats::setNames(ifelse(instant %in% background, "background", "now"), instant),
     vapply(sims, function(s) if ("power" %in% unlist(s$full_run)) "full" else "script", "")
@@ -161,8 +161,8 @@ about_ui <- function(tree, forms) {
       tags$nav(class = "about-toc", `aria-label` = "On this page",
         tags$a(href = "#about-how", "How it works"),
         tags$a(href = "#about-plans", "What it can plan"),
-        tags$a(href = "#about-capabilities", "Capabilities and checks"),
         tags$a(href = "#about-trust", "Can you trust it?"),
+        tags$a(href = "#about-capabilities", "Capabilities and checks"),
         tags$a(href = "#about-feedback", "Feedback"),
         tags$a(href = "#about-credits", "Credits"))),
 
@@ -179,11 +179,11 @@ about_ui <- function(tree, forms) {
         "Start planning")),
 
     about_section("about-plans", "What it can plan",
-      p(sprintf("%d of the %d analyses calculate in the app. Click one to plan it. ", length(how), length(tree$endpoints)),
+      # Counted as the methods map counts them: the analyses in the
+      # families, without the "not sure" card.
+      p(sprintf("%d of the %d analyses calculate in the app. Click one to plan it. ", length(how), length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))),
         "The other cards say which analysis fits a study and point to a tool that does it."),
       about_plans_ui(tree, forms)),
-
-    about_section("about-capabilities", "Capabilities and checks", capabilities_ui(tree, forms)),
 
     about_section("about-trust", "Can you trust it?",
       div(class = "about-cards",
@@ -211,6 +211,8 @@ about_ui <- function(tree, forms) {
             tags$li(tags$strong("It doesn't replace a statistician for unusual designs. "), "If no card fits your study, ",
               "or a card gives guidance only, ask someone who knows your design."))))),
 
+    about_section("about-capabilities", "Capabilities and checks", capabilities_ui(tree, forms)),
+
     about_section("about-feedback", "Reporting a problem or giving feedback",
       div(class = "about-card about-feedback",
         p(HTML(paste0(
@@ -218,7 +220,9 @@ about_ui <- function(tree, forms) {
           "It fills in where you are in powerkit for you and shows the whole message before you send it. ",
           "Every card also has a <strong>Something doesn&#39;t fit?</strong> link at the bottom that leads there."))),
         p(class = "about-small", "Nothing is sent from this app without you: the only thing it ever sends is a feedback message, ",
-          "when you click Send, including the optional answers and browser information disclosed on the Feedback tab. Calculations use your answers where this app is running: on the host for the online app, or on your computer for a local installation."),
+          "when you click Send, including the optional answers and browser information disclosed on the Feedback tab. Calculations use your answers where this app is running: on the host for the online app, or on your computer for a local installation. ",
+          "This browser keeps the answers on an input screen you haven't finished, the analyses you opened recently and a few display choices, so that you can carry on next time; they stay in this browser and are not sent anywhere. ",
+          "On a shared computer, choose Start fresh when asked whether to continue (it deletes the saved answers), or clear this site's data in your browser's settings to remove everything."),
         tags$button(type = "button", class = "btn btn-outline-primary", onclick = "pkAboutTab('Feedback')", "Give feedback"))),
 
     about_section("about-credits", "Credits",
@@ -394,3 +398,22 @@ whats_new_js <- "
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 "
+
+# The About page is large (the capability table above all) and took 6 to 7
+# seconds to build. Built in the app's own process, it froze the first
+# visitor's first click after every restart (measured 7 November 2026), so
+# it is built in a separate R process that loads the app's helpers, and
+# written to `out_dir` as about.html (under a temporary name, then renamed,
+# so the browser never fetches half a file).
+about_build_worker <- function(routing_dir, out_dir) {
+  setwd(routing_dir)
+  suppressPackageStartupMessages(library(shiny))
+  env <- new.env()
+  for (f in sort(list.files("R", pattern = "[.]R$", full.names = TRUE))) sys.source(f, envir = env)
+  tree <- env$load_tree("tree.yaml")
+  forms <- env$load_forms("forms.yaml")
+  html <- as.character(env$about_ui(tree, forms))
+  part <- file.path(out_dir, "about.part")
+  writeLines(html, part, useBytes = TRUE)
+  file.rename(part, file.path(out_dir, "about.html"))
+}

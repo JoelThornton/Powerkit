@@ -224,8 +224,10 @@ test_that("the check run catches cells put in the wrong place", {
 test_that("features without a backend yet give a plain-English error", {
   spec <- sim_spec("correlation", goal = list(type = "sensitivity", n = 100, power = 0.8))
   expect_error(run_quietly(spec), "isn't available yet", class = "powerkit_not_available")
-  # The example PROCESS model 7 spec has a binary X and an unreliable W.
-  expect_error(run_spec(example_spec("process_7")), "aren't available yet", class = "powerkit_not_available")
+  # Measurement error isn't offered for moderated mediation yet.
+  unreliable <- example_spec("process_7")
+  unreliable$variables$W$reliability <- 0.85
+  expect_error(run_spec(unreliable), "aren't available yet", class = "powerkit_not_available")
 })
 
 test_that("the exact method is refused for designs that don't support it", {

@@ -90,11 +90,11 @@ export_whole_study_script <- function(spec, file = NULL, run_time = NULL) {
     "",
     "# Run it ----",
     "result <- run_whole_study(spec_json)",
-    "print(result)",
     "",
-    "# Save the result and the citations ----",
+    "# Save the result and the citations first, so a long run is never lost ----",
     "saveRDS(result, \"powerkit-whole-study-result.rds\")",
     "export_citations(result, format = \"text\", file = \"powerkit-citations.txt\")",
+    "print(result)",
     "",
     "sessionInfo()"
   )

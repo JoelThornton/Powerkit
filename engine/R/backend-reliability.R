@@ -106,13 +106,6 @@ cronbach_power <- function(inputs, n) {
   stats::pnorm(sqrt(max(n - 2, 0) * (r - 1) / (2 * r)) * abs(log(e)) - z_a)
 }
 
-# statpsych's sample size for a power (two-sided alpha as statpsych takes
-# it; a one-sided test is the two-sided one at twice alpha).
-cronbach_size <- function(inputs, power) {
-  alpha <- if (inputs$one_sided) 2 * inputs$alpha else inputs$alpha
-  unname(statpsych::size.test.cronbach(alpha, power, inputs$value, inputs$items, inputs$null)[1, 1])
-}
-
 # kappaSize's sample size (not rounded) for a power.
 kappa_size <- function(inputs, power) {
   fun <- getExportedValue("kappaSize", kappa_function_name(length(inputs$proportions)))

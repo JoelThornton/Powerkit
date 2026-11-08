@@ -58,7 +58,9 @@ settings:
     ref: "Judgement call 3.2; open question 5"
     question: "Should small / medium / large benchmarks be shown, even as context? Should bias-corrected planning (e.g. BUCSS) be offered?"
     options: {hide: "Don't show benchmarks", context: "Show as context only, never as defaults", bucss: "Show as context, and offer bias-corrected planning"}
-    value: null
+    # Decided 8 November 2026: no small/medium/large labels anywhere in the
+    # help; bias-corrected planning stays a separate question.
+    value: hide
     shown_at: [card]
   - key: one_sided_tests
     ref: "Judgement call 3.3; open question 5"
@@ -438,7 +440,14 @@ nodes:
       - {label: "That an effect depends on something else (moderation)", next: q2_mod, help: "e.g. daily stress harms sleep less for people with more social support."}
       - {label: "That an effect works through something else (mediation)", next: q2_med, help: "e.g. a self-affirmation task reduces defensiveness, which makes people more willing to change."}
       - {label: "Both: it works through something, and part of that depends on something else", next: q2_modmed, help: "Moderated mediation."}
-      - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1,
+      - {label: "Something else: the spread of scores, a questionnaire's structure or fit, item bias, signal detection, or types of people", next: q1_more,
+         help: "Spread of scores (variance tests), structural equation models, differential item functioning, signal detection (d'), exploratory factor analysis and latent profiles."}
+  q1_more:
+    doc_id: Q1b
+    text: "Which of these is closest to what you want to show?"
+    help: "Less common aims, each with its own analysis."
+    options:
+      - {label: "That scores are more spread out (or more consistent) in one group than another, or than a fixed value", next: v1_by_times,
          when: {outcome: score, times: [once, twice]}, help: "e.g. reaction times are more consistent after training. This is about how much scores vary, not their average."}
       - {label: "Something about latent variables: that a model or questionnaire structure fits, that a questionnaire measures the same in two groups, or a path between factors (SEM)", next: E37}
       - {label: "That a test's items work the same way in two groups (differential item functioning, in item response theory)", next: E71, help: "e.g. whether the items of a reading test are equally hard in its English and Spanish versions, for people of the same ability."}
@@ -451,23 +460,32 @@ nodes:
     doc_id: Q2
     text: "What is your outcome like? (answered by S1)"
     branch_on: outcome
-    routes: {score: f1, yesno: q3_cat, count: q3_count, ordinal: q3_ord}
+    routes: {score: f1, yesno: q3_cat_by_times, count: q3_count, ordinal: q3_ord}
   f1:
     doc_id: F1
     text: "How many things did you vary or compare?"
     help: "Each thing you vary is called a factor (for example 'condition' or 'time')."
     options:
-      - {label: "One", next: f2}
-      - {label: "Two, crossed (every combination appears)", next: f3}
+      - {label: "One", next: f2_by_times}
+      - {label: "Two, each with exactly two levels (a 2 x 2 design)", next: f4,
+         help: "Crossed: every combination appears, for example two conditions for both younger and older people."}
+      - {label: "Two, crossed, at least one with three or more levels", next: f3a_by_times,
+         help: "For example two groups each measured at three timepoints."}
       - {label: "Three, crossed (every combination appears)", next: E56}
       - {label: "Four or more", next: E-unsure}
+  # Questions with one possible answer for the screening's "times" are
+  # skipped: these automatic nodes go straight on.
+  f2_by_times:
+    doc_id: F2
+    text: "How many groups or conditions? (answered by S3 when the people are measured twice)"
+    branch_on: times
+    routes: {once: f2, twice: E3, many_conditions: f2a}
   f2:
     doc_id: F2
     text: "How many groups or conditions?"
     options:
       - {label: "One group, compared with a fixed value", next: E1, when: {times: once}}
       - {label: "Two, with different people in each", next: E2, when: {times: once}}
-      - {label: "Two, with the same people in both (or one group measured twice)", next: E3, when: {times: twice}}
       - {label: "Three or more", next: f2a, when: {times: [once, many_conditions]}}
       - {label: "One group, its several outcomes compared with fixed values at once", next: E60, when: {times: once},
          help: "e.g. a clinic sample's anxiety, depression and stress compared with the scales' published norms together (one-sample Hotelling's T-squared)."}
@@ -484,12 +502,11 @@ nodes:
       - {label: "A steady rise or fall across groups in a set order (e.g. doses, age bands)", next: E64, when: {times: once},
          help: "Tested on ranks (the Jonckheere-Terpstra test). For a planned trend in the means, such as a linear contrast, choose a specific comparison instead."}
       - {label: "Any difference among the conditions", next: E54, when: {times: many_conditions}}
-  f3:
-    doc_id: F3
-    text: "Does each factor have exactly two levels?"
-    options:
-      - {label: "Yes: 2 x 2", next: f4}
-      - {label: "No: at least one factor has three or more", next: f3a}
+  f3a_by_times:
+    doc_id: F3a
+    text: "For each factor: did different people get each level? (answered by S3 unless people did three or more conditions)"
+    branch_on: times
+    routes: {once: E21, twice: E55, many_conditions: f3a}
   f3a:
     doc_id: F3a
     text: "For each factor: did different people get each level, or did everyone get every level?"
@@ -500,11 +517,10 @@ nodes:
       - {label: "Both factors: everyone got every level", next: E20, when: {times: many_conditions}}
   f4:
     doc_id: F4
-    text: "For each factor: did different people get each level, or did everyone get both?"
-    options:
-      - {label: "Both factors: different people", next: f4a_between, when: {times: once}}
-      - {label: "One factor different people, the other everyone got both", next: f4a_mixed, when: {times: twice}}
-      - {label: "Both factors: everyone got both", next: E20, when: {times: many_conditions}}
+    text: "For each factor: did different people get each level, or did everyone get both? (answered by S3)"
+    help: "Measured once: different people in every group. Twice: one factor between people, the other within. Three or more conditions: everyone got every combination."
+    branch_on: times
+    routes: {once: f4a_between, twice: f4b, many_conditions: E20}
   f4a_between:
     doc_id: F4a
     text: "Will the groups be equal in size?"
@@ -530,16 +546,10 @@ nodes:
       - {label: "The lines cross (the effect reverses)", next: E7}
       - {label: "One effect shrinks", next: E7}
       - {label: "One effect disappears", next: E7}
-  f4a_mixed:
-    doc_id: F4a
-    text: "Will the groups be equal in size?"
-    help: "Superpower's simulation can't take groups of different sizes when one factor is within participants, so powerkit can't plan for them yet."
-    options:
-      - {label: "Yes: the same number in every group", next: f4b}
-      - {label: "No: the groups will differ in size", next: E-unsure}
   f4b:
     doc_id: F4b
     text: "Is the within-participants factor a 'before and after' measurement?"
+    help: "The groups may be the same size or differ: the cards take either (the mixed ANOVA simulates groups of different sizes; the ANCOVA calculates them by formula). You enter the sizes on the card."
     options:
       - {label: "Yes: before and after", next: pp1}
       - {label: "No: another within-participants condition", next: f5_mixed}
@@ -548,12 +558,19 @@ nodes:
     text: "Were people randomly assigned to the groups?"
     help: "This decides whether to compare the after scores adjusting for the before scores (ANCOVA) or to test the group by time interaction."
     options:
-      - {label: "Yes, randomly assigned", next: pp2, help: "With randomised groups, ANCOVA is usually more powerful than the mixed interaction."}
+      - {label: "Yes, randomly assigned", next: pp2_random}
       - {label: "No, the groups already existed or chose themselves", next: pp2, help: "Without random assignment, the two analyses can answer different questions (Lord's paradox). Neither is right by default."}
+  pp2_random:
+    doc_id: PP2
+    text: "Which analysis do you plan to use?"
+    help: "With randomised groups, ANCOVA is the recommended analysis: it has more power than the mixed interaction and is unbiased, because randomisation makes the groups equal at baseline on average. The group x time interaction stays available if you have to use it."
+    options:
+      - {label: "ANCOVA: the after score, adjusting for the before score (recommended)", next: E23}
+      - {label: "The 2 x 2 mixed ANOVA interaction (group x time)", next: f6_mixed}
   pp2:
     doc_id: PP2
     text: "Which analysis do you plan to use?"
-    help: "Researchers disagree about this, so we ask rather than choose for you."
+    help: "Without random assignment the two analyses can answer different questions (Lord's paradox), so we ask rather than choose for you."
     options:
       - {label: "ANCOVA: the after score, adjusting for the before score", next: E23}
       - {label: "The 2 x 2 mixed ANOVA interaction (group x time)", next: f6_mixed}
@@ -571,6 +588,11 @@ nodes:
       - {label: "The lines cross (the effect reverses)", next: E8}
       - {label: "One effect shrinks", next: E8}
       - {label: "One effect disappears", next: E8}
+  q3_cat_by_times:
+    doc_id: Q3
+    text: "Who gives the data? (answered by S3 when the same people are measured more than once)"
+    branch_on: times
+    routes: {once: q3_cat, twice: E26, many_conditions: E26}
   q3_cat:
     doc_id: Q3
     text: "Who gives the data?"
@@ -585,6 +607,11 @@ nodes:
       - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
 
   # How much scores vary -----------------------------------------------------
+  v1_by_times:
+    doc_id: V1
+    text: "Whose spread of scores are you comparing? (answered by S3 when the same people are measured twice)"
+    branch_on: times
+    routes: {once: v1, twice: E57}
   v1:
     doc_id: V1
     text: "Whose spread of scores are you comparing?"
@@ -649,7 +676,21 @@ nodes:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
     branch_on: times
-    routes: {once: mo1, twice: E41, many_conditions: E41}
+    routes: {once: mo1, twice: mo_within, many_conditions: mo_within}
+  # Measured more than once, "depends on" is often a factorial experiment
+  # (group x condition, group x time), or a moderated treatment effect in
+  # a before/after trial; only relationships measured within people need a
+  # multilevel model.
+  mo_within:
+    doc_id: MO0
+    text: "What are the two things whose combination matters?"
+    help: "X is the predictor whose effect depends on something; W is what it depends on (the moderator)."
+    options:
+      - {label: "Both are groups or conditions (for example, the emotion effect is bigger in the clinical group, or the treatment group improves more over time)", next: f1,
+         help: "A factorial design: the interaction in a mixed or repeated-measures ANOVA."}
+      - {label: "A treatment or group, and a measured score, with the outcome measured before and after", next: E24, when: {times: twice},
+         help: "e.g. the treatment works better for people with more social support. Tested as the X x W product in a regression on the after score that adjusts for the before score."}
+      - {label: "Things measured within each person (for example, daily stress and sleep in a diary study)", next: E41}
   mo1:
     doc_id: MO1
     text: "What is your main predictor (X)?"
@@ -692,7 +733,7 @@ nodes:
   me1:
     doc_id: ME1
     text: "What is the cause (X)?"
-    help: "The M -> Y path is not randomised, even when X is manipulated."
+    help: "Even when you assign X, the go-between (mediator) isn't assigned, so its effect on the outcome is observational."
     refs: "decision D9"
     options:
       - {label: "Two conditions you assigned, or two groups", next: me4_xbin}
@@ -700,7 +741,7 @@ nodes:
       - {label: "Three or more conditions or groups", next: E42}
   me4_xbin:
     doc_id: ME4
-    text: "Are your mediators scores?"
+    text: "Is each go-between (mediator) a score?"
     options:
       - {label: "Yes", next: me2_xbin}
       - {label: "No, at least one is yes/no or a category", next: E39}
@@ -720,7 +761,7 @@ nodes:
       - {label: "In a chain: X affects the first, which affects the next", next: E12}
   me4:
     doc_id: ME4
-    text: "Are your mediators scores?"
+    text: "Is each go-between (mediator) a score?"
     options:
       - {label: "Yes", next: me2}
       - {label: "No, at least one is yes/no or a category", next: E39}
@@ -900,7 +941,9 @@ endpoints:
     bayes_test: true
     doc_name: "One-sample t-test"
     plain_name: "Compare one group's average with a fixed value"
-    search_words: "one sample t test"
+    search_words: "one sample t test cohen's d effect size sequential bayes factor optional stopping"
+    card_points:
+      - "Planning to stop collecting data once the evidence is clear? Choose the Bayes factor t-test: its result offers a sequential plan (check as you go, with a maximum sample size)."
     template: "basic_test / one_sample_t"
     backend: "pwr: pwr.t.test() (Spower simulation if you choose it); Spower's p_wilcox.test() for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() with a margin for the minimum-effect test"
     method: "Formula (no simulation); simulation for the Wilcoxon signed-rank test"
@@ -915,7 +958,9 @@ endpoints:
     bayes_test: true
     doc_name: "Independent-samples t-test (Student's; Welch's as an option)"
     plain_name: "Compare two separate groups on a score"
-    search_words: "two sample t test unpaired welch student"
+    search_words: "two sample t test unpaired welch student between-subjects between subjects independent groups cohen's d effect size mann-whitney wilcoxon rank-sum rank sum sequential bayes factor optional stopping"
+    card_points:
+      - "Planning to stop collecting data once the evidence is clear? Choose the Bayes factor t-test: its result offers a sequential plan (check as you go, with a maximum sample size)."
     template: "basic_test / independent_t"
     backend: "pwr: pwr.t.test() (pooled SD), or pwr.t2n.test() for unequal groups (Spower simulation for Welch's test, or if you choose it; pwrss's power.t.welch() for Welch's test by formula, if you choose it); Spower's p_wilcox.test() for the Mann-Whitney test; Spower with brunnermunzel's brunnermunzel.test() for the Brunner-Munzel test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() with a margin for the minimum-effect test"
     method: "Formula (no simulation)"
@@ -930,7 +975,10 @@ endpoints:
     bayes_test: true
     doc_name: "Paired-samples t-test"
     plain_name: "Compare the same people in two conditions (or before and after)"
-    search_words: "dependent t test within subjects before after pre post repeated measures"
+    search_words: "dependent t test within subjects within-subjects before after pre post repeated measures cohen's d_z effect size crossover cross-over ab/ba counterbalanced counterbalancing sequential bayes factor optional stopping"
+    card_points:
+      - "A crossover (AB/BA) or counterbalanced study, where each person does both conditions in one of two orders, is planned here: enter d_z for the difference between the conditions. Analysed with the order as a factor, to allow for a period effect, the test uses the same within-person differences with one degree of freedom fewer, so this card's answer is a close approximation. A card for crossover designs is planned."
+      - "Planning to stop collecting data once the evidence is clear? Choose the Bayes factor t-test: its result offers a sequential plan (check as you go, with a maximum sample size)."
     template: "basic_test / paired_t"
     backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it); Spower's p_wilcox.test(type = 'paired') for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() with a margin for the minimum-effect test"
     method: "Formula (no simulation); simulation for the Wilcoxon signed-rank test"
@@ -961,7 +1009,7 @@ endpoints:
     plain_name: "Compare two groups on a yes/no outcome"
     search_words: "two proportions fisher exact"
     template: "basic_test / two_proportions"
-    backend: "The z test as in G*Power, no continuity correction: base R's power.prop.test() for equal groups, pwrss for unequal groups (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher(); the Bayes factor test if you choose it: BayesFactor's contingencyTableBF() (JASP's default contingency table Bayes factor), summed exactly over every possible table"
+    backend: "base R's power.prop.test() for equal groups and pwrss for unequal groups, by the z test as in G*Power with no continuity correction (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher(); the Bayes factor test if you choose it: BayesFactor's contingencyTableBF() (JASP's default contingency table Bayes factor), summed exactly over every possible table"
     refs: "Departures 5, 9, 11 and 15, Known difference 13 (docs/conventions.md)"
     method: "Formula (no simulation)"
     inputs: ["Names of the groups and the outcome", "The expected proportion of 'yes' in each group", "The size of group 2 relative to group 1", "The z test, Fisher's exact test or a Bayes factor test"]
@@ -992,7 +1040,7 @@ endpoints:
     rank_test_simulated: true
     doc_name: "2 x 2 between-participants ANOVA (main effect or interaction)"
     plain_name: "Two factors crossed, different people in each of the four groups"
-    search_words: "factorial two way anova"
+    search_words: "factorial two way anova between-subjects between subjects 2x2"
     template: "factorial_anova / 2x2_between"
     backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
@@ -1006,7 +1054,10 @@ endpoints:
     rank_test_simulated: true
     doc_name: "2 x 2 mixed ANOVA (incl. group × time)"
     plain_name: "One factor between people, one within (including group x time)"
-    search_words: "repeated measures split plot group by time pre post two way anova"
+    search_words: "repeated measures split plot group by time pre post two way anova mixed design between within 2x2 crossover counterbalanced"
+    card_points:
+      - "Unequal groups are simulated (Spower, with afex fitting each ANOVA); equal groups are calculated exactly."
+      - "A crossover (AB/BA) with the order as the between factor is usually planned on the paired t-test card: the condition effect is tested on each person's difference between the conditions, adjusted for order. A card for crossover designs is planned."
     template: "factorial_anova / 2x2_mixed"
     backend: "Superpower: ANOVA_exact(); for unequal groups, a Spower simulation analysed with afex's aov_car(); Spower with ARTool's art() and artlm() for the aligned rank transform"
     refs: "Departure 2 (ANOVA_exact(), not ANOVA_exact2(); docs/conventions.md)"
@@ -1022,7 +1073,7 @@ endpoints:
     template: "regression_interaction / two_way"
     backend: "InteractionPoweR: power_interaction() (power_interaction_r2() only brackets N)"
     method: Simulation
-    inputs: ["Correlations: X with Y, W with Y, the interaction XW with Y, and X with W", "Optional: reliability of X, W and Y"]
+    inputs: ["The interaction's size: the R-squared it adds, or the correlations of X, W and the interaction XW with Y", "Optional: reliability of X, W and Y"]
     status: runs_validated
     validation: {file: test-validation-regression-interaction.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
@@ -1033,7 +1084,7 @@ endpoints:
     template: "mediation / process_4 (mediator M)"
     backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI"
     method: Simulation
-    inputs: ["Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
+    inputs: ["Standardised paths X -> M, M -> Y and X -> Y"]
     status: runs_validated
     validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
@@ -1113,7 +1164,7 @@ endpoints:
       - "You give standardised paths, as for a score X (per SD of X); the result shows the difference between the groups in M that the path from X means."
       - "You can give the share of people in each group (equal by default)."
       - "With two or more mediators and a yes/no X, use the parallel or serial mediation screen and choose two groups for X."
-    inputs: ["X's two groups or conditions, and the share in each", "Standardised paths X -> M, M -> Y and X -> Y", "Number of Monte Carlo draws per CI (optional)"]
+    inputs: ["X's two groups or conditions, and the share in each", "Standardised paths X -> M, M -> Y and X -> Y"]
     refs: "phase 3b decisions, 29 October 2026 (docs/decisions.md)"
     tier: MVP
     alternatives: ["a bootstrap confidence interval", "the joint-significance test", "the Sobel test"]
@@ -1260,7 +1311,7 @@ endpoints:
   E23:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
     plain_name: "Compare groups adjusting for a covariate (e.g. the before score)"
-    search_words: "analysis of covariance baseline adjusted"
+    search_words: "ancova analysis of covariance baseline adjusted pre post randomised trial"
     template: "factorial_anova / oneway_ancova, factorial_ancova"
     backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula)"
     method: "Formula (no simulation)"
@@ -1275,7 +1326,7 @@ endpoints:
   E24:
     doc_name: "Multiple regression (R² or one coefficient)"
     plain_name: "Several predictors at once, or one predictor controlling for others"
-    search_words: "linear regression ols coefficient r squared robust standard errors hc3 hc4 heteroscedasticity quantile median regression"
+    search_words: "linear regression ols coefficient r squared robust standard errors hc3 hc4 heteroscedasticity quantile median regression partial correlation covariates moderated treatment effect"
     template: "multiple_regression / r2_zero, r2_increase, single_coefficient"
     backend: "pwrss: power.f.regression() (the F test, by formula); Spower with car (HC3 and HC4 standard errors) or quantreg (quantile regression) for one coefficient tested those ways (simulated)"
     method: "Formula (no simulation); simulation for robust standard errors and quantile regression"
@@ -1283,6 +1334,7 @@ endpoints:
     validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. Not yet checked against a published example."}
     card_points:
       - "One predictor's coefficient, controlling for the others, is tested with its partial R-squared (G*Power's single regression coefficient)."
+      - "A treatment effect that depends on a measured moderator, with the outcome measured before and after: choose \"Whether some predictors add to the others\", with 4 predictors in the full model (the treatment, the moderator, the before score and the treatment x moderator product) and 1 tested (the product). The R-squared increase is how much the product adds once the other three are in the model."
       - "If the outcome spreads out more at some values of the predictor than others, choose robust (HC3 or HC4) standard errors; to test the median or another quantile instead of the mean, quantile regression. powerkit simulates both for the spread and error shape you give. With skewed errors whose spread changes, quantile regression's usual test rejects too often, so its power is optimistic there."
     inputs: ["Your outcome's name and what you want to test", "R-squared, the R-squared change, or the predictor's partial R-squared", "Number of predictors", "How the predictor's coefficient is tested, and the spread and shape of the errors"]
     tier: v2
@@ -1955,7 +2007,7 @@ endpoints:
     doc_name: "Several outcomes compared across groups (MANOVA, one or two factors; Hotelling's T-squared for two groups)"
     plain_name: "Do two or more groups differ on several outcomes at once?"
     template: "basic_test / manova"
-    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, sections 5.3.4 and 5.4). PERMANOVA: Spower with powerkit's p_permanova() experiment around vegan's adonis2(), by simulation"
+    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution. PERMANOVA: Spower with powerkit's p_permanova() experiment around vegan's adonis2(), by simulation"
     method: "Simulation (three or more groups) or formula (two groups)"
     status: runs_validation_in_progress
     validation: {file: test-validation-manova.R, note: "With two groups it matches Hotelling's T-squared computed exactly (pwrss); with three it matches a simulation written separately, recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own examples."}
@@ -1974,7 +2026,7 @@ endpoints:
     doc_name: "Several outcomes in one group compared with fixed values (one-sample Hotelling's T-squared)"
     plain_name: "Does one group differ from fixed values on several outcomes at once?"
     template: "basic_test / hotelling_one"
-    backend: "powerkit's formula with base R's stats::pf(): Hotelling's T-squared by its noncentral F distribution (Anderson, 2003, section 5.4); Spower's simulation with powerkit's p_hotelling_one() experiment on request"
+    backend: "powerkit's formula with base R's stats::pf(): Hotelling's T-squared by its noncentral F distribution; Spower's simulation with powerkit's p_hotelling_one() experiment on request"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
     validation: {file: test-backend-hotelling-exact.R, note: "Gives the same power as pwrss's generic noncentral F test and agrees with Spower's simulation of the same test (31 October 2026). Not yet checked against G*Power's own example."}
@@ -2061,7 +2113,7 @@ endpoints:
     tier: v2
     alternatives: ["planned contrasts, such as the two-way interaction at each level of the third factor", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
   E-unsure:
-    doc_name: "No matching design (safety net)"
+    doc_name: "No matching design"
     plain_name: "None of these fit, or I'm not sure"
     status: not_in_powerkit
     generic: true
@@ -2097,6 +2149,7 @@ guided:
   # Screening answers the guided rules can use (they are added to the
   # variable answers as `times`).
   context: {times: [once, twice]}
+  single_analysis_note: "Plan my whole study simulates studies of separate people, so this design is planned one analysis at a time. Work out this analysis here, then press \"Add this to my study plan\" under the result; do the same for each further analysis, and My study plan collects them."
   many_conditions_note: "The guided route covers people measured once, or before and after. For three or more conditions per person, continue in 'Help me choose', which keeps your screening answers."
   variables:
     - id: x
@@ -2162,6 +2215,10 @@ guided:
       label: "Whether the effect of X depends on the moderator (X x W)"
       requires: {moderator: [score, two, three]}
       rules:
+        # Measured twice with a score outcome: the X x W product in a
+        # regression on the second measurement adjusting for the first,
+        # the usual adjusted analysis of a moderated treatment effect.
+        - {when: {times: twice, outcome: score, x: [score, cond2, cond3]}, endpoint: E24}
         - {when: {times: twice}, endpoint: E41}
         - {when: {x: within2}, endpoint: E41}
         - {when: {outcome: yesno, x: cond2, moderator: two}, endpoint: E47}
@@ -2199,6 +2256,20 @@ guided:
             options:
               - {label: "Side by side: X affects each one separately", endpoint: E11}
               - {label: "In a chain: X affects the first, which affects the next", endpoint: E12}
+    # The manipulation check beside a mediation: X's effect on the
+    # mediator, analysed on its own (8 November 2026). The mediator is a
+    # score, so the card is the one for a score outcome.
+    - id: check
+      label: "The effect of X on the mediator (a manipulation check)"
+      requires: {mediators: [one, several]}
+      # Its outcome is the mediator, not the study's outcome, so it doesn't
+      # widen the cards that fit the screening answers (R/tree.R).
+      outcome_is_mediator: true
+      rules:
+        - {when: {x: within2}, endpoint: E3}
+        - {when: {x: cond2}, endpoint: E2}
+        - {when: {x: cond3}, endpoint: E18}
+        - {when: {x: score}, endpoint: E4}
     - id: modmed
       label: "Whether the mediation depends on the moderator (moderated mediation)"
       requires: {mediators: [one, several, notscore], moderator: [score, two, three]}
@@ -2240,7 +2311,7 @@ guided:
       note: "Each analysis answers its own question and is tested at the usual significance level (alpha). No adjustment is needed (Rubin, 2021). Not everyone agrees: under the more common error-statistical view of significance testing, an adjustment may be expected when the analyses form a related group, especially if some could go unreported (Mayo, 2018)."
     - id: all
       label: "The claim needs every result to be significant"
-      note: "No adjustment to alpha is needed, because the claim only stands if every test succeeds. But the chance that all of them succeed together is lower than each test's power, so each test needs a higher target power (for two tests and 80% together, about 89.4% each)."
+      note: "No adjustment to alpha is needed, because the claim only stands if every test succeeds. But the chance that all of them succeed together is lower than each test's power, so each test needs a higher target power (for two tests and 80% together, about 89.4% each if the tests are independent; 90% each is enough whatever their relationship)."
     - id: any
       label: "Any one significant result supports the claim"
       note: "Several chances to find an effect raise the risk of a false positive, so it needs an alpha correction: each test uses a stricter alpha, divided by the number of main analyses (the Bonferroni correction). This raises the sample size needed."
@@ -2293,22 +2364,24 @@ known_shortcuts: [E2, E3, E4, E18, E8, E24, E27, E10]
 
 # The families "I know my analysis" groups its list into, in order (the
 # maintainer's decision of 31 October 2026, docs/decisions.md): every end
-# point but the safety net is in exactly one (a test checks).
+# point but the safety net is in exactly one (a test checks). `short`, where
+# given, names the family's region on the Labs methods map, where a long
+# name would run over its neighbours; the panel shows the full name.
 analysis_families:
   - {id: means, label: "Comparing averages (t-tests)", endpoints: [E1, E2, E3]}
   - {id: anova, label: "ANOVA and ANCOVA", endpoints: [E18, E54, E7, E8, E22, E21, E20, E55, E56, E19, E23, E64]}
   - {id: correlation, label: "Correlations", endpoints: [E4, E49, E51]}
-  - {id: categories, label: "Yes/no, categories and ordered categories", endpoints: [E25, E5, E26, E6, E48, E70, E29, E66]}
-  - {id: regression, label: "Regression (scores, yes/no and counts)", endpoints: [E24, E27, E47, E28]}
+  - {id: categories, label: "Yes/no, categories and ordered categories", short: "Categories", endpoints: [E25, E5, E26, E6, E48, E70, E29, E66]}
+  - {id: regression, label: "Regression (scores, yes/no and counts)", short: "Regression", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
-  - {id: mediation, label: "Mediation and moderated mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
-  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E74, E45, E65]}
-  - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, EFA, IRT, profiles)", endpoints: [E37, E73, E71, E58]}
-  - {id: outcomes, label: "Several outcomes at once (MANOVA)", endpoints: [E59, E60]}
-  - {id: spread, label: "Spread of scores (variances)", endpoints: [E52, E53, E57]}
-  - {id: equivalence, label: "Showing there's no meaningful effect (equivalence, non-inferiority)", endpoints: [E36]}
+  - {id: mediation, label: "Mediation and moderated mediation", short: "Mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
+  - {id: multilevel, label: "Multilevel, clustered and longitudinal designs", short: "Multilevel and longitudinal", endpoints: [E62, E33, E63, E67, E34, E68, E44, E41, E35, E74, E45, E65]}
+  - {id: latent, label: "Latent variables and questionnaires (SEM, CFA, EFA, IRT, profiles)", short: "Latent variables", endpoints: [E37, E73, E71, E58]}
+  - {id: outcomes, label: "Several outcomes at once (MANOVA)", short: "Several outcomes", endpoints: [E59, E60]}
+  - {id: spread, label: "Spread of scores (variances)", short: "Spread of scores", endpoints: [E52, E53, E57]}
+  - {id: equivalence, label: "Showing there's no meaningful effect (equivalence, non-inferiority)", short: "Equivalence", endpoints: [E36]}
   - {id: meta, label: "Meta-analysis", endpoints: [E61]}
-  - {id: other, label: "Other: time-to-event, signal detection, reliability, precision, Bayes factors and generic tests", endpoints: [E43, E72, E69, E46, E-bayes, E50]}
+  - {id: other, label: "Other: time-to-event, signal detection, reliability, precision, Bayes factors and generic tests", short: "Other", endpoints: [E43, E72, E69, E46, E-bayes, E50]}
 
 glossary:
   - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}
@@ -2328,7 +2401,6 @@ glossary:
   - {term: "reliability", pattern: "\\breliabilit(y|ies)\\b", hint: "How consistently a measure gives the same result; 1 means no measurement error."}
   - {term: "standardised paths", pattern: "standardised paths|fully standardised", hint: "The strength of each arrow in the model (for example, X to M), expressed in standard deviations so that arrows between differently scaled measures can be compared."}
   - {term: "standardised coefficient", pattern: "standardised coefficient", hint: "A regression coefficient with every variable measured in standard deviations: how many SDs the outcome changes when the predictor (here, the three-way product) is one SD higher."}
-  - {term: "Monte Carlo draws per CI", pattern: "Monte Carlo draws", hint: "How many random draws are used to build each confidence interval for the indirect effect; more draws give a more stable interval."}
   - {term: "residuals", pattern: "residuals", hint: "The part of each mediator that X doesn't explain; their correlation says how much the mediators overlap beyond X."}
   - {term: "indirect path", pattern: "indirect (path|effect)", hint: "The route from X to the outcome through a mediator (X to M to Y)."}
   - {term: "contrast weights", pattern: "contrast weights", hint: "Numbers that say which groups a specific comparison sets against which (for example, 1, 1 and -2 compare the first two groups together with the third)."}

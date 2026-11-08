@@ -327,17 +327,6 @@ analysis_by_id <- function(tree, id) {
 
 # End points ----------------------------------------------------------------
 
-status_label <- function(status) {
-  switch(
-    status,
-    runs_validated = "Runs in powerkit",
-    runs_validation_in_progress = "Runs, validation in progress",
-    coming_soon = "Coming soon",
-    not_in_powerkit = "Not in powerkit yet",
-    status
-  )
-}
-
 #' The end points that fit a set of screening answers (`ctx`): those any
 #' route can still reach with them ("Help me choose" from Q1, or the guided
 #' route with the options it offers), plus end points no screening answer
@@ -373,6 +362,7 @@ compute_endpoints_for_context <- function(tree, ctx) {
     for (i in seq_len(nrow(grid))) {
       answers <- guided_answers(tree, as.list(grid[i, , drop = FALSE]), ctx)
       for (a in applicable_analyses(tree, answers)) {
+        if (isTRUE(a$outcome_is_mediator)) next
         res <- resolve_analysis(tree, a, answers)
         if (!is.null(res$endpoint)) reached <- union(reached, res$endpoint)
         if (!is.null(res$ask)) reached <- union(reached, vapply(res$ask$options, function(o) o$endpoint, character(1)))
@@ -403,7 +393,3 @@ closing_questions_for <- function(tree, ep_id) {
   out
 }
 
-endpoints_by_status <- function(tree) {
-  eps <- tree$endpoints
-  split(names(eps), vapply(eps, function(e) e$status, character(1)))
-}

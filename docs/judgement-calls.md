@@ -294,8 +294,10 @@ Setting `observed_power` records it.
 **Decided 18 October 2026** (`decisions.md`, "The new design"): the
 effect-size source "one published study" carries a warning that
 published effects tend to be inflated, with a pointer to BUCSS; powerkit
-doesn't run bias-corrected planning itself. Still open: whether
-benchmarks are shown at all, even as context.
+doesn't run bias-corrected planning itself. **Decided 8 November 2026**
+(`decisions.md`): no small/medium/large benchmarks are shown, not even
+as context (`effect_size_benchmarks: hide`). Still open: whether to offer
+bias-corrected planning.
 
 - **Question:** should small, medium and large benchmarks be shown, even
   as context? Should bias-corrected planning (for example BUCSS) be

@@ -245,7 +245,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B33 | Crossover and counterbalanced designs | ML | E3 or E8 *(inferred)* | Unknown (check whether an AB/BA crossover analysed with order as a factor matches E8's 2 x 2 mixed design) | — | candidate: Superpower `"2b*2w"`. powertools `crt.xo.cont()` covers cluster crossover trials only | Check | — |
+| B33 | Crossover and counterbalanced designs | ML | E3 or E8 *(inferred)* | Partly working (guidance only: since 7 November 2026 the E3 and E8 cards say how to plan a crossover; a dedicated card is queued in next.md) | — | candidate: Superpower `"2b*2w"`. powertools `crt.xo.cont()` covers cluster crossover trials only | Check | — |
 | B34 | Many trials per participant (trials vs participants trade-off) | ML; BG | E33 | Wired (30 October 2026: two conditions within participants, and from 31 October between them; items in one condition or both; simulated, Satterthwaite test, Departure 16; published value to transcribe) | Now: AP (in the app), PN (R script). Could: other designs (more conditions, trial-level predictors) | **Engine: simr `powerSim()` on `makeLmer()`**, `fixed("cond", "sa")`; simr `powerSim()`, `powerCurve()`; mixpower `mp_power()`, `mp_solve_sample_size()`; faux `sim_mixed_cc()` (data only); mixedpower `mixedpower()` *(GitHub only, 0.1.0)* | Transcribe a published example; more designs (E41) | — |
 | B35 | Stimuli as a random factor | ML; BG | E33 | Wired (30 October 2026: two conditions within participants, and from 31 October between them; items in one condition or both; simulated, Satterthwaite test, Departure 16; published value to transcribe) | Now: AP (in the app), PN (R script). Could: other designs (more conditions, trial-level predictors) | **Engine: simr `powerSim()` on `makeLmer()`**, `fixed("cond", "sa")`; As B34 | Transcribe a published example; more designs (E41) | — |
 
@@ -436,9 +436,9 @@ and fails if a line here disagrees.
 | Planned | 1 | 7 | 2 | 10 |
 | Foundation tool can do it, not planned | 4 | 8 | 0 | 12 |
 | No ready-made tool | 0 | 5 | 0 | 5 |
-| Partly working | 0 | 1 | 5 | 6 |
+| Partly working | 0 | 2 | 5 | 7 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
-| Unknown | 1 | 11 | 0 | 12 |
+| Unknown | 1 | 10 | 0 | 11 |
 | Out of scope | 0 | 0 | 0 | 0 |
 
 (Part D's four rows are out of scope by definition and aren't counted.)

@@ -407,6 +407,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # level for that version: "power" is the chance of strong evidence.
   bayes_field <- offers_bayes_factor(form)
   no_bayes <- if (!is.null(bayes_field)) list(field = bayes_field, is_not = "bayes_factor")
+  # So a justified significance level is offered only with a test that
+  # has one (`choices_shown_if`: the choice is hidden otherwise).
+  if (!is.null(no_bayes) && !is.null(goals$justified_alpha)) goal$choices_shown_if <- list(justified_alpha = list(no_bayes))
   if (identical(start$situation, "fixed")) {
     goal$default <- if (isTRUE(form$sensitivity)) "sensitivity" else "power"
     goal$default_source <- "you said your sample size is fixed"
@@ -423,7 +426,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
     goal,
     list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor test, the chance that the study finds strong evidence for the effect." else "The chance the selected test rejects its null under the population you specify. For example 0.9 means 90% of repeated studies under those assumptions; it does not mean a 90% chance your theory is true.",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
-         default = tool[["power"]], default_source = tool[["power_source"]]),
+         # Empty on every card (8 November 2026): the target is the user's
+         # choice to justify, and the result compares 80%, 90% and 95%.
+         default = NULL, default_source = target_power_source),
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
          type = "text", optional = TRUE, shown_for_goals = c("sample_size", "sensitivity")),
     list(id = "n", label = "Number of participants analysed",
@@ -486,9 +491,11 @@ closing_groups <- function(forms, ep_id, start = list()) {
       list(id = "just_source", label = "Why this effect size? (needed to save or export the plan)",
            help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. You can calculate without it.",
            type = "text", path = "effect_justification.source", optional = TRUE),
-      list(id = "just_adjustment", label = "How you adjusted it", help = "Published effects tend to be too large; for example, halved for publication bias. If you kept it as published, say so and why.",
-           type = "text", path = "effect_justification.adjustment", needed_if_just = "prior_study",
-           shown_if = list(list(field = "just_type", is = "prior_study"), list(field = "sg_use", is_not = "yes")))
+      # A pilot is as much one study's estimate as a published one, and
+      # less precise, so it gets the same question.
+      list(id = "just_adjustment", label = "How you adjusted it", help = "One study's effect tends to be too large: published ones through publication bias, pilots because they are small. For example, halved, or the lower end of its confidence interval. If you kept it as it was, say so and why.",
+           type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
+           shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes")))
     ), safeguard_fields(form$base$template))),
     # A single time series has no participants to lose (`no_attrition`).
     if (!isTRUE(form$generic) && !meta && !isTRUE(form$no_attrition)) list(input = NULL, title = "Participants you expect to lose", fields = list(
@@ -874,7 +881,7 @@ field_applies <- function(field, values) {
   }
   if (!is.null(field$needed_for)) return(isTRUE(values$goal %in% field$needed_for))
   if (!is.null(field$shown_for_goals)) return(isTRUE(values$goal %in% field$shown_for_goals))
-  if (!is.null(field$needed_if_just)) return(identical(values$just_type, field$needed_if_just))
+  if (!is.null(field$needed_if_just)) return(isTRUE((values$just_type %||% "") %in% field$needed_if_just))
   TRUE
 }
 
@@ -898,6 +905,12 @@ form_problems <- function(fields, values) {
   for (f in fields) {
     if (!field_applies(f, values)) next
     v <- values[[f$id]]
+    # A choice offered only with some other answers (`choices_shown_if`).
+    hidden_choice <- if (!blank(v)) f$choices_shown_if[[as.character(v)]]
+    if (!is.null(hidden_choice) && !field_applies(list(shown_if = hidden_choice), values)) {
+      add(sprintf("%s: \"%s\" isn't available with the other answers you chose. Choose another.", quote_label(f), f$choices[[as.character(v)]]))
+      next
+    }
     # Required: marked so, an effect size, or needed for the goal chosen.
     needed <- isTRUE(f$required) || isTRUE(f$effect) || !is.null(f$needed_for) || !is.null(f$needed_if_just)
     if (blank(v)) {
@@ -1138,11 +1151,22 @@ routing_root <- function() getOption("powerkit.routing_dir", getwd())
 # Put the user's field labels in place of spec paths in the engine's
 # messages (e.g. 'target_test > alpha' becomes "Significance level (alpha)").
 plain_engine_message <- function(message, fields) {
+  ids <- vapply(fields, function(f) f$id %||% "", "")
+  # The number of simulated studies is chosen by "How precise should the
+  # simulation be?"; its custom field is hidden until asked for.
+  if ("simulation_accuracy" %in% ids) {
+    message <- gsub("'options > nrep'", quote_label(fields[[match("simulation_accuracy", ids)]]), message, fixed = TRUE)
+  }
   for (f in fields) {
     if (is.null(f$path)) next
     engine_path <- gsub(".", " > ", f$path, fixed = TRUE)
     message <- gsub(sprintf("'%s'", engine_path), quote_label(f), message, fixed = TRUE)
   }
+  # A sentence that still names a setting this screen doesn't show can't be
+  # acted on here, so it is left out.
+  sentences <- strsplit(message, "(?<=[.!?])\\s+", perl = TRUE)[[1]]
+  hidden <- grepl("'options > ", sentences, fixed = TRUE)
+  if (any(hidden) && !all(hidden)) message <- paste(sentences[!hidden], collapse = " ")
   message
 }
 
@@ -1191,3 +1215,7 @@ answers_text <- function(tree, route_label, history, ep_id, fields, values) {
   }
   paste(lines, collapse = "\n")
 }
+
+# Target power starts empty on every card (8 November 2026), whatever the
+# package's own default, so the user chooses it and says why.
+target_power_source <- "Empty on every card: choose the power your study needs and say why; the result compares 80%, 90% and 95%"
