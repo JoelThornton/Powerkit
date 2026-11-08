@@ -33,8 +33,8 @@ rules are in `CLAUDE.md`.
   release"). A check of every review finding against what merged
   (8 November) found a few left: the small ones are fixed, and the
   larger ones are `next.md` items 16 to 21. Next: the queue in
-  `next.md`; a replication planner that brings the replication goals
-  together is item 15 there, waiting on a decision.
+  `next.md`, then effects that vary between studies on the t-test cards
+  (item 22) and a Bayes mode (item 23, waiting on a decision).
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
@@ -91,10 +91,17 @@ rules are in `CLAUDE.md`.
   statistician's check ([`whole-study-method.md`](whole-study-method.md));
   the designs still to add are in `next.md` item 1.
 
-- **Experimental: Labs.** The pre-replication notes, the methods map, the
-  effect-size converter, the power visualiser, the repeated-studies tool
-  and Bayesian planning (fixed and sequential), all on the cards' engine
-  code and one chart style.
+- **Experimental: Labs.** The pre-replication notes, the replication
+  planner, the methods map, the effect-size converter, the power
+  visualiser, the repeated-studies tool and Bayesian planning (fixed and
+  sequential), all on the cards' engine code and one chart style. The
+  replication planner (8 November 2026) follows the notes: for an
+  original t-test or correlation finding, the sample size for each
+  replication goal (Anderson & Maxwell, 2016) under three beliefs about
+  the true effect, with BayesRepDesign (Pawel, Consonni & Held, 2026)
+  and the small-telescopes card's own calculation, how the replication
+  differs, and a write-up with an R script, in sections saved to a file.
+  It opens from the start screen's "Replicate a published finding".
 
 ## Validation
 

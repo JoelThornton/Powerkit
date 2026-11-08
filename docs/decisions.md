@@ -6144,3 +6144,51 @@ the site stays findable by search engines.
   sections before filling a field and doesn't count the Bayes factor
   box, which stays empty until asked for, as a blank output; its
   thirteen "blank" findings in the review were that box.
+
+
+## 2026-11-08 · Labs: a replication planner
+
+- **Decided (8 November 2026):** build a replication planner, with its
+  Bayesian goals, as its own Labs tool rather than a design card: a
+  replication is a set of decisions (what counts as success, how far to
+  trust the original's effect, how the new study differs), not one test.
+  It comes after the pre-replication notes (Karhulahti et al., 2025),
+  which stay their own tool and decide whether to replicate at all; the
+  planner reads their study and smallest effect and includes the notes in
+  its write-up, and is not offered when the notes end at "not worth
+  replicating". It is in four sections that can be filled in any order
+  and saved to a file, since a replication is rarely planned in one sitting.
+- **Ways in:** "Replicate a published finding" on the start screen's aim
+  question, the notes' "go ahead" and "redesign" outcomes, and the main
+  route's signpost beside a previous study as the effect's source.
+- **Goals:** Anderson and Maxwell's (2016) goals beyond significance, each
+  planned with BayesRepDesign (Pawel, Consonni & Held, 2026): a
+  significant result in the original's direction, a significant pooled
+  estimate, agreement with the original, the replication and sceptical
+  Bayes factors, and showing the effect is too small to matter (TOST,
+  planned for no effect); small telescopes is the card's own calculation.
+  ReplicationSuccess (Held and colleagues) was the other candidate; it
+  adds the sceptical p-value, which BayesRepDesign also has (`ssdPs()`),
+  so one package covers every goal. The sceptical p-value is left out
+  for now: it is rarely used in psychology, and each goal shown needs
+  words that explain it.
+- **Three beliefs, side by side:** every goal is shown under the original
+  estimate as reported, with its uncertainty, and shrunk towards zero
+  (BayesRepDesign's conditional, predictive and empirical Bayes design
+  priors), so the table shows how much the answer rests on trusting the
+  original. The write-up's default belief is "with its uncertainty",
+  following the paper's argument that ignoring the original's uncertainty
+  makes replications too small; "as reported" stays for comparison with
+  the usual power analysis.
+- **Variation between studies:** none, or Kenny and Judd's (2019)
+  representative 0.05, 0.125 and 0.20 in d, for the uncertain and shrunk
+  beliefs. None stays the starting value here, so the planner's first
+  table matches the usual analysis; the note under the field gives Kenny
+  and Judd's argument that zero should not be the default. Whether to
+  start at a non-zero value is the maintainer's call (the heterogeneity
+  option for the t-test cards is the next queue item).
+- **The normal approximation:** BayesRepDesign's model is normal, so the
+  significance goal under "as reported" asks for slightly fewer people
+  than the t-test cards (66 against 68 for d = 0.7); stated in
+  `conventions.md`, "Replication planner (Labs)", on the result and in
+  the methods paragraph.
