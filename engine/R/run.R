@@ -252,6 +252,10 @@
 run_spec <- function(spec) {
   spec <- validate_spec(spec)
   seed <- spec$options$seed %||% sample.int(2147483646L, 1)
+  # The spec as given is the one hashed; a two-group X's paths given as
+  # Cohen's d are then found (mediation-group-d.R).
+  hashed <- spec
+  spec <- resolve_group_d(spec, seed)
   if (spec$design == "generic_test") {
     return(run_generic(spec, seed))
   }
@@ -354,6 +358,7 @@ run_spec <- function(spec) {
       small_telescopes = small_telescopes_record(spec, n_analysed, backend),
       heterogeneity = heterogeneity_record(spec, n_analysed),
       effect_conversion = conversion_record(spec),
+      group_d = group_d_record(spec),
       recruitment = recruitment_target(spec, n_analysed),
       clusters = cluster_summary(spec, n_analysed),
       sem = sem_summary(spec),
@@ -366,7 +371,7 @@ run_spec <- function(spec) {
       check_run = check,
       provenance = list(
         evidence = analysis_evidence(spec, computation_method = method),
-        spec_hash = spec_hash(spec),
+        spec_hash = spec_hash(hashed),
         method = method,
         seed = seed,
         nrep = nrep,
@@ -525,6 +530,6 @@ run_method <- function(spec, backend) {
 runs_simulation <- function(spec) {
   spec <- validate_spec(spec)
   if (identical(spec$design, "generic_test")) return(FALSE)
-  backend <- route_spec(spec, spec$options$seed %||% 1L)
+  backend <- route_spec(with_group_d_placeholders(spec), spec$options$seed %||% 1L)
   identical(run_method(spec, backend), "simulation")
 }

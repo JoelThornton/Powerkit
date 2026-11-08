@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-08"
+    title: "Mediation with two groups: effects as Cohen's d"
+    text: >-
+      On simple and moderated mediation with two groups or conditions, you
+      can now give the intervention's effects as Cohen's d (how far apart
+      the groups are on the mediator, and on the outcome overall) instead
+      of standardised paths. powerkit finds the paths that give those
+      differences and shows them with the result and in the methods
+      paragraph.
