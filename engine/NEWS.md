@@ -1,3 +1,22 @@
+# powerkit 0.44.0
+
+* New `simulation_margin()`: the half-width of a 95% interval around a
+  power estimated from a number of simulated studies (at 50% power by
+  default, the widest it can be). The engine's advice on few replications,
+  the whole-study screens and Labs' sequential Bayesian planning all take
+  their precision from it, so one number of studies is never described two
+  ways. Labs' sequential plan now states its margin with 1.96 rather than
+  2 standard errors, so it reads about 2% smaller.
+* Removed `cronbach_size()`, an internal function nothing called.
+* Repository: the stale copy of the online app's manifest is gone from main
+  (it is written on the `connect-cloud` branch when the app is published);
+  `docs/dependency-footprint.md` is written by its script and a test keeps
+  its counts current; the docs map lists every page (a test checks);
+  `status.md` is one short paragraph per area and `next.md` rows say only
+  what is left; the working rules live in `CLAUDE.md` alone, with local
+  testing of the changed files plus the repository checks, and a short
+  visual style guide in `docs/accessibility-review.md`.
+
 # powerkit 0.43.0
 
 * Labs, the app's experimental tools, and the result page:

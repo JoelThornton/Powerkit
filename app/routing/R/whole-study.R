@@ -269,9 +269,9 @@ whole_study_start_n <- function(results, primary) {
   if (length(ns)) max(ns) else NULL
 }
 
-# Monte Carlo precision of a power from `nrep` replications, as the
-# half-width of a 95% interval at 50% power, in percentage points.
-whole_study_precision <- function(nrep) round(100 * 1.96 * sqrt(0.25 / nrep))
+# Monte Carlo precision of a power from `nrep` replications, in percentage
+# points, from the engine (the widest margin, at 50% power).
+whole_study_precision <- function(nrep) round(100 * powerkit::simulation_margin(nrep))
 
 # A long wait in words: hours (to the half hour) from an hour and a half.
 whole_study_duration <- function(seconds) {

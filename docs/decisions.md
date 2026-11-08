@@ -5967,3 +5967,36 @@ the site stays findable by search engines.
   and powerkit suggests no SD, since the size of one's uncertainty is the
   researcher's to defend.
 
+## 2026-11-08 · Docs and start-up reading: rules in one place, current-state pages, one precision rule
+
+- **Why:** the project review of 7 November 2026 found that a new thread
+  read about 70 KB before starting, that `status.md` and `next.md` had
+  become histories, that the working rules disagreed between `CLAUDE.md`
+  and `handover.md`, that the docs map missed six pages, that the
+  dependency counts were old, and that the app worked out simulation
+  precision by a different rule from the engine.
+- **Decided with the review (7 November 2026):** locally, run the tests
+  for the changed files plus `test-repo-consistency.R`, and let the
+  required checks be the gate; "work from `next.md`" replaces "one build
+  phase at a time"; single-card packages move to Suggests card by card
+  when a PR touches them; very large files are split only when a PR
+  touches them; a short visual style section in `accessibility-review.md`.
+  All are now in `CLAUDE.md`, with the file layout in
+  `routing-prototype.md`, "Splitting the large files".
+- **Pages:** `status.md` is one short paragraph per area (under 8 KB; the
+  old page is in `archive/status-history.md`); `next.md` rows say only
+  what is left; `handover.md` points to `CLAUDE.md` for the rules and
+  keeps only where things live; `docs/README.md` lists every page, with a
+  group for the statistician, and a test checks it stays complete.
+- **Dependencies:** `docs/dependency-footprint.md` is written by
+  `scripts/dependency-footprint.R` from `renv.lock` and `DESCRIPTION`
+  (58 Imports, 304 locked packages), and a test checks the page matches.
+- **Precision:** `simulation_margin()` in the engine is the one formula,
+  1.96 times the binomial standard error, stated at 50% power (the widest
+  margin) unless a power is given. The app calls it rather than computing
+  its own.
+- **Manifest:** `app/routing/manifest.json` is removed from main and
+  ignored there; the publishing workflow writes it on `connect-cloud`,
+  and `prepare-publish-branch.py` works with or without a tracked copy
+  (its test covers both).
+

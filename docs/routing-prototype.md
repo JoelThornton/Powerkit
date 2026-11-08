@@ -493,3 +493,30 @@ accessibility, cross-browser or user research coverage.
 the deployed app bundle, including installed Node tools and browser reports.
 They remain in the repository and CI; production serves the app's runtime
 files and public assets.
+
+## Splitting the large files
+
+A few files hold most of the code, and each new design adds to them:
+`app.R` (its `server()` is one function of about 1,200 lines),
+`R/results.R` (about 200 KB), and in the engine `export-script.R`,
+`spec-checks.R` and `backend-spower.R` (each over 100 KB). They are not
+rewritten in one go (decided 7 November 2026). When a pull request already
+changes one of them for a design or a screen, it moves that part to its own
+file on the way, towards this layout:
+
+- `app.R`: one server module per screen (`R/server-<screen>.R`, for
+  example the result page, Labs, the study plan), each a
+  `moduleServer()` or a function taking `input`, `output` and `session`,
+  with `server()` only wiring them together.
+- `R/results.R`: shared chart and layout helpers stay; each family's
+  result sections move to `R/results-<family>.R`.
+- `engine/R/backend-spower.R`: each family's models and inputs to
+  `backend-spower-<family>.R`, with `spower_inputs()` and
+  `spower_script_inputs()` for that family side by side in the same file,
+  since the script-reproduction tests are what keep the two in step.
+- `engine/R/export-script.R` and `spec-checks.R`: a design's script lines
+  and checks move to the file of that design's backend.
+
+Moves are behaviour-free: the same tests pass before and after, and a move
+goes in the same pull request as the change that prompted it, not one of
+its own.
