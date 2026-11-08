@@ -32,11 +32,14 @@ test_that("the Updates tab shows entries still waiting for a version with the re
   dir <- withr::local_tempdir()
   file.copy(whats_new_path, dir)
   dir.create(file.path(dir, "whats-new.d"))
+  # Counted in the copy, not from whats_new_path: the real whats-new.d may
+  # hold notes of its own while a batch is open.
+  before <- length(load_whats_new(file.path(dir, "whats-new.yaml")))
   writeLines(c("entries:", "  - date: \"2099-01-02\"", "    title: \"A waiting change\"", "    text: >-", "      Shown before its batch closes."),
     file.path(dir, "whats-new.d", "waiting-change.yaml"))
   entries <- load_whats_new(file.path(dir, "whats-new.yaml"))
   expect_identical(entries[[1]]$title, "A waiting change")
-  expect_length(entries, length(load_whats_new(whats_new_path)) + 1)
+  expect_length(entries, before + 1)
 })
 
 test_that("the Updates tab shows the entries newest first, grouped by day", {
