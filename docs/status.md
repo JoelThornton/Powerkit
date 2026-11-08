@@ -30,9 +30,11 @@ rules are in `CLAUDE.md`.
   show), and the review's own checks kept for
   each release: property checks over every example spec and a run of
   every card in a browser (`repository-protection.md`, "Checks before a
-  release"). Next: the queue in `next.md`; a replication planner that
-  brings the replication goals together is item 15 there, waiting on a
-  decision.
+  release"). A check of every review finding against what merged
+  (8 November) found a few left: the small ones are fixed, and the
+  larger ones are `next.md` items 16 to 21. Next: the queue in
+  `next.md`; a replication planner that brings the replication goals
+  together is item 15 there, waiting on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point

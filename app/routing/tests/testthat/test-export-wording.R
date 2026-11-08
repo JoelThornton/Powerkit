@@ -30,3 +30,18 @@ test_that("the planning document's evidence section is worded for a reader", {
   expect_no_match(paste(lines, collapse = " "), "SHA-256")
   expect_match(evidence_reader_lines(NULL), "No record", fixed = TRUE)
 })
+
+test_that("the methods paragraph names every value a reader needs to redo the plan", {
+  # The planned contrast's weights, the reliability test's value to beat
+  # and number of ratings, and the growth curve's occasions and
+  # starting-level spread (project review of 7 November 2026).
+  needs <- list(
+    E19 = c("contrast weights = -3, -1, 1, 3"),
+    E69 = c("ICC to beat = 0.6", "ratings of each person = 3"),
+    E35 = c("occasions = 0, 1, 2, 3", "SD of people's starting levels = 6", "correlation of starting levels and rates of change = -0.2")
+  )
+  for (ep in names(needs)) {
+    text <- writeup_effect(form_fields(form_groups(forms, ep)), form_examples[[ep]])
+    for (value in needs[[ep]]) expect_match(text, value, fixed = TRUE, label = paste(ep, value))
+  }
+})

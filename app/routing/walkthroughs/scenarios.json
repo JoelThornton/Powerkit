@@ -276,7 +276,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Different people, two groups, yes/no outcome"
+   "Two groups"
   ],
   "known": {
    "answers": [
@@ -1190,7 +1190,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "One group, compared with a fixed proportion"
+   "One group against a known proportion"
   ],
   "known": {
    "answers": [
@@ -1232,7 +1232,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "One group, compared with a fixed proportion"
+   "One group against a known proportion"
   ],
   "known": {
    "answers": [
@@ -1360,7 +1360,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Different people, outcome in categories"
+   "Groups, with an outcome in categories (not just yes/no)"
   ],
   "known": {
    "answers": [
@@ -1412,7 +1412,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Different people, two groups, yes/no outcome"
+   "Two groups"
   ],
   "known": {
    "answers": [
@@ -1697,7 +1697,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Different people, outcome in categories"
+   "Groups, with an outcome in categories (not just yes/no)"
   ],
   "known": {
    "answers": [
@@ -1963,7 +1963,7 @@
    "Independent people",
    "Once",
    "A difference between groups or conditions",
-   "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"
+   "Two or more factors (for example, a 2 x 2 design)"
   ],
   "known": {
    "answers": [
