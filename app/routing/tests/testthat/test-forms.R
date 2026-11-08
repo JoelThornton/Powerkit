@@ -94,8 +94,12 @@ test_that("other settings start at the wrapped tool's default, and say whose def
   power <- function(ep) Filter(function(f) f$id == "power", fields_for(ep))[[1]]
   expect_null(power("E1")$default)
   expect_match(power("E1")$default_source, "no default target power", fixed = TRUE)
-  expect_equal(power("E10")$default, 0.8)
-  expect_match(power("E10")$default_source, "target_power = 0.8", fixed = TRUE)
+  # Empty on every card, including where the package starts at 0.8 (8 November 2026).
+  for (ep in names(forms$forms)) {
+    p <- Filter(function(f) identical(f$id, "power"), fields_for(ep))
+    if (length(p)) expect_null(p[[1]]$default, label = ep)
+  }
+  expect_match(power("E10")$default_source, "leaves it empty on every card", fixed = TRUE)
   direction <- Filter(function(f) f$id == "alternative", fields_for("E2"))[[1]]
   # Asked, not pre-filled, and first (docs/decisions.md, 19 October 2026).
   expect_null(direction[["default"]])

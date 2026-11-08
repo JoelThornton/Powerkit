@@ -568,6 +568,7 @@ test_that("the result reads in plain words, shows 80% and 95% side by side, the 
   n95 <- 2 * ceiling(pwr::pwr.t.test(d = 0.4, power = 0.95)$n)
   expect_match(calc$cost_line, sprintf("80%% power needs %s participants", n80), fixed = TRUE)
   expect_match(calc$cost_line, sprintf("95%% power needs %s", n95), fixed = TRUE)
+  expect_match(calc$cost_line, sprintf("90%% power needs %s", 2 * ceiling(pwr::pwr.t.test(d = 0.4, power = 0.9)$n)), fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E2", form_fields(form_groups(forms, "E2")), values, calc))
   expect_match(html, "about 9 in 10 studies like this would get a significant result", fixed = TRUE)
   expect_match(html, "Your reasoning: “Smallest difference our clinic would act on.”", fixed = TRUE)
@@ -2956,7 +2957,7 @@ test_that("sample-size searches run in the background while there is room, with 
   spec <- light_spec("E1", goal = list(type = "sample_size", power = 0.9))
   result <- list(goal_type = "sample_size", n_required = list(n = 120), provenance = list(method = "formula"))
   never <- function(spec) stop("no search should run here")
-  expect_match(cost_line(spec, result, run = never, ns = c(97, 160)), "80% power needs 97 participants; 95% power needs 160", fixed = TRUE)
+  expect_match(cost_line(spec, result, run = never, ns = c(97, 130, 160)), "80% power needs 97 participants; 90% power needs 130; 95% power needs 160", fixed = TRUE)
 })
 
 test_that("the warm spare process gives the same result as the engine, and its comparison-line sizes", {

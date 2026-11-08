@@ -426,7 +426,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
     goal,
     list(id = "power", label = "Target power", help = if (!is.null(no_bayes)) "As a proportion, for example 0.9. For a Bayes factor test, the chance that the study finds strong evidence for the effect." else "The chance the selected test rejects its null under the population you specify. For example 0.9 means 90% of repeated studies under those assumptions; it does not mean a 90% chance your theory is true.",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
-         default = tool[["power"]], default_source = if (!is.null(no_bayes) && identical(form$tool, "pwr"))
+         # Empty on every card (8 November 2026): the target is the user's
+         # choice to justify, and the result compares 80%, 90% and 95%.
+         default = NULL, default_source = if (!is.null(no_bayes) && identical(form$tool, "pwr"))
            "pwr and bfpwr have no default target power (pwr.t.test(power = NULL), bfpwr's powertbf01(power = NULL)); enter one" else tool[["power_source"]]),
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
          type = "text", optional = TRUE, shown_for_goals = c("sample_size", "sensitivity")),
