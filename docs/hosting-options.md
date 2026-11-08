@@ -139,9 +139,9 @@ source plus that manifest to `connect-cloud` with a fast-forward push
 after every merge. To publish at once (an urgent fix), open the workflow
 on the Actions tab and click **Run workflow** on main; tick **force** to
 publish even if nothing changed. On a pull request the workflow only
-checks that the manifest can still be written. The copy of
-`manifest.json` on main is not updated by the workflow; Connect Cloud
-reads the one on `connect-cloud`. `scripts/deploy-online.R` is the
+checks that the manifest can still be written. Main holds no
+`manifest.json` (it is in `.gitignore` since 8 November 2026, when a stale
+785 KB copy was removed); Connect Cloud reads the one on `connect-cloud`. `scripts/deploy-online.R` is the
 fallback: it deploys from R on the maintainer's computer (steps at the
 top of that file).
 

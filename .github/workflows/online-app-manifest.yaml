@@ -137,9 +137,11 @@ jobs:
             stop("powerkit isn't recorded as coming from GitHub, so Connect Cloud couldn't install it.")
           }
 
-      - name: Show what changed
+      # Main doesn't track the manifest (it is in .gitignore), so there is
+      # no diff to show; its size says it was written.
+      - name: Show the manifest written
         if: steps.decide.outputs.build == 'true'
-        run: git diff --stat -- app/routing/manifest.json || true
+        run: ls -l app/routing/manifest.json
 
       - name: Prepare the checked deployment branch
         if: steps.decide.outputs.publish == 'true'

@@ -1,109 +1,47 @@
 # Handover
 
-*Updated 31 October 2026, for whoever picks the project up next.
-[`status.md`](status.md) is the current state and the priorities; this
-page is the working rules and where things live. [`README.md`](README.md)
-maps every document.*
+*Updated 8 November 2026, for whoever picks the project up next. The
+working rules are in [`CLAUDE.md`](../CLAUDE.md) and only there; this page
+says where things live. [`README.md`](README.md) maps every document.*
 
-## Current state
+## Where to start
 
-Two statements of it, so this page doesn't drift into a third:
+- [`status.md`](status.md): where the project is now, area by area.
+- [`next.md`](next.md): what to do next, in order, each item marked Ready
+  or needing a decision, with what waits on the maintainer at the bottom.
+- [`adding-a-test.md`](adding-a-test.md): how a power analysis is added,
+  start to finish.
+- Open pull requests are on GitHub; git history and
+  [`engine/NEWS.md`](../engine/NEWS.md) hold everything merged.
 
-- [`status.md`](status.md) is where the project is now — what calculates,
-  what is in review, what is engine-only.
-- [`next.md`](next.md) is what to do about it, in order.
+## The shape of the app
 
-What this page still holds: the working rules below, where things live,
-and the shape of the app. The app is the four-screen design
-([`decisions.md`](decisions.md), "2026-10-18 · The new design"): start
-questions; the question tree and end-point cards; inputs centred on the
-effect size and the user's reasoning; and the result, with a plain
-reading, 80% and 95% side by side, what power can't tell you, and the
-departures and known differences. Mediation gives a preview and then a
-full run or an R script; plans save as project files; saving, the script
-and the write-up all need the user's reasoning.
+Four screens ([`decisions.md`](decisions.md), "2026-10-18 · The new
+design"): start questions; the question tree and its cards; inputs centred
+on the effect size and the user's reasoning; and the result, with a plain
+reading, what power can't tell you, and any departures from the usual
+tools. Simulated designs give a preview, then a full run or an R script;
+plans save as project files. Labs holds the teaching and experimental
+tools.
 
-- **What to work on, and what the maintainer owes:** in
-  [`next.md`](next.md). Open pull requests are on GitHub; git history
-  holds everything merged.
-- **Branches and tags:** sessions can't delete remote branches or push
-  tags (403). Merged branches delete themselves; the one other branch to
-  keep is `claude/project-thread-uqcark-webr-spike` (the webR trial,
-  linked from `hosting-options.md`). Tags come from the release-tags
-  workflow.
+## Where decisions and open questions live
 
-## What to work on next
-
-[`next.md`](next.md) is the ordered queue, nearly thirty items deep, each marked
-Ready or needing a decision, with what is waiting on the maintainer at the
-bottom. It is the one place to look.
-
-## Adding a power analysis
-
-[`adding-a-test.md`](adding-a-test.md) is the process, start to finish
-(what to add next is in [`next.md`](next.md)). The short version: a test is added
-when a researcher can run it and see that it exists, so the engine, the
-card, the input screen, the Updates entry and the batch's version
-land together (one batch of features raises the middle number by one).
-
-## Rules
-
-- **Priorities and process (18 October 2026):** usefulness for
-  psychologists comes before validation until release, and the new
-  design is built in the order in [`status.md`](status.md), "What's
-  next". How to keep reviews small (recommendations on judgement
-  calls, PR size, one thread per area, status as current state) is in
-  `CLAUDE.md`, "Working process".
-- **Public content:** the repository is public. Commits, PR titles and
-  descriptions, comments and repo files explain what a change does, why
-  (in terms of the software, its users or published sources) and how.
-  They never summarise project chats, private emails or correspondence,
-  or who said what; personal and discussion notes stay outside the
-  repository (`CLAUDE.md`, "Working process").
-- **Merging:** anything that changes what users see (cards, wording,
-  results, defaults, routing) needs the maintainer's explicit yes before
-  merging. Docs-only and test-only PRs can merge on green when the
-  maintainer says so. PRs are not watched automatically unless asked;
-  check CI once at the end.
-- **Areas:** one build phase at a time ([`build-guide.md`](build-guide.md),
-  section 8). The app never computes power: it builds specs and calls the
-  engine (`validate_spec()`, `run_spec()`, `export_script()`,
-  `export_citations()`; a test enforces this). Never write statistics a
-  backend already provides.
-- **Placeholders:** never edit expected values in
-  `engine/tests/testthat/test-validation-*`; leave `TODO_PUBLISHED_VALUE`
-  for the maintainer. If a validation test fails, report why. Undecided
-  settings stay as visible placeholders in the app (`tree.yaml`,
-  `settings`).
-- **Sourcing:** citations come only from `engine/inst/citations/refs.bib`
-  or a package's own `citation()`. Open a source (via its DOI) before
-  adding it to `refs.bib`, with a verification note (or, for a source the
-  maintainer checked in full text, "Verified YYYY-MM-DD from full-text PDF
-  held by the maintainer"); if it can't be opened,
-  mark it "candidate" and leave it out (as with Hoenig and Heisey for B11).
-  Any departure from a tool's conventions goes in `conventions.md`, on the
-  result screen, in the methods paragraph, and in a test showing its size.
-- **Every PR:** run the engine and app tests (the commands are in
-  `CLAUDE.md`, "Before finishing any task"), and update `engine/NEWS.md`
-  and `status.md`. A PR that changes what users see also adds a dated,
-  plain-words entry at the top of `app/routing/whats-new.yaml` (the app's
-  Updates tab; no internal codes such as E5).
-- **Saving usage:** report only failures from tests and checks, and read
-  full logs only when something failed.
-
-## Where the judgement calls and decisions live
-
-- [`judgement-session.md`](judgement-session.md): the open calls
-  that change what users see, one page each, for the session (routing
-  from screen A onwards first).
-- [`judgement-calls.md`](judgement-calls.md): every open or decided
-  judgement call, with options and the default now; decided ones move to
-  `archive/judgement-calls-decided.md`. Open questions for the
-  maintainer on phase 5 are in `phase5-simulations.md` (questions 1–4).
 - [`decisions.md`](decisions.md): the maintainer's decisions, dated.
 - [`conventions.md`](conventions.md): each backend's conventions and
   powerkit's departures and known differences (numbered there).
-- [`phase5-simulations.md`](phase5-simulations.md): options for E10–E14 and the maintainer's decision.
-- [`phase-3b-questions.md`](phase-3b-questions.md): binary X and W.
-- In the app, the "For the maintainer: undecided settings" tab lists the
+- [`judgement-calls.md`](judgement-calls.md): open judgement calls with a
+  recommendation each; decided ones move to
+  [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md).
+- [`upstream-questions.md`](upstream-questions.md): faults and questions
+  for the packages powerkit calls.
+- In the app, "For the maintainer: undecided settings" lists the
   placeholders from `tree.yaml`.
+
+## Branches and tags
+
+Sessions can't delete remote branches or push tags. Merged branches delete
+themselves; the one other branch to keep is
+`claude/project-thread-uqcark-webr-spike` (the webR trial, linked from
+[`hosting-options.md`](hosting-options.md)). `connect-cloud` is written
+only by the publishing workflow. Release tags come from
+`scripts/tag-releases.sh` ([`repository-protection.md`](repository-protection.md)).

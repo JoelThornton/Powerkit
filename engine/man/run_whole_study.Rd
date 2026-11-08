@@ -25,7 +25,9 @@ the \code{target}, the \code{rule} and \code{criterion} it was reached by,
 \code{n_required} with its 95\% interval \code{lower} and \code{upper}, the power
 \code{curve} and the \code{simulations} behind it), \code{implied} (what the population implies for each analysis,
 from one large simulated data set: the values its own card asks for),
-\code{check_run} and \code{provenance}.
+\code{found_paths} and \code{group_d} (for a two-group X given as Cohen's d of
+the groups, \code{population > group_d}: the d entered and the path found
+to give it; otherwise \code{NULL}), \code{check_run} and \code{provenance}.
 }
 \description{
 Experimental, and not yet checked by a statistician

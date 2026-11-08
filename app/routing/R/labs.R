@@ -1023,7 +1023,7 @@ bayes_sequential_numbers <- function(plan) {
       truth, pct(row$at_max), format(plan$n_max), pct(row$at_max_toward_effect), pct(row$at_max_toward_null), pct(row$at_max_neither))
   }
   f <- plan$fixed
-  mc <- max(o$mcse_for_effect, sqrt(0.25 / plan$nsim))
+  mc <- max(1.96 * o$mcse_for_effect, engine_function("simulation_margin")(plan$nsim))
   tagList(
     h4(class = "h5 mt-3", sprintf("Looking from %s%s, %s, up to %s%s", format(plan$n_min), unit, looks, format(plan$n_max), unit)),
     tags$table(class = "table table-sm bayes-outcomes",
@@ -1044,7 +1044,7 @@ bayes_sequential_numbers <- function(plan) {
         at_max_words(null, "With no effect")),
       tags$li("Looking more often raises the chance of misleading evidence a little, and most of it happens at the early looks, so a later first look, or a higher threshold, lowers it (Schönbrodt and Wagenmakers, 2018)."),
       tags$li(sprintf("Simulated: %s studies under your belief and %s with no effect (seed %s), each with its own true effect drawn from your design prior; each chance is within about %s points either way.",
-        format(plan$nsim, big.mark = ","), format(plan$nsim, big.mark = ","), format(plan$seed), sprintf("%.1f", 200 * mc)))),
+        format(plan$nsim, big.mark = ","), format(plan$nsim, big.mark = ","), format(plan$seed), sprintf("%.1f", 100 * mc)))),
     p(class = "small text-muted", sprintf("From %s, with the Bayes factor from bfpwr version %s (tbf01()).", plan$function_used, plan$package$version)),
     p(class = "small text-muted", "References: ", bayes_sequential_citations()))
 }

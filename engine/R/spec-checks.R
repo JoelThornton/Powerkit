@@ -109,7 +109,7 @@ spec_advice <- function(spec) {
         "estimate of 80%% is only accurate to about +/- %s; use 1,000 or more ",
         "for a final report."
       ),
-      format_number(nrep), format_number(round(1.96 * sqrt(0.8 * 0.2 / nrep), 3))
+      format_number(nrep), format_number(round(simulation_margin(nrep, power = 0.8), 3))
     ))
   }
   attrition <- spec$options$attrition

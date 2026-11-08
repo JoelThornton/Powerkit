@@ -6,6 +6,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Simulation precision stated one way everywhere"
+    text: >-
+      How precise a simulated power is ("within about 3 percentage points")
+      is now worked out the same way on every screen, including the
+      whole-study plan and Labs' sequential Bayesian planning.
+  - date: "2026-11-08"
     title: "Not sure of the effect? Bayes factor plans can now say"
     text: >-
       A Bayes factor t-test result can now show the chance of strong

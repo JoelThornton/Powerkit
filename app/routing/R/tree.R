@@ -327,17 +327,6 @@ analysis_by_id <- function(tree, id) {
 
 # End points ----------------------------------------------------------------
 
-status_label <- function(status) {
-  switch(
-    status,
-    runs_validated = "Runs in powerkit",
-    runs_validation_in_progress = "Runs, validation in progress",
-    coming_soon = "Coming soon",
-    not_in_powerkit = "Not in powerkit yet",
-    status
-  )
-}
-
 #' The end points that fit a set of screening answers (`ctx`): those any
 #' route can still reach with them ("Help me choose" from Q1, or the guided
 #' route with the options it offers), plus end points no screening answer
@@ -404,7 +393,3 @@ closing_questions_for <- function(tree, ep_id) {
   out
 }
 
-endpoints_by_status <- function(tree) {
-  eps <- tree$endpoints
-  split(names(eps), vapply(eps, function(e) e$status, character(1)))
-}

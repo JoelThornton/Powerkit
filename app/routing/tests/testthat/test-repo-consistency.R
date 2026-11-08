@@ -229,3 +229,26 @@ test_that("every item in the queue says whether it is ready to start", {
   numbers <- as.integer(sub("^\\| ([0-9]+) \\|.*", "\\1", items))
   expect_equal(numbers, seq_along(numbers))
 })
+
+# The dependency counts (docs/dependency-footprint.md) -------------------------
+
+test_that("the dependency page's counts are the ones its script measures", {
+  script <- new.env()
+  sys.source(file.path(repo_dir, "scripts", "dependency-footprint.R"), envir = script)
+  expected <- unname(script$dependency_assessment(repo_dir))
+  on_page <- readLines(file.path(repo_dir, "docs", "dependency-footprint.md"), encoding = "UTF-8", warn = FALSE)
+  expect_identical(on_page, expected, label = paste(
+    "docs/dependency-footprint.md is out of date; rewrite it with",
+    "Rscript scripts/dependency-footprint.R > docs/dependency-footprint.md"
+  ))
+})
+
+# The docs map (docs/README.md) ----------------------------------------------
+
+test_that("the docs map lists every page in docs/", {
+  map <- read_doc("README.md")
+  pages <- setdiff(basename(Sys.glob(file.path(repo_dir, "docs", "*.md"))), "README.md")
+  missing <- pages[!vapply(pages, function(p) grepl(sprintf("](%s)", p), map, fixed = TRUE), logical(1))]
+  expect_length(missing, 0)
+  if (length(missing)) message("Not in docs/README.md: ", paste(missing, collapse = ", "))
+})
