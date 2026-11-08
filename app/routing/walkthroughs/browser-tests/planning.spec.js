@@ -135,6 +135,8 @@ test('precision produces width rather than a power result', async ({ page }, inf
 test('a real background simulation can be cancelled', async ({ page }) => {
   await tPlan(page);
   await setValue(page, 'method', 'welch_t');
+  // Welch's test is worked out by formula unless simulation is chosen.
+  await setValue(page, 'welch_method', 'simulation');
   await setValue(page, 'simulation_accuracy', 'precise');
   await setValue(page, 'n', '1000');
   await page.locator('#form_check').click();

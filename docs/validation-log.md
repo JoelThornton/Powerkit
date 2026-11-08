@@ -1308,6 +1308,34 @@ tolerance changed.
 
 Packages: powerkit 0.35.0; Superpower 0.2.4.1; power4mome 0.2.1; R 4.5.3.
 
+## 2026-11-08 · Full run, every chunk (GitHub Actions, scheduled)
+
+[Run 42452263304](https://github.com/JoelThornton/Powerkit/actions/runs/42452263304),
+the weekly run of every chunk, on commit
+[c2449ce](https://github.com/JoelThornton/Powerkit/commit/c2449cedd6dbb89e987623c9a6cefccd295d45e4)
+(powerkit 0.41.0) in the CI image (R 4.5.3). It started at 05:49 UTC and
+its report was written at 10:02, **4 hours 13 minutes** in all; the
+longest part (whole-study planning, part 4) took 3 hours 8 minutes, inside
+GitHub's six-hour limit, and every part finished and reported.
+**389 PASS, 2 FAIL, 0 ERROR, 110 SKIP, 0 NOT RUN, of 501 tests in 49
+parts.** The skips are published-example placeholders
+(`TODO_PUBLISHED_VALUE`) and tests a part leaves to another.
+
+The two failures are the checks the runs of 6 and 7 November failed, on
+the same seeds, with the same numbers:
+
+- **Mixed design, Greenhouse-Geisser: the exact data set agrees with
+  simulation** (anova, part 1): simulated power 0.2130 (MCSE 0.0041)
+  against Superpower's exact 0.2313. The reruns of 7 November (above)
+  show a real difference of about 0.015, not Monte Carlo error; it waits
+  for the statistician.
+- **Model 7 with a yes/no X: the Monte Carlo interval keeps the Type I
+  error at most alpha** (modmed_binary, part 4): 7.5% of 1,000 simulated
+  studies, above the test's limit of 7.07%. This is the 1,000-study half
+  of the 6.7% (3,000 studies) in `upstream-questions.md`, question 6 for
+  power4mome; the result screen states it, and it waits on power4mome's
+  author.
+
 ## 2026-11-05: basic and zero-inflated models (local, frozen source)
 
 [Complete summary](validation/2026-11-05-basic-zero.txt), with the exact

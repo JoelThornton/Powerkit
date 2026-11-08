@@ -16,14 +16,16 @@ rules are in `CLAUDE.md`.
 - **Review fixes (7 November 2026):** a review of the whole project found
   no wrong number and nothing critical, and grouped 21 serious problems
   and about 110 smaller ones into fix batches at the top of
-  [`next.md`](next.md). Eleven batches are done: validation runs that
+  [`next.md`](next.md). Twelve batches are done: validation runs that
   finish and report, what the app says, design-finder routes, the draft
   box and page structure, effect-size guidance, speed, whole-study
-  planning, input screens, Labs, docs and start-up reading, and change
-  notes that no longer need catch-up merges (each pull request writes its
-  own note files; `scripts/close-batch.R` sets the version when a batch
-  closes). Next: Welch's test by default, small telescopes for
-  replications, and keeping the review's scripts.
+  planning, input screens, Labs, docs and start-up reading, change notes
+  that no longer need catch-up merges (each pull request writes its own
+  note files; `scripts/close-batch.R` sets the version when a batch
+  closes), and Welch's t-test by default on the two-group card, by
+  formula (Departure 21). Next: Welch's F as the one-way ANOVA's
+  default (decided 8 November 2026), small telescopes for replications
+  and keeping the review's scripts.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
@@ -58,7 +60,7 @@ rules are in `CLAUDE.md`.
   pilot; the smallest detectable effect on the t-tests, the correlation,
   proportions, the ANOVAs, regression and the clustered design (the rest
   is `next.md` item 6). Results show the critical effect size for the
-  t-tests and the correlation.
+  t-tests (Student's) and the correlation.
 
 - **Results and documents:** a result opens with the answer and what it
   assumes, then "How sure can you be?", the write-up with a methods
@@ -97,9 +99,11 @@ for a design before its PR merges, every night the engine changed, and in
 full every Sunday from 00:05 UTC (`scripts/validation-plan.R`), with
 tests dealt to parts by their recorded times so each part ends within
 GitHub's six hours, and one list at the end of each run of the tests that
-need attention. Open: the mixed-design Greenhouse-Geisser check fails with
-new seeds and waits for the statistician; the moderated mediation Type I
-check with a yes/no X is recorded when the run of 8 November finishes.
+need attention. The full run of 8 November took 4 hours 13
+minutes (389 pass, 2 fail, 110 skipped). Its two failures are known: the
+mixed-design Greenhouse-Geisser check, which fails with new seeds too and
+waits for the statistician, and moderated mediation's Type I error with a
+yes/no X (7.5% of 1,000 studies), a question for power4mome's author.
 
 ## Known gaps on cards that run
 

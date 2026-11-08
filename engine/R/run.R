@@ -16,8 +16,9 @@
 #' (against 0, or an increase) on `pwrss::power.f.regression()`; one
 #' proportion and McNemar's test on pwrss's exact tests
 #' (`power.exact.oneprop()`, `power.exact.mcnemar()`); and Welch's t-test
-#' by formula on request (`options > method = "exact"`,
-#' `pwrss::power.t.welch()`). These have no simulation option. For the two
+#' by formula (`pwrss::power.t.welch()`, unless
+#' `options > method = "simulation"` asks for Spower's simulation). The
+#' others have no simulation option. For the two
 #' exact tests of counts, whose power goes up and down with n, the required
 #' n is the smallest that reaches the target power.
 #' More tests by formula (engine only, not yet in the app), each on one

@@ -93,7 +93,7 @@ test_that("the required n is the smallest valid n whose pwr power reaches the ta
 
 test_that("Welch's t-test and requested simulation run on Spower", {
   welch <- example_spec("independent_t")
-  welch$options <- list(seed = 7, nrep = 100)
+  welch$options <- list(seed = 7, nrep = 100, method = "simulation")
   welch$goal <- list(type = "power", n = 100)
   expect_equal(run_quietly(welch)$provenance$backend, "Spower")
 

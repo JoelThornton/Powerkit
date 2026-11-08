@@ -183,7 +183,7 @@ test_that("McNemar and one-proportion specs that can't be right are refused", {
   expect_spec_problem(spec, "'simulation' isn't available for this test yet")
 })
 
-test_that("Welch's t-test by formula equals pwrss::power.t.welch(), and stays on Spower by default", {
+test_that("Welch's t-test by formula equals pwrss::power.t.welch(), by default, and uses Spower on request", {
   power <- power_at(welch_exact_spec(list(type = "power", n = 120), ratio = 2))
   # 40 in group 1, 80 in group 2; pwrss's n.ratio is n1 / n2.
   direct <- pwrss::power.t.welch(
@@ -193,6 +193,8 @@ test_that("Welch's t-test by formula equals pwrss::power.t.welch(), and stays on
   expect_equal(power, direct$power)
   default <- welch_exact_spec(list(type = "power", n = 120))
   default$options$method <- NULL
+  expect_equal(route_spec(validate_spec(default))$name, "pwrss")
+  default$options$method <- "simulation"
   expect_equal(route_spec(validate_spec(default))$name, "Spower")
   expect_spec_problem(
     welch_exact_spec(list(type = "power", n = 120), alternative = "less"),

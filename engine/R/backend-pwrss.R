@@ -5,10 +5,10 @@
 #                      pwrss::power.exact.oneprop()
 #   McNemar's test     basic_test/mcnemar: McNemar's exact test,
 #                      pwrss::power.exact.mcnemar(method = "exact")
-#   Welch's t-test     basic_test/independent_t with welch_t, only when
-#                      options > method = "exact" is requested:
-#                      pwrss::power.t.welch() (Bulus, 2024's formulas). The
-#                      default for Welch's t-test stays Spower simulation.
+#   Welch's t-test     basic_test/independent_t with welch_t, unless
+#                      options > method = "simulation" is requested:
+#                      pwrss::power.t.welch() (Bulus, 2024's formulas).
+#                      Spower's simulation is the other route.
 #   R-squared          multiple_regression/r2_zero and r2_increase: the F
 #                      test, pwrss::power.f.regression(); single_coefficient
 #                      (the usual test, method f_test) is the F test of one
@@ -70,7 +70,7 @@ pwrss_covers <- function(spec) {
       identical(spec$target_test$method, "fisher_exact")) ||
     (identical(key, "basic_test/independent_t") &&
       identical(spec$target_test$method, "welch_t") &&
-      identical(spec$options$method, "exact"))
+      !identical(spec$options$method, "simulation"))
 }
 
 pwrss_backend <- function(spec, seed = NULL) {
@@ -98,6 +98,8 @@ pwrss_backend <- function(spec, seed = NULL) {
     # detects at n (6 November 2026), so no effect size is needed.
     sensitivity = if (spec$template %in% c("r2_zero", "r2_increase", "single_coefficient")) {
       function(n, power) regression_sensitivity(spec, n, power)
+    } else if (identical(spec$template, "independent_t")) {
+      function(n, power) welch_sensitivity(spec, n, power)
     },
     details = function(n) pwrss_details(pwrss_output(inputs$fun, inputs$args(n)), inputs$fun),
     # Exact tests of counts: power goes up and down with n.
@@ -236,6 +238,34 @@ regression_sensitivity <- function(spec, n, target) {
   list(effect = p, effect_name = if (spec$template == "r2_zero") "r2" else "partial_r2",
     effect_description = sprintf("the %s; Cohen's f-squared = %s", what, format(signif(p / (1 - p), 3))),
     power = at(p))
+}
+
+# Welch's t-test: the smallest standardised mean difference (in the
+# spec's units, the root mean square of the two SDs when they differ) at
+# which pwrss's power.t.welch() reaches the target power at n, with the
+# spread ratio and allocation kept: its own power, searched over d as
+# regression_sensitivity() searches R-squared (no new formula). The sign
+# is the specified effect's (positive if none was given), or the
+# one-sided test's direction.
+welch_sensitivity <- function(spec, n, target) {
+  alternative <- spec$target_test$alternative %||% "two_sided"
+  negative <- identical(alternative, "less") ||
+    (identical(alternative, "two_sided") && isTRUE(spec$population$d < 0))
+  sign <- if (negative) -1 else 1
+  at <- function(d) {
+    s <- spec
+    s$population$d <- sign * d
+    pwrss_power(pwrss_inputs(s), n)
+  }
+  upper <- 10
+  if (at(upper) < target) abort_run("No standardised mean difference below 10 reaches the target power at this n.")
+  d <- stats::uniroot(function(x) at(x) - target, lower = 1e-6, upper = upper, tol = 1e-10)$root
+  description <- if (unequal_welch(spec)) {
+    "standardised mean difference (group 2 minus group 1, in the root mean square of the two SDs)"
+  } else {
+    "Cohen's d (group 2 minus group 1, in SDs)"
+  }
+  list(effect = sign * d, effect_name = "d", effect_description = description, power = at(d))
 }
 
 partial_r_squared <- function(spec) {

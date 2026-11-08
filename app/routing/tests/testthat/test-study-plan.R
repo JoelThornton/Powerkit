@@ -76,6 +76,12 @@ test_that("joint power is offered only for one randomised comparison on several 
   expect_match(offered, "Calculate joint power", fixed = TRUE)
   expect_no_match(offered, "doesn't calculate it for these designs yet", fixed = TRUE)
   expect_match(as.character(study_plan_ui(list(t_entry(), r_entry))), "doesn't calculate it for these designs yet", fixed = TRUE)
+  # Welch's test (the card's default): joint power needs Student's, and the
+  # plan says so.
+  welch <- t_entry()
+  welch$spec$target_test <- list(method = "welch_t")
+  expect_false(joint_power_offered(list(welch, t_entry())))
+  expect_match(as.character(study_plan_ui(list(welch, t_entry()))), "choose Student's test on each card", fixed = TRUE)
 })
 
 test_that("the joint power from the engine is stated with each outcome's power and its source", {

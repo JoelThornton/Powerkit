@@ -87,7 +87,7 @@ power while matching G\*Power) is folded there instead
 | InteractionPoweR | Not covered (interactions only): to check | | |
 | power4mome | Not covered: to check | | |
 | Spower | `p_t.test()`: `t.test()` on simulated normal data; Student's by default (`var.equal = TRUE`), Welch's with `var.equal = FALSE`; two-sided by default [Spower-src] | `d` is the standardised mean of the **first** group (two-sample) or first time point (paired); the other is 0, both with SD 1. For paired data the two time points are drawn **independently**, so the differences have SD sqrt(2) and Spower's `d` is sqrt(2) * d_z [Spower-src] | One-sided tests: `alternative` (`"two.sided"`, `"greater"`, `"less"`; Spower 0.7), or `two.tailed = FALSE`, which means `"greater"` in Spower's orientation (group 1 minus group 2). Spower 0.6.4's `two.tailed = FALSE` halved the two-sided p-value regardless of direction (Departure 4, retired); `n` is group 1's size (pairs, for paired data), `n2_n1` the allocation ratio [Spower-src] |
-| **powerkit** | **By default, pwr's formula** (Departure 9): `pwr.t.test()` (one-sample; paired, with d_z; two equal groups) or `pwr.t2n.test()` (unequal groups), Student's only. **On request, and for Welch's:** Spower's `p_t.test()`; one-sided tests pass `alternative`, translated to Spower's orientation (for two-sample and paired tests powerkit's `"greater"` is Spower's `"less"`). Student's or Welch's as the spec says; the finder pre-selects Student's (decision D7) [powerkit] | `d` = (mean of group 2 - mean of group 1) / SD; `dz` = mean of (second condition - first) / SD of the differences, stated when a paired spec is printed. Passed to Spower as -d and -sqrt(2) * d_z [powerkit] | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the effect is positive); `allocation_ratio`; `goal.n` is the total |
+| **powerkit** | **By default, pwr's formula**: `pwr.t.test()` (one-sample; paired, with d_z; two equal groups) or `pwr.t2n.test()` (unequal groups), Student's only. **Two groups:** Welch's t-test by default (Departure 21), by pwrss's `power.t.welch()`. **On request:** Spower's `p_t.test()`; one-sided tests pass `alternative`, translated to Spower's orientation (for two-sample and paired tests powerkit's `"greater"` is Spower's `"less"`). Student's or Welch's as the spec says; the two-group card pre-selects Welch's (Departure 21) [powerkit] | `d` = (mean of group 2 - mean of group 1) / SD; `dz` = mean of (second condition - first) / SD of the differences, stated when a paired spec is printed. Passed to Spower as -d and -sqrt(2) * d_z [powerkit] | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the effect is positive); `allocation_ratio`; `goal.n` is the total |
 
 ### Correlation, two proportions, chi-square test of independence
 
@@ -1316,6 +1316,39 @@ Departure 19 is shown on the affected result and in the methods text.
 - **Shown to users:** on the E71 result unless the user chose irtpwr's
   test (`app/routing/R/results.R`, `departures_for()`), and in the
   methods paragraph.
+
+### 21. Two groups: Welch's t-test by default, not Student's (G\*Power and pwr)
+
+- **Established convention:** G\*Power's two-group t-test and pwr's
+  `pwr.t.test()` and `pwr.t2n.test()` plan for Student's t-test, which
+  pools the two groups' variances; Spower's `p_t.test()` runs it unless
+  `var.equal = FALSE`.
+- **powerkit:** the two-group card (E2) plans for Welch's t-test unless the
+  user chooses Student's, worked out by pwrss's formula
+  (`power.t.welch()`, pwrss 1.3.3), with Spower's simulation on request
+  (`options > method = "simulation"`). The smallest detectable effect and
+  a justified alpha use the same formula: d searched with pwrss's power
+  (`welch_sensitivity()`), and JustifyAlpha's `optimal_alpha()` on
+  `power.t.welch()`.
+- **Why** (the maintainer's decision, 7 November 2026, with
+  `Delacre2017_welch`): Welch's test keeps the false-positive rate at
+  alpha when the groups' spreads differ, above all when the smaller group
+  has the larger spread, and loses almost nothing when they don't, so
+  Delacre, Lakens and Leys (2017) recommend it by default; R's own
+  `t.test()` runs it unless told otherwise. The formula, not a
+  simulation, is the default because the two agree (the `welch_spreads`
+  validation chunk) and the formula has no random error.
+- **Size:** with equal spreads and equal groups the two tests need the same
+  N (788, 128 and 52 for d = 0.2, 0.5 and 0.8 at 80% power: pwrss's Welch
+  df are then n - 2, as Student's). With unequal groups Welch's needs a few
+  more: 147 rather than 144 for d = 0.5 when group 2 is twice the size of
+  group 1, and 176 rather than 172 when it is three times the size.
+- **Test:** `engine/tests/testthat/test-welch-default.R`.
+- **Shown to users:** on the E2 result whenever Welch's test is planned
+  for (`app/routing/R/results.R`, `departures_for()`), and in the methods
+  paragraph. The critical effect size is shown with Student's test only:
+  Welch's critical d depends on the sample variances, so it has no single
+  value before the data are in (`decisions.md`, 1 November 2026).
 
 ## Known differences
 

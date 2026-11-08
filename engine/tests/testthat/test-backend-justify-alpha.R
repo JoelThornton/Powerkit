@@ -5,7 +5,7 @@
 ja_spec <- function(name, goal = list()) {
   spec <- example_spec(name)
   spec$options <- NULL
-  # The example uses Welch's test, which pwr's formula doesn't cover.
+  # The example uses Welch's test (pwrss's formula); these checks are on pwr's.
   if (name == "independent_t") spec$target_test$method <- "student_t"
   spec$goal <- modifyList(list(type = "justified_alpha", n = 64L), goal)
   spec
@@ -53,9 +53,24 @@ test_that("a costlier false positive or a less likely effect gives a stricter al
     tolerance = 1e-10)
 })
 
+test_that("Welch's t-test has a justified alpha from pwrss's formula", {
+  spec <- ja_spec("independent_t")
+  spec$target_test$method <- "welch_t"
+  found <- run_spec(spec)$justified_alpha
+  expect_match(found$power_function, "pwrss::power.t.welch(", fixed = TRUE)
+  power_at <- function(x) {
+    pwrss::power.t.welch(d = spec$population$d, var.ratio = 1, n.ratio = 1, n2 = 32, alpha = x,
+      alternative = "two.sided", claim.basis = "md.pval", verbose = 0)$power
+  }
+  expect_equal(found$power, power_at(found$alpha), tolerance = 1e-10)
+  # With equal SDs and equal groups Welch's formula is Student's.
+  expect_equal(found$alpha, run_spec(ja_spec("independent_t"))$justified_alpha$alpha, tolerance = 1e-4)
+})
+
 test_that("a justified alpha is refused, in plain words, where pwr doesn't cover the test", {
   spec <- ja_spec("independent_t")
   spec$target_test$method <- "welch_t"
+  spec$options$method <- "simulation"
   expect_error(run_spec(spec), "A justified alpha is available for the one-sample, paired and two-group t-tests")
   spec <- ja_spec("two_proportions")
   expect_error(run_spec(spec), "A justified alpha is available")

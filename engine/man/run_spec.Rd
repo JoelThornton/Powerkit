@@ -115,8 +115,9 @@ ANOVA on Superpower's \code{ANOVA_exact()}; multiple regression R-squared
 (against 0, or an increase) on \code{pwrss::power.f.regression()}; one
 proportion and McNemar's test on pwrss's exact tests
 (\code{power.exact.oneprop()}, \code{power.exact.mcnemar()}); and Welch's t-test
-by formula on request (\code{options > method = "exact"},
-\code{pwrss::power.t.welch()}). These have no simulation option. For the two
+by formula (\code{pwrss::power.t.welch()}, unless
+\code{options > method = "simulation"} asks for Spower's simulation). The
+others have no simulation option. For the two
 exact tests of counts, whose power goes up and down with n, the required
 n is the smallest that reaches the target power.
 More tests by formula (engine only, not yet in the app), each on one
