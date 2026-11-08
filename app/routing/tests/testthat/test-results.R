@@ -1718,6 +1718,23 @@ test_that("small telescopes: a replication is planned against the original's d33
   expect_match(html, "the replication needs 102 participants in total", fixed = TRUE)
   expect_match(html, "small-telescopes test (Simonsohn, 2015)", fixed = TRUE)
   expect_match(html, "d33 = 0.496", fixed = TRUE)
+  # What it claims, and what it doesn't.
+  expect_match(html, "doesn't show the original result was a false positive", fixed = TRUE)
+  expect_no_match(html, "whatever the true effect is", fixed = TRUE)
+  # How sure: the power if the true effect is small but not zero.
+  expect_match(html, "result-telescope-if-small", fixed = TRUE)
+  expect_match(html, "The plan assumes the true effect is zero", fixed = TRUE)
+  expect_match(html, "the equivalence test", fixed = TRUE)
+  # The original study's significance level is its own field: a stricter
+  # replication needs more people, not fewer.
+  # (0.05 unless the user changes it; a project saved before the field
+  # existed still opens.)
+  expect_equal(calc$result$small_telescopes$original_alpha, 0.05)
+  strict <- build_spec(forms, "E2", fields, modifyList(values, list(alpha = 0.005, st_alpha = 0.05)))
+  expect_equal(strict$effect_justification$small_telescopes$alpha, 0.05)
+  expect_gt(run_calculation(strict, run, seed = forms$default_seed)$result$n_required$n, 102)
+  other <- build_spec(forms, "E2", fields, modifyList(values, list(st_alpha = 0.1)))
+  expect_equal(run_calculation(other, run, seed = forms$default_seed)$result$small_telescopes$original_alpha, 0.1)
   text <- paste(writeup_text(forms$forms$E2, spec, calc$result, fields, values), collapse = " ")
   expect_match(text, "small-telescopes replication test (Simonsohn, 2015)", fixed = TRUE)
   expect_match(text, "its size does not enter the plan", fixed = TRUE)

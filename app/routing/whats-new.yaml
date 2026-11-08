@@ -8,6 +8,17 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Small telescopes: the original study's significance level"
+    text: >-
+      When you plan a replication by small telescopes, the input screen now
+      asks which significance level the original study used (usually 0.05),
+      and uses it only to work out the effect the original could detect.
+      Before, the replication's own level was used for both, so a stricter
+      replication was given fewer people instead of more. The result now
+      also shows how the replication's power drops if the true effect is
+      small but not zero, and says more carefully what a result would and
+      wouldn't show about the original study.
+  - date: "2026-11-08"
     title: "Plan a replication by small telescopes"
     text: >-
       When your effect size comes from a published study you want to

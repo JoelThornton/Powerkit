@@ -1232,6 +1232,26 @@ safeguard_sentence <- function(result) {
 
 # Small telescopes (Simonsohn, 2015), worked out by the engine: d33 from
 # pwr, the replication's one-sided test against it from pwrss.
+
+# "How sure can you be?" for small telescopes: the plan assumes a true
+# effect of 0, so show the power if the effect is real but smaller than
+# d33 (the engine's `if_small` table, from pwrss).
+telescope_if_small_ui <- function(spec, result) {
+  table <- result$small_telescopes$if_small
+  if (is.null(table) || !nrow(table)) return(NULL)
+  st <- result$small_telescopes
+  share <- c("0 (the plan)", "a quarter of", "half of", "three quarters of")
+  rows <- lapply(seq_len(nrow(table)), function(i) tags$tr(
+    tags$td(if (i == 1) share[1] else sprintf("%s = %s (%s %s)", sub("33$", "", st$effect_name), format(round(table$true_effect[i], 3), nsmall = 2), share[i], st$effect_name)),
+    tags$td(percent(table$power[i]))))
+  div(class = "result-telescope-if-small",
+    p(sprintf(paste0("The plan assumes the true effect is zero. If the effect is real but smaller than %s, the replication is less ",
+      "likely to show it is below %s, and a result that is neither significant nor below %s is inconclusive:"),
+      st$effect_name, st$effect_name, st$effect_name)),
+    tags$table(class = "table table-sm result-telescope-table",
+      tags$thead(tags$tr(tags$th("True effect"), tags$th(sprintf("Power to show it is smaller than %s", st$effect_name)))),
+      tags$tbody(rows)))
+}
 telescope_effect_text <- function(st) {
   sprintf("%s = %s", st$effect_name, format(round(st$effect, 3), nsmall = 2))
 }
@@ -1258,12 +1278,16 @@ telescope_sentences <- function(spec, result) {
   )
   c(
     headline = headline,
-    detail = sprintf(paste0("This is the small-telescopes test (Simonsohn, 2015): a replication that finds the effect is smaller ",
-      "than %s shows the original study's effect was too small for that study to have detected, whatever the true effect is. ",
+    detail = sprintf(paste0("This is the small-telescopes test (Simonsohn, 2015). If the replication finds the effect is smaller ",
+      "than %s, a study the size of the original could not reliably have detected an effect that small. That doesn't show the ",
+      "original result was a false positive, and it says something about the original study only as far as the replication ",
+      "recreated its conditions: the same manipulation, of similar strength, measured the same way, in a comparable sample. ",
       "The original estimate (%s) only sets the direction. Worked out by formula: %s from pwr's power function at a power of one ",
-      "third, and the replication's one-sided test against it from %s, no simulation. Simonsohn's rule of thumb is about 2.5 times ",
-      "the original sample. To also have power to detect the original effect if it is real, plan that test separately."),
-      st$effect_name, format(round(st$original_effect, 3)), st$effect_name, sub(" \\(H0.*", "", result$provenance$backend_function))
+      "third and the original study's significance level (%s, two-sided), and the replication's one-sided test against it from %s, ",
+      "no simulation. To also have power to detect the original effect if it is real, plan that test separately; if the effect ",
+      "might matter only above some size, the equivalence test asks whether it is too small to matter, which suits a very large original study."),
+      st$effect_name, format(round(st$original_effect, 3)), st$effect_name, alpha_text(st$original_alpha %||% 0.05),
+      sub(" \\(H0.*", "", result$provenance$backend_function))
   )
 }
 
@@ -2433,12 +2457,13 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   # 0: the effect slider, the scenarios and the Bayes factor companion
   # would describe a two-sided test of the original effect instead.
   telescopes <- !is.null(result$small_telescopes)
+  telescope_sure <- if (telescopes) telescope_if_small_ui(spec, result)
   explore <- if (!telescopes) explore_ui(spec, result)
   scen <- if (!telescopes) scenarios_ui(spec, result)
   bayes_card <- if (!telescopes) bayes_companion_card_ui(tree, ep_id, spec, result)
   sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
-    `result-sure` = if (!is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
+    `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
     `result-bayes` = if (!is.null(bayes_card)) "Add a Bayes factor?",
     `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
@@ -2466,9 +2491,10 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
     if (length(known) || length(departures_in_view)) p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
-    if (!is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
+    if (!is.null(telescope_sure) || !is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
-      p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
+      if (is.null(telescope_sure)) p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
+      telescope_sure,
       if (!is.null(calc$curve_table)) curve_table_ui(spec, result, calc$curve_table),
       bayes_robustness_ui(spec, calc$robustness),
       bayes_uncertain_ui(spec, result),

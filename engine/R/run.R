@@ -351,7 +351,7 @@ run_spec <- function(spec) {
       justified_alpha = outcome$justified_alpha,
       effect_from_units = units,
       safeguard = safeguard_record(spec),
-      small_telescopes = small_telescopes_record(spec),
+      small_telescopes = small_telescopes_record(spec, n_analysed, backend),
       effect_conversion = conversion_record(spec),
       recruitment = recruitment_target(spec, n_analysed),
       clusters = cluster_summary(spec, n_analysed),

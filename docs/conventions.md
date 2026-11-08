@@ -121,7 +121,9 @@ power while matching G\*Power) is folded there instead
 - **What it is:** Simonsohn's (2015, `Simonsohn2015_telescopes`) plan for
   a replication of one original study: d33 (r33 for a correlation) is the
   effect the original study had 33% power to detect with its own sample
-  size (two-sided, at the card's alpha), and the replication is planned so
+  size (two-sided, at the significance level the original study used,
+  0.05 unless the user says otherwise; from 0.47.2, before which the
+  card's alpha was used, see below), and the replication is planned so
   that, if the true effect is zero, a one-sided test can show the effect
   is smaller than d33. Offered on the one-sample, paired and two-group
   t-tests and the correlation, beside safeguard power, when the effect
@@ -138,6 +140,19 @@ power while matching G\*Power) is folded there instead
   about 2.5 times the original sample: 51 per group for an original 20 per
   group, 75 for an original 30 in a paired design and 103 for a
   correlation from an original 40 (`test-small-telescopes.R`).
+- **Two significance levels (0.47.2):** d33 uses the original study's
+  level, the replication's test the card's. With one alpha for both, a
+  replication at .005 got d33 = 0.79 instead of 0.50 for an original of
+  20 per group, and 38 per group instead of 96 (`test-small-telescopes.R`).
+- **What a result shows:** a result below d33 means a study the size of
+  the original could not reliably have detected an effect that small; it
+  doesn't show the original was a false positive (Simonsohn, 2015, p.
+  567), and it bears on the original only as far as the replication
+  recreated its conditions. The result says so, and its "How sure can you
+  be?" section shows the power if the true effect is a quarter, half or
+  three quarters of d33 rather than 0 (59%, 35% and 15% for an original
+  of 20 per group and a replication of 51 per group at alpha .05, against
+  80% for a true effect of 0).
 
 ### Variance tests (one group, two groups)
 

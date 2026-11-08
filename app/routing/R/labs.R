@@ -155,11 +155,13 @@ labs_telescope_sentence <- function(calc) {
   if (is.null(calc)) return(NULL)
   st <- calc$result$small_telescopes
   n <- calc$result$n_required$n
-  sprintf(paste0("Small telescopes (Simonsohn, 2015): the original study had a one-in-three chance to detect %s = %s. ",
-    "To have 80%% power to show the effect is smaller than that, if the true effect is zero, a replication needs %s ",
-    "participants in total, about %s times the original sample. When you replicate, run the test the original used ",
-    "(for example Student's t-test or the classical F test) so the two can be compared, and report Welch's version beside it."),
-    st$effect_name, format(round(st$effect, 3), nsmall = 2), n, format(round(n / st$original_n, 1), nsmall = 1))
+  sprintf(paste0("Small telescopes (Simonsohn, 2015): the original study had a one-in-three chance to detect %s = %s ",
+    "(at a two-sided .05). To have 80%% power to show the effect is smaller than that, if the true effect is zero, a replication ",
+    "needs %s participants in total, %s times the original sample (Simonsohn's rule of thumb is about 2.5). This fits a close ",
+    "replication, and a result below %s says the original study was too small to see an effect that size, not that it was a ",
+    "false positive. For a close replication, run the test the original used (for example Student's t-test or the classical F test) ",
+    "so the two can be compared, and report Welch's version beside it; a redesigned replication is better planned on the card for its design."),
+    st$effect_name, format(round(st$effect, 3), nsmall = 2), n, format(round(n / st$original_n, 1), nsmall = 1), st$effect_name)
 }
 
 labs_sde_problems <- function(ep_id, n, power, alpha, p1, rows, cols) {

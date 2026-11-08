@@ -13,6 +13,13 @@
 # r33 for the correlation. Simonsohn's rule of thumb, about 2.5 times the
 # original sample for 80% power, is what this gives: 51 per group for an
 # original 20 per group (test-small-telescopes.R).
+#
+# Two significance levels: d33 is worked out at the level the original
+# study used (`small_telescopes > alpha`, two-sided, 0.05 unless given),
+# and the replication's test uses the card's own alpha. Using the card's
+# alpha for both would move the yardstick: a replication at .005 would get
+# d33 = 0.79 instead of 0.50 for an original of 20 per group, and so a
+# smaller sample than one at .05.
 
 # Which population field holds the original effect, and which of the
 # original study's sample sizes are needed, for each template.
@@ -26,6 +33,10 @@ telescope_templates <- list(
 small_telescopes_test <- function(spec) {
   !is.null(spec$effect_justification$small_telescopes)
 }
+
+# The significance level the original study used: two-sided, 0.05 unless
+# the spec says otherwise.
+telescope_original_alpha <- function(st) st$alpha %||% 0.05
 
 #' The effect an original study had 33% power to detect
 #'
@@ -100,6 +111,10 @@ small_telescopes_problems <- function(spec) {
   if (!is.null(spec$options$method) && !identical(spec$options$method, "exact")) {
     problems <- c(problems, "Small telescopes is worked out by formula (pwr and pwrss); remove 'options > method'.")
   }
+  original_alpha <- st$alpha
+  if (!is.null(original_alpha) && (!is.numeric(original_alpha) || length(original_alpha) != 1 || original_alpha <= 0 || original_alpha >= 0.5)) {
+    problems <- c(problems, "The original study's significance level ('effect_justification > small_telescopes > alpha') must be between 0 and 0.5, for example 0.05.")
+  }
   problems
 }
 
@@ -107,16 +122,18 @@ telescope_backend <- function(spec, seed = NULL) {
   rule <- telescope_templates[[spec$template]]
   st <- spec$effect_justification$small_telescopes
   alpha <- spec$target_test$alpha
-  yardstick <- telescope_effect(spec$template, n = st$n, n1 = st$n1, n2 = st$n2, alpha = alpha)
+  yardstick <- telescope_effect(spec$template, n = st$n, n1 = st$n1, n2 = st$n2, alpha = telescope_original_alpha(st))
   # The original effect's sign: the replication asks whether the effect is
   # smaller than d33 in that direction.
   margin <- sign(spec$population[[rule$effect]]) * yardstick$effect
   ratio <- spec$options$allocation_ratio %||% 1
   correlation <- identical(spec$template, "correlation")
   fun <- if (correlation) "power.z.onecor" else "power.t.student"
-  args <- function(n) {
+  # `truth` is the true effect, as a share of the margin: 0 for the plan,
+  # more for the table of what happens if the effect is small but real.
+  args <- function(n, truth = 0) {
     if (correlation) {
-      return(list(rho = 0, null.rho = margin, n = n, alpha = alpha, alternative = "one.sided", verbose = 0))
+      return(list(rho = truth * margin, null.rho = margin, n = n, alpha = alpha, alternative = "one.sided", verbose = 0))
     }
     sizes <- if (identical(rule$design, "independent")) {
       n1 <- round(n / (1 + ratio))
@@ -124,10 +141,10 @@ telescope_backend <- function(spec, seed = NULL) {
     } else {
       list(n2 = n)
     }
-    c(list(d = 0, margin = margin), sizes, list(alpha = alpha, alternative = "one.sided", design = rule$design, verbose = 0))
+    c(list(d = truth * margin, margin = margin), sizes, list(alpha = alpha, alternative = "one.sided", design = rule$design, verbose = 0))
   }
-  power_at <- function(n) {
-    call_backend("pwrss", quietly(do.call(getExportedValue("pwrss", fun), args(n))))$power
+  power_at <- function(n, truth = 0) {
+    call_backend("pwrss", quietly(do.call(getExportedValue("pwrss", fun), args(n, truth))))$power
   }
   step <- valid_n_step(spec)
   list(
@@ -144,23 +161,37 @@ telescope_backend <- function(spec, seed = NULL) {
     bracket_power = power_at,
     simulate = NULL,
     sensitivity = NULL,
-    telescope = c(yardstick, list(margin = margin, fun = fun, args = args)),
+    telescope = c(yardstick, list(margin = margin, fun = fun, args = args, power_at = power_at)),
     check_run = function() data.frame(parameter = character(), specified = numeric(), recovered = numeric(), ok = logical())
   )
 }
 
-# For the result: the original study's sizes and effect, and its d33.
-small_telescopes_record <- function(spec) {
+# The share of d33 the true effect could be, for the table of what the
+# replication's power is if the effect is small but real.
+telescope_truths <- c(0, 0.25, 0.5, 0.75)
+
+# For the result: the original study's sizes, effect and significance
+# level, its d33, and, at the replication's sample size `n`, the power to
+# show the effect is smaller than d33 if the true effect is 0 or a share
+# of d33 (`telescope_truths`).
+small_telescopes_record <- function(spec, n = NULL, backend = NULL) {
   st <- spec$effect_justification$small_telescopes
   if (is.null(st)) return(NULL)
   rule <- telescope_templates[[spec$template]]
   original <- spec$population[[rule$effect]]
-  yardstick <- telescope_effect(spec$template, n = st$n, n1 = st$n1, n2 = st$n2, alpha = spec$target_test$alpha)
+  original_alpha <- telescope_original_alpha(st)
+  yardstick <- telescope_effect(spec$template, n = st$n, n1 = st$n1, n2 = st$n2, alpha = original_alpha)
   yardstick$effect <- sign(original) * yardstick$effect
+  if_small <- if (!is.null(n) && is.function(backend$telescope$power_at)) {
+    data.frame(true_effect = telescope_truths * yardstick$effect,
+      power = vapply(telescope_truths, function(t) backend$telescope$power_at(n, t), numeric(1)))
+  }
   c(yardstick, list(
     original_effect = original,
+    original_alpha = original_alpha,
     n = st$n, n1 = st$n1, n2 = st$n2,
-    original_n = if (is.null(st$n)) st$n1 + st$n2 else st$n
+    original_n = if (is.null(st$n)) st$n1 + st$n2 else st$n,
+    if_small = if_small
   ))
 }
 
@@ -172,9 +203,9 @@ telescope_script <- function(spec, result) {
   record <- result$small_telescopes
   correlation <- identical(spec$template, "correlation")
   yardstick_call <- switch(spec$template,
-    independent_t = sprintf("pwr.t2n.test(n1 = %s, n2 = %s, power = 1/3, sig.level = alpha)$d", st$n1, st$n2),
-    correlation = sprintf("pwr.r.test(n = %s, power = 1/3, sig.level = alpha)$r", st$n),
-    sprintf("pwr.t.test(n = %s, power = 1/3, sig.level = alpha, type = \"%s\")$d", st$n,
+    independent_t = sprintf("pwr.t2n.test(n1 = %s, n2 = %s, power = 1/3, sig.level = original_alpha)$d", st$n1, st$n2),
+    correlation = sprintf("pwr.r.test(n = %s, power = 1/3, sig.level = original_alpha)$r", st$n),
+    sprintf("pwr.t.test(n = %s, power = 1/3, sig.level = original_alpha, type = \"%s\")$d", st$n,
       if (spec$template == "paired_t") "paired" else "one.sample"))
   sizes <- if (identical(rule$design, "independent")) {
     ratio <- spec$options$allocation_ratio %||% 1
@@ -199,8 +230,11 @@ telescope_script <- function(spec, result) {
     goal_inputs(spec, result),
     sprintf("original_effect <- %s # the original study's estimate, which sets the direction", r_code(record$original_effect)),
     "",
+    sprintf("original_alpha <- %s # the significance level the original study used (two-sided)", r_code(record$original_alpha)),
+    "",
     sprintf("# Small telescopes (Simonsohn, 2015): %s is the effect the original study,", record$effect_name),
-    "# with its own sample size, had 33% power to detect (two-sided, at alpha).",
+    "# with its own sample size, had 33% power to detect (two-sided, at the",
+    "# original's significance level). The replication's test uses alpha.",
     sprintf("yardstick <- %s", yardstick_call),
     "margin <- sign(original_effect) * yardstick",
     "",

@@ -6106,6 +6106,23 @@ the site stays findable by search engines.
 - **What it doesn't do:** it plans the test of d33 only. Power to detect
   the original effect, if it is real, is a separate plan, and the result
   says so.
+- **The original's own significance level (0.47.2):** d33 is worked out
+  at the level the original study used (0.05 unless the user gives
+  another), and only the replication's test uses the card's alpha, as in
+  Simonsohn's definition of d33 as the effect the original study had 33%
+  power to detect. One alpha for both had made a stricter replication
+  smaller (38 rather than 96 per group at .005 for an original of 20 per
+  group).
+- **What a result claims (0.47.2):** the result, the choice note and the
+  Labs sentence say that a result below d33 means a study the size of the
+  original could not reliably have detected an effect that small, not
+  that the original was a false positive (Simonsohn, 2015, p. 567), and
+  that it bears on the original only as far as the replication recreated
+  its conditions (manipulation, its strength, measurement, sample). "How
+  sure can you be?" shows the power if the true effect is a quarter, half
+  or three quarters of d33, since the plan assumes exactly 0. The "about
+  2.5 times" rule of thumb is named once, as Simonsohn's, beside the
+  computed ratio.
 
 
 ## 2026-11-08 · The review's checks, kept for releases

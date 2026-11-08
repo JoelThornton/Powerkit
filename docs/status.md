@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.47.1). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.47.2). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -24,10 +24,15 @@ rules are in `CLAUDE.md`.
   sets the version when a batch closes), Welch's tests by default
   (Welch's t-test on the two-group card, by formula, Departure 21;
   Welch's F on the one-way ANOVA card, simulated, Departure 22), small
-  telescopes for replications, and the review's own checks kept for
+  telescopes for replications (0.47.2: d33 at the original study's own
+  significance level, the power if the true effect is small but not
+  zero, and wording that says what a result below d33 does and doesn't
+  show), and the review's own checks kept for
   each release: property checks over every example spec and a run of
   every card in a browser (`repository-protection.md`, "Checks before a
-  release"). Next: the queue in `next.md`.
+  release"). Next: the queue in `next.md`; a replication planner that
+  brings the replication goals together is item 15 there, waiting on a
+  decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
