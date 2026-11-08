@@ -661,6 +661,19 @@
         var b = el('map-full-btn'); if (b) b.textContent = 'Exit full screen';
       }
     }
+    if (!started && !window.cytoscape) { loadLibrary(window.pkMapShown); return; }
     if (!started) { started = start(); } else if (cy) { cy.resize(); }
   };
+  // The graph library (373 KB) is fetched the first time the map is shown,
+  // not with every visit's first page (8 November 2026).
+  var libraryLoading = false;
+  function loadLibrary(then) {
+    if (libraryLoading) return;
+    libraryLoading = true;
+    var s = document.createElement('script');
+    s.src = 'vendor/cytoscape.min.js';
+    s.onload = function() { libraryLoading = false; then(); };
+    s.onerror = function() { libraryLoading = false; };
+    document.head.appendChild(s);
+  }
 })();

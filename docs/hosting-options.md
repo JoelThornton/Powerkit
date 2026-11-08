@@ -18,13 +18,27 @@ These come from the app and engine as they are now, not from a provider.
 
 - **R 4.4 or later** with powerkit's packages (about 150 including
   dependencies; `renv.lock` pins them).
-- **Memory.** The app plus the backend packages loaded uses several
-  hundred MB per R process (not measured precisely; to measure before
-  choosing a plan size).
+- **Memory (measured 7 November 2026).** The app's own R process uses
+  about 180 MB at start, about 490 MB once one visitor has calculated and
+  about 890 MB after every card has run; 20 extra visitors added about
+  80 MB. Each background calculation is a separate process of 370 to
+  560 MB, at most two at once (`background_limit` in `forms.yaml`), and
+  one spare process with the backends loaded waits for the next
+  sample-size search. So memory peaks near 2 GB, within every Connect
+  Cloud plan.
+- **CPU, which is the limit.** Everything a visitor's screen needs runs in
+  the app's one R process, so while it is busy nobody else's screen
+  moves. Sample-size searches, simulations and the About page are built
+  in separate processes, and the fixed tabs are rendered once at start-up
+  (8 November 2026), so what is left there is quick. A host that runs two
+  or more app processes behind one address still helps most when many
+  people use the app at once (a class or a workshop); keep the background
+  limit at the number of cores minus one, since on a two-core plan two
+  background runs and the app's process share two cores.
 - **Long calculations.** The full-model simulations (mediation,
   moderated mediation, regression interactions) take minutes per run on
-  one core. While one runs, the R process is busy; on a single-process
-  host, other users wait.
+  one core. They run in separate processes, so other users don't wait
+  for them, but they compete for the same cores.
 - **No stored data.** The app keeps nothing between sessions and sends
   nothing anywhere. Hosting changes that: the host sees the inputs people
   type in (their study designs), and its logs may keep IP addresses.

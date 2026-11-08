@@ -5,6 +5,14 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-08"
+    title: "No more waiting for other people's calculations"
+    text: >-
+      Working out a sample size now runs on its own, with a progress bar
+      and a Cancel button, so one person's search no longer freezes the
+      app for everyone else. The app also opens faster, especially the
+      first click after it has been asleep, and the methods map loads
+      its graphics only when you open it.
   - date: "2026-11-07"
     title: "Clearer safeguard power, and pilots treated with care"
     text: >-

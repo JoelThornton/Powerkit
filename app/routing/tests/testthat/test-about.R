@@ -112,3 +112,12 @@ test_that("phones show short tab names so every tab fits", {
   expect_match(html, '<span class="tab-short">Plan</span>', fixed = TRUE)
   expect_identical(tab_title("About", "About"), "About")
 })
+
+test_that("the About page built in a separate process is the same page", {
+  skip_on_cran()
+  out <- withr::local_tempdir()
+  callr::r(about_build_worker, args = list(routing_dir = routing_dir, out_dir = out))
+  built <- paste(readLines(file.path(out, "about.html"), encoding = "UTF-8", warn = FALSE), collapse = "\n")
+  expect_identical(built, paste(as.character(about_ui(tree, forms)), collapse = "\n"))
+  expect_false(file.exists(file.path(out, "about.part")))
+})

@@ -25,6 +25,14 @@ runs_in_background <- function(forms, ep_id, spec = NULL, simulates = engine_fun
   if (identical(spec$design, "basic_test") && (spec$options$nrep %||% 1000L) <= 1000L) return(FALSE)
   isTRUE(tryCatch(simulates(spec), error = function(e) FALSE))
 }
+# A sample-size search calls the engine again and again (and the result's
+# comparison line, cost_line(), searches twice more), so the ANOVAs, Welch's
+# test, the trend test and others took 2 to 20 seconds in the app's own
+# process, freezing the app for everyone using it (measured 7 November
+# 2026). Every search therefore runs in the background, in the warm spare
+# process, while there is room (background_limit()); when there isn't, it
+# runs here as before rather than asking the user to wait.
+search_in_background <- function(spec) identical(spec$goal$type, "sample_size")
 usual_seconds <- function(forms, ep_id, goal) forms$background[[ep_id]][[goal]] %||% NA_real_
 
 # Run the engine on a checked spec. The input screen puts the seed in the
@@ -60,7 +68,10 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
 # The background R process's job: load the engine (the installed package, or
 # the source in engine_dir, as engine_function() does) and run
 # run_calculation(), passed in, so it's the same code as the in-session run.
-background_worker <- function(spec, seed, engine_dir, cores, run_calculation) {
+# `cost_powers`: the powers for the result's comparison line (cost_line()),
+# whose sample sizes are two more searches, so they are run here too rather
+# than in the app's own process.
+background_worker <- function(spec, seed, engine_dir, cores, run_calculation, cost_powers = NULL) {
   options(powerkit.cores = cores)
   # A whole-study simulation (experimental) runs run_whole_study().
   fun <- if (identical(spec$kind, "whole_study")) "run_whole_study" else "run_spec"
@@ -70,20 +81,117 @@ background_worker <- function(spec, seed, engine_dir, cores, run_calculation) {
     suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
     get(fun, envir = asNamespace("powerkit"))
   }
-  run_calculation(spec, run, seed)
+  calc <- run_calculation(spec, run, seed)
+  if (length(cost_powers) && identical(calc$status, "ok") && identical(calc$result$goal_type, "sample_size") &&
+      !identical(calc$result$provenance$method, "simulation")) {
+    calc$cost_ns <- vapply(cost_powers, function(power) {
+      if (isTRUE(all.equal(power, spec$goal$power))) return(as.numeric(calc$result$n_required$n))
+      s <- spec
+      s$goal$power <- power
+      again <- run_calculation(s, run, seed)
+      if (identical(again$status, "ok")) as.numeric(again$result$n_required$n) else NA_real_
+    }, numeric(1))
+  }
+  calc
 }
 
-# Start a calculation in a separate R process (callr), so the app stays
-# responsive and the run can be cancelled. Returns the process.
+# Start a calculation in a separate R process, so the app stays responsive
+# and the run can be cancelled. It uses the warm spare process when one is
+# ready (below), and otherwise starts a new one (callr). Returns the job:
+# is_alive(), kill(), wait() and get_result().
 start_background_calculation <- function(spec, seed = 1L,
-                                         engine_dir = file.path(routing_root(), "..", "..", "engine")) {
+                                         engine_dir = file.path(routing_root(), "..", "..", "engine"),
+                                         cost_powers = NULL, spare = isTRUE(getOption("powerkit.warm_spare"))) {
   calc_fun <- run_calculation
   environment(calc_fun) <- baseenv()
-  callr::r_bg(
-    background_worker,
-    args = list(spec = spec, seed = seed, engine_dir = normalizePath(engine_dir, mustWork = FALSE),
-                cores = getOption("powerkit.cores"), run_calculation = calc_fun),
-    supervise = TRUE
+  engine_dir <- normalizePath(engine_dir, mustWork = FALSE)
+  args <- list(spec = spec, seed = seed, engine_dir = engine_dir,
+               cores = getOption("powerkit.cores"), run_calculation = calc_fun, cost_powers = cost_powers)
+  warm <- if (spare) take_spare()
+  if (spare) keep_spare(engine_dir)
+  if (!is.null(warm)) return(session_job(warm, background_worker, args))
+  callr::r_bg(background_worker, args = args, supervise = TRUE)
+}
+
+# --- A warm spare process --------------------------------------------------------
+
+# Starting R and loading the backends takes two or three seconds (Superpower
+# above all), longer than many of the calculations themselves. So the app
+# keeps one spare R process with the engine and the common backends already
+# loaded; a calculation takes it, and a new spare starts at once for the
+# next. Each process runs one calculation and is then closed, so nothing
+# carries over from one visitor's run to another's. The online app turns
+# this on (options(powerkit.warm_spare = TRUE) in app.R).
+spare_packages <- c("pwr", "pwrss", "Superpower", "Spower")
+background_spare <- new.env()
+
+spare_preload <- function(engine_dir, packages) {
+  if (!requireNamespace("powerkit", quietly = TRUE)) {
+    suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
+  }
+  for (p in packages) requireNamespace(p, quietly = TRUE)
+  TRUE
+}
+
+# Start a spare if there isn't one, and look after it until it is ready.
+keep_spare <- function(engine_dir) {
+  if (!is.null(background_spare$session)) return(invisible(FALSE))
+  background_spare$session <- callr::r_session$new(wait = FALSE, options = callr::r_session_options(supervise = TRUE))
+  background_spare$stage <- "starting"
+  background_spare$engine_dir <- engine_dir
+  tend <- function() if (!is.null(background_spare$session) && !spare_ready()) later::later(tend, 0.5)
+  later::later(tend, 0.5)
+  invisible(TRUE)
+}
+
+# Move the spare on without waiting: once R has started, load the engine
+# and backends; TRUE once that has finished.
+spare_ready <- function() {
+  rs <- background_spare$session
+  if (is.null(rs)) return(FALSE)
+  if (!rs$is_alive()) { background_spare$session <- NULL; return(FALSE) }
+  while (!identical(background_spare$stage, "ready") && identical(rs$poll_process(0), "ready")) {
+    msg <- rs$read()
+    if (identical(background_spare$stage, "starting")) {
+      background_spare$stage <- "loading"
+      rs$call(spare_preload, list(background_spare$engine_dir, spare_packages))
+    } else if (isTRUE(msg$code %in% c(200, 500))) {
+      if (!is.null(msg$error)) { rs$close(); background_spare$session <- NULL; return(FALSE) }
+      background_spare$stage <- "ready"
+    }
+  }
+  identical(background_spare$stage, "ready")
+}
+
+# The spare, if it is ready (it is then no longer the spare); otherwise NULL.
+take_spare <- function() {
+  if (!spare_ready()) return(NULL)
+  rs <- background_spare$session
+  background_spare$session <- NULL
+  rs
+}
+
+# A calculation in a spare process, with the same methods as callr::r_bg()'s
+# process, so the rest of the app treats both alike.
+session_job <- function(rs, fun, args) {
+  rs$call(fun, args)
+  done <- NULL
+  collect <- function(timeout) {
+    while (is.null(done) && rs$is_alive() && identical(rs$poll_process(timeout), "ready")) {
+      msg <- rs$read()
+      if (isTRUE(msg$code %in% c(200, 500))) { done <<- msg; rs$close() }
+    }
+  }
+  list(
+    is_alive = function() { collect(0); is.null(done) && rs$is_alive() },
+    kill = function() if (rs$is_alive()) rs$kill(),
+    wait = function(timeout = -1) collect(timeout),
+    get_result = function() {
+      collect(0)
+      if (is.null(done)) stop("The calculation stopped before it finished.")
+      if (!is.null(done$error)) stop(done$error)
+      done$result
+    }
   )
 }
 
@@ -1181,7 +1289,10 @@ source_stale_ui <- function(fields, values) {
 # no silent default for target power). Exact results only: two more engine
 # calls, instant for the formula designs. With "all of several" tests
 # (`values`), 80% and 95% are for all of them together.
-cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L, values = list()) {
+# `ns`: the two sample sizes when a background run has found them already
+# (background_worker(), cost_line_powers()).
+cost_line_powers <- function(values) c(claim_power(0.8, values), claim_power(0.95, values))
+cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L, values = list(), ns = NULL) {
   if (!identical(result$goal_type, "sample_size") || simulated(result)) return(NULL)
   n_at <- function(power) {
     if (isTRUE(all.equal(power, spec$goal$power))) return(result$n_required$n)
@@ -1190,7 +1301,8 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
     calc <- run_calculation(s, run, seed)
     if (identical(calc$status, "ok")) calc$result$n_required$n else NA
   }
-  n80 <- n_at(claim_power(0.8, values)); n95 <- n_at(claim_power(0.95, values))
+  powers <- cost_line_powers(values)
+  if (length(ns) == 2) { n80 <- ns[[1]]; n95 <- ns[[2]] } else { n80 <- n_at(powers[[1]]); n95 <- n_at(powers[[2]]) }
   if (is.na(n80) || is.na(n95)) return(NULL)
   together <- if (!identical(claim_power(0.8, values), 0.8)) " (for all the tests together)" else ""
   sprintf(

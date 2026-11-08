@@ -398,3 +398,22 @@ whats_new_js <- "
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 "
+
+# The About page is large (the capability table above all) and took 6 to 7
+# seconds to build. Built in the app's own process, it froze the first
+# visitor's first click after every restart (measured 7 November 2026), so
+# it is built in a separate R process that loads the app's helpers, and
+# written to `out_dir` as about.html (under a temporary name, then renamed,
+# so the browser never fetches half a file).
+about_build_worker <- function(routing_dir, out_dir) {
+  setwd(routing_dir)
+  suppressPackageStartupMessages(library(shiny))
+  env <- new.env()
+  for (f in sort(list.files("R", pattern = "[.]R$", full.names = TRUE))) sys.source(f, envir = env)
+  tree <- env$load_tree("tree.yaml")
+  forms <- env$load_forms("forms.yaml")
+  html <- as.character(env$about_ui(tree, forms))
+  part <- file.path(out_dir, "about.part")
+  writeLines(html, part, useBytes = TRUE)
+  file.rename(part, file.path(out_dir, "about.html"))
+}

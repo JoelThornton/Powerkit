@@ -1,3 +1,28 @@
+# powerkit 0.40.0
+
+* The app stays responsive while people calculate. Every sample-size
+  search (and the result's "80% and 95% power" comparison line, two more
+  searches) runs in a separate R process instead of the app's own one,
+  while there is room under the background limit; at the limit it runs in
+  the app's process as before. The ANOVAs, Welch's t-test, the trend test
+  and the three-way interaction took 2 to 20 seconds there, and nobody
+  else's screen moved meanwhile. A spare process with the engine and the
+  common backends (pwr, pwrss, Superpower, Spower) loaded waits for the
+  next search, so it starts at once; each process runs one calculation
+  and is closed.
+* The About page is built in a separate process started with the app,
+  not in the app's own process, so the first click after a restart no
+  longer waits about 7 seconds for it.
+* Labs, Updates and Feedback are rendered to HTML once at start-up, with
+  the app's theme, instead of for every visit (about 0.6 seconds of the
+  app's process each, which made twenty people arriving together wait 13
+  to 16 seconds for the first screen).
+* The methods map's graph library (373 KB) is fetched when the map is
+  first shown, not with every first page.
+* `docs/hosting-options.md` records what one R process holds (memory by
+  number of visitors and background runs) and why a host with two or more
+  app processes still helps.
+
 # powerkit 0.39.0
 
 * Safeguard power results name the effect the calculation used: the
