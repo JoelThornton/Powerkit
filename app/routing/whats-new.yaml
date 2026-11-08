@@ -8,6 +8,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Links that open an analysis"
+    text: >-
+      With an analysis open, "Copy page link" now gives a link to that
+      analysis, so a supervisor can send a student straight to, for example,
+      the mixed ANOVA. The link opens it as the list of every analysis does,
+      and Back goes to that list.
+  - date: "2026-11-08"
     title: "Labs: a replication planner"
     text: >-
       A new Labs tool for planning a replication of a published finding.
