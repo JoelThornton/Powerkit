@@ -254,7 +254,7 @@ test_that("a yes/no outcome with two or more factors reaches its own card, not t
   # logistic regression): Q3 for a yes/no difference had no answer for two
   # factors, so the nearest was "two groups" > E5.
   base <- c("Yes/no, or one of several categories", "Independent people", "Once", "A difference between groups or conditions")
-  expect_identical(follow_answers(tree, c(base, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome")), "E47")
+  expect_identical(follow_answers(tree, c(base, "Two or more factors (for example, a 2 x 2 design)")), "E47")
 })
 
 test_that("counts no longer reach the correlation through the relationship path", {
@@ -383,9 +383,9 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
   rel <- "A relationship between two things you measure"
   rows <- list(
     "One-sample t-test" = list(c(once(score), diff, "One", "One group, compared with a fixed value"), "E1"),
-    "Binomial test" = list(c(once(yesno), diff, "One group, compared with a fixed proportion"), "E25"),
+    "Binomial test" = list(c(once(yesno), diff, "One group against a known proportion"), "E25"),
     "Two independent samples t-test" = list(c(once(score), diff, "One", "Two, with different people in each"), "E2"),
-    "Chi-square test of independence" = list(c(once(yesno), diff, "Different people, outcome in categories"), "E6"),
+    "Chi-square test of independence" = list(c(once(yesno), diff, "Groups, with an outcome in categories (not just yes/no)"), "E6"),
     "Chi-square test, relationship path" = list(c(once(yesno), rel, "One of several categories (and the other variable is categories too)"), "E6"),
     "Paired t-test" = list(c(twice(score), diff, "One"), "E3"),
     "McNemar's test" = list(c(twice(yesno), diff), "E26"),
@@ -399,7 +399,7 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "Two-factor between ANOVA, 2 x 3" = list(c(once(score), diff, LARGER), "E21"),
     "Factorial ANOVA" = list(c(once(score), diff, TWO_BY_TWO, "Yes: the same number in every group", "Whether the effect of one depends on the other (the interaction)", "One effect shrinks"), "E7"),
     "Ordered logistic regression" = list(c("Ordered categories (e.g. a single rating item)", "As ordered categories", "Independent people", "Once", diff), "E29"),
-    "Factorial logistic regression" = list(c(once(yesno), diff, "Two or more factors (e.g. a 2 x 2 design), yes/no outcome"), "E47"),
+    "Factorial logistic regression" = list(c(once(yesno), diff, "Two or more factors (for example, a 2 x 2 design)"), "E47"),
     "Correlation and simple linear regression" = list(c(once(score), rel, "A score or scale"), "E4"),
     "Simple and multiple logistic regression" = list(c(once(yesno), rel, "Yes/no"), "E27"),
     "Multiple regression" = list(c(once(score), rel, "Several predictors at once, or controlling for other variables"), "E24"),

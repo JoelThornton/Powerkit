@@ -590,20 +590,20 @@ nodes:
       - {label: "One effect disappears", next: E8}
   q3_cat_by_times:
     doc_id: Q3
-    text: "Who gives the data? (answered by S3 when the same people are measured more than once)"
+    text: "What are you comparing? (answered by S3 when the same people are measured more than once)"
     branch_on: times
     routes: {once: q3_cat, twice: E26, many_conditions: E26}
   q3_cat:
     doc_id: Q3
-    text: "Who gives the data?"
+    text: "What are you comparing?"
     options:
-      - {label: "Different people, two groups, yes/no outcome", next: E5, when: {times: once}}
-      - {label: "Different people, outcome in categories", next: E6, when: {times: once}}
-      - {label: "Different people, three or more groups in a set order (e.g. doses), yes/no outcome: a trend", next: E66, when: {times: once},
+      - {label: "Two groups", next: E5, when: {times: once}}
+      - {label: "Groups, with an outcome in categories (not just yes/no)", next: E6, when: {times: once}}
+      - {label: "Three or more groups in a set order (for example, doses): a trend", next: E66, when: {times: once},
          help: "e.g. whether the proportion who recover rises with the number of weekly sessions (the Cochran-Armitage trend test)."}
-      - {label: "One group, compared with a fixed proportion", next: E25, when: {times: once}}
-      - {label: "One group, outcome in several categories, compared with expected proportions", next: E48, when: {times: once}}
-      - {label: "Two or more factors (e.g. a 2 x 2 design), yes/no outcome", next: E47, when: {times: once}}
+      - {label: "One group against a known proportion", next: E25, when: {times: once}}
+      - {label: "One group's categories against expected proportions", next: E48, when: {times: once}}
+      - {label: "Two or more factors (for example, a 2 x 2 design)", next: E47, when: {times: once}}
       - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
 
   # How much scores vary -----------------------------------------------------

@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.47.2). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.47.3). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -30,9 +30,11 @@ rules are in `CLAUDE.md`.
   show), and the review's own checks kept for
   each release: property checks over every example spec and a run of
   every card in a browser (`repository-protection.md`, "Checks before a
-  release"). Next: the queue in `next.md`; a replication planner that
-  brings the replication goals together is item 15 there, waiting on a
-  decision.
+  release"). A check of every review finding against what merged
+  (8 November) found a few left: the small ones are fixed, and the
+  larger ones are `next.md` items 16 to 21. Next: the queue in
+  `next.md`; a replication planner that brings the replication goals
+  together is item 15 there, waiting on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point

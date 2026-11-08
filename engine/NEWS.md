@@ -1,3 +1,7 @@
+# powerkit 0.47.3
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.47.2
 
 * Small telescopes: d33 (r33) is now worked out at the significance level
