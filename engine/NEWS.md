@@ -1,3 +1,10 @@
+# powerkit 0.45.2
+
+* Only the afternoon publishing run waits for a gap since the last
+  publish (now 10 hours). In 0.45.1 every scheduled run waited 20 hours,
+  so a publish by hand in the morning would have held back the next day's
+  04:23 run.
+
 # powerkit 0.45.1
 
 * `renv.lock` takes curl 8.1.0 and V8 8.2.1. CRAN now serves Windows and
