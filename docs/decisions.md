@@ -6192,3 +6192,39 @@ the site stays findable by search engines.
   than the t-test cards (66 against 68 for d = 0.7); stated in
   `conventions.md`, "Replication planner (Labs)", on the result and in
   the methods paragraph.
+
+## 2026-11-08 · Effects that vary between studies, on the t-test cards
+
+- **Decided (8 November 2026):** the one-sample, two-group and paired
+  t-test cards take an optional "how much might the true effect vary
+  between studies", an SD in d (d_z for pairs), following Kenny and Judd
+  (2019): a power analysis that assumes the new study's true effect is
+  exactly the planned one ignores the variation between labs, samples
+  and procedures, and Kenny and Judd show it changes the sample size
+  needed (352 in total for 80% power at d = 0.3 with none, 830 with
+  their "large" 0.20).
+- **Method:** Kenny and Judd's published formula, not a simulation: no
+  package computes power averaged over a normal distribution of true
+  effects for a t-test (BayesRepDesign does it on a normal model for a
+  replication of a given original, which is the Labs planner's job, not a
+  new study's). Their paper notes that a conventional power program gives
+  their answer when given the effective significance level and the
+  adjusted effect, so powerkit calls pwr that way and writes no
+  noncentral-t maths of its own. Checked against their worked example,
+  their appendix function and an independent simulation
+  (`conventions.md`, "Effects that vary between studies").
+- **Scope:** Student's t-test, or Welch's with equal SDs (whose power then
+  equals Student's on the card's own backend), for power, the sample size
+  and the smallest detectable effect. Refused in plain words with rank
+  tests, Bayes factors, simulation, unequal SDs and small telescopes
+  (which plans for no effect). The other cards follow if it is useful.
+- **Starting value (the maintainer's decision, 8 November 2026):** 0.05,
+  Kenny and Judd's small variation, following their argument that zero
+  should not be the default; emptying the field gives the usual analysis.
+  It is Departure 23 (`conventions.md`), shown on the result whenever the
+  variation is above 0 and stated in the methods paragraph: 376 people
+  against 352 for d = 0.3 at 80% power. The field is hidden where the
+  formula doesn't apply (rank tests, Bayes factors, minimum-effect tests,
+  simulation, small telescopes, a justified alpha, the power curve), so
+  those plans are unchanged; Welch's test with unequal SDs is refused in
+  plain words, asking the user to empty the field.

@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.48.1). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.49.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -32,9 +32,9 @@ rules are in `CLAUDE.md`.
   every card in a browser (`repository-protection.md`, "Checks before a
   release"). A check of every review finding against what merged
   (8 November) found a few left: the small ones are fixed, and the
-  larger ones are `next.md` items 15 to 20. Next: the queue in
-  `next.md`, then effects that vary between studies on the t-test cards
-  (item 21) and a Bayes mode (item 22, waiting on a decision).
+  larger ones are `next.md` items 15 to 20. Effects that vary between
+  studies are on the t-test cards (8 November). Next: the queue in
+  `next.md`, and a Bayes mode (item 21, waiting on a decision).
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
@@ -56,7 +56,10 @@ rules are in `CLAUDE.md`.
   heavy-tailed scores; robust standard errors and quantile regression;
   negative binomial and zero-inflated counts; minimum-effect and
   equivalence tests; a justified alpha; pairwise comparisons with Holm's
-  adjustment; precision planning (a confidence interval's width, by MBESS
+  adjustment; effects that vary between studies on the three t-test
+  cards (Kenny & Judd, 2019, through pwr; an SD of 0.05 in d to start
+  with, Departure 23);
+  precision planning (a confidence interval's width, by MBESS
   and presize) as a goal beside power. Bayes factor versions exist for
   fifteen designs, with JASP's default priors; p-value results of the
   exact ones offer "Add a Bayes factor?", and Bayes factor t-test results

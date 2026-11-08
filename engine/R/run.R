@@ -340,7 +340,7 @@ run_spec <- function(spec) {
   }
 
   n_analysed <- if (identical(goal$type, "sample_size")) outcome$n_required$n else goal$n
-  critical <- if (!identical(goal$type, "justified_alpha") && !small_telescopes_test(spec)) critical_effect(spec, n_analysed)
+  critical <- if (!identical(goal$type, "justified_alpha") && !small_telescopes_test(spec) && !heterogeneity_test(spec)) critical_effect(spec, n_analysed)
 
   structure(
     list(
@@ -352,6 +352,7 @@ run_spec <- function(spec) {
       effect_from_units = units,
       safeguard = safeguard_record(spec),
       small_telescopes = small_telescopes_record(spec, n_analysed, backend),
+      heterogeneity = heterogeneity_record(spec, n_analysed),
       effect_conversion = conversion_record(spec),
       recruitment = recruitment_target(spec, n_analysed),
       clusters = cluster_summary(spec, n_analysed),

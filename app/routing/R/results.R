@@ -1230,6 +1230,20 @@ safeguard_sentence <- function(result) {
     format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
 }
 
+# Effects that vary between studies (Kenny & Judd, 2019), worked out by
+# the engine: what the variation does to power, and how often one study is
+# significant with no average effect.
+heterogeneity_sentence <- function(result) {
+  h <- result$heterogeneity
+  if (is.null(h)) return(NULL)
+  pct <- function(x) sprintf("%.0f%%", 100 * x)
+  sprintf(paste0("Variation between studies: the true effect is planned to vary from study to study with an SD of %s, ",
+    "so the effect entered is the average across studies (Kenny & Judd, 2019). At %s in total, power is %s with this variation, ",
+    "against %s if every study had the same effect. With no average effect at all, one study like this would still be ",
+    "significant %s of the time rather than at the significance level, because its own true effect is rarely exactly zero."),
+    format(h$tau), whole(h$n), pct(h$power), pct(h$power_without), pct(h$effective_alpha))
+}
+
 # Small telescopes (Simonsohn, 2015), worked out by the engine: d33 from
 # pwr, the replication's one-sided test against it from pwrss.
 
@@ -2072,6 +2086,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 22 (Welch's F by default) applies when Welch's F is planned
   # for.
   if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
+  # Departure 23 (variation between studies, 0.05 to start with) applies
+  # when the plan allows for it.
+  if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, "23")
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
@@ -2481,6 +2498,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
+    if (!is.null(het <- heterogeneity_sentence(result))) p(class = "result-heterogeneity", het),
     if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
@@ -2848,6 +2866,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
         "giving %d%% protection against the estimate being too large."),
         round(100 * sg$conf_level), if (!is.null(sg$n1)) sprintf("n = %s and %s", sg$n1, sg$n2) else sprintf("n = %s", sg$n),
         sub("\\(.*", "()", sub("^psych::", "", sg$function_used)), sg$effect_name, format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
+    }
+    if (!is.null(h <- result$heterogeneity)) {
+      adj <- paste0(adj, sprintf(paste0(" The true effect was allowed to vary between studies with a standard deviation of %s, ",
+        "following Kenny and Judd (2019): the effect size is the average across studies, and power was computed with pwr ",
+        "using their effective significance level (%s) and adjusted noncentrality."), format(h$tau), format(signif(h$effective_alpha, 3))))
     }
     if (!is.null(telescopes)) {
       sprintf("The original study's effect size, %s, set the test's direction (%s); its size does not enter the plan.", effect, reasoning)

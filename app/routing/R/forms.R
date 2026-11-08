@@ -499,7 +499,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
            type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
            shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
              list(field = "sg_use", is_not = "telescopes")))
-    ), safeguard_fields(form$base$template))),
+    ), safeguard_fields(form$base$template), heterogeneity_fields(form$base$template))),
     # A single time series has no participants to lose (`no_attrition`).
     if (!isTRUE(form$generic) && !meta && !isTRUE(form$no_attrition)) list(input = NULL, title = "Participants you expect to lose", fields = list(
       list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%.", type = "number",
@@ -570,6 +570,29 @@ safeguard_fields <- function(template) {
          help = "0.8 uses the lower end of a 60% confidence interval; 0.95 uses the lower end of a 90% one.",
          path = "effect_justification.safeguard.protection", required = TRUE, default = 0.8, min_exclusive = 0.5, max_exclusive = 1,
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
+}
+
+# Effects that vary between studies (Kenny & Judd, 2019), for the
+# t-tests: the SD of the true effect around the one planned for, which
+# then is the average effect. Starts at Kenny and Judd's small 0.05
+# (Departure 23); empty or 0 is the usual analysis.
+heterogeneity_field_templates <- c("independent_t", "one_sample_t", "paired_t")
+
+heterogeneity_fields <- function(template) {
+  if (!isTRUE(template %in% heterogeneity_field_templates)) return(list())
+  list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
+    type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.05,
+    default_source = "Kenny and Judd's (2019) small variation between studies: they argue zero should not be the default",
+    help = paste("Labs, samples, materials and procedures differ, so a study's true effect can differ from the one you plan for.",
+      "Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 as small, medium and large variation, and argue that zero",
+      "should not be the default. The effect above is then the average across studies. Empty or 0 plans for the same effect",
+      "in every study, as G*Power and most power analyses do. It needs equal SDs in the two groups."),
+    # Kenny and Judd's formula is for the t-test by formula, for power,
+    # the sample size or the smallest detectable effect.
+    shown_if = list(list(field = "sg_use", is_not = "telescopes"),
+      list(field = "method", is_one_of = c("t_test", "student_t", "welch_t")),
+      list(field = "calc_method", is_not = "simulation"), list(field = "welch_method", is_not = "simulation"),
+      list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))))
 }
 
 # ANOVA and ANCOVA by its effect size: the "Units of the means"

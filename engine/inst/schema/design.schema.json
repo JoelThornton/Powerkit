@@ -1477,6 +1477,12 @@
               "description": "Minimum-effect tests only (target_test > method 'minimum_effect'): the smallest effect of interest, in the same SD units as d, above 0. The test shows that the effect is larger than this (in the direction of 'target_test > alternative'; two-sided: further from 0 than it in either direction). With metric 'raw', powerkit works it out from population > raw > margin.",
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "tau": {
+              "description": "How much the true effect varies between studies (Kenny & Judd, 2019): the SD of the true standardised effect (d, or d_z for pairs) around the population value, which is then the average effect. 0 or absent for the usual analysis, with the same effect in every study. Planned with Kenny and Judd's formula through pwr (Student's or Welch's t-test with equal SDs, by formula only).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
             }
           },
           "allOf": [
@@ -1645,6 +1651,12 @@
             "r": {
               "description": "With metric 'point_biserial': the point-biserial correlation between the group (group 1 coded 0, group 2 coded 1) and the outcome; positive when group 2 scores higher. powerkit works out d from it (population > d).",
               "$ref": "#/definitions/correlation"
+            },
+            "tau": {
+              "description": "How much the true effect varies between studies (Kenny & Judd, 2019): the SD of the true standardised effect (d, or d_z for pairs) around the population value, which is then the average effect. 0 or absent for the usual analysis, with the same effect in every study. Planned with Kenny and Judd's formula through pwr (Student's or Welch's t-test with equal SDs, by formula only).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
             }
           },
           "allOf": [
@@ -1838,6 +1850,12 @@
               "description": "Minimum-effect tests only (target_test > method 'minimum_effect'): the smallest effect of interest, in the same SD units as dz, above 0. The test shows that the effect is larger than this (in the direction of 'target_test > alternative'; two-sided: further from 0 than it in either direction). With metric 'raw', powerkit works it out from population > raw > margin.",
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "tau": {
+              "description": "How much the true effect varies between studies (Kenny & Judd, 2019): the SD of the true standardised effect (d, or d_z for pairs) around the population value, which is then the average effect. 0 or absent for the usual analysis, with the same effect in every study. Planned with Kenny and Judd's formula through pwr (Student's or Welch's t-test with equal SDs, by formula only).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
             }
           },
           "allOf": [
