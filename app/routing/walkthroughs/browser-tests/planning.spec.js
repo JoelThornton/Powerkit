@@ -10,6 +10,8 @@ async function openAnalysis(page, id, search) {
 }
 async function setValue(page, id, value) {
   const el = page.locator('#f_' + id);
+  // Optional fields sit in folded sections: open the one holding this field.
+  await el.evaluate(x => { const d = x.closest('details'); if (d) d.open = true; });
   if (await el.evaluate(x => x.tagName === 'SELECT')) await el.selectOption(value);
   else await el.fill(value);
   await el.blur();
