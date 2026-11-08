@@ -1015,7 +1015,7 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   expect_match(html, "Which test you&#39;ll run|Which test you'll run")
   expect_no_match(html, "<legend class=\"h6\">Student&#39;s or Welch&#39;s", fixed = TRUE)
   # A pre-selected choice's note says what it is about.
-  expect_match(html, "Selected to start with: the t-test pwr&#39;s formula covers|Selected to start with: the t-test pwr's formula covers")
+  expect_match(html, "Selected to start with: Welch&#39;s t-test, as Delacre|Selected to start with: Welch's t-test, as Delacre")
   # The direction, which has no default, keeps its own note.
   expect_match(html, "Not filled in for you.", fixed = TRUE)
   # No developer wording in a default's note.

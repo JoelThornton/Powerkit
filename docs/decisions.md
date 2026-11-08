@@ -6026,3 +6026,31 @@ the site stays findable by search engines.
   request is ready. Recording the engine's commit beside the version
   would remove the ambiguity; it is a question for the maintainer.
 
+
+## 2026-11-08 · Welch's t-test by default on the two-group card
+
+- **Decided with the review (7 November 2026):** the two-group t-test
+  plans for Welch's t-test by default, worked out by formula, with
+  Student's as a choice, recorded as a departure from G\*Power
+  (`conventions.md`, Departure 21) and cited to Delacre, Lakens and Leys
+  (2017, `Delacre2017_welch`), who recommend Welch's test by default
+  because it keeps the false-positive rate when the groups' spreads differ
+  and loses almost nothing when they don't.
+- **The formula by default:** pwrss's `power.t.welch()`, which the
+  `welch_spreads` validation chunk checks against simulated studies, now
+  answers unless simulation is asked for; Spower's simulation stays a
+  choice. With equal spreads and equal groups it gives Student's answer
+  exactly (its df are n - 2); with unequal groups Welch's needs a few
+  more people (147 rather than 144 for d = 0.5 with group 2 twice the
+  size of group 1, `test-welch-default.R`).
+- **Nothing lost by the default:** the smallest detectable effect (d
+  searched with pwrss's own power, as for regression) and a justified
+  alpha (JustifyAlpha on `power.t.welch()`) now cover Welch's test, with
+  scripts that reproduce both. Two things stay with Student's test only:
+  the critical effect size, which for Welch's test depends on the sample
+  variances (1 November 2026), and joint power for several outcomes,
+  which uses PUMP's pooled-variance t-test (the study plan now says to
+  choose Student's test for it).
+- **The one-way ANOVA** (the same question for Welch's F) is with the
+  maintainer, with a recommendation (`next.md`, "Waiting on the
+  maintainer").

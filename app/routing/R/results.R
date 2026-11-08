@@ -1991,6 +1991,9 @@ departures_for <- function(forms, ep_id, spec) {
   # correlation; the z test for two proportions) apply only when the formula was used, not to simulation
   # or Welch's t-test (whose formula, pwrss's, is chosen by the user).
   if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_rank_correlation(spec) || is_bayes_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
+  # Departure 21 (Welch's t-test by default) applies when Welch's test is
+  # the one planned for.
+  if (!identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, "21")
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")

@@ -336,8 +336,10 @@ direction_note <- paste(
 
 # E1-E6: pwr's formula or Spower's simulation (forms.yaml,
 # basic_method_field). Where the form has a test version (`method`), the
-# choice is shown only with its default version: Welch's t-test (E2) has no
-# pwr formula, and Fisher's exact test (E5) is pwrss's formula only.
+# choice is shown only with the version pwr covers: its default, or the
+# form's `basic_method_with` (E2's Student's t-test; Welch's, the default,
+# has its own choice of formula or simulation). Fisher's exact test (E5) is
+# pwrss's formula only.
 basic_method_field <- function(forms, ep_id) {
   field <- forms$basic_method_field
   population <- switch(ep_id,
@@ -350,7 +352,7 @@ basic_method_field <- function(forms, ep_id) {
     NULL)
   field$help <- paste(c(population, field$help), collapse = " ")
   version <- Filter(function(f) identical(f$id, "method"), form_fields(forms$forms[[ep_id]]$groups))
-  if (length(version)) field$shown_if <- list(field = "method", is = version[[1]][["default"]])
+  if (length(version)) field$shown_if <- list(field = "method", is = forms$forms[[ep_id]]$basic_method_with %||% version[[1]][["default"]])
   field
 }
 

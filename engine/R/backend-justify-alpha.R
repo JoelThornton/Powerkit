@@ -9,18 +9,32 @@
 #   "minimize" (the default): alpha minimising
 #     (cost alpha + prior beta) / (cost + prior);
 #   "balance": alpha at which cost alpha = prior beta.
-# The power at each alpha is pwr's, the same call the card uses for power
-# (pwr.t.test(), pwr.t2n.test() or pwr.r.test()), with sig.level = x as
-# optimal_alpha() needs. optimal_alpha() searches alpha with
+# The power at each alpha is the same call the card uses for power (pwr's
+# pwr.t.test(), pwr.t2n.test() or pwr.r.test(), with sig.level = x as
+# optimal_alpha() needs; for Welch's t-test, pwrss's power.t.welch(), with
+# alpha = x). optimal_alpha() searches alpha with
 # stats::optimize(tol = 0.001), so alpha is found to about three decimals.
 
 justified_alpha_goal <- function(spec) identical(spec$goal$type, "justified_alpha")
+
+# Welch's t-test by pwrss's formula (the default route for Welch's test).
+welch_formula <- function(spec) {
+  identical(spec$template, "independent_t") && identical(spec$target_test$method, "welch_t") &&
+    !identical(spec$options$method, "simulation")
+}
 
 justified_alpha_templates <- c("one_sample_t", "independent_t", "paired_t", "correlation")
 
 # The power function optimal_alpha() evaluates, as text with alpha as x:
 # the pwr call for the spec at n.
 justified_alpha_power_function <- function(spec, n) {
+  if (welch_formula(spec)) {
+    # Welch's t-test: pwrss's power.t.welch(), the call the card uses.
+    args <- pwrss_inputs(spec)$args(n)
+    args$alpha <- NULL
+    text <- paste(sprintf("%s = %s", names(args), vapply(args, r_code, character(1))), collapse = ", ")
+    return(sprintf("pwrss::power.t.welch(%s, alpha = x)$power", text))
+  }
   inputs <- pwr_inputs(spec)
   args <- inputs$args(n)
   args[[inputs$alpha_arg %||% "sig.level"]] <- NULL
@@ -43,13 +57,12 @@ justify_alpha <- function(spec) {
   if (is.null(found) || !is.finite(found$alpha)) {
     abort_run("JustifyAlpha couldn't find a justified alpha for this design. Check the effect size and the sample size.")
   }
-  inputs <- pwr_inputs(spec)
   list(
     alpha = found$alpha, beta = found$beta, power = 1 - found$beta, error_rate = found$errorrate,
     cost_ratio = cost, prior_odds = prior, error_rule = rule,
     # For comparison: power at the conventional alpha the spec gives.
     conventional_alpha = spec$target_test$alpha,
-    conventional_power = pwr_power(inputs, goal$n),
+    conventional_power = if (welch_formula(spec)) pwrss_power(pwrss_inputs(spec), goal$n) else pwr_power(pwr_inputs(spec), goal$n),
     power_function = power_function,
     function_used = sprintf("JustifyAlpha::optimal_alpha(power_function = \"%s\", costT1T2 = %s, priorH1H0 = %s, error = \"%s\")",
       power_function, format_number(cost), format_number(prior), rule)
@@ -67,11 +80,11 @@ check_justified_alpha <- function(spec) {
     }
     return(character())
   }
-  if (!identical(spec$design, "basic_test") || !spec$template %in% justified_alpha_templates || !pwr_covers(spec) ||
-      identical(spec$options$method, "simulation")) {
+  if (!identical(spec$design, "basic_test") || !spec$template %in% justified_alpha_templates ||
+      !(pwr_covers(spec) || welch_formula(spec)) || identical(spec$options$method, "simulation")) {
     return(paste0(
       "A justified alpha is available for the one-sample, paired and two-group t-tests and the correlation, ",
-      "with the t-test or Pearson's correlation worked out by formula; choose one of those, or another goal."
+      "with the t-test (Student's or Welch's) or Pearson's correlation worked out by formula; choose one of those, or another goal."
     ))
   }
   character()
@@ -81,9 +94,10 @@ check_justified_alpha <- function(spec) {
 justified_alpha_script <- function(spec, result) {
   j <- result$justified_alpha
   c(
-    script_header(spec, result, "JustifyAlpha", "JustifyAlpha::optimal_alpha() on pwr's power"),
+    script_header(spec, result, "JustifyAlpha",
+      sprintf("JustifyAlpha::optimal_alpha() on %s's power", if (welch_formula(spec)) "pwrss" else "pwr")),
     "library(JustifyAlpha)",
-    "library(pwr)",
+    if (welch_formula(spec)) "library(pwrss)" else "library(pwr)",
     "",
     "# Inputs ----",
     sprintf("n_total <- %s # total sample size (every participant analysed)", r_code(spec$goal$n)),
@@ -91,7 +105,7 @@ justified_alpha_script <- function(spec, result) {
     sprintf("prior_odds <- %s # how likely an effect is, compared with no effect", r_code(j$prior_odds)),
     sprintf("error_rule <- %s # \"minimize\" the weighted error rate, or \"balance\" the two errors", r_code(j$error_rule)),
     "",
-    "# Power at alpha = x, the same pwr call powerkit uses (optimal_alpha()",
+    sprintf("# Power at alpha = x, the same %s call powerkit uses (optimal_alpha()", if (welch_formula(spec)) "pwrss" else "pwr"),
     "# needs the alpha written as x).",
     sprintf("power_function <- %s", r_code(j$power_function)),
     "",
