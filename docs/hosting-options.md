@@ -138,8 +138,9 @@ source plus that manifest to `connect-cloud` with a fast-forward push
 (`scripts/prepare-publish-branch.py`). Until 6 November 2026 it did this
 after every merge. GitHub starts timed runs late or skips them when it
 is busy (no run started on 8 November 2026), so a second scheduled run at
-16:23 UTC publishes if the last publish is more than 20 hours old; on a
-normal day it does nothing. To publish at once (an urgent fix), open the workflow
+16:23 UTC publishes if nothing was published in the last 10 hours; on a
+normal day it does nothing. The morning run always publishes what
+changed, so a publish by hand never holds it back. To publish at once (an urgent fix), open the workflow
 on the Actions tab and click **Run workflow** on main; tick **force** to
 publish even if nothing changed. On a pull request the workflow only
 checks that the manifest can still be written. Main holds no
