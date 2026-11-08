@@ -101,6 +101,14 @@ test_that("the online app is published at most daily, not after every merge", {
   expect_match(publish$run, "HEAD:connect-cloud", fixed = TRUE)
   decide <- Filter(function(s) identical(s$name, "Decide whether to publish"), steps)[[1]]
   expect_match(decide$run, "git diff --quiet origin/connect-cloud HEAD", fixed = TRUE)
+  # A second daily look catches a morning run GitHub skipped: only that run
+  # waits for a 10-hour gap, so a publish by hand never holds back the
+  # next morning's.
+  expect_length(triggers$schedule, 2)
+  second <- triggers$schedule[[2]]$cron
+  expect_match(decide$run, sprintf('[ "$SCHEDULE" = "%s" ]', second), fixed = TRUE)
+  expect_match(decide$run, "-lt 36000", fixed = TRUE)
+  expect_identical(decide$env$SCHEDULE, "${{ github.event.schedule }}")
 })
 
 test_that("the starting screen also goes on a link straight to Labs, where the main screen never draws", {

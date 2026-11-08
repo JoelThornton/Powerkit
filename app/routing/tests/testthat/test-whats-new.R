@@ -2,10 +2,19 @@
 
 whats_new_path <- file.path(routing_dir, "whats-new.yaml")
 
+# Entries waiting for a version, one file per pull request
+# (scripts/close-batch.R moves them into whats-new.yaml).
+waiting_paths <- Sys.glob(file.path(routing_dir, "whats-new.d", "*.yaml"))
+
 test_that("every Updates entry has a date, a title and plain-words text", {
   raw <- yaml::read_yaml(whats_new_path, fileEncoding = "UTF-8")$entries
   expect_gt(length(raw), 0)
-  for (e in raw) {
+  waiting <- unlist(lapply(waiting_paths, function(f) {
+    entries <- yaml::read_yaml(f, fileEncoding = "UTF-8")$entries
+    expect_gt(length(entries), 0, label = basename(f))
+    entries
+  }), recursive = FALSE)
+  for (e in c(raw, waiting)) {
     expect_setequal(names(e), c("date", "title", "text"))
     expect_match(e$date, "^\\d{4}-\\d{2}-\\d{2}$", label = e$title)
     expect_false(is.na(as.Date(e$date, optional = TRUE)), label = e$title)
@@ -17,6 +26,17 @@ test_that("every Updates entry has a date, a title and plain-words text", {
   # Written newest first, so the file reads the same way as the tab.
   dates <- as.Date(vapply(raw, `[[`, "", "date"))
   expect_identical(dates, sort(dates, decreasing = TRUE))
+})
+
+test_that("the Updates tab shows entries still waiting for a version with the rest", {
+  dir <- withr::local_tempdir()
+  file.copy(whats_new_path, dir)
+  dir.create(file.path(dir, "whats-new.d"))
+  writeLines(c("entries:", "  - date: \"2099-01-02\"", "    title: \"A waiting change\"", "    text: >-", "      Shown before its batch closes."),
+    file.path(dir, "whats-new.d", "waiting-change.yaml"))
+  entries <- load_whats_new(file.path(dir, "whats-new.yaml"))
+  expect_identical(entries[[1]]$title, "A waiting change")
+  expect_length(entries, length(load_whats_new(whats_new_path)) + 1)
 })
 
 test_that("the Updates tab shows the entries newest first, grouped by day", {

@@ -1,0 +1,5 @@
+Change notes waiting for a version: one Markdown file per pull request
+(for example engine/news.d/welch-default.md), holding the bullets that
+will go under the next "# powerkit X.Y.Z" heading of engine/NEWS.md.
+scripts/close-batch.R joins them when a batch closes and deletes them.
+docs/adding-a-test.md, "Change notes and version numbers", has the rules.

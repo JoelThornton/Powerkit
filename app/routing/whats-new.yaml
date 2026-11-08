@@ -1,10 +1,22 @@
 # The Updates tab (once "What's new"): changes people using the app would notice, in plain
-# words, newest first. Add an entry with every PR that changes what users
-# see (engine/NEWS.md keeps the developer notes). Rules, checked by
+# words, newest first. A PR that changes what users see adds its entries
+# as a file of its own in whats-new.d/, in this format, and
+# scripts/close-batch.R moves them here when the batch closes
+# (engine/NEWS.md keeps the developer notes). Rules, checked by
 # tests/testthat/test-whats-new.R: a date (YYYY-MM-DD), a short title and a
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-08"
+    title: "The online app no longer misses a day's changes"
+    text: >-
+      If the morning update of the online app doesn't run, a second check
+      later in the day now brings it up to date.
+  - date: "2026-11-08"
+    title: "Updates show up as soon as a change is in"
+    text: >-
+      The Updates tab now lists each change as soon as it reaches the
+      online app, even before it has a version number.
   - date: "2026-11-08"
     title: "Simulation precision stated one way everywhere"
     text: >-
