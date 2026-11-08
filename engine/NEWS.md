@@ -1,3 +1,7 @@
+# powerkit 0.48.1
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.48.0
 
 * New: `replication_planning()` and `replication_planning_script()`, for the

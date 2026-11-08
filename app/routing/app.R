@@ -827,6 +827,13 @@ server <- function(input, output, session) {
     ws_spec = NULL,          # whole-study simulation: the spec of the last run, for its download
     study_plan = list()      # the study plan any card can join (plan_entry()), kept until "Start a new plan"
   )
+  # A link to a card (?card=E8; card_from_query(), R/ui.R) opens it as the
+  # list of every analysis does, so Back goes to that list.
+  linked_card <- card_from_query(isolate(session$clientData$url_search), tree)
+  if (!is.null(linked_card)) {
+    state$route <- "known"; state$skip_screening <- TRUE
+    state$endpoint <- linked_card; state$came_from <- "known"; state$screen <- "card"
+  }
 
   # Keep the guided route's inputs in state as they change.
   save_guided_variables <- function() {
@@ -2063,7 +2070,8 @@ server <- function(input, output, session) {
       nav$snaps[[nav$pos + 1L]] <- snap
       nav$pos <- nav$pos + 1L
       session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L,
-        page = page_slug(input$tabs), tool = if (identical(input$tabs, labs_tab_title)) input$labs_tool %||% "" else ""))
+        page = page_slug(input$tabs), tool = if (identical(input$tabs, labs_tab_title)) input$labs_tool %||% "" else "",
+        card = card_in_address(state$screen, state$endpoint, input$tabs)))
     })
   })
   observeEvent(input$pk_nav_to, {

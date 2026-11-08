@@ -186,6 +186,13 @@ for (const page_ of ['labs', 'about', 'updates']) test(`a link straight to ${pag
   await expect(page.locator('#pk-starting')).toHaveCount(0, { timeout: 30000 });
 });
 
+test('a link to a card opens that card, and the address names the open card', async ({ page }) => {
+  await page.goto('?card=E8');
+  await expect(page.locator('#pk-starting')).toHaveCount(0, { timeout: 30000 });
+  await expect(page.locator('#screen [data-recent-id="E8"]')).toHaveCount(1);
+  await expect(page).toHaveURL(/card=E8/);
+});
+
 test('a link straight to a Labs tool opens it, not the starting screen', async ({ page }) => {
   await page.goto('?page=labs&tool=prereplication');
   await expect(page.locator('#pk-starting')).toHaveCount(0);

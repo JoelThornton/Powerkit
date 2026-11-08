@@ -523,6 +523,25 @@ test_that("each tab has its own address, so a page can be shared by link", {
   expect_match(nav_js, "searchParams.set('page'", fixed = TRUE)
 })
 
+test_that("a link can open a card, not only a tab", {
+  # ?card=E8 opens that card as the list of every analysis does.
+  expect_identical(card_from_query("?card=E8", tree), "E8")
+  expect_identical(card_from_query("?card=e8", tree), "E8")
+  expect_null(card_from_query("?card=E999", tree))
+  expect_null(card_from_query("", tree))
+  # A card belongs to the plan tab; a link to another tab opens that tab.
+  expect_null(card_from_query("?page=labs&card=E8", tree))
+  # The address names the card while its card or input screen is open.
+  expect_identical(card_in_address("card", "E8", "Plan a power analysis"), "E8")
+  expect_identical(card_in_address("form", "E8", "Plan a power analysis"), "E8")
+  expect_identical(card_in_address("node", "E8", "Plan a power analysis"), "")
+  expect_identical(card_in_address("card", "E8", "About"), "")
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "card_from_query(isolate(session$clientData$url_search), tree)", fixed = TRUE)
+  expect_match(code, "card = card_in_address(", fixed = TRUE)
+  expect_match(nav_js, "params.set('card', window.pkCard)", fixed = TRUE)
+})
+
 test_that("the top bar's share button copies a working link to the page", {
   # Inside Connect Cloud's frame the address bar can't show the page, so
   # the button builds the link from the public address.
