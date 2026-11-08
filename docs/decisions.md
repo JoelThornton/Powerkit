@@ -6107,3 +6107,23 @@ the site stays findable by search engines.
   the original effect, if it is real, is a separate plan, and the result
   says so.
 
+
+## 2026-11-08 · The review's checks, kept for releases
+
+- **Decided with the review (7 November 2026):** keep the review's
+  property checks over every example spec and its run of every card in a
+  browser, so they can be rerun before each release (`next.md`, R14).
+- **Where:** `scripts/release-checks/` (the property checks, in R) and
+  `app/routing/walkthroughs/every-card.js` with
+  `every-card-list.R` (the browser run, beside the other Playwright
+  scripts). Both exit with status 1 on any problem; how to run them is
+  in `repository-protection.md`, "Checks before a release".
+- **Not in CI:** each takes about an hour, and the full validation run
+  already covers the published values. A test in the app suite runs the
+  property checks on one formula design and writes the card list, so
+  neither script falls out of step with the engine or the forms
+  unnoticed.
+- **Changed from the review's versions:** the browser run opens folded
+  sections before filling a field and doesn't count the Bayes factor
+  box, which stays empty until asked for, as a blank output; its
+  thirteen "blank" findings in the review were that box.

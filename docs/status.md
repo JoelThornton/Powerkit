@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.47.0). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.47.1). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -15,18 +15,19 @@ rules are in `CLAUDE.md`.
 
 - **Review fixes (7 November 2026):** a review of the whole project found
   no wrong number and nothing critical, and grouped 21 serious problems
-  and about 110 smaller ones into fix batches at the top of
-  [`next.md`](next.md). Thirteen batches are done: validation runs that
-  finish and report, what the app says, design-finder routes, the draft
-  box and page structure, effect-size guidance, speed, whole-study
-  planning, input screens, Labs, docs and start-up reading, change notes
-  that no longer need catch-up merges (each pull request writes its own
-  note files; `scripts/close-batch.R` sets the version when a batch
-  closes), and Welch's tests by default: Welch's t-test on the two-group
-  card, by formula (Departure 21), and Welch's F on the one-way ANOVA
-  card, simulated, with its smallest detectable effect simulated too
-  (Departure 22), and small telescopes for replications on the t-test and
-  correlation cards and in Labs. Next: keeping the review's scripts.
+  and about 110 smaller ones into fourteen fix batches, all done by
+  8 November: validation runs that finish and report, what the app says,
+  design-finder routes, the draft box and page structure, effect-size
+  guidance, speed, whole-study planning, input screens, Labs, docs and
+  start-up reading, change notes that no longer need catch-up merges
+  (each pull request writes its own note files; `scripts/close-batch.R`
+  sets the version when a batch closes), Welch's tests by default
+  (Welch's t-test on the two-group card, by formula, Departure 21;
+  Welch's F on the one-way ANOVA card, simulated, Departure 22), small
+  telescopes for replications, and the review's own checks kept for
+  each release: property checks over every example spec and a run of
+  every card in a browser (`repository-protection.md`, "Checks before a
+  release"). Next: the queue in `next.md`.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
