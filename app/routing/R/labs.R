@@ -568,12 +568,10 @@ published_result <- function(values, convert, safeguard) {
         lines <- c(lines, sprintf(paste0("Safeguard: the %d%% confidence interval around this estimate includes zero, so this study ",
           "can't tell you how large the effect is. Plan from the smallest effect that would matter instead."), round(100 * (2 * protection - 1))))
       } else {
-        # Read as repeated sampling, as Perugini, Gallucci and Costantini
-        # motivate it, not as a probability about this one interval.
-        lines <- c(lines, sprintf(paste0("Safeguard: plan with %s = %s, the lower end of the %d%% confidence interval around it: ",
-          "across studies like the published one, a bound found this way falls below the true effect %d%% of the time, ",
-          "if the published estimate is unbiased (Perugini, Gallucci & Costantini, 2014)."), d$effect, format(round(sg$lower, 3), nsmall = 2),
-          round(100 * sg$conf_level), round(100 * sg$protection)))
+        # The cards' own sentence (safeguard_sentence()), read as repeated
+        # sampling, as Perugini, Gallucci and Costantini motivate it.
+        lines <- c(lines, safeguard_sentence(list(safeguard = c(list(effect_name = d$effect, estimate = estimate,
+          lower = sg$lower, conf_level = sg$conf_level, protection = sg$protection), n))))
       }
     }
   }
@@ -905,13 +903,13 @@ bayes_ui <- function() {
       radioButtons("bayes_alternative", "The hypothesis", choices = bayes_directions, selected = "two.sided", width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "2. The analysis prior: what the Bayes factor will assume"),
       p(class = "group-note", "When the data are in, the Bayes factor compares no effect with a spread of possible effects: a Cauchy distribution centred on 0. Its scale says how large effects are expected to be; 0.707 is the usual default (bfpwr's, and JASP's). A reader should be able to accept it, so it is chosen before the data and reported."),
-      numericInput("bayes_scale", "Scale of the Cauchy prior", value = 0.707, min = 0.05, max = 5, step = 0.05, width = "100%")),
+      numericInput("bayes_scale", "Scale of the analysis prior (a Cauchy distribution centred on 0)", value = 0.707, min = 0.05, max = 5, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "3. The design prior: what you believe about the effect now"),
       p(class = "group-note", "Separate from the analysis prior. This is your honest belief about the true standardised effect (Cohen's d, or d_z for pairs), with your uncertainty about it as an SD. An SD of 0 plans for exactly that effect, as most power analyses do; a larger SD averages over the effects you think plausible, which usually lowers the chances."),
       numericInput("bayes_effect", "The effect you expect", value = 0.5, min = -5, max = 5, step = 0.05, width = "100%"),
-      numericInput("bayes_effect_sd", "Your uncertainty about it (an SD; 0 for none)", value = 0.15, min = 0, max = 5, step = 0.05, width = "100%")),
+      numericInput("bayes_effect_sd", "How unsure you are about the effect, as an SD (0 = exactly this effect)", value = 0.15, min = 0, max = 5, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. What counts as strong evidence"),
-      radioButtons("bayes_threshold", "A Bayes factor of at least (either way)", choices = bayes_thresholds, selected = "10", inline = TRUE),
+      radioButtons("bayes_threshold", "Strong evidence: the Bayes factor you want the study to reach (BF10 for an effect, BF01 for no effect)", choices = bayes_thresholds, selected = "10", inline = TRUE),
       p(class = "group-note", "There is no correct threshold: a higher one asks more of the data, and evidence for no effect needs larger studies than evidence for an effect."),
       numericInput("bayes_target", "Find the sample size that gives strong evidence for an effect with this chance", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. When you look at the data"),
@@ -933,8 +931,8 @@ bayes_problem <- function(e) {
   if (!inherits(e, "powerkit_error")) {
     return("powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
   }
-  labels <- c("'n'" = "The sample size", "'effect_sd' (the uncertainty about the effect)" = "Your uncertainty about the effect",
-    "'effect'" = "The effect you expect", "'prior_scale'" = "The scale of the Cauchy prior",
+  labels <- c("'n'" = "The sample size", "'effect_sd' (the uncertainty about the effect)" = "How unsure you are about the effect",
+    "'effect'" = "The effect you expect", "'prior_scale'" = "The scale of the analysis prior",
     "'threshold'" = "The threshold", "'target'" = "The chance to aim for",
     "'n_min' (the first look)" = "The first look", "'n_max' (the largest sample size)" = "The sample size",
     "'step' (participants between looks)" = "The number between looks",

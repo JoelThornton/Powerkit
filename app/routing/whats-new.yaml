@@ -6,6 +6,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Not sure of the effect? Bayes factor plans can now say"
+    text: >-
+      A Bayes factor t-test result can now show the chance of strong
+      evidence averaged over a range of true effects, if you say how unsure
+      you are, and how many people that would need. Labs' Bayesian planning
+      and effect size converter now give exactly the same numbers and
+      wording as the main cards.
+  - date: "2026-11-08"
     title: "Labs looks like the rest of powerkit, and results link to it"
     text: >-
       Every chart in Labs now matches the result page's, with its key

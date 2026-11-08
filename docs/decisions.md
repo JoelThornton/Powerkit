@@ -5943,3 +5943,27 @@ the site stays findable by search engines.
   picture is the textbook version of the test, so its power can differ
   slightly from the result's (Welch's test, unequal groups).
 
+## 2026-11-08 · Labs' Bayesian planning and converter share the cards' code; the uncertain effect on Bayes factor results
+
+- **Why:** the project review of 7 November 2026 found that Bayesian
+  planning and the effect size converter repeated the main cards with
+  their own code and words, and that the design prior (planning over an
+  uncertain effect) was easy to miss on the cards.
+- **Decided with the review:** both tools stay in Labs as stand-alone
+  tools, sharing the main app's engine code and wording.
+- **Shared code:** `bfpwr_chance()` (backend-bfpwr.R) is the one bfpwr
+  call for the chance of strong evidence. The cards, `bayes_planning()`
+  and `bayes_sequential()`'s fixed comparison all use it, and a test
+  checks that Labs and the card give the same numbers for the same
+  study. No number changed (checked against the previous code before
+  the change). The converter already used `convert_effect()` and
+  `safeguard_effect()`; it now also gives the cards' safeguard sentence.
+- **Uncertain effect on the cards:** a Bayes factor t-test planned for
+  exactly one effect (design prior SD 0, powerkit's default, Departure
+  15) offers "Not sure of the effect?": the user gives an SD and sees the
+  chance of strong evidence averaged over it (assurance; O'Hagan, Stevens
+  and Campbell, 2005) and the sample size for the target on average, from
+  `run_spec()` with `population.effect_sd` set. The plan doesn't change,
+  and powerkit suggests no SD, since the size of one's uncertainty is the
+  researcher's to defend.
+

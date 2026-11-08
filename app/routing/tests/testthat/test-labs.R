@@ -220,7 +220,9 @@ test_that("plan from a published result: the engine converts and gives the safeg
   expect_length(out$problems, 0)
   expect_match(out$lines[1], "Converted: Cohen's d = 0.645, with the psych package's t2d(), by the formula in Lakens (2013).", fixed = TRUE)
   lower <- safeguard(convert("t", 2.5, "independent_t", df_error = 58)$value, "independent_t", n1 = 30, n2 = 30, protection = 0.8)$lower
-  expect_match(out$lines[2], sprintf("plan with Cohen's d = %s", format(round(lower, 3), nsmall = 2)), fixed = TRUE)
+  # The cards' own safeguard sentence.
+  expect_match(out$lines[2], sprintf("the 60%% confidence interval around it, Cohen's d = %s", format(round(lower, 3), nsmall = 2)), fixed = TRUE)
+  expect_match(out$lines[2], "with 30 and 30 people in its two groups", fixed = TRUE)
   # Read as repeated sampling, not as a probability about one interval.
   expect_match(out$lines[2], "a bound found this way falls below the true effect 80% of the time", fixed = TRUE)
   expect_match(out$lines[3], "Published effects tend to be larger", fixed = TRUE)

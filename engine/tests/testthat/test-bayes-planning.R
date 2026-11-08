@@ -76,3 +76,20 @@ test_that("a sample size beyond 10,000 is NA, and bad inputs are refused in plai
   expect_error(bayes_planning(50, target = 1), "between 0 and 1", class = "powerkit_error")
   expect_error(bayes_planning(NA_real_), "whole number", class = "powerkit_error")
 })
+
+test_that("Labs' Bayesian planning gives the Bayes factor card's numbers for the same study", {
+  spec <- example_spec("independent_t")
+  spec$target_test$method <- "bayes_factor"
+  spec$target_test$alpha <- NULL
+  spec$population <- list(metric = "standardised", d = 0.4, effect_sd = 0.2)
+  spec$target_test$prior_scale <- 1
+  spec$target_test$evidence_threshold <- 6
+  spec$options <- list(seed = 7)
+  spec$goal <- list(type = "power", n = 160L)
+  card <- suppressMessages(run_spec(spec))
+  plan <- bayes_planning(80, effect = 0.4, effect_sd = 0.2, prior_scale = 1, threshold = 6)
+  expect_equal(plan$outcomes$for_effect[plan$outcomes$truth == "belief"], card$curve$power, tolerance = 1e-10)
+  null <- plan$outcomes[plan$outcomes$truth == "null", ]
+  expect_equal(null$for_null, card$bayes$evidence_for_null, tolerance = 1e-10)
+  expect_equal(null$for_effect, card$bayes$misleading_evidence, tolerance = 1e-10)
+})
