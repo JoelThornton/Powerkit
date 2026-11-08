@@ -1,11 +1,10 @@
 # What to work on next
 
-*8 November 2026: rows trimmed to what is left; what landed is in `status.md` and `engine/NEWS.md`. 7 November 2026: "Review fixes first" added from a review of the whole project; those rows come before the queue. The ordered answer to "work on the next thing": [`status.md`](status.md) says where the project is, this says what to do.*
+*8 November 2026: the review fixes of 7 November 2026 are all done (`status.md`); what landed is in `status.md` and `engine/NEWS.md`. The ordered answer to "work on the next thing": [`status.md`](status.md) says where the project is, this says what to do.*
 
 **How a thread uses this page**
 
-1. Take the first Ready item in **Review fixes first** below, while any
-   remain; then the first item marked Ready in the queue.
+1. Take the first item marked Ready in the queue.
 2. If an item says *Needs a decision*, it is not yours to start: say what
    the decision is and move to the next Ready item, or ask the maintainer.
 3. Follow [`adding-a-test.md`](adding-a-test.md) for anything that adds a
@@ -15,18 +14,6 @@
 5. **Check the top item still makes sense before starting.** This page is
    dated; a queue written three weeks ago can be stale, and the
    maintainer's priorities beat it.
-
-## Review fixes first (7 November 2026)
-
-A review of the whole project on 7 November 2026 (powerkit 0.35.0) found no
-wrong number and nothing critical, but 21 serious problems and about 110
-smaller ones. They are grouped below into pull requests by area of the app,
-in the order to take them; two or three can run at once when they touch
-different areas. The maintainer decided the choices marked "decided".
-
-| Order | What | Includes | Size | State |
-| --- | --- | --- | --- | --- |
-| R14 | **Keep the review's scripts** | The property checks over every example spec and the every-card browser run, added so they can be rerun before each release (decided) | S | Ready |
 
 ## The queue
 

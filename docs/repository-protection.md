@@ -38,6 +38,39 @@ publishing. Do not add an app bypass simply to work around that conflict.
    unpublished benchmarks and not-run cases are not passes. Ordinary CI is
    insufficient evidence for a scientifically validated release.
 
+## Checks before a release
+
+Every version is tagged automatically, but a release that researchers are
+pointed to (a talk, a paper, leaving prototype) gets three checks first,
+each run from the repository root with the engine installed. None is in
+CI: together they take several hours.
+
+- **The full validation run** (`scripts/run-validation.R`), recorded in
+  `validation-log.md`.
+- **Property checks over every example spec**
+  (`Rscript scripts/release-checks/property-checks.R`, about two hours
+  on four cores, most of it the mediation designs; each design stops
+  after 30 minutes): each design's example runs and records its provenance;
+  the recommended n reaches the target power and, by formula, one fewer
+  doesn't; power grows with n; the same seed gives the same answer; and
+  with no effect, power is about alpha. It lists every design with a
+  problem and exits with status 1 if there is one.
+- **Every card in a browser**
+  (`app/routing/walkthroughs/every-card.js`, about an hour): write the
+  card list with `Rscript app/routing/walkthroughs/every-card-list.R
+  cards.json`, start the app with `Rscript
+  app/routing/walkthroughs/browser-server.R`, then run `node
+  app/routing/walkthroughs/every-card.js cards.json every-card.json` (and
+  again with `power` as a third argument for the power goal). It fills
+  each card's example values from the app suite, calculates, and fetches
+  every download and the printable document, and lists every card that
+  shows R error text, NA or NaN, a blank output, a failed download or a
+  browser console error. Set `PW_CHROMIUM` to a Chromium executable if
+  Playwright can't find one.
+
+A problem in any of them is fixed, or recorded in `next.md`, before the
+release.
+
 Settings are not activated by this document. Record their live ruleset IDs
 and enforcement state only after confirming them in GitHub. The deployment
 branch must not receive the main PR/check rule: only the publishing workflow

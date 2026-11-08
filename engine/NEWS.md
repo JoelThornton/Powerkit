@@ -1,4 +1,4 @@
-# powerkit 0.47.1
+# powerkit 0.47.2
 
 * Small telescopes: d33 (r33) is now worked out at the significance level
   the original study used (`effect_justification > small_telescopes >
@@ -17,6 +17,18 @@
   original only as far as the replication recreated its conditions
   (Simonsohn, 2015, p. 567). It points to the equivalence test for an
   effect that matters only above some size.
+
+# powerkit 0.47.1
+
+* The review's checks are kept for releases. `scripts/release-checks/property-checks.R`
+  runs property checks on every example spec (the example runs and records
+  its provenance; the recommended n reaches the target power and, by
+  formula, one fewer doesn't; power grows with n; the same seed gives the
+  same answer; with no effect, power is about alpha).
+  `app/routing/walkthroughs/every-card.js` opens every card in a browser,
+  calculates its example and fetches every download. Both exit with
+  status 1 on any problem; `docs/repository-protection.md` says how to run
+  them.
 
 # powerkit 0.47.0
 

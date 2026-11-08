@@ -122,7 +122,7 @@ power while matching G\*Power) is folded there instead
   a replication of one original study: d33 (r33 for a correlation) is the
   effect the original study had 33% power to detect with its own sample
   size (two-sided, at the significance level the original study used,
-  0.05 unless the user says otherwise; from 0.47.1, before which the
+  0.05 unless the user says otherwise; from 0.47.2, before which the
   card's alpha was used, see below), and the replication is planned so
   that, if the true effect is zero, a one-sided test can show the effect
   is smaller than d33. Offered on the one-sample, paired and two-group
@@ -140,7 +140,7 @@ power while matching G\*Power) is folded there instead
   about 2.5 times the original sample: 51 per group for an original 20 per
   group, 75 for an original 30 in a paired design and 103 for a
   correlation from an original 40 (`test-small-telescopes.R`).
-- **Two significance levels (0.47.1):** d33 uses the original study's
+- **Two significance levels (0.47.2):** d33 uses the original study's
   level, the replication's test the card's. With one alpha for both, a
   replication at .005 got d33 = 0.79 instead of 0.50 for an original of
   20 per group, and 38 per group instead of 96 (`test-small-telescopes.R`).
