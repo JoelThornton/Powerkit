@@ -41,3 +41,19 @@ test_that("a common count requires matching allocation, grouping and measurement
   paired <- example_spec("paired_t")
   expect_false(identical(sample_structure(first)$compatibility_key, sample_structure(paired)$compatibility_key))
 })
+
+test_that("analyses of the same groups on different outcomes and cards share one count", {
+  t_test <- example_spec("independent_t")
+  proportions <- example_spec("two_proportions")
+  proportions$variables$X <- t_test$variables$X
+  proportions$options$attrition <- t_test$options$attrition
+  expect_identical(sample_structure(t_test)$compatibility_key, sample_structure(proportions)$compatibility_key)
+  proportions$options$allocation_ratio <- 2
+  expect_false(identical(sample_structure(t_test)$compatibility_key, sample_structure(proportions)$compatibility_key))
+  expect_false(identical(sample_structure(t_test)$compatibility_key, sample_structure(example_spec("correlation"))$compatibility_key))
+  paired <- example_spec("paired_t")
+  mcnemar <- example_spec("mcnemar")
+  mcnemar$variables$X <- paired$variables$X
+  mcnemar$options$attrition <- paired$options$attrition
+  expect_identical(sample_structure(paired)$compatibility_key, sample_structure(mcnemar)$compatibility_key)
+})

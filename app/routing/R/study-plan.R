@@ -124,11 +124,25 @@ joint_power_difference <- function(design) {
 
 }
 
+# An analysis calculated from "Plan my whole study" joins the study plan
+# itself, replacing its own earlier result: one plan, not two.
+plan_upsert <- function(entries, entry) {
+  same <- vapply(entries, function(e) identical(e$plan_id, entry$plan_id), logical(1))
+  if (any(same)) {
+    entries[[which(same)[1]]] <- entry
+    entries
+  } else {
+    c(entries, list(entry))
+  }
+}
+
 # Under a result, in "Write it up and save it".
-study_plan_bar_ui <- function(entries, in_plan) {
+study_plan_bar_ui <- function(entries, in_plan, from_guided = FALSE) {
   k <- length(entries)
   div(class = "study-plan-bar nav-buttons mt-2",
-    if (in_plan) span(class = "study-plan-added", role = "status", "Added to your study plan.")
+    if (from_guided && in_plan) span(class = "study-plan-added", role = "status",
+      "This analysis is in your study plan, with the other analyses of your whole-study plan.")
+    else if (in_plan) span(class = "study-plan-added", role = "status", "Added to your study plan.")
     else actionButton("plan_add", "Add this to my study plan", class = "btn btn-outline-primary"),
     if (k > 0) actionLink("plan_view", sprintf("See your study plan (%d %s)", k, if (k == 1) "analysis" else "analyses")))
 }

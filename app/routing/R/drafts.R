@@ -163,9 +163,12 @@ guided_plan_opened_ui <- function(record) {
       if (is.character(record$powerkit_version)) sprintf(" with powerkit %s.", record$powerkit_version) else "."))
 }
 
-guided_plan_save_ui <- function() {
+guided_plan_save_ui <- function(k = 0) {
   div(class = "plan-save mt-3",
-    download_button("download_guided_plan", "Save this plan", class = "btn btn-outline-primary"),
+    div(class = "nav-buttons",
+      download_button("download_guided_plan", "Save this plan", class = "btn btn-outline-primary"),
+      if (k > 0) actionLink("plan_view", sprintf("See your study plan (%d %s)", k, if (k == 1) "analysis" else "analyses"))),
+    if (k > 0) p(class = "small mt-1", "Each analysis you calculate from this plan is also in your study plan, which collects analyses from any card and saves their results in one file."),
     p(class = "text-muted small mt-1", "A file on your computer: open it later from the start screen (“Open a saved project”) to carry on where you left off."))
 }
 

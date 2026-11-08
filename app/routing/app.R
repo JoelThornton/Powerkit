@@ -1070,6 +1070,10 @@ server <- function(input, output, session) {
       state$plan_results[[state$plan_id]] <- list(endpoint = state$endpoint, goal = goal,
         n = if (identical(goal, "sample_size")) calc$result$n_required$n)
       keep_plan_values(calc$route$form_values %||% isolate(current_form_values()))
+      # The same result joins the study plan, in place of this analysis's
+      # earlier one, so the two plans are one.
+      state$study_plan <- plan_upsert(isolate(state$study_plan),
+        c(plan_entry(tree, state$endpoint, calc, calc$route), list(plan_id = state$plan_id)))
     }
   }, ignoreNULL = TRUE)
 
@@ -1490,7 +1494,7 @@ server <- function(input, output, session) {
     if (!calculation_matches_values(calc, current_form_values())) return(calculation_stale_ui())
     hash <- calc$result$provenance$spec_hash
     in_plan <- any(vapply(state$study_plan, function(e) identical(e$result$provenance$spec_hash, hash), logical(1)))
-    study_plan_bar_ui(state$study_plan, in_plan)
+    study_plan_bar_ui(state$study_plan, in_plan, from_guided = identical(state$came_from, "plan") && !is.null(state$plan_id))
   })
   observeEvent(input$plan_add, {
     calc <- state$calc
@@ -2012,7 +2016,7 @@ server <- function(input, output, session) {
         guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
           history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
           results = state$plan_results, shared = state$plan_shared),
-        guided_plan_save_ui()),
+        guided_plan_save_ui(length(state$study_plan))),
       g_sim = {
         ws <- whole_study_screen()
         if (!isTRUE(ws$plan$ok) || is.null(ws$params)) {
