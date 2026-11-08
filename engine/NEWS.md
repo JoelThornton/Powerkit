@@ -1,3 +1,23 @@
+# powerkit 0.47.1
+
+* Small telescopes: d33 (r33) is now worked out at the significance level
+  the original study used (`effect_justification > small_telescopes >
+  alpha`, two-sided, 0.05 unless given), and only the replication's test
+  uses the card's alpha. Before, one alpha did both jobs, so a stricter
+  replication moved the yardstick and got a smaller sample: at alpha .005,
+  d33 for an original of 20 per group was 0.79 rather than 0.50, and the
+  plan 38 per group rather than 96. The R script sets `original_alpha`.
+* Small telescopes results record `if_small`: the replication's power to
+  show the effect is smaller than d33 when the true effect is 0, a
+  quarter, half and three quarters of d33 (pwrss, at the replication's
+  sample size), shown under "How sure can you be?".
+* The wording says what a result below d33 shows (the original study was
+  too small to reliably detect an effect that size) and what it doesn't
+  (that the original was a false positive), and that it bears on the
+  original only as far as the replication recreated its conditions
+  (Simonsohn, 2015, p. 567). It points to the equivalence test for an
+  effect that matters only above some size.
+
 # powerkit 0.47.0
 
 * Small telescopes for replications (Simonsohn, 2015;

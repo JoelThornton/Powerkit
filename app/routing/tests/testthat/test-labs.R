@@ -56,7 +56,8 @@ test_that("the smallest-effect panel adds small telescopes for the t-tests and t
   expect_equal(calc$result$n_required$n, 102)
   text <- labs_telescope_sentence(calc)
   expect_match(text, "d33 = 0.496", fixed = TRUE)
-  expect_match(text, "a replication needs 102 participants in total, about 2.5 times", fixed = TRUE)
+  expect_match(text, "a replication needs 102 participants in total, 2.5 times", fixed = TRUE)
+  expect_match(text, "not that it was a false positive", fixed = TRUE)
   expect_match(text, "run the test the original used", fixed = TRUE)
   for (ep in labs_telescope_tests) expect_equal(labs_telescopes(forms, ep, "60")$status, "ok", info = ep)
   # Not for proportions or tables, and nothing for a missing size.

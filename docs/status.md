@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.47.0). Where the project is
+*Last updated: 8 November 2026 (powerkit 0.47.1). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -26,7 +26,12 @@ rules are in `CLAUDE.md`.
   card, by formula (Departure 21), and Welch's F on the one-way ANOVA
   card, simulated, with its smallest detectable effect simulated too
   (Departure 22), and small telescopes for replications on the t-test and
-  correlation cards and in Labs. Next: keeping the review's scripts.
+  correlation cards and in Labs (0.47.1: d33 at the original study's own
+  significance level, the power if the true effect is small but not zero,
+  and wording that says what a result below d33 does and doesn't show).
+  Next: keeping the review's scripts. A replication planner that brings
+  the replication goals together is in `next.md` as item 15, waiting on a
+  decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point

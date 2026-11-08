@@ -46,6 +46,42 @@ test_that("the paired and one-sample t-tests and the correlation are covered", {
   expect_equal(one, 75)
 })
 
+test_that("d33 uses the original study's significance level, the test the replication's", {
+  # 0.05 unless given, whatever the replication's alpha.
+  strict <- telescope_spec()
+  strict$target_test$alpha <- 0.005
+  result <- run_spec(strict)
+  expect_equal(result$small_telescopes$original_alpha, 0.05)
+  expect_equal(result$small_telescopes$effect, 0.4959, tolerance = 1e-3)
+  # A stricter replication needs more people, not fewer: with the card's
+  # alpha for both, d33 would have been 0.79 and 38 per group.
+  expect_gt(result$n_required$n, 102)
+  expect_equal(result$n_required$n / 2, ceiling(result$n_required$n / 2))
+  wrong <- telescope_effect("independent_t", n1 = 20, n2 = 20, alpha = 0.005)$effect
+  expect_equal(wrong, 0.792, tolerance = 1e-3)
+  # An original tested at another level, given in the spec.
+  other <- telescope_spec(sizes = list(n1 = 20L, n2 = 20L, alpha = 0.1))
+  expect_equal(run_spec(other)$small_telescopes$effect,
+    pwr::pwr.t2n.test(n1 = 20, n2 = 20, power = 1 / 3, sig.level = 0.1)$d, tolerance = 1e-6)
+  expect_spec_problem(telescope_spec(sizes = list(n1 = 20L, n2 = 20L, alpha = 0.7)), "less than 0.5")
+})
+
+test_that("the result gives the power if the true effect is small but not zero", {
+  result <- run_spec(telescope_spec())
+  table <- result$small_telescopes$if_small
+  expect_equal(table$true_effect, c(0, 0.25, 0.5, 0.75) * result$small_telescopes$effect)
+  expect_gte(table$power[1], 0.8)
+  expect_true(all(diff(table$power) < 0))
+  # pwrss directly, at a true d of half of d33, 51 per group.
+  half <- pwrss::power.t.student(d = table$true_effect[3], margin = result$small_telescopes$effect, n2 = 51, n.ratio = 1,
+    alpha = 0.05, alternative = "one.sided", design = "independent", verbose = 0)$power
+  expect_equal(table$power[3], half, tolerance = 1e-10)
+  expect_lt(table$power[3], 0.5)
+  cor <- run_spec(telescope_spec("correlation", list(n = 40L), effect = 0.4))$small_telescopes$if_small
+  expect_equal(nrow(cor), 4)
+  expect_true(all(diff(cor$power) < 0))
+})
+
 test_that("the original effect's sign sets the direction, not the size", {
   up <- run_spec(telescope_spec(effect = 0.6))
   down <- run_spec(telescope_spec(effect = -0.3))
@@ -73,6 +109,7 @@ test_that("small telescopes says plainly what it can't combine with", {
 test_that("the exported script reproduces small telescopes from pwr and pwrss alone", {
   skip_unless_scripts_can_run()
   for (spec in list(telescope_spec(), telescope_spec("correlation", list(n = 40L), effect = 0.4),
+                    telescope_spec(sizes = list(n1 = 20L, n2 = 20L, alpha = 0.1)),
                     telescope_spec("paired_t", list(n = 30L), effect = 0.5, goal = list(type = "power", n = 75L)))) {
     result <- run_spec(spec)
     run <- run_exported_script(spec, result)

@@ -313,7 +313,7 @@
           "type": "string"
         },
         "small_telescopes": {
-          "description": "Small telescopes (Simonsohn, 2015), for a replication of one original study: plan the replication's one-sided test of whether the effect is smaller than d33 (r33 for a correlation), the effect the original study had 33% power to detect with its sample size, for a true effect of 0. For prior_study, with the one-sample, paired and independent t-tests and the correlation. The population value given is the original study's estimate, which sets the direction.",
+          "description": "Small telescopes (Simonsohn, 2015), for a replication of one original study: plan the replication's one-sided test of whether the effect is smaller than d33 (r33 for a correlation), the effect the original study had 33% power to detect with its sample size at its own significance level, for a true effect of 0. For prior_study, with the one-sample, paired and independent t-tests and the correlation. The population value given is the original study's estimate, which sets the direction.",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -331,6 +331,12 @@
               "description": "The original study's size of group 2 (independent groups).",
               "type": "integer",
               "minimum": 2
+            },
+            "alpha": {
+              "description": "The significance level the original study used (two-sided); 0.05 if not given. It sets d33 (r33) only; the replication's own test uses target_test > alpha.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 0.5
             }
           }
         },
