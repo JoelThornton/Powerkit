@@ -81,6 +81,11 @@ spower_backend <- function(spec, seed = NULL) {
       })
     },
     sensitivity = NULL,
+    # Welch's F: the smallest detectable effect, simulated
+    # (welch_f_sensitivity()).
+    simulated_sensitivity = if (welch_anova(spec)) {
+      function(n, power, nrep, seed, cores) welch_f_sensitivity(spec, n, power, nrep, seed, cores)
+    },
     check_run = function() {
       big_n <- step * ceiling(check_run_n() / step)
       spower_check_run(spec, inputs, big_n, seed)

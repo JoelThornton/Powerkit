@@ -742,10 +742,13 @@ check_bayes_proportions <- function(spec) {
 # Each group's SD is an input to Welch's F only, and needs one per group.
 check_welch_sds <- function(spec) {
   sds <- spec$population$sds
-  if (welch_anova(spec) && identical(spec$population$metric, "standardised")) {
+  # With one SD for every group, the means can be in SD units; with an SD
+  # for each group there is no single SD to put them in units of.
+  if (welch_anova(spec) && identical(spec$population$metric, "standardised") && !is.null(sds)) {
     return(paste0(
-      "Welch's F is for groups whose SDs differ, so there is no single SD to put the means ",
-      "in units of: give the means and each group's SD in the outcome's own units (metric 'raw')."
+      "With an SD for each group there is no single SD to put the means in units of: ",
+      "give the means and each group's SD in the outcome's own units (metric 'raw'), ",
+      "or one SD for every group ('population > sd')."
     ))
   }
   # MANOVA's sds are one per outcome (check_manova()).

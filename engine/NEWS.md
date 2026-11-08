@@ -1,3 +1,57 @@
+# powerkit 0.46.0
+
+* The design finder no longer ends at "No matching design" for a count or
+  an outcome in ordered categories measured twice or more on the same
+  people. A difference goes to a new card (E75, a generalised mixed model,
+  which powerkit doesn't calculate yet; it names simr and mixpower), and a
+  relationship to the within-person card (E41), as for a score. The guided
+  route does the same, and also sends groups measured twice on a yes/no
+  outcome to E75.
+* A yes/no outcome measured twice, with a relationship as the aim, now
+  reaches the within-person card instead of logistic regression, which
+  assumes separate people.
+* Two tests walk every answer in "Help me choose" and every combination in
+  the guided route, and fail when one reaches "No matching design" without
+  the user choosing it, unless it is on a short list of known gaps.
+
+* Welch's F has a smallest detectable effect, by simulation
+  (`welch_f_sensitivity()`): the pattern of means keeps its shape and its
+  size is scaled, starting from the F test's exact answer (Superpower),
+  and the scale is read from a probit curve of Spower's simulated
+  rejections, with a 95% interval. `run_spec()` calls a backend's
+  `simulated_sensitivity` when it has one; the exported script repeats the
+  simulations at each scale and fits the same curve.
+
+* Welch's F takes means in SD units when every group has the same SD
+  (`population > sd`, no `sds`).
+
+* The one-way ANOVA card plans for Welch's F by default, the classical F
+  test as a choice (Departure 22, `docs/conventions.md`;
+  `Delacre2019_welch_f` in `refs.bib`). `test-welch-anova-default.R`
+  shows the size of the difference: 231 rather than 228 people with one
+  SD of 6 and means 10, 11 and 13. The `welch_spreads` validation chunk
+  now checks Welch's F against separately simulated `oneway.test()`
+  studies, its false-positive rate with unequal SDs, and its smallest
+  detectable effect.
+
+* Welch's t-test is worked out by pwrss's formula (`power.t.welch()`)
+  unless `options > method = "simulation"` asks for Spower's simulation;
+  before, it was simulated unless the formula was requested. The two
+  agree (the `welch_spreads` validation chunk), and the formula has no
+  random error and takes a fraction of a second.
+
+* Welch's t-test gains the smallest detectable effect
+  (`welch_sensitivity()`: d searched with pwrss's own power, keeping the
+  spread ratio and the group sizes) and a justified alpha (JustifyAlpha's
+  `optimal_alpha()` on `power.t.welch()`), with scripts that reproduce
+  both.
+
+* The two-group card plans for Welch's t-test by default, Student's as a
+  choice (Departure 21, `docs/conventions.md`; `Delacre2017_welch` in
+  `refs.bib`). `test-welch-default.R` shows the size of the difference:
+  none with equal spreads and equal groups, and 147 rather than 144
+  people for d = 0.5 when group 2 is twice the size of group 1.
+
 # powerkit 0.45.2
 
 * Only the afternoon publishing run waits for a gap since the last

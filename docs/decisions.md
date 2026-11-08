@@ -6054,3 +6054,33 @@ the site stays findable by search engines.
 - **The one-way ANOVA:** Welch's F becomes its default too (maintainer,
   8 November 2026: follow best practice), in the next pull request of
   this batch (`next.md`, R12b).
+
+## 2026-11-08 · Welch's F by default on the one-way ANOVA card
+
+- **Decided by the maintainer (8 November 2026: follow best practice):**
+  the one-way ANOVA card plans for Welch's F by default, with the
+  classical F test as a choice, recorded as a departure from G\*Power and
+  Superpower (`conventions.md`, Departure 22) and cited to Delacre, Leys,
+  Mora and Lakens (2019, `Delacre2019_welch_f`), who recommend Welch's F
+  over the classical F test by default.
+- **Simulated, because no package has a formula:** Welch's F's power is
+  simulated with Spower (`p_anova.test(var.equal = FALSE)`), as it was as
+  a choice. No R package gives it in closed form, and the published
+  approximations are not implemented in one, so none is written into the
+  engine. With one SD of 6 and means 10, 11 and 13 it needs 231 people
+  for 80% power against the F test's 228 (`test-welch-anova-default.R`).
+- **Nothing lost by the default:** the smallest detectable effect, which
+  the F test has exactly, is now simulated for Welch's F
+  (`welch_f_sensitivity()`): the pattern of means is scaled, starting
+  from the F test's exact answer, and read from a probit curve of the
+  simulated rejections, as the simulated sample size is, with a 95%
+  interval and a script that reproduces it. Means in SD units now work
+  with one SD for every group; the card asks whether the spreads are
+  expected to differ, and only then for an SD per group.
+- **When to choose the classical F test:** the card's note names a direct
+  replication or preregistration that fixes it, or an ANOVA inside a
+  larger equal-variance model, and suggests reporting Welch's F beside
+  it, as the two-group card does for Student's test.
+- **Still the classical F test:** the experimental whole-study plan's
+  factorial experiments, which simulate every effect of one Superpower
+  design together; Welch's F has no factorial form there.
