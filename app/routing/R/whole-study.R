@@ -502,7 +502,7 @@ whole_study_outcomes <- function(r) {
   paste0(labels, ": ", simulation_outcome_text(list(provenance = list(simulations = a))))
 }
 
-whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, script = NULL) {
+whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, script = NULL, curve = NULL) {
   if (!identical(calc$status, "ok")) {
     return(div(class = "form-problems", role = "alert", tabindex = "-1",
       h3(class = "h5", "The simulation didn't finish"), p(calc$message)))
@@ -544,6 +544,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       if (!is.null(script)) p(class = "ws-quick-note", role = "note", sprintf(
         "A quick look, from %s simulated studies: each power is within about \u00b1%s percentage points. For numbers to report, and for the sample size you need, run the full simulation on your computer (under \u201cWrite it up and save it\u201d).",
         whole(r$provenance$nrep), whole_study_precision(r$provenance$nrep))),
+      curve,
       h4(class = "h6 mt-3", "Each analysis"),
       div(class = "table-responsive", tags$table(class = "table table-sm ws-table",
         tags$thead(tags$tr(tags$th("Analysis"), tags$th("Role"), tags$th("Tested at alpha"), tags$th("Power"), tags$th(class = "ws-bar-col", "95% interval"))),
@@ -837,4 +838,68 @@ whole_study_experiment_spec <- function(plan, labels, values, rule, nrep) {
     claim = rule, alpha = alpha, effect_justification = list(type = "none"),
     goal = list(type = "power", n = as.integer(n)),
     options = list(nrep = as.integer(nrep), seed = as.integer(seed))))
+}
+
+# --- A rough power curve (whole_study_curve()) -------------------------------------
+
+# Offered for experiments and regressions; a mediation's confidence
+# intervals make each run too slow for the app.
+whole_study_curve_offered <- function(spec) {
+  is.list(spec) && identical(spec$goal$type, "power") &&
+    !any(vapply(spec$analyses, function(a) (a$test %||% "") %in% c("indirect", "index_of_mome"), logical(1)))
+}
+
+whole_study_curve_seconds <- function(forms, plan) {
+  ws <- forms$whole_study
+  per <- ws$seconds_per_replication
+  tests <- vapply(plan$analyses, function(a) a$test, "")
+  # Larger samples take a little longer per replication; the mean multiple
+  # stands in for that.
+  sum(unlist(per[tests])) * ws$curve_nrep * sum(unlist(ws$curve_multipliers)) + (ws$overhead_seconds %||% 15)
+}
+
+whole_study_curve_offer_ui <- function(forms, plan) {
+  ws <- forms$whole_study
+  div(class = "ws-curve mt-3",
+    h4(class = "h6", "How many people do you need?"),
+    p(class = "small", sprintf(
+      "See roughly how power changes with N: powerkit simulates the study at %d sample sizes around this one, %s simulated studies each (about %s). It is a guide for choosing N; the sample size to report comes from the R script\u2019s search.",
+      length(ws$curve_multipliers), whole(ws$curve_nrep), duration_words(whole_study_curve_seconds(forms, plan)))),
+    actionButton("ws_curve_run", "Show a rough power curve", class = "btn btn-outline-primary"),
+    uiOutput("ws_curve"))
+}
+
+whole_study_curve_ui <- function(calc, target = 0.8) {
+  if (!identical(calc$status, "ok")) {
+    return(div(class = "form-problems", role = "alert", tabindex = "-1",
+      h3(class = "h5", "The power curve didn't finish"), p(calc$message)))
+  }
+  r <- calc$result
+  cv <- r$curve
+  reached <- cv$n[cv$power >= target]
+  what <- c(single = "Power of the main analysis", all = "Chance that every main analysis is significant",
+    any = "Chance that at least one main analysis is significant", each = "Power of the weakest main analysis")[[r$rule]]
+  verdict <- if (length(reached)) {
+    below <- cv$n[cv$n < min(reached)]
+    if (length(below)) sprintf("Roughly, power reaches %s between N = %s and N = %s.", percent(target), whole(max(below)), whole(min(reached)))
+    else sprintf("Power is at least %s at every size tried, from N = %s: a smaller study may be enough.", percent(target), whole(min(cv$n)))
+  } else {
+    sprintf("Power stays below %s up to N = %s: the study needs more people than this, or a larger effect.", percent(target), whole(max(cv$n)))
+  }
+  div(class = "ws-curve-result", role = "status", tabindex = "-1",
+    p(tags$strong(verdict)),
+    div(class = "table-responsive", tags$table(class = "table table-sm ws-table",
+      tags$thead(tags$tr(tags$th("N"), tags$th(what), tags$th(class = "ws-bar-col", "95% interval"))),
+      tags$tbody(lapply(seq_len(nrow(cv)), function(i) tags$tr(
+        tags$td(whole(cv$n[i])), tags$td(tags$strong(percent(cv$power[i]))),
+        tags$td(class = "ws-bar-col", whole_study_power_bar(cv$power[i], cv$lower[i], cv$upper[i]),
+          tags$span(class = "ws-bar-text", sprintf("%s to %s", percent(cv$lower[i]), percent(cv$upper[i]))))))))),
+    p(class = "small text-muted", sprintf(
+      "Rough: %s simulated studies at each N, so each power is within about \u00b1%s percentage points (seed %s, %s %s). For the sample size to report, download the R script under \u201cWrite it up and save it\u201d and choose the sample size search.",
+      whole(r$provenance$nrep), whole_study_precision(r$provenance$nrep), r$provenance$seed,
+      r$provenance$backend, r$provenance$packages[[r$provenance$backend]])))
+}
+
+duration_words <- function(seconds) {
+  if (seconds < 120) sprintf("%s seconds", whole(10 * ceiling(seconds / 10))) else sprintf("%s minutes", whole(round(seconds / 60)))
 }

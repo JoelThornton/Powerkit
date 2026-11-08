@@ -358,3 +358,25 @@ test_that("names typed on the simulation screen come first, and the screen asks 
   input <- list(ws_name_X = " Workload ", ws_name_W = "", ws_name_Y = "Burnout")
   expect_identical(whole_study_names_from_input(input, c("X", "W", "B", "Y")), list(X = "Workload", Y = "Burnout"))
 })
+
+test_that("a rough power curve is offered for experiments and regressions, and read in plain words", {
+  regression <- list(goal = list(type = "power", n = 200), analyses = list(list(test = "x_y"), list(test = "interaction")))
+  expect_true(whole_study_curve_offered(regression))
+  mediation <- regression
+  mediation$analyses[[2]]$test <- "indirect"
+  expect_false(whole_study_curve_offered(mediation))
+  plan <- list(analyses = list(list(test = "x_y"), list(test = "interaction")))
+  html <- as.character(whole_study_curve_offer_ui(forms, plan))
+  expect_match(html, "Show a rough power curve", fixed = TRUE)
+  expect_match(html, "5 sample sizes", fixed = TRUE)
+  calc <- list(status = "ok", result = list(rule = "all",
+    curve = data.frame(n = c(100, 150, 200, 300), power = c(0.4, 0.6, 0.78, 0.93), lower = c(0.33, 0.53, 0.72, 0.89),
+      upper = c(0.47, 0.67, 0.84, 0.96), nrep = 200),
+    provenance = list(nrep = 200, seed = 1, backend = "power4mome", packages = list(power4mome = "0.1"))))
+  html <- as.character(whole_study_curve_ui(calc))
+  expect_match(html, "between N = 200 and N = 300", fixed = TRUE)
+  expect_match(html, "every main analysis", fixed = TRUE)
+  calc$result$curve$power <- c(0.1, 0.2, 0.3, 0.4)
+  expect_match(as.character(whole_study_curve_ui(calc)), "stays below 80% up to N = 300", fixed = TRUE)
+  expect_match(as.character(whole_study_curve_ui(list(status = "error", message = "Plain."))), "Plain.", fixed = TRUE)
+})

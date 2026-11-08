@@ -71,15 +71,20 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
 # `cost_powers`: the powers for the result's comparison line (cost_line()),
 # whose sample sizes are two more searches, so they are run here too rather
 # than in the app's own process.
-background_worker <- function(spec, seed, engine_dir, cores, run_calculation, cost_powers = NULL) {
+background_worker <- function(spec, seed, engine_dir, cores, run_calculation, cost_powers = NULL, curve = NULL) {
   options(powerkit.cores = cores)
-  # A whole-study simulation (experimental) runs run_whole_study().
-  fun <- if (identical(spec$kind, "whole_study")) "run_whole_study" else "run_spec"
+  # A whole-study simulation (experimental) runs run_whole_study(), and its
+  # rough power curve whole_study_curve().
+  fun <- if (!is.null(curve)) "whole_study_curve" else if (identical(spec$kind, "whole_study")) "run_whole_study" else "run_spec"
   run <- if (requireNamespace("powerkit", quietly = TRUE)) {
     getExportedValue("powerkit", fun)
   } else {
     suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
     get(fun, envir = asNamespace("powerkit"))
+  }
+  if (!is.null(curve)) {
+    curve_fun <- run
+    run <- function(spec) curve_fun(spec, multipliers = unlist(curve$multipliers), nrep = curve$nrep)
   }
   calc <- run_calculation(spec, run, seed)
   if (length(cost_powers) && identical(calc$status, "ok") && identical(calc$result$goal_type, "sample_size") &&
@@ -101,12 +106,13 @@ background_worker <- function(spec, seed, engine_dir, cores, run_calculation, co
 # is_alive(), kill(), wait() and get_result().
 start_background_calculation <- function(spec, seed = 1L,
                                          engine_dir = file.path(routing_root(), "..", "..", "engine"),
-                                         cost_powers = NULL, spare = isTRUE(getOption("powerkit.warm_spare"))) {
+                                         cost_powers = NULL, spare = isTRUE(getOption("powerkit.warm_spare")),
+                                         curve = NULL) {
   calc_fun <- run_calculation
   environment(calc_fun) <- baseenv()
   engine_dir <- normalizePath(engine_dir, mustWork = FALSE)
   args <- list(spec = spec, seed = seed, engine_dir = engine_dir,
-               cores = getOption("powerkit.cores"), run_calculation = calc_fun, cost_powers = cost_powers)
+               cores = getOption("powerkit.cores"), run_calculation = calc_fun, cost_powers = cost_powers, curve = curve)
   warm <- if (spare) take_spare()
   if (spare) keep_spare(engine_dir)
   if (!is.null(warm)) return(session_job(warm, background_worker, args))

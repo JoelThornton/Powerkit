@@ -1293,7 +1293,7 @@ server <- function(input, output, session) {
   # Nothing starts while the server is at its limit (background_limit()).
   # `target`: the output the run's result is shown in (the input screen's,
   # or the whole-study simulation's).
-  start_job <- function(kind, spec, usual, shown, target = "form_result", cost_powers = NULL) {
+  start_job <- function(kind, spec, usual, shown, target = "form_result", cost_powers = NULL, curve = NULL) {
     if (background_running() >= background_limit(forms)) {
       output[[target]] <- renderUI(busy_ui())
       session$sendCustomMessage("focus_result", target)
@@ -1302,7 +1302,7 @@ server <- function(input, output, session) {
     job$kind <- kind
     job$target <- target
     job$screen <- isolate(state$screen)
-    job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed, cost_powers = cost_powers))
+    job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed, cost_powers = cost_powers, curve = curve))
     job$started <- Sys.time()
     job$usual <- usual
     job$shown <- shown
@@ -1336,8 +1336,14 @@ server <- function(input, output, session) {
         whole_study_script_ui(forms, isolate(whole_study_screen())$plan, spec$goal$n, spec$claim,
           sum(vapply(spec$analyses, function(a) identical(a$role, "main"), logical(1))))
       }
-      output$ws_result <- renderUI(whole_study_result_ui(calc, state$plan_values, departure = forms$departures[["13"]], script = script))
+      output$ws_result <- renderUI(whole_study_result_ui(calc, state$plan_values, departure = forms$departures[["13"]], script = script,
+        curve = if (identical(calc$status, "ok") && whole_study_curve_offered(state$ws_spec))
+          whole_study_curve_offer_ui(forms, isolate(whole_study_screen())$plan)))
       session$sendCustomMessage("focus_result", "ws_result")
+      return()
+    } else if (identical(job$kind, "ws_curve")) {
+      output$ws_curve <- renderUI(whole_study_curve_ui(calc))
+      session$sendCustomMessage("focus_result", "ws_curve")
       return()
     } else {
       # A search gets what the in-process route adds (finish_calc()); the
@@ -1427,6 +1433,16 @@ server <- function(input, output, session) {
       sprintf("Simulating the whole study (%s simulated studies)\u2026", whole(built$spec$options$nrep))))
     start_job("whole_study", built$spec, usual, list(), target = "ws_result")
     session$sendCustomMessage("focus_result", "ws_result")
+  })
+  # A rough power curve over a few sample sizes, around the quick look's N.
+  observeEvent(input$ws_curve_run, {
+    spec <- state$ws_spec
+    if (is.null(spec) || !whole_study_curve_offered(spec) || job_running()) return()
+    plan <- whole_study_screen()$plan
+    usual <- whole_study_curve_seconds(forms, plan)
+    output$ws_curve <- renderUI(calculating_background_ui(usual, "Simulating the study at a few sample sizes\u2026"))
+    start_job("ws_curve", spec, usual, list(), target = "ws_curve",
+      curve = list(multipliers = forms$whole_study$curve_multipliers, nrep = forms$whole_study$curve_nrep))
   })
   # The R script for the full run, or the sample size search, on the
   # user's computer (export_whole_study_script()).
