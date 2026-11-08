@@ -6229,6 +6229,39 @@ the site stays findable by search engines.
   those plans are unchanged; Welch's test with unequal SDs is refused in
   plain words, asking the user to empty the field.
 
+
+## 2026-11-08 · Correlations that vary between studies, and the range on the result
+
+- **Decided (8 November 2026):** the correlation card (E4) takes an
+  optional "how much might the true correlation vary between studies",
+  an SD on Fisher's z, following McShane and Böckenholt (2014), whose
+  Appendix B gives power when the estimate's variance is its sampling
+  variance plus the between-study variance. On Fisher's z the sampling
+  variance is 1 / (n - 3), and powerkit gives pwr's `pwr.r.test()` the
+  significance level and correlation that scale both its critical z and
+  its z for r by q = se0 / sqrt(se0^2 + tau^2), the analogue of Kenny and
+  Judd's effective alpha and adjusted effect, so no new maths beyond the
+  scaling is written. Checked against the model written out directly and
+  an independent simulation (`conventions.md`, "Correlations that vary
+  between studies").
+- **Starting value (the maintainer's decision, 8 November 2026):** 0.025,
+  Kenny and Judd's rule for small variation (25% of a small effect,
+  based on past meta-analyses and replication projects) applied to
+  r = .1, for the same reasons as the t-tests' 0.05. It is Departure 24.
+- **The range (the maintainer's decision, 8 November 2026):** a single
+  starting value risks becoming a number copied without thought, as a
+  "medium" effect has. So the t-test and correlation results also show
+  the goal's answer with no, small, medium and large variation and with
+  the value entered, and the field's help says that a meta-analysis's
+  estimate of tau for the effect is better evidence than any of them.
+- **Not yet on other cards:** two proportions, regression and ANOVA have
+  no published power formula of this kind that a backend package can be
+  given in the same way. McShane and Böckenholt (2014) define the
+  variation per condition, not on the effect, and their 2016
+  power-calibrated effect size plans for uncertainty about the effect
+  rather than variation between studies. Each needs its own method
+  choice, so they are not added here.
+
 ## 2026-11-08 · Bayes mode: an opt-in switch, Bayes factor versions first, a design prior by default
 
 - **Decided (8 November 2026):** an opt-in "Bayes mode" switch on the start

@@ -658,6 +658,29 @@ the example, pwrss), so this is not a departure. With tau = 0 the answer
 is the card's usual one. The cards start at tau = 0.05, which is
 Departure 23.
 
+## Correlations that vary between studies (correlation card)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No allowance for heterogeneity: the true correlation is the same in every study | — | — |
+| McShane and Böckenholt (2014) | Appendix B: the estimate is normal with its usual sampling variance plus the between-study variance tau^2, while the test's critical region is the usual one; for a correlation, on Fisher's z, sampling variance 1 / (n - 3) | r (the average correlation) and tau, on Fisher's z | Heterogeneity set relative to the within-study variance (Pigott's small, medium, large) |
+| **powerkit** | pwr's `pwr.r.test()` (Fisher's z approximation) given the significance level and correlation that scale both its critical z and its z for r by q = se0 / sqrt(se0^2 + tau^2), se0 = 1 / sqrt(n - 3): the analogue of Kenny and Judd's effective alpha and adjusted effect, which gives the normal model's power exactly (E4, from 8 November 2026) [powerkit] | r, the average across studies, and tau on Fisher's z, optional | Pearson's test by formula only; not for rank correlations or the Bayes factor test. Small, medium and large tau are 0.025, 0.075 and 0.125, Kenny and Judd's 25% of r = .1, .3 and .5. Empty or 0 is the usual analysis, unchanged |
+
+**Size and checks.** With tau = 0 the answer is `pwr.r.test()`'s. With
+tau > 0 it equals the normal model on Fisher's z written out directly, to
+1e-8, for three cases, and an independent simulation that draws each
+study's true correlation (Fisher's z normal around atanh(r) with SD tau)
+and runs `cor.test()` agrees within 2.5 percentage points (r = .3, tau
+0.1, n = 100: .784 against .781), and with the effective alpha at r = 0.
+The card starts at tau = 0.025, which is Departure 24.
+
+**The range on the results screen** (t-test and correlation cards). The
+result also gives the goal's answer (power, the people needed or the
+smallest detectable average effect) with no, small, medium and large
+variation and with the value entered, so the starting value is a visible
+assumption. For d = 0.3, two equal groups and 80% power: 352, 376, 522
+and 830 people.
+
 ## Participants and items in three or more conditions (E63)
 
 | Tool | Test | Effect size | Settings |
@@ -1509,6 +1532,30 @@ Departure 19 is shown on the affected result and in the methods text.
 - **Shown to users:** on the t-test results whenever the variation is
   above 0 (`app/routing/R/results.R`, `departures_for()`), in the result's
   own sentence on the variation, and in the methods paragraph.
+
+### 24. Correlation: a small variation between studies by default, not one correlation in every study (G\*Power and pwr)
+
+- **Established convention:** G\*Power and pwr plan for a true
+  correlation that is exactly the same in the new study as the one
+  entered.
+- **powerkit:** the correlation card (E4), with Pearson's test, starts
+  "How much might the true correlation vary between studies?" at an SD of
+  0.025 on Fisher's z, and plans by McShane and Böckenholt's normal model
+  (above, "Correlations that vary between studies"). The correlation
+  entered is then the average across studies. Emptying the field, or 0,
+  gives the usual analysis.
+- **Why** (the maintainer's decision, 8 November 2026, with
+  `Kenny2019_heterogeneity` and `McShane2014_river`): the reasons for
+  Departure 23 apply to correlations too. Kenny and Judd take 25% of a
+  small, medium and large effect as small, medium and large variation,
+  based on past meta-analyses and replication projects; for r = .1 that
+  is 0.025 (Fisher's z is within 0.001 of r there).
+- **Size** (80% power, two-sided alpha .05): r = .1 needs 904 people
+  against 782 without the variation; r = .3 needs 86 against 85.
+- **Test:** `engine/tests/testthat/test-heterogeneity.R`, "Departure 24".
+- **Shown to users:** on the correlation result whenever the variation is
+  above 0 (`app/routing/R/results.R`, `departures_for()`), in the result's
+  own sentence and table on the variation, and in the methods paragraph.
 
 ## Known differences
 

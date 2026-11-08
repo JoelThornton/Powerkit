@@ -13,6 +13,16 @@ het_spec <- function(template = "independent_t", effect = 0.3, tau = 0.2, goal =
   spec
 }
 
+het_r_spec <- function(r = 0.3, tau = 0.1, goal = list(type = "power", n = 100L), method = "pearson") {
+  spec <- example_spec("correlation")
+  spec$population$r <- r
+  spec$population$tau <- tau
+  spec$target_test$method <- method
+  spec$options$attrition <- NULL
+  spec$goal <- goal
+  spec
+}
+
 test_that("Kenny and Judd's worked example: mu 0.3, tau 0.2, 50 per group", {
   # Their text: q = 0.7071, critical t 1.4032, noncentrality 1.06066, power
   # .375 (against .318 with no heterogeneity), effective alpha about .16.
@@ -107,8 +117,12 @@ test_that("what can't be combined with it is refused in plain words", {
   expect_error(run_spec(bad), "equal SDs")
   sim <- het_spec(method = "student_t"); sim$options$method <- "simulation"
   expect_error(run_spec(sim), "Kenny and Judd's formula")
-  corr <- example_spec("correlation"); corr$population$tau <- 0.1
-  expect_error(run_spec(corr), "t-tests only|tau")
+  two <- example_spec("two_proportions"); two$population$tau <- 0.1
+  expect_error(run_spec(two), "tau")
+  for (method in c("spearman", "kendall")) {
+    rank <- het_r_spec(method = method)
+    expect_error(run_spec(rank), "Pearson's correlation test", label = method)
+  }
 })
 
 test_that("Departure 23: the cards' starting variation of 0.05 against none", {
@@ -119,4 +133,100 @@ test_that("Departure 23: the cards' starting variation of 0.05 against none", {
   at_100 <- run_spec(het_spec(tau = 0.05, method = "student_t"))
   expect_equal(at_100$curve$power, 0.323, tolerance = 0.002)
   expect_equal(at_100$heterogeneity$power_without, 0.318, tolerance = 0.002)
+})
+
+# A correlation: McShane and Bockenholt (2014, Appendix B), on Fisher's z.
+
+test_that("a correlation with no variation is pwr.r.test's usual answer", {
+  usual <- run_spec(het_r_spec(tau = NULL))
+  zero <- run_spec(het_r_spec(tau = 0))
+  tiny <- run_spec(het_r_spec(tau = 1e-8))
+  expect_equal(usual$curve$power, pwr::pwr.r.test(n = 100, r = 0.3)$power)
+  expect_equal(zero$curve$power, usual$curve$power)
+  expect_equal(tiny$curve$power, usual$curve$power, tolerance = 1e-6)
+})
+
+test_that("a correlation's power is McShane and Bockenholt's normal model on Fisher's z", {
+  # The estimate's Fisher z has SD sqrt(1 / (n - 3) + tau^2); the critical
+  # z is the usual one. Written out directly, with pwr.r.test()'s z for r.
+  direct <- function(r, tau, n, alpha = 0.05) {
+    t <- qt(1 - alpha / 2, n - 2)
+    zc <- atanh(t / sqrt(n - 2 + t^2))
+    zr <- atanh(r) + r / (2 * (n - 1))
+    s <- sqrt(1 / (n - 3) + tau^2)
+    pnorm((zr - zc) / s) + pnorm((-zr - zc) / s)
+  }
+  for (case in list(c(0.3, 0.1, 100), c(0.1, 0.025, 800), c(-0.2, 0.15, 150))) {
+    result <- run_spec(het_r_spec(case[1], case[2], list(type = "power", n = as.integer(case[3]))))
+    expect_equal(result$curve$power, direct(case[1], case[2], case[3]), tolerance = 1e-8)
+    expect_lt(result$curve$power, result$heterogeneity$power_without)
+  }
+  result <- run_spec(het_r_spec())
+  expect_equal(result$heterogeneity$scale, "Fisher's z")
+  expect_equal(result$heterogeneity$source, "McShane & Bockenholt (2014)")
+})
+
+test_that("an independent simulation, drawing each study's true correlation, agrees", {
+  set.seed(20261109)
+  simulate <- function(r, tau, n, reps = 4000) {
+    mean(vapply(seq_len(reps), function(i) {
+      rho <- tanh(rnorm(1, atanh(r), tau))
+      x <- rnorm(n)
+      y <- rho * x + sqrt(1 - rho^2) * rnorm(n)
+      cor.test(x, y)$p.value < 0.05
+    }, logical(1)))
+  }
+  result <- run_spec(het_r_spec(0.3, 0.1, list(type = "power", n = 100L)))
+  expect_equal(result$curve$power, simulate(0.3, 0.1, 100L), tolerance = 0.025)
+  null <- run_spec(het_r_spec(0, 0.15, list(type = "power", n = 100L)))
+  expect_equal(null$heterogeneity$effective_alpha, simulate(0, 0.15, 100L), tolerance = 0.02)
+})
+
+test_that("a correlation's sample size and smallest detectable correlation", {
+  usual <- run_spec(het_r_spec(r = 0.1, tau = NULL, goal = list(type = "sample_size", power = 0.8)))
+  varied <- run_spec(het_r_spec(r = 0.1, tau = 0.025, goal = list(type = "sample_size", power = 0.8)))
+  expect_gt(varied$n_required$n, usual$n_required$n)
+  found <- run_spec(het_r_spec(goal = list(type = "sensitivity", n = 200L, power = 0.8)))
+  check <- run_spec(het_r_spec(r = found$sensitivity$effect, goal = list(type = "power", n = 200L)))
+  expect_equal(check$curve$power, 0.8, tolerance = 1e-4)
+  expect_equal(found$sensitivity$effect_name, "r")
+})
+
+test_that("the correlation's R script gives the same power with pwr alone", {
+  spec <- het_r_spec(r = -0.25, tau = 0.1)
+  result <- run_spec(spec)
+  script <- export_script(spec, result)
+  env <- new.env()
+  exprs <- parse(text = script)
+  values <- lapply(exprs, eval, envir = env)
+  power_line <- grep("$power", vapply(exprs, function(e) paste(deparse(e), collapse = ""), ""), fixed = TRUE)
+  expect_length(power_line, 1)
+  expect_equal(values[[power_line]], result$curve$power, tolerance = 1e-8)
+})
+
+test_that("Departure 24: the correlation card's starting variation of 0.025 against none", {
+  n_for <- function(r, tau) run_spec(het_r_spec(r = r, tau = tau, goal = list(type = "sample_size", power = 0.8)))$n_required$n
+  expect_equal(n_for(0.1, NULL), 782)
+  expect_equal(n_for(0.1, 0.025), 904)
+  expect_equal(n_for(0.3, NULL), 85)
+  expect_equal(n_for(0.3, 0.025), 86)
+})
+
+test_that("the result shows the answer with no, small, medium and large variation", {
+  result <- run_spec(het_spec(tau = 0.05, goal = list(type = "sample_size", power = 0.8), method = "student_t"))
+  range <- result$heterogeneity$range
+  expect_equal(range$level, c("none", "small", "medium", "large"))
+  expect_equal(range$tau, c(0, 0.05, 0.125, 0.20))
+  # Kenny and Judd's case, as in conventions.md: 352, 376, 522 and 830.
+  expect_equal(range$value, c(352, 376, 522, 830))
+  expect_equal(range$entered, c(FALSE, TRUE, FALSE, FALSE))
+  expect_equal(result$heterogeneity$range_goal, "sample_size")
+  # A value of the researcher's own is added in order.
+  own <- run_spec(het_r_spec(tau = 0.1))$heterogeneity$range
+  expect_equal(own$level, c("none", "small", "medium", "entered", "large"))
+  expect_equal(own$tau, c(0, 0.025, 0.075, 0.1, 0.125))
+  expect_equal(own$value[1], pwr::pwr.r.test(n = 100, r = 0.3)$power, tolerance = 1e-8)
+  expect_true(all(diff(own$value) < 0))
+  sens <- run_spec(het_spec(goal = list(type = "sensitivity", n = 200L, power = 0.8), method = "student_t"))$heterogeneity$range
+  expect_true(all(diff(sens$value) > 0))
 })
