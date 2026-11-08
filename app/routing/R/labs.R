@@ -98,6 +98,9 @@ labs_sde <- function(forms, ep_id, n, power = "0.8", alpha = "0.05", p1 = NULL,
   fields <- unlist(lapply(form_groups(forms, ep_id, 2L, list()), `[[`, "fields"), recursive = FALSE)
   values <- list()
   for (f in fields) if (!is.null(f[["default"]])) values[[f$id]] <- as.character(f[["default"]])
+  # What the original study's own design could detect: one study's true
+  # effect, so no variation between studies.
+  values$het_tau <- NULL
   levels_of <- function(k) {
     k <- suppressWarnings(as.integer(k))
     if (length(k) != 1 || is.na(k) || k < 2) return("")
