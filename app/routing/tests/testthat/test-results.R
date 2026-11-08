@@ -2942,3 +2942,55 @@ test_that("a safeguard-power result names the effect the calculation used, with 
   expect_identical(a_percent(0.9), "a 90%")
   expect_identical(a_percent(0.11), "an 11%")
 })
+
+test_that("sample-size searches run in the background while there is room, with the comparison line", {
+  expect_true(search_in_background(list(goal = list(type = "sample_size"))))
+  expect_false(search_in_background(list(goal = list(type = "power", n = 40L))))
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  # Only while there is room: at the limit a search runs in the app's
+  # process, as before, rather than asking the user to wait.
+  expect_match(code, "(search_in_background(spec) && background_running() < background_limit(forms))", fixed = TRUE)
+  expect_match(code, "cost_powers <- if (!state$endpoint %in% names(forms$background)) cost_line_powers(values)", fixed = TRUE)
+  expect_match(code, "options(powerkit.warm_spare = TRUE)", fixed = TRUE)
+  # The comparison line uses the sample sizes the background run found.
+  spec <- light_spec("E1", goal = list(type = "sample_size", power = 0.9))
+  result <- list(goal_type = "sample_size", n_required = list(n = 120), provenance = list(method = "formula"))
+  never <- function(spec) stop("no search should run here")
+  expect_match(cost_line(spec, result, run = never, ns = c(97, 160)), "80% power needs 97 participants; 95% power needs 160", fixed = TRUE)
+})
+
+test_that("the warm spare process gives the same result as the engine, and its comparison-line sizes", {
+  skip_without_run()
+  skip_on_cran()
+  old <- background_spare$session
+  on.exit({ if (!is.null(background_spare$session)) background_spare$session$close(); background_spare$session <- old }, add = TRUE)
+  background_spare$session <- NULL
+  keep_spare(file.path(repo_dir, "engine"))
+  waited <- 0
+  while (!spare_ready() && waited < 120) { Sys.sleep(0.25); waited <- waited + 0.25 }
+  expect_true(spare_ready())
+  spec <- light_spec("E1", goal = list(type = "sample_size", power = 0.9))
+  spec$options$seed <- 1L
+  job <- start_background_calculation(spec, seed = 1L, engine_dir = file.path(repo_dir, "engine"),
+    cost_powers = c(0.8, 0.95), spare = TRUE)
+  # It took the spare, and a new spare is on its way for the next run.
+  expect_false(is.null(background_spare$session))
+  job$wait(60000)
+  expect_false(job$is_alive())
+  calc <- collect_background_calculation(job)
+  expect_identical(calc$status, "ok")
+  direct <- quiet_run(spec)
+  expect_identical(calc$result$n_required$n, direct$n_required$n)
+  expect_identical(calc$result$provenance$spec_hash, direct$provenance$spec_hash)
+  at <- function(power) { s <- spec; s$goal$power <- power; quiet_run(s)$n_required$n }
+  expect_equal(unname(calc$cost_ns), c(at(0.8), at(0.95)))
+  # A spare-process run can be cancelled like any other.
+  keep_spare(file.path(repo_dir, "engine"))
+  waited <- 0
+  while (!spare_ready() && waited < 120) { Sys.sleep(0.25); waited <- waited + 0.25 }
+  slow <- session_job(take_spare(), function() Sys.sleep(60), list())
+  expect_true(slow$is_alive())
+  slow$kill()
+  expect_false(slow$is_alive())
+  expect_match(collect_background_calculation(slow)$message, "stopped unexpectedly", fixed = TRUE)
+})

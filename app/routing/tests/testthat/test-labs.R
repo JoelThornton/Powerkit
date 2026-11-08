@@ -154,7 +154,10 @@ test_that("the methods map is drawn from the design finder and reaches every ana
   html <- as.character(map_ui(tree))
   expect_match(html, "Calculates in powerkit", fixed = TRUE)
   expect_match(html, "Not in powerkit yet", fixed = TRUE)
-  expect_match(html, "vendor/cytoscape.min.js", fixed = TRUE)
+  # The graph library is fetched when the map is first shown, not with the page.
+  expect_false(grepl("vendor/cytoscape.min.js", html, fixed = TRUE))
+  map_js_code <- paste(readLines(test_path("..", "..", "www", "methods-map.js")), collapse = "\n")
+  expect_match(map_js_code, "s.src = 'vendor/cytoscape.min.js'", fixed = TRUE)
   expect_true(grepl("pkMapOpen(&#39;E2&#39;)", html, fixed = TRUE) || grepl("pkMapOpen('E2')", html, fixed = TRUE))
   expect_match(html, "The map as a list", fixed = TRUE)
   expect_true(file.exists(file.path("..", "..", "www", "vendor", "cytoscape.min.js")) ||
@@ -430,4 +433,19 @@ test_that("a sequential design shows how often the study stops each way, and its
   expect_match(refusal, "^The sample size should be")
   refusal <- tryCatch(seq_of(30, 60, threshold_null = 1), error = bayes_problem)
   expect_match(refusal, "^The threshold for no effect should be")
+})
+
+test_that("Labs, Updates and Feedback are rendered once, with the app's theme and their scripts", {
+  code <- paste(readLines(test_path("..", "..", "app.R")), collapse = "\n")
+  expect_match(code, "labs_tab <- prerender(labs_ui(tree))", fixed = TRUE)
+  expect_match(code, "whats_new_tab <- prerender(whats_new_ui(whats_new))", fixed = TRUE)
+  expect_match(code, "theme = app_theme,", fixed = TRUE)
+  # prerender() keeps the sliders' and menus' scripts and styles.
+  env <- new.env()
+  eval(parse(text = regmatches(code, regexpr("app_theme <- [^\n]+", code))), env)
+  eval(parse(text = sub("(?s).*(prerender <- function\\(x\\) \\{.*?\n\\})\n.*", "\\1", code, perl = TRUE)), env)
+  done <- env$prerender(labs_ui(tree))
+  deps <- vapply(htmltools::htmlDependencies(done), `[[`, "", "name")
+  expect_true(all(c("selectize", "ionrangeslider-javascript") %in% deps))
+  expect_match(as.character(done), "Open Methods map", fixed = TRUE)
 })

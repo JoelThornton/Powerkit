@@ -5811,3 +5811,26 @@ the site stays findable by search engines.
   exceeds it.
 - **Converter checks:** a t's degrees of freedom must match the study's
   size, since the conversion uses one and the safeguard value the other.
+
+## 2026-11-08 · Speed: sample-size searches and the About page leave the app's own process
+
+- **Why:** the project review of 7 November 2026 measured that a
+  sample-size search on the common ANOVA, Welch and trend cards took 2 to
+  20 seconds in the app's single R process, during which nobody else's
+  screen moved; that the About page, built there after a restart, froze
+  the first visitor's first click for about 7 seconds; and that rendering
+  the fixed tabs for every visit made twenty people arriving together
+  wait 13 to 16 seconds.
+- **Searches:** every sample-size goal runs in a separate process (with
+  the comparison line's two searches), while the background limit allows;
+  at the limit it runs in the app's process rather than refusing, since a
+  search is seconds, not minutes. A spare process with the engine and
+  common backends loaded is kept ready, because starting R and loading
+  Superpower takes two to three seconds; each process serves one
+  calculation and is closed, so no state passes between visitors.
+- **Pages:** About is built in a separate process at start-up (built in
+  the app's process only if that fails); Labs, Updates and Feedback are
+  rendered once with the app's theme; the methods map's library loads when
+  the map is shown.
+- **Hosting:** the measurements are in `hosting-options.md`; a host that
+  runs two or more app processes is preferred (queue item 8).

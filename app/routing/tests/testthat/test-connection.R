@@ -37,8 +37,12 @@ test_that("the About page is fetched in the background once the first screen is 
   expect_match(app, 'addResourcePath("about-cache"', fixed = TRUE)
   expect_match(app, "as.character(about_ui(tree, forms))", fixed = TRUE)
   expect_match(app, 'div(id = "about_static")', fixed = TRUE)
-  # Built after the first visitor's first screen, never before it.
-  expect_match(app, "session$onFlushed(function() about_build_soon(0.5), once = TRUE)", fixed = TRUE)
+  # Built in a separate process started with the app, so building it never
+  # holds up anyone's screen; the page waits for it rather than building it
+  # again.
+  expect_match(app, "callr::r_bg(about_build_worker,", fixed = TRUE)
+  expect_match(app, "req(html, cancelOutput = TRUE)", fixed = TRUE)
+  expect_false(grepl("about_build_soon", app, fixed = TRUE))
   # The server doesn't send it again once the browser has it.
   expect_match(app, "!isTRUE(isolate(input$about_prefetched))", fixed = TRUE)
   expect_match(connection_js, "about-cache/about.html", fixed = TRUE)

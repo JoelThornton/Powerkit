@@ -301,7 +301,6 @@ map_ui <- function(tree, meta = map_meta()) {
   tests <- tests[names(tests) %in% used]
   starts <- intersect(unlist(tree$known_shortcuts), names(tree$endpoints))
   tagList(
-    tags$script(src = "vendor/cytoscape.min.js"),
     tags$script(id = "map-data", type = "application/json", HTML(map_json(tree, meta))),
     tags$script(src = "methods-map.js"),
     h3("Methods map"),

@@ -680,40 +680,59 @@ focus_js <- "
 # The tabs that are the same for everyone, built once when the app starts
 # (About reads every package's citation(), so building it per visitor is
 # slow when many people open the app at once).
-# The About tab is built the first time anyone opens it, then kept for this
-# R process: building it (the capability table above all) took about 1.9 of
-# the 3.1 seconds a new process spent before it could show the first page,
-# and a visitor arriving after a quiet spell gets a new process, so every
-# such first visit waited for it (docs/decisions.md, 5 November 2026).
-# It is kept as finished HTML (about 1.5 MB: turning the tags into text took
-# another 1.2 seconds on every opening), and written to a file the browser
-# fetches in the background once the first screen is up, so the tab is ready
-# before anyone opens it (about_prefetch_js, R/connection.R; 5 November
-# 2026).
+# The About page is kept as finished HTML (about 1.6 MB), written to a file
+# the browser fetches in the background once the first screen is up, so the
+# tab is ready before anyone opens it (about_prefetch_js, R/connection.R;
+# 5 November 2026). It is built in a separate R process started with the
+# app (about_build_worker(), R/about.R): built in the app's own process, it
+# froze the first visitor's first click for about 7 seconds after every
+# restart (8 November 2026). If that process fails, the page is built here
+# when first opened, as before.
 about_tab_cache <- new.env(parent = emptyenv())
 about_cache_dir <- file.path(tempdir(), "powerkit-about")
 dir.create(about_cache_dir, showWarnings = FALSE)
 shiny::addResourcePath("about-cache", about_cache_dir)
+about_file <- file.path(about_cache_dir, "about.html")
+about_tab_cache$process <- callr::r_bg(about_build_worker,
+  args = list(routing_dir = getwd(), out_dir = about_cache_dir), supervise = TRUE)
+# The finished page, or NULL while the separate process is still building it.
 about_tab_html <- function() {
-  if (is.null(about_tab_cache$html)) {
+  if (is.null(about_tab_cache$html) && file.exists(about_file)) {
+    about_tab_cache$html <- HTML(paste(readLines(about_file, encoding = "UTF-8", warn = FALSE), collapse = "\n"))
+  }
+  if (is.null(about_tab_cache$html) && !about_tab_cache$process$is_alive() && !file.exists(about_file)) {
     html <- as.character(about_ui(tree, forms))
-    # Written under a temporary name and renamed, so the browser never
-    # fetches half a file.
     part <- file.path(about_cache_dir, "about.part")
     writeLines(html, part, useBytes = TRUE)
-    file.rename(part, file.path(about_cache_dir, "about.html"))
+    file.rename(part, about_file)
     about_tab_cache$html <- HTML(html)
   }
   about_tab_cache$html
 }
-# Built once the first visitor's first screen has gone out (server(), below),
-# so it never delays that screen; and in any case a minute after starting.
-about_build_soon <- function(delay) later::later(function() about_tab_html(), delay = delay)
-about_build_soon(60)
-whats_new_tab <- whats_new_ui(whats_new)
-labs_tab <- labs_ui(tree)
-feedback_tab <- feedback_tab_ui(tree)
+
+# Labs, Updates and Feedback are turned into HTML once here rather than for
+# every visit: rendering them took about 0.6 seconds of the app's one process
+# per visitor (531 KB of page), so twenty people arriving together waited 13
+# to 16 seconds for the first screen (measured 7 November 2026). They are
+# rendered with the app's theme, so their sliders and menus get the same
+# styles as the rest of the page.
+app_theme <- if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c")
+prerender <- function(x) {
+  old <- shiny::getShinyOption("bootstrapTheme")
+  shiny::shinyOptions(bootstrapTheme = app_theme)
+  on.exit(shiny::shinyOptions(bootstrapTheme = old))
+  r <- htmltools::renderTags(x)
+  htmltools::attachDependencies(HTML(r$html), r$dependencies)
+}
+whats_new_tab <- prerender(whats_new_ui(whats_new))
+labs_tab <- prerender(labs_ui(tree))
+feedback_tab <- prerender(feedback_tab_ui(tree))
 maintainer_tab <- settings_table_ui(tree)
+
+# Sample-size searches run in a spare R process kept ready with the engine
+# and backends loaded (keep_spare(), R/results.R).
+options(powerkit.warm_spare = TRUE)
+keep_spare(normalizePath(file.path(getwd(), "..", "..", "engine"), mustWork = FALSE))
 
 # A function of the request, so the maintainer's tab is only there when
 # asked for (maintainer_view_requested(), R/ui.R).
@@ -721,7 +740,7 @@ ui <- function(req) fluidPage(
   lang = "en",
   # A darker primary blue than the default, for 4.5:1 contrast on the page
   # background (links, choice buttons, tabs).
-  theme = if (requireNamespace("bslib", quietly = TRUE)) bslib::bs_theme(version = 5, primary = "#0a5a8c"),
+  theme = app_theme,
   tags$head(tags$title("Powerkit: power analysis and sample size planning (prototype)"),
     tags$meta(name = "description", content = "Plan sample size, statistical power and precision for your study. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
     tags$link(rel = "canonical", href = paste0(public_address, "/")),
@@ -760,18 +779,17 @@ server <- function(input, output, session) {
   # If the connection drops while this session's process is still running,
   # Shiny reconnects to it and nothing is lost (R/connection.R).
   session$allowReconnect(TRUE)
-  # The About page, built on first opening (about_tab_html()).
-  # If the browser has fetched it already (input$about_prefetched), nothing
-  # is sent.
-  if (is.null(about_tab_cache$scheduled)) {
-    about_tab_cache$scheduled <- TRUE
-    session$onFlushed(function() about_build_soon(0.5), once = TRUE)
-  }
+  # The About page, sent when the tab is opened (about_tab_html()), once the
+  # separate process has built it. If the browser has fetched it already
+  # (input$about_prefetched), nothing is sent.
   about_opened <- reactiveVal(FALSE)
   observeEvent(input$tabs, if (identical(input$tabs, "About")) about_opened(TRUE))
   output$about_page <- renderUI({
     req(about_opened(), !isTRUE(isolate(input$about_prefetched)))
-    about_tab_html()
+    html <- about_tab_html()
+    if (is.null(html)) invalidateLater(1000)
+    req(html, cancelOutput = TRUE)
+    html
   })
   # Placeholders for undecided settings show only in the maintainer's view.
   session$userData$maintainer_view <- maintainer_view_requested(isolate(session$clientData$url_search))
@@ -1121,25 +1139,27 @@ server <- function(input, output, session) {
       start_job("preview", preview_spec(spec, preview_nrep(forms)), usual,
         list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice, route = calc_route))
     } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint) && !identical(values$goal, "sensitivity_curve") &&
-               runs_in_background(forms, state$endpoint, spec)) {
-      # Long runs (E9): a separate R process, polled below, with an estimated
-      # progress bar and a Cancel button.
+               (runs_in_background(forms, state$endpoint, spec) ||
+                (search_in_background(spec) && background_running() < background_limit(forms)))) {
+      # Long runs (E9) and sample-size searches: a separate R process, polled
+      # below, with a progress bar and a Cancel button, so nobody else's
+      # screen waits for them (search_in_background(), R/results.R).
       if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
       usual <- usual_seconds(forms, state$endpoint, spec$goal$type)
       output$form_result <- renderUI(calculating_background_ui(usual))
-      start_job("calc", spec, usual, list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice, route = calc_route))
+      # The comparison line's two searches run there too (cost_line()).
+      cost_powers <- if (!state$endpoint %in% names(forms$background)) cost_line_powers(values)
+      start_job("calc", spec, usual, list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice, route = calc_route,
+        finish = !is.null(cost_powers)), cost_powers = cost_powers)
     } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint)) {
       # Show "Calculating" first; the engine runs once that has reached the
-      # browser (seconds for these end points).
+      # browser (well under a second for these: a power or precision goal on
+      # a design with a formula).
       output$form_result <- renderUI(calculating_ui())
       ep_id <- state$endpoint
       session$onFlushed(function() {
         calc <- if (identical(values$goal, "sensitivity_curve")) run_sensitivity_curve(spec, seed = forms$default_seed) else run_calculation(spec, seed = forms$default_seed)
-        calc$route <- calc_route
-        if (identical(calc$status, "ok")) calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values)
-        if (identical(calc$status, "ok") && is_bayes_test(calc$spec) && calc$spec$template %in% c("one_sample_t", "paired_t", "independent_t")) {
-          calc$robustness <- tryCatch(engine_function("bayes_robustness")(calc$spec, bayes_companion_n(calc$spec, calc$result)), error = function(e) NULL)
-        }
+        calc <- finish_calc(calc, calc_route, values)
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
         session$sendCustomMessage("focus_result", "form_result")
@@ -1240,6 +1260,20 @@ server <- function(input, output, session) {
     p(class = "small", scenario_sentence(x$spec, x$n))
   })
 
+  # What the result screen adds to a calculation: the route, the
+  # comparison line (its sample sizes found already when the run was in
+  # the background, calc$cost_ns) and, for a Bayes factor t-test, how the
+  # answer depends on the prior.
+  finish_calc <- function(calc, route, values) {
+    calc$route <- route
+    if (!identical(calc$status, "ok")) return(calc)
+    calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values, ns = calc$cost_ns)
+    if (is_bayes_test(calc$spec) && calc$spec$template %in% c("one_sample_t", "paired_t", "independent_t")) {
+      calc$robustness <- tryCatch(engine_function("bayes_robustness")(calc$spec, bayes_companion_n(calc$spec, calc$result)), error = function(e) NULL)
+    }
+    calc
+  }
+
   # A background calculation: one at a time per session.
   job <- new.env()
   job_running <- reactiveVal(FALSE)
@@ -1253,7 +1287,7 @@ server <- function(input, output, session) {
   # Nothing starts while the server is at its limit (background_limit()).
   # `target`: the output the run's result is shown in (the input screen's,
   # or the whole-study simulation's).
-  start_job <- function(kind, spec, usual, shown, target = "form_result") {
+  start_job <- function(kind, spec, usual, shown, target = "form_result", cost_powers = NULL) {
     if (background_running() >= background_limit(forms)) {
       output[[target]] <- renderUI(busy_ui())
       session$sendCustomMessage("focus_result", target)
@@ -1262,7 +1296,7 @@ server <- function(input, output, session) {
     job$kind <- kind
     job$target <- target
     job$screen <- isolate(state$screen)
-    job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed))
+    job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed, cost_powers = cost_powers))
     job$started <- Sys.time()
     job$usual <- usual
     job$shown <- shown
@@ -1271,8 +1305,9 @@ server <- function(input, output, session) {
   session$onSessionEnded(cancel_job)
   observe({
     req(job_running())
-    invalidateLater(500)
     elapsed <- as.numeric(difftime(Sys.time(), job$started, units = "secs"))
+    # Often in the first seconds, when most searches finish.
+    invalidateLater(if (elapsed < 3) 100 else 500)
     if (job$process$is_alive()) {
       value <- progress_estimate(elapsed, job$usual)
       session$sendCustomMessage("calc_progress", list(
@@ -1299,7 +1334,9 @@ server <- function(input, output, session) {
       session$sendCustomMessage("focus_result", "ws_result")
       return()
     } else {
-      calc$route <- shown$route
+      # A search gets what the in-process route adds (finish_calc()); the
+      # long runs (forms.yaml, `background`) are shown as they come.
+      calc <- if (isTRUE(shown$finish)) finish_calc(calc, shown$route, shown$values) else { calc$route <- shown$route; calc }
       state$calc <- calc
       output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
     }
