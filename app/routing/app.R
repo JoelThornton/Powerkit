@@ -1751,8 +1751,10 @@ server <- function(input, output, session) {
   labs_answers <- function() stats::setNames(lapply(labs_fields, function(f) input[[f$id]] %||% ""),
     vapply(labs_fields, `[[`, character(1), "id"))
   labs_sde_calc <- reactiveVal(NULL)
+  labs_telescope_calc <- reactiveVal(NULL)
   observeEvent(input$labs_sde_run, {
     labs_sde_calc(NULL)
+    labs_telescope_calc(NULL)
     if (!nzchar(input$labs_test %||% "")) {
       output$labs_sde_result <- renderUI(div(class = "form-problems", role = "alert", "Choose the original study's test first."))
       return()
@@ -1765,9 +1767,11 @@ server <- function(input, output, session) {
       return()
     }
     labs_sde_calc(calc)
+    labs_telescope_calc(labs_telescopes(forms, input$labs_test, input$labs_n, input$labs_alpha))
     smallest <- trimws(input$labs_smallest %||% "")
     output$labs_sde_result <- renderUI(div(class = "result-panel mt-2", role = "status",
       p(tags$strong(labs_sde_sentence(tree, calc, input$labs_power))),
+      if (!is.null(telescope <- labs_telescope_sentence(labs_telescope_calc()))) p(telescope),
       p(if (nzchar(smallest)) paste0("The smallest effect that matters, from step 2: \u201c", smallest, "\u201d")
         else "Step 2 has no smallest effect that matters yet; writing one there gives this number something to be compared with."),
       p(class = "small", labs_provenance(calc))))
@@ -1775,7 +1779,8 @@ server <- function(input, output, session) {
   labs_sde_notes <- function() {
     calc <- labs_sde_calc()
     if (is.null(calc)) return(NULL)
-    list(sentence = labs_sde_sentence(tree, calc, calc$spec$goal$power), provenance = labs_provenance(calc))
+    list(sentence = paste(c(labs_sde_sentence(tree, calc, calc$spec$goal$power), labs_telescope_sentence(labs_telescope_calc())), collapse = " "),
+      provenance = labs_provenance(calc))
   }
   # Labs: plan from a published result (R/labs.R). The engine converts and
   # gives the safeguard value; the app only shows them.

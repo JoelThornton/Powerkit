@@ -116,6 +116,29 @@ power while matching G\*Power) is folded there instead
 | G*Power | Two independent r's: "z test: Correlation - inequality of two independent Pearson r's". H0 is N(0, 1) and H1 is N(q/s, 1) with s = sqrt(1/(N1 - 3) + 1/(N2 - 3)) [GP-man, 27, 27.5, pp. 65-66]. Generic t: "t test: Generic case", the central t(df) against the noncentral t(df, delta); it has **no a priori analysis**, "the reason being that there is no definite association between N and df" [GP-man, 25, 25.5, p. 63]. The manual has no section for the generic F, chi-square or z test | Two independent r's: q = z1 - z2, the difference of the Fisher-transformed correlations, with Cohen's (1969) small .1, medium .3, large .5; an effect-size drawer converts between q and the pair of correlations [GP-man, 27.1]. Generic t: the noncentrality delta itself [GP-man, 25.1] | Both "have no options" [GP-man, 25.2, 27.2]. Two independent r's takes the two sample sizes separately, or an allocation ratio N2/N1 for an a priori analysis. One-sided generic t: the critical value takes the sign of delta. Validated against Cohen (1969, chap. 4) and GPower 2.0 respectively [GP-man, 25.6, 27.6] |
 | pwrss | Two independent r's: `power.z.twocors()`, Fisher's z test. Generic tests: `power.t.test()`, `power.f.test()`, `power.chisq.test()`, `power.z.test()`, each taking a noncentrality and degrees of freedom | The two correlations themselves, not q; a noncentrality for the generic tests | **`n.ratio` is n1 / n2**, the inverse of powerkit's `allocation_ratio` (n2 / n1), and the adapter inverts it [powerkit, `backend-pwrss.R`] |
 | **powerkit** | pwrss's `power.z.twocors()` and the four generic functions, by formula; no simulation option (two correlations: engine and app, E49; generic tests: E50, from "I know my analysis" only) [powerkit] | `r1` and `r2`; `ncp` with `df` (or `df1` and `df2`) | `allocation_ratio` is n2 / n1 and `goal.n` is the total, so a published pair of group sizes is entered as their sum with their ratio. A generic test has no sample size: the curve has one row with `n` `NA`. Both reproduce the manual's worked examples: power 0.7263517 against 0.726352 and a required 168 against 84 per group (27.3), and 0.2245240 against 0.224525 (25.3), the last agreeing to five decimals and differing in the sixth |
+### Small telescopes for replications (from 8 November 2026, 0.47.0)
+
+- **What it is:** Simonsohn's (2015, `Simonsohn2015_telescopes`) plan for
+  a replication of one original study: d33 (r33 for a correlation) is the
+  effect the original study had 33% power to detect with its own sample
+  size (two-sided, at the card's alpha), and the replication is planned so
+  that, if the true effect is zero, a one-sided test can show the effect
+  is smaller than d33. Offered on the one-sample, paired and two-group
+  t-tests and the correlation, beside safeguard power, when the effect
+  comes from a previous study (`effect_justification > small_telescopes`).
+- **powerkit:** d33 from pwr (`pwr.t.test()`, `pwr.t2n.test()`,
+  `pwr.r.test()` at `power = 1/3`); the replication's test from pwrss
+  (`power.t.student(d = 0, margin = d33, alternative = "one.sided")`,
+  Student's t-test as in the method, and `power.z.onecor(rho = 0,
+  null.rho = r33)`). No package implements the planning
+  (RSmallTelescopes analyses a finished replication), so the method is
+  composed from these two packages' functions; no new maths is written.
+- **Not a departure:** G\*Power and the other tools have no
+  small-telescopes option. The result matches Simonsohn's rule of thumb of
+  about 2.5 times the original sample: 51 per group for an original 20 per
+  group, 75 for an original 30 in a paired design and 103 for a
+  correlation from an original 40 (`test-small-telescopes.R`).
+
 ### Variance tests (one group, two groups)
 
 | Tool | Test | Effect size | Settings |

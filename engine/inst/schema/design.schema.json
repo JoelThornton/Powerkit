@@ -305,12 +305,34 @@
           "minLength": 1
         },
         "adjustment": {
-          "description": "Any correction applied to the source effect (e.g. 'halved for publication bias'). Required for prior_study unless safeguard power is used.",
+          "description": "Any correction applied to the source effect (e.g. 'halved for publication bias'). Required for prior_study unless safeguard power or small telescopes is used.",
           "type": "string",
           "minLength": 1
         },
         "notes": {
           "type": "string"
+        },
+        "small_telescopes": {
+          "description": "Small telescopes (Simonsohn, 2015), for a replication of one original study: plan the replication's one-sided test of whether the effect is smaller than d33 (r33 for a correlation), the effect the original study had 33% power to detect with its sample size, for a true effect of 0. For prior_study, with the one-sample, paired and independent t-tests and the correlation. The population value given is the original study's estimate, which sets the direction.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "n": {
+              "description": "The original study's number of participants (one-sample, paired, correlation).",
+              "type": "integer",
+              "minimum": 4
+            },
+            "n1": {
+              "description": "The original study's size of group 1 (independent groups).",
+              "type": "integer",
+              "minimum": 2
+            },
+            "n2": {
+              "description": "The original study's size of group 2 (independent groups).",
+              "type": "integer",
+              "minimum": 2
+            }
+          }
         },
         "safeguard": {
           "description": "Safeguard power (Perugini, Gallucci & Costantini, 2014): plan with the lower bound of a two-sided confidence interval around one earlier study's effect size. For prior_study and pilot_study, with the one-sample, paired and independent t-tests and the correlation. The population value given is the earlier estimate; validation replaces it with the safeguard effect and records the estimate here.",
@@ -450,8 +472,27 @@
                 "required": [
                   "safeguard"
                 ]
+              },
+              {
+                "required": [
+                  "small_telescopes"
+                ]
               }
             ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "small_telescopes"
+            ]
+          },
+          "then": {
+            "properties": {
+              "type": {
+                "const": "prior_study"
+              }
+            }
           }
         },
         {

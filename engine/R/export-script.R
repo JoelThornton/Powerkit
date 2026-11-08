@@ -57,6 +57,8 @@ export_script <- function(spec, result, file = NULL) {
     },
     pwrss = if (spec$design == "generic_test") {
       generic_script(spec, result)
+    } else if (small_telescopes_test(spec)) {
+      telescope_script(spec, result)
     } else if (startsWith(spec$template, "noninf_")) {
       noninf_script(spec, result)
     } else if (minimum_effect_test(spec)) {

@@ -26,7 +26,6 @@ different areas. The maintainer decided the choices marked "decided".
 
 | Order | What | Includes | Size | State |
 | --- | --- | --- | --- | --- |
-| R13 | **Small telescopes for replications** | Offer Simonsohn's (2015) small-telescopes sample size beside safeguard power on the t-test and correlation cards, if a package implements it; source through `refs.bib` (decided) | M | Ready |
 | R14 | **Keep the review's scripts** | The property checks over every example spec and the every-card browser run, added so they can be rerun before each release (decided) | S | Ready |
 
 ## The queue

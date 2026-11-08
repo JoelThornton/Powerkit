@@ -1,3 +1,18 @@
+# powerkit 0.47.0
+
+* Small telescopes for replications (Simonsohn, 2015;
+  `Simonsohn2015_telescopes` in `refs.bib`): `effect_justification >
+  small_telescopes` with the original study's sample size plans the
+  replication's one-sided test of whether the effect is smaller than d33
+  (r33), the effect the original study had 33% power to detect, for a
+  true effect of 0. d33 comes from pwr at `power = 1/3`, the test's power
+  from pwrss (`power.t.student()` with the margin d33, `power.z.onecor()`
+  with `null.rho = r33`). For the one-sample, paired and two-group
+  t-tests and the correlation; power and sample size goals. Results
+  record `small_telescopes` (d33, the original sizes and estimate), and
+  the exported script reproduces both steps. The answers match
+  Simonsohn's 2.5-times rule (`test-small-telescopes.R`).
+
 # powerkit 0.46.0
 
 * The design finder no longer ends at "No matching design" for a count or

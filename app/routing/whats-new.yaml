@@ -8,6 +8,18 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Plan a replication by small telescopes"
+    text: >-
+      When your effect size comes from a published study you want to
+      replicate, the t-test and correlation cards can now plan the
+      replication by small telescopes (Simonsohn, 2015). The replication
+      gets enough people to show, if the true effect is zero, that the
+      effect is smaller than the original study could have detected:
+      usually about 2.5 times the original sample. The pre-replication
+      notes in Labs give the same number beside the original study's
+      smallest detectable effect, with a reminder to run the test the
+      original used.
+  - date: "2026-11-08"
     title: "Counts and ratings measured twice now reach a card"
     text: >-
       A count or a single rating item measured twice or more on the same
