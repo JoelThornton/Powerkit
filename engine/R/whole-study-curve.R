@@ -54,6 +54,8 @@ whole_study_curve <- function(spec, multipliers = c(0.5, 0.75, 1, 1.25, 1.5, 2),
     backend <- "Superpower"
     packages <- c("powerkit", "Superpower", "afex")
   } else {
+    hash <- spec_hash(spec)
+    spec <- whole_study_resolve_group_d(spec, seed)
     inputs <- whole_study_inputs(spec)
     if (isTRUE(inputs$needs_draws)) {
       abort_spec("A rough power curve isn't available for a mediation, whose confidence intervals make each run slow. Use the R script for the sample size search.")
@@ -85,7 +87,7 @@ whole_study_curve <- function(spec, multipliers = c(0.5, 0.75, 1, 1.25, 1.5, 2),
       rule = criterion$rule,
       criterion = criterion$description,
       provenance = list(
-        spec_hash = spec_hash(spec),
+        spec_hash = if (experiment) spec_hash(spec) else hash,
         method = "simulation",
         seed = seed,
         nrep = nrep,

@@ -920,7 +920,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
     ))
   }
   tagList(
-    screen_nav_ui(back = NULL),
+    screen_nav_ui(),
     trail_ui(history, tree),
     h2("Plan my whole study: your variables"),
     p(class = "lead", g$intro),
@@ -930,7 +930,9 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
       opts <- guided_options(v, ctx)
       selected <- answers[[v$id]]
       if (is.null(selected) || !selected %in% names(opts)) selected <- names(opts)[1]
-      radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(opts)), choiceValues = names(opts), selected = selected, width = "100%")
+      # Boxed like the input screen's groups of fields.
+      div(class = "form-group-box guided-variable",
+        radioButtons(paste0("g_", v$id), v$label, choiceNames = unname(unlist(opts)), choiceValues = names(opts), selected = selected, width = "100%"))
     }),
     action_bar(pick_button("Next: choose the analyses", "guided:analyses", class = "btn btn-primary"))
   )
@@ -965,7 +967,8 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
       div(
         class = "analysis-row",
         radioButtons(paste0("role_", a$id), tags$strong(a$label), choices = analysis_role_choices,
-          selected = analysis_role(a$id, ticked, primary), width = "100%"),
+          # With only one analysis possible, it is the main one.
+          selected = if (length(apps) == 1 && !length(ticked)) "main" else analysis_role(a$id, ticked, primary), width = "100%"),
         if (!is.null(ask)) radioButtons(paste0("ask_", a$id), ask$text, choices = c(vapply(ask$options, function(o) o$label, character(1)), tree$safety_net$label), selected = asks[[a$id]] %||% character(0), width = "100%")
       )
     }),

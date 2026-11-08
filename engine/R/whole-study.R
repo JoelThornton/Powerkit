@@ -204,7 +204,20 @@ whole_study_problems <- function(spec) {
   model <- whole_study_model(spec)
   expected <- model_paths(model)
   given <- names(spec$population$paths)
-  missing <- setdiff(expected, given)
+  group_d <- spec$population$group_d %||% list()
+  by_d <- paste0("X->", names(group_d))
+  if (length(group_d) && !identical(spec$variables$X$type, "binary")) {
+    return("'population > group_d' is Cohen's d of X's two groups, so it applies only when X is two groups ('variables > X > type' \"binary\").")
+  }
+  if (length(group_d) && !all(by_d %in% expected)) {
+    return(sprintf("'population > group_d' gives d for %s, which isn't part of the model the analyses imply.",
+      paste(setdiff(by_d, expected), collapse = ", ")))
+  }
+  if (any(by_d %in% given)) {
+    return(sprintf("Give either the path %s or Cohen's d of the groups ('population > group_d'), not both.",
+      paste(intersect(by_d, given), collapse = " and ")))
+  }
+  missing <- setdiff(expected, c(given, by_d))
   extra <- setdiff(given, expected)
   if (length(missing) > 0) {
     problems <- c(problems, sprintf(
@@ -237,6 +250,8 @@ whole_study_problems <- function(spec) {
   if (length(problems) > 0) {
     return(problems)
   }
+  # A path given as d is found when the study runs; 0 stands in for it here.
+  for (path in by_d) spec$population$paths[[path]] <- 0
   whole_study_variance_problems(spec, model)
 }
 
@@ -550,7 +565,9 @@ whole_study_fit <- function(a, spec) {
 #'   `n_required` with its 95% interval `lower` and `upper`, the power
 #'   `curve` and the `simulations` behind it), `implied` (what the population implies for each analysis,
 #'   from one large simulated data set: the values its own card asks for),
-#'   `check_run` and `provenance`.
+#'   `found_paths` and `group_d` (for a two-group X given as Cohen's d of
+#'   the groups, `population > group_d`: the d entered and the path found
+#'   to give it; otherwise `NULL`), `check_run` and `provenance`.
 #' @export
 run_whole_study <- function(spec) {
   spec <- validate_whole_study(spec)
@@ -559,8 +576,11 @@ run_whole_study <- function(spec) {
   }
   seed <- spec$options$seed %||% sample.int(2147483646L, 1)
   nrep <- spec$options$nrep %||% 1000L
-  inputs <- whole_study_inputs(spec)
   started <- Sys.time()
+  hash <- spec_hash(spec)
+  # A path given as the groups' d is found first (whole-study-group-d.R).
+  spec <- whole_study_resolve_group_d(spec, seed)
+  inputs <- whole_study_inputs(spec)
   cores <- powerkit_cores()
 
   big <- whole_study_big_sample(inputs, seed)
@@ -610,11 +630,14 @@ run_whole_study <- function(spec) {
       joint = joint,
       sample_size = search,
       implied = whole_study_implied(spec, inputs, big),
+      # The paths found for a d of the groups (population > group_d).
+      found_paths = if (length(spec$population$group_d)) spec$population$paths[paste0("X->", names(spec$population$group_d))],
+      group_d = spec$population$group_d,
       check_run = check,
       models = list(population = inputs$model, population_values = inputs$pop_es,
         analyses = vapply(inputs$analyses, function(a) a$fit_model, character(1))),
       provenance = list(
-        spec_hash = spec_hash(spec),
+        spec_hash = hash,
         method = "simulation",
         seed = seed,
         nrep = nrep,

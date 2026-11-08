@@ -169,7 +169,7 @@ guided_plan_save_ui <- function(k = 0) {
       download_button("download_guided_plan", "Save this plan", class = "btn btn-outline-primary"),
       if (k > 0) actionLink("plan_view", sprintf("See your study plan (%d %s)", k, if (k == 1) "analysis" else "analyses"))),
     if (k > 0) p(class = "small mt-1", "Each analysis you calculate from this plan is also in your study plan, which collects analyses from any card and saves their results in one file."),
-    p(class = "text-muted small mt-1", "A file on your computer: open it later from the start screen (“Open a saved project”) to carry on where you left off."))
+    p(class = "text-muted small mt-1", "A file on your computer: open it later on the start screen, under “Or open a saved project, plan or unfinished draft”, to carry on where you left off."))
 }
 
 # A whole-study specification downloaded from the simulation's result is

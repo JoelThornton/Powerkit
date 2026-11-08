@@ -990,6 +990,7 @@ server <- function(input, output, session) {
       state$route <- value
       go_to(resolve_target(tree, "continue", state$ctx, value))
     } else if (pick == "back") {
+      if (state$screen == "g_vars") save_guided_variables()
       if (state$screen == "card" && identical(state$came_from, "known")) {
         state$screen <- "known"
       } else {
@@ -2043,7 +2044,7 @@ server <- function(input, output, session) {
           isolate(whole_study_experiment_ui(forms, ws$plan, ws$labels,
             whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each", values = state$ws_values))
         } else {
-          isolate(whole_study_ui(forms, ws$plan, ws$params, ws$labels, whole_study_prefill(state$plan_shared),
+          isolate(whole_study_ui(forms, ws$plan, ws$params, ws$labels, whole_study_prefill(state$plan_shared, ws$plan, state$plan_values),
             whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each",
             values = state$ws_values, path = state$ws_values$path))
         }

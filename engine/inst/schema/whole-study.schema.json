@@ -52,10 +52,15 @@
       "additionalProperties": false,
       "properties": {
         "paths": {
-          "description": "Standardised path coefficients of the population model, keyed 'From->To'; product terms join the two variables ('XW->Y', 'XW->M', 'MW->Y'). Every path of the model the analyses imply must be given; use 0 for no effect.",
+          "description": "Standardised path coefficients of the population model, keyed 'From->To'; product terms join the two variables ('XW->Y', 'XW->M', 'MW->Y'). Every path of the model the analyses imply must be given; use 0 for no effect. A path from a two-group X given as Cohen's d ('group_d') is left out.",
           "type": "object",
-          "minProperties": 1,
           "additionalProperties": {"type": "number", "minimum": -1, "maximum": 1}
+        },
+        "group_d": {
+          "description": "With a two-group X: Cohen's d of the groups on the outcome ('Y') or on the mediator ('M'), the groups' mean difference over their pooled within-group SD, in place of the path 'X->Y' or 'X->M'. powerkit finds the standardised path that gives this d in the population, from the same large simulated data set as its implied values (run_whole_study()); leave that path out of 'paths'.",
+          "type": "object",
+          "propertyNames": {"enum": ["Y", "M"]},
+          "additionalProperties": {"type": "number", "minimum": -5, "maximum": 5}
         },
         "x_prob": {
           "description": "With a two-group X: the share of people in X's second group (0.5, the default, for equal groups), drawn by power4mome's rbinary_rs() and standardised like every variable.",
