@@ -5916,3 +5916,30 @@ the site stays findable by search engines.
   `effect_size_benchmarks: hide`); whether to offer bias-corrected
   planning stays a separate question.
 
+## 2026-11-08 · Labs: one chart style, one frame per tool, links from results
+
+- **Why:** the project review of 7 November 2026 found the Labs charts in
+  R's default look beside the result page's (small keys over the lines,
+  sideways axis numbers), the visualiser's curves cut off without saying
+  so, two pairs of near-identical colours on the methods map, three ways
+  of labelling a Labs tool, and the two teaching tools reachable only
+  through Labs.
+- **Charts:** one style in `app/routing/R/results.R` (`chart_start()`,
+  `chart_axes()`, `chart_key()`), used by the result page and every Labs
+  chart. A density has no axis numbers, since its height means little to
+  a reader. The Type I error area is hatched so the overlap with power
+  reads in greyscale; a cut-off curve and the rise at 0 with one degree of
+  freedom are explained under the chart.
+- **Methods map:** each test has a colour and a shape (`methods-map.yaml`),
+  the colours kept apart (a test checks the distance), and "Any of these"
+  joins "Other". Long family names have a short name for the map region
+  (`tree.yaml`, `short`).
+- **Labs tools:** each opens with its name and one notice: what it is for
+  and how far it is checked (`labs_tools`, `labs_tool_head()`). Labs stays
+  a home for research and teaching aids, as decided with the review.
+- **Links from results:** the t-tests, the correlation and two
+  proportions link to the power visualiser at the result's n, effect and
+  alpha; two-group results also to "1,000 studies". The link says the
+  picture is the textbook version of the test, so its power can differ
+  slightly from the result's (Welch's test, unequal groups).
+

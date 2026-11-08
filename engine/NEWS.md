@@ -1,3 +1,26 @@
+# powerkit 0.43.0
+
+* Labs, the app's experimental tools, and the result page:
+  - every chart (the result page's curves, the power visualiser, Bayesian
+    planning and 1,000 studies) is drawn in one style: the app's colours,
+    upright axis numbers, light gridlines, and the key in its own strip
+    below the chart, where it can't cover a line;
+  - the power visualiser hatches the Type I error area, so it still reads
+    where it overlaps the power area, and says in words when a curve is
+    cut off at the top or rises steeply at 0 (F and chi-square with one
+    degree of freedom);
+  - the methods map gives each kind of test its own colour and shape,
+    merges "Any of these" into "Other", and names its long regions
+    briefly ("Equivalence", "Latent variables"), with the full name in the
+    panel;
+  - every Labs tool opens with its name and one notice saying what it is
+    for and how far it is checked, without the whole Labs header above
+    it; Labs headings use the app's heading style, and its number boxes
+    are sized like the input screen's;
+  - results for the t-tests, the correlation and two proportions link to
+    the power visualiser at their own sample size, effect and alpha, and
+    two-group results to "1,000 studies".
+
 # powerkit 0.42.0
 
 * Goodness-of-fit proportions given as exact fractions (1/6, 1/6, 2/3)

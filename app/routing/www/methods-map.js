@@ -50,6 +50,7 @@
       if (n.kind === 'endpoint') {
         x.plain = n.label;
         x.cTest = (tests[n.test] || {}).colour || '#9aa7c7';
+        x.shape = (tests[n.test] || {}).shape || 'ellipse';
         x.cFamily = familyHue[n.family] || '#9aa7c7';
         x.cStatus = statusColour[n.status];
         x.col = x.cTest;
@@ -72,7 +73,7 @@
           'text-valign': 'bottom', 'text-margin-y': 6, 'min-zoomed-font-size': 7, 'z-index': 10,
           'transition-property': 'opacity, background-color, underlay-color, border-color', 'transition-duration': 350 } },
       { selector: 'node[kind = "root"], node[kind = "hub"], node[kind = "question"]', style: { 'display': 'none' } },
-      { selector: 'node[kind = "endpoint"]', style: { 'width': 22, 'height': 22, 'background-color': 'data(col)',
+      { selector: 'node[kind = "endpoint"]', style: { 'shape': 'data(shape)', 'width': 22, 'height': 22, 'background-color': 'data(col)',
           'underlay-color': 'data(col)', 'underlay-opacity': 0.3, 'underlay-padding': 8, 'underlay-shape': 'ellipse',
           'border-width': 2, 'border-color': '#ffffff', 'border-opacity': 0.6 } },
       { selector: 'node[kind = "endpoint"][status = "runs"]', style: { 'width': 28, 'height': 28 } },
@@ -248,7 +249,7 @@
     if (colour === 'test') {
       document.querySelectorAll('.map-sidebar input[data-group="test"]').forEach(function(i) {
         var t = tests[i.value] || {};
-        items.push({ group: 'test', value: i.value, label: t.label || i.value, colour: t.colour, on: i.checked, title: t.text });
+        items.push({ group: 'test', value: i.value, label: t.label || i.value, colour: t.colour, shape: t.shape, on: i.checked, title: t.text });
       });
     } else if (colour === 'status') {
       ['runs', 'soon', 'not'].forEach(function(k) {
@@ -260,7 +261,7 @@
     box.hidden = items.length === 0;
     box.innerHTML = items.map(function(it) {
       return '<button type="button" aria-pressed="' + (it.on ? 'true' : 'false') + '" data-group="' + it.group + '" data-value="' + esc(it.value) + '"' +
-        (it.title ? ' title="' + esc(it.title) + '"' : '') + '><span class="dot" style="background:' + esc(it.colour) + '"></span>' +
+        (it.title ? ' title="' + esc(it.title) + '"' : '') + '><span class="dot' + (it.shape ? ' shape-' + esc(it.shape) : '') + '" style="background:' + esc(it.colour) + '"></span>' +
         esc(it.label) + '</button>';
     }).join('');
   }
@@ -335,7 +336,7 @@
     if (!q) { box.hidden = true; box.innerHTML = ''; return; }
     box.innerHTML = list.length ? list.map(function(n, i) {
       var d = n.data(), t = tests[d.test] || {};
-      return '<li role="option" id="map-sug-' + i + '" data-id="' + esc(d.id) + '"><span class="dot" style="background:' + esc(t.colour || '#9aa7c7') + '"></span>' +
+      return '<li role="option" id="map-sug-' + i + '" data-id="' + esc(d.id) + '"><span class="dot shape-' + esc(t.shape || 'ellipse') + '" style="background:' + esc(t.colour || '#9aa7c7') + '"></span>' +
         '<span class="sug-name">' + esc(d.plain) + '</span><span class="sug-meta">' + esc(t.label || '') +
         (d.status === 'runs' ? '' : ' · ' + esc(d.statusText)) + '</span></li>';
     }).join('') : '<li class="sug-none">No analysis matches “' + esc(q) + '”.</li>';
@@ -525,7 +526,7 @@
       var t = tests[r.other.data('test')] || {};
       return '<li><button type="button" data-id="' + esc(r.other.id()) + '" onclick="pkMapGo(this.dataset.id)">' +
         '<span class="rel-change">' + esc(from ? r.other.data('label') + ', ' + r.edge.data('label') + ' this' : 'This, ' + r.edge.data('label') + '…') + '</span>' +
-        (from ? '' : '<span class="rel-name"><span class="dot" style="background:' + esc(t.colour || '#9aa7c7') + '"></span>' + esc(r.other.data('label')) + '</span>') +
+        (from ? '' : '<span class="rel-name"><span class="dot shape-' + esc(t.shape || 'ellipse') + '" style="background:' + esc(t.colour || '#9aa7c7') + '"></span>' + esc(r.other.data('label')) + '</span>') +
         '</button></li>';
     }).join('') + '</ul>';
   }
@@ -535,7 +536,7 @@
     if (d.kind === 'endpoint') {
       var t = tests[d.test] || {}, steps = route(n);
       rels = rels || relatives(n);
-      html += '<div class="map-tags"><span class="map-tag test" style="--test:' + esc(t.colour || '#9aa7c7') + '"><span class="dot"></span>' + esc(t.label || '') + '</span>' +
+      html += '<div class="map-tags"><span class="map-tag test" style="--test:' + esc(t.colour || '#9aa7c7') + '"><span class="dot shape-' + esc(t.shape || 'ellipse') + '"></span>' + esc(t.label || '') + '</span>' +
         '<span class="map-tag ' + d.status + '">' + esc(d.statusText) + '</span></div>' +
         '<h4>' + esc(d.plain) + '</h4>' +
         (d.standard && d.standard !== d.plain ? '<p class="map-usual">Usually called <strong>' + esc(d.standard) + '</strong></p>' : '') +
@@ -558,11 +559,11 @@
     if (d.kind === 'family') {
       var members = cy.nodes('[kind = "endpoint"]').filter(function(x) { return x.data('family') === d.family && visible(x); });
       var runs = members.filter(function(x) { return x.data('status') === 'runs'; }).length;
-      html += '<h4>' + esc(d.label) + '</h4><p class="small">' + members.length + ' analyses; powerkit calculates ' + runs + ' of them. Choose one to see what it is and what it is next to.</p>' +
+      html += '<h4>' + esc(d.long || d.label) + '</h4><p class="small">' + members.length + ' analyses; powerkit calculates ' + runs + ' of them. Choose one to see what it is and what it is next to.</p>' +
         '<ul class="map-rel">' + members.map(function(x) {
           var t = tests[x.data('test')] || {};
           return '<li><button type="button" data-id="' + esc(x.id()) + '" onclick="pkMapGo(this.dataset.id, false)"><span class="rel-name">' +
-            '<span class="dot" style="background:' + esc(t.colour || '#9aa7c7') + '"></span>' + esc(x.data('label')) + '</span>' +
+            '<span class="dot shape-' + esc(t.shape || 'ellipse') + '" style="background:' + esc(t.colour || '#9aa7c7') + '"></span>' + esc(x.data('label')) + '</span>' +
             '<span class="rel-change">' + esc(t.label || '') + (x.data('status') === 'runs' ? '' : ' · ' + esc(x.data('statusText'))) + '</span></button></li>';
         }).join('') + '</ul>';
       box.innerHTML = html;

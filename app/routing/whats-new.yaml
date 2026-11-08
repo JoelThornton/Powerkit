@@ -6,6 +6,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-08"
+    title: "Labs looks like the rest of powerkit, and results link to it"
+    text: >-
+      Every chart in Labs now matches the result page's, with its key
+      below the chart. The power visualiser explains its cut-off curves,
+      the methods map gives each kind of test its own colour and shape,
+      and each tool says what it is for and how far it is checked. A
+      t-test, correlation or two-proportions result can open the power
+      visualiser at its own numbers.
+  - date: "2026-11-08"
     title: "Input screens that ask less and say more"
     text: >-
       Target power now starts empty on every card, and the result compares
