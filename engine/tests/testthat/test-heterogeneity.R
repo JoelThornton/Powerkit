@@ -104,9 +104,19 @@ test_that("the R script gives the same power with pwr alone", {
 test_that("what can't be combined with it is refused in plain words", {
   expect_error(validate_spec(het_spec(tau = 3)), "at most 2")
   bad <- het_spec(method = "welch_t"); bad$population$sd_ratio <- 1.5
-  expect_error(run_spec(bad), "SDs to be equal")
+  expect_error(run_spec(bad), "equal SDs")
   sim <- het_spec(method = "student_t"); sim$options$method <- "simulation"
   expect_error(run_spec(sim), "Kenny and Judd's formula")
   corr <- example_spec("correlation"); corr$population$tau <- 0.1
   expect_error(run_spec(corr), "t-tests only|tau")
+})
+
+test_that("Departure 23: the cards' starting variation of 0.05 against none", {
+  usual <- run_spec(het_spec(tau = NULL, goal = list(type = "sample_size", power = 0.8), method = "student_t"))
+  small <- run_spec(het_spec(tau = 0.05, goal = list(type = "sample_size", power = 0.8), method = "student_t"))
+  expect_equal(usual$n_required$n, 352)
+  expect_equal(small$n_required$n, 376)
+  at_100 <- run_spec(het_spec(tau = 0.05, method = "student_t"))
+  expect_equal(at_100$curve$power, 0.323, tolerance = 0.002)
+  expect_equal(at_100$heterogeneity$power_without, 0.318, tolerance = 0.002)
 })

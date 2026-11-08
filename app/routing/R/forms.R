@@ -574,18 +574,25 @@ safeguard_fields <- function(template) {
 
 # Effects that vary between studies (Kenny & Judd, 2019), for the
 # t-tests: the SD of the true effect around the one planned for, which
-# then is the average effect. Optional, 0 (the usual analysis) when empty.
+# then is the average effect. Starts at Kenny and Judd's small 0.05
+# (Departure 23); empty or 0 is the usual analysis.
 heterogeneity_field_templates <- c("independent_t", "one_sample_t", "paired_t")
 
 heterogeneity_fields <- function(template) {
   if (!isTRUE(template %in% heterogeneity_field_templates)) return(list())
-  list(list(id = "het_tau", label = "How much might the true effect vary between studies? (optional, as an SD in d)",
-    type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
+  list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
+    type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.05,
+    default_source = "Kenny and Judd's (2019) small variation between studies: they argue zero should not be the default",
     help = paste("Labs, samples, materials and procedures differ, so a study's true effect can differ from the one you plan for.",
       "Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 as small, medium and large variation, and argue that zero",
-      "should not be the default. Empty or 0 plans for the same effect in every study, as most power analyses do;",
-      "with variation, the effect above is the average across studies, and the test is Student's or Welch's t-test with equal SDs."),
-    shown_if = list(field = "sg_use", is_not = "telescopes")))
+      "should not be the default. The effect above is then the average across studies. Empty or 0 plans for the same effect",
+      "in every study, as G*Power and most power analyses do. It needs equal SDs in the two groups."),
+    # Kenny and Judd's formula is for the t-test by formula, for power,
+    # the sample size or the smallest detectable effect.
+    shown_if = list(list(field = "sg_use", is_not = "telescopes"),
+      list(field = "method", is_one_of = c("t_test", "student_t", "welch_t")),
+      list(field = "calc_method", is_not = "simulation"), list(field = "welch_method", is_not = "simulation"),
+      list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))))
 }
 
 # ANOVA and ANCOVA by its effect size: the "Units of the means"

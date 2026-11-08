@@ -655,9 +655,8 @@ designs, and with the effective alpha (`engine/tests/testthat/test-heterogeneity
 Welch's test with equal SDs is planned by the same formula: on the
 two-group card its power with equal SDs is Student's (0.318 for both in
 the example, pwrss), so this is not a departure. With tau = 0 the answer
-is the card's usual one, so this is an option, not a departure; the
-starting value stays empty, as in every other tool, until the maintainer
-decides otherwise.
+is the card's usual one. The cards start at tau = 0.05, which is
+Departure 23.
 
 ## Participants and items in three or more conditions (E63)
 
@@ -1469,6 +1468,27 @@ Departure 19 is shown on the affected result and in the methods text.
 - **Shown to users:** on the E18 result whenever Welch's F is planned for
   (`app/routing/R/results.R`, `departures_for()`), and in the methods
   paragraph.
+
+### 23. t-tests: a small variation between studies by default, not one effect in every study (G\*Power and pwr)
+
+- **Established convention:** G\*Power and pwr plan for a true effect that
+  is exactly the same in the new study as the one entered.
+- **powerkit:** the one-sample, two-group and paired t-test cards (E1, E2,
+  E3) start "How much might the true effect vary between studies?" at an
+  SD of 0.05 in d (d_z for pairs), Kenny and Judd's (2019) small value,
+  and plan by their formula (above, "Effects that vary between studies").
+  The effect entered is then the average across studies. Emptying the
+  field, or 0, gives the usual analysis.
+- **Why** (the maintainer's decision, 8 November 2026, with
+  `Kenny2019_heterogeneity`): Kenny and Judd show that true effects vary
+  between studies, that ignoring it understates the people needed when
+  power is high, and argue that zero should not be the default.
+- **Size** (d = 0.3, two equal groups, 80% power): 376 in total against
+  352 without the variation; at 100 people, power .323 against .318.
+- **Test:** `engine/tests/testthat/test-heterogeneity.R`, "Departure 23".
+- **Shown to users:** on the t-test results whenever the variation is
+  above 0 (`app/routing/R/results.R`, `departures_for()`), in the result's
+  own sentence on the variation, and in the methods paragraph.
 
 ## Known differences
 

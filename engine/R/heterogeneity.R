@@ -58,7 +58,7 @@ heterogeneity_problems <- function(spec) {
     problems <- c(problems, "Variation between studies is worked out by Kenny and Judd's formula; remove 'options > method'.")
   }
   if (!is.null(spec$population$sd_ratio) && !isTRUE(all.equal(spec$population$sd_ratio, 1))) {
-    problems <- c(problems, "Variation between studies needs the two groups' SDs to be equal (an SD ratio of 1).")
+    problems <- c(problems, "Variation between studies is planned for two groups with equal SDs (an SD ratio of 1). Empty 'How much might the true effect vary between studies?', or give equal SDs.")
   }
   if (small_telescopes_test(spec)) {
     problems <- c(problems, "Small telescopes plans for a true effect of 0, so there is no variation between studies to allow for.")

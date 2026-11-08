@@ -2086,6 +2086,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 22 (Welch's F by default) applies when Welch's F is planned
   # for.
   if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
+  # Departure 23 (variation between studies, 0.05 to start with) applies
+  # when the plan allows for it.
+  if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, "23")
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")

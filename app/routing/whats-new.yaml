@@ -15,8 +15,10 @@ entries:
       samples and materials. Enter how much it might vary, and the effect you
       plan for becomes the average across studies. The result shows the power
       with and without the variation, and how often one study would be
-      significant with no average effect. It is optional, following Kenny and
-      Judd (2019).
+      significant with no average effect. Following Kenny and Judd (2019),
+      who argue the usual assumption of no variation should not be the
+      default, it starts at their small value, 0.05, which needs a few more
+      people; empty the box for the usual analysis.
   - date: "2026-11-08"
     title: "Links that open an analysis"
     text: >-

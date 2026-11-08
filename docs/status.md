@@ -57,7 +57,8 @@ rules are in `CLAUDE.md`.
   negative binomial and zero-inflated counts; minimum-effect and
   equivalence tests; a justified alpha; pairwise comparisons with Holm's
   adjustment; effects that vary between studies on the three t-test
-  cards (Kenny & Judd, 2019, through pwr; optional, empty by default);
+  cards (Kenny & Judd, 2019, through pwr; an SD of 0.05 in d to start
+  with, Departure 23);
   precision planning (a confidence interval's width, by MBESS
   and presize) as a goal beside power. Bayes factor versions exist for
   fifteen designs, with JASP's default priors; p-value results of the

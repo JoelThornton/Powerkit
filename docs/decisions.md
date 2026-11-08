@@ -6218,8 +6218,13 @@ the site stays findable by search engines.
   and the smallest detectable effect. Refused in plain words with rank
   tests, Bayes factors, simulation, unequal SDs and small telescopes
   (which plans for no effect). The other cards follow if it is useful.
-- **Starting value:** empty, the usual analysis, so a researcher comparing
-  with G\*Power sees the same number; the help text gives Kenny and Judd's
-  argument that zero should not be the default and their values 0.05,
-  0.125 and 0.20. Whether to start at a non-zero value is the maintainer's
-  call.
+- **Starting value (the maintainer's decision, 8 November 2026):** 0.05,
+  Kenny and Judd's small variation, following their argument that zero
+  should not be the default; emptying the field gives the usual analysis.
+  It is Departure 23 (`conventions.md`), shown on the result whenever the
+  variation is above 0 and stated in the methods paragraph: 376 people
+  against 352 for d = 0.3 at 80% power. The field is hidden where the
+  formula doesn't apply (rank tests, Bayes factors, minimum-effect tests,
+  simulation, small telescopes, a justified alpha, the power curve), so
+  those plans are unchanged; Welch's test with unequal SDs is refused in
+  plain words, asking the user to empty the field.

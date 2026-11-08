@@ -11,7 +11,9 @@
   It reproduces Kenny and Judd's worked example and agrees with an
   independent simulation. Student's t-test, or Welch's with equal SDs, by
   formula; not with rank tests, Bayes factors, simulation or small
-  telescopes. Empty or 0 leaves the usual analysis unchanged.
+  telescopes. Empty or 0 leaves the usual analysis unchanged; the app's
+  t-test cards start at 0.05, Kenny and Judd's small variation
+  (Departure 23 in `docs/conventions.md`).
 
 # powerkit 0.48.1
 
