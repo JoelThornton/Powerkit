@@ -1023,7 +1023,7 @@ bayes_sequential_numbers <- function(plan) {
       truth, pct(row$at_max), format(plan$n_max), pct(row$at_max_toward_effect), pct(row$at_max_toward_null), pct(row$at_max_neither))
   }
   f <- plan$fixed
-  mc <- max(1.96 * o$mcse_for_effect, powerkit::simulation_margin(plan$nsim))
+  mc <- max(1.96 * o$mcse_for_effect, engine_function("simulation_margin")(plan$nsim))
   tagList(
     h4(class = "h5 mt-3", sprintf("Looking from %s%s, %s, up to %s%s", format(plan$n_min), unit, looks, format(plan$n_max), unit)),
     tags$table(class = "table table-sm bayes-outcomes",

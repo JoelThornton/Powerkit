@@ -271,7 +271,7 @@ whole_study_start_n <- function(results, primary) {
 
 # Monte Carlo precision of a power from `nrep` replications, in percentage
 # points, from the engine (the widest margin, at 50% power).
-whole_study_precision <- function(nrep) round(100 * powerkit::simulation_margin(nrep))
+whole_study_precision <- function(nrep) round(100 * engine_function("simulation_margin")(nrep))
 
 # A long wait in words: hours (to the half hour) from an hour and a half.
 whole_study_duration <- function(seconds) {
