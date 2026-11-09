@@ -1,3 +1,11 @@
+# powerkit 0.58.2
+
+* Labs, pre-replication notes: the screen and the notes speak as a tool
+  rather than restating the source paper ("the paper says ..."), with
+  plain step names (what you want to learn, the original study's quality,
+  why a replication). The three questions stay word for word, with one
+  credit line; the report's assessment headings are unchanged.
+
 # powerkit 0.58.1
 
 * The app's document downloads (a card's planning document, the
