@@ -21,3 +21,10 @@ recorded, by base R's \code{\link[stats:binom.test]{stats::binom.test()}}. The a
 quick preview as a range rather than a single number. For an exact
 result both ends are the power itself.
 }
+\examples{
+spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+spec$target_test$method <- "student_t"
+spec$goal <- list(type = "power", n = 100L)
+# An exact result: both ends are the power itself.
+power_interval(run_spec(spec))
+}

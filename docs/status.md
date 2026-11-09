@@ -188,6 +188,17 @@ tagged and published as a GitHub pre-release
 once, by the maintainer: turn on GitHub Pages and add the site to Search
 Console.
 
+**CRAN (9 November 2026):** every package the engine uses is on CRAN,
+and the engine has been prepared for submission: the backends only some
+designs use are in Suggests (25 non-base Imports remain, and installing
+the engine alone brings 228 locked packages rather than 300,
+[`dependency-footprint.md`](dependency-footprint.md)), a run whose
+backend is missing says which package to install, every exported
+function has an example, and on CRAN a quick set of 23 test files runs
+(`engine/tests/testthat.R`). The online app still installs every
+backend (`app/routing/optional-packages.R`). Submitting is a queue item
+in [`next.md`](next.md).
+
 ## Working environment
 
 - **CI:** R CMD check and the engine's tests in three parts when the

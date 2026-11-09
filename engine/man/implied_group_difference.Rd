@@ -38,3 +38,7 @@ relation between a point-biserial correlation and the difference in
 pooled-SD units, d = r / sqrt(p (1 - p) (1 - r^2)), which equals
 psych::r2d() at p = 0.5.
 }
+\examples{
+spec <- read_spec(system.file("specs", "regression_interaction_binary.json", package = "powerkit"))
+implied_group_difference(spec)
+}

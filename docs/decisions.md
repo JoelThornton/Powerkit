@@ -2552,3 +2552,33 @@ the site stays findable by search engines.
   commonmark escaped the "&" again and an R script's `<-` read as
   `&lt;-`. That second escape is undone inside `<code>` only, which keeps
   the text escaped. Word keeps a code block's lines apart with line breaks.
+
+## 2026-11-09 · Preparing the engine for CRAN
+
+- **Decided (9 November 2026):** prepare the engine for a CRAN release,
+  and move every backend that only some designs use from Imports to
+  Suggests in one pull request. This replaces the rule of 7 November 2026
+  that a backend moves only when a pull request next touches its card
+  (`dependency-footprint.md`), which would have taken months. The
+  maintainer address in `DESCRIPTION` is one the maintainer reads, since
+  CRAN writes to it when a change in another package breaks powerkit.
+- **Why:** every package the engine uses is already on CRAN, so nothing
+  blocks a release, but `R CMD check --as-cran` reported "Imports includes
+  55 non-default packages" and asks for as many as possible to be used
+  conditionally: if any package in Imports leaves CRAN, so does powerkit.
+  A CRAN release lets researchers install powerkit with one line and cite
+  a fixed version, and gets it checked on every R version CRAN tests.
+- **How:** 30 packages moved (25 non-base Imports remain). Each run
+  checks the packages its backend lists before calling any of them
+  (`need_packages()`), because a simulation that counted a failed call as
+  a failed replication would give a wrong power rather than an error; a
+  missing package stops the run with a plain message naming what to
+  install. The online app's manifest includes every Suggests package
+  through `app/routing/optional-packages.R`, checked against
+  `DESCRIPTION` by `test-repo-consistency.R`. On CRAN, `tests/testthat.R`
+  runs a quick set of test files, since the full suite takes hours of
+  simulation; GitHub's checks run every file. Every design's example spec
+  was run with the moved packages uninstalled: each either ran or stopped
+  with the missing-package message.
+- **When to submit** is a queue item (`next.md`); the recommendation is
+  the 1.0.0 release.

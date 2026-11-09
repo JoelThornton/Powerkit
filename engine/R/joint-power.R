@@ -49,10 +49,19 @@
 #'   design code) and `provenance` (backend, function, seed, R and package
 #'   versions).
 #' @export
+#' @examples
+#' if (requireNamespace("PUMP", quietly = TRUE)) {
+#'   a <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#'   a$target_test$method <- "student_t"
+#'   b <- a
+#'   b$population$d <- 0.3
+#'   joint_power(list(a, b), rho = 0.5, n = 266)
+#' }
 joint_power <- function(specs, rho, n, seed = 1L, tnum = 10000L) {
   if (!is.list(specs) || length(specs) < 2) {
     abort_run("Joint power needs two or more analyses.")
   }
+  need_packages("PUMP")
   specs <- lapply(specs, function(s) withCallingHandlers(validate_spec(s), powerkit_spec_warning = function(w) invokeRestart("muffleWarning")))
   if (!is.numeric(rho) || length(rho) != 1 || is.na(rho) || rho <= -1 || rho >= 1) {
     abort_run("The correlation between the outcomes should be a number between -1 and 1.")

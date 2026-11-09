@@ -65,7 +65,7 @@ export_whole_study_script <- function(spec, file = NULL, run_time = NULL) {
     sprintf("# * R%s, from https://cran.r-project.org", if (nzchar(needs_r)) sprintf(" %s", needs_r) else ""),
     "# * powerkit and the packages it uses. Install them once, in R, with:",
     "#     install.packages(\"remotes\")",
-    "#     remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\")",
+    "#     remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\", dependencies = TRUE)",
     sprintf(
       "#   powerkit used %s when this script was written; other versions may give",
       paste(names(versions), versions, collapse = ", ")

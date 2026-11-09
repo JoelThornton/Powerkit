@@ -406,6 +406,10 @@ call_backend <- function(backend, expr) {
     error = function(e) {
       # Nested calls (a backend run inside another's simulation) report once.
       if (inherits(e, "powerkit_run_error")) stop(e)
+      # A backend in Suggests that isn't installed.
+      if (inherits(e, "packageNotFoundError")) {
+        abort_run(missing_packages_message(e$package), class = "powerkit_missing_package")
+      }
       abort_run(sprintf(
         "%s could not run this design. It reported: %s",
         backend, trimws(conditionMessage(e))

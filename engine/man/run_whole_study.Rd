@@ -53,3 +53,13 @@ of every main analysis. A search simulates every analysis at many n, so
 it is slow (hours, for mediation): run it on your own computer, with the
 script from \code{\link[=export_whole_study_script]{export_whole_study_script()}}.
 }
+\examples{
+\donttest{
+spec <- jsonlite::fromJSON(
+  system.file("whole-study", "example.json", package = "powerkit"),
+  simplifyVector = FALSE
+)
+result <- run_whole_study(spec)
+result$joint_power
+}
+}

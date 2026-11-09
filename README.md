@@ -113,11 +113,13 @@ Install it from GitHub with:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("JoelThornton/Powerkit", subdir = "engine")
+remotes::install_github("JoelThornton/Powerkit", subdir = "engine", dependencies = TRUE)
 ```
 
-This also installs its dependencies, including the backend packages
-listed above.
+`dependencies = TRUE` also installs the backend packages that only some
+designs use (the engine's Suggests). Without it, powerkit installs the
+packages most designs need, and a design whose backend is missing stops
+with a message naming the package to install.
 
 ## Try it
 

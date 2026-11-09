@@ -28,6 +28,12 @@
 #' @return The specification, normalised, with class `powerkit_whole_study`.
 #' @seealso [run_whole_study()]
 #' @export
+#' @examples
+#' spec <- jsonlite::fromJSON(
+#'   system.file("whole-study", "example.json", package = "powerkit"),
+#'   simplifyVector = FALSE
+#' )
+#' spec <- validate_whole_study(spec)
 validate_whole_study <- function(spec) {
   if (is.character(spec)) {
     spec <- parse_spec_json(spec_json_text(spec))
@@ -113,6 +119,12 @@ whole_study_model <- function(spec) {
 #'   `correlations`, the correlation keys ('X<->W', 'M1<->M2').
 #' @seealso [run_whole_study()]
 #' @export
+#' @examples
+#' spec <- jsonlite::fromJSON(
+#'   system.file("whole-study", "example.json", package = "powerkit"),
+#'   simplifyVector = FALSE
+#' )
+#' whole_study_parameters(spec)
 whole_study_parameters <- function(spec) {
   spec <- unclass(spec)
   spec$population <- list(paths = list(placeholder = 0))
@@ -569,6 +581,15 @@ whole_study_fit <- function(a, spec) {
 #'   the groups, `population > group_d`: the d entered and the path found
 #'   to give it; otherwise `NULL`), `check_run` and `provenance`.
 #' @export
+#' @examples
+#' \donttest{
+#' spec <- jsonlite::fromJSON(
+#'   system.file("whole-study", "example.json", package = "powerkit"),
+#'   simplifyVector = FALSE
+#' )
+#' result <- run_whole_study(spec)
+#' result$joint_power
+#' }
 run_whole_study <- function(spec) {
   spec <- validate_whole_study(spec)
   if (whole_study_is_experiment(spec)) {

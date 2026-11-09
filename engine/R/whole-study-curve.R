@@ -31,6 +31,14 @@
 #'   `provenance` (spec hash, seed, replications, backend, R and package
 #'   versions).
 #' @export
+#' @examples
+#' \donttest{
+#' spec <- jsonlite::fromJSON(
+#'   system.file("whole-study", "example.json", package = "powerkit"),
+#'   simplifyVector = FALSE
+#' )
+#' curve <- whole_study_curve(spec, multipliers = c(0.5, 1, 2), nrep = 100L)
+#' }
 whole_study_curve <- function(spec, multipliers = c(0.5, 0.75, 1, 1.25, 1.5, 2), nrep = 200L) {
   spec <- validate_whole_study(spec)
   if (!identical(spec$goal$type, "power") || is.null(spec$goal$n)) {

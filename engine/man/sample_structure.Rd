@@ -19,3 +19,7 @@ identify matching recorded sample structures, not proof that two
 analyses use the same real population, eligibility criteria or missing-
 data process. A common recruitment plan still needs those checks.
 }
+\examples{
+spec <- read_spec(system.file("specs", "cluster_randomised.json", package = "powerkit"))
+str(sample_structure(spec), max.level = 1)
+}

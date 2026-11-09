@@ -22,3 +22,9 @@ numbers with those saved in the file. A simulation that isn't run in
 batches draws its replications in one stream per core, so it is run on
 the number of cores the file records, whatever \code{powerkit.cores} says.
 }
+\examples{
+spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+spec$target_test$method <- "student_t"
+project <- read_project(write_project(spec, run_spec(spec)))
+reproduce_project(project)$same
+}

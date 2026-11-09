@@ -135,6 +135,16 @@ test_that("_dependencies.R names every package the engine imports", {
   expect_equal(setdiff(setdiff(imports, base), declared), character(0))
 })
 
+test_that("optional-packages.R names every optional engine package, so the online app installs it", {
+  # rsconnect's manifest lists the engine's Imports and the packages the
+  # app's files name, not the engine's Suggests.
+  description <- read.dcf(file.path(repo_dir, "engine", "DESCRIPTION"), fields = "Suggests")
+  suggests <- trimws(sub("\\(.*", "", strsplit(gsub("\n", " ", description[1, "Suggests"]), ",")[[1]]))
+  named <- sub("^\\s*library\\(([^)]+)\\).*", "\\1",
+               grep("^\\s*library\\(", readLines(file.path(routing_dir, "optional-packages.R")), value = TRUE))
+  expect_setequal(named, setdiff(suggests, c("testthat", "withr")))
+})
+
 test_that("every analysis the app calculates is listed on the About page", {
   html <- as.character(about_ui(tree, forms))
   calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints %||% list()))

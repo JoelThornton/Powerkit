@@ -23,12 +23,12 @@ project as \code{\link[=write_project]{write_project()}} writes it, so each can 
 reproduced on its own.
 }
 \examples{
-\dontrun{
 spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+spec$target_test$method <- "student_t"
 path <- tempfile(fileext = ".powerkit.json")
 write_study_plan(list(list(spec = spec, result = run_spec(spec))), file = path)
 plan <- read_study_plan(path)
-}
+unlink(path)
 }
 \seealso{
 \code{\link[=read_study_plan]{read_study_plan()}}, \code{\link[=write_project]{write_project()}}

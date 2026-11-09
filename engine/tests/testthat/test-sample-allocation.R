@@ -52,8 +52,13 @@ test_that("invariance, MANOVA and nested recruitment retain their group structur
 test_that("portable recruitment code and the shared allocation agree for all example designs", {
   files <- list.files(system.file("specs", package = "powerkit"), pattern = "\\.json$", full.names = TRUE)
   for (file in files) {
-    spec <- withCallingHandlers(read_spec(file), powerkit_spec_warning = function(w) invokeRestart("muffleWarning"))
-    if (!is.null(spec$kind)) next
+    # Checking some specs calls their backend (a SEM's degrees of freedom),
+    # which may be an optional package that isn't installed.
+    spec <- tryCatch(
+      withCallingHandlers(read_spec(file), powerkit_spec_warning = function(w) invokeRestart("muffleWarning")),
+      powerkit_missing_package = function(e) NULL
+    )
+    if (is.null(spec) || !is.null(spec$kind)) next
     # Valid whole allocations, without running a power backend.
     layout <- sample_allocation(spec)
     step <- if (layout$kind == "weights") integer_allocation_step(layout$weights) else layout$step %||% 1

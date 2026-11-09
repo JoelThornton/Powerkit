@@ -441,6 +441,9 @@ sem_restriction_check_run <- function(spec, base, power_at) {
 #'   spec gives the df), and `model` (the lavaan model, or `NULL`).
 #'   Otherwise a list with `template` and `df`.
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "sem_model_fit.json", package = "powerkit"))
+#' sem_summary(spec)$df
 sem_summary <- function(spec) {
   if (!identical(spec$design, "sem")) {
     return(NULL)

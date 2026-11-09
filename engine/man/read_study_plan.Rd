@@ -18,6 +18,12 @@ Reads a file written by \code{\link[=write_study_plan]{write_study_plan()}} (or 
 plan" button). Each analysis is checked as \code{\link[=read_project]{read_project()}} checks a
 project.
 }
+\examples{
+spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+spec$target_test$method <- "student_t"
+plan <- read_study_plan(write_study_plan(list(list(spec = spec, result = run_spec(spec)))))
+length(plan$analyses)
+}
 \seealso{
 \code{\link[=write_study_plan]{write_study_plan()}}, \code{\link[=read_project]{read_project()}}
 }

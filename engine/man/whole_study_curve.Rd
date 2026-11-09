@@ -48,3 +48,12 @@ analysis. The curve is offered for experiments and for regressions
 (effects of X, interactions, effects on the mediator); a mediation's
 confidence intervals make even a rough curve too slow to run here.
 }
+\examples{
+\donttest{
+spec <- jsonlite::fromJSON(
+  system.file("whole-study", "example.json", package = "powerkit"),
+  simplifyVector = FALSE
+)
+curve <- whole_study_curve(spec, multipliers = c(0.5, 1, 2), nrep = 100L)
+}
+}
