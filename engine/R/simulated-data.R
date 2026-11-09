@@ -54,6 +54,9 @@ simulated_data <- function(spec, n, seed = 1, file = NULL) {
   if (!is.numeric(seed) || length(seed) != 1 || is.na(seed)) {
     seed <- 1
   }
+  # Paths given as Cohen's d of a two-group X: found as the run finds them,
+  # with the spec's own seed.
+  spec <- resolve_group_d(spec, spec$options$seed %||% seed)
   code <- simulated_data_code(spec, as.integer(ceiling(n)), seed)
   if (is.null(code)) {
     abort_not_available("A simulated data set isn't available for this design yet.")
@@ -73,7 +76,7 @@ simulated_data <- function(spec, n, seed = 1, file = NULL) {
 #' @rdname simulated_data
 #' @export
 simulated_data_available <- function(spec) {
-  spec <- validate_spec(spec)
+  spec <- with_group_d_placeholders(validate_spec(spec))
   !is.null(simulated_data_code(spec, 100L, 1L))
 }
 

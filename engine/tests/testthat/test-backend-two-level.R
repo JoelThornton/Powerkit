@@ -108,3 +108,37 @@ test_that("the exported script reproduces a three-level result with simr alone, 
   code <- simulated_data_code(validate_spec(spec), 1600, 1)
   expect_true(any(grepl("School_funding = design$z", code, fixed = TRUE)))
 })
+
+# Joint power (8 November 2026): several effects tested together, a data
+# set counting only when every one is significant.
+test_that("joint power counts the data sets in which every effect named is significant", {
+  inputs <- two_level_inputs(validate_spec(two_level_spec("within_and_interaction")))
+  expect_identical(inputs$terms, c("x", "x:w"))
+  model <- simr_model(inputs, 400)
+  # simr simulates the same data sets from the same seed, so each effect's
+  # own p-values give the joint count directly.
+  p <- vapply(inputs$terms, function(term) {
+    suppressMessages(suppressWarnings(simr::powerSim(model, test = simr::fixed(term, "sa"), nsim = 60, seed = 11,
+                                                     progress = FALSE)))$pval
+  }, numeric(60))
+  joint <- suppressMessages(suppressWarnings(simr::powerSim(model, test = inputs$test, nsim = 60, seed = 11, progress = FALSE)))
+  expect_equal(joint$x, sum(apply(p, 1, max) < 0.05))
+  expect_lte(joint$x, min(colSums(p < 0.05)))
+  result <- suppressWarnings(run_spec(two_level_spec("all_effects")))
+  expect_match(result$provenance$backend_function, "simr::fixed(\"x\", \"sa\") and simr::fixed(\"w\", \"sa\") and simr::fixed(\"x:w\", \"sa\") (joint power", fixed = TRUE)
+  expect_identical(two_level_inputs(validate_spec(three_level_predictor_spec("all_effects")))$terms, c("x", "w", "z", "x:w", "x:z"))
+})
+
+test_that("joint power needs a non-zero value for every effect, and both interactions need the sites", {
+  zero <- two_level_spec("all_effects", goal = list(type = "sample_size", power = 0.8))
+  zero$population$b_W <- 0
+  expect_error(validate_spec(zero), class = "powerkit_spec_error")
+  expect_spec_problem(two_level_spec("both_interactions"), "needs the groups in sites")
+})
+
+test_that("the exported script reproduces a joint-power result with simr alone", {
+  spec <- two_level_spec("within_and_interaction", nrep = 100L)
+  result <- suppressWarnings(run_spec(spec))
+  expect_script_reproduces_power(spec, result)
+  expect_true(any(grepl("test_all <- function(fit)", two_level_script(validate_spec(spec), result), fixed = TRUE)))
+})

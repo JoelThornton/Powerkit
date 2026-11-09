@@ -7,6 +7,99 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-09"
+    title: "Fewer download buttons"
+    text: >-
+      A planning document, the pre-replication notes and the replication
+      plan each have one button now: it saves the PDF, and a small menu
+      beside it gives the Word and Markdown versions. The R script, the
+      citations and the project file keep their own buttons.
+  - date: "2026-11-09"
+    title: "A planning document for a whole-study plan"
+    text: >-
+      A whole-study result now gives a planning document, as a card's result
+      does, as a PDF, a Word file or Markdown. It lists every analysis and
+      its role, what your claim needs, the population assumed, the separate
+      and joint powers and the R script that reproduces them. Its first page
+      says the whole-study simulation is experimental.
+  - date: "2026-11-09"
+    title: "The significance level and evidence threshold are yours to choose"
+    text: >-
+      The significance level and the Bayes factor threshold now start
+      empty, as target power does. A button fills in the usual value (0.05,
+      or a Bayes factor of 10) in one click, and you can say why you chose
+      it for the write-up. Each Bayes factor prior keeps its usual default,
+      with a short question on whether it fits your field.
+  - date: "2026-11-09"
+    title: "Precision planning asks how sure you want to be"
+    text: >-
+      When you plan an interval for d, a standardised mean or a regression
+      coefficient, powerkit now asks for the chance that your interval is no
+      wider than your target, as it asks for target power. Planning only for
+      the average width leaves about half of studies with a wider interval.
+      The result compares 80%, 90% and 95%, and planning for the average
+      width is still a choice.
+  - date: "2026-11-09"
+    title: "Mediation: the interval you plan for and the one PROCESS reports"
+    text: >-
+      Mediation results and their methods paragraphs now say that powerkit
+      plans for a Monte Carlo interval of the indirect effect, while PROCESS
+      reports a percentile bootstrap interval by default, so you can say
+      which one you will report.
+  - date: "2026-11-09"
+    title: "People in groups: joint power for several effects"
+    text: >-
+      On the card for people in groups with predictors at each level, you
+      can now plan for several effects at once, such as X's effect and the
+      cross-level interaction. The power is then the chance that every
+      effect named is significant in the same study, worked out from the
+      same simulated data sets.
+  - date: "2026-11-08"
+    title: "Mediation with two groups: effects as Cohen's d"
+    text: >-
+      On simple and moderated mediation with two groups or conditions, you
+      can now give the intervention's effects as Cohen's d (how far apart
+      the groups are on the mediator, and on the outcome overall) instead
+      of standardised paths. powerkit finds the paths that give those
+      differences and shows them with the result and in the methods
+      paragraph.
+  - date: "2026-11-08"
+    title: "Write-ups for Bayes factor plans, and for reporting both"
+    text: >-
+      The methods paragraph for a Bayes factor plan now reads as a Bayes
+      factor design analysis. It names the prior the Bayes factor uses and
+      your belief about the true effect separately, and gives the chances
+      of evidence for an effect, evidence for no effect and misleading
+      evidence. If you open "Add a Bayes factor?" on a p-value plan, you
+      now also get a write-up for reporting both, with the Bayes factor as
+      the secondary analysis.
+  - date: "2026-11-08"
+    title: "Two proportions from an odds ratio or a risk ratio"
+    text: >-
+      The two-proportions screen now takes a published odds ratio or risk
+      ratio with group 1's proportion, and works out group 2's proportion
+      for you. The result and the methods paragraph show the ratio, both
+      proportions and how the conversion was done.
+  - date: "2026-11-08"
+    title: "Correlations that vary between studies, and what the variation costs"
+    text: >-
+      The correlation card now asks how much the true correlation might
+      vary between studies, as the t-test cards do. It starts at a small
+      value, and you can empty it for the usual analysis. On the t-test
+      and correlation results, a new table shows the people needed (or
+      the power) with no, small, medium and large variation, so you can
+      see what the assumption costs. If a meta-analysis of your effect
+      reports how much it varies, use that value instead.
+  - date: "2026-11-08"
+    title: "Bayes mode"
+    text: >-
+      If you will analyse with Bayes factors, turn on Bayes mode on the start
+      screen. Every design with a Bayes factor version then opens with it
+      chosen, and a design without one says so. Instead of assuming the
+      effect is exactly the one you enter, Bayes mode asks how unsure you are
+      about it, so the plan averages over the effects you think plausible.
+      It stays on until you close the tab, and you can still choose a
+      p-value on any card.
   - date: "2026-11-08"
     title: "Effects that vary between studies, on the t-test cards"
     text: >-

@@ -281,7 +281,8 @@ test_that("closing a batch gives the waiting notes their version and removes the
   writeLines(c("Package: powerkit", "Version: 0.44.0", "Title: x"), file.path(root, "engine", "DESCRIPTION"))
   writeLines(c("cff-version: 1.2.0", "version: 0.44.0", "title: x"), file.path(root, "CITATION.cff"))
   writeLines(c("# powerkit 0.44.0", "", "* Older."), file.path(root, "engine", "NEWS.md"))
-  writeLines(c("# header", "entries:", "  - date: \"2026-11-08\"", "    title: \"Old\"", "    text: >-", "      Old text."),
+  writeLines(c("# header", "entries:", "  - date: \"2026-11-08\"", "    title: \"Old\"", "    text: >-", "      Old text.",
+    "  - date: \"2026-10-01\"", "    title: \"Over a month old\"", "    text: >-", "      Archived."),
     file.path(root, "app", "routing", "whats-new.yaml"))
   writeLines(c("* First change."), file.path(root, "engine", "news.d", "a-first.md"))
   writeLines(c("", "* Second change,", "  over two lines.", ""), file.path(root, "engine", "news.d", "b-second.md"))
@@ -302,6 +303,10 @@ test_that("closing a batch gives the waiting notes their version and removes the
   updates <- yaml::read_yaml(file.path(root, "app", "routing", "whats-new.yaml"))$entries
   expect_identical(vapply(updates, `[[`, "", "title"), c("Later", "Earlier", "Old"))
   expect_identical(readLines(file.path(root, "app", "routing", "whats-new.yaml"))[1], "# header")
+  # Entries more than a month older than the newest move to the archive.
+  expect_identical(done$archived, 1L)
+  archived <- yaml::read_yaml(file.path(root, "app", "routing", "whats-new-archive.yaml"))$entries
+  expect_identical(vapply(archived, `[[`, "", "title"), "Over a month old")
   expect_length(Sys.glob(file.path(root, "engine", "news.d", "*.md")), 0)
   expect_length(Sys.glob(file.path(root, "app", "routing", "whats-new.d", "*.yaml")), 0)
   # Nothing waiting: nothing to close. A patch and a chosen number.

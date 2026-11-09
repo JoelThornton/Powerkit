@@ -40,7 +40,7 @@ export_run_script <- function(spec, file = NULL, run_time = NULL) {
       "export_run_script() needs a seed in the spec ('options > seed'), so the result can be reproduced."
     )
   }
-  backend <- route_spec(spec, seed)
+  backend <- route_spec(with_group_d_placeholders(spec), seed)
   package <- backend$name
   versions <- package_versions(c("powerkit", backend$packages))
   needs_r <- r_requirement(c("powerkit", backend$packages))

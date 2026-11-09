@@ -6,6 +6,9 @@ whats_new_path <- file.path(routing_dir, "whats-new.yaml")
 # (scripts/close-batch.R moves them into whats-new.yaml).
 waiting_paths <- Sys.glob(file.path(routing_dir, "whats-new.d", "*.yaml"))
 
+# Entries more than a month old, moved there by scripts/close-batch.R.
+archive_path <- file.path(routing_dir, "whats-new-archive.yaml")
+
 test_that("every Updates entry has a date, a title and plain-words text", {
   raw <- yaml::read_yaml(whats_new_path, fileEncoding = "UTF-8")$entries
   expect_gt(length(raw), 0)
@@ -26,6 +29,28 @@ test_that("every Updates entry has a date, a title and plain-words text", {
   # Written newest first, so the file reads the same way as the tab.
   dates <- as.Date(vapply(raw, `[[`, "", "date"))
   expect_identical(dates, sort(dates, decreasing = TRUE))
+  if (file.exists(archive_path)) {
+    archived <- yaml::read_yaml(archive_path, fileEncoding = "UTF-8")$entries
+    for (e in archived) {
+      expect_setequal(names(e), c("date", "title", "text"))
+      expect_false(grepl("\\bE[0-9]+\\b|Departure [0-9]|Known difference [0-9]|#[0-9]+", paste(e$title, e$text)),
+        label = e$title)
+    }
+    old <- as.Date(vapply(archived, `[[`, "", "date"))
+    expect_identical(old, sort(old, decreasing = TRUE))
+    expect_true(max(old) <= min(dates))
+  }
+})
+
+test_that("the Updates tab still shows the archived entries", {
+  dir <- withr::local_tempdir()
+  file.copy(whats_new_path, dir)
+  before <- length(load_whats_new(file.path(dir, "whats-new.yaml")))
+  writeLines(c("entries:", "  - date: \"2000-01-02\"", "    title: \"An archived change\"", "    text: >-", "      Still listed."),
+    file.path(dir, "whats-new-archive.yaml"))
+  entries <- load_whats_new(file.path(dir, "whats-new.yaml"))
+  expect_length(entries, before + 1)
+  expect_identical(entries[[length(entries)]]$title, "An archived change")
 })
 
 test_that("the Updates tab shows entries still waiting for a version with the rest", {

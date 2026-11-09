@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.49.0). Where the project is
+*Last updated: 9 November 2026 (powerkit 0.58.1). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -32,9 +32,26 @@ rules are in `CLAUDE.md`.
   every card in a browser (`repository-protection.md`, "Checks before a
   release"). A check of every review finding against what merged
   (8 November) found a few left: the small ones are fixed, and the
-  larger ones are `next.md` items 15 to 20. Effects that vary between
-  studies are on the t-test cards (8 November). Next: the queue in
-  `next.md`, and a Bayes mode (item 21, waiting on a decision).
+  larger ones are in `next.md`; two proportions now take a published
+  odds ratio or risk ratio, mediation with two groups takes X's
+  effects as Cohen's d, the card for people in groups offers joint
+  power for several effects, precision planning by MBESS asks for a
+  chance (assurance) that the interval is narrow enough, and mediation
+  results say that the planned Monte Carlo interval differs from
+  PROCESS's percentile bootstrap, and the significance level and the
+  Bayes factor threshold start empty, as target power does, with the
+  usual value one click away and an optional reason (9 November).
+  Decisions from October are archived (`archive/decisions-2026-10.md`,
+  indexed at the top of `decisions.md`), and closing a batch moves Updates
+  entries over a month old to `whats-new-archive.yaml`, which the Updates
+  tab still shows. Each document's downloads are one PDF button with a menu
+  for Word and Markdown. Effects that vary between
+  studies are on the t-test and correlation cards, with a table of the
+  answer at no, small, medium and large variation, and an opt-in Bayes
+  mode is on the start screen, with Bayes factor write-ups worded as
+  design analyses and a write-up for plans that report a p-value and a
+  Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
+  Bayes mode (item 15) waits on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
@@ -58,12 +75,17 @@ rules are in `CLAUDE.md`.
   equivalence tests; a justified alpha; pairwise comparisons with Holm's
   adjustment; effects that vary between studies on the three t-test
   cards (Kenny & Judd, 2019, through pwr; an SD of 0.05 in d to start
-  with, Departure 23);
+  with, Departure 23) and the correlation card (McShane & Böckenholt,
+  2014, through pwr; 0.025 on Fisher's z, Departure 24), each result
+  showing the answer at no, small, medium and large variation;
   precision planning (a confidence interval's width, by MBESS
   and presize) as a goal beside power. Bayes factor versions exist for
   fifteen designs, with JASP's default priors; p-value results of the
   exact ones offer "Add a Bayes factor?", and Bayes factor t-test results
   show three prior widths, a sequential plan and an uncertain effect.
+  Bayes mode, an opt-in switch on the start screen, opens every card on
+  its Bayes factor version and asks how unsure the user is about the
+  effect instead of assuming 0.
   Informed priors wait on a bfpwr fault (`upstream-questions.md`).
 
 - **Effect sizes:** the commonest cards take what researchers have: a
@@ -90,8 +112,11 @@ rules are in `CLAUDE.md`.
   (randomised or not), people measured once or twice, mediation and
   moderated mediation (power4mome), factorial experiments (Superpower),
   and a pair-level moderator in dyadic studies. Joint power for several
-  outcomes of one randomised trial uses PUMP. It waits for a
-  statistician's check ([`whole-study-method.md`](whole-study-method.md));
+  outcomes of one randomised trial uses PUMP. Its result gives a
+  planning document (PDF, Word or Markdown) with every analysis and its
+  role, the claim, the population assumed, the joint and separate powers
+  and the R script that reproduces them, marked experimental on its first
+  page. It waits for a statistician's check ([`whole-study-method.md`](whole-study-method.md));
   the designs still to add are in `next.md` item 1.
 
 - **Experimental: Labs.** The pre-replication notes, the replication

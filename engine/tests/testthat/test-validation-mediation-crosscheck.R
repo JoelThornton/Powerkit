@@ -15,7 +15,10 @@
 #      and simsem: the same test and estimator (lavaan ML z tests) on
 #      independently generated data (tolerance: Monte Carlo interval only);
 #   3. both against pwrss's analytic joint test (Monte Carlo interval plus
-#      the allowance).
+#      the allowance);
+#   4. powerkit's Monte Carlo interval against power4mome's percentile
+#      bootstrap, the interval PROCESS reports by default (Monte Carlo
+#      interval plus the allowance).
 # The allowance (crosscheck_allowance(), 0.02 at n >= 100) is the
 # maintainer's decision of 17 October 2026. Run as its own chunk:
 # scripts/run-validation.R --only mediation_crosscheck. Skipped unless
@@ -59,3 +62,30 @@ for (name in names(crosscheck_designs)) {
     expect_power_agrees_within(sem, analytic, crosscheck_allowance(d$n))
   })
 }
+
+# The planned test against the usual analysis (8 November 2026): powerkit
+# plans mediation with a Monte Carlo interval, while most researchers
+# analyse with PROCESS's percentile bootstrap. Both are power4mome's own
+# tests (mc_ci or boot_ci) on the same population, so this checks how far
+# a plan for one carries over to the other, not the wrapping. A bootstrap
+# fits the model again for every draw (more than 15 seconds a replication
+# on one core with 1,000 draws), so it uses 400 replications of 500 draws,
+# which keeps it inside the chunk's time on one core; the tolerance is
+# correspondingly wide, about 10 percentage points (docs/conventions.md,
+# Known difference 14).
+test_that("cross-check (equal_paths): the Monte Carlo interval's power matches the percentile bootstrap's", {
+  skip_unless_full_validation()
+  d <- crosscheck_designs$equal_paths
+  spec_for <- function(method, seed) {
+    mediation_spec(
+      "process_4", "M",
+      paths = list("X->M" = d$a, "M->Y" = d$b, "X->Y" = d$c_prime),
+      path = "X->M->Y", n = d$n, seed = seed, method = method
+    )
+  }
+  monte_carlo <- engine_power(spec_for("monte_carlo_ci", d$seed + 4))
+  bootstrap <- spec_for("percentile_bootstrap", d$seed + 5)
+  bootstrap$options$nrep <- 400L
+  bootstrap$options$ci_draws <- 500L
+  expect_power_agrees_within(engine_power(bootstrap), monte_carlo, crosscheck_allowance(d$n))
+})

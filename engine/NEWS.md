@@ -1,3 +1,111 @@
+# powerkit 0.58.1
+
+* The app's document downloads (a card's planning document, the
+  whole-study planning document, the pre-replication notes and the
+  replication plan) are one button each: the PDF, with a menu beside it
+  for Word and Markdown (`document_menu()`).
+
+# powerkit 0.58.0
+
+* The app's whole-study result now offers a planning document (PDF, Word
+  or Markdown), built from the result and the text of
+  `export_whole_study_script()`: every analysis with its role, the claim,
+  the population assumed, the joint and separate powers, the implied
+  values, the methods paragraph, the reproducibility record and the
+  script. Code blocks in the app's printed documents now show `<-` as
+  written, and keep their lines apart in Word.
+
+# powerkit 0.57.1
+
+* Housekeeping: decisions recorded in October 2026 moved to
+  `docs/archive/decisions-2026-10.md`, with a dated index at the top of
+  `docs/decisions.md`. `scripts/close-batch.R` now moves Updates entries
+  more than a month older than the newest one from `whats-new.yaml` to
+  `whats-new-archive.yaml`, and the Updates tab reads both, so the file a
+  pull request edits stays short. No change to what users see.
+
+# powerkit 0.57.0
+
+* App only: the significance level and the Bayes factor threshold start
+  empty on every card, as target power does, with a button that fills in
+  the usual value (0.05; 10) and an optional reason that goes into the
+  methods paragraph. With no reason given, the paragraph states the value
+  alone. Each analysis prior keeps its software's default, with a short
+  question beside it on whether that default fits the user's field.
+
+# powerkit 0.56.0
+
+* Precision planning on MBESS's routes (d, standardised means and
+  standardised regression coefficients) asks for an assurance by default:
+  the chance that the interval is no wider than the target, starting empty
+  as target power does, with "only on average" (MBESS's expected width)
+  kept as a choice. The result compares the sample size on average and at
+  80%, 90% and 95% assurance, and the methods paragraph states the
+  assurance and, when given, why it was chosen (Departure 25,
+  `docs/conventions.md`).
+* Every mediation card's result and methods paragraph say that the plan is
+  for power4mome's Monte Carlo interval while PROCESS reports a percentile
+  bootstrap interval by default (Known difference 14).
+  `test-validation-mediation-crosscheck.R` compares the two tests' power
+  for simple mediation.
+
+# powerkit 0.55.0
+
+* Two-level and three-level models with predictors at each level
+  (`mixed_model` / `two_level`) can test several effects together for joint
+  power: `target_test > effect` `"within_and_interaction"` (X's effect and
+  the cross-level interaction), `"both_interactions"` (X's interactions with
+  W and with Z; three levels only) and `"all_effects"` (every fixed effect).
+  Each effect gets simr's own `fixed()` test on the same fitted model, and a
+  data set counts as significant only when every one is (the largest of their
+  p-values against alpha). The exported script runs the same test, a sample
+  size search needs every effect non-zero, and the validation file checks
+  joint power against the independent lmerTest simulation.
+
+# powerkit 0.54.0
+
+* Mediation with a two-group X (simple mediation, `process_4`, and the
+  moderated mediation templates) takes `population > group_d`: Cohen's d
+  of the groups on the mediator (`M`, in place of `X->M`) and on the
+  outcome overall (`Y`, in place of `X->Y`). `run_spec()` finds the
+  standardised paths that give these d from a simulated sample of 100,000
+  people drawn by power4mome with the run's seed (`resolve_group_d()`,
+  as the whole-study simulation does), records them in
+  `result > group_d`, and `export_script()` uses the paths found. The
+  spec hash is the spec as given. Checks before the search use small
+  placeholder paths in the direction of each d.
+
+# powerkit 0.53.0
+
+* No developer-facing changes; see the Updates entries.
+
+# powerkit 0.52.0
+
+* Two proportions (`two_proportions`) take a published odds ratio or risk
+  ratio in `effect_justification > conversion` (`from` "odds_ratio" or
+  "risk_ratio"), with group 1's proportion in `population > p1`:
+  `convert_effect(..., p0 = )` gives group 2's proportion, an odds ratio
+  through effectsize's `oddsratio_to_riskratio()` times p1, a risk ratio
+  as RR times p1 (base R; not added to the provenance's packages). A ratio
+  that would put group 2's proportion at 1 or more is refused in words.
+
+# powerkit 0.51.0
+
+* Effects that vary between studies now cover the correlation template:
+  `population > tau` is an SD on Fisher's z, and power follows McShane and
+  Böckenholt's (2014) normal model through `pwr.r.test()` with a scaled
+  significance level and correlation (`heterogeneity_adjustment_r()`).
+  The R script reproduces it with pwr alone. Rank correlations and the
+  Bayes factor test are refused in plain words.
+* The heterogeneity record gains `range` (the goal's answer with no,
+  small, medium and large variation and with the value entered, Kenny and
+  Judd's 25% of a small, medium and large effect), `range_goal`, `scale`
+  and `source`.
+
+# powerkit 0.50.0
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.49.0
 
 * New: `population > tau` on the one-sample, two-group and paired t-test

@@ -373,7 +373,7 @@
           }
         },
         "conversion": {
-          "description": "The effect size as published in another form, converted into the effect this design uses (with psych's t2d() for a t or F statistic into d or d_z, and the effectsize package otherwise) (Cohen's d for the one-sample and independent t-tests, d_z for the paired t-test, r for the correlation, partial eta-squared for a between-participants ANOVA given that way). Give the conversion instead of the population effect: validation fills that in and records it as 'result'.",
+          "description": "The effect size as published in another form, converted into the effect this design uses (with psych's t2d() for a t or F statistic into d or d_z, and the effectsize package otherwise) (Cohen's d for the one-sample and independent t-tests, d_z for the paired t-test, r for the correlation, partial eta-squared for a between-participants ANOVA given that way, group 2's proportion for two proportions). Give the conversion instead of the population effect: validation fills that in and records it as 'result'.",
           "type": "object",
           "required": [
             "from",
@@ -382,13 +382,14 @@
           "additionalProperties": false,
           "properties": {
             "from": {
-              "description": "The form of the published effect: a t statistic, an F statistic, r, Cohen's d, an odds ratio or Cohen's f. Which forms a design accepts: independent t-test t, F (one numerator df), r, odds_ratio; one-sample t-test t; paired t-test t, F (one numerator df); correlation t, F (one numerator df), d, odds_ratio; between-participants ANOVA given by partial eta-squared (oneway_between, 2x2_between, factorial_between with population > metric 'eta_squared') F with both dfs, f.",
+              "description": "The form of the published effect: a t statistic, an F statistic, r, Cohen's d, an odds ratio, a risk ratio or Cohen's f. Which forms a design accepts: independent t-test t, F (one numerator df), r, odds_ratio; one-sample t-test t; paired t-test t, F (one numerator df); correlation t, F (one numerator df), d, odds_ratio; between-participants ANOVA given by partial eta-squared (oneway_between, 2x2_between, factorial_between with population > metric 'eta_squared') F with both dfs, f; two proportions (two_proportions) odds_ratio or risk_ratio, with group 1's proportion in population > p1.",
               "enum": [
                 "t",
                 "F",
                 "r",
                 "d",
                 "odds_ratio",
+                "risk_ratio",
                 "f"
               ]
             },
@@ -1932,6 +1933,12 @@
             },
             "r": {
               "$ref": "#/definitions/correlation"
+            },
+            "tau": {
+              "description": "Pearson's test by formula only: how much the true correlation varies between studies, as an SD on Fisher's z scale (McShane & Bockenholt, 2014). r is then the average correlation. 0 or absent: the same correlation in every study.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2
             },
             "r_sd": {
               "description": "Bayes factor test only: uncertainty about the correlation, as the SD of a stretched beta design prior with mean r (0, the default: exactly r). Power is then averaged over it: the study's assurance. Must be below sqrt(1 - r^2).",
@@ -3756,6 +3763,20 @@
             "residual_correlations": {
               "description": "Parallel mediation only: correlations between the mediators' residuals, keyed 'M1<->M2'. Omitted pairs are 0.",
               "$ref": "#/definitions/correlation_map"
+            },
+            "group_d": {
+              "description": "A two-group X only: Cohen's d of X's two groups, in place of a path from X. 'M' is the groups' difference in the mediator (in place of 'X->M'); 'Y' is their difference in the outcome overall, through the mediator as well as directly (in place of 'X->Y'). powerkit finds the standardised path that gives each d from a large simulated data set and records it in the result ('group_d > found_paths').",
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "M": {
+                  "type": "number"
+                },
+                "Y": {
+                  "type": "number"
+                }
+              }
             }
           }
         }
@@ -3887,6 +3908,20 @@
                 "type": "number",
                 "exclusiveMinimum": 0,
                 "exclusiveMaximum": 1
+              },
+              "group_d": {
+                "description": "A two-group X only: Cohen's d of X's two groups, in place of a path from X. 'M' is the groups' difference in the mediator (in place of 'X->M'); 'Y' is their difference in the outcome overall, through the mediator as well as directly (in place of 'X->Y'). powerkit finds the standardised path that gives each d from a large simulated data set and records it in the result ('group_d > found_paths').",
+                "type": "object",
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                  "M": {
+                    "type": "number"
+                  },
+                  "Y": {
+                    "type": "number"
+                  }
+                }
               }
             }
           },
@@ -9230,7 +9265,7 @@
       }
     },
     "template_two_level": {
-      "description": "People nested in groups (for example pupils in classes, or employees in teams), with a predictor measured on each person (X, centred within its group) and one measured on each group (W): the linear mixed model y ~ X + W + X:W + (1 + X | group). Tests X's effect within groups, W's effect between groups, or the cross-level interaction (whether X's effect depends on W). Simulated with simr's powerSim() on a model built by makeLmer(), testing the effect with lmerTest's Satterthwaite t test (simr's method 'sa'), as E33 does. X takes the same evenly spread standard normal values in every group (normal quantiles, so X is centred within groups and has SD 1); W takes evenly spread standard normal values across the groups. goal > n is the total number of people, a whole number of groups of population > cluster_size. A yes/no outcome (Y binary, population > metric 'probability') is a logistic mixed model built by makeGlmer(): the chance of 'yes' for a typical group at the average X and W (population > probability), every effect and SD on the log-odds scale and no residual SD, tested by glmer's Wald z test (method 'wald') or the likelihood-ratio test ('likelihood_ratio'). Three levels (population > groups_per_site given): the groups are in sites (e.g. classes in schools), with Z measured on each site, in y ~ x + w + z + x:w + x:z + (1 + x | site) + (1 + x | site:group) (the site X slope only when sd_site_slope is above 0); W is spread across each site's groups and Z across the sites, so the three are uncorrelated; goal > n is then a whole number of sites of cluster_size x groups_per_site people. Tests also Z's effect between sites ('site_effect') or X's interaction with Z ('site_interaction').",
+      "description": "People nested in groups (for example pupils in classes, or employees in teams), with a predictor measured on each person (X, centred within its group) and one measured on each group (W): the linear mixed model y ~ X + W + X:W + (1 + X | group). Tests X's effect within groups, W's effect between groups, or the cross-level interaction (whether X's effect depends on W). Simulated with simr's powerSim() on a model built by makeLmer(), testing the effect with lmerTest's Satterthwaite t test (simr's method 'sa'), as E33 does. X takes the same evenly spread standard normal values in every group (normal quantiles, so X is centred within groups and has SD 1); W takes evenly spread standard normal values across the groups. goal > n is the total number of people, a whole number of groups of population > cluster_size. A yes/no outcome (Y binary, population > metric 'probability') is a logistic mixed model built by makeGlmer(): the chance of 'yes' for a typical group at the average X and W (population > probability), every effect and SD on the log-odds scale and no residual SD, tested by glmer's Wald z test (method 'wald') or the likelihood-ratio test ('likelihood_ratio'). Three levels (population > groups_per_site given): the groups are in sites (e.g. classes in schools), with Z measured on each site, in y ~ x + w + z + x:w + x:z + (1 + x | site) + (1 + x | site:group) (the site X slope only when sd_site_slope is above 0); W is spread across each site's groups and Z across the sites, so the three are uncorrelated; goal > n is then a whole number of sites of cluster_size x groups_per_site people. Tests also Z's effect between sites ('site_effect') or X's interaction with Z ('site_interaction'). Joint power, the chance that several effects are all significant in the same study: 'within_and_interaction' (X's effect and the cross-level interaction), 'both_interactions' (X's interactions with W and with Z, three levels only) and 'all_effects' (every fixed effect); each effect gets its own test on the same fitted model, and a data set counts only when every one is significant.",
       "properties": {
         "variables": {
           "required": [
@@ -9362,7 +9397,10 @@
                     "between_effect",
                     "cross_level_interaction",
                     "site_effect",
-                    "site_interaction"
+                    "site_interaction",
+                    "within_and_interaction",
+                    "both_interactions",
+                    "all_effects"
                   ]
                 },
                 "method": {

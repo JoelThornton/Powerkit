@@ -1237,11 +1237,47 @@ heterogeneity_sentence <- function(result) {
   h <- result$heterogeneity
   if (is.null(h)) return(NULL)
   pct <- function(x) sprintf("%.0f%%", 100 * x)
-  sprintf(paste0("Variation between studies: the true effect is planned to vary from study to study with an SD of %s, ",
-    "so the effect entered is the average across studies (Kenny & Judd, 2019). At %s in total, power is %s with this variation, ",
-    "against %s if every study had the same effect. With no average effect at all, one study like this would still be ",
-    "significant %s of the time rather than at the significance level, because its own true effect is rarely exactly zero."),
-    format(h$tau), whole(h$n), pct(h$power), pct(h$power_without), pct(h$effective_alpha))
+  r <- identical(h$scale, "Fisher's z")
+  sprintf(paste0("Variation between studies: the true %s is planned to vary from study to study with an SD of %s%s, ",
+    "so the %s entered is the average across studies (%s). At %s in total, power is %s with this variation, ",
+    "against %s if every study had the same %s. With no average %s at all, one study like this would still be ",
+    "significant %s of the time rather than at the significance level, because its own true %s is rarely exactly zero."),
+    if (r) "correlation" else "effect", format(h$tau), if (r) " on Fisher's z scale" else "",
+    if (r) "correlation" else "effect", if (r) "McShane & B\u00f6ckenholt, 2014" else "Kenny & Judd, 2019",
+    whole(h$n), pct(h$power), pct(h$power_without), if (r) "correlation" else "effect",
+    if (r) "correlation" else "effect", pct(h$effective_alpha), if (r) "correlation" else "effect")
+}
+
+# The same answer with no, small, medium and large variation (Kenny and
+# Judd's 25% of a small, medium and large effect), so the starting value is
+# a visible assumption, not an answer the researcher inherits.
+heterogeneity_range_ui <- function(result) {
+  h <- result$heterogeneity
+  range <- h$range
+  if (is.null(range) || !NROW(range)) return(NULL)
+  r <- identical(h$scale, "Fisher's z")
+  goal <- h$range_goal %||% result$goal_type
+  header <- switch(goal, power = sprintf("Power at %s", whole(h$n)), sample_size = "People needed",
+    sensitivity = if (r) "Smallest average correlation" else "Smallest average effect", "Answer")
+  show <- function(v) {
+    if (is.na(v)) return("not reached")
+    switch(goal, power = percent(v), sample_size = whole(v), format(round(v, 3), nsmall = 2))
+  }
+  names <- c(none = "None (the same in every study)", small = "Small", medium = "Medium", large = "Large", entered = "Your value")
+  rows <- lapply(seq_len(nrow(range)), function(i) {
+    label <- names[[range$level[i]]]
+    if (isTRUE(range$entered[i]) && !identical(range$level[i], "entered")) label <- paste0(label, " (your value)")
+    row <- tags$tr(tags$td(label), tags$td(format(range$tau[i])), tags$td(show(range$value[i])))
+    if (isTRUE(range$entered[i])) row <- tagAppendAttributes(row, class = "table-active")
+    row
+  })
+  div(class = "result-heterogeneity-range",
+    p(paste0("How much the answer depends on the variation you assume. Small, medium and large are Kenny and Judd's (2019) ",
+      "25% of a small, medium and large ", if (r) "correlation" else "effect",
+      ". If a meta-analysis of this effect reports how much it varies (tau), that is better evidence than any of these.")),
+    tags$table(class = "table table-sm result-heterogeneity-table",
+      tags$thead(tags$tr(tags$th("Variation between studies"), tags$th(if (r) "SD (Fisher's z)" else "SD (d)"), tags$th(header))),
+      tags$tbody(rows)))
 }
 
 # Small telescopes (Simonsohn, 2015), worked out by the engine: d33 from
@@ -1316,6 +1352,24 @@ conversion_sentence <- function(result) {
     conv$effect_name, format(round(conv$converted, 3), nsmall = 2), conversion_by(conv))
 }
 
+# Mediation with a two-group X given as Cohen's d (E16, E17): the path
+# the engine found for each d (result > group_d), or NULL.
+group_d_found_text <- function(result) {
+  gd <- result$group_d
+  if (!length(gd$entered)) return(NULL)
+  parts <- vapply(names(gd$entered), function(outcome) {
+    sprintf("the path X -> %s = %s gives a Cohen's d of %s between the groups on %s%s",
+      outcome, format(round(gd$found_paths[[paste0("X->", outcome)]], 3), nsmall = 2), format(gd$entered[[outcome]]), outcome,
+      if (identical(outcome, "Y")) " overall" else "")
+  }, character(1))
+  sprintf("%s (found from a simulated sample of 100,000 people)", paste(parts, collapse = ", and "))
+}
+
+group_d_sentence <- function(result) {
+  text <- group_d_found_text(result)
+  if (is.null(text)) NULL else sprintf("Paths found for the Cohen's d you gave: %s.", text)
+}
+
 # The published statistic's df and group sizes, in brackets.
 conversion_details <- function(conv) {
   parts <- c(if (!is.null(conv$df_error)) sprintf("error df %s", conv$df_error),
@@ -1336,7 +1390,10 @@ conversion_by <- function(conv) {
 
 conversion_package_text <- function(package, function_used) {
   fun <- sub("\\(.*", "", sub("^[A-Za-z.]+::", "", function_used))
-  if (identical(package, "effectsize")) {
+  if (identical(package, "base")) {
+    # A risk ratio into group 2's proportion: the ratio times group 1's.
+    "as group 1's proportion times the risk ratio"
+  } else if (identical(package, "effectsize")) {
     sprintf("with the effectsize package's %s() (Ben-Shachar, L\u00fcdecke & Makowski, 2020)", fun)
   } else if (identical(fun, "t2d")) {
     # The formulas are Lakens's (2013, equations 2 and 7; refs.bib).
@@ -2068,6 +2125,41 @@ bayes_sentence <- function(spec, result) {
   )
 }
 
+# The methods paragraph's Bayesian sentences (Schonbrodt & Wagenmakers,
+# 2018): the design prior, as distinct from the analysis prior, and what a
+# study of this size would show if there were no effect. Third person, for
+# a paper; bayes_sentence() above words the same numbers for the results
+# screen.
+bayes_design_prior_sentence <- function(spec, result) {
+  b <- result$bayes
+  if (is.null(b)) return(NULL)
+  if (b$effect_sd > 0) {
+    kind <- if (is_bayes_binomial(spec) || is_bayes_proportions(spec)) "a beta design prior on the proportions" else
+      if (is_bayes_correlation(spec)) "a stretched beta design prior on the correlation" else "a normal design prior on the effect size"
+    sprintf(paste("The uncertainty about the true effect was expressed as %s with an SD of %s around that value, so the probabilities",
+      "reported are averaged over it (assurance; O'Hagan, Stevens & Campbell, 2005), not conditional on one assumed effect."), kind, format(b$effect_sd))
+  } else {
+    "The design prior is a point at that value, so the probabilities reported assume the true effect is exactly that size."
+  }
+}
+
+bayes_null_writeup <- function(spec, result) {
+  b <- result$bayes
+  if (is.null(b)) return(NULL)
+  k <- format(b$evidence_threshold)
+  what <- if (!is.null(b$null_nrep)) "association" else "effect"
+  if (b$evidence_for_null > 0) {
+    sprintf(paste("If there were no %s, the probability of strong evidence for its absence (BF01 of at least %s) would be %s,",
+      "and of misleading strong evidence for an %s (BF10 of at least %s) %s%s."),
+      what, k, percent(b$evidence_for_null), what, k, percent(b$misleading_evidence),
+      if (!is.null(b$null_nrep)) sprintf(" (from %s simulated studies with no association)", whole(b$null_nrep)) else "")
+  } else {
+    sprintf(paste("If there were no %s, a study of %s could not reach strong evidence for its absence (BF01 of at least %s) whatever the data,",
+      "and the probability of misleading strong evidence for an %s (BF10 of at least %s) would be %s."),
+      what, whole(b$n), k, what, k, percent(b$misleading_evidence))
+  }
+}
+
 departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
   if (!spec$template %in% c("process_58", "process_59")) keys <- setdiff(keys, "19")
@@ -2083,12 +2175,15 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 21 (Welch's t-test by default) applies when Welch's test is
   # the one planned for.
   if (!identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, "21")
+  # Departure 25 (assurance by default in precision planning) applies when
+  # the plan has an assurance.
+  if (!(identical(spec$design, "precision") && !is.null(spec$goal$assurance))) keys <- setdiff(keys, "25")
   # Departure 22 (Welch's F by default) applies when Welch's F is planned
   # for.
   if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
-  # Departure 23 (variation between studies, 0.05 to start with) applies
+  # Departures 23 and 24 (variation between studies, 0.05 or 0.025 to start with) apply
   # when the plan allows for it.
-  if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, "23")
+  if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, c("23", "24"))
   # Departure 15 is about the Bayes factor tests' design prior, when the
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
@@ -2497,8 +2592,10 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(calc$cost_line)) p(class = "result-cost-line", calc$cost_line),
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
+    if (!is.null(gd <- group_d_sentence(result))) p(class = "result-conversion", gd),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
     if (!is.null(het <- heterogeneity_sentence(result))) p(class = "result-heterogeneity", het),
+    heterogeneity_range_ui(result),
     if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
     source_stale_ui(fields, values),
     if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
@@ -2533,9 +2630,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
       download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
       if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
-      if (can_export) print_document_button("planning_document", "Planning document (PDF)"),
-      if (can_export) download_button("download_planning_docx", "Planning document (Word)", class = "btn btn-outline-primary"),
-      if (can_export) download_button("download_planning_document", "Planning document (Markdown)", class = "btn btn-outline-primary")),
+      if (can_export) document_menu("planning_document", "download_planning_docx", "download_planning_document",
+        "Planning document (PDF)", "the planning document")),
     if (can_export) uiOutput("study_plan_bar"),
     p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     simulated_data_ui(spec, result)),
@@ -2636,8 +2732,9 @@ writeup_sides <- function(spec) {
   switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
 }
 
-# The reasons given for a changed alpha or a one-sided test, as sentences
-# (each reason box is shown only when its setting was changed).
+# The reasons given for the significance level, the Bayes factor threshold
+# or a one-sided test, as sentences: only when a reason was given, so the
+# paragraph otherwise states the value alone (8 November 2026).
 writeup_choices <- function(fields, values) {
   given <- function(id) {
     f <- Filter(function(f) identical(f$id, id), fields)
@@ -2647,6 +2744,8 @@ writeup_choices <- function(fields, values) {
   c(
     if (given("alpha_reason")) sprintf("The significance level of %s was chosen because %s.",
       writeup_alpha(as.numeric(values$alpha)), because(values$alpha_reason)),
+    if (given("evidence_reason")) sprintf("The threshold for strong evidence, BF10 \u2265 %s, was chosen because %s.",
+      format(as.numeric(values$evidence_threshold)), because(values$evidence_reason)),
     if (given("alternative_reason")) sprintf("A one-sided test was used because %s.", because(values$alternative_reason))
   )
 }
@@ -2665,7 +2764,7 @@ powerkit_cited <- function(version) {
   sprintf("powerkit (version %s, a prototype in development whose results are not yet fully validated)", version)
 }
 
-writeup_software <- function(result, full = FALSE) {
+writeup_software <- function(result, full = FALSE, bayes = FALSE) {
   p <- result$provenance
   how <- if (simulated(result)) {
     sprintf("by simulation with %s replications%s (seed %s)", whole(p$nrep),
@@ -2674,8 +2773,8 @@ writeup_software <- function(result, full = FALSE) {
     "by formula (no simulation)"
   }
   fun <- if (grepl("(", p$backend_function, fixed = TRUE)) p$backend_function else paste0(p$backend_function, "()")
-  s <- sprintf("Power was calculated %s, with the R package %s (version %s; %s), set up by %s in %s.",
-    how, p$backend, p$packages[[p$backend]], fun, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
+  s <- sprintf("%s calculated %s, with the R package %s (version %s; %s), set up by %s in %s.",
+    if (bayes) "The probabilities of strong evidence were" else "Power was", how, p$backend, p$packages[[p$backend]], fun, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   if (full) {
     s <- paste(s, sprintf("Seed: %s. Spec hash: %s. Check that the backend reproduces the population entered: %s.",
       p$seed, p$spec_hash, if (all(result$check_run$ok)) "passed" else "failed"))
@@ -2803,29 +2902,29 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   test <- if (!is.null(spec$target_test$alpha)) sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
   if (is_bayes_binomial(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a binomial Bayes factor with a Beta(%s, %s) prior on the proportion, testing %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("%s (%s; a binomial Bayes factor with a Beta(%s, %s) analysis prior on the proportion, testing %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(tt$prior_a %||% 1), format(tt$prior_b %||% 1), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_correlation(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a Bayes factor with a stretched beta prior of width %s on the correlation, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("%s (%s; a Bayes factor with a stretched beta prior of width %s on the correlation as the analysis prior, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_width %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_proportions(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and prior concentration %s, as in JASP, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and an analysis prior of concentration %s, as in JASP, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_concentration %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_table(spec)) {
     tt <- spec$target_test
-    test <- sprintf("a Bayes factor test of association (a contingency table Bayes factor with %s and prior concentration %s, testing %s, computed with BayesFactor and simulated with Spower; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("a Bayes factor test of association (a contingency table Bayes factor with %s and an analysis prior of concentration %s, testing %s, computed with BayesFactor and simulated with Spower; strong evidence defined as BF10 ≥ %s)",
       bayes_plan_words[[tt$sampling_plan %||% "rows_fixed"]], format(signif(tt$prior_concentration %||% 1, 3)),
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_anova(spec)) {
     tt <- spec$target_test
-    test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy analysis prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       format(signif(tt$prior_scale %||% 0.5, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else "",
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy prior of scale %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy analysis prior of scale %s on the effect size, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)), format(tt$evidence_threshold %||% 10))
   }
   if (!is.null(telescopes)) test <- sprintf("%s (one-sided, α = %s)", name, writeup_alpha(spec$target_test$alpha))
@@ -2843,12 +2942,16 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     sprintf("Power to show the effect is smaller than %s, if the true effect is zero, is %%.1f%%%%.", telescopes$effect_name)
   } else "Power to detect this effect is %.1f%%."
   effect <- if (is_meta(spec)) meta_effect_text(spec) else writeup_effect(fields, values)
-  # A converted effect: the published value, what it became and how.
-  if (is.null(effect) && !is.null(conv <- result$effect_conversion)) {
-    effect <- sprintf("%s = %s, converted from the published %s of %s%s %s",
+  # A converted effect: the published value, what it became and how,
+  # after any other values the reader needs (two proportions: group 1's).
+  if (!is.null(conv <- result$effect_conversion)) {
+    converted <- sprintf("%s = %s, converted from the published %s of %s%s %s",
       conv$effect_name, format(round(conv$converted, 3), nsmall = 2), sub("^an? ", "", conv$from_name), format(conv$value),
       conversion_details(conv), conversion_by(conv))
+    effect <- if (is.null(effect)) converted else paste0(effect, "; ", converted)
   }
+  # Paths given as the groups' Cohen's d: the paths found for them.
+  if (!is.null(found <- group_d_found_text(result))) effect <- paste0(effect %||% "", if (!is.null(effect)) "; ", found)
   # Means and SD: the standardised effect the engine worked out from them.
   u <- result$effect_from_units
   if (!is.null(effect) && !is.null(u) && !identical(result$goal_type, "sensitivity")) {
@@ -2868,9 +2971,16 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
         sub("\\(.*", "()", sub("^psych::", "", sg$function_used)), sg$effect_name, format(round(sg$lower, 3), nsmall = 2), round(100 * sg$protection))
     }
     if (!is.null(h <- result$heterogeneity)) {
-      adj <- paste0(adj, sprintf(paste0(" The true effect was allowed to vary between studies with a standard deviation of %s, ",
-        "following Kenny and Judd (2019): the effect size is the average across studies, and power was computed with pwr ",
-        "using their effective significance level (%s) and adjusted noncentrality."), format(h$tau), format(signif(h$effective_alpha, 3))))
+      adj <- paste0(adj, if (identical(h$scale, "Fisher's z")) {
+        sprintf(paste0(" The true correlation was allowed to vary between studies with a standard deviation of %s on Fisher's z scale, ",
+          "following McShane and B\u00f6ckenholt (2014): the correlation is the average across studies, and power was computed with pwr's ",
+          "Fisher z approximation using the effective significance level (%s) and correlation that give their normal model's power."),
+          format(h$tau), format(signif(h$effective_alpha, 3)))
+      } else {
+        sprintf(paste0(" The true effect was allowed to vary between studies with a standard deviation of %s, ",
+          "following Kenny and Judd (2019): the effect size is the average across studies, and power was computed with pwr ",
+          "using their effective significance level (%s) and adjusted noncentrality."), format(h$tau), format(signif(h$effective_alpha, 3)))
+      })
     }
     if (!is.null(telescopes)) {
       sprintf("The original study's effect size, %s, set the test's direction (%s); its size does not enter the plan.", effect, reasoning)
@@ -2879,6 +2989,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     }
   } else {
     sprintf("The reasoning about the effect size: %s.", reasoning)
+  }
+  # A Bayes factor design analysis plans with a design prior: the effect
+  # entered is its centre (Schonbrodt & Wagenmakers, 2018).
+  if (is_bayes_test(spec) && !is.null(result$bayes)) {
+    basis <- sub("^The effect size, (.*), was based on ", "The design prior is centred on the planned effect, \\1, based on ", basis)
+    basis <- paste(basis, bayes_design_prior_sentence(spec, result))
   }
   reason <- if (!blank(values$power_reason)) sprintf(", chosen because %s", sub("[.]\\s*$", "", trimws(values$power_reason))) else ""
   fixed <- identical(values$situation, "fixed")
@@ -2935,12 +3051,13 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     }
   )
   if (is_bayes_test(spec)) {
-    main <- gsub("Power to detect this effect is", "The probability of strong evidence for this effect (its power) is", main, fixed = TRUE)
-    main <- gsub("For a target power of", "For a target probability of strong evidence of", main, fixed = TRUE)
+    k <- format(spec$target_test$evidence_threshold %||% 10)
+    main <- gsub("Power to detect this effect is", sprintf("The probability of strong evidence for the effect (BF10 of at least %s) is", k), main, fixed = TRUE)
+    main <- gsub("For a target power of", sprintf("For a target probability of strong evidence for the effect (BF10 of at least %s) of", k), main, fixed = TRUE)
     main <- gsub("; power at this sample size is", "; the probability at this sample size is", main, fixed = TRUE)
-    main <- gsub("An a priori power analysis", "An a priori Bayes factor design analysis", main, fixed = TRUE)
-    main <- gsub("A power analysis was conducted", "A Bayes factor design analysis was conducted", main, fixed = TRUE)
-    main <- c(main, bayes_sentence(spec, result))
+    main <- gsub("An a priori power analysis was conducted", "An a priori Bayes factor design analysis (Sch\u00f6nbrodt & Wagenmakers, 2018) was conducted", main, fixed = TRUE)
+    main <- gsub("A power analysis was conducted", "A Bayes factor design analysis (Sch\u00f6nbrodt & Wagenmakers, 2018) was conducted", main, fixed = TRUE)
+    main <- c(main, bayes_null_writeup(spec, result))
   }
   main <- c(main, critical_effect_sentence(result))
   if (is_meta(spec)) main <- meta_units(main)
@@ -2966,7 +3083,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # The short version names only the differences that change the answer
   # (known_methods); departures from a tool's defaults are listed in the
   # full version, to keep the paper's paragraph short.
-  short <- paste(c(main, recruit_line, claim, writeup_software(result), unname(known_methods)), collapse = " ")
+  short <- paste(c(main, recruit_line, claim, writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size")) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
   }
@@ -2976,7 +3093,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   departures <- departures[setdiff(names(departures), "3")]
   full <- paste(c(
     paste(c(main, interval, recruit_line, claim), collapse = " "),
-    writeup_software(result, full = TRUE),
+    writeup_software(result, full = TRUE, bayes = is_bayes_test(spec)),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
   ), collapse = "\n\n")
@@ -3013,10 +3130,26 @@ ethics_text <- function(spec, result, fields, values) {
   else if (identical(spec$design, "equivalence_test")) chance <- function(p) sprintf(
     "If the real difference is the one we expect, the chance that a study of this size shows it is too small to matter (inside the bounds we set, with two tests each using a %s threshold) is %s, and the chance that it fails to show this is %s. If the real difference is closer to a bound, the chance of failing is higher.",
     alpha, percent(p), percent(1 - p))
-  # Bayes factor tests: strong evidence, not a significant result.
-  if (is_bayes_test(spec)) chance <- function(p) sprintf(
-    "If that effect is real, the chance that a study of this size finds strong evidence for it (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s. If the real effect is smaller, that chance is lower.",
-    format(spec$target_test$evidence_threshold %||% 10), percent(p), percent(1 - p))
+  # Bayes factor tests: strong evidence, not a significant result, and
+  # with a design prior, averaged over the effects thought plausible.
+  if (is_bayes_test(spec)) {
+    b <- result$bayes
+    spread <- !is.null(b) && isTRUE(b$effect_sd > 0)
+    if (spread && !is.null(effect) && !identical(values$just_type, "none")) {
+      basis <- sprintf("We expect an effect of about %s, based on %s: %s. We are not sure of its exact size, so the plan allows for it to be larger or smaller (an SD of %s).",
+        effect, writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning, format(b$effect_sd))
+    }
+    k <- format(spec$target_test$evidence_threshold %||% 10)
+    null_line <- if (!is.null(b)) {
+      if (b$evidence_for_null > 0) sprintf("If there is no effect, the chance that the study finds strong evidence that there is none is %s, and the chance that it wrongly finds strong evidence for an effect is %s.",
+        percent(b$evidence_for_null), percent(b$misleading_evidence))
+      else sprintf("A study of this size could not find strong evidence that there is no effect, however the data fall; the chance that it wrongly finds strong evidence for an effect is %s.", percent(b$misleading_evidence))
+    }
+    chance <- function(p) paste(sprintf(
+      if (spread) "Averaged over the effect sizes we think plausible, the chance that a study of this size finds strong evidence for an effect (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s."
+      else "If that effect is real, the chance that a study of this size finds strong evidence for it (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s. If the real effect is smaller, that chance is lower.",
+      k, percent(p), percent(1 - p)), null_line)
+  }
   # Model fit: the aim is to find out whether the model is wrong.
   if (is_sem_fit(spec)) chance <- function(p) sprintf(
     "If our model is wrong by the amount we set, the chance that a study of this size detects it (a statistically significant test of the model's fit, using a %s threshold) is %s, and the chance that it misses it is %s. Smaller errors in the model are more likely to be missed.",
@@ -3044,7 +3177,7 @@ ethics_text <- function(spec, result, fields, values) {
     percent_attrition(recruit$attrition), whole(recruit$n_recruit))
   set_by <- if (fixed) "This number is set by the resources available, not chosen by a power analysis."
   body <- switch(result$goal_type,
-    sample_size = c(include, recruit_line, "This number comes from a power analysis.", basis, chance(spec$goal$power),
+    sample_size = c(include, recruit_line, if (is_bayes_test(spec)) "This number comes from a Bayes factor design analysis." else "This number comes from a power analysis.", basis, chance(spec$goal$power),
       "With fewer participants, the study would be more likely to miss the effect, so people's time could go into a study that can't answer its question. This number is enough for that aim without asking more people to take part than it needs."),
     power = c(include, recruit_line, set_by, basis, chance(result$curve$power[1])),
     sensitivity = {
@@ -3065,6 +3198,7 @@ ethics_text <- function(spec, result, fields, values) {
         sprintf("Rather than use the usual %s threshold for statistical significance, we chose one by weighing the two mistakes a study can make: finding an effect that isn't there, and missing one that is. %s. That gives a threshold of %s%%, with %s chance of finding the effect if it is real.",
           alpha, justified_alpha_weights_text(j, brief = TRUE), format(signif(100 * j$alpha, 3)), a_percent(j$power)))
     })
+  if (is_bayes_test(spec)) body <- gsub("not chosen by a power analysis", "not chosen by a Bayes factor design analysis", body, fixed = TRUE)
   if (is_meta(spec)) body <- meta_units(body)
   if (is_dyadic(spec)) body <- dyad_units(body)
   if (identical(spec$template, "its")) body <- its_units(body, spec)
@@ -3203,7 +3337,7 @@ precision_sentences <- function(spec, result) {
   c(headline = headline, reading = reading, detail = paste(expected, how))
 }
 
-precision_writeup <- function(form, spec, result, fields, values) {
+precision_writeup <- function(form, spec, result, fields, values, departures = character()) {
   if (blank(values$just_source) || isTRUE(values$source_stale)) return(NULL)
   pr <- result$precision
   p <- result$provenance
@@ -3212,9 +3346,11 @@ precision_writeup <- function(form, spec, result, fields, values) {
   basis <- sprintf("The expected value, %s = %s, was based on %s: %s.", pr$effect_name, format(pr$effect),
     writeup_source[[values$just_type %||% "smallest_effect_of_interest"]] %||% "our reasoning", writeup_quote(values$just_source))
   aim <- if (!is.na(pr$target_width)) {
-    sprintf("We planned the sample size for precision rather than power: the %s for %s should be no wider than %s%s. This requires %s.",
+    sprintf("We planned the sample size for precision rather than power: the %s for %s should be no wider than %s%s%s. This requires %s.",
       interval, estimate, format(pr$target_width),
-      if (is.na(pr$assurance)) " on average" else sprintf(" with %s assurance", percent(pr$assurance)), precision_people(spec, pr$n))
+      if (is.na(pr$assurance)) " on average" else sprintf(" with %s assurance (the chance that it is no wider)", percent(pr$assurance)),
+      if (!is.na(pr$assurance) && !blank(values$assurance_reason)) sprintf(", chosen because %s", sub("[.]\\s*$", "", trimws(values$assurance_reason))) else "",
+      precision_people(spec, pr$n))
   } else {
     sprintf("With %s, the %s for %s is expected to be %s wide.", precision_people(spec, pr$n), interval, estimate, precision_number(pr$width))
   }
@@ -3223,7 +3359,9 @@ precision_writeup <- function(form, spec, result, fields, values) {
   software <- sprintf("The calculation used the R package %s (version %s; %s()), set up by %s in %s.",
     p$backend, p$packages[[p$backend]], pr$function_used, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
-  full <- paste(c(short, sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
+  full <- paste(c(short,
+    if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
+    sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
   ethics <- paste(c(
     sprintf("We plan to include %s.", precision_people(spec, pr$n)), recruit_line,
     "This number comes from planning how precisely the study can estimate the result, not from a power analysis.",
@@ -3262,11 +3400,33 @@ precision_hero_ui <- function(spec, result) {
       tags$ul(lapply(assumes, tags$li))))
 }
 
+# The sample size for the same width planned on average and at 80%, 90%
+# and 95% assurance, side by side, as cost_line() does for target power
+# (MBESS's routes only: four more engine calls, each a formula).
+assurance_cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L) {
+  pr <- result$precision
+  if (is.na(pr$target_width) || !identical(result$provenance$backend, "MBESS")) return(NULL)
+  n_at <- function(assurance) {
+    if (isTRUE(all.equal(assurance, spec$goal$assurance %||% NA))) return(pr$n)
+    s <- spec
+    s$goal$assurance <- assurance
+    calc <- run_calculation(s, run, seed)
+    if (identical(calc$status, "ok")) calc$result$precision$n else NA
+  }
+  n <- c(n_at(NULL), vapply(c(0.8, 0.9, 0.95), function(a) as.numeric(n_at(a)), numeric(1)))
+  if (anyNA(n)) return(NULL)
+  sprintf(paste("For comparison: %s give this width on average (about half of intervals would be wider); %s give it with 80%% assurance,",
+    "%s with 90%% and %s with 95%%. Which you choose, and why, belongs in your write-up."),
+    precision_people(spec, n[[1]]), whole(n[[2]]), whole(n[[3]]), whole(n[[4]]))
+}
+
 precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
   ep <- tree$endpoints[[ep_id]]
   spec <- calc$spec
   result <- calc$result
   words <- precision_sentences(spec, result)
+  departures <- departures_for(forms, ep_id, spec)
+  cost <- tryCatch(assurance_cost_line(spec, result), error = function(e) NULL)
   p_ <- result$provenance
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   hero <- tryCatch(precision_hero_ui(spec, result), error = function(e) NULL)
@@ -3286,11 +3446,12 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
         p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
         p(class = "small", recruit[["caveat"]])),
+      if (!is.null(cost)) p(class = "result-cost-line", cost),
       p(class = "result-detail", words[["detail"]]),
       if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(calc$notes, tags$li)))),
     div(class = "result-card result-save", id = "result-take",
       h4(class = "h5", "Write it up and save it"),
-      writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values)),
+      writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values, departures)),
       h4(class = "h6 mt-3", "Downloads"),
       if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
         tags$strong("To save this plan, download its R script or get its write-up, "),
@@ -3299,9 +3460,8 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
         download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
         if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
-      if (can_export) print_document_button("planning_document", "Planning document (PDF)"),
-      if (can_export) download_button("download_planning_docx", "Planning document (Word)", class = "btn btn-outline-primary"),
-      if (can_export) download_button("download_planning_document", "Planning document (Markdown)", class = "btn btn-outline-primary")),
+      if (can_export) document_menu("planning_document", "download_planning_docx", "download_planning_document",
+        "Planning document (PDF)", "the planning document")),
       if (can_export && !is.na(result$precision$target_width)) uiOutput("study_plan_bar"),
       p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation() and the software used. Save project keeps your answers and result in one file on your computer; open it from the start screen to carry on."),
       simulated_data_ui(spec, result)),
@@ -3311,6 +3471,9 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
         "powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
       validation_ui(ep, result),
+      if (length(departures)) tagList(
+        h4(class = "h6", "Where powerkit differs from the tool's defaults"),
+        tags$ul(class = "result-departures", lapply(unname(departures), tags$li))),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),
         tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),
@@ -3354,7 +3517,7 @@ bayes_companion_test_words <- function(spec, comp) {
     "the Bayes factor test (JASP's default prior)")
 }
 
-bayes_companion_ui <- function(spec, result, comp) {
+bayes_companion_ui <- function(spec, result, comp, writeup = NULL) {
   if (is.null(comp)) return(NULL)
   if (!isTRUE(comp$available)) return(p(class = "result-bayes-unavailable mt-3", comp$reason))
   units <- n_unit(spec) %||% "participants"
@@ -3400,13 +3563,13 @@ bayes_companion_ui <- function(spec, result, comp) {
     agree_line,
     p(class = "result-bayes-advice", tags$strong("Reporting both: "),
       "say before collecting data which test is your main one, and what you will conclude if they disagree. Choosing afterwards the one that reads better is a form of p-hacking."),
-    bayes_companion_wording_ui(spec, comp),
+    bayes_companion_wording_ui(spec, comp, writeup),
     actionButton("bayes_companion_switch", "Plan with the Bayes factor test instead", class = "btn btn-link"))
 }
 
 # Wording for a plan that reports both, with the p-value test named as the
 # main one (the usual order when the sample size was planned for it).
-bayes_companion_wording_ui <- function(spec, comp) {
+bayes_companion_wording_ui <- function(spec, comp, writeup = NULL) {
   both <- comp$n_for_both
   k <- comp$thresholds[1]
   n <- if (!is.null(both) && !is.na(both$n_both[1])) both$n_both[1] else comp$n
@@ -3423,9 +3586,78 @@ bayes_companion_wording_ui <- function(spec, comp) {
       bayes_companion_test_words(spec, comp), format(k), format(k)),
     "If the two disagree, we will report both and base our conclusion on the main analysis.",
     chance)
+  if (!is.null(writeup)) return(bayes_companion_writeup_ui(writeup))
   tagList(
     h5(class = "h6 mt-3", "Wording for your plan"),
     tags$p(class = "result-bayes-wording", text))
+}
+
+# The write-up for a plan that reports both (the p-value test as the main
+# analysis, the Bayes factor as the secondary one): the card's own methods
+# paragraph, then the Bayes factor's, in the same style
+# (Schonbrodt & Wagenmakers, 2018, for the design analysis).
+bayes_companion_writeup <- function(form, spec, result, fields, values, comp) {
+  if (is.null(comp) || !isTRUE(comp$available)) return(NULL)
+  base <- writeup_text(form, spec, result, fields, values)
+  if (is.null(base)) return(NULL)
+  units <- n_unit(spec) %||% "participants"
+  k <- comp$thresholds[1]
+  o <- comp$outcomes[comp$outcomes$threshold == k, ]
+  freq <- companion_freq_name(spec)
+  both <- comp$n_for_both
+  both_n <- if (!is.null(both) && !is.na(both$n_both[1])) both$n_both[1]
+  target <- spec$goal$power
+  agree <- comp$agreement
+  agree_line <- if (!is.null(agree)) {
+    a <- agree[agree$threshold == k & agree$truth == "effect", ]
+    sprintf("If the effect is as planned, both analyses find it %s of the time.", percent(sum(a$probability[a$p_significant & a$bayes == "effect"])))
+  }
+  bayes <- c(
+    sprintf(paste("As a secondary analysis, the Bayes factor (BF10) will be computed with %s, treating a BF10 of at least %s as",
+      "evidence for the effect and a BF10 of at most 1/%s as evidence for its absence."), bayes_companion_test_words(spec, comp), format(k), format(k)),
+    sprintf("The main analysis is %s %s: if the two disagree, both will be reported and the conclusion will rest on the main analysis, as set out before data collection.",
+      companion_side(spec), freq),
+    sprintf(paste("A Bayes factor design analysis (Sch\u00f6nbrodt & Wagenmakers, 2018) at %s %s, with the planned effect as a point design prior, gives a",
+      "probability of %s of evidence for the effect (BF10 of at least %s); if there were no effect, the probability of evidence for its absence",
+      "(BF10 of at most 1/%s) is %s, and of misleading evidence for an effect %s."), whole(comp$n), units, percent(o$for_effect), format(k), format(k), percent(o$for_null), percent(o$misleading)),
+    agree_line,
+    if (!is.null(both_n) && !is.null(target)) {
+      if (both_n == comp$n) sprintf("This sample size also gives the Bayes factor at least %s probability of evidence for the effect.", with_article(percent(target)))
+      else sprintf("For the Bayes factor to have the same %s probability of evidence for the effect as well, the study needs %s %s in total.",
+        percent(target), whole(both_n), units)
+    },
+    sprintf("The Bayes factor probabilities were calculated with the R package %s (version %s), through powerkit's bayes_companion().",
+      comp$package$name, comp$package$version))
+  ethics <- c(
+    sprintf(paste("We will also analyse the data with a Bayes factor, which can show evidence that there is no effect as well as evidence for one.",
+      "With %s %s, if the effect is as we expect, the chance of evidence for it (a Bayes factor of at least %s) is %s; if there is no effect,",
+      "the chance of evidence that there is none is %s. If the two analyses disagree, we will report both and our conclusion will rest on the main one."),
+      whole(comp$n), units, format(k), percent(o$for_effect), percent(o$for_null)),
+    if (!is.null(both_n) && both_n > comp$n && !is.null(target)) sprintf("For the Bayes factor to have the same %s chance, the study would need %s %s.", percent(target), whole(both_n), units))
+  out <- c(short = paste(c(base[["short"]], bayes), collapse = " "),
+    full = paste(c(base[["full"]], paste(bayes, collapse = " ")), collapse = "\n\n"),
+    ethics = if (is.na(base[["ethics"]])) NA_character_ else paste(c(base[["ethics"]], ethics), collapse = " "))
+  out
+}
+
+bayes_companion_writeup_ui <- function(text) {
+  copy <- function(id) tagList(
+    tags$button(type = "button", class = "btn btn-sm btn-outline-primary writeup-copy",
+      onclick = sprintf("pkCopyText(document.getElementById('%s').value, this.parentNode.querySelector('.writeup-copied'))", id), "Copy"),
+    tags$span(class = "writeup-copied small visually-hidden", role = "status"))
+  div(class = "result-writeup result-bayes-writeup mt-3",
+    h5(class = "h6", "Write-up for both"),
+    p(class = "small", "The methods paragraph with the Bayes factor added as a secondary analysis. Use it instead of the one under \u201cWrite it up and save it\u201d if you will report both."),
+    div(class = "writeup-head", tags$label(`for` = "writeup_both_short", "Short version (for the paper)"), copy("writeup_both_short")),
+    tags$textarea(id = "writeup_both_short", class = "form-control writeup", rows = 8, text[["short"]]),
+    tags$details(class = "result-more",
+      tags$summary("Full version (for a supplement or preregistration)"),
+      div(class = "writeup-head", tags$label(`for` = "writeup_both_full", class = "visually-hidden", "Full version"), copy("writeup_both_full")),
+      tags$textarea(id = "writeup_both_full", class = "form-control writeup", rows = 12, text[["full"]])),
+    if (!is.na(text["ethics"])) tags$details(class = "result-more",
+      tags$summary("Plain-words version (for an ethics application)"),
+      div(class = "writeup-head", tags$label(`for` = "writeup_both_ethics", class = "visually-hidden", "Plain-words version"), copy("writeup_both_ethics")),
+      tags$textarea(id = "writeup_both_ethics", class = "form-control writeup", rows = 8, text[["ethics"]])))
 }
 
 # The p-value test's name and sides, for the plan's wording.

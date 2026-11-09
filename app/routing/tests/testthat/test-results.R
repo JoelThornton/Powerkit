@@ -682,8 +682,12 @@ test_that("the write-up gives the reasons for a changed alpha or a one-sided tes
     alternative_reason = "the hypothesis predicts that training raises scores"))
   w <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "(one-sided, effect positive, α = .01). The significance level of .01 was chosen because this is a new claim. A one-sided test was used because the hypothesis predicts that training raises scores.", fixed = TRUE)
-  # No sentence when the settings are back at their defaults, even with old text in the boxes.
+  # A reason for the usual level is kept (8 November 2026: the level is
+  # chosen on every card); a two-sided test needs none, even with old text
+  # in its box; with no reason, no sentence.
   values <- modifyList(values, list(alpha = "0.05", alternative = "two_sided"))
+  expect_identical(writeup_choices(fields, values), "The significance level of .05 was chosen because this is a new claim.")
+  values$alpha_reason <- NULL
   expect_length(writeup_choices(fields, values), 0)
 })
 
@@ -1100,7 +1104,7 @@ test_that("the two-proportion Bayes factor version runs on BayesFactor, with JAS
   known <- vapply(known_difference_keys(forms, "E5", calc$spec), function(k) forms$known_differences_methods[[k]], character(1))
   w <- writeup_text(forms$forms$E5, calc$spec, calc$result, fields, values, known_methods = known)
   expect_match(w[["short"]], "Bayes factor test of two proportions", fixed = TRUE)
-  expect_match(w[["short"]], "prior concentration 1", fixed = TRUE)
+  expect_match(w[["short"]], "an analysis prior of concentration 1", fixed = TRUE)
   expect_no_match(w[["short"]], "α", fixed = TRUE)
   expect_no_match(w[["ethics"]], "NA", fixed = TRUE)
   expect_false("13" %in% known_difference_keys(forms, "E5", build_spec(forms, "E5", fields, form_examples$E5)))
@@ -1746,6 +1750,38 @@ test_that("small telescopes: a replication is planned against the original's d33
   expect_true("st_n" %in% vapply(e4, `[[`, "", "id"))
 })
 
+test_that("two proportions from a published odds ratio or risk ratio", {
+  fields <- form_fields(form_groups(forms, "E5"))
+  ids <- vapply(fields, `[[`, "", "id")
+  # The ratio replaces group 2's proportion and keeps group 1's.
+  expect_identical(ids[match("p2", ids) + 1], "conv_from")
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  expect_setequal(setdiff(names(by_id("conv_from")$choices), "none"), c("odds_ratio", "risk_ratio"))
+  values <- modifyList(form_examples$E5, list(goal = "sample_size", conv_from = "odds_ratio", conv_value = 2, p2 = "",
+    just_type = "meta_analysis", just_source = "A published trial"))
+  expect_false(field_applies(by_id("p2"), values))
+  expect_true(field_applies(by_id("p1"), values))
+  expect_false(field_applies(by_id("conv_df"), values))
+  spec <- build_spec(forms, "E5", fields, values)
+  expect_null(spec$population$p2)
+  expect_identical(spec$effect_justification$conversion$from, "odds_ratio")
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  p1 <- parse_number(values$p1)
+  expect_equal(calc$result$effect_conversion$converted, 2 * p1 / (1 - p1 + 2 * p1))
+  expect_match(conversion_sentence(calc$result), "the published odds ratio of 2 gives group 2's proportion = ", fixed = TRUE)
+  expect_match(conversion_sentence(calc$result), "oddsratio_to_riskratio()", fixed = TRUE)
+  # The methods paragraph gives group 1's proportion and the conversion.
+  text <- paste(writeup_text(forms$forms$E5, spec, calc$result, fields, values), collapse = " ")
+  expect_match(text, "converted from the published odds ratio of 2", fixed = TRUE)
+  expect_match(text, sprintf("= %s;", values$p1), fixed = TRUE)
+  rr <- run_calculation(build_spec(forms, "E5", fields, modifyList(values, list(conv_from = "risk_ratio", conv_value = 1.2))),
+    run, seed = forms$default_seed)
+  expect_equal(rr$result$effect_conversion$converted, 1.2 * p1)
+  expect_match(conversion_sentence(rr$result), "as group 1's proportion times the risk ratio", fixed = TRUE)
+})
+
 test_that("effect-size conversion: the form offers each card's forms, and the engine converts them", {
   # The app offers the forms the engine converts from.
   for (template in names(conversion_choices)) {
@@ -1754,7 +1790,7 @@ test_that("effect-size conversion: the form offers each card's forms, and the en
   fields <- form_fields(form_groups(forms, "E2"))
   ids <- vapply(fields, `[[`, "", "id")
   expect_identical(ids[match("d", ids) + 1], "conv_from")
-  expect_false("conv_from" %in% vapply(form_fields(form_groups(forms, "E5")), `[[`, "", "id"))
+  expect_false("conv_from" %in% vapply(form_fields(form_groups(forms, "E6")), `[[`, "", "id"))
   by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
   values <- modifyList(form_examples$E2, list(goal = "power", n = 64, conv_from = "t", conv_value = 2.5, conv_df = 58,
     just_type = "meta_analysis", just_source = "A published trial"))
@@ -2844,7 +2880,7 @@ test_that("precision planning (E46) gives the sample size for an interval width,
   # Cohen's d between two groups with assurance (MBESS).
   skip_if_not_installed("MBESS")
   v <- modifyList(form_examples$E46, list(estimate = "two_groups", X_label = "Condition", X_level1 = "Control", X_level2 = "Training",
-    Y_label = "Recall", d = "0.5", width = "0.4", assurance = "0.8"))
+    Y_label = "Recall", d = "0.5", width = "0.4", width_target = "assurance", assurance = "0.8"))
   out <- calc_of(v)
   calc <- out$calc
   expect_identical(calc$status, "ok")
@@ -3101,4 +3137,40 @@ test_that("a generic test's power has no participant count under it", {
     list(goal_type = "power", curve = data.frame(n = NA_real_, power = 0.68)))
   expect_identical(fig$value, "68%")
   expect_identical(fig$sub, "for the noncentrality you entered")
+})
+
+test_that("mediation with a two-group X: X's effects as Cohen's d of the groups", {
+  for (ep in c("E16", "E17")) {
+    fields <- form_fields(form_groups(forms, ep))
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    values <- modifyList(form_examples[[ep]], list(x_effects = "d", d_M = "0.4", d_Y = "0.3", p_X_M = "", p_X_Y = ""))
+    # The d boxes take the place of the paths from X.
+    expect_false(field_applies(by_id("p_X_M"), values), label = ep)
+    expect_true(field_applies(by_id("d_M"), values), label = ep)
+    expect_true(field_applies(by_id("p_X_M"), modifyList(values, list(x_effects = "paths"))), label = ep)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_identical(spec$population$group_d, list(M = 0.4, Y = 0.3), label = ep)
+    expect_null(spec$population$paths[["X->M"]], label = ep)
+    expect_silent(suppressWarnings(engine_function("validate_spec")(spec)))
+  }
+  # A score X has no groups, so its paths stay.
+  e17 <- form_fields(form_groups(forms, "E17"))
+  score <- modifyList(form_examples$E17, list(x_type = "continuous", x_effects = "d"))
+  expect_true(field_applies(Filter(function(f) identical(f$id, "p_X_M"), e17)[[1]], score))
+  # The result and the methods paragraph give the paths found.
+  result <- list(group_d = list(entered = list(M = 0.4, Y = 0.3), found_paths = list(`X->M` = 0.198182, `X->Y` = 0.202305)))
+  expect_identical(group_d_sentence(result), paste0(
+    "Paths found for the Cohen's d you gave: the path X -> M = 0.198 gives a Cohen's d of 0.4 between the groups on M, and ",
+    "the path X -> Y = 0.202 gives a Cohen's d of 0.3 between the groups on Y overall (found from a simulated sample of 100,000 people)."))
+  expect_null(group_d_sentence(list()))
+})
+
+test_that("every mediation card says its Monte Carlo interval differs from PROCESS's percentile bootstrap", {
+  for (ep in c("E10", "E11", "E12", "E13", "E14", "E16", "E17", "E38", "E40")) {
+    spec <- list(target_test = list(method = "monte_carlo_ci"), population = list(), goal = list(type = "power"))
+    expect_true("14" %in% known_difference_keys(forms, ep, spec), label = ep)
+    spec$target_test$method <- "percentile_bootstrap"
+    expect_false("14" %in% known_difference_keys(forms, ep, spec), label = ep)
+  }
+  expect_match(forms$known_differences_methods[["14"]], "percentile bootstrap", fixed = TRUE)
 })

@@ -310,7 +310,9 @@ Rscript scripts/close-batch.R patch   # fixes only: 0.44.0 -> 0.44.1
 It sets the number in `engine/DESCRIPTION` and `CITATION.cff`, puts every
 waiting engine note under one `# powerkit X.Y.Z` heading at the top of
 `NEWS.md`, moves every waiting Updates entry to the top of
-`whats-new.yaml`, and deletes the files it used. Every note waiting on
+`whats-new.yaml`, moves Updates entries more than a month older than the
+newest to `whats-new-archive.yaml` (the Updates tab shows them with the
+rest), and deletes the files it used. Every note waiting on
 main joins that version, including another thread's, which is right:
 they are all in the code that version names. Between closes, results
 record the previous number with their spec hash and seed, so close a

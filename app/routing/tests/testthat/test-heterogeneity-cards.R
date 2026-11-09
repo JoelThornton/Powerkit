@@ -1,5 +1,6 @@
-# Effects that vary between studies (Kenny & Judd, 2019) on the t-test
-# cards: an optional field that sets population.tau; the engine works it out.
+# Effects that vary between studies on the t-test cards (Kenny & Judd,
+# 2019) and the correlation card (McShane & Bockenholt, 2014): an optional
+# field that sets population.tau; the engine works it out.
 
 run <- engine_function("run_spec", file.path(repo_dir, "engine"))
 skip_without_run <- function() {
@@ -9,7 +10,7 @@ skip_without_run <- function() {
   skip_if(is.null(run), "powerkit's engine isn't available here")
 }
 
-test_that("the t-test cards offer how much the effect might vary between studies, and no other card does", {
+test_that("the t-test and correlation cards offer how much the effect might vary between studies, and no other card does", {
   for (ep in c("E1", "E2", "E3")) {
     fields <- form_fields(form_groups(forms, ep))
     het <- Filter(function(f) identical(f$id, "het_tau"), fields)
@@ -19,7 +20,10 @@ test_that("the t-test cards offer how much the effect might vary between studies
     # Kenny and Judd's small variation to start with (Departure 23).
     expect_equal(het[[1]][["default"]], 0.05)
   }
-  expect_false("het_tau" %in% vapply(form_fields(form_groups(forms, "E4")), `[[`, "", "id"))
+  het <- Filter(function(f) identical(f$id, "het_tau"), form_fields(form_groups(forms, "E4")))
+  expect_length(het, 1)
+  # Kenny and Judd's 25% of a small effect, for r = .1 (Departure 24).
+  expect_equal(het[[1]][["default"]], 0.025)
   expect_false("het_tau" %in% vapply(form_fields(form_groups(forms, "E5")), `[[`, "", "id"))
 })
 
@@ -35,6 +39,10 @@ test_that("a variation reaches the spec, the result and the write-up; empty leav
   html <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
   expect_match(html, "result-heterogeneity", fixed = TRUE)
   expect_match(html, "Variation between studies", fixed = TRUE)
+  # The range: none, small, medium and large (0.2, the value entered).
+  expect_match(html, "result-heterogeneity-table", fixed = TRUE)
+  expect_match(html, "Large (your value)", fixed = TRUE)
+  expect_match(html, "None (the same in every study)", fixed = TRUE)
   text <- paste(writeup_text(forms$forms$E2, spec, calc$result, fields, values), collapse = " ")
   expect_match(text, "following Kenny and Judd (2019)", fixed = TRUE)
   # The starting variation is a departure, shown on the result and in the
@@ -66,5 +74,31 @@ test_that("the field is hidden where Kenny and Judd's formula doesn't apply", {
     list(method = "minimum_effect"), list(welch_method = "simulation"), list(goal = "justified_alpha"),
     list(goal = "sensitivity_curve"))) {
     expect_false(field_applies(het, modifyList(form_examples$E2, change)), label = names(change))
+  }
+})
+
+test_that("the correlation card plans a varying correlation on Fisher's z, with its range and write-up", {
+  skip_without_run()
+  fields <- form_fields(form_groups(forms, "E4"))
+  values <- modifyList(form_examples$E4, list(goal = "sample_size", power = 0.8, r = 0.1, method = "pearson"))
+  values$het_tau <- NULL
+  values <- modifyList(values, list(het_tau = 0.025))
+  spec <- build_spec(forms, "E4", fields, values)
+  expect_equal(spec$population$tau, 0.025)
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_equal(calc$result$heterogeneity$scale, "Fisher's z")
+  html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
+  expect_match(html, "on Fisher&#39;s z scale|on Fisher's z scale")
+  expect_match(html, "Small (your value)", fixed = TRUE)
+  expect_match(html, "People needed", fixed = TRUE)
+  expect_true("24" %in% names(departures_for(forms, "E4", spec)))
+  expect_false("23" %in% names(departures_for(forms, "E4", spec)))
+  text <- paste(writeup_text(forms$forms$E4, spec, calc$result, fields, values), collapse = " ")
+  expect_match(text, "following McShane and B\u00f6ckenholt (2014)", fixed = TRUE)
+  het <- Filter(function(f) identical(f$id, "het_tau"), fields)[[1]]
+  for (change in list(list(method = "spearman"), list(method = "kendall"), list(method = "bayes_factor"),
+    list(goal = "justified_alpha"))) {
+    expect_false(field_applies(het, modifyList(values, change)), label = names(change))
   }
 })

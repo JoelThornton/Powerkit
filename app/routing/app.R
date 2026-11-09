@@ -41,6 +41,7 @@ source(file.path("R", "planning.R"), local = TRUE)
 source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "replication.R"), local = TRUE)
+source(file.path("R", "bayes-mode.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
 source(file.path("R", "connection.R"), local = TRUE)
@@ -176,6 +177,10 @@ app_css <- "
   .form-field { margin-bottom: 0.75rem; }
   .form-field .form-control, .form-field .form-select { min-height: 44px; }
   .default-source { font-size: 0.85rem; color: #4a4a4a; margin-top: -0.35rem; }
+  .doc-menu .dropdown-toggle-split { min-width: 44px; min-height: 44px; } /* the format menu beside a document's PDF button */
+  .doc-menu .dropdown-item { min-height: 44px; display: flex; align-items: center; }
+  .usual-value { min-height: 44px; min-width: 44px; margin: 0.25rem 0 0.5rem; } /* one click for the usual value; touch target at least 44 x 44 px */
+  .field-prompt { font-size: 0.85rem; color: #4a4a4a; font-style: italic; margin-top: 0.2rem; }
   .form-problems { border-left: 4px solid #a12a2a; background: #fbeaea; padding: 0.75rem 1rem; margin: 1rem 0; }
   .not-wired { margin-top: 1rem; }
   .spec-json { white-space: pre-wrap; font-size: 0.8rem; background: #f4f6f9; padding: 0.5rem; border-radius: 0.4rem; }
@@ -749,7 +754,7 @@ ui <- function(req) fluidPage(
   tags$head(tags$title("Powerkit: power analysis and sample size planning (prototype)"),
     tags$meta(name = "description", content = "Plan sample size, statistical power and precision for your study. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
     tags$link(rel = "canonical", href = paste0(public_address, "/")),
-    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$script(HTML(documents_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js))),
+    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$script(HTML(documents_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js)), tags$script(HTML(bayes_mode_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
   connection_ui(),
@@ -811,6 +816,7 @@ server <- function(input, output, session) {
     endpoint = NULL,         # end point shown on the card screen
     came_from = NULL,        # "known", "node" or "plan", for the back buttons
     form_values = list(),    # input screen: values typed so far (kept when it's redrawn)
+    bayes_mode = FALSE,      # Bayes mode (bayes_mode_toggle_ui()): cards open on their Bayes factor version
     form_k = 2L,             # input screen: number of mediators (parallel and serial mediation)
     calc = NULL,             # input screen: the last calculation (run_calculation()), for the downloads
     long_spec = NULL,        # E10-E14: the checked spec, with its seed, for the full run or the R script
@@ -889,7 +895,8 @@ server <- function(input, output, session) {
   form_start <- function() {
     if (identical(state$came_from, "plan")) plan_form_start(state$start, state$plan_id, state$primary, state$rule) else state$start
   }
-  current_form_fields <- function() form_fields(form_groups(forms, state$endpoint, state$form_k, form_start()))
+  current_form_groups <- function() bayes_mode_groups(form_groups(forms, state$endpoint, state$form_k, form_start()), state$bayes_mode)
+  current_form_fields <- function() form_fields(current_form_groups())
   current_form_values <- function() {
     fields <- current_form_fields()
     values <- lapply(fields, function(f) input[[field_input_id(f)]])
@@ -1024,6 +1031,7 @@ server <- function(input, output, session) {
     } else if (pick == "form") {
       # From the pre-replication notes: the user's own words as the reasoning.
       state$form_values <- if (isTRUE(state$from_labs) && !is.null(state$labs_seed)) list(just_source = state$labs_seed) else list()
+      state$form_values <- bayes_mode_form_values(tree, state$endpoint, state$form_values, state$bayes_mode)
       state$form_k <- 2L; state$calc <- NULL
       state$screen <- "form"
     } else if (pick == "form_back") {
@@ -1206,7 +1214,10 @@ server <- function(input, output, session) {
     target <- if (identical(calc$result$goal_type, "sample_size")) calc$spec$goal$power
     comp <- tryCatch(engine_function("bayes_companion")(calc$spec, n, target = target),
       error = function(e) list(available = FALSE, reason = "powerkit couldn't work out the Bayes factor side of this plan."))
-    output$bayes_companion <- renderUI(bayes_companion_ui(calc$spec, calc$result, comp))
+    # The write-up for both, from the card's own answers when they allow one.
+    writeup <- tryCatch(bayes_companion_writeup(forms$forms[[state$endpoint]], calc$spec, calc$result,
+      current_form_fields(), current_form_values(), comp), error = function(e) NULL)
+    output$bayes_companion <- renderUI(bayes_companion_ui(calc$spec, calc$result, comp, writeup))
   })
   observeEvent(state$calc, {
     output$bayes_companion <- renderUI(NULL)
@@ -1501,6 +1512,20 @@ server <- function(input, output, session) {
       export(spec, file = file, run_time = whole_study_script_time(forms, whole_study_screen()$plan, goal))
     }
   )
+  # The planning document for the whole-study result: the same Markdown
+  # as PDF (printed by the browser), Word or Markdown.
+  ws_planning_lines <- function() {
+    req(identical(state$ws_calc$status, "ok"), !is.null(state$ws_spec))
+    script <- engine_function("export_whole_study_script")(state$ws_spec)
+    whole_study_planning_document(state$ws_calc, script, departure = forms$departures[["13"]])
+  }
+  observeEvent(input$ws_planning_document, send_document(session, function() printable_document(ws_planning_lines(), powerkit_version())))
+  output$ws_download_planning_docx <- downloadHandler(
+    filename = function() "powerkit-whole-study-planning.docx",
+    content = function(file) docx_document(ws_planning_lines(), file, powerkit_version()))
+  output$ws_download_planning_md <- downloadHandler(
+    filename = function() "powerkit-whole-study-planning.md",
+    content = function(file) writeLines(ws_planning_lines(), file, useBytes = TRUE))
   output$ws_download_spec <- downloadHandler(
     filename = function() "powerkit-whole-study-spec.json",
     content = function(file) {
@@ -1966,6 +1991,8 @@ server <- function(input, output, session) {
     session$sendCustomMessage("labs_open", "variation")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
+  # Bayes mode, from the start screen's switch (R/bayes-mode.R).
+  observeEvent(input$bayes_mode, state$bayes_mode <- isTRUE(input$bayes_mode))
   # From the Bayes factor page (bayes_guide_ui()).
   observeEvent(input$go_labs_bayes, {
     session$sendCustomMessage("labs_open", "bayes")
@@ -2092,7 +2119,7 @@ server <- function(input, output, session) {
     switch(
       state$screen,
       aim = aim_ui(tree),
-      start = tagList(start_ui(tree, isolate(state$start)),
+      start = tagList(start_ui(tree, isolate(state$start)), bayes_mode_toggle_ui(isolate(state$bayes_mode)),
         tags$details(class = "saved-projects",
           tags$summary("Have a saved project, or one someone shared with you?"),
           div(class = "saved-projects-grid", open_project_ui(), check_project_ui()))),
@@ -2106,13 +2133,14 @@ server <- function(input, output, session) {
         trail_ui(state$history, tree),
         if (identical(state$route, "guided") && !identical(state$ctx$grouping, "independent"))
           div(class = "status status-soon guided-single-note", tree$guided$single_analysis_note),
+        bayes_mode_card_note(tree, state$endpoint, state$bayes_mode),
         card_ui(tree, state$endpoint, history = state$history),
         card_nav_ui(forms, state$endpoint),
         mismatch_ui("mismatch-path", path_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint))
       ),
       form = tagList(
         if (isTRUE(state$from_labs)) labs_return_ui(on_form = TRUE, carried = !is.null(state$labs_seed)),
-        form_ui(tree, forms, state$endpoint, form_groups(forms, state$endpoint, state$form_k, form_start()), isolate(state$form_values), state$history,
+        form_ui(tree, forms, state$endpoint, current_form_groups(), isolate(state$form_values), state$history,
           from_plan = identical(state$came_from, "plan"),
           carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled))),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
@@ -2140,6 +2168,11 @@ server <- function(input, output, session) {
       }
     )
   })
+  # The Word and Markdown downloads sit in a closed format menu
+  # (document_menu()). Shiny leaves a hidden output's link empty until it
+  # sees it shown, and opening a menu isn't such a moment, so these links
+  # are kept ready while hidden.
+  for (id in document_menu_downloads) outputOptions(output, id, suspendWhenHidden = FALSE)
 }
 
 shinyApp(ui, server)

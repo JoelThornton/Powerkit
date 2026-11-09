@@ -97,7 +97,7 @@ labs_sde <- function(forms, ep_id, n, power = "0.8", alpha = "0.05", p1 = NULL,
                      rows = NULL, cols = NULL, run = engine_function("run_spec")) {
   fields <- unlist(lapply(form_groups(forms, ep_id, 2L, list()), `[[`, "fields"), recursive = FALSE)
   values <- list()
-  for (f in fields) if (!is.null(f[["default"]])) values[[f$id]] <- as.character(f[["default"]])
+  for (f in fields) if (!is.null(f[["default"]] %||% f$usual)) values[[f$id]] <- as.character(f[["default"]] %||% f$usual)
   # What the original study's own design could detect: one study's true
   # effect, so no variation between studies.
   values$het_tau <- NULL
@@ -144,7 +144,7 @@ labs_telescopes <- function(forms, ep_id, n, alpha = "0.05", run = engine_functi
   if (length(total) != 1 || is.na(total) || total < 4) return(NULL)
   fields <- unlist(lapply(form_groups(forms, ep_id, 2L, list()), `[[`, "fields"), recursive = FALSE)
   values <- list()
-  for (f in fields) if (!is.null(f[["default"]])) values[[f$id]] <- as.character(f[["default"]])
+  for (f in fields) if (!is.null(f[["default"]] %||% f$usual)) values[[f$id]] <- as.character(f[["default"]] %||% f$usual)
   sizes <- if (identical(ep_id, "E2")) list(st_n1 = as.character(total %/% 2), st_n2 = as.character(total - total %/% 2)) else list(st_n = as.character(total))
   effect <- switch(ep_id, E3 = list(dz = "0.5"), E4 = list(r = "0.3"), list(d = "0.5"))
   values <- utils::modifyList(values, c(list(
@@ -389,9 +389,7 @@ labs_ui <- function(tree) {
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "6. Your notes"),
       uiOutput("labs_next"),
       div(class = "nav-buttons",
-        print_document_button("labs_document", "Save as PDF or print", class = "btn btn-primary"),
-        download_button("labs_docx", "Download for Word (.docx)", class = "btn btn-outline-primary"),
-        download_button("labs_download", "Download (Markdown)", class = "btn btn-outline-primary"),
+        document_menu("labs_document", "labs_docx", "labs_download", "Save as PDF or print", "the notes", class = "btn btn-primary"),
         actionButton("labs_copy", "Copy the notes", class = "btn btn-outline-primary"),
         tags$button(type = "button", id = "labs_clear", class = "btn btn-link", onclick = "pkLabsClear()", "Clear notes")),
       div(id = "labs-copy-status", class = "visually-hidden", `aria-live` = "polite"),

@@ -130,7 +130,8 @@ to read small.
 - Read CLAUDE.md, docs/next.md and docs/status.md in full. docs/decisions.md,
   docs/conventions.md, engine/NEWS.md and the YAML files are long records
   (hundreds of KB): search them for the design, date or package in hand
-  rather than reading them whole.
+  rather than reading them whole. Decisions from October 2026 are in
+  docs/archive/decisions-2026-10.md, indexed at the top of decisions.md.
 - One PR per group of related work: one queue item, a design with its
   follow-ups, or a set of fixes from one review. The test is whether the
   PR can be described in a sentence; unrelated changes go in separate PRs.

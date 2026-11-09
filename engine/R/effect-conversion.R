@@ -33,12 +33,15 @@ conversion_templates <- list(
   # (population > eta_source "published").
   oneway_within = list(effect = "eta_squared", name = "partial eta-squared", from = "F"),
   "2x2_mixed" = list(effect = "eta_squared", name = "partial eta-squared", from = "F"),
-  mixed = list(effect = "eta_squared", name = "partial eta-squared", from = "F")
+  mixed = list(effect = "eta_squared", name = "partial eta-squared", from = "F"),
+  # Two proportions: an odds ratio or a risk ratio with group 1's
+  # proportion (population > p1) gives group 2's (convert_to_p2()).
+  two_proportions = list(effect = "p2", name = "group 2's proportion", from = c("odds_ratio", "risk_ratio"))
 )
 
 conversion_from_names <- c(
   t = "a t statistic", F = "an F statistic", r = "r", d = "Cohen's d", odds_ratio = "an odds ratio",
-  f = "Cohen's f"
+  f = "Cohen's f", risk_ratio = "a risk ratio"
 )
 
 or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], collapse = ", "), "or", x[length(x)])
@@ -55,10 +58,11 @@ or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], coll
 #' t-test) or r (correlation); and an F statistic (with both its degrees of
 #' freedom) or Cohen's f into the partial eta-squared of a
 #' between-participants ANOVA (`"oneway_between"`, `"2x2_between"`,
-#' `"factorial_between"`).
+#' `"factorial_between"`); and an odds ratio or a risk ratio, with group
+#' 1's proportion, into group 2's proportion (`"two_proportions"`).
 #'
 #' @param from The form of the published effect: `"t"`, `"F"`, `"r"`,
-#'   `"d"`, `"odds_ratio"` or `"f"`.
+#'   `"d"`, `"odds_ratio"`, `"risk_ratio"` or `"f"`.
 #' @param value The published value.
 #' @param template The design's template: `"independent_t"`,
 #'   `"one_sample_t"`, `"paired_t"`, `"correlation"`, `"oneway_between"`,
@@ -70,13 +74,15 @@ or_list <- function(x) if (length(x) < 2) x else paste(paste(x[-length(x)], coll
 #'   can't exceed n1 + n2 - 2.
 #' @param df The numerator degrees of freedom, for an F statistic converted
 #'   into an ANOVA's partial eta-squared.
+#' @param p0 Group 1's proportion, for an odds ratio or a risk ratio
+#'   converted into group 2's proportion (`"two_proportions"`).
 #'
 #' @return A list: `effect_name` and `value` (the converted effect),
 #'   `function_used` (the call) and `package` (name and version).
 #' @export
 #' @examples
 #' convert_effect("t", 2.5, "independent_t", df_error = 58)
-convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2 = NULL, df = NULL) {
+convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2 = NULL, df = NULL, p0 = NULL) {
   rule <- conversion_templates[[template]]
   if (is.null(rule)) {
     abort_spec(sprintf("Converting an effect size isn't available for the '%s' design yet.", template))
@@ -88,6 +94,7 @@ convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2
   if (from %in% c("t", "F") && is.null(df_error)) {
     abort_spec(sprintf("Converting %s needs its error degrees of freedom ('df_error').", conversion_from_names[[from]]))
   }
+  if (identical(rule$effect, "p2")) return(convert_to_p2(from, value, p0))
   anova <- identical(rule$effect, "eta_squared")
   if (anova && identical(from, "F") && is.null(df)) {
     abort_spec("Converting an F statistic for an ANOVA needs its numerator degrees of freedom ('df') as well as 'df_error'.")
@@ -152,19 +159,51 @@ convert_effect <- function(from, value, template, df_error = NULL, n1 = NULL, n2
        package = list(name = package, version = as.character(utils::packageVersion(package))))
 }
 
+# Group 2's proportion from an odds ratio or a risk ratio and group 1's
+# proportion p0. A risk ratio is group 2's proportion over group 1's, so
+# group 2's is RR times p0; an odds ratio becomes a risk ratio with
+# effectsize's oddsratio_to_riskratio() first.
+convert_to_p2 <- function(from, value, p0) {
+  name <- conversion_from_names[[from]]
+  if (!is.numeric(p0) || length(p0) != 1 || !is.finite(p0) || p0 <= 0 || p0 >= 1) {
+    abort_spec(sprintf("Converting %s into group 2's proportion needs group 1's proportion ('population > p1'), between 0 and 1.", name))
+  }
+  if (!is.finite(value) || value <= 0) abort_spec(sprintf("The published value (%s) must be above 0.", name))
+  if (identical(from, "odds_ratio")) {
+    rr <- effectsize::oddsratio_to_riskratio(value, p0 = p0, verbose = FALSE)
+    used <- sprintf("effectsize::oddsratio_to_riskratio(OR = %s, p0 = %s) * %s", value, p0, p0)
+  } else {
+    rr <- value
+    used <- sprintf("RR * p1 = %s * %s", value, p0)
+  }
+  p2 <- unname(rr * p0)
+  if (!is.finite(p2) || p2 >= 1) {
+    abort_spec(sprintf(paste0(
+      "A risk ratio of %s with group 1's proportion %s would make group 2's proportion %s, 1 or more. ",
+      "Check the ratio and group 1's proportion."), signif(value, 4), p0, signif(p2, 4)))
+  }
+  package <- conversion_package(from, conversion_templates$two_proportions)
+  list(effect_name = "group 2's proportion", value = p2, function_used = used,
+       package = list(name = package, version = as.character(utils::packageVersion(package))))
+}
+
 # The package a conversion uses: psych for a t or F statistic into d or
-# d_z, effectsize otherwise.
+# d_z, base R for a risk ratio into a proportion (a multiplication),
+# effectsize otherwise.
 conversion_package <- function(from, rule) {
-  if (rule$effect %in% c("d", "dz") && from %in% c("t", "F")) "psych" else "effectsize"
+  if (rule$effect %in% c("d", "dz") && from %in% c("t", "F")) "psych" else
+    if (identical(from, "risk_ratio")) "base" else "effectsize"
 }
 
 # The package a spec's conversion uses, for the provenance (NULL without
-# a conversion, or one validation will refuse).
+# a conversion, for base R, or for one validation will refuse).
 spec_conversion_package <- function(spec) {
   conv <- spec$effect_justification$conversion
   rule <- conversion_templates[[spec$template %||% ""]]
   if (is.null(conv) || is.null(rule) || !is.character(conv$from)) return(NULL)
-  conversion_package(conv$from, rule)
+  package <- conversion_package(conv$from, rule)
+  # Base R is recorded with R's own version already.
+  if (identical(package, "base")) NULL else package
 }
 
 # In validate_spec(), before the schema is checked: when the justification
@@ -184,8 +223,8 @@ apply_conversion <- function(spec) {
   if (is.null(rule) || !(identical(spec$design, "basic_test") || anova)) {
     return(list(spec = spec, problems = paste0(
       "Converting an effect size ('effect_justification > conversion') is available for the one-sample, paired and ",
-      "independent t-tests, the correlation, and ANOVA or ANCOVA given by partial eta-squared ",
-      "('population > metric' \"eta_squared\"), not for this design yet.")))
+      "independent t-tests, the correlation, two proportions (from an odds ratio or a risk ratio), and ANOVA or ",
+      "ANCOVA given by partial eta-squared ('population > metric' \"eta_squared\"), not for this design yet.")))
   }
   if (spec$template %in% eta_squared_mixed_templates && !identical(spec$population$eta_source, "published")) {
     return(list(spec = spec, problems = paste0(
@@ -202,7 +241,8 @@ apply_conversion <- function(spec) {
       "An effect in the outcome's own units ('population > raw') can't also be converted from another form. Give one.")))
   }
   out <- tryCatch(
-    convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, df = conv[["df"]]),
+    convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, df = conv[["df"]],
+      p0 = spec$population$p1),
     powerkit_spec_error = function(e) e
   )
   if (inherits(out, "powerkit_spec_error")) return(list(spec = spec, problems = out$problems %||% conditionMessage(out)))
@@ -222,7 +262,8 @@ apply_conversion <- function(spec) {
 conversion_record <- function(spec) {
   conv <- spec$effect_justification$conversion
   if (is.null(conv$result)) return(NULL)
-  out <- convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, df = conv[["df"]])
+  out <- convert_effect(conv$from, conv$value, spec$template, df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, df = conv[["df"]],
+    p0 = spec$population$p1)
   earlier <- !isTRUE(all.equal(out$value, conv$result, tolerance = 1e-10))
   list(from = conv$from, from_name = conversion_from_names[[conv$from]], value = conv$value,
        df = conv[["df"]], df_error = conv$df_error, n1 = conv$n1, n2 = conv$n2, effect_name = out$effect_name,

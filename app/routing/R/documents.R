@@ -23,8 +23,18 @@ document_css <- "
   table { border-collapse: collapse; margin: 0.75rem 0; font-size: 0.95em; }
   th, td { border: 1px solid #c8c8c8; padding: 0.3rem 0.5rem; text-align: left; vertical-align: top; }
   code { font-size: 0.92em; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.8em; line-height: 1.4; background: #f6f6f6; padding: 0.5rem 0.75rem; }
   .pk-doc-footer { margin-top: 2rem; padding-top: 0.5rem; border-top: 1px solid #c8c8c8; font: 0.8rem/1.4 system-ui, sans-serif; color: #555; }
 "
+
+# Inside <code> elements only, "&amp;lt;" back to "&lt;".
+code_unescape <- function(html) {
+  parts <- regmatches(html, gregexpr("(?s)<code[^>]*>.*?</code>", html, perl = TRUE))[[1]]
+  if (!length(parts)) return(html)
+  fixed <- gsub("&amp;lt;", "&lt;", parts, fixed = TRUE)
+  regmatches(html, gregexpr("(?s)<code[^>]*>.*?</code>", html, perl = TRUE)) <- list(fixed)
+  html
+}
 
 # The page for one document. `markdown`: its lines, the first a "# " title.
 printable_document <- function(markdown, version = NULL) {
@@ -36,6 +46,9 @@ printable_document <- function(markdown, version = NULL) {
   # only Markdown's own links, <https://...>, are left to become links.
   body <- commonmark::markdown_html(gsub("<(?!https?://[^<>[:space:]]+>)", "&lt;", text, perl = TRUE),
     extensions = TRUE, smart = TRUE)
+  # In code, commonmark escapes the "&" of that "&lt;" again; undo that
+  # there, so an R script's "<-" reads as written. It stays escaped.
+  body <- code_unescape(body)
   footer <- sprintf("Made with powerkit%s.", if (is.null(version)) "" else paste0(" ", version))
   paste0(
     "<!DOCTYPE html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">",
@@ -109,7 +122,9 @@ docx_body <- function(markdown) {
           }))
         },
         block_quote = blocks(k, "Quote"),
-        code_block = , html_block = para(run(sub("\n$", "", xml2::xml_text(k)), list(code = TRUE)), style),
+        # One paragraph, its lines kept apart by line breaks.
+        code_block = , html_block = para(paste(vapply(strsplit(sub("\n$", "", xml2::xml_text(k)), "\n", fixed = TRUE)[[1]],
+          run, "", list(code = TRUE)), collapse = "<w:r><w:br/></w:r>"), style),
         thematic_break = '<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="A0A0A0"/></w:pBdr></w:pPr></w:p>',
         blocks(k, style))
     })
@@ -192,6 +207,28 @@ print_document_button <- function(id, label, class = "btn btn-outline-primary") 
   tags$button(type = "button", id = paste0(id, "_button"), class = class,
     onclick = sprintf("pkPrintDocument('%s')", id), label)
 }
+
+# One document in several formats: the PDF as the main button and, beside
+# it, a small menu with the Word and Markdown downloads, so a row of
+# downloads shows one button per thing to take away. `pdf`, `docx`, `md`:
+# the ids (the PDF's as for print_document_button()). The menu items are
+# Shiny download links, so their downloadHandler()s are unchanged.
+document_menu <- function(pdf, docx, md, label, name, class = "btn btn-outline-primary") {
+  menu <- paste0(pdf, "_formats")
+  div(class = "btn-group doc-menu", role = "group", `aria-label` = name,
+    print_document_button(pdf, label, class = class),
+    tags$button(type = "button", id = menu, class = paste(class, "dropdown-toggle dropdown-toggle-split"),
+      `data-bs-toggle` = "dropdown", `aria-expanded` = "false",
+      tags$span(class = "visually-hidden", paste("Other formats:", name))),
+    tags$ul(class = "dropdown-menu", `aria-labelledby` = menu,
+      tags$li(shiny::downloadLink(docx, "Word (.docx)", class = "dropdown-item")),
+      tags$li(shiny::downloadLink(md, "Markdown (.md)", class = "dropdown-item"))))
+}
+
+# The download ids inside the menus, which the server keeps ready while the
+# menu is closed (outputOptions(suspendWhenHidden = FALSE) in app.R).
+document_menu_downloads <- c("download_planning_docx", "download_planning_document",
+  "ws_download_planning_docx", "ws_download_planning_md", "labs_docx", "labs_download", "rep_docx", "rep_markdown")
 
 # Sends a built document to the browser, which prints it from a hidden
 # frame; or a plain-English reason if it can't be built.

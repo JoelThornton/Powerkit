@@ -14,10 +14,11 @@ exact_power_direct <- function(design, n, mu, sd, r = 0, effect = "a:b") {
 test_that("a fixed-n run returns the standard result object", {
   result <- run_spec(small_run_spec("anova_2x2_between", goal = list(type = "power", n = 80)))
   expect_s3_class(result, "powerkit_result")
-  expect_named(result, c("goal_type", "curve", "n_required", "sensitivity", "justified_alpha", "effect_from_units", "safeguard", "small_telescopes", "heterogeneity", "effect_conversion", "recruitment", "clusters", "sem", "bayes", "manova", "type1", "details", "critical_effect", "check_run", "provenance"))
+  expect_named(result, c("goal_type", "curve", "n_required", "sensitivity", "justified_alpha", "effect_from_units", "safeguard", "small_telescopes", "heterogeneity", "effect_conversion", "group_d", "recruitment", "clusters", "sem", "bayes", "manova", "type1", "details", "critical_effect", "check_run", "provenance"))
   expect_null(result$type1) # only interrupted time series report it
   expect_null(result$effect_conversion) # the effect wasn't converted
   expect_identical(result$recruitment, NA) # no attrition given
+  expect_null(result$group_d) # not a mediation run with d
   expect_equal(result$goal_type, "power")
   expect_equal(result$curve, data.frame(n = 80, power = result$curve$power, mcse = 0))
   expect_identical(result$n_required, NA)

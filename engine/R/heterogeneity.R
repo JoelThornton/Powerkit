@@ -3,6 +3,10 @@
 # the same in every study, but varies around the planned effect mu with
 # standard deviation tau (population > tau, in d or d_z units).
 #
+# A correlation follows McShane and Bockenholt (2014, Appendix B,
+# refs.bib McShane2014_river): tau is on Fisher's z scale; see
+# heterogeneity_adjustment_r().
+#
 # Kenny and Judd's formula (their "Power" section and appendix function
 # pow_ad()): with heterogeneity the study's estimate has standard error
 # sqrt(se0^2 + tau^2), where se0 is the usual one (sqrt(4 / N) for two equal
@@ -29,7 +33,12 @@
 # alpha (their "effective alpha"), because each study's own true effect is
 # rarely exactly zero.
 
-heterogeneity_templates <- c("independent_t", "one_sample_t", "paired_t")
+heterogeneity_templates <- c("independent_t", "one_sample_t", "paired_t", "correlation")
+
+# The planned effect: d, d_z for pairs, r for a correlation.
+heterogeneity_effect_field <- function(spec) {
+  switch(spec$template, paired_t = "dz", correlation = "r", "d")
+}
 
 heterogeneity_test <- function(spec) {
   tau <- spec$population$tau
@@ -43,19 +52,22 @@ heterogeneity_problems <- function(spec) {
   # Meta-analysis and mediation have a 'tau' of their own.
   if (is.null(tau) || !identical(spec$design, "basic_test")) return(character())
   if (!isTRUE(spec$template %in% heterogeneity_templates)) {
-    return("How much the effect varies between studies ('population > tau') is available for the t-tests only.")
+    return("How much the effect varies between studies ('population > tau') is available for the t-tests and a correlation only.")
   }
   if (!is.numeric(tau) || length(tau) != 1 || is.na(tau) || tau < 0 || tau > 2) {
-    return("How much the effect varies between studies ('population > tau') must be a standard deviation between 0 and 2, in d.")
+    return("How much the effect varies between studies ('population > tau') must be a standard deviation between 0 and 2 (in d, or on Fisher's z scale for a correlation).")
   }
   if (tau == 0) return(character())
   problems <- character()
   method <- spec$target_test$method %||% ""
-  if (!method %in% c("", "t_test", "student_t", "welch_t")) {
-    problems <- c(problems, "Variation between studies is planned for Student's or Welch's t-test, not for rank tests or Bayes factors.")
+  allowed <- if (identical(spec$template, "correlation")) c("", "pearson") else c("", "t_test", "student_t", "welch_t")
+  if (!method %in% allowed) {
+    problems <- c(problems, if (identical(spec$template, "correlation")) "Variation between studies is planned for Pearson's correlation test, not for rank correlations or Bayes factors."
+      else "Variation between studies is planned for Student's or Welch's t-test, not for rank tests or Bayes factors.")
   }
   if (identical(spec$options$method, "simulation")) {
-    problems <- c(problems, "Variation between studies is worked out by Kenny and Judd's formula; remove 'options > method'.")
+    problems <- c(problems, sprintf("Variation between studies is worked out by %s formula; remove 'options > method'.",
+      if (identical(spec$template, "correlation")) "McShane and Bockenholt's" else "Kenny and Judd's"))
   }
   if (!is.null(spec$population$sd_ratio) && !isTRUE(all.equal(spec$population$sd_ratio, 1))) {
     problems <- c(problems, "Variation between studies is planned for two groups with equal SDs (an SD ratio of 1). Empty 'How much might the true effect vary between studies?', or give equal SDs.")
@@ -83,30 +95,59 @@ heterogeneity_se0 <- function(spec, n) {
 # Kenny and Judd's adjustment at n: q, the effective alpha, and the d
 # that gives pwr their noncentrality.
 heterogeneity_adjustment <- function(spec, n, mu = NULL) {
+  if (identical(spec$template, "correlation")) return(heterogeneity_adjustment_r(spec, n, mu))
   tau <- spec$population$tau
-  mu <- mu %||% if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d
+  mu <- mu %||% spec$population[[heterogeneity_effect_field(spec)]]
   alpha <- spec$target_test$alpha %||% 0.05
   tails <- if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) 2 else 1
   base <- heterogeneity_se0(spec, n)
   q <- base$se / sqrt(base$se^2 + tau^2)
   critical <- q * stats::qt(1 - alpha / tails, base$df)
-  list(q = q, d = q * mu, alpha = tails * stats::pt(critical, base$df, lower.tail = FALSE),
+  list(q = q, effect = q * mu, alpha = tails * stats::pt(critical, base$df, lower.tail = FALSE),
     critical_t = critical, df = base$df)
+}
+
+# A correlation (McShane & Bockenholt, 2014, Appendix B): with
+# heterogeneity the estimate's Fisher z has variance 1 / (n - 3) + tau^2,
+# while the test's critical region is the usual one. pwr.r.test() works on
+# Fisher's z: it compares z_r = atanh(r) + r / (2 (n - 1)) with the
+# critical z_c = atanh(r_c), r_c from the t test's critical value, scaled
+# by sqrt(n - 3). Scaling both by q = se0 / sqrt(se0^2 + tau^2) gives the
+# power with heterogeneity, so pwr.r.test() is given the r whose z_r is
+# q z_r, and the significance level whose z_c is q z_c (the effective
+# alpha, as Kenny and Judd's for t). With tau = 0 both are unchanged.
+heterogeneity_adjustment_r <- function(spec, n, mu = NULL) {
+  tau <- spec$population$tau
+  r <- mu %||% spec$population$r
+  alpha <- spec$target_test$alpha %||% 0.05
+  tails <- if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) 2 else 1
+  df <- n - 2
+  se0 <- 1 / sqrt(n - 3)
+  q <- se0 / sqrt(se0^2 + tau^2)
+  z_of <- function(x) atanh(x) + x / (2 * (n - 1))
+  ttt <- stats::qt(alpha / tails, df, lower.tail = FALSE)
+  zc <- atanh(sqrt(ttt^2 / (ttt^2 + df)))
+  rc <- tanh(q * zc)
+  critical <- sqrt(df * rc^2 / (1 - rc^2))
+  target <- q * z_of(r)
+  adjusted <- if (abs(target) < 1e-12) 0 else
+    stats::uniroot(function(x) z_of(x) - target, sort(c(0, sign(target) * (1 - 1e-12))), tol = 1e-12)$root
+  list(q = q, effect = adjusted, alpha = tails * stats::pt(critical, df, lower.tail = FALSE), critical_t = critical, df = df)
 }
 
 heterogeneity_backend <- function(spec, seed = NULL) {
   student <- spec
-  student$target_test$method <- if (identical(spec$template, "independent_t")) "student_t" else "t_test"
+  student$target_test$method <- switch(spec$template, independent_t = "student_t", correlation = "pearson", "t_test")
   inputs <- pwr_inputs(student)
   base_args <- inputs$args
-  effect_field <- if (identical(spec$template, "paired_t")) "dz" else "d"
+  effect_field <- heterogeneity_effect_field(spec)
   power_with <- function(n, mu = NULL) {
     a <- heterogeneity_adjustment(spec, n, mu)
     adjusted <- inputs
     adjusted$alpha <- a$alpha
     adjusted$args <- function(m) {
       args <- base_args(m)
-      args$d <- a$d
+      args[[if (identical(spec$template, "correlation")) "r" else "d"]] <- a$effect
       args
     }
     pwr_power(adjusted, n)
@@ -118,8 +159,13 @@ heterogeneity_backend <- function(spec, seed = NULL) {
     packages = "pwr",
     methods = "exact",
     default_method = "exact",
-    functions = c(exact = sprintf("%s::%s with Kenny and Judd's (2019) adjustment for variation between studies (tau = %s): sig.level = the effective alpha, d = q * %s",
-      inputs$package, inputs$fun, format(spec$population$tau), effect_field)),
+    functions = c(exact = if (identical(spec$template, "correlation")) {
+      sprintf("%s::%s with McShane and Bockenholt's (2014) variation between studies (tau = %s on Fisher's z): sig.level = the effective alpha, r with Fisher's z scaled by q",
+        inputs$package, inputs$fun, format(spec$population$tau))
+    } else {
+      sprintf("%s::%s with Kenny and Judd's (2019) adjustment for variation between studies (tau = %s): sig.level = the effective alpha, d = q * %s",
+        inputs$package, inputs$fun, format(spec$population$tau), effect_field)
+    }),
     n_step = step,
     exact_min_n = step * ceiling(max(minimum_n(spec), 4) / step),
     exact_power = power_at,
@@ -133,15 +179,17 @@ heterogeneity_backend <- function(spec, seed = NULL) {
 }
 
 heterogeneity_sensitivity <- function(spec, n, target, power_with) {
-  specified <- if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d
+  r <- identical(spec$template, "correlation")
+  specified <- spec$population[[heterogeneity_effect_field(spec)]]
   sign <- if (identical(spec$target_test$alternative, "less") || isTRUE(specified < 0)) -1 else 1
+  top <- if (r) 0.999 else 5
   f <- function(mu) power_with(n, sign * mu) - target
-  if (f(5) < 0) {
-    abort_run("No average effect up to 5 reaches the target power at this n with this much variation between studies.")
+  if (f(top) < 0) {
+    abort_run(sprintf("No average effect up to %s reaches the target power at this n with this much variation between studies.", top))
   }
-  found <- stats::uniroot(f, c(1e-6, 5), tol = 1e-8)$root
-  list(effect = sign * found, effect_name = if (identical(spec$template, "paired_t")) "d_z" else "d",
-    effect_description = "the average effect between studies, as Cohen's d (d_z for pairs)",
+  found <- stats::uniroot(f, c(1e-6, top), tol = 1e-8)$root
+  list(effect = sign * found, effect_name = switch(spec$template, paired_t = "d_z", correlation = "r", "d"),
+    effect_description = if (r) "the average correlation between studies" else "the average effect between studies, as Cohen's d (d_z for pairs)",
     power = power_with(n, sign * found))
 }
 
@@ -150,6 +198,47 @@ heterogeneity_sensitivity <- function(spec, n, target, power_with) {
 # and the power with no variation, for comparison.
 heterogeneity_record <- function(spec, n = NULL) {
   if (!heterogeneity_test(spec) || is.null(n) || !is.numeric(n) || is.na(n)) return(NULL)
+  record <- heterogeneity_record_at(spec, n)
+  # What the range gives: the goal's own answer.
+  record$range <- heterogeneity_range(spec, n)
+  record$range_goal <- spec$goal$type
+  record
+}
+
+# Small, medium and large variation: Kenny and Judd's (2019) 25% of a
+# small, medium and large effect, d = 0.2, 0.5 and 0.8 (0.05, 0.125 and
+# 0.20, their values) or r = .1, .3 and .5 (0.025, 0.075 and 0.125, close
+# to Fisher's z for these sizes).
+heterogeneity_levels <- function(spec) {
+  values <- if (identical(spec$template, "correlation")) c(0.025, 0.075, 0.125) else c(0.05, 0.125, 0.20)
+  c(none = 0, small = values[1], medium = values[2], large = values[3])
+}
+
+# The result's range: the goal's answer (power, the sample size or the
+# smallest detectable average effect) with no, small, medium and large
+# variation and with the value entered, so the cost of the assumption is
+# shown rather than one answer that hides it.
+heterogeneity_range <- function(spec, n) {
+  levels <- heterogeneity_levels(spec)
+  tau <- spec$population$tau
+  if (!any(abs(levels - tau) < 1e-12)) levels <- c(levels, entered = tau)
+  levels <- sort(levels)
+  goal <- spec$goal
+  rows <- lapply(names(levels), function(name) {
+    s <- spec
+    s$population$tau <- levels[[name]]
+    backend <- heterogeneity_backend(s)
+    value <- tryCatch(switch(goal$type,
+      power = backend$exact_power(n),
+      sample_size = search_n_exact(s, backend, goal$power)$n_required$n,
+      sensitivity = backend$sensitivity(n, goal$power)$effect,
+      NA_real_), powerkit_run_error = function(e) NA_real_)
+    data.frame(level = name, tau = levels[[name]], entered = abs(levels[[name]] - tau) < 1e-12, value = value)
+  })
+  do.call(rbind, rows)
+}
+
+heterogeneity_record_at <- function(spec, n) {
   a <- heterogeneity_adjustment(spec, n)
   usual <- spec
   usual$population$tau <- NULL
@@ -157,11 +246,13 @@ heterogeneity_record <- function(spec, n = NULL) {
   inputs <- pwr_inputs(usual)
   list(tau = spec$population$tau, effective_alpha = a$alpha, q = a$q,
     power = heterogeneity_backend(spec)$exact_power(n), power_without = pwr_power(inputs, n), n = n,
-    source = "Kenny & Judd (2019)")
+    scale = if (identical(spec$template, "correlation")) "Fisher's z" else "d",
+    source = if (identical(spec$template, "correlation")) "McShane & Bockenholt (2014)" else "Kenny & Judd (2019)")
 }
 
 # The R script: pwr with Kenny and Judd's adjustment, as above.
 heterogeneity_script <- function(spec, result) {
+  if (identical(spec$template, "correlation")) return(heterogeneity_script_r(spec, result))
   two <- identical(spec$template, "independent_t")
   ratio <- spec$options$allocation_ratio %||% 1
   mu <- if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d
@@ -189,5 +280,26 @@ heterogeneity_script <- function(spec, result) {
     "q <- se0 / sqrt(se0^2 + tau^2)",
     sprintf("effective_alpha <- %s * pt(q * qt(1 - alpha / %s, df), df, lower.tail = FALSE)", tails, tails),
     call
+  )
+}
+
+heterogeneity_script_r <- function(spec, result) {
+  alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
+  tails <- if (identical(alternative, "two.sided")) 2 else 1
+  n <- spec$goal$n %||% result$n_required$n
+  c(
+    "# A correlation when the true correlation varies between studies (McShane & Bockenholt, 2014):",
+    "# pwr.r.test() given the r and significance level that scale its Fisher's z by q.",
+    sprintf("r <- %s     # the average correlation", format(spec$population$r)),
+    sprintf("tau <- %s   # its SD between studies, on Fisher's z", format(spec$population$tau)),
+    sprintf("alpha <- %s", format(spec$target_test$alpha %||% 0.05)),
+    sprintf("n <- %s", format(n)),
+    "q <- (1 / sqrt(n - 3)) / sqrt(1 / (n - 3) + tau^2)",
+    "z_of <- function(x) atanh(x) + x / (2 * (n - 1))   # pwr.r.test()'s Fisher z",
+    sprintf("ttt <- qt(alpha / %s, n - 2, lower.tail = FALSE)", tails),
+    "rc <- tanh(q * atanh(sqrt(ttt^2 / (ttt^2 + n - 2))))",
+    sprintf("effective_alpha <- %s * pt(sqrt((n - 2) * rc^2 / (1 - rc^2)), n - 2, lower.tail = FALSE)", tails),
+    "r_adjusted <- uniroot(function(x) z_of(x) - q * z_of(r), sort(c(0, sign(r) * (1 - 1e-12))), tol = 1e-12)$root",
+    sprintf("pwr::pwr.r.test(n = n, r = r_adjusted, sig.level = effective_alpha, alternative = \"%s\")$power", alternative)
   )
 }

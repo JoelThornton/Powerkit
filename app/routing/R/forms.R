@@ -119,6 +119,32 @@ names_group <- function(form, k) {
 # `k` is the number of mediators (parallel and serial mediation only).
 # `start`: the answers to screen A (situation, aim, claim), which set the
 # goal's starting choice and add the claim's questions.
+# The Bayes factor threshold starts empty (8 November 2026), as target
+# power does: after it, an optional reason for the write-up, shown with it.
+with_threshold_reason <- function(g) {
+  at <- which(vapply(g$fields, function(f) identical(f$id, "evidence_threshold"), logical(1)))
+  if (!length(at)) return(g)
+  reason <- list(id = "evidence_reason", label = "Why this threshold", type = "text", optional = TRUE,
+    help = "Goes in the write-up; for example \"30, because the claim contradicts an established finding\".",
+    shown_if = g$fields[[at]]$shown_if)
+  g$fields <- append(g$fields, list(reason), after = at)
+  g
+}
+
+# The analysis prior keeps its software's default, with a short question
+# beside it (8 November 2026): a default prior is a convention, so the
+# user is asked whether it fits their field.
+prior_ids <- c("prior_scale", "prior_width", "prior_concentration", "prior_a")
+prior_prompt <- paste("Does this default fit your field? It is the software's convention, not evidence about your effect.",
+  "If what is known in your area points to another prior, enter the one you will analyse with, and say why in your analysis plan.")
+with_prior_prompt <- function(g) {
+  g$fields <- lapply(g$fields, function(f) {
+    if (isTRUE(f$id %in% prior_ids)) f$prompt <- prior_prompt
+    f
+  })
+  g
+}
+
 form_groups <- function(forms, ep_id, k = 2, start = list()) {
   form <- forms$forms[[ep_id]]
   # A number of mediators not offered (e.g. from an older project file) is
@@ -139,7 +165,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
       })
       if (has_effect) g$note <- form$sensitivity_note %||% "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
     }
-    with_conversion(with_eta_squared(g, form$base$template), form$base$template)
+    with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })
   if (!is.null(form$mediators)) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
@@ -375,10 +401,22 @@ precision_goal_fields <- function(tool) {
     list(id = "width", writeup_label = "interval width", label = "Target interval width (upper limit minus lower, in the estimate's own units)",
          help = "For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
          type = "number", path = "goal.width", needed_for = "precision_n", min_exclusive = 0),
-    list(id = "assurance", label = "Chance that the interval is no wider than that (optional)",
-         help = "Left empty, planning targets the interval's expected (average) width; it does not set the chance that your interval will be narrow enough. With 0.8, planning targets an 80% chance of an interval no wider than your target, under the population you specify (MBESS's assurance). Only for d, standardised means and regression coefficients (MBESS).",
-         type = "number", path = "goal.assurance", optional = TRUE, min_exclusive = 0.5, max_exclusive = 1,
+    # Assurance by default on MBESS's routes (8 November 2026; Departure
+    # 25): an interval as narrow as planned only on average is wider than
+    # planned in about half of studies. Its value starts empty, as target
+    # power does.
+    list(id = "width_target", label = "What should the target width promise?", type = "select", required = TRUE,
+         choices = list(assurance = "A chance that my interval is no wider than this (assurance)",
+           expected = "Only that the interval is this wide on average (MBESS's default)"),
+         default = "assurance", default_source = "a stated chance of an interval narrow enough; on average, about half of intervals are wider than planned",
          shown_if = list(list(field = "goal", is = "precision_n"), mbess)),
+    list(id = "assurance", label = "Chance that the interval is no wider than that (assurance)",
+         help = "As a proportion, for example 0.9: planning then targets a 90% chance of an interval no wider than your target, under the population you specify (MBESS's assurance). Like target power, it is your choice to justify; the result compares 80%, 90% and 95%.",
+         type = "number", path = "goal.assurance", required = TRUE, min_exclusive = 0.5, max_exclusive = 1,
+         shown_if = list(list(field = "goal", is = "precision_n"), mbess, list(field = "width_target", is = "assurance"))),
+    list(id = "assurance_reason", label = "Why this chance", help = "Goes in the write-up; for example \"90% because a second study to narrow the interval is not affordable\".",
+         type = "text", optional = TRUE,
+         shown_if = list(list(field = "goal", is = "precision_n"), mbess, list(field = "width_target", is = "assurance"))),
     list(id = "n", label = "Number of participants analysed (in total; pairs for paired data)",
          type = "number", path = "goal.n", needed_for = "precision_width", min = 3, integer = TRUE),
     list(id = "conf_level", label = "Confidence level", help = "As a proportion, for example 0.95 for a 95% interval.", type = "number",
@@ -449,11 +487,16 @@ closing_groups <- function(forms, ep_id, start = list()) {
          choices = list(minimize = "Make their weighted total as small as possible", balance = "Make the weighted errors equal"),
          default = "minimize", shown_for_goals = "justified_alpha", optional = TRUE),
     list(id = "alpha", label = "Significance level (alpha)", help = "The planned false-positive rate under the test's null assumptions, not the probability your conclusion is wrong. A smaller alpha requires stronger evidence, and usually a larger sample for the same power.", type = "number", path = "target_test.alpha", required = TRUE,
-         min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]], shown_if = no_bayes),
-    # Shown only when alpha is changed from its default (decided 18 October
-    # 2026, judgement call G8); goes in the write-up.
+         # Empty on every card (8 November 2026), as target power is: one
+         # click gives the usual level, so choosing it is the user's act.
+         min_exclusive = 0, max = 0.5, default = NULL, usual = tool[["alpha"]] %||% 0.05,
+         usual_label = sprintf("Use %s, the usual level", format(tool[["alpha"]] %||% 0.05)),
+         default_source = sprintf("Empty on every card: choose the level your claim needs; %s is the usual one, %s", format(tool[["alpha"]] %||% 0.05),
+           tool[["alpha_source"]]), shown_if = no_bayes),
+    # Goes in the write-up when given (8 November 2026: asked whatever the
+    # level, and optional).
     list(id = "alpha_reason", label = "Why this significance level", help = "Goes in the write-up; for example \"the claim is new, so stronger evidence is wanted\".",
-         type = "text", optional = TRUE, shown_if = c(list(list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05))), if (!is.null(no_bayes)) list(no_bayes)))
+         type = "text", optional = TRUE, shown_if = no_bayes)
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
   # No significance test (latent profiles: the BIC chooses the number of
@@ -572,27 +615,45 @@ safeguard_fields <- function(template) {
          default_source = "Perugini, Gallucci & Costantini (2014)", shown_if = using)))
 }
 
-# Effects that vary between studies (Kenny & Judd, 2019), for the
-# t-tests: the SD of the true effect around the one planned for, which
-# then is the average effect. Starts at Kenny and Judd's small 0.05
-# (Departure 23); empty or 0 is the usual analysis.
-heterogeneity_field_templates <- c("independent_t", "one_sample_t", "paired_t")
+# Effects that vary between studies, for the t-tests (Kenny & Judd, 2019)
+# and a Pearson correlation (McShane & Bockenholt, 2014, on Fisher's z):
+# the SD of the true effect around the one planned for, which then is the
+# average effect. The t-tests start at Kenny and Judd's small 0.05 in d
+# (Departure 23), the correlation at 0.025, their rule of 25% of a small
+# effect applied to r = .1 (Departure 24); empty or 0 is the usual
+# analysis.
+heterogeneity_field_templates <- c("independent_t", "one_sample_t", "paired_t", "correlation")
 
 heterogeneity_fields <- function(template) {
   if (!isTRUE(template %in% heterogeneity_field_templates)) return(list())
+  # The formulas are for the test by formula, for power, the sample size
+  # or the smallest detectable effect.
+  common <- list(list(field = "sg_use", is_not = "telescopes"),
+    list(field = "calc_method", is_not = "simulation"), list(field = "welch_method", is_not = "simulation"),
+    list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))
+  if (identical(template, "correlation")) {
+    return(list(list(id = "het_tau", label = "How much might the true correlation vary between studies? (as an SD on Fisher's z)",
+      type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.025,
+      default_source = "Kenny and Judd's (2019) rule for small variation, 25% of a small effect, applied to a correlation of .1: they argue zero should not be the default",
+      help = paste("Labs, samples, materials and procedures differ, so a study's true correlation can differ from the one you plan for.",
+        "This is its SD between studies on Fisher's z scale, which is close to r for small values. Kenny and Judd (2019) take",
+        "25% of a small, medium and large effect as small, medium and large variation; for r = .1, .3 and .5 that is about",
+        "0.025, 0.075 and 0.125. The correlation above is then the average across studies (McShane & Bockenholt, 2014).",
+        "If a meta-analysis of this correlation reports how much it varies (tau, on Fisher's z), use that instead.",
+        "Empty or 0 plans for the same correlation in every study, as G*Power and most power analyses do. The results show",
+        "the answer with no, small, medium and large variation."),
+      shown_if = c(list(list(field = "method", is = "pearson")), common))))
+  }
   list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
     type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.05,
     default_source = "Kenny and Judd's (2019) small variation between studies: they argue zero should not be the default",
     help = paste("Labs, samples, materials and procedures differ, so a study's true effect can differ from the one you plan for.",
       "Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 as small, medium and large variation, and argue that zero",
-      "should not be the default. The effect above is then the average across studies. Empty or 0 plans for the same effect",
-      "in every study, as G*Power and most power analyses do. It needs equal SDs in the two groups."),
-    # Kenny and Judd's formula is for the t-test by formula, for power,
-    # the sample size or the smallest detectable effect.
-    shown_if = list(list(field = "sg_use", is_not = "telescopes"),
-      list(field = "method", is_one_of = c("t_test", "student_t", "welch_t")),
-      list(field = "calc_method", is_not = "simulation"), list(field = "welch_method", is_not = "simulation"),
-      list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))))
+      "should not be the default. If a meta-analysis of this effect reports how much it varies (tau, in d), use that instead.",
+      "The effect above is then the average across studies. Empty or 0 plans for the same effect in every study, as G*Power",
+      "and most power analyses do. The results show the answer with no, small, medium and large variation.",
+      "It needs equal SDs in the two groups."),
+    shown_if = c(list(list(field = "method", is_one_of = c("t_test", "student_t", "welch_t"))), common)))
 }
 
 # ANOVA and ANCOVA by its effect size: the "Units of the means"
@@ -688,13 +749,14 @@ conversion_choices <- list(
   factorial_ancova = c("F", "f"),
   oneway_within = "F",
   "2x2_mixed" = "F",
-  mixed = "F"
+  mixed = "F",
+  two_proportions = c("odds_ratio", "risk_ratio")
 )
 
 conversion_labels <- list(
   t = "A t statistic", F = "An F statistic with one numerator df (two groups or two conditions)",
   r = "A correlation r", d = "Cohen's d (two groups)", odds_ratio = "An odds ratio",
-  f = "Cohen's f"
+  f = "Cohen's f", risk_ratio = "A risk ratio"
 )
 
 # `when`: the effect field's own conditions (for example, not while the
@@ -703,6 +765,11 @@ conversion_fields <- function(template, when = list()) {
   from <- conversion_choices[[template]]
   labels <- conversion_labels[from]
   if (isTRUE(template %in% eta_squared_templates)) labels$F <- "An F statistic, with its two degrees of freedom"
+  proportions <- identical(template, "two_proportions")
+  if (proportions) {
+    labels$odds_ratio <- "An odds ratio (group 2's odds of 'yes' over group 1's), with group 1's proportion above"
+    labels$risk_ratio <- "A risk ratio (group 2's proportion over group 1's), with group 1's proportion above"
+  }
   choices <- c(list(none = "No: I'll enter the effect size myself"), labels)
   sets <- stats::setNames(lapply(from, function(x) list(list(path = "effect_justification.conversion.from", value = x))), from)
   planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size"))),
@@ -724,7 +791,11 @@ conversion_fields <- function(template, when = list()) {
   c(Filter(Negate(is.null), list(
     list(id = "conv_from", label = "Is your effect size published in another form?", type = "select", default = "none",
          choices = choices, sets = sets, shown_if = planning,
-         help = paste("powerkit converts it with the psych package (a t or F statistic, by the formula in Lakens, 2013) or the",
+         help = if (proportions) paste(
+           "powerkit works out group 2's proportion from the ratio and group 1's proportion (an odds ratio with the effectsize",
+           "package, Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result. An odds ratio from a logistic regression",
+           "with covariates is a conditional one, usually further from 1 than the two groups' raw odds ratio. Published effects",
+           "tend to be larger than the true effect: say how you adjusted it.") else paste("powerkit converts it with the psych package (a t or F statistic, by the formula in Lakens, 2013) or the",
                       "effectsize package (Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result and the function used. Published effects",
                       "tend to be larger than the true effect: say how you adjusted it, or use safeguard power below if it comes",
                       "from one study.")),
@@ -746,7 +817,7 @@ with_conversion <- function(group, template) {
   # A field marked no_conversion (the two-group card's point-biserial r)
   # is another way to give the effect, not the one a conversion fills.
   at <- which(vapply(group$fields, function(f) isTRUE(f$effect) && !isTRUE(f$no_conversion) &&
-    grepl("^population\\.(d|dz|r|eta_squared)$", f$path %||% ""), logical(1)))
+    grepl("^population\\.(d|dz|r|eta_squared|p2)$", f$path %||% ""), logical(1)))
   if (length(at) != 1) return(group)
   effect <- group$fields[[at]]
   when <- shown_if_conditions(effect)
