@@ -1,3 +1,16 @@
+# powerkit 0.55.0
+
+* Two-level and three-level models with predictors at each level
+  (`mixed_model` / `two_level`) can test several effects together for joint
+  power: `target_test > effect` `"within_and_interaction"` (X's effect and
+  the cross-level interaction), `"both_interactions"` (X's interactions with
+  W and with Z; three levels only) and `"all_effects"` (every fixed effect).
+  Each effect gets simr's own `fixed()` test on the same fitted model, and a
+  data set counts as significant only when every one is (the largest of their
+  p-values against alpha). The exported script runs the same test, a sample
+  size search needs every effect non-zero, and the validation file checks
+  joint power against the independent lmerTest simulation.
+
 # powerkit 0.54.0
 
 * Mediation with a two-group X (simple mediation, `process_4`, and the

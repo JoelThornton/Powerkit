@@ -1657,12 +1657,18 @@ forms:
              help: "The total number of people is then a whole number of larger groups."}
           - {id: two_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              shown_if: {field: in_sites, is: "no"},
-             choices: {cross_level_interaction: "The cross-level interaction: does X's effect depend on W?", within_effect: "X's effect within groups", between_effect: "W's effect between groups"},
+             choices: {cross_level_interaction: "The cross-level interaction: does X's effect depend on W?", within_effect: "X's effect within groups", between_effect: "W's effect between groups",
+                       within_and_interaction: "Both X's effect and the cross-level interaction significant in the same study (joint power)",
+                       all_effects: "All three effects significant in the same study (joint power)"},
+             help: "Joint power is the chance that every effect named is significant in the same study, when the claim needs all of them. It is lower than each effect's own power.",
              default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
           - {id: three_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
              shown_if: {field: in_sites, is: "yes"},
              choices: {cross_level_interaction: "X's interaction with W: does X's effect depend on the group?", site_interaction: "X's interaction with Z: does X's effect depend on the larger group?",
-                       within_effect: "X's effect within groups", between_effect: "W's effect between groups", site_effect: "Z's effect between larger groups"},
+                       within_effect: "X's effect within groups", between_effect: "W's effect between groups", site_effect: "Z's effect between larger groups",
+                       both_interactions: "Both of X's interactions, with W and with Z, significant in the same study (joint power)",
+                       within_and_interaction: "X's effect and its interaction with W, both significant in the same study (joint power)",
+                       all_effects: "All five effects significant in the same study (joint power)"},
              default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
 
   E11:

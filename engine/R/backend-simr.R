@@ -31,7 +31,7 @@ simr_backend <- function(spec, seed = NULL) {
     packages = c("simr", "lme4", "lmerTest"),
     methods = "simulation",
     default_method = "simulation",
-    functions = c(simulation = if (conditions) sprintf("simr::powerSim with %s", inputs$test_label) else
+    functions = c(simulation = if (!is.null(inputs$test_label)) sprintf("simr::powerSim with %s", inputs$test_label) else
       sprintf("simr::powerSim with simr::fixed(\"%s\", \"%s\")", inputs$term %||% "cond", inputs$method %||% "sa")),
     n_step = if (isTRUE(inputs$vary_items)) (if (inputs$within) 1 else 2) else if (two_level) inputs$unit_size else if (three) inputs$site_size * if (identical(inputs$level, "site")) 2 else 1 else 1,
     exact_min_n = minimum_n(spec),
@@ -292,22 +292,48 @@ two_level_inputs <- function(spec) {
   } else {
     list(group = group)
   }
+  method <- switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr")
+  terms <- two_level_terms(spec$target_test$effect, three)
   list(
     formula = stats::as.formula(formula, env = globalenv()),
     binary = binary,
     three = three,
-    method = switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"),
+    method = method,
     fixef = c(if (binary) stats::qlogis(pop$probability) else 0, pop$b_X, pop$b_W, if (three) pop$b_Z, pop$b_XW, if (three) pop$b_XZ),
     VarCorr = var_corr,
     sigma = if (!binary) pop$sd_residual,
     cluster_size = pop$cluster_size,
     groups_per_site = pop$groups_per_site,
     unit_size = pop$cluster_size * (pop$groups_per_site %||% 1),
-    term = switch(spec$target_test$effect, within_effect = "x", between_effect = "w", site_effect = "z",
-      cross_level_interaction = "x:w", site_interaction = "x:z"),
+    term = if (length(terms) == 1) terms,
+    terms = terms,
+    test_label = if (length(terms) > 1) paste0(paste(sprintf("simr::fixed(\"%s\", \"%s\")", terms, method), collapse = " and "),
+      " (joint power: all significant in the same study)"),
+    test = two_level_test(terms, method),
     design = two_level_design,
     alpha = spec$target_test$alpha
   )
+}
+
+# The model terms an effect choice tests. Several terms (8 November 2026)
+# are tested together for joint power: the chance that every one is
+# significant in the same study, as the dyadic card offers.
+two_level_terms <- function(effect, three = FALSE) {
+  switch(effect, within_effect = "x", between_effect = "w", site_effect = "z",
+    cross_level_interaction = "x:w", site_interaction = "x:z",
+    within_and_interaction = c("x", "x:w"), both_interactions = c("x:w", "x:z"),
+    all_effects = c("x", "w", if (three) "z", "x:w", if (three) "x:z"))
+}
+
+# The test for powerSim(): simr's own fixed() test for one term. For
+# several, the largest of their p-values from the same test and fitted
+# model, so that a data set counts as significant only when every term's
+# test is (all the tests are two-sided at the same alpha); a test that
+# fails (NA) counts as not significant, as powerSim() counts one term's.
+two_level_test <- function(terms, method) {
+  tests <- lapply(terms, simr::fixed, method = method)
+  if (length(tests) == 1) return(tests[[1]])
+  function(fit) max(vapply(tests, function(test) as.numeric(test(fit)), numeric(1)))
 }
 
 # One data set's design: n people in n / cluster_size groups (and, with
@@ -401,8 +427,10 @@ two_level_script <- function(spec, result) {
   three <- isTRUE(inputs$three)
   scale <- if (binary) " (log odds)" else ""
   site_slope <- three && length(inputs$VarCorr$site) > 1
+  joint <- length(inputs$terms) > 1
   c(
-    script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"%s\", \"%s\")", inputs$term, inputs$method)),
+    script_header(spec, result, "simr", if (joint) sprintf("simr::powerSim() with %s", inputs$test_label) else
+      sprintf("simr::powerSim() with fixed(\"%s\", \"%s\")", inputs$term, inputs$method)),
     "library(simr)",
     if (binary) sprintf("# A yes/no outcome: a logistic mixed model (glmer), tested by %s.",
       if (identical(inputs$method, "lr")) "the likelihood ratio (simr's method \"lr\")" else "glmer's Wald z test (simr's method \"z\")") else
@@ -427,7 +455,8 @@ two_level_script <- function(spec, result) {
     if (!binary) sprintf("sd_residual <- %s # residual SD", r_code(pop$sd_residual)),
     sprintf("cluster_size <- %s # people in each group", r_code(pop$cluster_size)),
     if (three) sprintf("groups_per_site <- %s # groups in each site", r_code(pop$groups_per_site)),
-    sprintf("term <- %s # the effect tested", r_code(inputs$term)),
+    if (joint) sprintf("terms <- %s # the effects tested together: all must be significant", r_code(inputs$terms)) else
+      sprintf("term <- %s # the effect tested", r_code(inputs$term)),
     goal_inputs(spec, result),
     "",
     "# One data set's design: x takes the same evenly spread standard normal",
@@ -475,8 +504,16 @@ two_level_script <- function(spec, result) {
     "",
     "# One batch of simulated data sets: significant results and data sets.",
     "# simr counts a data set whose fit or test fails as not significant.",
+    if (joint) {
+      c("# Joint power: each effect's own test on the same fitted model, and the",
+        "# largest p-value, so a data set counts only when every effect is significant.",
+        sprintf("tests <- lapply(terms, fixed, method = \"%s\")", inputs$method),
+        "test_all <- function(fit) max(vapply(tests, function(test) as.numeric(test(fit)), numeric(1)))",
+        "")
+    },
     "run_batch <- function(batch_n, batch_replications, batch_seed) {",
-    sprintf("  result <- powerSim(model_for(batch_n), test = fixed(term, \"%s\"),", inputs$method),
+    if (joint) "  result <- powerSim(model_for(batch_n), test = test_all," else
+      sprintf("  result <- powerSim(model_for(batch_n), test = fixed(term, \"%s\"),", inputs$method),
     "    nsim = batch_replications, alpha = alpha, seed = batch_seed, progress = FALSE)",
     "  c(result$x, result$n)",
     "}",

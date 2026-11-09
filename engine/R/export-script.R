@@ -606,7 +606,10 @@ design_description <- function(spec) {
       if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else "",
       switch(spec$target_test$effect, within_effect = sprintf("%s within groups", label("X")),
         between_effect = sprintf("%s between groups", label("W")), cross_level_interaction = "the cross-level interaction",
-        site_effect = sprintf("%s between sites", label("Z")), site_interaction = sprintf("the interaction of %s with %s", label("X"), label("Z")))
+        site_effect = sprintf("%s between sites", label("Z")), site_interaction = sprintf("the interaction of %s with %s", label("X"), label("Z")),
+        within_and_interaction = sprintf("%s within groups and the cross-level interaction, both significant in the same study (joint power)", label("X")),
+        both_interactions = sprintf("the interactions of %s with %s and with %s, both significant in the same study (joint power)", label("X"), label("W"), label("Z")),
+        all_effects = "every effect in the model, all significant in the same study (joint power)")
     ),
     "regression_interaction/three_way" = sprintf(
       "three-way regression interaction: does the interaction of %s (X) and %s (W) on %s (Y) depend on %s (Z)?",

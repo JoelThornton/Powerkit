@@ -7,6 +7,14 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-09"
+    title: "People in groups: joint power for several effects"
+    text: >-
+      On the card for people in groups with predictors at each level, you
+      can now plan for several effects at once, such as X's effect and the
+      cross-level interaction. The power is then the chance that every
+      effect named is significant in the same study, worked out from the
+      same simulated data sets.
   - date: "2026-11-08"
     title: "Mediation with two groups: effects as Cohen's d"
     text: >-
