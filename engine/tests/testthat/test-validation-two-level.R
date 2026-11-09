@@ -8,6 +8,7 @@
 #      its Satterthwaite t test, without simr
 #   2. published examples: a placeholder, for the maintainer
 #   3. Type I error, for each effect
+#   4. joint power, against the same independent simulation
 # Mixed models are slow to fit, so these use 2,000 replications rather
 # than validation_nrep(), as for E33.
 # Expected values below are owned by the maintainer: do not edit them.
@@ -50,7 +51,7 @@ two_level_by_hand <- function(population, term, n, nrep, seed) {
     data$y <- with(population, b_X * data$x + b_W * data$w + b_XW * data$x * data$w +
       u[g, 1] + u[g, 2] * data$x + stats::rnorm(n, 0, sd_residual))
     fit <- suppressMessages(suppressWarnings(lmerTest::lmer(y ~ x + w + x:w + (1 + x | group), data = data)))
-    summary(fit)$coefficients[term, "Pr(>|t|)"] < 0.05
+    all(summary(fit)$coefficients[term, "Pr(>|t|)"] < 0.05)
   }, logical(1)))
 }
 
@@ -61,6 +62,20 @@ for (case in list(c("within_effect", "x"), c("between_effect", "w"), c("cross_le
     skip_if_not_installed("lmerTest")
     reference <- two_level_by_hand(two_level_population, case[2], n = 300, nrep = two_level_reps, seed = 4101)
     spec <- two_level_validation_spec(two_level_population, case[1], seed = 4102, n = 300)
+    expect_power_near(engine_power(spec), reference, reference_nrep = two_level_reps)
+  })
+}
+
+# Joint power (8 November 2026): the share of data sets in which every
+# effect named is significant, each by its own Satterthwaite t test on the
+# same fit, in the independent simulation as in powerkit.
+for (case in list(list("within_and_interaction", c("x", "x:w")), list("all_effects", c("x", "w", "x:w")))) {
+  test_that(sprintf("two levels, joint power (%s): agrees with an independent simulation (analytic)", case[[1]]), {
+    skip_unless_full_validation()
+    skip_if_not_installed("MASS")
+    skip_if_not_installed("lmerTest")
+    reference <- two_level_by_hand(two_level_population, case[[2]], n = 300, nrep = two_level_reps, seed = 4105)
+    spec <- two_level_validation_spec(two_level_population, case[[1]], seed = 4106, n = 300)
     expect_power_near(engine_power(spec), reference, reference_nrep = two_level_reps)
   })
 }

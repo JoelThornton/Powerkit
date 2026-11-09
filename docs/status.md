@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 8 November 2026 (powerkit 0.54.0). Where the project is
+*Last updated: 9 November 2026 (powerkit 0.55.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -33,14 +33,15 @@ rules are in `CLAUDE.md`.
   release"). A check of every review finding against what merged
   (8 November) found a few left: the small ones are fixed, and the
   larger ones are in `next.md`; two proportions now take a published
-  odds ratio or risk ratio, and mediation with two groups takes X's
-  effects as Cohen's d. Effects that vary between
+  odds ratio or risk ratio, mediation with two groups takes X's
+  effects as Cohen's d, and the card for people in groups offers joint
+  power for several effects (9 November). Effects that vary between
   studies are on the t-test and correlation cards, with a table of the
   answer at no, small, medium and large variation, and an opt-in Bayes
   mode is on the start screen, with Bayes factor write-ups worded as
   design analyses and a write-up for plans that report a p-value and a
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
-  Bayes mode (item 19) waits on a decision.
+  Bayes mode (item 18) waits on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point

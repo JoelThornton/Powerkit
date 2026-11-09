@@ -1091,7 +1091,7 @@ check_two_level <- function(spec) {
       problems <- c(problems, sprintf("%s only apply when the groups are in sites: give 'population > groups_per_site', or remove them.",
         paste(sprintf("'population > %s'", extra), collapse = ", ")))
     }
-    if (spec$target_test$effect %in% c("site_effect", "site_interaction")) {
+    if (spec$target_test$effect %in% c("site_effect", "site_interaction", "both_interactions")) {
       problems <- c(problems, sprintf("'target_test > effect' \"%s\" needs the groups in sites: give 'population > groups_per_site' and the site's predictor.",
         spec$target_test$effect))
     }
@@ -3190,8 +3190,10 @@ target_effect_is_zero <- function(spec) {
     mixed_model = if (identical(spec$template, "growth_curve")) {
       pop$slope_difference
     } else if (identical(spec$template, "two_level")) {
-      switch(spec$target_test$effect, within_effect = pop$b_X, between_effect = pop$b_W, cross_level_interaction = pop$b_XW,
-        site_effect = pop$b_Z, site_interaction = pop$b_XZ)
+      # Several effects tested together: joint power needs every one, so
+      # the smallest of them counts.
+      b <- c(x = pop$b_X, w = pop$b_W, z = pop$b_Z %||% NA, "x:w" = pop$b_XW, "x:z" = pop$b_XZ %||% NA)
+      min(abs(b[two_level_terms(spec$target_test$effect, !is.null(pop$groups_per_site))]))
     } else if (identical(spec$template, "three_level")) {
       if (identical(spec$variables$Y$type, "binary")) diff(as.numeric(unlist(pop$probabilities))) else pop$d
     } else if (identical(spec$template, "item_predictor")) {
