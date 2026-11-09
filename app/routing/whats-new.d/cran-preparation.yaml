@@ -1,8 +1,0 @@
-entries:
-  - date: "2026-11-09"
-    title: "A lighter install for R users"
-    text: >-
-      Installing powerkit in R now brings only the packages most analyses
-      need. An analysis that needs another package says which one to
-      install. The steps for running an analysis on your own computer
-      install everything at once, and the online app is unchanged.
