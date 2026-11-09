@@ -1352,6 +1352,24 @@ conversion_sentence <- function(result) {
     conv$effect_name, format(round(conv$converted, 3), nsmall = 2), conversion_by(conv))
 }
 
+# Mediation with a two-group X given as Cohen's d (E16, E17): the path
+# the engine found for each d (result > group_d), or NULL.
+group_d_found_text <- function(result) {
+  gd <- result$group_d
+  if (!length(gd$entered)) return(NULL)
+  parts <- vapply(names(gd$entered), function(outcome) {
+    sprintf("the path X -> %s = %s gives a Cohen's d of %s between the groups on %s%s",
+      outcome, format(round(gd$found_paths[[paste0("X->", outcome)]], 3), nsmall = 2), format(gd$entered[[outcome]]), outcome,
+      if (identical(outcome, "Y")) " overall" else "")
+  }, character(1))
+  sprintf("%s (found from a simulated sample of 100,000 people)", paste(parts, collapse = ", and "))
+}
+
+group_d_sentence <- function(result) {
+  text <- group_d_found_text(result)
+  if (is.null(text)) NULL else sprintf("Paths found for the Cohen's d you gave: %s.", text)
+}
+
 # The published statistic's df and group sizes, in brackets.
 conversion_details <- function(conv) {
   parts <- c(if (!is.null(conv$df_error)) sprintf("error df %s", conv$df_error),
@@ -2571,6 +2589,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(calc$cost_line)) p(class = "result-cost-line", calc$cost_line),
     if (!is.null(line <- reasoning_line(values))) p(class = "result-reasoning", line),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
+    if (!is.null(gd <- group_d_sentence(result))) p(class = "result-conversion", gd),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
     if (!is.null(het <- heterogeneity_sentence(result))) p(class = "result-heterogeneity", het),
     heterogeneity_range_ui(result),
@@ -2926,6 +2945,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       conversion_details(conv), conversion_by(conv))
     effect <- if (is.null(effect)) converted else paste0(effect, "; ", converted)
   }
+  # Paths given as the groups' Cohen's d: the paths found for them.
+  if (!is.null(found <- group_d_found_text(result))) effect <- paste0(effect %||% "", if (!is.null(effect)) "; ", found)
   # Means and SD: the standardised effect the engine worked out from them.
   u <- result$effect_from_units
   if (!is.null(effect) && !is.null(u) && !identical(result$goal_type, "sensitivity")) {

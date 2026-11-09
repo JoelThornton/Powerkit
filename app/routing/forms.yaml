@@ -1147,11 +1147,21 @@ forms:
         fields:
           - {id: X_levels, label: "X's two groups or conditions, separated by a comma (first the comparison group)", type: levels, path: variables.X.levels, required: true}
           - {id: x_prob, label: "Share of people in X's second group (0 to 1; empty = 0.5, equal groups)", type: number, path: population.x_prob, optional: true, empty_text: "0.5 (equal groups)", min_exclusive: 0, max_exclusive: 1}
-      - input: "Standardised paths X -> M, M -> Y and X -> Y"
+      - input: "X's effects, and the path M -> Y"
         fields:
-          - {id: p_X_M, label: "Path X -> M (per SD of X; the result shows the group difference it means)", type: number, path: "population.paths.X->M", effect: true}
+          - {id: x_effects, label: "Give X's effects as", type: select, required: true,
+             choices: {paths: "Standardised paths, per SD of X (as power4mome takes them)", d: "Cohen's d of the groups: the difference between the groups' means, in standard deviations"},
+             default: paths, default_source: "power4mome's own input, the paths per SD of X",
+             help: "With Cohen's d, powerkit finds the paths that give these differences between the groups, from a simulated sample of 100,000 people, and shows them with the result."}
+          - {id: d_M, writeup_label: "Cohen's d of the groups on M", label: "Cohen's d of the groups on M: how far apart the groups' means on M are, in standard deviations", type: number, path: population.group_d.M, effect: true,
+             shown_if: {field: x_effects, is: d}}
+          - {id: d_Y, writeup_label: "Cohen's d of the groups on Y overall", label: "Cohen's d of the groups on Y overall (through M as well as directly), in standard deviations", type: number, path: population.group_d.Y, effect: true,
+             shown_if: {field: x_effects, is: d}}
+          - {id: p_X_M, label: "Path X -> M (per SD of X; the result shows the group difference it means)", type: number, path: "population.paths.X->M", effect: true,
+             shown_if: {field: x_effects, is_not: d}}
           - {id: p_M_Y, label: "Path M -> Y", type: number, path: "population.paths.M->Y", effect: true}
-          - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true}
+          - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true,
+             shown_if: {field: x_effects, is_not: d}}
       # An expert setting: in Settings, not in the card's list of what you need.
       - title: "Monte Carlo draws"
         fields:
@@ -1785,7 +1795,17 @@ forms:
              shown_if: {field: w_type, is: binary}}
       - input: "Standardised paths (per SD of a yes/no variable, as power4mome rescales it)"
         fields:
-          - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true}
+          - {id: x_effects, label: "Give X's effects as", type: select, required: true,
+             choices: {paths: "Standardised paths, per SD of X (as power4mome takes them)", d: "Cohen's d of the groups: the difference between the groups' means, in standard deviations"},
+             default: paths, default_source: "power4mome's own input, the paths per SD of X",
+             shown_if: {field: x_type, is: binary},
+             help: "With Cohen's d, powerkit finds the paths from X that give these differences between the groups (averaged over W), from a simulated sample of 100,000 people, and shows them with the result."}
+          - {id: d_M, writeup_label: "Cohen's d of the groups on M", label: "Cohen's d of the groups on M: how far apart the groups' means on M are, in standard deviations", type: number, path: population.group_d.M, effect: true,
+             shown_if: [{field: x_type, is: binary}, {field: x_effects, is: d}]}
+          - {id: d_Y, writeup_label: "Cohen's d of the groups on Y overall", label: "Cohen's d of the groups on Y overall (through M as well as directly), in standard deviations", type: number, path: population.group_d.Y, effect: true,
+             shown_if: [{field: x_type, is: binary}, {field: x_effects, is: d}]}
+          - {id: p_X_M, label: "Path X -> M", type: number, path: "population.paths.X->M", effect: true,
+             shown_if: [{any: [{field: x_type, is_not: binary}, {field: x_effects, is_not: d}]}]}
           - {id: p_W_M, label: "Path W -> M", type: number, path: "population.paths.W->M", effect: true,
              shown_if: {field: modmed_stage, is: process_7}}
           - {id: p_XW_M, label: "Path XW -> M (the interaction)", type: number, path: "population.paths.XW->M", effect: true,
@@ -1796,6 +1816,7 @@ forms:
           - {id: p_MW_Y, label: "Path MW -> Y (the interaction)", type: number, path: "population.paths.MW->Y", effect: true,
              shown_if: {field: modmed_stage, is: process_14}}
           - {id: p_X_Y, label: "Path X -> Y (direct)", type: number, path: "population.paths.X->Y", effect: true,
+             shown_if: [{any: [{field: x_type, is_not: binary}, {field: x_effects, is_not: d}]}],
              help: "A yes/no variable is rescaled to mean 0 and SD 1, so a path from it is per SD, as for a score. With X and W uncorrelated, as a yes/no variable must be here."}
   # W on both links or the direct path too (PROCESS models 8, 58 and 59;
   # 1 November 2026): no single index, so the difference between the

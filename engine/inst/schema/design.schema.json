@@ -3763,6 +3763,20 @@
             "residual_correlations": {
               "description": "Parallel mediation only: correlations between the mediators' residuals, keyed 'M1<->M2'. Omitted pairs are 0.",
               "$ref": "#/definitions/correlation_map"
+            },
+            "group_d": {
+              "description": "A two-group X only: Cohen's d of X's two groups, in place of a path from X. 'M' is the groups' difference in the mediator (in place of 'X->M'); 'Y' is their difference in the outcome overall, through the mediator as well as directly (in place of 'X->Y'). powerkit finds the standardised path that gives each d from a large simulated data set and records it in the result ('group_d > found_paths').",
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "M": {
+                  "type": "number"
+                },
+                "Y": {
+                  "type": "number"
+                }
+              }
             }
           }
         }
@@ -3894,6 +3908,20 @@
                 "type": "number",
                 "exclusiveMinimum": 0,
                 "exclusiveMaximum": 1
+              },
+              "group_d": {
+                "description": "A two-group X only: Cohen's d of X's two groups, in place of a path from X. 'M' is the groups' difference in the mediator (in place of 'X->M'); 'Y' is their difference in the outcome overall, through the mediator as well as directly (in place of 'X->Y'). powerkit finds the standardised path that gives each d from a large simulated data set and records it in the result ('group_d > found_paths').",
+                "type": "object",
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                  "M": {
+                    "type": "number"
+                  },
+                  "Y": {
+                    "type": "number"
+                  }
+                }
               }
             }
           },

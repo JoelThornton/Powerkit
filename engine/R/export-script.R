@@ -127,6 +127,9 @@ spec_for_export <- function(spec, result) {
       "This result doesn't record the seed of each simulated sample size, which the script needs. It may come from an older version of powerkit; run the spec again."
     )
   }
+  # A two-group X's paths given as Cohen's d: the script uses the paths the
+  # run found (result > group_d).
+  for (path in names(result$group_d$found_paths)) spec$population$paths[[path]] <- result$group_d$found_paths[[path]]
   spec
 }
 

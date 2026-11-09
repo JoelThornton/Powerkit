@@ -3134,3 +3134,29 @@ test_that("a generic test's power has no participant count under it", {
   expect_identical(fig$value, "68%")
   expect_identical(fig$sub, "for the noncentrality you entered")
 })
+
+test_that("mediation with a two-group X: X's effects as Cohen's d of the groups", {
+  for (ep in c("E16", "E17")) {
+    fields <- form_fields(form_groups(forms, ep))
+    by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+    values <- modifyList(form_examples[[ep]], list(x_effects = "d", d_M = "0.4", d_Y = "0.3", p_X_M = "", p_X_Y = ""))
+    # The d boxes take the place of the paths from X.
+    expect_false(field_applies(by_id("p_X_M"), values), label = ep)
+    expect_true(field_applies(by_id("d_M"), values), label = ep)
+    expect_true(field_applies(by_id("p_X_M"), modifyList(values, list(x_effects = "paths"))), label = ep)
+    spec <- build_spec(forms, ep, fields, values)
+    expect_identical(spec$population$group_d, list(M = 0.4, Y = 0.3), label = ep)
+    expect_null(spec$population$paths[["X->M"]], label = ep)
+    expect_silent(suppressWarnings(engine_function("validate_spec")(spec)))
+  }
+  # A score X has no groups, so its paths stay.
+  e17 <- form_fields(form_groups(forms, "E17"))
+  score <- modifyList(form_examples$E17, list(x_type = "continuous", x_effects = "d"))
+  expect_true(field_applies(Filter(function(f) identical(f$id, "p_X_M"), e17)[[1]], score))
+  # The result and the methods paragraph give the paths found.
+  result <- list(group_d = list(entered = list(M = 0.4, Y = 0.3), found_paths = list(`X->M` = 0.198182, `X->Y` = 0.202305)))
+  expect_identical(group_d_sentence(result), paste0(
+    "Paths found for the Cohen's d you gave: the path X -> M = 0.198 gives a Cohen's d of 0.4 between the groups on M, and ",
+    "the path X -> Y = 0.202 gives a Cohen's d of 0.3 between the groups on Y overall (found from a simulated sample of 100,000 people)."))
+  expect_null(group_d_sentence(list()))
+})
