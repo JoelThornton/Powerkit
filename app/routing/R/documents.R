@@ -208,6 +208,28 @@ print_document_button <- function(id, label, class = "btn btn-outline-primary") 
     onclick = sprintf("pkPrintDocument('%s')", id), label)
 }
 
+# One document in several formats: the PDF as the main button and, beside
+# it, a small menu with the Word and Markdown downloads, so a row of
+# downloads shows one button per thing to take away. `pdf`, `docx`, `md`:
+# the ids (the PDF's as for print_document_button()). The menu items are
+# Shiny download links, so their downloadHandler()s are unchanged.
+document_menu <- function(pdf, docx, md, label, name, class = "btn btn-outline-primary") {
+  menu <- paste0(pdf, "_formats")
+  div(class = "btn-group doc-menu", role = "group", `aria-label` = name,
+    print_document_button(pdf, label, class = class),
+    tags$button(type = "button", id = menu, class = paste(class, "dropdown-toggle dropdown-toggle-split"),
+      `data-bs-toggle` = "dropdown", `aria-expanded` = "false",
+      tags$span(class = "visually-hidden", paste("Other formats:", name))),
+    tags$ul(class = "dropdown-menu", `aria-labelledby` = menu,
+      tags$li(shiny::downloadLink(docx, "Word (.docx)", class = "dropdown-item")),
+      tags$li(shiny::downloadLink(md, "Markdown (.md)", class = "dropdown-item"))))
+}
+
+# The download ids inside the menus, which the server keeps ready while the
+# menu is closed (outputOptions(suspendWhenHidden = FALSE) in app.R).
+document_menu_downloads <- c("download_planning_docx", "download_planning_document",
+  "ws_download_planning_docx", "ws_download_planning_md", "labs_docx", "labs_download", "rep_docx", "rep_markdown")
+
 # Sends a built document to the browser, which prints it from a hidden
 # frame; or a plain-English reason if it can't be built.
 send_document <- function(session, build) {
