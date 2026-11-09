@@ -6311,3 +6311,22 @@ the site stays findable by search engines.
 - **Left for now:** goals without a Bayes factor threshold (next.md item
   20), at the maintainer's request.
 
+
+## 2026-11-08 · Precision planning with assurance, and mediation's planned interval
+
+- **Decided (8 November 2026):** on MBESS's routes of the precision card
+  (d, a standardised mean, a standardised regression coefficient), the
+  target width carries an assurance by default: the chance that the
+  interval is no wider than the target. Its value starts empty, as target
+  power does, with an optional reason. "Only on average", MBESS's
+  expected width, stays as a choice. The result compares 80%, 90% and
+  95%. Recorded as Departure 25 (`conventions.md`). Built 9 November 2026.
+- **Mediation:** the planned test stays the Monte Carlo interval, because
+  a bootstrap in every simulated study is too slow to plan with. Every
+  mediation result and methods paragraph says that PROCESS reports a
+  percentile bootstrap interval by default (Known difference 14). The
+  `mediation_crosscheck` validation chunk measures the difference for
+  simple mediation.
+- **Why:** an expected width is an average, so about half of the studies
+  planned for it get a wider interval. And a plan that never says its
+  test differs from the usual analysis diverges silently (CLAUDE.md).

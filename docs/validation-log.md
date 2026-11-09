@@ -161,6 +161,15 @@ The tools offer different tests, so each comparison pairs the same test:
 3. **Both joint tests vs pwrss `method = "joint"`.** pwrss's joint test is
    analytic: power(a) times power(b), with z tests and fixed standard
    errors. Small differences are expected, for the same reasons as in 1.
+4. **powerkit's Monte Carlo interval vs power4mome's percentile
+   bootstrap** (added 9 November 2026), for the first design only. These
+   are different tests, so this is not a check of power4mome. It measures
+   how far a plan made with the Monte Carlo interval carries over to the
+   percentile bootstrap interval that PROCESS reports by default
+   (`conventions.md`, Known difference 14). The bootstrap side uses 400
+   replications of 500 draws to stay within the chunk's time, so the
+   tolerance (the same rule, with the allowance) is about 10 percentage
+   points. The first result will be recorded here.
 
 Sobel-type tests (pwrss's `"sobel"`, `"aroian"`, `"goodman"`) are not
 compared: powerkit doesn't use them, and they are known to differ from

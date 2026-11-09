@@ -375,10 +375,22 @@ precision_goal_fields <- function(tool) {
     list(id = "width", writeup_label = "interval width", label = "Target interval width (upper limit minus lower, in the estimate's own units)",
          help = "For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
          type = "number", path = "goal.width", needed_for = "precision_n", min_exclusive = 0),
-    list(id = "assurance", label = "Chance that the interval is no wider than that (optional)",
-         help = "Left empty, planning targets the interval's expected (average) width; it does not set the chance that your interval will be narrow enough. With 0.8, planning targets an 80% chance of an interval no wider than your target, under the population you specify (MBESS's assurance). Only for d, standardised means and regression coefficients (MBESS).",
-         type = "number", path = "goal.assurance", optional = TRUE, min_exclusive = 0.5, max_exclusive = 1,
+    # Assurance by default on MBESS's routes (8 November 2026; Departure
+    # 25): an interval as narrow as planned only on average is wider than
+    # planned in about half of studies. Its value starts empty, as target
+    # power does.
+    list(id = "width_target", label = "What should the target width promise?", type = "select", required = TRUE,
+         choices = list(assurance = "A chance that my interval is no wider than this (assurance)",
+           expected = "Only that the interval is this wide on average (MBESS's default)"),
+         default = "assurance", default_source = "a stated chance of an interval narrow enough; on average, about half of intervals are wider than planned",
          shown_if = list(list(field = "goal", is = "precision_n"), mbess)),
+    list(id = "assurance", label = "Chance that the interval is no wider than that (assurance)",
+         help = "As a proportion, for example 0.9: planning then targets a 90% chance of an interval no wider than your target, under the population you specify (MBESS's assurance). Like target power, it is your choice to justify; the result compares 80%, 90% and 95%.",
+         type = "number", path = "goal.assurance", required = TRUE, min_exclusive = 0.5, max_exclusive = 1,
+         shown_if = list(list(field = "goal", is = "precision_n"), mbess, list(field = "width_target", is = "assurance"))),
+    list(id = "assurance_reason", label = "Why this chance", help = "Goes in the write-up; for example \"90% because a second study to narrow the interval is not affordable\".",
+         type = "text", optional = TRUE,
+         shown_if = list(list(field = "goal", is = "precision_n"), mbess, list(field = "width_target", is = "assurance"))),
     list(id = "n", label = "Number of participants analysed (in total; pairs for paired data)",
          type = "number", path = "goal.n", needed_for = "precision_width", min = 3, integer = TRUE),
     list(id = "conf_level", label = "Confidence level", help = "As a proportion, for example 0.95 for a 95% interval.", type = "number",

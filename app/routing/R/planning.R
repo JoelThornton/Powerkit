@@ -61,7 +61,7 @@ planning_document <- function(tree, forms, calc) {
     paste0("- ", writeup_field_label(f), ": ", value)
   }
   units <- sample_description(spec)
-  text <- if (identical(spec$design, "precision")) precision_writeup(forms$forms[[id]], spec, result, fields, values) else
+  text <- if (identical(spec$design, "precision")) precision_writeup(forms$forms[[id]], spec, result, fields, values, departures_for(forms, id, spec)) else
     writeup_text(forms$forms[[id]], spec, result, fields, values,
       departures = departures_for(forms, id, spec),
       known_methods = vapply(known_difference_keys(forms, id, spec), function(k) forms$known_differences_methods[[k]], ""),

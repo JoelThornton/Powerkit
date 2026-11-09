@@ -1557,6 +1557,38 @@ Departure 19 is shown on the affected result and in the methods text.
   above 0 (`app/routing/R/results.R`, `departures_for()`), in the result's
   own sentence and table on the variation, and in the methods paragraph.
 
+### 25. Precision planning: assurance by default, not MBESS's expected width
+
+- **Established convention:** MBESS's `ss.aipe.smd()`, `ss.aipe.sm()` and
+  `ss.aipe.reg.coef()` plan for the expected width of the confidence
+  interval unless `assurance` is given.
+- **powerkit:** on the precision card (E46), for d, a standardised mean
+  and a standardised regression coefficient (MBESS's routes), the target
+  width is a width with a stated chance (assurance) by default. The
+  chance starts empty, as target power does, and the user gives it and,
+  optionally, why. "Only on average" is kept as a choice. presize's
+  routes (correlations, proportions, raw mean differences, odds ratios
+  and the ICC) have no assurance and are unchanged.
+- **Why** (the maintainer's decision, 8 November 2026): an expected width
+  is an average, so a study planned for it gets an interval wider than
+  planned about half the time. The user is never told this unless they
+  read MBESS's help. A width with a stated chance is what a researcher
+  planning for precision means, as target power is for a test. Starting it
+  empty, rather than at a pre-filled 80%, keeps the chance the user's to
+  justify (`decisions.md`, 8 November 2026, on conventional values).
+- **Size:** for a standardised regression coefficient of 0.2 (R-squared
+  0.2, 0.1 with the other two predictors) and a width of 0.2, the
+  expected width needs 349 people, while 80%, 90% and 95% assurance need
+  373, 386 and 396. For d = 0.5 and a width of 0.4 the difference is
+  small: 199 per group, against 201, 202 and 203.
+- **Test:** `app/routing/tests/testthat/test-precision-width-meaning.R`,
+  "an assurance plan shows Departure 25, compares 80%, 90% and 95%, and
+  writes the reason up".
+- **Shown to users:** on the precision result whenever the plan has an
+  assurance (`app/routing/R/results.R`, `departures_for()`), with a line
+  comparing the sample size on average and at 80%, 90% and 95%
+  assurance, and in the methods paragraph.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -2299,6 +2331,29 @@ Wired into the app on 18 October 2026 (E25, E26).*
   factor test is chosen (`app/routing/forms.yaml`, `known_differences`,
   key "13").
 - **Methods paragraph:** `known_differences_methods`, key "13".
+
+### 14. Mediation: a Monte Carlo interval, where PROCESS reports a percentile bootstrap
+
+- **What differs:** powerkit plans mediation and moderated mediation for
+  power4mome's Monte Carlo confidence interval of the indirect effect (or
+  of the index), which draws the paths from their estimated sampling
+  distribution. PROCESS, the software most researchers analyse with,
+  reports a percentile bootstrap interval by default, which refits the
+  model to resampled data. The two are different tests of the same
+  effect. powerkit keeps the Monte Carlo interval because a bootstrap
+  refits the model for every draw of every simulated study, which is far
+  too slow to plan with (more than 15 seconds for each simulated study on
+  one core, against about 0.4 seconds).
+- **Size:** measured by
+  `test-validation-mediation-crosscheck.R`, "the Monte Carlo interval's
+  power matches the percentile bootstrap's" (simple mediation, a = b = 0.3,
+  c' = 0.1, n = 100), in the weekly run of the `mediation_crosscheck`
+  chunk. The first result is recorded in `validation-log.md`, "Independent
+  cross-check for mediation".
+- **Shown to users:** on every mediation result planned with the Monte
+  Carlo interval (`app/routing/forms.yaml`, `known_differences`, key
+  "14").
+- **Methods paragraph:** `known_differences_methods`, key "14".
 
 ## All-tests sufficient power target under unknown dependence
 

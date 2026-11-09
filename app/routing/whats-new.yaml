@@ -8,6 +8,22 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-09"
+    title: "Precision planning asks how sure you want to be"
+    text: >-
+      When you plan an interval for d, a standardised mean or a regression
+      coefficient, powerkit now asks for the chance that your interval is no
+      wider than your target, as it asks for target power. Planning only for
+      the average width leaves about half of studies with a wider interval.
+      The result compares 80%, 90% and 95%, and planning for the average
+      width is still a choice.
+  - date: "2026-11-09"
+    title: "Mediation: the interval you plan for and the one PROCESS reports"
+    text: >-
+      Mediation results and their methods paragraphs now say that powerkit
+      plans for a Monte Carlo interval of the indirect effect, while PROCESS
+      reports a percentile bootstrap interval by default, so you can say
+      which one you will report.
+  - date: "2026-11-09"
     title: "People in groups: joint power for several effects"
     text: >-
       On the card for people in groups with predictors at each level, you

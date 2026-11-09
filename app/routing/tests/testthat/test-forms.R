@@ -904,7 +904,7 @@ test_that("the precision card takes a raw mean difference, an odds ratio, an ICC
   )
   for (name in names(cases)) {
     fields <- form_fields(form_groups(forms, "E46"))
-    values <- c(cases[[name]], list(goal = "precision_n", width = "0.5", conf_level = "0.95"), closing_ok)
+    values <- c(cases[[name]], list(goal = "precision_n", width = "0.5", conf_level = "0.95", width_target = "expected"), closing_ok)
     applies <- Filter(function(f) field_applies(f, values), fields)
     expect_length(form_problems(applies, values), 0)
     spec <- build_spec(forms, "E46", fields, values)

@@ -1,3 +1,19 @@
+# powerkit 0.56.0
+
+* Precision planning on MBESS's routes (d, standardised means and
+  standardised regression coefficients) asks for an assurance by default:
+  the chance that the interval is no wider than the target, starting empty
+  as target power does, with "only on average" (MBESS's expected width)
+  kept as a choice. The result compares the sample size on average and at
+  80%, 90% and 95% assurance, and the methods paragraph states the
+  assurance and, when given, why it was chosen (Departure 25,
+  `docs/conventions.md`).
+* Every mediation card's result and methods paragraph say that the plan is
+  for power4mome's Monte Carlo interval while PROCESS reports a percentile
+  bootstrap interval by default (Known difference 14).
+  `test-validation-mediation-crosscheck.R` compares the two tests' power
+  for simple mediation.
+
 # powerkit 0.55.0
 
 * Two-level and three-level models with predictors at each level

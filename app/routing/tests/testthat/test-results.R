@@ -2876,7 +2876,7 @@ test_that("precision planning (E46) gives the sample size for an interval width,
   # Cohen's d between two groups with assurance (MBESS).
   skip_if_not_installed("MBESS")
   v <- modifyList(form_examples$E46, list(estimate = "two_groups", X_label = "Condition", X_level1 = "Control", X_level2 = "Training",
-    Y_label = "Recall", d = "0.5", width = "0.4", assurance = "0.8"))
+    Y_label = "Recall", d = "0.5", width = "0.4", width_target = "assurance", assurance = "0.8"))
   out <- calc_of(v)
   calc <- out$calc
   expect_identical(calc$status, "ok")
@@ -3159,4 +3159,14 @@ test_that("mediation with a two-group X: X's effects as Cohen's d of the groups"
     "Paths found for the Cohen's d you gave: the path X -> M = 0.198 gives a Cohen's d of 0.4 between the groups on M, and ",
     "the path X -> Y = 0.202 gives a Cohen's d of 0.3 between the groups on Y overall (found from a simulated sample of 100,000 people)."))
   expect_null(group_d_sentence(list()))
+})
+
+test_that("every mediation card says its Monte Carlo interval differs from PROCESS's percentile bootstrap", {
+  for (ep in c("E10", "E11", "E12", "E13", "E14", "E16", "E17", "E38", "E40")) {
+    spec <- list(target_test = list(method = "monte_carlo_ci"), population = list(), goal = list(type = "power"))
+    expect_true("14" %in% known_difference_keys(forms, ep, spec), label = ep)
+    spec$target_test$method <- "percentile_bootstrap"
+    expect_false("14" %in% known_difference_keys(forms, ep, spec), label = ep)
+  }
+  expect_match(forms$known_differences_methods[["14"]], "percentile bootstrap", fixed = TRUE)
 })
