@@ -1,3 +1,12 @@
+# powerkit 0.57.1
+
+* Housekeeping: decisions recorded in October 2026 moved to
+  `docs/archive/decisions-2026-10.md`, with a dated index at the top of
+  `docs/decisions.md`. `scripts/close-batch.R` now moves Updates entries
+  more than a month older than the newest one from `whats-new.yaml` to
+  `whats-new-archive.yaml`, and the Updates tab reads both, so the file a
+  pull request edits stays short. No change to what users see.
+
 # powerkit 0.57.0
 
 * App only: the significance level and the Bayes factor threshold start

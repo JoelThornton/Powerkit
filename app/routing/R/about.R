@@ -270,10 +270,13 @@ about_js <- "
 #
 # Entries not yet given a version wait in whats-new.d/ beside it, one file
 # per pull request (scripts/close-batch.R moves them into whats-new.yaml),
-# and show with the rest.
+# and show with the rest, as do entries more than a month old, which
+# close-batch.R moves to whats-new-archive.yaml.
 load_whats_new <- function(path) {
   waiting <- sort(Sys.glob(file.path(dirname(path), "whats-new.d", "*.yaml")))
-  entries <- unlist(lapply(c(waiting, path), function(f) yaml::read_yaml(f, fileEncoding = "UTF-8")$entries),
+  archive <- file.path(dirname(path), "whats-new-archive.yaml")
+  files <- c(waiting, path, if (file.exists(archive)) archive)
+  entries <- unlist(lapply(files, function(f) yaml::read_yaml(f, fileEncoding = "UTF-8")$entries),
     recursive = FALSE)
   dates <- as.Date(vapply(entries, `[[`, "", "date"))
   entries[order(dates, decreasing = TRUE)]
