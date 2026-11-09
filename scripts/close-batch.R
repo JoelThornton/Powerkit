@@ -13,6 +13,9 @@
 #     at the top of engine/NEWS.md,
 #   - moves every whats-new.d entry to the top of whats-new.yaml, newest
 #     first, exactly as written,
+#   - moves Updates entries more than a month older than the newest one to
+#     whats-new-archive.yaml, which the Updates tab still shows, so the
+#     file a pull request reads stays short,
 #   - and deletes the note files it used.
 #
 #   Rscript scripts/close-batch.R minor     # 0.44.0 -> 0.45.0 (a batch of features)
@@ -63,6 +66,35 @@ newest_date <- function(path) {
   max(as.Date(dates))
 }
 
+# Updates entries dated more than `days` before the newest entry move from
+# whats-new.yaml to the top of whats-new-archive.yaml, as written. Both
+# files list entries newest first, each starting at a "  - date:" line.
+archive_header <- c(
+  "# Older Updates entries, moved here from whats-new.yaml by",
+  "# scripts/close-batch.R once they are more than a month older than the",
+  "# newest entry. Same format and rules as whats-new.yaml; the Updates tab",
+  "# shows these with the rest.",
+  "entries:"
+)
+
+archive_old_updates <- function(whats_new_path, archive_path, days = 31) {
+  lines <- read_lines(whats_new_path)
+  at <- match("entries:", lines)
+  body <- lines[-seq_len(at)]
+  starts <- grep("^  - date: ", body)
+  if (!length(starts)) return(invisible(0L))
+  dates <- as.Date(sub("^  - date: \"?([0-9-]+)\"?.*$", "\\1", body[starts]))
+  old <- dates < max(dates) - days
+  if (!any(old)) return(invisible(0L))
+  block <- cumsum(seq_along(body) %in% starts)
+  moving <- block %in% which(old)
+  archive <- if (file.exists(archive_path)) read_lines(archive_path) else archive_header
+  into <- match("entries:", archive)
+  write_lines(c(archive[seq_len(into)], body[moving], archive[-seq_len(into)]), archive_path)
+  write_lines(c(lines[seq_len(at)], body[!moving]), whats_new_path)
+  invisible(sum(old))
+}
+
 close_batch <- function(bump, root = ".") {
   news_files <- pending_news(root)
   update_files <- pending_updates(root)
@@ -96,15 +128,18 @@ close_batch <- function(bump, root = ".") {
     entries <- unlist(lapply(update_files, update_entry_lines))
     write_lines(c(lines[seq_len(at)], entries, lines[-seq_len(at)]), whats_new_path)
   }
+  archived <- archive_old_updates(file.path(root, "app", "routing", "whats-new.yaml"),
+    file.path(root, "app", "routing", "whats-new-archive.yaml"))
 
   unlink(c(news_files, update_files))
-  invisible(list(version = version, news = basename(news_files), updates = basename(update_files)))
+  invisible(list(version = version, news = basename(news_files), updates = basename(update_files),
+    archived = archived))
 }
 
 if (!interactive() && sys.nframe() == 0) {
   args <- commandArgs(trailingOnly = TRUE)
   if (length(args) != 1) stop("Usage: Rscript scripts/close-batch.R minor|patch|<version>")
   done <- close_batch(args[[1]])
-  cat(sprintf("powerkit %s: %d engine notes and %d Updates files joined.\n",
-    done$version, length(done$news), length(done$updates)))
+  cat(sprintf("powerkit %s: %d engine notes and %d Updates files joined; %d older Updates entries archived.\n",
+    done$version, length(done$news), length(done$updates), done$archived))
 }
