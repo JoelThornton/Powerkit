@@ -40,10 +40,18 @@ field_ui <- function(f, value, described_by = character()) {
   attrs <- attrs[!vapply(attrs, is.null, logical(1))]
   tag_name <- switch(f$type, select = "select", table = "textarea", "input")
   input <- add_attrs_to_first(input, tag_name, attrs)
+  # A conventional value that starts empty (8 November 2026): one click
+  # fills it in, so choosing it stays the user's act (`usual`).
+  usual <- if (!is.null(f$usual)) tags$button(type = "button", class = "btn btn-sm btn-outline-secondary usual-value",
+    id = paste0(id, "_usual"), `data-target` = id, `data-value` = as.character(f$usual),
+    onclick = "var e = document.getElementById(this.getAttribute('data-target')); e.value = this.getAttribute('data-value'); e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); e.focus();",
+    f$usual_label %||% sprintf("Use %s", f$usual))
   field <- div(
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
     input,
+    usual,
     if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
+    if (!is.null(f$prompt)) div(id = paste0(id, "_prompt"), class = "field-prompt small", f$prompt),
     input_guide_ui(f),
     if (!is.null(f$default_source)) div(id = source_id, class = "default-source", title = f$default_source,
       # A choice's default is already shown selected, so only its source is

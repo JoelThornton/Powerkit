@@ -2733,8 +2733,9 @@ writeup_sides <- function(spec) {
   switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
 }
 
-# The reasons given for a changed alpha or a one-sided test, as sentences
-# (each reason box is shown only when its setting was changed).
+# The reasons given for the significance level, the Bayes factor threshold
+# or a one-sided test, as sentences: only when a reason was given, so the
+# paragraph otherwise states the value alone (8 November 2026).
 writeup_choices <- function(fields, values) {
   given <- function(id) {
     f <- Filter(function(f) identical(f$id, id), fields)
@@ -2744,6 +2745,8 @@ writeup_choices <- function(fields, values) {
   c(
     if (given("alpha_reason")) sprintf("The significance level of %s was chosen because %s.",
       writeup_alpha(as.numeric(values$alpha)), because(values$alpha_reason)),
+    if (given("evidence_reason")) sprintf("The threshold for strong evidence, BF10 \u2265 %s, was chosen because %s.",
+      format(as.numeric(values$evidence_threshold)), because(values$evidence_reason)),
     if (given("alternative_reason")) sprintf("A one-sided test was used because %s.", because(values$alternative_reason))
   )
 }

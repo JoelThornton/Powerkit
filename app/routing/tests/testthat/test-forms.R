@@ -72,7 +72,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
   }
 })
 
-test_that("other settings start at the wrapped tool's default, and say whose default it is", {
+test_that("other settings start at the wrapped tool's default or, for alpha, its usual value one click away, and say whose it is", {
   alpha <- function(ep) Filter(function(f) f$id == "alpha", fields_for(ep))[[1]]
   # Precision planning (E46) has a confidence level, not alpha: its
   # default is the packages' own.
@@ -84,12 +84,17 @@ test_that("other settings start at the wrapped tool's default, and say whose def
   expect_length(Filter(function(f) f$id == "alpha", fields_for("E58")), 0)
   expect_match(Filter(function(f) f$id == "power", fields_for("E58"))[[1]]$label, "right number of profiles", fixed = TRUE)
   for (ep in setdiff(form_ids, c("E46", "E58", "E73"))) {
+    # Empty on every card (8 November 2026), with the usual level one
+    # click away and an optional reason.
     f <- alpha(ep)
-    expect_equal(f[["default"]], 0.05, label = ep)
+    expect_null(f[["default"]], label = ep)
+    expect_equal(f$usual, 0.05, label = ep)
     expect_match(f$default_source, forms$forms[[ep]]$tool, fixed = TRUE, label = ep)
     html <- as.character(field_ui(f, f[["default"]]))
-    expect_match(html, 'value="0.05"', fixed = TRUE)
-    expect_match(html, "Starts at 0.05:", fixed = TRUE)
+    expect_match(html, 'value=""', fixed = TRUE)
+    expect_match(html, 'data-value="0.05"', fixed = TRUE)
+    expect_match(html, "Use 0.05, the usual level", fixed = TRUE)
+    expect_true("alpha_reason" %in% vapply(fields_for(ep), function(f) f$id, ""), label = ep)
   }
   power <- function(ep) Filter(function(f) f$id == "power", fields_for(ep))[[1]]
   expect_null(power("E1")$default)
@@ -471,13 +476,14 @@ test_that("a field can depend on several choices at once", {
   expect_match(html, "input.f_a == &#39;1&#39; &amp;&amp; input.f_b != &#39;2&#39;", fixed = TRUE)
 })
 
-test_that("a reason box appears only when alpha or the direction is changed", {
+test_that("a reason box is offered for any alpha (8 November 2026) and for a changed direction", {
   fields <- form_fields(form_groups(forms, "E2"))
   by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
   alpha_reason <- by_id("alpha_reason")
   alternative_reason <- by_id("alternative_reason")
-  expect_false(field_applies(alpha_reason, list(alpha = "0.05")))
+  expect_true(field_applies(alpha_reason, list(alpha = "0.05")))
   expect_true(field_applies(alpha_reason, list(alpha = "0.01")))
+  expect_false(field_applies(alpha_reason, list(method = "bayes_factor")))
   expect_false(field_applies(alternative_reason, list(alternative = "two_sided")))
   expect_true(field_applies(alternative_reason, list(alternative = "greater")))
   expect_true(isTRUE(alpha_reason$optional) && isTRUE(alternative_reason$optional))
@@ -1077,4 +1083,25 @@ test_that("which test you'll run is in view on every card that offers more than 
       }
     }
   }
+})
+
+test_that("the Bayes factor threshold starts empty with 10 one click away, a reason for the write-up and a prompt on the prior", {
+  for (ep in names(forms$forms)) {
+    fields <- fields_for(ep)
+    k <- Filter(function(f) identical(f$id, "evidence_threshold"), fields)
+    if (!length(k)) next
+    expect_null(k[[1]][["default"]], label = ep)
+    expect_equal(k[[1]]$usual, 10, label = ep)
+    reason <- Filter(function(f) identical(f$id, "evidence_reason"), fields)
+    expect_length(reason, 1)
+    expect_identical(reason[[1]]$shown_if, k[[1]]$shown_if, label = ep)
+    priors <- Filter(function(f) f$id %in% prior_ids, fields)
+    expect_true(length(priors) >= 1, label = ep)
+    expect_match(priors[[1]]$prompt, "Does this default fit your field?", fixed = TRUE)
+  }
+  v <- list(evidence_threshold = "30", evidence_reason = "the claim contradicts an established finding.", method = "bayes_factor")
+  fields <- fields_for("E1")
+  expect_identical(writeup_choices(fields, v), "The threshold for strong evidence, BF10 ≥ 30, was chosen because the claim contradicts an established finding.")
+  # With no reason given, the paragraph states the value alone.
+  expect_length(writeup_choices(fields, list(evidence_threshold = "10", method = "bayes_factor", alpha = "0.05")), 0)
 })

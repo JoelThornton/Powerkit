@@ -119,6 +119,32 @@ names_group <- function(form, k) {
 # `k` is the number of mediators (parallel and serial mediation only).
 # `start`: the answers to screen A (situation, aim, claim), which set the
 # goal's starting choice and add the claim's questions.
+# The Bayes factor threshold starts empty (8 November 2026), as target
+# power does: after it, an optional reason for the write-up, shown with it.
+with_threshold_reason <- function(g) {
+  at <- which(vapply(g$fields, function(f) identical(f$id, "evidence_threshold"), logical(1)))
+  if (!length(at)) return(g)
+  reason <- list(id = "evidence_reason", label = "Why this threshold", type = "text", optional = TRUE,
+    help = "Goes in the write-up; for example \"30, because the claim contradicts an established finding\".",
+    shown_if = g$fields[[at]]$shown_if)
+  g$fields <- append(g$fields, list(reason), after = at)
+  g
+}
+
+# The analysis prior keeps its software's default, with a short question
+# beside it (8 November 2026): a default prior is a convention, so the
+# user is asked whether it fits their field.
+prior_ids <- c("prior_scale", "prior_width", "prior_concentration", "prior_a")
+prior_prompt <- paste("Does this default fit your field? It is the software's convention, not evidence about your effect.",
+  "If what is known in your area points to another prior, enter the one you will analyse with, and say why in your analysis plan.")
+with_prior_prompt <- function(g) {
+  g$fields <- lapply(g$fields, function(f) {
+    if (isTRUE(f$id %in% prior_ids)) f$prompt <- prior_prompt
+    f
+  })
+  g
+}
+
 form_groups <- function(forms, ep_id, k = 2, start = list()) {
   form <- forms$forms[[ep_id]]
   # A number of mediators not offered (e.g. from an older project file) is
@@ -139,7 +165,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
       })
       if (has_effect) g$note <- form$sensitivity_note %||% "For the smallest effect you could detect, this can stay empty if you have no estimate; a negative value sets the direction."
     }
-    with_conversion(with_eta_squared(g, form$base$template), form$base$template)
+    with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })
   if (!is.null(form$mediators)) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
@@ -461,11 +487,16 @@ closing_groups <- function(forms, ep_id, start = list()) {
          choices = list(minimize = "Make their weighted total as small as possible", balance = "Make the weighted errors equal"),
          default = "minimize", shown_for_goals = "justified_alpha", optional = TRUE),
     list(id = "alpha", label = "Significance level (alpha)", help = "The planned false-positive rate under the test's null assumptions, not the probability your conclusion is wrong. A smaller alpha requires stronger evidence, and usually a larger sample for the same power.", type = "number", path = "target_test.alpha", required = TRUE,
-         min_exclusive = 0, max = 0.5, default = tool[["alpha"]], default_source = tool[["alpha_source"]], shown_if = no_bayes),
-    # Shown only when alpha is changed from its default (decided 18 October
-    # 2026, judgement call G8); goes in the write-up.
+         # Empty on every card (8 November 2026), as target power is: one
+         # click gives the usual level, so choosing it is the user's act.
+         min_exclusive = 0, max = 0.5, default = NULL, usual = tool[["alpha"]] %||% 0.05,
+         usual_label = sprintf("Use %s, the usual level", format(tool[["alpha"]] %||% 0.05)),
+         default_source = sprintf("Empty on every card: choose the level your claim needs; %s is the usual one, %s", format(tool[["alpha"]] %||% 0.05),
+           tool[["alpha_source"]]), shown_if = no_bayes),
+    # Goes in the write-up when given (8 November 2026: asked whatever the
+    # level, and optional).
     list(id = "alpha_reason", label = "Why this significance level", help = "Goes in the write-up; for example \"the claim is new, so stronger evidence is wanted\".",
-         type = "text", optional = TRUE, shown_if = c(list(list(field = "alpha", is_not = as.character(tool[["alpha"]] %||% 0.05))), if (!is.null(no_bayes)) list(no_bayes)))
+         type = "text", optional = TRUE, shown_if = no_bayes)
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
   # No significance test (latent profiles: the BIC chooses the number of

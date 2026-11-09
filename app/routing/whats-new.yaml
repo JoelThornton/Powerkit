@@ -8,6 +8,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-09"
+    title: "The significance level and evidence threshold are yours to choose"
+    text: >-
+      The significance level and the Bayes factor threshold now start
+      empty, as target power does. A button fills in the usual value (0.05,
+      or a Bayes factor of 10) in one click, and you can say why you chose
+      it for the write-up. Each Bayes factor prior keeps its usual default,
+      with a short question on whether it fits your field.
+  - date: "2026-11-09"
     title: "Precision planning asks how sure you want to be"
     text: >-
       When you plan an interval for d, a standardised mean or a regression
