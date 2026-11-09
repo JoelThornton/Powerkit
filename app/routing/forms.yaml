@@ -296,6 +296,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "25": "Precision planning: for d, a standardised mean and a regression coefficient, powerkit plans for a chance (assurance) that the interval is no wider than your target, unless you choose MBESS's default of the expected width. An expected width is an average, so planned only for it, about half of studies get an interval wider than planned; MBESS's assurance sets that chance instead. For a regression coefficient with a width of 0.2, 349 people give that width on average; 373 give it with 80% assurance and 386 with 90%. For d = 0.5 and a width of 0.4, 199 per group against 201 and 202."
   "24": "Correlations that vary between studies: on the correlation card powerkit plans for a true correlation that varies from study to study with an SD of 0.025 on Fisher's z unless you change it, Kenny and Judd's (2019) rule for small variation (25% of a small effect) applied to r = .1, because assuming exactly the same correlation in every study, as G*Power and pwr do, understates the people needed (McShane & B\u00f6ckenholt, 2014). Empty the field for the usual analysis. For r = .1 and 80% power, 904 people with this variation against 782 without; for r = .3, 86 against 85."
   "23": "Effects that vary between studies: on the t-test cards powerkit plans for a true effect that varies from study to study with an SD of 0.05 in d unless you change it, Kenny and Judd's (2019) small variation, because they show that assuming exactly the same effect in every study, as G*Power and pwr do, understates the people needed. Empty the field for the usual analysis. For d = 0.3 and 80% power with two equal groups, 376 people in total with this variation against 352 without."
   "22": "One-way ANOVA: powerkit plans for Welch's F unless you choose the classical F test, as Delacre, Leys, Mora and Lakens (2019) recommend, because Welch's F keeps the chance of a false positive at alpha when the groups' SDs differ and loses little power when they don't; G*Power and Superpower plan for the classical F test. With one SD of 6 and means 10, 11 and 13, 80% power needs about 231 people with Welch's F against 228 with the F test."
@@ -344,6 +345,7 @@ known_differences:
   "11": "Alpha chosen by weighing the two errors: powerkit's default makes the weighted total of the two errors as small as possible, JustifyAlpha's default. G*Power's compromise power analysis instead makes them equal (beta = q x alpha); choose \"Make the weighted errors equal\", with q as how many times worse a false positive is, for its answer. For d = 0.5 and 64 people, alpha is .184 when minimising and .221 when balancing."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
   "12": "Bayes factor test of a correlation: powerkit's default prior width is JASP's, 1 (every correlation equally likely beforehand). BayesFactor, the R package that computes the Bayes factor, defaults to a narrower 1/3, which needs fewer people for a moderate correlation: 146 against 162 for r = .3, BF10 of at least 10 and 80%. Set the prior width to 1/3 (0.333) to match BayesFactor; at the same width the two give the same Bayes factor as JASP."
+  "14": "Mediation: powerkit plans for the Monte Carlo confidence interval of the indirect effect, as power4mome does, while PROCESS, the usual software for the analysis, reports a percentile bootstrap interval by default. The two are different tests, so their power can differ a little (powerkit's validation compares them for simple mediation); say in your write-up which interval you will report."
   "13": "One-sided Bayes factor test of two proportions: JASP estimates the chance that one group's proportion is the higher from 10,000 random draws, so its one-sided Bayes factor varies slightly from run to run (about 0.1% for 20 of 50 against 30 of 50). powerkit calculates that chance exactly. The two-sided Bayes factor is the same in both."
 
 # The same known differences as one sentence for the methods paragraph
@@ -362,6 +364,7 @@ known_differences_methods:
   "11": "The significance level minimised the weighted total of the two errors (JustifyAlpha's default); G*Power's compromise power analysis instead makes the weighted errors equal, which gives a somewhat higher alpha."
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
   "12": "The Bayes factor used a stretched beta prior of width 1 on the correlation, JASP's default; the BayesFactor package's own default, 1/3, gives a somewhat smaller sample size."
+  "14": "Power was estimated for a Monte Carlo confidence interval of the indirect effect; the percentile bootstrap interval PROCESS reports by default is a different test, whose power can differ a little."
   "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
 
 forms:
@@ -1117,6 +1120,8 @@ forms:
     methods_name: "a simple mediation model"
     tool: power4mome
     departures: ["6", "8"]
+    known_differences: ["14"]
+    known_differences_if_method: {"14": monte_carlo_ci}
     directional: false
     base: {spec_version: "0.1", design: mediation, template: process_4,
            variables: {X: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -1137,6 +1142,8 @@ forms:
     methods_name: "a simple mediation model with a yes/no X"
     tool: power4mome
     departures: ["6", "8"]
+    known_differences: ["14"]
+    known_differences_if_method: {"14": monte_carlo_ci}
     directional: false
     base: {spec_version: "0.1", design: mediation, template: process_4,
            variables: {X: {type: binary}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -1675,6 +1682,8 @@ forms:
     methods_name: "a parallel mediation model"
     tool: power4mome
     departures: ["6", "7", "8"]
+    known_differences: ["14"]
+    known_differences_if_method: {"14": monte_carlo_ci}
     directional: false
     mediators: parallel
     base: {spec_version: "0.1", design: mediation, template: process_4,
@@ -1708,6 +1717,8 @@ forms:
     methods_name: "a serial mediation model"
     tool: power4mome
     departures: ["6", "8"]
+    known_differences: ["14"]
+    known_differences_if_method: {"14": monte_carlo_ci}
     directional: false
     mediators: serial
     base: {spec_version: "0.1", design: mediation, template: process_6,
@@ -1737,6 +1748,8 @@ forms:
     methods_name: "a first-stage moderated mediation model (index of moderated mediation)"
     tool: power4mome
     departures: ["6", "8"]
+    known_differences: ["14"]
+    known_differences_if_method: {"14": monte_carlo_ci}
     directional: false
     base: {spec_version: "0.1", design: moderated_mediation, template: process_7,
            variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -1756,6 +1769,8 @@ forms:
     methods_name: "a second-stage moderated mediation model"
     tool: power4mome
     departures: ["6", "8"]
+    known_differences: ["14"]
+    known_differences_if_method: {"14": monte_carlo_ci}
     directional: false
     base: {spec_version: "0.1", design: moderated_mediation, template: process_14,
            variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -1778,6 +1793,8 @@ forms:
     methods_name: "a moderated mediation model with a yes/no predictor or moderator (index of moderated mediation)"
     tool: power4mome
     departures: ["6", "8"]
+    known_differences: ["14"]
+    known_differences_if_method: {"14": monte_carlo_ci}
     directional: false
     base: {spec_version: "0.1", design: moderated_mediation, template: process_7,
            variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -1831,6 +1848,8 @@ forms:
     methods_name: "a moderated mediation model (the difference between conditional indirect effects)"
     tool: power4mome
     departures: ["6", "8", "19"]
+    known_differences: ["14"]
+    known_differences_if_method: {"14": monte_carlo_ci}
     directional: false
     base: {spec_version: "0.1", design: moderated_mediation, template: process_58,
            variables: {X: {type: continuous}, W: {type: continuous}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
@@ -1868,6 +1887,8 @@ forms:
     methods_name: "a moderated mediation model with parallel mediators (index of moderated mediation)"
     tool: power4mome
     departures: ["6", "7", "8"]
+    known_differences: ["14"]
+    known_differences_if_method: {"14": monte_carlo_ci}
     directional: false
     mediators: parallel
     base: {spec_version: "0.1", design: moderated_mediation, template: process_7,
@@ -3839,6 +3860,7 @@ forms:
     methods_name: "a confidence interval"
     tool: precision
     precision: true
+    departures: ["25"]
     base: {spec_version: "0.1", design: precision, template: two_groups, variables: {},
            target_test: {effect: confidence_interval}}
     groups:

@@ -2175,6 +2175,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 21 (Welch's t-test by default) applies when Welch's test is
   # the one planned for.
   if (!identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, "21")
+  # Departure 25 (assurance by default in precision planning) applies when
+  # the plan has an assurance.
+  if (!(identical(spec$design, "precision") && !is.null(spec$goal$assurance))) keys <- setdiff(keys, "25")
   # Departure 22 (Welch's F by default) applies when Welch's F is planned
   # for.
   if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
@@ -3332,7 +3335,7 @@ precision_sentences <- function(spec, result) {
   c(headline = headline, reading = reading, detail = paste(expected, how))
 }
 
-precision_writeup <- function(form, spec, result, fields, values) {
+precision_writeup <- function(form, spec, result, fields, values, departures = character()) {
   if (blank(values$just_source) || isTRUE(values$source_stale)) return(NULL)
   pr <- result$precision
   p <- result$provenance
@@ -3341,9 +3344,11 @@ precision_writeup <- function(form, spec, result, fields, values) {
   basis <- sprintf("The expected value, %s = %s, was based on %s: %s.", pr$effect_name, format(pr$effect),
     writeup_source[[values$just_type %||% "smallest_effect_of_interest"]] %||% "our reasoning", writeup_quote(values$just_source))
   aim <- if (!is.na(pr$target_width)) {
-    sprintf("We planned the sample size for precision rather than power: the %s for %s should be no wider than %s%s. This requires %s.",
+    sprintf("We planned the sample size for precision rather than power: the %s for %s should be no wider than %s%s%s. This requires %s.",
       interval, estimate, format(pr$target_width),
-      if (is.na(pr$assurance)) " on average" else sprintf(" with %s assurance", percent(pr$assurance)), precision_people(spec, pr$n))
+      if (is.na(pr$assurance)) " on average" else sprintf(" with %s assurance (the chance that it is no wider)", percent(pr$assurance)),
+      if (!is.na(pr$assurance) && !blank(values$assurance_reason)) sprintf(", chosen because %s", sub("[.]\\s*$", "", trimws(values$assurance_reason))) else "",
+      precision_people(spec, pr$n))
   } else {
     sprintf("With %s, the %s for %s is expected to be %s wide.", precision_people(spec, pr$n), interval, estimate, precision_number(pr$width))
   }
@@ -3352,7 +3357,9 @@ precision_writeup <- function(form, spec, result, fields, values) {
   software <- sprintf("The calculation used the R package %s (version %s; %s()), set up by %s in %s.",
     p$backend, p$packages[[p$backend]], pr$function_used, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
-  full <- paste(c(short, sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
+  full <- paste(c(short,
+    if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
+    sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
   ethics <- paste(c(
     sprintf("We plan to include %s.", precision_people(spec, pr$n)), recruit_line,
     "This number comes from planning how precisely the study can estimate the result, not from a power analysis.",
@@ -3391,11 +3398,33 @@ precision_hero_ui <- function(spec, result) {
       tags$ul(lapply(assumes, tags$li))))
 }
 
+# The sample size for the same width planned on average and at 80%, 90%
+# and 95% assurance, side by side, as cost_line() does for target power
+# (MBESS's routes only: four more engine calls, each a formula).
+assurance_cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L) {
+  pr <- result$precision
+  if (is.na(pr$target_width) || !identical(result$provenance$backend, "MBESS")) return(NULL)
+  n_at <- function(assurance) {
+    if (isTRUE(all.equal(assurance, spec$goal$assurance %||% NA))) return(pr$n)
+    s <- spec
+    s$goal$assurance <- assurance
+    calc <- run_calculation(s, run, seed)
+    if (identical(calc$status, "ok")) calc$result$precision$n else NA
+  }
+  n <- c(n_at(NULL), vapply(c(0.8, 0.9, 0.95), function(a) as.numeric(n_at(a)), numeric(1)))
+  if (anyNA(n)) return(NULL)
+  sprintf(paste("For comparison: %s give this width on average (about half of intervals would be wider); %s give it with 80%% assurance,",
+    "%s with 90%% and %s with 95%%. Which you choose, and why, belongs in your write-up."),
+    precision_people(spec, n[[1]]), whole(n[[2]]), whole(n[[3]]), whole(n[[4]]))
+}
+
 precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
   ep <- tree$endpoints[[ep_id]]
   spec <- calc$spec
   result <- calc$result
   words <- precision_sentences(spec, result)
+  departures <- departures_for(forms, ep_id, spec)
+  cost <- tryCatch(assurance_cost_line(spec, result), error = function(e) NULL)
   p_ <- result$provenance
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   hero <- tryCatch(precision_hero_ui(spec, result), error = function(e) NULL)
@@ -3415,11 +3444,12 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
         p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
         p(class = "small", recruit[["caveat"]])),
+      if (!is.null(cost)) p(class = "result-cost-line", cost),
       p(class = "result-detail", words[["detail"]]),
       if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(calc$notes, tags$li)))),
     div(class = "result-card result-save", id = "result-take",
       h4(class = "h5", "Write it up and save it"),
-      writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values)),
+      writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values, departures)),
       h4(class = "h6 mt-3", "Downloads"),
       if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
         tags$strong("To save this plan, download its R script or get its write-up, "),
@@ -3440,6 +3470,9 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
         "powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
       validation_ui(ep, result),
+      if (length(departures)) tagList(
+        h4(class = "h6", "Where powerkit differs from the tool's defaults"),
+        tags$ul(class = "result-departures", lapply(unname(departures), tags$li))),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),
         tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li))),
