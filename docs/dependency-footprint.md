@@ -2,23 +2,24 @@
 
 Written by `scripts/dependency-footprint.R` from `renv.lock` and `engine/DESCRIPTION`; a test checks the counts are current.
 
-The engine declares 58 direct Imports; `renv.lock` pins 305 packages, which the online app's manifest is written from when it is published. The lock includes development and validation tools as well as runtime dependencies.
+The engine declares 28 direct Imports and 39 Suggests; `renv.lock` pins 305 packages, which the online app's manifest is written from when it is published. The lock includes development and validation tools as well as runtime dependencies.
 
 | Scope | Locked packages in dependency closure |
 |---|---:|
 | Full locked environment | 305 |
-| Current engine Imports and their locked dependencies | 300 |
+| Current engine Imports and their locked dependencies | 228 |
+| Engine Imports and Suggests (every backend) and their locked dependencies | 302 |
 | Candidate formula-only roots (not an installable profile) | 9 |
 
 These counts measure metadata reachability, not download bytes, installed disk size, startup time, redundancy or security risk. Shared transitive dependencies are counted once. Base R packages are outside the lock graph.
 
 ## Recommendation
 
-Keep the complete locked environment for deployment and validation. A smaller optional basic-formula installation is worth prototyping separately, but is not currently supported: all engine Imports must load, so merely omitting packages breaks installation. Do not advertise a partial install command.
+Keep the complete locked environment for deployment and validation. The online app installs every backend: `app/routing/optional-packages.R` names the engine's Suggests so the app's manifest includes them, and a test keeps that list in step with `engine/DESCRIPTION`.
 
-Decided (7 November 2026): a backend that only one card uses moves from Imports to Suggests when a pull request next touches that card, with a `requireNamespace()` guard and a plain message saying which package to install; `renv.lock` still pins it for the app. Nothing is moved in a pull request of its own.
+Decided (9 November 2026, replacing the card-by-card rule of 7 November 2026): every backend that only some designs use is in Suggests, moved in one pull request to prepare the engine for CRAN, whose check asks packages with many Imports to make as many as possible optional. Each run checks the packages its backend lists before calling any of them, and a missing one stops it with a plain message naming what to install (`engine/R/optional-packages.R`). `remotes::install_github(..., dependencies = TRUE)` installs them all. `renv.lock` still pins every one.
 
-A safe optional profile requires explicit backend capability metadata, moving truly optional packages from Imports to Suggests, guarded namespace access and clear unavailable-backend messages, plus isolated installation and script-export tests for each profile. Preserve the complete environment and numerical regression checks. Select a profile from actual requested analyses, not from package count alone.
+A package stays in Imports when many designs need it. A few packages in Suggests (nnet, pbkrtest, quantreg and survival) are installed anyway, because packages in Imports need them; they are optional to powerkit's own code, which is what CRAN's check counts.
 
 Browser-development tools and tests are excluded from the deployment bundle. Prefer that concrete reduction over deleting scientific fixtures or undocumented package removals. Installing the complete environment once and restarting without reinstalling is already covered on Windows and macOS.
 

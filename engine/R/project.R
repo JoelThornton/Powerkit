@@ -18,14 +18,14 @@
 #' @seealso [read_project()], [reproduce_project()]
 #' @export
 #' @examples
-#' \dontrun{
 #' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' spec$target_test$method <- "student_t"
 #' result <- run_spec(spec)
 #' path <- tempfile(fileext = ".powerkit.json")
 #' write_project(spec, result, file = path)
 #' project <- read_project(path)
 #' reproduce_project(project)$same
-#' }
+#' unlink(path)
 write_project <- function(spec, result = NULL, route = list(), file = NULL) {
   spec <- withCallingHandlers(
     validate_spec(spec),
@@ -91,6 +91,14 @@ write_project <- function(spec, result = NULL, route = list(), file = NULL) {
 #'   `notes` (differences from the current setup; empty if none).
 #' @seealso [write_project()], [reproduce_project()]
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' spec$target_test$method <- "student_t"
+#' path <- tempfile(fileext = ".powerkit.json")
+#' write_project(spec, run_spec(spec), file = path)
+#' project <- read_project(path)
+#' project$spec$template
+#' unlink(path)
 read_project <- function(x) {
   text <- if (length(x) == 1 && file.exists(x)) {
     paste(readLines(x, encoding = "UTF-8", warn = FALSE), collapse = "\n")
@@ -175,6 +183,11 @@ read_project <- function(x) {
 #'   changed after it was saved.
 #' @seealso [read_project()], [reproduce_project()]
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' spec$target_test$method <- "student_t"
+#' project <- read_project(write_project(spec, run_spec(spec)))
+#' saved_result(project)$n_required$n
 saved_result <- function(project) {
   if (!inherits(project, "powerkit_project")) {
     abort_project("'project' should come from read_project().")
@@ -280,6 +293,11 @@ decode_value <- function(x) {
 #'   if every saved number is reproduced, `NA` if the file has no result)
 #'   and `differences` (plain-English lines, empty when the same).
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' spec$target_test$method <- "student_t"
+#' project <- read_project(write_project(spec, run_spec(spec)))
+#' reproduce_project(project)$same
 reproduce_project <- function(project, tolerance = 1e-10) {
   if (!inherits(project, "powerkit_project")) {
     abort_project("'project' should come from read_project().")

@@ -46,6 +46,11 @@
 #' @param file Optional path; if given, the data are written there as CSV.
 #' @return A data frame (invisibly when `file` is given).
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' head(simulated_data(spec, n = 40))
+#' simulated_data_available(spec)
+#' simulated_data_note(spec)
 simulated_data <- function(spec, n, seed = 1, file = NULL) {
   spec <- validate_spec(spec)
   if (!is.numeric(n) || length(n) != 1 || is.na(n) || n < 1) {

@@ -16,3 +16,10 @@ The script, as one string.
 A script that redoes \code{\link[=replication_planning]{replication_planning()}}'s numbers with
 BayesRepDesign, pwr and pwrss alone, for the reader of a plan.
 }
+\examples{
+if (requireNamespace("BayesRepDesign", quietly = TRUE)) {
+  plan <- replication_planning("two_groups", 0.7, original_n1 = 20, original_n2 = 20,
+    smallest_effect = 0.2)
+  cat(replication_planning_script(plan))
+}
+}

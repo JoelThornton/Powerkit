@@ -263,6 +263,7 @@ run_spec <- function(spec) {
     return(run_precision(spec, seed))
   }
   backend <- route_spec(spec, seed)
+  need_packages(c(backend$packages, if (justified_alpha_goal(spec)) "JustifyAlpha"))
   method <- run_method(spec, backend)
   if (!identical(method, backend$sensitivity_method) && !method %in% backend$methods) {
     abort_run(sprintf(
@@ -492,6 +493,12 @@ abort_run <- function(message, class = NULL) {
 #'
 #' @return A named numeric vector: `lower` and `upper`.
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' spec$target_test$method <- "student_t"
+#' spec$goal <- list(type = "power", n = 100L)
+#' # An exact result: both ends are the power itself.
+#' power_interval(run_spec(spec))
 power_interval <- function(result, level = 0.95) {
   if (!inherits(result, "powerkit_result") || !identical(result$goal_type, "power")) {
     abort_run("power_interval() needs the result of run_spec() for a 'power' goal.")

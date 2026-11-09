@@ -23,3 +23,9 @@ counted them from. For the other templates (a restriction tested
 against the model without it), the template and the restriction's
 degrees of freedom.
 }
+\examples{
+if (requireNamespace("semPower", quietly = TRUE)) {
+  spec <- read_spec(system.file("specs", "sem_model_fit.json", package = "powerkit"))
+  sem_summary(spec)$df
+}
+}

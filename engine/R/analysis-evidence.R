@@ -74,6 +74,10 @@ evidence_metadata <- function(spec) {
 #' @return A list with registry version/hash, a variant identifier, a matched
 #'   record (if present), four category records, sources and coverage limits.
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' evidence <- analysis_evidence(spec)
+#' evidence$record_id
 analysis_evidence <- function(spec, computation_method = NULL) {
   if (!is.list(spec) || length(spec$design) != 1 || length(spec$template) != 1)
     abort_spec("Evidence lookup needs a design and template.")

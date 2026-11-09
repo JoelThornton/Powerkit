@@ -309,6 +309,9 @@ interactionpower_3way_check_run <- function(spec, inputs) {
 #'   the first, in SDs of the outcome) and `kind` ("correlation" or
 #'   "path").
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "regression_interaction_binary.json", package = "powerkit"))
+#' implied_group_difference(spec)
 implied_group_difference <- function(spec) {
   entry <- function(role, outcome, r, p, kind) {
     list(

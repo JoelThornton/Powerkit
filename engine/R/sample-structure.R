@@ -9,6 +9,9 @@
 #' @return A list with `unit`, `note`, `n_step`, and `compatibility_key`.
 #'   Unknown generic-test units have no compatibility key.
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "cluster_randomised.json", package = "powerkit"))
+#' str(sample_structure(spec), max.level = 1)
 sample_structure <- function(spec) {
   if (!is.list(spec) || is.null(spec$design) || is.null(spec$template)) {
     abort_spec("A sample description needs a validated design specification.")

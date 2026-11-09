@@ -59,7 +59,7 @@ export_run_script <- function(spec, file = NULL, run_time = NULL) {
     sprintf("# * R%s, from https://cran.r-project.org", if (nzchar(needs_r)) sprintf(" %s", needs_r) else ""),
     "# * powerkit and the packages it uses. Install them once, in R, with:",
     "#     install.packages(\"remotes\")",
-    "#     remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\")",
+    "#     remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\", dependencies = TRUE)",
     sprintf(
       "#   powerkit used %s when this script was written; other versions may give",
       paste(names(versions), versions, collapse = ", ")
@@ -124,6 +124,9 @@ export_run_script <- function(spec, file = NULL, run_time = NULL) {
 #' @return A list with `backend`, `packages`, `versions`, and `r_requirement`
 #'   (a string such as `"4.4.0 or later"`, or `""` when none is declared).
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' analysis_requirements(spec)$packages
 analysis_requirements <- function(spec) {
   spec <- withCallingHandlers(validate_spec(spec),
     powerkit_spec_warning = function(w) invokeRestart("muffleWarning"))

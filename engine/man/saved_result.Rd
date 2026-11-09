@@ -20,6 +20,12 @@ so it can be shown again without running the calculation (which for a
 simulation can take minutes). \code{\link[=reproduce_project]{reproduce_project()}} runs it again to
 check it.
 }
+\examples{
+spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+spec$target_test$method <- "student_t"
+project <- read_project(write_project(spec, run_spec(spec)))
+saved_result(project)$n_required$n
+}
 \seealso{
 \code{\link[=read_project]{read_project()}}, \code{\link[=reproduce_project]{reproduce_project()}}
 }

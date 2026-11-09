@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 9 November 2026 (powerkit 0.58.2). Where the project is
+*Last updated: 9 November 2026 (powerkit 0.59.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -187,6 +187,17 @@ tagged and published as a GitHub pre-release
 ([`repository-protection.md`](repository-protection.md)). Still to do
 once, by the maintainer: turn on GitHub Pages and add the site to Search
 Console.
+
+**CRAN (9 November 2026):** every package the engine uses is on CRAN,
+and the engine has been prepared for submission: the backends only some
+designs use are in Suggests (25 non-base Imports remain, and installing
+the engine alone brings 228 locked packages rather than 300,
+[`dependency-footprint.md`](dependency-footprint.md)), a run whose
+backend is missing says which package to install, every exported
+function has an example, and on CRAN a quick set of 23 test files runs
+(`engine/tests/testthat.R`). The online app still installs every
+backend (`app/routing/optional-packages.R`). Submitting is a queue item
+in [`next.md`](next.md).
 
 ## Working environment
 

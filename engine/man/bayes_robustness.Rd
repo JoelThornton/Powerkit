@@ -24,3 +24,11 @@ widths of the default Cauchy prior: medium (1/sqrt(2)), wide (1) and
 ultrawide (sqrt(2)). Each row is the design's own calculation (bfpwr,
 through \code{\link[=run_spec]{run_spec()}}) with only the prior's scale changed.
 }
+\examples{
+spec <- read_spec(system.file("specs", "one_sample_t.json", package = "powerkit"))
+spec$target_test <- list(effect = spec$target_test$effect, method = "bayes_factor",
+  alternative = "two_sided")
+spec$goal <- list(type = "power", n = 100L)
+spec$options <- NULL
+bayes_robustness(spec, n = 100)
+}

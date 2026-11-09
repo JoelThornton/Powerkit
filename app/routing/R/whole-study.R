@@ -497,7 +497,7 @@ whole_study_script_ui <- function(forms, plan, n, rule, mains) {
       tags$li(sprintf("R%s, from cran.r-project.org.", if (is.null(r_needs)) "" else sprintf(" %s or later", r_needs))),
       tags$li("powerkit and the packages it uses. In R, run once: ",
         tags$code("install.packages(\"remotes\")"), " then ",
-        tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\")"), "."),
+        tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\", dependencies = TRUE)"), "."),
       tags$li("Then run the script. More cores finish sooner (its first lines say how) without changing the result. It saves the result and the citations.")),
     download_button("ws_download_script", "Download R script for the full simulation", class = "btn btn-primary"))
 }

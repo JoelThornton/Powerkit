@@ -11,7 +11,7 @@ test_that("the run script needs a seed, and says what it needs and how long it t
   text <- export_run_script(spec, run_time = "about 2 hours on one core")
   expect_no_error(parse(text = text))
   expect_match(text, "Expected run time: about 2 hours on one core.", fixed = TRUE)
-  expect_match(text, "remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\")", fixed = TRUE)
+  expect_match(text, "remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\", dependencies = TRUE)", fixed = TRUE)
   expect_match(text, sprintf("power4mome %s", utils::packageVersion("power4mome")), fixed = TRUE)
   expect_match(text, spec_hash(spec), fixed = TRUE)
   expect_match(text, "with its seed (5)", fixed = TRUE)

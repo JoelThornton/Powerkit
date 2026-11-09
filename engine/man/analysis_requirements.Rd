@@ -20,3 +20,7 @@ greatest declared minimum among powerkit and those installed packages.
 Installed versions describe the environment producing the handoff;
 installing different versions can change numerical results.
 }
+\examples{
+spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+analysis_requirements(spec)$packages
+}

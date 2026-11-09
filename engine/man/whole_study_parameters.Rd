@@ -19,6 +19,13 @@ aren't given yet (\code{population} is ignored), the paths and correlations
 its population model needs, so that an input screen can ask for each.
 The analyses and variables are checked first.
 }
+\examples{
+spec <- jsonlite::fromJSON(
+  system.file("whole-study", "example.json", package = "powerkit"),
+  simplifyVector = FALSE
+)
+whole_study_parameters(spec)
+}
 \seealso{
 \code{\link[=run_whole_study]{run_whole_study()}}
 }

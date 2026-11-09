@@ -102,9 +102,11 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   and its calculation); `functions_used`; and `packages`.
 #' @export
 #' @examples
-#' plan <- replication_planning("two_groups", 0.7, original_n1 = 20, original_n2 = 20,
-#'   smallest_effect = 0.2)
-#' plan$goals
+#' if (requireNamespace("BayesRepDesign", quietly = TRUE)) {
+#'   plan <- replication_planning("two_groups", 0.7, original_n1 = 20, original_n2 = 20,
+#'     smallest_effect = 0.2)
+#'   plan$goals
+#' }
 replication_planning <- function(design, original_effect, original_n = NULL, original_n1 = NULL,
                                  original_n2 = NULL, original_alpha = 0.05, alpha = 0.05, power = 0.8,
                                  tau = 0, smallest_effect = NULL, threshold = 10, n = NULL,
@@ -342,6 +344,12 @@ replication_telescope <- function(design, original_effect, original_n, original_
 #' @param plan What [replication_planning()] returned.
 #' @return The script, as one string.
 #' @export
+#' @examples
+#' if (requireNamespace("BayesRepDesign", quietly = TRUE)) {
+#'   plan <- replication_planning("two_groups", 0.7, original_n1 = 20, original_n2 = 20,
+#'     smallest_effect = 0.2)
+#'   cat(replication_planning_script(plan))
+#' }
 replication_planning_script <- function(plan) {
   i <- plan$inputs
   num <- function(x) format(signif(x, 8))

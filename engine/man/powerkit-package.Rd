@@ -6,14 +6,23 @@
 \alias{powerkit-package}
 \title{powerkit: Unified Power Analysis for Common Research Designs}
 \description{
-Reads a single design specification (JSON) for common research designs, checks that it describes a possible population, and routes it to established backend packages to estimate power, required sample size and sensitivity. This development version runs t-tests, correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and 'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and 'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'), two-way regression interactions (via 'InteractionPoweR'), simple, parallel and serial mediation and first- and second-stage moderated mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'), cluster-randomised and multisite trials (via 'powertools'), equivalence and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit, measurement invariance, factor correlations and latent regression (via 'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').
+Reads a single design specification (JSON) for common research designs, checks that it describes a possible population, and routes it to established backend packages to estimate power, required sample size and sensitivity. It covers t-tests, correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and 'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and 'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'), two-way regression interactions (via 'InteractionPoweR'), simple, parallel and serial mediation and first- and second-stage moderated mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'), cluster-randomised and multisite trials (via 'powertools'), equivalence and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit, measurement invariance, factor correlations and latent regression (via 'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/JoelThornton/Powerkit}
+  \item \url{https://joelthornton-powerkit.share.connect.posit.cloud}
+  \item Report bugs at \url{https://github.com/JoelThornton/Powerkit/issues}
+}
+
 }
 \author{
-\strong{Maintainer}: Joel Thornton \email{58643641+JoelThornton@users.noreply.github.com}
+\strong{Maintainer}: Joel Thornton \email{joelthornton53@gmail.com}
 
 Authors:
 \itemize{
-  \item Joel Thornton \email{58643641+JoelThornton@users.noreply.github.com}
+  \item Joel Thornton \email{joelthornton53@gmail.com}
 }
 
 }

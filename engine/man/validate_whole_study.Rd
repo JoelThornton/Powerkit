@@ -19,6 +19,13 @@ Experimental. Checks a whole-study simulation specification against
 and paths fit together and that the population is possible. Problems are
 reported together, in plain English.
 }
+\examples{
+spec <- jsonlite::fromJSON(
+  system.file("whole-study", "example.json", package = "powerkit"),
+  simplifyVector = FALSE
+)
+spec <- validate_whole_study(spec)
+}
 \seealso{
 \code{\link[=run_whole_study]{run_whole_study()}}
 }

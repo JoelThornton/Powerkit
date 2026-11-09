@@ -148,7 +148,7 @@ script_offer_ui <- function(forms, ep_id, goal, seed, heading = TRUE, spec) {
       tags$li(sprintf("R%s, from cran.r-project.org.", if (nzchar(r_needs)) paste0(" ", r_needs) else "")),
       tags$li(paste0(paste(requirements$packages, collapse = ", "), ". In R, run once: "),
         tags$code("install.packages(\"remotes\")"), " then ",
-        tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\")"), "."),
+        tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\", dependencies = TRUE)"), "."),
       tags$li(sprintf("Then run the script. It saves the result, a script that reproduces it with %s alone, and the citations.", package))),
     p(class = "hint", paste0("The downloaded script records the package versions used here. Different versions on your computer may give different results.")),
     download_button("download_run_script", "Download R script to run the full analysis on your computer", class = "btn btn-primary"))
