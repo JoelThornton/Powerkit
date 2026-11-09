@@ -1,3 +1,13 @@
+# powerkit 0.58.0
+
+* The app's whole-study result now offers a planning document (PDF, Word
+  or Markdown), built from the result and the text of
+  `export_whole_study_script()`: every analysis with its role, the claim,
+  the population assumed, the joint and separate powers, the implied
+  values, the methods paragraph, the reproducibility record and the
+  script. Code blocks in the app's printed documents now show `<-` as
+  written, and keep their lines apart in Word.
+
 # powerkit 0.57.1
 
 * Housekeeping: decisions recorded in October 2026 moved to

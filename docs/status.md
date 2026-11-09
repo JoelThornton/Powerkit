@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 9 November 2026 (powerkit 0.57.1). Where the project is
+*Last updated: 9 November 2026 (powerkit 0.58.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -50,7 +50,7 @@ rules are in `CLAUDE.md`.
   mode is on the start screen, with Bayes factor write-ups worded as
   design analyses and a write-up for plans that report a p-value and a
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
-  Bayes mode (item 16) waits on a decision.
+  Bayes mode (item 15) waits on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
@@ -111,8 +111,11 @@ rules are in `CLAUDE.md`.
   (randomised or not), people measured once or twice, mediation and
   moderated mediation (power4mome), factorial experiments (Superpower),
   and a pair-level moderator in dyadic studies. Joint power for several
-  outcomes of one randomised trial uses PUMP. It waits for a
-  statistician's check ([`whole-study-method.md`](whole-study-method.md));
+  outcomes of one randomised trial uses PUMP. Its result gives a
+  planning document (PDF, Word or Markdown) with every analysis and its
+  role, the claim, the population assumed, the joint and separate powers
+  and the R script that reproduces them, marked experimental on its first
+  page. It waits for a statistician's check ([`whole-study-method.md`](whole-study-method.md));
   the designs still to add are in `next.md` item 1.
 
 - **Experimental: Labs.** The pre-replication notes, the replication

@@ -2529,3 +2529,26 @@ the site stays findable by search engines.
   whether the default fits the field. Built 9 November 2026.
 - **Why:** a filled-in convention is chosen without anyone choosing it.
   One click keeps the work small, while the choice stays the user's.
+
+## 2026-11-09 · Whole-study planning: a planning document
+
+- **What:** the whole-study result offers a planning document as the
+  cards do (PDF by the browser's print, Word, Markdown), from the same
+  Markdown: every analysis with its role, power and interval, the claim
+  and its joint power, the population assumed, the values it implies for
+  each analysis's own screen, Departure 13 in words, the full methods
+  paragraph, the reproducibility record (seed, number of simulated
+  studies, spec hash, check run, R and package versions) and, in full,
+  the script `export_whole_study_script()` writes for the spec that was
+  run, so the document alone reproduces its numbers.
+- **Before the statistician's check:** offered now, because the document
+  only gathers what the result already shows, and the result is already
+  marked experimental. Its first page says the method has not been
+  checked and that the numbers come from the quick look, with their
+  Monte Carlo margin, and points to the full-run script for numbers to
+  report.
+- **Code in documents:** the printed page escapes every "<" before
+  commonmark runs, so text a user typed can't become markup; inside code,
+  commonmark escaped the "&" again and an R script's `<-` read as
+  `&lt;-`. That second escape is undone inside `<code>` only, which keeps
+  the text escaped. Word keeps a code block's lines apart with line breaks.

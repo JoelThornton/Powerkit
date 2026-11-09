@@ -30,6 +30,12 @@ test_that("text a user typed can't add markup or scripts to the document", {
   expect_no_match(link, "&lt;https", fixed = TRUE)
   # A script disguised as a link is still text.
   expect_no_match(printable_document(c("# N", "", "<https://x.org/><script>")), "<script>", fixed = TRUE)
+  # Code (an R script) shows "<-" as written, and markup in it is still text.
+  code <- printable_document(c("# N", "", "```r", "x <- 1", "<script>alert(1)</script>", "```", "", "`a <- b`"))
+  expect_match(code, "x &lt;- 1", fixed = TRUE)
+  expect_match(code, "a &lt;- b", fixed = TRUE)
+  expect_no_match(code, "<script>", fixed = TRUE)
+  expect_no_match(code, "&amp;lt;", fixed = TRUE)
 })
 
 test_that("the notes and the planning document both print as documents, not as the app", {

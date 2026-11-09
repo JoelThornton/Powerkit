@@ -8,6 +8,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-09"
+    title: "A planning document for a whole-study plan"
+    text: >-
+      A whole-study result now gives a planning document, as a card's result
+      does, as a PDF, a Word file or Markdown. It lists every analysis and
+      its role, what your claim needs, the population assumed, the separate
+      and joint powers and the R script that reproduces them. Its first page
+      says the whole-study simulation is experimental.
+  - date: "2026-11-09"
     title: "The significance level and evidence threshold are yours to choose"
     text: >-
       The significance level and the Bayes factor threshold now start

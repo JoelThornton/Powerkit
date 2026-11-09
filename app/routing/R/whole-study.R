@@ -635,9 +635,12 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       writeup_ui(c(short = methods, full = methods_full)),
       script,
       div(class = "nav-buttons mt-2",
+        print_document_button("ws_planning_document", "Planning document (PDF)"),
+        download_button("ws_download_planning_docx", "Planning document (Word)", class = "btn btn-outline-primary"),
+        download_button("ws_download_planning_md", "Planning document (Markdown)", class = "btn btn-outline-primary"),
         download_button("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary"),
         download_button("download_guided_plan", "Save this plan", class = "btn btn-outline-primary")),
-      p(class = "small text-muted", "\u201cSave this plan\u201d keeps your plan and these inputs in a file you can open again on the start screen; the specification is for running the simulation in R.")),
+      p(class = "small text-muted", "The planning document gathers every analysis and its role, the claim, the population assumed, the joint and separate powers and the R script that reproduces them, for a plan you share or cite. \u201cSave this plan\u201d keeps your plan and these inputs in a file you can open again on the start screen; the specification is for running the simulation in R.")),
     div(class = "result-card result-how", id = "ws-how",
       h4(class = "h5", "How it was calculated"),
       if (experiment) p(class = "result-credit", "Simulated with the R package ", tags$strong("Superpower"), sprintf(" (version %s), with afex %s fitting each ANOVA. Experimental: a statistician's check is still to come.",
@@ -956,4 +959,74 @@ whole_study_curve_ui <- function(calc, target = 0.8) {
 
 duration_words <- function(seconds) {
   if (seconds < 120) sprintf("%s seconds", whole(10 * ceiling(seconds / 10))) else sprintf("%s minutes", whole(round(seconds / 60)))
+}
+
+# The planning document for a whole-study plan (next.md, "A planning
+# document for the whole-study plan"): what a reader citing the plan needs,
+# in one file. Every analysis with its role and power, the claim and its
+# joint power, the population assumed, what that model implies for each
+# analysis's own screen, how this differs from separate calculations, the
+# methods paragraph, the reproducibility record, and the R script that
+# reproduces these numbers. Markdown lines, typeset by printable_document()
+# or docx_document() as the cards' documents are. `script` is the text of
+# export_whole_study_script() for the spec that was run.
+whole_study_planning_document <- function(calc, script, departure = NULL) {
+  stopifnot(identical(calc$status, "ok"))
+  r <- calc$result
+  a <- r$analyses
+  pv <- r$provenance
+  experiment <- identical(pv$backend, "Superpower")
+  mains <- sum(a$role == "main")
+  claim <- switch(r$claim %||% "each",
+    all = sprintf("The study's claim needs every main analysis (%d) to be significant in the same study.", mains),
+    any = sprintf("The study's claim needs at least one of the %d main analyses to be significant, so each main analysis is tested at alpha divided by %d (Bonferroni).", mains, mains),
+    "Each main result is a separate claim, so each analysis's own power is what matters.")
+  analysis_lines <- vapply(seq_len(nrow(a)), function(i) sprintf("- **%s** (%s analysis): power %s, 95%% interval %s to %s, tested at alpha = %s.",
+    a$label[i], if (a$role[i] == "main") "main" else "extra", percent(a$power[i]), percent(a$lower[i]), percent(a$upper[i]),
+    format(signif(a$alpha[i], 3))), "")
+  joint <- r$joint
+  joint_lines <- if (!is.null(joint) && !identical(r$claim, "each")) c(sprintf(
+    "The chance that %s in the same simulated study is **%s** (95%% interval %s to %s). It is counted directly from the simulated studies, not assumed from the separate powers.",
+    if (joint$rule == "all") "every main analysis is significant" else "at least one main analysis is significant",
+    percent(joint$power), percent(joint$lower), percent(joint$upper)), "")
+  failed <- ("failed" %in% names(a) && any(a$failed > 0)) || isTRUE(joint$failed > 0)
+  implied <- unlist(lapply(r$implied, function(imp) {
+    c(sprintf("- %s:", a$label[a$id == imp$id]),
+      vapply(names(imp$values), function(k) sprintf("    - %s: %.3f", whole_study_value_label(k), imp$values[[k]]), ""))
+  }))
+  backend <- if (experiment) sprintf("Superpower %s, with afex %s fitting each ANOVA", pv$packages[["Superpower"]], pv$packages[["afex"]])
+    else sprintf("power4mome %s, with lavaan %s and manymome %s", pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]])
+  others <- names(pv$packages)[names(pv$packages) != "powerkit"]
+  unname(c("# Whole-study planning document", "",
+    sprintf("Planning draft for review, made with %s. It does not register a preregistration or guarantee that the assumptions are correct.",
+      powerkit_cited(pv$packages[["powerkit"]])), "",
+    "**Experimental.** The whole-study simulation has not yet been checked by a statistician. Treat these numbers as a planning aid, and say so if you cite them.", "",
+    sprintf("These numbers come from a quick look of %s simulated studies, so each power is within about ±%s percentage points. For numbers to report, and for the sample size you need, run the full simulation with the R script for it on the result page.",
+      whole(pv$nrep), whole_study_precision(pv$nrep)), "",
+    "## The study and its claim",
+    sprintf("N = %s. Alpha = %s.", whole(r$n), format(r$alpha)), claim, "",
+    "## Each analysis", analysis_lines, "",
+    if (length(joint_lines)) c("## Joint power for the claim", joint_lines),
+    if (failed) c("## Simulated studies that could not be analysed",
+      "The powers above describe valid decisions only.", paste0("- ", whole_study_outcomes(r)), ""),
+    "## The population assumed",
+    trimws(paste0(whole_study_population_text(r), whole_study_group_d_text(r))),
+    "The same population generated every simulated study, and each planned analysis was fitted to every study with its own model.", "",
+    if (length(implied)) c("## What this model implies for each analysis's own input screen",
+      if (experiment) "Each test's effect size and its power when it is the only test, calculated exactly from the means (Superpower's ANOVA_exact())."
+      else "Estimated from one very large simulated sample. Separate calculations that used other values describe a different study.",
+      implied, ""),
+    "## How this differs from calculating each analysis separately",
+    departure %||% "Separate calculations each describe their own study; this simulation uses one model of the study for all of them.", "",
+    "## Methods paragraph (draft)", whole_study_methods(r, full = TRUE), "",
+    "## Reproducibility record",
+    sprintf("- Simulated with %s.", backend),
+    sprintf("- Seed %s; %s simulated studies%s.", pv$seed, whole(pv$nrep),
+      if (!is.na(pv$ci_draws %||% NA)) sprintf("; %s Monte Carlo draws per confidence interval", whole(pv$ci_draws)) else ""),
+    sprintf("- Spec hash (SHA-256): %s.", pv$spec_hash),
+    sprintf("- Check run (n = 100,000): %s.", if (all(r$check_run$ok)) "passed" else "failed"),
+    sprintf("- %s; %s; powerkit %s.", pv$r_version, paste(others, pv$packages[others], collapse = ", "), pv$packages[["powerkit"]]), "",
+    "## The R script that reproduces these numbers",
+    "Run it in R with powerkit installed (its first lines say how). It holds the whole-study specification and seed above, so it gives the same numbers with the same package versions.", "",
+    "```r", strsplit(script, "\n", fixed = TRUE)[[1]], "```"))
 }
