@@ -8,6 +8,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-09"
+    title: "Clearer pre-replication notes"
+    text: >-
+      The pre-replication notes in Labs are reworded to speak plainly as a
+      tool, with clearer step names: what you want to learn, the original
+      study's quality and why a replication. The three questions themselves
+      are unchanged.
+  - date: "2026-11-09"
     title: "Fewer download buttons"
     text: >-
       A planning document, the pre-replication notes and the replication
