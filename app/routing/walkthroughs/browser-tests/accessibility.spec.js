@@ -45,8 +45,9 @@ for (const width of [1100, 375, 320]) test(`accessibility and reflow at ${width}
   // human screen-reader session or a WCAG compliance certification.
   expect(await page.locator('#screen').ariaSnapshot()).toContain('alert');
   for (const [id, value] of Object.entries({goal:'power', method:'student_t', alternative:'two_sided',
-    d:'0.4', n:'120', just_type:'smallest_effect_of_interest', just_source:'Fictional accessibility test scenario.'})) {
+    d:'0.4', n:'120', alpha:'0.05', just_type:'smallest_effect_of_interest', just_source:'Fictional accessibility test scenario.'})) {
     const el = page.locator('#f_' + id);
+    await el.evaluate(x => { const d = x.closest('details'); if (d) d.open = true; });
     if (await el.evaluate(x => x.tagName === 'SELECT')) await el.selectOption(value);
     else await el.fill(value);
     await el.blur();

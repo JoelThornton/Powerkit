@@ -682,8 +682,12 @@ test_that("the write-up gives the reasons for a changed alpha or a one-sided tes
     alternative_reason = "the hypothesis predicts that training raises scores"))
   w <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "(one-sided, effect positive, α = .01). The significance level of .01 was chosen because this is a new claim. A one-sided test was used because the hypothesis predicts that training raises scores.", fixed = TRUE)
-  # No sentence when the settings are back at their defaults, even with old text in the boxes.
+  # A reason for the usual level is kept (8 November 2026: the level is
+  # chosen on every card); a two-sided test needs none, even with old text
+  # in its box; with no reason, no sentence.
   values <- modifyList(values, list(alpha = "0.05", alternative = "two_sided"))
+  expect_identical(writeup_choices(fields, values), "The significance level of .05 was chosen because this is a new claim.")
+  values$alpha_reason <- NULL
   expect_length(writeup_choices(fields, values), 0)
 })
 

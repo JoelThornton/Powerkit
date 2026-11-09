@@ -1,3 +1,12 @@
+# powerkit 0.57.0
+
+* App only: the significance level and the Bayes factor threshold start
+  empty on every card, as target power does, with a button that fills in
+  the usual value (0.05; 10) and an optional reason that goes into the
+  methods paragraph. With no reason given, the paragraph states the value
+  alone. Each analysis prior keeps its software's default, with a short
+  question beside it on whether that default fits the user's field.
+
 # powerkit 0.56.0
 
 * Precision planning on MBESS's routes (d, standardised means and

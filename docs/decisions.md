@@ -6330,3 +6330,16 @@ the site stays findable by search engines.
 - **Why:** an expected width is an average, so about half of the studies
   planned for it get a wider interval. And a plan that never says its
   test differs from the usual analysis diverges silently (CLAUDE.md).
+
+## 2026-11-08 · Conventional values start empty
+
+- **Decided (8 November 2026):** the significance level (0.05 on every
+  card) and the Bayes factor threshold (10 on 15 cards) start empty, as
+  target power does. A button beside each fills in the usual value in one
+  click, and an optional reason goes into the methods paragraph. With no
+  reason, the paragraph states the value alone ("α = .05"). It never says
+  that no reason was given. The analysis priors keep their software's
+  defaults (JASP's and bfpwr's), with a short question beside each on
+  whether the default fits the field. Built 9 November 2026.
+- **Why:** a filled-in convention is chosen without anyone choosing it.
+  One click keeps the work small, while the choice stays the user's.

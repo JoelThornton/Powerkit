@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 9 November 2026 (powerkit 0.56.0). Where the project is
+*Last updated: 9 November 2026 (powerkit 0.57.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -38,7 +38,9 @@ rules are in `CLAUDE.md`.
   power for several effects, precision planning by MBESS asks for a
   chance (assurance) that the interval is narrow enough, and mediation
   results say that the planned Monte Carlo interval differs from
-  PROCESS's percentile bootstrap (9 November). Effects that vary between
+  PROCESS's percentile bootstrap, and the significance level and the
+  Bayes factor threshold start empty, as target power does, with the
+  usual value one click away and an optional reason (9 November). Effects that vary between
   studies are on the t-test and correlation cards, with a table of the
   answer at no, small, medium and large variation, and an opt-in Bayes
   mode is on the start screen, with Bayes factor write-ups worded as

@@ -67,7 +67,7 @@ default_evidence <- function(forms, id) {
   form <- forms$forms[[id]]
   if (is.null(form)) return(NULL)
   fields <- form_fields(form_groups(forms, id))
-  values <- setNames(lapply(fields, function(f) f[["default"]] %||% ""), vapply(fields, `[[`, "", "id"))
+  values <- setNames(lapply(fields, function(f) f[["default"]] %||% f$usual %||% ""), vapply(fields, `[[`, "", "id"))
   capability_metadata(form, fields, values)
 }
 
@@ -92,7 +92,7 @@ capability_rows <- function(tree, forms) {
       next
     }
     fields <- form_fields(form_groups(forms, id))
-    defaults <- setNames(lapply(fields, function(f) f[["default"]] %||% ""), vapply(fields, `[[`, "", "id"))
+    defaults <- setNames(lapply(fields, function(f) f[["default"]] %||% f$usual %||% ""), vapply(fields, `[[`, "", "id"))
     restrictions <- paste(c("Choices are listed individually; visibility and compatibility depend on the other answers.",
       unlist(lapply(fields, function(f) {
         if (is.null(f$help) && is.null(f$min) && is.null(f$max) && is.null(f$min_exclusive)) return(NULL)

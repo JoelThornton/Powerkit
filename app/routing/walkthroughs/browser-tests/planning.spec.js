@@ -23,6 +23,12 @@ async function tPlan(page) {
   await setValue(page, 'alternative', 'two_sided');
   await setValue(page, 'd', '0.4');
   await setValue(page, 'n', '120');
+  // The significance level starts empty; one click gives the usual level.
+  const usual = page.locator('#f_alpha_usual');
+  await usual.evaluate(x => { const d = x.closest('details'); if (d) d.open = true; });
+  await expect(page.locator('#f_alpha')).toHaveValue('');
+  await usual.click();
+  await expect(page.locator('#f_alpha')).toHaveValue('0.05');
   await setValue(page, 'just_type', 'smallest_effect_of_interest');
   await setValue(page, 'just_source', 'A justified planning scenario for browser regression checks.');
   await setValue(page, 'research_question', 'Does training improve recall?');
