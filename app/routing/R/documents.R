@@ -23,8 +23,18 @@ document_css <- "
   table { border-collapse: collapse; margin: 0.75rem 0; font-size: 0.95em; }
   th, td { border: 1px solid #c8c8c8; padding: 0.3rem 0.5rem; text-align: left; vertical-align: top; }
   code { font-size: 0.92em; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.8em; line-height: 1.4; background: #f6f6f6; padding: 0.5rem 0.75rem; }
   .pk-doc-footer { margin-top: 2rem; padding-top: 0.5rem; border-top: 1px solid #c8c8c8; font: 0.8rem/1.4 system-ui, sans-serif; color: #555; }
 "
+
+# Inside <code> elements only, "&amp;lt;" back to "&lt;".
+code_unescape <- function(html) {
+  parts <- regmatches(html, gregexpr("(?s)<code[^>]*>.*?</code>", html, perl = TRUE))[[1]]
+  if (!length(parts)) return(html)
+  fixed <- gsub("&amp;lt;", "&lt;", parts, fixed = TRUE)
+  regmatches(html, gregexpr("(?s)<code[^>]*>.*?</code>", html, perl = TRUE)) <- list(fixed)
+  html
+}
 
 # The page for one document. `markdown`: its lines, the first a "# " title.
 printable_document <- function(markdown, version = NULL) {
@@ -36,6 +46,9 @@ printable_document <- function(markdown, version = NULL) {
   # only Markdown's own links, <https://...>, are left to become links.
   body <- commonmark::markdown_html(gsub("<(?!https?://[^<>[:space:]]+>)", "&lt;", text, perl = TRUE),
     extensions = TRUE, smart = TRUE)
+  # In code, commonmark escapes the "&" of that "&lt;" again; undo that
+  # there, so an R script's "<-" reads as written. It stays escaped.
+  body <- code_unescape(body)
   footer <- sprintf("Made with powerkit%s.", if (is.null(version)) "" else paste0(" ", version))
   paste0(
     "<!DOCTYPE html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">",
@@ -109,7 +122,9 @@ docx_body <- function(markdown) {
           }))
         },
         block_quote = blocks(k, "Quote"),
-        code_block = , html_block = para(run(sub("\n$", "", xml2::xml_text(k)), list(code = TRUE)), style),
+        # One paragraph, its lines kept apart by line breaks.
+        code_block = , html_block = para(paste(vapply(strsplit(sub("\n$", "", xml2::xml_text(k)), "\n", fixed = TRUE)[[1]],
+          run, "", list(code = TRUE)), collapse = "<w:r><w:br/></w:r>"), style),
         thematic_break = '<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="A0A0A0"/></w:pBdr></w:pPr></w:p>',
         blocks(k, style))
     })

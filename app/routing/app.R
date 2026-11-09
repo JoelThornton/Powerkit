@@ -1510,6 +1510,20 @@ server <- function(input, output, session) {
       export(spec, file = file, run_time = whole_study_script_time(forms, whole_study_screen()$plan, goal))
     }
   )
+  # The planning document for the whole-study result: the same Markdown
+  # as PDF (printed by the browser), Word or Markdown.
+  ws_planning_lines <- function() {
+    req(identical(state$ws_calc$status, "ok"), !is.null(state$ws_spec))
+    script <- engine_function("export_whole_study_script")(state$ws_spec)
+    whole_study_planning_document(state$ws_calc, script, departure = forms$departures[["13"]])
+  }
+  observeEvent(input$ws_planning_document, send_document(session, function() printable_document(ws_planning_lines(), powerkit_version())))
+  output$ws_download_planning_docx <- downloadHandler(
+    filename = function() "powerkit-whole-study-planning.docx",
+    content = function(file) docx_document(ws_planning_lines(), file, powerkit_version()))
+  output$ws_download_planning_md <- downloadHandler(
+    filename = function() "powerkit-whole-study-planning.md",
+    content = function(file) writeLines(ws_planning_lines(), file, useBytes = TRUE))
   output$ws_download_spec <- downloadHandler(
     filename = function() "powerkit-whole-study-spec.json",
     content = function(file) {

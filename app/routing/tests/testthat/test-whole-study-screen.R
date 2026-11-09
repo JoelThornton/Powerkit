@@ -204,6 +204,48 @@ test_that("the result shows each analysis, the joint power for the claim, the im
   expect_match(as.character(failed), "Something plain.", fixed = TRUE)
 })
 
+test_that("the planning document gathers the analyses, the claim, the population, the powers and the script", {
+  run <- engine_function("run_whole_study")
+  export <- engine_function("export_whole_study_script")
+  skip_if(is.null(run) || is.null(export), "engine not available")
+  skip_on_cran()
+  plan <- whole_study_plan(tree, ws_answers, c("compare", "moderation"), c("compare", "moderation"), list())
+  skeleton <- whole_study_skeleton(plan, whole_study_labels(plan$roles, list()))
+  params <- engine_function("whole_study_parameters")(skeleton)
+  values <- list("X->Y" = "0.2", "W->Y" = "-0.1", "XW->Y" = "-0.15", "X<->W" = "-0.2", n = "150", alpha = "0.05", nrep = "100", seed = "3")
+  spec <- whole_study_spec(skeleton, params, values, "all")$spec
+  calc <- run_calculation(spec, run = run)
+  expect_equal(calc$status, "ok")
+  md <- whole_study_planning_document(calc, export(spec), departure = forms$departures[["13"]])
+  text <- paste(md, collapse = "\n")
+  expect_identical(md[1], "# Whole-study planning document")
+  expect_match(text, "**Experimental.**", fixed = TRUE)
+  expect_match(text, "quick look of 100 simulated studies", fixed = TRUE)
+  expect_match(text, "needs every main analysis (2) to be significant in the same study", fixed = TRUE)
+  for (label in calc$result$analyses$label) expect_match(text, label, fixed = TRUE)
+  expect_match(text, "(main analysis): power", fixed = TRUE)
+  expect_match(text, "## Joint power for the claim", fixed = TRUE)
+  expect_match(text, sprintf("**%s**", percent(calc$result$joint$power)), fixed = TRUE)
+  expect_match(text, "The assumed population values (standardised) were: X to Y 0.2", fixed = TRUE)
+  expect_match(text, whole_study_methods(calc$result, full = TRUE), fixed = TRUE)
+  expect_match(text, calc$result$provenance$spec_hash, fixed = TRUE)
+  expect_match(text, "the joint chance is counted directly", fixed = TRUE)
+  # The script that reproduces the numbers is in the document, whole.
+  expect_match(text, "```r\n# Runs a powerkit whole-study simulation", fixed = TRUE)
+  expect_match(text, "library(powerkit)", fixed = TRUE)
+  # As PDF, the script's "<-" reads as written (still escaped); as Word,
+  # its lines stay apart.
+  html <- printable_document(md, "0.0.0")
+  expect_match(html, "spec_json &lt;- paste(", fixed = TRUE)
+  expect_no_match(html, "&amp;lt;", fixed = TRUE)
+  docx <- docx_body(md)$body
+  expect_match(docx, "<w:br/>", fixed = TRUE)
+  # The result offers it.
+  page <- as.character(whole_study_result_ui(calc, departure = forms$departures[["13"]]))
+  expect_match(page, "ws_planning_document_button", fixed = TRUE)
+  expect_match(page, "ws_download_planning_docx", fixed = TRUE)
+})
+
 test_that("the script for the full run finds the sample size, or the power at N with the full number of studies", {
   export <- engine_function("export_whole_study_script")
   skip_if(is.null(export), "engine not available")
