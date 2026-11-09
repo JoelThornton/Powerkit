@@ -149,6 +149,13 @@ test_that("a document's formats are one button with a menu", {
     expect_match(link, "dropdown-item", fixed = TRUE)
   }
   expect_match(nav_js, "#planning_document_formats", fixed = TRUE)
+  # Every download in a menu is kept ready while the menu is closed.
+  sources <- paste(unlist(lapply(c(file.path(routing_dir, "app.R"), Sys.glob(file.path(routing_dir, "R", "*.R"))), readLines)), collapse = "\n")
+  menus <- regmatches(sources, gregexpr('document_menu\\("[a-z_]+", "([a-z_]+)", "([a-z_]+)"', sources))[[1]]
+  ids <- unlist(regmatches(menus, gregexpr('"[a-z_]+"', menus)))
+  ids <- gsub('"', "", ids[-seq(1, length(ids), by = 3)])
+  expect_setequal(ids, document_menu_downloads)
+  expect_match(sources, "for (id in document_menu_downloads) outputOptions(output, id, suspendWhenHidden = FALSE)", fixed = TRUE)
 })
 
 test_that("Word downloads are offered for the notes and the planning document", {

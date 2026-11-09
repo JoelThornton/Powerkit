@@ -2168,6 +2168,11 @@ server <- function(input, output, session) {
       }
     )
   })
+  # The Word and Markdown downloads sit in a closed format menu
+  # (document_menu()). Shiny leaves a hidden output's link empty until it
+  # sees it shown, and opening a menu isn't such a moment, so these links
+  # are kept ready while hidden.
+  for (id in document_menu_downloads) outputOptions(output, id, suspendWhenHidden = FALSE)
 }
 
 shinyApp(ui, server)

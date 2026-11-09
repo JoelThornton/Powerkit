@@ -225,6 +225,11 @@ document_menu <- function(pdf, docx, md, label, name, class = "btn btn-outline-p
       tags$li(shiny::downloadLink(md, "Markdown (.md)", class = "dropdown-item"))))
 }
 
+# The download ids inside the menus, which the server keeps ready while the
+# menu is closed (outputOptions(suspendWhenHidden = FALSE) in app.R).
+document_menu_downloads <- c("download_planning_docx", "download_planning_document",
+  "ws_download_planning_docx", "ws_download_planning_md", "labs_docx", "labs_download", "rep_docx", "rep_markdown")
+
 # Sends a built document to the browser, which prints it from a hidden
 # frame; or a plain-English reason if it can't be built.
 send_document <- function(session, build) {
