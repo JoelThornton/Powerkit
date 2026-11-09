@@ -8,6 +8,13 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-09"
+    title: "Fewer download buttons"
+    text: >-
+      A planning document, the pre-replication notes and the replication
+      plan each have one button now: it saves the PDF, and a small menu
+      beside it gives the Word and Markdown versions. The R script, the
+      citations and the project file keep their own buttons.
+  - date: "2026-11-09"
     title: "A planning document for a whole-study plan"
     text: >-
       A whole-study result now gives a planning document, as a card's result

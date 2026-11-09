@@ -40,6 +40,9 @@ async function calculate(page) {
 }
 async function download(page, id, output) {
   await expect(page.locator('#' + id)).toHaveAttribute('href', /\/download\//);
+  // Word and Markdown sit in the format menu beside the PDF button.
+  const menu = page.locator('.doc-menu').filter({ has: page.locator('#' + id) }).locator('.dropdown-toggle');
+  if (await menu.count() && !(await page.locator('#' + id).isVisible())) await menu.click();
   const pending = page.waitForEvent('download');
   await page.locator('#' + id).click();
   const file = await pending;

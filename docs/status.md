@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 9 November 2026 (powerkit 0.58.0). Where the project is
+*Last updated: 9 November 2026 (powerkit 0.58.1). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -44,7 +44,8 @@ rules are in `CLAUDE.md`.
   Decisions from October are archived (`archive/decisions-2026-10.md`,
   indexed at the top of `decisions.md`), and closing a batch moves Updates
   entries over a month old to `whats-new-archive.yaml`, which the Updates
-  tab still shows. Effects that vary between
+  tab still shows. Each document's downloads are one PDF button with a menu
+  for Word and Markdown. Effects that vary between
   studies are on the t-test and correlation cards, with a table of the
   answer at no, small, medium and large variation, and an opt-in Bayes
   mode is on the start screen, with Bayes factor write-ups worded as

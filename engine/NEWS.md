@@ -1,3 +1,10 @@
+# powerkit 0.58.1
+
+* The app's document downloads (a card's planning document, the
+  whole-study planning document, the pre-replication notes and the
+  replication plan) are one button each: the PDF, with a menu beside it
+  for Word and Markdown (`document_menu()`).
+
 # powerkit 0.58.0
 
 * The app's whole-study result now offers a planning document (PDF, Word

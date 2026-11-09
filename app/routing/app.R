@@ -177,6 +177,8 @@ app_css <- "
   .form-field { margin-bottom: 0.75rem; }
   .form-field .form-control, .form-field .form-select { min-height: 44px; }
   .default-source { font-size: 0.85rem; color: #4a4a4a; margin-top: -0.35rem; }
+  .doc-menu .dropdown-toggle-split { min-width: 44px; min-height: 44px; } /* the format menu beside a document's PDF button */
+  .doc-menu .dropdown-item { min-height: 44px; display: flex; align-items: center; }
   .usual-value { min-height: 44px; min-width: 44px; margin: 0.25rem 0 0.5rem; } /* one click for the usual value; touch target at least 44 x 44 px */
   .field-prompt { font-size: 0.85rem; color: #4a4a4a; font-style: italic; margin-top: 0.2rem; }
   .form-problems { border-left: 4px solid #a12a2a; background: #fbeaea; padding: 0.75rem 1rem; margin: 1rem 0; }

@@ -43,7 +43,7 @@ test_that("the notes and the planning document both print as documents, not as t
   expect_match(labs, "pkPrintDocument(&#39;labs_document&#39;)", fixed = TRUE)
   expect_no_match(labs, "window.print()", fixed = TRUE)
   results <- paste(readLines(file.path(routing_dir, "R", "results.R")), collapse = "\n")
-  expect_match(results, 'print_document_button("planning_document", "Planning document (PDF)")', fixed = TRUE)
+  expect_match(results, 'document_menu("planning_document", "download_planning_docx", "download_planning_document",\n        "Planning document (PDF)"', fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(app, "observeEvent(input$labs_document, send_document(", fixed = TRUE)
   expect_match(app, "observeEvent(input$planning_document, send_document(", fixed = TRUE)
@@ -135,11 +135,27 @@ test_that("going ahead or changing the plan gives a section under the paper's th
   expect_no_match(labs_report(list(labs_finding = "F."), "go", citation = "x"), "left blank", fixed = TRUE)
 })
 
+test_that("a document's formats are one button with a menu", {
+  html <- as.character(document_menu("planning_document", "download_planning_docx", "download_planning_document",
+    "Planning document (PDF)", "the planning document"))
+  expect_match(html, 'id="planning_document_button"', fixed = TRUE)
+  expect_match(html, 'id="planning_document_formats"', fixed = TRUE)
+  expect_match(html, 'data-bs-toggle="dropdown"', fixed = TRUE)
+  expect_match(html, 'Other formats: the planning document', fixed = TRUE)
+  # The Word and Markdown items are Shiny download links, in the menu.
+  for (id in c("download_planning_docx", "download_planning_document")) {
+    link <- regmatches(html, regexpr(sprintf('<a [^>]*id="%s"[^>]*>', id), html))
+    expect_match(link, "shiny-download-link", fixed = TRUE)
+    expect_match(link, "dropdown-item", fixed = TRUE)
+  }
+  expect_match(nav_js, "#planning_document_formats", fixed = TRUE)
+})
+
 test_that("Word downloads are offered for the notes and the planning document", {
   labs <- as.character(labs_ui(tree))
   expect_match(labs, 'id="labs_docx"', fixed = TRUE)
   results <- paste(readLines(file.path(routing_dir, "R", "results.R")), collapse = "\n")
-  expect_match(results, 'download_button("download_planning_docx", "Planning document (Word)"', fixed = TRUE)
+  expect_match(results, 'document_menu("planning_document", "download_planning_docx", "download_planning_document"', fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(app, "output$labs_docx <- downloadHandler(", fixed = TRUE)
   expect_match(app, "output$download_planning_docx <- downloadHandler(", fixed = TRUE)

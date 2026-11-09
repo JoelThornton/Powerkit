@@ -135,9 +135,7 @@ replication_ui <- function() {
       tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Write-up"),
         p(class = "group-note", "A plan built from what you have entered, for a preregistration or a registered report. Sections not filled in yet are marked, so it can be downloaded at any stage."),
         div(class = "nav-buttons",
-          print_document_button("rep_document", "Save as PDF or print", class = "btn btn-primary"),
-          download_button("rep_docx", "Download for Word (.docx)", class = "btn btn-outline-primary"),
-          download_button("rep_markdown", "Download (Markdown)", class = "btn btn-outline-primary"),
+          document_menu("rep_document", "rep_docx", "rep_markdown", "Save as PDF or print", "the replication plan", class = "btn btn-primary"),
           download_button("rep_script", "Download the R script", class = "btn btn-outline-primary")),
         uiOutput("rep_writeup_note"))),
     p(class = "small text-muted", "References: ", replication_citations())
