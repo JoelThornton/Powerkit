@@ -20,5 +20,8 @@ cran_files <- c(
   "simulation-outcomes", "spec-hash", "spec-messages", "spec-population", "study-plan"
 )
 on_cran <- !identical(Sys.getenv("NOT_CRAN"), "true")
+# One process: CRAN allows at most two cores, and the quick set gains nothing
+# from starting workers.
+if (on_cran) Sys.setenv(TESTTHAT_PARALLEL = "FALSE")
 
 test_check("powerkit", filter = if (on_cran) paste0("^(", paste(cran_files, collapse = "|"), ")$"))

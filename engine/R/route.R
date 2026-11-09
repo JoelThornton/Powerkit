@@ -21,6 +21,17 @@
 #                       checks every smaller n.
 
 route_spec <- function(spec, seed = NULL) {
+  # Some backends call their package while being set up (semPower works
+  # out a model's degrees of freedom); one in Suggests may not be installed.
+  tryCatch(
+    route_backend(spec, seed),
+    packageNotFoundError = function(e) {
+      abort_run(missing_packages_message(e$package), class = "powerkit_missing_package")
+    }
+  )
+}
+
+route_backend <- function(spec, seed = NULL) {
   key <- paste(spec$design, spec$template, sep = "/")
   # A between-participants ANOVA given by its partial eta-squared (as
   # G*Power takes it), not by group means: pwrss's F test.

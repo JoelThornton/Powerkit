@@ -442,8 +442,10 @@ sem_restriction_check_run <- function(spec, base, power_at) {
 #'   Otherwise a list with `template` and `df`.
 #' @export
 #' @examples
-#' spec <- read_spec(system.file("specs", "sem_model_fit.json", package = "powerkit"))
-#' sem_summary(spec)$df
+#' if (requireNamespace("semPower", quietly = TRUE)) {
+#'   spec <- read_spec(system.file("specs", "sem_model_fit.json", package = "powerkit"))
+#'   sem_summary(spec)$df
+#' }
 sem_summary <- function(spec) {
   if (!identical(spec$design, "sem")) {
     return(NULL)

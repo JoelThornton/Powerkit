@@ -2577,8 +2577,10 @@ the site stays findable by search engines.
   through `app/routing/optional-packages.R`, checked against
   `DESCRIPTION` by `test-repo-consistency.R`. On CRAN, `tests/testthat.R`
   runs a quick set of test files, since the full suite takes hours of
-  simulation; GitHub's checks run every file. Every design's example spec
-  was run with the moved packages uninstalled: each either ran or stopped
-  with the missing-package message.
+  simulation; GitHub's checks run every file. With the moved packages
+  uninstalled, every example spec that could use one either ran or
+  stopped with the missing-package message, and `R CMD check --as-cran`
+  (with the examples in `\donttest{}` and the CRAN test set) passed, apart
+  from the notes a first submission always gets.
 - **When to submit** is a queue item (`next.md`); the recommendation is
   the 1.0.0 release.

@@ -200,7 +200,8 @@ companion_agreement_t <- function(spec, b, n, k) {
 #' @export
 #' @examples
 #' spec <- read_spec(system.file("specs", "one_sample_t.json", package = "powerkit"))
-#' spec$target_test <- list(effect = spec$target_test$effect, method = "bayes_factor", alternative = "two_sided")
+#' spec$target_test <- list(effect = spec$target_test$effect, method = "bayes_factor",
+#'   alternative = "two_sided")
 #' spec$goal <- list(type = "power", n = 100L)
 #' spec$options <- NULL
 #' bayes_robustness(spec, n = 100)
