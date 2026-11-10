@@ -1121,11 +1121,13 @@ list it (maintainer's decision, 7 November 2026; `docs/decisions.md`).
 as an experimental option, for a statistician's check
 ([`whole-study-method.md`](whole-study-method.md)).
 
-- **Established convention:** each analysis is calculated on its own (G\*Power,
-  pwr, InteractionPoweR, power4mome's templates), from inputs given in its
-  own form, and the chance that several analyses all succeed is worked out
-  from their separate powers as if they were unrelated (the guided plan's
-  rule of thumb: about 89.4% each for two tests and 80% together).
+- **Separate calculations:** an individual analysis's power does not
+  establish the chance that several tests all succeed. Multiplying their
+  powers requires independent decisions; joint methods can instead model
+  dependence. Powerkit's existing independent-test guided rule uses about
+  89.4% for each of two tests to target 80% together, conditional on both
+  tests reaching their targets under a common population. This is not a
+  claim that other tools must assume independence or lack joint methods.
 - **powerkit (whole-study simulation only):** one population model,
   given as standardised paths, generates every simulated data set
   (power4mome); each planned analysis is fitted to the same data sets with
@@ -1633,14 +1635,17 @@ will notice them, though, so each entry states the size of the difference
 and, like a departure, is shown on the results screen and stated in the
 methods paragraph.
 
-### 1. Regression interactions: fixed-model power is slightly higher than simulated power
+### 1. Regression interactions: fixed-model and simulated-study power differ
 
 - **What differs:** fixed-model regression power, such as G*Power's linear
   multiple regression and InteractionPoweR's analytic
-  `power_interaction_r2()`, is slightly higher than simulated power for
-  interactions. powerkit simulates (InteractionPoweR's
-  `power_interaction()`), so it may need a few more participants than
-  G*Power.
+  `power_interaction_r2()`, differs from power averaged over simulated
+  studies with newly sampled predictors. The recorded grid below found
+  higher analytic power from InteractionPoweR in its checked settings.
+  This is not a universal ordering or bound, and the grid did not run
+  G*Power itself. The input-route explanation, result and methods text
+  distinguish the computations; analytic sensitivity is explicitly an
+  approximation that needs a fixed-N simulation check.
 - **Size:** up to about 1.4 points of power, or about 3% of N, in the grid
   comparison (72 cells: N 50-500, r_XW_Y 0.05-0.20, reliability 0.7-1,
   r_X_W 0-0.3). The largest gap was at N = 200, r_XW_Y = 0.20,

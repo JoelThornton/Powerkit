@@ -1095,14 +1095,14 @@ goal_sentences <- function(spec, result) {
         name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
           r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared", "the effect")
         c(
-          headline = sprintf(
+          headline = paste0(if (isTRUE(s$approximation)) "Formula approximation: " else "", sprintf(
             "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s = %s. The effect: %s.",
             whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
             name, format(round(s$effect, 3), nsmall = 2), s$effect_description
-          ),
+          )),
           detail = if (isTRUE(s$approximation)) {
             sprintf(
-              "Smaller true effects than this would give a significant result less often than %s of the time. Worked out by InteractionPoweR's fixed-model formula (%s(), no simulation), which is quick; sample size and power for this design are simulated. The formula gives slightly higher power than simulation, so the smallest effect you could detect may be slightly larger than this (see the known difference below).",
+              "This is an approximate threshold for %s power from InteractionPoweR's fixed-model formula (%s(), no simulation). It does not establish that the simulated-study analysis reaches that power. Check the proposed effect using power at your fixed sample size; formula and simulation can differ.",
               percent(spec$goal$power), result$provenance$backend_function
             )
           } else {
@@ -2806,8 +2806,8 @@ writeup_software <- function(result, full = FALSE, bayes = FALSE) {
 writeup_claim <- function(values, spec) {
   switch(values$claim %||% "one",
     one = NULL,
-    each = "Each hypothesis supports its own claim, so no correction for multiple tests was applied; each test is powered on its own.",
-    any = if (!is.null(spec$target_test$alpha)) sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test.",
+    each = "Each hypothesis was treated as a separate claim, so no correction for multiple tests was applied. This calculation plans one test; it does not control the chance of a false positive across the collection.",
+    any = if (!is.null(spec$target_test$alpha)) sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test. The reported power is for this test at its adjusted alpha, not the probability that any test in the set succeeds.",
       values$n_tests, values$n_tests, writeup_alpha(spec$target_test$alpha)),
     all = {
       k <- claim_tests(values)
@@ -2815,7 +2815,7 @@ writeup_claim <- function(values, spec) {
         if (identical(values$all_dependence, "unknown")) return(sprintf(
           "The claim requires all %s tests. Alpha was unchanged. The union bound gives the sufficient per-test power target 1 - (1 - %s)/%s = %s (Blitzstein & Hwang, 2019), without assuming independence. All tests must reach at least this power under the same stipulated population; the bound can be conservative and does not estimate the actual joint power. Conditional power among valid fits alone does not establish it when fits fail.",
           whole(k), format(parse_number(values$power)), whole(k), format(signif(spec$goal$power, 4))))
-        sprintf("The claim requires all %s tests to be significant, so no correction to alpha was applied, and each test was planned at power %s^(1/%s) = %s, so that if the tests are independent all of them succeed with probability %s.",
+        sprintf("The claim requires all %s tests to be significant, so no correction to alpha was applied, and this test was planned at power %s^(1/%s) = %s. If every required test reaches at least that power under the same population assumptions and their significance decisions are independent, the chance that all succeed is at least %s. This calculation does not verify those conditions for the other tests.",
           whole(k), format(parse_number(values$power)), whole(k), format(signif(spec$goal$power, 3)), format(parse_number(values$power)))
       } else {
         "The claim requires every one of several tests to be significant; the joint chance cannot exceed the least powerful individual test."

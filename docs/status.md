@@ -179,6 +179,17 @@ the selected high-replication comparisons pass locally; published references
 and recommended-N fresh-draw checks remain open. See the
 [count-test checklist](count-test-review.md).
 
+A targeted wording pass in the open PR corrects the equal-group Welch/Student
+overstatement, scopes the interaction comparison to its recorded cases,
+labels interaction sensitivity as a formula approximation, and distinguishes
+one-test power from any/all-test success. The regression form now explains
+why its two input routes need not agree. This is the first pass of the
+full wording audit in release-readiness-review.md, not every-screen sign-off;
+statistical engines and existing claim-planning defaults are unchanged. Three
+fresh sensitivity checks (10,000 simulated studies each) are archived; all
+99% power intervals included the 80% target. They use the same backend and
+do not establish universal agreement or an independent-package validation.
+
 ## Validation
 
 Most designs are checked against the package each one calls, plus their

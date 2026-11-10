@@ -892,7 +892,7 @@ claim_choices <- list(
 claim_notes <- function() list(
   each = paste(
     "You said each test supports its own claim. Power this test on its own; run the input screen again for each of the others.",
-    "No correction for several tests is needed, because no single conclusion rests on more than one test (Rubin, 2021).",
+    "This setting applies no correction across the claims (Rubin, 2021); it does not control the chance of any false positive across the collection. If any positive test would count towards one conclusion, choose the any-test option instead.",
     philosophy_note
   ),
   any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
@@ -918,7 +918,7 @@ claim_groups <- function(claim = "one", n_tests = NULL) {
          choices = list(independent = "Independent tests: use the product of their powers",
            unknown = "Dependence unknown: use a sufficient target that may be conservative"),
          shown_if = list(field = "claim", is = "all"),
-         help = "The sufficient target needs no correlation between tests. Each test's unconditional successful-study probability must reach it under the same population assumptions. Conditional power among valid fits alone does not establish this when fits fail. This is a sufficient bound, not an estimate of joint power.")
+         help = "Independence is about the tests' significance decisions, not just their predictors; using the same participants does not establish it. Choose unknown dependence if you cannot justify independence. The sufficient target needs no correlation between tests. Each test's unconditional successful-study probability must reach it under the same population assumptions. Conditional power among valid fits alone does not establish this when fits fail. This is a sufficient bound, not an estimate of joint power.")
   )
   list(list(input = NULL, title = "Your claim", fields = fields))
 }
@@ -952,17 +952,17 @@ claim_result_note <- function(values, alpha_used, goal = NULL) {
       # Bayes factor tests have no significance level to divide.
       sprintf("Your claim: any of %s tests. A Bayes factor test has no significance level, so powerkit applies no correction; the more tests you run, the more chances one of them has to give misleading evidence.", values$n_tests)
     } else sprintf(
-      "Your claim: any of %s tests. The significance level for this test is %s divided by %s (Bonferroni): %s.",
+      "Your claim: any of %s tests. The significance level for this test is %s divided by %s (Bonferroni): %s. The power shown is for this test at its adjusted alpha, not the chance that any test in the set succeeds.",
       values$n_tests, format(signif(alpha_used * as.numeric(values$n_tests), 3)), values$n_tests, format(signif(alpha_used, 3))
     ),
     all = if (!is.na(k) && isTRUE(goal %in% c("sample_size", "sensitivity"))) {
       target <- parse_number(values$power)
       if (identical(values$all_dependence, "unknown")) return(sprintf(
-        "Your claim needs all %s tests. With dependence unknown, each test is planned at 1 - (1 - %s)/%s = %s power. If every test reaches at least this power under the same population assumptions, the chance that all succeed is at least %s by the union bound (Blitzstein & Hwang, 2019). This may be conservative; significance levels are unchanged. It is a sufficient bound, not an estimate of joint power. Conditional power among valid fits alone does not establish it when fits fail.",
+        "Your claim needs all %s tests. With dependence unknown, this test is planned at 1 - (1 - %s)/%s = %s power. If every test reaches at least this power under the same population assumptions, the chance that all succeed is at least %s by the union bound (Blitzstein & Hwang, 2019). This may be conservative; significance levels are unchanged. It is a sufficient bound, not an estimate of joint power. Conditional power among valid fits alone does not establish it when fits fail.",
         whole(k), format(target), whole(k), format(signif(claim_power(target, values), 4)), format(target)))
       sprintf(paste(
         "Your claim: all of %s tests. So that all of them succeed together with a chance of %s, this test is planned at %s^(1/%s) = %s power; plan each of the others at the same power.",
-        "This assumes the tests are independent. Related tests can have a lower or higher joint chance; this calculation does not guarantee the target for them. Where supported, use the study plan's joint-power simulation.",
+        "This assumes every test reaches at least the stated power under the same population assumptions and their significance decisions are independent. This calculation does not verify the other tests. Related tests can have a lower or higher joint chance; this calculation does not guarantee the target for them. Where supported, use the study plan's joint-power simulation.",
         "Another approach raises each test's significance level instead (a \"reverse Bonferroni\": Francis & Thunell, 2021); powerkit doesn't do that."),
         whole(k), format(target), format(target), whole(k), format(signif(claim_power(target, values), 3)))
     } else {

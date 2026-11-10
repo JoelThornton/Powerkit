@@ -46,7 +46,9 @@ not Fisher's exact test and does not make an approximate test exact.
 - [ ] Record an independently sourced published/software power benchmark.
 - [ ] Verify recommended sample sizes with fresh independent draws across
   representative sparse/imbalanced cases; simulated N carries uncertainty.
-- [ ] Complete hosted checks and review, merge only when instructed, then
+- [x] Run the corrected-count chunk on GitHub as well as locally (run
+  42894057884, head cc0e107; six passes and one published-reference skip).
+- [ ] Complete all remaining hosted checks and review, merge only when instructed, then
   verify the live app. No evidence badge is upgraded by this work.
 
 References: [R prop.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/prop.test.html),

@@ -1484,7 +1484,7 @@ endpoints:
     card_points:
       - "Tests whether the interaction of X and W on Y changes with a third score, Z: the three-way product XWZ, in a regression with every lower-order term."
       - "You give the correlations among the true scores and the three-way effect as a standardised regression coefficient, as InteractionPoweR asks; reliabilities below 1 allow for measurement error."
-      - "Power comes from InteractionPoweR's formula, which treats the predictors as fixed; there is no simulation for three-way models, so power may be slightly optimistic, as for G*Power's fixed-model calculations."
+      - "Power comes from InteractionPoweR's formula; this route does not simulate studies. The two-way interaction comparison does not establish its accuracy for newly sampled predictors or bound the difference for a three-way design."
       - "All four variables are scores; a yes/no X, W or Z isn't covered yet."
     inputs: ["Correlations of X, W, Z and Y, and of the products XW, XZ and WZ with Y", "The three-way effect (standardised coefficient of XWZ)", "Optional: reliability of X, W, Z and Y"]
     tier: v2

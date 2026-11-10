@@ -115,3 +115,62 @@ The new readiness workflow intentionally tests the quick CRAN suite with current
 ## Checks for the merged correction
 
 Focused engine tests for evidence routing and between-study variation: 326 assertions passed in the final focused run, with no failures, warnings or skips. New local-distribution checks and final repository consistency passed. The consistency check caught a missing documentation-index link and a change-note formatting error; both were corrected. After numbering the batch, the isolated engine library was refreshed so its version matched the source. The full hosted app suite then caught sitemap, endpoint-documentation and glossary alignment failures; these were corrected and the focused connection/documentation/local-distribution checks pass. The optional checker also successfully read the real public GitHub release list without installing anything. Final required hosted checks passed, including engine/app/browser/manifest, clean Windows/macOS launchers and Linux CRAN quick suites on R release/devel. PR #367 merged at 950b7ad. This does not establish that the hosted app has republished. Existing high-replication validation failures are untouched.
+
+## Wording audit: first pass and remaining sweep
+
+The open review PR includes an initial pass over interpretation-critical
+text. No engine formula, numeric benchmark or claim-planning default changes
+in this pass. Each correction must agree with the selected computation and
+its recorded evidence; a shorter sentence must not hide an assumption.
+
+- [x] Correct the assertion that equal group sizes make Welch and Student
+  require the same N regardless of group spreads.
+- [x] Explain before calculation that the interaction R-squared route uses a
+  formula while its correlation route simulates newly sampled predictors.
+- [x] Remove the implied universal 1.4-point/3%-N bound and direct G*Power
+  comparison: the recorded 72-case grid compared InteractionPoweR methods.
+- [x] Stop extrapolating the two-way comparison to a supposedly small
+  three-way discrepancy that has not been measured.
+- [x] Label interaction sensitivity as a formula approximation, with an
+  instruction to verify power for the proposed effect at the planned N.
+- [x] State that one Bonferroni-adjusted test's power is not the probability
+  that any of the family's tests succeeds.
+- [x] Say the all-tests rule plans this test; every other required test must
+  meet the target under common assumptions, with independent decisions for
+  the product rule. It does not verify the other tests.
+- [x] Replace the blanket claim that other tools must assume independence
+  with a description of the supported experimental whole-study calculation.
+- [x] Explain the zero-main-effect-R-squared assumption without calling it
+  generally safe against other misspecified inputs.
+- [ ] Review all finder questions, card summaries and alternative-method text.
+- [ ] Review all form labels, defaults, optional/required fields, tooltips,
+  errors and empty states; check that people know what to do when unsure.
+- [ ] Review all result variants, warning visibility, uncertainty, methods,
+  technical details and saved-result restoration, including Bayesian routes.
+- [ ] Review Labs, About, glossary, evidence explanations and citations.
+- [ ] Review static-site copy, local installation/update instructions, data
+  and project downloads, generated R scripts and planning documents.
+- [ ] Walk through complete tasks on desktop/mobile; remove repetition while
+  keeping the answer, analysis identity and key assumptions visible.
+- [x] Check three selected analytic sensitivity thresholds with fresh
+  10,000-study simulations; archive settings, seeds and uncertainty.
+- [ ] Finish the method work wording cannot solve: provide matched simulation
+  verification in the sensitivity workflow, audit broader parameter settings
+  and the independence default for all-test planning,
+  and verify family-level success independently under common populations.
+
+Sources checked: [R t.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/t.test.html),
+[InteractionPoweR analytic method](https://dbaranger.github.io/InteractionPoweR/reference/power_interaction_r2.html),
+and the existing scoped grid record in conventions.md (Known difference 1).
+The distinction between an individual probability and an any/all event
+follows the existing Bonferroni/product/union-bound implementation; this
+pass adds no new statistical rule. Full wording and usability sign-off
+remain open.
+
+The [fresh sensitivity checks](validation/2026-11-10-interaction-sensitivity.json)
+used the existing InteractionPoweR backend, not a separate data generator or
+software package. Simulated power at the formula's 80% threshold was
+79.00%, 80.35% and 80.61% (10,000 studies each; all 99% intervals included
+80%). These selected results neither establish universal agreement nor a
+fixed direction or maximum discrepancy. Reproduce with
+[interaction-sensitivity.R](upstream/interaction-sensitivity.R).

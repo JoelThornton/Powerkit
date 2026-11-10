@@ -1440,3 +1440,28 @@ Monte Carlo comparisons passed. The evidence registry links these scoped
 cases only; published/software references, recommended-N fresh-draw
 verification, representative parameter coverage and release-wide sign-off
 remain unfinished. No old expected value or tolerance changed.
+
+## 2026-11-10 — interaction sensitivity matched-route investigation
+
+Windows R 4.5.3, candidate powerkit 0.61.0 and InteractionPoweR 0.2.4.
+The adapter is unchanged from candidate cc0e107; its SHA256 and the
+reproduction script's SHA256 are archived with the settings in
+[interaction-sensitivity.json](validation/2026-11-10-interaction-sensitivity.json).
+Run: Rscript docs/upstream/interaction-sensitivity.R. This is a three-case
+route comparison, not the standard validation chunk, an independent-package
+comparison, a new published benchmark or release-wide validation.
+
+At each formula-derived threshold for 80% power, a fresh fixed-N run used
+10,000 simulated studies. The example's correlations were retained.
+
+| Total N | X/W reliability | Formula interaction r | Simulated power | 99% interval |
+| --- | --- | --- | --- | --- |
+| 100 | .80/.85 | .330044 | .7900 | .77932–.80040 |
+| 300 | .80/.85 | .187348 | .8035 | .79307–.81364 |
+| 300 | 1/1 | .153064 | .8061 | .79572–.81619 |
+
+All three intervals include .80; no universal direction or size of error
+is inferred. This supports calling the result an approximation that can
+be checked by simulation, not an independently verified guarantee. A
+user-facing matched verification and broader cases remain needed. Existing
+published validation constants and scientific failures are unchanged.
