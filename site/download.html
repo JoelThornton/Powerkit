@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Download and update Powerkit</title>
+<meta name="description" content="Run Powerkit on your own computer, keep saved studies and choose when to update.">
+<link rel="canonical" href="https://joelthornton.github.io/Powerkit/download.html">
+<style>body{font:1.05rem/1.65 system-ui,sans-serif;color:#17283d;background:#f6f8fb;margin:0}main{max-width:48rem;margin:auto;padding:2rem 1.25rem}a{color:#075a8c}a:focus-visible{outline:3px solid #a15b00}h1,h2{line-height:1.25}.notice{border-left:4px solid #a15b00;padding:1rem;background:#fff5df}code{overflow-wrap:anywhere}li{margin-bottom:.6rem}</style>
+</head><body><main>
+<a href="index.html">Powerkit home</a>
+<h1>Run Powerkit on your computer</h1>
+<p>The same interface can open in your browser while the calculations use your own processor and memory. This avoids using Posit's computing time for those calculations. You do not need a Posit account.</p>
+<p class="notice"><strong>Development prototype.</strong> Results are not fully validated. Please do not use Powerkit to plan real studies yet. A numbered pre-release is a version you can identify, not a scientific approval.</p>
+<h2>Download the complete app</h2>
+<ol>
+<li>Install R using the <a href="https://github.com/JoelThornton/Powerkit/blob/main/docs/run-it-yourself.md">Windows and Mac setup guide</a>. The first setup can take tens of minutes and needs an internet connection.</li>
+<li>Open <a href="https://github.com/JoelThornton/Powerkit/releases">Powerkit releases</a>, choose a numbered version and download its <strong>Source code (zip)</strong>. This includes the interface, engine, launcher and recorded package versions. Do not use GitHub's main-branch ZIP for a study you need to keep reproducible.</li>
+<li>Extract the ZIP. In R, run <code>source(file.choose())</code> and choose <code>run_powerkit.R</code> in that folder. It installs the recorded dependencies and opens the app.</li>
+</ol>
+<p>This is an R-based download, not yet a one-click desktop installer. After installation, calculations run locally; setup, optional update checks and optional feedback need internet access. Close the app by stopping it in R, not only by closing the browser tab.</p>
+<h2>Keep updates under your control</h2>
+<ol>
+<li>Save your unfinished draft or completed project before changing versions. Keep your files outside the application folder.</li>
+<li>Stop Powerkit. In R, run <code>source(file.choose())</code> and choose <code>check_powerkit_updates.R</code> from the downloaded folder. It contacts the public GitHub release list and reports a newer numbered version if found. It sends no study answers and installs nothing. A failed check does not stop local calculations.</li>
+<li>If you choose to update, download the new numbered ZIP into a <strong>separate folder</strong>, restart R, then start its launcher. Keep the old folder and your project files. Do not mix an old interface with a newer engine.</li>
+<li>Open a copy of your saved project. Check its recorded version and assumptions before rerunning: a method correction can legitimately change the answer. Archived versions and their recorded dependencies support reproduction; package servers may still change or disappear.</li>
+</ol>
+<p>Update checks are optional. Nothing silently changes the software used by an open study. Prototype releases can be listed by the checker, and are identified as such. If your older download has no update-check file, use the releases page directly.</p>
+<h2>CRAN and browser-only versions</h2>
+<p>The planned CRAN package is the calculation engine. Installing the engine alone does not install this interface or a desktop application. Powerkit is not yet on CRAN. Until a release is accepted, use the numbered full-app download above.</p>
+<p>A version running entirely inside your browser could also use your processor without installing R, but it has not been built or tested. It cannot yet be advertised as supporting all of Powerkit's packages and background simulations.</p>
+<p><a href="https://joelthornton-powerkit.share.connect.posit.cloud/">Use the hosted prototype instead</a> · <a href="https://github.com/JoelThornton/Powerkit/blob/main/docs/validation-log.md">Validation status</a></p>
+</main></body></html>

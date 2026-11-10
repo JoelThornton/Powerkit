@@ -75,7 +75,7 @@ test_that("search engines are sent to the public pages, not to the app", {
   read_page <- function(page) paste(readLines(file.path(site, page), encoding = "UTF-8"), collapse = "\n")
   sitemap <- read_page("sitemap.xml")
   locs <- regmatches(sitemap, gregexpr("(?<=<loc>)[^<]+", sitemap, perl = TRUE))[[1]]
-  expect_setequal(locs, paste0(site_address, c("/", "/guide.html")))
+  expect_setequal(locs, paste0(site_address, c("/", "/guide.html", "/download.html")))
   for (loc in locs) {
     page <- sub(paste0("^", site_address, "/"), "", loc)
     if (!nzchar(page)) page <- "index.html"

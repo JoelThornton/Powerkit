@@ -87,9 +87,15 @@ local({
                     list.files("engine/inst", recursive = TRUE, full.names = TRUE))
   stamp <- paste(tools::md5sum(sort(engine_files)), collapse = "")
   stamp_file <- file.path(.libPaths()[1], "powerkit", "POWERKIT_ENGINE_STAMP")
-  installed <- requireNamespace("powerkit", quietly = TRUE) && file.exists(stamp_file) &&
-    identical(readLines(stamp_file, warn = FALSE), stamp)
-  if (!installed) {
+  # Checking whether files are installed must not load the old namespace:
+  # installing newer files cannot replace code already loaded in this R.
+  source(file.path(root, "scripts", "local-engine.R"), local = TRUE)
+  engine_action <- powerkit_local_engine_action(stamp_file, stamp)
+  if (!identical(engine_action, "reuse")) {
+    if (identical(engine_action, "restart")) {
+      stop_plain("the engine files have changed, but an older engine is already loaded in this R session. ",
+        "Restart R (Session > Restart R in RStudio), then run this file again. Your saved project files are unchanged.")
+    }
     say("installing powerkit's engine")
     utils::install.packages("engine", repos = NULL, type = "source", lib = .libPaths()[1], quiet = TRUE)
     if (!requireNamespace("powerkit", quietly = TRUE)) {
@@ -101,6 +107,8 @@ local({
   # 5. Start the app.
   port <- suppressWarnings(as.integer(Sys.getenv("POWERKIT_PORT")))
   browser <- !identical(tolower(Sys.getenv("POWERKIT_NO_BROWSER")), "true")
+  options(powerkit.local = TRUE)
+  say("updates are optional: after stopping the app, source(\"check_powerkit_updates.R\") checks for a newer release without installing it.")
   say("starting. To stop it, press Esc in the R console (or the red Stop button in RStudio).")
   shiny::runApp(
     file.path(root, "app", "routing"),

@@ -72,6 +72,12 @@ heterogeneity_problems <- function(spec) {
   if (!is.null(spec$population$sd_ratio) && !isTRUE(all.equal(spec$population$sd_ratio, 1))) {
     problems <- c(problems, "Variation between studies is planned for two groups with equal SDs (an SD ratio of 1). Empty 'How much might the true effect vary between studies?', or give equal SDs.")
   }
+  if (identical(spec$template, "independent_t") && identical(method, "welch_t") &&
+      !isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) {
+    problems <- c(problems, paste("Variation between studies with Welch's test currently requires equal group sizes.",
+      "The variation formula uses Student's degrees of freedom, which differ from Welch's for unequal groups.",
+      "Use equal allocation or plan without between-study variation; do not change your intended analysis only to obtain a number."))
+  }
   if (small_telescopes_test(spec)) {
     problems <- c(problems, "Small telescopes plans for a true effect of 0, so there is no variation between studies to allow for.")
   }
@@ -184,10 +190,15 @@ heterogeneity_sensitivity <- function(spec, n, target, power_with) {
   sign <- if (identical(spec$target_test$alternative, "less") || isTRUE(specified < 0)) -1 else 1
   top <- if (r) 0.999 else 5
   f <- function(mu) power_with(n, sign * mu) - target
+  if (f(0) >= 0) {
+    abort_run(paste("The target chance is already reached with an average effect of zero because effects vary between studies.",
+      "There is no positive smallest detectable average effect for this target. Use power at your fixed sample size",
+      "and compare the variation assumptions; significance here does not establish a nonzero average effect."))
+  }
   if (f(top) < 0) {
     abort_run(sprintf("No average effect up to %s reaches the target power at this n with this much variation between studies.", top))
   }
-  found <- stats::uniroot(f, c(1e-6, top), tol = 1e-8)$root
+  found <- stats::uniroot(f, c(0, top), tol = 1e-8)$root
   list(effect = sign * found, effect_name = switch(spec$template, paired_t = "d_z", correlation = "r", "d"),
     effect_description = if (r) "the average correlation between studies" else "the average effect between studies, as Cohen's d (d_z for pairs)",
     power = power_with(n, sign * found))

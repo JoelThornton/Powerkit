@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 9 November 2026 (powerkit 0.59.0). Where the project is
+*Last updated: 10 November 2026 (powerkit 0.60.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -10,6 +10,16 @@ page as it stood before each rewrite.*
 powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
+
+The [10 November release-readiness review](release-readiness-review.md)
+records the remaining scientific, researcher and distribution work with
+an explicit checklist. This branch corrects historical-evidence matching
+for changed decision rules, a sensitivity-search boundary, default-method
+wording and local engine restart handling. It adds a download guide,
+optional read-only update discovery and a current-dependency CRAN test
+workflow. These are proposed changes awaiting review, not a merged or
+deployed release. The two repeated statistical validation failures,
+published benchmarks and human/manual review remain open.
 
 ## Where things are
 
