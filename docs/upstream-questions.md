@@ -359,3 +359,28 @@ Questions about PITS 0.1.0, from running it (6 November 2026).
    test's degrees of freedom, suit the package, or a note on the Type I
    error at the planned length?
 
+
+## Superpower: corrected mixed-design approximation
+
+**Open investigation; no contact or author endorsement recorded.**
+[Reproduction](upstream/superpower-gg.R), [summary](validation/2026-11-10-gg-investigation.json)
+and the 10 November validation-log entry describe Superpower 0.2.4.1,
+a two-group by three-occasion interaction at N=40, unequal cell SDs and
+non-spherical within-person covariance. ANOVA_exact(correction="GG")
+gives .231305; independently generated studies analysed by the same GG
+procedure give .21805 in 20,000 (MCSE .00292). Reference p-values match
+afex on identical data. Fixing the population epsilon gives .21960, so
+estimating epsilon alone does not explain the gap.
+
+1. For this covariance/SD configuration and finite N, what assumptions
+   justify the exact-data noncentral-F power calculation? Is the result
+   intended as an approximation to the fitted GG test?
+2. Does unequal covariance across the groups, the noncentrality convention,
+   or another finite-sample approximation account for the residual gap?
+   Is there a recommended restriction or planning route for this case?
+
+Before sending, reproduce against the current public package separately
+and search existing issues. Do not change the original expected values to
+obtain agreement. Package documentation calls this an exact **dataset**
+([reference](https://aaroncaldwell.us/Superpower/reference/ANOVA_exact.html));
+that name alone does not establish exact rejection power for every covariance.

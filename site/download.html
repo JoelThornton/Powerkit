@@ -16,6 +16,7 @@
 <li>Extract the ZIP. In R, run <code>source(file.choose())</code> and choose <code>run_powerkit.R</code> in that folder. It installs the recorded dependencies and opens the app.</li>
 </ol>
 <p>This is an R-based download, not yet a one-click desktop installer. After installation, calculations run locally; setup, optional update checks and optional feedback need internet access. Close the app by stopping it in R, not only by closing the browser tab.</p>
+<p>Current launchers retry interrupted package downloads and use a public CRAN mirror while preserving the recorded versions. If an older download reports “Connection was reset”, see the <a href="https://github.com/JoelThornton/Powerkit/blob/main/docs/run-it-yourself.md#troubleshooting">connection-recovery instructions</a>. A network retry does not fix a missing compiler or an unavailable package version.</p>
 <h2>Keep updates under your control</h2>
 <ol>
 <li>Save your unfinished draft or completed project before changing versions. Keep your files outside the application folder.</li>

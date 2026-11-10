@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 10 November 2026 (powerkit 0.60.0). Where the project is
+*Last updated: 10 November 2026 (powerkit 0.60.1 candidate; main 0.60.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -23,6 +23,13 @@ target, a representative benchmark and complex-design audit briefs. Its
 expanded forms and access routes, with a freshness check. It is discovery
 metadata, not new scientific evidence or a measured 99% result. Audit P0
 cases and investigate the two recurring failures before further claims.
+
+Local installation recovery is implemented in the current PR: bounded
+per-file TLS/download retries, alternate downloader/mirrors, bootstrap
+recovery, and an engine completion stamp written only after a successful,
+matching install. A real isolated three-package binary restore on Windows
+passed with renv 1.0.3 and an unchanged lockfile. Full clean Windows/macOS
+checks are pending; no fix is yet claimed for every network.
 
 ## Where things are
 
@@ -164,8 +171,10 @@ published placeholders). The last completed nightly inspected,
 also failed the ANOVA and binary-X checks (the latter .077 in 1,000).
 The 10 November run 42772650889 was queued when checked; it supplies no
 new results yet. Its two failures are known: the
-mixed-design Greenhouse-Geisser check, which fails with new seeds too and
-waits for the statistician, and moderated mediation's Type I error with a
+mixed-design Greenhouse-Geisser check: a new independent 20,000-study
+reference gives .21805 (MCSE .00292), with same-data p-values matching afex
+to 1.9e-15. Fixing epsilon gives .2196, so that alone does not explain
+Superpower's .2313. Investigation and specialist review remain open, and moderated mediation's Type I error with a
 yes/no X (7.5% of 1,000 studies), a question for power4mome's author.
 
 ## Known gaps on cards that run

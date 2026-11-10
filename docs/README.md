@@ -115,5 +115,7 @@ listed here (a test checks).
   designs and project files were built (each decided in `decisions.md`).
 - [`archive/status-history.md`](archive/status-history.md): the status
   page as it stood before each rewrite.
+- [upstream/superpower-gg.R](upstream/superpower-gg.R): independent mixed-ANOVA
+  GG reproduction; its recorded summary is linked from validation-log.md.
 - `upstream/spower-one-sided-tests.R`: the example reported to Spower's
   author about one-sided tests (`decisions.md`, 13 October 2026).

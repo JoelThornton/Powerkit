@@ -20,7 +20,7 @@
 | # | What | Why it matters | Size | State |
 | --- | --- | --- | --- | --- |
 | 1 | **Audit first-release support at the selected-variant level** | The goal is over 99% of primary quantitative psychology analyses in a representative benchmark, including complex designs; no percentage is established yet. The generated source inventory and 18 complex-design briefs are in [v1-support-plan.md](v1-support-plan.md) | M | Ready: complete P0 case specifications and code/evidence audits first; extend the existing registry only from recorded results, then prioritise missing variants |
-| 2 | **Investigate the two scientific validation failures** | The last completed nightly run (42570428222, 9 November) failed mixed-ANOVA GG and model-7 binary-X null checks; the 10 November run is queued, not evidence of a pass | M | Ready: reproduce on a frozen candidate/current dependencies, explain estimand/implementation differences, prepare author-review dossiers; preserve existing expected values and tolerances |
+| 2 | **Investigate the two scientific validation failures** | The last completed nightly run (42570428222, 9 November) failed mixed-ANOVA GG and model-7 binary-X null checks; the 10 November run is queued, not evidence of a pass | M | Ready: the GG independent reference and fixed-epsilon experiment are recorded (10 November); finish its approximation audit and current-version reproduction. Next run the paired binary-X calibration comparison and prepare author-review dossiers; preserve expected values and tolerances |
 | 3 | **Build the representative coverage benchmark and archive protocol** | Cards and a synthetic design catalogue cannot establish population coverage. Independent paper selection, two-coder extraction, holdout assessment, uncertainty and durable evidence are required | M | Ready: prepare sampling/extraction protocol and data template; independent reviewers and paper extraction remain necessary before any 99% claim |
 | 4 | **Joint power for study plans that mix designs** | The whole-study simulation covers people measured once or twice, measured or two-group X (randomised or not), mediation and moderated mediation, factorial experiments, dyadic moderation of the actor effects and several outcomes of one trial. Left, in this order (decided 7 November 2026): covariates in every analysis's model; fully within-people designs (three or more conditions per person, three or more waves, the moderator's main effect); yes/no and other outcomes, and mixed outcome types; nested data (people in groups, repeated trials); pairs beyond the actor-partner model | L | Ready (decided 31 October 2026): one design at a time, marked Experimental, checked by a statistician later (below the queue), not before |
 | 5 | **Bayes factors: informed priors** | Fifteen designs have Bayes factor versions with JASP's default priors. Left: informed priors, which wait on a bfpwr fault or the maintainer's decision on an exact calculation in the engine (`bayes-planning.md`) | M | Ready (decided 31 October and 4 November 2026). The binomial preprint the maintainer supplied (Kelter and Pawel, arXiv 2502.02914) asks not to be cited without the authors' permission, so it stays out of `refs.bib` until it is published |
@@ -62,8 +62,6 @@ call), and nodes for approaches powerkit doesn't compute.
 
 - Delete a design's row from `forms.yaml`'s `engine_only` when its card and
   input screen land (a test will fail if you forget).
-- [`build-guide.md`](build-guide.md) section 8's phase table still reads as
-  though phases 0-2 are the frontier; refresh it when next in that file.
 - Split a very large file, or move a single-card package to Suggests, only
   as part of a PR that already touches it (`CLAUDE.md`, "Conventions";
   `routing-prototype.md`, "Splitting the large files").
@@ -106,8 +104,8 @@ call), and nodes for approaches powerkit doesn't compute.
   start it. It comes last by design (`CLAUDE.md`).
 - **Scientific sign-off on the two recurring validation failures** (investigation is Ready above) (`validation-log.md`, 7
   and 8 November 2026): the mixed design's Greenhouse-Geisser check
-  (Superpower's exact route applies the population's epsilon, a simulated
-  study estimates its own; which describes the planned analysis is for
-  the statistician), and moderated mediation's Type I error with a yes/no
+  (an independent 20,000-study reference agrees with the fitted analysis;
+  fixing epsilon alone does not explain the exact-data discrepancy, see
+  the 10 November investigation in validation-log.md), and moderated mediation's Type I error with a yes/no
   X (power4mome's question 6 in `upstream-questions.md`). Original expected values remain unchanged; investigation and independent checks proceed before external sign-off.
 - **Which queue item comes next**, if the order above is wrong.

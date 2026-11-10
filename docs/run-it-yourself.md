@@ -17,8 +17,9 @@ You will:
 4. run one line, which installs what powerkit needs and opens it in your
    web browser.
 
-The first time takes about 20 to 40 minutes, most of it waiting while
-packages download. After that it opens in under a minute. Everything runs
+Allow tens of minutes the first time; the time depends on your connection
+and whether any packages need compiling. Later starts reuse installed
+packages. Everything runs
 on your computer. Sending feedback is optional and sends the information
 described on the Feedback tab.
 
@@ -103,8 +104,9 @@ A file chooser opens. Go to the `Powerkit-main` folder and choose
 `run_powerkit.R`.
 
 **Then wait.** The first time, R installs the packages powerkit needs into
-a folder inside `Powerkit-main` (it doesn't change anything else on your
-computer). You'll see a lot of text scroll past; that's normal. Messages
+a library for this Powerkit folder. renv also uses a shared package cache
+so other downloads can reuse installed versions; other projects' libraries
+are left alone. You'll see a lot of text scroll past; that's normal. Messages
 starting `powerkit:` tell you what it's doing. When it's ready, powerkit
 opens in your web browser.
 
@@ -112,7 +114,7 @@ opens in your web browser.
 also click the red **Stop** sign at the top of the Console). Closing the
 browser tab alone doesn't stop it.
 
-**Next time:** repeat step 4. It opens in under a minute.
+**Next time:** repeat step 4. Installed packages are reused.
 
 **Getting a newer version:** save your draft/project outside the app folder,
 stop the app, then run `source(file.choose())` and choose
@@ -157,18 +159,40 @@ Options → General → R version* (Windows) and restart RStudio; on macOS,
 installing 4.5.3 makes it the version R and RStudio use. Then start
 again.
 
-**Downloads fail ("cannot open URL", "failed to download", "timeout")**
-powerkit downloads packages from the internet the first time. University
-and hospital networks sometimes block this. Try again on a home network
-or a phone hotspot, or ask IT whether R can reach
-`packagemanager.posit.co` and `cran.r-project.org`. Running
-`run_powerkit.R` again carries on where it stopped.
+**Downloads fail ("Recv failure: Connection was reset", "cannot open URL", "failed to download", "timeout")**
+The local launcher uses `cloud.r-project.org` for recorded CRAN package
+versions. Interrupted files are retried before a source-code fallback. If needed,
+setup tries R's built-in downloader, then the
+server recorded in the download's lockfile. Setting up renv itself also
+has connection recovery. Attempts are bounded; compiler errors stop rather
+than endlessly retrying. Downloaded archives and installed packages are
+reused where available. The lockfile and recorded versions are unchanged,
+and HTTPS certificate checks stay enabled.
+
+For an **older download** without automatic recovery, restart R, then run:
+
+```r
+Sys.setenv(
+  RENV_DOWNLOAD_METHOD = "libcurl",
+  RENV_CONFIG_REPOS_OVERRIDE = "https://cloud.r-project.org"
+)
+options(timeout = 300, renv.config.ppm.enabled = FALSE)
+source(file.choose())  # choose run_powerkit.R
+```
+
+These settings last for that R session. Do not disable certificate checking
+or delete the lockfile to work around a failed download. University and
+hospital networks may need IT to allow CRAN and Posit's package servers;
+a mirror cannot fix every proxy or firewall. If all attempts fail, copy
+the final error and package name. Restart R before trying again.
 
 **"installing packages failed" mentioning a compiler, `make`, `gcc`,
 `Rtools` or `xcrun`**
 A package had to be built from source code, which needs extra tools.
-This usually means R isn't version 4.5.3; installing 4.5.3 (step 1)
-normally fixes it. If it doesn't:
+First check the R version and the preceding download messages: a failed
+binary download can cause a source fallback even on the right R version.
+Try the connection recovery above first. Some recorded versions may still
+need compilation when a compatible binary is unavailable:
 - **Windows:** install **Rtools45** from
   <https://cran.r-project.org/bin/windows/Rtools/rtools45/rtools.html>,
   keeping the defaults, then start again.
@@ -221,3 +245,17 @@ and a browser-only computation version have not been built. The local
 launcher still restores the full locked environment, including packages
 not needed by every analysis. Setup needs internet; offline installation
 and identical results with arbitrary newer backends are not promised.
+
+## Recorded installation checks
+
+On 10 November 2026, a Windows R 4.5.3 probe reproduced an SSL connection
+error on a Posit binary redirect. Both affected package versions were
+available from the public CRAN mirror. An isolated renv 1.0.3 restore then
+recovered actual TLS failures and installed binary GPArotation 2026.8-2,
+plyr 1.8.9 and Rcpp 1.1.2 with source compilation disabled; the lockfile
+hash was unchanged. This is a three-package recovery check, not a clean
+installation benchmark for the entire app. Full Windows/macOS launch and
+repeat-start checks remain the pull request gate. Per-file retries retain
+renv 1.0.3's normal archive checks through its existing download override
+([pinned source](https://github.com/rstudio/renv/blob/v1.0.3/R/download.R)).
+Recheck this hook when upgrading renv.

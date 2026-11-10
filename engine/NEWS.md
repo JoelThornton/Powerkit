@@ -1,3 +1,10 @@
+# powerkit 0.60.1
+
+* Recover interrupted local package downloads with bounded per-file retries, a built-in downloader and alternate public CRAN mirrors, retaining lockfile versions and normal archive/certificate checks. Apply recovery to project bootstrap and launcher setup. Check the engine install exit status and version before writing its completion stamp.
+* Record a 20,000-study independent mixed-ANOVA GG investigation, with same-data afex agreement and a paired fixed-epsilon comparison. Clarify that estimating epsilon alone does not explain the known exact-data discrepancy; preserve original tests and expected values.
+
+* Define the broad first-release benchmark and variant-level evidence gates; reconcile roadmap scopes and add a reproducible discovery inventory with a source-drift check. No calculations or evidence records are changed.
+
 # powerkit 0.60.0
 
 * Welch planning with between-study variation refuses unequal group sizes:

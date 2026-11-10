@@ -1,0 +1,73 @@
+{
+  "seed": 90101,
+  "replications": 20000,
+  "n": 40,
+  "exact_population_power": 0.231305357999582,
+  "sample_epsilon_power": 0.21805,
+  "fixed_epsilon_power": 0.2196,
+  "sample_epsilon_mcse": 0.002919796204360846,
+  "population_epsilon": 0.7580330906657183,
+  "mean_sample_epsilon": 0.7532022916235134,
+  "max_afex_p_difference": 1.887379141862766e-15,
+  "versions": {
+    "Superpower": "0.2.4.1",
+    "afex": "1.5.1",
+    "R": "4.5.3"
+  },
+  "case": {
+    "means": [
+      [
+        20,
+        16,
+        15
+      ],
+      [
+        20,
+        19,
+        18.5
+      ]
+    ],
+    "sd": [
+      [
+        6,
+        7,
+        8
+      ],
+      [
+        6,
+        8,
+        10
+      ]
+    ],
+    "correlation": [
+      [
+        1,
+        0.7,
+        0.3
+      ],
+      [
+        0.7,
+        1,
+        0.6
+      ],
+      [
+        0.3,
+        0.6,
+        1
+      ]
+    ],
+    "alpha": 0.05,
+    "group_n": [
+      20,
+      20
+    ]
+  },
+  "afex_p_checks": 30,
+  "sample_epsilon_interval_999": [
+    0.2085252789838833,
+    0.2277883928684167
+  ],
+  "paired_fixed_minus_sample": 0.00155,
+  "paired_difference_mcse": 0.0007017153947468739,
+  "script_md5": "9971bfdf7148957bd82b75bbf2e603b9"
+}

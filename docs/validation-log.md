@@ -1385,3 +1385,38 @@ The other four skips were published basic-test/justified-alpha/safeguard
 examples awaiting transcription. No placeholder or expected benchmark was
 changed. This run predates the integrated signal-detection/growth/Bayes
 additions and does not validate them or the complete current release.
+
+## 2026-11-10 · Independent mixed-ANOVA GG investigation (not a full chunk)
+
+[Machine-readable summary](validation/2026-11-10-gg-investigation.json) and
+[standalone reproduction](upstream/superpower-gg.R). Windows, R 4.5.3,
+Superpower 0.2.4.1, afex 1.5.1; seed 90101; 20,000 independent studies.
+The case is the original two-group/three-occasion interaction at N=40,
+with the original means, SDs and correlations; no original validation test,
+expected value, tolerance or seed was changed. This investigation calls
+the backends directly and does not validate all current Powerkit variants.
+
+The reference generates Gaussian observations with base R normal draws and
+Cholesky factors, then computes the interaction F and GG epsilon from
+orthonormal within-person contrasts and pooled within-group residual
+covariances. On the first 30 identical datasets its p-values agree with
+afex::aov_car(type=3, correction=GG) to 1.89e-15. It does not reuse
+Superpower simulation or its exact-data power calculation.
+
+- Estimated-epsilon rejection probability: .21805, MCSE .0029198; the
+  exact binomial 99.9% interval is recorded in the linked summary.
+- Superpower exact-data power: .23130536, outside that interval.
+- On the **same studies**, fixing epsilon at the pooled population value
+  .758033 gives .21960. This is only .00155 above the estimated-epsilon
+  result; it does not explain the remaining gap to .2313.
+
+This supersedes the 7 November hypothesis that estimating epsilon explains
+the discrepancy. The mathematical reason and validity range of the
+exact-data approximation remain open. A disagreement here is not a claim
+that all Superpower calculations are wrong. Preserve the original failing
+comparison, keep the card limitation visible, and ask the narrow questions
+in upstream-questions.md. No evidence badge is upgraded.
+
+The reproduction saves per-study output, session information and summary
+under validation-results/gg-investigation; these files and the script can
+be archived together. A durable public release archive remains required.

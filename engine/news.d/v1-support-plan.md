@@ -1,1 +1,0 @@
-* Define the broad first-release benchmark and variant-level evidence gates; reconcile roadmap scopes and add a reproducible discovery inventory with a source-drift check. No calculations or evidence records are changed.

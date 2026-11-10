@@ -16,3 +16,23 @@ powerkit_local_engine_action <- function(stamp_file, stamp,
   if (loaded) return("restart")
   "install"
 }
+
+# install.packages() can warn and restore an older engine after failure.
+# A successful load alone must never stamp that older engine as up to date.
+powerkit_install_local_engine <- function(engine, library, stamp,
+  install = function(engine, library) {
+    system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
+      shQuote(paste0("--library=", library)), shQuote(engine)))
+  }) {
+  status <- install(engine, library)
+  if (!identical(as.integer(status), 0L)) {
+    stop("powerkit: installing the engine failed. Its completion stamp was not updated. Restart R and try again; the installation messages above explain the failure.", call. = FALSE)
+  }
+  installed <- file.path(library, "powerkit", "DESCRIPTION")
+  expected <- read.dcf(file.path(engine, "DESCRIPTION"), fields = "Version")
+  if (!file.exists(installed) || !identical(read.dcf(installed, fields = "Version"), expected)) {
+    stop("powerkit: the installed engine does not match this download. Restart R and try again; no completion stamp was written.", call. = FALSE)
+  }
+  writeLines(stamp, file.path(library, "powerkit", "POWERKIT_ENGINE_STAMP"))
+  invisible(TRUE)
+}
