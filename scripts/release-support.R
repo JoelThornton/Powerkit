@@ -2,13 +2,14 @@
 # From the repository root: Rscript scripts/release-support.R [--check]
 release_support <- function(root = ".") {
   app <- new.env(parent = globalenv())
-  paths <- sort(list.files(file.path(root, "app/routing/R"), pattern = "[.]R$", full.names = TRUE))
+  # Locale collation differs for forms.R versus forms_ui.R across systems.
+  paths <- sort(list.files(file.path(root, "app/routing/R"), pattern = "[.]R$", full.names = TRUE), method = "radix")
   for (path in paths) sys.source(path, envir = app)
   tree <- yaml::read_yaml(file.path(root, "app/routing/tree.yaml"))
   forms <- yaml::read_yaml(file.path(root, "app/routing/forms.yaml"))
   how <- app$about_endpoint_how(forms)
   ids <- names(tree$endpoints)
-  ids <- ids[order(suppressWarnings(as.integer(sub("E", "", ids))), ids, na.last = TRUE)]
+  ids <- ids[order(suppressWarnings(as.integer(sub("E", "", ids))), ids, na.last = TRUE, method = "radix")]
   cards <- lapply(ids, function(id) {
     ep <- tree$endpoints[[id]]
     form <- forms$forms[[id]]

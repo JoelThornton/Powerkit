@@ -8,6 +8,8 @@ test_that("the release discovery inventory matches the current expanded forms", 
   regenerated <- jsonlite::fromJSON(expected, simplifyVector = FALSE)
   expect_identical(inventory$format_version, regenerated$format_version)
   expect_identical(inventory$sources_md5, regenerated$sources_md5)
+  source_paths <- names(regenerated$sources_md5)
+  expect_lt(match("app/routing/R/forms.R", source_paths), match("app/routing/R/forms_ui.R", source_paths))
   expect_identical(inventory$limits, regenerated$limits)
   expect_identical(inventory$evidence_registry, regenerated$evidence_registry)
   for (i in seq_along(regenerated$cards)) {
