@@ -54,6 +54,17 @@ recorded run. A direct archived
 PROCESS-software comparison remains pending; no evidence badge is upgraded
 and the existing ML/Monte-Carlo binary-X failure remains open.
 
+The final five safeguards in the candidate PR are recorded in the
+[review checklist](release-readiness-review.md#five-priority-safeguards-10-november):
+visible corrected-ANOVA limitations, a new unknown-dependence default that
+preserves historical plans, matched interaction-sensitivity verification,
+four independent corrected-count fitted-N checks with honest uncertainty,
+and selected-setting evidence on input screens. The balanced-proportion
+reference found .79547 power at a nominal .8 fitted target; the smooth curve's
+interval missed that finite-reference value. The interface now explains this
+limitation and offers a fixed-N check; the engine search is not claimed fixed.
+The known scientific failures and broad release-validation requirements remain.
+
 ## Where things are
 
 - **Review fixes (7 November 2026):** the earlier project review grouped 21 serious problems

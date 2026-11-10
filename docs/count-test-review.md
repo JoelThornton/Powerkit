@@ -44,8 +44,10 @@ not Fisher's exact test and does not make an approximate test exact.
 - [x] Archive the standard 6-pass/1-skip run and link the selected cases in
   the existing evidence registry, preserving the publication gap.
 - [ ] Record an independently sourced published/software power benchmark.
-- [ ] Verify recommended sample sizes with fresh independent draws across
-  representative sparse/imbalanced cases; simulated N carries uncertainty.
+- [x] Archive four independent recommended-N checks, including sparse/imbalanced
+  examples and finite-reference shortfalls. This does not establish target attainment.
+- [ ] Improve discrete-test search accuracy or independently verify final N in the
+  engine; the smooth fitted interval does not cover all approximation error.
 - [x] Run the corrected-count chunk on GitHub as well as locally (run
   42894057884, head cc0e107; six passes and one published-reference skip).
 - [ ] Complete all remaining hosted checks and review, merge only when instructed, then
@@ -56,3 +58,27 @@ References: [R prop.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/ht
 
 Recorded evidence: [settings and numerical results](validation/2026-11-10-corrected-counts.json),
 [standard validation summary](validation/2026-11-10-corrected-counts-summary.txt).
+
+### Independent checks at the returned integer N
+
+[Reproduction script](../scripts/check-corrected-sample-size.R) and
+[settings, search output and independent results](validation/2026-11-10-corrected-sample-size.json).
+The search used 5,000 replications per sampled N and an 80% target. Independent
+two-proportion power uses finite binomial enumeration; tables use 20,000 fresh
+multinomial draws analysed by base R, with invalid analyses unsuccessful.
+
+| Selected case | Returned N | Independent power |
+| --- | ---: | ---: |
+| Proportions .50 versus .65, equal groups | 362 | .795469 |
+| Proportions .05 versus .20, allocation 1:3 | 240 | .811082 |
+| Moderate 2 by 2 association, varying margins | 362 | .802050 |
+| Sparse 2 by 2 association, varying margins | 78 | .796100 |
+
+These are four selected checks, not confirmation that every returned N reaches
+80%. In the balanced-proportions case, the true finite-reference power even
+falls below the fitted curve's lower power limit (.797147). That interval
+describes the smooth fitted model, not all discreteness or model error.
+Results and copied methods now say this, and offer a fixed-N power check.
+A discretisation-aware search or independent final verification in the engine
+remains needed before a strict target-attainment claim. Increasing simulation
+replications alone cannot remove smooth-model error.

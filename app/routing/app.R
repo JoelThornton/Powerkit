@@ -30,6 +30,7 @@ source(file.path("R", "input-support.R"), local = TRUE)
 source(file.path("R", "feedback.R"), local = TRUE)
 source(file.path("R", "results.R"), local = TRUE)
 source(file.path("R", "count-test-notes.R"), local = TRUE)
+source(file.path("R", "planning-safeguards.R"), local = TRUE)
 source(file.path("R", "sample.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
 source(file.path("R", "whole-study.R"), local = TRUE)
@@ -38,6 +39,7 @@ source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "capabilities.R"), local = TRUE)
+source(file.path("R", "selected-evidence.R"), local = TRUE)
 source(file.path("R", "planning.R"), local = TRUE)
 source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
@@ -906,6 +908,41 @@ server <- function(input, output, session) {
     names(values) <- vapply(fields, `[[`, "", "id")
     values[!vapply(values, is.null, logical(1))]
   }
+  # Metadata only: this validates inputs and looks up recorded evidence; it
+  # never runs a power calculation when a field changes.
+  output$selected_evidence <- renderUI({
+    req(identical(state$screen, "form"), state$endpoint)
+    selected_evidence_ui(forms, state$endpoint, current_form_fields(), current_form_values())
+  })
+  observeEvent(input$verify_corrected_count, {
+    req(calculation_matches_values(state$calc, current_form_values()))
+    values <- corrected_count_verification_values(state$calc, current_form_values())
+    req(values)
+    updateSelectInput(session, "f_goal", selected = "power")
+    updateTextInput(session, "f_n", value = values$n)
+    output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
+      "The proposed sample size is ready for a fixed-N check. Choose the simulation accuracy you need and press Check my answers. This check estimates power; it does not guarantee the target."))
+  })
+  observeEvent(input$verify_corrected_anova, {
+    req(calculation_matches_values(state$calc, current_form_values()))
+    values <- corrected_anova_verification_values(state$calc, current_form_values())
+    req(values)
+    updateSelectInput(session, "f_goal", selected = "power")
+    updateTextInput(session, "f_n", value = values$n)
+    updateSelectInput(session, "f_method", selected = "simulation")
+    output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
+      "The proposed sample size and corrected analysis are ready for simulation. Press Check my answers to run it. The earlier exact-data result has not been confirmed by simulation yet."))
+  })
+  observeEvent(input$verify_interaction, {
+    req(calculation_matches_values(state$calc, current_form_values()))
+    values <- interaction_verification_values(state$calc, current_form_values())
+    req(values)
+    updateSelectInput(session, "f_goal", selected = values$goal)
+    updateTextInput(session, "f_n", value = values$n)
+    updateTextInput(session, "f_r_XW_Y", value = values$r_XW_Y)
+    output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
+      "The proposed effect and sample size are ready. Press Check my answers to simulate power with these assumptions. The formula result has not been confirmed by simulation yet."))
+  })
   # Answers on an input screen, saved in this browser a moment after each
   # change (R/connection.R), in the draft format "Save a draft" uses.
   autosave_route <- debounce(reactive({

@@ -1,1 +1,0 @@
-* Add curated conventional display names for all analysis entries and families. Compact mode removes duplicate subtitles, uses the same short names on cards/forms/recent entries, and retains status, assumption guidance and unchanged test identifiers/defaults.

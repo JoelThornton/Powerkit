@@ -1,1 +1,0 @@
-* Archive the completed OLS/percentile-bootstrap null calibration: 2 PASS and 1 direct-reference TODO SKIP, with frozen source identities, exact settings and uncertainty. Link only the two N=250/B=1000 scenarios; guard other counts, targets and path models. Existing ML/Monte-Carlo findings and published references remain unresolved.

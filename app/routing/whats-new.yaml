@@ -8,6 +8,30 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-10"
+    title: "Shorter test names with explanations off"
+    text: "Explanations off now uses conventional test and group names, without repeating the plain-language subtitle. Common test selectors are shorter too, with method details kept in the guidance. Your selected tests, settings and calculations are unchanged."
+  - date: "2026-11-10"
+    title: "Match the correction in your planned count analysis"
+    text: "Two-proportion and 2 by 2 contingency-table plans now offer continuity correction, as R's usual tests apply by default. The choices say whether correction is included, explain which group sizes are fixed, and keep failed simulated analyses visible. Existing defaults are unchanged."
+  - date: "2026-11-10"
+    title: "Clearer limits for crossover studies"
+    text: "The paired-test and mixed-ANOVA screens now explain that they do not establish power for a general adjusted crossover analysis. Paired-test methods state that period, sequence and carry-over terms were not modelled. A dedicated crossover model is still planned."
+  - date: "2026-11-10"
+    title: "Check the assumptions behind your answer"
+    text: >-
+      Input screens now show the recorded checks for your selected settings.
+      If every test must succeed, new plans start without assuming the tests
+      are independent; saved plans keep their previous choice.
+      Interaction sensitivity and corrected repeated-measures results offer
+      a matching simulation check. Corrected count-test sample sizes explain
+      their uncertainty and offer a check at the proposed sample size.
+  - date: "2026-11-10"
+    title: "Clearer explanations of what a power result means"
+    text: "Interaction plans now explain why their input routes can give different answers and flag formula-based sensitivity as an approximation. Multiple-test plans distinguish one test's power from the chance that any or all tests succeed, and the t-test help no longer overstates when Welch and Student agree."
+  - date: "2026-11-10"
+    title: "Recorded checks for two mediation scenarios"
+    text: "Two selected mediation setups using ordinary regression and percentile bootstrap now have archived checks of false-positive rates. The evidence covers those settings only; broader validation and direct PROCESS comparisons are still needed."
+  - date: "2026-11-10"
     title: "Make effect assumptions explicit"
     text: "New t-test and correlation plans start with power for the effect you entered. Variation between studies is optional and explains how it changes the question. The smaller-effect comparison shows power at your actual planned sample size, so you can see what happens if the effect is weaker."
   - date: "2026-11-10"

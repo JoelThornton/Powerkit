@@ -2653,3 +2653,14 @@ No new crossover capability or numeric adjustment is introduced. A
 dedicated model remains queued. Dwan et al. (2019), verified in refs.bib,
 distinguish the simple paired analysis's assumptions from other crossover
 analyses.
+
+### Planning safeguards, 10 November 2026
+
+Use the existing sufficient unknown-dependence target for new all-required-test
+plans; independent significance decisions require an explicit choice. Preserve
+historical saved calculations. Surface selected-setting evidence before
+calculation and known corrected-ANOVA limitations throughout the workflow.
+Offer matched fixed-N checks for approximate interaction sensitivity,
+exact-data corrected ANOVA and simulated corrected-count sample sizes.
+The four independent fitted-N count checks are archived, including shortfalls:
+a fitted search and its interval must not imply a guaranteed attained power.

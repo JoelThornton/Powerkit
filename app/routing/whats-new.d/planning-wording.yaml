@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-10"
-    title: "Clearer explanations of what a power result means"
-    text: "Interaction plans now explain why their input routes can give different answers and flag formula-based sensitivity as an approximation. Multiple-test plans distinguish one test's power from the chance that any or all tests succeed, and the t-test help no longer overstates when Welch and Student agree."

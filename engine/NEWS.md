@@ -1,5 +1,21 @@
 # powerkit 0.61.0
 
+* Add curated conventional display names for all analysis entries and families. Compact mode removes duplicate subtitles, uses the same short names on cards/forms/recent entries, and retains status, assumption guidance and unchanged test identifiers/defaults.
+
+* Add explicit continuity-corrected two-proportion and 2 by 2 Pearson chi-square variants via Spower/base R, with attempted-study failure accounting, matching standalone exports, scoped independent validation and plain-language analysis choices. Preserve uncorrected defaults and reject unsupported corrected sensitivity/formula plans.
+* Include the OLS-bootstrap example in the zero-effect fixture registry used by CRAN quick tests.
+
+* Restrict paired/mixed-card crossover claims to their actual analysis scope. Remove the unvalidated one-df/close-approximation assurance; surface the limitation before calculation and state omitted period/sequence/carry-over terms in paired methods. No new crossover computation or formula is introduced.
+
+* Default new all-tests-required plans to the existing unknown-dependence union-bound target. Explicit and historical saved independence plans retain their meaning.
+* Show selected-spec evidence before calculation; incomplete inputs show an explicit pending state. No evidence status is upgraded.
+* Expose the unresolved corrected-ANOVA discrepancy and add a matched fixed-N simulation handoff; interaction sensitivity also hands the proposed effect to its supported simulation route.
+* Archive four independent corrected-count fitted-N checks. Warn that smooth fitted power and its interval do not cover all discrete-test approximation error, and offer a fixed-N check.
+
+* Correct overgeneralised Welch/Student and interaction-method guidance, identify analytic sensitivity as an approximation, and clarify individual versus family-level power. No engine calculation, benchmark or saved-plan default changes.
+
+* Archive the completed OLS/percentile-bootstrap null calibration: 2 PASS and 1 direct-reference TODO SKIP, with frozen source identities, exact settings and uncertainty. Link only the two N=250/B=1000 scenarios; guard other counts, targets and path models. Existing ML/Monte-Carlo findings and published references remain unresolved.
+
 * New ordinary t-test and Pearson correlation plans start without between-study variation. Nonzero variation remains an explicit optional scenario; stored assumptions and engine formulae are retained. Explain averaged significance and display scenario power at the exact analysed sample size.
 
 * Add an explicit OLS/casewise-percentile-bootstrap mediation method through power4mome and lmhelprs, alongside the existing ML Monte Carlo and ML bootstrap methods. Expose selection/resample counts on applicable forms and record the actual analysis in results, methods and standalone exports. Bootstrap jobs use the local script, which now saves a reopenable app project; fix restoration of the supported longer simulation routes. Add paired independent regression references and scoped null-calibration checks; do not claim equivalence to every PROCESS option or upgrade evidence badges.

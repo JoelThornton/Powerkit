@@ -335,7 +335,7 @@ test_that("mediation shows departures 6 and 8, parallel mediators 7, and the int
     expect_equal(any(grepl("residuals correlate", shown, fixed = TRUE)), ep %in% c("E11", "E40"), info = ep) # Departure 7
     expect_length(known_differences_for(forms, ep), 0)
   }
-  expect_match(known_differences_for(forms, "E9"), "Fixed-model calculations", fixed = TRUE)
+  expect_match(known_differences_for(forms, "E9"), "predictors drawn afresh", fixed = TRUE)
   # The smallest detectable effect has its own wording: it uses the formula.
   expect_match(known_differences_for(forms, "E9", list(goal = list(type = "sensitivity"))), "comes from InteractionPoweR's fixed-model formula", fixed = TRUE)
   expect_length(known_differences_for(forms, "E1"), 0)
@@ -692,7 +692,8 @@ test_that("the write-up gives the reasons for a changed alpha or a one-sided tes
 })
 
 test_that("the regression interaction's write-up carries the known difference's sentence", {
-  expect_match(forms$known_differences_methods[["1"]], "predictors drawn afresh", fixed = TRUE)
+  expect_match(forms$known_differences_methods[["1"]], "drawing the predictors afresh", fixed = TRUE)
+  expect_match(forms$known_differences_methods[["1"]], "does not establish a universal difference", fixed = TRUE)
   expect_equal(names(forms$known_differences_methods), names(forms$known_differences))
   for (ep in names(forms$forms)) expect_true(nzchar(forms$forms[[ep]]$methods_name %||% ""), label = ep)
 })

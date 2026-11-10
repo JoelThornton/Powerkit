@@ -28,17 +28,19 @@ reference TODO skip; archived). Direct PROCESS-software comparison, broader
 model/null settings and the 5,000-resample default remain before equivalence
 or broad calibration claims.
 The same PR now adds explicit continuity-corrected count-test choices, with
-independent finite-enumeration/simulation checks. Published references and
-fresh-draw verification of recommended N remain required. Next audit fixed
+independent finite-enumeration/simulation checks. Four selected returned-N checks are now independently archived, including
+small target shortfalls. Published references and a discretisation-aware or
+independently verified final-N search remain required. Next audit fixed
 versus random predictors and whether the selected claim is one effect,
 any effect, or all required effects; do not replace these with a single
 blanket power claim. The first wording pass now scopes interaction benchmarks,
 explains the two regression input routes before calculation, and distinguishes
 individual-test power from a family success probability. Formula-based
 interaction sensitivity now has three archived matched-route checks, but
-still needs an accessible verification step and broader parameter checks. The
-existing independence default is an explicit outstanding default-policy audit;
-no calculation or saved-plan meaning changes in this wording pass. Compact-mode
+now offers a matched fixed-N verification step; broader parameter checks remain.
+New all-required-test plans use unknown dependence and the existing sufficient
+bound, with explicit historical saved choices preserved. Selected-setting
+evidence is visible on complete input screens. Compact-mode
 test/family labels are now audited for all 77 entries and 14 groups, with
 short common test selectors and no duplicate plain-language subtitles.
 Continue the remaining wording checklist and the unresolved scientific

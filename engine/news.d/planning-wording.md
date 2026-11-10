@@ -1,1 +1,0 @@
-* Correct overgeneralised Welch/Student and interaction-method guidance, identify analytic sensitivity as an approximation, and clarify individual versus family-level power. No engine calculation, benchmark or saved-plan default changes.

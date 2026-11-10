@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-10"
-    title: "Clearer limits for crossover studies"
-    text: "The paired-test and mixed-ANOVA screens now explain that they do not establish power for a general adjusted crossover analysis. Paired-test methods state that period, sequence and carry-over terms were not modelled. A dedicated crossover model is still planned."

@@ -2529,3 +2529,17 @@ extra-zero probability is not the observed zero fraction. Existing field help
 retains model-specific parameterisations. Illustrations are not defaults or
 recommended assumptions; binary and product-term coding/scaling follow the
 selected model rather than a generic standardised-coefficient shortcut.
+
+### All-tests-required planning default (10 November 2026)
+
+New input screens use the existing unknown-dependence sufficient union-bound
+target instead of assuming independent significance decisions. The product
+rule remains an explicit option. This changes no significance level and does
+not estimate actual joint power. Saved plans without a dependence field used
+the historical product rule: reopening restores that explicit choice rather
+than silently recalculating under the new default. For two tests and an 80%
+joint target the new per-test target is 90%, versus sqrt(.8), approximately
+89.44%, under independence. Results and methods identify the rule; every
+required test must still be planned under common population assumptions.
+The existing Blitzstein & Hwang (2019) source and engine implementation are
+unchanged.

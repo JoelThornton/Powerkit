@@ -6,6 +6,15 @@
 # opening a project puts them back on the same screen with the same
 # values. Nothing is stored by the app; the file stays with the user.
 
+# Preserve the meaning of saved plans created before a dependence choice
+# was recorded. New forms default to unknown; missing historical choices
+# used the product rule. Explicit saved choices always win.
+legacy_claim_values <- function(values) {
+  if (identical(values$claim, "all") && is.null(values$all_dependence))
+    values$all_dependence <- "independent"
+  values
+}
+
 # The route part of a project, from the app's state (a list or
 # reactiveValues read with isolate()).
 project_route <- function(state, form_values) {
@@ -29,7 +38,8 @@ project_route <- function(state, form_values) {
 # may restore a number as text, so compare its displayed value.
 calculation_matches_values <- function(calc, values) {
   if (!identical(calc$status, "ok") || isFALSE(calc$form_consistent) || is.null(calc$route$form_values)) return(FALSE)
-  saved <- calc$route$form_values
+  saved <- legacy_claim_values(calc$route$form_values)
+  values <- legacy_claim_values(values)
   ids <- sort(union(names(saved), names(values)))
   normalise <- function(x) vapply(ids, function(id) {
     paste(trimws(as.character(x[[id]] %||% "")), collapse = "\n")
@@ -78,7 +88,7 @@ restore_from_project <- function(route, tree, forms) {
     ctx = route$ctx %||% list(),
     history = route$history %||% list(),
     form_k = as.integer(route$form_k %||% 2L),
-    form_values = route$form_values %||% list(),
+    form_values = legacy_claim_values(route$form_values %||% list()),
     node = NULL
   )
 }

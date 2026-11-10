@@ -158,9 +158,8 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   keeping the answer, analysis identity and key assumptions visible.
 - [x] Check three selected analytic sensitivity thresholds with fresh
   10,000-study simulations; archive settings, seeds and uncertainty.
-- [ ] Finish the method work wording cannot solve: provide matched simulation
-  verification in the sensitivity workflow, audit broader parameter settings
-  and the independence default for all-test planning,
+- [ ] Finish the method work wording cannot solve: audit broader interaction parameter settings
+  after the matched-verification handoff,
   and verify family-level success independently under common populations.
 
 Sources checked: [R t.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/t.test.html),
@@ -200,3 +199,27 @@ inventory, repository consistency, Updates and citation exports pass. Five
 Chromium checks cover desktop/mobile naming, old recent entries, visible
 crossover scope, Labs history and card links. These are interface/scope
 checks, not new statistical validation or a complete accessibility review.
+
+## Five priority safeguards (10 November)
+
+- [x] Make the unresolved corrected repeated-measures discrepancy visible before
+  calculation, beside the answer and in copied methods. Offer a fixed-N
+  simulation handoff for exact-data power/sample-size results. This exposes
+  the risk; it does **not** resolve the scientific failure or validate HF.
+- [x] Start new all-tests-required plans with unknown dependence and the existing
+  sufficient union-bound target. Retain explicit choices and historical
+  independence calculations when reopening projects, drafts and guided plans.
+- [x] Let a two-way continuous-predictor interaction sensitivity result carry its
+  proposed effect, N and assumptions into the supported fixed-N simulation.
+  A user must run the check; the formula result remains an approximation.
+- [x] Independently check four corrected count-test recommended sample sizes,
+  archive the small shortfalls as well as agreement, explain discrete-test
+  curve-fit uncertainty, and offer a fixed-N check.
+- [x] Show the existing selected-variant evidence record on complete input
+  screens; incomplete inputs state that coverage cannot yet be determined.
+  No broad card or evidence badge is promoted.
+
+The underlying GG discrepancy, older binary-X ML/Monte-Carlo calibration failure,
+broader count-test search accuracy, PROCESS reference comparison and full
+selected-variant audit remain open. These five safeguards are finite completed
+tasks, not completion of R14, R15, R16 or R17 as whole release requirements.

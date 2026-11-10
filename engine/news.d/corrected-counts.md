@@ -1,2 +1,0 @@
-* Add explicit continuity-corrected two-proportion and 2 by 2 Pearson chi-square variants via Spower/base R, with attempted-study failure accounting, matching standalone exports, scoped independent validation and plain-language analysis choices. Preserve uncorrected defaults and reject unsupported corrected sensitivity/formula plans.
-* Include the OLS-bootstrap example in the zero-effect fixture registry used by CRAN quick tests.

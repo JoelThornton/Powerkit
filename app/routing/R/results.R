@@ -2575,7 +2575,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), source_note(values), group_difference_note(spec), binary_x_modmed_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), source_note(values), group_difference_note(spec), binary_x_modmed_note(spec), critical_effect_note(spec, result), gg_planning_note(spec), corrected_count_search_note(spec, result), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring
@@ -2605,6 +2605,11 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     h3(class = "h4", "Your result"),
     simulation_failures_ui(result),
     hero,
+    if (!is.null(corrected_count_verification_values(calc, values))) actionButton("verify_corrected_count", "Check power at this sample size", class = "btn btn-outline-primary"),
+    if (!is.null(corrected_anova_verification_values(calc, values))) actionButton("verify_corrected_anova", "Check this sample size by simulation", class = "btn btn-outline-primary"),
+    if (!is.null(interaction_verification_values(calc, values))) tagList(
+      actionButton("verify_interaction", "Check this effect by simulation", class = "btn btn-outline-primary"),
+      p(class = "small", "Keeps this sample size and the other assumptions, puts the proposed effect into a power calculation, and lets you check it before running.")),
     p(class = "result-headline lead", words[["headline"]]),
     if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
     if (!is.na(words["reading"])) p(class = "result-reading", words[["reading"]]),
@@ -3106,7 +3111,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # The short version names only the differences that change the answer
   # (known_methods); departures from a tool's defaults are listed in the
   # full version, to keep the paper's paragraph short.
-  short <- paste(c(main, recruit_line, claim, writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
+  short <- paste(c(main, recruit_line, claim, gg_planning_note(spec), corrected_count_search_note(spec, result), writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size")) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
   }
@@ -3115,7 +3120,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # paper's paragraph (decided 7 November 2026; docs/conventions.md).
   departures <- departures[setdiff(names(departures), "3")]
   full <- paste(c(
-    paste(c(main, interval, recruit_line, claim), collapse = " "),
+    paste(c(main, interval, recruit_line, claim, gg_planning_note(spec), corrected_count_search_note(spec, result)), collapse = " "),
     writeup_software(result, full = TRUE, bayes = is_bayes_test(spec)),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))

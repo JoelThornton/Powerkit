@@ -240,6 +240,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), ep$validation$note),
     carried,
+    uiOutput("selected_evidence"),
     if (!is.null(forms$forms[[ep_id]]$scope_note)) p(class = "analysis-scope-note", forms$forms[[ep_id]]$scope_note),
     placeholders_at(tree, "form"),
     input_support_ui(forms$forms[[ep_id]], form_fields(groups)),
