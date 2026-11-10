@@ -300,6 +300,9 @@ powertools_check_run <- function(spec) {
 #'   computes it, and `design_effect_without_baseline` (otherwise `NA` for
 #'   the yes/no and group treatment designs) is the factor without it.
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "cluster_randomised.json", package = "powerkit"))
+#' cluster_summary(spec, n = 400)
 cluster_summary <- function(spec, n) {
   if (!identical(spec$design, "cluster_trial") || length(n) != 1 || is.na(n)) {
     return(NULL)

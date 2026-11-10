@@ -33,3 +33,9 @@ sample size at which the Bayes factor reaches the same chance of evidence
 for the effect, and the larger of the two (enough for both). For the
 t-tests, how often the two tests agree.
 }
+\examples{
+spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+spec$target_test$method <- "student_t"
+spec$goal <- list(type = "power", n = 100L)
+bayes_companion(spec, n = 100)$available
+}

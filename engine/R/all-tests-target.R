@@ -16,6 +16,11 @@
 #'   second edition. doi:10.1201/9780429428357. See the union-bound
 #'   derivation in docs/conventions.md.
 #' @export
+#' @examples
+#' # Per-test power so that three independent tests all succeed with 0.8:
+#' all_tests_target(0.8, tests = 3)
+#' # Without assuming independence (a union bound):
+#' all_tests_target(0.8, tests = 3, dependence = "unknown")
 all_tests_target <- function(target, tests, dependence = c("independent", "unknown")) {
   dependence <- match.arg(dependence)
   if (!is.numeric(target) || length(target) != 1 || !is.finite(target) || target <= 0 || target >= 1) {

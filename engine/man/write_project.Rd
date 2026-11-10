@@ -29,14 +29,14 @@ the versions of powerkit, R and the backend package that produced it.
 The file stays with the user; nothing is stored anywhere else.
 }
 \examples{
-\dontrun{
 spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+spec$target_test$method <- "student_t"
 result <- run_spec(spec)
 path <- tempfile(fileext = ".powerkit.json")
 write_project(spec, result, file = path)
 project <- read_project(path)
 reproduce_project(project)$same
-}
+unlink(path)
 }
 \seealso{
 \code{\link[=read_project]{read_project()}}, \code{\link[=reproduce_project]{reproduce_project()}}

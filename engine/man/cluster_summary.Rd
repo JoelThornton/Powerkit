@@ -50,3 +50,7 @@ trial). In a group treatment trial only the second condition is
 grouped (powertools' \code{irgtt.cont()} and \code{irgtt.bin()}). The effective
 sample size is \code{n} divided by the design effect.
 }
+\examples{
+spec <- read_spec(system.file("specs", "cluster_randomised.json", package = "powerkit"))
+cluster_summary(spec, n = 400)
+}

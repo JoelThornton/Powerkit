@@ -63,3 +63,12 @@ which gives the noncentrality \code{multisite.cont()} computes. A baseline
 score divides d by \code{sqrt(1 - baseline_r2_within)}, as \code{multisite.cont()}
 does with its \code{Rsq}.
 }
+\examples{
+if (requireNamespace("PUMP", quietly = TRUE)) {
+  a <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+  a$target_test$method <- "student_t"
+  b <- a
+  b$population$d <- 0.3
+  joint_power(list(a, b), rho = 0.5, n = 266)
+}
+}

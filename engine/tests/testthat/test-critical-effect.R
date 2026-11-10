@@ -45,7 +45,9 @@ test_that("a one-sided test, unequal groups and a required n change the critical
 test_that("designs outside Perugini et al.'s formulas, and the justified alpha, give none", {
   expect_null(run_spec(critical_spec("independent_t", method = "welch_t", alternative = "two_sided"))$critical_effect)
   expect_null(critical_effect(validate_spec(critical_spec("correlation", method = "spearman")), 64))
-  jalpha <- critical_spec("independent_t", goal = list(type = "justified_alpha", n = 64L))
-  expect_null(run_spec(jalpha)$critical_effect)
+  if (requireNamespace("JustifyAlpha", quietly = TRUE)) {
+    jalpha <- critical_spec("independent_t", goal = list(type = "justified_alpha", n = 64L))
+    expect_null(run_spec(jalpha)$critical_effect)
+  }
   expect_null(critical_effect(list(template = "two_level"), 100))
 })

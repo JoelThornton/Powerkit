@@ -21,6 +21,17 @@
 #                       checks every smaller n.
 
 route_spec <- function(spec, seed = NULL) {
+  # Some backends call their package while being set up (semPower works
+  # out a model's degrees of freedom); one in Suggests may not be installed.
+  tryCatch(
+    route_backend(spec, seed),
+    packageNotFoundError = function(e) {
+      abort_run(missing_packages_message(e$package), class = "powerkit_missing_package")
+    }
+  )
+}
+
+route_backend <- function(spec, seed = NULL) {
   key <- paste(spec$design, spec$template, sep = "/")
   # A between-participants ANOVA given by its partial eta-squared (as
   # G*Power takes it), not by group means: pwrss's F test.
@@ -406,6 +417,10 @@ call_backend <- function(backend, expr) {
     error = function(e) {
       # Nested calls (a backend run inside another's simulation) report once.
       if (inherits(e, "powerkit_run_error")) stop(e)
+      # A backend in Suggests that isn't installed.
+      if (inherits(e, "packageNotFoundError")) {
+        abort_run(missing_packages_message(e$package), class = "powerkit_missing_package")
+      }
       abort_run(sprintf(
         "%s could not run this design. It reported: %s",
         backend, trimws(conditionMessage(e))

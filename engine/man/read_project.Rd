@@ -20,6 +20,15 @@ Reads a file written by \code{\link[=write_project]{write_project()}} (or the ap
 button), checks its spec, and reports in plain English anything that
 differs from now, such as another powerkit version.
 }
+\examples{
+spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+spec$target_test$method <- "student_t"
+path <- tempfile(fileext = ".powerkit.json")
+write_project(spec, run_spec(spec), file = path)
+project <- read_project(path)
+project$spec$template
+unlink(path)
+}
 \seealso{
 \code{\link[=write_project]{write_project()}}, \code{\link[=reproduce_project]{reproduce_project()}}
 }

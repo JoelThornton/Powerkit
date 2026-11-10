@@ -25,3 +25,8 @@ that every population, parameter or option has been validated. Unmatched
 choices explicitly have no linked record; this does not mean that a test
 failed or that no other evidence exists.
 }
+\examples{
+spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+evidence <- analysis_evidence(spec)
+evidence$record_id
+}

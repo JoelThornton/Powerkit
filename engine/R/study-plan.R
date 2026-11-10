@@ -14,12 +14,12 @@
 #' @seealso [read_study_plan()], [write_project()]
 #' @export
 #' @examples
-#' \dontrun{
 #' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' spec$target_test$method <- "student_t"
 #' path <- tempfile(fileext = ".powerkit.json")
 #' write_study_plan(list(list(spec = spec, result = run_spec(spec))), file = path)
 #' plan <- read_study_plan(path)
-#' }
+#' unlink(path)
 write_study_plan <- function(analyses, file = NULL) {
   if (!is.list(analyses) || length(analyses) == 0) {
     abort_project("A study plan needs at least one analysis.")
@@ -73,6 +73,11 @@ write_study_plan <- function(analyses, file = NULL) {
 #'   `powerkit_project`s), `saved` and `powerkit_version`.
 #' @seealso [write_study_plan()], [read_project()]
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' spec$target_test$method <- "student_t"
+#' plan <- read_study_plan(write_study_plan(list(list(spec = spec, result = run_spec(spec)))))
+#' length(plan$analyses)
 read_study_plan <- function(x) {
   text <- if (length(x) == 1 && file.exists(x)) {
     paste(readLines(x, encoding = "UTF-8", warn = FALSE), collapse = "\n")

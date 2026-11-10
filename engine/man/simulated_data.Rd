@@ -54,3 +54,9 @@ covered. Not available for McNemar's test, the three-way regression
 interaction, structural equation models, meta-analyses and the generic
 tests.
 }
+\examples{
+spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+head(simulated_data(spec, n = 40))
+simulated_data_available(spec)
+simulated_data_note(spec)
+}

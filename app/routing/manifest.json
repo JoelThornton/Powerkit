@@ -123,6 +123,32 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-07-06 11:51:11 UTC; unix"
       }
     },
+    "BayesRepDesign": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "BayesRepDesign",
+        "Version": "0.42",
+        "Date": "2023-05-03",
+        "Authors@R": "\n    person(given = \"Samuel\",\n           family = \"Pawel\",\n           role = c(\"aut\", \"cre\"),\n           email = \"samuel.pawel@uzh.ch\",\n           comment = c(ORCID = \"0000-0003-2779-320X\"))",
+        "Author": "Samuel Pawel [aut, cre] (<https://orcid.org/0000-0003-2779-320X>)",
+        "Maintainer": "Samuel Pawel <samuel.pawel@uzh.ch>",
+        "Title": "Bayesian Design of Replication Studies",
+        "Description": "Provides functionality for determining the sample size of replication studies using Bayesian design approaches in the normal-normal hierarchical model (Pawel et al., 2022) <doi:10.48550/arXiv.2211.02552>.",
+        "License": "GPL-3",
+        "Encoding": "UTF-8",
+        "Imports": "methods, lamW",
+        "Suggests": "roxygen2, tinytest",
+        "RoxygenNote": "7.2.3",
+        "NeedsCompilation": "no",
+        "URL": "https://github.com/SamCH93/BayesRepDesign",
+        "BugReports": "https://github.com/SamCH93/BayesRepDesign/issues",
+        "Packaged": "2023-05-03 07:42:49 UTC; sam",
+        "Repository": "RSPM",
+        "Date/Publication": "2023-05-03 18:55:43 UTC",
+        "Built": "R 4.5.0; ; 2026-04-23 20:52:27 UTC; unix"
+      }
+    },
     "Deriv": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6213,15 +6239,17 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.58.2",
-        "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"58643641+JoelThornton@users.noreply.github.com\",\n           role = c(\"aut\", \"cre\"))",
-        "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. This development version runs t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
+        "Version": "0.59.0",
+        "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
+        "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
+        "URL": "https://github.com/JoelThornton/Powerkit,\nhttps://joelthornton-powerkit.share.connect.posit.cloud",
+        "BugReports": "https://github.com/JoelThornton/Powerkit/issues",
         "Encoding": "UTF-8",
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
-        "Imports": "afex, ARTool, BayesFactor, bayestestR, bfpwr, brunnermunzel,\ncar, digest, effectsize, Hmisc, ICC.Sample.Size,\nInteractionPoweR, irtpwr, jsonlite, jsonvalidate (>= 1.3.0),\nJustifyAlpha, kappaSize, PMCMRplus, POMADE, presize, lme4,\nlmerTest, longpower, manymome, mclust, MBESS, nnet, gsl,\nmetafor, metapower, mirt, parallel, pbkrtest, nlme, PITS,\npowRICLPM, psych, quantreg, power4mome, pwr, powertools,\npowerSurvEpi, pscl, pwrss, PUMP, semPower, simr, SimDesign,\nstatpsych, Spower (>= 0.7), stats, SuppDists, survival,\nSuperpower, TOSTER, vegan, utils, WebPower",
-        "Suggests": "BayesRepDesign, lavaan, MASS, simsem, testthat (>= 3.0.0)",
+        "Imports": "afex, BayesFactor, bayestestR, bfpwr, car, digest, effectsize,\nHmisc, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nlme4, lmerTest, manymome, parallel, nlme, psych, power4mome,\npwr, powertools, pwrss, simr, SimDesign, Spower (>= 0.7),\nstats, SuppDists, Superpower, utils",
+        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, GPArotation, gsl,\nhypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha, kappaSize,\nlavaan, longpower, MASS, Matrix, MBESS, mclust, metafor,\nmetapower, mirt, nnet, pbkrtest, PITS, PMCMRplus, POMADE,\npowerSurvEpi, powRICLPM, presize, pscl, PUMP, quantreg,\nsemPower, simsem, statpsych, survival, testthat (>= 3.0.0),\nTOSTER, vegan, WebPower, withr",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
         "Config/testthat/start-first": "export-script, whole-study,\nbackend-modmed-parallel, backend-mixed-model",
@@ -6230,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "70594ef07c7a62e333370bd149366a186bc84782",
-        "RemoteSha": "70594ef07c7a62e333370bd149366a186bc84782",
+        "RemoteRef": "4758821874b1909d777c2cd4eaea7b9a089b2c6c",
+        "RemoteSha": "4758821874b1909d777c2cd4eaea7b9a089b2c6c",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "70594ef07c7a62e333370bd149366a186bc84782",
-        "GithubSHA1": "70594ef07c7a62e333370bd149366a186bc84782",
+        "GithubRef": "4758821874b1909d777c2cd4eaea7b9a089b2c6c",
+        "GithubSHA1": "4758821874b1909d777c2cd4eaea7b9a089b2c6c",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-09 08:36:53 UTC; runner",
+        "Packaged": "2026-11-10 00:21:33 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
-        "Maintainer": "Joel Thornton <58643641+JoelThornton@users.noreply.github.com>",
-        "Built": "R 4.5.3; ; 2026-11-09 08:37:16 UTC; unix"
+        "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
+        "Built": "R 4.5.3; ; 2026-11-10 00:21:47 UTC; unix"
       }
     },
     "powertools": {
@@ -7437,6 +7465,32 @@
         "Built": "R 4.5.0; ; 2026-09-12 04:05:42 UTC; unix"
       }
     },
+    "simsem": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "simsem",
+        "Type": "Package",
+        "Title": "SIMulated Structural Equation Modeling",
+        "Version": "0.5-17",
+        "Date": "2025-04-02",
+        "Authors@R": "c(person(given = \"Sunthud\", family = \"Pornprasertmanit\", role = \"aut\", email = \"psunthud@gmail.com\"), \n\t\t         person(given = \"Patrick\", family = \"Miller\", role = \"aut\", email=\"pmille13@nd.edu\"), \n\t\t         person(given = c(\"Alexander\", \"M.\"), family = \"Schoemann\", role = \"aut\", email=\"schoemanna@ecu.edu\", comment = c(ORCID = \"0000-0002-8479-8798\")), \n\t\t         person(given = c(\"Terrence\",\"D.\"), family = \"Jorgensen\", role = c(\"aut\", \"cre\"), email=\"TJorgensen314@gmail.com\", comment = c(ORCID = \"0000-0001-5111-6773\")),\n             person(given = \"Corbin\", family = \"Quick\", role = \"ctb\", email=\"qcorbin@hsph.harvard.edu\"))",
+        "Maintainer": "Terrence D. Jorgensen <TJorgensen314@gmail.com>",
+        "Depends": "R(>= 3.4), methods, lavaan(>= 0.6-12), utils, stats, graphics",
+        "Suggests": "parallel, quantreg, splines, KernSmooth, semTools(>= 0.5-7),\nlavaan.mi, OpenMx(>= 2.0.0), copula",
+        "Description": "Provides an easy framework for Monte Carlo simulation in structural equation modeling, which can be used for various purposes, such as such as model fit evaluation, power analysis, or missing data handling and planning. ",
+        "License": "GPL (>= 2)",
+        "LazyLoad": "yes",
+        "URL": "https://simsem.org/",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-04-02 12:11:36 UTC; terrence",
+        "Author": "Sunthud Pornprasertmanit [aut],\n  Patrick Miller [aut],\n  Alexander M. Schoemann [aut] (<https://orcid.org/0000-0002-8479-8798>),\n  Terrence D. Jorgensen [aut, cre]\n    (<https://orcid.org/0000-0001-5111-6773>),\n  Corbin Quick [ctb]",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-04-02 12:30:01 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 22:16:29 UTC; unix"
+      }
+    },
     "sourcetools": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -8514,6 +8568,9 @@
     "methods-map.yaml": {
       "checksum": "95e47c58f2b5274b63cde74efa7a08f0"
     },
+    "optional-packages.R": {
+      "checksum": "f626cf81c7959b408b67083d3611ca2f"
+    },
     "R/about.R": {
       "checksum": "841d59cc621b2f0333f7a727a9648772"
     },
@@ -8569,7 +8626,7 @@
       "checksum": "4c637bbcf8efa95600840ed24a6ca478"
     },
     "R/simulations.R": {
-      "checksum": "e10eb734b5bc01d9c0ee9ddd5bb89871"
+      "checksum": "d387337f1603020207fccef5e565ff73"
     },
     "R/study-plan.R": {
       "checksum": "cf4957166553569722cefad749a21995"
@@ -8584,7 +8641,7 @@
       "checksum": "7bdd48c1f1ce96bf8df0fe4a2f84b580"
     },
     "R/whole-study.R": {
-      "checksum": "aa94da4ab44e150bd7e5b6e5b735efdf"
+      "checksum": "c1288194459f13a3ab4503f95dfd2b55"
     },
     "README.md": {
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
@@ -8596,7 +8653,7 @@
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
     },
     "whats-new.yaml": {
-      "checksum": "88105a6c4475a369f787c6f8af4994a4"
+      "checksum": "13c0066e2fd4816a7864492652e4335e"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

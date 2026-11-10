@@ -77,7 +77,9 @@ BayesRepDesign, except small telescopes (pwr and pwrss, as on the
 cards).
 }
 \examples{
-plan <- replication_planning("two_groups", 0.7, original_n1 = 20, original_n2 = 20,
-  smallest_effect = 0.2)
-plan$goals
+if (requireNamespace("BayesRepDesign", quietly = TRUE)) {
+  plan <- replication_planning("two_groups", 0.7, original_n1 = 20, original_n2 = 20,
+    smallest_effect = 0.2)
+  plan$goals
+}
 }

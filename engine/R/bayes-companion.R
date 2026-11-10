@@ -39,6 +39,11 @@ companion_methods <- list(
 #'   `n`, `outcomes` (one row per threshold), `n_for_both` (with `target`),
 #'   `agreement` (t-tests) and `priors`, `package` and `function_used`.
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+#' spec$target_test$method <- "student_t"
+#' spec$goal <- list(type = "power", n = 100L)
+#' bayes_companion(spec, n = 100)$available
 bayes_companion <- function(spec, n, thresholds = c(3, 10), target = NULL) {
   methods <- companion_methods[[spec$template %||% ""]]
   method <- spec$target_test$method
@@ -193,6 +198,13 @@ companion_agreement_t <- function(spec, b, n, k) {
 #' @return A data frame: `prior` (its name), `scale`, `for_effect`,
 #'   `for_null`, `misleading`; `NULL` for other specs.
 #' @export
+#' @examples
+#' spec <- read_spec(system.file("specs", "one_sample_t.json", package = "powerkit"))
+#' spec$target_test <- list(effect = spec$target_test$effect, method = "bayes_factor",
+#'   alternative = "two_sided")
+#' spec$goal <- list(type = "power", n = 100L)
+#' spec$options <- NULL
+#' bayes_robustness(spec, n = 100)
 bayes_robustness <- function(spec, n) {
   if (!bayes_factor_test(spec) || !spec$template %in% c("one_sample_t", "paired_t", "independent_t")) return(NULL)
   own <- spec$target_test$prior_scale %||% bayes_defaults$prior_scale

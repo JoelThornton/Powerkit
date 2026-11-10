@@ -25,6 +25,12 @@ Every test must reach at least that marginal power under the same
 stipulated population. This is a bound, not an estimated joint power,
 and it does not change significance levels or handle fit failures.
 }
+\examples{
+# Per-test power so that three independent tests all succeed with 0.8:
+all_tests_target(0.8, tests = 3)
+# Without assuming independence (a union bound):
+all_tests_target(0.8, tests = 3, dependence = "unknown")
+}
 \references{
 Blitzstein and Hwang (2019), Introduction to Probability,
 second edition. doi:10.1201/9780429428357. See the union-bound

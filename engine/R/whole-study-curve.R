@@ -31,6 +31,22 @@
 #'   `provenance` (spec hash, seed, replications, backend, R and package
 #'   versions).
 #' @export
+#' @examples
+#' \donttest{
+#' spec <- jsonlite::fromJSON(
+#'   system.file("whole-study", "example.json", package = "powerkit"),
+#'   simplifyVector = FALSE
+#' )
+#' # A moderated regression only (no mediator), with 100 simulated studies.
+#' spec$analyses <- spec$analyses[c(1, 3)]
+#' spec$analyses[[2]]$role <- "main"
+#' spec$variables$M <- NULL
+#' spec$population$paths <- list(`X->Y` = 0.25, `W->Y` = 0.1, `XW->Y` = 0.15)
+#' spec$options$ci_draws <- NULL
+#' spec$options$nrep <- 100L
+#' curve <- whole_study_curve(spec, multipliers = c(0.5, 1, 2), nrep = 100L)
+#' curve$curve
+#' }
 whole_study_curve <- function(spec, multipliers = c(0.5, 0.75, 1, 1.25, 1.5, 2), nrep = 200L) {
   spec <- validate_whole_study(spec)
   if (!identical(spec$goal$type, "power") || is.null(spec$goal$n)) {
