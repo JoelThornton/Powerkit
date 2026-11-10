@@ -185,7 +185,8 @@ group_ui_build <- function(tree, g, values, index) {
   # fields carry the same condition, so the server ignores them too).
   box <- tags$fieldset(
     class = paste("form-group-box", if (names_only) "form-group-names"),
-    tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6", legend),
+    tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6",
+      if (length(g$fields) && identical(g$fields[[1]]$label, "Test version")) name_swap(legend, "Test") else legend),
     # Definitions open on request; notes that change what's needed stay in
     # view, except the reason the direction is asked first.
     if (length(hints)) tags$details(class = "form-terms", tags$summary("What these terms mean"),
@@ -234,11 +235,12 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     screen_nav_ui("form_back", if (from_plan) "Back to my plan" else "Back to the card"),
     trail_ui(history, tree),
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
-    h2(paste0("Your values: ", ep$plain_name)),
+    h2(name_swap(paste0("Your values: ", ep$plain_name), technical_name(ep))),
     p(class = "lead", "Everything is needed unless it says optional."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"), ep$validation$note),
     carried,
+    if (!is.null(forms$forms[[ep_id]]$scope_note)) p(class = "analysis-scope-note", forms$forms[[ep_id]]$scope_note),
     placeholders_at(tree, "form"),
     input_support_ui(forms$forms[[ep_id]], form_fields(groups)),
     form_sections_ui(tree, groups, values, forms$forms[[ep_id]]),

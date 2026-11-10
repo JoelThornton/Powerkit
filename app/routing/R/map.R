@@ -148,7 +148,7 @@ map_graph <- function(tree, meta = map_meta()) {
     family <- unname(family_of[id])
     if (is.na(family)) family <- ""
     add_node(id, "endpoint", ep$plain_name %||% id,
-      list(status = status$key, statusText = status$text, standard = standard_name(ep$doc_name %||% "")$name,
+      list(status = status$key, statusText = status$text, standard = technical_name(ep),
         test = test, family = family, familyLabel = if (nzchar(family)) family_label[[family]] else ""))
   }
   # Walk the design finder from a node with the context so far; a node

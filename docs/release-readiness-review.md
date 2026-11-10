@@ -35,14 +35,14 @@ The corrections below merged in [PR #367](https://github.com/JoelThornton/Powerk
 ### Scientific work still required
 
 - [ ] R14. Resolve the two repeated validation failures. The inspected ANOVA job gives simulated power .2130 versus .2313 by the exact-data route; the binary-X job gives a null rejection rate .077 in 1,000 simulations, above its .0707 tolerance. Earlier recorded rates differ. The 10 November independent GG investigation now records .21805 in 20,000, same-data afex agreement and .21960 with fixed epsilon; estimating epsilon alone does not explain .2313. See validation-log.md. Both issues remain unresolved. Establish the cause on a frozen version before changing a method or a threshold; do not tune seeds or expected values to obtain a pass.
-- [ ] R15. Complete a release-specific, variant-specific evidence matrix and publish the underlying results. The registry is dated 5 November while many new routes have since been added; the queue incorrectly says no registry exists. Extend the existing registry rather than building a second one. Each new default needs linked evidence; unknown remains unknown.
+- [ ] R15. Complete a release-specific, variant-specific evidence matrix and publish the underlying results. The existing registry is now dated 10 November and links scoped corrected-count checks; the queue refers to extending it. Most new routes still need linked, release-specific evidence. Each default needs appropriate evidence; unknown remains unknown.
 - [ ] R16. Replace a single green-card interpretation with evidence for the selected test, population assumptions and analysis. A fixed Type I tolerance of .04-.06 at alpha .05 is not sufficient for every exact, discrete, conservative, equivalence or Bayesian procedure. Predefine method-appropriate acceptance criteria and Monte Carlo uncertainty; retain historical definitions as history.
 - [ ] R17. Validate complete analysis pipelines, including failures. Compare planned versus achieved power at the returned integer N using fresh random draws; assess null behaviour, interval coverage, bias and convergence. Counts of successful runs alone can conceal selection. Use [ADEMP](https://doi.org/10.1002/sim.8086): aims, data generation, estimands, methods and performance measures.
 - [ ] R18. Validate claims newly introduced by EFA, profiles, cross-lagged and interrupted-series cards. Recovering loadings or selecting a number of profiles is not ordinary rejection power. Model selection, factor rotation, inadmissible fits, local maxima, stationarity, time spacing and short-series calibration need explicit boundaries. Request family specialists; do not infer assurance from successful execution.
 - [ ] R19. Independently review whole-study planning. Define whether success means all primary claims, any, a conjunction, or a hierarchy; keep exploratory/manipulation checks separate. Validate multiplicity, covariance, shared data and estimand alignment. A significant indirect path alone does not establish a causal mechanism.
 - [ ] R20. This branch refuses Welch plus between-study variation with unequal allocation: the adjustment uses Student's degrees of freedom, which are different for unequal groups even with equal population SDs. Equal-allocation use retains the documented approximation. The maintainer reviewed the between-study defaults on 10 November: new ordinary plans now start without variation, and nonzero variation is an explicit optional scenario. A literature-motivated tau is still a substantive assumption, and a single population's power differs from success averaged over settings. Keep both meanings visible. Zero-average rejection under heterogeneity is not a Type I error under a point null for each study. Validate unequal allocation and both tails across an agreed range before broad claims.
 - [ ] R21. Make each simulation correspond to the analysis researchers will actually run. PROCESS percentile bootstrap, Monte Carlo intervals, lmer tests and alternative robust/rank analyses need separately identified targets. Generic missing-data, noncompliance, exclusions and measurement-error handling cannot be inferred from an attrition percentage or a selectable score shape.
-- [ ] R22. Do not present the paired card as a general crossover solution. Period, sequence and carry-over assumptions can change the model and target, rather than merely costing one degree of freedom. A dedicated validated model or a clearly restricted approximation is needed.
+- [x] R22. Correct the crossover scope claim: the paired card/input now cover only an ordinary paired analysis with no period, sequence or carry-over terms, and copied methods state this. Remove the one-degree-of-freedom/close-approximation assurance. The mixed card/input also disclaims a separately validated crossover analysis. A dedicated validated crossover model remains open in the roadmap; this check completes the misleading-scope correction, not that new capability.
 
 ### Researcher experience and fundamental design decisions
 
@@ -142,7 +142,11 @@ its recorded evidence; a shorter sentence must not hide an assumption.
   with a description of the supported experimental whole-study calculation.
 - [x] Explain the zero-main-effect-R-squared assumption without calling it
   generally safe against other misspecified inputs.
-- [ ] Review all finder questions, card summaries and alternative-method text.
+- [x] Audit conventional display names for all 77 analysis entries and
+  14 families. Compact mode removes duplicate explanatory subtitles and
+  shares names across list/card/form/recent-entry headings; common test
+  selectors are short while method guidance and warnings stay visible.
+- [ ] Review all remaining finder questions, card summaries and alternative-method text.
 - [ ] Review all form labels, defaults, optional/required fields, tooltips,
   errors and empty states; check that people know what to do when unsure.
 - [ ] Review all result variants, warning visibility, uncertainty, methods,
@@ -174,3 +178,25 @@ software package. Simulated power at the formula's 80% threshold was
 80%). These selected results neither establish universal agreement nor a
 fixed direction or maximum discrepancy. Reproduce with
 [interaction-sensitivity.R](upstream/interaction-sensitivity.R).
+
+Compact naming uses explicit display metadata, not automatic removal of
+parentheses: qualifiers that distinguish designs remain (independent versus
+paired, between versus within, number of factors, categorical predictors,
+corrected versus uncorrected tests). Detailed documented names and search
+aliases are preserved. Explanation mode changes presentation only; it does
+not select a different analysis. Desktop and narrow-screen browser checks
+cover headings, repeated subtitles, persistent preference, legacy recent
+entries, visible prototype status and unchanged selected test.
+
+R34 partial verification: the public landing page and download page returned
+HTTP 200 in direct HTTPS checks on 10 November; the sitemap endpoint also
+returned 200. Some requests reset during TLS negotiation, so this is not
+a reliability benchmark. The source sitemap includes download.html; live
+body verification, search indexing and the offline/update checks remain open.
+
+Local verification for compact labels/R22: label and copied-method checks,
+screen rendering, Labs/map data, documentation alignment, generated
+inventory, repository consistency, Updates and citation exports pass. Five
+Chromium checks cover desktop/mobile naming, old recent entries, visible
+crossover scope, Labs history and card links. These are interface/scope
+checks, not new statistical validation or a complete accessibility review.

@@ -190,6 +190,17 @@ fresh sensitivity checks (10,000 simulated studies each) are archived; all
 99% power intervals included the 80% target. They use the same backend and
 do not establish universal agreement or an independent-package validation.
 
+Compact-mode naming has been audited across all 77 analysis entries and
+14 families. Curated conventional names replace explanatory title suffixes
+in the analysis list, cards, input headings, recent entries and the methods
+map's standard-name field. Common method selectors are shorter; detailed
+analysis assumptions and validation warnings remain separate and visible.
+This is display metadata, not a change of method, defaults or evidence.
+R22's crossover scope correction is also implemented: ordinary paired
+analysis is no longer presented as a general adjusted-crossover approximation;
+card/input guidance and copied methods state the limitation. The dedicated
+crossover model remains a separate capability/evidence gap.
+
 ## Validation
 
 Most designs are checked against the package each one calls, plus their

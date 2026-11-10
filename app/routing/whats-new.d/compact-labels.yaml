@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-10"
+    title: "Shorter test names with explanations off"
+    text: "Explanations off now uses conventional test and group names, without repeating the plain-language subtitle. Common test selectors are shorter too, with method details kept in the guidance. Your selected tests, settings and calculations are unchanged."

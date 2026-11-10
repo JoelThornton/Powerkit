@@ -403,7 +403,7 @@ forms:
       - input: "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {t_test: "One-sample t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test: the effect is larger than your smallest effect of interest (pwrss)"},
+             choices: {t_test: "One-sample t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test"},
              default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(), pwr 1.3-0)"}
           - {id: score_shape, label: "The shape of the scores", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: wilcoxon_signed_rank},
@@ -490,9 +490,9 @@ forms:
       - input: "Student's or Welch's t-test, the Mann-Whitney or Brunner-Munzel test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {welch_t: "Welch's t-test (recommended: stays accurate if the groups' spreads differ)", student_t: "Student's t-test (only if you're sure the spreads are equal, or your field requires it)", mann_whitney: "Mann-Whitney test (rank-based), simulated", brunner_munzel: "Brunner-Munzel test (rank-based, spread may differ), simulated", bayes_factor: "Bayes factor t-test (default JZS prior, equal groups), instead of a p-value", minimum_effect: "Minimum-effect test: the effect is larger than your smallest effect of interest (pwrss)"},
+             choices: {welch_t: "Welch's t-test", student_t: "Student's t-test", mann_whitney: "Mann-Whitney U test", brunner_munzel: "Brunner-Munzel test", bayes_factor: "Bayes factor t-test", minimum_effect: "Minimum-effect test"},
              default: welch_t, default_source: "Welch's t-test, as Delacre, Lakens and Leys (2017) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses almost nothing when they don't. R's t.test() runs it unless told otherwise; G*Power and pwr plan for Student's",
-             choice_notes: {welch_t: "Both formula and simulation plan for normal scores and your stated group spreads. Give two SDs with raw means, or a ratio with a standardised effect. With unequal SDs the effect is the mean difference divided by sqrt((SD1 squared + SD2 squared) / 2), not an allocation-weighted pooled SD. Point-biserial/published-test conversions and safeguard power require equal-SD assumptions; use raw means/SDs for unequal spreads.", student_t: "Choose Student's test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or a comparison that is one part of a larger regression or ANOVA assuming equal spreads (unless that model uses robust standard errors). Reporting Welch's test beside it is good practice. With similar spreads and equal group sizes, their planned sample sizes are often close. Unequal spreads can change the answer even when group sizes are equal."}}
+             choice_notes: {bayes_factor: "Uses the default JZS analysis prior and equal groups; the evidence threshold and prior settings below describe the planned Bayesian analysis.", mann_whitney: "Rank-based analysis, simulated; power depends on the score shape you choose.", brunner_munzel: "Rank-based analysis that allows unequal spreads, simulated with your chosen score shape.", minimum_effect: "Tests whether the effect exceeds your smallest effect of interest, rather than whether it differs from zero.", welch_t: "Both formula and simulation plan for normal scores and your stated group spreads. Give two SDs with raw means, or a ratio with a standardised effect. With unequal SDs the effect is the mean difference divided by sqrt((SD1 squared + SD2 squared) / 2), not an allocation-weighted pooled SD. Point-biserial/published-test conversions and safeguard power require equal-SD assumptions; use raw means/SDs for unequal spreads.", student_t: "Choose Student's test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or a comparison that is one part of a larger regression or ANOVA assuming equal spreads (unless that model uses robust standard errors). Reporting Welch's test beside it is good practice. With similar spreads and equal group sizes, their planned sample sizes are often close. Unequal spreads can change the answer even when group sizes are equal."}}
           - {id: welch_sd_ratio, label: "SD of group 2 divided by SD of group 1", type: number, path: population.sd_ratio, required: true, min_exclusive: 0,
              shown_if: [{field: method, is: welch_t}, {field: effect_units, is_not: raw}],
              default: 1, default_source: "equal population SDs, preserving earlier Welch plans",
@@ -533,6 +533,7 @@ forms:
          default: exact, default_source: "pwrss's formula for Welch's t-test (power.t.welch(), pwrss 1.3.3), which agrees with a simulation and has no random error (pwr has no Welch formula)"}
 
   E3:
+    scope_note: "Crossover study? This card does not model period, sequence or carry-over effects. Use it only for an ordinary paired analysis when omitting those terms is justified; it does not plan an adjusted crossover analysis."
     methods_name: "a paired-samples t-test"
     departures: ["15", "23"]
     known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
@@ -578,7 +579,7 @@ forms:
       - input: "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test: the effect is larger than your smallest effect of interest (pwrss)"},
+             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test"},
              default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(type = 'paired'), pwr 1.3-0)"}
           - {id: score_shape, label: "The shape of the changes (second minus first)", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: wilcoxon_signed_rank},
@@ -681,10 +682,10 @@ forms:
       - input: "The z test, Fisher's exact test or a Bayes factor test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {z_test: "The z test without continuity correction (a large-sample test)", z_test_corrected: "With continuity correction (R prop.test default), simulated", fisher_exact: "Fisher's exact test (pwrss's power.exact.fisher()): for small samples or small expected counts", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value"},
+             choices: {z_test: "Two-proportion z test (uncorrected)", z_test_corrected: "Two-proportion test (continuity-corrected)", fisher_exact: "Fisher's exact test", bayes_factor: "Bayes factor test"},
              default: z_test, default_source: "the test G*Power and pwr's formulas cover for two independent proportions",
              help: "Choose the test you will actually use to analyse your study. R's prop.test() applies continuity correction by default; that can lower power compared with the uncorrected test.",
-             choice_notes: {z_test_corrected: "Simulates independent people in two groups with fixed group sizes, then runs R's prop.test(correct = TRUE). Power and required sample size are supported; to compare effects, run separate fixed-sample power plans. This is not Fisher's exact test, and the correction does not make a sparse-data approximation exact."}}
+             choice_notes: {fisher_exact: "An exact test of two independent proportions, rather than a large-sample z approximation. Group sizes and expected proportions still determine its power.", z_test_corrected: "Simulates independent people in two groups with fixed group sizes, then runs R's prop.test(correct = TRUE). Power and required sample size are supported; to compare effects, run separate fixed-sample power plans. This is not Fisher's exact test, and the correction does not make a sparse-data approximation exact."}}
           - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
@@ -739,7 +740,7 @@ forms:
       - input: "The chi-square test or a Bayes factor"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {pearson_chi_square: "Pearson's chi-square test without continuity correction", pearson_chi_square_corrected: "With continuity correction (2 by 2 only; R chisq.test default), simulated", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value, simulated"},
+             choices: {pearson_chi_square: "Pearson's chi-square test (uncorrected)", pearson_chi_square_corrected: "Pearson's chi-square test (continuity-corrected)", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value, simulated"},
              default: pearson_chi_square, default_source: "Pearson's chi-square test, which pwr computes (pwr.chisq.test(), pwr 1.3-0) as G*Power does",
              help: "Choose the test in your analysis plan. R's chisq.test() uses continuity correction by default for 2 by 2 tables only. The corrected and Bayes factor versions need the table of proportions, not Cohen's w.",
              choice_notes: {pearson_chi_square_corrected: "Needs a 2 by 2 table of population proportions. Simulates independent people with a fixed total sample size; row and column totals vary. If group sizes are fixed, use the two-proportions design instead. Supports power and required sample size; to compare effects, run separate fixed-sample power plans. Sparse counts can still make this approximate test unsuitable."}}
@@ -914,6 +915,7 @@ forms:
           - {id: n22, writeup_label: "relative size of A level 2, B level 2", label: "Group size (or ratio): A level 2, B level 2", type: number, path: options.cell_ratio.2.2, required: true, min: 1, integer: true}
 
   E8:
+    scope_note: "This plans the specified mixed ANOVA. It is not a separately validated crossover analysis, and does not establish that period, sequence or carry-over effects can be ignored."
     sides: false
     methods_name: "a 2 × 2 mixed ANOVA"
     departures: ["2", "3"]
@@ -1967,13 +1969,13 @@ forms:
       - input: "The ANOVA, Welch's F, the Kruskal-Wallis test, pairwise comparisons or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {welch_f: "Welch's F test (recommended: stays accurate if the groups' spreads differ), simulated", anova_f: "Classical F test (only if you're sure the spreads are equal, or your analysis must use it)",
-                       kruskal_wallis: "Kruskal-Wallis test (rank-based), simulated",
-                       t_test: "Pairwise comparisons between groups (t-tests, adjusted for their number), simulated",
-                       bayes_factor: "Bayes factor ANOVA (as in JASP's Bayesian ANOVA, equal groups), instead of a p-value"},
+             choices: {welch_f: "Welch's ANOVA", anova_f: "Classical one-way ANOVA",
+                       kruskal_wallis: "Kruskal-Wallis test",
+                       t_test: "Pairwise t-tests",
+                       bayes_factor: "Bayes factor ANOVA"},
              sets: {t_test: [{path: target_test.effect, value: pairwise}]},
              default: welch_f, default_source: "Welch's F, as Delacre, Leys, Mora and Lakens (2019) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses little power when they don't. G*Power and Superpower plan for the classical F test",
-             choice_notes: {welch_f: "No package has a formula for Welch's F's power, so powerkit simulates it (Spower, stats::oneway.test()): a sample size takes up to a minute. With one SD for every group it needs only a few more people than the classical F test.",
+             choice_notes: {bayes_factor: "Uses the default analysis prior and equal groups; choose the evidence threshold and prior settings below to match the planned Bayesian analysis.", kruskal_wallis: "Rank-based analysis, simulated; power depends on the score shape you choose.", t_test: "Simulates the selected pairwise comparison and applies the adjustment chosen below across all pairs.", welch_f: "No package has a formula for Welch's F's power, so powerkit simulates it (Spower, stats::oneway.test()): a sample size takes up to a minute. With one SD for every group it needs only a few more people than the classical F test.",
                             anova_f: "Choose the classical F test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or an ANOVA that is one part of a larger model assuming equal spreads. Reporting Welch's F beside it is good practice. Its power is worked out exactly (Superpower), with no simulation."}}
           - {id: comparison, label: "The pair you'll compare: two groups' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
              shown_if: {field: test_version, is: t_test},

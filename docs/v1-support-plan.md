@@ -89,7 +89,7 @@ Audit current code first; build only the missing variant.
 | P0 | Several primary claims using shared participants | All/any/hierarchical claims; multiplicity, dependence, mixed outcomes and covariates; whole-study simulation remains experimental |
 | P1 | Diary/EMA with unequal observations per person | Within/between effects, spacing, autocorrelation, random slopes, missing prompts; distinct from growth and RI-CLPM |
 | P1 | Distinguishable dyads over time | Actor/partner dependence, member-specific missingness, moderation; audit E44/E65 before expanding |
-| P1 | Counterbalanced AB/BA crossover | Treatment adjusted for period, sequence/carry-over assumptions and withdrawal; paired t is a restricted approximation |
+| P1 | Counterbalanced AB/BA crossover | Treatment adjusted for period, sequence/carry-over assumptions and withdrawal; the ordinary paired card does not establish power for that adjusted analysis |
 | P1 | SEM/CFA and measurement invariance | Unequal multiple groups, ordinal indicators, partial invariance and latent mediation; actual estimator and fit/difference target |
 | P1 | EFA and profile selection | Recovery versus choosing factor number; cross-loadings; continuous profiles versus categorical classes; failed fits |
 | P1 | Reliability and item fairness | Which ICC, omega/alpha/kappa, rater design, item scale, precision versus a benchmark test; audit E69/E71 |

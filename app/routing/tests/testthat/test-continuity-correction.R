@@ -5,7 +5,7 @@ test_that("count forms expose the corrected analysis and preserve uncorrected de
     corrected <- if (ep == "E5") "z_test_corrected" else "pearson_chi_square_corrected"
     expect_true(corrected %in% names(method$choices))
     expect_false(identical(method$default, corrected))
-    expect_match(method$choices[[method$default]], "without continuity correction", fixed = TRUE)
+    expect_match(method$choices[[method$default]], "uncorrected", fixed = TRUE)
     inputs <- modifyList(form_examples[[ep]], list(method = corrected, goal = "power", n = 340))
     if (ep == "E6") inputs <- modifyList(inputs, list(X_levels = "A, B", Y_levels = "No, Yes", probabilities = "0.25, 0.25\n0.175, 0.325"))
     spec <- build_spec(forms, ep, fields, inputs)

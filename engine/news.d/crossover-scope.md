@@ -1,0 +1,1 @@
+* Restrict paired/mixed-card crossover claims to their actual analysis scope. Remove the unvalidated one-df/close-approximation assurance; surface the limitation before calculation and state omitted period/sequence/carry-over terms in paired methods. No new crossover computation or formula is introduced.

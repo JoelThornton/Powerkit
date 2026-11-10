@@ -2630,3 +2630,26 @@ displayed supported models, not every PROCESS option or direct software
 equivalence. Paired independent regression checks, null calibration and
 an archived PROCESS reference are separate evidence requirements; no
 whole-card validation status is promoted by implementation alone.
+
+## 10 November 2026 — conventional names in compact mode
+
+With Explanations off, analysis and family headings use curated conventional
+names without instructional suffixes or duplicate plain-language subtitles.
+Explicit technical_name/technical_label metadata preserves the detailed
+documentation and search aliases. Cards, forms and recent entries share
+the same display names; old recent entries resolve names from the current
+catalogue. Common method choices use short test names, with assumptions
+and implementation details in guidance rather than the label. Selected
+method identifiers, stored studies, calculations, status and scientific
+warning visibility are unchanged. Explanations remain on by default.
+
+## 10 November 2026 — restrict crossover guidance to the actual model
+
+The ordinary paired card does not estimate period, sequence or carry-over
+terms. Remove the claim that an adjusted crossover costs just one df and
+is therefore a close approximation. State the restriction on both the
+paired and mixed cards and input screens, and in the paired methods text.
+No new crossover capability or numeric adjustment is introduced. A
+dedicated model remains queued. Dwan et al. (2019), verified in refs.bib,
+distinguish the simple paired analysis's assumptions from other crossover
+analyses.

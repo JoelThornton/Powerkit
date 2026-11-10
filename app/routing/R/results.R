@@ -3087,7 +3087,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, welch_population_note(spec), mediation_analysis_sentence(result), count_test_sentence(spec))
+  main <- c(main, welch_population_note(spec), mediation_analysis_sentence(result), count_test_sentence(spec),
+    if (identical(spec$template, "paired_t")) "The paired analysis models within-person differences without period, sequence or carry-over terms.")
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
               if (assumes_sphericity(spec)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power)

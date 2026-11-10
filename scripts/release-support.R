@@ -23,10 +23,10 @@ release_support <- function(root = ".") {
       out
     })
     route <- unname(how[id])
-    list(id = id, name = ep$doc_name, card_status = ep$status,
+    list(id = id, name = ep$doc_name, technical_name = ep$technical_name, card_status = ep$status,
       access = if (length(route) == 1 && !is.na(route)) route else "guidance",
       declared_template = ep$template, base_design = form$base$design, base_template = form$base$template,
-      declared_backend = ep$backend,
+      declared_backend = ep$backend, scope_note = form$scope_note,
       validation_note = ep$validation, selectors = selectors,
       input_bounds = lapply(Filter(function(f) any(c("min", "max", "min_exclusive", "max_exclusive") %in% names(f)), fields),
         function(f) f[intersect(c("id", "path", "min", "max", "min_exclusive", "max_exclusive", "shown_if"), names(f))]))

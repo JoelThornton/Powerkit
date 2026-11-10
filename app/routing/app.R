@@ -324,7 +324,8 @@ app_css <- "
   .topbar-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
   .terms-toggle { display: flex; align-items: center; gap: 0.35rem; color: #fff; font-size: 0.9rem; margin: 0 0.75rem 0 0; cursor: pointer; }
   .name-tech, .name-plain-alt { display: none; }
-  .terms-mode .name-tech, .terms-mode .name-plain-alt { display: inline; }
+  .terms-mode .name-tech { display: inline; }
+  .terms-mode .known-choice .choice-help { display: none; }
   .terms-mode .name-plain, .terms-mode .name-tech-alt { display: none; }
   .terms-mode .hint, .terms-mode .form-terms, .terms-mode .also-called,
   .terms-mode .standard-name { display: none; }
