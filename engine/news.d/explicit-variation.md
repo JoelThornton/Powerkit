@@ -1,1 +1,0 @@
-* New ordinary t-test and Pearson correlation plans start without between-study variation. Nonzero variation remains an explicit optional scenario; stored assumptions and engine formulae are retained. Explain averaged significance and display scenario power at the exact analysed sample size.

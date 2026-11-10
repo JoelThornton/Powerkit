@@ -585,3 +585,11 @@ expected one, and a downloadable synthetic data set for pre-registration.
 [G2]: judgement-calls.md#g2-frequentist-or-bayesian-in-the-screening
 [G3]: judgement-calls.md#g3-which-cross-cutting-features-belong-in-v1
 [G7]: judgement-calls.md#g7-a-multiple-testing-correction-by-default
+
+
+## Mediation analysis choice (10 November 2026)
+
+The nine applicable forms now offer OLS with a casewise percentile
+bootstrap (PROCESS-style), alongside both existing ML interval methods.
+This adds an explicit analysis choice, not every PROCESS option or a new
+validation badge. See [scope, methods and remaining checks](process-style-planning.md).

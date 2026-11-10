@@ -328,7 +328,7 @@ form_section <- function(g) {
   # The scientific question only labels the planning document, so it folds
   # away below the study's section (8 November 2026).
   if ("research_question" %in% ids) return("question")
-  if ("estimate" %in% ids) return("study")
+  if ("estimate" %in% ids || identical(g$title, "Which mediation analysis will you run?")) return("study")
   if ("guess" %in% ids) return("guess")
   # Which test you'll run is in view on every card that offers more than
   # one (8 November 2026), never folded into Settings.

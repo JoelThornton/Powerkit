@@ -1,3 +1,9 @@
+# powerkit 0.61.0
+
+* New ordinary t-test and Pearson correlation plans start without between-study variation. Nonzero variation remains an explicit optional scenario; stored assumptions and engine formulae are retained. Explain averaged significance and display scenario power at the exact analysed sample size.
+
+* Add an explicit OLS/casewise-percentile-bootstrap mediation method through power4mome and lmhelprs, alongside the existing ML Monte Carlo and ML bootstrap methods. Expose selection/resample counts on applicable forms and record the actual analysis in results, methods and standalone exports. Bootstrap jobs use the local script, which now saves a reopenable app project; fix restoration of the supported longer simulation routes. Add paired independent regression references and scoped null-calibration checks; do not claim equivalence to every PROCESS option or upgrade evidence badges.
+
 # powerkit 0.60.1
 
 * Recover interrupted local package downloads with bounded per-file retries, a built-in downloader and alternate public CRAN mirrors, retaining lockfile versions and normal archive/certificate checks. Apply recovery to project bootstrap and launcher setup. Check the engine install exit status and version before writing its completion stamp.

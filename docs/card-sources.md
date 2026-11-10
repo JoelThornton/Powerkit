@@ -602,3 +602,11 @@ Found but not opened (a paywall or a site this environment can't reach). Details
 - **Dziak, Dierker and Abar (2020):** *Current Psychology* 39(3), 870-877, doi:10.1007/s12144-018-0018-1. Read in the author manuscript only (`judgement-calls.md`, B11); stays a candidate until the published version is checked.
 - **Hoenig and Heisey (2001):** *The American Statistician* 55(1), 19-24, doi:10.1198/000313001300339897 (doi.org metadata). Not opened.
 - **G\*Power 3.1 manual:** read from the copy the maintainer supplied (`gpower-parity.md`), but not added to `refs.bib`; stays a candidate.
+
+
+## Mediation analysis choice (10 November 2026)
+
+The nine applicable forms now offer OLS with a casewise percentile
+bootstrap (PROCESS-style), alongside both existing ML interval methods.
+This adds an explicit analysis choice, not every PROCESS option or a new
+validation badge. See [scope, methods and remaining checks](process-style-planning.md).

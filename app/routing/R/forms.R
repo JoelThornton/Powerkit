@@ -167,6 +167,27 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     }
     with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })
+  if (isTRUE(form$base$design %in% c("mediation", "moderated_mediation"))) {
+    groups <- lapply(groups, function(g) {
+      g$fields <- lapply(g$fields, function(f) {
+        if (identical(f$id, "ci_draws")) {
+          f$label <- "Draws or bootstrap resamples per confidence interval"
+          f$empty_text <- "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap"
+          f$help <- "A numerical accuracy setting, not an effect-size assumption. Leave empty for the defaults, or match the resample count in your planned analysis. More draws reduce simulation noise and take longer."
+        }
+        f
+      })
+      if (identical(g$title, "Monte Carlo draws")) g$title <- "Confidence interval accuracy"
+      g
+    })
+    has_draws <- any(vapply(form_fields(groups), function(f) identical(f$id, "ci_draws"), logical(1)))
+    if (!has_draws) groups <- c(groups, list(list(input = NULL, title = "Confidence interval accuracy",
+      fields = list(list(id = "ci_draws", label = "Draws or bootstrap resamples per confidence interval",
+        type = "number", path = "options.ci_draws", optional = TRUE, min = 100, max = 100000, integer = TRUE,
+        empty_text = "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap",
+        help = "Leave empty for the numerical default, or match your planned analysis. More draws reduce simulation noise and take longer.")))))
+    groups <- c(list(mediation_analysis_group()), groups)
+  }
   if (!is.null(form$mediators)) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
       id = "n_mediators", label = "Number of mediators", type = "select", required = TRUE,
@@ -194,6 +215,22 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   c(out, list(list(input = NULL, title = "Assumptions and named alternatives", fields = list(
     list(id = "scenario_library", label = "Assumptions and named alternatives", type = "scenario_library", optional = TRUE,
       scenario_fields = candidates)))))
+}
+
+
+# The estimator and interval are chosen together so PROCESS-style planning
+# cannot accidentally keep lavaan ML or a Monte Carlo interval.
+mediation_analysis_group <- function() {
+  list(input = NULL, title = "Which mediation analysis will you run?",
+    note = "Choose the method you will use to analyse your study. PROCESS is one way of running mediation; its model number alone does not identify the test.",
+    note_more = "The PROCESS-style option fits each equation by ordinary least squares (OLS) and resamples whole participants. It covers the displayed model with complete independent observations and continuous mediators/outcomes, using the existing normal-error population generator. It does not run PROCESS itself or cover its logistic, clustered/stratified bootstrap, measurement-error or bias-corrected options.",
+    fields = list(list(id = "method", label = "Estimation and confidence interval", type = "select",
+      path = "target_test.method", required = TRUE, default = "monte_carlo_ci",
+      default_source = "the existing power4mome method: maximum likelihood and a Monte Carlo interval; choose OLS bootstrap for PROCESS-style analysis",
+      choices = list(monte_carlo_ci = "Maximum likelihood + Monte Carlo interval (current Powerkit method)",
+        ols_percentile_bootstrap = "Ordinary regression + percentile bootstrap (PROCESS-style)",
+        percentile_bootstrap = "Maximum likelihood + percentile bootstrap"),
+      help = "Ordinary regression fits one regression for each equation; maximum likelihood fits a joint path model. Choose the method and interval you will report. Bootstrap planning runs through a downloaded R script and can take hours. The Monte Carlo option keeps its existing browser workflow.")))
 }
 
 simulation_accuracy_group <- function(forms, ep_id) {

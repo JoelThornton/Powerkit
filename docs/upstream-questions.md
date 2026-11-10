@@ -171,6 +171,18 @@ Questions about metapower 0.2.2, from its source (opened 31 October
 
 ## power4mome
 
+**OLS/bootstrap route (10 November 2026; not sent).** Powerkit now offers
+`fit_model_args = list(fit_function = "lm")`, `ci_type = "boot"` and the
+CI-excludes-zero rule for displayed mediation models. Same-data equation
+fits and intervals agree in nine example families. Some conditional-model
+checks emit manymome warnings about an additional `X:W` moderator set to
+zero; the explicitly checked estimates/intervals still match the separate
+OLS reference. Ask whether this is expected path-discovery behaviour and
+which fitted-model syntax avoids ambiguous warnings. A direct PROCESS
+software comparison and the new null-calibration chunk are separate
+requirements; no author endorsement or blanket compatibility is claimed.
+[Scope and checklist](process-style-planning.md).
+
 **Population standardisation with a mediator in a later product (0.2.1).**
 `psi_std_monte_carlo()` calls `update_p_terms()` before replacing the
 mediator's error values with its generated values. In models 58 and 59,

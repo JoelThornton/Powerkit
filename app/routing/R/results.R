@@ -1233,6 +1233,15 @@ safeguard_sentence <- function(result) {
 # Effects that vary between studies (Kenny & Judd, 2019), worked out by
 # the engine: what the variation does to power, and how often one study is
 # significant with no average effect.
+
+mediation_analysis_sentence <- function(result) {
+  a <- result$mediation_analysis
+  if (is.null(a)) return(NULL)
+  sprintf("Planned analysis: %s with a %s confidence interval (%s %s per simulated study).%s",
+    a$estimator, a$interval, whole(a$draws), if (identical(a$interval, "Monte Carlo")) "draws" else "whole-observation bootstrap resamples",
+    if (isTRUE(a$process_style)) " PROCESS-style: complete independent observations, continuous mediators and outcome; not PROCESS itself or all of its options." else " Use this same estimation and interval method in your analysis.")
+}
+
 heterogeneity_sentence <- function(result) {
   h <- result$heterogeneity
   if (is.null(h)) return(NULL)
@@ -1794,6 +1803,9 @@ critical_effect_sentence <- function(result) {
 # upstream-questions.md, power4mome), so the result says so.
 binary_x_modmed_note <- function(spec) {
   if (!identical(spec$design, "moderated_mediation") || !identical(spec$variables$X$type, "binary")) return(NULL)
+  if (!identical(spec$target_test$method, "monte_carlo_ci")) return(paste(
+    "The existing binary-X moderated-mediation calibration warning was measured for maximum likelihood with Monte Carlo intervals.",
+    "It is not a calibration estimate for the selected bootstrap analysis; changing the interval is not proof that the issue is resolved."))
   paste(
     "In a PROCESS model 7 scenario with a yes/no X, powerkit's checks found the test too liberal: with no moderated mediation it was",
     "significant in about 6.7% of simulated studies at alpha .05, against 5.3% for a separately written simulation,",
@@ -2165,6 +2177,7 @@ bayes_null_writeup <- function(spec, result) {
 
 departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
+  if (identical(spec$target_test$method, "ols_percentile_bootstrap")) keys <- setdiff(keys, c("6", "7"))
   if (!spec$template %in% c("process_58", "process_59")) keys <- setdiff(keys, "19")
   # Departure 20 (both of each DIF item's parameters tested) applies unless
   # the user keeps irtpwr's own choice.
@@ -2597,6 +2610,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(gd <- group_d_sentence(result))) p(class = "result-conversion", gd),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
+    if (!is.null(ma <- mediation_analysis_sentence(result))) p(class = "result-mediation-analysis", ma),
     if (!is.null(het <- heterogeneity_sentence(result))) p(class = "result-heterogeneity", het),
     heterogeneity_range_ui(result),
     if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
@@ -3069,7 +3083,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, welch_population_note(spec))
+  main <- c(main, welch_population_note(spec), mediation_analysis_sentence(result))
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
               if (assumes_sphericity(spec)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power)

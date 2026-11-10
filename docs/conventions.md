@@ -909,6 +909,11 @@ kept so later departures keep theirs.
 
 ### 6. Mediation fits: lavaan maximum likelihood, not PROCESS's OLS
 
+**10 November 2026:** this departure concerns the ML methods only. The
+explicit OLS + percentile-bootstrap method fits each equation by OLS and
+does not show this departure. Its scope and pending PROCESS-software
+comparison are in [process-style-planning.md](process-style-planning.md).
+
 - **Established convention:** PROCESS fits each equation by OLS.
 - **powerkit:** fits the path model with lavaan (ML), power4mome's default,
   because power4mome's Monte Carlo confidence intervals need a lavaan fit
@@ -2353,6 +2358,14 @@ Wired into the app on 18 October 2026 (E25, E26).*
 - **Methods paragraph:** `known_differences_methods`, key "13".
 
 ### 14. Mediation: a Monte Carlo interval, where PROCESS reports a percentile bootstrap
+
+**10 November 2026:** the method is now selectable on the mediation forms.
+The existing ML/Monte Carlo method remains available; a researcher planning
+a regression/bootstrap analysis can choose OLS + casewise percentile
+bootstrap. This known-difference note applies only to the Monte Carlo
+choice. The historical timing below concerns ML bootstrapping and must not
+be read as a timing estimate for the new OLS method. Numerical identity to
+every PROCESS option is not established.
 
 - **What differs:** powerkit plans mediation and moderated mediation for
   power4mome's Monte Carlo confidence interval of the indirect effect (or

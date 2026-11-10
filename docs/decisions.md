@@ -2613,3 +2613,20 @@ The smaller/larger-effect comparison stays prominent and now displays power
 at the actual analysed sample size for each assumption, using the existing
 engine, without interpolating from the plotted grid. No variation magnitude
 or alternative effect is selected on the researcher's behalf.
+
+
+## 2026-11-10 · Match mediation planning to the intended analysis
+
+The maintainer asked for both ordinary mediation and PROCESS-style
+planning. The forms expose estimator and interval together: existing ML
+Monte Carlo (default), existing ML percentile bootstrap, and explicit OLS
+casewise percentile bootstrap. PROCESS is a mediation workflow rather than
+a different design. Use power4mome's documented lm route, not a new power
+formula. Keep selected settings in the result, methods, saved plan and
+standalone script. OLS bootstrap starts at 5,000 resamples unless the user
+provides a count; existing method defaults and saved specifications retain
+their meaning. The scope is complete independent observations in the
+displayed supported models, not every PROCESS option or direct software
+equivalence. Paired independent regression checks, null calibration and
+an archived PROCESS reference are separate evidence requirements; no
+whole-card validation status is promoted by implementation alone.

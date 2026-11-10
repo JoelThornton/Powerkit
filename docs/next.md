@@ -21,7 +21,10 @@ comparisons (open PR; saved values retained). Next, continue the departure
 audit for analysis mismatches: mediation ML/Monte Carlo versus PROCESS
 OLS/bootstrap, continuity-corrected proportions tests, fixed/random
 predictors and family-level claims. This is part of the selected-variant
-audit below; none is resolved merely by changing labels.
+audit below; none is resolved merely by changing labels. The open PR now
+adds a selectable OLS/casewise-percentile-bootstrap route, paired regression
+checks and a dedicated null-calibration job. Finish and archive its results
+and the direct PROCESS-software comparison before claiming equivalence.
 
 ## The queue
 

@@ -819,6 +819,7 @@ server <- function(input, output, session) {
     bayes_mode = FALSE,      # Bayes mode (bayes_mode_toggle_ui()): cards open on their Bayes factor version
     form_k = 2L,             # input screen: number of mediators (parallel and serial mediation)
     calc = NULL,             # input screen: the last calculation (run_calculation()), for the downloads
+    long_route = NULL,       # checked app route for reopening a local-script result
     long_spec = NULL,        # E10-E14: the checked spec, with its seed, for the full run or the R script
     answers = list(),        # guided route: variable answers
     ticked = character(), primary = character(), asks = list(), rule = "each",
@@ -1133,6 +1134,7 @@ server <- function(input, output, session) {
     fields <- current_form_fields()
     values <- current_form_values()
     calc_route <- project_route(reactiveValuesToList(state), values)
+    state$long_route <- calc_route
     start <- form_start()
     # The claim and whether the sample size is fixed are fields on the
     # input screen (from a plan or an older project, they start at what
@@ -1156,7 +1158,7 @@ server <- function(input, output, session) {
     state$long_spec <- NULL
     cancel_job()
     if (identical(check$status, "ok") && runs_long(forms, state$endpoint, spec) &&
-        !has_preview(forms, state$endpoint, spec$goal$type)) {
+        !has_preview(forms, state$endpoint, spec$goal$type, spec)) {
       # E10-E14, required N: no preview; the R script straight away.
       if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
       state$long_spec <- spec
@@ -1421,6 +1423,7 @@ server <- function(input, output, session) {
   observeEvent(input$full_run, {
     req(state$long_spec)
     spec <- state$long_spec
+    req(full_run_in_app(forms, state$endpoint, spec$goal$type, spec))
     usual <- full_seconds(forms, state$endpoint, spec$goal$type)
     output$form_result <- renderUI(calculating_background_ui(usual,
       sprintf("Running the full analysis (%s simulations)\u2026", whole(spec$options$nrep %||% 1000L))))
@@ -1571,7 +1574,7 @@ server <- function(input, output, session) {
     filename = function() sprintf("powerkit-%s-run-full-analysis.R", state$endpoint),
     content = function(file) {
       export <- engine_function("export_run_script")
-      export(state$long_spec, file = file, run_time = script_run_time(forms, state$endpoint, state$long_spec$goal$type))
+      export(state$long_spec, file = file, run_time = script_run_time(forms, state$endpoint, state$long_spec$goal$type, state$long_spec), route = state$long_route)
     }
   )
   # The study plan any card can join (R/study-plan.R).

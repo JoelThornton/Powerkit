@@ -100,11 +100,11 @@ fake_result <- function(backend) {
 # session in an empty folder, and return the result it saved and which of
 # its files it wrote. Under devtools::load_all() powerkit isn't installed,
 # so the script loads the same source instead.
-run_exported_run_script <- function(spec) {
+run_exported_run_script <- function(spec, route = NULL) {
   dir <- tempfile("powerkit-run-")
   dir.create(dir)
   on.exit(unlink(dir, recursive = TRUE), add = TRUE)
-  text <- export_run_script(spec)
+  text <- export_run_script(spec, route = route)
   path <- getNamespaceInfo(asNamespace("powerkit"), "path")
   if (dir.exists(file.path(path, "tests"))) {
     text <- sub(
@@ -128,5 +128,6 @@ run_exported_run_script <- function(spec) {
     stop("The run script failed:\n", paste(utils::tail(log, 20), collapse = "\n"), call. = FALSE)
   }
   files <- c("powerkit-reproduce.R", "powerkit-citations.txt")
-  list(result = readRDS(saved), files = stats::setNames(file.exists(file.path(dir, files)), files))
+  list(result = readRDS(saved), project = read_project(file.path(dir, "powerkit-result.powerkit.json")),
+    files = stats::setNames(file.exists(file.path(dir, files)), files))
 }

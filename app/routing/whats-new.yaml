@@ -8,6 +8,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-10"
+    title: "Make effect assumptions explicit"
+    text: "New t-test and correlation plans start with power for the effect you entered. Variation between studies is optional and explains how it changes the question. The smaller-effect comparison shows power at your actual planned sample size, so you can see what happens if the effect is weaker."
+  - date: "2026-11-10"
+    title: "Plan for your mediation analysis"
+    text: "Mediation forms now let you choose ordinary regression with a percentile bootstrap, as used in common PROCESS analyses, or maximum likelihood with Monte Carlo or bootstrap intervals. The selected method and resample count appear in the result and downloaded script. Bootstrap calculations run through a downloaded R script on your computer and save a project you can reopen in Powerkit. This prototype covers the displayed complete-data models, not every PROCESS option; further validation is still needed."
+  - date: "2026-11-10"
     title: "Recovering interrupted local installation"
     text: "Local setup retries interrupted package downloads and can use another download method or server, keeping the package versions recorded with your download. A failed engine installation no longer marks an older copy as up to date. The guide includes recovery steps for older downloads."
   - date: "2026-11-10"

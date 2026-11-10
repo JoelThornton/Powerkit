@@ -3677,7 +3677,8 @@
                   "method": {
                     "enum": [
                       "monte_carlo_ci",
-                      "percentile_bootstrap"
+                      "percentile_bootstrap",
+                      "ols_percentile_bootstrap"
                     ]
                   }
                 }
@@ -3946,7 +3947,8 @@
                   "method": {
                     "enum": [
                       "monte_carlo_ci",
-                      "percentile_bootstrap"
+                      "percentile_bootstrap",
+                      "ols_percentile_bootstrap"
                     ]
                   },
                   "w_values": {

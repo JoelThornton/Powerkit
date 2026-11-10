@@ -54,6 +54,8 @@ listed here (a test checks).
 
 ## Open questions for the maintainer
 
+- [`process-style-planning.md`](process-style-planning.md): mediation estimation/interval
+  choices, PROCESS-style scope, independent checks and remaining validation.
 - [`variation-default-review.md`](variation-default-review.md): why ordinary
   plans start without between-study variation, what the optional comparison
   means, and the implementation checklist.

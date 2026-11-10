@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-10"
-    title: "Make effect assumptions explicit"
-    text: "New t-test and correlation plans start with power for the effect you entered. Variation between studies is optional and explains how it changes the question. The smaller-effect comparison shows power at your actual planned sample size, so you can see what happens if the effect is weaker."

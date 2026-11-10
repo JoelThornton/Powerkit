@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 10 November 2026 (powerkit 0.60.1 candidate; main 0.60.0). Where the project is
+*Last updated: 10 November 2026 (powerkit 0.61.0 candidate; main 0.60.0). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -39,6 +39,17 @@ retain the existing engine and saved values, and explain averaged significance
 rather than power at the average effect. The smaller-effect comparison now
 shows power at the exact analysed sample size. These changes are in the open
 PR, not a claim about the deployed app or new scientific validation.
+
+The open PR adds [PROCESS-style mediation planning](process-style-planning.md):
+OLS plus casewise percentile bootstrap, alongside the existing ML Monte
+Carlo and ML bootstrap methods. All nine applicable forms expose the
+method/count; bootstrap plans run through a local script that saves an
+app project for viewing the result without rerunning it. Results and exports
+record the choice, and same-data
+regression/interval checks cover the supported model families. A dedicated
+PR validation job runs the new null-calibration chunk. A direct archived
+PROCESS-software comparison remains pending; no evidence badge is upgraded
+and the existing ML/Monte-Carlo binary-X failure remains open.
 
 ## Where things are
 

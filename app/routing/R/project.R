@@ -65,7 +65,8 @@ restore_from_project <- function(route, tree, forms) {
     return("This project wasn't saved from the app, so there is no screen to reopen. You can still run it with powerkit's read_project() and reproduce_project().")
   }
   endpoint <- route$endpoint
-  if (is.null(endpoint) || is.null(tree$endpoints[[endpoint]]) || !form_calculates(forms, endpoint)) {
+  supported <- !is.null(endpoint) && (form_calculates(forms, endpoint) || endpoint %in% names(forms$simulations$endpoints))
+  if (is.null(endpoint) || is.null(tree$endpoints[[endpoint]]) || !has_form(forms, endpoint) || !supported) {
     return("This project is for a calculation this version of the app doesn't offer.")
   }
   list(

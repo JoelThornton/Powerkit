@@ -2,8 +2,8 @@
 # mediation (PROCESS models 7 and 14) via power4mome.
 #
 # Power is simulated with power4mome::power4test(): data are generated from
-# the standardised paths, the model is fitted with lavaan (power4mome's
-# default; its Monte Carlo confidence intervals need a lavaan fit), and the
+# the standardised paths. The existing methods fit lavaan ML; the explicit
+# OLS/bootstrap method uses power4mome's lm route through lmhelprs. The
 # indirect effect (test_indirect_effect()) or the index of moderated
 # mediation (test_index_of_mome()) is tested with a Monte Carlo or
 # percentile bootstrap confidence interval at level 1 - alpha.
@@ -13,12 +13,14 @@ power4mome_backend <- function(spec, seed = NULL) {
   inputs <- power4mome_inputs(spec)
   list(
     name = "power4mome",
-    packages = c("power4mome", "manymome", "lavaan"),
+    packages = c("power4mome", "manymome", "lavaan", if (identical(inputs$fit_function, "lm")) "lmhelprs",
+      if (identical(inputs$ci_type, "boot")) "boot"),
     methods = "simulation",
     default_method = "simulation",
     functions = c(simulation = sprintf("power4mome::power4test with %s", if (identical(inputs$test_name, "test_cond_indirect_diff")) {
       "powerkit's test_cond_indirect_diff() (manymome::cond_indirect_diff())"
-    } else sprintf("power4mome::%s", inputs$test_name))),
+    } else sprintf("power4mome::%s%s", inputs$test_name,
+      if (identical(inputs$fit_function, "lm")) " (OLS; casewise percentile bootstrap)" else ""))),
     n_step = 1,
     exact_min_n = minimum_n(spec),
     batch_size = power4mome_batch_size(inputs$ci_draws),
@@ -147,6 +149,7 @@ power4mome_inputs <- function(spec) {
     test_name <- "test_index_of_mome"
     test_args <- list(x = "X", m = modmed_mediator(spec), y = "Y", w = "W")
   }
+  ols <- identical(spec$target_test$method, "ols_percentile_bootstrap")
   monte_carlo <- spec$target_test$method == "monte_carlo_ci"
   test_args$mc_ci <- monte_carlo
   test_args$boot_ci <- !monte_carlo
@@ -164,7 +167,8 @@ power4mome_inputs <- function(spec) {
     # compute standard errors), so it is left out; the exogenous
     # variables and product terms covary freely, and M's residual with
     # the product of M and W, as power4mome writes them.
-    fit_model = if (spec$design == "moderated_mediation" && spec$template %in% c("process_58", "process_59")) {
+    fit_function = if (ols) "lm" else "lavaan",
+    fit_model = if (ols) paste(regressions, collapse = "\n") else if (spec$design == "moderated_mediation" && spec$template %in% c("process_58", "process_59")) {
       exogenous <- c("X", "W", "X:W", "M:W")
       pairs <- utils::combn(exogenous, 2, simplify = FALSE)
       paste(c(regressions, "M ~~ M:W", vapply(pairs, function(p) paste(p, collapse = " ~~ "), character(1))), collapse = "\n")
@@ -178,7 +182,7 @@ power4mome_inputs <- function(spec) {
     test_name = test_name,
     test_args = test_args,
     ci_type = if (monte_carlo) "mc" else "boot",
-    ci_draws = spec$options$ci_draws %||% default_ci_draws()
+    ci_draws = spec$options$ci_draws %||% default_ci_draws(spec$target_test$method)
   )
 }
 
@@ -187,7 +191,10 @@ power4mome_inputs <- function(spec) {
 # analysis, the `R` of q_power_mediation() (1,000 in power4mome 0.2.1).
 # power4test() itself has no default (R = NULL makes no draws, so no CI
 # test can run), and the low-level gen_mc() and gen_boot() default to 100.
-default_ci_draws <- function() {
+default_ci_draws <- function(method = NULL) {
+  # Numerical setting for the explicit OLS/bootstrap route; existing plans
+  # keep power4mome's MC/ML-bootstrap default. Users can match their analysis.
+  if (identical(method, "ols_percentile_bootstrap")) return(5000L)
   as.integer(eval(formals(power4mome::q_power_mediation)$R))
 }
 
@@ -221,7 +228,10 @@ power4mome_call <- function(inputs, n, nrep, seed, ...) {
   extra <- list(...)
   # The fitted model (E38's models 58 and 59) unless the caller gives its own
   # (the APIM does).
-  fit <- if (!is.null(inputs$fit_model) && is.null(extra$fit_model_args)) list(fit_model_args = list(model = inputs$fit_model))
+  fit <- if (!is.null(inputs$fit_model) && is.null(extra$fit_model_args)) {
+    list(fit_model_args = c(list(model = inputs$fit_model),
+      if (identical(inputs$fit_function, "lm")) list(fit_function = "lm")))
+  }
   args <- c(
     list(nrep = as.integer(nrep), model = inputs$model, pop_es = inputs$pop_es, n = n),
     if (!is.null(inputs$standardized)) list(standardized = inputs$standardized),
@@ -389,4 +399,15 @@ power4mome_test_fun <- function(name) {
 
 cond_indirect_difference <- function(spec) {
   identical(spec$design, "moderated_mediation") && identical(spec$target_test$effect, "conditional_indirect_difference")
+}
+
+# Stored alongside the result so exports describe the actual analysis.
+mediation_analysis_record <- function(spec) {
+  if (!isTRUE(spec$design %in% c("mediation", "moderated_mediation"))) return(NULL)
+  ols <- identical(spec$target_test$method, "ols_percentile_bootstrap")
+  list(estimator = if (ols) "ordinary least squares" else "maximum likelihood",
+    interval = if (identical(spec$target_test$method, "monte_carlo_ci")) "Monte Carlo" else "percentile bootstrap",
+    draws = spec$options$ci_draws %||% default_ci_draws(spec$target_test$method),
+    bootstrap_unit = if (!identical(spec$target_test$method, "monte_carlo_ci")) "whole independent observations",
+    process_style = ols)
 }

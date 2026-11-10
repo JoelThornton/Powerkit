@@ -701,7 +701,7 @@ test_that("a choice's default note names only its source, and an empty draws set
   expect_no_match(html, "Starts at As Cohen", fixed = TRUE)
   fields <- form_fields(form_groups(forms, "E10"))
   draws <- Filter(function(f) identical(f$id, "ci_draws"), fields)[[1]]
-  expect_equal(setting_value_text(draws, ""), "1,000 (power4mome's default)")
+  expect_equal(setting_value_text(draws, ""), "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap")
 })
 
 test_that("example values in the help cite a source in refs.bib, by author and year", {
