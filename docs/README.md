@@ -48,6 +48,9 @@ listed here (a test checks).
 
 ## Open questions for the maintainer
 
+- [`release-readiness-review.md`](release-readiness-review.md): the
+  10 November scientific, researcher, author-contact, CRAN and local-use
+  review, with completed corrections and remaining release gates.
 - [`judgement-session.md`](judgement-session.md): the open calls that
   change what users see, one page each, in order of impact.
 - [`judgement-calls.md`](judgement-calls.md): every open question in

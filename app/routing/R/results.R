@@ -1793,9 +1793,10 @@ critical_effect_sentence <- function(result) {
 binary_x_modmed_note <- function(spec) {
   if (!identical(spec$design, "moderated_mediation") || !identical(spec$variables$X$type, "binary")) return(NULL)
   paste(
-    "With a yes/no X, powerkit's checks found this test slightly liberal: with no moderated mediation it was",
+    "In a PROCESS model 7 scenario with a yes/no X, powerkit's checks found the test too liberal: with no moderated mediation it was",
     "significant in about 6.7% of simulated studies at alpha .05, against 5.3% for a separately written simulation,",
-    "so the power shown may be a little high. The question is with power4mome's authors."
+    "so the power shown may be high. These are results for a checked scenario, not a correction for every design.",
+    "Author review is needed; this message does not mean the authors have been contacted or endorse the method."
   )
 }
 

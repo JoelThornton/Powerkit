@@ -1,7 +1,7 @@
 # Run the powerkit prototype on your own computer
 
 *For psychologists trying the prototype. No experience with R, RStudio or
-Git is needed. Last checked: 18 October 2026.*
+Git is needed. Download and update guidance reviewed: 10 November 2026; installation timing remains an estimate.*
 
 powerkit is a prototype: it helps you find the right power analysis for
 your study and, for some designs, calculates it with established R
@@ -65,10 +65,13 @@ defaults. Install R first.
 
 ## 3. Download powerkit
 
-1. Go to <https://github.com/JoelThornton/Powerkit>.
-2. Click the green **Code** button, then **Download ZIP**. (You don't need
-   a GitHub account.)
-3. Unzip it:
+1. Go to <https://github.com/JoelThornton/Powerkit/releases>.
+2. Choose a numbered version and download **Source code (zip)**.
+   Pre-releases are development prototypes, not scientific approvals.
+   Keep the version number. The main-branch ZIP is a development snapshot;
+   use it only if you deliberately want unreleased work.
+3. Unzip it (a numbered download uses its version in the folder name;
+   `Powerkit-main` below is an example folder name):
    - **Windows:** right-click the downloaded `Powerkit-main.zip` →
      **Extract All…** → choose a short location such as
      `C:\powerkit` → **Extract**. Don't run powerkit from inside the zip
@@ -111,15 +114,26 @@ browser tab alone doesn't stop it.
 
 **Next time:** repeat step 4. It opens in under a minute.
 
-**Getting a newer version:** download the ZIP again (step 3) and use the
-new folder. The first start installs anything that changed.
+**Getting a newer version:** save your draft/project outside the app folder,
+stop the app, then run `source(file.choose())` and choose
+`check_powerkit_updates.R` from this download. This optional check contacts
+GitHub's public release list; it sends no study answers and installs
+nothing. Older downloads without that file can use the releases page
+directly. Download a chosen numbered ZIP into a **separate folder**,
+restart R, and launch that folder's app. Keep the older folder for
+reproduction. Reopen a copy of your project and check its version and
+assumptions before rerunning: method corrections can change an answer.
+An update check failing does not stop offline calculations. The launcher
+does not automatically download or replace Powerkit itself.
 
 ## Reporting a problem
 
 Every result card in powerkit has a **Something doesn't fit?** link. Open
 it, click **Copy the path**, paste it into an email, add a sentence on
 what you expected, and send it to whoever asked you to try powerkit.
-Nothing is sent from the app itself.
+The Feedback tab previews what will be sent and sends it only when you
+click Send. An optional update check contacts GitHub; ordinary local
+calculations use your own computer.
 
 If powerkit won't start, copy the last 20 or so lines of text in the R
 console and send those instead.
@@ -197,3 +211,13 @@ asked you to try powerkit.
 
 It installs nothing outside the powerkit folder, apart from renv's
 shared cache of downloaded packages in your user folder.
+
+## Engine versus complete app
+
+The planned CRAN package is the calculation engine; installing it alone
+does not install this interface. The full repository download includes
+the interface and recorded dependencies. A standalone desktop installer
+and a browser-only computation version have not been built. The local
+launcher still restores the full locked environment, including packages
+not needed by every analysis. Setup needs internet; offline installation
+and identical results with arbitrary newer backends are not promised.

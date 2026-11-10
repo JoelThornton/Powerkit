@@ -6,6 +6,13 @@ an issue on the package's repository. Questions that were raised and
 answered are recorded in `docs/conventions.md` (Departures 4 and 8) and
 `docs/decisions.md` ("Upstream reports fixed; upstream watch").
 
+Before contact, follow the [author-review preparation protocol](release-readiness-review.md#preparing-package-author-contact-and-a-validation-paper):
+verify the current package version, attach a minimal direct-package
+example and its environment, distinguish uncertainty from a confirmed
+fault, and ask a small number of specific questions. Technical replies,
+collaboration, paper authorship and endorsement are separate. This
+register alone does not mean a question has been sent or answered.
+
 ## Exposure and recheck register
 
 *Reviewed 4 November 2026 against the adapters and the questions below.*

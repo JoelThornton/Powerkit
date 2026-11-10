@@ -184,6 +184,11 @@ heterogeneity_sensitivity <- function(spec, n, target, power_with) {
   sign <- if (identical(spec$target_test$alternative, "less") || isTRUE(specified < 0)) -1 else 1
   top <- if (r) 0.999 else 5
   f <- function(mu) power_with(n, sign * mu) - target
+  if (f(0) >= 0) {
+    abort_run(paste("The target chance is already reached with an average effect of zero because effects vary between studies.",
+      "There is no positive smallest detectable average effect for this target. Use power at your fixed sample size",
+      "and compare the variation assumptions; significance here does not establish a nonzero average effect."))
+  }
   if (f(top) < 0) {
     abort_run(sprintf("No average effect up to %s reaches the target power at this n with this much variation between studies.", top))
   }

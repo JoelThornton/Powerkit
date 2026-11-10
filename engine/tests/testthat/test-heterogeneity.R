@@ -89,6 +89,15 @@ test_that("Welch's test with equal SDs is planned the same way", {
   expect_equal(welch$curve$power, student$curve$power)
 })
 
+test_that("a sensitivity target already reached at average zero has a plain explanation", {
+  expect_error(run_spec(het_spec(effect = 0.3, tau = 1,
+    goal = list(type = "sensitivity", n = 200L, power = 0.1), method = "student_t")),
+    "already reached with an average effect of zero", class = "powerkit_run_error")
+  expect_error(run_spec(het_r_spec(tau = 1,
+    goal = list(type = "sensitivity", n = 200L, power = 0.1))),
+    "already reached with an average effect of zero", class = "powerkit_run_error")
+})
+
 test_that("the smallest detectable average effect has the target power", {
   result <- run_spec(het_spec(goal = list(type = "sensitivity", n = 200L, power = 0.8), method = "student_t"))
   check <- run_spec(het_spec(effect = result$sensitivity$effect, goal = list(type = "power", n = 200L), method = "student_t"))

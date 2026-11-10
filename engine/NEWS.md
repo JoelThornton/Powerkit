@@ -1,3 +1,14 @@
+# powerkit 0.60.0
+
+* Historical ordinary-test evidence is no longer linked to between-study
+  variation or small-telescopes decision rules without a route-specific record.
+* Sensitivity with between-study variation explains when the target chance
+  is already reached at an average effect of zero, instead of failing in
+  root-finding. Existing published benchmark constants are unchanged.
+* Local downloads have an optional read-only release check; the launcher
+  asks for an R restart before replacing a changed engine already loaded
+  in memory. A separate current-dependency workflow exercises CRAN's tests.
+
 # powerkit 0.59.0
 
 * Preparing the engine for CRAN. Thirty backends that only some designs
