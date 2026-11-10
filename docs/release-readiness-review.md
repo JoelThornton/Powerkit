@@ -104,7 +104,7 @@ For researcher planning, the conceptual foundation should remain the inferential
 
 ## Recommended order and release gates
 
-1. Review the concrete corrections in R01-R13. Keep this PR open until maintainer review; do not publish its app or submit to CRAN from this branch.
+1. Keep prototype improvements in checked pull requests and publish from checked main. The earlier correction review has merged; prototype publication does not close the first-release scientific gates or authorise a CRAN submission.
 2. Resolve R14 with the family authors/statistician and extend R15-R21 around an agreed first-release scope. If a specialist route cannot meet the standard, explicitly keep it experimental or outside the supported first release.
 3. Run R28's user/accessibility work. Use its errors and hesitation to decide R23-R27, rather than assuming the current four-screen structure or blank fields must stay.
 4. Choose and measure the local route, finish latest-dependency/OS checks, and verify the hosted/static site. A stable engine can be released separately from an experimental GUI if its scope is clear.
@@ -223,3 +223,42 @@ The underlying GG discrepancy, older binary-X ML/Monte-Carlo calibration failure
 broader count-test search accuracy, PROCESS reference comparison and full
 selected-variant audit remain open. These five safeguards are finite completed
 tasks, not completion of R14, R15, R16 or R17 as whole release requirements.
+
+## Pre-sharing safeguards and checks (10 November)
+
+These are bounded improvements for informal prototype feedback, not sign-off
+on R14-R36 or a recommendation to rely solely on Powerkit for study planning.
+
+- [x] R14/R21: show the existing binary-predictor moderated-mediation warning
+  before any numerical inputs are required. Keep the observed ML/Monte-Carlo
+  failure separate from the scoped bootstrap evidence and explain how to
+  select the analysis that will actually be reported.
+- [x] R14/R27: put known ANOVA, mediation and corrected-count limitations before
+  the result headline; retain them in the short/full methods and lay text.
+  Explanation mode does not hide them.
+- [x] R20/R21: execute eleven selected common form-to-backend routes, checking
+  test identity, fixed N, alpha and no silent between-study variation.
+  Routes: one-sample t; independent Welch/Student; paired t; Pearson r;
+  uncorrected proportions/contingency; between/mixed 2 by 2 ANOVA;
+  interaction R-squared increase; multiple-regression R-squared increase.
+  This is execution/translation evidence, not independent power validation.
+- [x] R24: correct the power help on forms that also offer Bayes factors.
+  Explain significance-test power as well as strong-evidence probability;
+  offer 80% by an explicit button and retain an initially empty target.
+- [x] R25: explain directly beside paired raw-score correlation that the
+  change-score-SD route needs no correlation. Do not substitute zero or an
+  arbitrary correlation for missing information.
+- [x] R27/R28 subset: desktop, phone (375/320 pixels), keyboard and automated
+  accessibility checks pass for the exercised journeys. Fix the partly
+  obscured alpha shortcut: enlarge shortcut touch targets and let phone
+  action buttons follow the fields. Verify regression's existing prerequisite
+  prompt and the new early-warning/power-choice/paired-correlation journeys.
+  Formal researcher sessions and human assistive-technology testing remain open.
+- [ ] R34/R35: merge the checked source, publish the final revision and confirm
+  the live version and key safeguards. Before this batch, the live page and
+  published branch still showed 0.60.0.
+
+No protected published expectations or validation tolerances were changed.
+The two recurring scientific failures and the discrete-count fitted-N
+shortfalls remain open. The existing multiple-regression prerequisite prompt
+was verified rather than counted as a newly implemented feature.

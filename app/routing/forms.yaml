@@ -574,7 +574,7 @@ forms:
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is: difference}]}
           - {id: raw_sd, label: "SD: how much people usually vary on the measure", type: number, path: population.raw.sd, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "SD",
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
-          - {id: raw_r, label: "Correlation between the two measurements", type: number, path: population.raw.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true, writeup_label: "correlation between the measurements",
+          - {id: raw_r, help: "Use the correlation of the two measurements on the same people, from comparable data. It changes the SD of change scores and hence the answer. If you know the SD of changes, choose that SD option instead: no correlation is then needed. Otherwise compare justified correlation scenarios or save a draft; zero is an assumption, not an unknown value.", label: "Correlation between the two measurements", type: number, path: population.raw.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true, writeup_label: "correlation between the measurements",
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
       - input: "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"
         fields:

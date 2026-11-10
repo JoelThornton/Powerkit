@@ -1,3 +1,9 @@
+# powerkit 0.61.1
+
+* Surface known corrected-ANOVA and binary-X moderated-mediation limitations before numerical inputs are complete and before result headlines; retain these notes in copied methods and the lay planning text. Keep bootstrap evidence scoped and preserve all statistical methods/defaults.
+* Correct power help on mixed significance/Bayes-factor forms, add an explicit 80% shortcut without pre-filling the target, and explain the paired-change-SD route when a correlation is unknown.
+* Check eleven common form-to-backend analysis identities and add browser checks for incomplete-input warnings, compact mode, mobile paired inputs and regression prerequisites. These checks are not new scientific validation.
+
 # powerkit 0.61.0
 
 * Add curated conventional display names for all analysis entries and families. Compact mode removes duplicate subtitles, uses the same short names on cards/forms/recent entries, and retains status, assumption guidance and unchanged test identifiers/defaults.
