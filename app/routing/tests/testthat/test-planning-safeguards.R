@@ -2,6 +2,9 @@ test_that("new all-test plans do not assume independent significance decisions",
   fields <- form_fields(claim_groups("all", 2))
   dependence <- Filter(function(f) identical(f$id, "all_dependence"), fields)[[1]]
   expect_identical(dependence$default, "unknown")
+  expect_true(dependence$required)
+  expect_true("all_dependence" %in% names(form_problems(list(dependence), list(claim="all",goal="sample_size",all_dependence=""))))
+  expect_length(form_problems(list(dependence), list(claim="one",goal="sample_size")), 0)
   expect_equal(claim_power(.8, list(claim = "all", n_tests = 2, all_dependence = dependence$default)), .9)
   legacy <- legacy_claim_values(list(claim = "all", n_tests = 2))
   expect_identical(legacy$all_dependence, "independent")

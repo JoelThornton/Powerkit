@@ -912,7 +912,7 @@ claim_groups <- function(claim = "one", n_tests = NULL) {
     list(id = "n_tests", label = "Number of tests", type = "number", required = TRUE, min = 2, integer = TRUE,
          default = n_tests, applies_if_claim = c("any", "all"),
          shown_if = list(list(field = "claim", is_not = "one"), list(field = "claim", is_not = "each"))),
-    list(id = "all_dependence", label = "Planning for all tests: what can you assume?", type = "select", default = "unknown",
+    list(id = "all_dependence", label = "Planning for all tests: what can you assume?", type = "select", required = TRUE, default = "unknown",
          shown_for_goals = c("sample_size", "sensitivity"),
          default_source = "the sufficient union-bound target avoids assuming independence; the product rule remains an explicit option",
          choices = list(independent = "Independent tests: use the product of their powers",

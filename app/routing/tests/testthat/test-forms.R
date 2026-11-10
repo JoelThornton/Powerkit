@@ -538,9 +538,9 @@ test_that("the generic tests ask for no sample size, and only t and z have a dir
   }
 })
 
-test_that("'all of several' raises each test's target power, not alpha", {
+test_that("'all of several' with explicit independence raises target power, not alpha", {
   fields <- form_fields(form_groups(forms, "E2", start = list(claim = "all")))
-  values <- modifyList(form_examples[["E2"]], list(claim = "all", n_tests = "2", goal = "sample_size", power = "0.8"))
+  values <- modifyList(form_examples[["E2"]], list(claim = "all", n_tests = "2", all_dependence = "independent", goal = "sample_size", power = "0.8"))
   expect_length(form_problems(fields, values), 0)
   spec <- build_spec(forms, "E2", fields, values)
   expect_equal(spec$target_test$alpha, 0.05)
