@@ -8,6 +8,11 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-10"
+    title: "Clearer phone controls"
+    text: >-
+      On phones, the form action buttons now follow the inputs instead of
+      covering them. Value-shortcut buttons are larger and easier to tap.
+  - date: "2026-11-10"
     title: "Clearer help before you calculate"
     text: >-
       Important limitations now appear as soon as the affected analysis is
@@ -834,7 +839,7 @@ entries:
     text: >-
       The t-tests and the correlation now say the smallest effect your data
       would need to show to be significant at your sample size: for example,
-      with 32 people per group any observed Cohen's d beyond ±0.50. It
+      with 32 people per group any observed Cohen's d beyond <U+00B1>0.50. It
       describes what your study can show, not the effect you expect, and
       goes into the methods paragraph too.
   - date: "2026-11-01"
