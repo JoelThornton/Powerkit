@@ -262,3 +262,16 @@ No protected published expectations or validation tolerances were changed.
 The two recurring scientific failures and the discrete-count fitted-N
 shortfalls remain open. The existing multiple-regression prerequisite prompt
 was verified rather than counted as a newly implemented feature.
+
+### Deployment handoff correction
+
+The manual publication of checked main 7eb7392341b3 (run 42924708537)
+successfully built the pinned manifest, then failed while switching the
+deployment checkout. No new live deployment was claimed. The publisher now
+uses a temporary Git index to form exactly checked main plus that manifest,
+preserves the previous deployment commit as a parent, and returns an explicit
+commit for a normal fast-forward push. It leaves the build checkout and
+normal index untouched. Regression checks exercise tracked/ignored manifests,
+successive publications, staged/untracked build edits, stale main and wrong
+engine pins. The original traceback hid Git's diagnostic; command failures
+now retain stderr. Successful live verification is still a separate gate.

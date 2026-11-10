@@ -1,5 +1,7 @@
 # powerkit 0.61.1
 
+* Build deployment commits with a temporary Git index from checked main plus the pinned generated manifest. Preserve prior deployment ancestry without switching or cleaning the build checkout; test staged/untracked build edits and manifest lifecycle. Push the explicit commit to the deployment ref with a normal fast-forward push.
+
 * Prevent phone form action bars from obscuring inputs and value-shortcut buttons; use normal document flow below 576 pixels and keep shortcut touch targets at least 44 pixels high. Desktop sticky actions are retained.
 
 * Surface known corrected-ANOVA and binary-X moderated-mediation limitations before numerical inputs are complete and before result headlines; retain these notes in copied methods and the lay planning text. Keep bootstrap evidence scoped and preserve all statistical methods/defaults.

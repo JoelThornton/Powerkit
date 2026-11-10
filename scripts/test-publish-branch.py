@@ -59,15 +59,27 @@ class PublishingTests(unittest.TestCase):
                             publisher.prepare(old)
                         record["packages"]["powerkit"]["description"]["RemoteSha"] = head
                         Path(publisher.MANIFEST).write_text(json.dumps(record))
+                    # Simulate package setup touching tracked source and leaving
+                    # staged/untracked files. None may leak into deployment, and
+                    # the publisher must preserve the caller's checkout/index.
+                    Path("app/routing/app.R").write_text("temporary build edit")
+                    run(clone, "add", "app/routing/app.R")
+                    Path("untracked-build-file.txt").write_text("temporary")
+                    before = run(clone, "status", "--porcelain")
                     published = publisher.prepare(head)
-                    self.assertEqual(Path("app/routing/app.R").read_text(), f"checked source {['one', 'two', 'three'][i - 1]}")
+                    self.assertEqual(run(clone, "rev-parse", "HEAD"), head)
+                    self.assertEqual(run(clone, "status", "--porcelain"), before)
+                    self.assertEqual(Path("app/routing/app.R").read_text(), "temporary build edit")
+                    self.assertEqual(Path("untracked-build-file.txt").read_text(), "temporary")
+                    self.assertEqual(run(clone, "show", f"{published}:app/routing/app.R"), f"checked source {['one', 'two', 'three'][i - 1]}")
                     self.assertEqual(json.loads(Path(publisher.MANIFEST).read_text()), {"packages": {"powerkit": {"description": {"RemoteSha": head}}}})
-                    self.assertEqual(run(clone, "ls-files", publisher.MANIFEST), publisher.MANIFEST)
+                    self.assertEqual(run(clone, "ls-tree", "--name-only", published, "--", publisher.MANIFEST), publisher.MANIFEST)
                     if previous:
                         run(clone, "merge-base", "--is-ancestor", previous, published)
-                    run(clone, "diff", "--exit-code", head, "HEAD", "--", ".", f":(exclude){publisher.MANIFEST}")
-                    run(clone, "push", "origin", f"HEAD:{publisher.BRANCH}")
+                    run(clone, "diff", "--exit-code", head, published, "--", ".", f":(exclude){publisher.MANIFEST}")
+                    run(clone, "push", "origin", f"{published}:refs/heads/{publisher.BRANCH}")
                     self.assertEqual(run(origin, "rev-parse", "main"), head)
+                    self.assertEqual(publisher.prepare(head), published)
                     previous = published
                     # A mismatched engine pin must fail before branch changes.
                     record["packages"]["powerkit"]["description"]["RemoteSha"] = "wrong"

@@ -12,15 +12,19 @@ fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
 
 The [release-readiness review](release-readiness-review.md) source fixes
-merged through PR #368 (0.61.0, main 6f6f451), with required gates,
-Windows/macOS launcher checks and Linux CRAN quick release/devel compatibility
-checks passing. The next bounded safeguards move known limitations ahead of
+merged through PR #369 (0.61.1, main 7eb7392), with required gates and
+Windows/macOS launcher checks passing. CRAN-release compatibility passed;
+CRAN-development dependency setup remains in progress. The safeguards move known limitations ahead of
 calculation and results, clarify power choices and missing paired correlations,
 and exercise eleven common analysis translations. Desktop/mobile keyboard
 and automated accessibility checks pass for the exercised journeys, with a
 phone action-bar obstruction corrected. This does not resolve the
 scientific failures. The published branch and observed live page still showed
-0.60.0 at the start of this batch; final publication verification is pending.
+0.60.0 at the start of this batch. The first manual publication built its
+manifest but failed while switching the deployment checkout (run 42924708537).
+The publisher now prepares an exact checked snapshot with an isolated index;
+local history/source/dirty-workspace regression checks pass. Final publication
+verification remains pending.
 
 The [first-release support plan](v1-support-plan.md) sets a broad coverage
 target, a representative benchmark and complex-design audit briefs. Its
