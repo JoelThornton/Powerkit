@@ -36,7 +36,12 @@ jobs:
           upgrade: 'TRUE'
           extra-packages: any::rcmdcheck, any::testthat
       - uses: r-lib/actions/check-r-package@v2
+        env:
+          NOT_CRAN: "false"
+          _R_CHECK_FORCE_SUGGESTS_: "false"
         with:
           working-directory: engine
           args: 'c("--as-cran", "--no-manual")'
           error-on: '"warning"'
+          upload-results: 'true'
+          artifact-name: cran-${{ matrix.r }}-results

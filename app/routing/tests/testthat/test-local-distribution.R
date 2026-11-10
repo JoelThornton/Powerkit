@@ -33,7 +33,8 @@ test_that("changed local engine files require restart if the engine is loaded", 
   writeLines("old", path)
   expect_identical(env$powerkit_local_engine_action(path, "new", "installed", TRUE), "restart")
   expect_identical(env$powerkit_local_engine_action(path, "new", "installed", FALSE), "install")
-  expect_identical(env$powerkit_local_engine_action(path, "old", "installed", TRUE), "reuse")
+  expect_identical(env$powerkit_local_engine_action(path, "old", "installed", TRUE, dirname(path)), "reuse")
+  expect_identical(env$powerkit_local_engine_action(path, "old", "installed", TRUE, "other-version/powerkit"), "restart")
   expect_identical(env$powerkit_local_engine_action(path, "old", character(), FALSE), "install")
 })
 

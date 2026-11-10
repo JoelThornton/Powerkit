@@ -114,4 +114,4 @@ The new readiness workflow intentionally tests the quick CRAN suite with current
 
 ## Checks for this proposed change
 
-Focused engine tests for evidence routing and between-study variation: 324 assertions passed, no failures, warnings or skips. New local-distribution checks passed. Repository consistency initially found a missing documentation-index link and a change-note formatting error; both were corrected. Final consistency and hosted checks are pending. Existing high-replication validation failures are untouched.
+Focused engine tests for evidence routing and between-study variation: 324 assertions passed, no failures, warnings or skips. New local-distribution checks and final repository consistency passed. The consistency check caught a missing documentation-index link and a change-note formatting error; both were corrected. After numbering the batch, the isolated engine library was refreshed so its version matched the source. Hosted checks are pending. Existing high-replication validation failures are untouched.
