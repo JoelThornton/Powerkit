@@ -1,0 +1,537 @@
+{
+  "date": "2026-11-10",
+  "scope": "Three selected correlation-route OLS interaction plans; check the analytic sensitivity threshold with fresh simulated studies. Same InteractionPoweR backend, not an independent DGP, software equivalence, published benchmark or universal discrepancy bound.",
+  "source_sha256": {
+    "adapter": "20533674d17b2b16d2eca3c2cfd6be1b8fafc5c1c33f1ce2e74886ecfdb2a625",
+    "script": "ab69b342e5607247ac7db8163cde256b3da145562855c3d8fd386c044c83c10e"
+  },
+  "cases": [
+    {
+      "sensitivity_spec": {
+        "spec_version": "0.1",
+        "design": "regression_interaction",
+        "template": "two_way",
+        "variables": {
+          "X": {
+            "type": "continuous",
+            "label": "Daily stress",
+            "reliability": 0.8
+          },
+          "W": {
+            "type": "continuous",
+            "label": "Social support",
+            "reliability": 0.85
+          },
+          "Y": {
+            "type": "continuous",
+            "label": "Sleep quality"
+          }
+        },
+        "population": {
+          "metric": "correlation",
+          "r_X_Y": -0.3,
+          "r_W_Y": 0.2,
+          "r_XW_Y": 0.1,
+          "r_X_W": -0.1
+        },
+        "effect_justification": {
+          "type": "meta_analysis",
+          "source": "Example only: replace with the meta-analysis you used.",
+          "adjustment": "none"
+        },
+        "target_test": {
+          "effect": "interaction",
+          "method": "ols_t",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "sensitivity",
+          "n": 100,
+          "power": 0.8
+        },
+        "options": {
+          "attrition": 0.1,
+          "nrep": 10000,
+          "seed": 2026111101
+        }
+      },
+      "formula_effect": 0.330043720964925,
+      "target_power": 0.8,
+      "simulated_spec": {
+        "spec_version": "0.1",
+        "design": "regression_interaction",
+        "template": "two_way",
+        "variables": {
+          "X": {
+            "type": "continuous",
+            "label": "Daily stress",
+            "reliability": 0.8
+          },
+          "W": {
+            "type": "continuous",
+            "label": "Social support",
+            "reliability": 0.85
+          },
+          "Y": {
+            "type": "continuous",
+            "label": "Sleep quality"
+          }
+        },
+        "population": {
+          "metric": "correlation",
+          "r_X_Y": -0.3,
+          "r_W_Y": 0.2,
+          "r_XW_Y": 0.330043720964925,
+          "r_X_W": -0.1
+        },
+        "effect_justification": {
+          "type": "meta_analysis",
+          "source": "Example only: replace with the meta-analysis you used.",
+          "adjustment": "none"
+        },
+        "target_test": {
+          "effect": "interaction",
+          "method": "ols_t",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "power",
+          "n": 100
+        },
+        "options": {
+          "attrition": 0.1,
+          "nrep": 10000,
+          "seed": 2026111111
+        }
+      },
+      "simulated_power": 0.79,
+      "mcse": 0.00407308237088326,
+      "power_interval_99": [0.779321129699559, 0.800401227798402],
+      "difference_from_target": -0.01,
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.1",
+          "registry_sha256": "b6d431211eeddfd6d1999b8e0cf8f13f8fe7b138ef0cf0f9248b49ce02ed7e5f",
+          "variant": "regression_interaction/two_way/ols_t/interaction/two_sided/simulation",
+          "record_id": "unlinked",
+          "categories": {
+            "package_agreement": {
+              "status": "not_linked",
+              "note": "No variant-specific case record is linked in this registry.",
+              "sources": []
+            },
+            "independent": {
+              "status": "not_linked",
+              "note": "No variant-specific case record is linked in this registry.",
+              "sources": []
+            },
+            "published": {
+              "status": "not_linked",
+              "note": "No variant-specific case record is linked in this registry.",
+              "sources": []
+            },
+            "full_validation": {
+              "status": "not_linked",
+              "note": "No variant-specific case record is linked in this registry.",
+              "sources": []
+            }
+          },
+          "scope": "Complete inputs may narrow the variant. No linked record is not a failed check.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": []
+        },
+        "spec_hash": "62b537f2cd83556f7909fecec929f83cb7393ee7ad121cc0c0e1d071557939e9",
+        "method": "simulation",
+        "seed": 2026111111,
+        "nrep": 10000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 100,
+            "seed": 2026111111,
+            "rejections": 7900,
+            "nrep": 10000,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 7900,
+            "conditional_power": 0.79,
+            "successful_study_probability": 0.79,
+            "denominator": "all_valid"
+          }
+        ],
+        "backend": "InteractionPoweR",
+        "backend_function": "InteractionPoweR::power_interaction",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.0", "0.2.4"],
+        "started": "2026-11-10 20:37:39 GMT",
+        "run_time_seconds": 21.0584061145782
+      }
+    },
+    {
+      "sensitivity_spec": {
+        "spec_version": "0.1",
+        "design": "regression_interaction",
+        "template": "two_way",
+        "variables": {
+          "X": {
+            "type": "continuous",
+            "label": "Daily stress",
+            "reliability": 0.8
+          },
+          "W": {
+            "type": "continuous",
+            "label": "Social support",
+            "reliability": 0.85
+          },
+          "Y": {
+            "type": "continuous",
+            "label": "Sleep quality"
+          }
+        },
+        "population": {
+          "metric": "correlation",
+          "r_X_Y": -0.3,
+          "r_W_Y": 0.2,
+          "r_XW_Y": 0.1,
+          "r_X_W": -0.1
+        },
+        "effect_justification": {
+          "type": "meta_analysis",
+          "source": "Example only: replace with the meta-analysis you used.",
+          "adjustment": "none"
+        },
+        "target_test": {
+          "effect": "interaction",
+          "method": "ols_t",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "sensitivity",
+          "n": 300,
+          "power": 0.8
+        },
+        "options": {
+          "attrition": 0.1,
+          "nrep": 10000,
+          "seed": 2026111102
+        }
+      },
+      "formula_effect": 0.187348415785612,
+      "target_power": 0.8,
+      "simulated_spec": {
+        "spec_version": "0.1",
+        "design": "regression_interaction",
+        "template": "two_way",
+        "variables": {
+          "X": {
+            "type": "continuous",
+            "label": "Daily stress",
+            "reliability": 0.8
+          },
+          "W": {
+            "type": "continuous",
+            "label": "Social support",
+            "reliability": 0.85
+          },
+          "Y": {
+            "type": "continuous",
+            "label": "Sleep quality"
+          }
+        },
+        "population": {
+          "metric": "correlation",
+          "r_X_Y": -0.3,
+          "r_W_Y": 0.2,
+          "r_XW_Y": 0.187348415785612,
+          "r_X_W": -0.1
+        },
+        "effect_justification": {
+          "type": "meta_analysis",
+          "source": "Example only: replace with the meta-analysis you used.",
+          "adjustment": "none"
+        },
+        "target_test": {
+          "effect": "interaction",
+          "method": "ols_t",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "power",
+          "n": 300
+        },
+        "options": {
+          "attrition": 0.1,
+          "nrep": 10000,
+          "seed": 2026111112
+        }
+      },
+      "simulated_power": 0.8035,
+      "mcse": 0.00397350915438734,
+      "power_interval_99": [0.793071015730902, 0.813638369712503],
+      "difference_from_target": 0.00349999999999995,
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.1",
+          "registry_sha256": "b6d431211eeddfd6d1999b8e0cf8f13f8fe7b138ef0cf0f9248b49ce02ed7e5f",
+          "variant": "regression_interaction/two_way/ols_t/interaction/two_sided/simulation",
+          "record_id": "unlinked",
+          "categories": {
+            "package_agreement": {
+              "status": "not_linked",
+              "note": "No variant-specific case record is linked in this registry.",
+              "sources": []
+            },
+            "independent": {
+              "status": "not_linked",
+              "note": "No variant-specific case record is linked in this registry.",
+              "sources": []
+            },
+            "published": {
+              "status": "not_linked",
+              "note": "No variant-specific case record is linked in this registry.",
+              "sources": []
+            },
+            "full_validation": {
+              "status": "not_linked",
+              "note": "No variant-specific case record is linked in this registry.",
+              "sources": []
+            }
+          },
+          "scope": "Complete inputs may narrow the variant. No linked record is not a failed check.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": []
+        },
+        "spec_hash": "01d49def1ce360fb24f04a95d995b2fc97460129e41eb9ee7d866d95a8a2c419",
+        "method": "simulation",
+        "seed": 2026111112,
+        "nrep": 10000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 300,
+            "seed": 2026111112,
+            "rejections": 8035,
+            "nrep": 10000,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 8035,
+            "conditional_power": 0.8035,
+            "successful_study_probability": 0.8035,
+            "denominator": "all_valid"
+          }
+        ],
+        "backend": "InteractionPoweR",
+        "backend_function": "InteractionPoweR::power_interaction",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.0", "0.2.4"],
+        "started": "2026-11-10 20:38:00 GMT",
+        "run_time_seconds": 33.8119029998779
+      }
+    },
+    {
+      "sensitivity_spec": {
+        "spec_version": "0.1",
+        "design": "regression_interaction",
+        "template": "two_way",
+        "variables": {
+          "X": {
+            "type": "continuous",
+            "label": "Daily stress",
+            "reliability": 1
+          },
+          "W": {
+            "type": "continuous",
+            "label": "Social support",
+            "reliability": 1
+          },
+          "Y": {
+            "type": "continuous",
+            "label": "Sleep quality"
+          }
+        },
+        "population": {
+          "metric": "correlation",
+          "r_X_Y": -0.3,
+          "r_W_Y": 0.2,
+          "r_XW_Y": 0.1,
+          "r_X_W": -0.1
+        },
+        "effect_justification": {
+          "type": "meta_analysis",
+          "source": "Example only: replace with the meta-analysis you used.",
+          "adjustment": "none"
+        },
+        "target_test": {
+          "effect": "interaction",
+          "method": "ols_t",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "sensitivity",
+          "n": 300,
+          "power": 0.8
+        },
+        "options": {
+          "attrition": 0.1,
+          "nrep": 10000,
+          "seed": 2026111103
+        }
+      },
+      "formula_effect": 0.153064345891328,
+      "target_power": 0.8,
+      "simulated_spec": {
+        "spec_version": "0.1",
+        "design": "regression_interaction",
+        "template": "two_way",
+        "variables": {
+          "X": {
+            "type": "continuous",
+            "label": "Daily stress",
+            "reliability": 1
+          },
+          "W": {
+            "type": "continuous",
+            "label": "Social support",
+            "reliability": 1
+          },
+          "Y": {
+            "type": "continuous",
+            "label": "Sleep quality"
+          }
+        },
+        "population": {
+          "metric": "correlation",
+          "r_X_Y": -0.3,
+          "r_W_Y": 0.2,
+          "r_XW_Y": 0.153064345891328,
+          "r_X_W": -0.1
+        },
+        "effect_justification": {
+          "type": "meta_analysis",
+          "source": "Example only: replace with the meta-analysis you used.",
+          "adjustment": "none"
+        },
+        "target_test": {
+          "effect": "interaction",
+          "method": "ols_t",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "power",
+          "n": 300
+        },
+        "options": {
+          "attrition": 0.1,
+          "nrep": 10000,
+          "seed": 2026111113
+        }
+      },
+      "simulated_power": 0.8061,
+      "mcse": 0.00395351476537018,
+      "power_interval_99": [0.795721245491843, 0.816185640467437],
+      "difference_from_target": 0.00609999999999999,
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.1",
+          "registry_sha256": "b6d431211eeddfd6d1999b8e0cf8f13f8fe7b138ef0cf0f9248b49ce02ed7e5f",
+          "variant": "regression_interaction/two_way/ols_t/interaction/two_sided/simulation",
+          "record_id": "regression-two-way",
+          "categories": {
+            "package_agreement": {
+              "status": "recorded",
+              "note": "Software comparisons are limited to the cases named in the source record.",
+              "sources": [
+                "interaction-2026-10-27"
+              ]
+            },
+            "independent": {
+              "status": "not_linked",
+              "note": "No variant-specific case record is linked in this registry.",
+              "sources": []
+            },
+            "published": {
+              "status": "recorded",
+              "note": "Baranger tutorial Figures 2 and 3 case comparisons recorded in the interaction chunk.",
+              "sources": [
+                "interaction-2026-10-27"
+              ]
+            },
+            "full_validation": {
+              "status": "recorded",
+              "note": "The run covers the named cases and revision, not every option or the complete release.",
+              "sources": [
+                "interaction-2026-10-27"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Continuous X and W, no measurement-error correction. Baranger tutorial cases compare power and a required-N range. The measurement-error published case remained a TODO skip; R-squared-change input is a separate formula route.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "interaction-2026-10-27": {
+              "date": "2026-10-27",
+              "revision": "b8cae0f",
+              "url": "https://github.com/JoelThornton/Powerkit/actions/runs/40505689700",
+              "files": [
+                "engine/tests/testthat/test-validation-regression-interaction.R"
+              ],
+              "note": "Seven cases passed and the published measurement-error case remained a TODO skip.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "3fef7206616b9e251ba056bf537563970995c26184f15a88f3041657e16076d4",
+        "method": "simulation",
+        "seed": 2026111113,
+        "nrep": 10000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 300,
+            "seed": 2026111113,
+            "rejections": 8061,
+            "nrep": 10000,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 8061,
+            "conditional_power": 0.8061,
+            "successful_study_probability": 0.8061,
+            "denominator": "all_valid"
+          }
+        ],
+        "backend": "InteractionPoweR",
+        "backend_function": "InteractionPoweR::power_interaction",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.0", "0.2.4"],
+        "started": "2026-11-10 20:38:34 GMT",
+        "run_time_seconds": 33.8308429718018
+      }
+    }
+  ]
+}

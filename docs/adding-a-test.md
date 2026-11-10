@@ -338,3 +338,11 @@ button (27 October).
 The roadmap ([`coverage-roadmap.md`](coverage-roadmap.md)) gives every
 design a status and a candidate package; a row marked "no ready-made tool"
 or "unknown" is a question for the maintainer first, not a batch.
+
+## Keep the first-release inventory current
+
+After changing cards, expanded forms or routing helpers, run
+Rscript scripts/release-support.R from the repository root and commit the
+generated discovery inventory. Its consistency check detects source drift;
+it does not establish scientific validity. Complete the case-specific
+evidence and usability gates in [v1-support-plan.md](v1-support-plan.md).

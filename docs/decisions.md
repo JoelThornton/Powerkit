@@ -2584,3 +2584,83 @@ the site stays findable by search engines.
   from the notes a first submission always gets.
 - **When to submit** is a queue item (`next.md`); the recommendation is
   the 1.0.0 release.
+
+## 2026-11-10 · Broad first-release scope and evidence
+
+Aim for more than 99% of primary quantitative analyses in a defined,
+representative psychology benchmark, including complex challenge cases.
+Powerkit remains a general research tool. This is a target, not measured
+coverage or a reason to narrow the benchmark after failures. Implementation,
+case-specific evidence, whole-study claims and usable completion are
+separate assessments. Source choices are generated for discovery; the
+existing evidence registry remains authoritative. The benchmark and release
+gates are in [v1-support-plan.md](v1-support-plan.md); P0 audits and
+investigation of the two recurring failures lead next.md.
+
+
+## 2026-11-10 · Explicit variation scenarios, usual power first
+
+The maintainer approved starting new ordinary t-test and Pearson correlation
+plans with between-study variation empty. The earlier nonzero defaults
+(Departures 23 and 24) changed the meaning of the reported power without an
+intentional choice. Variation remains supported and important to examine;
+zero is not asserted to be universally realistic. Nonzero entries average
+significance across differing true effects and can raise or lower the answer.
+They are not automatic protection against underpowering at the entered effect.
+Saved values and the existing engine calculations are retained.
+
+The smaller/larger-effect comparison stays prominent and now displays power
+at the actual analysed sample size for each assumption, using the existing
+engine, without interpolating from the plotted grid. No variation magnitude
+or alternative effect is selected on the researcher's behalf.
+
+
+## 2026-11-10 · Match mediation planning to the intended analysis
+
+The maintainer asked for both ordinary mediation and PROCESS-style
+planning. The forms expose estimator and interval together: existing ML
+Monte Carlo (default), existing ML percentile bootstrap, and explicit OLS
+casewise percentile bootstrap. PROCESS is a mediation workflow rather than
+a different design. Use power4mome's documented lm route, not a new power
+formula. Keep selected settings in the result, methods, saved plan and
+standalone script. OLS bootstrap starts at 5,000 resamples unless the user
+provides a count; existing method defaults and saved specifications retain
+their meaning. The scope is complete independent observations in the
+displayed supported models, not every PROCESS option or direct software
+equivalence. Paired independent regression checks, null calibration and
+an archived PROCESS reference are separate evidence requirements; no
+whole-card validation status is promoted by implementation alone.
+
+## 10 November 2026 — conventional names in compact mode
+
+With Explanations off, analysis and family headings use curated conventional
+names without instructional suffixes or duplicate plain-language subtitles.
+Explicit technical_name/technical_label metadata preserves the detailed
+documentation and search aliases. Cards, forms and recent entries share
+the same display names; old recent entries resolve names from the current
+catalogue. Common method choices use short test names, with assumptions
+and implementation details in guidance rather than the label. Selected
+method identifiers, stored studies, calculations, status and scientific
+warning visibility are unchanged. Explanations remain on by default.
+
+## 10 November 2026 — restrict crossover guidance to the actual model
+
+The ordinary paired card does not estimate period, sequence or carry-over
+terms. Remove the claim that an adjusted crossover costs just one df and
+is therefore a close approximation. State the restriction on both the
+paired and mixed cards and input screens, and in the paired methods text.
+No new crossover capability or numeric adjustment is introduced. A
+dedicated model remains queued. Dwan et al. (2019), verified in refs.bib,
+distinguish the simple paired analysis's assumptions from other crossover
+analyses.
+
+### Planning safeguards, 10 November 2026
+
+Use the existing sufficient unknown-dependence target for new all-required-test
+plans; independent significance decisions require an explicit choice. Preserve
+historical saved calculations. Surface selected-setting evidence before
+calculation and known corrected-ANOVA limitations throughout the workflow.
+Offer matched fixed-N checks for approximate interaction sensitivity,
+exact-data corrected ANOVA and simulated corrected-count sample sizes.
+The four independent fitted-N count checks are archived, including shortfalls:
+a fitted search and its interval must not imply a guaranteed attained power.

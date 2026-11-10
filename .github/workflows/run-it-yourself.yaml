@@ -22,6 +22,8 @@ on:
       - docs/run-it-yourself.md
       - run_powerkit.R
       - scripts/local-engine.R
+      - scripts/local-setup.R
+      - .Rprofile
       - scripts/local-updates.R
       - check_powerkit_updates.R
       - renv.lock
@@ -155,3 +157,9 @@ jobs:
           if grep -q "installing powerkit's engine" "$RUNNER_TEMP/second.log"; then
             echo "::error::The second start reinstalled the engine."; exit 1
           fi
+
+      - name: Project startup also activates the installed library
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/user/Powerkit-main"
+          "$RSCRIPT" -e 'stopifnot(nzchar(Sys.getenv("RENV_PROJECT")), requireNamespace("powerkit", quietly = TRUE)); cat("Project startup loaded the installed engine.\n")'

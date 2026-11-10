@@ -1,0 +1,26 @@
+name: Mediation bootstrap validation
+
+on:
+  pull_request:
+    paths:
+      - "engine/R/backend-power4mome.R"
+      - "engine/tests/testthat/helper-process-bootstrap.R"
+      - "engine/tests/testthat/test-validation-process-bootstrap.R"
+      - ".github/workflows/process-bootstrap-validation.yaml"
+
+concurrency:
+  group: process-bootstrap-${{ github.event.pull_request.number }}
+  # Preserve expensive scientific results when another review commit arrives.
+  # New runs queue behind the active run instead of discarding its evidence.
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  validation:
+    uses: ./.github/workflows/full-validation.yaml
+    with:
+      chunk: process_bootstrap
+      name: process_bootstrap

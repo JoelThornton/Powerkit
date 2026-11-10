@@ -29,6 +29,8 @@ source(file.path("R", "forms_ui.R"), local = TRUE)
 source(file.path("R", "input-support.R"), local = TRUE)
 source(file.path("R", "feedback.R"), local = TRUE)
 source(file.path("R", "results.R"), local = TRUE)
+source(file.path("R", "count-test-notes.R"), local = TRUE)
+source(file.path("R", "planning-safeguards.R"), local = TRUE)
 source(file.path("R", "sample.R"), local = TRUE)
 source(file.path("R", "simulations.R"), local = TRUE)
 source(file.path("R", "whole-study.R"), local = TRUE)
@@ -37,6 +39,7 @@ source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "capabilities.R"), local = TRUE)
+source(file.path("R", "selected-evidence.R"), local = TRUE)
 source(file.path("R", "planning.R"), local = TRUE)
 source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
@@ -323,7 +326,8 @@ app_css <- "
   .topbar-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
   .terms-toggle { display: flex; align-items: center; gap: 0.35rem; color: #fff; font-size: 0.9rem; margin: 0 0.75rem 0 0; cursor: pointer; }
   .name-tech, .name-plain-alt { display: none; }
-  .terms-mode .name-tech, .terms-mode .name-plain-alt { display: inline; }
+  .terms-mode .name-tech { display: inline; }
+  .terms-mode .known-choice .choice-help { display: none; }
   .terms-mode .name-plain, .terms-mode .name-tech-alt { display: none; }
   .terms-mode .hint, .terms-mode .form-terms, .terms-mode .also-called,
   .terms-mode .standard-name { display: none; }
@@ -819,6 +823,7 @@ server <- function(input, output, session) {
     bayes_mode = FALSE,      # Bayes mode (bayes_mode_toggle_ui()): cards open on their Bayes factor version
     form_k = 2L,             # input screen: number of mediators (parallel and serial mediation)
     calc = NULL,             # input screen: the last calculation (run_calculation()), for the downloads
+    long_route = NULL,       # checked app route for reopening a local-script result
     long_spec = NULL,        # E10-E14: the checked spec, with its seed, for the full run or the R script
     answers = list(),        # guided route: variable answers
     ticked = character(), primary = character(), asks = list(), rule = "each",
@@ -903,6 +908,41 @@ server <- function(input, output, session) {
     names(values) <- vapply(fields, `[[`, "", "id")
     values[!vapply(values, is.null, logical(1))]
   }
+  # Metadata only: this validates inputs and looks up recorded evidence; it
+  # never runs a power calculation when a field changes.
+  output$selected_evidence <- renderUI({
+    req(identical(state$screen, "form"), state$endpoint)
+    selected_evidence_ui(forms, state$endpoint, current_form_fields(), current_form_values())
+  })
+  observeEvent(input$verify_corrected_count, {
+    req(calculation_matches_values(state$calc, current_form_values()))
+    values <- corrected_count_verification_values(state$calc, current_form_values())
+    req(values)
+    updateSelectInput(session, "f_goal", selected = "power")
+    updateTextInput(session, "f_n", value = values$n)
+    output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
+      "The proposed sample size is ready for a fixed-N check. Choose the simulation accuracy you need and press Check my answers. This check estimates power; it does not guarantee the target."))
+  })
+  observeEvent(input$verify_corrected_anova, {
+    req(calculation_matches_values(state$calc, current_form_values()))
+    values <- corrected_anova_verification_values(state$calc, current_form_values())
+    req(values)
+    updateSelectInput(session, "f_goal", selected = "power")
+    updateTextInput(session, "f_n", value = values$n)
+    updateSelectInput(session, "f_method", selected = "simulation")
+    output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
+      "The proposed sample size and corrected analysis are ready for simulation. Press Check my answers to run it. The earlier exact-data result has not been confirmed by simulation yet."))
+  })
+  observeEvent(input$verify_interaction, {
+    req(calculation_matches_values(state$calc, current_form_values()))
+    values <- interaction_verification_values(state$calc, current_form_values())
+    req(values)
+    updateSelectInput(session, "f_goal", selected = values$goal)
+    updateTextInput(session, "f_n", value = values$n)
+    updateTextInput(session, "f_r_XW_Y", value = values$r_XW_Y)
+    output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
+      "The proposed effect and sample size are ready. Press Check my answers to simulate power with these assumptions. The formula result has not been confirmed by simulation yet."))
+  })
   # Answers on an input screen, saved in this browser a moment after each
   # change (R/connection.R), in the draft format "Save a draft" uses.
   autosave_route <- debounce(reactive({
@@ -1133,6 +1173,7 @@ server <- function(input, output, session) {
     fields <- current_form_fields()
     values <- current_form_values()
     calc_route <- project_route(reactiveValuesToList(state), values)
+    state$long_route <- calc_route
     start <- form_start()
     # The claim and whether the sample size is fixed are fields on the
     # input screen (from a plan or an older project, they start at what
@@ -1156,7 +1197,7 @@ server <- function(input, output, session) {
     state$long_spec <- NULL
     cancel_job()
     if (identical(check$status, "ok") && runs_long(forms, state$endpoint, spec) &&
-        !has_preview(forms, state$endpoint, spec$goal$type)) {
+        !has_preview(forms, state$endpoint, spec$goal$type, spec)) {
       # E10-E14, required N: no preview; the R script straight away.
       if (is.null(spec$options$seed)) spec$options$seed <- as.integer(forms$default_seed)
       state$long_spec <- spec
@@ -1301,7 +1342,7 @@ server <- function(input, output, session) {
   scenario_results <- reactive({
     x <- scenario_inputs()
     n <- scenario_n(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], seed = forms$default_seed)
-    list(spec = x$calc$spec, n = n,
+    list(spec = x$calc$spec, n = n, planned_n = n_analysed(x$calc$result),
       curves = scenario_curves(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], n = n, seed = forms$default_seed))
   })
   output$scenario_plot <- renderPlot({
@@ -1314,6 +1355,12 @@ server <- function(input, output, session) {
       key = list(legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
         lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3))
   }, res = 96, alt = "Power by sample size for the expected, conservative and optimistic effects. The same values are available in the scenario table below.")
+  output$scenario_at_plan <- renderUI({
+    x <- scenario_results()
+    at <- x$planned_n
+    curve_points_ui(x$curves[x$curves$n == at, ], x$spec,
+      sprintf("Power at this analysis's N = %s (%s), under each effect assumption", whole(at), sample_description(x$spec)$unit))
+  })
   output$scenario_table <- renderUI({
     x <- scenario_results()
     curve_points_ui(x$curves, x$spec, "Scenarios: power by sample size and assumption")
@@ -1415,6 +1462,7 @@ server <- function(input, output, session) {
   observeEvent(input$full_run, {
     req(state$long_spec)
     spec <- state$long_spec
+    req(full_run_in_app(forms, state$endpoint, spec$goal$type, spec))
     usual <- full_seconds(forms, state$endpoint, spec$goal$type)
     output$form_result <- renderUI(calculating_background_ui(usual,
       sprintf("Running the full analysis (%s simulations)\u2026", whole(spec$options$nrep %||% 1000L))))
@@ -1565,7 +1613,7 @@ server <- function(input, output, session) {
     filename = function() sprintf("powerkit-%s-run-full-analysis.R", state$endpoint),
     content = function(file) {
       export <- engine_function("export_run_script")
-      export(state$long_spec, file = file, run_time = script_run_time(forms, state$endpoint, state$long_spec$goal$type))
+      export(state$long_spec, file = file, run_time = script_run_time(forms, state$endpoint, state$long_spec$goal$type, state$long_spec), route = state$long_route)
     }
   )
   # The study plan any card can join (R/study-plan.R).

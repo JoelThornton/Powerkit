@@ -14,7 +14,7 @@ This review inspected source, change history, hosted check results and the two f
 
 ## Fix checklist
 
-Checked means implemented and locally checked in this review branch; it does not mean merged, deployed, independently endorsed or scientifically validated. PR checks and unresolved items are listed separately below.
+The corrections below merged in [PR #367](https://github.com/JoelThornton/Powerkit/pull/367), v0.60.0, main 950b7ad. Checked means completed within the stated scope; it does not mean deployed, independently endorsed or scientifically validated. The follow-on [first-release support plan](v1-support-plan.md) operationalises R15–R28; its inventory and protocol do not complete those scientific or human reviews.
 
 ### Corrections and practical preparation in this branch
 
@@ -28,21 +28,21 @@ Checked means implemented and locally checked in this review branch; it does not
 - [x] R08. Offer a clear website download route and explain local CPU use, first-install requirements, offline limits, and the distinction between the CRAN engine and the complete app.
 - [x] R09. Add an optional, read-only update check for numbered releases, including clearly labelled prototypes. No study data is sent and no code is automatically installed or replaced.
 - [x] R10. Recommend numbered full-app downloads and a separate folder/fresh R session for updates. Keep old versions and saved studies; the main ZIP is a development snapshot.
-- [ ] R11. Exercise the actual CRAN test branch with current repository dependencies on R release and devel. Existing locked CI sets NOT_CRAN=true and runs R CMD check without tests, so it never exercises that branch as a built package.
+- [x] R11. Exercise the actual CRAN test branch with current repository dependencies on R release and devel. The added Linux workflow passed on R release and devel with current hard dependencies and NOT_CRAN=false (run 42735853076, final head 8ac0268). Locked CI remains a separate check; optional backends and other operating systems remain R29.
 - [x] R12. Prepare the author-review and paper protocol below, with a clear distinction between technical questions, collaboration and endorsement.
 - [x] R13. Document the release gates and give every remaining recommendation an explicit owner action or acceptance condition.
 
 ### Scientific work still required
 
-- [ ] R14. Resolve the two repeated validation failures. The inspected ANOVA job gives simulated power .2130 versus .2313 by the exact-data route; the binary-X job gives a null rejection rate .077 in 1,000 simulations, above its .0707 tolerance. Earlier recorded rates differ. Establish the cause on a frozen version before changing a method or a threshold; do not tune seeds or expected values to obtain a pass.
-- [ ] R15. Complete a release-specific, variant-specific evidence matrix and publish the underlying results. The registry is dated 5 November while many new routes have since been added; the queue incorrectly says no registry exists. Extend the existing registry rather than building a second one. Each new default needs linked evidence; unknown remains unknown.
+- [ ] R14. Resolve the two repeated validation failures. The inspected ANOVA job gives simulated power .2130 versus .2313 by the exact-data route; the binary-X job gives a null rejection rate .077 in 1,000 simulations, above its .0707 tolerance. Earlier recorded rates differ. The 10 November independent GG investigation now records .21805 in 20,000, same-data afex agreement and .21960 with fixed epsilon; estimating epsilon alone does not explain .2313. See validation-log.md. Both issues remain unresolved. Establish the cause on a frozen version before changing a method or a threshold; do not tune seeds or expected values to obtain a pass.
+- [ ] R15. Complete a release-specific, variant-specific evidence matrix and publish the underlying results. The existing registry is now dated 10 November and links scoped corrected-count and two OLS/bootstrap null checks; the queue refers to extending it. Most new routes still need linked, release-specific evidence. Each default needs appropriate evidence; unknown remains unknown.
 - [ ] R16. Replace a single green-card interpretation with evidence for the selected test, population assumptions and analysis. A fixed Type I tolerance of .04-.06 at alpha .05 is not sufficient for every exact, discrete, conservative, equivalence or Bayesian procedure. Predefine method-appropriate acceptance criteria and Monte Carlo uncertainty; retain historical definitions as history.
 - [ ] R17. Validate complete analysis pipelines, including failures. Compare planned versus achieved power at the returned integer N using fresh random draws; assess null behaviour, interval coverage, bias and convergence. Counts of successful runs alone can conceal selection. Use [ADEMP](https://doi.org/10.1002/sim.8086): aims, data generation, estimands, methods and performance measures.
 - [ ] R18. Validate claims newly introduced by EFA, profiles, cross-lagged and interrupted-series cards. Recovering loadings or selecting a number of profiles is not ordinary rejection power. Model selection, factor rotation, inadmissible fits, local maxima, stationarity, time spacing and short-series calibration need explicit boundaries. Request family specialists; do not infer assurance from successful execution.
 - [ ] R19. Independently review whole-study planning. Define whether success means all primary claims, any, a conjunction, or a hierarchy; keep exploratory/manipulation checks separate. Validate multiplicity, covariance, shared data and estimand alignment. A significant indirect path alone does not establish a causal mechanism.
-- [ ] R20. This branch refuses Welch plus between-study variation with unequal allocation: the adjustment uses Student's degrees of freedom, which are different for unequal groups even with equal population SDs. Equal-allocation use retains the documented approximation. Review the between-study defaults as a product/scientific decision. A literature-motivated tau is still a substantive assumption, and a single population's power differs from success averaged over settings. Keep both meanings visible. Zero-average rejection under heterogeneity is not a Type I error under a point null for each study. Validate unequal allocation and both tails across an agreed range before broad claims.
-- [ ] R21. Make each simulation correspond to the analysis researchers will actually run. PROCESS percentile bootstrap, Monte Carlo intervals, lmer tests and alternative robust/rank analyses need separately identified targets. Generic missing-data, noncompliance, exclusions and measurement-error handling cannot be inferred from an attrition percentage or a selectable score shape.
-- [ ] R22. Do not present the paired card as a general crossover solution. Period, sequence and carry-over assumptions can change the model and target, rather than merely costing one degree of freedom. A dedicated validated model or a clearly restricted approximation is needed.
+- [ ] R20. This branch refuses Welch plus between-study variation with unequal allocation: the adjustment uses Student's degrees of freedom, which are different for unequal groups even with equal population SDs. Equal-allocation use retains the documented approximation. The maintainer reviewed the between-study defaults on 10 November: new ordinary plans now start without variation, and nonzero variation is an explicit optional scenario. A literature-motivated tau is still a substantive assumption, and a single population's power differs from success averaged over settings. Keep both meanings visible. Zero-average rejection under heterogeneity is not a Type I error under a point null for each study. Validate unequal allocation and both tails across an agreed range before broad claims.
+- [ ] R21. Make each simulation correspond to the analysis researchers will actually run. PROCESS percentile bootstrap, Monte Carlo intervals, lmer tests and alternative robust/rank analyses need separately identified targets. The OLS/casewise-bootstrap and corrected-count routes are now selectable, with scoped checks; the OLS chunk passed its two named null scenarios with 1,000 resamples. Direct PROCESS comparisons and broader pipelines remain unfinished. Generic missing-data, noncompliance, exclusions and measurement-error handling cannot be inferred from an attrition percentage or a selectable score shape.
+- [x] R22. Correct the crossover scope claim: the paired card/input now cover only an ordinary paired analysis with no period, sequence or carry-over terms, and copied methods state this. Remove the one-degree-of-freedom/close-approximation assurance. The mixed card/input also disclaims a separately validated crossover analysis. A dedicated validated crossover model remains open in the roadmap; this check completes the misleading-scope correction, not that new capability.
 
 ### Researcher experience and fundamental design decisions
 
@@ -57,7 +57,7 @@ Checked means implemented and locally checked in this review branch; it does not
 
 - [ ] R29. Test the candidate tarball with current CRAN dependencies on Linux, Windows and macOS, R release/devel and only required dependencies. Run examples, minimal-dependency tests and a separate full optional-backend suite. The new workflow is a readiness check, not submission or full scientific validation. Check the current and historical package name, licences/borrowed code, installed size, documentation, URLs, notes and maintainer contact before submission. Prepare cran-comments.md from real results.
 - [ ] R30. Treat the engine, GUI and download launcher as distinct products with one release manifest. CRAN installation alone currently gives the engine, not a local GUI. Decide whether a companion GUI package or full-app bundle is maintained. Do not duplicate mathematical implementations to achieve portability.
-- [ ] R31. Measure clean install size/time and first/repeat startup, including university machines without admin rights, Intel and Apple-silicon Macs, and Linux. Optional backends help engine users, but the full-app launcher still restores the complete lock environment. A dependency count is not a measured download improvement.
+- [ ] R31. Connection recovery and engine-install status checks are now implemented in the follow-on PR. An isolated Windows binary restore of three locked packages recovered real TLS failures; this is not the complete acceptance test. Measure clean install size/time and first/repeat startup, including university machines without admin rights, Intel and Apple-silicon Macs, and Linux. Optional backends help engine users, but the full-app launcher still restores the complete lock environment. A dependency count is not a measured download improvement.
 - [ ] R32. Build a signed/notarised desktop installer only after the R-based route passes usability and update tests. Bundle a compatible runtime where appropriate, retain required licences/source access, bind local services to loopback, test interruption/rollback and avoid silent method-changing updates. Evaluate institutional IT restrictions before committing to Electron or another shell.
 - [ ] R33. Prototype a limited browser-compute route with webR/Shinylive. [Shinylive](https://posit-dev.github.io/r-shinylive/) can run Shiny on the user's device, but package binaries must be compatible with WebAssembly; source installation and desktop process workers cannot be assumed. Start with basic formula routes, compare results and memory/time, then decide. A PWA or downloaded HTML by itself does not move R computation off Posit.
 - [ ] R34. Verify GitHub Pages activation, public URLs and search indexing. A failed fetch in this review is not proof the page is down. Add the new download page to the sitemap and verify it after deployment. Local use also needs offline-start and optional-feedback/update tests; do not promise air-gapped installation.
@@ -112,6 +112,114 @@ For researcher planning, the conceptual foundation should remain the inferential
 
 The new readiness workflow intentionally tests the quick CRAN suite with current hard dependencies. It does not replace the complete locked suite, optional-backend checks, win-builder, manual audit or high-replication validation. Any new failure must be reported, not converted into a green claim.
 
-## Checks for this proposed change
+## Checks for the merged correction
 
-Focused engine tests for evidence routing and between-study variation: 326 assertions passed in the final focused run, with no failures, warnings or skips. New local-distribution checks and final repository consistency passed. The consistency check caught a missing documentation-index link and a change-note formatting error; both were corrected. After numbering the batch, the isolated engine library was refreshed so its version matched the source. The full hosted app suite then caught sitemap, endpoint-documentation and glossary alignment failures; these were corrected and the focused connection/documentation/local-distribution checks pass. The optional checker also successfully read the real public GitHub release list without installing anything. Final hosted checks are pending. Existing high-replication validation failures are untouched.
+Focused engine tests for evidence routing and between-study variation: 326 assertions passed in the final focused run, with no failures, warnings or skips. New local-distribution checks and final repository consistency passed. The consistency check caught a missing documentation-index link and a change-note formatting error; both were corrected. After numbering the batch, the isolated engine library was refreshed so its version matched the source. The full hosted app suite then caught sitemap, endpoint-documentation and glossary alignment failures; these were corrected and the focused connection/documentation/local-distribution checks pass. The optional checker also successfully read the real public GitHub release list without installing anything. Final required hosted checks passed, including engine/app/browser/manifest, clean Windows/macOS launchers and Linux CRAN quick suites on R release/devel. PR #367 merged at 950b7ad. This does not establish that the hosted app has republished. Existing high-replication validation failures are untouched.
+
+## Wording audit: first pass and remaining sweep
+
+The open review PR includes an initial pass over interpretation-critical
+text. No engine formula, numeric benchmark or claim-planning default changes
+in this pass. Each correction must agree with the selected computation and
+its recorded evidence; a shorter sentence must not hide an assumption.
+
+- [x] Correct the assertion that equal group sizes make Welch and Student
+  require the same N regardless of group spreads.
+- [x] Explain before calculation that the interaction R-squared route uses a
+  formula while its correlation route simulates newly sampled predictors.
+- [x] Remove the implied universal 1.4-point/3%-N bound and direct G*Power
+  comparison: the recorded 72-case grid compared InteractionPoweR methods.
+- [x] Stop extrapolating the two-way comparison to a supposedly small
+  three-way discrepancy that has not been measured.
+- [x] Label interaction sensitivity as a formula approximation, with an
+  instruction to verify power for the proposed effect at the planned N.
+- [x] State that one Bonferroni-adjusted test's power is not the probability
+  that any of the family's tests succeeds.
+- [x] Say the all-tests rule plans this test; every other required test must
+  meet the target under common assumptions, with independent decisions for
+  the product rule. It does not verify the other tests.
+- [x] Replace the blanket claim that other tools must assume independence
+  with a description of the supported experimental whole-study calculation.
+- [x] Explain the zero-main-effect-R-squared assumption without calling it
+  generally safe against other misspecified inputs.
+- [x] Audit conventional display names for all 77 analysis entries and
+  14 families. Compact mode removes duplicate explanatory subtitles and
+  shares names across list/card/form/recent-entry headings; common test
+  selectors are short while method guidance and warnings stay visible.
+- [ ] Review all remaining finder questions, card summaries and alternative-method text.
+- [ ] Review all form labels, defaults, optional/required fields, tooltips,
+  errors and empty states; check that people know what to do when unsure.
+- [ ] Review all result variants, warning visibility, uncertainty, methods,
+  technical details and saved-result restoration, including Bayesian routes.
+- [ ] Review Labs, About, glossary, evidence explanations and citations.
+- [ ] Review static-site copy, local installation/update instructions, data
+  and project downloads, generated R scripts and planning documents.
+- [ ] Walk through complete tasks on desktop/mobile; remove repetition while
+  keeping the answer, analysis identity and key assumptions visible.
+- [x] Check three selected analytic sensitivity thresholds with fresh
+  10,000-study simulations; archive settings, seeds and uncertainty.
+- [ ] Finish the method work wording cannot solve: audit broader interaction parameter settings
+  after the matched-verification handoff,
+  and verify family-level success independently under common populations.
+
+Sources checked: [R t.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/t.test.html),
+[InteractionPoweR analytic method](https://dbaranger.github.io/InteractionPoweR/reference/power_interaction_r2.html),
+and the existing scoped grid record in conventions.md (Known difference 1).
+The distinction between an individual probability and an any/all event
+follows the existing Bonferroni/product/union-bound implementation; this
+pass adds no new statistical rule. Full wording and usability sign-off
+remain open.
+
+The [fresh sensitivity checks](validation/2026-11-10-interaction-sensitivity.json)
+used the existing InteractionPoweR backend, not a separate data generator or
+software package. Simulated power at the formula's 80% threshold was
+79.00%, 80.35% and 80.61% (10,000 studies each; all 99% intervals included
+80%). These selected results neither establish universal agreement nor a
+fixed direction or maximum discrepancy. Reproduce with
+[interaction-sensitivity.R](upstream/interaction-sensitivity.R).
+
+Compact naming uses explicit display metadata, not automatic removal of
+parentheses: qualifiers that distinguish designs remain (independent versus
+paired, between versus within, number of factors, categorical predictors,
+corrected versus uncorrected tests). Detailed documented names and search
+aliases are preserved. Explanation mode changes presentation only; it does
+not select a different analysis. Desktop and narrow-screen browser checks
+cover headings, repeated subtitles, persistent preference, legacy recent
+entries, visible prototype status and unchanged selected test.
+
+R34 partial verification: the public landing page and download page returned
+HTTP 200 in direct HTTPS checks on 10 November; the sitemap endpoint also
+returned 200. Some requests reset during TLS negotiation, so this is not
+a reliability benchmark. The source sitemap includes download.html; live
+body verification, search indexing and the offline/update checks remain open.
+
+Local verification for compact labels/R22: label and copied-method checks,
+screen rendering, Labs/map data, documentation alignment, generated
+inventory, repository consistency, Updates and citation exports pass. Five
+Chromium checks cover desktop/mobile naming, old recent entries, visible
+crossover scope, Labs history and card links. These are interface/scope
+checks, not new statistical validation or a complete accessibility review.
+
+## Five priority safeguards (10 November)
+
+- [x] Make the unresolved corrected repeated-measures discrepancy visible before
+  calculation, beside the answer and in copied methods. Offer a fixed-N
+  simulation handoff for exact-data power/sample-size results. This exposes
+  the risk; it does **not** resolve the scientific failure or validate HF.
+- [x] Start new all-tests-required plans with unknown dependence and the existing
+  sufficient union-bound target. Retain explicit choices and historical
+  independence calculations when reopening projects, drafts and guided plans.
+- [x] Let a two-way continuous-predictor interaction sensitivity result carry its
+  proposed effect, N and assumptions into the supported fixed-N simulation.
+  A user must run the check; the formula result remains an approximation.
+- [x] Independently check four corrected count-test recommended sample sizes,
+  archive the small shortfalls as well as agreement, explain discrete-test
+  curve-fit uncertainty, and offer a fixed-N check.
+- [x] Show the existing selected-variant evidence record on complete input
+  screens; incomplete inputs state that coverage cannot yet be determined.
+  No broad card or evidence badge is promoted.
+
+The underlying GG discrepancy, older binary-X ML/Monte-Carlo calibration failure,
+broader count-test search accuracy, PROCESS reference comparison and full
+selected-variant audit remain open. These five safeguards are finite completed
+tasks, not completion of R14, R15, R16 or R17 as whole release requirements.

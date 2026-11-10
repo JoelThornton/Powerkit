@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "version": "2026-11-05.2",
+  "version": "2026-11-10.2",
   "limits": [
     "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
     "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
@@ -8,6 +8,31 @@
     "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
   ],
   "sources": {
+    "ols-bootstrap-null-2026-11-10": {
+      "date": "2026-11-10",
+      "revision": "4c80d79e1160ec9ce1050c1d9881a20b8802affc",
+      "url": "https://github.com/JoelThornton/Powerkit/actions/runs/42888143753",
+      "files": [
+        "engine/tests/testthat/test-validation-process-bootstrap.R",
+        "docs/validation/2026-11-10-process-bootstrap-summary.txt",
+        "docs/validation/2026-11-10-process-bootstrap.json"
+      ],
+      "replications": 2000,
+      "note": "Linux R 4.5.3: 2 PASS, 0 FAIL/ERROR, 1 archived-PROCESS-reference TODO SKIP. 1000 casewise percentile-bootstrap resamples; simple null .0495 and binary-X model-7 null .0585. Core adapter/helper/test Git blobs match the later candidate; scope is limited to the archived cases."
+    },
+    "corrected-counts-2026-11-10": {
+      "date": "2026-11-10",
+      "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+      "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+      "files": [
+        "engine/tests/testthat/test-validation-corrected-counts.R",
+        "engine/tests/testthat/test-continuity-correction.R",
+        "docs/validation/2026-11-10-corrected-counts-summary.txt",
+        "scripts/check-corrected-counts.R"
+      ],
+      "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+      "replications": 10000
+    },
     "basic-2026-10-27": {
       "date": "2026-10-27",
       "revision": "612c22e",
@@ -991,6 +1016,204 @@
           "note": "The original published-value placeholder was skipped, not passed.",
           "sources": [
             "zero-inflated-2026-11-05"
+          ]
+        }
+      }
+    },
+    {
+      "id": "two-proportions-corrected",
+      "match": {
+        "design": "basic_test",
+        "template": "two_proportions",
+        "target_test.method": "z_test_corrected"
+      },
+      "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+      "categories": {
+        "package_agreement": {
+          "status": "scoped_only",
+          "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ]
+        },
+        "independent": {
+          "status": "scoped_only",
+          "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ]
+        }
+      }
+    },
+    {
+      "id": "contingency-corrected",
+      "match": {
+        "design": "basic_test",
+        "template": "chi_square_independence",
+        "target_test.method": "pearson_chi_square_corrected"
+      },
+      "scope": "Fixed-total independent joint-multinomial 2 by 2 tables; N=340 with P=((.25,.25),(.175,.325)) and null N=120 with uniform cells. Independent multinomial simulation supplies the reference; not fixed margins. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+      "categories": {
+        "package_agreement": {
+          "status": "scoped_only",
+          "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ]
+        },
+        "independent": {
+          "status": "scoped_only",
+          "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ols-bootstrap-simple-null",
+      "match": {
+        "design": "mediation",
+        "template": "process_4",
+        "target_test.method": "ols_percentile_bootstrap",
+        "variables.X.type": "continuous",
+        "features.mediators": 1,
+        "features.measurement_error": false,
+        "variables.M.type": "continuous",
+        "variables.Y.type": "continuous"
+      },
+      "scope": "One continuous-X, single-mediator normal-error model: a=0, b=.35, c-prime=.1; indirect-effect null. N=250, alpha=.05, 2000 studies, 1000 resamples. Not the 5000-resample default, other models, all composite nulls, missing/clustered observations, general calibration, direct PROCESS agreement or a fix for the ML/Monte-Carlo failure.",
+      "categories": {
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "The two selected null checks passed the pre-existing [.04,.06] rule. See counts and Monte Carlo scope; this is not an independent software comparison or release-wide validation.",
+          "sources": [
+            "ols-bootstrap-null-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power",
+            "goal.n": 250,
+            "options.ci_draws": 1000,
+            "target_test.alpha": 0.05,
+            "population.paths.X->M": 0,
+            "population.paths.M->Y": 0.35,
+            "population.paths.X->Y": 0.1,
+            "population.metric": "standardised",
+            "features.specified_correlations": "none",
+            "population.residual_correlations": {
+              "absent": true
+            },
+            "target_test.effect": "indirect_effect",
+            "target_test.path": "X->M->Y",
+            "population.paths": {
+              "X->M": 0,
+              "M->Y": 0.35,
+              "X->Y": 0.1
+            }
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "The archived PROCESS reference was a TODO skip. Direct software and independently published numerical comparisons remain unfinished.",
+          "sources": [
+            "ols-bootstrap-null-2026-11-10"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ols-bootstrap-model7-binary-null",
+      "match": {
+        "design": "moderated_mediation",
+        "template": "process_7",
+        "target_test.method": "ols_percentile_bootstrap",
+        "variables.X.type": "binary",
+        "features.mediators": 1,
+        "features.measurement_error": false,
+        "variables.M.type": "continuous",
+        "variables.Y.type": "continuous",
+        "variables.W.type": "continuous"
+      },
+      "scope": "One balanced-binary-X, continuous-W/M/Y normal-error model 7: moderated a path=0; index null. N=250, alpha=.05, 2000 studies, 1000 resamples. Not the 5000-resample default, other models, all composite nulls, missing/clustered observations, general calibration, direct PROCESS agreement or a fix for the ML/Monte-Carlo failure.",
+      "categories": {
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "The two selected null checks passed the pre-existing [.04,.06] rule. See counts and Monte Carlo scope; this is not an independent software comparison or release-wide validation.",
+          "sources": [
+            "ols-bootstrap-null-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power",
+            "goal.n": 250,
+            "options.ci_draws": 1000,
+            "target_test.alpha": 0.05,
+            "population.paths.X->M": 0.3,
+            "population.paths.W->M": 0.1,
+            "population.paths.XW->M": 0,
+            "population.paths.M->Y": 0.35,
+            "population.paths.X->Y": 0.05,
+            "population.x_prob": 0.5,
+            "population.correlations.X<->W": 0,
+            "population.metric": "standardised",
+            "features.specified_correlations": "none",
+            "population.residual_correlations": {
+              "absent": true
+            },
+            "target_test.effect": "index_of_moderated_mediation",
+            "population.paths": {
+              "X->M": 0.3,
+              "W->M": 0.1,
+              "XW->M": 0,
+              "M->Y": 0.35,
+              "X->Y": 0.05
+            }
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "The archived PROCESS reference was a TODO skip. Direct software and independently published numerical comparisons remain unfinished.",
+          "sources": [
+            "ols-bootstrap-null-2026-11-10"
           ]
         }
       }

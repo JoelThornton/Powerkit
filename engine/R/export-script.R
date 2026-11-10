@@ -1427,6 +1427,7 @@ pwr_sensitivity_section <- function(spec, result) {
 # Spower -------------------------------------------------------------------------
 
 spower_script <- function(spec, result) {
+  if (continuity_corrected(spec)) return(corrected_count_script(spec, result))
   inputs <- spower_inputs(spec)
   one_sided <- inputs$alternative != "two_sided"
   c(
@@ -3409,9 +3410,15 @@ power4mome_script <- function(spec, result) {
         if (spec$design == "moderated_mediation") {
           "# A product such as X:W is the interaction of X and W."
         },
-        "# power4mome fits it with lavaan (maximum likelihood). PROCESS uses OLS,",
-        "# which gives the same estimates and slightly larger standard errors",
-        "# (powerkit's Departure 6).",
+        if (identical(inputs$fit_function, "lm")) c(
+          "# Each equation is fitted by ordinary least squares through lmhelprs.",
+          "# Whole independent observations are resampled; intervals are percentile bootstrap.",
+          "# This is PROCESS-style planning, not a call to PROCESS or a match to all its options."
+        ) else c(
+          "# power4mome fits it with lavaan (maximum likelihood). PROCESS uses OLS,",
+          "# which gives the same estimates and slightly larger standard errors",
+          "# (powerkit's Departure 6)."
+        ),
         if (any(grepl("~~", strsplit(inputs$model, "\n", fixed = TRUE)[[1]]))) {
           c(
             "# The mediators' residuals are free to correlate, as in PROCESS",
@@ -3429,6 +3436,7 @@ power4mome_script <- function(spec, result) {
     ),
     if (!is.null(inputs$fit_model)) r_multiline_string(
       "fit_model", strsplit(inputs$fit_model, "\n", fixed = TRUE)[[1]],
+      if (identical(inputs$fit_function, "lm")) "# Regression equations for OLS; covariance lines belong to population generation only." else
       c("# The model fitted to each data set, given explicitly: power4mome's own adds",
         "# a residual covariance of M with W, which can't be estimated when W also",
         "# predicts M, so it is left out here.")
@@ -3472,7 +3480,10 @@ power4mome_script <- function(spec, result) {
       paste(c(if (!is.null(inputs$x_prob)) sprintf("%s of X in its second level", r_code(inputs$x_prob)),
         if (!is.null(inputs$w_prob)) sprintf("%s of W in its second level", r_code(inputs$w_prob))), collapse = " and ")
     ),
-    if (!is.null(inputs$fit_model)) "    fit_model_args = list(model = fit_model),",
+    if (!is.null(inputs$fit_model)) {
+      if (identical(inputs$fit_function, "lm")) "    fit_model_args = list(model = fit_model, fit_function = \"lm\"),"
+      else "    fit_model_args = list(model = fit_model),"
+    },
     "    R = ci_draws,",
     sprintf(
       "    ci_type = %s, # %s", r_code(inputs$ci_type),

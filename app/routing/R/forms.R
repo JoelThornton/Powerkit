@@ -167,6 +167,27 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     }
     with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })
+  if (isTRUE(form$base$design %in% c("mediation", "moderated_mediation"))) {
+    groups <- lapply(groups, function(g) {
+      g$fields <- lapply(g$fields, function(f) {
+        if (identical(f$id, "ci_draws")) {
+          f$label <- "Draws or bootstrap resamples per confidence interval"
+          f$empty_text <- "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap"
+          f$help <- "A numerical accuracy setting, not an effect-size assumption. Leave empty for the defaults, or match the resample count in your planned analysis. More draws reduce simulation noise and take longer."
+        }
+        f
+      })
+      if (identical(g$title, "Monte Carlo draws")) g$title <- "Confidence interval accuracy"
+      g
+    })
+    has_draws <- any(vapply(form_fields(groups), function(f) identical(f$id, "ci_draws"), logical(1)))
+    if (!has_draws) groups <- c(groups, list(list(input = NULL, title = "Confidence interval accuracy",
+      fields = list(list(id = "ci_draws", label = "Draws or bootstrap resamples per confidence interval",
+        type = "number", path = "options.ci_draws", optional = TRUE, min = 100, max = 100000, integer = TRUE,
+        empty_text = "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap",
+        help = "Leave empty for the numerical default, or match your planned analysis. More draws reduce simulation noise and take longer.")))))
+    groups <- c(list(mediation_analysis_group()), groups)
+  }
   if (!is.null(form$mediators)) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
       id = "n_mediators", label = "Number of mediators", type = "select", required = TRUE,
@@ -196,6 +217,22 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
       scenario_fields = candidates)))))
 }
 
+
+# The estimator and interval are chosen together so PROCESS-style planning
+# cannot accidentally keep lavaan ML or a Monte Carlo interval.
+mediation_analysis_group <- function() {
+  list(input = NULL, title = "Which mediation analysis will you run?",
+    note = "Choose the method you will use to analyse your study. PROCESS is one way of running mediation; its model number alone does not identify the test.",
+    note_more = "The PROCESS-style option fits each equation by ordinary least squares (OLS) and resamples whole participants. It covers the displayed model with complete independent observations and continuous mediators/outcomes, using the existing normal-error population generator. It does not run PROCESS itself or cover its logistic, clustered/stratified bootstrap, measurement-error or bias-corrected options.",
+    fields = list(list(id = "method", label = "Estimation and confidence interval", type = "select",
+      path = "target_test.method", required = TRUE, default = "monte_carlo_ci",
+      default_source = "the existing power4mome method: maximum likelihood and a Monte Carlo interval; choose OLS bootstrap for PROCESS-style analysis",
+      choices = list(monte_carlo_ci = "Maximum likelihood + Monte Carlo interval (current Powerkit method)",
+        ols_percentile_bootstrap = "Ordinary regression + percentile bootstrap (PROCESS-style)",
+        percentile_bootstrap = "Maximum likelihood + percentile bootstrap"),
+      help = "Ordinary regression fits one regression for each equation; maximum likelihood fits a joint path model. Choose the method and interval you will report. Bootstrap planning runs through a downloaded R script and can take hours. The Monte Carlo option keeps its existing browser workflow.")))
+}
+
 simulation_accuracy_group <- function(forms, ep_id) {
   form <- forms$forms[[ep_id]]
   choices <- unlist(lapply(form_fields(form$groups), function(f) names(f$choices)))
@@ -206,7 +243,7 @@ simulation_accuracy_group <- function(forms, ep_id) {
   if (!offered) return(NULL)
   when <- NULL
   if (isTRUE(form$basic_method)) when <- list(any = list(
-    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "spearman", "kendall")),
+    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "spearman", "kendall", "z_test_corrected", "pearson_chi_square_corrected")),
     list(list(field = "method", is = "welch_t"), list(field = "welch_method", is_not = "exact")),
     list(list(field = "calc_method", is = "simulation"), list(field = "method", is_not = "welch_t"),
       list(field = "method", is_not = "bayes_factor"), list(field = "method", is_not = "minimum_effect"), list(field = "method", is_not = "fisher_exact"))))
@@ -618,10 +655,9 @@ safeguard_fields <- function(template) {
 # Effects that vary between studies, for the t-tests (Kenny & Judd, 2019)
 # and a Pearson correlation (McShane & Bockenholt, 2014, on Fisher's z):
 # the SD of the true effect around the one planned for, which then is the
-# average effect. The t-tests start at Kenny and Judd's small 0.05 in d
-# (Departure 23), the correlation at 0.025, their rule of 25% of a small
-# effect applied to r = .1 (Departure 24); empty or 0 is the usual
-# analysis.
+# average effect. Variation is an explicit optional scenario; a new plan
+# starts empty (the usual fixed-effect calculation). Stored values keep
+# their original meaning (Departures 23 and 24, revised 10 November 2026).
 heterogeneity_field_templates <- c("independent_t", "one_sample_t", "paired_t", "correlation")
 
 heterogeneity_fields <- function(template) {
@@ -633,25 +669,29 @@ heterogeneity_fields <- function(template) {
     list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))
   if (identical(template, "correlation")) {
     return(list(list(id = "het_tau", label = "How much might the true correlation vary between studies? (as an SD on Fisher's z)",
-      type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.025,
-      default_source = "Kenny and Judd's (2019) rule for small variation, 25% of a small effect, applied to a correlation of .1: they argue zero should not be the default",
-      help = paste("Labs, samples, materials and procedures differ, so a study's true correlation can differ from the one you plan for.",
+      type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
+      default_source = "Starts empty: power for the correlation entered; choose variation only to average across differing study correlations",
+      help = paste("Leave empty for power at the correlation you entered. To explore smaller correlations, use the comparison on the results screen.",
+        "Entering variation changes the question: the answer is averaged across studies with differing true correlations, not power at your entered correlation.",
+        "It can raise or lower reported power and is not an automatic safety margin. Labs, samples, materials and procedures can differ.",
         "This is its SD between studies on Fisher's z scale, which is close to r for small values. Kenny and Judd (2019) take",
         "25% of a small, medium and large effect as small, medium and large variation; for r = .1, .3 and .5 that is about",
         "0.025, 0.075 and 0.125. The correlation above is then the average across studies (McShane & Bockenholt, 2014).",
         "If a meta-analysis of this correlation reports how much it varies (tau, on Fisher's z), use that instead.",
-        "Empty or 0 plans for the same correlation in every study, as G*Power and most power analyses do. The results show",
+        "Empty or 0 gives the usual calculation for the correlation you entered. With variation entered, the results show",
         "the answer with no, small, medium and large variation."),
       shown_if = c(list(list(field = "method", is = "pearson")), common))))
   }
   list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
-    type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.05,
-    default_source = "Kenny and Judd's (2019) small variation between studies: they argue zero should not be the default",
-    help = paste("Labs, samples, materials and procedures differ, so a study's true effect can differ from the one you plan for.",
+    type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
+    default_source = "Starts empty: power for the effect entered; choose variation only to average across differing study effects",
+    help = paste("Leave empty for power at the effect you entered. To explore smaller effects, use the comparison on the results screen.",
+      "Entering variation changes the question: the answer is averaged across studies with differing true effects, not power at your entered effect.",
+      "It can raise or lower reported power and is not an automatic safety margin. Labs, samples, materials and procedures can differ.",
       "Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 as small, medium and large variation, and argue that zero",
       "should not be the default. If a meta-analysis of this effect reports how much it varies (tau, in d), use that instead.",
-      "The effect above is then the average across studies. Empty or 0 plans for the same effect in every study, as G*Power",
-      "and most power analyses do. The results show the answer with no, small, medium and large variation.",
+      "With variation entered, the effect above becomes the average across studies. Empty or 0 gives the usual calculation for the effect entered.",
+      "With variation entered, the results compare no, small, medium and large variation.",
       "It needs equal SDs in the two groups."),
     shown_if = c(list(list(field = "method", is_one_of = c("t_test", "student_t", "welch_t"))), common)))
 }
@@ -852,7 +892,7 @@ claim_choices <- list(
 claim_notes <- function() list(
   each = paste(
     "You said each test supports its own claim. Power this test on its own; run the input screen again for each of the others.",
-    "No correction for several tests is needed, because no single conclusion rests on more than one test (Rubin, 2021).",
+    "This setting applies no correction across the claims (Rubin, 2021); it does not control the chance of any false positive across the collection. If any positive test would count towards one conclusion, choose the any-test option instead.",
     philosophy_note
   ),
   any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
@@ -872,13 +912,13 @@ claim_groups <- function(claim = "one", n_tests = NULL) {
     list(id = "n_tests", label = "Number of tests", type = "number", required = TRUE, min = 2, integer = TRUE,
          default = n_tests, applies_if_claim = c("any", "all"),
          shown_if = list(list(field = "claim", is_not = "one"), list(field = "claim", is_not = "each"))),
-    list(id = "all_dependence", label = "Planning for all tests: what can you assume?", type = "select", default = "independent",
+    list(id = "all_dependence", label = "Planning for all tests: what can you assume?", type = "select", required = TRUE, default = "unknown",
          shown_for_goals = c("sample_size", "sensitivity"),
-         default_source = "the existing independence-based planning rule; choose unknown dependence when independence cannot be justified",
+         default_source = "the sufficient union-bound target avoids assuming independence; the product rule remains an explicit option",
          choices = list(independent = "Independent tests: use the product of their powers",
            unknown = "Dependence unknown: use a sufficient target that may be conservative"),
          shown_if = list(field = "claim", is = "all"),
-         help = "The sufficient target needs no correlation between tests. Each test's unconditional successful-study probability must reach it under the same population assumptions. Conditional power among valid fits alone does not establish this when fits fail. This is a sufficient bound, not an estimate of joint power.")
+         help = "Independence is about the tests' significance decisions, not just their predictors; using the same participants does not establish it. Choose unknown dependence if you cannot justify independence. The sufficient target needs no correlation between tests. Each test's unconditional successful-study probability must reach it under the same population assumptions. Conditional power among valid fits alone does not establish this when fits fail. This is a sufficient bound, not an estimate of joint power.")
   )
   list(list(input = NULL, title = "Your claim", fields = fields))
 }
@@ -912,17 +952,17 @@ claim_result_note <- function(values, alpha_used, goal = NULL) {
       # Bayes factor tests have no significance level to divide.
       sprintf("Your claim: any of %s tests. A Bayes factor test has no significance level, so powerkit applies no correction; the more tests you run, the more chances one of them has to give misleading evidence.", values$n_tests)
     } else sprintf(
-      "Your claim: any of %s tests. The significance level for this test is %s divided by %s (Bonferroni): %s.",
+      "Your claim: any of %s tests. The significance level for this test is %s divided by %s (Bonferroni): %s. The power shown is for this test at its adjusted alpha, not the chance that any test in the set succeeds.",
       values$n_tests, format(signif(alpha_used * as.numeric(values$n_tests), 3)), values$n_tests, format(signif(alpha_used, 3))
     ),
     all = if (!is.na(k) && isTRUE(goal %in% c("sample_size", "sensitivity"))) {
       target <- parse_number(values$power)
       if (identical(values$all_dependence, "unknown")) return(sprintf(
-        "Your claim needs all %s tests. With dependence unknown, each test is planned at 1 - (1 - %s)/%s = %s power. If every test reaches at least this power under the same population assumptions, the chance that all succeed is at least %s by the union bound (Blitzstein & Hwang, 2019). This may be conservative; significance levels are unchanged. It is a sufficient bound, not an estimate of joint power. Conditional power among valid fits alone does not establish it when fits fail.",
+        "Your claim needs all %s tests. With dependence unknown, this test is planned at 1 - (1 - %s)/%s = %s power. If every test reaches at least this power under the same population assumptions, the chance that all succeed is at least %s by the union bound (Blitzstein & Hwang, 2019). This may be conservative; significance levels are unchanged. It is a sufficient bound, not an estimate of joint power. Conditional power among valid fits alone does not establish it when fits fail.",
         whole(k), format(target), whole(k), format(signif(claim_power(target, values), 4)), format(target)))
       sprintf(paste(
         "Your claim: all of %s tests. So that all of them succeed together with a chance of %s, this test is planned at %s^(1/%s) = %s power; plan each of the others at the same power.",
-        "This assumes the tests are independent. Related tests can have a lower or higher joint chance; this calculation does not guarantee the target for them. Where supported, use the study plan's joint-power simulation.",
+        "This assumes every test reaches at least the stated power under the same population assumptions and their significance decisions are independent. This calculation does not verify the other tests. Related tests can have a lower or higher joint chance; this calculation does not guarantee the target for them. Where supported, use the study plan's joint-power simulation.",
         "Another approach raises each test's significance level instead (a \"reverse Bonferroni\": Francis & Thunell, 2021); powerkit doesn't do that."),
         whole(k), format(target), format(target), whole(k), format(signif(claim_power(target, values), 3)))
     } else {

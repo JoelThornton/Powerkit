@@ -176,7 +176,7 @@ test_that("the result shows each analysis, the joint power for the claim, the im
   expect_match(html, "A quick look, from 100 simulated studies", fixed = TRUE)
   expect_match(html, "ws_download_script", fixed = TRUE)
   # The departure from the established tools is stated on the result.
-  expect_match(html, "the joint chance is counted directly", fixed = TRUE)
+  expect_match(html, "their joint success is counted directly", fixed = TRUE)
   expect_match(html, "the chance that all of your main analyses are significant in the same study", fixed = TRUE)
   expect_match(html, plan$analyses[[1]]$label, fixed = TRUE)
   expect_match(html, "Implied by your study model", fixed = TRUE)
@@ -229,7 +229,7 @@ test_that("the planning document gathers the analyses, the claim, the population
   expect_match(text, "The assumed population values (standardised) were: X to Y 0.2", fixed = TRUE)
   expect_match(text, whole_study_methods(calc$result, full = TRUE), fixed = TRUE)
   expect_match(text, calc$result$provenance$spec_hash, fixed = TRUE)
-  expect_match(text, "the joint chance is counted directly", fixed = TRUE)
+  expect_match(text, "their joint success is counted directly", fixed = TRUE)
   # The script that reproduces the numbers is in the document, whole.
   expect_match(text, "```r\n# Runs a powerkit whole-study simulation", fixed = TRUE)
   expect_match(text, "library(powerkit)", fixed = TRUE)

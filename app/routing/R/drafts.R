@@ -148,7 +148,7 @@ restore_guided_plan <- function(record, tree) {
     screen = "g_plan", route = chars(p$route %||% "plan"), start = p$start %||% list(), ctx = p$ctx %||% list(),
     history = history, answers = answers, ticked = ticked, primary = primary,
     asks = lapply(p$asks %||% list(), chars), rule = rule,
-    plan_values = values_of(p$plan_values), plan_shared = p$plan_shared %||% list(),
+    plan_values = lapply(values_of(p$plan_values), legacy_claim_values), plan_shared = p$plan_shared %||% list(),
     plan_results = p$plan_results %||% list(), ws_values = lapply(p$ws_values %||% list(), function(y) if (is.list(y)) lapply(y, chars) else y),
     ws_names = lapply(p$ws_names %||% list(), chars), ws_spec = p$ws_spec,
     plan_id = NULL, endpoint = NULL, came_from = NULL, calc = NULL, long_spec = NULL, ws_calc = NULL

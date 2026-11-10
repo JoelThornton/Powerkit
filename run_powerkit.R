@@ -59,26 +59,15 @@ local({
   # 3. Use powerkit's own package library (renv), and install the recorded
   # package versions if any are missing. restore() does nothing when the
   # library already matches renv.lock.
+  source(file.path(root, "scripts", "local-setup.R"), local = TRUE)
   if (!identical(Sys.getenv("RENV_PROJECT"), normalizePath(root, winslash = "/", mustWork = FALSE))) {
-    source(file.path(root, "renv", "activate.R"))
+    powerkit_activate(root)
   }
   if (!requireNamespace("renv", quietly = TRUE)) {
     stop_plain("couldn't set up renv, which installs powerkit's packages. Check your internet connection and try again.")
   }
   say("checking powerkit's packages (the first time, this installs them and takes a while)")
-  ok <- tryCatch({
-    renv::restore(project = root, prompt = FALSE)
-    TRUE
-  }, error = function(e) {
-    message(conditionMessage(e))
-    FALSE
-  })
-  if (!ok) {
-    stop_plain(
-      "installing packages failed (the message above says which). ",
-      "See docs/run-it-yourself.md, 'Troubleshooting'. Running this file again carries on where it stopped."
-    )
-  }
+  powerkit_restore(root)
 
   # 4. Install powerkit's engine (the folder engine/) into the same library,
   # again only when it has changed since the last install.
@@ -97,11 +86,10 @@ local({
         "Restart R (Session > Restart R in RStudio), then run this file again. Your saved project files are unchanged.")
     }
     say("installing powerkit's engine")
-    utils::install.packages("engine", repos = NULL, type = "source", lib = .libPaths()[1], quiet = TRUE)
+    powerkit_install_local_engine(file.path(root, "engine"), .libPaths()[1], stamp)
     if (!requireNamespace("powerkit", quietly = TRUE)) {
       stop_plain("couldn't install powerkit's engine. See docs/run-it-yourself.md, 'Troubleshooting'.")
     }
-    writeLines(stamp, stamp_file)
   }
 
   # 5. Start the app.

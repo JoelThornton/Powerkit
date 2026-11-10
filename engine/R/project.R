@@ -369,6 +369,7 @@ result_record <- function(result) {
     details = result$details,
     critical_effect = result$critical_effect,
     recruitment = result$recruitment,
+    mediation_analysis = result$mediation_analysis,
     check_run_passed = all(result$check_run$ok),
     provenance = c(
       result$provenance[c(

@@ -1,6 +1,6 @@
 # Map of the docs
 
-*8 November 2026.* Which document to read for what. Start with the first
+*10 November 2026.* Which document to read for what. Start with the first
 three; the rest are reference. Pages under "History" are kept for their
 reasoning and are not current instructions. Every page in `docs/` is
 listed here (a test checks).
@@ -23,6 +23,12 @@ listed here (a test checks).
   whole.
 
 ## For the statistician
+
+- [`v1-support-plan.md`](v1-support-plan.md): first-release scope, representative
+  coverage benchmark, complex-design briefs and variant-level release gates.
+- [`release-support-inventory.json`](release-support-inventory.json): generated
+  discovery metadata from expanded current forms; regenerate with
+  `scripts/release-support.R`. It assigns no new evidence.
 
 - [`conventions.md`](conventions.md): what each backend does by default,
   every departure (1-22) and known difference (1-13), and where each is
@@ -48,6 +54,11 @@ listed here (a test checks).
 
 ## Open questions for the maintainer
 
+- [`process-style-planning.md`](process-style-planning.md): mediation estimation/interval
+  choices, PROCESS-style scope, independent checks and remaining validation.
+- [`variation-default-review.md`](variation-default-review.md): why ordinary
+  plans start without between-study variation, what the optional comparison
+  means, and the implementation checklist.
 - [`release-readiness-review.md`](release-readiness-review.md): the
   10 November scientific, researcher, author-contact, CRAN and local-use
   review, with completed corrections and remaining release gates.
@@ -109,5 +120,9 @@ listed here (a test checks).
   designs and project files were built (each decided in `decisions.md`).
 - [`archive/status-history.md`](archive/status-history.md): the status
   page as it stood before each rewrite.
+- [upstream/superpower-gg.R](upstream/superpower-gg.R): independent mixed-ANOVA
+  GG reproduction; its recorded summary is linked from validation-log.md.
 - `upstream/spower-one-sided-tests.R`: the example reported to Spower's
   author about one-sided tests (`decisions.md`, 13 October 2026).
+
+- [Count-test analysis choices and checklist](count-test-review.md)

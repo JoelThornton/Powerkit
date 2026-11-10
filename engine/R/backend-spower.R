@@ -188,7 +188,7 @@ spower_inputs <- function(spec) {
       args = function(n) {
         list(
           n = first_group(n), prop = c(pop$p1, pop$p2), n.ratios = c(1, ratio),
-          correct = FALSE
+          correct = continuity_corrected(spec)
         )
       }
     ),
@@ -204,7 +204,7 @@ spower_inputs <- function(spec) {
     ),
     chi_square_independence = list(
       experiment = "p_chisq.test", generator = "gen_chisq.test",
-      args = function(n) list(n = n, P = probability_matrix(spec), correct = FALSE)
+      args = function(n) list(n = n, P = probability_matrix(spec), correct = continuity_corrected(spec))
     ),
     # One variance against a fixed value: p_var.test() with one variance and
     # sigma2 runs EnvStats::varTest(), the chi-square test, which is the
@@ -491,6 +491,8 @@ spower_inputs <- function(spec) {
     sprintf("Spower::Spower(Spower::p_r(method = \"%s\"%s%s))", spec$target_test$method,
       if (shaped_rank_correlation(spec)) sprintf(", gen_fun = <%s>", score_shape_words(spec$population$score_shape)) else "",
       if (alternative == "two_sided") "" else sprintf(", alternative = \"%s\"", spower_alternative(template, alternative)))
+  } else if (continuity_corrected(spec)) {
+    sprintf("Spower::%s(correct = TRUE), repeated with all attempted studies in the power denominator", test$experiment)
   } else if (alternative == "two_sided") {
     sprintf("Spower::Spower(Spower::%s())", test$experiment)
   } else {
@@ -499,6 +501,7 @@ spower_inputs <- function(spec) {
       test$experiment, spower_alternative(template, alternative)
     )
   }
+  test$continuity_corrected <- continuity_corrected(spec)
   test
 }
 
@@ -1702,6 +1705,7 @@ spower_rejections <- function(inputs, n, nrep, seed) {
   if (inputs$alternative != "two_sided") {
     args$alternative <- spower_alternative(inputs$template, inputs$alternative)
   }
+  if (isTRUE(inputs$continuity_corrected)) return(corrected_count_rejections(inputs, args, nrep, seed))
   head <- if (isTRUE(inputs$own)) as.name(inputs$experiment) else call("::", as.name("Spower"), as.name(inputs$experiment))
   result <- spower_eval(head, args, nrep, inputs$alpha, seed)
   round(result$power * nrep)

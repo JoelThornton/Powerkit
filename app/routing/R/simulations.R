@@ -33,11 +33,21 @@ long_settings <- function(forms, ep_id) forms$simulations$endpoints[[ep_id]] %||
 preview_nrep <- function(forms) as.integer(forms$simulations$preview_nrep)
 
 # Whether the full analysis runs in the app for this goal (else: the R script).
-full_run_in_app <- function(forms, ep_id, goal) goal %in% unlist(long_settings(forms, ep_id)$full_run)
+bootstrap_mediation <- function(spec) {
+  !is.null(spec) && isTRUE(spec$design %in% c("mediation", "moderated_mediation")) &&
+    isTRUE(spec$target_test$method %in% c("percentile_bootstrap", "ols_percentile_bootstrap"))
+}
+
+full_run_in_app <- function(forms, ep_id, goal, spec = NULL) {
+  !bootstrap_mediation(spec) && goal %in% unlist(long_settings(forms, ep_id)$full_run)
+}
 
 preview_seconds <- function(forms, ep_id, goal) long_settings(forms, ep_id)$preview[[goal]] %||% NA_real_
 full_seconds <- function(forms, ep_id, goal) long_settings(forms, ep_id)$full[[goal]] %||% NA_real_
-script_run_time <- function(forms, ep_id, goal) long_settings(forms, ep_id)$script[[goal]] %||% "unknown"
+script_run_time <- function(forms, ep_id, goal, spec = NULL) {
+  if (bootstrap_mediation(spec)) return("potentially hours, depending on the resample count, repeated studies, model and computer; no reliable fixed estimate is available")
+  long_settings(forms, ep_id)$script[[goal]] %||% "unknown"
+}
 
 # The preview's spec: the user's spec, with its seed, and few replications.
 # Everything else (including the Monte Carlo draws per interval) is left as
@@ -58,7 +68,7 @@ duration_text <- function(seconds) {
 # required N simulates many sample sizes, and with 100 replications each the
 # search took over 15 minutes for simple mediation and still couldn't narrow
 # the N down (docs/phase5-simulations.md, "Preview times").
-has_preview <- function(forms, ep_id, goal) !is.na(preview_seconds(forms, ep_id, goal))
+has_preview <- function(forms, ep_id, goal, spec = NULL) !bootstrap_mediation(spec) && !is.na(preview_seconds(forms, ep_id, goal))
 
 # The preview as a range, with the warning not to report it. `range` is the
 # engine's power_interval().
@@ -109,7 +119,7 @@ preview_panel_ui <- function(forms, ep_id, calc, full_spec, range) {
       "A preview runs only %s simulations, so it is imprecise: the range shows where the full result is likely to fall. It isn't kept, and it has no R script or citations. Seed: %s, the same as the full analysis.",
       whole(nrep), result$provenance$seed)),
     if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(lapply(calc$notes, tags$li))),
-    if (full_run_in_app(forms, ep_id, goal)) {
+    if (full_run_in_app(forms, ep_id, goal, full_spec)) {
       wait <- duration_text(full_seconds(forms, ep_id, goal))
       div(class = "full-run-offer",
         h4(class = "h5", "The full analysis"),
@@ -128,7 +138,8 @@ no_preview_ui <- function(forms, ep_id, spec) {
   div(
     class = "result-panel script-panel", role = "status", tabindex = "-1",
     h3(class = "h4", "Run the full analysis on your computer"),
-    p("There is no rough preview for a required sample size: even with 100 simulations per sample size, finding the N takes 15 minutes or more and often can't narrow it down."),
+    if (bootstrap_mediation(spec)) p("Bootstrap planning refits the model many times within every simulated study. It can take hours, so this method runs through the downloaded R script. Powerkit keeps your chosen resample count rather than silently reducing it for a preview.")
+    else p("There is no rough preview for a required sample size: even with 100 simulations per sample size, finding the N takes 15 minutes or more and often can't narrow it down."),
     script_offer_ui(forms, ep_id, spec$goal$type, spec$options$seed, heading = FALSE, spec = spec)
   )
 }
@@ -142,7 +153,8 @@ script_offer_ui <- function(forms, ep_id, goal, seed, heading = TRUE, spec) {
     if (heading) h4(class = "h5", "Run the full analysis on your computer"),
     p(sprintf(
       "This calculation takes %s, too long to run here. The R script runs it on your computer with the same spec and seed (%s), so it gives the result powerkit would.",
-      script_run_time(forms, ep_id, goal), seed)),
+      script_run_time(forms, ep_id, goal, spec), seed)),
+    if (!is.null(ma <- mediation_analysis_sentence(list(mediation_analysis = requirements$mediation_analysis)))) p(class = "planned-mediation-analysis", ma),
     p("What you need:"),
     tags$ul(
       tags$li(sprintf("R%s, from cran.r-project.org.", if (nzchar(r_needs)) paste0(" ", r_needs) else "")),
@@ -150,6 +162,7 @@ script_offer_ui <- function(forms, ep_id, goal, seed, heading = TRUE, spec) {
         tags$code("install.packages(\"remotes\")"), " then ",
         tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\", dependencies = TRUE)"), "."),
       tags$li(sprintf("Then run the script. It saves the result, a script that reproduces it with %s alone, and the citations.", package))),
+    p(class = "hint", "The script also saves powerkit-result.powerkit.json. Open that project from Powerkit's start screen to view the completed result without running it again."),
     p(class = "hint", paste0("The downloaded script records the package versions used here. Different versions on your computer may give different results.")),
     download_button("download_run_script", "Download R script to run the full analysis on your computer", class = "btn btn-primary"))
 }

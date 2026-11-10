@@ -1,0 +1,46 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "two_proportions",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Reminder",
+      "levels": [
+        "No reminder",
+        "Text reminder"
+      ]
+    },
+    "Y": {
+      "type": "binary",
+      "label": "Attended",
+      "levels": [
+        "No",
+        "Yes"
+      ]
+    }
+  },
+  "population": {
+    "metric": "proportion",
+    "p1": 0.5,
+    "p2": 0.65
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a 10-point rise in attendance is the smallest worth the cost."
+  },
+  "target_test": {
+    "effect": "proportion_difference",
+    "method": "z_test_corrected",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 340
+  },
+  "options": {
+    "nrep": 1000,
+    "seed": 20261012,
+    "allocation_ratio": 1
+  }
+}

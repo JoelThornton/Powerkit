@@ -240,6 +240,8 @@ zero_effect_cases <- list(
   paired_t = function(s) within(s, population$dz <- 0),
   correlation = function(s) within(s, population$r <- 0),
   two_proportions = function(s) within(s, population$p2 <- population$p1),
+  two_proportions_corrected = function(s) within(s, population$p2 <- population$p1),
+  chi_square_independence_corrected = function(s) within(s, population$probabilities <- list(list(.25, .25), list(.25, .25))),
   chi_square_independence = function(s) {
     p <- outer(c(0.5, 0.2, 0.3), c(0.6, 0.4))
     s$population$probabilities <- lapply(seq_len(nrow(p)), function(i) as.list(p[i, ]))
@@ -269,6 +271,7 @@ zero_effect_cases <- list(
   meta_regression = function(s) within(s, population$slope <- 0),
   meta_heterogeneity = function(s) within(s, population$i2 <- 0),
   mediation_simple = function(s) within(s, population$paths[["X->M"]] <- 0),
+  mediation_ols_bootstrap = function(s) within(s, population$paths[["X->M"]] <- 0),
   mediation_parallel = function(s) within(s, population$paths[["M2->Y"]] <- 0),
   mediation_serial = function(s) within(s, population$paths[["M1->M2"]] <- 0),
   process_7 = function(s) within(s, population$paths[["XW->M"]] <- 0),
