@@ -159,5 +159,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
-          python3 scripts/prepare-publish-branch.py "$CHECKED_MAIN"
-          git push origin HEAD:connect-cloud
+          publish_commit=$(python3 scripts/prepare-publish-branch.py "$CHECKED_MAIN")
+          git push origin "$publish_commit:refs/heads/connect-cloud"
