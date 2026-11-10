@@ -4,9 +4,16 @@ test_that("the release discovery inventory matches the current expanded forms", 
   expected <- generator$release_support_text(repo_dir)
   actual <- paste0(paste(readLines(file.path(repo_dir, "docs", "release-support-inventory.json"),
     encoding = "UTF-8", warn = FALSE), collapse = "\n"), "\n")
-  expect_identical(actual, expected,
-    info = "Regenerate with Rscript scripts/release-support.R; this is metadata, not validation.")
   inventory <- jsonlite::fromJSON(actual, simplifyVector = FALSE)
+  regenerated <- jsonlite::fromJSON(expected, simplifyVector = FALSE)
+  expect_identical(inventory$format_version, regenerated$format_version)
+  expect_identical(inventory$sources_md5, regenerated$sources_md5)
+  expect_identical(inventory$limits, regenerated$limits)
+  expect_identical(inventory$evidence_registry, regenerated$evidence_registry)
+  for (i in seq_along(regenerated$cards)) {
+    expect_identical(inventory$cards[[i]], regenerated$cards[[i]],
+      info = paste("Regenerate release inventory; card", regenerated$cards[[i]]$id))
+  }
   cards <- stats::setNames(inventory$cards, vapply(inventory$cards, `[[`, "", "id"))
   expect_setequal(names(cards), names(tree$endpoints))
   runnable <- names(Filter(function(x) !identical(x$access, "guidance"), cards))

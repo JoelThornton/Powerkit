@@ -4,7 +4,7 @@
     "app/routing/tree.yaml": "de3387874ede7da7fc5663d24b5569ce",
     "app/routing/forms.yaml": "cc5d3ec801b9313f48784da6222b0815",
     "engine/inst/evidence/records.json": "bcf45612cf4500faca53367571df8353",
-    "scripts/release-support.R": "841aba9631d9e5c4cc0b0d9d7bf0bfa2",
+    "scripts/release-support.R": "cd346911d6fb8cadb73b7f68d449b413",
     "app/routing/R/about.R": "2ec4f33c6e7fd639be201b0edf226da0",
     "app/routing/R/bayes-mode.R": "a1757b1eeec2a8a48bb9b20c5201a388",
     "app/routing/R/capabilities.R": "14f6148d0c239c58934d3aab2d18fe67",

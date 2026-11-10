@@ -65,7 +65,10 @@ if (sys.nframe() == 0) {
   text <- release_support_text()
   if ("--check" %in% commandArgs(TRUE)) {
     old <- paste0(paste(readLines(output, warn = FALSE, encoding = "UTF-8"), collapse = "\n"), "\n")
-    if (!identical(old, text)) stop("Release inventory is stale; run Rscript scripts/release-support.R")
+    # JSON data is the contract; encoders on different systems can use
+    # different escaping/whitespace for the same text.
+    parse <- function(x) jsonlite::fromJSON(x, simplifyVector = FALSE)
+    if (!identical(parse(old), parse(text))) stop("Release inventory is stale; run Rscript scripts/release-support.R")
     message("Release inventory matches source.")
   } else {
     writeBin(charToRaw(text), output)
