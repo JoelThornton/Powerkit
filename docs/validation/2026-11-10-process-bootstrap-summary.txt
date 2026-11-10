@@ -1,0 +1,14 @@
+===== powerkit validation summary (copy from here) =====
+Date: 2026-11-10 20:58   Commit: 4c80d79   Cores: 4 (4 per test)
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Selected chunks: process_bootstrap
+Partition: 1 of 1; totals cover only this selected partition.
+Packages: powerkit 0.61.0, Superpower 0.2.4.1, Spower 0.7, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 2 PASS, 0 FAIL, 0 ERROR, 1 SKIP, 0 NOT RUN (of 3)
+
+SKIP    process_bootstrap / OLS bootstrap matches an archived PROCESS software power reference (3s)
+PASS    process_bootstrap / OLS percentile bootstrap: null calibration for simple (0h 28m)
+          success: Type I error rate 0.0495; must lie in [0.040, 0.060] for alpha = 0.05.
+PASS    process_bootstrap / OLS percentile bootstrap: null calibration for binary_x_model7 (0h 44m)
+          success: Type I error rate 0.0585; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====

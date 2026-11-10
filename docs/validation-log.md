@@ -1465,3 +1465,23 @@ is inferred. This supports calling the result an approximation that can
 be checked by simulation, not an independently verified guarantee. A
 user-facing matched verification and broader cases remain needed. Existing
 published validation constants and scientific failures are unchanged.
+
+## 2026-11-10 — OLS/bootstrap selected null calibration (GitHub)
+
+[Run 42888143753](https://github.com/JoelThornton/Powerkit/actions/runs/42888143753),
+tested merge revision 4c80d79e1160ec9ce1050c1d9881a20b8802affc, head dafe128.
+Linux R 4.5.3, powerkit .61.0, power4mome .2.1, manymome .3.7 and lavaan
+.7.3. The [standard summary](validation/2026-11-10-process-bootstrap-summary.txt)
+records **2 PASS, 0 FAIL/ERROR, 1 archived-PROCESS-reference TODO SKIP**.
+The [settings archive](validation/2026-11-10-process-bootstrap.json) includes
+seeds, counts and frozen source identities. Adapter/helper/test Git blobs
+were checked against the later candidate and match.
+
+N=250, alpha=.05, 2,000 studies and 1,000 casewise percentile-bootstrap
+resamples per interval: simple-mediation null a=0, b=.35, c-prime=.1 gave
+.0495 (99 rejections); balanced-binary-X model-7 index null with aW=0
+gave .0585 (117). Both meet the unchanged pre-existing [.04,.06] rule.
+Only these normal-error, independent-observation scenarios are covered; the
+5,000-resample interface default and other composite nulls/models remain
+unverified by this run. It is not an independent-package or direct PROCESS
+comparison, nor a fix for the separate existing ML/Monte-Carlo failure.

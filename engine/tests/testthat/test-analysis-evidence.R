@@ -105,3 +105,32 @@ test_that("corrected-count evidence preserves its case scope and publication gap
     expect_equal(analysis_evidence(spec)$categories$full_validation$status, "outside_scope")
   }
 })
+
+test_that("OLS null evidence does not qualify the default bootstrap count or other targets", {
+  spec <- list(design = "mediation", template = "process_4",
+    variables = list(X = list(type = "continuous"), M = list(type = "continuous"), Y = list(type = "continuous")),
+    population = list(metric = "standardised", paths = list("X->M" = 0, "M->Y" = .35, "X->Y" = .1)),
+    target_test = list(method = "ols_percentile_bootstrap", effect = "indirect_effect", path = "X->M->Y", alpha = .05),
+    goal = list(type = "power", n = 250), options = list(ci_draws = 1000))
+  evidence <- analysis_evidence(spec, "simulation")
+  expect_equal(evidence$record_id, "ols-bootstrap-simple-null")
+  expect_equal(evidence$categories$full_validation$status, "scoped_only")
+  expect_equal(evidence$categories$published$status, "pending")
+  spec$options$ci_draws <- 5000
+  expect_equal(analysis_evidence(spec)$categories$full_validation$status, "outside_scope")
+  spec$options$ci_draws <- 1000
+  spec$target_test$path <- "X->Y"
+  expect_equal(analysis_evidence(spec)$categories$full_validation$status, "outside_scope")
+})
+
+test_that("binary-X bootstrap null evidence stays tied to the recorded model", {
+  spec <- list(design = "moderated_mediation", template = "process_7",
+    variables = list(X = list(type = "binary"), W = list(type = "continuous"), M = list(type = "continuous"), Y = list(type = "continuous")),
+    population = list(metric = "standardised", x_prob = .5, correlations = list("X<->W" = 0),
+      paths = list("X->M" = .3, "W->M" = .1, "XW->M" = 0, "M->Y" = .35, "X->Y" = .05)),
+    target_test = list(method = "ols_percentile_bootstrap", effect = "index_of_moderated_mediation", alpha = .05),
+    goal = list(type = "power", n = 250), options = list(ci_draws = 1000))
+  expect_equal(analysis_evidence(spec)$categories$full_validation$status, "scoped_only")
+  spec$population$paths[["W->Y"]] <- .1
+  expect_equal(analysis_evidence(spec)$categories$full_validation$status, "outside_scope")
+})

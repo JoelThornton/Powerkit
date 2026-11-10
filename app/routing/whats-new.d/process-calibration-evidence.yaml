@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-10"
+    title: "Recorded checks for two mediation scenarios"
+    text: "Two selected mediation setups using ordinary regression and percentile bootstrap now have archived checks of false-positive rates. The evidence covers those settings only; broader validation and direct PROCESS comparisons are still needed."

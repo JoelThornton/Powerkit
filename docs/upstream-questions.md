@@ -179,8 +179,13 @@ checks emit manymome warnings about an additional `X:W` moderator set to
 zero; the explicitly checked estimates/intervals still match the separate
 OLS reference. Ask whether this is expected path-discovery behaviour and
 which fitted-model syntax avoids ambiguous warnings. A direct PROCESS
-software comparison and the new null-calibration chunk are separate
-requirements; no author endorsement or blanket compatibility is claimed.
+software comparison remains required. The selected null chunk is now
+archived: 2,000 studies and 1,000 resamples at N=250 gave .0495 for simple
+mediation and .0585 for the balanced-binary-X model-7 index. Both passed
+the unchanged [.04,.06] rule; this does not validate the 5,000-resample
+default, every null/model or the separate ML/Monte-Carlo route. Ask about
+recommended resample counts and endpoint conventions before claiming
+PROCESS equivalence; no author endorsement or blanket compatibility is claimed.
 [Scope and checklist](process-style-planning.md).
 
 **Population standardisation with a mediator in a later product (0.2.1).**

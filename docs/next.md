@@ -23,8 +23,10 @@ OLS/bootstrap, continuity-corrected proportions tests, fixed/random
 predictors and family-level claims. This is part of the selected-variant
 audit below; none is resolved merely by changing labels. The open PR now
 adds a selectable OLS/casewise-percentile-bootstrap route, paired regression
-checks and a dedicated null-calibration job. Finish and archive its results
-and the direct PROCESS-software comparison before claiming equivalence.
+checks and a completed selected null-calibration job (two passes, one direct
+reference TODO skip; archived). Direct PROCESS-software comparison, broader
+model/null settings and the 5,000-resample default remain before equivalence
+or broad calibration claims.
 The same PR now adds explicit continuity-corrected count-test choices, with
 independent finite-enumeration/simulation checks. Published references and
 fresh-draw verification of recommended N remain required. Next audit fixed

@@ -76,11 +76,15 @@ a stable prediction for every model or machine. Thousands of studies with
 - [x] Verify the complete local-script-to-app-project handoff end to end.
 - [x] Reproduce a selected OLS/bootstrap power calculation in a standalone
   R script without loading Powerkit.
-- [ ] Complete and record the new process_bootstrap null-calibration chunk.
+- [x] Complete and archive the selected process_bootstrap null-calibration
+  chunk: two passes and one archived-PROCESS-reference skip.
 - [ ] Archive a direct comparison with a named PROCESS version, exact
   data/settings and resamples before claiming PROCESS-software equivalence.
 - [ ] Obtain independently published numerical comparisons where available.
-- [ ] Extend selected-variant evidence only after those results are recorded.
+- [x] Link the two recorded null scenarios in the existing evidence registry,
+  scoped to N=250, alpha .05, 1,000 resamples and the archived model settings.
+- [ ] Extend evidence to other models/nulls and the 5,000-resample default;
+  do not treat these two checks as validation of every bootstrap plan.
 
 The existing binary-X ML/Monte-Carlo calibration failure remains open.
 Selecting a bootstrap does not itself prove that failure is resolved; its
@@ -120,3 +124,13 @@ regressions, all forms, project handling, documentation alignment, source
 inventory, repository consistency and Updates checks. The conditional-model
 warnings above and existing upstream deprecation warnings remain recorded;
 none is represented as a resolved scientific validation result.
+
+The [completed calibration](validation/2026-11-10-process-bootstrap-summary.txt)
+ran 2,000 studies per scenario with 1,000 resamples each: simple-mediation
+null rejection .0495 (99/2,000), binary-X model-7 index null .0585
+(117/2,000). Both meet the pre-existing [.04,.06] rule at alpha .05.
+The [settings and frozen source identities](validation/2026-11-10-process-bootstrap.json)
+are archived; adapter/helper/test Git blobs match the later candidate.
+This is not a direct PROCESS-software comparison, a test of the interface's
+5,000-resample default, or a resolution of the existing ML/Monte-Carlo
+failure. No card badge is upgraded.

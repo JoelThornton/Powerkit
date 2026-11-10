@@ -46,8 +46,11 @@ Carlo and ML bootstrap methods. All nine applicable forms expose the
 method/count; bootstrap plans run through a local script that saves an
 app project for viewing the result without rerunning it. Results and exports
 record the choice, and same-data
-regression/interval checks cover the supported model families. A dedicated
-PR validation job runs the new null-calibration chunk. A direct archived
+regression/interval checks cover the supported model families. The PR validation completed the two selected null checks (2,000 studies and
+1,000 resamples each): .0495 for simple mediation and .0585 for binary-X
+model 7, with a direct-reference TODO skip. Results and frozen settings are
+archived; the 5,000-resample default and other cases remain outside that
+recorded run. A direct archived
 PROCESS-software comparison remains pending; no evidence badge is upgraded
 and the existing ML/Monte-Carlo binary-X failure remains open.
 
