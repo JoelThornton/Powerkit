@@ -1239,9 +1239,9 @@ heterogeneity_sentence <- function(result) {
   pct <- function(x) sprintf("%.0f%%", 100 * x)
   r <- identical(h$scale, "Fisher's z")
   sprintf(paste0("Variation between studies: the true %s is planned to vary from study to study with an SD of %s%s, ",
-    "so the %s entered is the average across studies (%s). At %s in total, power is %s with this variation, ",
+    "so the %s entered is the average across studies (%s). At %s in total, the average chance of significance is %s with this variation, ",
     "against %s if every study had the same %s. With no average %s at all, one study like this would still be ",
-    "significant %s of the time rather than at the significance level, because its own true %s is rarely exactly zero."),
+    "significant %s of the time rather than at the significance level, because its own true %s is rarely exactly zero. This is not power at the average effect or a guarantee for your setting. For a two-sided test, significance in either direction counts."),
     if (r) "correlation" else "effect", format(h$tau), if (r) " on Fisher's z scale" else "",
     if (r) "correlation" else "effect", if (r) "McShane & B\u00f6ckenholt, 2014" else "Kenny & Judd, 2019",
     whole(h$n), pct(h$power), pct(h$power_without), if (r) "correlation" else "effect",
@@ -1554,7 +1554,7 @@ scenario_curves <- function(spec, result, conservative = NA, optimistic = NA, n 
   # Wide enough to show where every line reaches the target power.
   top <- max(c(explore_sizes(spec, result), 1.25 * n), na.rm = TRUE)
   step <- if (identical(spec$template, "independent_t") && isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) 2 else 1
-  ns <- unique(pmax(8, step * round(seq(8, top, length.out = 15) / step)))
+  ns <- sort(unique(c(pmax(8, step * round(seq(8, top, length.out = 15) / step)), n_analysed(result))))
   do.call(rbind, lapply(names(effects), function(k) {
     power <- vapply(ns, function(at) {
       s <- spec
@@ -1603,15 +1603,17 @@ scenarios_ui <- function(spec, result = NULL) {
   # with no effect.
   if (is.null(e) || identical(spec$goal$type, "sensitivity") || is.null(planned) || planned == 0) return(NULL)
   div(class = "scenario-panel",
-    h5(class = "h6", "A cautious and a hopeful guess"),
+    h5(class = "h6", "What if the true effect is smaller?"),
+    p(class = "small", "The main answer depends on the effect and other assumptions you entered. Compare plausible alternatives before settling on a sample size. These comparisons keep the analysis and any chosen between-study variation unchanged."),
     p(class = "small", sprintf(paste0(
-      "This analysis uses %s = %s. Enter a smaller effect you would still find plausible (conservative) and a larger one (optimistic), ",
+      "This analysis uses %s = %s. Enter a weaker effect (closer to zero, keeping its direction) you would still find plausible, and a stronger one, ",
       "and powerkit draws power for all three. Choose values you could defend; powerkit won't suggest them."),
       e$label, format(round(planned, 3)))),
     div(class = "d-flex gap-3 flex-wrap",
       numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
       numericInput("scenario_optimistic", sprintf("Optimistic %s", e$label), value = NA, step = 0.01, width = "14rem")),
     conditionalPanel("input.scenario_conservative != null || input.scenario_optimistic != null",
+      uiOutput("scenario_at_plan"),
       plotOutput("scenario_plot", height = "340px"),
       uiOutput("scenario_n"),
       tags$details(tags$summary("Read the scenario values as a table"), uiOutput("scenario_table"))))
@@ -2982,6 +2984,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
           "following Kenny and Judd (2019): the effect size is the average across studies, and power was computed with pwr ",
           "using their effective significance level (%s) and adjusted noncentrality."), format(h$tau), format(signif(h$effective_alpha, 3)))
       })
+      adj <- paste0(adj, " This is the average chance of significance across differing study effects, not power at the average effect or a guarantee for every setting.")
     }
     if (!is.null(telescopes)) {
       sprintf("The original study's effect size, %s, set the test's direction (%s); its size does not enter the plan.", effect, reasoning)

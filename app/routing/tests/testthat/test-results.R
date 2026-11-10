@@ -2399,7 +2399,7 @@ test_that("three effects side by side: conservative, the plan's and optimistic",
   spec$options$nrep <- NULL
   calc <- run_calculation(spec, seed = forms$default_seed)
   html <- as.character(scenarios_ui(calc$spec, calc$result))
-  expect_match(html, "A cautious and a hopeful guess", fixed = TRUE)
+  expect_match(html, "What if the true effect is smaller?", fixed = TRUE)
   expect_match(html, "powerkit won&#39;t suggest them|powerkit won't suggest them")
   # Only the values given are drawn; the plan's effect always is.
   n <- scenario_n(calc$spec, calc$result, conservative = 0.3, seed = forms$default_seed)
@@ -2410,6 +2410,11 @@ test_that("three effects side by side: conservative, the plan's and optimistic",
   df <- scenario_curves(calc$spec, calc$result, 0.3, 0.6, n = n, seed = forms$default_seed)
   expect_setequal(unique(df$scenario), c("conservative", "expected", "optimistic"))
   expect_false(anyNA(df$power))
+  at_plan <- df[df$n == n_analysed(calc$result), ]
+  expect_equal(nrow(at_plan), 3L)
+  expected_power <- pwr::pwr.t.test(n = n_analysed(calc$result) / 2, d = 0.3)$power
+  expect_equal(at_plan$power[at_plan$scenario == "conservative"], expected_power)
+  expect_lt(at_plan$power[at_plan$scenario == "conservative"], 0.8)
   # Wide enough for the conservative effect to reach the target power.
   expect_gte(max(df$power[df$scenario == "conservative"]), 0.8)
   # The larger effect has more power at every N.

@@ -618,10 +618,9 @@ safeguard_fields <- function(template) {
 # Effects that vary between studies, for the t-tests (Kenny & Judd, 2019)
 # and a Pearson correlation (McShane & Bockenholt, 2014, on Fisher's z):
 # the SD of the true effect around the one planned for, which then is the
-# average effect. The t-tests start at Kenny and Judd's small 0.05 in d
-# (Departure 23), the correlation at 0.025, their rule of 25% of a small
-# effect applied to r = .1 (Departure 24); empty or 0 is the usual
-# analysis.
+# average effect. Variation is an explicit optional scenario; a new plan
+# starts empty (the usual fixed-effect calculation). Stored values keep
+# their original meaning (Departures 23 and 24, revised 10 November 2026).
 heterogeneity_field_templates <- c("independent_t", "one_sample_t", "paired_t", "correlation")
 
 heterogeneity_fields <- function(template) {
@@ -633,25 +632,29 @@ heterogeneity_fields <- function(template) {
     list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))
   if (identical(template, "correlation")) {
     return(list(list(id = "het_tau", label = "How much might the true correlation vary between studies? (as an SD on Fisher's z)",
-      type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.025,
-      default_source = "Kenny and Judd's (2019) rule for small variation, 25% of a small effect, applied to a correlation of .1: they argue zero should not be the default",
-      help = paste("Labs, samples, materials and procedures differ, so a study's true correlation can differ from the one you plan for.",
+      type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
+      default_source = "Starts empty: power for the correlation entered; choose variation only to average across differing study correlations",
+      help = paste("Leave empty for power at the correlation you entered. To explore smaller correlations, use the comparison on the results screen.",
+        "Entering variation changes the question: the answer is averaged across studies with differing true correlations, not power at your entered correlation.",
+        "It can raise or lower reported power and is not an automatic safety margin. Labs, samples, materials and procedures can differ.",
         "This is its SD between studies on Fisher's z scale, which is close to r for small values. Kenny and Judd (2019) take",
         "25% of a small, medium and large effect as small, medium and large variation; for r = .1, .3 and .5 that is about",
         "0.025, 0.075 and 0.125. The correlation above is then the average across studies (McShane & Bockenholt, 2014).",
         "If a meta-analysis of this correlation reports how much it varies (tau, on Fisher's z), use that instead.",
-        "Empty or 0 plans for the same correlation in every study, as G*Power and most power analyses do. The results show",
+        "Empty or 0 gives the usual calculation for the correlation you entered. With variation entered, the results show",
         "the answer with no, small, medium and large variation."),
       shown_if = c(list(list(field = "method", is = "pearson")), common))))
   }
   list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
-    type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau", default = 0.05,
-    default_source = "Kenny and Judd's (2019) small variation between studies: they argue zero should not be the default",
-    help = paste("Labs, samples, materials and procedures differ, so a study's true effect can differ from the one you plan for.",
+    type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
+    default_source = "Starts empty: power for the effect entered; choose variation only to average across differing study effects",
+    help = paste("Leave empty for power at the effect you entered. To explore smaller effects, use the comparison on the results screen.",
+      "Entering variation changes the question: the answer is averaged across studies with differing true effects, not power at your entered effect.",
+      "It can raise or lower reported power and is not an automatic safety margin. Labs, samples, materials and procedures can differ.",
       "Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 as small, medium and large variation, and argue that zero",
       "should not be the default. If a meta-analysis of this effect reports how much it varies (tau, in d), use that instead.",
-      "The effect above is then the average across studies. Empty or 0 plans for the same effect in every study, as G*Power",
-      "and most power analyses do. The results show the answer with no, small, medium and large variation.",
+      "With variation entered, the effect above becomes the average across studies. Empty or 0 gives the usual calculation for the effect entered.",
+      "With variation entered, the results compare no, small, medium and large variation.",
       "It needs equal SDs in the two groups."),
     shown_if = c(list(list(field = "method", is_one_of = c("t_test", "student_t", "welch_t"))), common)))
 }

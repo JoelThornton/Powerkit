@@ -1301,7 +1301,7 @@ server <- function(input, output, session) {
   scenario_results <- reactive({
     x <- scenario_inputs()
     n <- scenario_n(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], seed = forms$default_seed)
-    list(spec = x$calc$spec, n = n,
+    list(spec = x$calc$spec, n = n, planned_n = n_analysed(x$calc$result),
       curves = scenario_curves(x$calc$spec, x$calc$result, x$vals[["conservative"]], x$vals[["optimistic"]], n = n, seed = forms$default_seed))
   })
   output$scenario_plot <- renderPlot({
@@ -1314,6 +1314,12 @@ server <- function(input, output, session) {
       key = list(legend = unname(scenario_names[keys]), col = vapply(keys, function(k) style[[k]]$col, ""),
         lty = vapply(keys, function(k) style[[k]]$lty, 0), lwd = 3))
   }, res = 96, alt = "Power by sample size for the expected, conservative and optimistic effects. The same values are available in the scenario table below.")
+  output$scenario_at_plan <- renderUI({
+    x <- scenario_results()
+    at <- x$planned_n
+    curve_points_ui(x$curves[x$curves$n == at, ], x$spec,
+      sprintf("Power at this analysis's N = %s (%s), under each effect assumption", whole(at), sample_description(x$spec)$unit))
+  })
   output$scenario_table <- renderUI({
     x <- scenario_results()
     curve_points_ui(x$curves, x$spec, "Scenarios: power by sample size and assumption")

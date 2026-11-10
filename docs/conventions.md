@@ -1512,7 +1512,17 @@ Departure 19 is shown on the affected result and in the methods text.
   (`app/routing/R/results.R`, `departures_for()`), and in the methods
   paragraph.
 
-### 23. t-tests: a small variation between studies by default, not one effect in every study (G\*Power and pwr)
+### 23. t-tests: optional variation between studies (default departure retired 10 November 2026)
+
+**Current policy (maintainer, 10 November 2026):** new plans start with
+this field empty, so the calculation concerns the entered effect. Nonzero
+variation is an explicit optional scenario, not an automatic safety margin.
+Its answer averages significance across differing study effects; it does
+not establish that power at their average, or in every setting, reaches
+the target. For two-sided tests either significant direction counts.
+Saved nonzero values remain unchanged. The result retains the comparison
+with no variation. The historical decision and numerical examples below
+explain the option; they no longer describe the starting default.
 
 - **Established convention:** G\*Power and pwr plan for a true effect that
   is exactly the same in the new study as the one entered.
@@ -1533,7 +1543,17 @@ Departure 19 is shown on the affected result and in the methods text.
   above 0 (`app/routing/R/results.R`, `departures_for()`), in the result's
   own sentence on the variation, and in the methods paragraph.
 
-### 24. Correlation: a small variation between studies by default, not one correlation in every study (G\*Power and pwr)
+### 24. Correlation: optional variation between studies (default departure retired 10 November 2026)
+
+**Current policy (maintainer, 10 November 2026):** new plans start with
+this field empty, so the calculation concerns the entered effect. Nonzero
+variation is an explicit optional scenario, not an automatic safety margin.
+Its answer averages significance across differing study effects; it does
+not establish that power at their average, or in every setting, reaches
+the target. For two-sided tests either significant direction counts.
+Saved nonzero values remain unchanged. The result retains the comparison
+with no variation. The historical decision and numerical examples below
+explain the option; they no longer describe the starting default.
 
 - **Established convention:** G\*Power and pwr plan for a true
   correlation that is exactly the same in the new study as the one

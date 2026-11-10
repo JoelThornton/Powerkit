@@ -54,6 +54,9 @@ listed here (a test checks).
 
 ## Open questions for the maintainer
 
+- [`variation-default-review.md`](variation-default-review.md): why ordinary
+  plans start without between-study variation, what the optional comparison
+  means, and the implementation checklist.
 - [`release-readiness-review.md`](release-readiness-review.md): the
   10 November scientific, researcher, author-contact, CRAN and local-use
   review, with completed corrections and remaining release gates.

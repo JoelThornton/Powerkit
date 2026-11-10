@@ -29,7 +29,16 @@ per-file TLS/download retries, alternate downloader/mirrors, bootstrap
 recovery, and an engine completion stamp written only after a successful,
 matching install. A real isolated three-package binary restore on Windows
 passed with renv 1.0.3 and an unchanged lockfile. Full clean Windows/macOS
-checks are pending; no fix is yet claimed for every network.
+checks passed on the previous candidate head, and the user confirmed recovery
+worked on their connection. No fix is claimed for every network.
+
+The [default review and checklist](variation-default-review.md) records the
+maintainer's approval of ordinary t-test and Pearson correlation plans starting
+without between-study variation (10 November). Explicit variation scenarios
+retain the existing engine and saved values, and explain averaged significance
+rather than power at the average effect. The smaller-effect comparison now
+shows power at the exact analysed sample size. These changes are in the open
+PR, not a claim about the deployed app or new scientific validation.
 
 ## Where things are
 
@@ -169,8 +178,9 @@ minutes (389 pass, 2 fail, 110 skipped; skips include partitioning and
 published placeholders). The last completed nightly inspected,
 [9 November run 42570428222](https://github.com/JoelThornton/Powerkit/actions/runs/42570428222),
 also failed the ANOVA and binary-X checks (the latter .077 in 1,000).
-The 10 November run 42772650889 was queued when checked; it supplies no
-new results yet. Its two failures are known: the
+The [10 November run 42772650889](https://github.com/JoelThornton/Powerkit/actions/runs/42772650889)
+also completed with failures in the ANOVA and binary-X chunks; this does not
+resolve either scientific issue. The two recurring failures concern the
 mixed-design Greenhouse-Geisser check: a new independent 20,000-study
 reference gives .21805 (MCSE .00292), with same-data p-values matching afex
 to 1.9e-15. Fixing epsilon gives .2196, so that alone does not explain

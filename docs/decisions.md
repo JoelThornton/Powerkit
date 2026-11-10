@@ -2596,3 +2596,20 @@ separate assessments. Source choices are generated for discovery; the
 existing evidence registry remains authoritative. The benchmark and release
 gates are in [v1-support-plan.md](v1-support-plan.md); P0 audits and
 investigation of the two recurring failures lead next.md.
+
+
+## 2026-11-10 · Explicit variation scenarios, usual power first
+
+The maintainer approved starting new ordinary t-test and Pearson correlation
+plans with between-study variation empty. The earlier nonzero defaults
+(Departures 23 and 24) changed the meaning of the reported power without an
+intentional choice. Variation remains supported and important to examine;
+zero is not asserted to be universally realistic. Nonzero entries average
+significance across differing true effects and can raise or lower the answer.
+They are not automatic protection against underpowering at the entered effect.
+Saved values and the existing engine calculations are retained.
+
+The smaller/larger-effect comparison stays prominent and now displays power
+at the actual analysed sample size for each assumption, using the existing
+engine, without interpolating from the plotted grid. No variation magnitude
+or alternative effect is selected on the researcher's behalf.
