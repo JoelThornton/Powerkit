@@ -600,12 +600,13 @@ app_css <- "
                                  border-bottom: 2px solid #5a6573; transform: rotate(45deg); transition: transform .12s ease; }
   .form-names[open] > summary::after { transform: rotate(225deg); }
   .form-names > .form-group-box { border: 0; box-shadow: none; margin: 0; padding-top: 0.25rem; }
+  .usual-value { min-height: 44px; min-width: 44px; max-width: 100%; white-space: normal; margin-top: 0.35rem; }
   .action-bar .form-needed { margin-right: auto; padding-left: 0.25rem; padding-right: 0.25rem; font-weight: 600; color: #8a4b00; text-align: left; }
   .action-bar .form-needed::before { content: ''; display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: currentColor; margin-right: 0.45rem; vertical-align: 1px; }
   .action-bar .form-needed.form-needed-done, .action-bar .form-needed:disabled { color: #1d5434; opacity: 1; text-decoration: none; }
-  /* On phones the bar stays short: the two buttons side by side, the line above them. */
+  /* On phones actions follow the fields so a sticky bar cannot obscure touch targets. */
   @media (max-width: 575px) {
-    .action-bar { flex-wrap: wrap; gap: 0.4rem 0.5rem; padding: 0.5rem 0.75rem; }
+    .action-bar { position: static; flex-wrap: wrap; gap: 0.4rem 0.5rem; padding: 0.5rem 0.75rem; }
     .action-bar .form-needed { flex: 1 0 100%; min-height: 32px; font-size: 0.88rem; padding-top: 0; padding-bottom: 0; }
     .action-bar .btn:not(.form-needed) { flex: 1 1 0; padding-left: 0.5rem; padding-right: 0.5rem; font-size: 0.92rem; }
   }

@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Common Research Designs
-Version: 0.61.0
+Version: 0.61.1
 Authors@R:
     person("Joel", "Thornton", , "joelthornton53@gmail.com",
            role = c("aut", "cre"))

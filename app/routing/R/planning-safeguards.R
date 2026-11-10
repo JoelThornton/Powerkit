@@ -48,3 +48,19 @@ corrected_count_search_note <- function(spec, result) {
     "Corrected count tests are discrete: actual power at the returned integer N can fall below the target, and the fitted interval does not cover every approximation error.",
     "Check power at the proposed N with more simulations; compare nearby valid sample sizes before choosing your final sample.")
 }
+
+# These limitations stay visible with explanations off and precede the answer.
+planning_warning_notes <- function(spec, result = NULL) unique(c(
+  gg_planning_note(spec), binary_x_modmed_note(spec),
+  if (!is.null(result)) corrected_count_search_note(spec, result)
+))
+planning_warnings_ui <- function(spec, result = NULL) {
+  notes <- planning_warning_notes(spec, result)
+  if (!length(notes)) return(NULL)
+  div(class = "alert alert-warning selected-method-warning planning-critical", role = "status",
+    tags$strong("Important limitation for this analysis"),
+    tags$ul(lapply(notes, tags$li)),
+    if (identical(spec$design, "moderated_mediation") &&
+        identical(spec$variables$X$type, "binary")) p(
+      "Choose the analysis you will actually report. If that is ordinary regression with a percentile bootstrap, select the PROCESS-style option. Its evidence covers only recorded settings; switching methods alone does not validate your plan."))
+}

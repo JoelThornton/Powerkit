@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 10 November 2026 (powerkit 0.61.0 release batch; deployment confirmation outstanding). Where the project is
+*Last updated: 10 November 2026 (0.61.1 pre-sharing safeguards; deployment confirmation outstanding). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -11,11 +11,16 @@ powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
 
-The [10 November release-readiness review](release-readiness-review.md)
-fixes were merged in PR #367 (v0.60.0, main 950b7ad). Required checks,
-Windows/macOS launcher checks and Linux current-dependency CRAN quick tests
-on R release/devel passed on its final head. Deployment has not been
-re-observed. These checks do not resolve scientific validation failures.
+The [release-readiness review](release-readiness-review.md) source fixes
+merged through PR #368 (0.61.0, main 6f6f451), with required gates,
+Windows/macOS launcher checks and Linux CRAN quick release/devel compatibility
+checks passing. The next bounded safeguards move known limitations ahead of
+calculation and results, clarify power choices and missing paired correlations,
+and exercise eleven common analysis translations. Desktop/mobile keyboard
+and automated accessibility checks pass for the exercised journeys, with a
+phone action-bar obstruction corrected. This does not resolve the
+scientific failures. The published branch and observed live page still showed
+0.60.0 at the start of this batch; final publication verification is pending.
 
 The [first-release support plan](v1-support-plan.md) sets a broad coverage
 target, a representative benchmark and complex-design audit briefs. Its
@@ -24,13 +29,12 @@ expanded forms and access routes, with a freshness check. It is discovery
 metadata, not new scientific evidence or a measured 99% result. Audit P0
 cases and investigate the two recurring failures before further claims.
 
-Local installation recovery is implemented in the current PR: bounded
-per-file TLS/download retries, alternate downloader/mirrors, bootstrap
-recovery, and an engine completion stamp written only after a successful,
-matching install. A real isolated three-package binary restore on Windows
-passed with renv 1.0.3 and an unchanged lockfile. Full clean Windows/macOS
-checks passed on the previous candidate head, and the user confirmed recovery
-worked on their connection. No fix is claimed for every network.
+Local installation recovery merged in PR #368: bounded per-file TLS/download
+retries, alternate downloader/mirrors, bootstrap recovery and an engine
+completion stamp written only after a successful matching install.
+An isolated three-package binary restore on Windows passed with renv 1.0.3
+and an unchanged lockfile. Full clean Windows/macOS first/repeat starts passed
+on that PR's final head. No fix is claimed for every network.
 
 The [default review and checklist](variation-default-review.md) records the
 maintainer's approval of ordinary t-test and Pearson correlation plans starting
@@ -53,7 +57,7 @@ recorded run. A direct archived
 PROCESS-software comparison remains pending; no evidence badge is upgraded
 and the existing ML/Monte-Carlo binary-X failure remains open.
 
-The final five safeguards in the candidate PR are recorded in the
+The five safeguards merged in PR #368 are recorded in the
 [review checklist](release-readiness-review.md#five-priority-safeguards-10-november):
 visible corrected-ANOVA limitations, a new unknown-dependence default that
 preserves historical plans, matched interaction-sensitivity verification,
@@ -184,21 +188,24 @@ The known scientific failures and broad release-validation requirements remain.
   differs, and a write-up with an R script, in sections saved to a file.
   It opens from the start screen's "Replicate a published finding".
 
-The open PR also adds selectable continuity-corrected two-proportion and
+PR #368 added selectable continuity-corrected two-proportion and
 2 by 2 contingency tests, leaving existing defaults intact. Inputs/results
 name the correction and sampling plan; corrected tests simulate the actual
 R analysis and report failed studies. Direction/allocation/replay checks and
-the selected high-replication comparisons pass locally; published references
-and recommended-N fresh-draw checks remain open. See the
+the selected high-replication comparisons passed locally and on GitHub.
+Four independent returned-N checks are archived, including small target
+shortfalls and a reference outside the smooth curve interval; accurate final-N
+verification/search and published references remain open. See the
 [count-test checklist](count-test-review.md).
 
-A targeted wording pass in the open PR corrects the equal-group Welch/Student
+The wording pass merged in PR #368 corrects the equal-group Welch/Student
 overstatement, scopes the interaction comparison to its recorded cases,
 labels interaction sensitivity as a formula approximation, and distinguishes
 one-test power from any/all-test success. The regression form now explains
 why its two input routes need not agree. This is the first pass of the
 full wording audit in release-readiness-review.md, not every-screen sign-off;
-statistical engines and existing claim-planning defaults are unchanged. Three
+statistical engines are unchanged; new all-required-test plans now use the
+existing unknown-dependence bound while saved choices are preserved. Three
 fresh sensitivity checks (10,000 simulated studies each) are archived; all
 99% power intervals included the 80% target. They use the same backend and
 do not establish universal agreement or an independent-package validation.

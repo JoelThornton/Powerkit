@@ -2664,3 +2664,13 @@ Offer matched fixed-N checks for approximate interaction sensitivity,
 exact-data corrected ANOVA and simulated corrected-count sample sizes.
 The four independent fitted-N count checks are archived, including shortfalls:
 a fitted search and its interval must not imply a guaranteed attained power.
+
+### Pre-sharing input and result clarity, 10 November 2026
+
+Known numerical-method limitations must appear when the affected method/type
+is selected, even while effect or sample-size inputs are incomplete, and
+precede the result headline. Preserve the same limitations in exported text.
+An explicit 80% target-power shortcut does not prefill the target or choose
+an effect assumption. Explain the existing paired change-score-SD route when
+the correlation is unavailable. This round changes no statistical formula
+or analysis default and does not close the scientific validation requirements.
