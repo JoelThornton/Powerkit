@@ -21,6 +21,9 @@ on:
     paths:
       - docs/run-it-yourself.md
       - run_powerkit.R
+      - scripts/local-engine.R
+      - scripts/local-updates.R
+      - check_powerkit_updates.R
       - renv.lock
       - renv/**
       - app/routing/app.R

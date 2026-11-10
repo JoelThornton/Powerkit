@@ -1,3 +1,15 @@
+test_that("historical ordinary-test evidence excludes changed populations and decision rules", {
+  spec <- example_spec("one_sample_t")
+  expect_equal(analysis_evidence(spec)$record_id, "one-sample-t")
+  spec$population$tau <- 0.1
+  expect_equal(analysis_evidence(spec)$record_id, "unlinked")
+  spec$population$tau <- 0
+  expect_equal(analysis_evidence(spec)$record_id, "one-sample-t")
+  spec$population$tau <- NULL
+  spec$effect_justification$small_telescopes <- list(n = 30, alpha = 0.05)
+  expect_equal(analysis_evidence(spec)$record_id, "unlinked")
+})
+
 test_that("case evidence follows the test version rather than the design card", {
   spec <- example_spec("independent_t")
   spec$target_test$method <- "student_t"

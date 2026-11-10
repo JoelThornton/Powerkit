@@ -87,6 +87,21 @@ test_that("Welch's test with equal SDs is planned the same way", {
   welch <- run_spec(het_spec(method = "welch_t"))
   student <- run_spec(het_spec(method = "student_t"))
   expect_equal(welch$curve$power, student$curve$power)
+  unequal <- het_spec(method = "welch_t")
+  unequal$options$allocation_ratio <- 2
+  unequal$goal$n <- 102L
+  expect_error(run_spec(unequal), "currently requires equal group sizes", class = "powerkit_spec_error")
+  unequal$population$tau <- 0
+  expect_s3_class(validate_spec(unequal), "powerkit_spec")
+})
+
+test_that("a sensitivity target already reached at average zero has a plain explanation", {
+  expect_error(run_spec(het_spec(effect = 0.3, tau = 1,
+    goal = list(type = "sensitivity", n = 200L, power = 0.1), method = "student_t")),
+    "already reached with an average effect of zero", class = "powerkit_run_error")
+  expect_error(run_spec(het_r_spec(tau = 1,
+    goal = list(type = "sensitivity", n = 200L, power = 0.1))),
+    "already reached with an average effect of zero", class = "powerkit_run_error")
 })
 
 test_that("the smallest detectable average effect has the target power", {

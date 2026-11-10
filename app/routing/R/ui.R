@@ -406,6 +406,15 @@ start_ui <- function(tree, start = list()) {
     # Filled in this browser from the cards opened before (nav_js); empty
     # on a first visit, so a newcomer sees only the three ways to start.
     div(id = "pk-recent", class = "start-recent", hidden = NA),
+    div(class = "local-download small mt-3",
+      if (isTRUE(getOption("powerkit.local"))) {
+        tagList(tags$strong("Running on your computer. "),
+          "Calculations use your processor. Updates are optional and do not change an open study. ")
+      } else {
+        "Long calculation? You can run the same app on your own computer. "
+      },
+      tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
+        "Download and update instructions")),
     placeholders_at(tree, "start")
   )
 }

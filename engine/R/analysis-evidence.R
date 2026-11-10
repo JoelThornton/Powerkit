@@ -85,6 +85,18 @@ analysis_evidence <- function(spec, computation_method = NULL) {
   query <- evidence_metadata(spec)
   query$features$computation_method <- computation_method %||% spec$options$method %||% "unspecified"
   hits <- Filter(function(x) evidence_match(query, x$match), registry$records)
+  # These routes change the population or the decision rule. Historical
+  # ordinary-test checks do not cover them merely because the template
+  # and method names are unchanged. A future record must name that route.
+  changed_route <- c(
+    if (heterogeneity_test(spec)) "population.tau",
+    if (small_telescopes_test(spec)) "effect_justification.small_telescopes"
+  )
+  if (length(changed_route)) {
+    hits <- Filter(function(x) all(vapply(changed_route, function(path) {
+      any(names(x$match) == path | startsWith(names(x$match), paste0(path, ".")))
+    }, logical(1))), hits)
+  }
   if (length(hits)) hits <- hits[order(vapply(hits, function(x) length(x$match), integer(1)), decreasing = TRUE)]
   record <- if (length(hits)) hits[[1]] else NULL
   kinds <- c("package_agreement", "independent", "published", "full_validation")
