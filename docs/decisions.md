@@ -2584,3 +2584,15 @@ the site stays findable by search engines.
   from the notes a first submission always gets.
 - **When to submit** is a queue item (`next.md`); the recommendation is
   the 1.0.0 release.
+
+## 2026-11-10 · Broad first-release scope and evidence
+
+Aim for more than 99% of primary quantitative analyses in a defined,
+representative psychology benchmark, including complex challenge cases.
+Powerkit remains a general research tool. This is a target, not measured
+coverage or a reason to narrow the benchmark after failures. Implementation,
+case-specific evidence, whole-study claims and usable completion are
+separate assessments. Source choices are generated for discovery; the
+existing evidence registry remains authoritative. The benchmark and release
+gates are in [v1-support-plan.md](v1-support-plan.md); P0 audits and
+investigation of the two recurring failures lead next.md.

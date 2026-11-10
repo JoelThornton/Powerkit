@@ -159,6 +159,13 @@ The engine validates the spec, routes it to a backend, searches for the sample s
 
 ## 6. Validation targets
 
+These are the original foundation checks. The current release standard is
+[v1-support-plan.md](v1-support-plan.md): selected variants, method-specific
+acceptance, independent/published checks, failures, Monte Carlo uncertainty
+and durable archives. Point-null checks below are not a universal criterion
+for equivalence, Bayesian or recovery goals.
+
+
 Write these tests before the engine code, and treat them as your work rather than Claude's: you choose the published numbers and check they are transcribed correctly. If the engine passes them, the engine can be trusted.
 
 **Four kinds of test**
@@ -241,7 +248,10 @@ Work in small phases, each ending with passing tests. Give Claude Code this guid
 | 7. AI assistant | Words/diagram → suggested spec, user confirms | Suggestions never bypass the confirm screen |
 | 8. Hosting | Public deploy with queue and limits | Stable under 20 concurrent runs |
 
-*Where the phases stand (4 November 2026):* phases 0–2 are implemented.
+*Where the phases stand (10 November 2026):* infrastructure and foundation
+backends are implemented. Phase numbers no longer order development; the
+broad v1 support/evidence plan and next.md now lead. Historical phase rows
+are not current completion claims.
 The mediation and interaction backends run, including supported binary X
 and W variants, but published validation remains incomplete. Exports include
 scripts, methods text and citations. The Shiny prototype is publicly hosted

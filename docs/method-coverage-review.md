@@ -20,9 +20,12 @@ source and numeric comparisons are in `validation-log.md` and its linked
 summary. These checks do not establish arbitrary missingness, extra predictors,
 binary X, every analysis variant or complete release validation.
 
-Further models remain a continuing programme: random-intercept cross-lagged
-panels, interrupted time series, selected latent-profile/factor recovery and
-other dyadic/mediation designs follow the maintainer's queue. Frequentist
+Random-intercept cross-lagged panels (E74), interrupted time series (E45),
+latent profiles (E58) and factor recovery (E73) now have scoped calculation
+routes; their presence does not settle their scientific validity or cover
+all models in those families. Further dyadic/mediation variants remain in
+the queue. The [first-release plan](v1-support-plan.md) now defines the
+coverage benchmark, complex-design audits and case-specific evidence gates. Frequentist
 group-sequential designs remain distinct from existing Bayesian sequential
 planning. Each addition needs its specified data-generating population,
 actual analysis, route/card/form, reproducible exports, independent numerical

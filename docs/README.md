@@ -1,6 +1,6 @@
 # Map of the docs
 
-*8 November 2026.* Which document to read for what. Start with the first
+*10 November 2026.* Which document to read for what. Start with the first
 three; the rest are reference. Pages under "History" are kept for their
 reasoning and are not current instructions. Every page in `docs/` is
 listed here (a test checks).
@@ -23,6 +23,12 @@ listed here (a test checks).
   whole.
 
 ## For the statistician
+
+- [`v1-support-plan.md`](v1-support-plan.md): first-release scope, representative
+  coverage benchmark, complex-design briefs and variant-level release gates.
+- [`release-support-inventory.json`](release-support-inventory.json): generated
+  discovery metadata from expanded current forms; regenerate with
+  `scripts/release-support.R`. It assigns no new evidence.
 
 - [`conventions.md`](conventions.md): what each backend does by default,
   every departure (1-22) and known difference (1-13), and where each is

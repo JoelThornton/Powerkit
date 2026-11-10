@@ -12,19 +12,21 @@ fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
 
 The [10 November release-readiness review](release-readiness-review.md)
-records the remaining scientific, researcher and distribution work with
-an explicit checklist. This branch corrects historical-evidence matching
-for changed decision rules, a sensitivity-search boundary, default-method
-wording and local engine restart handling. It adds a download guide,
-optional read-only update discovery and a current-dependency CRAN test
-workflow. These are proposed changes awaiting review, not a merged or
-deployed release. The two repeated statistical validation failures,
-published benchmarks and human/manual review remain open.
+fixes were merged in PR #367 (v0.60.0, main 950b7ad). Required checks,
+Windows/macOS launcher checks and Linux current-dependency CRAN quick tests
+on R release/devel passed on its final head. Deployment has not been
+re-observed. These checks do not resolve scientific validation failures.
+
+The [first-release support plan](v1-support-plan.md) sets a broad coverage
+target, a representative benchmark and complex-design audit briefs. Its
+[source inventory](release-support-inventory.json) is generated from current
+expanded forms and access routes, with a freshness check. It is discovery
+metadata, not new scientific evidence or a measured 99% result. Audit P0
+cases and investigate the two recurring failures before further claims.
 
 ## Where things are
 
-- **Review fixes (7 November 2026):** a review of the whole project found
-  no wrong number and nothing critical, and grouped 21 serious problems
+- **Review fixes (7 November 2026):** the earlier project review grouped 21 serious problems
   and about 110 smaller ones into fourteen fix batches, all done by
   8 November: validation runs that finish and report, what the app says,
   design-finder routes, the draft box and page structure, effect-size
@@ -62,7 +64,7 @@ published benchmarks and human/manual review remain open.
   mode is on the start screen, with Bayes factor write-ups worded as
   design analyses and a write-up for plans that report a p-value and a
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
-  Bayes mode (item 15) waits on a decision.
+  Bayes mode (item 17) waits on a decision.
 
 - **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
@@ -105,7 +107,7 @@ published benchmarks and human/manual review remain open.
   pilot, or small telescopes for a replication (Simonsohn, 2015); the
   smallest detectable effect on the t-tests, the correlation,
   proportions, the ANOVAs (Welch's F by simulation), regression and the
-  clustered design (the rest is `next.md` item 6). Results show the critical effect size for the
+  clustered design (the rest is `next.md` item 9). Results show the critical effect size for the
   t-tests (Student's) and the correlation.
 
 - **Results and documents:** a result opens with the answer and what it
@@ -128,7 +130,7 @@ published benchmarks and human/manual review remain open.
   role, the claim, the population assumed, the joint and separate powers
   and the R script that reproduces them, marked experimental on its first
   page. It waits for a statistician's check ([`whole-study-method.md`](whole-study-method.md));
-  the designs still to add are in `next.md` item 1.
+  the designs still to add are in `next.md` item 4.
 
 - **Experimental: Labs.** The pre-replication notes, the replication
   planner, the methods map, the effect-size converter, the power
@@ -155,8 +157,13 @@ for a design before its PR merges, every night the engine changed, and in
 full every Sunday from 00:05 UTC (`scripts/validation-plan.R`), with
 tests dealt to parts by their recorded times so each part ends within
 GitHub's six hours, and one list at the end of each run of the tests that
-need attention. The full run of 8 November took 4 hours 13
-minutes (389 pass, 2 fail, 110 skipped). Its two failures are known: the
+need attention. The recorded full run of 8 November took 4 hours 13
+minutes (389 pass, 2 fail, 110 skipped; skips include partitioning and
+published placeholders). The last completed nightly inspected,
+[9 November run 42570428222](https://github.com/JoelThornton/Powerkit/actions/runs/42570428222),
+also failed the ANOVA and binary-X checks (the latter .077 in 1,000).
+The 10 November run 42772650889 was queued when checked; it supplies no
+new results yet. Its two failures are known: the
 mixed-design Greenhouse-Geisser check, which fails with new seeds too and
 waits for the statistician, and moderated mediation's Type I error with a
 yes/no X (7.5% of 1,000 studies), a question for power4mome's author.
@@ -173,10 +180,9 @@ yes/no X (7.5% of 1,000 studies), a question for power4mome's author.
 - Technical details (df, critical value, noncentrality) are missing where
   the package reports none (TOSTER, powertools) and for Bayes factors.
 - With a yes/no X and no moderation, power4mome's moderated mediation has
-  a Type I error of about 6.7%, stated on the results screen until its
-  author answers (`upstream-questions.md`).
+  a Type I error of about 6.7%, stated on the results screen pending investigation and author review (`upstream-questions.md`).
 - Long simulations end with the visitor's session; no durable job queue
-  (`hosting-options.md`, `next.md` item 8).
+  (`hosting-options.md`, `next.md` item 11).
 - No usability sessions with researchers yet
   ([`usability-session-pack.md`](usability-session-pack.md)); no
   ease-of-use result is claimed.
@@ -194,11 +200,11 @@ which opens that card as the list of every analysis does). The pages
 search engines index are static, in `site/`, on GitHub Pages. Main
 requires a pull request with passing checks; each finished version is
 tagged and published as a GitHub pre-release
-([`repository-protection.md`](repository-protection.md)). Still to do
-once, by the maintainer: turn on GitHub Pages and add the site to Search
-Console.
+([`repository-protection.md`](repository-protection.md)). Verify the static site, download page and indexing configuration against
+the actual deployment; Search Console registration alone does not prove
+that every page is indexed.
 
-**CRAN (9 November 2026):** every package the engine uses is on CRAN,
+**CRAN (10 November 2026):** every package the engine uses is on CRAN,
 and the engine has been prepared for submission: the backends only some
 designs use are in Suggests (25 non-base Imports remain, and installing
 the engine alone brings 228 locked packages rather than 300,
@@ -206,7 +212,10 @@ the engine alone brings 228 locked packages rather than 300,
 backend is missing says which package to install, every exported
 function has an example, and on CRAN a quick set of 23 test files runs
 (`engine/tests/testthat.R`). The online app still installs every
-backend (`app/routing/optional-packages.R`). Submitting is a queue item
+backend (`app/routing/optional-packages.R`). The v0.60.0 Linux current-dependency quick CRAN suite passed on R release
+and devel with NOT_CRAN=false; this is compatibility evidence, not
+scientific validation or CRAN acceptance. Other platforms, optional-backend
+coverage and submission checks remain. Submitting is a queue item
 in [`next.md`](next.md).
 
 ## Working environment

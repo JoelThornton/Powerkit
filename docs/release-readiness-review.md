@@ -14,7 +14,7 @@ This review inspected source, change history, hosted check results and the two f
 
 ## Fix checklist
 
-Checked means implemented and locally checked in this review branch; it does not mean merged, deployed, independently endorsed or scientifically validated. PR checks and unresolved items are listed separately below.
+The corrections below merged in [PR #367](https://github.com/JoelThornton/Powerkit/pull/367), v0.60.0, main 950b7ad. Checked means completed within the stated scope; it does not mean deployed, independently endorsed or scientifically validated. The follow-on [first-release support plan](v1-support-plan.md) operationalises R15–R28; its inventory and protocol do not complete those scientific or human reviews.
 
 ### Corrections and practical preparation in this branch
 
@@ -28,7 +28,7 @@ Checked means implemented and locally checked in this review branch; it does not
 - [x] R08. Offer a clear website download route and explain local CPU use, first-install requirements, offline limits, and the distinction between the CRAN engine and the complete app.
 - [x] R09. Add an optional, read-only update check for numbered releases, including clearly labelled prototypes. No study data is sent and no code is automatically installed or replaced.
 - [x] R10. Recommend numbered full-app downloads and a separate folder/fresh R session for updates. Keep old versions and saved studies; the main ZIP is a development snapshot.
-- [ ] R11. Exercise the actual CRAN test branch with current repository dependencies on R release and devel. Existing locked CI sets NOT_CRAN=true and runs R CMD check without tests, so it never exercises that branch as a built package.
+- [x] R11. Exercise the actual CRAN test branch with current repository dependencies on R release and devel. The added Linux workflow passed on R release and devel with current hard dependencies and NOT_CRAN=false (run 42735853076, final head 8ac0268). Locked CI remains a separate check; optional backends and other operating systems remain R29.
 - [x] R12. Prepare the author-review and paper protocol below, with a clear distinction between technical questions, collaboration and endorsement.
 - [x] R13. Document the release gates and give every remaining recommendation an explicit owner action or acceptance condition.
 
@@ -112,6 +112,6 @@ For researcher planning, the conceptual foundation should remain the inferential
 
 The new readiness workflow intentionally tests the quick CRAN suite with current hard dependencies. It does not replace the complete locked suite, optional-backend checks, win-builder, manual audit or high-replication validation. Any new failure must be reported, not converted into a green claim.
 
-## Checks for this proposed change
+## Checks for the merged correction
 
-Focused engine tests for evidence routing and between-study variation: 326 assertions passed in the final focused run, with no failures, warnings or skips. New local-distribution checks and final repository consistency passed. The consistency check caught a missing documentation-index link and a change-note formatting error; both were corrected. After numbering the batch, the isolated engine library was refreshed so its version matched the source. The full hosted app suite then caught sitemap, endpoint-documentation and glossary alignment failures; these were corrected and the focused connection/documentation/local-distribution checks pass. The optional checker also successfully read the real public GitHub release list without installing anything. Final hosted checks are pending. Existing high-replication validation failures are untouched.
+Focused engine tests for evidence routing and between-study variation: 326 assertions passed in the final focused run, with no failures, warnings or skips. New local-distribution checks and final repository consistency passed. The consistency check caught a missing documentation-index link and a change-note formatting error; both were corrected. After numbering the batch, the isolated engine library was refreshed so its version matched the source. The full hosted app suite then caught sitemap, endpoint-documentation and glossary alignment failures; these were corrected and the focused connection/documentation/local-distribution checks pass. The optional checker also successfully read the real public GitHub release list without installing anything. Final required hosted checks passed, including engine/app/browser/manifest, clean Windows/macOS launchers and Linux CRAN quick suites on R release/devel. PR #367 merged at 950b7ad. This does not establish that the hosted app has republished. Existing high-replication validation failures are untouched.

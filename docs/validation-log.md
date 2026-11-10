@@ -19,7 +19,22 @@ mediation_crosscheck_parallel and mediation_crosscheck_serial (parallel
 and serial mediation against simsem; same section); plus the on-demand
 interaction_grid.
 
-## What "validated" means
+## Release evidence standard (10 November 2026)
+
+For the first release, evidence is attached to the selected variant and
+assumptions using [v1-support-plan.md](v1-support-plan.md) and the existing
+registry. The historical definition below explains earlier labels; it does
+not qualify new options or all parameter values for release. No old test
+constants or results are changed.
+
+Predefine method-appropriate acceptance: discrete and conservative tests,
+equivalence/minimum-effect boundary nulls, Bayesian evidence goals and
+model/factor recovery need different checks. A universal .04–.06 rejection
+rule is insufficient. Preserve Monte Carlo uncertainty, failures, independent
+and published comparisons and fresh-draw verification of recommended N.
+Historical green labels require a case-level release audit for a 1.0 claim.
+
+## Historical definition of "validated"
 
 A design is marked validated (`status: runs_validated` in
 `app/routing/tree.yaml`, a green "Runs in powerkit" card; "Yes" in table
@@ -50,7 +65,9 @@ more), the card says what was tested and what wasn't.
 The validation can run on GitHub's computers instead of yours: the
 repository is public, so GitHub Actions is free, and its standard Linux
 machine has 4 cores and about 16 GB of memory. Each run does one chunk and
-can take at most 6 hours. Nothing runs on its own; you start each run.
+can take at most 6 hours. Manual runs are available below; nightly-validation
+also schedules short and affected long chunks after engine changes and all
+chunks weekly (scripts/validation-plan.R).
 
 **Start a run**
 
@@ -79,7 +96,8 @@ can take at most 6 hours. Nothing runs on its own; you start each run.
    downloads a zip file (you must be signed in to GitHub).
 3. Unzip it. `summary.txt` is the summary to paste into this file as a new
    entry; each test also has a `.rds` file (its saved result) and a `.log`
-   file (everything it printed). Artifacts are kept for 30 days.
+   file (everything it printed). Actions artifacts are kept for 30 days; archive release evidence
+   separately with immutable source/environment metadata before expiry.
 
 **Time.** The mediation chunks run one test at a time with all 4 cores;
 the others run 4 tests at a time. Measured on GitHub (15–16 October
