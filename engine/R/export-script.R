@@ -1427,6 +1427,7 @@ pwr_sensitivity_section <- function(spec, result) {
 # Spower -------------------------------------------------------------------------
 
 spower_script <- function(spec, result) {
+  if (continuity_corrected(spec)) return(corrected_count_script(spec, result))
   inputs <- spower_inputs(spec)
   one_sided <- inputs$alternative != "two_sided"
   c(

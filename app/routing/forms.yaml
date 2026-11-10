@@ -681,8 +681,10 @@ forms:
       - input: "The z test, Fisher's exact test or a Bayes factor test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {z_test: "The z test (a large-sample test)", fisher_exact: "Fisher's exact test (pwrss's power.exact.fisher()): for small samples or small expected counts", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value"},
-             default: z_test, default_source: "the test G*Power and pwr's formulas cover for two independent proportions"}
+             choices: {z_test: "The z test without continuity correction (a large-sample test)", z_test_corrected: "With continuity correction (R prop.test default), simulated", fisher_exact: "Fisher's exact test (pwrss's power.exact.fisher()): for small samples or small expected counts", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value"},
+             default: z_test, default_source: "the test G*Power and pwr's formulas cover for two independent proportions",
+             help: "Choose the test you will actually use to analyse your study. R's prop.test() applies continuity correction by default; that can lower power compared with the uncorrected test.",
+             choice_notes: {z_test_corrected: "Simulates independent people in two groups with fixed group sizes, then runs R's prop.test(correct = TRUE). Power and required sample size are supported; to compare effects, run separate fixed-sample power plans. This is not Fisher's exact test, and the correction does not make a sparse-data approximation exact."}}
           - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
@@ -737,9 +739,10 @@ forms:
       - input: "The chi-square test or a Bayes factor"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {pearson_chi_square: "Pearson's chi-square test", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value, simulated"},
+             choices: {pearson_chi_square: "Pearson's chi-square test without continuity correction", pearson_chi_square_corrected: "With continuity correction (2 by 2 only; R chisq.test default), simulated", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value, simulated"},
              default: pearson_chi_square, default_source: "Pearson's chi-square test, which pwr computes (pwr.chisq.test(), pwr 1.3-0) as G*Power does",
-             help: "The Bayes factor version needs the table of proportions, not Cohen's w."}
+             help: "Choose the test in your analysis plan. R's chisq.test() uses continuity correction by default for 2 by 2 tables only. The corrected and Bayes factor versions need the table of proportions, not Cohen's w.",
+             choice_notes: {pearson_chi_square_corrected: "Needs a 2 by 2 table of population proportions. Simulates independent people with a fixed total sample size; row and column totals vary. If group sizes are fixed, use the two-proportions design instead. Supports power and required sample size; to compare effects, run separate fixed-sample power plans. Sparse counts can still make this approximate test unsuitable."}}
           - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",

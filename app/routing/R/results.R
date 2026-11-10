@@ -1803,7 +1803,7 @@ critical_effect_sentence <- function(result) {
 # upstream-questions.md, power4mome), so the result says so.
 binary_x_modmed_note <- function(spec) {
   if (!identical(spec$design, "moderated_mediation") || !identical(spec$variables$X$type, "binary")) return(NULL)
-  if (!identical(spec$target_test$method, "monte_carlo_ci")) return(paste(
+  if (!identical(spec$target_test$method %||% "monte_carlo_ci", "monte_carlo_ci")) return(paste(
     "The existing binary-X moderated-mediation calibration warning was measured for maximum likelihood with Monte Carlo intervals.",
     "It is not a calibration estimate for the selected bootstrap analysis; changing the interval is not proof that the issue is resolved."))
   paste(
@@ -2177,6 +2177,9 @@ bayes_null_writeup <- function(spec, result) {
 
 departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
+  if (is_corrected_count_test(spec)) keys <- setdiff(keys, c("5", "9", "10", "11"))
+  if (identical(spec$template, "chi_square_independence") &&
+      (length(spec$variables$X$levels) != 2L || length(spec$variables$Y$levels) != 2L)) keys <- setdiff(keys, "5")
   if (identical(spec$target_test$method, "ols_percentile_bootstrap")) keys <- setdiff(keys, c("6", "7"))
   if (!spec$template %in% c("process_58", "process_59")) keys <- setdiff(keys, "19")
   # Departure 20 (both of each DIF item's parameters tested) applies unless
@@ -2611,6 +2614,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(gd <- group_d_sentence(result))) p(class = "result-conversion", gd),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
     if (!is.null(ma <- mediation_analysis_sentence(result))) p(class = "result-mediation-analysis", ma),
+    if (!is.null(ct <- count_test_sentence(spec))) p(class = "result-count-analysis", ct),
     if (!is.null(het <- heterogeneity_sentence(result))) p(class = "result-heterogeneity", het),
     heterogeneity_range_ui(result),
     if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
@@ -3083,7 +3087,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, welch_population_note(spec), mediation_analysis_sentence(result))
+  main <- c(main, welch_population_note(spec), mediation_analysis_sentence(result), count_test_sentence(spec))
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
               if (assumes_sphericity(spec)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power)

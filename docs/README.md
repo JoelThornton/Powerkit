@@ -124,3 +124,5 @@ listed here (a test checks).
   GG reproduction; its recorded summary is linked from validation-log.md.
 - `upstream/spower-one-sided-tests.R`: the example reported to Spower's
   author about one-sided tests (`decisions.md`, 13 October 2026).
+
+- [Count-test analysis choices and checklist](count-test-review.md)

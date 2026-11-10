@@ -18,6 +18,11 @@ The [`decision-tree.md`](decision-tree.md) records the routing rationale.
 
 The [first-release support plan](v1-support-plan.md) now sets the broad v1 target, benchmark and evidence gates. The [generated inventory](release-support-inventory.json) lists current expanded form choices and access routes. Candidate functions below retain their dated research provenance; current availability must be checked before implementation.
 
+The open 10 November review PR adds continuity-corrected variants on the existing
+E5/E6 cards: fixed-group two proportions and fixed-total 2 by 2 tables. Their
+selected-case checks and remaining evidence gates are in [count-test-review.md](count-test-review.md);
+no coverage percentage or whole-card validation status is upgraded.
+
 ## How to read the tables
 
 | Column | Meaning |

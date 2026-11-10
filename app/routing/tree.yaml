@@ -1031,7 +1031,7 @@ endpoints:
   E5:
     doc_name: "Test of two proportions (z test; Fisher's exact test as an option)"
     plain_name: "Compare two groups on a yes/no outcome"
-    search_words: "two proportions fisher exact"
+    search_words: "two proportions fisher exact continuity corrected yates"
     template: "basic_test / two_proportions"
     backend: "base R's power.prop.test() for equal groups and pwrss for unequal groups, by the z test as in G*Power with no continuity correction (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher(); the Bayes factor test if you choose it: BayesFactor's contingencyTableBF() (JASP's default contingency table Bayes factor), summed exactly over every possible table"
     refs: "Departures 5, 9, 11 and 15, Known difference 13 (docs/conventions.md)"
@@ -1041,6 +1041,7 @@ endpoints:
     bayes_test: true
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed with the z test, which matches G*Power to seven decimals; unequal groups (pwrss) match G*Power to seven decimals in the examples checked. No published example has been checked for this design yet."}
     card_points:
+      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis."
       - "Fisher's exact test, an option, is in validation: it matches pwrss called directly in the engine's tests, but hasn't yet been checked against G*Power or a published example."
       - "The Bayes factor test, an option, is in validation: it matches BayesFactor's contingencyTableBF() table by table and simulated studies in powerkit's checks, but hasn't yet been checked against a published example."
     tier: MVP
@@ -1048,12 +1049,13 @@ endpoints:
   E6:
     doc_name: "Chi-square test of independence"
     plain_name: "Test whether two sets of categories are related"
-    search_words: "crosstab contingency table"
+    search_words: "crosstab contingency table continuity corrected yates"
     template: "basic_test / chi_square_independence"
     backend: "pwr: pwr.chisq.test() (Spower simulation if you choose it); BayesFactor's contingencyTableBF() for the Bayes factor, simulated with Spower"
     method: "Formula (no simulation); simulation for the Bayes factor"
     inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w", "The chi-square test or a Bayes factor"]
     card_points:
+      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis."
       - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: powerkit simulates the chance of strong evidence, with JASP's default sampling plan and prior."
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}

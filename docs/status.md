@@ -171,6 +171,14 @@ and the existing ML/Monte-Carlo binary-X failure remains open.
   differs, and a write-up with an R script, in sections saved to a file.
   It opens from the start screen's "Replicate a published finding".
 
+The open PR also adds selectable continuity-corrected two-proportion and
+2 by 2 contingency tests, leaving existing defaults intact. Inputs/results
+name the correction and sampling plan; corrected tests simulate the actual
+R analysis and report failed studies. Direction/allocation/replay checks and
+the selected high-replication comparisons pass locally; published references
+and recommended-N fresh-draw checks remain open. See the
+[count-test checklist](count-test-review.md).
+
 ## Validation
 
 Most designs are checked against the package each one calls, plus their

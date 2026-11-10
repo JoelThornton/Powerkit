@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "version": "2026-11-05.2",
+  "version": "2026-11-10.1",
   "limits": [
     "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
     "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
@@ -8,6 +8,19 @@
     "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
   ],
   "sources": {
+    "corrected-counts-2026-11-10": {
+      "date": "2026-11-10",
+      "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+      "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+      "files": [
+        "engine/tests/testthat/test-validation-corrected-counts.R",
+        "engine/tests/testthat/test-continuity-correction.R",
+        "docs/validation/2026-11-10-corrected-counts-summary.txt",
+        "scripts/check-corrected-counts.R"
+      ],
+      "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+      "replications": 10000
+    },
     "basic-2026-10-27": {
       "date": "2026-10-27",
       "revision": "612c22e",
@@ -991,6 +1004,96 @@
           "note": "The original published-value placeholder was skipped, not passed.",
           "sources": [
             "zero-inflated-2026-11-05"
+          ]
+        }
+      }
+    },
+    {
+      "id": "two-proportions-corrected",
+      "match": {
+        "design": "basic_test",
+        "template": "two_proportions",
+        "target_test.method": "z_test_corrected"
+      },
+      "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+      "categories": {
+        "package_agreement": {
+          "status": "scoped_only",
+          "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ]
+        },
+        "independent": {
+          "status": "scoped_only",
+          "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ]
+        }
+      }
+    },
+    {
+      "id": "contingency-corrected",
+      "match": {
+        "design": "basic_test",
+        "template": "chi_square_independence",
+        "target_test.method": "pearson_chi_square_corrected"
+      },
+      "scope": "Fixed-total independent joint-multinomial 2 by 2 tables; N=340 with P=((.25,.25),(.175,.325)) and null N=120 with uniform cells. Independent multinomial simulation supplies the reference; not fixed margins. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+      "categories": {
+        "package_agreement": {
+          "status": "scoped_only",
+          "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ]
+        },
+        "independent": {
+          "status": "scoped_only",
+          "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "full_validation": {
+          "status": "scoped_only",
+          "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+          "sources": [
+            "corrected-counts-2026-11-10"
+          ],
+          "when": {
+            "goal.type": "power"
+          }
+        },
+        "published": {
+          "status": "pending",
+          "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+          "sources": [
+            "corrected-counts-2026-11-10"
           ]
         }
       }

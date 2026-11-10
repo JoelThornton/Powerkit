@@ -93,3 +93,15 @@ test_that("zero-inflated evidence stays scoped and does not turn a skipped publi
   spec$variables$X$type <- "binary"
   expect_equal(analysis_evidence(spec)$record_id, "unlinked")
 })
+
+test_that("corrected-count evidence preserves its case scope and publication gap", {
+  for (name in c("two_proportions_corrected", "chi_square_independence_corrected")) {
+    spec <- example_spec(name)
+    evidence <- analysis_evidence(spec, "simulation")
+    expect_equal(evidence$categories$independent$status, "scoped_only")
+    expect_equal(evidence$categories$published$status, "pending")
+    expect_match(evidence$scope, "Only these cases/revisions", fixed = TRUE)
+    spec$goal <- list(type = "sample_size", power = .8)
+    expect_equal(analysis_evidence(spec)$categories$full_validation$status, "outside_scope")
+  }
+})

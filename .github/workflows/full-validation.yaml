@@ -106,6 +106,7 @@ on:
           - modmed_parallel
           - modmed_difference
           - modmed_binary
+          - corrected_counts
           - process_bootstrap
           - mediation_crosscheck
           - mediation_crosscheck_parallel

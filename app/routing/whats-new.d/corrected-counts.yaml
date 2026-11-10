@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-10"
+    title: "Match the correction in your planned count analysis"
+    text: "Two-proportion and 2 by 2 contingency-table plans now offer continuity correction, as R's usual tests apply by default. The choices say whether correction is included, explain which group sizes are fixed, and keep failed simulated analyses visible. Existing defaults are unchanged."

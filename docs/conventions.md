@@ -894,10 +894,21 @@ kept so later departures keep theirs.
   6.6.2, p. 17]. That is a different test from the z test G*Power offers
   separately, so it is a caution rather than evidence against decision 6;
   the maintainer can check the program itself.
-- **powerkit:** no correction, and no option for one (maintainer's decision
-  6), as in G*Power. This applies when Spower simulates (on request since
-  17 October 2026); pwr's formulas, the default (Departure 9), have no
-  continuity correction either.
+- **powerkit:** the existing default remains uncorrected (maintainer's
+  decision 6); the formula and requested simulation agree on this choice.
+  The 10 November open review PR adds explicit corrected variants:
+  `z_test_corrected` uses Spower's `p_prop.test(correct = TRUE)` with
+  fixed group sizes; `pearson_chi_square_corrected` uses
+  `p_chisq.test(correct = TRUE)` with a fixed total and varying margins.
+  Both support simulated power and required N; they refuse sensitivity
+  and uncorrected-formula overrides. The contingency option requires a
+  full 2 by 2 population table, not Cohen's w. Failed analyses remain in
+  the attempted-study denominator and are reported. This departure is
+  hidden for corrected tests and tables larger than 2 by 2.
+  Sources: [R prop.test documentation](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/prop.test.html)
+  and [R chisq.test documentation](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/chisq.test.html).
+  The correction is a choice to match the planned analysis, not a claim
+  that it makes sparse-data approximations exact or is always preferable.
 - **Size:** two proportions, p1 = .50, p2 = .65, 170 per group,
   alpha = .05, the same 5,000 seeded data sets: power 0.8178 without the
   correction and 0.7894 with it (.028 lower). For the chi-square test it

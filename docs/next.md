@@ -25,6 +25,12 @@ audit below; none is resolved merely by changing labels. The open PR now
 adds a selectable OLS/casewise-percentile-bootstrap route, paired regression
 checks and a dedicated null-calibration job. Finish and archive its results
 and the direct PROCESS-software comparison before claiming equivalence.
+The same PR now adds explicit continuity-corrected count-test choices, with
+independent finite-enumeration/simulation checks. Published references and
+fresh-draw verification of recommended N remain required. Next audit fixed
+versus random predictors and whether the selected claim is one effect,
+any effect, or all required effects; do not replace these with a single
+blanket power claim.
 
 ## The queue
 

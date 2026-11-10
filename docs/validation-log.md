@@ -1420,3 +1420,23 @@ in upstream-questions.md. No evidence badge is upgraded.
 The reproduction saves per-study output, session information and summary
 under validation-results/gg-investigation; these files and the script can
 be archived together. A durable public release archive remains required.
+
+## 2026-11-10 — corrected count tests (local selected chunk)
+
+R 4.5.3 on Windows x86_64, Spower 0.7, candidate engine 0.61.0.
+Working tree based on local b323747 (uncommitted corrected-count changes).
+Source fingerprints and full settings are in [the JSON archive](validation/2026-11-10-corrected-counts.json);
+the standard runner's [summary](validation/2026-11-10-corrected-counts-summary.txt)
+records **6 PASS, 0 FAIL, 0 ERROR, 1 published-reference TODO SKIP**.
+Command: Rscript scripts/run-validation.R --only corrected_counts --cores 1.
+
+Each simulation used 10,000 studies. Unequal-group corrected proportion
+power was .4320 versus .434597 finite-enumeration reference (MCSE .004954);
+the two directional cases were .5636/.5576 versus .560879. The equal-group
+null gave .0351 versus .035324, consistent with discrete-test conservatism.
+Fixed-total corrected contingency power was .7708 versus an independent
+.7603 (both 10,000 studies); null .0333 versus .0340. Predefined 99.9%
+Monte Carlo comparisons passed. The evidence registry links these scoped
+cases only; published/software references, recommended-N fresh-draw
+verification, representative parameter coverage and release-wide sign-off
+remain unfinished. No old expected value or tolerance changed.

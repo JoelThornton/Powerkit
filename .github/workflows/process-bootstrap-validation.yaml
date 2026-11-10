@@ -10,7 +10,9 @@ on:
 
 concurrency:
   group: process-bootstrap-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  # Preserve expensive scientific results when another review commit arrives.
+  # New runs queue behind the active run instead of discarding its evidence.
+  cancel-in-progress: false
 
 permissions:
   contents: read

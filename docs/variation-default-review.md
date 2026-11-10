@@ -44,8 +44,10 @@ implementation references and restrictions are in [conventions.md](conventions.m
 - [x] Update the decision record, conventions, status, queue and generated inventory.
 - [x] Check new defaults, restored values, exported wording and exact-N scenario power.
 - [x] Check saved projects, generated inventory and repository consistency.
-- [ ] Finish the wider departure audit, especially mediation versus PROCESS,
-  continuity correction, random predictors and multiple-claim targets.
+- [x] Add explicit PROCESS-style and continuity-corrected analysis choices,
+  with scoped independent checks; see their separate checklists.
+- [ ] Finish the wider departure audit: random predictors and multiple-claim
+  targets, plus outstanding published/software and calibration checks.
 - [ ] Merge and verify the deployed app after review.
 
 The engine is still a prototype with outstanding scientific validation

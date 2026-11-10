@@ -610,3 +610,7 @@ The nine applicable forms now offer OLS with a casewise percentile
 bootstrap (PROCESS-style), alongside both existing ML interval methods.
 This adds an explicit analysis choice, not every PROCESS option or a new
 validation badge. See [scope, methods and remaining checks](process-style-planning.md).
+
+| E5 | Card point | Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis. | engine/R/continuity-correction.R; engine/tests/testthat/test-validation-corrected-counts.R; docs/count-test-review.md | — | — | sourced |
+
+| E6 | Card point | Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis. | engine/R/continuity-correction.R; engine/tests/testthat/test-validation-corrected-counts.R; docs/count-test-review.md | — | — | sourced |

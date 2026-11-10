@@ -46,3 +46,10 @@ test_that("bootstrap planning goes directly to the local script without a mislea
   expect_true(has_preview(forms, "E10", "power", spec))
   expect_true(full_run_in_app(forms, "E10", "power", spec))
 })
+
+test_that("legacy method-omitted binary-X metadata keeps the Monte Carlo warning", {
+  spec <- list(design = "moderated_mediation", variables = list(X = list(type = "binary")))
+  expect_match(binary_x_modmed_note(spec), "6.7%", fixed = TRUE)
+  spec$target_test <- list(method = "monte_carlo_ci")
+  expect_match(binary_x_modmed_note(spec), "5.3%", fixed = TRUE)
+})

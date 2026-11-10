@@ -243,7 +243,7 @@ simulation_accuracy_group <- function(forms, ep_id) {
   if (!offered) return(NULL)
   when <- NULL
   if (isTRUE(form$basic_method)) when <- list(any = list(
-    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "spearman", "kendall")),
+    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "spearman", "kendall", "z_test_corrected", "pearson_chi_square_corrected")),
     list(list(field = "method", is = "welch_t"), list(field = "welch_method", is_not = "exact")),
     list(list(field = "calc_method", is = "simulation"), list(field = "method", is_not = "welch_t"),
       list(field = "method", is_not = "bayes_factor"), list(field = "method", is_not = "minimum_effect"), list(field = "method", is_not = "fisher_exact"))))

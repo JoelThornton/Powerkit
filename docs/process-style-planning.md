@@ -107,6 +107,12 @@ from another program. Exact PROCESS percentile endpoint conventions have
 not yet been compared directly. No existing whole-card badge is evidence
 for every setting of this new method.
 
+The latest hosted result-screen check exposed method-omitted historical
+metadata being described as bootstrap. The helper now uses the existing
+Monte Carlo default for that metadata; the explicit bootstrap warning stays
+separate. The missing OLS-example zero-effect registry entry found by the
+engine/CRAN checks is also corrected. Hosted reruns are still required.
+
 Local checks completed: independent equation/interval comparisons, a
 backend-only reproduction, an executed local-run script with saved and
 restored analysis metadata, existing power4mome and standard-result
