@@ -87,6 +87,12 @@ test_that("Welch's test with equal SDs is planned the same way", {
   welch <- run_spec(het_spec(method = "welch_t"))
   student <- run_spec(het_spec(method = "student_t"))
   expect_equal(welch$curve$power, student$curve$power)
+  unequal <- het_spec(method = "welch_t")
+  unequal$options$allocation_ratio <- 2
+  unequal$goal$n <- 102L
+  expect_error(run_spec(unequal), "currently requires equal group sizes", class = "powerkit_spec_error")
+  unequal$population$tau <- 0
+  expect_s3_class(validate_spec(unequal), "powerkit_spec")
 })
 
 test_that("a sensitivity target already reached at average zero has a plain explanation", {

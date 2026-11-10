@@ -44,7 +44,7 @@ test_that("researchers can discover local computing and default-method caveats",
   withr::local_options(powerkit.local = TRUE)
   expect_match(as.character(start_ui(tree)), "Running on your computer", fixed = TRUE)
   expect_match(tree$endpoints$E2$doc_name, "Welch's by default", fixed = TRUE)
-  expect_match(tree$endpoints$E2$backend, "^pwrss:")
+  expect_match(tree$endpoints$E2$backend, "^pwrss / pwr:")
   expect_match(tree$bayes_test_text, "approximation", fixed = TRUE)
   expect_match(tree$endpoints$E55$validation$note, "still fails", fixed = TRUE)
 })

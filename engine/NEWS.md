@@ -1,5 +1,9 @@
 # powerkit 0.60.0
 
+* Welch planning with between-study variation refuses unequal group sizes:
+  the adjustment uses Student's degrees of freedom, which do not equal
+  Welch's with unequal allocation. This does not change ordinary Welch planning.
+
 * Historical ordinary-test evidence is no longer linked to between-study
   variation or small-telescopes decision rules without a route-specific record.
 * Sensitivity with between-study variation explains when the target chance
