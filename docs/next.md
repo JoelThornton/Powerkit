@@ -1,6 +1,6 @@
 # What to work on next
 
-*10 November 2026: broad first-release support, case-level evidence and a measured coverage benchmark now lead the queue. Implementation does not imply validation; the current state is in [status.md](status.md).*
+*11 November 2026: broad first-release support, case-level evidence and a measured coverage benchmark now lead the queue. Implementation does not imply validation; the current state is in [status.md](status.md).*
 
 **How a thread uses this page**
 
@@ -44,6 +44,14 @@ test/family labels are now audited for all 77 entries and 14 groups, with
 short common test selectors and no duplicate plain-language subtitles.
 Continue the remaining wording checklist and the unresolved scientific
 items above; concise labels do not complete their evidence requirements.
+
+The 0.61.1 pre-sharing safeguards merged in PR #369 and the deployment
+handoff correction in PR #370. Common analysis identities and exercised
+desktop/mobile/keyboard journeys pass their checks. Publication run
+42927530578 succeeded; leave the normal host rollout to finish and confirm
+the live version later. R14's scientific failures and R17's discrete-count
+search accuracy remain priorities. The completed interface safeguards do
+not close those mathematical requirements.
 
 ## The queue
 

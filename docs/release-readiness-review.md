@@ -187,11 +187,12 @@ not select a different analysis. Desktop and narrow-screen browser checks
 cover headings, repeated subtitles, persistent preference, legacy recent
 entries, visible prototype status and unchanged selected test.
 
-R34 partial verification: the public landing page and download page returned
-HTTP 200 in direct HTTPS checks on 10 November; the sitemap endpoint also
-returned 200. Some requests reset during TLS negotiation, so this is not
-a reliability benchmark. The source sitemap includes download.html; live
-body verification, search indexing and the offline/update checks remain open.
+R34 partial verification: earlier direct HTTPS checks returned 200 for the
+landing/download pages and sitemap, with some TLS resets. Browser checks on
+10 November confirmed the public download page and live sitemap body, which
+lists the home, guide and download pages. This is not a reliability benchmark
+or evidence of Google indexing. Search indexing and offline/update checks
+remain open.
 
 Local verification for compact labels/R22: label and copied-method checks,
 screen rendering, Labs/map data, documentation alignment, generated
@@ -254,9 +255,15 @@ on R14-R36 or a recommendation to rely solely on Powerkit for study planning.
   action buttons follow the fields. Verify regression's existing prerequisite
   prompt and the new early-warning/power-choice/paired-correlation journeys.
   Formal researcher sessions and human assistive-technology testing remain open.
-- [ ] R34/R35: merge the checked source, publish the final revision and confirm
-  the live version and key safeguards. Before this batch, the live page and
-  published branch still showed 0.60.0.
+- [x] R34/R35 subset: merge the checked source and complete the publishing run.
+  PRs #369/#370 merged; run 42927530578 succeeded. Deployment commit
+  300b53d967df preserves checked main bdbdfb6cc7e3 plus the pinned manifest.
+- [x] Check the public download page and live sitemap body in a browser;
+  the sitemap lists the home, guide and download pages.
+- [ ] Confirm the new live version and safeguards after the normal hosting
+  rollout. The initial observed page was 0.60.0; successful GitHub publication
+  alone is not claimed as a live-version check. No additional forced rebuild
+  is needed for this handoff.
 
 No protected published expectations or validation tolerances were changed.
 The two recurring scientific failures and the discrete-count fitted-N
@@ -274,4 +281,7 @@ commit for a normal fast-forward push. It leaves the build checkout and
 normal index untouched. Regression checks exercise tracked/ignored manifests,
 successive publications, staged/untracked build edits, stale main and wrong
 engine pins. The original traceback hid Git's diagnostic; command failures
-now retain stderr. Successful live verification is still a separate gate.
+now retain stderr. The corrected run 42927530578 completed successfully on
+11 November: deployment commit 300b53d967df has checked main bdbdfb6cc7e3
+and the previous deployment as parents. Live-version confirmation remains a
+separate check after the normal hosting rollout.
