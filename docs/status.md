@@ -19,7 +19,9 @@ power cannot rise says so. Precision planning for one group and paired
 data accepts assurance. In the app, exports no longer wait for a written
 effect-size reason, the run button is "Calculate", Welch's t-test has the
 explore panels, and partial eta-squared with Welch's ANOVA is caught on the
-input screen. The non-inferiority and allocation unit tests and the
+input screen. The study plan is reachable from every screen and kept in
+the browser; a result is reused when only free-text answers change; a
+conventional effect size can be recorded as one. The non-inferiority and allocation unit tests and the
 non-inferiority validation chunk were run; no full validation run is
 claimed. Open from the same review: minimum-effect tests still use pwrss's
 margin, and the rounded-group-size search is queued.

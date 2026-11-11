@@ -472,7 +472,7 @@ test_that("waits are stated in seconds or minutes", {
   expect_identical(progress_text(1, 734), "Running for 1 second. This usually takes about 12 minutes.")
   html <- as.character(calculating_background_ui(734, "Running the full analysis (1,000 simulations)\u2026"))
   expect_match(html, "Running the full analysis (1,000 simulations)", fixed = TRUE)
-  expect_match(html, "This usually takes about 12 minutes on one core.", fixed = TRUE)
+  expect_match(html, "This takes about 12 minutes on a recent computer", fixed = TRUE)
 })
 
 test_that("with attrition, the result shows the number analysed and the number to recruit", {

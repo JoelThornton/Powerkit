@@ -146,6 +146,29 @@ plan_upsert <- function(entries, entry) {
   }
 }
 
+# The plan as text for the browser's own copy ("" for an empty plan or one
+# that can't be written), and back. The same format as "Save study plan".
+study_plan_for_browser <- function(entries, write = engine_function("write_study_plan")) {
+  if (!length(entries) || is.null(write)) return("")
+  text <- tryCatch(write(plan_analyses(entries)), error = function(e) "")
+  if (nchar(text) > 4e6) "" else text
+}
+study_plan_from_browser <- function(tree, text, read = engine_function("read_study_plan")) {
+  if (!is.character(text) || length(text) != 1 || !nzchar(text) || nchar(text) > 4e6 || is.null(read)) return(NULL)
+  plan <- tryCatch(read(text), error = function(e) NULL)
+  if (is.null(plan) || !length(plan$analyses)) return(NULL)
+  lapply(plan$analyses, function(p) plan_entry_from_project(tree, p))
+}
+
+# In the top bar on every screen once the plan holds an analysis.
+study_plan_chip_ui <- function(k) {
+  if (k < 1) return(NULL)
+  tags$button(type = "button", class = "btn btn-sm share-page-btn study-plan-chip",
+    title = "The analyses you have added to your study plan",
+    onclick = "Shiny.setInputValue('plan_view', Date.now(), {priority: 'event'})",
+    sprintf("Your study plan (%d)", k))
+}
+
 # Under a result, in "Write it up and save it".
 study_plan_bar_ui <- function(entries, in_plan, from_guided = FALSE) {
   k <- length(entries)
@@ -181,7 +204,7 @@ study_plan_ui <- function(entries) {
         tags$span(class = "plan-item-n-unit", paste(sample$unit, "needed"))),
       tags$button(type = "button", class = "btn btn-link btn-sm plan-remove",
         `aria-label` = sprintf("Remove %s from the plan", e$label),
-        onclick = sprintf("Shiny.setInputValue('plan_remove', %d, {priority: 'event'})", i), "Remove"))
+        onclick = sprintf("if (confirm('Remove this analysis from your study plan?')) Shiny.setInputValue('plan_remove', %d, {priority: 'event'})", i), "Remove"))
   }
   tagList(
     h2("Your study plan"),
@@ -211,7 +234,10 @@ study_plan_ui <- function(entries) {
     div(class = "nav-buttons",
       actionButton("plan_more", "Add another analysis", class = "btn btn-primary"),
       if (k) download_button("download_study_plan", "Save study plan", class = "btn btn-outline-primary"),
-      if (k) actionLink("plan_clear", "Start a new plan")),
+      # Discards every analysis: asked first.
+      if (k) tags$a(href = "#", id = "plan_clear_link", role = "button",
+        onclick = "if (confirm('Start a new plan? This removes every analysis from this one. Save the study plan first if you want to keep it.')) Shiny.setInputValue('plan_clear', Date.now(), {priority: 'event'}); return false;",
+        "Start a new plan")),
     p(class = "small", "\u201cAdd another analysis\u201d starts \u201cHelp me choose\u201d, which finds the next analysis from your study's description. Save study plan keeps every analysis in one file; open it from the start screen.")
   )
 }

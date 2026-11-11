@@ -180,3 +180,14 @@ Users sign in, and their projects are kept on the server.
 
 These options can be combined; (a) is a prerequisite for none of the
 others, but its file format could be the format the others store.
+
+## The study plan in the browser
+
+Once a study plan holds an analysis, "Your study plan" in the top bar opens
+it from any screen. The plan is also written to the browser's local storage
+(key `powerkit-study-plan`, the same format as "Save study plan"; it is not
+sent anywhere else) whenever it changes, and a new session restores it, so a
+reload or a dropped connection does not lose it. "Start a new plan" clears
+both, after asking. A shared computer keeps the plan for the next person
+using the same browser profile, as it does the autosaved draft.
+

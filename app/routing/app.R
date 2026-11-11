@@ -809,7 +809,12 @@ ui <- function(req) fluidPage(
     div(class = "topbar-inner",
       h1(class = "brand", "powerkit",
         tags$span(class = "badge-proto", paste(c("Prototype", if (!is.null(v <- powerkit_version())) paste0("v", v)), collapse = " \u00b7 "))),
-      div(class = "topbar-tools", terms_toggle_ui(),
+      div(class = "topbar-tools",
+        # The study plan, reachable from every screen once it holds an
+        # analysis (11 November 2026): it was offered only under a fresh
+        # result, so moving on looked like losing it.
+        uiOutput("study_plan_chip", inline = TRUE),
+        terms_toggle_ui(),
         # On every screen: the Feedback tab adds the screen and answers the visitor is on.
         tags$button(type = "button", class = "btn btn-sm share-page-btn feedback-here-btn",
           title = "Opens the Feedback tab with the screen you are on attached",
@@ -1244,6 +1249,18 @@ server <- function(input, output, session) {
     state$calc <- NULL
     state$long_spec <- NULL
     cancel_job()
+    # The same numbers as a result already worked out in this session: show
+    # it again with the words as they now read, without running anything.
+    key <- if (identical(check$status, "ok")) calculation_key(spec, fields, c(list(state$endpoint), values[c("goal", "claim", "n_tests", "all_dependence", "situation")]))
+    kept <- if (!is.null(key)) calc_cache[[key]]
+    if (!is.null(kept)) {
+      calc <- reused_calculation(kept, spec)
+      calc$route <- calc_route
+      state$calc <- calc
+      output$form_result <- renderUI(result_panel_ui(tree, forms, state$endpoint, fields, values, calc, check$advice))
+      session$sendCustomMessage("focus_result", "form_result")
+      return(invisible())
+    }
     if (identical(check$status, "ok") && runs_long(forms, state$endpoint, spec) &&
         !has_preview(forms, state$endpoint, spec$goal$type, spec)) {
       # E10-E14, required N: no preview; the R script straight away.
@@ -1275,7 +1292,7 @@ server <- function(input, output, session) {
       # The comparison line's two searches run there too (cost_line()).
       cost_powers <- if (!state$endpoint %in% names(forms$background)) cost_line_powers(values)
       start_job("calc", spec, usual, list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice, route = calc_route,
-        finish = !is.null(cost_powers)), cost_powers = cost_powers)
+        finish = !is.null(cost_powers), key = key), cost_powers = cost_powers)
     } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint)) {
       # Show "Calculating" first; the engine runs once that has reached the
       # browser (well under a second for these: a power or precision goal on
@@ -1285,6 +1302,7 @@ server <- function(input, output, session) {
       session$onFlushed(function() {
         calc <- if (identical(values$goal, "sensitivity_curve")) run_sensitivity_curve(spec, seed = forms$default_seed) else run_calculation(spec, seed = forms$default_seed)
         calc <- finish_calc(calc, calc_route, values)
+        keep_calculation(key, calc)
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
         session$sendCustomMessage("focus_result", "form_result")
@@ -1422,6 +1440,15 @@ server <- function(input, output, session) {
   # comparison line (its sample sizes found already when the run was in
   # the background, calc$cost_ns) and, for a Bayes factor t-test, how the
   # answer depends on the prior.
+  # Results worked out in this session, by calculation_key(): the last
+  # twenty, so a result is not worked out twice for the same numbers.
+  calc_cache <- new.env(parent = emptyenv())
+  keep_calculation <- function(key, calc) {
+    if (is.null(key) || !identical(calc$status, "ok")) return(invisible())
+    old <- setdiff(ls(calc_cache), key)
+    if (length(old) >= 20) rm(list = old[seq_len(length(old) - 19)], envir = calc_cache)
+    calc_cache[[key]] <- calc
+  }
   finish_calc <- function(calc, route, values) {
     calc$route <- route
     if (!identical(calc$status, "ok")) return(calc)
@@ -1501,6 +1528,7 @@ server <- function(input, output, session) {
       # A search gets what the in-process route adds (finish_calc()); the
       # long runs (forms.yaml, `background`) are shown as they come.
       calc <- if (isTRUE(shown$finish)) finish_calc(calc, shown$route, shown$values) else { calc$route <- shown$route; calc }
+      keep_calculation(shown$key, calc)
       state$calc <- calc
       output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
     }
@@ -1685,7 +1713,30 @@ server <- function(input, output, session) {
     if (!calculation_matches_values(calc, current_form_values())) return()
     state$study_plan <- c(state$study_plan, list(plan_entry(tree, state$endpoint, calc, calc$route)))
   })
-  observeEvent(input$plan_view, { cancel_job(); state$screen <- "study_plan" })
+  observeEvent(input$plan_view, {
+    cancel_job()
+    state$screen <- "study_plan"
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+  })
+  output$study_plan_chip <- renderUI(study_plan_chip_ui(length(state$study_plan)))
+  outputOptions(output, "study_plan_chip", suspendWhenHidden = FALSE)
+  # The plan is also kept in this browser (localStorage, never sent
+  # anywhere else), so a reload, a dropped connection or a closed tab
+  # does not lose it; a new session brings it back (R/connection.R).
+  observeEvent(state$study_plan, {
+    session$sendCustomMessage("pk_plan_save", study_plan_for_browser(state$study_plan))
+  }, ignoreInit = TRUE)
+  observeEvent(input$pk_saved_plan, {
+    if (length(state$study_plan)) return()
+    entries <- study_plan_from_browser(tree, input$pk_saved_plan)
+    if (is.null(entries)) {
+      session$sendCustomMessage("pk_plan_save", "")
+      return()
+    }
+    state$study_plan <- entries
+    showNotification(sprintf("Your study plan from your last visit is back (%d %s). Open it with \u201cYour study plan\u201d at the top of the page.",
+      length(entries), if (length(entries) == 1) "analysis" else "analyses"), duration = 12, type = "message")
+  }, once = TRUE)
   observeEvent(input$plan_clear, state$study_plan <- list())
   observeEvent(input$plan_remove, {
     i <- suppressWarnings(as.integer(input$plan_remove))

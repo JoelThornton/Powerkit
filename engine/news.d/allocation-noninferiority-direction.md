@@ -13,3 +13,8 @@
 - `effect_justification.type` accepts `convention` (a benchmark such as
   Cohen's small, medium or large), with advice from `validate_spec()` that
   a convention is not evidence about the effect (Lakens, 2022).
+- App: the study plan is reachable from the top bar on every screen and
+  kept in the browser's localStorage in the study-plan file format;
+  results are cached per session by the spec without its free-text
+  answers, so a text-only edit reuses the result (with the spec hash
+  recomputed for the spec as saved).

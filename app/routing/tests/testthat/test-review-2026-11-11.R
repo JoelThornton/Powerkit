@@ -86,3 +86,66 @@ test_that("a package's deprecation notice is not shown as a note about the plan"
   calc <- run_calculation(list(options = list(seed = 1L)), run = run)
   expect_identical(calc$notes, "Power is low for this design.")
 })
+
+test_that("editing only the reasoning gives the same calculation key; editing a number does not", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- form_examples[["E2"]]
+  key <- function(v) calculation_key(build_spec(forms, "E2", fields, v), fields)
+  first <- key(values)
+  expect_identical(key(modifyList(values, list(just_source = "A different reason entirely"))), first)
+  expect_identical(key(modifyList(values, list(alpha_reason = "Field convention"))), first)
+  expect_false(identical(key(modifyList(values, list(d = "0.31"))), first))
+  expect_false(identical(key(modifyList(values, list(alpha = "0.01"))), first))
+  expect_false(identical(key(modifyList(values, list(just_type = "pilot_study", just_adjustment = "Halved"))), first))
+})
+
+test_that("a reused result carries the new words and a spec hash that matches them", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- form_examples[["E2"]]
+  spec <- build_spec(forms, "E2", fields, values)
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  edited <- build_spec(forms, "E2", fields, modifyList(values, list(just_source = "A different reason entirely")))
+  again <- reused_calculation(calc, edited)
+  expect_identical(again$spec$effect_justification$source, "A different reason entirely")
+  expect_identical(again$spec$options$seed, calc$spec$options$seed)
+  expect_identical(again$result$provenance$spec_hash, powerkit::spec_hash(again$spec))
+  expect_identical(again$result$n_required, calc$result$n_required)
+  # The exported script accepts the pair.
+  expect_no_error(powerkit::export_script(again$spec, again$result))
+})
+
+test_that("the study plan survives a round trip through the browser's copy", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- form_examples[["E2"]]
+  calc <- run_calculation(build_spec(forms, "E2", fields, values), seed = forms$default_seed)
+  entries <- list(plan_entry(tree, "E2", calc, list(endpoint = "E2", form_values = values)))
+  text <- study_plan_for_browser(entries)
+  expect_true(nzchar(text))
+  back <- study_plan_from_browser(tree, text)
+  expect_length(back, 1)
+  expect_equal(back[[1]]$n, entries[[1]]$n)
+  expect_identical(back[[1]]$endpoint, "E2")
+  expect_identical(study_plan_for_browser(list()), "")
+  expect_null(study_plan_from_browser(tree, "not a plan"))
+  expect_null(study_plan_from_browser(tree, ""))
+})
+
+test_that("the study plan button shows only when the plan holds an analysis, and discarding asks first", {
+  expect_null(study_plan_chip_ui(0))
+  expect_match(as.character(study_plan_chip_ui(2)), "Your study plan (2)", fixed = TRUE)
+  html <- as.character(study_plan_ui(list(list(endpoint = "E2", label = "A t-test", goal = "sample_size", n = 128L))))
+  expect_match(html, "confirm(&#39;Start a new plan?", fixed = TRUE)
+  expect_match(html, "confirm(&#39;Remove this analysis", fixed = TRUE)
+})
+
+test_that("run_calculation() stands alone, as the background process runs it", {
+  # The background worker gets this function without the app's others, so
+  # a helper called from its warning handler stopped every background run
+  # that carried a warning.
+  alone <- run_calculation
+  environment(alone) <- new.env(parent = baseenv())
+  run <- function(spec) { warning("A note about the plan."); list() }
+  calc <- alone(list(options = list(seed = 1L)), run = run, seed = 1L)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$notes, "A note about the plan.")
+})

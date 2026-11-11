@@ -43,11 +43,28 @@ usual_seconds <- function(forms, ep_id, goal) {
 # result and the result (and its script) can be reproduced. Returns
 # list(status = "ok", spec, result, notes) or list(status = "error",
 # message) with a plain-English message.
-# A package's notice about its own code (a deprecated argument inside
-# Superpower's plotting, say) says nothing about the plan, so it is not
-# shown as a note.
-package_housekeeping <- function(message) {
-  grepl("deprecated|lifecycle::|was soft-deprecated|will be removed in|is defunct|report (the|this) issue", message, ignore.case = TRUE)
+# --- Reusing a result when only the words changed ---------------------------
+# A reason, a research question or the effect-size reasoning is recorded
+# in the spec but does not enter the calculation, so editing one must not
+# run the engine again (a simulated design can take minutes). The key is
+# the spec without those answers; a result found under the same key is
+# shown again with the new words (11 November 2026).
+words_only_field <- function(f) {
+  identical(f$type, "text") && !is.null(f$path) &&
+    (f$id %in% c("just_source", "just_adjustment", "research_question") || grepl("_reason$", f$id))
+}
+calculation_key <- function(spec, fields, extra = NULL) {
+  for (f in Filter(words_only_field, fields)) spec <- set_path(spec, split_path(f$path), NULL)
+  if (length(spec$effect_justification) == 0) spec$effect_justification <- NULL
+  rlang::hash(list(spec, extra))
+}
+# The stored result, carrying the spec as it now reads: the record of what
+# was run (the spec hash) has to match the spec that is saved and exported.
+reused_calculation <- function(calc, spec, hash = engine_function("spec_hash")) {
+  if (is.null(spec$options$seed)) spec$options$seed <- calc$spec$options$seed
+  calc$spec <- spec
+  if (!is.null(hash) && !is.null(calc$result$provenance$spec_hash)) calc$result$provenance$spec_hash <- hash(spec)
+  calc
 }
 
 run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) {
@@ -60,7 +77,12 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
   notes <- character()
   result <- tryCatch(
     withCallingHandlers(run(spec), warning = function(w) {
-      if (!package_housekeeping(conditionMessage(w))) notes <<- c(notes, conditionMessage(w))
+      # A package's notice about its own code (a deprecated argument inside
+      # Superpower's plotting, say) says nothing about the plan, so it is
+      # not a note. Written out here, not as a helper: this function is
+      # sent to a separate R process, which has none of the app's others.
+      housekeeping <- grepl("deprecated|lifecycle::|will be removed in|is defunct|report (the|this) issue", conditionMessage(w), ignore.case = TRUE)
+      if (!housekeeping) notes <<- c(notes, conditionMessage(w))
       invokeRestart("muffleWarning")
     }),
     error = function(e) {
@@ -1955,8 +1977,12 @@ calculating_background_ui <- function(usual, title = "Calculating with powerkit'
   usual_words <- if (is.na(usual)) NULL else if (usual < 120) sprintf("%s seconds", whole(usual)) else sprintf("%s minutes", whole(round(usual / 60)))
   div(class = "result-panel calculating calc-progress", tabindex = "-1",
     p(role = "status", tags$strong(title),
-      if (!is.null(usual_words)) sprintf(" This usually takes about %s on one core.", usual_words)),
-    tags$label(`for` = "calc-progress-bar", class = "small", "Estimated progress (from the usual run time; the backend doesn't report its own)"),
+      # The usual times were measured on a recent computer; the shared
+      # online server is slower (11 November 2026: a 30-second estimate
+      # took two minutes there), so the online copy says so.
+      if (!is.null(usual_words)) sprintf(" This takes about %s on a recent computer%s.", usual_words,
+        if (isTRUE(getOption("powerkit.local"))) "" else "; the online version shares a small server and can take several times longer")),
+    tags$label(`for` = "calc-progress-bar", class = "small", "Progress, estimated from the usual run time"),
     tags$progress(id = "calc-progress-bar", max = "100", value = "0", style = "width: 100%; height: 1.25rem;"),
     p(id = "calc-progress-text", class = "small", progress_text(0, usual)),
     actionButton("calc_cancel", "Cancel", class = "btn btn-outline-danger"))
