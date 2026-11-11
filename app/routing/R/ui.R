@@ -226,8 +226,8 @@ site_address <- "https://joelthornton.github.io/Powerkit"
 # tool open, as ?page=labs&tool=...).
 # The "Explanations" switch: on by default. Turned off, a setting each
 # viewer's browser remembers, it shows the technical names first and hides
-# the plain-English hints of terms (CSS, .terms-mode); the help under each
-# field, notes, assumptions, departures and known differences stay.
+# routine guidance behind keyboard-accessible info controls. Analysis identity,
+# required units, errors and scientific warnings remain visible.
 # The stored value keeps its earlier meaning: '1' means explanations off.
 terms_toggle_ui <- function() {
   tags$label(class = "terms-toggle form-switch", `for` = "explanations_on",
@@ -237,8 +237,32 @@ terms_toggle_ui <- function() {
 }
 
 terms_js <- "
+  window.pkSyncExplanations = function(reset) {
+    var compact = document.documentElement.classList.contains('terms-mode');
+    document.querySelectorAll('details.explanation-help').forEach(function(el) {
+      if (reset || !el.hasAttribute('data-explanation-ready')) el.open = !compact;
+      el.setAttribute('data-explanation-ready', '1');
+      var summary = el.querySelector(':scope > summary');
+      if (summary) summary.setAttribute('aria-expanded', el.open ? 'true' : 'false');
+      el.querySelectorAll('.input-guide').forEach(function(guide) {
+        if (compact && el.open) guide.open = true; else if (reset) guide.open = false;
+      });
+    });
+    document.querySelectorAll('[data-guidance-describedby]').forEach(function(el) {
+      var base = el.getAttribute('data-guidance-describedby').split(' ').filter(Boolean);
+      var other = (el.getAttribute('aria-describedby') || '').split(' ').filter(function(id) { return id && base.indexOf(id) < 0; });
+      var visible = base.filter(function(id) {
+        var ref = document.getElementById(id); if (!ref) return false;
+        var disclosure = ref.closest('details.explanation-help');
+        return !(disclosure && !disclosure.open) && !(compact && ref.closest('.form-terms'));
+      });
+      var ids = visible.concat(other);
+      if (ids.length) el.setAttribute('aria-describedby', ids.join(' ')); else el.removeAttribute('aria-describedby');
+    });
+  };
   window.pkSetTermsMode = function(on) {
     document.documentElement.classList.toggle('terms-mode', !!on);
+    window.pkSyncExplanations(true);
     try { window.localStorage.setItem('powerkit-terms-mode', on ? '1' : '0'); } catch (e) {}
   };
   document.addEventListener('DOMContentLoaded', function() {
@@ -247,8 +271,30 @@ terms_js <- "
     document.documentElement.classList.toggle('terms-mode', on);
     var box = document.getElementById('explanations_on');
     if (box) box.checked = !on;
+    window.pkSyncExplanations(false);
+    var pending = false;
+    new MutationObserver(function(records) {
+      var relevant = records.some(function(record) { return Array.from(record.addedNodes).some(function(node) {
+        return node.nodeType === 1 && (node.matches('.explanation-help, [data-guidance-describedby]') || node.querySelector('.explanation-help, [data-guidance-describedby]'));
+      }); });
+      if (!relevant || pending) return;
+      pending = true; requestAnimationFrame(function() { pending = false; window.pkSyncExplanations(false); });
+    }).observe(document.body, {childList: true, subtree: true});
   });
+  document.addEventListener('toggle', function(event) {
+    if (event.target.matches('details.explanation-help')) window.pkSyncExplanations(false);
+  }, true);
 "
+
+# One copy of guidance: inline with explanations on, a native disclosure off.
+# Native summary controls work with keyboard, touch and assistive technology.
+explanation_ui <- function(id, label, ..., class = NULL) {
+  tags$details(id = id, class = paste("explanation-help", class), open = NA,
+    tags$summary(id = paste0(id, "_toggle"), role = "button", title = paste("Info:", label),
+      `aria-label` = paste("Info:", label), `aria-controls` = paste0(id, "_body"),
+      tags$span(`aria-hidden` = "true", "i")),
+    div(id = paste0(id, "_body"), class = "explanation-content", ...))
+}
 
 # A name in two forms: the plain-English one by default, the technical one
 # with explanations off.

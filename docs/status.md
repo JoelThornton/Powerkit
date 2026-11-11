@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 11 November 2026 (count-search and interpretation safeguards, PR #372; live rollout unconfirmed). Where the project is
+*Last updated: 11 November 2026 (count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -70,7 +70,7 @@ preserves historical plans, matched interaction-sensitivity verification,
 four independent corrected-count fitted-N checks with honest uncertainty,
 and selected-setting evidence on input screens. The balanced-proportion
 reference found .79547 power at a nominal .8 fitted target; the smooth curve's
-interval missed that finite-reference value. The follow-on count-search fix
+interval missed that finite-reference value. The count-search fix merged in PR #372 and
 uses that curve only as a proposal: fresh checks at each candidate require a
 one-sided binomial lower bound above the target, with a 1% error budget across
 at most ten checks. It increases N when needed or refuses a recommendation.
@@ -81,6 +81,15 @@ in the count-test checklist; the ANOVA/mediation failures and broader evidence
 requirements remain open. Attrition input/results/methods now distinguish a
 recruitment buffer from missing-data modelling. Pilot guidance describes
 uncertainty and selection without asserting inflation or automatic halving.
+
+The compact-guidance follow-up makes explanations-off fold routine field
+help, defaults and group notes behind native info controls, with concise
+common labels. Selected methods, units, errors and scientific limitations
+stay visible. Explanations-on keeps guidance inline. Target power remains
+blank, with equally styled 80/90/95% examples and consequence/cost guidance
+rather than a preferred 80% shortcut. This changes presentation, not methods,
+effect values or numerical defaults. Desktop/phone interaction, keyboard
+and automated accessibility checks passed locally for the exercised routes.
 
 ## Where things are
 

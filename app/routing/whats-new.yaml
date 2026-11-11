@@ -8,6 +8,20 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-11"
+    title: "A quieter form with explanations off"
+    text: >-
+      Turning explanations off now moves routine guidance behind info buttons
+      and shortens common input labels. Turning it on shows the guidance inline.
+      Errors, selected tests, units and important limitations stay visible,
+      and switching modes keeps your answers.
+  - date: "2026-11-11"
+    title: "Choose power by its consequences"
+    text: >-
+      The power field offers 80%, 90% and 95% as equally weighted examples,
+      with no value chosen for you. The guidance explains their different
+      chances of missing an effect and the recruitment trade-off.
+      80% is a convention, not a recommendation; you can enter another target.
+  - date: "2026-11-11"
     title: "Clearer guidance on losses and pilot effects"
     text: >-
       An expected loss rate only adds a recruitment buffer; it does not model

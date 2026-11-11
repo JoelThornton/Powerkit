@@ -18,8 +18,9 @@ selected_warning_spec <- function(form, fields, values) {
 selected_evidence_ui <- function(forms, id, fields, values) {
   warning_spec <- selected_warning_spec(forms$forms[[id]], fields, values)
   warnings <- planning_warnings_ui(warning_spec)
-  pending <- p(class = "selected-evidence small",
-    "Evidence depends on your test version and assumptions. Complete the required answers to see which recorded checks cover these settings.")
+  pending <- explanation_ui("selected-evidence-info", "Evidence for these settings",
+    p(class = "selected-evidence small",
+    "Evidence depends on your test version and assumptions. Complete the required answers to see which recorded checks cover these settings."))
   spec <- tryCatch({
     if (length(form_problems(fields, values))) NULL else {
       candidate <- build_spec(forms, id, fields, values)
@@ -31,6 +32,7 @@ selected_evidence_ui <- function(forms, id, fields, values) {
   record <- if (!is.null(lookup)) tryCatch(lookup(spec), error = function(e) NULL)
   if (is.null(record)) return(tagList(warnings, pending))
   tagList(warnings,
-    p(class = "selected-evidence small", "Selected settings: evidence is limited to recorded cases. A card's status does not validate every test version or assumption."),
+    explanation_ui("selected-evidence-info", "Evidence for these settings",
+      p(class = "selected-evidence small", "Selected settings: evidence is limited to recorded cases. A card's status does not validate every test version or assumption.")),
     evidence_ui(record, "Checks covering my selected settings"))
 }

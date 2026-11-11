@@ -225,6 +225,20 @@ broader count-test search accuracy, PROCESS reference comparison and full
 selected-variant audit remain open. These five safeguards are finite completed
 tasks, not completion of R14, R15, R16 or R17 as whole release requirements.
 
+## Compact explanations and informed power choice (11 November)
+
+- [x] R24/R27: move routine field/group/default guidance and basic result
+  interpretation behind keyboard/touch info controls when explanations are
+  off; show them inline when on. Preserve values and error descriptions.
+- [x] Keep selected methods, sample units, errors and known scientific
+  limitations visible. Add the captured method name beside the result.
+- [x] Replace the solitary 80% shortcut with equally styled 80/90/95% examples.
+  Leave the target blank and editable. Explain missed effects, recruitment
+  costs and feasibility; label 80% as a convention rather than a recommendation.
+- [x] Check desktop/phone help toggles, keyboard interaction, calculation,
+  warnings and reflow. Automated accessibility checks are bounded evidence,
+  not a human screen-reader session or full wording/usability sign-off.
+
 ## Planning safeguards (11 November)
 
 - [x] R21/R25/R27: explain the recruitment-only role of the attrition input,

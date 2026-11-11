@@ -42,6 +42,10 @@ bound, with explicit historical saved choices preserved. Selected-setting
 evidence is visible on complete input screens. Compact-mode
 test/family labels are now audited for all 77 entries and 14 groups, with
 short common test selectors and no duplicate plain-language subtitles.
+The compact-guidance follow-up now folds routine input/default/group help
+behind info controls with explanations off, shortens common labels and keeps
+errors, captured methods and scientific warnings visible. Power offers equal
+80/90/95% examples without a default and explains the trade-off.
 Continue the remaining wording checklist and the unresolved scientific
 items above; concise labels do not complete their evidence requirements.
 

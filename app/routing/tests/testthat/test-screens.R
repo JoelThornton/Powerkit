@@ -604,10 +604,12 @@ test_that("turning explanations off swaps in the technical names and hides the h
   # The setting is only remembered in the viewer's browser, and every
   # storage call is guarded.
   expect_equal(lengths(regmatches(terms_js, gregexpr("try \\{", terms_js))), 2)
-  # Hints and "also called" hide; the help under fields, notes, departures
-  # and known differences have no rule that hides them.
+  # Routine guidance uses native info disclosures; errors and scientific
+  # warnings remain outside these containers.
   app_code <- paste(readLines(file.path(routing_dir, "app.R"), warn = FALSE), collapse = "\n")
   expect_match(app_code, ".terms-mode .hint, .terms-mode .form-terms", fixed = TRUE)
+  expect_match(app_code, ".terms-mode .explanation-help > summary", fixed = TRUE)
+  expect_match(terms_js, "data-guidance-describedby", fixed = TRUE)
   expect_no_match(app_code, "\\.terms-mode \\.(field-help|group-note|departure|known-difference|status)", perl = TRUE)
 })
 

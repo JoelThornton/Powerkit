@@ -661,11 +661,12 @@ test_that("long labels are short, with the detail as help linked to the field", 
   expect_false(field_applies(adj, list(just_type = "meta_analysis")))
 })
 
-test_that("definitions and the direction's reason open on request; warnings and needed notes stay in view", {
+test_that("definitions and routine direction help use disclosures; scientific warnings stay in view", {
   groups <- form_groups(forms, "E2")
   html <- as.character(form_ui(tree, forms, "E2", groups))
   expect_match(html, "<summary>What these terms mean</summary>", fixed = TRUE)
-  expect_match(html, "<summary>Why this is asked first</summary>", fixed = TRUE)
+  expect_match(html, 'aria-label="Info: Your hypothesis"', fixed = TRUE)
+  expect_match(html, direction_note, fixed = TRUE)
   # The observed-power warning is not folded.
   warning_at <- regexpr("observed-power-warning", html)
   expect_gt(warning_at, 0)
@@ -1030,9 +1031,10 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   # No developer wording in a default's note.
   for (ep in names(forms$forms)) for (f in form_fields(form_groups(forms, ep))) if (!is.null(f$default_source))
     expect_no_match(short_source(f$default_source), "design spec|decided on", label = paste(ep, f$id))
-  # The simulation note leads with the plain point and folds the detail.
+  # Simulation guidance uses the same named info disclosure as other notes.
   acc <- as.character(group_ui_build(tree, simulation_accuracy_group(forms, "E2")[[1]], list(), 1))
-  expect_match(acc, "More about this", fixed = TRUE)
+  expect_match(acc, 'aria-label="Info: Simulation accuracy"', fixed = TRUE)
+  expect_match(acc, "More simulations do not guarantee", fixed = TRUE)
 })
 
 test_that("the cross-lagged panel screen builds a valid spec with its names left empty", {
