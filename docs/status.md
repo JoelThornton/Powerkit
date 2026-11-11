@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 10 November 2026 (0.61.1 pre-sharing safeguards; deployment confirmation outstanding). Where the project is
+*Last updated: 11 November 2026 (0.61.1 safeguards merged; publishing succeeded; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -11,20 +11,22 @@ powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
 
-The [release-readiness review](release-readiness-review.md) source fixes
-merged through PR #369 (0.61.1, main 7eb7392), with required gates and
-Windows/macOS launcher checks passing. CRAN-release compatibility passed;
-CRAN-development dependency setup remains in progress. The safeguards move known limitations ahead of
-calculation and results, clarify power choices and missing paired correlations,
-and exercise eleven common analysis translations. Desktop/mobile keyboard
-and automated accessibility checks pass for the exercised journeys, with a
-phone action-bar obstruction corrected. This does not resolve the
-scientific failures. The published branch and observed live page still showed
-0.60.0 at the start of this batch. The first manual publication built its
-manifest but failed while switching the deployment checkout (run 42924708537).
-The publisher now prepares an exact checked snapshot with an isolated index;
-local history/source/dirty-workspace regression checks pass. Final publication
-verification remains pending.
+The [release-readiness review](release-readiness-review.md) safeguards merged
+in PR #369 (0.61.1): early analysis limitations, clearer power/paired-input help,
+eleven common analysis-translation checks and a phone action-bar correction.
+Required gates, full app/browser checks, clean Windows/macOS first/repeat
+starts and CRAN-release compatibility passed. Scientific validation gaps
+remain open; these checks do not establish broad mathematical validation.
+
+The publishing correction merged in PR #370. Its isolated-index publisher
+preserves checked source, prior deployment ancestry and temporary build files.
+[Publication run 42927530578](https://github.com/JoelThornton/Powerkit/actions/runs/42927530578)
+succeeded: deployment commit 300b53d967df contains checked main bdbdfb6cc7e3
+plus the pinned manifest. The host's normal rollout is left to complete;
+a new live version is not claimed verified. The public download page and
+sitemap body were checked in a browser, including the download-page entry.
+CRAN-development job outcomes were still unrecorded at the 11 November
+00:03 UTC handoff; CRAN readiness and first-release evidence remain open.
 
 The [first-release support plan](v1-support-plan.md) sets a broad coverage
 target, a representative benchmark and complex-design audit briefs. Its
@@ -288,7 +290,7 @@ tagged and published as a GitHub pre-release
 the actual deployment; Search Console registration alone does not prove
 that every page is indexed.
 
-**CRAN (10 November 2026):** every package the engine uses is on CRAN,
+**CRAN (11 November 2026):** every package the engine uses is on CRAN,
 and the engine has been prepared for submission: the backends only some
 designs use are in Suggests (25 non-base Imports remain, and installing
 the engine alone brings 228 locked packages rather than 300,
@@ -296,9 +298,11 @@ the engine alone brings 228 locked packages rather than 300,
 backend is missing says which package to install, every exported
 function has an example, and on CRAN a quick set of 23 test files runs
 (`engine/tests/testthat.R`). The online app still installs every
-backend (`app/routing/optional-packages.R`). The v0.60.0 Linux current-dependency quick CRAN suite passed on R release
-and devel with NOT_CRAN=false; this is compatibility evidence, not
-scientific validation or CRAN acceptance. Other platforms, optional-backend
+backend (`app/routing/optional-packages.R`). The v0.60.0 Linux current-dependency
+quick CRAN suite passed on R release and devel with NOT_CRAN=false.
+The 0.61.1 release job also passed; the development-job outcome was not yet
+recorded at the handoff. This is compatibility evidence, not scientific
+validation or CRAN acceptance. Other platforms, optional-backend
 coverage and submission checks remain. Submitting is a queue item
 in [`next.md`](next.md).
 
