@@ -661,11 +661,12 @@ test_that("long labels are short, with the detail as help linked to the field", 
   expect_false(field_applies(adj, list(just_type = "meta_analysis")))
 })
 
-test_that("definitions and the direction's reason open on request; warnings and needed notes stay in view", {
+test_that("definitions and routine direction help use disclosures; scientific warnings stay in view", {
   groups <- form_groups(forms, "E2")
   html <- as.character(form_ui(tree, forms, "E2", groups))
   expect_match(html, "<summary>What these terms mean</summary>", fixed = TRUE)
-  expect_match(html, "<summary>Why this is asked first</summary>", fixed = TRUE)
+  expect_match(html, 'aria-label="Info: Your hypothesis"', fixed = TRUE)
+  expect_match(html, direction_note, fixed = TRUE)
   # The observed-power warning is not folded.
   warning_at <- regexpr("observed-power-warning", html)
   expect_gt(warning_at, 0)

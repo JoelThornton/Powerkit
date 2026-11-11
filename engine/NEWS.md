@@ -1,3 +1,8 @@
+# powerkit 0.61.3
+
+* Explanations-off now puts routine field help, default provenance, group notes and basic result interpretation behind native, named info disclosures. Keep errors, required units, selected methods and scientific warnings visible; preserve input values and active error descriptions when help toggles. Add concise shared field/group labels without changing spec metadata or calculations.
+* Replace the solitary 80% power shortcut with equally styled 80%, 90% and 95% examples, with a blank target, editable values and guidance on missed-effect consequences, resources and the conventional status of 80%.
+
 # powerkit 0.61.2
 
 * Clarify that an attrition percentage adds a recruitment buffer rather than modelling missing data, and retain this limitation in the result and copied methods. Correct input guidance that treated small pilot estimates as necessarily inflated; describe uncertainty and selection without an automatic halving rule. No attrition formula, effect value or default changes.

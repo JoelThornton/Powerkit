@@ -158,6 +158,20 @@ app_css <- "
   .card-more { margin-top: 0.75rem; }
   .card-more > summary { cursor: pointer; color: #0a5a8c; text-decoration: underline; min-height: 44px; display: flex; align-items: center; }
   .field-help { font-size: 0.85rem; color: #4a4a4a; margin-top: 0.2rem; }
+  .explanation-help { margin: 0.2rem 0 0.5rem; }
+  .explanation-help > summary { display: none; }
+  .terms-mode .explanation-help > summary { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; cursor: pointer; color: #0a5a8c; border: 1px solid #aab8c8; border-radius: 0.4rem; background: #fff; list-style: none; }
+  .explanation-help > summary::-webkit-details-marker { display: none; }
+  .explanation-help > summary > span { border: 1px solid currentColor; border-radius: 50%; width: 1.2rem; height: 1.2rem; line-height: 1.1rem; text-align: center; font-weight: bold; }
+  .explanation-help > summary:focus-visible { outline: 3px solid #0a5a8c; outline-offset: 2px; }
+  .terms-mode .explanation-help:not([data-explanation-ready]) > .explanation-content { display: none; }
+  .terms-mode .explanation-help[open] > .explanation-content { margin-top: 0.4rem; }
+  .terms-mode .explanation-help[open] .input-guide > summary { display: none; }
+  .usual-values { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .terms-mode .form-field { position: relative; margin-bottom: 0.4rem; }
+  .terms-mode .form-field > .explanation-help { margin: 0; }
+  .terms-mode .form-field > .explanation-help > summary { position: absolute; right: 0; top: 0; }
+  .terms-mode .form-field label.control-label { min-height: 44px; padding-right: 3.25rem; display: flex; align-items: center; }
   .field-problem { font-size: 0.9rem; color: #8a1f1f; border-left: 3px solid #a12a2a; background: #fbeaea; padding: 0.2rem 0.5rem; margin-top: 0.3rem; }
   [aria-invalid='true'] { border-color: #a12a2a !important; }
   .form-terms { margin: 0 0 0.5rem 0; font-size: 0.9rem; }

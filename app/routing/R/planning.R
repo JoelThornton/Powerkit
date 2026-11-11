@@ -16,7 +16,7 @@ planning_decision_ui <- function(form) {
       conditionalPanel(sprintf("%s == 'bayes_factor'", input_id), inline = TRUE,
         "This plans the chance that your study reaches strong evidence (a Bayes factor past your threshold) if the effect you enter is the true one. A Bayes factor test has no significance level."))
   }
-  div(class = "planning-decision small",
+  explanation_ui("planning-goal-info", "What this planning goal means", class = "planning-decision small",
     tags$strong("Check this answers your question. "), current,
     tags$details(tags$summary("Different questions need different planning goals"),
       tags$ul(tags$li("Detect a departure from the null: choose the relevant significance test and expected population effect."),
