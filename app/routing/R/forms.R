@@ -570,6 +570,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
            choices = c(list(
              smallest_effect_of_interest = "The smallest effect that would matter",
              meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study",
+             convention = "A convention or rule of thumb (such as Cohen's small, medium or large)",
              own_study_result = "The result of my finished study (observed power)"),
              if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"))),
       list(id = "just_source", label = "Why this effect size?",
@@ -1076,7 +1077,7 @@ form_problems <- function(fields, values) {
     # Required: marked so, an effect size, or needed for the goal chosen.
     needed <- isTRUE(f$required) || isTRUE(f$effect) || !is.null(f$needed_for) || !is.null(f$needed_if_just)
     if (blank(v)) {
-      if (effect_optional(f, values)) next
+      if (effect_optional(f, values) || source_not_asked(f, values)) next
       if (isTRUE(f$effect)) {
         add(sprintf("%s is empty. Enter the value you expect; powerkit doesn't fill in effect sizes.", quote_label(f)))
       } else if (needed) {
@@ -1214,6 +1215,7 @@ build_spec <- function(forms, ep_id, fields, values) {
     if ((is.null(f$path) && is.null(f$sets)) || !field_applies(f, values)) next
     v <- values[[f$id]]
     if (blank(v) && effect_optional(f, values)) v <- empty_effect(f, values)
+    if (blank(v) && source_not_asked(f, values)) v <- "none"
     # A field left empty may stand for another field's value (E34: the
     # baseline score's R-squared between groups starts as the one within).
     if (blank(v) && !is.null(f$copy_if_empty)) v <- values[[f$copy_if_empty]]
@@ -1291,10 +1293,18 @@ effect_optional <- function(f, values) {
     (isTRUE(values$goal %in% f$optional_for) || identical(values$just_type, "none"))
 }
 
+# Finding the smallest detectable effect enters no effect size, so it needs
+# no source for one: the question may stay empty, and the spec records
+# "none" (11 November 2026). Only where the card offers that answer.
+source_not_asked <- function(f, values) {
+  identical(f$id, "just_type") && "none" %in% names(f$choices) &&
+    isTRUE(values$goal %in% c("sensitivity", "sensitivity_curve"))
+}
+
 # Problems with the combination of answers, beyond single fields.
 combination_problems <- function(values) {
   if (identical(values$just_type, "none") && !isTRUE(values$goal %in% c("sensitivity", "sensitivity_curve"))) {
-    return("With no effect size to plan for, there is no sample size or power to work out. Under \u201cWhat do you want to find out?\u201d, choose the smallest effect you could detect, at a given sample size or across a range of sample sizes.")
+    return(c(just_type = "\u201cI can't justify an effect size\u201d leaves no effect to plan for, so there is no sample size or power to work out. If you are using a conventional value, choose \u201cA convention or rule of thumb\u201d as the source. Otherwise, under \u201cWhat do you want to find out?\u201d, choose the smallest effect you could detect."))
   }
   character()
 }

@@ -10,3 +10,6 @@
   "Calculate"; Welch's t-test gets the explore panels; a form-level check
   catches partial eta-squared with a test version other than the
   classical F; whole-number percentages get a specific message.
+- `effect_justification.type` accepts `convention` (a benchmark such as
+  Cohen's small, medium or large), with advice from `validate_spec()` that
+  a convention is not evidence about the effect (Lakens, 2022).

@@ -43,6 +43,13 @@ usual_seconds <- function(forms, ep_id, goal) {
 # result and the result (and its script) can be reproduced. Returns
 # list(status = "ok", spec, result, notes) or list(status = "error",
 # message) with a plain-English message.
+# A package's notice about its own code (a deprecated argument inside
+# Superpower's plotting, say) says nothing about the plan, so it is not
+# shown as a note.
+package_housekeeping <- function(message) {
+  grepl("deprecated|lifecycle::|was soft-deprecated|will be removed in|is defunct|report (the|this) issue", message, ignore.case = TRUE)
+}
+
 run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) {
   if (is.null(run)) {
     return(list(status = "error", message = "The calculation needs powerkit's engine, which isn't installed where this prototype is running."))
@@ -53,7 +60,7 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
   notes <- character()
   result <- tryCatch(
     withCallingHandlers(run(spec), warning = function(w) {
-      notes <<- c(notes, conditionMessage(w))
+      if (!package_housekeeping(conditionMessage(w))) notes <<- c(notes, conditionMessage(w))
       invokeRestart("muffleWarning")
     }),
     error = function(e) {
@@ -1190,6 +1197,7 @@ reasoning_line <- function(values) {
   if (blank(values$just_type)) return(NULL)
   types <- list(smallest_effect_of_interest = "the smallest effect that would matter", meta_analysis = "a meta-analysis",
                 prior_study = "a previous study", pilot_study = "a pilot study",
+                convention = "a convention or rule of thumb, not evidence about this effect",
                 own_study_result = "the finished study's own result (observed power)", none = "none (you said you can't justify an effect size)")
   label <- types[[values$just_type]] %||% values$just_type
   if (blank(values$just_source)) return(sprintf("Effect size source: %s.", label))
@@ -2631,7 +2639,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     h3(class = "h4", "Your result"),
     planning_warnings_ui(spec, result),
     simulation_failures_ui(result),
-    if (!is.null(label <- selected_method_label(spec, fields))) p(class = "result-analysis", tags$strong(label)),
+    if (!is.null(label <- selected_method_label(spec, fields, values))) p(class = "result-analysis", tags$strong(label)),
     hero,
     if (!is.null(corrected_count_verification_values(calc, values))) actionButton("verify_corrected_count", "Check power at this sample size", class = "btn btn-outline-primary"),
     if (!is.null(corrected_anova_verification_values(calc, values))) actionButton("verify_corrected_anova", "Check this sample size by simulation", class = "btn btn-outline-primary"),
@@ -2741,6 +2749,7 @@ writeup_source <- c(
   meta_analysis = "an estimate from a meta-analysis",
   prior_study = "an estimate from a previous study",
   pilot_study = "an estimate from a pilot study",
+  convention = "a conventional benchmark rather than evidence about this effect",
   own_study_result = "the effect observed in the finished study itself (observed power)"
 )
 

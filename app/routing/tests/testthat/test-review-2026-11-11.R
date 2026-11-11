@@ -46,3 +46,43 @@ test_that("the main button says what it does, and feedback is one click from eve
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(app, "Feedback on this screen", fixed = TRUE)
 })
+
+test_that("a rule of thumb can be named as the source, and is written up as one", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples[["E2"]], list(just_type = "convention", just_source = "Cohen's medium"))
+  expect_length(form_problems(fields, values), 0)
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_identical(spec$effect_justification$type, "convention")
+  expect_match(reasoning_line(values), "a convention or rule of thumb, not evidence about this effect", fixed = TRUE)
+  expect_warning(powerkit::validate_spec(spec), "convention or rule of thumb", fixed = TRUE)
+})
+
+test_that("finding the smallest detectable effect asks for no effect-size source", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples[["E2"]], list(goal = "sensitivity", n = "120", just_type = "", just_source = ""))
+  values[c("d", "power")] <- list("", "0.8")
+  expect_false("just_type" %in% names(form_problems(fields, values)))
+  expect_identical(build_spec(forms, "E2", fields, values)$effect_justification$type, "none")
+  expect_null(reasoning_line(values))
+  # Asked for as before when an effect size is planned for.
+  values$goal <- "sample_size"; values$d <- "0.5"
+  expect_true("just_type" %in% names(form_problems(fields, values)))
+})
+
+test_that("a hidden test selector does not name the result's test", {
+  id <- names(Filter(function(f) any(vapply(form_fields(f$groups), function(x) identical(x$id, "coef_test"), logical(1))), forms$forms))[1]
+  fields <- form_fields(form_groups(forms, id))
+  spec <- list(target_test = list(method = "f_test"))
+  expect_null(selected_method_label(spec, fields, list(question = "r2_increase")))
+  expect_match(selected_method_label(spec, fields, list(question = "single_coefficient")), "usual t test", fixed = TRUE)
+})
+
+test_that("a package's deprecation notice is not shown as a note about the plan", {
+  run <- function(spec) {
+    warning("`aes_string()` was deprecated in ggplot2 3.0.0. Please report the issue to the authors.")
+    warning("Power is low for this design.")
+    list()
+  }
+  calc <- run_calculation(list(options = list(seed = 1L)), run = run)
+  expect_identical(calc$notes, "Power is low for this design.")
+})

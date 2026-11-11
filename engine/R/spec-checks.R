@@ -92,6 +92,19 @@ spec_advice <- function(spec) {
       "(\"How you adjusted it\" on the input screen)."
     ))
   }
+  # A benchmark is not evidence about this effect; Lakens (2022; refs.bib
+  # Lakens2022_justification) lists it as the weakest basis for a sample
+  # size. Recorded, with advice, so that a benchmark is not written up as
+  # a smallest effect of interest.
+  if (identical(spec$effect_justification$type, "convention")) {
+    advice <- c(advice, paste0(
+      "The effect size is a convention or rule of thumb, not evidence about ",
+      "this effect, so the sample size is only as good as that guess. Look at ",
+      "how the answer changes for smaller effects, and replace the convention ",
+      "with the smallest effect that would matter or an estimate from ",
+      "earlier studies when you can."
+    ))
+  }
   # Observed power: allowed, with a warning (judgement call 3.1, decided
   # 22 October 2026). Source: Rubin (2025), refs.bib RubinMikael2025_power.
   if (identical(spec$effect_justification$type, "own_study_result")) {

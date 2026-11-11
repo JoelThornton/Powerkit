@@ -10,14 +10,16 @@ compact_field_label <- function(f) {
     alpha_reason = "Alpha rationale", alternative = "Tail(s)", alternative_reason = "One-sided test rationale",
     effect_units = "Effect-size input", d = "Standardised difference (d)", dz = "Standardised change (dz)",
     welch_sd_ratio = "SD ratio (group 2 / group 1)", just_type = "Effect-size source",
-    just_source = "Effect-size rationale (needed to export)", just_adjustment = "Effect adjustment",
+    just_source = "Effect-size rationale", just_adjustment = "Effect adjustment",
     conv_from = "Effect-size conversion")
   if (f$id %in% names(labels)) unname(labels[[f$id]]) else NULL
 }
 
 # Identify the calculation's captured test, not a subsequently edited selector.
-selected_method_label <- function(spec, fields) {
-  for (f in fields) if (identical(f$path, "target_test.method") &&
+# A selector hidden by the other answers does not name the test (the
+# regression card's coefficient test, when the question is an R-squared).
+selected_method_label <- function(spec, fields, values = NULL) {
+  for (f in fields) if (identical(f$path, "target_test.method") && (is.null(values) || field_applies(f, values)) &&
       isTRUE(spec$target_test$method %in% names(f$choices))) return(f$choices[[spec$target_test$method]])
   NULL
 }
@@ -460,6 +462,7 @@ needed_js <- "
       for (var a = el.parentElement; a; a = a.parentElement) {
         if (a.classList.contains('shiny-panel-conditional') && getComputedStyle(a).display === 'none') return false;
       }
+      if (el.id === 'f_just_type' && /^sensitivity/.test(value('f_goal')) && el.querySelector('option[value=none]')) return false;
       var optionalFor = el.getAttribute('data-optional-for');
       if (optionalFor && (optionalFor.split(' ').indexOf(value('f_goal')) >= 0 || value('f_just_type') === 'none')) return false;
       return !el.value || !String(el.value).trim();

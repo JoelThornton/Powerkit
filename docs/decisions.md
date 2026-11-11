@@ -2700,3 +2700,8 @@ under separate claims. Prototype warnings stay, with one line for testers
 on the start screen. Between-study variation stays, folded. The claim
 setting stays folded for this round.
 
+An effect size taken from a convention can be recorded as one
+(`effect_justification.type = "convention"`), with advice that it is not
+evidence about the effect: without it, a researcher using Cohen's
+benchmarks had to record the value as a smallest effect of interest.
+Finding the smallest detectable effect asks for no effect-size source.

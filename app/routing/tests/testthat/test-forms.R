@@ -405,7 +405,7 @@ test_that("'I can't justify an effect size' is offered for the basic tests, and 
   fields <- form_fields(form_groups(forms, "E4"))
   values <- form_examples[["E4"]]
   values$just_type <- "none"; values$just_source <- ""; values$r <- ""
-  expect_match(form_problems(fields, values), "With no effect size to plan for", fixed = TRUE, all = FALSE)
+  expect_match(form_problems(fields, values), "leaves no effect to plan for", fixed = TRUE, all = FALSE)
   values$goal <- "sensitivity_curve"; values$n_max <- "200"
   expect_length(form_problems(fields, values), 0)
   spec <- build_spec(forms, "E4", fields, values)
