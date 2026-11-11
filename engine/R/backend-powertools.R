@@ -638,7 +638,7 @@ propodds_inputs <- function(spec) {
   list(
     pC = as.numeric(unlist(pop$probabilities)),
     OR = if (or < 1) 1 / or else or,
-    ratio = spec$options$allocation_ratio %||% 1,
+    ratio = allocation_ratio(spec),
     alpha = spec$target_test$alpha
   )
 }

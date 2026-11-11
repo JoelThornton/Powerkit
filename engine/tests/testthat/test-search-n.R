@@ -23,7 +23,11 @@ true_power <- function(n) stats::pnorm(0.1 * sqrt(n) - stats::qnorm(0.975))
 test_that("bracket_n() finds the smallest valid n reaching the target", {
   expect_equal(bracket_n(true_power, 0.8, 8, 4), 788)
   expect_equal(bracket_n(true_power, 0.8, 800, 4), 800)
-  expect_error(bracket_n(function(n) 0.1, 0.8, 8, 4), "search limit", class = "powerkit_run_error")
+  # Power that rises too slowly: the search limit. Power that never rises
+  # (a one-sided test pointed away from the effect): no sample size will do.
+  expect_error(bracket_n(function(n) 0.1 + n / 1e7, 0.8, 8, 4), "search limit", class = "powerkit_run_error")
+  expect_error(bracket_n(function(n) 0.1, 0.8, 8, 4), "No sample size reaches the target power", class = "powerkit_run_error")
+  expect_error(bracket_n(function(n) 0.05 / n, 0.8, 8, 4), "points away from the effect", class = "powerkit_run_error")
 })
 
 test_that("doubling checks the largest valid size before reporting the search limit", {

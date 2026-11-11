@@ -333,7 +333,7 @@ pwrss_inputs <- function(spec) {
       )
     ),
     independent_t = {
-      ratio <- spec$options$allocation_ratio %||% 1
+      ratio <- allocation_ratio(spec)
       list(
         fun = "power.t.welch",
         args = function(n) {
@@ -349,7 +349,7 @@ pwrss_inputs <- function(spec) {
       )
     },
     two_proportions = {
-      ratio <- spec$options$allocation_ratio %||% 1
+      ratio <- allocation_ratio(spec)
       list(
         fun = "power.exact.fisher",
         args = function(n) {
@@ -365,7 +365,7 @@ pwrss_inputs <- function(spec) {
       )
     },
     two_correlations = {
-      ratio <- spec$options$allocation_ratio %||% 1
+      ratio <- allocation_ratio(spec)
       list(
         fun = "power.z.twocors",
         args = function(n) {

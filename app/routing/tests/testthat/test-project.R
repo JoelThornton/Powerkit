@@ -127,7 +127,7 @@ test_that("a reopened project shows its saved result as it was, without running 
   older <- out$project
   older$screen <- NULL
   expect_null(saved_calc(older, saved))
-  expect_match(as.character(project_opened_ui(older)), "Check my answers", fixed = TRUE)
+  expect_match(as.character(project_opened_ui(older)), "Calculate", fixed = TRUE)
   # So is a file whose spec was changed after it was saved.
   changed <- out$project
   changed$spec$target_test$alpha <- 0.01

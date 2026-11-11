@@ -87,7 +87,7 @@ joint_power <- function(specs, rho, n, seed = 1L, tnum = 10000L) {
     rho = rho, tnum = tnum
   )
   if (identical(first$template, "independent_t")) {
-    ratio <- first$options$allocation_ratio %||% 1
+    ratio <- allocation_ratio(first)
     args <- c(args, list(d_m = "d1.1_m1c", nbar = n, J = 1, Tbar = ratio / (1 + ratio)))
   } else {
     groups <- n / pop$cluster_size
@@ -160,7 +160,7 @@ joint_power_problem <- function(specs) {
   if (!same(function(s) s$target_test$alpha) || !same(function(s) s$target_test$alternative %||% "two_sided")) {
     return("Joint power needs every analysis to use the same significance level and the same direction of test.")
   }
-  if (!same(function(s) s$options$allocation_ratio %||% 1)) {
+  if (!same(function(s) allocation_ratio(s))) {
     return("Joint power needs every analysis to split people between the groups in the same way.")
   }
   if (!all(vapply(specs, function(s) identical(s$population$metric, "standardised") || identical(s$population$metric, "raw"), logical(1)))) {

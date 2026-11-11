@@ -103,7 +103,7 @@ spower_backend <- function(spec, seed = NULL) {
 # Spower's d is sqrt(2) * dz.
 spower_inputs <- function(spec) {
   pop <- spec$population
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   # Group 1's size, from the total n and the allocation ratio n2 / n1.
   first_group <- function(n) round(n / (1 + ratio))
   template <- spec$template
@@ -521,7 +521,7 @@ spower_inputs <- function(spec) {
 # differences, and assumes they are symmetric.
 rank_test_inputs <- function(spec, first_group) {
   pop <- spec$population
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   draw <- score_shape_sampler(pop$score_shape)
   shifted <- function(n, d) d + draw(n)
   if (identical(spec$template, "oneway_within")) {
@@ -1816,7 +1816,7 @@ spower_check_run <- function(spec, inputs, n, seed) {
   generator <- inputs$generate %||% getExportedValue("Spower", inputs$generator)
   data <- call_backend("Spower", with_seed(seed, do.call(generator, args)))
   pop <- spec$population
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   # The standardised mean of x, with the SE of the mean in SD units.
   standardised <- function(x, label, specified) {
     check_run_rows(label, specified, mean(x) / stats::sd(x), 1 / sqrt(length(x)))

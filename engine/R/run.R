@@ -380,6 +380,9 @@ run_spec <- function(spec) {
       details = test_details(backend, goal$type, simulating, n_analysed) %||%
         if (identical(goal$type, "power") || identical(goal$type, "sample_size")) critical_effect_details(critical),
       critical_effect = critical,
+      allocation = planned_allocation(spec),
+      # The step between totals that split into whole groups, for curves drawn around this result.
+      n_step = backend$n_step %||% 1,
       check_run = check,
       provenance = list(
         evidence = analysis_evidence(spec, computation_method = method),

@@ -1042,7 +1042,7 @@ comparison_section <- function() {
 variance_script <- function(spec, result) {
   inputs <- variance_inputs(spec)
   one <- identical(spec$template, "one_variance")
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   tails <- switch(
     inputs$alternative,
     two_sided = c(
@@ -1195,7 +1195,7 @@ pwr_script_call_lines <- function(spec, inputs) {
     "  n_group1 <- round(n_total / (1 + allocation_ratio))",
     "  n_group2 <- n_total - n_group1"
   )
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   if (inputs$fun %in% c("power.prop.test", "power.z.twoprops")) {
     return(prop_test_script_lines(spec, inputs))
   }
@@ -1345,7 +1345,7 @@ pwr_sensitivity_section <- function(spec, result) {
   s <- result$sensitivity
   alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
   two_sided <- alternative == "two.sided"
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   solve <- function(variable, call, field) {
     c(
       "# pwr finds the effect itself when it is left NULL (see the help for",
@@ -1473,7 +1473,7 @@ spower_script_inputs <- function(spec) {
   pop <- spec$population
   v <- spec$variables
   lv <- function(role, i) comment_text(unlist(v[[role]]$levels)[i])
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   ratio_line <- sprintf(
     "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
     r_code(ratio), lv("X", 2), lv("X", 1)
@@ -2562,7 +2562,7 @@ rank_script_inputs <- function(spec) {
       sprintf("d <- %s # Cohen's d: (mean of %s minus mean of %s) / SD", r_code(pop$d), lv("X", 2), lv("X", 1)),
       sprintf(
         "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
-        r_code(spec$options$allocation_ratio %||% 1), lv("X", 2), lv("X", 1)
+        r_code(allocation_ratio(spec)), lv("X", 2), lv("X", 1)
       ),
       if (brunner_munzel_test(spec)) sprintf("sd_ratio <- %s # SD of group 2 over SD of group 1", r_code(pop$sd_ratio %||% 1))
     ),

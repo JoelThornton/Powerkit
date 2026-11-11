@@ -198,7 +198,7 @@ comes from, and expected attrition).
   the installed packages' function signatures. Where a tool has no
   default (pwr, Spower, Superpower and InteractionPoweR have no target power),
   the field starts empty and says so.
-- **Check my answers** first checks the fields on the screen (empty,
+- **Calculate** first checks the fields on the screen (empty,
   not a number, out of range), naming each by its label. It then builds a
   design spec and checks it with the engine's `validate_spec()`, showing
   the engine's messages with the screen's field names in place of spec

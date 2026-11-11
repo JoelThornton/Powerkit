@@ -50,7 +50,7 @@ planning_document <- function(tree, forms, calc) {
   id <- route$endpoint
   values <- route$form_values
   if (is.null(id) || is.null(values)) stop("This result has no captured form answers. Recalculate before downloading a planning document.")
-  if (blank(values$just_source) || isTRUE(values$source_stale)) stop("Add current source reasoning and recalculate before keeping this plan.")
+  if (isTRUE(values$source_stale)) stop("Confirm the current source reasoning and recalculate before keeping this plan.")
   spec <- calc$spec
   result <- calc$result
   fields <- form_fields(form_groups(forms, id, k = route$form_k %||% 2L))

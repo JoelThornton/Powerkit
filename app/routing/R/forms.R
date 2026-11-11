@@ -572,8 +572,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
              meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study",
              own_study_result = "The result of my finished study (observed power)"),
              if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"))),
-      list(id = "just_source", label = "Why this effect size? (needed to save or export the plan)",
-           help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. You can calculate without it.",
+      list(id = "just_source", label = "Why this effect size?",
+           help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. If you leave it empty, the write-up says no justification was recorded.",
            type = "text", path = "effect_justification.source", optional = TRUE),
       # A pilot is as much one study's estimate as a published one, and
       # less precise, so it gets the same question.
@@ -870,7 +870,7 @@ with_conversion <- function(group, template) {
 }
 
 guess_note <- paste(
-  "Before you press \u201cCheck my answers\u201d, write down what you expect:",
+  "Before you press \u201cCalculate\u201d, write down what you expect:",
   "the number of participants (for the sample size), the power as a percentage (for power),",
   "or the size of the smallest effect you could detect. Your guess is shown next to the answer;",
   "it isn't part of the plan, the R script or the write-up."
@@ -1090,6 +1090,14 @@ form_problems <- function(fields, values) {
         add(sprintf("%s should be a number written with a decimal point, such as 0.3.", quote_label(f)))
         next
       }
+      # A percentage typed where a proportion is asked for (80 for 80%
+      # power, 5 for a 5% significance level): say what to type instead.
+      top <- f$max_exclusive %||% f[["max"]]
+      bottom <- f$min_exclusive %||% f[["min"]]
+      if (!is.null(top) && top <= 1 && !is.null(bottom) && bottom >= 0 && x >= 2 && x <= 100) {
+        add(sprintf("%s is entered as a proportion between 0 and 1: for %s%%, type %s.", quote_label(f), format(x), format(x / 100)))
+        next
+      }
       if (!is.null(f[["min"]]) && x < f[["min"]]) add(sprintf("%s must be at least %s.", quote_label(f), f[["min"]]))
       if (!is.null(f[["max"]]) && x > f[["max"]]) add(sprintf("%s must be at most %s.", quote_label(f), f[["max"]]))
       if (!is.null(f$min_exclusive) && x <= f$min_exclusive) add(sprintf("%s must be more than %s.", quote_label(f), f$min_exclusive))
@@ -1131,6 +1139,17 @@ form_problems <- function(fields, values) {
     read_scenario_library(values$scenario_library, fields)
     character()
   }, error = function(e) conditionMessage(e)) else character()
+  # Partial eta-squared (or Cohen's f turned into it) plans the classical
+  # F test only; said here, before the engine is called, in the screen's
+  # own words (11 November 2026: the default, Welch's ANOVA, otherwise
+  # failed on the engine's message after a long wait).
+  version <- values$test_version %||% values$method
+  if (identical(values$metric, "eta_squared") && !blank(version) && !version %in% c("anova_f", "ancova_f") &&
+      any(vapply(fields, function(f) identical(f$id, "test_version") && field_applies(f, values), logical(1)))) {
+    problems <- c(problems, c(test_version = paste0(
+      "An effect size (partial eta-squared or Cohen's f) plans the classical ANOVA only. ",
+      "Under \u201cTest version\u201d choose the classical ANOVA, or give the group means and SD to keep the version you chose.")))
+  }
   c(problems, combination_problems(values), scenario_problem)
 }
 

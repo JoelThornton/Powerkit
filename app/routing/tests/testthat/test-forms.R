@@ -645,8 +645,9 @@ test_that("long labels are short, with the detail as help linked to the field", 
   fields <- fields_for("E2")
   just <- Filter(function(f) f$id == "just_source", fields)[[1]]
   html <- as.character(field_ui(just, NULL))
-  expect_match(html, "Why this effect size? (needed to save or export the plan)", fixed = TRUE)
-  expect_false(grepl("(optional)", html, fixed = TRUE))
+  # Optional since 11 November 2026: an empty reason no longer locks the write-up or the downloads.
+  expect_match(html, "Why this effect size? (optional)", fixed = TRUE)
+  expect_no_match(html, "needed to save or export", fixed = TRUE)
   expect_match(html, 'id="f_just_source_help"', fixed = TRUE)
   expect_match(html, 'aria-describedby="f_just_source_help"', fixed = TRUE)
   for (f in fields) expect_lt(nchar(f$label), 80, label = f$id)

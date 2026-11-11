@@ -277,6 +277,7 @@ routes:
   question: "How do you want to start?"
   title: "Plan the sample size for your study"
   lead: "Describe your design and enter what you know about the effect. Powerkit gives the sample size, power or precision, with a methods paragraph and an R script that reproduces the answer."
+  tester_note: "Powerkit is a prototype. If you are trying it out, plan a study the way you usually would, plan it again here, and use \u201cFeedback on this screen\u201d at the top of any page to say what differed, took longer or was unclear."
   screening_start: s1
   screening_note: "First, four questions check that your design is one powerkit can advise on. No test is suggested until then."
   # "I know my analysis" can skip the screening and see every analysis. The

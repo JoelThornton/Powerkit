@@ -108,7 +108,7 @@ pwrss_script_inputs <- function(spec) {
         sprintf("sds <- %s # group SDs in fixed RMS-SD units", r_code(welch_population_sds(spec)))),
       sprintf(
         "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
-        r_code(spec$options$allocation_ratio %||% 1), lv("X", 2), lv("X", 1)
+        r_code(allocation_ratio(spec)), lv("X", 2), lv("X", 1)
       ),
       alt_line
     ),
@@ -117,7 +117,7 @@ pwrss_script_inputs <- function(spec) {
       sprintf("p2 <- %s # proportion with %s = %s in %s", r_code(pop$p2), comment_text(v$Y$label), lv("Y", 2), lv("X", 2)),
       sprintf(
         "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
-        r_code(spec$options$allocation_ratio %||% 1), lv("X", 2), lv("X", 1)
+        r_code(allocation_ratio(spec)), lv("X", 2), lv("X", 1)
       ),
       alt_line
     ),
@@ -126,7 +126,7 @@ pwrss_script_inputs <- function(spec) {
       sprintf("r2 <- %s # correlation of %s with %s in %s", r_code(pop$r2), comment_text(v$X$label), comment_text(v$Y$label), lv("G", 2)),
       sprintf(
         "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
-        r_code(spec$options$allocation_ratio %||% 1), lv("G", 2), lv("G", 1)
+        r_code(allocation_ratio(spec)), lv("G", 2), lv("G", 1)
       ),
       alt_line
     ),

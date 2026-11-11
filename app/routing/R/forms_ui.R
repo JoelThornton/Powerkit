@@ -284,7 +284,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
       tags$button(type = "button", id = "form_needed", class = "btn btn-link form-needed", hidden = NA,
         `aria-live` = "polite", onclick = "pkGoToNeeded()"),
       actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
-      actionButton("form_check", "Check my answers", class = "btn btn-primary")
+      actionButton("form_check", "Calculate", class = "btn btn-primary")
     ),
     # Saving a draft is a secondary action, so it sits after the fields
     # rather than above them.

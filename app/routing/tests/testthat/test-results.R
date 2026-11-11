@@ -527,9 +527,8 @@ test_that("the range of sample sizes shows the smallest effect at 80% and 95% po
   expect_true(all(diff(tab$power_80) < 0))
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
   expect_match(html, "The smallest effect you could detect at each sample size", fixed = TRUE)
-  # No reasoning written: no saving or exporting yet.
-  expect_match(html, "To save this plan, download its R script or get its write-up", fixed = TRUE)
-  expect_no_match(html, "download_project", fixed = TRUE)
+  # No reasoning written: saving and exporting still work (11 November 2026).
+  expect_match(html, "download_project", fixed = TRUE)
   values$just_source <- "No earlier study measures this; the pool is fixed at 160."
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
   expect_match(html, "download_project", fixed = TRUE)
@@ -653,14 +652,16 @@ test_that("the write-up states the test, alpha, power and its reason, the effect
   expect_no_match(paste(w, collapse = " "), "noncentrality|critical value", ignore.case = TRUE)
 })
 
-test_that("the write-up needs the reasoning, and words the fixed-N route and the claim", {
+test_that("the write-up says when no reasoning was recorded, and words the fixed-N route and the claim", {
   spec <- light_spec("E4", goal = list(type = "sensitivity", n = 80L, power = 0.8))
   spec$target_test$alpha <- 0.025 # build_spec() divides alpha for "any of 2"
   calc <- run_calculation(spec, seed = forms$default_seed)
   fields <- form_fields(form_groups(forms, "E4"))
   values <- modifyList(form_examples[["E4"]], list(just_type = "none", situation = "fixed", claim = "any", n_tests = "2"))
   values$just_source <- ""
-  expect_null(writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values))
+  bare <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values)
+  expect_match(bare[["short"]], "No justification for the effect size was recorded.", fixed = TRUE)
+  expect_false(any(grepl("no reason recorded]]", bare, fixed = TRUE)))
   values$just_source <- "Our participant pool has 80 students a year."
   w <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "A sensitivity power analysis", fixed = TRUE)
@@ -1638,8 +1639,14 @@ test_that("the write-up has a plain-words version for an ethics application, for
     format(round(calc$result$sensitivity$effect, 3), nsmall = 2)), fixed = TRUE)
   expect_match(e, "Our reasoning about the size of the effect:", fixed = TRUE)
 
-  # No reasoning, no write-up and no ethics version.
-  expect_null(writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(just_source = ""))))
+  # No reasoning: every version says so in place of the reason.
+  bare <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(just_source = "")))
+  for (version in names(bare)[!is.na(bare)]) {
+    expect_match(bare[[version]], "No justification for the effect size was recorded.", fixed = TRUE, info = version)
+    expect_no_match(bare[[version]], "no reason recorded]]", fixed = TRUE, info = version)
+  }
+  # A reason written for different values still holds the write-up back.
+  expect_null(writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(source_stale = TRUE))))
 })
 
 # Sharing the server: a limit on background calculations --------------------

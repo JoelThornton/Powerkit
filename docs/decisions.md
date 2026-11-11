@@ -2674,3 +2674,29 @@ An explicit 80% target-power shortcut does not prefill the target or choose
 an effect assumption. Explain the existing paired change-score-SD route when
 the correlation is unavailable. This round changes no statistical formula
 or analysis default and does not close the scientific validation requirements.
+
+### Pre-tester review fixes, 11 November 2026
+
+Group sizes given as a decimal ratio are planned as the simplest whole
+split that rounds to the ratio as typed when the exact split would move the
+total in steps above 50 (0.67 as 2:3); the result and write-up state the
+split used. This replaces "always honour the typed ratio exactly", which
+returned up to a full step too many people. A search over rounded group
+sizes at every total is queued in `next.md`. Non-inferiority t-tests are
+planned as the one-sided t-test of the difference against the margin (a
+central-t null), the test researchers run, not pwrss's noncentral-null
+`margin`; minimum-effect tests keep pwrss's form (Known difference 10)
+until that is decided separately. A search that cannot reach the target
+because power does not rise with n says so.
+
+Saving, the R script and the write-up no longer require a written reason
+for the effect size: a required text box produces filler, and a blocked
+export stops a plan being shared for criticism. The write-up states "No
+justification for the effect size was recorded." instead. Explanations
+stay on by default once the basic screens are cut to about 450 words. The
+alpha box stays empty by default and the result is to show what another
+level would cost. A Bonferroni option for related tests is to be offered
+under separate claims. Prototype warnings stay, with one line for testers
+on the start screen. Between-study variation stays, folded. The claim
+setting stays folded for this round.
+

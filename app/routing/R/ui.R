@@ -483,6 +483,9 @@ start_ui <- function(tree, start = list(), bayes_toggle = NULL, saved_projects =
         tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
           if (local) "Download and update instructions" else "Run powerkit on your own computer"))),
     if (!is.null(saved_projects)) div(id = "saved_projects_panel", class = "saved-projects", hidden = NA, saved_projects),
+    # One line for someone trying the prototype out: what to do and where
+    # to say what went wrong (11 November 2026).
+    if (!is.null(tree$routes$tester_note)) p(class = "start-tester", tree$routes$tester_note),
     placeholders_at(tree, "start")
   )
 }

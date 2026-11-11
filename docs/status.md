@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 11 November 2026 (start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 11 November 2026 (pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -10,6 +10,19 @@ page as it stood before each rewrite.*
 powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
+
+A pre-tester review on 11 November corrected three calculations: decimal
+group-size ratios are planned as the simplest matching whole split
+(`docs/conventions.md`, "Group sizes given as a ratio"), non-inferiority
+t-tests use the one-sided t-test against the margin, and a search whose
+power cannot rise says so. Precision planning for one group and paired
+data accepts assurance. In the app, exports no longer wait for a written
+effect-size reason, the run button is "Calculate", Welch's t-test has the
+explore panels, and partial eta-squared with Welch's ANOVA is caught on the
+input screen. The non-inferiority and allocation unit tests and the
+non-inferiority validation chunk were run; no full validation run is
+claimed. Open from the same review: minimum-effect tests still use pwrss's
+margin, and the rounded-group-size search is queued.
 
 The start screen was laid out again before colleagues try the app
 (11 November): a title and one-sentence introduction, the three routes

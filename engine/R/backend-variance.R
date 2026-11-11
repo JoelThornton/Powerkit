@@ -54,7 +54,7 @@ variance_backend <- function(spec, seed = NULL) {
 
 variance_inputs <- function(spec) {
   pop <- spec$population
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   alternative <- spec$target_test$alternative %||% "two_sided"
   one <- identical(spec$template, "one_variance")
   list(

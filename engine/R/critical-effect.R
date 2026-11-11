@@ -54,7 +54,7 @@ critical_effect <- function(spec, n) {
 # The two groups' sizes at total n, as the power calculation splits them
 # (pwr_inputs(): the allocation ratio is n2 / n1).
 critical_effect_groups <- function(spec, n) {
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   if (isTRUE(all.equal(ratio, 1))) return(c(n / 2, n / 2))
   n1 <- round(n / (1 + ratio))
   c(n1, n - n1)

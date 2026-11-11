@@ -641,7 +641,7 @@ check_bayes_factor <- function(spec) {
       "'target_test > prior_a', 'prior_b' and 'one_sided_null' belong to the Bayes factor test of one proportion; ",
       "a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'."))
   }
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   if (!isTRUE(all.equal(ratio, 1))) {
     return(paste0(
       "The Bayes factor t-test for two groups is calculated for equal groups ",
@@ -1560,7 +1560,7 @@ check_sem_invariance <- function(spec) {
   if (!over_time && !is.null(pop$n_occasions)) {
     return("'population > n_occasions' is only used for invariance over occasions ('population > over' 'occasions'); across groups, give 'population > n_groups'.")
   }
-  if ((pop$n_groups %||% 2) > 2 && !identical(as.numeric(spec$options$allocation_ratio %||% 1), 1)) {
+  if ((pop$n_groups %||% 2) > 2 && !identical(as.numeric(allocation_ratio(spec)), 1)) {
     return("With three or more groups, the groups are equal in size: remove 'options > allocation_ratio' (or set it to 1), which is for two groups.")
   }
   several <- (pop$factors %||% 1) > 1
@@ -2798,7 +2798,7 @@ minimum_n <- function(spec) {
       # Two people in the smaller group (pwr.t2n.test() needs them): with
       # an allocation of 1 : 3, eight in all, not four.
       independent_t = {
-        ratio <- spec$options$allocation_ratio %||% 1
+        ratio <- allocation_ratio(spec)
         max(4, ceiling(2 * (1 + ratio) / min(1, ratio)))
       },
       chi_square_independence = length(spec$variables$X$levels) * length(spec$variables$Y$levels),
@@ -3006,7 +3006,7 @@ group_split <- function(spec) {
     return(list(rule = "split into 2 equal groups", valid = function(n) n %% 2 == 0))
   }
   if (spec$template == "growth_curve") {
-    w <- c(1, spec$options$allocation_ratio %||% 1)
+    w <- c(1, allocation_ratio(spec))
     if (isTRUE(all.equal(w[2], 1))) {
       return(list(rule = "split into 2 equal groups", valid = function(n) n %% 2 == 0))
     }
@@ -3099,7 +3099,7 @@ group_split <- function(spec) {
   if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "ordinal_two_groups", "tost_independent",
                            "noninf_independent", "noninf_two_proportions", "log_rank") ||
       (identical(spec$template, "invariance") && !identical(spec$population$over, "occasions") && (spec$population$n_groups %||% 2) == 2)) {
-    ratio <- spec$options$allocation_ratio %||% 1
+    ratio <- allocation_ratio(spec)
     return(list(
       rule = sprintf("split into two whole groups in the ratio 1 : %s", format_number(ratio)),
       valid = function(n) whole(n / (1 + ratio)) && whole(n * ratio / (1 + ratio))

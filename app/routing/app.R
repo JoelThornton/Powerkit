@@ -440,6 +440,7 @@ app_css <- "
   /* The start screen (11 November 2026): what powerkit is, the three ways
      in with room around them, then one quiet row for everything else. */
   h2.start-title { font-size: 2.1rem; margin: 1.5rem 0 0.6rem; }
+  .start-tester { font-size: 0.9rem; color: #5b6673; max-width: 47rem; margin: 1.25rem 0 0; }
   .start-lead { font-size: 1.1rem; line-height: 1.55; color: #44505e; max-width: 47rem; margin: 0 0 2.25rem; }
   h3.start-how { font-size: 1.25rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 1rem; }
   .route-choices { gap: 1.25rem; margin: 0; }
@@ -808,7 +809,12 @@ ui <- function(req) fluidPage(
     div(class = "topbar-inner",
       h1(class = "brand", "powerkit",
         tags$span(class = "badge-proto", paste(c("Prototype", if (!is.null(v <- powerkit_version())) paste0("v", v)), collapse = " \u00b7 "))),
-      div(class = "topbar-tools", terms_toggle_ui(), share_page_ui()))
+      div(class = "topbar-tools", terms_toggle_ui(),
+        # On every screen: the Feedback tab adds the screen and answers the visitor is on.
+        tags$button(type = "button", class = "btn btn-sm share-page-btn feedback-here-btn",
+          title = "Opens the Feedback tab with the screen you are on attached",
+          onclick = "Shiny.setInputValue('go_feedback', 'confusing', {priority: 'event'})", "Feedback on this screen"),
+        share_page_ui()))
   ),
   tags$main(
     class = "app-main",
@@ -963,7 +969,7 @@ server <- function(input, output, session) {
     updateSelectInput(session, "f_goal", selected = "power")
     updateTextInput(session, "f_n", value = values$n)
     output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
-      "The proposed sample size is ready for a fixed-N check. Choose the simulation accuracy you need and press Check my answers. This check estimates power; it does not guarantee the target."))
+      "The proposed sample size is ready for a fixed-N check. Choose the simulation accuracy you need and press Calculate. This check estimates power; it does not guarantee the target."))
   })
   observeEvent(input$verify_corrected_anova, {
     req(calculation_matches_values(state$calc, current_form_values()))
@@ -973,7 +979,7 @@ server <- function(input, output, session) {
     updateTextInput(session, "f_n", value = values$n)
     updateSelectInput(session, "f_method", selected = "simulation")
     output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
-      "The proposed sample size and corrected analysis are ready for simulation. Press Check my answers to run it. The earlier exact-data result has not been confirmed by simulation yet."))
+      "The proposed sample size and corrected analysis are ready for simulation. Press Calculate to run it. The earlier exact-data result has not been confirmed by simulation yet."))
   })
   observeEvent(input$verify_interaction, {
     req(calculation_matches_values(state$calc, current_form_values()))
@@ -983,7 +989,7 @@ server <- function(input, output, session) {
     updateTextInput(session, "f_n", value = values$n)
     updateTextInput(session, "f_r_XW_Y", value = values$r_XW_Y)
     output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
-      "The proposed effect and sample size are ready. Press Check my answers to simulate power with these assumptions. The formula result has not been confirmed by simulation yet."))
+      "The proposed effect and sample size are ready. Press Calculate to simulate power with these assumptions. The formula result has not been confirmed by simulation yet."))
   })
   # Answers on an input screen, saved in this browser a moment after each
   # change (R/connection.R), in the draft format "Save a draft" uses.
@@ -1730,21 +1736,21 @@ server <- function(input, output, session) {
 
   observeEvent(input$planning_document, send_document(session, function() {
     stopifnot(calculation_matches_values(state$calc, current_form_values()))
-    stopifnot(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
+    stopifnot(!isTRUE(state$calc$route$form_values$source_stale))
     printable_document(planning_document(tree, forms, state$calc), powerkit_version())
   }))
   output$download_planning_docx <- downloadHandler(
     filename = function() "powerkit-study-planning.docx",
     content = function(file) {
       req(calculation_matches_values(state$calc, current_form_values()))
-      req(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
+      req(!isTRUE(state$calc$route$form_values$source_stale))
       docx_document(planning_document(tree, forms, state$calc), file, powerkit_version())
     })
   output$download_planning_document <- downloadHandler(
     filename = function() "powerkit-study-planning.md",
     content = function(file) {
       req(calculation_matches_values(state$calc, current_form_values()))
-      req(!blank(state$calc$route$form_values$just_source), !isTRUE(state$calc$route$form_values$source_stale))
+      req(!isTRUE(state$calc$route$form_values$source_stale))
       writeLines(planning_document(tree, forms, state$calc), file, useBytes = TRUE)
     })
   output$download_project <- downloadHandler(
