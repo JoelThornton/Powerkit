@@ -1485,3 +1485,28 @@ Only these normal-error, independent-observation scenarios are covered; the
 5,000-resample interface default and other composite nulls/models remain
 unverified by this run. It is not an independent-package or direct PROCESS
 comparison, nor a fix for the separate existing ML/Monte-Carlo failure.
+
+## 2026-11-11 — nightly failures remain open; selected count-search safeguard
+
+Nightly [run 42968983200](https://github.com/JoelThornton/Powerkit/actions/runs/42968983200),
+main fbbd237, powerkit 0.61.1, completed with the same two failing partitions:
+ANOVA part 1 and binary-X moderated mediation part 4. The GG comparison
+remains .2130 simulated versus .2313 exact-data reference (MCSE .0041);
+the model-7 ML/Monte-Carlo null gives .0750 in 1,000, above the unchanged
+.0707 limit. No new failing partition was observed among 95 job records.
+These failures are not fixed or reclassified by the count-test work.
+
+The corrected-count confirmation safeguard was checked separately on Windows
+R 4.5.3 and Spower 0.7, with candidate 0.61.1 plus the frozen new helper.
+The [archive](validation/2026-11-11-corrected-sample-size.json) records source
+fingerprints, all search/confirmation counts and independent references.
+Confirmed N382/.822837 and N252/.821231 use finite binomial enumeration;
+N381/.8226 and N82/.8201 use 20,000 fresh independent multinomial studies.
+Both latter 95% lower bounds exceed .8. These selected cases address the
+recorded smooth-fit shortfalls; broader cases and published references remain.
+
+The corrected-count high-replication chunk also passed on GitHub in
+[run 43000292187](https://github.com/JoelThornton/Powerkit/actions/runs/43000292187),
+PR #372 merge revision 5c251a8, head 3b8bc11: six passes, zero failures/errors,
+one unchanged published-reference placeholder skip. It checks the selected
+fixed-N power/null cases; the fresh returned-N comparisons above are separate.

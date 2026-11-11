@@ -34,7 +34,7 @@ The corrections below merged in [PR #367](https://github.com/JoelThornton/Powerk
 
 ### Scientific work still required
 
-- [ ] R14. Resolve the two repeated validation failures. The inspected ANOVA job gives simulated power .2130 versus .2313 by the exact-data route; the binary-X job gives a null rejection rate .077 in 1,000 simulations, above its .0707 tolerance. Earlier recorded rates differ. The 10 November independent GG investigation now records .21805 in 20,000, same-data afex agreement and .21960 with fixed epsilon; estimating epsilon alone does not explain .2313. See validation-log.md. Both issues remain unresolved. Establish the cause on a frozen version before changing a method or a threshold; do not tune seeds or expected values to obtain a pass.
+- [ ] R14. Resolve the two repeated validation failures. The inspected ANOVA job gives simulated power .2130 versus .2313 by the exact-data route; the binary-X job gives a null rejection rate .077 in 1,000 simulations, above its .0707 tolerance. Earlier recorded rates differ. The 10 November independent GG investigation now records .21805 in 20,000, same-data afex agreement and .21960 with fixed epsilon; estimating epsilon alone does not explain .2313. See validation-log.md. The 11 November nightly at fbbd237 again gives GG .2130 versus .2313 and binary-X null .0750 versus the unchanged .0707 limit (run 42968983200). Both issues remain unresolved. Establish the cause on a frozen version before changing a method or a threshold; do not tune seeds or expected values to obtain a pass.
 - [ ] R15. Complete a release-specific, variant-specific evidence matrix and publish the underlying results. The existing registry is now dated 10 November and links scoped corrected-count and two OLS/bootstrap null checks; the queue refers to extending it. Most new routes still need linked, release-specific evidence. Each default needs appropriate evidence; unknown remains unknown.
 - [ ] R16. Replace a single green-card interpretation with evidence for the selected test, population assumptions and analysis. A fixed Type I tolerance of .04-.06 at alpha .05 is not sufficient for every exact, discrete, conservative, equivalence or Bayesian procedure. Predefine method-appropriate acceptance criteria and Monte Carlo uncertainty; retain historical definitions as history.
 - [ ] R17. Validate complete analysis pipelines, including failures. Compare planned versus achieved power at the returned integer N using fresh random draws; assess null behaviour, interval coverage, bias and convergence. Counts of successful runs alone can conceal selection. Use [ADEMP](https://doi.org/10.1002/sim.8086): aims, data generation, estimands, methods and performance measures.
@@ -252,7 +252,9 @@ tasks, not completion of R14, R15, R16 or R17 as whole release requirements.
   and 82 gave independent power .822837, .821231, .8226 and .8201. The first
   two use finite enumeration; the last two use 20,000 new multinomial studies.
   Their 95% lower bounds exceed .8. See count-test-review.md and the JSON archive.
-- [ ] Complete the hosted gates before merging.
+- [x] Run focused engine/app and documentation checks, including standalone
+  replay, recruitment and all three copied writeups. Required hosted gates
+  must pass before merge; PR #372 records the current outcomes.
 
 This addresses the known smooth-fit shortfall risk for corrected count tests;
 R14, whole-pipeline validation across other designs and broad first-release

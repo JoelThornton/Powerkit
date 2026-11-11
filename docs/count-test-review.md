@@ -1,7 +1,7 @@
 # Matching corrected count tests: review and checklist
 
 11 November 2026. Initial corrected-test routes merged in PR #368; fresh
-confirmation-search safeguard in review. No new live version is claimed.
+confirmation-search safeguard implemented in PR #372. No new live version is claimed.
 
 A power plan must match the analysis the researcher intends to run. R's
 prop.test() applies continuity correction by default; chisq.test() does so
@@ -54,8 +54,9 @@ not Fisher's exact test and does not make an approximate test exact.
 - [x] Recheck all four returned-N cases independently after this safeguard.
 - [x] Run the corrected-count chunk on GitHub as well as locally (run
   42894057884, head cc0e107; six passes and one published-reference skip).
-- [ ] Complete the follow-on hosted checks and review before merging. Leave
-  live confirmation for the normal rollout. No evidence badge is upgraded.
+- [x] Run focused engine/app checks and four independent returned-N comparisons.
+  Required hosted gates must pass before merge; PR #372 records their outcomes.
+  Leave live confirmation for the normal rollout. No evidence badge is upgraded.
 
 References: [R prop.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/prop.test.html),
 [R chisq.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/chisq.test.html).
@@ -120,3 +121,9 @@ multinomial studies, with failures unsuccessful; their 95% lower bounds
 also exceed .8. These four cases do not establish universal calibration.
 [Settings, source fingerprints, ledgers and independent results](validation/2026-11-11-corrected-sample-size.json)
 are retained alongside the unchanged historical shortfall archive.
+
+The binomial interval is supplied by [R stats::binom.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/binom.test.html),
+which documents Clopper-Pearson coverage. The across-check error allocation
+is the union-bound/Bonferroni principle already used for all-required plans;
+it limits Monte Carlo false confirmation under the model, not study-analysis
+Type I error or uncertainty in the input effect.
