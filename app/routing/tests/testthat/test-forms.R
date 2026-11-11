@@ -1031,9 +1031,10 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   # No developer wording in a default's note.
   for (ep in names(forms$forms)) for (f in form_fields(form_groups(forms, ep))) if (!is.null(f$default_source))
     expect_no_match(short_source(f$default_source), "design spec|decided on", label = paste(ep, f$id))
-  # The simulation note leads with the plain point and folds the detail.
+  # Simulation guidance uses the same named info disclosure as other notes.
   acc <- as.character(group_ui_build(tree, simulation_accuracy_group(forms, "E2")[[1]], list(), 1))
-  expect_match(acc, "More about this", fixed = TRUE)
+  expect_match(acc, 'aria-label="Info: Simulation accuracy"', fixed = TRUE)
+  expect_match(acc, "More simulations do not guarantee", fixed = TRUE)
 })
 
 test_that("the cross-lagged panel screen builds a valid spec with its names left empty", {
