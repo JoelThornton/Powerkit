@@ -1,3 +1,9 @@
+# powerkit 0.61.2
+
+* Clarify that an attrition percentage adds a recruitment buffer rather than modelling missing data, and retain this limitation in the result and copied methods. Correct input guidance that treated small pilot estimates as necessarily inflated; describe uncertainty and selection without an automatic halving rule. No attrition formula, effect value or default changes.
+
+* Corrected count-test sample-size searches now confirm candidate integer sample sizes using fresh simulation, retaining failures as unsuccessful studies. A one-sided binomial lower bound must reach the target; a 1% error budget covers at most ten candidate checks. The search increases N or refuses a recommendation rather than trusting a smooth fitted crossing. Record and replay all confirmation draws, distinguish checked from minimum N, retain historical warnings, and compute recruitment from the confirmed N.
+
 # powerkit 0.61.1
 
 * Build deployment commits with a temporary Git index from checked main plus the pinned generated manifest. Preserve prior deployment ancestry without switching or cleaning the build checkout; test staged/untracked build edits and manifest lifecycle. Push the explicit commit to the deployment ref with a normal fast-forward push.

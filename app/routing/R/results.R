@@ -1044,10 +1044,13 @@ goal_sentences <- function(spec, result) {
       est <- result$n_required
       c(
         headline = sprintf(
-          "You need %s participants in total%s for %s power to detect the effect you entered, with %s.",
+          if (!is.null(est$verification)) "A checked sample size is %s participants in total%s for a target of %s power, with %s."
+          else "You need %s participants in total%s for %s power to detect the effect you entered, with %s.",
           whole(est$n), group_text(spec, est$n), percent(spec$goal$power), test
         ),
-        detail = if (simulated(result)) {
+        detail = if (!is.null(est$verification)) {
+          "The search's proposed sample size was checked with fresh simulated studies and increased when needed. This is not an estimate of the smallest possible N."
+        } else if (simulated(result)) {
           sprintf(
             "This N comes from simulation (%s replications per sample size); the 95%% interval for the required N is %s to %s.",
             whole(result$provenance$nrep), whole(est$lower), whole(est$upper)
@@ -1756,6 +1759,10 @@ actual_power_sentence <- function(spec, result) {
     sprintf("With %s %s", whole(sizes[1]), unit)
   } else {
     sprintf("With %s in group 1 and %s in group 2", whole(sizes[1]), whole(sizes[2]))
+  }
+  if (!is.null(result$n_required$verification)) {
+    return(sprintf("%s, fresh simulated power is about %.1f%%; the selection-adjusted one-sided lower bound is %.1f%%.",
+      who, 100 * at_n, 100 * result$n_required$power_lower))
   }
   if (fitted) {
     return(sprintf(
@@ -3040,7 +3047,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       at_n <- result$curve$power[result$curve$n == n]
       reached <- if (length(at_n) == 1 && !simulated(result)) sprintf("; power at this sample size is %.1f%%", 100 * at_n) else ""
       c(sprintf("An a priori power analysis was conducted for %s.", test), basis,
-        sprintf("For a target power of %s%s, %s participants are needed in total%s%s.",
+        sprintf(if (!is.null(result$n_required$verification)) "For a target power of %s%s, the checked sample size is %s participants in total%s%s."
+          else "For a target power of %s%s, %s participants are needed in total%s%s.",
           percent(spec$goal$power), reason, whole(n), group_text(spec, n), reached))
     },
     power = {
@@ -3113,7 +3121,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # (known_methods); departures from a tool's defaults are listed in the
   # full version, to keep the paper's paragraph short.
   short <- paste(c(main, recruit_line, claim, planning_warning_notes(spec, result), writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
-  interval <- if (simulated(result) && identical(result$goal_type, "sample_size")) {
+  interval <- if (simulated(result) && identical(result$goal_type, "sample_size") && is.null(result$n_required$verification)) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
   }
   # Departure 3 (Superpower's exact dataset built under the run's seed, a

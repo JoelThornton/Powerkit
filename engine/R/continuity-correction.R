@@ -51,5 +51,43 @@ corrected_count_script <- function(spec, result) {
     ) else '  p <- replicate(batch_replications, tryCatch(Spower::p_chisq.test(n = batch_n, P = probabilities, correct = TRUE), error = function(e) NA_real_))',
     "  valid <- is.finite(p) & p >= 0 & p <= 1",
     "  c(sum(p[valid] < alpha), batch_replications, batch_replications, sum(valid))", "}", "",
-    batch, simulation_goal_section(spec, result, valid_n_step(spec)), comparison_section())
+    batch,
+    if (identical(result$goal_type, "sample_size") && !is.null(result$n_required$verification)) confirmed_count_script_section(result)
+    else simulation_goal_section(spec, result, valid_n_step(spec)), comparison_section())
+}
+
+# Replay the actual search and confirmation draws with their recorded counts.
+# The confirmation uses more replications than the initial curve when needed.
+confirmed_count_script_section <- function(result) {
+  sims <- result$provenance$simulations
+  est <- result$n_required
+  c(
+    "# Replay search and fresh confirmation studies ----",
+    "# The smooth curve only proposed N. The returned N passed a fresh",
+    "# one-sided binomial lower-bound check; it is not a minimum-N estimate.",
+    "simulated <- data.frame(",
+    sprintf("  n = %s,", r_code(sims$n)),
+    sprintf("  seed = %s,", r_code(sims$seed)),
+    sprintf("  nrep = %s,", r_code(sims$nrep)),
+    sprintf("  stage = %s", r_code(sims$stage)), ")",
+    "simulated$rejections <- NA_real_",
+    "for (i in seq_len(nrow(simulated))) {",
+    "  replications <- simulated$nrep[i]",
+    "  counts <- simulate_power(simulated$n[i], simulated$seed[i])",
+    "  simulated$rejections[i] <- counts[[\"rejections\"]]",
+    "}",
+    "checks <- simulated[simulated$stage == \"confirmation\", ]",
+    sprintf("confidence <- %s # 1 - .01 / 10: 99%% protection across up to ten checks", r_code(est$verification$confidence_per_check)),
+    "checks$lower <- vapply(seq_len(nrow(checks)), function(i) {",
+    "  unname(binom.test(checks$rejections[i], checks$nrep[i],",
+    "    alternative = \"greater\", conf.level = confidence)$conf.int[1])",
+    "}, numeric(1))",
+    "passed <- which(checks$lower >= target_power)[1]",
+    "stopifnot(!is.na(passed))",
+    "selected <- checks[passed, ]",
+    "n_required <- selected$n",
+    "print(checks)",
+    "reproduced <- list(n = selected$n, power = selected$rejections / selected$nrep, lower = selected$lower)",
+    sprintf("powerkit_result <- list(n = %s, power = %s, lower = %s)",
+      r_code(est$n), r_code(est$power), r_code(est$power_lower)), "")
 }

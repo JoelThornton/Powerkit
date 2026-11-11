@@ -257,7 +257,9 @@ simulation_accuracy_group <- function(forms, ep_id) {
     note_more = paste(
     "The margins below are approximate pointwise 95% margins for the random error in a probability, assuming every simulated study gives a valid decision.",
     "Failures can reduce the effective number of decisions; read the actual interval and failure counts in the result.",
-    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error."), fields = list(
+    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error.",
+    if (any(choices %in% c("z_test_corrected", "pearson_chi_square_corrected")))
+      "For continuity-corrected count tests, finding N also uses fresh checks of at least 10,000 studies per candidate. This takes longer and may recommend more participants than the minimum."), fields = list(
     list(id = "simulation_accuracy", label = "How precise should the simulation be?", type = "select", optional = TRUE,
       default = "standard", default_source = "1,000 repeated studies, powerkit's usual simulation setting",
       choices = list(quick = "Quick exploration: about +/-5 percentage points (400 studies)",
@@ -575,14 +577,14 @@ closing_groups <- function(forms, ep_id, start = list()) {
            type = "text", path = "effect_justification.source", optional = TRUE),
       # A pilot is as much one study's estimate as a published one, and
       # less precise, so it gets the same question.
-      list(id = "just_adjustment", label = "How you adjusted it", help = "One study's effect tends to be too large: published ones through publication bias, pilots because they are small. For example, halved, or the lower end of its confidence interval. If you kept it as it was, say so and why.",
+      list(id = "just_adjustment", label = "How you adjusted it", help = "One estimate can be uncertain, especially from a small pilot. Published findings can also be selected for large or significant effects. Explain your defensible effect or range; do not automatically halve an estimate. If you kept it unchanged, say why.",
            type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
            shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
              list(field = "sg_use", is_not = "telescopes")))
     ), safeguard_fields(form$base$template), heterogeneity_fields(form$base$template))),
     # A single time series has no participants to lose (`no_attrition`).
     if (!isTRUE(form$generic) && !meta && !isTRUE(form$no_attrition)) list(input = NULL, title = "Participants you expect to lose", fields = list(
-      list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%.", type = "number",
+      list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%. This only adds a recruitment buffer for the analysed sample; it does not model missing data or your method for handling them. If unsure, compare plausible loss rates rather than treating zero as known.", type = "number",
            path = "options.attrition", optional = TRUE, min = 0, max_exclusive = 1)
     )),
     # A fixed default seed, so the same answers give the same result

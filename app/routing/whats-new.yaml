@@ -7,6 +7,21 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-11"
+    title: "Clearer guidance on losses and pilot effects"
+    text: >-
+      An expected loss rate only adds a recruitment buffer; it does not model
+      missing data. This distinction now stays with the result and copied
+      methods. Pilot-effect guidance explains uncertainty without assuming
+      a small pilot must overestimate an effect or recommending automatic halving.
+  - date: "2026-11-11"
+    title: "An extra sample-size check for corrected count tests"
+    text: >-
+      When finding a sample size for a continuity-corrected count test, Powerkit
+      now checks the proposed number with fresh simulated studies and increases
+      it when needed. If the check cannot confirm your target, it gives no
+      recommendation. This takes longer and may recommend more participants
+      than the minimum; your population assumptions still need justification.
   - date: "2026-11-10"
     title: "Clearer phone controls"
     text: >-

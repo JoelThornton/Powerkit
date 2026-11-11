@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 11 November 2026 (0.61.1 safeguards merged; publishing succeeded; live rollout unconfirmed). Where the project is
+*Last updated: 11 November 2026 (count-search and interpretation safeguards, PR #372; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -70,9 +70,17 @@ preserves historical plans, matched interaction-sensitivity verification,
 four independent corrected-count fitted-N checks with honest uncertainty,
 and selected-setting evidence on input screens. The balanced-proportion
 reference found .79547 power at a nominal .8 fitted target; the smooth curve's
-interval missed that finite-reference value. The interface now explains this
-limitation and offers a fixed-N check; the engine search is not claimed fixed.
-The known scientific failures and broad release-validation requirements remain.
+interval missed that finite-reference value. The follow-on count-search fix
+uses that curve only as a proposal: fresh checks at each candidate require a
+one-sided binomial lower bound above the target, with a 1% error budget across
+at most ten checks. It increases N when needed or refuses a recommendation.
+This is a checked N under the specified model, not a minimum-N guarantee or
+protection against optimistic population assumptions. Historical saved results
+retain the old warning. Independent case checks and hosted gates are recorded
+in the count-test checklist; the ANOVA/mediation failures and broader evidence
+requirements remain open. Attrition input/results/methods now distinguish a
+recruitment buffer from missing-data modelling. Pilot guidance describes
+uncertainty and selection without asserting inflation or automatic halving.
 
 ## Where things are
 
@@ -200,8 +208,9 @@ name the correction and sampling plan; corrected tests simulate the actual
 R analysis and report failed studies. Direction/allocation/replay checks and
 the selected high-replication comparisons passed locally and on GitHub.
 Four independent returned-N checks are archived, including small target
-shortfalls and a reference outside the smooth curve interval; accurate final-N
-verification/search and published references remain open. See the
+shortfalls and a reference outside the smooth curve interval; fresh final-N
+confirmation is implemented in PR #372. Published references, broader parameter coverage
+and minimum-N efficiency remain open. See the
 [count-test checklist](count-test-review.md).
 
 The wording pass merged in PR #368 corrects the equal-group Welch/Student
@@ -242,12 +251,16 @@ tests dealt to parts by their recorded times so each part ends within
 GitHub's six hours, and one list at the end of each run of the tests that
 need attention. The recorded full run of 8 November took 4 hours 13
 minutes (389 pass, 2 fail, 110 skipped; skips include partitioning and
-published placeholders). The last completed nightly inspected,
+published placeholders). An earlier inspected nightly,
 [9 November run 42570428222](https://github.com/JoelThornton/Powerkit/actions/runs/42570428222),
 also failed the ANOVA and binary-X checks (the latter .077 in 1,000).
 The [10 November run 42772650889](https://github.com/JoelThornton/Powerkit/actions/runs/42772650889)
 also completed with failures in the ANOVA and binary-X chunks; this does not
-resolve either scientific issue. The two recurring failures concern the
+resolve either scientific issue. The latest completed nightly inspected,
+[11 November run 42968983200](https://github.com/JoelThornton/Powerkit/actions/runs/42968983200),
+at fbbd237 (0.61.1), again failed only these two partitions: GG .2130
+versus .2313 and binary-X ML/Monte-Carlo null .0750 versus the unchanged
+.0707 limit. The two recurring failures concern the
 mixed-design Greenhouse-Geisser check: a new independent 20,000-study
 reference gives .21805 (MCSE .00292), with same-data p-values matching afex
 to 1.9e-15. Fixing epsilon gives .2196, so that alone does not explain

@@ -37,6 +37,9 @@ backend with its own seed;
 simulated and fits the same probit curve to find the required n and
 its 95\% interval (powerkit's quicker first pass, which only chose
 those sizes, is not repeated);
+\item corrected count-test searches also replay fresh confirmation studies
+and the selection-adjusted one-sided binomial lower bound; their
+returned sample size is checked, not necessarily the minimum;
 \item exact 2x2 results use \code{ANOVA_exact()} under the run's seed;
 \item exact basic-test results call pwr's formula, or for two proportions
 \code{power.prop.test()} (equal groups) or pwrss (unequal groups) (for a sample-size goal, at

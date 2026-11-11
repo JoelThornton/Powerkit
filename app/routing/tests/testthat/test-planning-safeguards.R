@@ -56,3 +56,56 @@ test_that("corrected count search uncertainty and verification preserve the anal
   expect_null(corrected_count_search_note(calc$spec,calc$result))
   expect_null(corrected_count_verification_values(calc,values))
 })
+
+test_that("fresh count confirmations are distinguished from old fitted estimates in results and methods", {
+  fields <- form_fields(form_groups(forms, "E5"))
+  values <- form_examples$E5
+  values$method <- "z_test_corrected"
+  values$goal <- "sample_size"
+  spec <- build_spec(forms, "E5", fields, values)
+  result <- list(goal_type = "sample_size", provenance = list(method = "simulation", nrep = 1000),
+    n_required = list(n = 382, lower = NA_real_, upper = NA_real_, power = .83,
+      power_lower = .815, verification = list(nrep = 10000, lower = .815)))
+  expect_match(goal_sentences(spec, result)[["headline"]], "checked sample size", fixed = TRUE)
+  expect_false(grepl("95% interval", goal_sentences(spec, result)[["detail"]], fixed = TRUE))
+  expect_match(actual_power_sentence(spec, result), "fresh simulated power", fixed = TRUE)
+  note <- corrected_count_search_note(spec, result)
+  expect_match(note, "up to ten candidate checks", fixed = TRUE)
+  expect_match(note, "wrong assumptions", fixed = TRUE)
+  expect_false(grepl("curve fitted", actual_power_sentence(spec, result), fixed = TRUE))
+  expect_match(as.character(planning_warnings_ui(spec, result)), "fresh simulation check", fixed = TRUE)
+})
+
+test_that("a confirmed count result retains the check in the complete result and all writeups", {
+  fields <- form_fields(form_groups(forms, "E5"))
+  values <- modifyList(form_examples$E5, list(method = "z_test_corrected", goal = "sample_size",
+    p1 = ".2", p2 = ".8", power = ".8", attrition = ".1"))
+  spec <- build_spec(forms, "E5", fields, values)
+  spec$options$nrep <- 1000L
+  result <- suppressWarnings(powerkit::run_spec(spec))
+  html <- as.character(result_panel_ui(tree, forms, "E5", fields, values,
+    list(status = "ok", spec = spec, result = result)))
+  expect_match(html, "checked sample size", fixed = TRUE)
+  expect_false(grepl("95% interval for the required N", html, fixed = TRUE))
+  text <- writeup_text(forms$forms$E5, spec, result, fields, values)
+  for (version in c("short", "full", "ethics")) {
+    expect_match(text[[version]], "fresh simulation check", fixed = TRUE, info = version)
+    expect_match(text[[version]], "wrong assumptions", fixed = TRUE, info = version)
+    expect_match(text[[version]], "recruitment buffer", fixed = TRUE, info = version)
+    expect_false(grepl("95% interval for the required sample size", text[[version]], fixed = TRUE))
+  }
+})
+
+test_that("attrition and pilot guidance do not imply missing-data modelling or automatic effect shrinkage", {
+  expect_null(attrition_planning_note(list(options = list(attrition = 0))))
+  expect_null(attrition_planning_note(list()))
+  expect_match(attrition_planning_note(list(options = list(attrition = .2))),
+    "does not model", fixed = TRUE)
+  fields <- form_fields(form_groups(forms, "E2"))
+  attrition <- Filter(function(f) identical(f$id, "attrition"), fields)[[1]]
+  adjustment <- Filter(function(f) identical(f$id, "just_adjustment"), fields)[[1]]
+  expect_null(attrition$default)
+  expect_match(attrition$help, "compare plausible loss rates", fixed = TRUE)
+  expect_match(adjustment$help, "do not automatically halve", fixed = TRUE)
+  expect_false(grepl("pilots because they are small", adjustment$help, fixed = TRUE))
+})
