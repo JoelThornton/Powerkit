@@ -35,3 +35,6 @@ entries:
   - date: "2026-11-11"
     title: "Run times are stated for the online version"
     text: "The time a calculation “usually takes” was measured on a recent computer. The online version now says that it shares a small server and can take several times longer."
+  - date: "2026-11-11"
+    title: "Two proportions: a warning when the counts are small"
+    text: "When a group is expected to hold fewer than about five people with (or without) the outcome, the z test's formula is unreliable. The result now says so and points to Fisher's exact test, which the same screen offers."

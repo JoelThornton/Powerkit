@@ -149,3 +149,15 @@ test_that("run_calculation() stands alone, as the background process runs it", {
   expect_identical(calc$status, "ok")
   expect_identical(calc$notes, "A note about the plan.")
 })
+
+test_that("the two-proportions z test warns when an expected count is small, and points to Fisher's test", {
+  spec <- list(template = "two_proportions", target_test = list(method = "z_test"), population = list(p1 = 0.05, p2 = 0.30), goal = list(n = 20))
+  note <- small_count_note(spec, list(goal_type = "power", curve = list(n = 20)))
+  expect_match(note, "only about 0.5 people", fixed = TRUE)
+  expect_match(note, "Fisher's exact test", fixed = TRUE)
+  # Ordinary sizes: no note. Fisher's test: no note.
+  spec$population <- list(p1 = 0.6, p2 = 0.7)
+  expect_null(small_count_note(spec, list(goal_type = "sample_size", n_required = list(n = 712))))
+  spec$population <- list(p1 = 0.05, p2 = 0.30); spec$target_test$method <- "fisher_exact"
+  expect_null(small_count_note(spec, list(goal_type = "power", curve = list(n = 20))))
+})

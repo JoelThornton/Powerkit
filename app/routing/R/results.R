@@ -2349,6 +2349,25 @@ allocation_note <- function(result) {
     format(a$group1), format(a$group2), format(a$entered), format(a$entered))
 }
 
+# Two proportions by the z test: the normal approximation is unreliable
+# when a group is expected to hold fewer than about five people with (or
+# without) the outcome; its real false-positive rate and power then differ
+# from the formula's (Cochran's rule of thumb for expected counts). The
+# card offers Fisher's exact test, whose power is computed exactly.
+small_count_note <- function(spec, result) {
+  if (!identical(spec$template, "two_proportions") || !isTRUE((spec$target_test$method %||% "z_test") %in% c("z_test", "z_test_corrected"))) return(NULL)
+  n <- switch(result$goal_type %||% "", sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
+  p <- c(spec$population$p1, spec$population$p2)
+  if (is.null(n) || length(n) != 1 || is.na(n) || length(p) != 2 || any(!is.finite(as.numeric(p)))) return(NULL)
+  ratio <- result$allocation$ratio %||% spec$options$allocation_ratio %||% 1
+  groups <- n * c(1, ratio) / (1 + ratio)
+  smallest <- min(groups * as.numeric(p), groups * (1 - as.numeric(p)))
+  if (smallest >= 5) return(NULL)
+  sprintf(paste0("With these proportions and this sample size, one group is expected to hold only about %s people with (or without) the outcome. ",
+    "The z test's formula is unreliable when an expected count is below about 5: the real power and false-positive rate can both differ from the figures here. ",
+    "Choose Fisher's exact test under \u201cTest version\u201d, whose power is worked out exactly."), format(round(smallest, 1)))
+}
+
 welch_population_note <- function(spec) {
   if (!identical(spec$template, "independent_t") || !identical(spec$target_test$method, "welch_t")) return(NULL)
   # Small telescopes plans Student's test against d33 (small-telescopes.R).
@@ -2635,7 +2654,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), allocation_note(result), source_note(values), group_difference_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), allocation_note(result), small_count_note(spec, result), source_note(values), group_difference_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
   # A missing reason no longer locks the downloads; the write-up says none was recorded.
   can_export <- !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring
