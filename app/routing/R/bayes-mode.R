@@ -20,15 +20,19 @@ bayes_mode_js <- "
 "
 
 bayes_mode_toggle_ui <- function(on = FALSE) {
-  div(class = "bayes-mode-toggle form-check form-switch",
-    tags$input(class = "form-check-input", type = "checkbox", role = "switch", id = "bayes_mode_switch",
-      checked = if (isTRUE(on)) NA,
-      `aria-describedby` = "bayes_mode_help",
-      onchange = "pkSetBayesMode(this.checked)"),
-    tags$label(class = "form-check-label", `for` = "bayes_mode_switch", "Bayes mode: I'll analyse with Bayes factors"),
-    p(id = "bayes_mode_help", class = "small text-muted mb-0",
-      "Every design that has a Bayes factor version opens with it chosen, and its result leads with the chances of strong",
-      "evidence for an effect, strong evidence for none, and misleading evidence. You can switch back to a p-value on any card."))
+  div(class = "bayes-mode-toggle",
+    div(class = "form-check form-switch",
+      tags$input(class = "form-check-input", type = "checkbox", role = "switch", id = "bayes_mode_switch",
+        checked = if (isTRUE(on)) NA,
+        `aria-describedby` = "bayes_mode_help",
+        onchange = "pkSetBayesMode(this.checked)"),
+      tags$label(class = "form-check-label", `for` = "bayes_mode_switch", "Bayes mode: I'll analyse with Bayes factors")),
+    # The explanation is one click away, so the start screen stays short.
+    tags$details(class = "bayes-mode-what",
+      tags$summary("What is this?"),
+      p(id = "bayes_mode_help", class = "small mb-0",
+        "Every design that has a Bayes factor version opens with it chosen, and its result leads with the chances of strong",
+        "evidence for an effect, strong evidence for none, and misleading evidence. You can switch back to a p-value on any card.")))
 }
 
 # The note on a card in Bayes mode: whether its input screen opens on the

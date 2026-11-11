@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 11 November 2026 (count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 11 November 2026 (start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -10,6 +10,17 @@ page as it stood before each rewrite.*
 powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
+
+The start screen was laid out again before colleagues try the app
+(11 November): a title and one-sentence introduction, the three routes
+with more room, and saved projects, Bayes mode and the local download in
+one row under a divider. Presentation only; no method, default or evidence
+claim changes.
+
+The [R checklist](release-readiness-review.md#fix-checklist) now records checked
+subtasks directly under each open/partial R14–R36 item, with the remaining
+acceptance work beside it. Parent boxes close only when the full requirement
+is met; this tracking correction adds no implementation or validation claim.
 
 The [release-readiness review](release-readiness-review.md) safeguards merged
 in PR #369 (0.61.1): early analysis limitations, clearer power/paired-input help,

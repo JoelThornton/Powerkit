@@ -437,8 +437,35 @@ app_css <- "
   .start-question .option-help { display: block; margin-top: 0.15rem; }
   /* Each option's help shows under the chosen option only; the others keep it for screen readers. */
   .start-question .radio label:not(:has(input:checked)) .option-help { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .saved-projects { margin-top: 1.5rem; background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.4rem 1.15rem; }
-  .saved-projects > summary { cursor: pointer; color: var(--pk-blue); font-weight: 500; min-height: 44px; display: flex; align-items: center; }
+  /* The start screen (11 November 2026): what powerkit is, the three ways
+     in with room around them, then one quiet row for everything else. */
+  h2.start-title { font-size: 2.1rem; margin: 1.5rem 0 0.6rem; }
+  .start-lead { font-size: 1.1rem; line-height: 1.55; color: #44505e; max-width: 47rem; margin: 0 0 2.25rem; }
+  h3.start-how { font-size: 1.25rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 1rem; }
+  .route-choices { gap: 1.25rem; margin: 0; }
+  .route-choices .choice { position: relative; }
+  @media (min-width: 768px) { .route-choices .choice { padding: 1.6rem 1.6rem 1.5rem; min-height: 11rem; }
+    .route-choices .choice-label { font-size: 1.3rem; margin-bottom: 0.4rem; }
+    .route-choices .choice-help { font-size: 0.98rem; line-height: 1.45; }
+    .route-icon { box-sizing: content-box; padding: 0.65rem; border-radius: 12px; background: #e8f1f8; margin-bottom: 1.1rem; }
+    .route-tag { position: absolute; top: 1.6rem; right: 1.4rem; margin: 0; } }
+  .route-tag { padding: 0.25rem 0.7rem; border-radius: 999px; background: #e8f1f8; color: var(--pk-blue); font-size: 0.78rem; font-weight: 600; letter-spacing: 0; text-transform: none; }
+  .start-recent { margin-top: 1rem; }
+  .start-more { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.5rem 2.25rem; margin-top: 2.25rem; padding-top: 1.25rem; border-top: 1px solid var(--pk-line); }
+  .start-more > * { min-height: 44px; }
+  .start-more-link { padding: 0; display: inline-flex; align-items: center; font-weight: 500; }
+  .bayes-mode-toggle { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.9rem; max-width: 30rem; }
+  .bayes-mode-toggle .form-switch { margin: 0; min-height: 44px; display: flex; align-items: center; gap: 0.5rem; padding-left: 0; }
+  .bayes-mode-toggle .form-switch .form-check-input { margin: 0; float: none; flex: none; }
+  .bayes-mode-what > summary { display: inline-flex; align-items: center; min-height: 44px; color: var(--pk-blue); text-decoration: underline; cursor: pointer; list-style: none; font-size: 0.95rem; }
+  .bayes-mode-what > summary::-webkit-details-marker { display: none; }
+  .bayes-mode-what[open] { flex-basis: 100%; }
+  .bayes-mode-what > p { max-width: 36rem; color: #4a5563; padding-bottom: 0.5rem; }
+  .local-download { margin-left: auto; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.95rem; color: #4a5563; }
+  @media (max-width: 767px) { .local-download { margin-left: 0; } .route-choices .route-tag { justify-self: start; } h2.start-title { font-size: 1.6rem; margin-top: 0.5rem; } .start-lead { font-size: 1rem; margin-bottom: 1.5rem; } }
+  .saved-projects { margin-top: 1.25rem; background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.25rem 0.5rem; }
+  .saved-projects[hidden] { display: none; }
+  .saved-projects .shiny-input-container { width: 100%; max-width: 30rem; }
   .saved-projects-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; padding-bottom: 0.5rem; }
   @media (min-width: 768px) { .saved-projects-grid { grid-template-columns: 1fr 1fr; } .saved-projects-grid .mt-4 { margin-top: 0.5rem !important; } }
   .endpoint-card { border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); }
@@ -799,8 +826,8 @@ ui <- function(req) fluidPage(
       tabPanel(tab_title("Feedback", "Feedback"), value = "Feedback", div(class = "pt-3", feedback_tab)),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
-    tags$footer(class = "small text-muted mt-4", "Powerkit helps plan research studies. ",
-      tags$a(href = paste0(site_address, "/guide.html"), "Read the guide and current limitations"), HTML("."), .noWS = "inside")
+    tags$footer(class = "small text-muted mt-5", "Powerkit helps plan research studies. ",
+      tags$a(href = paste0(site_address, "/guide.html"), "Read the guide and current limitations", .noWS = "after"), ".")
   )
 )
 
@@ -2120,6 +2147,9 @@ server <- function(input, output, session) {
   # never redraws the form.
   output$progress <- renderUI({
     has_result <- !is.null(state$calc) && identical(state$calc$status, "ok")
+    # The start screen introduces powerkit instead: the steps begin with
+    # the first choice.
+    if (identical(state$screen, "start")) return(NULL)
     progress_ui(screen_step(state$screen, has_result))
   })
   # Browser history (nav_js, R/ui.R): an entry for each screen or tab change,
@@ -2182,10 +2212,8 @@ server <- function(input, output, session) {
     switch(
       state$screen,
       aim = aim_ui(tree),
-      start = tagList(start_ui(tree, isolate(state$start)), bayes_mode_toggle_ui(isolate(state$bayes_mode)),
-        tags$details(class = "saved-projects",
-          tags$summary("Have a saved project, or one someone shared with you?"),
-          div(class = "saved-projects-grid", open_project_ui(), check_project_ui()))),
+      start = start_ui(tree, isolate(state$start), bayes_toggle = bayes_mode_toggle_ui(isolate(state$bayes_mode)),
+        saved_projects = div(class = "saved-projects-grid", open_project_ui(), check_project_ui())),
       check = plan_check_ui(tree, forms, state$checked_project),
       study_plan = tagList(screen_nav_ui(back = NULL), study_plan_ui(state$study_plan)),
       known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx),

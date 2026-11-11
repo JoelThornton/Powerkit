@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "47610828759647d623cb3c9f1146bd16f61dc80e",
-        "RemoteSha": "47610828759647d623cb3c9f1146bd16f61dc80e",
+        "RemoteRef": "be1fc35b601d2208528c171dd8f4e6a2364c0848",
+        "RemoteSha": "be1fc35b601d2208528c171dd8f4e6a2364c0848",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "47610828759647d623cb3c9f1146bd16f61dc80e",
-        "GithubSHA1": "47610828759647d623cb3c9f1146bd16f61dc80e",
+        "GithubRef": "be1fc35b601d2208528c171dd8f4e6a2364c0848",
+        "GithubSHA1": "be1fc35b601d2208528c171dd8f4e6a2364c0848",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-11 12:00:58 UTC; runner",
+        "Packaged": "2026-11-11 22:54:10 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-11 12:01:30 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-11 22:54:32 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,7 +8560,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "3a8b8a138f6f5263fae215c81354b9d0"
+      "checksum": "ff5a4bdb18e73c1aa0416d3c60ef0561"
     },
     "forms.yaml": {
       "checksum": "3fafc5b51b6d86a52115ed9edd4d91a7"
@@ -8575,7 +8575,7 @@
       "checksum": "841d59cc621b2f0333f7a727a9648772"
     },
     "R/bayes-mode.R": {
-      "checksum": "91a963b35aecce4ffeecb5d77e10cb21"
+      "checksum": "43c5ad29ea40791bf5e32541ee9a272f"
     },
     "R/capabilities.R": {
       "checksum": "db189576585bde9092a022122f5f37e3"
@@ -8590,7 +8590,7 @@
       "checksum": "15a987bda916506359a8934c8f24e331"
     },
     "R/drafts.R": {
-      "checksum": "f70b8e57254cf732c438807e69def2ab"
+      "checksum": "2e97b7c802ed7a6197d1e5de99a0b3cd"
     },
     "R/feedback.R": {
       "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
@@ -8617,7 +8617,7 @@
       "checksum": "aa9e67d188c13ed52b19d4cd9bdd4ecd"
     },
     "R/project.R": {
-      "checksum": "b805c385692cb3666bc4326f7508eefc"
+      "checksum": "3860ee7f8e3acfca594d3f7ec19e2fae"
     },
     "R/replication.R": {
       "checksum": "df0bcfe1cf3f7cc29bd89d61c4116c90"
@@ -8647,7 +8647,7 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "e82ee4bb98fe086b5cd9338133d67e78"
+      "checksum": "f55fa2a77b415d1ba58ea877e7047105"
     },
     "R/whole-study.R": {
       "checksum": "c1288194459f13a3ab4503f95dfd2b55"
@@ -8656,10 +8656,13 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "bba83887609872c85fc631253d65b724"
+      "checksum": "df41e2a41302aee5fe617d1ea9bde38a"
     },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
+    },
+    "whats-new.d/start-screen-layout.yaml": {
+      "checksum": "a008e3a45f9ba9dccc070668b6c38360"
     },
     "whats-new.yaml": {
       "checksum": "af954444e096e5ee5a4b5ea51dbda05e"
