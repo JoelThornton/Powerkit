@@ -1095,14 +1095,14 @@ goal_sentences <- function(spec, result) {
         name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
           r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared", "the effect")
         c(
-          headline = sprintf(
+          headline = paste0(if (isTRUE(s$approximation)) "Formula approximation: " else "", sprintf(
             "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s = %s. The effect: %s.",
             whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
             name, format(round(s$effect, 3), nsmall = 2), s$effect_description
-          ),
+          )),
           detail = if (isTRUE(s$approximation)) {
             sprintf(
-              "Smaller true effects than this would give a significant result less often than %s of the time. Worked out by InteractionPoweR's fixed-model formula (%s(), no simulation), which is quick; sample size and power for this design are simulated. The formula gives slightly higher power than simulation, so the smallest effect you could detect may be slightly larger than this (see the known difference below).",
+              "This is an approximate threshold for %s power from InteractionPoweR's fixed-model formula (%s(), no simulation). It does not establish that the simulated-study analysis reaches that power. Check the proposed effect using power at your fixed sample size; formula and simulation can differ.",
               percent(spec$goal$power), result$provenance$backend_function
             )
           } else {
@@ -1233,15 +1233,24 @@ safeguard_sentence <- function(result) {
 # Effects that vary between studies (Kenny & Judd, 2019), worked out by
 # the engine: what the variation does to power, and how often one study is
 # significant with no average effect.
+
+mediation_analysis_sentence <- function(result) {
+  a <- result$mediation_analysis
+  if (is.null(a)) return(NULL)
+  sprintf("Planned analysis: %s with a %s confidence interval (%s %s per simulated study).%s",
+    a$estimator, a$interval, whole(a$draws), if (identical(a$interval, "Monte Carlo")) "draws" else "whole-observation bootstrap resamples",
+    if (isTRUE(a$process_style)) " PROCESS-style: complete independent observations, continuous mediators and outcome; not PROCESS itself or all of its options." else " Use this same estimation and interval method in your analysis.")
+}
+
 heterogeneity_sentence <- function(result) {
   h <- result$heterogeneity
   if (is.null(h)) return(NULL)
   pct <- function(x) sprintf("%.0f%%", 100 * x)
   r <- identical(h$scale, "Fisher's z")
   sprintf(paste0("Variation between studies: the true %s is planned to vary from study to study with an SD of %s%s, ",
-    "so the %s entered is the average across studies (%s). At %s in total, power is %s with this variation, ",
+    "so the %s entered is the average across studies (%s). At %s in total, the average chance of significance is %s with this variation, ",
     "against %s if every study had the same %s. With no average %s at all, one study like this would still be ",
-    "significant %s of the time rather than at the significance level, because its own true %s is rarely exactly zero."),
+    "significant %s of the time rather than at the significance level, because its own true %s is rarely exactly zero. This is not power at the average effect or a guarantee for your setting. For a two-sided test, significance in either direction counts."),
     if (r) "correlation" else "effect", format(h$tau), if (r) " on Fisher's z scale" else "",
     if (r) "correlation" else "effect", if (r) "McShane & B\u00f6ckenholt, 2014" else "Kenny & Judd, 2019",
     whole(h$n), pct(h$power), pct(h$power_without), if (r) "correlation" else "effect",
@@ -1554,7 +1563,7 @@ scenario_curves <- function(spec, result, conservative = NA, optimistic = NA, n 
   # Wide enough to show where every line reaches the target power.
   top <- max(c(explore_sizes(spec, result), 1.25 * n), na.rm = TRUE)
   step <- if (identical(spec$template, "independent_t") && isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) 2 else 1
-  ns <- unique(pmax(8, step * round(seq(8, top, length.out = 15) / step)))
+  ns <- sort(unique(c(pmax(8, step * round(seq(8, top, length.out = 15) / step)), n_analysed(result))))
   do.call(rbind, lapply(names(effects), function(k) {
     power <- vapply(ns, function(at) {
       s <- spec
@@ -1603,15 +1612,17 @@ scenarios_ui <- function(spec, result = NULL) {
   # with no effect.
   if (is.null(e) || identical(spec$goal$type, "sensitivity") || is.null(planned) || planned == 0) return(NULL)
   div(class = "scenario-panel",
-    h5(class = "h6", "A cautious and a hopeful guess"),
+    h5(class = "h6", "What if the true effect is smaller?"),
+    p(class = "small", "The main answer depends on the effect and other assumptions you entered. Compare plausible alternatives before settling on a sample size. These comparisons keep the analysis and any chosen between-study variation unchanged."),
     p(class = "small", sprintf(paste0(
-      "This analysis uses %s = %s. Enter a smaller effect you would still find plausible (conservative) and a larger one (optimistic), ",
+      "This analysis uses %s = %s. Enter a weaker effect (closer to zero, keeping its direction) you would still find plausible, and a stronger one, ",
       "and powerkit draws power for all three. Choose values you could defend; powerkit won't suggest them."),
       e$label, format(round(planned, 3)))),
     div(class = "d-flex gap-3 flex-wrap",
       numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
       numericInput("scenario_optimistic", sprintf("Optimistic %s", e$label), value = NA, step = 0.01, width = "14rem")),
     conditionalPanel("input.scenario_conservative != null || input.scenario_optimistic != null",
+      uiOutput("scenario_at_plan"),
       plotOutput("scenario_plot", height = "340px"),
       uiOutput("scenario_n"),
       tags$details(tags$summary("Read the scenario values as a table"), uiOutput("scenario_table"))))
@@ -1792,6 +1803,9 @@ critical_effect_sentence <- function(result) {
 # upstream-questions.md, power4mome), so the result says so.
 binary_x_modmed_note <- function(spec) {
   if (!identical(spec$design, "moderated_mediation") || !identical(spec$variables$X$type, "binary")) return(NULL)
+  if (!identical(spec$target_test$method %||% "monte_carlo_ci", "monte_carlo_ci")) return(paste(
+    "The existing binary-X moderated-mediation calibration warning was measured for maximum likelihood with Monte Carlo intervals.",
+    "It is not a calibration estimate for the selected bootstrap analysis; changing the interval is not proof that the issue is resolved."))
   paste(
     "In a PROCESS model 7 scenario with a yes/no X, powerkit's checks found the test too liberal: with no moderated mediation it was",
     "significant in about 6.7% of simulated studies at alpha .05, against 5.3% for a separately written simulation,",
@@ -2163,6 +2177,10 @@ bayes_null_writeup <- function(spec, result) {
 
 departures_for <- function(forms, ep_id, spec) {
   keys <- unlist(forms$forms[[ep_id]]$departures)
+  if (is_corrected_count_test(spec)) keys <- setdiff(keys, c("5", "9", "10", "11"))
+  if (identical(spec$template, "chi_square_independence") &&
+      (length(spec$variables$X$levels) != 2L || length(spec$variables$Y$levels) != 2L)) keys <- setdiff(keys, "5")
+  if (identical(spec$target_test$method, "ols_percentile_bootstrap")) keys <- setdiff(keys, c("6", "7"))
   if (!spec$template %in% c("process_58", "process_59")) keys <- setdiff(keys, "19")
   # Departure 20 (both of each DIF item's parameters tested) applies unless
   # the user keeps irtpwr's own choice.
@@ -2557,7 +2575,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), source_note(values), group_difference_note(spec), binary_x_modmed_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), source_note(values), group_difference_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
   # The reasoning is needed to save or export, not to calculate.
   can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring
@@ -2585,8 +2603,14 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     result_sections_ui(as.list(sections[!is.na(sections)])),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
     h3(class = "h4", "Your result"),
+    planning_warnings_ui(spec, result),
     simulation_failures_ui(result),
     hero,
+    if (!is.null(corrected_count_verification_values(calc, values))) actionButton("verify_corrected_count", "Check power at this sample size", class = "btn btn-outline-primary"),
+    if (!is.null(corrected_anova_verification_values(calc, values))) actionButton("verify_corrected_anova", "Check this sample size by simulation", class = "btn btn-outline-primary"),
+    if (!is.null(interaction_verification_values(calc, values))) tagList(
+      actionButton("verify_interaction", "Check this effect by simulation", class = "btn btn-outline-primary"),
+      p(class = "small", "Keeps this sample size and the other assumptions, puts the proposed effect into a power calculation, and lets you check it before running.")),
     p(class = "result-headline lead", words[["headline"]]),
     if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
     if (!is.na(words["reading"])) p(class = "result-reading", words[["reading"]]),
@@ -2595,6 +2619,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(gd <- group_d_sentence(result))) p(class = "result-conversion", gd),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
+    if (!is.null(ma <- mediation_analysis_sentence(result))) p(class = "result-mediation-analysis", ma),
+    if (!is.null(ct <- count_test_sentence(spec))) p(class = "result-count-analysis", ct),
     if (!is.null(het <- heterogeneity_sentence(result))) p(class = "result-heterogeneity", het),
     heterogeneity_range_ui(result),
     if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
@@ -2786,8 +2812,8 @@ writeup_software <- function(result, full = FALSE, bayes = FALSE) {
 writeup_claim <- function(values, spec) {
   switch(values$claim %||% "one",
     one = NULL,
-    each = "Each hypothesis supports its own claim, so no correction for multiple tests was applied; each test is powered on its own.",
-    any = if (!is.null(spec$target_test$alpha)) sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test.",
+    each = "Each hypothesis was treated as a separate claim, so no correction for multiple tests was applied. This calculation plans one test; it does not control the chance of a false positive across the collection.",
+    any = if (!is.null(spec$target_test$alpha)) sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test. The reported power is for this test at its adjusted alpha, not the probability that any test in the set succeeds.",
       values$n_tests, values$n_tests, writeup_alpha(spec$target_test$alpha)),
     all = {
       k <- claim_tests(values)
@@ -2795,7 +2821,7 @@ writeup_claim <- function(values, spec) {
         if (identical(values$all_dependence, "unknown")) return(sprintf(
           "The claim requires all %s tests. Alpha was unchanged. The union bound gives the sufficient per-test power target 1 - (1 - %s)/%s = %s (Blitzstein & Hwang, 2019), without assuming independence. All tests must reach at least this power under the same stipulated population; the bound can be conservative and does not estimate the actual joint power. Conditional power among valid fits alone does not establish it when fits fail.",
           whole(k), format(parse_number(values$power)), whole(k), format(signif(spec$goal$power, 4))))
-        sprintf("The claim requires all %s tests to be significant, so no correction to alpha was applied, and each test was planned at power %s^(1/%s) = %s, so that if the tests are independent all of them succeed with probability %s.",
+        sprintf("The claim requires all %s tests to be significant, so no correction to alpha was applied, and this test was planned at power %s^(1/%s) = %s. If every required test reaches at least that power under the same population assumptions and their significance decisions are independent, the chance that all succeed is at least %s. This calculation does not verify those conditions for the other tests.",
           whole(k), format(parse_number(values$power)), whole(k), format(signif(spec$goal$power, 3)), format(parse_number(values$power)))
       } else {
         "The claim requires every one of several tests to be significant; the joint chance cannot exceed the least powerful individual test."
@@ -2982,6 +3008,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
           "following Kenny and Judd (2019): the effect size is the average across studies, and power was computed with pwr ",
           "using their effective significance level (%s) and adjusted noncentrality."), format(h$tau), format(signif(h$effective_alpha, 3)))
       })
+      adj <- paste0(adj, " This is the average chance of significance across differing study effects, not power at the average effect or a guarantee for every setting.")
     }
     if (!is.null(telescopes)) {
       sprintf("The original study's effect size, %s, set the test's direction (%s); its size does not enter the plan.", effect, reasoning)
@@ -3066,7 +3093,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, welch_population_note(spec))
+  main <- c(main, welch_population_note(spec), mediation_analysis_sentence(result), count_test_sentence(spec),
+    if (identical(spec$template, "paired_t")) "The paired analysis models within-person differences without period, sequence or carry-over terms.")
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
               if (assumes_sphericity(spec)) sprintf("Assuming sphericity; the MANOVA approach (Pillai's trace), which does not, has %.1f%% power at this sample size.", 100 * result$manova$power)
@@ -3084,7 +3112,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # The short version names only the differences that change the answer
   # (known_methods); departures from a tool's defaults are listed in the
   # full version, to keep the paper's paragraph short.
-  short <- paste(c(main, recruit_line, claim, writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
+  short <- paste(c(main, recruit_line, claim, planning_warning_notes(spec, result), writeup_software(result, bayes = is_bayes_test(spec)), unname(known_methods)), collapse = " ")
   interval <- if (simulated(result) && identical(result$goal_type, "sample_size")) {
     sprintf("The 95%% interval for the required sample size, from the simulation, is %s to %s.", whole(result$n_required$lower), whole(result$n_required$upper))
   }
@@ -3093,7 +3121,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # paper's paragraph (decided 7 November 2026; docs/conventions.md).
   departures <- departures[setdiff(names(departures), "3")]
   full <- paste(c(
-    paste(c(main, interval, recruit_line, claim), collapse = " "),
+    paste(c(main, interval, recruit_line, claim, planning_warning_notes(spec, result)), collapse = " "),
     writeup_software(result, full = TRUE, bayes = is_bayes_test(spec)),
     if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
     if (length(known)) paste("Where other established tools give a different answer:", paste(unname(known), collapse = " "))
@@ -3205,7 +3233,7 @@ ethics_text <- function(spec, result, fields, values) {
   if (identical(spec$template, "its")) body <- its_units(body, spec)
   if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
   p <- result$provenance
-  paste(c(body, sprintf("The calculation was made with %s and the R package %s (version %s) and can be reproduced from the saved plan.", powerkit_cited(p$packages[["powerkit"]]),
+  paste(c(body, planning_warning_notes(spec, result), sprintf("The calculation was made with %s and the R package %s (version %s) and can be reproduced from the saved plan.", powerkit_cited(p$packages[["powerkit"]]),
     p$backend, p$packages[[p$backend]])), collapse = " ")
 }
 

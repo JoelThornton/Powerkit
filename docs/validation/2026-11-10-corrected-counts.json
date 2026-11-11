@@ -1,0 +1,828 @@
+{
+  "date": "2026-11-10",
+  "platform": "R version 4.5.3 (2026-03-11 ucrt)",
+  "scope": "Selected complete-data fixed-group proportions and fixed-total 2 by 2 count tests; not universal validation or published reference evidence",
+  "source_sha256": {
+    "engine/R/continuity-correction.R": "502adbdf766adf4744dd483df95788d8e296dd659d4cc5624a13f21d78cb0862",
+    "engine/R/backend-spower.R": "bd5e201da58ab8b482f1856d36b80636ad469144f290bf848d4042cb67d1e02f",
+    "engine/inst/schema/design.schema.json": "31c6c494f39cedc671a0355eafedbc1d6f41f2c297d1c77cd5bf778e323db419",
+    "engine/tests/testthat/helper-corrected-counts.R": "9e70172548cadc3154b5a4d7011106989db7cdb03b63651b6ae84f51f517ffa3"
+  },
+  "cases": {
+    "two_sided": {
+      "spec": {
+        "spec_version": "0.1",
+        "design": "basic_test",
+        "template": "two_proportions",
+        "variables": {
+          "X": {
+            "type": "binary",
+            "label": "Reminder",
+            "levels": [
+              "No reminder",
+              "Text reminder"
+            ]
+          },
+          "Y": {
+            "type": "binary",
+            "label": "Attended",
+            "levels": [
+              "No",
+              "Yes"
+            ]
+          }
+        },
+        "population": {
+          "metric": "proportion",
+          "p1": 0.5,
+          "p2": 0.65
+        },
+        "effect_justification": {
+          "type": "smallest_effect_of_interest",
+          "source": "Example only: a 10-point rise in attendance is the smallest worth the cost."
+        },
+        "target_test": {
+          "effect": "proportion_difference",
+          "method": "z_test_corrected",
+          "alpha": 0.05,
+          "alternative": "two_sided"
+        },
+        "goal": {
+          "type": "power",
+          "n": 180
+        },
+        "options": {
+          "nrep": 10000,
+          "seed": 2026111041,
+          "allocation_ratio": 2
+        }
+      },
+      "power": 0.432,
+      "mcse": 0.00495354418573207,
+      "reference": 0.43459747144081,
+      "simulations": [
+        {
+          "n": 180,
+          "seed": 2026111041,
+          "rejections": 4320,
+          "nrep": 10000,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 4320,
+          "conditional_power": 0.432,
+          "successful_study_probability": 0.432,
+          "denominator": "all_valid"
+        }
+      ],
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.1",
+          "registry_sha256": "b6d431211eeddfd6d1999b8e0cf8f13f8fe7b138ef0cf0f9248b49ce02ed7e5f",
+          "variant": "basic_test/two_proportions/z_test_corrected/proportion_difference/two_sided/simulation",
+          "record_id": "two-proportions-corrected",
+          "categories": {
+            "package_agreement": {
+              "status": "scoped_only",
+              "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "independent": {
+              "status": "scoped_only",
+              "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            },
+            "published": {
+              "status": "pending",
+              "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "full_validation": {
+              "status": "scoped_only",
+              "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "corrected-counts-2026-11-10": {
+              "date": "2026-11-10",
+              "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+              "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+              "files": [
+                "engine/tests/testthat/test-validation-corrected-counts.R",
+                "engine/tests/testthat/test-continuity-correction.R",
+                "docs/validation/2026-11-10-corrected-counts-summary.txt",
+                "scripts/check-corrected-counts.R"
+              ],
+              "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "2b786ac6b6ee6b451d3d136e14c14ca81b4939d722ba94f59629bc78a2258b74",
+        "method": "simulation",
+        "seed": 2026111041,
+        "nrep": 10000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 180,
+            "seed": 2026111041,
+            "rejections": 4320,
+            "nrep": 10000,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 4320,
+            "conditional_power": 0.432,
+            "successful_study_probability": 0.432,
+            "denominator": "all_valid"
+          }
+        ],
+        "backend": "Spower",
+        "backend_function": "Spower::p_prop.test(correct = TRUE), repeated with all attempted studies in the power denominator",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.0", "0.7", "2.28"],
+        "started": "2026-11-10 20:16:14 GMT",
+        "run_time_seconds": 1.10343599319458
+      }
+    },
+    "greater": {
+      "spec": {
+        "spec_version": "0.1",
+        "design": "basic_test",
+        "template": "two_proportions",
+        "variables": {
+          "X": {
+            "type": "binary",
+            "label": "Reminder",
+            "levels": [
+              "No reminder",
+              "Text reminder"
+            ]
+          },
+          "Y": {
+            "type": "binary",
+            "label": "Attended",
+            "levels": [
+              "No",
+              "Yes"
+            ]
+          }
+        },
+        "population": {
+          "metric": "proportion",
+          "p1": 0.5,
+          "p2": 0.65
+        },
+        "effect_justification": {
+          "type": "smallest_effect_of_interest",
+          "source": "Example only: a 10-point rise in attendance is the smallest worth the cost."
+        },
+        "target_test": {
+          "effect": "proportion_difference",
+          "method": "z_test_corrected",
+          "alpha": 0.05,
+          "alternative": "greater"
+        },
+        "goal": {
+          "type": "power",
+          "n": 180
+        },
+        "options": {
+          "nrep": 10000,
+          "seed": 2026111041,
+          "allocation_ratio": 2
+        }
+      },
+      "power": 0.5636,
+      "mcse": 0.0049593854457987,
+      "reference": 0.560879323211956,
+      "simulations": [
+        {
+          "n": 180,
+          "seed": 2026111041,
+          "rejections": 5636,
+          "nrep": 10000,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 5636,
+          "conditional_power": 0.5636,
+          "successful_study_probability": 0.5636,
+          "denominator": "all_valid"
+        }
+      ],
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.1",
+          "registry_sha256": "b6d431211eeddfd6d1999b8e0cf8f13f8fe7b138ef0cf0f9248b49ce02ed7e5f",
+          "variant": "basic_test/two_proportions/z_test_corrected/proportion_difference/greater/simulation",
+          "record_id": "two-proportions-corrected",
+          "categories": {
+            "package_agreement": {
+              "status": "scoped_only",
+              "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "independent": {
+              "status": "scoped_only",
+              "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            },
+            "published": {
+              "status": "pending",
+              "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "full_validation": {
+              "status": "scoped_only",
+              "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "corrected-counts-2026-11-10": {
+              "date": "2026-11-10",
+              "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+              "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+              "files": [
+                "engine/tests/testthat/test-validation-corrected-counts.R",
+                "engine/tests/testthat/test-continuity-correction.R",
+                "docs/validation/2026-11-10-corrected-counts-summary.txt",
+                "scripts/check-corrected-counts.R"
+              ],
+              "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "dcb402baf267c72b611a0d8dfbb66c3b1e30d2235dd5884490a87cf16cdf74f0",
+        "method": "simulation",
+        "seed": 2026111041,
+        "nrep": 10000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 180,
+            "seed": 2026111041,
+            "rejections": 5636,
+            "nrep": 10000,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 5636,
+            "conditional_power": 0.5636,
+            "successful_study_probability": 0.5636,
+            "denominator": "all_valid"
+          }
+        ],
+        "backend": "Spower",
+        "backend_function": "Spower::p_prop.test(correct = TRUE), repeated with all attempted studies in the power denominator",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.0", "0.7", "2.28"],
+        "started": "2026-11-10 20:16:16 GMT",
+        "run_time_seconds": 1.13364410400391
+      }
+    },
+    "less": {
+      "spec": {
+        "spec_version": "0.1",
+        "design": "basic_test",
+        "template": "two_proportions",
+        "variables": {
+          "X": {
+            "type": "binary",
+            "label": "Reminder",
+            "levels": [
+              "No reminder",
+              "Text reminder"
+            ]
+          },
+          "Y": {
+            "type": "binary",
+            "label": "Attended",
+            "levels": [
+              "No",
+              "Yes"
+            ]
+          }
+        },
+        "population": {
+          "metric": "proportion",
+          "p1": 0.5,
+          "p2": 0.35
+        },
+        "effect_justification": {
+          "type": "smallest_effect_of_interest",
+          "source": "Example only: a 10-point rise in attendance is the smallest worth the cost."
+        },
+        "target_test": {
+          "effect": "proportion_difference",
+          "method": "z_test_corrected",
+          "alpha": 0.05,
+          "alternative": "less"
+        },
+        "goal": {
+          "type": "power",
+          "n": 180
+        },
+        "options": {
+          "nrep": 10000,
+          "seed": 2026111041,
+          "allocation_ratio": 2
+        }
+      },
+      "power": 0.5576,
+      "mcse": 0.00496671158816374,
+      "reference": 0.560879323211956,
+      "simulations": [
+        {
+          "n": 180,
+          "seed": 2026111041,
+          "rejections": 5576,
+          "nrep": 10000,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 5576,
+          "conditional_power": 0.5576,
+          "successful_study_probability": 0.5576,
+          "denominator": "all_valid"
+        }
+      ],
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.1",
+          "registry_sha256": "b6d431211eeddfd6d1999b8e0cf8f13f8fe7b138ef0cf0f9248b49ce02ed7e5f",
+          "variant": "basic_test/two_proportions/z_test_corrected/proportion_difference/less/simulation",
+          "record_id": "two-proportions-corrected",
+          "categories": {
+            "package_agreement": {
+              "status": "scoped_only",
+              "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "independent": {
+              "status": "scoped_only",
+              "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            },
+            "published": {
+              "status": "pending",
+              "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "full_validation": {
+              "status": "scoped_only",
+              "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "corrected-counts-2026-11-10": {
+              "date": "2026-11-10",
+              "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+              "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+              "files": [
+                "engine/tests/testthat/test-validation-corrected-counts.R",
+                "engine/tests/testthat/test-continuity-correction.R",
+                "docs/validation/2026-11-10-corrected-counts-summary.txt",
+                "scripts/check-corrected-counts.R"
+              ],
+              "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "3103019d301e5fb5e9f8f45a1f583ceab99eb8c1282f5608baec864391a93202",
+        "method": "simulation",
+        "seed": 2026111041,
+        "nrep": 10000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 180,
+            "seed": 2026111041,
+            "rejections": 5576,
+            "nrep": 10000,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 5576,
+            "conditional_power": 0.5576,
+            "successful_study_probability": 0.5576,
+            "denominator": "all_valid"
+          }
+        ],
+        "backend": "Spower",
+        "backend_function": "Spower::p_prop.test(correct = TRUE), repeated with all attempted studies in the power denominator",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.0", "0.7", "2.28"],
+        "started": "2026-11-10 20:16:18 GMT",
+        "run_time_seconds": 1.03636407852173
+      }
+    },
+    "null": {
+      "spec": {
+        "spec_version": "0.1",
+        "design": "basic_test",
+        "template": "two_proportions",
+        "variables": {
+          "X": {
+            "type": "binary",
+            "label": "Reminder",
+            "levels": [
+              "No reminder",
+              "Text reminder"
+            ]
+          },
+          "Y": {
+            "type": "binary",
+            "label": "Attended",
+            "levels": [
+              "No",
+              "Yes"
+            ]
+          }
+        },
+        "population": {
+          "metric": "proportion",
+          "p1": 0.5,
+          "p2": 0.5
+        },
+        "effect_justification": {
+          "type": "smallest_effect_of_interest",
+          "source": "Example only: a 10-point rise in attendance is the smallest worth the cost."
+        },
+        "target_test": {
+          "effect": "proportion_difference",
+          "method": "z_test_corrected",
+          "alpha": 0.05,
+          "alternative": "two_sided"
+        },
+        "goal": {
+          "type": "power",
+          "n": 120
+        },
+        "options": {
+          "nrep": 10000,
+          "seed": 2026111042,
+          "allocation_ratio": 1
+        }
+      },
+      "power": 0.0351,
+      "mcse": 0.00184032578637588,
+      "reference": 0.0353243581930873,
+      "simulations": [
+        {
+          "n": 120,
+          "seed": 2026111042,
+          "rejections": 351,
+          "nrep": 10000,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 351,
+          "conditional_power": 0.0351,
+          "successful_study_probability": 0.0351,
+          "denominator": "all_valid"
+        }
+      ],
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.1",
+          "registry_sha256": "b6d431211eeddfd6d1999b8e0cf8f13f8fe7b138ef0cf0f9248b49ce02ed7e5f",
+          "variant": "basic_test/two_proportions/z_test_corrected/proportion_difference/two_sided/simulation",
+          "record_id": "two-proportions-corrected",
+          "categories": {
+            "package_agreement": {
+              "status": "scoped_only",
+              "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "independent": {
+              "status": "scoped_only",
+              "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            },
+            "published": {
+              "status": "pending",
+              "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "full_validation": {
+              "status": "scoped_only",
+              "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "corrected-counts-2026-11-10": {
+              "date": "2026-11-10",
+              "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+              "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+              "files": [
+                "engine/tests/testthat/test-validation-corrected-counts.R",
+                "engine/tests/testthat/test-continuity-correction.R",
+                "docs/validation/2026-11-10-corrected-counts-summary.txt",
+                "scripts/check-corrected-counts.R"
+              ],
+              "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "99baa3f714e951ac51801e81863e47060a5b189f1f86096a0e5820dd55c2fd00",
+        "method": "simulation",
+        "seed": 2026111042,
+        "nrep": 10000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 120,
+            "seed": 2026111042,
+            "rejections": 351,
+            "nrep": 10000,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 351,
+            "conditional_power": 0.0351,
+            "successful_study_probability": 0.0351,
+            "denominator": "all_valid"
+          }
+        ],
+        "backend": "Spower",
+        "backend_function": "Spower::p_prop.test(correct = TRUE), repeated with all attempted studies in the power denominator",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.0", "0.7", "2.28"],
+        "started": "2026-11-10 20:16:19 GMT",
+        "run_time_seconds": 1.01513290405273
+      }
+    },
+    "contingency": {
+      "spec": {
+        "spec_version": "0.1",
+        "design": "basic_test",
+        "template": "chi_square_independence",
+        "variables": {
+          "X": {
+            "type": "categorical",
+            "label": "Attachment style",
+            "levels": [
+              "Group 1",
+              "Group 2"
+            ]
+          },
+          "Y": {
+            "type": "categorical",
+            "label": "Relationship status",
+            "levels": [
+              "Single",
+              "In a relationship"
+            ]
+          }
+        },
+        "population": {
+          "metric": "proportion",
+          "probabilities": [
+            [
+              0.25,
+              0.25
+            ],
+            [
+              0.175,
+              0.325
+            ]
+          ]
+        },
+        "effect_justification": {
+          "type": "prior_study",
+          "source": "Example only: replace with the study you used.",
+          "adjustment": "Differences between rows halved to allow for publication bias."
+        },
+        "target_test": {
+          "effect": "association",
+          "method": "pearson_chi_square_corrected",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "power",
+          "n": 340
+        },
+        "options": {
+          "attrition": 0.1,
+          "nrep": 10000,
+          "seed": 2026111043
+        }
+      },
+      "power": 0.7708,
+      "mcse": 0.00420318165203456,
+      "reference": 0.7603,
+      "reference_nrep": 10000,
+      "reference_seed": 2026111044,
+      "simulations": [
+        {
+          "n": 340,
+          "seed": 2026111043,
+          "rejections": 7708,
+          "nrep": 10000,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 7708,
+          "conditional_power": 0.7708,
+          "successful_study_probability": 0.7708,
+          "denominator": "all_valid"
+        }
+      ],
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.1",
+          "registry_sha256": "b6d431211eeddfd6d1999b8e0cf8f13f8fe7b138ef0cf0f9248b49ce02ed7e5f",
+          "variant": "basic_test/chi_square_independence/pearson_chi_square_corrected/association/two_sided/simulation",
+          "record_id": "contingency-corrected",
+          "categories": {
+            "package_agreement": {
+              "status": "scoped_only",
+              "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "independent": {
+              "status": "scoped_only",
+              "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            },
+            "published": {
+              "status": "pending",
+              "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "full_validation": {
+              "status": "scoped_only",
+              "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Fixed-total independent joint-multinomial 2 by 2 tables; N=340 with P=((.25,.25),(.175,.325)) and null N=120 with uniform cells. Independent multinomial simulation supplies the reference; not fixed margins. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "corrected-counts-2026-11-10": {
+              "date": "2026-11-10",
+              "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+              "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+              "files": [
+                "engine/tests/testthat/test-validation-corrected-counts.R",
+                "engine/tests/testthat/test-continuity-correction.R",
+                "docs/validation/2026-11-10-corrected-counts-summary.txt",
+                "scripts/check-corrected-counts.R"
+              ],
+              "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "e90bb90684c89405a9b90dfed633e85bf2abc5dec8b4e46d98417fcb0e44d33a",
+        "method": "simulation",
+        "seed": 2026111043,
+        "nrep": 10000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 340,
+            "seed": 2026111043,
+            "rejections": 7708,
+            "nrep": 10000,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 7708,
+            "conditional_power": 0.7708,
+            "successful_study_probability": 0.7708,
+            "denominator": "all_valid"
+          }
+        ],
+        "backend": "Spower",
+        "backend_function": "Spower::p_chisq.test(correct = TRUE), repeated with all attempted studies in the power denominator",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.0", "0.7", "2.28"],
+        "started": "2026-11-10 20:16:20 GMT",
+        "run_time_seconds": 0.516656875610352
+      }
+    }
+  }
+}

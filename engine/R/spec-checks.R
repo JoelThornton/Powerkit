@@ -62,6 +62,7 @@ population_problems <- function(spec) {
     check_justified_alpha(spec),
     check_precision(spec),
     check_proportions_formula_allowed(spec),
+    continuity_problems(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
     check_pairwise(spec),
@@ -214,7 +215,7 @@ simulation_available <- function(spec) {
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
   identical(spec$template, "paired_variances") || identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec)) || rank_test(spec) || welch_anova(spec) ||
-    rank_correlation(spec) || proportion_trend(spec) || simulated_count_test(spec) || robust_regression(spec)
+    rank_correlation(spec) || proportion_trend(spec) || simulated_count_test(spec) || robust_regression(spec) || continuity_corrected(spec)
 }
 
 # Rank-based tests: the Wilcoxon signed-rank test (one sample, paired), the
@@ -894,6 +895,7 @@ check_proportions_formula_allowed <- function(spec) {
   if (spec$template != "two_proportions") {
     return("'options > proportions_formula' only applies to the two-proportions test; remove it.")
   }
+  if (continuity_corrected(spec)) return("Remove 'options > proportions_formula': a continuity-corrected test is simulated, not calculated with an uncorrected formula.")
   if (identical(spec$options$method, "simulation")) {
     return(paste0(
       "'options > proportions_formula' only applies when power is calculated by formula; ",

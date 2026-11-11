@@ -150,6 +150,8 @@ plain English. Example specs for every design are in
 - [Map of the docs](docs/README.md): which document to read for what,
   and which are history.
 - [Status](docs/status.md): where the project is and what's next.
+- [First-release support plan](docs/v1-support-plan.md): coverage target,
+  representative benchmark, complex-design audits and evidence gates.
 - [Handover](docs/handover.md): the working rules, for whoever picks the
   project up next.
 - [Validation log](docs/validation-log.md): every full validation run.

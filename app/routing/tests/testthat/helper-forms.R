@@ -252,3 +252,8 @@ form_examples$E47 <- c(list(A_label = "Message frame", A_levels = "Gain, Loss", 
 form_examples$E46 <- list(estimate = "proportion", Y_label = "Reports burnout", p = "0.3", p_method = "wilson",
   goal = "precision_n", width = "0.1", conf_level = "0.95",
   just_type = "smallest_effect_of_interest", just_source = "Example only")
+
+# The mediation analysis selector starts at the existing ML/MC method.
+for (ep in c("E10", "E16", "E11", "E12", "E13", "E14", "E17", "E38", "E40")) {
+  form_examples[[ep]]$method <- "monte_carlo_ci"
+}

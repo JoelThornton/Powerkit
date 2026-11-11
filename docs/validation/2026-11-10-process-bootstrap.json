@@ -1,0 +1,91 @@
+{
+  "date": "2026-11-10",
+  "run_url": "https://github.com/JoelThornton/Powerkit/actions/runs/42888143753",
+  "job_id": 130082537105,
+  "head_revision": "dafe128e14eefdc2ac3baa5d76951c5f20523a24",
+  "tested_merge_revision": "4c80d79e1160ec9ce1050c1d9881a20b8802affc",
+  "source_git_blobs": [
+    {
+      "path": "engine/R/backend-power4mome.R",
+      "sha": "3227e77adcde25651155bf1e2b08d4f872879f40"
+    },
+    {
+      "path": "engine/tests/testthat/helper-process-bootstrap.R",
+      "sha": "7ce7b985ff748a7ed5e0d7218d9fb5d52dbdacfd"
+    },
+    {
+      "path": "engine/tests/testthat/test-validation-process-bootstrap.R",
+      "sha": "e4203495e23d9eefdaf20a445dc0bd9e450340df"
+    }
+  ],
+  "packages": {
+    "powerkit": "0.61.0",
+    "power4mome": "0.2.1",
+    "manymome": "0.3.7",
+    "lavaan": "0.7.3"
+  },
+  "totals": {
+    "pass": 2,
+    "fail": 0,
+    "error": 0,
+    "skip": 1
+  },
+  "scope": "Two selected OLS casewise percentile-bootstrap null scenarios, 2000 studies and 1000 resamples at N=250, alpha=.05. Not the 5000-resample interface default, other models/nulls, independent-package or PROCESS-software equivalence, or a resolution of the existing ML/Monte-Carlo failure.",
+  "cases": [
+    {
+      "name": "simple",
+      "design": "mediation",
+      "template": "process_4",
+      "x_type": "continuous",
+      "target": "X->M->Y",
+      "paths": {
+        "X->M": 0,
+        "M->Y": 0.35,
+        "X->Y": 0.1
+      },
+      "n": 250,
+      "studies": 2000,
+      "resamples": 1000,
+      "seed": 2026111031,
+      "rejections": 99,
+      "rejection_rate": 0.0495,
+      "acceptance": [
+        0.04,
+        0.06
+      ],
+      "rate_interval_95": [0.0404103779265477, 0.0599373161584265],
+      "mcse": 0.0048502448391808
+    },
+    {
+      "name": "binary_x_model7",
+      "design": "moderated_mediation",
+      "template": "process_7",
+      "x_type": "binary",
+      "x_probability": 0.5,
+      "r_x_w": 0,
+      "target": "index_of_moderated_mediation",
+      "paths": {
+        "X->M": 0.3,
+        "W->M": 0.1,
+        "XW->M": 0,
+        "M->Y": 0.35,
+        "X->Y": 0.05
+      },
+      "n": 250,
+      "studies": 2000,
+      "resamples": 1000,
+      "seed": 2026111032,
+      "rejections": 117,
+      "rejection_rate": 0.0585,
+      "acceptance": [
+        0.04,
+        0.06
+      ],
+      "rate_interval_95": [0.0486181479912035, 0.0696993557970137],
+      "mcse": 0.0052477495176504
+    }
+  ],
+  "cores": 4,
+  "cores_per_test": 4,
+  "r_version": "R 4.5.3 (2026-03-11), x86_64-pc-linux-gnu"
+}

@@ -593,7 +593,7 @@ test_that("the methods paragraph names mediation models without PROCESS numbers"
 test_that("turning explanations off swaps in the technical names and hides the hints, and explanations stay on by default", {
   card <- as.character(card_ui(tree, "E54"))
   expect_match(card, "<span class=\"name-plain\">", fixed = TRUE)
-  expect_match(card, sprintf("<span class=\"name-tech\">%s</span>", htmltools::htmlEscape(standard_name(tree$endpoints$E54$doc_name)$name)), fixed = TRUE)
+  expect_match(card, sprintf("<span class=\"name-tech\">%s</span>", htmltools::htmlEscape(technical_name(tree$endpoints$E54))), fixed = TRUE)
   list_html <- as.character(known_ui(tree))
   expect_match(list_html, "class=\"name-tech-alt\"", fixed = TRUE)
   expect_match(list_html, "class=\"name-plain-alt\"", fixed = TRUE)
@@ -674,7 +674,7 @@ test_that("the start screen stays short: three ways in, a tag on two, and recent
   html <- as.character(start_ui(tree))
   expect_equal(lengths(regmatches(html, gregexpr('class="route-icon"', html, fixed = TRUE))), 3L)
   expect_match(html, "Good first choice", fixed = TRUE)
-  expect_match(html, '<div id="pk-recent" class="start-recent" hidden>', fixed = TRUE)
+  expect_match(html, '<div id="pk-recent" class="start-recent" hidden', fixed = TRUE)
   # Each route's help is one short line.
   for (r in tree$routes$options) expect_lte(nchar(r$help), 60)
   # A full card is remembered for "Recently opened"; a compact one isn't.

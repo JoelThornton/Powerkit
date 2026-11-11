@@ -6239,7 +6239,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.60.0",
+        "Version": "0.61.1",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6249,7 +6249,7 @@
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
         "Imports": "afex, BayesFactor, bayestestR, bfpwr, car, digest, effectsize,\nHmisc, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nlme4, lmerTest, manymome, parallel, nlme, psych, power4mome,\npwr, powertools, pwrss, simr, SimDesign, Spower (>= 0.7),\nstats, SuppDists, Superpower, utils",
-        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, GPArotation, gsl,\nhypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha, kappaSize,\nlavaan, longpower, MASS, Matrix, MBESS, mclust, metafor,\nmetapower, mirt, nnet, pbkrtest, PITS, PMCMRplus, POMADE,\npowerSurvEpi, powRICLPM, presize, pscl, PUMP, quantreg,\nsemPower, simsem, statpsych, survival, testthat (>= 3.0.0),\nTOSTER, vegan, WebPower, withr",
+        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, boot, GPArotation,\ngsl, hypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha,\nkappaSize, lavaan, longpower, lmhelprs (>= 0.4.2), MASS,\nMatrix, MBESS, mclust, metafor, metapower, mirt, nnet,\npbkrtest, PITS, PMCMRplus, POMADE, powerSurvEpi, powRICLPM,\npresize, pscl, PUMP, quantreg, semPower, simsem, statpsych,\nsurvival, testthat (>= 3.0.0), TOSTER, vegan, WebPower, withr",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
         "Config/testthat/start-first": "export-script, whole-study,\nbackend-modmed-parallel, backend-mixed-model",
@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "950b7adc4b5fb00316bbf35774a02748992fc7eb",
-        "RemoteSha": "950b7adc4b5fb00316bbf35774a02748992fc7eb",
+        "RemoteRef": "bdbdfb6cc7e31ddec2b505fb8e7cf7bf0407f7fe",
+        "RemoteSha": "bdbdfb6cc7e31ddec2b505fb8e7cf7bf0407f7fe",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "950b7adc4b5fb00316bbf35774a02748992fc7eb",
-        "GithubSHA1": "950b7adc4b5fb00316bbf35774a02748992fc7eb",
+        "GithubRef": "bdbdfb6cc7e31ddec2b505fb8e7cf7bf0407f7fe",
+        "GithubSHA1": "bdbdfb6cc7e31ddec2b505fb8e7cf7bf0407f7fe",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-10 12:51:24 UTC; runner",
+        "Packaged": "2026-11-10 23:59:19 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-10 12:51:45 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-10 23:59:43 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,16 +8560,16 @@
   },
   "files": {
     "app.R": {
-      "checksum": "a81f8634e888e89634d6f4311268c27f"
+      "checksum": "cadee878d889cbeaa6bab31abcd2ca6d"
     },
     "forms.yaml": {
-      "checksum": "1d11b5085178e508cf820a71140e3c31"
+      "checksum": "3fafc5b51b6d86a52115ed9edd4d91a7"
     },
     "methods-map.yaml": {
       "checksum": "95e47c58f2b5274b63cde74efa7a08f0"
     },
     "optional-packages.R": {
-      "checksum": "f626cf81c7959b408b67083d3611ca2f"
+      "checksum": "b87673bc767f55f9817b7d4300430027"
     },
     "R/about.R": {
       "checksum": "841d59cc621b2f0333f7a727a9648772"
@@ -8583,20 +8583,23 @@
     "R/connection.R": {
       "checksum": "938ae87749c78fbc96266750f20a28a8"
     },
+    "R/count-test-notes.R": {
+      "checksum": "0bfb0dc26db69c058b309ee7f9cc7d89"
+    },
     "R/documents.R": {
       "checksum": "15a987bda916506359a8934c8f24e331"
     },
     "R/drafts.R": {
-      "checksum": "9ce08b4bad837bce056d8f1be6cab65f"
+      "checksum": "f70b8e57254cf732c438807e69def2ab"
     },
     "R/feedback.R": {
       "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
     },
     "R/forms_ui.R": {
-      "checksum": "c556f896587803967d4c8e958828dc4d"
+      "checksum": "2b12e29ce5ee90ed449c8d734e9ece46"
     },
     "R/forms.R": {
-      "checksum": "38f6e9f8907224830202044ac9749bba"
+      "checksum": "d0a4b4c0bca00afe0c8a75f931d1fef4"
     },
     "R/input-support.R": {
       "checksum": "bdf0e5767132a553068c033f7e5f520e"
@@ -8605,19 +8608,22 @@
       "checksum": "ae57e253a9f945becbc7f41635c0c79d"
     },
     "R/map.R": {
-      "checksum": "87b57d42599be4d23ca3b702f7faff13"
+      "checksum": "a606e91a440ff249228881df2521fa04"
+    },
+    "R/planning-safeguards.R": {
+      "checksum": "a5e40d929d08b1a683d4bfd69bb421df"
     },
     "R/planning.R": {
       "checksum": "812c9726e5e4be19c8b45c423d8ceb79"
     },
     "R/project.R": {
-      "checksum": "741364b7e92a0ac1d8e5bcb34c314fd3"
+      "checksum": "b805c385692cb3666bc4326f7508eefc"
     },
     "R/replication.R": {
       "checksum": "df0bcfe1cf3f7cc29bd89d61c4116c90"
     },
     "R/results.R": {
-      "checksum": "241eaed997790ba075fab14cae9ae9df"
+      "checksum": "68a21094ae25d57be4a67092adf91c20"
     },
     "R/sample.R": {
       "checksum": "5a2faf0bd5eeff5c04489743edadd733"
@@ -8625,8 +8631,11 @@
     "R/scenarios.R": {
       "checksum": "4c637bbcf8efa95600840ed24a6ca478"
     },
+    "R/selected-evidence.R": {
+      "checksum": "edc723cc9f31e359b8a0c5b203350eb5"
+    },
     "R/simulations.R": {
-      "checksum": "d387337f1603020207fccef5e565ff73"
+      "checksum": "5ee77bdc95f7a44abacb4c5e3065d41a"
     },
     "R/study-plan.R": {
       "checksum": "cf4957166553569722cefad749a21995"
@@ -8638,7 +8647,7 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "f8412f7894ed383d7b5212bc9844e91f"
+      "checksum": "5dcc95091dce8a49885185d2706f68c0"
     },
     "R/whole-study.R": {
       "checksum": "c1288194459f13a3ab4503f95dfd2b55"
@@ -8647,13 +8656,13 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "88c103115b5f7a76a226ab863a11ac8c"
+      "checksum": "bba83887609872c85fc631253d65b724"
     },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
     },
     "whats-new.yaml": {
-      "checksum": "8729e3b314a08a4b5d312fb8e44f8862"
+      "checksum": "b69589dd7914b4ccdf0f9c8aa56c0f00"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

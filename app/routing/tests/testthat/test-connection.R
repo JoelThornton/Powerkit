@@ -98,7 +98,9 @@ test_that("the online app is published at most daily, not after every merge", {
   steps <- workflow$jobs$manifest$steps
   publish <- Filter(function(s) identical(s$name, "Prepare the checked deployment branch"), steps)[[1]]
   expect_identical(publish$`if`, "steps.decide.outputs.publish == 'true'")
-  expect_match(publish$run, "HEAD:connect-cloud", fixed = TRUE)
+  expect_match(publish$run, "$publish_commit:refs/heads/connect-cloud", fixed = TRUE)
+  expect_match(publish$run, "publish_commit=$(python3 scripts/prepare-publish-branch.py", fixed = TRUE)
+  expect_false(grepl("--force", publish$run, fixed = TRUE))
   decide <- Filter(function(s) identical(s$name, "Decide whether to publish"), steps)[[1]]
   expect_match(decide$run, "git diff --quiet origin/connect-cloud HEAD", fixed = TRUE)
   # A second daily look catches a morning run GitHub skipped: only that run

@@ -20,6 +20,7 @@
 #
 #   Rscript scripts/close-batch.R minor     # 0.44.0 -> 0.45.0 (a batch of features)
 #   Rscript scripts/close-batch.R patch     # 0.44.0 -> 0.44.1 (fixes only)
+#   Rscript scripts/close-batch.R amend     # add to the current unmerged batch
 #   Rscript scripts/close-batch.R 1.0.0     # a number the maintainer chose
 #
 # Run it from the repository root. It refuses to run with no notes waiting.
@@ -106,7 +107,11 @@ close_batch <- function(bump, root = ".") {
   description <- read_lines(description_path)
   line <- grep("^Version:", description)
   current <- trimws(sub("^Version:", "", description[line]))
-  version <- next_version(current, bump)
+  version <- if (identical(bump, "amend")) current else next_version(current, bump)
+  news_path <- file.path(root, "engine", "NEWS.md")
+  old_news <- read_lines(news_path)
+  if (identical(bump, "amend") && !identical(old_news[1], paste("# powerkit", current)))
+    stop("Amend needs the current version at the top of NEWS; no files were changed.")
   description[line] <- paste("Version:", version)
   write_lines(description, description_path)
 
@@ -118,7 +123,8 @@ close_batch <- function(bump, root = ".") {
   news_path <- file.path(root, "engine", "NEWS.md")
   notes <- unlist(lapply(news_files, function(f) c(trimmed(read_lines(f)), "")))
   if (!length(notes)) notes <- c("* No developer-facing changes; see the Updates entries.", "")
-  write_lines(c(paste("# powerkit", version), "", notes, read_lines(news_path)), news_path)
+  if (identical(bump, "amend")) old_news <- old_news[-seq_len(2)]
+  write_lines(c(paste("# powerkit", version), "", notes, old_news), news_path)
 
   if (length(update_files)) {
     update_files <- update_files[order(-as.numeric(vapply(update_files, newest_date, numeric(1))), update_files)]
@@ -138,7 +144,7 @@ close_batch <- function(bump, root = ".") {
 
 if (!interactive() && sys.nframe() == 0) {
   args <- commandArgs(trailingOnly = TRUE)
-  if (length(args) != 1) stop("Usage: Rscript scripts/close-batch.R minor|patch|<version>")
+  if (length(args) != 1) stop("Usage: Rscript scripts/close-batch.R minor|patch|amend|<version>")
   done <- close_batch(args[[1]])
   cat(sprintf("powerkit %s: %d engine notes and %d Updates files joined; %d older Updates entries archived.\n",
     done$version, length(done$news), length(done$updates), done$archived))

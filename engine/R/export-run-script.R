@@ -20,6 +20,9 @@
 #'   3 hours on one core"), for the script's header; `NULL` to leave it
 #'   out.
 #'
+#' @param route Optional app route and checked form values, as accepted by
+#'   [write_project()]. Included in the saved project so the local result
+#'   can reopen in the app without rerunning the calculation.
 #' @return The script as a single string; invisibly if `file` is given.
 #' @seealso [export_script()], which reproduces a result already computed.
 #' @export
@@ -29,11 +32,12 @@
 #' spec$options$seed <- 1
 #' cat(export_run_script(spec, run_time = "about 10 minutes on one core"))
 #' }
-export_run_script <- function(spec, file = NULL, run_time = NULL) {
+export_run_script <- function(spec, file = NULL, run_time = NULL, route = NULL) {
   spec <- withCallingHandlers(
     validate_spec(spec),
     powerkit_spec_warning = function(w) invokeRestart("muffleWarning")
   )
+  route <- route %||% list()
   seed <- spec$options$seed
   if (is.null(seed)) {
     abort_export(
@@ -71,7 +75,8 @@ export_run_script <- function(spec, file = NULL, run_time = NULL) {
     "# writes three files to R's working directory (getwd()):",
     "# * powerkit-result.rds: the result (readRDS() reads it back);",
     sprintf("# * powerkit-reproduce.R: a script that reproduces it with %s alone;", package),
-    "# * powerkit-citations.txt: what to cite.",
+    "# * powerkit-citations.txt: what to cite;",
+    "# * powerkit-result.powerkit.json: the project, including the app route when supplied.",
     "",
     "library(powerkit)",
     "",
@@ -92,6 +97,8 @@ export_run_script <- function(spec, file = NULL, run_time = NULL) {
     "# The design spec ----",
     r_multiline_string("spec_json", json, character()),
     "spec <- read_spec(spec_json)",
+    sprintf("app_route <- jsonlite::fromJSON(%s, simplifyVector = FALSE)",
+      r_code(if (is.null(route)) "null" else as.character(jsonlite::toJSON(route, auto_unbox = TRUE, null = "null", digits = NA)))),
     "",
     "# Run it ----",
     "result <- run_spec(spec)",
@@ -99,6 +106,7 @@ export_run_script <- function(spec, file = NULL, run_time = NULL) {
     "",
     "# Save the result, the reproduction script and the citations ----",
     "saveRDS(result, \"powerkit-result.rds\")",
+    "write_project(spec, result, route = app_route, file = \"powerkit-result.powerkit.json\")",
     "export_script(spec, result, file = \"powerkit-reproduce.R\")",
     "export_citations(result, format = \"text\", file = \"powerkit-citations.txt\")",
     "",
@@ -121,7 +129,8 @@ export_run_script <- function(spec, file = NULL, run_time = NULL) {
 #' installing different versions can change numerical results.
 #'
 #' @param spec A design specification accepted by [validate_spec()].
-#' @return A list with `backend`, `packages`, `versions`, and `r_requirement`
+#' @return A list with `backend`, `packages`, `versions`, `mediation_analysis`
+#'   (the selected estimator/interval settings, or `NULL`), and `r_requirement`
 #'   (a string such as `"4.4.0 or later"`, or `""` when none is declared).
 #' @export
 #' @examples
@@ -133,7 +142,8 @@ analysis_requirements <- function(spec) {
   backend <- route_spec(spec, spec$options$seed)
   packages <- unique(c("powerkit", backend$packages))
   list(backend = backend$name, packages = packages,
-    versions = package_versions(packages), r_requirement = r_requirement(packages))
+    versions = package_versions(packages), r_requirement = r_requirement(packages),
+    mediation_analysis = mediation_analysis_record(spec))
 }
 
 # The R version the backend packages need, from their installed

@@ -1,10 +1,14 @@
 # Handover
 
-*Updated 8 November 2026, for whoever picks the project up next. The
+*Updated 10 November 2026, for whoever picks the project up next. The
 working rules are in [`CLAUDE.md`](../CLAUDE.md) and only there; this page
 says where things live. [`README.md`](README.md) maps every document.*
 
 ## Where to start
+
+- [v1-support-plan.md](v1-support-plan.md): broad first-release scope, case
+  audits and benchmark/release gates. The generated source inventory detects
+  implementation drift but adds no new validation evidence.
 
 - [`status.md`](status.md): where the project is now, area by area.
 - [`next.md`](next.md): what to do next, in order, each item marked Ready

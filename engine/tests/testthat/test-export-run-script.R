@@ -57,3 +57,14 @@ test_that("power_interval() gives an exact binomial range for simulated power", 
   expect_gte(range[["upper"]], result$curve$power)
   expect_error(power_interval(list()), "needs the result", class = "powerkit_error")
 })
+
+test_that("a run script without an app route still writes a valid project", {
+  spec <- small_run_spec("independent_t")
+  text <- export_run_script(spec, route = NULL)
+  exprs <- as.list(parse(text = text))
+  assignment <- Filter(function(e) is.call(e) && identical(e[[1]], as.name("<-")) &&
+    identical(e[[2]], as.name("app_route")), exprs)
+  expect_length(assignment, 1)
+  expect_identical(eval(assignment[[1]][[3]]), list())
+  expect_match(text, "write_project(spec, result, route = app_route", fixed = TRUE)
+})

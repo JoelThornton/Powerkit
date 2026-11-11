@@ -10,7 +10,8 @@ analysis_requirements(spec)
 \item{spec}{A design specification accepted by \code{\link[=validate_spec]{validate_spec()}}.}
 }
 \value{
-A list with \code{backend}, \code{packages}, \code{versions}, and \code{r_requirement}
+A list with \code{backend}, \code{packages}, \code{versions}, \code{mediation_analysis}
+(the selected estimator/interval settings, or \code{NULL}), and \code{r_requirement}
 (a string such as \code{"4.4.0 or later"}, or \code{""} when none is declared).
 }
 \description{

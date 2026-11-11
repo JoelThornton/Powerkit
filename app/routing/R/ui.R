@@ -110,6 +110,9 @@ standard_name <- function(doc_name) {
     also = sprintf("In Hayes's PROCESS tool this is %s; other software fits the same model without giving it a number.", model))
 }
 
+# Conventional display names are curated separately from detailed documentation.
+technical_name <- function(ep) ep$technical_name %||% standard_name(ep$doc_name %||% ep$plain_name %||% "")$name
+
 # Progress -------------------------------------------------------------------
 
 # The app's four steps (the new design, 18 October 2026). Steps, not a
@@ -278,11 +281,16 @@ nav_js <- "
     function show() {
       var box = document.getElementById('pk-recent'); if (!box) return;
       var list = read().filter(function(r) { return r && /^E[0-9A-Za-z_]+$/.test(r.id) && r.name; });
+      var technical = {};
+      try { technical = JSON.parse(box.getAttribute('data-technical-names') || '{}'); } catch (e) {}
       box.textContent = '';
       if (!list.length) { box.hidden = true; return; }
       var t = document.createElement('span'); t.className = 'start-recent-title'; t.textContent = 'Recently opened:'; box.appendChild(t);
       list.forEach(function(r) {
-        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip start-recent-chip'; b.textContent = r.name;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'chip start-recent-chip';
+        var plain = document.createElement('span'); plain.className = 'name-plain'; plain.textContent = r.name;
+        var compact = document.createElement('span'); compact.className = 'name-tech'; compact.textContent = technical[r.id] || r.name;
+        b.appendChild(plain); b.appendChild(compact);
         b.addEventListener('click', function() { Shiny.setInputValue('pick', 'recent:' + r.id, {priority: 'event'}); });
         box.appendChild(b);
       });
@@ -405,7 +413,8 @@ start_ui <- function(tree, start = list()) {
       if (!is.null(r$tag)) tags$span(class = "route-tag", r$tag)))),
     # Filled in this browser from the cards opened before (nav_js); empty
     # on a first visit, so a newcomer sees only the three ways to start.
-    div(id = "pk-recent", class = "start-recent", hidden = NA),
+    div(id = "pk-recent", class = "start-recent", hidden = NA,
+      `data-technical-names` = as.character(jsonlite::toJSON(lapply(tree$endpoints, technical_name), auto_unbox = TRUE))),
     div(class = "local-download small mt-3",
       if (isTRUE(getOption("powerkit.local"))) {
         tagList(tags$strong("Running on your computer. "),
@@ -498,16 +507,16 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
   eps <- tree$endpoints
   if (!is.null(ctx)) eps <- eps[endpoints_for_context(tree, ctx)]
   shown_name <- function(id) {
-    name <- standard_name(eps[[id]]$doc_name)$name
+    name <- technical_name(eps[[id]])
     if (maintainer_view()) sprintf("%s (%s)", name, id) else name
   }
   item <- function(id, family) {
     ep <- eps[[id]]
     badge <- if (is.null(ep$guide)) known_status_badge[[ep$status]]
-    # The other name underneath: the technical one by default, the plain
-    # one with explanations off.
+    # Explanatory mode shows the conventional name under the plain name.
+    # Compact mode shows the conventional name once, without a subtitle.
     help <- tagList(tags$span(class = "name-tech-alt", shown_name(id)), tags$span(class = "name-plain-alt", ep$plain_name))
-    words <- search_text(ep$plain_name, ep$doc_name, family$label, ep$rank_test, ep$search_words,
+    words <- search_text(ep$plain_name, ep$doc_name, family$label, family$technical_label, ep$technical_name, ep$rank_test, ep$search_words,
       if (id %in% names(tree$bayes_designs)) "Bayes factor Bayesian")
     div(class = "known-item", `data-search` = words, `data-name` = search_text(ep$plain_name, ep$doc_name),
       tags$button(type = "button", `data-ep` = id,
@@ -562,7 +571,7 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
       ids <- intersect(unlist(f$endpoints), names(eps))
       tags$details(class = "known-family", `data-family` = f$id,
         tags$summary(
-          tags$span(class = "known-family-label", f$label),
+          tags$span(class = "known-family-label", name_swap(f$label, f$technical_label %||% f$label)),
           tags$span(class = "known-family-count", `data-total` = length(ids),
             `aria-label` = sprintf("%d analyses", length(ids)), length(ids))),
         div(class = "known-family-items", lapply(seq_along(ids), function(i) tagAppendAttributes(item(ids[i], f), `data-index` = i))))
@@ -877,8 +886,8 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
       # the page source, shown only in the maintainer's view.
       div(class = "card-eid", hidden = if (!maintainer_view()) NA, `aria-hidden` = if (!maintainer_view()) "true", ep_id),
       if (!compact) p(class = "card-eyebrow", if (length(history)) "The analysis that fits your answers" else "Analysis"),
-      (if (compact) h3 else h2)(class = "card-title h3", name_swap(ep$plain_name, standard_name(ep$doc_name)$name)),
-      p(class = "standard-name", "Standard name: ", tags$strong(standard_name(ep$doc_name)$name), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
+      (if (compact) h3 else h2)(class = "card-title h3", name_swap(ep$plain_name, technical_name(ep))),
+      p(class = "standard-name", "Standard name: ", tags$strong(technical_name(ep)), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
       if (!is.null(standard_name(ep$doc_name)$also)) p(class = "also-called small text-muted", standard_name(ep$doc_name)$also),
       hints_ui(tree, standard_name(ep$doc_name)$name),
       if (!compact) card_facts_ui(tree, ep_id, ep),
@@ -1026,7 +1035,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
     body <- if (!is.null(res$endpoint)) {
       ep <- tree$endpoints[[res$endpoint]]
       tagList(
-        p(class = "plan-design", ep$plain_name),
+        p(class = "plan-design", name_swap(ep$plain_name, technical_name(ep))),
         # The analysis's input screen, opened from the plan: the same one
         # the other routes reach from the card.
         if (!is.null(forms) && has_form(forms, res$endpoint)) div(class = "plan-actions",
@@ -1242,7 +1251,7 @@ bayes_guide_ui <- function(tree, ep, package_list) {
     tags$ul(class = "bayes-guide-list", lapply(designs, function(d) {
       e <- tree$endpoints[[d$id]]
       tags$li(class = "bayes-guide-item",
-        tags$span(class = "bayes-guide-name", name_swap(e$plain_name, standard_name(e$doc_name)$name)),
+        tags$span(class = "bayes-guide-name", name_swap(e$plain_name, technical_name(e))),
         tags$button(type = "button", class = "btn btn-outline-primary btn-sm",
           `aria-label` = paste("Plan", e$plain_name, "with a Bayes factor"),
           onclick = sprintf("Shiny.setInputValue('pick', 'bayesform:%s', {priority: 'event'})", d$id),

@@ -8,6 +8,9 @@ validation list. Use [`status.md`](status.md), [`next.md`](next.md) and the
 current [`tree.yaml`](../app/routing/tree.yaml) and
 [`forms.yaml`](../app/routing/forms.yaml) for implementation and restrictions.
 Versions below describe the original comparison, not today's lockfile.
+The [first-release plan](v1-support-plan.md) defines the current coverage
+target, benchmark and evidence standard; its generated inventory supplies
+current form choices without reclassifying historical evidence.
 
 This page lists the user-facing capabilities of the five tools powerkit
 builds on: Superpower, Spower, power4mome, InteractionPoweR and G\*Power.

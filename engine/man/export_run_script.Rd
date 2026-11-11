@@ -4,7 +4,7 @@
 \alias{export_run_script}
 \title{Write an R script that runs a power analysis on the user's own computer}
 \usage{
-export_run_script(spec, file = NULL, run_time = NULL)
+export_run_script(spec, file = NULL, run_time = NULL, route = NULL)
 }
 \arguments{
 \item{spec}{A spec as a named list, a JSON string or a path to a JSON
@@ -16,6 +16,10 @@ return it.}
 \item{run_time}{The expected run time, in words (for example "about 1 to
 3 hours on one core"), for the script's header; \code{NULL} to leave it
 out.}
+
+\item{route}{Optional app route and checked form values, as accepted by
+\code{\link[=write_project]{write_project()}}. Included in the saved project so the local result
+can reopen in the app without rerunning the calculation.}
 }
 \value{
 The script as a single string; invisibly if \code{file} is given.

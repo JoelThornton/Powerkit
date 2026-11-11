@@ -358,6 +358,7 @@ run_spec <- function(spec) {
       safeguard = safeguard_record(spec),
       small_telescopes = small_telescopes_record(spec, n_analysed, backend),
       heterogeneity = heterogeneity_record(spec, n_analysed),
+      mediation_analysis = mediation_analysis_record(spec),
       effect_conversion = conversion_record(spec),
       group_d = group_d_record(spec),
       recruitment = recruitment_target(spec, n_analysed),

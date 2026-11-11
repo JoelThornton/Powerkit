@@ -2023,9 +2023,10 @@
               "const": "proportion_difference"
             },
             "method": {
-              "description": "z_test: the z test of two proportions (by formula, or simulated on request). fisher_exact: Fisher's exact test, by pwrss's exact power calculation (power.exact.fisher()). bayes_factor: the Bayes factor test of two proportions (BayesFactor's contingencyTableBF(), independent multinomial with the group sizes fixed: the default of JASP's Bayesian contingency tables), by exact calculation over every possible table.",
+              "description": "z_test: the z test of two proportions without continuity correction (by formula, or simulated on request). z_test_corrected: the two-proportion test with continuity correction, simulated with Spower and stats::prop.test(correct = TRUE). fisher_exact: Fisher's exact test, by pwrss's exact power calculation (power.exact.fisher()). bayes_factor: the Bayes factor test of two proportions (BayesFactor's contingencyTableBF(), independent multinomial with the group sizes fixed: the default of JASP's Bayesian contingency tables), by exact calculation over every possible table.",
               "enum": [
                 "z_test",
+                "z_test_corrected",
                 "fisher_exact",
                 "bayes_factor"
               ]
@@ -2126,9 +2127,10 @@
                 "method": {
                   "enum": [
                     "pearson_chi_square",
+                    "pearson_chi_square_corrected",
                     "bayes_factor"
                   ],
-                  "description": "pearson_chi_square: Pearson's chi-square test (pwr's pwr.chisq.test(), as G*Power). bayes_factor: the contingency table Bayes factor (BayesFactor's contingencyTableBF(), with JASP's defaults: rows fixed, prior concentration 1), simulated; needs population > probabilities."
+                  "description": "pearson_chi_square: Pearson's chi-square test without continuity correction (pwr's pwr.chisq.test(), as G*Power). pearson_chi_square_corrected: the continuity-corrected 2 by 2 test, simulated with Spower and stats::chisq.test(correct = TRUE); requires the four cell probabilities. bayes_factor: the contingency table Bayes factor (BayesFactor's contingencyTableBF(), with JASP's defaults: rows fixed, prior concentration 1), simulated; needs population > probabilities."
                 }
               }
             }
@@ -3677,7 +3679,8 @@
                   "method": {
                     "enum": [
                       "monte_carlo_ci",
-                      "percentile_bootstrap"
+                      "percentile_bootstrap",
+                      "ols_percentile_bootstrap"
                     ]
                   }
                 }
@@ -3946,7 +3949,8 @@
                   "method": {
                     "enum": [
                       "monte_carlo_ci",
-                      "percentile_bootstrap"
+                      "percentile_bootstrap",
+                      "ols_percentile_bootstrap"
                     ]
                   },
                   "w_values": {

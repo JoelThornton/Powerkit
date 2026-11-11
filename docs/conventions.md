@@ -894,10 +894,21 @@ kept so later departures keep theirs.
   6.6.2, p. 17]. That is a different test from the z test G*Power offers
   separately, so it is a caution rather than evidence against decision 6;
   the maintainer can check the program itself.
-- **powerkit:** no correction, and no option for one (maintainer's decision
-  6), as in G*Power. This applies when Spower simulates (on request since
-  17 October 2026); pwr's formulas, the default (Departure 9), have no
-  continuity correction either.
+- **powerkit:** the existing default remains uncorrected (maintainer's
+  decision 6); the formula and requested simulation agree on this choice.
+  The 10 November open review PR adds explicit corrected variants:
+  `z_test_corrected` uses Spower's `p_prop.test(correct = TRUE)` with
+  fixed group sizes; `pearson_chi_square_corrected` uses
+  `p_chisq.test(correct = TRUE)` with a fixed total and varying margins.
+  Both support simulated power and required N; they refuse sensitivity
+  and uncorrected-formula overrides. The contingency option requires a
+  full 2 by 2 population table, not Cohen's w. Failed analyses remain in
+  the attempted-study denominator and are reported. This departure is
+  hidden for corrected tests and tables larger than 2 by 2.
+  Sources: [R prop.test documentation](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/prop.test.html)
+  and [R chisq.test documentation](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/chisq.test.html).
+  The correction is a choice to match the planned analysis, not a claim
+  that it makes sparse-data approximations exact or is always preferable.
 - **Size:** two proportions, p1 = .50, p2 = .65, 170 per group,
   alpha = .05, the same 5,000 seeded data sets: power 0.8178 without the
   correction and 0.7894 with it (.028 lower). For the chi-square test it
@@ -908,6 +919,11 @@ kept so later departures keep theirs.
 - **Shown to users / in the methods paragraph:** shown on the result screen (phase 5, part 1, 17 October 2026; `app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up (18 October 2026).
 
 ### 6. Mediation fits: lavaan maximum likelihood, not PROCESS's OLS
+
+**10 November 2026:** this departure concerns the ML methods only. The
+explicit OLS + percentile-bootstrap method fits each equation by OLS and
+does not show this departure. Its scope and pending PROCESS-software
+comparison are in [process-style-planning.md](process-style-planning.md).
 
 - **Established convention:** PROCESS fits each equation by OLS.
 - **powerkit:** fits the path model with lavaan (ML), power4mome's default,
@@ -1105,11 +1121,13 @@ list it (maintainer's decision, 7 November 2026; `docs/decisions.md`).
 as an experimental option, for a statistician's check
 ([`whole-study-method.md`](whole-study-method.md)).
 
-- **Established convention:** each analysis is calculated on its own (G\*Power,
-  pwr, InteractionPoweR, power4mome's templates), from inputs given in its
-  own form, and the chance that several analyses all succeed is worked out
-  from their separate powers as if they were unrelated (the guided plan's
-  rule of thumb: about 89.4% each for two tests and 80% together).
+- **Separate calculations:** an individual analysis's power does not
+  establish the chance that several tests all succeed. Multiplying their
+  powers requires independent decisions; joint methods can instead model
+  dependence. Powerkit's existing independent-test guided rule uses about
+  89.4% for each of two tests to target 80% together, conditional on both
+  tests reaching their targets under a common population. This is not a
+  claim that other tools must assume independence or lack joint methods.
 - **powerkit (whole-study simulation only):** one population model,
   given as standardised paths, generates every simulated data set
   (power4mome); each planned analysis is fitted to the same data sets with
@@ -1512,7 +1530,17 @@ Departure 19 is shown on the affected result and in the methods text.
   (`app/routing/R/results.R`, `departures_for()`), and in the methods
   paragraph.
 
-### 23. t-tests: a small variation between studies by default, not one effect in every study (G\*Power and pwr)
+### 23. t-tests: optional variation between studies (default departure retired 10 November 2026)
+
+**Current policy (maintainer, 10 November 2026):** new plans start with
+this field empty, so the calculation concerns the entered effect. Nonzero
+variation is an explicit optional scenario, not an automatic safety margin.
+Its answer averages significance across differing study effects; it does
+not establish that power at their average, or in every setting, reaches
+the target. For two-sided tests either significant direction counts.
+Saved nonzero values remain unchanged. The result retains the comparison
+with no variation. The historical decision and numerical examples below
+explain the option; they no longer describe the starting default.
 
 - **Established convention:** G\*Power and pwr plan for a true effect that
   is exactly the same in the new study as the one entered.
@@ -1533,7 +1561,17 @@ Departure 19 is shown on the affected result and in the methods text.
   above 0 (`app/routing/R/results.R`, `departures_for()`), in the result's
   own sentence on the variation, and in the methods paragraph.
 
-### 24. Correlation: a small variation between studies by default, not one correlation in every study (G\*Power and pwr)
+### 24. Correlation: optional variation between studies (default departure retired 10 November 2026)
+
+**Current policy (maintainer, 10 November 2026):** new plans start with
+this field empty, so the calculation concerns the entered effect. Nonzero
+variation is an explicit optional scenario, not an automatic safety margin.
+Its answer averages significance across differing study effects; it does
+not establish that power at their average, or in every setting, reaches
+the target. For two-sided tests either significant direction counts.
+Saved nonzero values remain unchanged. The result retains the comparison
+with no variation. The historical decision and numerical examples below
+explain the option; they no longer describe the starting default.
 
 - **Established convention:** G\*Power and pwr plan for a true
   correlation that is exactly the same in the new study as the one
@@ -1597,14 +1635,17 @@ will notice them, though, so each entry states the size of the difference
 and, like a departure, is shown on the results screen and stated in the
 methods paragraph.
 
-### 1. Regression interactions: fixed-model power is slightly higher than simulated power
+### 1. Regression interactions: fixed-model and simulated-study power differ
 
 - **What differs:** fixed-model regression power, such as G*Power's linear
   multiple regression and InteractionPoweR's analytic
-  `power_interaction_r2()`, is slightly higher than simulated power for
-  interactions. powerkit simulates (InteractionPoweR's
-  `power_interaction()`), so it may need a few more participants than
-  G*Power.
+  `power_interaction_r2()`, differs from power averaged over simulated
+  studies with newly sampled predictors. The recorded grid below found
+  higher analytic power from InteractionPoweR in its checked settings.
+  This is not a universal ordering or bound, and the grid did not run
+  G*Power itself. The input-route explanation, result and methods text
+  distinguish the computations; analytic sensitivity is explicitly an
+  approximation that needs a fixed-N simulation check.
 - **Size:** up to about 1.4 points of power, or about 3% of N, in the grid
   comparison (72 cells: N 50-500, r_XW_Y 0.05-0.20, reliability 0.7-1,
   r_X_W 0-0.3). The largest gap was at N = 200, r_XW_Y = 0.20,
@@ -2334,6 +2375,14 @@ Wired into the app on 18 October 2026 (E25, E26).*
 
 ### 14. Mediation: a Monte Carlo interval, where PROCESS reports a percentile bootstrap
 
+**10 November 2026:** the method is now selectable on the mediation forms.
+The existing ML/Monte Carlo method remains available; a researcher planning
+a regression/bootstrap analysis can choose OLS + casewise percentile
+bootstrap. This known-difference note applies only to the Monte Carlo
+choice. The historical timing below concerns ML bootstrapping and must not
+be read as a timing estimate for the new OLS method. Numerical identity to
+every PROCESS option is not established.
+
 - **What differs:** powerkit plans mediation and moderated mediation for
   power4mome's Monte Carlo confidence interval of the indirect effect (or
   of the index), which draws the paths from their estimated sampling
@@ -2480,3 +2529,17 @@ extra-zero probability is not the observed zero fraction. Existing field help
 retains model-specific parameterisations. Illustrations are not defaults or
 recommended assumptions; binary and product-term coding/scaling follow the
 selected model rather than a generic standardised-coefficient shortcut.
+
+### All-tests-required planning default (10 November 2026)
+
+New input screens use the existing unknown-dependence sufficient union-bound
+target instead of assuming independent significance decisions. The product
+rule remains an explicit option. This changes no significance level and does
+not estimate actual joint power. Saved plans without a dependence field used
+the historical product rule: reopening restores that explicit choice rather
+than silently recalculating under the new default. For two tests and an 80%
+joint target the new per-test target is 90%, versus sqrt(.8), approximately
+89.44%, under independence. Results and methods identify the rule; every
+required test must still be planned under common population assumptions.
+The existing Blitzstein & Hwang (2019) source and engine implementation are
+unchanged.

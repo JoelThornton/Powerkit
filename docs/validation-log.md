@@ -19,7 +19,22 @@ mediation_crosscheck_parallel and mediation_crosscheck_serial (parallel
 and serial mediation against simsem; same section); plus the on-demand
 interaction_grid.
 
-## What "validated" means
+## Release evidence standard (10 November 2026)
+
+For the first release, evidence is attached to the selected variant and
+assumptions using [v1-support-plan.md](v1-support-plan.md) and the existing
+registry. The historical definition below explains earlier labels; it does
+not qualify new options or all parameter values for release. No old test
+constants or results are changed.
+
+Predefine method-appropriate acceptance: discrete and conservative tests,
+equivalence/minimum-effect boundary nulls, Bayesian evidence goals and
+model/factor recovery need different checks. A universal .04–.06 rejection
+rule is insufficient. Preserve Monte Carlo uncertainty, failures, independent
+and published comparisons and fresh-draw verification of recommended N.
+Historical green labels require a case-level release audit for a 1.0 claim.
+
+## Historical definition of "validated"
 
 A design is marked validated (`status: runs_validated` in
 `app/routing/tree.yaml`, a green "Runs in powerkit" card; "Yes" in table
@@ -50,7 +65,9 @@ more), the card says what was tested and what wasn't.
 The validation can run on GitHub's computers instead of yours: the
 repository is public, so GitHub Actions is free, and its standard Linux
 machine has 4 cores and about 16 GB of memory. Each run does one chunk and
-can take at most 6 hours. Nothing runs on its own; you start each run.
+can take at most 6 hours. Manual runs are available below; nightly-validation
+also schedules short and affected long chunks after engine changes and all
+chunks weekly (scripts/validation-plan.R).
 
 **Start a run**
 
@@ -79,7 +96,8 @@ can take at most 6 hours. Nothing runs on its own; you start each run.
    downloads a zip file (you must be signed in to GitHub).
 3. Unzip it. `summary.txt` is the summary to paste into this file as a new
    entry; each test also has a `.rds` file (its saved result) and a `.log`
-   file (everything it printed). Artifacts are kept for 30 days.
+   file (everything it printed). Actions artifacts are kept for 30 days; archive release evidence
+   separately with immutable source/environment metadata before expiry.
 
 **Time.** The mediation chunks run one test at a time with all 4 cores;
 the others run 4 tests at a time. Measured on GitHub (15–16 October
@@ -1367,3 +1385,103 @@ The other four skips were published basic-test/justified-alpha/safeguard
 examples awaiting transcription. No placeholder or expected benchmark was
 changed. This run predates the integrated signal-detection/growth/Bayes
 additions and does not validate them or the complete current release.
+
+## 2026-11-10 · Independent mixed-ANOVA GG investigation (not a full chunk)
+
+[Machine-readable summary](validation/2026-11-10-gg-investigation.json) and
+[standalone reproduction](upstream/superpower-gg.R). Windows, R 4.5.3,
+Superpower 0.2.4.1, afex 1.5.1; seed 90101; 20,000 independent studies.
+The case is the original two-group/three-occasion interaction at N=40,
+with the original means, SDs and correlations; no original validation test,
+expected value, tolerance or seed was changed. This investigation calls
+the backends directly and does not validate all current Powerkit variants.
+
+The reference generates Gaussian observations with base R normal draws and
+Cholesky factors, then computes the interaction F and GG epsilon from
+orthonormal within-person contrasts and pooled within-group residual
+covariances. On the first 30 identical datasets its p-values agree with
+afex::aov_car(type=3, correction=GG) to 1.89e-15. It does not reuse
+Superpower simulation or its exact-data power calculation.
+
+- Estimated-epsilon rejection probability: .21805, MCSE .0029198; the
+  exact binomial 99.9% interval is recorded in the linked summary.
+- Superpower exact-data power: .23130536, outside that interval.
+- On the **same studies**, fixing epsilon at the pooled population value
+  .758033 gives .21960. This is only .00155 above the estimated-epsilon
+  result; it does not explain the remaining gap to .2313.
+
+This supersedes the 7 November hypothesis that estimating epsilon explains
+the discrepancy. The mathematical reason and validity range of the
+exact-data approximation remain open. A disagreement here is not a claim
+that all Superpower calculations are wrong. Preserve the original failing
+comparison, keep the card limitation visible, and ask the narrow questions
+in upstream-questions.md. No evidence badge is upgraded.
+
+The reproduction saves per-study output, session information and summary
+under validation-results/gg-investigation; these files and the script can
+be archived together. A durable public release archive remains required.
+
+## 2026-11-10 — corrected count tests (local selected chunk)
+
+R 4.5.3 on Windows x86_64, Spower 0.7, candidate engine 0.61.0.
+Working tree based on local b323747 (uncommitted corrected-count changes).
+Source fingerprints and full settings are in [the JSON archive](validation/2026-11-10-corrected-counts.json);
+the standard runner's [summary](validation/2026-11-10-corrected-counts-summary.txt)
+records **6 PASS, 0 FAIL, 0 ERROR, 1 published-reference TODO SKIP**.
+Command: Rscript scripts/run-validation.R --only corrected_counts --cores 1.
+
+Each simulation used 10,000 studies. Unequal-group corrected proportion
+power was .4320 versus .434597 finite-enumeration reference (MCSE .004954);
+the two directional cases were .5636/.5576 versus .560879. The equal-group
+null gave .0351 versus .035324, consistent with discrete-test conservatism.
+Fixed-total corrected contingency power was .7708 versus an independent
+.7603 (both 10,000 studies); null .0333 versus .0340. Predefined 99.9%
+Monte Carlo comparisons passed. The evidence registry links these scoped
+cases only; published/software references, recommended-N fresh-draw
+verification, representative parameter coverage and release-wide sign-off
+remain unfinished. No old expected value or tolerance changed.
+
+## 2026-11-10 — interaction sensitivity matched-route investigation
+
+Windows R 4.5.3, candidate powerkit 0.61.0 and InteractionPoweR 0.2.4.
+The adapter is unchanged from candidate cc0e107; its SHA256 and the
+reproduction script's SHA256 are archived with the settings in
+[interaction-sensitivity.json](validation/2026-11-10-interaction-sensitivity.json).
+Run: Rscript docs/upstream/interaction-sensitivity.R. This is a three-case
+route comparison, not the standard validation chunk, an independent-package
+comparison, a new published benchmark or release-wide validation.
+
+At each formula-derived threshold for 80% power, a fresh fixed-N run used
+10,000 simulated studies. The example's correlations were retained.
+
+| Total N | X/W reliability | Formula interaction r | Simulated power | 99% interval |
+| --- | --- | --- | --- | --- |
+| 100 | .80/.85 | .330044 | .7900 | .77932–.80040 |
+| 300 | .80/.85 | .187348 | .8035 | .79307–.81364 |
+| 300 | 1/1 | .153064 | .8061 | .79572–.81619 |
+
+All three intervals include .80; no universal direction or size of error
+is inferred. This supports calling the result an approximation that can
+be checked by simulation, not an independently verified guarantee. A
+user-facing matched verification and broader cases remain needed. Existing
+published validation constants and scientific failures are unchanged.
+
+## 2026-11-10 — OLS/bootstrap selected null calibration (GitHub)
+
+[Run 42888143753](https://github.com/JoelThornton/Powerkit/actions/runs/42888143753),
+tested merge revision 4c80d79e1160ec9ce1050c1d9881a20b8802affc, head dafe128.
+Linux R 4.5.3, powerkit .61.0, power4mome .2.1, manymome .3.7 and lavaan
+.7.3. The [standard summary](validation/2026-11-10-process-bootstrap-summary.txt)
+records **2 PASS, 0 FAIL/ERROR, 1 archived-PROCESS-reference TODO SKIP**.
+The [settings archive](validation/2026-11-10-process-bootstrap.json) includes
+seeds, counts and frozen source identities. Adapter/helper/test Git blobs
+were checked against the later candidate and match.
+
+N=250, alpha=.05, 2,000 studies and 1,000 casewise percentile-bootstrap
+resamples per interval: simple-mediation null a=0, b=.35, c-prime=.1 gave
+.0495 (99 rejections); balanced-binary-X model-7 index null with aW=0
+gave .0585 (117). Both meet the unchanged pre-existing [.04,.06] rule.
+Only these normal-error, independent-observation scenarios are covered; the
+5,000-resample interface default and other composite nulls/models remain
+unverified by this run. It is not an independent-package or direct PROCESS
+comparison, nor a fix for the separate existing ML/Monte-Carlo failure.

@@ -17,13 +17,12 @@ test_that("the t-test and correlation cards offer how much the effect might vary
     expect_length(het, 1)
     expect_identical(het[[1]]$path, "population.tau")
     expect_true(isTRUE(het[[1]]$optional))
-    # Kenny and Judd's small variation to start with (Departure 23).
-    expect_equal(het[[1]][["default"]], 0.05)
+    # New plans do not silently average across differing study effects.
+    expect_null(het[[1]][["default"]])
   }
   het <- Filter(function(f) identical(f$id, "het_tau"), form_fields(form_groups(forms, "E4")))
   expect_length(het, 1)
-  # Kenny and Judd's 25% of a small effect, for r = .1 (Departure 24).
-  expect_equal(het[[1]][["default"]], 0.025)
+  expect_null(het[[1]][["default"]])
   expect_false("het_tau" %in% vapply(form_fields(form_groups(forms, "E5")), `[[`, "", "id"))
 })
 
@@ -45,12 +44,13 @@ test_that("a variation reaches the spec, the result and the write-up; empty leav
   expect_match(html, "None (the same in every study)", fixed = TRUE)
   text <- paste(writeup_text(forms$forms$E2, spec, calc$result, fields, values), collapse = " ")
   expect_match(text, "following Kenny and Judd (2019)", fixed = TRUE)
+  expect_match(text, "average chance of significance", fixed = TRUE)
   # The starting variation is a departure, shown on the result and in the
   # methods paragraph, only when variation is planned for.
   expect_true("23" %in% names(departures_for(forms, "E2", spec)))
-  expect_match(html, "376 people in total with this variation", fixed = TRUE)
+  expect_match(html, "376 people in total against 352 without", fixed = TRUE)
   with_departures <- paste(writeup_text(forms$forms$E2, spec, calc$result, fields, values, departures_for(forms, "E2", spec)), collapse = " ")
-  expect_match(with_departures, "Kenny and Judd's (2019) small variation", fixed = TRUE)
+  expect_match(with_departures, "not power at the average effect", fixed = TRUE)
   plain <- build_spec(forms, "E2", fields, modifyList(values, list(het_tau = NULL)))
   expect_null(plain$population$tau)
   plain_calc <- run_calculation(plain, run, seed = forms$default_seed)
@@ -100,5 +100,26 @@ test_that("the correlation card plans a varying correlation on Fisher's z, with 
   for (change in list(list(method = "spearman"), list(method = "kendall"), list(method = "bayes_factor"),
     list(goal = "justified_alpha"))) {
     expect_false(field_applies(het, modifyList(values, change)), label = names(change))
+  }
+})
+
+test_that("new ordinary plans stay fixed-effect while stored variation remains explicit", {
+  for (ep in c("E1", "E2", "E3", "E4")) {
+    fields <- form_fields(form_groups(forms, ep))
+    values <- form_examples[[ep]]
+    values$het_tau <- NULL
+    fresh <- build_spec(forms, ep, fields, values)
+    expect_null(fresh$population$tau, label = ep)
+    field <- Filter(function(f) identical(f$id, "het_tau"), fields)[[1]]
+    html <- as.character(field_ui(field, NULL))
+    expect_match(html, "not an automatic safety margin", fixed = TRUE)
+    for (tau in c(0, 0.05, 0.2)) {
+      saved <- modifyList(values, list(het_tau = tau))
+      route <- project_route(list(endpoint = ep), saved)
+      restored <- restore_from_project(route, tree, forms)
+      expect_equal(restored$form_values$het_tau, tau)
+      spec <- build_spec(forms, ep, fields, restored$form_values)
+      expect_equal(spec$population$tau, tau)
+    }
   }
 })

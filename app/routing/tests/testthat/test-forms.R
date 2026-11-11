@@ -538,9 +538,9 @@ test_that("the generic tests ask for no sample size, and only t and z have a dir
   }
 })
 
-test_that("'all of several' raises each test's target power, not alpha", {
+test_that("'all of several' with explicit independence raises target power, not alpha", {
   fields <- form_fields(form_groups(forms, "E2", start = list(claim = "all")))
-  values <- modifyList(form_examples[["E2"]], list(claim = "all", n_tests = "2", goal = "sample_size", power = "0.8"))
+  values <- modifyList(form_examples[["E2"]], list(claim = "all", n_tests = "2", all_dependence = "independent", goal = "sample_size", power = "0.8"))
   expect_length(form_problems(fields, values), 0)
   spec <- build_spec(forms, "E2", fields, values)
   expect_equal(spec$target_test$alpha, 0.05)
@@ -701,7 +701,7 @@ test_that("a choice's default note names only its source, and an empty draws set
   expect_no_match(html, "Starts at As Cohen", fixed = TRUE)
   fields <- form_fields(form_groups(forms, "E10"))
   draws <- Filter(function(f) identical(f$id, "ci_draws"), fields)[[1]]
-  expect_equal(setting_value_text(draws, ""), "1,000 (power4mome's default)")
+  expect_equal(setting_value_text(draws, ""), "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap")
 })
 
 test_that("example values in the help cite a source in refs.bib, by author and year", {

@@ -171,6 +171,23 @@ Questions about metapower 0.2.2, from its source (opened 31 October
 
 ## power4mome
 
+**OLS/bootstrap route (10 November 2026; not sent).** Powerkit now offers
+`fit_model_args = list(fit_function = "lm")`, `ci_type = "boot"` and the
+CI-excludes-zero rule for displayed mediation models. Same-data equation
+fits and intervals agree in nine example families. Some conditional-model
+checks emit manymome warnings about an additional `X:W` moderator set to
+zero; the explicitly checked estimates/intervals still match the separate
+OLS reference. Ask whether this is expected path-discovery behaviour and
+which fitted-model syntax avoids ambiguous warnings. A direct PROCESS
+software comparison remains required. The selected null chunk is now
+archived: 2,000 studies and 1,000 resamples at N=250 gave .0495 for simple
+mediation and .0585 for the balanced-binary-X model-7 index. Both passed
+the unchanged [.04,.06] rule; this does not validate the 5,000-resample
+default, every null/model or the separate ML/Monte-Carlo route. Ask about
+recommended resample counts and endpoint conventions before claiming
+PROCESS equivalence; no author endorsement or blanket compatibility is claimed.
+[Scope and checklist](process-style-planning.md).
+
 **Population standardisation with a mediator in a later product (0.2.1).**
 `psi_std_monte_carlo()` calls `update_p_terms()` before replacing the
 mediator's error values with its generated values. In models 58 and 59,
@@ -359,3 +376,28 @@ Questions about PITS 0.1.0, from running it (6 November 2026).
    test's degrees of freedom, suit the package, or a note on the Type I
    error at the planned length?
 
+
+## Superpower: corrected mixed-design approximation
+
+**Open investigation; no contact or author endorsement recorded.**
+[Reproduction](upstream/superpower-gg.R), [summary](validation/2026-11-10-gg-investigation.json)
+and the 10 November validation-log entry describe Superpower 0.2.4.1,
+a two-group by three-occasion interaction at N=40, unequal cell SDs and
+non-spherical within-person covariance. ANOVA_exact(correction="GG")
+gives .231305; independently generated studies analysed by the same GG
+procedure give .21805 in 20,000 (MCSE .00292). Reference p-values match
+afex on identical data. Fixing the population epsilon gives .21960, so
+estimating epsilon alone does not explain the gap.
+
+1. For this covariance/SD configuration and finite N, what assumptions
+   justify the exact-data noncentral-F power calculation? Is the result
+   intended as an approximation to the fitted GG test?
+2. Does unequal covariance across the groups, the noncentrality convention,
+   or another finite-sample approximation account for the residual gap?
+   Is there a recommended restriction or planning route for this case?
+
+Before sending, reproduce against the current public package separately
+and search existing issues. Do not change the original expected values to
+obtain agreement. Package documentation calls this an exact **dataset**
+([reference](https://aaroncaldwell.us/Superpower/reference/ANOVA_exact.html));
+that name alone does not establish exact rejection power for every covariance.

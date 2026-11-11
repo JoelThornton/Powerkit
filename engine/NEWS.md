@@ -1,3 +1,42 @@
+# powerkit 0.61.1
+
+* Build deployment commits with a temporary Git index from checked main plus the pinned generated manifest. Preserve prior deployment ancestry without switching or cleaning the build checkout; test staged/untracked build edits and manifest lifecycle. Push the explicit commit to the deployment ref with a normal fast-forward push.
+
+* Prevent phone form action bars from obscuring inputs and value-shortcut buttons; use normal document flow below 576 pixels and keep shortcut touch targets at least 44 pixels high. Desktop sticky actions are retained.
+
+* Surface known corrected-ANOVA and binary-X moderated-mediation limitations before numerical inputs are complete and before result headlines; retain these notes in copied methods and the lay planning text. Keep bootstrap evidence scoped and preserve all statistical methods/defaults.
+* Correct power help on mixed significance/Bayes-factor forms, add an explicit 80% shortcut without pre-filling the target, and explain the paired-change-SD route when a correlation is unknown.
+* Check eleven common form-to-backend analysis identities and add browser checks for incomplete-input warnings, compact mode, mobile paired inputs and regression prerequisites. These checks are not new scientific validation.
+
+# powerkit 0.61.0
+
+* Add curated conventional display names for all analysis entries and families. Compact mode removes duplicate subtitles, uses the same short names on cards/forms/recent entries, and retains status, assumption guidance and unchanged test identifiers/defaults.
+
+* Add explicit continuity-corrected two-proportion and 2 by 2 Pearson chi-square variants via Spower/base R, with attempted-study failure accounting, matching standalone exports, scoped independent validation and plain-language analysis choices. Preserve uncorrected defaults and reject unsupported corrected sensitivity/formula plans.
+* Include the OLS-bootstrap example in the zero-effect fixture registry used by CRAN quick tests.
+
+* Restrict paired/mixed-card crossover claims to their actual analysis scope. Remove the unvalidated one-df/close-approximation assurance; surface the limitation before calculation and state omitted period/sequence/carry-over terms in paired methods. No new crossover computation or formula is introduced.
+
+* Default new all-tests-required plans to the existing unknown-dependence union-bound target. Explicit and historical saved independence plans retain their meaning.
+* Show selected-spec evidence before calculation; incomplete inputs show an explicit pending state. No evidence status is upgraded.
+* Expose the unresolved corrected-ANOVA discrepancy and add a matched fixed-N simulation handoff; interaction sensitivity also hands the proposed effect to its supported simulation route.
+* Archive four independent corrected-count fitted-N checks. Warn that smooth fitted power and its interval do not cover all discrete-test approximation error, and offer a fixed-N check.
+
+* Correct overgeneralised Welch/Student and interaction-method guidance, identify analytic sensitivity as an approximation, and clarify individual versus family-level power. No engine calculation, benchmark or saved-plan default changes.
+
+* Archive the completed OLS/percentile-bootstrap null calibration: 2 PASS and 1 direct-reference TODO SKIP, with frozen source identities, exact settings and uncertainty. Link only the two N=250/B=1000 scenarios; guard other counts, targets and path models. Existing ML/Monte-Carlo findings and published references remain unresolved.
+
+* New ordinary t-test and Pearson correlation plans start without between-study variation. Nonzero variation remains an explicit optional scenario; stored assumptions and engine formulae are retained. Explain averaged significance and display scenario power at the exact analysed sample size.
+
+* Add an explicit OLS/casewise-percentile-bootstrap mediation method through power4mome and lmhelprs, alongside the existing ML Monte Carlo and ML bootstrap methods. Expose selection/resample counts on applicable forms and record the actual analysis in results, methods and standalone exports. Bootstrap jobs use the local script, which now saves a reopenable app project; fix restoration of the supported longer simulation routes. Add paired independent regression references and scoped null-calibration checks; do not claim equivalence to every PROCESS option or upgrade evidence badges.
+
+# powerkit 0.60.1
+
+* Recover interrupted local package downloads with bounded per-file retries, a built-in downloader and alternate public CRAN mirrors, retaining lockfile versions and normal archive/certificate checks. Apply recovery to project bootstrap and launcher setup. Check the engine install exit status and version before writing its completion stamp.
+* Record a 20,000-study independent mixed-ANOVA GG investigation, with same-data afex agreement and a paired fixed-epsilon comparison. Clarify that estimating epsilon alone does not explain the known exact-data discrepancy; preserve original tests and expected values.
+
+* Define the broad first-release benchmark and variant-level evidence gates; reconcile roadmap scopes and add a reproducible discovery inventory with a source-drift check. No calculations or evidence records are changed.
+
 # powerkit 0.60.0
 
 * Welch planning with between-study variation refuses unequal group sizes:
@@ -145,7 +184,7 @@
 
 * Effects that vary between studies now cover the correlation template:
   `population > tau` is an SD on Fisher's z, and power follows McShane and
-  Böckenholt's (2014) normal model through `pwr.r.test()` with a scaled
+  B<U+00F6>ckenholt's (2014) normal model through `pwr.r.test()` with a scaled
   significance level and correlation (`heterogeneity_adjustment_r()`).
   The R script reproduces it with pwr alone. Rank correlations and the
   Bayes factor test are refused in plain words.
@@ -530,7 +569,7 @@
 * "Not sure what number to put here?" covers pilot studies (for checking
   feasibility, not for the effect; Albers & Lakens, 2018) and says to
   prefer a bias-adjusted meta-analytic estimate where one is reported
-  (Carter, Schönbrodt, Gervais & Hilgard, 2019). Both added to `refs.bib`
+  (Carter, Sch<U+00F6>nbrodt, Gervais & Hilgard, 2019). Both added to `refs.bib`
   from their Crossref records.
 * Labs, effect size converter: refuses impossible values (a correlation
   outside -1 to 1, partial eta-squared outside 0 to 1, a non-positive F
@@ -702,8 +741,8 @@
   built from the same Markdown with xml2 and zip (new app dependencies,
   without system libraries). The Markdown downloads stay. Anything typed is
   shown as text, never as markup.
-* The pre-replication notes now become the document Karhulahti, Martončik
-  and Adamkovič (2025) describe for where the user landed: "Not worth
+* The pre-replication notes now become the document Karhulahti, Marton<U+010D>ik
+  and Adamkovi<U+010D> (2025) describe for where the user landed: "Not worth
   replicating" gives a negative pre-replication report in the shape of the
   paper's appendix examples ("Pre-replication of:" the study, then short
   prose); "Go ahead" gives a pre-replication section for the replication
@@ -2141,7 +2180,7 @@ Fixes from a review of 0.25.0, and its follow-ups.
   `renv.lock` with the packages it needs). The app's study plan offers it.
 * `refs.bib` adds the four sources of the app's new latent profile and
   latent class guidance card: Tein, Coxe and Cham (2013), Nylund,
-  Asparouhov and Muthén (2007), Nylund-Gibson and Choi (2018) and Spurk
+  Asparouhov and Muth<U+00E9>n (2007), Nylund-Gibson and Choi (2018) and Spurk
   et al. (2020).
 * `write_study_plan()` and `read_study_plan()`: several analyses in one
   file (format "powerkit-study-plan"), each stored as a project, so each
@@ -3129,7 +3168,7 @@ feedback and browser history. The version shows on the About page, in
 every exported R script and in each result's provenance.
 
 * Docs: docs/adding-a-test.md is the one page to follow when powerkit
-  gains a power analysis it couldn't do before — what counts as added
+  gains a power analysis it couldn't do before <U+2014> what counts as added
   (engine, validation placeholders, card, input screen, a plain-words
   "What's new" entry, a version bump and the status update, all in one
   pull request), how a backend package is chosen with the maintainer,
@@ -3283,7 +3322,7 @@ every exported R script and in each result's provenance.
   `POWERKIT_MAINTAINER_VIEW=true`, to see them.
 
 * App: the banner names the analyses that calculate in plain words
-  instead of end-point codes (E1–E9 and so on), and the browser tab reads
+  instead of end-point codes (E1<U+2013>E9 and so on), and the browser tab reads
   "powerkit (prototype)". In "Plan my whole study", the combined sample
   size and the consistency check are labelled "Coming soon" instead of
   "once the engine is connected", and the combined N says what to do
@@ -3318,7 +3357,7 @@ every exported R script and in each result's provenance.
 
 * App: a new "Labs (experimental)" tab, kept apart from the main route.
   Its first tool, pre-replication notes, walks through the three
-  questions of Karhulahti, Martončik and Adamkovič (2025) in the user's
+  questions of Karhulahti, Marton<U+010D>ik and Adamkovi<U+010D> (2025) in the user's
   own words: the finding, epistemic goals (with the smallest effect that
   would matter), methodological quality (what the original did and what
   the replication will improve), value, and where they landed (go ahead,
@@ -3478,7 +3517,7 @@ every exported R script and in each result's provenance.
   plain words (no "intersection-union").
 
 * The result screen now states every departure and known difference that
-  applies: for mediation (E10–E14), lavaan's maximum-likelihood fit rather
+  applies: for mediation (E10<U+2013>E14), lavaan's maximum-likelihood fit rather
   than PROCESS's OLS (Departure 6) and Boos and Zhang's method switched off
   (Departure 8); for parallel mediators (E11), residuals free to correlate
   (Departure 7); and for regression interactions (E9), that fixed-model
@@ -3510,7 +3549,7 @@ every exported R script and in each result's provenance.
   is fixed. "Your aim" sends estimation and equivalence to their cards.
   "Your claim" (one test; several claims, each on its own; any of several;
   all of several) adds a note, and for "any of several" divides alpha
-  between the tests (Bonferroni). The basic tests (E1–E6) now offer the
+  between the tests (Bonferroni). The basic tests (E1<U+2013>E6) now offer the
   smallest detectable effect, and the t-tests and correlation need no
   effect size for it.
 
@@ -3545,7 +3584,7 @@ every exported R script and in each result's provenance.
 
 * Wave 2 groundwork (engine only; not in the app yet): `run_spec()` now
   runs a one-way between-participants ANOVA (template `oneway_between`,
-  Superpower's `ANOVA_exact()`), multiple regression R² against 0 and R²
+  Superpower's `ANOVA_exact()`), multiple regression R<U+00B2> against 0 and R<U+00B2>
   increase (new design `multiple_regression`, pwrss's
   `power.f.regression()`), one proportion against a fixed value (exact
   binomial, pwrss's `power.exact.oneprop()`) and McNemar's exact test
@@ -3556,7 +3595,7 @@ every exported R script and in each result's provenance.
   alone, and tests against the backend called directly. For exact tests
   of counts the required N is the smallest that reaches the target, which
   can be lower than pwrss's own answer; G\*Power reports the same N as
-  powerkit (Known difference 2). One-way ANOVA, R² against 0, R² increase and one
+  powerkit (Known difference 2). One-way ANOVA, R<U+00B2> against 0, R<U+00B2> increase and one
   proportion match the maintainer's G\*Power screenshots to seven
   decimals, a priori N included (G\*Power also reports 90 for the
   one-proportion example). McNemar matches G\*Power's exact
@@ -3644,7 +3683,7 @@ every exported R script and in each result's provenance.
   (E9) on the input screen. The engine runs in a background R process, with
   an estimated progress bar and a Cancel button (about 5 seconds for power,
   about 80 seconds for a required N). The result screen, fixed seed, R
-  script and citations are the same as for E1–E8. No engine change.
+  script and citations are the same as for E1<U+2013>E8. No engine change.
 
 * Basic tests (one-sample, independent and paired t-tests, correlation, two
   proportions, chi-square test of independence) are now calculated by
