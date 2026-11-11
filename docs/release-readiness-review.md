@@ -16,7 +16,22 @@ This review inspected source, change history, hosted check results and the two f
 
 The corrections below merged in [PR #367](https://github.com/JoelThornton/Powerkit/pull/367), v0.60.0, main 950b7ad. Checked means completed within the stated scope; it does not mean deployed, independently endorsed or scientifically validated. The follow-on [first-release support plan](v1-support-plan.md) operationalises R15–R28; its inventory and protocol do not complete those scientific or human reviews.
 
-### Corrections and practical preparation in this branch
+### How to read progress
+
+Updated 11 November 2026, through merged [#373](https://github.com/JoelThornton/Powerkit/pull/373).
+A parent checkbox closes only when its whole original requirement is complete.
+**Checked subtasks directly under an R-item show work already completed;
+unchecked subtasks show what remains.** Partial progress is not release sign-off.
+The detailed evidence sections below expand these records rather than replacing
+the main checklist. Existing foundations are identified as such.
+
+R22's scope correction is complete. The other R14–R36 requirements remain
+open or partly complete; in particular, neither R14 scientific failure is fixed.
+Recent merged fixes include fresh count-search confirmation (R17/R21), informed
+power choices (R24), unknown-input/pilot/attrition guidance (R25), and compact
+forms/results plus bounded accessibility checks (R27/R28).
+
+### Completed initial corrections (R01–R13)
 
 - [x] R01. Keep historical ordinary-test evidence separate from between-study variation and small-telescopes decision rules. Previously a matching template could attach evidence for a different calculation.
 - [x] R02. Explain when a sensitivity target is already reached at an average effect of zero. Variation between studies can produce significant individual studies even with zero average effect; root-finding must not fail cryptically or imply a positive detectable average.
@@ -34,35 +49,101 @@ The corrections below merged in [PR #367](https://github.com/JoelThornton/Powerk
 
 ### Scientific work still required
 
-- [ ] R14. Resolve the two repeated validation failures. The inspected ANOVA job gives simulated power .2130 versus .2313 by the exact-data route; the binary-X job gives a null rejection rate .077 in 1,000 simulations, above its .0707 tolerance. Earlier recorded rates differ. The 10 November independent GG investigation now records .21805 in 20,000, same-data afex agreement and .21960 with fixed epsilon; estimating epsilon alone does not explain .2313. See validation-log.md. The 11 November nightly at fbbd237 again gives GG .2130 versus .2313 and binary-X null .0750 versus the unchanged .0707 limit (run 42968983200). Both issues remain unresolved. Establish the cause on a frozen version before changing a method or a threshold; do not tune seeds or expected values to obtain a pass.
-- [ ] R15. Complete a release-specific, variant-specific evidence matrix and publish the underlying results. The existing registry is now dated 10 November and links scoped corrected-count and two OLS/bootstrap null checks; the queue refers to extending it. Most new routes still need linked, release-specific evidence. Each default needs appropriate evidence; unknown remains unknown.
-- [ ] R16. Replace a single green-card interpretation with evidence for the selected test, population assumptions and analysis. A fixed Type I tolerance of .04-.06 at alpha .05 is not sufficient for every exact, discrete, conservative, equivalence or Bayesian procedure. Predefine method-appropriate acceptance criteria and Monte Carlo uncertainty; retain historical definitions as history.
-- [ ] R17. Validate complete analysis pipelines, including failures. Compare planned versus achieved power at the returned integer N using fresh random draws; assess null behaviour, interval coverage, bias and convergence. Counts of successful runs alone can conceal selection. Use [ADEMP](https://doi.org/10.1002/sim.8086): aims, data generation, estimands, methods and performance measures.
-- [ ] R18. Validate claims newly introduced by EFA, profiles, cross-lagged and interrupted-series cards. Recovering loadings or selecting a number of profiles is not ordinary rejection power. Model selection, factor rotation, inadmissible fits, local maxima, stationarity, time spacing and short-series calibration need explicit boundaries. Request family specialists; do not infer assurance from successful execution.
-- [ ] R19. Independently review whole-study planning. Define whether success means all primary claims, any, a conjunction, or a hierarchy; keep exploratory/manipulation checks separate. Validate multiplicity, covariance, shared data and estimand alignment. A significant indirect path alone does not establish a causal mechanism.
-- [ ] R20. This branch refuses Welch plus between-study variation with unequal allocation: the adjustment uses Student's degrees of freedom, which are different for unequal groups even with equal population SDs. Equal-allocation use retains the documented approximation. The maintainer reviewed the between-study defaults on 10 November: new ordinary plans now start without variation, and nonzero variation is an explicit optional scenario. A literature-motivated tau is still a substantive assumption, and a single population's power differs from success averaged over settings. Keep both meanings visible. Zero-average rejection under heterogeneity is not a Type I error under a point null for each study. Validate unequal allocation and both tails across an agreed range before broad claims.
-- [ ] R21. Make each simulation correspond to the analysis researchers will actually run. PROCESS percentile bootstrap, Monte Carlo intervals, lmer tests and alternative robust/rank analyses need separately identified targets. The OLS/casewise-bootstrap and corrected-count routes are now selectable, with scoped checks; the OLS chunk passed its two named null scenarios with 1,000 resamples. Direct PROCESS comparisons and broader pipelines remain unfinished. Generic missing-data, noncompliance, exclusions and measurement-error handling cannot be inferred from an attrition percentage or a selectable score shape.
+- [ ] R14. **Open: both scientific failures remain unresolved.** Resolve the two repeated validation failures. The inspected ANOVA job gives simulated power .2130 versus .2313 by the exact-data route; the binary-X job gives a null rejection rate .077 in 1,000 simulations, above its .0707 tolerance. Earlier recorded rates differ. The 10 November independent GG investigation now records .21805 in 20,000, same-data afex agreement and .21960 with fixed epsilon; estimating epsilon alone does not explain .2313. See validation-log.md. The 11 November nightly at fbbd237 again gives GG .2130 versus .2313 and binary-X null .0750 versus the unchanged .0707 limit (run 42968983200). Both issues remain unresolved. Establish the cause on a frozen version before changing a method or a threshold; do not tune seeds or expected values to obtain a pass.
+  - [x] Archive the independent 20,000-study GG investigation and same-data afex comparison; retain the original failures and tolerances.
+  - [x] Show the limitations before calculation and beside results, with matched verification handoffs ([#368](https://github.com/JoelThornton/Powerkit/pull/368), [#369](https://github.com/JoelThornton/Powerkit/pull/369)).
+  - [ ] Establish the causes and pass the frozen-version comparisons. Warnings do not resolve these failures.
+
+- [ ] R15. **Partly complete.** Complete a release-specific, variant-specific evidence matrix and publish the underlying results. The existing registry is now dated 10 November and links scoped corrected-count and two OLS/bootstrap null checks; the queue refers to extending it. Most new routes still need linked, release-specific evidence. Each default needs appropriate evidence; unknown remains unknown.
+  - [x] Generate the selected-variant source inventory and link the recorded corrected-count and OLS/bootstrap cases in the existing evidence registry.
+  - [ ] Complete the release-wide matrix and publish evidence for the remaining variants; an inventory is not validation.
+
+- [ ] R16. **Partly complete.** Replace a single green-card interpretation with evidence for the selected test, population assumptions and analysis. A fixed Type I tolerance of .04-.06 at alpha .05 is not sufficient for every exact, discrete, conservative, equivalence or Bayesian procedure. Predefine method-appropriate acceptance criteria and Monte Carlo uncertainty; retain historical definitions as history.
+  - [x] Show selected-setting evidence on complete input screens and preserve the evidence snapshot with results, keeping historical card evidence scoped ([#368](https://github.com/JoelThornton/Powerkit/pull/368)).
+  - [ ] Define method-appropriate acceptance criteria and fill coverage across the release.
+
+- [ ] R17. **Partly complete.** Validate complete analysis pipelines, including failures. Compare planned versus achieved power at the returned integer N using fresh random draws; assess null behaviour, interval coverage, bias and convergence. Counts of successful runs alone can conceal selection. Use [ADEMP](https://doi.org/10.1002/sim.8086): aims, data generation, estimands, methods and performance measures.
+  - [x] Count failed corrected-count analyses as unsuccessful attempts and report the full ledger.
+  - [x] Confirm candidate integer sample sizes with fresh simulations; increase N or refuse a recommendation. Archive four independent returned-N comparisons ([#372](https://github.com/JoelThornton/Powerkit/pull/372), [count-test evidence](count-test-review.md)).
+  - [ ] Extend full-pipeline power, null, coverage, bias and convergence checks to the remaining methods and parameter ranges.
+
+- [ ] R18. **Open.** Validate claims newly introduced by EFA, profiles, cross-lagged and interrupted-series cards. Recovering loadings or selecting a number of profiles is not ordinary rejection power. Model selection, factor rotation, inadmissible fits, local maxima, stationarity, time spacing and short-series calibration need explicit boundaries. Request family specialists; do not infer assurance from successful execution.
+  - [ ] Complete the specialist variant-level validation described above; the recent safeguards do not close it.
+
+- [ ] R19. **Partly complete.** Independently review whole-study planning. Define whether success means all primary claims, any, a conjunction, or a hierarchy; keep exploratory/manipulation checks separate. Validate multiplicity, covariance, shared data and estimand alignment. A significant indirect path alone does not establish a causal mechanism.
+  - [x] Default new all-required-test plans to unknown dependence and the existing sufficient bound; preserve explicit historical product-rule choices ([#368](https://github.com/JoelThornton/Powerkit/pull/368)).
+  - [ ] Independently review the broader whole-study simulation, shared data, multiplicity and estimands.
+
+- [ ] R20. **Partly complete.** This branch refuses Welch plus between-study variation with unequal allocation: the adjustment uses Student's degrees of freedom, which are different for unequal groups even with equal population SDs. Equal-allocation use retains the documented approximation. The maintainer reviewed the between-study defaults on 10 November: new ordinary plans now start without variation, and nonzero variation is an explicit optional scenario. A literature-motivated tau is still a substantive assumption, and a single population's power differs from success averaged over settings. Keep both meanings visible. Zero-average rejection under heterogeneity is not a Type I error under a point null for each study. Validate unequal allocation and both tails across an agreed range before broad claims.
+  - [x] Start ordinary t-test/correlation plans without between-study variation; make variation explicit and preserve saved choices. Guard the unsupported unequal-allocation Welch adjustment ([#368](https://github.com/JoelThornton/Powerkit/pull/368)).
+  - [ ] Validate the broader allocation/tail range before extending the approximation or making general claims.
+
+- [ ] R21. **Partly complete.** Make each simulation correspond to the analysis researchers will actually run. PROCESS percentile bootstrap, Monte Carlo intervals, lmer tests and alternative robust/rank analyses need separately identified targets. The OLS/casewise-bootstrap and corrected-count routes are now selectable, with scoped checks; the OLS chunk passed its two named null scenarios with 1,000 resamples. Direct PROCESS comparisons and broader pipelines remain unfinished. Generic missing-data, noncompliance, exclusions and measurement-error handling cannot be inferred from an attrition percentage or a selectable score shape.
+  - [x] Expose OLS/casewise percentile-bootstrap mediation and continuity-corrected count analyses, with separately identified targets and scoped checks ([#368](https://github.com/JoelThornton/Powerkit/pull/368)).
+  - [x] Explain that attrition adds a recruitment buffer and does not model a missing-data analysis; retain this in copied methods ([#372](https://github.com/JoelThornton/Powerkit/pull/372)).
+  - [ ] Complete direct PROCESS comparisons and broader analysis/missing-data pipelines.
+
 - [x] R22. Correct the crossover scope claim: the paired card/input now cover only an ordinary paired analysis with no period, sequence or carry-over terms, and copied methods state this. Remove the one-degree-of-freedom/close-approximation assurance. The mixed card/input also disclaims a separately validated crossover analysis. A dedicated validated crossover model remains open in the roadmap; this check completes the misleading-scope correction, not that new capability.
 
 ### Researcher experience and fundamental design decisions
 
-- [ ] R23. Test a question-first entry route: “How many people can I recruit?”, “How precise must the answer be?”, “What effect matters?” or “What evidence would change my decision?”. Choosing a test is not always the researcher's first problem. Preserve expert access to named analyses.
-- [ ] R24. Reconsider compulsory blank alpha/power/prior boxes. They prevent accidental defaults but can demand expertise a newcomer lacks. Offer an explicit informed choice with a short consequence, help and editable value; measure comprehension instead of treating more clicks as better justification. An optional rationale is not evidence of a defensible choice.
-- [ ] R25. Make unknown numbers a supported workflow across specialist models: source, plausible range, sensitivity and an honest “not enough information yet” outcome. For multiple nuisance parameters, show a small coherent scenario table rather than asking researchers to invent a full covariance matrix. Never silently replace uncertainty with zero.
-- [ ] R26. Elicit Bayesian design priors in meaningful ranges as well as SDs, distinguish design from analysis priors, and check the reader's understanding. Switching to “Bayes mode” cannot make an unspecified scientific hypothesis or prior defensible. A prior that reproduces an earlier estimate does not automatically address publication selection.
-- [ ] R27. Keep the result's answer, analysed/recruited counts and major limitations visible; fold secondary material. Connect the saved plan to preregistration and the analysis script. Support fixed numbers of schools, dyads or items where these are the real constraints. Existing recruitment and scenario helpers are foundations, not generic solutions to all clustered recruitment.
-- [ ] R28. Run the existing researcher sessions and manual accessibility checks. Include psychology students and experienced researchers, a fixed-budget task, an unknown correlation, a published adjusted estimate and a specialist design. Measure correct decisions, input mistakes, completion, time and confidence, not satisfaction alone. Compare fairly with the actual alternative each participant would use; do not claim universal superiority.
+- [ ] R23. **Open.** Test a question-first entry route: “How many people can I recruit?”, “How precise must the answer be?”, “What effect matters?” or “What evidence would change my decision?”. Choosing a test is not always the researcher's first problem. Preserve expert access to named analyses.
+  - [ ] Evaluate a question-first entry workflow with researchers; existing fixed-budget routes do not complete this comparison.
+
+- [ ] R24. **Partly complete.** Reconsider compulsory blank alpha/power/prior boxes. They prevent accidental defaults but can demand expertise a newcomer lacks. Offer an explicit informed choice with a short consequence, help and editable value; measure comprehension instead of treating more clicks as better justification. An optional rationale is not evidence of a defensible choice.
+  - [x] Keep target power blank and editable; offer equal 80/90/95% examples with missed-effect and resource trade-offs rather than a preferred 80% shortcut ([#373](https://github.com/JoelThornton/Powerkit/pull/373)).
+  - [x] Explain significance-test power and Bayes-factor evidence probability; provide named, accessible help.
+  - [ ] Check comprehension with researchers and complete the specialist prior/choice audit.
+
+- [ ] R25. **Partly complete.** Make unknown numbers a supported workflow across specialist models: source, plausible range, sensitivity and an honest “not enough information yet” outcome. For multiple nuisance parameters, show a small coherent scenario table rather than asking researchers to invent a full covariance matrix. Never silently replace uncertainty with zero.
+  - [x] Provide numeric-input meaning/source/unknown guidance and the paired change-score-SD route that needs no correlation ([#367](https://github.com/JoelThornton/Powerkit/pull/367), [#369](https://github.com/JoelThornton/Powerkit/pull/369)).
+  - [x] Correct pilot-effect guidance and explain plausible attrition scenarios without silently filling unknown values ([#372](https://github.com/JoelThornton/Powerkit/pull/372)).
+  - [ ] Extend and evaluate coherent nuisance-parameter scenarios across specialist models.
+
+- [ ] R26. **Open.** Elicit Bayesian design priors in meaningful ranges as well as SDs, distinguish design from analysis priors, and check the reader's understanding. Switching to “Bayes mode” cannot make an unspecified scientific hypothesis or prior defensible. A prior that reproduces an earlier estimate does not automatically address publication selection.
+  - [ ] Complete the prior-elicitation and understanding work above; existing SD/range helpers are not a finished review.
+
+- [ ] R27. **Partly complete.** Keep the result's answer, analysed/recruited counts and major limitations visible; fold secondary material. Connect the saved plan to preregistration and the analysis script. Support fixed numbers of schools, dyads or items where these are the real constraints. Existing recruitment and scenario helpers are foundations, not generic solutions to all clustered recruitment.
+  - [x] Keep major limitations before the answer and preserve analysed/recruited counts; add the captured selected test beside the result ([#369](https://github.com/JoelThornton/Powerkit/pull/369), [#373](https://github.com/JoelThornton/Powerkit/pull/373)).
+  - [x] Fold routine input/result guidance behind info controls in compact mode while preserving errors, units, values and warnings ([#373](https://github.com/JoelThornton/Powerkit/pull/373)).
+  - [ ] Finish broader result/preregistration workflows and fixed-school/dyad/item constraints; current helpers are not generic coverage.
+
+- [ ] R28. **Partly complete.** Run the existing researcher sessions and manual accessibility checks. Include psychology students and experienced researchers, a fixed-budget task, an unknown correlation, a published adjusted estimate and a specialist design. Measure correct decisions, input mistakes, completion, time and confidence, not satisfaction alone. Compare fairly with the actual alternative each participant would use; do not claim universal superiority.
+  - [x] Run bounded desktop/375px/320px, keyboard and automated accessibility journeys; all 28 hosted browser cases passed for the final #373 head.
+  - [ ] Run actual researcher sessions and manual assistive-technology checks; no human usability or screen-reader sign-off is claimed.
+
 
 ### Distribution and maintenance
 
-- [ ] R29. Test the candidate tarball with current CRAN dependencies on Linux, Windows and macOS, R release/devel and only required dependencies. Run examples, minimal-dependency tests and a separate full optional-backend suite. The new workflow is a readiness check, not submission or full scientific validation. Check the current and historical package name, licences/borrowed code, installed size, documentation, URLs, notes and maintainer contact before submission. Prepare cran-comments.md from real results.
-- [ ] R30. Treat the engine, GUI and download launcher as distinct products with one release manifest. CRAN installation alone currently gives the engine, not a local GUI. Decide whether a companion GUI package or full-app bundle is maintained. Do not duplicate mathematical implementations to achieve portability.
-- [ ] R31. Connection recovery and engine-install status checks are now implemented in the follow-on PR. An isolated Windows binary restore of three locked packages recovered real TLS failures; this is not the complete acceptance test. Measure clean install size/time and first/repeat startup, including university machines without admin rights, Intel and Apple-silicon Macs, and Linux. Optional backends help engine users, but the full-app launcher still restores the complete lock environment. A dependency count is not a measured download improvement.
-- [ ] R32. Build a signed/notarised desktop installer only after the R-based route passes usability and update tests. Bundle a compatible runtime where appropriate, retain required licences/source access, bind local services to loopback, test interruption/rollback and avoid silent method-changing updates. Evaluate institutional IT restrictions before committing to Electron or another shell.
-- [ ] R33. Prototype a limited browser-compute route with webR/Shinylive. [Shinylive](https://posit-dev.github.io/r-shinylive/) can run Shiny on the user's device, but package binaries must be compatible with WebAssembly; source installation and desktop process workers cannot be assumed. Start with basic formula routes, compare results and memory/time, then decide. A PWA or downloaded HTML by itself does not move R computation off Posit.
-- [ ] R34. Verify GitHub Pages activation, public URLs and search indexing. A failed fetch in this review is not proof the page is down. Add the new download page to the sitemap and verify it after deployment. Local use also needs offline-start and optional-feedback/update tests; do not promise air-gapped installation.
-- [ ] R35. Establish a release channel and scientific-change policy. Keep stable/reviewed, prototype and development revisions distinct. Detect package-version drift, retain source/lock/checksum metadata and archive long-run evidence beyond the current 30-day Actions retention. Release notes must explain changed numerical answers. Do not automatically upload or recompute old projects.
-- [ ] R36. Measure hosted use and concurrency, then set per-visitor limits. Local downloads reduce calculation load only when users actually launch them locally. Session-bound workers, disconnects and costs remain hosting limitations. Introduce persistent job storage based on measured need, with explicit retention and retrieval rules.
+- [ ] R29. **Partly complete.** Test the candidate tarball with current CRAN dependencies on Linux, Windows and macOS, R release/devel and only required dependencies. Run examples, minimal-dependency tests and a separate full optional-backend suite. The new workflow is a readiness check, not submission or full scientific validation. Check the current and historical package name, licences/borrowed code, installed size, documentation, URLs, notes and maintainer contact before submission. Prepare cran-comments.md from real results.
+  - [x] Add CRAN-readiness CI; record the scoped Linux release/devel checks and subsequent release-compatibility passes separately from scientific validation ([#367](https://github.com/JoelThornton/Powerkit/pull/367), [#372](https://github.com/JoelThornton/Powerkit/pull/372), [#373](https://github.com/JoelThornton/Powerkit/pull/373)).
+  - [ ] Complete the candidate OS/dependency/backend matrix and final CRAN audit/comments before submission.
+
+- [ ] R30. **Partly complete.** Treat the engine, GUI and download launcher as distinct products with one release manifest. CRAN installation alone currently gives the engine, not a local GUI. Decide whether a companion GUI package or full-app bundle is maintained. Do not duplicate mathematical implementations to achieve portability.
+  - [x] Distinguish the CRAN engine from the full-app download and explain local computation and updates in the installation guide.
+  - [ ] Complete the maintained GUI/distribution-product decision and unified release-manifest lifecycle.
+
+- [ ] R31. **Partly complete.** Connection recovery and engine-install status checks are now implemented in the follow-on PR. An isolated Windows binary restore of three locked packages recovered real TLS failures; this is not the complete acceptance test. Measure clean install size/time and first/repeat startup, including university machines without admin rights, Intel and Apple-silicon Macs, and Linux. Optional backends help engine users, but the full-app launcher still restores the complete lock environment. A dependency count is not a measured download improvement.
+  - [x] Implement bounded download/TLS recovery and successful engine-install stamping; Windows/macOS first/repeat-start checks passed on #372 ([#368](https://github.com/JoelThornton/Powerkit/pull/368), [#372](https://github.com/JoelThornton/Powerkit/pull/372)).
+  - [ ] Measure complete clean-install size/time and cover institutional/no-admin, Intel/Apple-silicon and Linux conditions.
+
+- [ ] R32. **Open.** Build a signed/notarised desktop installer only after the R-based route passes usability and update tests. Bundle a compatible runtime where appropriate, retain required licences/source access, bind local services to loopback, test interruption/rollback and avoid silent method-changing updates. Evaluate institutional IT restrictions before committing to Electron or another shell.
+  - [ ] Build and test the signed/notarised installer only after the underlying local route meets its acceptance conditions.
+
+- [ ] R33. **Open.** Prototype a limited browser-compute route with webR/Shinylive. [Shinylive](https://posit-dev.github.io/r-shinylive/) can run Shiny on the user's device, but package binaries must be compatible with WebAssembly; source installation and desktop process workers cannot be assumed. Start with basic formula routes, compare results and memory/time, then decide. A PWA or downloaded HTML by itself does not move R computation off Posit.
+  - [ ] Build and benchmark the limited browser-compute prototype; a static download page does not provide browser R computation.
+
+- [ ] R34. **Partly complete.** Verify GitHub Pages activation, public URLs and search indexing. A failed fetch in this review is not proof the page is down. Add the new download page to the sitemap and verify it after deployment. Local use also needs offline-start and optional-feedback/update tests; do not promise air-gapped installation.
+  - [x] Verify the public download page and sitemap body, including the download-page entry, in a browser.
+  - [ ] Verify actual indexing and the remaining offline/feedback/update acceptance cases; publication handoff alone is not a live-version or Google-indexing check.
+
+- [ ] R35. **Partly complete.** Establish a release channel and scientific-change policy. Keep stable/reviewed, prototype and development revisions distinct. Detect package-version drift, retain source/lock/checksum metadata and archive long-run evidence beyond the current 30-day Actions retention. Release notes must explain changed numerical answers. Do not automatically upload or recompute old projects.
+  - [x] Implement checked-source/pinned-manifest publication, preserve deployment ancestry and retain version/provenance information ([#370](https://github.com/JoelThornton/Powerkit/pull/370)).
+  - [ ] Complete the stable/reviewed release policy and durable archive coverage for full long-run validation evidence.
+
+- [ ] R36. **Open.** Measure hosted use and concurrency, then set per-visitor limits. Local downloads reduce calculation load only when users actually launch them locally. Session-bound workers, disconnects and costs remain hosting limitations. Introduce persistent job storage based on measured need, with explicit retention and retrieval rules.
+  - [ ] Measure hosted usage/concurrency and agree the host/limits before implementing a measured capacity and durable-job policy.
+
 
 ## Preparing package-author contact and a validation paper
 

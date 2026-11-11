@@ -11,6 +11,11 @@ powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
 
+The [R checklist](release-readiness-review.md#fix-checklist) now records checked
+subtasks directly under each open/partial R14–R36 item, with the remaining
+acceptance work beside it. Parent boxes close only when the full requirement
+is met; this tracking correction adds no implementation or validation claim.
+
 The [release-readiness review](release-readiness-review.md) safeguards merged
 in PR #369 (0.61.1): early analysis limitations, clearer power/paired-input help,
 eleven common analysis-translation checks and a phone action-bar correction.
