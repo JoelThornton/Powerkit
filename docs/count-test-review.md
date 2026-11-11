@@ -1,6 +1,7 @@
 # Matching corrected count tests: review and checklist
 
-10 November 2026. In the open review PR; not merged or deployed.
+11 November 2026. Initial corrected-test routes merged in PR #368; fresh
+confirmation-search safeguard in review. No new live version is claimed.
 
 A power plan must match the analysis the researcher intends to run. R's
 prop.test() applies continuity correction by default; chisq.test() does so
@@ -46,12 +47,15 @@ not Fisher's exact test and does not make an approximate test exact.
 - [ ] Record an independently sourced published/software power benchmark.
 - [x] Archive four independent recommended-N checks, including sparse/imbalanced
   examples and finite-reference shortfalls. This does not establish target attainment.
-- [ ] Improve discrete-test search accuracy or independently verify final N in the
-  engine; the smooth fitted interval does not cover all approximation error.
+- [x] Add fresh final-N verification in the engine: at least 10,000 new studies
+  per candidate; require a one-sided Clopper-Pearson lower bound above the target.
+  Allocate .01 error across at most ten checks. Increase N in whole allocations
+  or refuse a recommendation; never claim this is the minimum N.
+- [x] Recheck all four returned-N cases independently after this safeguard.
 - [x] Run the corrected-count chunk on GitHub as well as locally (run
   42894057884, head cc0e107; six passes and one published-reference skip).
-- [ ] Complete all remaining hosted checks and review, merge only when instructed, then
-  verify the live app. No evidence badge is upgraded by this work.
+- [ ] Complete the follow-on hosted checks and review before merging. Leave
+  live confirmation for the normal rollout. No evidence badge is upgraded.
 
 References: [R prop.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/prop.test.html),
 [R chisq.test](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/chisq.test.html).
@@ -82,3 +86,37 @@ Results and copied methods now say this, and offer a fixed-N power check.
 A discretisation-aware search or independent final verification in the engine
 remains needed before a strict target-attainment claim. Increasing simulation
 replications alone cannot remove smooth-model error.
+
+### Fresh confirmation at returned N (11 November)
+
+The smooth search now supplies only a proposal. At each candidate, fresh
+studies must give a one-sided lower power bound above the target. Each of
+at most ten checks uses at least 10,000 studies, with a .001 one-sided error
+budget per check (stats::binom.test). The union bound gives at least 99%
+Monte Carlo protection over the bounded search under the specified generator
+and analysis. This does not validate those assumptions or guarantee future
+study success. If no candidate passes, no N is recommended.
+
+N increases by at least one allocation step and approximately 5% between
+checks; no monotonicity, interpolation or minimum-N claim is required. The
+old fitted estimate and all new checks remain in the result; the standalone
+script repeats their seeds, counts and lower-bound decisions. The old N
+interval is not relabelled as uncertainty about the checked N. Historical
+saved results without confirmation metadata retain the old limitation.
+
+Independent selected-case results, R 4.5.3, candidate 0.61.1 plus the new
+safeguard, Spower 0.7, original search seeds/settings:
+
+| Case | Old fitted N | Checked N | Independent power |
+| --- | ---: | ---: | ---: |
+| Proportions .50/.65, equal groups | 362 | 382 | .822837 |
+| Proportions .05/.20, allocation 1:3 | 240 | 252 | .821231 |
+| Moderate 2 by 2 association | 362 | 381 | .822600 |
+| Sparse 2 by 2 association | 78 | 82 | .820100 |
+
+The proportions references enumerate all possible binomial counts and call
+base R for each decision. The table references use 20,000 independent new
+multinomial studies, with failures unsuccessful; their 95% lower bounds
+also exceed .8. These four cases do not establish universal calibration.
+[Settings, source fingerprints, ledgers and independent results](validation/2026-11-11-corrected-sample-size.json)
+are retained alongside the unchanged historical shortfall archive.

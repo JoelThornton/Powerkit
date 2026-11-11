@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "engine/R/continuity-correction.R"
+      - "engine/R/confirm-count-search.R"
       - "engine/tests/testthat/helper-corrected-counts.R"
       - "engine/tests/testthat/test-validation-corrected-counts.R"
       - ".github/workflows/corrected-counts-validation.yaml"

@@ -85,12 +85,19 @@ test_that("corrected sample-size searches and their standalone replays retain th
     spec <- example_spec(name)
     spec$goal <- list(type = "sample_size", power = .8)
     spec$options$nrep <- 1000
+    spec$options$attrition <- .1
     if (name == "two_proportions_corrected") {
       spec$population$p1 <- .2; spec$population$p2 <- .8
       spec$options$allocation_ratio <- 2
     } else spec$population$probabilities <- list(list(.4, .1), list(.1, .4))
     result <- run_spec(spec)
     expect_gt(result$n_required$n, 0)
+    expect_equal(result$n_required$verification$type, "fresh_count_simulation")
+    expect_gte(result$n_required$power_lower, spec$goal$power)
+    expect_true(is.na(result$n_required$lower))
+    expect_true(is.na(result$n_required$upper))
+    expect_equal(result$recruitment$n_analysed, result$n_required$n)
+    expect_gt(result$recruitment$n_recruit, result$n_required$n)
     expect_equal(result$provenance$method, "simulation")
     env <- new.env(parent = globalenv())
     suppressWarnings(capture.output(eval(parse(text = export_script(spec, result)), env)))

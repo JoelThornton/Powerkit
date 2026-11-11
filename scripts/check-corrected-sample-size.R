@@ -1,9 +1,9 @@
-# Independent checks of fitted integer N, separate from the search draws.
+# Independent checks of confirmed integer N, separate from all search/check draws.
 # Run from the repository root with the candidate engine installed.
 library(powerkit)
 source("engine/tests/testthat/helper-corrected-counts.R")
 options(powerkit.cores = 1)
-check_corrected_sample_sizes <- function() {
+check_corrected_sample_sizes <- function(output = "docs/validation/2026-11-11-corrected-sample-size.json") {
   definitions <- list(
     proportions_balanced = list(name = "two_proportions_corrected", p1 = .5, p2 = .65, ratio = 1),
     proportions_imbalanced = list(name = "two_proportions_corrected", p1 = .05, p2 = .2, ratio = 3),
@@ -19,6 +19,7 @@ check_corrected_sample_sizes <- function() {
       s$population$p1 <- d$p1; s$population$p2 <- d$p2; s$options$allocation_ratio <- d$ratio
     } else s$population$probabilities <- lapply(seq_len(2), function(j) as.list(d$P[j,]))
     result <- run_spec(s)
+    stopifnot(!is.null(result$n_required$verification), result$n_required$power_lower >= .8)
     n <- result$n_required$n
     if (!is.null(d$p1)) {
       n1 <- n/(1+d$ratio); n2 <- n-n1
@@ -38,10 +39,13 @@ check_corrected_sample_sizes <- function() {
       reference_failures=failures, reference_seed=if(is.null(d$p1)) 2026111070L+i else NULL,
       simulations=result$provenance$simulations, provenance=result$provenance)
     cat(names(definitions)[i], "N=", n, "independent power=", reference, "\n")
+    stopifnot(interval[1] >= .8)
   }
-  archive <- list(date="2026-11-10", scope="Four selected fitted-N cases only. Finite binomial enumeration or fresh independent multinomial draws; not evidence of a minimum-N guarantee or universal coverage. Simulation searches have uncertainty.",
+  sources <- c("engine/R/confirm-count-search.R", "engine/R/continuity-correction.R", "scripts/check-corrected-sample-size.R")
+  archive <- list(date="2026-11-11", scope="Four selected confirmation-search cases only. Finite binomial enumeration or fresh independent multinomial draws; not evidence of a minimum-N guarantee, universal coverage or valid population assumptions. Failed analyses remain unsuccessful attempts.",
+    source_sha256 = setNames(lapply(sources, function(p) digest::digest(file=p,algo="sha256")), sources),
     R=R.version.string, cases=cases)
-  jsonlite::write_json(archive, "docs/validation/2026-11-10-corrected-sample-size.json",
+  jsonlite::write_json(archive, output,
     pretty=TRUE,auto_unbox=TRUE,digits=NA,null="null")
   invisible(archive)
 }

@@ -166,7 +166,12 @@
 #'     simulation; all equal for exact results), or `NA` unless the goal is
 #'     `sample_size`. For simulation it also has `power`, `power_lower` and
 #'     `power_upper`: the power the fitted curve gives at `n`, with its 95%
-#'     interval;
+#'     interval. For corrected count-test searches, `n` is instead a freshly
+#'     checked sample size (not necessarily the minimum), `lower`/`upper`
+#'     are `NA`, and `power` is the fresh estimate with a selection-adjusted
+#'     one-sided lower bound in `power_lower` (`power_upper` is 1).
+#'     `search_estimate` retains the original curve estimate; `verification`
+#'     records the check count, replications, confidence and error budget;
 #'   * `sensitivity`: `NA` unless the goal is `sensitivity`; otherwise a list
 #'     with the smallest detectable `effect` (with an `effect_description`)
 #'     and the `power` reached there. For the ANOVAs it also has the `scale`
@@ -237,7 +242,8 @@
 #'     whether the curve for the required n was fitted to it. It also records
 #'     attempted, valid, failed and successful counts, conditional power
 #'     among valid decisions, successful-study probability per attempt, and
-#'     the denominator convention; `NA` for an exact
+#'     the denominator convention; corrected count searches also identify
+#'     search versus fresh confirmation rows with `stage`. `NA` for an exact
 #'     result), backend and backend function, R and package versions, and
 #'     run time. A simulated result is reproduced by the same seed,
 #'     replications and batch size; for a backend run in batches, the
@@ -295,7 +301,11 @@ run_spec <- function(spec) {
     ),
     sample_size = c(
       if (simulating) {
-        search_n(spec, backend, goal$power, nrep, seed, cores)
+        found <- search_n(spec, backend, goal$power, nrep, seed, cores)
+        if (continuity_corrected(spec)) {
+          found <- confirm_count_search(spec, backend, found, nrep, seed, cores)
+        }
+        found
       } else {
         search_n_exact(spec, backend, goal$power)
       },
@@ -431,6 +441,8 @@ print.powerkit_result <- function(x, ...) {
     est <- x$n_required
     if (identical(x$provenance$method, "exact")) {
       cat(sprintf("Required n: %s (exact)\n", est$n))
+    } else if (!is.null(est$verification)) {
+      cat(sprintf("Checked n: %s (fresh simulation lower power bound %.4f; not a minimum-N estimate)\n", est$n, est$power_lower))
     } else {
       cat(sprintf("Required n: %s (95%% interval %s to %s)\n", est$n, est$lower, est$upper))
     }

@@ -1,0 +1,1848 @@
+{
+  "date": "2026-11-11",
+  "scope": "Four selected confirmation-search cases only. Finite binomial enumeration or fresh independent multinomial draws; not evidence of a minimum-N guarantee, universal coverage or valid population assumptions. Failed analyses remain unsuccessful attempts.",
+  "source_sha256": {
+    "engine/R/confirm-count-search.R": "4caf91617adb7d3302a1b827a68e9173236e35faa05f95069dad4e934c5fc4aa",
+    "engine/R/continuity-correction.R": "ee71246a9159cd724b116a9f8436a02fdac25e1125f74bb347af749d13317600",
+    "scripts/check-corrected-sample-size.R": "92ed5f5d262525563787b9db791126f36a18a79d28c8fbd4590953014a05a51f"
+  },
+  "R": "R version 4.5.3 (2026-03-11 ucrt)",
+  "cases": {
+    "proportions_balanced": {
+      "spec": {
+        "spec_version": "0.1",
+        "design": "basic_test",
+        "template": "two_proportions",
+        "variables": {
+          "X": {
+            "type": "binary",
+            "label": "Reminder",
+            "levels": [
+              "No reminder",
+              "Text reminder"
+            ]
+          },
+          "Y": {
+            "type": "binary",
+            "label": "Attended",
+            "levels": [
+              "No",
+              "Yes"
+            ]
+          }
+        },
+        "population": {
+          "metric": "proportion",
+          "p1": 0.5,
+          "p2": 0.65
+        },
+        "effect_justification": {
+          "type": "smallest_effect_of_interest",
+          "source": "Example only: a 10-point rise in attendance is the smallest worth the cost."
+        },
+        "target_test": {
+          "effect": "proportion_difference",
+          "method": "z_test_corrected",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "sample_size",
+          "power": 0.8
+        },
+        "options": {
+          "nrep": 5000,
+          "seed": 2026111061,
+          "allocation_ratio": 1
+        }
+      },
+      "n_required": {
+        "n": 382,
+        "lower": "NA",
+        "upper": "NA",
+        "power": 0.8215,
+        "power_lower": 0.809401950119966,
+        "power_upper": 1,
+        "search_estimate": {
+          "n": 362,
+          "lower": 358,
+          "upper": 366,
+          "power": 0.801407205816832,
+          "power_lower": 0.797147191310026,
+          "power_upper": 0.805612807234257
+        },
+        "verification": {
+          "type": "fresh_count_simulation",
+          "target": 0.8,
+          "nrep": 10000,
+          "max_checks": 10,
+          "error_budget": 0.01,
+          "confidence_per_check": 0.999,
+          "checks": 2,
+          "lower": 0.809401950119966
+        }
+      },
+      "independent_power": 0.822836617761805,
+      "reference_interval": [0.822836617761805, 0.822836617761805],
+      "reference_nrep": null,
+      "reference_failures": 0,
+      "reference_seed": null,
+      "simulations": [
+        {
+          "n": 306,
+          "seed": 2026111061,
+          "rejections": 3676,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3676,
+          "conditional_power": 0.7352,
+          "successful_study_probability": 0.7352,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 324,
+          "seed": 2026121068,
+          "rejections": 3738,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3738,
+          "conditional_power": 0.7476,
+          "successful_study_probability": 0.7476,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 342,
+          "seed": 2026131075,
+          "rejections": 3910,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3910,
+          "conditional_power": 0.782,
+          "successful_study_probability": 0.782,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 360,
+          "seed": 2026141082,
+          "rejections": 4006,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4006,
+          "conditional_power": 0.8012,
+          "successful_study_probability": 0.8012,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 378,
+          "seed": 2026151089,
+          "rejections": 4082,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4082,
+          "conditional_power": 0.8164,
+          "successful_study_probability": 0.8164,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 396,
+          "seed": 2026161096,
+          "rejections": 4173,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4173,
+          "conditional_power": 0.8346,
+          "successful_study_probability": 0.8346,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 414,
+          "seed": 2026171103,
+          "rejections": 4268,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4268,
+          "conditional_power": 0.8536,
+          "successful_study_probability": 0.8536,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 362,
+          "seed": 2026191117,
+          "rejections": 7966,
+          "nrep": 10000,
+          "fitted": false,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 7966,
+          "conditional_power": 0.7966,
+          "successful_study_probability": 0.7966,
+          "denominator": "all_valid",
+          "stage": "confirmation"
+        },
+        {
+          "n": 382,
+          "seed": 2026201124,
+          "rejections": 8215,
+          "nrep": 10000,
+          "fitted": false,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 8215,
+          "conditional_power": 0.8215,
+          "successful_study_probability": 0.8215,
+          "denominator": "all_valid",
+          "stage": "confirmation"
+        }
+      ],
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.2",
+          "registry_sha256": "3751552952476fdf583a02b3f9f95d671d03586401f1a5399a890c66e24e121f",
+          "variant": "basic_test/two_proportions/z_test_corrected/proportion_difference/two_sided/simulation",
+          "record_id": "two-proportions-corrected",
+          "categories": {
+            "package_agreement": {
+              "status": "scoped_only",
+              "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "independent": {
+              "status": "outside_scope",
+              "note": "The linked case used different settings. Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            },
+            "published": {
+              "status": "pending",
+              "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "full_validation": {
+              "status": "outside_scope",
+              "note": "The linked case used different settings. The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "corrected-counts-2026-11-10": {
+              "date": "2026-11-10",
+              "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+              "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+              "files": [
+                "engine/tests/testthat/test-validation-corrected-counts.R",
+                "engine/tests/testthat/test-continuity-correction.R",
+                "docs/validation/2026-11-10-corrected-counts-summary.txt",
+                "scripts/check-corrected-counts.R"
+              ],
+              "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "622c2e54aa74f4021feac73ac0cc3f78ec8ad6fd1d2ad5f4d25b46a70c10e30f",
+        "method": "simulation",
+        "seed": 2026111061,
+        "nrep": 5000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 306,
+            "seed": 2026111061,
+            "rejections": 3676,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3676,
+            "conditional_power": 0.7352,
+            "successful_study_probability": 0.7352,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 324,
+            "seed": 2026121068,
+            "rejections": 3738,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3738,
+            "conditional_power": 0.7476,
+            "successful_study_probability": 0.7476,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 342,
+            "seed": 2026131075,
+            "rejections": 3910,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3910,
+            "conditional_power": 0.782,
+            "successful_study_probability": 0.782,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 360,
+            "seed": 2026141082,
+            "rejections": 4006,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4006,
+            "conditional_power": 0.8012,
+            "successful_study_probability": 0.8012,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 378,
+            "seed": 2026151089,
+            "rejections": 4082,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4082,
+            "conditional_power": 0.8164,
+            "successful_study_probability": 0.8164,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 396,
+            "seed": 2026161096,
+            "rejections": 4173,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4173,
+            "conditional_power": 0.8346,
+            "successful_study_probability": 0.8346,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 414,
+            "seed": 2026171103,
+            "rejections": 4268,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4268,
+            "conditional_power": 0.8536,
+            "successful_study_probability": 0.8536,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 362,
+            "seed": 2026191117,
+            "rejections": 7966,
+            "nrep": 10000,
+            "fitted": false,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 7966,
+            "conditional_power": 0.7966,
+            "successful_study_probability": 0.7966,
+            "denominator": "all_valid",
+            "stage": "confirmation"
+          },
+          {
+            "n": 382,
+            "seed": 2026201124,
+            "rejections": 8215,
+            "nrep": 10000,
+            "fitted": false,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 8215,
+            "conditional_power": 0.8215,
+            "successful_study_probability": 0.8215,
+            "denominator": "all_valid",
+            "stage": "confirmation"
+          }
+        ],
+        "backend": "Spower",
+        "backend_function": "Spower::p_prop.test(correct = TRUE), repeated with all attempted studies in the power denominator",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.1", "0.7", "2.28"],
+        "started": "2026-11-11 09:55:40 GMT",
+        "run_time_seconds": 7.83857297897339
+      }
+    },
+    "proportions_imbalanced": {
+      "spec": {
+        "spec_version": "0.1",
+        "design": "basic_test",
+        "template": "two_proportions",
+        "variables": {
+          "X": {
+            "type": "binary",
+            "label": "Reminder",
+            "levels": [
+              "No reminder",
+              "Text reminder"
+            ]
+          },
+          "Y": {
+            "type": "binary",
+            "label": "Attended",
+            "levels": [
+              "No",
+              "Yes"
+            ]
+          }
+        },
+        "population": {
+          "metric": "proportion",
+          "p1": 0.05,
+          "p2": 0.2
+        },
+        "effect_justification": {
+          "type": "smallest_effect_of_interest",
+          "source": "Example only: a 10-point rise in attendance is the smallest worth the cost."
+        },
+        "target_test": {
+          "effect": "proportion_difference",
+          "method": "z_test_corrected",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "sample_size",
+          "power": 0.8
+        },
+        "options": {
+          "nrep": 5000,
+          "seed": 2026111062,
+          "allocation_ratio": 3
+        }
+      },
+      "n_required": {
+        "n": 252,
+        "lower": "NA",
+        "upper": "NA",
+        "power": 0.8187,
+        "power_lower": 0.806531778929708,
+        "power_upper": 1,
+        "search_estimate": {
+          "n": 240,
+          "lower": 240,
+          "upper": 244,
+          "power": 0.803253911214391,
+          "power_lower": 0.799008626553636,
+          "power_upper": 0.807444433072133
+        },
+        "verification": {
+          "type": "fresh_count_simulation",
+          "target": 0.8,
+          "nrep": 10000,
+          "max_checks": 10,
+          "error_budget": 0.01,
+          "confidence_per_check": 0.999,
+          "checks": 2,
+          "lower": 0.806531778929708
+        }
+      },
+      "independent_power": 0.821230867181547,
+      "reference_interval": [0.821230867181547, 0.821230867181547],
+      "reference_nrep": null,
+      "reference_failures": 0,
+      "reference_seed": null,
+      "simulations": [
+        {
+          "n": 204,
+          "seed": 2026111062,
+          "rejections": 3487,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3487,
+          "conditional_power": 0.6974,
+          "successful_study_probability": 0.6974,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 216,
+          "seed": 2026121069,
+          "rejections": 3764,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3764,
+          "conditional_power": 0.7528,
+          "successful_study_probability": 0.7528,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 228,
+          "seed": 2026131076,
+          "rejections": 3889,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3889,
+          "conditional_power": 0.7778,
+          "successful_study_probability": 0.7778,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 240,
+          "seed": 2026141083,
+          "rejections": 4102,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4102,
+          "conditional_power": 0.8204,
+          "successful_study_probability": 0.8204,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 252,
+          "seed": 2026151090,
+          "rejections": 4098,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4098,
+          "conditional_power": 0.8196,
+          "successful_study_probability": 0.8196,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 264,
+          "seed": 2026161097,
+          "rejections": 4233,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4233,
+          "conditional_power": 0.8466,
+          "successful_study_probability": 0.8466,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 276,
+          "seed": 2026171104,
+          "rejections": 4346,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4346,
+          "conditional_power": 0.8692,
+          "successful_study_probability": 0.8692,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 240,
+          "seed": 2026191118,
+          "rejections": 8119,
+          "nrep": 10000,
+          "fitted": false,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 8119,
+          "conditional_power": 0.8119,
+          "successful_study_probability": 0.8119,
+          "denominator": "all_valid",
+          "stage": "confirmation"
+        },
+        {
+          "n": 252,
+          "seed": 2026201125,
+          "rejections": 8187,
+          "nrep": 10000,
+          "fitted": false,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 8187,
+          "conditional_power": 0.8187,
+          "successful_study_probability": 0.8187,
+          "denominator": "all_valid",
+          "stage": "confirmation"
+        }
+      ],
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.2",
+          "registry_sha256": "3751552952476fdf583a02b3f9f95d671d03586401f1a5399a890c66e24e121f",
+          "variant": "basic_test/two_proportions/z_test_corrected/proportion_difference/two_sided/simulation",
+          "record_id": "two-proportions-corrected",
+          "categories": {
+            "package_agreement": {
+              "status": "scoped_only",
+              "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "independent": {
+              "status": "outside_scope",
+              "note": "The linked case used different settings. Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            },
+            "published": {
+              "status": "pending",
+              "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "full_validation": {
+              "status": "outside_scope",
+              "note": "The linked case used different settings. The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "corrected-counts-2026-11-10": {
+              "date": "2026-11-10",
+              "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+              "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+              "files": [
+                "engine/tests/testthat/test-validation-corrected-counts.R",
+                "engine/tests/testthat/test-continuity-correction.R",
+                "docs/validation/2026-11-10-corrected-counts-summary.txt",
+                "scripts/check-corrected-counts.R"
+              ],
+              "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "8201662c9edc5fa7f2f6ff6371871b7c240a90619c4aa26ec466b25f321225b2",
+        "method": "simulation",
+        "seed": 2026111062,
+        "nrep": 5000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 204,
+            "seed": 2026111062,
+            "rejections": 3487,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3487,
+            "conditional_power": 0.6974,
+            "successful_study_probability": 0.6974,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 216,
+            "seed": 2026121069,
+            "rejections": 3764,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3764,
+            "conditional_power": 0.7528,
+            "successful_study_probability": 0.7528,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 228,
+            "seed": 2026131076,
+            "rejections": 3889,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3889,
+            "conditional_power": 0.7778,
+            "successful_study_probability": 0.7778,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 240,
+            "seed": 2026141083,
+            "rejections": 4102,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4102,
+            "conditional_power": 0.8204,
+            "successful_study_probability": 0.8204,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 252,
+            "seed": 2026151090,
+            "rejections": 4098,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4098,
+            "conditional_power": 0.8196,
+            "successful_study_probability": 0.8196,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 264,
+            "seed": 2026161097,
+            "rejections": 4233,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4233,
+            "conditional_power": 0.8466,
+            "successful_study_probability": 0.8466,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 276,
+            "seed": 2026171104,
+            "rejections": 4346,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4346,
+            "conditional_power": 0.8692,
+            "successful_study_probability": 0.8692,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 240,
+            "seed": 2026191118,
+            "rejections": 8119,
+            "nrep": 10000,
+            "fitted": false,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 8119,
+            "conditional_power": 0.8119,
+            "successful_study_probability": 0.8119,
+            "denominator": "all_valid",
+            "stage": "confirmation"
+          },
+          {
+            "n": 252,
+            "seed": 2026201125,
+            "rejections": 8187,
+            "nrep": 10000,
+            "fitted": false,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 8187,
+            "conditional_power": 0.8187,
+            "successful_study_probability": 0.8187,
+            "denominator": "all_valid",
+            "stage": "confirmation"
+          }
+        ],
+        "backend": "Spower",
+        "backend_function": "Spower::p_prop.test(correct = TRUE), repeated with all attempted studies in the power denominator",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.1", "0.7", "2.28"],
+        "started": "2026-11-11 09:55:52 GMT",
+        "run_time_seconds": 7.94868803024292
+      }
+    },
+    "table_moderate": {
+      "spec": {
+        "spec_version": "0.1",
+        "design": "basic_test",
+        "template": "chi_square_independence",
+        "variables": {
+          "X": {
+            "type": "categorical",
+            "label": "Attachment style",
+            "levels": [
+              "Group 1",
+              "Group 2"
+            ]
+          },
+          "Y": {
+            "type": "categorical",
+            "label": "Relationship status",
+            "levels": [
+              "Single",
+              "In a relationship"
+            ]
+          }
+        },
+        "population": {
+          "metric": "proportion",
+          "probabilities": [
+            [
+              0.25,
+              0.25
+            ],
+            [
+              0.175,
+              0.325
+            ]
+          ]
+        },
+        "effect_justification": {
+          "type": "prior_study",
+          "source": "Example only: replace with the study you used.",
+          "adjustment": "Differences between rows halved to allow for publication bias."
+        },
+        "target_test": {
+          "effect": "association",
+          "method": "pearson_chi_square_corrected",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "sample_size",
+          "power": 0.8
+        },
+        "options": {
+          "attrition": 0.1,
+          "nrep": 5000,
+          "seed": 2026111063
+        }
+      },
+      "n_required": {
+        "n": 381,
+        "lower": "NA",
+        "upper": "NA",
+        "power": 0.8139,
+        "power_lower": 0.801613936692432,
+        "power_upper": 1,
+        "search_estimate": {
+          "n": 362,
+          "lower": 358,
+          "upper": 366,
+          "power": 0.800647698076826,
+          "power_lower": 0.795514326872585,
+          "power_upper": 0.805702691320689
+        },
+        "verification": {
+          "type": "fresh_count_simulation",
+          "target": 0.8,
+          "nrep": 10000,
+          "max_checks": 10,
+          "error_budget": 0.01,
+          "confidence_per_check": 0.999,
+          "checks": 2,
+          "lower": 0.801613936692432
+        }
+      },
+      "independent_power": 0.8226,
+      "reference_interval": [0.817233980210415, 0.827872072550474],
+      "reference_nrep": 20000,
+      "reference_failures": 0,
+      "reference_seed": 2026111073,
+      "simulations": [
+        {
+          "n": 272,
+          "seed": 2026111063,
+          "rejections": 3338,
+          "nrep": 5000,
+          "fitted": false,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3338,
+          "conditional_power": 0.6676,
+          "successful_study_probability": 0.6676,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 288,
+          "seed": 2026121070,
+          "rejections": 3423,
+          "nrep": 5000,
+          "fitted": false,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3423,
+          "conditional_power": 0.6846,
+          "successful_study_probability": 0.6846,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 304,
+          "seed": 2026131077,
+          "rejections": 3574,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3574,
+          "conditional_power": 0.7148,
+          "successful_study_probability": 0.7148,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 320,
+          "seed": 2026141084,
+          "rejections": 3710,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3710,
+          "conditional_power": 0.742,
+          "successful_study_probability": 0.742,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 336,
+          "seed": 2026151091,
+          "rejections": 3837,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3837,
+          "conditional_power": 0.7674,
+          "successful_study_probability": 0.7674,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 352,
+          "seed": 2026161098,
+          "rejections": 3908,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3908,
+          "conditional_power": 0.7816,
+          "successful_study_probability": 0.7816,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 368,
+          "seed": 2026171105,
+          "rejections": 4059,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4059,
+          "conditional_power": 0.8118,
+          "successful_study_probability": 0.8118,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 405,
+          "seed": 2026181112,
+          "rejections": 4246,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4246,
+          "conditional_power": 0.8492,
+          "successful_study_probability": 0.8492,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 460,
+          "seed": 2026191119,
+          "rejections": 4436,
+          "nrep": 5000,
+          "fitted": false,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4436,
+          "conditional_power": 0.8872,
+          "successful_study_probability": 0.8872,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 552,
+          "seed": 2026201126,
+          "rejections": 4676,
+          "nrep": 5000,
+          "fitted": false,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4676,
+          "conditional_power": 0.9352,
+          "successful_study_probability": 0.9352,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 362,
+          "seed": 2026221140,
+          "rejections": 7951,
+          "nrep": 10000,
+          "fitted": false,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 7951,
+          "conditional_power": 0.7951,
+          "successful_study_probability": 0.7951,
+          "denominator": "all_valid",
+          "stage": "confirmation"
+        },
+        {
+          "n": 381,
+          "seed": 2026231147,
+          "rejections": 8139,
+          "nrep": 10000,
+          "fitted": false,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 8139,
+          "conditional_power": 0.8139,
+          "successful_study_probability": 0.8139,
+          "denominator": "all_valid",
+          "stage": "confirmation"
+        }
+      ],
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.2",
+          "registry_sha256": "3751552952476fdf583a02b3f9f95d671d03586401f1a5399a890c66e24e121f",
+          "variant": "basic_test/chi_square_independence/pearson_chi_square_corrected/association/two_sided/simulation",
+          "record_id": "contingency-corrected",
+          "categories": {
+            "package_agreement": {
+              "status": "scoped_only",
+              "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "independent": {
+              "status": "outside_scope",
+              "note": "The linked case used different settings. Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            },
+            "published": {
+              "status": "pending",
+              "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "full_validation": {
+              "status": "outside_scope",
+              "note": "The linked case used different settings. The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Fixed-total independent joint-multinomial 2 by 2 tables; N=340 with P=((.25,.25),(.175,.325)) and null N=120 with uniform cells. Independent multinomial simulation supplies the reference; not fixed margins. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "corrected-counts-2026-11-10": {
+              "date": "2026-11-10",
+              "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+              "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+              "files": [
+                "engine/tests/testthat/test-validation-corrected-counts.R",
+                "engine/tests/testthat/test-continuity-correction.R",
+                "docs/validation/2026-11-10-corrected-counts-summary.txt",
+                "scripts/check-corrected-counts.R"
+              ],
+              "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "8cb60af5fe03b495fc698c227d100f1194b0c5536e2e8fa8d4723ab6a7254a2f",
+        "method": "simulation",
+        "seed": 2026111063,
+        "nrep": 5000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 272,
+            "seed": 2026111063,
+            "rejections": 3338,
+            "nrep": 5000,
+            "fitted": false,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3338,
+            "conditional_power": 0.6676,
+            "successful_study_probability": 0.6676,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 288,
+            "seed": 2026121070,
+            "rejections": 3423,
+            "nrep": 5000,
+            "fitted": false,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3423,
+            "conditional_power": 0.6846,
+            "successful_study_probability": 0.6846,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 304,
+            "seed": 2026131077,
+            "rejections": 3574,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3574,
+            "conditional_power": 0.7148,
+            "successful_study_probability": 0.7148,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 320,
+            "seed": 2026141084,
+            "rejections": 3710,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3710,
+            "conditional_power": 0.742,
+            "successful_study_probability": 0.742,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 336,
+            "seed": 2026151091,
+            "rejections": 3837,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3837,
+            "conditional_power": 0.7674,
+            "successful_study_probability": 0.7674,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 352,
+            "seed": 2026161098,
+            "rejections": 3908,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3908,
+            "conditional_power": 0.7816,
+            "successful_study_probability": 0.7816,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 368,
+            "seed": 2026171105,
+            "rejections": 4059,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4059,
+            "conditional_power": 0.8118,
+            "successful_study_probability": 0.8118,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 405,
+            "seed": 2026181112,
+            "rejections": 4246,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4246,
+            "conditional_power": 0.8492,
+            "successful_study_probability": 0.8492,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 460,
+            "seed": 2026191119,
+            "rejections": 4436,
+            "nrep": 5000,
+            "fitted": false,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4436,
+            "conditional_power": 0.8872,
+            "successful_study_probability": 0.8872,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 552,
+            "seed": 2026201126,
+            "rejections": 4676,
+            "nrep": 5000,
+            "fitted": false,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4676,
+            "conditional_power": 0.9352,
+            "successful_study_probability": 0.9352,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 362,
+            "seed": 2026221140,
+            "rejections": 7951,
+            "nrep": 10000,
+            "fitted": false,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 7951,
+            "conditional_power": 0.7951,
+            "successful_study_probability": 0.7951,
+            "denominator": "all_valid",
+            "stage": "confirmation"
+          },
+          {
+            "n": 381,
+            "seed": 2026231147,
+            "rejections": 8139,
+            "nrep": 10000,
+            "fitted": false,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 8139,
+            "conditional_power": 0.8139,
+            "successful_study_probability": 0.8139,
+            "denominator": "all_valid",
+            "stage": "confirmation"
+          }
+        ],
+        "backend": "Spower",
+        "backend_function": "Spower::p_chisq.test(correct = TRUE), repeated with all attempted studies in the power denominator",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.1", "0.7", "2.28"],
+        "started": "2026-11-11 09:56:01 GMT",
+        "run_time_seconds": 4.18195295333862
+      }
+    },
+    "table_sparse": {
+      "spec": {
+        "spec_version": "0.1",
+        "design": "basic_test",
+        "template": "chi_square_independence",
+        "variables": {
+          "X": {
+            "type": "categorical",
+            "label": "Attachment style",
+            "levels": [
+              "Group 1",
+              "Group 2"
+            ]
+          },
+          "Y": {
+            "type": "categorical",
+            "label": "Relationship status",
+            "levels": [
+              "Single",
+              "In a relationship"
+            ]
+          }
+        },
+        "population": {
+          "metric": "proportion",
+          "probabilities": [
+            [
+              0.7,
+              0.1
+            ],
+            [
+              0.1,
+              0.1
+            ]
+          ]
+        },
+        "effect_justification": {
+          "type": "prior_study",
+          "source": "Example only: replace with the study you used.",
+          "adjustment": "Differences between rows halved to allow for publication bias."
+        },
+        "target_test": {
+          "effect": "association",
+          "method": "pearson_chi_square_corrected",
+          "alpha": 0.05
+        },
+        "goal": {
+          "type": "sample_size",
+          "power": 0.8
+        },
+        "options": {
+          "attrition": 0.1,
+          "nrep": 5000,
+          "seed": 2026111064
+        }
+      },
+      "n_required": {
+        "n": 82,
+        "lower": "NA",
+        "upper": "NA",
+        "power": 0.8242,
+        "power_lower": 0.81217063544671,
+        "power_upper": 1,
+        "search_estimate": {
+          "n": 78,
+          "lower": 78,
+          "upper": 80,
+          "power": 0.800321702703396,
+          "power_lower": 0.794111381552069,
+          "power_upper": 0.806417939920263
+        },
+        "verification": {
+          "type": "fresh_count_simulation",
+          "target": 0.8,
+          "nrep": 10000,
+          "max_checks": 10,
+          "error_budget": 0.01,
+          "confidence_per_check": 0.999,
+          "checks": 2,
+          "lower": 0.81217063544671
+        }
+      },
+      "independent_power": 0.8201,
+      "reference_interval": [0.814705283822937, 0.825401500138766],
+      "reference_nrep": 20000,
+      "reference_failures": 0,
+      "reference_seed": 2026111074,
+      "simulations": [
+        {
+          "n": 58,
+          "seed": 2026111064,
+          "rejections": 3317,
+          "nrep": 5000,
+          "fitted": false,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3317,
+          "conditional_power": 0.6634,
+          "successful_study_probability": 0.6634,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 62,
+          "seed": 2026121071,
+          "rejections": 3437,
+          "nrep": 5000,
+          "fitted": false,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3437,
+          "conditional_power": 0.6874,
+          "successful_study_probability": 0.6874,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 66,
+          "seed": 2026131078,
+          "rejections": 3536,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3536,
+          "conditional_power": 0.7072,
+          "successful_study_probability": 0.7072,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 70,
+          "seed": 2026141085,
+          "rejections": 3755,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3755,
+          "conditional_power": 0.751,
+          "successful_study_probability": 0.751,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 74,
+          "seed": 2026151092,
+          "rejections": 3937,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3937,
+          "conditional_power": 0.7874,
+          "successful_study_probability": 0.7874,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 78,
+          "seed": 2026161099,
+          "rejections": 3996,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 3996,
+          "conditional_power": 0.7992,
+          "successful_study_probability": 0.7992,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 82,
+          "seed": 2026171106,
+          "rejections": 4085,
+          "nrep": 5000,
+          "fitted": true,
+          "attempted": 5000,
+          "valid": 5000,
+          "failed": 0,
+          "successful": 4085,
+          "conditional_power": 0.817,
+          "successful_study_probability": 0.817,
+          "denominator": "all_valid",
+          "stage": "search"
+        },
+        {
+          "n": 78,
+          "seed": 2026191120,
+          "rejections": 7962,
+          "nrep": 10000,
+          "fitted": false,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 7962,
+          "conditional_power": 0.7962,
+          "successful_study_probability": 0.7962,
+          "denominator": "all_valid",
+          "stage": "confirmation"
+        },
+        {
+          "n": 82,
+          "seed": 2026201127,
+          "rejections": 8242,
+          "nrep": 10000,
+          "fitted": false,
+          "attempted": 10000,
+          "valid": 10000,
+          "failed": 0,
+          "successful": 8242,
+          "conditional_power": 0.8242,
+          "successful_study_probability": 0.8242,
+          "denominator": "all_valid",
+          "stage": "confirmation"
+        }
+      ],
+      "provenance": {
+        "evidence": {
+          "format_version": 1,
+          "registry_version": "2026-11-10.2",
+          "registry_sha256": "3751552952476fdf583a02b3f9f95d671d03586401f1a5399a890c66e24e121f",
+          "variant": "basic_test/chi_square_independence/pearson_chi_square_corrected/association/two_sided/simulation",
+          "record_id": "contingency-corrected",
+          "categories": {
+            "package_agreement": {
+              "status": "scoped_only",
+              "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "independent": {
+              "status": "outside_scope",
+              "note": "The linked case used different settings. Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            },
+            "published": {
+              "status": "pending",
+              "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ]
+            },
+            "full_validation": {
+              "status": "outside_scope",
+              "note": "The linked case used different settings. The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
+              "sources": [
+                "corrected-counts-2026-11-10"
+              ],
+              "when": {
+                "goal.type": "power"
+              }
+            }
+          },
+          "scope": "Fixed-total independent joint-multinomial 2 by 2 tables; N=340 with P=((.25,.25),(.175,.325)) and null N=120 with uniform cells. Independent multinomial simulation supplies the reference; not fixed margins. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+          "limits": [
+            "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
+            "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
+            "A green ordinary test suite is not evidence that skipped high-replication or untranscribed published checks passed.",
+            "No linked record means unknown coverage, not a failed test. Release-wide and statistician review remain separate."
+          ],
+          "sources": {
+            "corrected-counts-2026-11-10": {
+              "date": "2026-11-10",
+              "revision": "0.61.0 candidate working tree; SHA256 source fingerprints in the linked archive",
+              "url": "https://github.com/JoelThornton/Powerkit/blob/feat/v1-support-plan/docs/validation/2026-11-10-corrected-counts.json",
+              "files": [
+                "engine/tests/testthat/test-validation-corrected-counts.R",
+                "engine/tests/testthat/test-continuity-correction.R",
+                "docs/validation/2026-11-10-corrected-counts-summary.txt",
+                "scripts/check-corrected-counts.R"
+              ],
+              "note": "Windows R 4.5.3, Spower 0.7: corrected_counts chunk 6 PASS, 1 published-reference TODO skip. Local selected-case evidence, not release-wide validation.",
+              "replications": 10000
+            }
+          }
+        },
+        "spec_hash": "22e578f2b1fa581fc450fa6d4f0b81be3c8e348a80fc51af2ee9ae4a0d42162d",
+        "method": "simulation",
+        "seed": 2026111064,
+        "nrep": 5000,
+        "cores": 1,
+        "batch_size": "NA",
+        "simulations": [
+          {
+            "n": 58,
+            "seed": 2026111064,
+            "rejections": 3317,
+            "nrep": 5000,
+            "fitted": false,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3317,
+            "conditional_power": 0.6634,
+            "successful_study_probability": 0.6634,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 62,
+            "seed": 2026121071,
+            "rejections": 3437,
+            "nrep": 5000,
+            "fitted": false,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3437,
+            "conditional_power": 0.6874,
+            "successful_study_probability": 0.6874,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 66,
+            "seed": 2026131078,
+            "rejections": 3536,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3536,
+            "conditional_power": 0.7072,
+            "successful_study_probability": 0.7072,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 70,
+            "seed": 2026141085,
+            "rejections": 3755,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3755,
+            "conditional_power": 0.751,
+            "successful_study_probability": 0.751,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 74,
+            "seed": 2026151092,
+            "rejections": 3937,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3937,
+            "conditional_power": 0.7874,
+            "successful_study_probability": 0.7874,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 78,
+            "seed": 2026161099,
+            "rejections": 3996,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 3996,
+            "conditional_power": 0.7992,
+            "successful_study_probability": 0.7992,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 82,
+            "seed": 2026171106,
+            "rejections": 4085,
+            "nrep": 5000,
+            "fitted": true,
+            "attempted": 5000,
+            "valid": 5000,
+            "failed": 0,
+            "successful": 4085,
+            "conditional_power": 0.817,
+            "successful_study_probability": 0.817,
+            "denominator": "all_valid",
+            "stage": "search"
+          },
+          {
+            "n": 78,
+            "seed": 2026191120,
+            "rejections": 7962,
+            "nrep": 10000,
+            "fitted": false,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 7962,
+            "conditional_power": 0.7962,
+            "successful_study_probability": 0.7962,
+            "denominator": "all_valid",
+            "stage": "confirmation"
+          },
+          {
+            "n": 82,
+            "seed": 2026201127,
+            "rejections": 8242,
+            "nrep": 10000,
+            "fitted": false,
+            "attempted": 10000,
+            "valid": 10000,
+            "failed": 0,
+            "successful": 8242,
+            "conditional_power": 0.8242,
+            "successful_study_probability": 0.8242,
+            "denominator": "all_valid",
+            "stage": "confirmation"
+          }
+        ],
+        "backend": "Spower",
+        "backend_function": "Spower::p_chisq.test(correct = TRUE), repeated with all attempted studies in the power denominator",
+        "r_version": "R version 4.5.3 (2026-03-11 ucrt)",
+        "packages": ["0.61.1", "0.7", "2.28"],
+        "started": "2026-11-11 09:56:06 GMT",
+        "run_time_seconds": 6.04088115692139
+      }
+    }
+  }
+}

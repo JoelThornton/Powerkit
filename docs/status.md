@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 11 November 2026 (0.61.1 safeguards merged; publishing succeeded; live rollout unconfirmed). Where the project is
+*Last updated: 11 November 2026 (fresh count-search confirmation in review; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -70,9 +70,17 @@ preserves historical plans, matched interaction-sensitivity verification,
 four independent corrected-count fitted-N checks with honest uncertainty,
 and selected-setting evidence on input screens. The balanced-proportion
 reference found .79547 power at a nominal .8 fitted target; the smooth curve's
-interval missed that finite-reference value. The interface now explains this
-limitation and offers a fixed-N check; the engine search is not claimed fixed.
-The known scientific failures and broad release-validation requirements remain.
+interval missed that finite-reference value. The follow-on count-search fix
+uses that curve only as a proposal: fresh checks at each candidate require a
+one-sided binomial lower bound above the target, with a 1% error budget across
+at most ten checks. It increases N when needed or refuses a recommendation.
+This is a checked N under the specified model, not a minimum-N guarantee or
+protection against optimistic population assumptions. Historical saved results
+retain the old warning. Independent case checks and hosted gates are recorded
+in the count-test checklist; the ANOVA/mediation failures and broader evidence
+requirements remain open. Attrition input/results/methods now distinguish a
+recruitment buffer from missing-data modelling. Pilot guidance describes
+uncertainty and selection without asserting inflation or automatic halving.
 
 ## Where things are
 
@@ -200,8 +208,9 @@ name the correction and sampling plan; corrected tests simulate the actual
 R analysis and report failed studies. Direction/allocation/replay checks and
 the selected high-replication comparisons passed locally and on GitHub.
 Four independent returned-N checks are archived, including small target
-shortfalls and a reference outside the smooth curve interval; accurate final-N
-verification/search and published references remain open. See the
+shortfalls and a reference outside the smooth curve interval; fresh final-N
+confirmation is now in review. Published references, broader parameter coverage
+and minimum-N efficiency remain open. See the
 [count-test checklist](count-test-review.md).
 
 The wording pass merged in PR #368 corrects the equal-group Welch/Student

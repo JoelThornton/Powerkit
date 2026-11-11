@@ -225,6 +225,39 @@ broader count-test search accuracy, PROCESS reference comparison and full
 selected-variant audit remain open. These five safeguards are finite completed
 tasks, not completion of R14, R15, R16 or R17 as whole release requirements.
 
+## Planning safeguards (11 November)
+
+- [x] R21/R25/R27: explain the recruitment-only role of the attrition input,
+  retain the missing-data limitation before the answer and in all copied
+  methods, and suggest plausible loss-rate comparisons when unknown. This
+  does not add or validate a missing-data simulation.
+- [x] R24/R25: replace the claim that small pilot estimates are inherently
+  inflated with uncertainty/selection guidance; remove the suggested automatic
+  halving rule. No effect or numerical default is changed.
+
+### Discrete count-search safeguard
+
+- [x] R17/R21: use the smooth count-test search only to propose N. Require fresh
+  simulated studies at the returned integer N, with failed analyses counted
+  as unsuccessful attempts. Increase N if the lower power bound is below the
+  target, or return no recommendation when the bounded check cannot confirm it.
+- [x] Allocate a 1% Monte Carlo error budget over at most ten candidate checks
+  using one-sided Clopper-Pearson bounds from stats::binom.test(). Each check
+  uses at least 10,000 studies. This checks the specified model, not whether
+  its assumptions or planned effect are correct. It may exceed the minimum N.
+- [x] Preserve the search estimate and the complete confirmation ledger, seeds,
+  attempts and failures. Replay the checks in standalone scripts; calculate
+  recruitment from the confirmed N. Retain old warnings for historical results.
+- [x] Archive four fresh independent checks: confirmed N values 382, 252, 381
+  and 82 gave independent power .822837, .821231, .8226 and .8201. The first
+  two use finite enumeration; the last two use 20,000 new multinomial studies.
+  Their 95% lower bounds exceed .8. See count-test-review.md and the JSON archive.
+- [ ] Complete the hosted gates before merging.
+
+This addresses the known smooth-fit shortfall risk for corrected count tests;
+R14, whole-pipeline validation across other designs and broad first-release
+coverage remain open. No original published expectations or tolerances change.
+
 ## Pre-sharing safeguards and checks (10 November)
 
 These are bounded improvements for informal prototype feedback, not sign-off
