@@ -38,7 +38,7 @@ field_ui <- function(f, value, described_by = character()) {
   source_id <- paste0(id, "_default")
   help_id <- paste0(id, "_help")
   if (!is.null(f$help)) described_by <- c(help_id, described_by)
-  if (!is.null(f$default_source)) described_by <- c(described_by, source_id)
+  if (!is.null(f$default_source) && !is.null(f[["default"]]) && !identical(f$type, "select")) described_by <- c(described_by, source_id)
   current <- if (is.null(value) || length(value) == 0) "" else as.character(value)
   input <- switch(
     f$type,
@@ -85,7 +85,10 @@ field_ui <- function(f, value, described_by = character()) {
       paste0(id, "_info"), f$label,
       if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
       input_guide_ui(f),
-    if (!is.null(f$default_source)) div(id = source_id, class = "default-source", title = f$default_source,
+    # Shown only where a number is filled in to start with: a line about an
+    # empty box or a pre-selected choice describes the app, not the study
+    # (11 November 2026).
+    if (!is.null(f$default_source) && !is.null(f[["default"]]) && !identical(f$type, "select")) div(id = source_id, class = "default-source", title = f$default_source,
       # A choice's default is already shown selected, so only its source is
       # added (naming it again garbled the sentence).
       if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else if (identical(f$type, "select") && !is.null(f[["default"]])) paste0("Selected to start with: ", short_source(f$default_source), ".")
@@ -142,6 +145,12 @@ field_ui <- function(f, value, described_by = character()) {
   # chosen, instead of saying which goals need them.
   # (`shown_for_goals`: the same for an optional field, such as the reason
   # for the target power.)
+  # A field most people leave as it starts sits under one closed line
+  # (`fold`), open when it holds something other than its starting value.
+  if (!is.null(f$fold)) {
+    changed <- !blank(value) && !identical(as.character(value), as.character(f[["default"]] %||% ""))
+    field <- tags$details(class = "field-fold", open = if (changed) NA, tags$summary(f$fold), field)
+  }
   goals <- f$needed_for %||% f$shown_for_goals
   if (!is.null(goals)) {
     field <- conditionalPanel(paste(sprintf("input.f_goal == '%s'", goals), collapse = " || "), field)
@@ -272,7 +281,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     trail_ui(history, tree),
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(name_swap(paste0("Your values: ", ep$plain_name), technical_name(ep))),
-    p(class = "lead", "Everything is needed unless it says optional."),
+    p(class = "lead", "Fields marked optional can be left empty."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"),
       explanation_ui("form-validation-info", "Validation status", ep$validation$note)),
@@ -291,7 +300,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     # Saving a draft is a secondary action, so it sits after the fields
     # rather than above them.
     div(class = "form-draft-save mt-3", download_button("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary"),
-      p(class = "hint", "Not finished? Save your answers, including blanks. No calculation or effect-size justification is needed. Reopen the downloaded file from the start screen.")),
+      p(class = "hint", "Saves your answers so far to a file you can reopen from the start screen.")),
     div(id = "copy-status", class = "visually-hidden", `aria-live` = "polite"),
     uiOutput("form_copy_text"),
     uiOutput("form_result")
@@ -441,7 +450,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
       tags$summary(tags$span(class = "form-settings-title", "Settings"),
-        tags$span(class = "hint", " (each starts at the default of the tool powerkit uses; open to change)"), ": ",
+        tags$span(class = "hint", " (open to change)"), ": ",
         settings_summary_ui(settings, values)),
       part("settings")),
     if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess first (optional)"), part("guess"))

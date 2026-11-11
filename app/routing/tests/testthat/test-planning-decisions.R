@@ -1,6 +1,6 @@
 test_that("prediction and decision direction are explicitly separated", {
   group <- direction_group(forms$tool_defaults$pwr)
-  expect_match(direction_note, "still use a two-sided test", fixed = TRUE)
+  expect_match(direction_note, "predict a direction and still test two-sided", fixed = TRUE)
   expect_match(group$fields[[1]]$choices$two_sided, "directional prediction", fixed = TRUE)
   html <- as.character(planning_decision_ui(forms$forms$E2))
   for (word in c("minimum-effect", "equivalence", "assurance", "overall fit")) expect_match(html, word, fixed = TRUE)
@@ -33,8 +33,8 @@ test_that("unfamiliar numeric families have meanings, illustrations, sources and
     guide <- input_guide(f)
     expect_true(all(nzchar(unlist(guide))))
     html <- as.character(input_guide_ui(f))
-    expect_match(html, "not a recommended value", fixed = TRUE)
-    expect_match(html, "Do not replace an unknown value with 0", fixed = TRUE)
+    expect_match(html, "<dt>Example</dt>", fixed = TRUE)
+    expect_match(html, "<dt>If unknown</dt>", fixed = TRUE)
   }
 })
 

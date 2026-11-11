@@ -393,11 +393,7 @@ direction_group <- function(tool, shown_if = NULL) {
   ))
 }
 
-direction_note <- paste(
-  "A prediction and a statistical decision rule are separate choices. You can predict that training raises scores and still use a two-sided test.",
-  "Choose one-sided testing only if a rejection in the opposite direction will not count under the rule you commit to before seeing data.",
-  "A significant two-sided result can be positive or negative: interpret its estimate and interval against your prediction, rather than treating either rejection as support for the theory."
-)
+direction_note <- "Test two-sided unless a result in the opposite direction would change nothing you conclude or do. You can predict a direction and still test two-sided."
 
 # E1-E6: pwr's formula or Spower's simulation (forms.yaml,
 # basic_method_field). Where the form has a test version (`method`), the
@@ -503,7 +499,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     shown_for_goals = c("power", "sensitivity", "justified_alpha"), optional = TRUE)
   test <- list(
     goal,
-    list(id = "power", label = "Target power", help = paste("As a proportion: 0.8 means 80%. For a single significance test, this is the chance it rejects its null under the population you specify. Targets of 80%, 90% and 95% leave about 20, 10 and 5 missed effects per 100 studies under those assumptions. Higher power usually needs more participants. Choose by weighing the consequences of a miss against recruitment cost and feasibility; 80% is a common convention, not a scientific recommendation. These buttons are examples, not required targets. It is not the chance your theory is true.", if (!is.null(no_bayes)) "For a Bayes factor test, it is the chance of reaching your evidence threshold under the specified effect or design prior; failure to reach it is not necessarily evidence for the null."),
+    list(id = "power", label = "Target power", help = "The chance your test comes out significant if the effect is the size you enter (0.8 means 80%). Higher power needs more people. Weigh what a missed effect would cost against what recruiting costs; 80% is a habit, not a rule. It is not the chance your hypothesis is true.",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          # Empty on every card (8 November 2026): the target is the user's
          # choice to justify, and the result compares 80%, 90% and 95%.
@@ -525,7 +521,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(id = "error_rule", label = "How should the two errors be traded off?", type = "select", path = "goal.error_rule",
          choices = list(minimize = "Make their weighted total as small as possible", balance = "Make the weighted errors equal"),
          default = "minimize", shown_for_goals = "justified_alpha", optional = TRUE),
-    list(id = "alpha", label = "Significance level (alpha)", help = "The planned false-positive rate under the test's null assumptions, not the probability your conclusion is wrong. A smaller alpha requires stronger evidence, and usually a larger sample for the same power.", type = "number", path = "target_test.alpha", required = TRUE,
+    list(id = "alpha", label = "Significance level (alpha)", help = "The chance of a significant result when there is no effect. A lower level means fewer false positives and needs more people for the same power. It is not the chance that a significant finding is false.", type = "number", path = "target_test.alpha", required = TRUE,
          # Empty on every card (8 November 2026), as target power is: one
          # click gives the usual level, so choosing it is the user's act.
          min_exclusive = 0, max = 0.5, default = NULL, usual = tool[["alpha"]] %||% 0.05,
@@ -672,6 +668,7 @@ heterogeneity_fields <- function(template) {
     list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))
   if (identical(template, "correlation")) {
     return(list(list(id = "het_tau", label = "How much might the true correlation vary between studies? (as an SD on Fisher's z)",
+      fold = "The correlation may differ from study to study (optional)",
       type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
       default_source = "Starts empty: power for the correlation entered; choose variation only to average across differing study correlations",
       help = paste("Leave empty for power at the correlation you entered. To explore smaller correlations, use the comparison on the results screen.",
@@ -688,6 +685,7 @@ heterogeneity_fields <- function(template) {
   list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
     type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
     default_source = "Starts empty: power for the effect entered; choose variation only to average across differing study effects",
+    fold = "The effect may differ from study to study (optional)",
     help = paste("Leave empty for power at the effect you entered. To explore smaller effects, use the comparison on the results screen.",
       "Entering variation changes the question: the answer is averaged across studies with differing true effects, not power at your entered effect.",
       "It can raise or lower reported power and is not an automatic safety margin. Labs, samples, materials and procedures can differ.",

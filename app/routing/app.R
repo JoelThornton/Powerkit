@@ -105,7 +105,7 @@ app_css <- "
   .card-needs li::before { content: ''; position: absolute; left: 0.35rem; top: 0.85rem; width: 0.45rem; height: 0.45rem; background: var(--pk-blue); border-radius: 50%; }
   .card-needs-note { color: #5d6875; font-size: 0.88rem; margin: 0; }
   .card-versions { background: #f4f8fc; border: 1px solid #d6e5f2; border-radius: 10px; padding: 0.2rem 1rem 0.4rem; margin: 1rem 0; }
-  .card-versions .card-section-title { margin-top: 0.7rem; }
+  .card-versions .card-section-title { margin: 0.5rem 0; cursor: pointer; } .card-versions:not([open]) { padding-bottom: 0.2rem; }
   .card-versions ul { padding-left: 1.1rem; margin-bottom: 0.3rem; } .card-versions li p { margin-bottom: 0.4rem; }
   @media (max-width: 767px) { .card-facts { grid-template-columns: 1fr; gap: 0; border: 1px solid var(--pk-line); border-radius: 10px; overflow: hidden; }
     .card-fact { flex-direction: row; justify-content: space-between; gap: 0.75rem; border-top: 0; border-right: 0; border-radius: 0; border-bottom: 1px solid var(--pk-line); padding: 0.4rem 0.7rem; }
@@ -193,6 +193,9 @@ app_css <- "
   .form-group-box legend { float: none; width: auto; padding: 0 0.25rem; margin-bottom: 0.25rem; font-weight: 600; }
   .form-field { margin-bottom: 0.75rem; }
   .form-field .form-control, .form-field .form-select { min-height: 44px; }
+  .field-fold { margin: 0.5rem 0 0.75rem; }
+  .field-fold > summary { cursor: pointer; color: var(--pk-blue, #0a5a8c); font-weight: 500; }
+  .field-fold[open] > summary { margin-bottom: 0.5rem; }
   .default-source { font-size: 0.85rem; color: #4a4a4a; margin-top: -0.35rem; }
   .doc-menu .dropdown-toggle-split { min-width: 44px; min-height: 44px; } /* the format menu beside a document's PDF button */
   .doc-menu .dropdown-item { min-height: 44px; display: flex; align-items: center; }

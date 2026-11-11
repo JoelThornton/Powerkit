@@ -17,8 +17,8 @@ planning_decision_ui <- function(form) {
         "This plans the chance that your study reaches strong evidence (a Bayes factor past your threshold) if the effect you enter is the true one. A Bayes factor test has no significance level."))
   }
   explanation_ui("planning-goal-info", "What this planning goal means", class = "planning-decision small",
-    tags$strong("Check this answers your question. "), current,
-    tags$details(tags$summary("Different questions need different planning goals"),
+    tags$details(tags$summary("What this goal plans, and goals for other questions"),
+      p(current),
       tags$ul(tags$li("Detect a departure from the null: choose the relevant significance test and expected population effect."),
         tags$li("Establish that an effect exceeds a worthwhile threshold: choose a minimum-effect test, enter the threshold and an expected effect beyond it. T-test screens offer this test version."),
         tags$li("Establish practical similarity: choose equivalence planning and justify both bounds; do not treat a non-significant difference as similarity."),
@@ -145,7 +145,7 @@ input_guide <- function(f) {
     example = "A correlation table has 1 on its diagonal; a means table uses the outcome's units. Use only the kind of table requested here.", source = "A comparable dataset/model or the paper's full parameter table, with variable definitions and units.") else NULL
   if (is.null(guide)) guide <- additional_input_guide(f)
   if (is.null(guide)) return(NULL)
-  guide$unknown <- guide$unknown %||% "If you don't know it, keep the draft unfinished, look for a defensible source, or compare clearly labelled assumptions. Do not replace an unknown value with 0 or a conventional 'small/medium/large' number just to continue. A default is not evidence for your population."
+  guide$unknown <- guide$unknown %||% "Look for the same quantity in a comparable study. If you find a range, run the plan at both ends and report both."
   guide
 }
 
@@ -231,6 +231,6 @@ input_guide_ui <- function(f) {
   guide <- input_guide(f)
   if (is.null(guide)) return(NULL)
   tags$details(class = "input-guide small", tags$summary("What this means and where to find it", `aria-label` = paste("Help for", f$label)),
-    tags$dl(tags$dt("Meaning"), tags$dd(guide$meaning), tags$dt("Illustration, not a recommended value"), tags$dd(guide$example),
+    tags$dl(tags$dt("Meaning"), tags$dd(guide$meaning), tags$dt("Example"), tags$dd(guide$example),
       tags$dt("Where to look"), tags$dd(guide$source), tags$dt("If unknown"), tags$dd(guide$unknown)))
 }

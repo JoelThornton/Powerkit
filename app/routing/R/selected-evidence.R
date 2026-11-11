@@ -18,9 +18,8 @@ selected_warning_spec <- function(form, fields, values) {
 selected_evidence_ui <- function(forms, id, fields, values) {
   warning_spec <- selected_warning_spec(forms$forms[[id]], fields, values)
   warnings <- planning_warnings_ui(warning_spec)
-  pending <- explanation_ui("selected-evidence-info", "Evidence for these settings",
-    p(class = "selected-evidence small",
-    "Evidence depends on your test version and assumptions. Complete the required answers to see which recorded checks cover these settings."))
+  # Nothing is said about checks until the answers name a calculation.
+  pending <- NULL
   spec <- tryCatch({
     if (length(form_problems(fields, values))) NULL else {
       candidate <- build_spec(forms, id, fields, values)

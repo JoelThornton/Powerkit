@@ -26,6 +26,10 @@ non-inferiority validation chunk were run; no full validation run is
 claimed. Open from the same review: minimum-effect tests still use pwrss's
 margin, and the rounded-group-size search is queued.
 
+The input screens were shortened (11 November): the two-group t-test
+screen shows about 670 words at first sight, from about 1,200, with the
+spread ratio and between-study variation folded. Wording only.
+
 The start screen was laid out again before colleagues try the app
 (11 November): a title and one-sentence introduction, the three routes
 with more room, and saved projects, Bayes mode and the local download in

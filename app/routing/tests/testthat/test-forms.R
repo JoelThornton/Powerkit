@@ -1025,10 +1025,11 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   # The test-version box asks a question, not the card's list of tests.
   expect_match(html, "Which test you&#39;ll run|Which test you'll run")
   expect_no_match(html, "<legend class=\"h6\">Student&#39;s or Welch&#39;s", fixed = TRUE)
-  # A pre-selected choice's note says what it is about.
-  expect_match(html, "Selected to start with: Welch&#39;s t-test, as Delacre|Selected to start with: Welch's t-test, as Delacre")
-  # The direction, which has no default, keeps its own note.
-  expect_match(html, "Not filled in for you.", fixed = TRUE)
+  # A pre-selected choice and an empty box carry no line about how they
+  # start (11 November 2026): only a number filled in to start with does.
+  expect_no_match(html, "Selected to start with:", fixed = TRUE)
+  expect_no_match(html, "Not filled in for you.", fixed = TRUE)
+  expect_no_match(html, "Empty on every card", fixed = TRUE)
   # No developer wording in a default's note.
   for (ep in names(forms$forms)) for (f in form_fields(form_groups(forms, ep))) if (!is.null(f$default_source))
     expect_no_match(short_source(f$default_source), "design spec|decided on", label = paste(ep, f$id))

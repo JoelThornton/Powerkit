@@ -912,7 +912,7 @@ validation_scope_note <- "Checks apply to the cases described in this record, no
 card_facts_ui <- function(tree, ep_id, ep) {
   how <- unname(tree$calculate_how[ep_id])
   if (!length(how) || is.na(how) || !ep$status %in% c("runs_validated", "runs_validation_in_progress")) return(NULL)
-  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded; see \"More about this analysis\" below" else "Validation in progress"
+  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded (details below)" else "Validation in progress"
   fact <- function(label, value, cls = NULL) div(class = paste("card-fact", cls), tags$span(class = "card-fact-label", label), tags$span(class = "card-fact-value", value))
   div(class = "card-facts",
     fact("Calculates", card_how_words[[how]], paste0("how-", how)),
@@ -926,7 +926,9 @@ card_versions_ui <- function(tree, ep) {
   items <- list(rank_test_ui(tree, ep), if (isTRUE(ep$bayes_test)) p(class = "bayes-test-note", tree$bayes_test_text))
   items <- Filter(Negate(is.null), items)
   if (!length(items)) return(NULL)
-  div(class = "card-versions", tags$h3(class = "card-section-title", "Other versions, chosen on the next screen"),
+  # Folded (11 November 2026): the card confirms the analysis; the versions
+  # are chosen, and explained, on the next screen.
+  tags$details(class = "card-versions", tags$summary(class = "card-section-title", "Other versions, chosen on the next screen"),
     tags$ul(lapply(items, tags$li)))
 }
 
