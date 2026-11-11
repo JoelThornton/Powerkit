@@ -135,7 +135,7 @@ project_file_name <- function(endpoint) {
 open_project_ui <- function() {
   div(
     class = "open-project mt-4",
-    fileInput("open_project", "Or open a saved project, plan or unfinished draft", accept = c(".json", "application/json"),
+    fileInput("open_project", "Open a saved project, plan or unfinished draft", accept = c(".json", "application/json"),
       buttonLabel = "Choose file…", placeholder = "a .powerkit.json file"),
     uiOutput("open_project_message")
   )
@@ -152,7 +152,7 @@ open_project_ui <- function() {
 check_project_ui <- function() {
   div(
     class = "check-project mt-2",
-    fileInput("check_project", "Or check a plan someone shared with you", accept = c(".json", "application/json"),
+    fileInput("check_project", "Check a plan someone shared with you", accept = c(".json", "application/json"),
       buttonLabel = "Choose file…", placeholder = "a .powerkit.json file"),
     p(class = "small", "For supervisors, reviewers and colleagues: see what the plan assumes and what to ask about it, without changing it."),
     uiOutput("check_project_message")

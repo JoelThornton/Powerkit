@@ -5,7 +5,7 @@
 The input screen's **Save unfinished draft** downloads a `.powerkit.json`
 file containing partial editable answers and a saved time. No calculation
 or effect-size justification is required. From the start screen, open it
-with **Or open a saved project or unfinished draft**. Blanks are retained;
+under **Open a saved or shared project**. Blanks are retained;
 the app clears any previous calculation and identifies the reopened work
 as an unvalidated draft. Check the answers before calculating or saving a
 validated project. A draft is not evidence a reviewer can check as a result.

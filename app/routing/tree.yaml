@@ -275,6 +275,8 @@ start_questions:
 routes:
   doc_id: S0
   question: "How do you want to start?"
+  title: "Plan the sample size for your study"
+  lead: "Describe your design and enter what you know about the effect. Powerkit gives the sample size, power or precision, with a methods paragraph and an R script that reproduces the answer."
   screening_start: s1
   screening_note: "First, four questions check that your design is one powerkit can advise on. No test is suggested until then."
   # "I know my analysis" can skip the screening and see every analysis. The
@@ -288,12 +290,11 @@ routes:
     - id: known
       label: "I know my analysis"
       help: "Search a list of every analysis."
-      tag: "Quickest"
       after_screening: list
     - id: choose
       label: "Help me choose"
       help: "A few questions about your study find it for you."
-      tag: "Good first choice"
+      tag: "Not sure? Start here"
       after_screening: q1
     - id: guided
       label: "Plan my whole study"

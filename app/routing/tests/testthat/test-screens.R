@@ -599,7 +599,7 @@ test_that("turning explanations off swaps in the technical names and hides the h
   expect_match(list_html, "class=\"name-plain-alt\"", fixed = TRUE)
   toggle <- as.character(terms_toggle_ui())
   expect_match(toggle, "id=\"explanations_on\"", fixed = TRUE)
-  expect_match(toggle, "Explanations", fixed = TRUE)
+  expect_match(toggle, "Show explanations", fixed = TRUE)
   expect_match(toggle, "checked", fixed = TRUE)
   # The setting is only remembered in the viewer's browser, and every
   # storage call is guarded.
@@ -672,10 +672,14 @@ test_that("a question says which number it is, sets 'None of these fit' apart, a
   expect_match(trail, htmltools::htmlEscape(tree$nodes[[start_node(tree)]]$text), fixed = TRUE)
 })
 
-test_that("the start screen stays short: three ways in, a tag on two, and recently opened only when there are some", {
+test_that("the start screen stays short: three ways in, one tag for newcomers, and recently opened only when there are some", {
   html <- as.character(start_ui(tree))
   expect_equal(lengths(regmatches(html, gregexpr('class="route-icon"', html, fixed = TRUE))), 3L)
-  expect_match(html, "Good first choice", fixed = TRUE)
+  expect_equal(lengths(regmatches(html, gregexpr('class="route-tag"', html, fixed = TRUE))), 1L)
+  # What powerkit is comes before the question, and the question is not the page's main heading.
+  expect_match(html, htmltools::htmlEscape(tree$routes$title), fixed = TRUE)
+  expect_match(html, htmltools::htmlEscape(tree$routes$lead), fixed = TRUE)
+  expect_lte(nchar(tree$routes$lead), 200)
   expect_match(html, '<div id="pk-recent" class="start-recent" hidden', fixed = TRUE)
   # Each route's help is one short line.
   for (r in tree$routes$options) expect_lte(nchar(r$help), 60)
