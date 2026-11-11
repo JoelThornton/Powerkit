@@ -125,7 +125,7 @@ test_that("the progress bar is an estimate from the usual run time, and says so"
   expect_identical(progress_text(12.4, 80), "Running for 12 seconds. This usually takes about 80 seconds.")
   expect_match(progress_text(90, 80), "taking longer than the usual 80 seconds", fixed = TRUE)
   html <- as.character(calculating_background_ui(80))
-  expect_match(html, "Estimated progress", fixed = TRUE)
+  expect_match(html, "Progress, estimated from the usual run time", fixed = TRUE)
   expect_match(html, "<progress", fixed = TRUE)
   expect_match(html, "calc_cancel", fixed = TRUE)
   expect_match(as.character(cancelled_ui()), "Calculation cancelled", fixed = TRUE)
