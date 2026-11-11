@@ -231,9 +231,10 @@ site_address <- "https://joelthornton.github.io/Powerkit"
 # The stored value keeps its earlier meaning: '1' means explanations off.
 terms_toggle_ui <- function() {
   tags$label(class = "terms-toggle form-switch", `for` = "explanations_on",
+    title = "Turn off to fold the help text under each question behind an info button",
     tags$input(type = "checkbox", role = "switch", id = "explanations_on", class = "form-check-input",
       checked = NA, onchange = "pkSetTermsMode(!this.checked)"),
-    "Explanations")
+    "Show explanations")
 }
 
 terms_js <- "
@@ -445,11 +446,17 @@ route_icon <- function(id) {
     tags$path(d = path, fill = "currentColor"))
 }
 
-start_ui <- function(tree, start = list()) {
+start_ui <- function(tree, start = list(), bayes_toggle = NULL, saved_projects = NULL) {
   routes <- tree$routes$options
   if (!guided_route_enabled(tree)) routes <- Filter(function(r) r$id != "guided", routes)
+  local <- isTRUE(getOption("powerkit.local"))
   tagList(
-    h2(tree$routes$question),
+    # What powerkit is, in two lines, before it asks anything
+    # (11 November 2026): a visitor arriving from a link otherwise meets a
+    # question with no context.
+    h2(class = "start-title", tree$routes$title),
+    p(class = "start-lead", tree$routes$lead),
+    h3(class = "start-how", tree$routes$question),
     div(class = "choices route-choices", lapply(routes, function(r) tags$button(
       type = "button", class = "btn btn-outline-primary choice",
       onclick = sprintf("Shiny.setInputValue('pick', 'route:%s', {priority: 'event'})", r$id),
@@ -461,15 +468,21 @@ start_ui <- function(tree, start = list()) {
     # on a first visit, so a newcomer sees only the three ways to start.
     div(id = "pk-recent", class = "start-recent", hidden = NA,
       `data-technical-names` = as.character(jsonlite::toJSON(lapply(tree$endpoints, technical_name), auto_unbox = TRUE))),
-    div(class = "local-download small mt-3",
-      if (isTRUE(getOption("powerkit.local"))) {
-        tagList(tags$strong("Running on your computer. "),
-          "Calculations use your processor. Updates are optional and do not change an open study. ")
-      } else {
-        "Long calculation? You can run the same app on your own computer. "
-      },
-      tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
-        "Download and update instructions")),
+    # Everything that is not one of the three ways to start is one quiet
+    # row under a divider, a short line each: stacked under the routes in
+    # their own styles they had crowded the screen.
+    div(class = "start-more",
+      if (!is.null(saved_projects)) tags$button(type = "button", class = "btn btn-link start-more-link", id = "saved_projects_toggle",
+        `aria-expanded` = "false", `aria-controls` = "saved_projects_panel",
+        onclick = paste0("var p = document.getElementById('saved_projects_panel'); var open = p.hidden; p.hidden = !open; ",
+          "this.setAttribute('aria-expanded', open ? 'true' : 'false'); if (open) p.scrollIntoView({block: 'nearest'});"),
+        "Open a saved or shared project"),
+      bayes_toggle,
+      span(class = "local-download",
+        if (local) tagList(tags$strong("Running on your computer."), " "),
+        tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
+          if (local) "Download and update instructions" else "Run powerkit on your own computer"))),
+    if (!is.null(saved_projects)) div(id = "saved_projects_panel", class = "saved-projects", hidden = NA, saved_projects),
     placeholders_at(tree, "start")
   )
 }
