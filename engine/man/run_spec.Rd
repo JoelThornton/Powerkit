@@ -20,7 +20,12 @@ sensitivity goal;
 simulation; all equal for exact results), or \code{NA} unless the goal is
 \code{sample_size}. For simulation it also has \code{power}, \code{power_lower} and
 \code{power_upper}: the power the fitted curve gives at \code{n}, with its 95\%
-interval;
+interval. For corrected count-test searches, \code{n} is instead a freshly
+checked sample size (not necessarily the minimum), \code{lower}/\code{upper}
+are \code{NA}, and \code{power} is the fresh estimate with a selection-adjusted
+one-sided lower bound in \code{power_lower} (\code{power_upper} is 1).
+\code{search_estimate} retains the original curve estimate; \code{verification}
+records the check count, replications, confidence and error budget;
 \item \code{sensitivity}: \code{NA} unless the goal is \code{sensitivity}; otherwise a list
 with the smallest detectable \code{effect} (with an \code{effect_description})
 and the \code{power} reached there. For the ANOVAs it also has the \code{scale}
@@ -91,7 +96,8 @@ result, a data frame with one row per simulated n: its \code{seed},
 whether the curve for the required n was fitted to it. It also records
 attempted, valid, failed and successful counts, conditional power
 among valid decisions, successful-study probability per attempt, and
-the denominator convention; \code{NA} for an exact
+the denominator convention; corrected count searches also identify
+search versus fresh confirmation rows with \code{stage}. \code{NA} for an exact
 result), backend and backend function, R and package versions, and
 run time. A simulated result is reproduced by the same seed,
 replications and batch size; for a backend run in batches, the

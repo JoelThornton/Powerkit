@@ -34,7 +34,7 @@ The corrections below merged in [PR #367](https://github.com/JoelThornton/Powerk
 
 ### Scientific work still required
 
-- [ ] R14. Resolve the two repeated validation failures. The inspected ANOVA job gives simulated power .2130 versus .2313 by the exact-data route; the binary-X job gives a null rejection rate .077 in 1,000 simulations, above its .0707 tolerance. Earlier recorded rates differ. The 10 November independent GG investigation now records .21805 in 20,000, same-data afex agreement and .21960 with fixed epsilon; estimating epsilon alone does not explain .2313. See validation-log.md. Both issues remain unresolved. Establish the cause on a frozen version before changing a method or a threshold; do not tune seeds or expected values to obtain a pass.
+- [ ] R14. Resolve the two repeated validation failures. The inspected ANOVA job gives simulated power .2130 versus .2313 by the exact-data route; the binary-X job gives a null rejection rate .077 in 1,000 simulations, above its .0707 tolerance. Earlier recorded rates differ. The 10 November independent GG investigation now records .21805 in 20,000, same-data afex agreement and .21960 with fixed epsilon; estimating epsilon alone does not explain .2313. See validation-log.md. The 11 November nightly at fbbd237 again gives GG .2130 versus .2313 and binary-X null .0750 versus the unchanged .0707 limit (run 42968983200). Both issues remain unresolved. Establish the cause on a frozen version before changing a method or a threshold; do not tune seeds or expected values to obtain a pass.
 - [ ] R15. Complete a release-specific, variant-specific evidence matrix and publish the underlying results. The existing registry is now dated 10 November and links scoped corrected-count and two OLS/bootstrap null checks; the queue refers to extending it. Most new routes still need linked, release-specific evidence. Each default needs appropriate evidence; unknown remains unknown.
 - [ ] R16. Replace a single green-card interpretation with evidence for the selected test, population assumptions and analysis. A fixed Type I tolerance of .04-.06 at alpha .05 is not sufficient for every exact, discrete, conservative, equivalence or Bayesian procedure. Predefine method-appropriate acceptance criteria and Monte Carlo uncertainty; retain historical definitions as history.
 - [ ] R17. Validate complete analysis pipelines, including failures. Compare planned versus achieved power at the returned integer N using fresh random draws; assess null behaviour, interval coverage, bias and convergence. Counts of successful runs alone can conceal selection. Use [ADEMP](https://doi.org/10.1002/sim.8086): aims, data generation, estimands, methods and performance measures.
@@ -187,11 +187,12 @@ not select a different analysis. Desktop and narrow-screen browser checks
 cover headings, repeated subtitles, persistent preference, legacy recent
 entries, visible prototype status and unchanged selected test.
 
-R34 partial verification: the public landing page and download page returned
-HTTP 200 in direct HTTPS checks on 10 November; the sitemap endpoint also
-returned 200. Some requests reset during TLS negotiation, so this is not
-a reliability benchmark. The source sitemap includes download.html; live
-body verification, search indexing and the offline/update checks remain open.
+R34 partial verification: earlier direct HTTPS checks returned 200 for the
+landing/download pages and sitemap, with some TLS resets. Browser checks on
+10 November confirmed the public download page and live sitemap body, which
+lists the home, guide and download pages. This is not a reliability benchmark
+or evidence of Google indexing. Search indexing and offline/update checks
+remain open.
 
 Local verification for compact labels/R22: label and copied-method checks,
 screen rendering, Labs/map data, documentation alignment, generated
@@ -224,6 +225,55 @@ broader count-test search accuracy, PROCESS reference comparison and full
 selected-variant audit remain open. These five safeguards are finite completed
 tasks, not completion of R14, R15, R16 or R17 as whole release requirements.
 
+## Compact explanations and informed power choice (11 November)
+
+- [x] R24/R27: move routine field/group/default guidance and basic result
+  interpretation behind keyboard/touch info controls when explanations are
+  off; show them inline when on. Preserve values and error descriptions.
+- [x] Keep selected methods, sample units, errors and known scientific
+  limitations visible. Add the captured method name beside the result.
+- [x] Replace the solitary 80% shortcut with equally styled 80/90/95% examples.
+  Leave the target blank and editable. Explain missed effects, recruitment
+  costs and feasibility; label 80% as a convention rather than a recommendation.
+- [x] Check desktop/phone help toggles, keyboard interaction, calculation,
+  warnings and reflow. Automated accessibility checks are bounded evidence,
+  not a human screen-reader session or full wording/usability sign-off.
+
+## Planning safeguards (11 November)
+
+- [x] R21/R25/R27: explain the recruitment-only role of the attrition input,
+  retain the missing-data limitation before the answer and in all copied
+  methods, and suggest plausible loss-rate comparisons when unknown. This
+  does not add or validate a missing-data simulation.
+- [x] R24/R25: replace the claim that small pilot estimates are inherently
+  inflated with uncertainty/selection guidance; remove the suggested automatic
+  halving rule. No effect or numerical default is changed.
+
+### Discrete count-search safeguard
+
+- [x] R17/R21: use the smooth count-test search only to propose N. Require fresh
+  simulated studies at the returned integer N, with failed analyses counted
+  as unsuccessful attempts. Increase N if the lower power bound is below the
+  target, or return no recommendation when the bounded check cannot confirm it.
+- [x] Allocate a 1% Monte Carlo error budget over at most ten candidate checks
+  using one-sided Clopper-Pearson bounds from stats::binom.test(). Each check
+  uses at least 10,000 studies. This checks the specified model, not whether
+  its assumptions or planned effect are correct. It may exceed the minimum N.
+- [x] Preserve the search estimate and the complete confirmation ledger, seeds,
+  attempts and failures. Replay the checks in standalone scripts; calculate
+  recruitment from the confirmed N. Retain old warnings for historical results.
+- [x] Archive four fresh independent checks: confirmed N values 382, 252, 381
+  and 82 gave independent power .822837, .821231, .8226 and .8201. The first
+  two use finite enumeration; the last two use 20,000 new multinomial studies.
+  Their 95% lower bounds exceed .8. See count-test-review.md and the JSON archive.
+- [x] Run focused engine/app and documentation checks, including standalone
+  replay, recruitment and all three copied writeups. Required hosted gates
+  must pass before merge; PR #372 records the current outcomes.
+
+This addresses the known smooth-fit shortfall risk for corrected count tests;
+R14, whole-pipeline validation across other designs and broad first-release
+coverage remain open. No original published expectations or tolerances change.
+
 ## Pre-sharing safeguards and checks (10 November)
 
 These are bounded improvements for informal prototype feedback, not sign-off
@@ -254,9 +304,15 @@ on R14-R36 or a recommendation to rely solely on Powerkit for study planning.
   action buttons follow the fields. Verify regression's existing prerequisite
   prompt and the new early-warning/power-choice/paired-correlation journeys.
   Formal researcher sessions and human assistive-technology testing remain open.
-- [ ] R34/R35: merge the checked source, publish the final revision and confirm
-  the live version and key safeguards. Before this batch, the live page and
-  published branch still showed 0.60.0.
+- [x] R34/R35 subset: merge the checked source and complete the publishing run.
+  PRs #369/#370 merged; run 42927530578 succeeded. Deployment commit
+  300b53d967df preserves checked main bdbdfb6cc7e3 plus the pinned manifest.
+- [x] Check the public download page and live sitemap body in a browser;
+  the sitemap lists the home, guide and download pages.
+- [ ] Confirm the new live version and safeguards after the normal hosting
+  rollout. The initial observed page was 0.60.0; successful GitHub publication
+  alone is not claimed as a live-version check. No additional forced rebuild
+  is needed for this handoff.
 
 No protected published expectations or validation tolerances were changed.
 The two recurring scientific failures and the discrete-count fitted-N
@@ -274,4 +330,7 @@ commit for a normal fast-forward push. It leaves the build checkout and
 normal index untouched. Regression checks exercise tracked/ignored manifests,
 successive publications, staged/untracked build edits, stale main and wrong
 engine pins. The original traceback hid Git's diagnostic; command failures
-now retain stderr. Successful live verification is still a separate gate.
+now retain stderr. The corrected run 42927530578 completed successfully on
+11 November: deployment commit 300b53d967df has checked main bdbdfb6cc7e3
+and the previous deployment as parents. Live-version confirmation remains a
+separate check after the normal hosting rollout.

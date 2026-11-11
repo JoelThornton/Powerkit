@@ -44,14 +44,28 @@ corrected_count_verification_values <- function(calc, values) {
 }
 corrected_count_search_note <- function(spec, result) {
   if (!is_corrected_count_test(spec) || !identical(result$goal_type, "sample_size")) return(NULL)
+  checked <- result$n_required$verification
+  if (!is.null(checked)) return(paste(
+    sprintf("This sample size passed a fresh simulation check: estimated power %.1f%%, with a one-sided lower bound of %.1f%%.",
+      100 * result$n_required$power, 100 * checked$lower),
+    sprintf("Each check used %s new simulated studies; the 99%% Monte Carlo protection accounts for up to ten candidate checks.",
+      format(checked$nrep, big.mark = ",")),
+    "This may recommend more participants than the minimum. It checks only the population and analysis you specified; it does not protect against an optimistic effect size or wrong assumptions."))
   paste("This sample size is estimated from a smooth curve fitted to simulated studies.",
     "Corrected count tests are discrete: actual power at the returned integer N can fall below the target, and the fitted interval does not cover every approximation error.",
     "Check power at the proposed N with more simulations; compare nearby valid sample sizes before choosing your final sample.")
 }
 
+attrition_planning_note <- function(spec) {
+  if (!isTRUE((spec$options$attrition %||% 0) > 0)) return(NULL)
+  paste("The attrition percentage only adds a recruitment buffer for the analysed sample.",
+    "It does not model which observations are missing or how they will be analysed.",
+    "Missingness can change power or bias results; this buffer alone does not establish that your planned missing-data analysis reaches the target.")
+}
+
 # These limitations stay visible with explanations off and precede the answer.
 planning_warning_notes <- function(spec, result = NULL) unique(c(
-  gg_planning_note(spec), binary_x_modmed_note(spec),
+  gg_planning_note(spec), binary_x_modmed_note(spec), attrition_planning_note(spec),
   if (!is.null(result)) corrected_count_search_note(spec, result)
 ))
 planning_warnings_ui <- function(spec, result = NULL) {

@@ -16,6 +16,9 @@
 #'   simulated and fits the same probit curve to find the required n and
 #'   its 95% interval (powerkit's quicker first pass, which only chose
 #'   those sizes, is not repeated);
+#' * corrected count-test searches also replay fresh confirmation studies
+#'   and the selection-adjusted one-sided binomial lower bound; their
+#'   returned sample size is checked, not necessarily the minimum;
 #' * exact 2x2 results use `ANOVA_exact()` under the run's seed;
 #' * exact basic-test results call pwr's formula, or for two proportions
 #'   `power.prop.test()` (equal groups) or pwrss (unequal groups) (for a sample-size goal, at
@@ -755,7 +758,8 @@ goal_description <- function(spec) {
     goal$type,
     power = sprintf("power at a total sample size of %s, alpha = %s", goal$n, spec$target_test$alpha),
     sample_size = sprintf(
-      "the smallest total sample size with power of at least %s, alpha = %s", goal$power, spec$target_test$alpha
+      if (continuity_corrected(spec)) "a checked total sample size for target power %s, alpha = %s (not necessarily the minimum)"
+      else "the smallest total sample size with power of at least %s, alpha = %s", goal$power, spec$target_test$alpha
     ),
     sensitivity = sprintf(
       "the smallest effect (of the specified pattern) with power %s at a total sample size of %s, alpha = %s",

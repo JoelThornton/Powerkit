@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 10 November 2026 (0.61.1 pre-sharing safeguards; deployment confirmation outstanding). Where the project is
+*Last updated: 11 November 2026 (count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -11,20 +11,22 @@ powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
 
-The [release-readiness review](release-readiness-review.md) source fixes
-merged through PR #369 (0.61.1, main 7eb7392), with required gates and
-Windows/macOS launcher checks passing. CRAN-release compatibility passed;
-CRAN-development dependency setup remains in progress. The safeguards move known limitations ahead of
-calculation and results, clarify power choices and missing paired correlations,
-and exercise eleven common analysis translations. Desktop/mobile keyboard
-and automated accessibility checks pass for the exercised journeys, with a
-phone action-bar obstruction corrected. This does not resolve the
-scientific failures. The published branch and observed live page still showed
-0.60.0 at the start of this batch. The first manual publication built its
-manifest but failed while switching the deployment checkout (run 42924708537).
-The publisher now prepares an exact checked snapshot with an isolated index;
-local history/source/dirty-workspace regression checks pass. Final publication
-verification remains pending.
+The [release-readiness review](release-readiness-review.md) safeguards merged
+in PR #369 (0.61.1): early analysis limitations, clearer power/paired-input help,
+eleven common analysis-translation checks and a phone action-bar correction.
+Required gates, full app/browser checks, clean Windows/macOS first/repeat
+starts and CRAN-release compatibility passed. Scientific validation gaps
+remain open; these checks do not establish broad mathematical validation.
+
+The publishing correction merged in PR #370. Its isolated-index publisher
+preserves checked source, prior deployment ancestry and temporary build files.
+[Publication run 42927530578](https://github.com/JoelThornton/Powerkit/actions/runs/42927530578)
+succeeded: deployment commit 300b53d967df contains checked main bdbdfb6cc7e3
+plus the pinned manifest. The host's normal rollout is left to complete;
+a new live version is not claimed verified. The public download page and
+sitemap body were checked in a browser, including the download-page entry.
+CRAN-development job outcomes were still unrecorded at the 11 November
+00:03 UTC handoff; CRAN readiness and first-release evidence remain open.
 
 The [first-release support plan](v1-support-plan.md) sets a broad coverage
 target, a representative benchmark and complex-design audit briefs. Its
@@ -68,9 +70,26 @@ preserves historical plans, matched interaction-sensitivity verification,
 four independent corrected-count fitted-N checks with honest uncertainty,
 and selected-setting evidence on input screens. The balanced-proportion
 reference found .79547 power at a nominal .8 fitted target; the smooth curve's
-interval missed that finite-reference value. The interface now explains this
-limitation and offers a fixed-N check; the engine search is not claimed fixed.
-The known scientific failures and broad release-validation requirements remain.
+interval missed that finite-reference value. The count-search fix merged in PR #372 and
+uses that curve only as a proposal: fresh checks at each candidate require a
+one-sided binomial lower bound above the target, with a 1% error budget across
+at most ten checks. It increases N when needed or refuses a recommendation.
+This is a checked N under the specified model, not a minimum-N guarantee or
+protection against optimistic population assumptions. Historical saved results
+retain the old warning. Independent case checks and hosted gates are recorded
+in the count-test checklist; the ANOVA/mediation failures and broader evidence
+requirements remain open. Attrition input/results/methods now distinguish a
+recruitment buffer from missing-data modelling. Pilot guidance describes
+uncertainty and selection without asserting inflation or automatic halving.
+
+The compact-guidance follow-up makes explanations-off fold routine field
+help, defaults and group notes behind native info controls, with concise
+common labels. Selected methods, units, errors and scientific limitations
+stay visible. Explanations-on keeps guidance inline. Target power remains
+blank, with equally styled 80/90/95% examples and consequence/cost guidance
+rather than a preferred 80% shortcut. This changes presentation, not methods,
+effect values or numerical defaults. Desktop/phone interaction, keyboard
+and automated accessibility checks passed locally for the exercised routes.
 
 ## Where things are
 
@@ -198,8 +217,9 @@ name the correction and sampling plan; corrected tests simulate the actual
 R analysis and report failed studies. Direction/allocation/replay checks and
 the selected high-replication comparisons passed locally and on GitHub.
 Four independent returned-N checks are archived, including small target
-shortfalls and a reference outside the smooth curve interval; accurate final-N
-verification/search and published references remain open. See the
+shortfalls and a reference outside the smooth curve interval; fresh final-N
+confirmation is implemented in PR #372. Published references, broader parameter coverage
+and minimum-N efficiency remain open. See the
 [count-test checklist](count-test-review.md).
 
 The wording pass merged in PR #368 corrects the equal-group Welch/Student
@@ -240,12 +260,16 @@ tests dealt to parts by their recorded times so each part ends within
 GitHub's six hours, and one list at the end of each run of the tests that
 need attention. The recorded full run of 8 November took 4 hours 13
 minutes (389 pass, 2 fail, 110 skipped; skips include partitioning and
-published placeholders). The last completed nightly inspected,
+published placeholders). An earlier inspected nightly,
 [9 November run 42570428222](https://github.com/JoelThornton/Powerkit/actions/runs/42570428222),
 also failed the ANOVA and binary-X checks (the latter .077 in 1,000).
 The [10 November run 42772650889](https://github.com/JoelThornton/Powerkit/actions/runs/42772650889)
 also completed with failures in the ANOVA and binary-X chunks; this does not
-resolve either scientific issue. The two recurring failures concern the
+resolve either scientific issue. The latest completed nightly inspected,
+[11 November run 42968983200](https://github.com/JoelThornton/Powerkit/actions/runs/42968983200),
+at fbbd237 (0.61.1), again failed only these two partitions: GG .2130
+versus .2313 and binary-X ML/Monte-Carlo null .0750 versus the unchanged
+.0707 limit. The two recurring failures concern the
 mixed-design Greenhouse-Geisser check: a new independent 20,000-study
 reference gives .21805 (MCSE .00292), with same-data p-values matching afex
 to 1.9e-15. Fixing epsilon gives .2196, so that alone does not explain
@@ -288,7 +312,7 @@ tagged and published as a GitHub pre-release
 the actual deployment; Search Console registration alone does not prove
 that every page is indexed.
 
-**CRAN (10 November 2026):** every package the engine uses is on CRAN,
+**CRAN (11 November 2026):** every package the engine uses is on CRAN,
 and the engine has been prepared for submission: the backends only some
 designs use are in Suggests (25 non-base Imports remain, and installing
 the engine alone brings 228 locked packages rather than 300,
@@ -296,9 +320,11 @@ the engine alone brings 228 locked packages rather than 300,
 backend is missing says which package to install, every exported
 function has an example, and on CRAN a quick set of 23 test files runs
 (`engine/tests/testthat.R`). The online app still installs every
-backend (`app/routing/optional-packages.R`). The v0.60.0 Linux current-dependency quick CRAN suite passed on R release
-and devel with NOT_CRAN=false; this is compatibility evidence, not
-scientific validation or CRAN acceptance. Other platforms, optional-backend
+backend (`app/routing/optional-packages.R`). The v0.60.0 Linux current-dependency
+quick CRAN suite passed on R release and devel with NOT_CRAN=false.
+The 0.61.1 release job also passed; the development-job outcome was not yet
+recorded at the handoff. This is compatibility evidence, not scientific
+validation or CRAN acceptance. Other platforms, optional-backend
 coverage and submission checks remain. Submitting is a queue item
 in [`next.md`](next.md).
 

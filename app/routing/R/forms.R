@@ -257,7 +257,9 @@ simulation_accuracy_group <- function(forms, ep_id) {
     note_more = paste(
     "The margins below are approximate pointwise 95% margins for the random error in a probability, assuming every simulated study gives a valid decision.",
     "Failures can reduce the effective number of decisions; read the actual interval and failure counts in the result.",
-    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error."), fields = list(
+    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error.",
+    if (any(choices %in% c("z_test_corrected", "pearson_chi_square_corrected")))
+      "For continuity-corrected count tests, finding N also uses fresh checks of at least 10,000 studies per candidate. This takes longer and may recommend more participants than the minimum."), fields = list(
     list(id = "simulation_accuracy", label = "How precise should the simulation be?", type = "select", optional = TRUE,
       default = "standard", default_source = "1,000 repeated studies, powerkit's usual simulation setting",
       choices = list(quick = "Quick exploration: about +/-5 percentage points (400 studies)",
@@ -501,11 +503,11 @@ closing_groups <- function(forms, ep_id, start = list()) {
     shown_for_goals = c("power", "sensitivity", "justified_alpha"), optional = TRUE)
   test <- list(
     goal,
-    list(id = "power", label = "Target power", help = paste("As a proportion: 0.8 means 80%. For a single significance test, this is the chance it rejects its null under the population you specify; 80% leaves a 20% chance of missing that effect. It is not the chance your theory is true.", if (!is.null(no_bayes)) "For a Bayes factor test, it is the chance of reaching your evidence threshold under the specified effect or design prior."),
+    list(id = "power", label = "Target power", help = paste("As a proportion: 0.8 means 80%. For a single significance test, this is the chance it rejects its null under the population you specify. Targets of 80%, 90% and 95% leave about 20, 10 and 5 missed effects per 100 studies under those assumptions. Higher power usually needs more participants. Choose by weighing the consequences of a miss against recruitment cost and feasibility; 80% is a common convention, not a scientific recommendation. These buttons are examples, not required targets. It is not the chance your theory is true.", if (!is.null(no_bayes)) "For a Bayes factor test, it is the chance of reaching your evidence threshold under the specified effect or design prior; failure to reach it is not necessarily evidence for the null."),
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          # Empty on every card (8 November 2026): the target is the user's
          # choice to justify, and the result compares 80%, 90% and 95%.
-         default = NULL, usual = 0.8, usual_label = "Use 80% (0.8)", default_source = target_power_source),
+         default = NULL, usual = 0.8, shortcuts = c(.8, .9, .95), default_source = target_power_source),
     list(id = "power_reason", label = "Why this target power", help = "Goes in the write-up; for example \"95% because a miss would waste a year of recruitment\".",
          type = "text", optional = TRUE, shown_for_goals = c("sample_size", "sensitivity")),
     list(id = "n", label = "Number of participants analysed",
@@ -575,14 +577,14 @@ closing_groups <- function(forms, ep_id, start = list()) {
            type = "text", path = "effect_justification.source", optional = TRUE),
       # A pilot is as much one study's estimate as a published one, and
       # less precise, so it gets the same question.
-      list(id = "just_adjustment", label = "How you adjusted it", help = "One study's effect tends to be too large: published ones through publication bias, pilots because they are small. For example, halved, or the lower end of its confidence interval. If you kept it as it was, say so and why.",
+      list(id = "just_adjustment", label = "How you adjusted it", help = "One estimate can be uncertain, especially from a small pilot. Published findings can also be selected for large or significant effects. Explain your defensible effect or range; do not automatically halve an estimate. If you kept it unchanged, say why.",
            type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
            shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
              list(field = "sg_use", is_not = "telescopes")))
     ), safeguard_fields(form$base$template), heterogeneity_fields(form$base$template))),
     # A single time series has no participants to lose (`no_attrition`).
     if (!isTRUE(form$generic) && !meta && !isTRUE(form$no_attrition)) list(input = NULL, title = "Participants you expect to lose", fields = list(
-      list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%.", type = "number",
+      list(id = "attrition", label = "Proportion you expect to lose", help = "For example 0.1 for 10%. This only adds a recruitment buffer for the analysed sample; it does not model missing data or your method for handling them. If unsure, compare plausible loss rates rather than treating zero as known.", type = "number",
            path = "options.attrition", optional = TRUE, min = 0, max_exclusive = 1)
     )),
     # A fixed default seed, so the same answers give the same result

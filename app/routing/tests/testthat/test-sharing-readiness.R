@@ -21,8 +21,11 @@ test_that("power offers an explicit informed shortcut and remains blank initiall
   f <- Filter(function(f) identical(f$id,"power"),fields)[[1]]
   expect_null(f$default)
   expect_equal(f$usual,.8)
+  expect_equal(f$shortcuts,c(.8,.9,.95))
   expect_match(as.character(field_ui(f,NULL)),'data-value="0.8"',fixed=TRUE)
   expect_match(f$help,"under the population you specify",fixed=TRUE)
+  expect_match(f$help,"not a scientific recommendation",fixed=TRUE)
+  expect_match(f$help,"20, 10 and 5 missed effects",fixed=TRUE)
   paired <- form_fields(form_groups(forms,"E3"))
   r <- Filter(function(f) identical(f$id,"raw_r"),paired)[[1]]
   expect_null(r$default)

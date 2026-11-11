@@ -2,14 +2,37 @@
 
 field_input_id <- function(f) paste0("f_", f$id)
 
+# Curated labels keep units and analysis meaning; never trim by punctuation.
+compact_field_label <- function(f) {
+  if (identical(f$id, "power") && identical(f$label, "Target power")) return("Power (1 - beta)")
+  if (identical(f$id, "n") && identical(f$label, "Number of participants analysed")) return("Total analysed N")
+  labels <- c(goal = "Analysis goal", power_reason = "Power rationale", alpha = "Significance level (alpha)",
+    alpha_reason = "Alpha rationale", alternative = "Tail(s)", alternative_reason = "One-sided test rationale",
+    effect_units = "Effect-size input", d = "Standardised difference (d)", dz = "Standardised change (dz)",
+    welch_sd_ratio = "SD ratio (group 2 / group 1)", just_type = "Effect-size source",
+    just_source = "Effect-size rationale (needed to export)", just_adjustment = "Effect adjustment",
+    conv_from = "Effect-size conversion")
+  if (f$id %in% names(labels)) unname(labels[[f$id]]) else NULL
+}
+
+# Identify the calculation's captured test, not a subsequently edited selector.
+selected_method_label <- function(spec, fields) {
+  for (f in fields) if (identical(f$path, "target_test.method") &&
+      isTRUE(spec$target_test$method %in% names(f$choices))) return(f$choices[[spec$target_test$method]])
+  NULL
+}
+
 # One field: its label, the input, and where its default comes from. A
 # default's source and the group's hints are linked to the input with
-# aria-describedby, so screen readers read them with the field.
+# aria-describedby while their guidance is open; error links stay active.
 field_ui <- function(f, value, described_by = character()) {
   id <- field_input_id(f)
   # One convention (22 October 2026): everything is needed unless marked
   # optional. Effect sizes start empty; the box itself shows that.
   label <- if (field_is_optional(f) || !is.null(f$name_default)) paste0(f$label, " (optional)") else f$label
+  short <- compact_field_label(f)
+  if (!is.null(short)) label <- name_swap(label,
+    if (field_is_optional(f) || !is.null(f$name_default)) paste0(short, " (optional)") else short)
   source_id <- paste0(id, "_default")
   help_id <- paste0(id, "_help")
   if (!is.null(f$help)) described_by <- c(help_id, described_by)
@@ -25,6 +48,7 @@ field_ui <- function(f, value, described_by = character()) {
   )
   # Attributes on the input element itself.
   attrs <- list(`aria-describedby` = if (length(described_by)) paste(described_by, collapse = " "))
+  if (length(described_by)) attrs[["data-guidance-describedby"]] <- paste(described_by, collapse = " ")
   if (isTRUE(f$required) || isTRUE(f$effect)) attrs$`aria-required` <- "true"
   # Counted by the "still needed" line in the action bar (needed_js), by
   # the same rule as form_problems(): an effect size may stay empty for the
@@ -42,23 +66,29 @@ field_ui <- function(f, value, described_by = character()) {
   input <- add_attrs_to_first(input, tag_name, attrs)
   # A conventional value that starts empty (8 November 2026): one click
   # fills it in, so choosing it stays the user's act (`usual`).
-  usual <- if (!is.null(f$usual)) tags$button(type = "button", class = "btn btn-sm btn-outline-secondary usual-value",
-    id = paste0(id, "_usual"), `data-target` = id, `data-value` = as.character(f$usual),
+  shortcuts <- f$shortcuts %||% f$usual
+  usual <- if (length(shortcuts)) div(class = "usual-values", lapply(seq_along(shortcuts), function(i) {
+    value <- shortcuts[[i]]
+    tags$button(type = "button", class = "btn btn-sm btn-outline-secondary usual-value",
+    id = paste0(id, "_usual", if (i > 1) paste0("_", i)), `data-target` = id, `data-value` = as.character(value),
     onclick = "var e = document.getElementById(this.getAttribute('data-target')); e.value = this.getAttribute('data-value'); e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); e.focus();",
-    f$usual_label %||% sprintf("Use %s", f$usual))
+    if (!is.null(f$shortcuts)) sprintf("%s%%", format(100 * value)) else f$usual_label %||% sprintf("Use %s", value))
+  }))
   field <- div(
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
     input,
     usual,
-    if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
     if (!is.null(f$prompt)) div(id = paste0(id, "_prompt"), class = "field-prompt small", f$prompt),
-    input_guide_ui(f),
+    if (!is.null(f$help) || !is.null(f$default_source) || !is.null(input_guide(f))) explanation_ui(
+      paste0(id, "_info"), f$label,
+      if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
+      input_guide_ui(f),
     if (!is.null(f$default_source)) div(id = source_id, class = "default-source", title = f$default_source,
       # A choice's default is already shown selected, so only its source is
       # added (naming it again garbled the sentence).
       if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else if (identical(f$type, "select") && !is.null(f[["default"]])) paste0("Selected to start with: ", short_source(f$default_source), ".")
       else paste0(short_source(f$default_source), ".")
-    )
+    ))
   )
   # The uncertainty about an effect, read as a range (5 November 2026): an
   # SD around the effect entered is about 95% sure to hold the effect
@@ -100,7 +130,8 @@ field_ui <- function(f, value, described_by = character()) {
   # A note for each choice that needs one, shown when it is chosen (the
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
-    conditionalPanel(sprintf("input.%s == '%s'", id, k), p(class = "group-note choice-note", f$choice_notes[[k]]))
+    conditionalPanel(sprintf("input.%s == '%s'", id, k),
+      explanation_ui(paste0(id, "_choice_", k), f$label, p(class = "group-note choice-note", f$choice_notes[[k]])))
   }))
   # Labs' one way in: a line under the effect size's source, for people
   # basing it on a previous study (R/labs.R).
@@ -186,14 +217,17 @@ group_ui_build <- function(tree, g, values, index) {
   box <- tags$fieldset(
     class = paste("form-group-box", if (names_only) "form-group-names"),
     tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6",
-      if (length(g$fields) && identical(g$fields[[1]]$label, "Test version")) name_swap(legend, "Test") else legend),
-    # Definitions open on request; notes that change what's needed stay in
-    # view, except the reason the direction is asked first.
+      if (length(g$fields) && identical(g$fields[[1]]$label, "Test version")) name_swap(legend, "Test")
+      else if (any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) name_swap(legend, "Effect size")
+      else if (any(vapply(g$fields, function(f) identical(f$id, "just_type"), logical(1)))) name_swap(legend, "Effect-size source")
+      else if (identical(legend, "Your hypothesis")) name_swap(legend, "Hypothesis") else legend),
+    # Routine notes follow explanation mode; required-input prompts and
+    # scientific warnings are rendered separately and remain visible.
     if (length(hints)) tags$details(class = "form-terms", tags$summary("What these terms mean"),
       div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term), ": ", h$hint)))),
-    if (!is.null(g$note) && identical(g$note, direction_note)) tags$details(class = "form-terms", tags$summary("Why this is asked first"), p(class = "group-note", g$note))
-    else if (!is.null(g$note)) p(class = "group-note", g$note),
-    if (!is.null(g$note_more)) tags$details(class = "form-terms", tags$summary("More about this"), p(class = "group-note", g$note_more)),
+    if (!is.null(g$note) || !is.null(g$note_more)) explanation_ui(sprintf("group-%d-info", index), legend,
+      if (!is.null(g$note)) p(class = "group-note", g$note),
+      if (!is.null(g$note_more)) p(class = "group-note", g$note_more)),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
   # Names that are all optional fold away (1 November 2026): they only
@@ -238,7 +272,8 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     h2(name_swap(paste0("Your values: ", ep$plain_name), technical_name(ep))),
     p(class = "lead", "Everything is needed unless it says optional."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
-      tags$span(class = "badge-progress", "Validation in progress"), ep$validation$note),
+      tags$span(class = "badge-progress", "Validation in progress"),
+      explanation_ui("form-validation-info", "Validation status", ep$validation$note)),
     carried,
     uiOutput("selected_evidence"),
     if (!is.null(forms$forms[[ep_id]]$scope_note)) p(class = "analysis-scope-note", forms$forms[[ep_id]]$scope_note),
@@ -403,7 +438,8 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     if (any(section == "accuracy")) div(class = "form-section", part("accuracy")),
     if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
-      tags$summary(tags$span(class = "form-settings-title", "Settings"), " (each starts at the default of the tool powerkit uses; open to change): ",
+      tags$summary(tags$span(class = "form-settings-title", "Settings"),
+        tags$span(class = "hint", " (each starts at the default of the tool powerkit uses; open to change)"), ": ",
         settings_summary_ui(settings, values)),
       part("settings")),
     if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess first (optional)"), part("guess"))
@@ -503,12 +539,14 @@ field_problems_js <- "
 effect_unsure_ui <- function(form) {
   if (isTRUE(form$sensitivity_without_effect)) {
     return(div(class = "effect-unsure",
-      tags$strong("Don't know what effect to expect? "), "That's common. Tell powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough.",
+      explanation_ui("effect-unsure-info", "Unknown effect size",
+        tags$strong("Don't know what effect to expect? "), "That's common. Tell powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough."),
       div(tags$button(type = "button", class = "btn btn-outline-primary mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
   }
   if (isTRUE(form$sensitivity)) {
     return(div(class = "effect-unsure",
-      tags$strong("Don't know how big the effect is? "), "If you know its pattern, enter that, and powerkit can scale it up or down to the smallest size your sample could detect.",
+      explanation_ui("effect-unsure-info", "Unknown effect size",
+        tags$strong("Don't know how big the effect is? "), "If you know its pattern, enter that, and powerkit can scale it up or down to the smallest size your sample could detect."),
       div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(false)", "Find the smallest effect I could detect"))))
   }
   NULL
