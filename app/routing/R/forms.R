@@ -569,7 +569,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(list(input = NULL, title = "Scientific question (optional)", fields = list(
       list(id = "research_question", label = "What scientific question will this study address?", type = "text", optional = TRUE,
         help = "For example, whether training improves recall enough to change practice. This labels the planning document; it does not choose a statistical test for you.")))),
-    if (!isTRUE(form$precision)) claim_groups(start$claim, start$n_tests),
+    if (!isTRUE(form$precision)) claim_groups(start$claim, start$n_tests, isTRUE(start$claim_from_plan)),
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = c(list(
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
@@ -890,10 +890,15 @@ guess_note <- paste(
 # 2026) and for "all of several" (which raises each test's target power so
 # that all succeed together with the target power; docs/decisions.md, 19
 # October 2026). From a plan or an older project, it starts at the claim
-# given then. It sits with the settings: most studies have one test.
+# given then. It is in view on the input screen (12 November 2026): the
+# multiple-testing question is one the usual tools never ask. "related"
+# (12 November 2026) is for a researcher who holds the error-statistical
+# view that separate claims from a related group of tests need a
+# correction (Mayo, 2018): the same Bonferroni division as "any".
 claim_choices <- list(
   one = "One test: my conclusion rests on this test alone",
-  each = "Several claims, each standing on its own",
+  each = "Several claims, each standing on its own (no correction)",
+  related = "Several claims from a related group of tests, corrected as a group (Bonferroni)",
   any = "Any of several tests: the claim holds if at least one is significant",
   all = "All of several tests: the claim needs every one to be significant"
 )
@@ -901,8 +906,13 @@ claim_choices <- list(
 claim_notes <- function() list(
   each = paste(
     "You said each test supports its own claim. Power this test on its own; run the input screen again for each of the others.",
-    "This setting applies no correction across the claims (Rubin, 2021); it does not control the chance of any false positive across the collection. If any positive test would count towards one conclusion, choose the any-test option instead.",
+    "This setting applies no correction across the claims (Rubin, 2021); it does not control the chance of any false positive across the collection. If any positive test would count towards one conclusion, choose the any-test option instead; if you want a correction because the tests form a related group, choose the corrected option.",
     philosophy_note
+  ),
+  related = paste(
+    "You said each test supports its own claim, and that the tests form a related group you want to correct for, such as several outcomes of the same treatment.",
+    "powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test; plan each of the others the same way.",
+    "This follows the error-statistical view that a related group of tests needs a correction (Mayo, 2018, pp. 275\u2013276); under Rubin's (2021) view, separate claims need none."
   ),
   any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
   all = paste(
@@ -912,14 +922,16 @@ claim_notes <- function() list(
   )
 )
 
-claim_groups <- function(claim = "one", n_tests = NULL) {
+claim_groups <- function(claim = "one", n_tests = NULL, from_plan = FALSE) {
   claim <- claim %||% "one"
   if (!claim %in% names(claim_choices)) claim <- "one"
   fields <- list(
-    list(id = "claim", label = "Your claim: how many tests does your conclusion rest on?", type = "select",
-         choices = claim_choices, default = claim, choice_notes = claim_notes()),
+    list(id = "claim", label = "How many tests does your conclusion rest on?", type = "select",
+         choices = claim_choices, default = claim, choice_notes = claim_notes(),
+         help = if (isTRUE(from_plan)) "Set by your study plan, so that every analysis in it agrees. To change it, change the plan's claim." else
+           "Most studies rest on one test. If yours runs several, say how they count: it can change the significance level or the power each test needs."),
     list(id = "n_tests", label = "Number of tests", type = "number", required = TRUE, min = 2, integer = TRUE,
-         default = n_tests, applies_if_claim = c("any", "all"),
+         default = n_tests, applies_if_claim = c("related", "any", "all"),
          shown_if = list(list(field = "claim", is_not = "one"), list(field = "claim", is_not = "each"))),
     list(id = "all_dependence", label = "Planning for all tests: what can you assume?", type = "select", required = TRUE, default = "unknown",
          shown_for_goals = c("sample_size", "sensitivity"),
@@ -957,6 +969,12 @@ claim_result_note <- function(values, alpha_used, goal = NULL) {
     values$claim %||% "one",
     one = NULL,
     each = "Your claim: several claims, each standing on its own. This result is for one test, with no correction; work out each of the others the same way.",
+    related = if (is.null(alpha_used)) {
+      sprintf("Your claim: %s related tests, corrected as a group. A Bayes factor test has no significance level, so powerkit applies no correction.", values$n_tests)
+    } else sprintf(
+      "Your claim: %s related tests, each its own claim, corrected as a group. The significance level for this test is %s divided by %s (Bonferroni): %s. Work out each of the others the same way.",
+      values$n_tests, format(signif(alpha_used * as.numeric(values$n_tests), 3)), values$n_tests, format(signif(alpha_used, 3))
+    ),
     any = if (is.null(alpha_used)) {
       # Bayes factor tests have no significance level to divide.
       sprintf("Your claim: any of %s tests. A Bayes factor test has no significance level, so powerkit applies no correction; the more tests you run, the more chances one of them has to give misleading evidence.", values$n_tests)

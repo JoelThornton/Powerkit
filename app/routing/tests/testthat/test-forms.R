@@ -340,12 +340,12 @@ test_that("a fixed sample size starts the goal at the smallest detectable effect
   expect_setequal(situation(list())$shown_for_goals, c("power", "sensitivity", "justified_alpha"))
 })
 
-test_that("the claim is asked under Settings, starts at one test, and notes each other claim", {
+test_that("the claim is asked in view, starts at one test, and notes each other claim", {
   groups <- function(claim = NULL) form_groups(forms, "E2", start = list(claim = claim))
   claim_field <- function(claim = NULL) Filter(function(f) f$id == "claim", form_fields(groups(claim)))[[1]]
   expect_equal(claim_field()$default, "one")
   for (claim in c("each", "any", "all")) expect_equal(claim_field(claim)$default, claim, info = claim)
-  expect_equal(form_section(Filter(function(g) identical(g$title, "Your claim"), groups())[[1]]), "settings")
+  expect_equal(form_section(Filter(function(g) identical(g$title, "Your claim"), groups())[[1]]), "study")
   expect_true("n_tests" %in% vapply(form_fields(groups()), `[[`, "", "id"))
   html <- as.character(form_ui(tree, forms, "E2", groups()))
   expect_match(html, "raises each test's target power", fixed = TRUE)

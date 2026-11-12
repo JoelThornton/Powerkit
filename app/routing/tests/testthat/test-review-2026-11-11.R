@@ -250,3 +250,28 @@ test_that("finding the significance level does not ask for one first", {
   expect_identical(spec$goal$type, "justified_alpha")
   expect_equal(spec$target_test$alpha, 0.05)
 })
+
+test_that("the claim is asked in view, and related tests can be corrected as a group", {
+  groups <- form_groups(forms, "E2")
+  claim_group <- Filter(function(g) identical(g$title, "Your claim"), groups)[[1]]
+  expect_identical(form_section(claim_group), "study")
+  fields <- form_fields(groups)
+  claim <- Filter(function(f) identical(f$id, "claim"), fields)[[1]]
+  expect_identical(claim$label, "How many tests does your conclusion rest on?")
+  expect_true("related" %in% names(claim$choices))
+  # The related group divides alpha by the number of tests, as "any" does.
+  values <- modifyList(form_examples$E2, list(claim = "related", n_tests = "4", alpha = "0.05", goal = "sample_size", power = "0.8"))
+  expect_equal(claim_alpha(0.05, values), 0.0125)
+  n_tests <- Filter(function(f) identical(f$id, "n_tests"), fields)[[1]]
+  expect_true(field_applies(n_tests, values))
+  expect_match(claim_result_note(values, 0.0125), "corrected as a group", fixed = TRUE)
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_equal(spec$target_test$alpha, 0.0125)
+  expect_match(writeup_claim(values, spec), "Bonferroni", fixed = TRUE)
+  # Separate claims stay uncorrected.
+  expect_equal(claim_alpha(0.05, modifyList(values, list(claim = "each"))), 0.05)
+  # From a study plan, the screen says the plan sets it.
+  from_plan <- form_groups(forms, "E2", start = plan_form_start(list(), "a", c("a", "b"), "any"))
+  plan_claim <- Filter(function(f) identical(f$id, "claim"), form_fields(from_plan))[[1]]
+  expect_match(plan_claim$help, "Set by your study plan", fixed = TRUE)
+})

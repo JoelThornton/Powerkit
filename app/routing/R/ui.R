@@ -1259,6 +1259,7 @@ plan_form_start <- function(start, id, primary, rule) {
   several <- id %in% primary && length(primary) >= 2
   start$claim <- if (several) rule %||% "each" else "one"
   start$n_tests <- if (several && start$claim %in% c("any", "all")) length(primary)
+  start$claim_from_plan <- TRUE
   start
 }
 

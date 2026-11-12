@@ -367,8 +367,9 @@ observed_power_warning_ui <- function() {
 # project files and write-up don't depend on this order.
 form_section <- function(g) {
   ids <- vapply(g$fields, `[[`, "", "id")
-  # The claim sits with the settings: most studies rest on one test.
-  if (identical(g$title, "Your claim")) return("settings")
+  # The claim is in view (12 November 2026): it can change the
+  # significance level or the power each test needs.
+  if (identical(g$title, "Your claim")) return("study")
   if ("goal" %in% ids) return("goal")
   if (identical(g$title, "Simulation accuracy")) return("accuracy")
   if (identical(g$title, "Assumptions and named alternatives")) return("scenarios")

@@ -2764,3 +2764,15 @@ less power (Known difference 10, now retired): for d = 0.5, a margin of
 0.2 and 80% power it asked for 282 people where 278 are enough. A
 two-sided test adds the small far tail from pwr's one-sided t-test, which
 pwrss's one-sided test cannot give.
+
+### The claim in view, with a correction for related tests, 12 November 2026
+
+The claim question ("How many tests does your conclusion rest on?") moves
+from Settings into the study section of every input screen, starting at
+one test. It carries powerkit's position on multiple testing, which the
+usual tools never ask about, and folded away it was rarely seen. A fifth
+choice, several claims from a related group of tests corrected as a group
+(Bonferroni), lets a researcher who holds the error-statistical view
+(Mayo, 2018) act on it; the default for separate claims stays
+uncorrected (Rubin, 2021), and both views are stated on the screen.
+Screens opened from a study plan say the plan sets the claim.

@@ -1541,7 +1541,7 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
 alpha_cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L, values = list()) {
   if (!identical(result$goal_type, "sample_size") || simulated(result) || !identical(spec$design, "basic_test") ||
       !isTRUE(result$provenance$backend %in% c("pwr", "pwrss", "stats")) || !is.numeric(spec$target_test$alpha) ||
-      isTRUE(values$claim %in% c("any", "all"))) return(NULL)
+      isTRUE(values$claim %in% c("related", "any", "all"))) return(NULL)
   levels <- c(0.05, 0.01, 0.005)
   n <- vapply(levels, function(a) {
     if (isTRUE(all.equal(a, spec$target_test$alpha))) return(as.numeric(result$n_required$n))
@@ -2979,6 +2979,8 @@ writeup_claim <- function(values, spec) {
   switch(values$claim %||% "one",
     one = NULL,
     each = "Each hypothesis was treated as a separate claim, so no correction for multiple tests was applied. This calculation plans one test; it does not control the chance of a false positive across the collection.",
+    related = if (!is.null(spec$target_test$alpha)) sprintf("Each of %s related tests supports its own claim, and the tests were corrected as a group: alpha was divided by %s (Bonferroni), giving α = %s for this test.",
+      values$n_tests, values$n_tests, writeup_alpha(spec$target_test$alpha)),
     any = if (!is.null(spec$target_test$alpha)) sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test. The reported power is for this test at its adjusted alpha, not the probability that any test in the set succeeds.",
       values$n_tests, values$n_tests, writeup_alpha(spec$target_test$alpha)),
     all = {
