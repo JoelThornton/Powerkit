@@ -87,7 +87,7 @@ app_css <- "
   .choices-numbered > .choice:hover::before, .choices-numbered > .choice:focus::before { border-color: #fff; color: var(--pk-blue); }
   .choices-way-out { margin-top: 0.6rem; grid-template-columns: 1fr !important; }
   .choices-way-out .choice-safety { background: transparent; border-style: dashed; }
-  .choices-keys { color: #6b7684; font-size: 0.82rem; margin-top: 0.75rem; }
+  .choices-keys { color: #586270; font-size: 0.82rem; margin-top: 0.75rem; }
   @media (hover: none) { .choices-keys { display: none; } }
   .card-eyebrow { color: var(--pk-blue); font-weight: 600; font-size: 0.85rem; letter-spacing: 0.02em; text-transform: uppercase; margin-bottom: 0.2rem; }
   .card-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin: 1rem 0; }
@@ -377,6 +377,8 @@ app_css <- "
   .terms-mode .standard-name { display: none; }
   .share-page-btn { color: #fff; border: 1px solid rgba(255,255,255,.55); background: transparent; }
   .share-page-btn:hover, .share-page-btn:focus { color: var(--pk-navy); background: #fff; }
+  /* A visible focus ring on the top bar's buttons (design review D-29). */
+  .share-page-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px var(--pk-blue); }
   .share-page-status { font-size: 0.85rem; color: #fff; }
   .brand { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #fff; display: flex; align-items: center; gap: 0.6rem; }
   .brand .badge-proto { text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
