@@ -130,3 +130,17 @@ test_that("the server plans from the fields, and says what is missing first", {
     expect_match(as.character(output$rep_result$html), "not 0", fixed = TRUE)
   })
 })
+
+test_that("the simple answer comes first, from the table's own first row (C-14)", {
+  plan <- plan_of()
+  html <- as.character(replication_headline_ui(plan))
+  g <- plan$goals[plan$goals$goal == "significance", ]
+  expect_match(html, replication_n_words(plan, g$n[g$prior %in% "as_reported"]), fixed = TRUE)
+  expect_match(html, replication_n_words(plan, g$n[g$prior %in% "shrunk"]), fixed = TRUE)
+  expect_match(html, "with 80% power", fixed = TRUE)
+  expect_lt(regexpr("result-headline", as.character(replication_result_ui(plan)))[1],
+    regexpr("rep-table", as.character(replication_result_ui(plan)))[1])
+  # Section 1 has its own button, so no goals or beliefs come before a number.
+  ui <- as.character(replication_ui())
+  expect_lt(regexpr("rep_run_quick", ui)[1], regexpr(">2. Goals and sample size</legend>", ui, fixed = TRUE)[1])
+})

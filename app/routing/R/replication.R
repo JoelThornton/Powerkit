@@ -139,7 +139,13 @@ replication_ui <- function() {
           field("rep_n2", "People in its second group")),
         conditionalPanel("input.rep_design != 'two_groups'",
           field("rep_n", "People (or pairs) it analysed")),
-        field("rep_original_alpha", "Its significance level (two-sided)", value = "0.05"))),
+        field("rep_original_alpha", "Its significance level (two-sided)", value = "0.05"),
+        # The simple answer first (colleague review C-14, 12 November
+        # 2026): the sample size to find the effect significant again,
+        # with the usual settings, before the goals and beliefs.
+        div(class = "rep-quick",
+          actionButton("rep_run_quick", "Show the sample size to replicate it", class = "btn btn-primary"),
+          p(class = "small text-muted mt-1", "The sample size for a significant result again, with the significance level and chance of success in section 2 (.05 and 80% to start, which you can change there). Section 2 also shows what other goals of a replication need.")))),
 
     section("goals",
       tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "2. Goals and sample size"),
@@ -289,6 +295,7 @@ replication_result_ui <- function(plan) {
   o <- plan$original
   tagList(
     div(class = "result-panel mt-2", role = "status",
+      replication_headline_ui(plan),
       p(sprintf("The original estimate is %s with a standard error of %s%s (two-sided p = %s, by the normal approximation). %s",
         format(signif(o$estimate, 3)), format(signif(o$se, 3)),
         if (identical(plan$inputs$design, "correlation")) " on Fisher's z scale" else "",
@@ -303,6 +310,21 @@ replication_result_ui <- function(plan) {
       p(class = "small text-muted", "Calculated by powerkit's engine with ",
         paste(vapply(plan$packages, function(p) sprintf("%s %s", p$name, p$version), ""), collapse = ", "),
         ". Every goal judged against the original's effect uses a normal approximation (Pawel, Consonni & Held, 2026), which for a t-test asks for a few people fewer than the t-test cards; small telescopes is the cards' own calculation.")))
+}
+
+# The simple answer above the table (C-14): the sample size for a
+# significant result again, if the true effect is as reported and if it is
+# shrunk towards zero, both from the table's own first row.
+replication_headline_ui <- function(plan) {
+  g <- plan$goals[plan$goals$goal == "significance", ]
+  if (!nrow(g)) return(NULL)
+  cell <- function(prior) {
+    row <- g[g$prior %in% prior, ][1, ]
+    if (is.na(row$n)) tolower(replication_cell(plan, row)) else replication_n_words(plan, row$n)
+  }
+  p(class = "result-headline lead", sprintf(
+    "To find the effect significant again, in the original's direction (two-sided test, alpha = %s), with %s power, you need %s if the true effect is as large as reported, or %s if it is shrunk towards zero, as published effects often are.",
+    sub("^0", "", format(plan$inputs$alpha)), replication_pct(plan$inputs$power), cell("as_reported"), cell("shrunk")))
 }
 
 # The goal and belief the plan is written up with.
@@ -423,7 +445,7 @@ replication_server <- function(input, output, session, notes = function() list()
   plan <- reactiveVal(NULL)
   problem <- reactiveVal(NULL)
 
-  observeEvent(input$rep_run, {
+  run <- function() {
     plan(NULL); problem(NULL)
     missing <- replication_missing(values())
     if (length(missing)) {
@@ -433,6 +455,11 @@ replication_server <- function(input, output, session, notes = function() list()
     result <- tryCatch(do.call(engine_function("replication_planning"), replication_args(values())),
       error = function(e) list(problem = replication_problem(e)))
     if (!is.null(result$problem)) problem(result$problem) else plan(result)
+  }
+  observeEvent(input$rep_run, run())
+  observeEvent(input$rep_run_quick, {
+    updateRadioButtons(session, "rep_section", selected = "goals")
+    run()
   })
   output$rep_result <- renderUI({
     if (!is.null(problem())) return(div(class = "form-problems mt-2", role = "alert", p(problem())))
