@@ -3033,3 +3033,18 @@ main download; the planning document, project file and citations are
 equal buttons beside it, each explained in one line. After calculating,
 focus moves to the "Your result" heading, so a screen reader starts at
 the answer.
+
+### One line of help per field, 12 November 2026
+
+A field carried up to four layers of help, all in view: a prompt, a
+paragraph of help, a "What this means and where to find it" fold, a line
+on its starting value, and an optional reason box with its own help. Each
+field now shows its label, its input and one line: its prompt where it
+has one, otherwise the first sentence of its help. Everything else (the
+rest of the help, the input guide, the starting value's source) opens
+from an info button beside the label, closed to start with whether
+explanations are on or off; with explanations off the line folds too.
+The optional reasons for the write-up ("Why this significance level",
+"Why this target power" and the like) are one closed "Add a reason for
+the write-up" line. The effect size's own reason stays in view, because
+the write-up and saved files say when it is missing.
