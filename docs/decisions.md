@@ -2961,3 +2961,35 @@ changes where any answer leads:
   (f squared, R squared change, hierarchical regression), the chi-square
   card and the two comparisons of correlations carry those words. The
   mediation cards say "mediator", not "go-between".
+
+### The input form: the goal as buttons, named answers still needed, one card style, 12 November 2026
+
+The same design review found that the form's deciding question ("What
+do you want to find out?") was a "Choose one" menu of long sentences,
+that the bar counted the answers still needed without naming them, that
+the effect section used four box styles, and that with explanations off
+some info buttons stood on lines of their own. Changes:
+
+- The goal and the test's direction are rows of buttons, each with a
+  short title ("Sample size", "Power", "Smallest detectable effect";
+  "Positive only", "Negative only", "Either direction") over the
+  choice's full wording (R/choice-buttons.R). The menu stays underneath
+  as the value the server reads, so drafts, checks and exports are
+  unchanged, and a choice hidden by another answer leaves the buttons
+  too. Every goal is shown; the review's "More goals" fold was not
+  needed with five short buttons.
+- The bar names the first answers still needed ("Still needed: your
+  goal, significance level and 3 more") and its link goes to the first
+  one.
+- The effect and its source are white cards like every other group;
+  blue borders are kept for focus and the chosen answer. "Don't know
+  what effect to expect?" and "Not sure what number to put here?" are
+  quiet lines rather than coloured panels.
+- With explanations off, a group's info button sits at the top right
+  of its box, level with the title, and any other is a small link
+  naming what it explains.
+- The settings line uses short names ("Group 2 / group 1: 1 · Dropout:
+  none · Seed: 1 · Change").
+
+The review's other form findings (one line of help per field, D-11;
+f-squared for regression, C-07) are separate changes.

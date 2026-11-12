@@ -15,6 +15,17 @@ compact_field_label <- function(f) {
   if (f$id %in% names(labels)) unname(labels[[f$id]]) else NULL
 }
 
+# A field's name in the "still needed" line: its short label, without the
+# layout after a colon or the symbol in brackets, in lower case unless it
+# starts with an abbreviation.
+needed_name <- function(f) {
+  name <- switch(f$id, goal = "your goal", alternative = "the test's direction", just_type = "where the effect size comes from",
+    compact_field_label(f) %||% table_grid_label(f$label %||% f$id))
+  name <- trimws(sub("\\s*\\(.*$", "", sub(":.*$", "", name)))
+  if (!grepl("^[A-Z]{2}", name)) name <- paste0(tolower(substr(name, 1, 1)), substring(name, 2))
+  name
+}
+
 # Identify the calculation's captured test, not a subsequently edited selector.
 # A selector hidden by the other answers does not name the test (the
 # regression card's coefficient test, when the question is an R-squared).
@@ -46,8 +57,12 @@ field_ui <- function(f, value, described_by = character()) {
   input <- switch(
     f$type,
     scenario_library = scenario_library_ui(f, current),
-    select = selectInput(id, label, choices = c("Choose one" = "", stats::setNames(names(f$choices), unlist(f$choices))),
-                         selected = current, selectize = FALSE, width = "100%"),
+    select = {
+      sel <- selectInput(id, label, choices = c("Choose one" = "", stats::setNames(names(f$choices), unlist(f$choices))),
+                         selected = current, selectize = FALSE, width = "100%")
+      # A row of buttons in place of the menu (R/choice-buttons.R).
+      if (isTRUE(f$buttons)) htmltools::tagInsertChildren(sel, choice_buttons_ui(f), after = 1) else sel
+    },
     # The labelled grid (R/table-grid.R) sits between the label and the
     # text box it fills in.
     table = htmltools::tagInsertChildren(textAreaInput(id, label, value = current, rows = 4, width = "100%"), table_grid_ui(f), after = 1),
@@ -67,6 +82,8 @@ field_ui <- function(f, value, described_by = character()) {
   } else if (isTRUE(f$required) || !is.null(f$needed_for) || !is.null(f$needed_if_just)) {
     attrs$`data-needed` <- "yes"
   }
+  # The name the "still needed" line gives it (C-02, 12 November 2026).
+  if (!is.null(attrs$`data-needed`)) attrs$`data-needed-name` <- needed_name(f)
   if (identical(f$type, "number")) attrs$inputmode <- "decimal"
   attrs <- attrs[!vapply(attrs, is.null, logical(1))]
   tag_name <- switch(f$type, select = "select", table = "textarea", "input")
@@ -423,7 +440,10 @@ settings_summary_ui <- function(groups, values) {
   # of the line; they show inside when that choice is made.
   fields <- Filter(function(f) is.null(f$shown_if), unlist(lapply(groups, `[[`, "fields"), recursive = FALSE))
   items <- lapply(fields, function(f) {
-    name <- trimws(sub("[:(;].*$", "", f$label))
+    # Short names for the common settings (12 November 2026), so the line
+    # reads at a glance.
+    name <- switch(f$id, allocation_ratio = "Group 2 / group 1", attrition = "Dropout", seed = "Seed",
+      ci_draws = "Resamples", trimws(sub("[:(;].*$", "", f$label)))
     tags$span(class = "setting-item", paste0(name, ": "),
       tags$strong(`data-setting-for` = field_input_id(f), setting_value_text(f, values[[f$id]] %||% f[["default"]])))
   })
@@ -455,9 +475,8 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     if (any(section == "accuracy")) div(class = "form-section", part("accuracy")),
     if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
-      tags$summary(tags$span(class = "form-settings-title", "Settings"),
-        tags$span(class = "hint", " (open to change)"), ": ",
-        settings_summary_ui(settings, values)),
+      tags$summary(tags$span(class = "form-settings-title", "Settings", .noWS = "after"), ": ",
+        settings_summary_ui(settings, values), " \u00b7 ", tags$span(class = "form-settings-change", "Change")),
       part("settings")),
     if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional, to learn how power behaves)"), part("guess"))
   )
@@ -488,8 +507,13 @@ needed_js <- "
     if (!line) return;
     var empty = pkNeededEmpty();
     line.hidden = false;
+    // Names the first answers still needed (C-02), not only how many.
+    var names = [];
+    empty.forEach(function(el) { var n = el.getAttribute('data-needed-name'); if (n && names.indexOf(n) < 0) names.push(n); });
+    var named = names.length === 0 ? '' : names.length <= 3 ? names.join(', ') :
+      names.slice(0, 2).join(', ') + ' and ' + (names.length - 2) + ' more';
     line.textContent = empty.length === 0 ? 'Every needed answer is filled in' :
-      (empty.length === 1 ? '1 answer still needed' : empty.length + ' answers still needed');
+      (named ? 'Still needed: ' + named : (empty.length === 1 ? '1 answer still needed' : empty.length + ' answers still needed'));
     line.classList.toggle('form-needed-done', empty.length === 0);
     line.disabled = empty.length === 0;
   };
@@ -498,7 +522,9 @@ needed_js <- "
     if (!empty.length) return;
     var folded = empty[0].closest('details');
     if (folded) folded.open = true;
-    empty[0].scrollIntoView({ block: 'center' }); empty[0].focus({ preventScroll: true });
+    // A choice shown as buttons (R/choice-buttons.R) is reached by its first button.
+    var target = (document.getElementById(empty[0].id + '_buttons') || {}).firstElementChild || empty[0];
+    target.scrollIntoView({ block: 'center' }); target.focus({ preventScroll: true });
   };
   $(document).on('input change', '#screen input, #screen select, #screen textarea', function() { setTimeout(pkUpdateNeeded, 60); });
   $(document).on('shiny:value', function(e) { if (e.name === 'screen') setTimeout(pkUpdateNeeded, 120); });

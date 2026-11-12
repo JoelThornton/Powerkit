@@ -47,6 +47,7 @@ source(file.path("R", "replication.R"), local = TRUE)
 source(file.path("R", "bayes-mode.R"), local = TRUE)
 source(file.path("R", "route-fit.R"), local = TRUE)
 source(file.path("R", "table-grid.R"), local = TRUE)
+source(file.path("R", "choice-buttons.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
 source(file.path("R", "connection.R"), local = TRUE)
@@ -172,6 +173,15 @@ app_css <- "
   .terms-mode .form-field { position: relative; margin-bottom: 0.4rem; }
   .terms-mode .form-field > .explanation-help { margin: 0; }
   .terms-mode .form-field > .explanation-help > summary { position: absolute; right: 0; top: 0; }
+  /* No info button on a line of its own (12 November 2026): a group's
+     note sits at the top right of its box, level with the box's title, as
+     a field's sits level with its label; any other one is a small text
+     link naming what it explains. */
+  .terms-mode .form-group-box { position: relative; }
+  .terms-mode .form-group-box > .explanation-help { margin: 0; }
+  .terms-mode .form-group-box > .explanation-help > summary { position: absolute; right: 1rem; top: 0.6rem; }
+  .terms-mode :not(.form-field):not(.form-group-box) > .explanation-help > summary { min-width: 0; min-height: 32px; border: 0; background: none; padding: 0; gap: 0.4rem; font-size: 0.88rem; }
+  .terms-mode :not(.form-field):not(.form-group-box) > .explanation-help > summary::after { content: attr(data-label); text-decoration: underline; }
   .terms-mode .form-field label.control-label { min-height: 44px; padding-right: 3.25rem; display: flex; align-items: center; }
   .field-problem { font-size: 0.9rem; color: #8a1f1f; border-left: 3px solid #a12a2a; background: #fbeaea; padding: 0.2rem 0.5rem; margin-top: 0.3rem; }
   [aria-invalid='true'] { border-color: #a12a2a !important; }
@@ -658,7 +668,19 @@ app_css <- "
   .effect-unsure, .effect-help { background: #eef3fa; border: 0; box-shadow: none; border-radius: var(--pk-radius); padding: 0.75rem 1.1rem; margin-bottom: 0.75rem; }
   .effect-help > summary { min-height: 32px; }
   .effect-unsure .btn { border-radius: 8px; }
+  /* One card style in the effect section (12 November 2026): the effect
+     and its source are white cards like every other group (blue borders
+     are kept for focus and the chosen answer), and the two helpers above
+     them are quiet lines rather than two more coloured panels. */
+  .form-section-effect > .form-group-box { border: 1px solid var(--pk-line); }
+  .form-section-effect > .form-group-box > legend { color: var(--pk-navy); }
+  .effect-unsure, .effect-help { background: transparent; padding: 0.15rem 0; margin-bottom: 0.4rem; }
+  .effect-unsure .btn { border: 0; padding: 0; margin: 0 0 0 0.25rem !important; color: var(--pk-blue); text-decoration: underline; background: none; vertical-align: baseline; min-height: 0; }
+  .effect-unsure > div:last-child { display: inline; }
+  .effect-unsure .explanation, .effect-unsure > div:first-child { display: inline; }
   .form-settings, .form-guess { padding: 0.6rem 1.25rem; }
+  .form-settings-change { color: var(--pk-blue); text-decoration: underline; }
+  .form-settings[open] .form-settings-change { display: none; }
   .form-names { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow); margin-bottom: 0.9rem; }
   .form-names > summary { cursor: pointer; min-height: 52px; padding: 0.7rem 1.25rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.6rem; }
   .form-names-title { font-weight: 650; color: var(--pk-navy); }
@@ -833,7 +855,7 @@ ui <- function(req) fluidPage(
   tags$head(tags$title("Powerkit: power analysis and sample size planning (prototype)"),
     tags$meta(name = "description", content = "Plan sample size, statistical power and precision for your study. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
     tags$link(rel = "canonical", href = paste0(public_address, "/")),
-    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$script(HTML(documents_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js)), tags$script(HTML(bayes_mode_js)), tags$style(HTML(table_grid_css)), tags$script(HTML(table_grid_js))),
+    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$script(HTML(documents_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js)), tags$script(HTML(bayes_mode_js)), tags$style(HTML(table_grid_css)), tags$script(HTML(table_grid_js)), tags$style(HTML(choice_buttons_css)), tags$script(HTML(choice_buttons_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
   connection_ui(),
