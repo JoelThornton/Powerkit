@@ -23,8 +23,9 @@ input screen. The study plan is reachable from every screen and kept in
 the browser; a result is reused when only free-text answers change; a
 conventional effect size can be recorded as one. The non-inferiority and allocation unit tests and the
 non-inferiority validation chunk were run; no full validation run is
-claimed. Open from the same review: minimum-effect tests still use pwrss's
-margin, and the rounded-group-size search is queued.
+claimed. Minimum-effect tests now use the same shifted t-test (12
+November; the equivalence validation chunk was run). The rounded-group-size
+search is queued.
 
 Results now help users compare with the tools they know (12 November):
 Student's answer beside Welch's, the cost of a stricter alpha, Cohen's f
