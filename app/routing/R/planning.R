@@ -101,7 +101,7 @@ input_guide <- function(f) {
   specialist <- f$id %in% c("ncp", "df", "df1", "df2", "d", "dz", "ni_d", "ni_dz", "w", "eta_squared",
     "bound", "raw_bound", "margin", "raw_margin", "ni_margin", "evidence_threshold", "width", "conf_level", "assurance",
     "w_from", "w_to", "weights", "scores", "retention", "d1", "d2", "criterion", "trials_signal", "trials_noise", "sd_dprime", "dispersion", "zero_prob", "base_rate", "slope_difference", "difference", "mean_difference",
-    "raw_mean", "raw_mean_1", "raw_mean_2", "raw_test_value", "mu0", "means", "m11", "m12", "m21", "m22") ||
+    "raw_mean", "raw_mean_1", "raw_mean_2", "raw_test_value", "mu0", "means", "m11", "m12", "m21", "m22", "pillai_v") ||
     grepl("^(odds_ratio|zero_odds_ratio|rate_ratio|hazard_ratio|prior_|conv_|irt_|meta_effect|fc_loading)", f$id)
   specific <- if (specialist) additional_input_guide(f) else NULL
   guide <- if (!is.null(specific)) specific else if (identical(f$path, "target_test.alpha") || grepl("significance level", key) || (identical(f$id, "alpha") && is.null(f$path))) list(
@@ -190,6 +190,10 @@ additional_input_guide <- function(f) {
     if (f$id == "cost_ratio") "4 means treating a false positive as four times as costly as a miss." else if (f$id == "prior_odds") "Prior odds of 1 describe equal prior odds, not a known population effect." else "Protection 0.80 uses the lower end of a 60% interval in this safeguard method.", "An explicit decision rationale or the stated safeguard method; compare alternatives if uncertain."))
   if (grepl("bound|margin", key)) return(make("A substantively justified decision boundary, distinct from the effect you expect. Equivalence, non-inferiority and minimum-effect tests use boundaries differently.",
     "For a minimum-effect plan, an expected d of 0.5 and a threshold of 0.2 are separate inputs. A symmetric equivalence bound of 0.2 denotes limits -0.2 and 0.2.", "The smallest change that would matter in this setting, justified in measure units or the stated effect-size units."))
+  if (identical(f$id, "pillai_v")) return(make(
+    "Pillai's V (Pillai's trace) summarises how far apart the groups' mean vectors are on all the outcomes at once, relative to the spread within groups; it is not a proportion of variance in one outcome.",
+    "0.10 with three groups and three outcomes is an illustrative input, not a recommendation; it can run from 0 up to the smaller of the outcomes and the groups minus 1.",
+    "A MANOVA with the same outcomes and groups, or the means you expect, from which powerkit could work out V; a published sample V tends to be too large."))
   if (f$id %in% c("d", "dz", "ni_d", "ni_dz", "w", "eta_squared")) return(make(
     if (f$id == "w") "Cohen's w is an effect size for a population pattern of categorical probabilities, not a raw proportion." else if (f$id == "eta_squared") "Partial eta-squared uses an effect and its error sums of squares; ordinary eta-squared uses total sums of squares. Match the requested definition." else "A standardised mean difference in this screen's stated SD units. d_z uses the SD of within-person differences; other denominators are not interchangeable.",
     if (f$id %in% c("w", "eta_squared")) "0.10 is an illustrative effect-size input, not a recommendation to call your effect small or to assume that value." else "A difference of 0.30 means 0.30 of the SD unit defined by this screen; raw means/SDs are safer when a paper uses another denominator.", "Comparable data with the same effect-size definition, a synthesis, or a justified meaningful difference; do not select a conventional value merely to proceed."))
