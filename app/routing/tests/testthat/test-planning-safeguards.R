@@ -43,6 +43,17 @@ test_that("interaction verification retains assumptions and only offers the supp
   expect_null(interaction_verification_values(calc, original))
 })
 
+test_that("a moderated regression sample size or power result, whose sensitivity is not a list, doesn't stop the screen", {
+  # The result screen crashed on E9 and E15 for the sample size: the
+  # engine gives `sensitivity` as a bare NA there, and `$` on it is an error.
+  for (bare in list(NA, NA_real_, NULL)) {
+    calc <- list(status = "ok", spec = list(design = "regression_interaction", template = "two_way",
+      population = list(metric = "correlation"), goal = list(type = "sample_size", power = 0.8)),
+      result = list(goal_type = "sample_size", sensitivity = bare))
+    expect_null(interaction_verification_values(calc, list(goal = "sample_size")))
+  }
+})
+
 test_that("corrected count search uncertainty and verification preserve the analysis", {
   calc <- list(status="ok", spec=list(design="basic_test",template="two_proportions",
     target_test=list(method="z_test_corrected")),result=list(goal_type="sample_size",n_required=list(n=362)))
