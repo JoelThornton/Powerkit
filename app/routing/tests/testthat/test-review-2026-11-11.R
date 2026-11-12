@@ -203,9 +203,8 @@ test_that("the correlation card plans by the exact method, with Fisher's z as a 
   expect_false(any(grepl("Fisher's z, an approximation", departures_for(forms, "E4", spec), fixed = TRUE)))
   spec$options$correlation_formula <- "fisher_z"
   expect_match(departures_for(forms, "E4", spec), "85 rather than 84", all = FALSE)
-  skip_without_run()
   values <- modifyList(form_examples$E4, list(r = "0.3", goal = "sample_size", power = "0.8", alpha = "0.05"))
-  calc <- run_calculation(build_spec(forms, "E4", fields, values), run, seed = forms$default_seed)
+  calc <- run_calculation(build_spec(forms, "E4", fields, values), seed = forms$default_seed)
   expect_identical(calc$status, "ok")
   expect_equal(calc$result$n_required$n, 84)
 })
