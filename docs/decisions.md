@@ -2807,3 +2807,40 @@ a card is unchanged: the input screen opens on the Bayes factor version
 and asks how unsure the user is about the effect. A filter alone was
 considered and not adopted: it would leave cards opening on the p-value
 version and give "Help me choose" no way to plan with Bayes factors.
+
+### Replication: a plan around the design's own card, and the original's design asked first, 12 November 2026
+
+"Replicate a published finding" in the design finder went straight to the
+Labs replication planner, which covers four designs (two groups, one
+sample, pairs and a correlation). A researcher replicating any of the
+other designs, such as a factorial ANOVA, a regression, a mediation or a
+mixed model, reached a dead end. A replication needs two things: the
+power analysis for the original's design, which only that design's card
+can do, and a replication layer (scepticism about the published effect,
+a goal, how the replication differs, and a write-up). The replication
+planner is therefore to become a replication plan that wraps the card,
+in the way the study plan does:
+
+- The replication plan replaces the Labs planner as the way in; Labs
+  keeps no separate replication tool once the plan exists.
+- The goals table (BayesRepDesign; Pawel, Consonni & Held, 2026) is
+  extended to any design whose focal effect is one number, from its
+  estimate and standard error. The replication's standard error is the
+  original's scaled by the square root of the ratio of sample sizes,
+  which assumes the replication copies the original's design; for the
+  four designs with an exact entry it must reproduce the existing table.
+  A source for the scaling is to be checked in the package documentation
+  before one is cited.
+- All three beliefs about the true effect stay in view, with the shrunk
+  belief first, because a published effect has been through selection.
+- An original analysed with a Bayes factor is entered as the Bayes factor
+  and the sample size, and converted to t with BayesFactor; a posterior
+  is used as the estimate only when the original's prior was vague or a
+  default.
+
+The first step ships now: the finder's replicate aim asks the original's
+design like any other aim. The four designs the planner covers are offered
+it from their card, on the same design; every other card says it plans
+the replication for a significant result again, and the input screen
+starts with the effect's source as an earlier study. The other steps are
+queue items in `next.md`.
