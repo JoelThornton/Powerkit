@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "65b5ade1237c38c3412dbbb3c761a127dd17fb27",
-        "RemoteSha": "65b5ade1237c38c3412dbbb3c761a127dd17fb27",
+        "RemoteRef": "66eccfb8264472a2959620d54931c3818617108c",
+        "RemoteSha": "66eccfb8264472a2959620d54931c3818617108c",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "65b5ade1237c38c3412dbbb3c761a127dd17fb27",
-        "GithubSHA1": "65b5ade1237c38c3412dbbb3c761a127dd17fb27",
+        "GithubRef": "66eccfb8264472a2959620d54931c3818617108c",
+        "GithubSHA1": "66eccfb8264472a2959620d54931c3818617108c",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-12 21:04:16 UTC; runner",
+        "Packaged": "2026-11-12 22:47:56 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-12 21:04:59 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-12 22:48:32 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,7 +8560,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "935feda2fab0dfd44d3e7a38af43115b"
+      "checksum": "2b718cde9f6511718534975d9a822aa9"
     },
     "forms.yaml": {
       "checksum": "229847c0f4eb52441e27b92bb32fe7f1"
@@ -8626,7 +8626,7 @@
       "checksum": "66d95aa1c7090a0aea4123ff87790ee9"
     },
     "R/replication.R": {
-      "checksum": "c9e579651fa24feefadfac057183c1e1"
+      "checksum": "2762fa9c6db795684b494c7fc2193aa8"
     },
     "R/results.R": {
       "checksum": "076c800661e21b51c43045d90934b7f2"
@@ -8717,6 +8717,9 @@
     },
     "whats-new.d/replication-from-the-finder.yaml": {
       "checksum": "9e18d03387414cd6322b4be917a75761"
+    },
+    "whats-new.d/replication-simple-answer.yaml": {
+      "checksum": "9efb9d0c6a50dc832affdc7854c43545"
     },
     "whats-new.d/result-clarity.yaml": {
       "checksum": "9824e48b20d03d497623b86326a6603f"
