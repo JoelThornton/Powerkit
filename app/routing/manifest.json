@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "2095ed9f9ec7bdd8e36ad7b1237029f72d3f5473",
-        "RemoteSha": "2095ed9f9ec7bdd8e36ad7b1237029f72d3f5473",
+        "RemoteRef": "c03523f28a9d1be9c8b6d55742b4dd06951f92ea",
+        "RemoteSha": "c03523f28a9d1be9c8b6d55742b4dd06951f92ea",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "2095ed9f9ec7bdd8e36ad7b1237029f72d3f5473",
-        "GithubSHA1": "2095ed9f9ec7bdd8e36ad7b1237029f72d3f5473",
+        "GithubRef": "c03523f28a9d1be9c8b6d55742b4dd06951f92ea",
+        "GithubSHA1": "c03523f28a9d1be9c8b6d55742b4dd06951f92ea",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-12 19:32:17 UTC; runner",
+        "Packaged": "2026-11-12 19:46:20 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-12 19:32:53 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-12 19:47:05 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,7 +8560,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "f34da9da8f2fb51682fd53948c63936f"
+      "checksum": "753e188ae5ce97892fb721bee394ad00"
     },
     "forms.yaml": {
       "checksum": "229847c0f4eb52441e27b92bb32fe7f1"
@@ -8629,7 +8629,7 @@
       "checksum": "c9e579651fa24feefadfac057183c1e1"
     },
     "R/results.R": {
-      "checksum": "cb9dda04032695b8db037975e8a984f3"
+      "checksum": "da8bc0d761ee652ec7b596427aad2fef"
     },
     "R/route-fit.R": {
       "checksum": "763727cf1f8850d8c1747dfa9428c333"
@@ -8714,6 +8714,9 @@
     },
     "whats-new.d/result-clarity.yaml": {
       "checksum": "9824e48b20d03d497623b86326a6603f"
+    },
+    "whats-new.d/result-screen-calm.yaml": {
+      "checksum": "32cccbde659bd3cc769f80757733705d"
     },
     "whats-new.d/review-usability-2026-11-11.yaml": {
       "checksum": "4a39f1e5b2f9da7e645edf57edccc74a"

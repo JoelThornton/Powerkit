@@ -479,3 +479,29 @@ test_that("the regression card takes Cohen's f-squared, converted by the engine 
   expect_null(build_spec(forms, "E24", fields, utils::modifyList(values, list(r2_given = "r2", r2_full = "0.1")))$effect_justification$conversion)
   expect_null(build_spec(forms, "E24", fields, utils::modifyList(values, list(goal = "sensitivity", n = "100")))$effect_justification$conversion)
 })
+
+test_that("the result says the answer once, with the comparison as a table (D-22, D-23, D-24, D-31)", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples$E2, list(d = "0.5", goal = "sample_size", power = "0.8", alpha = "0.05", method = "student_t",
+    just_type = "smallest_effect_of_interest"))
+  calc <- run_calculation(build_spec(forms, "E2", fields, values), seed = forms$default_seed)
+  calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values)
+  calc$alpha_line <- alpha_cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values)
+  expect_identical(attr(calc$alpha_line, "table")$n, c(128, 192, 218))
+  expect_identical(attr(calc$cost_line, "table")$current, 1L)
+  html <- as.character(comparison_ui(calc$spec, calc$cost_line, calc$alpha_line))
+  expect_match(html, "<caption>Target power</caption>", fixed = TRUE)
+  expect_match(html, "<caption>Significance level, at the same power</caption>", fixed = TRUE)
+  expect_match(html, '<td class="is-current">\\s*128', perl = TRUE)
+  # A line without numbers stays a sentence.
+  expect_match(as.character(comparison_ui(calc$spec, "A sentence.")), '<p class="result-cost-line">A sentence.</p>', fixed = TRUE)
+  expect_null(comparison_ui(calc$spec, NULL, NULL))
+  expect_identical(reading_sentence(plain_reading(0.8)),
+    "If the true effect is the one you entered, about 8 in 10 studies like this would get a significant result. If the true effect is smaller, fewer would.")
+  panel <- as.character(result_panel_ui(tree, forms, "E2", fields, values, calc))
+  expect_match(panel, "class=\"result-headline lead\">[^<]*<span class=\"result-reading\">If the true effect", perl = TRUE)
+  expect_no_match(panel, "In plain words", fixed = TRUE)
+  expect_match(panel, "<strong>Details. </strong>", fixed = TRUE)
+  expect_match(panel, "Technical records: values used, seed, versions and the spec file", fixed = TRUE)
+  expect_match(panel, 'id="result-heading" tabindex="-1" data-result-focus="true"', fixed = TRUE)
+})
