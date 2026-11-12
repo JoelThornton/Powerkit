@@ -45,6 +45,7 @@ source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "replication.R"), local = TRUE)
 source(file.path("R", "bayes-mode.R"), local = TRUE)
+source(file.path("R", "route-fit.R"), local = TRUE)
 source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
 source(file.path("R", "connection.R"), local = TRUE)
@@ -2152,6 +2153,11 @@ server <- function(input, output, session) {
     session$sendCustomMessage("labs_open", "prereplication")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
+  # The safety net's way on (route_fit.R): the methods map in Labs.
+  observeEvent(input$safety_open_map, {
+    session$sendCustomMessage("labs_open", "map")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  })
   # From a replicated design's card: the planner, on the same design.
   observeEvent(input$rep_open_planner, {
     design <- replication_card_design(forms, state$endpoint)
@@ -2288,11 +2294,13 @@ server <- function(input, output, session) {
         screen_nav_ui(),
         if (isTRUE(state$from_labs)) labs_return_ui(),
         trail_ui(state$history, tree),
-        if (identical(state$route, "guided") && !identical(state$ctx$grouping, "independent"))
-          div(class = "status status-soon guided-single-note", tree$guided$single_analysis_note),
+        if (identical(state$route, "guided") && !is.null(single <- guided_single_note(tree, state$ctx, state$start)))
+          div(class = "status status-soon guided-single-note", single),
+        route_fit_ui(tree, state$endpoint, state$ctx),
         bayes_mode_card_note(tree, state$endpoint, state$bayes_mode),
         if (replicating(state$start)) replication_card_note(forms, state$endpoint),
-        card_ui(tree, state$endpoint, history = state$history),
+        card_ui(tree, state$endpoint, history = state$history,
+          fits = !length(route_fit_messages(tree, state$endpoint, state$ctx))),
         card_nav_ui(forms, state$endpoint),
         mismatch_ui("mismatch-path", path_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint))
       ),
@@ -2304,12 +2312,13 @@ server <- function(input, output, session) {
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
       g_analyses = guided_analyses_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, isolate(state$rule)),
       g_plan = tagList(
+        whole_study_bayes_note(state$bayes_mode),
         if (!is.null(state$plan_opened)) guided_plan_opened_ui(state$plan_opened),
         guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
           history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
           results = state$plan_results, shared = state$plan_shared),
         guided_plan_save_ui(length(state$study_plan))),
-      g_sim = {
+      g_sim = tagList(whole_study_bayes_note(isolate(state$bayes_mode)), {
         ws <- whole_study_screen()
         if (!isTRUE(ws$plan$ok) || is.null(ws$params)) {
           tagList(screen_nav_ui("guided:plan", "Back to your plan"), h2("Simulate the whole study"),
@@ -2323,7 +2332,7 @@ server <- function(input, output, session) {
             whole_study_start_n(state$plan_results, state$primary), state$rule %||% "each",
             values = state$ws_values, path = state$ws_values$path))
         }
-      }
+      })
     )
   })
   # The Word and Markdown downloads sit in a closed format menu
