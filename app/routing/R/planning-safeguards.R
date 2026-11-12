@@ -18,7 +18,9 @@ interaction_verification_values <- function(calc, values) {
       !identical(calc$spec$design, "regression_interaction") ||
       !identical(calc$spec$template, "two_way") ||
       !identical(calc$spec$population$metric, "correlation") ||
-      !isTRUE(calc$result$sensitivity$approximation)) return(NULL)
+      # Only a smallest-effect result has a list here; a sample size or
+      # power result can hold a bare value, and `$` on it is an error.
+      !is.list(calc$result$sensitivity) || !isTRUE(calc$result$sensitivity$approximation)) return(NULL)
   values$goal <- "power"
   values$n <- as.character(calc$spec$goal$n)
   values$r_XW_Y <- as.character(calc$result$sensitivity$effect)

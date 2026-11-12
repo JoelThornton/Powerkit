@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 12 November 2026 (replication from the design finder; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (moderated regression result screen fixed; replication from the design finder; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -10,6 +10,10 @@ page as it stood before each rewrite.*
 powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
+
+The moderated regression cards' result screen, which stopped with an
+error for the sample size and power since 10 November, shows its result
+again (fixed 12 November, with a test).
 
 A pre-tester review on 11 November corrected three calculations: decimal
 group-size ratios are planned as the simplest matching whole split
