@@ -54,30 +54,36 @@ critical_effect <- function(spec, n) {
 # The two groups' sizes at total n, as the power calculation splits them
 # (pwr_inputs(): the allocation ratio is n2 / n1).
 critical_effect_groups <- function(spec, n) {
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   if (isTRUE(all.equal(ratio, 1))) return(c(n / 2, n / 2))
   n1 <- round(n / (1 + ratio))
   c(n1, n - n1)
 }
 
-# Technical details for Pearson's correlation, which pwr's pwr.r.test()
-# doesn't return: the t test's df (n - 2) and critical t, the same critical
-# t (and critical r) pwr.r.test() uses internally, from Perugini et al.'s
-# closed form. pwr then takes power from Fisher's z of the expected r
-# against the critical r, so there is no noncentrality parameter to give.
-critical_effect_details <- function(ce) {
+# Technical details for Pearson's correlation, which neither power call
+# returns: the t test's df (n - 2) and critical t, with the critical r
+# from Perugini et al.'s closed form. The exact method (the default) takes
+# power from the distribution of r itself, and pwr's pwr.r.test() from
+# Fisher's z of the expected r against the critical r, so neither has a
+# noncentrality parameter to give.
+critical_effect_details <- function(ce, exact = TRUE) {
   if (is.null(ce) || !identical(ce$effect_name, "r")) return(NULL)
   t_c <- ce$t_critical
+  critical_r <- switch(ce$alternative, two_sided = sprintf("\u00b1%s", formatC(ce$value, digits = 3, format = "f")),
+    greater = formatC(ce$value, digits = 3, format = "f"), less = formatC(-ce$value, digits = 3, format = "f"))
   list(
     statistic = "t",
     df = ce$df,
     critical = switch(ce$alternative, two_sided = c(-t_c, t_c), greater = t_c, less = -t_c),
     ncp = NA_real_,
     actual_alpha = NA_real_,
-    source = "Perugini et al.'s (2025) formula, with the critical t pwr's pwr.r.test() also uses",
-    note = sprintf(paste("The critical r is %s. pwr's power for a correlation compares Fisher's z of the expected r with that",
-      "critical r, so there is no noncentrality parameter."),
-      switch(ce$alternative, two_sided = sprintf("\u00b1%s", formatC(ce$value, digits = 3, format = "f")),
-        greater = formatC(ce$value, digits = 3, format = "f"), less = formatC(-ce$value, digits = 3, format = "f")))
+    source = "Perugini et al.'s (2025) formula, with the t test's critical t",
+    note = if (exact) {
+      sprintf(paste("The critical r is %s. Power is the chance the observed r passes it, from the exact distribution of r,",
+        "so there is no noncentrality parameter."), critical_r)
+    } else {
+      sprintf(paste("The critical r is %s. pwr's power for a correlation compares Fisher's z of the expected r with that",
+        "critical r, so there is no noncentrality parameter."), critical_r)
+    }
   )
 }

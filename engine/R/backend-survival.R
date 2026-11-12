@@ -54,7 +54,7 @@ survival_inputs <- function(spec) {
   tt <- spec$target_test
   if (identical(spec$template, "log_rank")) {
     p <- as.numeric(unlist(pop$p_event))
-    ratio <- spec$options$allocation_ratio %||% 1
+    ratio <- allocation_ratio(spec)
     list(
       template = "log_rank", alpha = tt$alpha, time = pop$time, p = p,
       reduction = 100 * (1 - p[2] / p[1]),

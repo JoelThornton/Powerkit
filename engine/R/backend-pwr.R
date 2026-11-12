@@ -14,7 +14,13 @@
 #                          the paired test's d is d_z
 #   independent t          pwr.t.test(type = "two.sample") for equal
 #                          groups, pwr.t2n.test() otherwise
-#   correlation            pwr.r.test() (Fisher's z approximation)
+#   correlation            the exact distribution of r under a bivariate
+#                          normal population, as G*Power:
+#                          pwrss::power.exact.onecor(). options >
+#                          correlation_formula = "fisher_z": pwr.r.test()
+#                          (Fisher's z approximation), which is also what
+#                          a correlation that varies between studies
+#                          (population > tau) is planned on
 #   two proportions        the z test with pooled variance under the null
 #                          and no continuity correction, which equals
 #                          G*Power's z test (docs/gpower-parity.md, E5;
@@ -44,7 +50,7 @@ pwr_covers <- function(spec) {
 pwr_backend <- function(spec, seed = NULL) {
   inputs <- pwr_inputs(spec)
   step <- valid_n_step(spec)
-  # pwr.r.test() needs n > 3; every other call accepts the design's minimum.
+  # The correlation's calls need n > 3; every other call accepts the design's minimum.
   n_min <- step * ceiling(max(minimum_n(spec), 4) / step)
   power_at <- function(n) pwr_power(inputs, n)
   list(
@@ -68,7 +74,7 @@ pwr_backend <- function(spec, seed = NULL) {
 # its arguments at total sample size n.
 pwr_inputs <- function(spec) {
   pop <- spec$population
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
   groups <- function(n) {
     n1 <- round(n / (1 + ratio))
@@ -99,10 +105,26 @@ pwr_inputs <- function(spec) {
       fun = "pwr.t.test",
       args = function(n) list(n = n, d = pop$dz, type = "paired", alternative = alternative)
     ),
-    correlation = list(
-      fun = "pwr.r.test",
-      args = function(n) list(n = n, r = pop$r, alternative = alternative)
-    ),
+    correlation = if (correlation_exact(spec)) {
+      list(
+        package = "pwrss",
+        fun = "power.exact.onecor",
+        alpha_arg = "alpha",
+        # pwrss's one-sided test is in the direction of rho. It stops at
+        # rho = 0 exactly for a one-sided test (pwrss 1.3.3: "object 'pwr'
+        # not found"), where the power is alpha; the smallest positive
+        # number gives that.
+        args = function(n) list(
+          rho = if (isTRUE(pop$r == 0)) .Machine$double.eps else pop$r, null.rho = 0, n = n,
+          alternative = if (alternative == "two.sided") "two.sided" else "one.sided", verbose = 0
+        )
+      )
+    } else {
+      list(
+        fun = "pwr.r.test",
+        args = function(n) list(n = n, r = pop$r, alternative = alternative)
+      )
+    },
     two_proportions = if (proportions_z_test(spec) && !equal) {
       list(
         package = "pwrss",
@@ -156,6 +178,17 @@ pwr_inputs <- function(spec) {
   call
 }
 
+# Pearson's correlation from the exact distribution of r (pwrss), the
+# default (docs/conventions.md, Departure 10, retired 12 November 2026).
+# Fisher's z (pwr) on request, and for a correlation that varies between
+# studies, whose method is defined on Fisher's z (heterogeneity.R).
+correlation_exact <- function(spec) {
+  identical(spec$template, "correlation") &&
+    identical(spec$target_test$method %||% "pearson", "pearson") &&
+    !identical(spec$options$correlation_formula, "fisher_z") &&
+    !isTRUE(spec$population$tau > 0)
+}
+
 # Two proportions by the z test (power.prop.test() for equal groups,
 # pwrss for unequal groups): the default. Cohen's h only on request.
 proportions_z_test <- function(spec) {
@@ -166,12 +199,16 @@ proportions_z_test <- function(spec) {
 # from the specified difference ("greater" with p2 < p1, or "less" with
 # p2 > p1). power.prop.test() and pwrss's power.z.twoprops() use |p1 - p2|
 # for a one-sided test, so they can't tell the directions apart;
-# pwr_power() handles this case.
+# pwr_power() handles this case. pwrss's power.exact.onecor() likewise
+# tests one-sided in the direction of rho.
 against_effect <- function(spec) {
-  if (!identical(spec$template, "two_proportions") || !proportions_z_test(spec)) {
+  if (correlation_exact(spec)) {
+    diff <- spec$population$r
+  } else if (identical(spec$template, "two_proportions") && proportions_z_test(spec)) {
+    diff <- spec$population$p2 - spec$population$p1
+  } else {
     return(FALSE)
   }
-  diff <- spec$population$p2 - spec$population$p1
   switch(
     spec$target_test$alternative %||% "two_sided",
     two_sided = FALSE,
@@ -245,7 +282,7 @@ pwr_check_run <- function(spec, inputs) {
     one_sample_t = row("d passed to pwr", pop$d, args$d),
     independent_t = row("d passed to pwr (group 2 minus group 1)", pop$d, args$d),
     paired_t = row("d_z passed to pwr", pop$dz, args$d),
-    correlation = row("r passed to pwr", pop$r, args$r),
+    correlation = row(sprintf("r passed to %s", inputs$package), pop$r, args$r %||% args$rho),
     two_proportions = if (identical(inputs$package, "pwrss")) {
       rbind(
         row("p1 passed to pwrss (prob1)", pop$p1, args$prob1),
@@ -291,7 +328,7 @@ pwr_sensitivity <- function(spec, n, target) {
   pop <- spec$population
   alpha <- spec$target_test$alpha
   alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   equal <- isTRUE(all.equal(ratio, 1))
   signed <- function(value, specified) {
     # A zero specified effect (none given) gives a positive result.
@@ -331,7 +368,9 @@ pwr_sensitivity <- function(spec, n, target) {
       dz <- signed(solve("pwr.t.test", list(n = n, d = NULL, type = "paired", alternative = alternative), "d"), pop$dz)
       list(effect = dz, effect_name = "d_z", effect_description = "Cohen's d_z (mean of the differences, in SDs of the differences)")
     },
-    correlation = {
+    correlation = if (correlation_exact(spec)) {
+      pwr_sensitivity_r_exact(spec, n, target)
+    } else {
       r <- signed(solve("pwr.r.test", list(n = n, r = NULL, alternative = alternative), "r"), pop$r)
       list(effect = r, effect_name = "r", effect_description = "correlation r")
     },
@@ -355,6 +394,29 @@ pwr_spec_with_effect <- function(spec, found) {
   field <- switch(found$effect_name, d = "d", d_z = "dz", r = "r", p2 = "p2")
   spec$population[[field]] <- found$effect
   spec
+}
+
+# Pearson's correlation by the exact method: pwrss has no solver for the
+# effect, so r is searched with the power call powerkit uses for power.
+# Two-sided, the r has the sign of the specified r (positive if none);
+# one-sided, the sign the test looks for.
+pwr_sensitivity_r_exact <- function(spec, n, target) {
+  direction <- switch(spec$target_test$alternative %||% "two_sided",
+    two_sided = if (isTRUE(spec$population$r < 0)) -1 else 1, greater = 1, less = -1)
+  power_at <- function(r) {
+    trial <- spec
+    trial$population$r <- direction * r
+    pwr_power(pwr_inputs(trial), n)
+  }
+  limit <- 1 - 1e-9
+  if (power_at(limit) < target) {
+    abort_run(paste0(
+      "No effect in the direction you specified reaches the target power at this n. ",
+      "Check the direction of the test and the population values."
+    ))
+  }
+  r <- stats::uniroot(function(r) power_at(r) - target, lower = 0, upper = limit, tol = 1e-10)$root
+  list(effect = direction * r, effect_name = "r", effect_description = "correlation r")
 }
 
 # Two proportions: keep p1 and move p2 away from it, in the direction of

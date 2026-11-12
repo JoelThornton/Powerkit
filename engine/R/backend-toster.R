@@ -57,7 +57,7 @@ toster_backend <- function(spec, seed = NULL) {
 # The arguments to power_t_TOST() at total sample size n.
 toster_inputs <- function(spec) {
   pop <- spec$population
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   alpha <- spec$target_test$alpha
   if (identical(spec$template, "tost_correlation")) {
     return(list(fun = "power_z_cor", args = function(n) {
@@ -158,7 +158,7 @@ toster_script <- function(spec, result) {
   if (!is.null(inputs$fun)) {
     return(toster_z_script(spec, result, inputs))
   }
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   effect_name <- if (identical(inputs$type, "paired")) "d_z" else "d"
   n_lines <- switch(
     inputs$type,

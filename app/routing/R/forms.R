@@ -174,6 +174,8 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
           f$label <- "Draws or bootstrap resamples per confidence interval"
           f$empty_text <- "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap"
           f$help <- "A numerical accuracy setting, not an effect-size assumption. Leave empty for the defaults, or match the resample count in your planned analysis. More draws reduce simulation noise and take longer."
+          # The quick estimate draws no interval.
+          if (simple_mediation_card(form)) f$shown_if <- list(field = "method", is_not = "joint_significance")
         }
         f
       })
@@ -186,7 +188,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
         type = "number", path = "options.ci_draws", optional = TRUE, min = 100, max = 100000, integer = TRUE,
         empty_text = "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap",
         help = "Leave empty for the numerical default, or match your planned analysis. More draws reduce simulation noise and take longer.")))))
-    groups <- c(list(mediation_analysis_group()), groups)
+    groups <- c(list(mediation_analysis_group(simple_mediation_card(form))), groups)
   }
   if (!is.null(form$mediators)) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
@@ -220,7 +222,30 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
 
 # The estimator and interval are chosen together so PROCESS-style planning
 # cannot accidentally keep lavaan ML or a Monte Carlo interval.
-mediation_analysis_group <- function() {
+# Simple mediation (one mediator: E10, E16) also offers a quick estimate
+# (12 November 2026): the joint-significance test by pwrss's formula,
+# instant and with a sample size, which the simulated interval can't give
+# in the app. It is where the screen starts, and the result says plainly
+# that it is an estimate and how to get the number to report.
+simple_mediation_card <- function(form) {
+  identical(form$base$design, "mediation") && identical(form$base$template, "process_4") && is.null(form$mediators)
+}
+
+mediation_analysis_group <- function(simple = FALSE) {
+  group <- mediation_analysis_group_full()
+  if (!simple) return(group)
+  f <- group$fields[[1]]
+  f$choices <- c(list(joint_significance = "Quick estimate: both paths significant, by formula (instant, for planning)"), f$choices)
+  f$default <- "joint_significance"
+  f$default_source <- "the quick estimate, so the screen gives an answer straight away (pwrss's power.z.mediation(method = 'joint') formula, a little optimistic); choose a simulated method for the number you report"
+  f$choice_notes <- list(
+    joint_significance = "An estimate for planning, not for your write-up. The joint-significance test counts the indirect effect when both paths are significant; its power comes from a formula, so the answer is instant, but it is optimistic: with paths of .3 and 100 people it gives 75% power where the full simulation gives 71%, so the sample size it gives can be about 10% short. For the number you report, choose one of the simulated methods: power at a fixed sample size runs here in about 12 minutes, and the sample size comes as an R script for your own computer.")
+  f$help <- paste("Start with the quick estimate to see roughly how many people you need.", f$help)
+  group$fields[[1]] <- f
+  group
+}
+
+mediation_analysis_group_full <- function() {
   list(input = NULL, title = "Which mediation analysis will you run?",
     note = "Choose the method you will use to analyse your study. PROCESS is one way of running mediation; its model number alone does not identify the test.",
     note_more = "The PROCESS-style option fits each equation by ordinary least squares (OLS) and resamples whole participants. It covers the displayed model with complete independent observations and continuous mediators/outcomes, using the existing normal-error population generator. It does not run PROCESS itself or cover its logistic, clustered/stratified bootstrap, measurement-error or bias-corrected options.",
@@ -393,11 +418,7 @@ direction_group <- function(tool, shown_if = NULL) {
   ))
 }
 
-direction_note <- paste(
-  "A prediction and a statistical decision rule are separate choices. You can predict that training raises scores and still use a two-sided test.",
-  "Choose one-sided testing only if a rejection in the opposite direction will not count under the rule you commit to before seeing data.",
-  "A significant two-sided result can be positive or negative: interpret its estimate and interval against your prediction, rather than treating either rejection as support for the theory."
-)
+direction_note <- "Test two-sided unless a result in the opposite direction would change nothing you conclude or do. You can predict a direction and still test two-sided."
 
 # E1-E6: pwr's formula or Spower's simulation (forms.yaml,
 # basic_method_field). Where the form has a test version (`method`), the
@@ -476,11 +497,11 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # Dyadic data (E44): n is the number of pairs.
   pairs <- identical(form$units, "pairs")
   if (pairs) goals <- list(sample_size = "The number of pairs I need", power = "The power I'd have with a given number of pairs")
-  if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
-  if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
+  if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I'd have a good chance of finding, at a given sample size"
+  if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The same, across a range of sample sizes"
   # A justified alpha (JustifyAlpha's optimal_alpha()): the one-sample,
   # paired and two-group t-tests and the correlation (E1-E4).
-  if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "The significance level that best balances the two errors at a given sample size"
+  if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "A significance level that balances the two errors, at a given sample size"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
@@ -503,7 +524,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     shown_for_goals = c("power", "sensitivity", "justified_alpha"), optional = TRUE)
   test <- list(
     goal,
-    list(id = "power", label = "Target power", help = paste("As a proportion: 0.8 means 80%. For a single significance test, this is the chance it rejects its null under the population you specify. Targets of 80%, 90% and 95% leave about 20, 10 and 5 missed effects per 100 studies under those assumptions. Higher power usually needs more participants. Choose by weighing the consequences of a miss against recruitment cost and feasibility; 80% is a common convention, not a scientific recommendation. These buttons are examples, not required targets. It is not the chance your theory is true.", if (!is.null(no_bayes)) "For a Bayes factor test, it is the chance of reaching your evidence threshold under the specified effect or design prior; failure to reach it is not necessarily evidence for the null."),
+    list(id = "power", label = "Target power", help = "The chance your test comes out significant if the effect is the size you enter (0.8 means 80%). Higher power needs more people. Weigh what a missed effect would cost against what recruiting costs; 80% is a habit, not a rule. It is not the chance your hypothesis is true.",
          type = "number", path = "goal.power", needed_for = c("sample_size", "sensitivity"), min_exclusive = 0, max_exclusive = 1,
          # Empty on every card (8 November 2026): the target is the user's
          # choice to justify, and the result compares 80%, 90% and 95%.
@@ -525,17 +546,27 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(id = "error_rule", label = "How should the two errors be traded off?", type = "select", path = "goal.error_rule",
          choices = list(minimize = "Make their weighted total as small as possible", balance = "Make the weighted errors equal"),
          default = "minimize", shown_for_goals = "justified_alpha", optional = TRUE),
-    list(id = "alpha", label = "Significance level (alpha)", help = "The planned false-positive rate under the test's null assumptions, not the probability your conclusion is wrong. A smaller alpha requires stronger evidence, and usually a larger sample for the same power.", type = "number", path = "target_test.alpha", required = TRUE,
+    list(id = "alpha", label = "Significance level (alpha)", help = "The chance of a significant result when there is no effect. A lower level means fewer false positives and needs more people for the same power. It is not the chance that a significant finding is false.", type = "number", path = "target_test.alpha", required = TRUE,
          # Empty on every card (8 November 2026), as target power is: one
          # click gives the usual level, so choosing it is the user's act.
          min_exclusive = 0, max = 0.5, default = NULL, usual = tool[["alpha"]] %||% 0.05,
          usual_label = sprintf("Use %s, the usual level", format(tool[["alpha"]] %||% 0.05)),
+         # .05 is the usual level in psychology and what readers expect; the
+         # two stricter levels sit beside it, with when they fit, and the
+         # result shows what each costs (12 November 2026).
+         shortcuts = c(tool[["alpha"]] %||% 0.05, 0.01, 0.005),
+         shortcut_labels = c(sprintf("Use %s, the usual level", format(tool[["alpha"]] %||% 0.05)), "0.01", "0.005"),
+         prompt = "0.01 or 0.005 fit a study that runs many tests, or a surprising claim that needs stronger evidence. Results worked out by formula show what each would cost.",
          default_source = sprintf("Empty on every card: choose the level your claim needs; %s is the usual one, %s", format(tool[["alpha"]] %||% 0.05),
-           tool[["alpha_source"]]), shown_if = no_bayes),
+           tool[["alpha_source"]]),
+         # Not asked when the goal is to find the level (the balance of the
+         # two errors): build_spec() gives the engine the usual 0.05 for
+         # its comparison row.
+         shown_if = Filter(Negate(is.null), list(no_bayes, list(field = "goal", is_not = "justified_alpha")))),
     # Goes in the write-up when given (8 November 2026: asked whatever the
     # level, and optional).
     list(id = "alpha_reason", label = "Why this significance level", help = "Goes in the write-up; for example \"the claim is new, so stronger evidence is wanted\".",
-         type = "text", optional = TRUE, shown_if = no_bayes)
+         type = "text", optional = TRUE, shown_if = Filter(Negate(is.null), list(no_bayes, list(field = "goal", is_not = "justified_alpha"))))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
   # No significance test (latent profiles: the BIC chooses the number of
@@ -563,21 +594,22 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(list(input = NULL, title = "Scientific question (optional)", fields = list(
       list(id = "research_question", label = "What scientific question will this study address?", type = "text", optional = TRUE,
         help = "For example, whether training improves recall enough to change practice. This labels the planning document; it does not choose a statistical test for you.")))),
-    if (!isTRUE(form$precision)) claim_groups(start$claim, start$n_tests),
+    if (!isTRUE(form$precision)) claim_groups(start$claim, start$n_tests, isTRUE(start$claim_from_plan)),
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = c(list(
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
            choices = c(list(
              smallest_effect_of_interest = "The smallest effect that would matter",
              meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study",
+             convention = "A convention or rule of thumb (such as Cohen's small, medium or large)",
              own_study_result = "The result of my finished study (observed power)"),
              if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"))),
-      list(id = "just_source", label = "Why this effect size? (needed to save or export the plan)",
-           help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. You can calculate without it.",
+      list(id = "just_source", label = "Why this effect size?",
+           help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. If you leave it empty, the write-up says no justification was recorded.",
            type = "text", path = "effect_justification.source", optional = TRUE),
       # A pilot is as much one study's estimate as a published one, and
       # less precise, so it gets the same question.
-      list(id = "just_adjustment", label = "How you adjusted it", help = "One estimate can be uncertain, especially from a small pilot. Published findings can also be selected for large or significant effects. Explain your defensible effect or range; do not automatically halve an estimate. If you kept it unchanged, say why.",
+      list(id = "just_adjustment", label = "How you adjusted it", help = "An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. If you kept the estimate unchanged, say why.",
            type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
            shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
              list(field = "sg_use", is_not = "telescopes")))
@@ -596,7 +628,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     )),
     # Guess first (optional teaching mode): the guess is shown next to the
     # answer and goes nowhere else (no spec path, not in the exports).
-    list(input = NULL, title = "Guess first (optional)", note = guess_note, fields = list(
+    list(input = NULL, title = "Guess the answer first (optional, to learn how power behaves)", note = guess_note, fields = list(
       list(id = "guess", label = "Your guess", type = "number", optional = TRUE, min = 0,
            shown_if = list(field = "goal", is_not = "sensitivity_curve"))
     ))
@@ -671,30 +703,26 @@ heterogeneity_fields <- function(template) {
     list(field = "goal", is_not = "sensitivity_curve"), list(field = "goal", is_not = "justified_alpha"))
   if (identical(template, "correlation")) {
     return(list(list(id = "het_tau", label = "How much might the true correlation vary between studies? (as an SD on Fisher's z)",
+      fold = "The correlation may differ from study to study (optional)",
       type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
       default_source = "Starts empty: power for the correlation entered; choose variation only to average across differing study correlations",
-      help = paste("Leave empty for power at the correlation you entered. To explore smaller correlations, use the comparison on the results screen.",
-        "Entering variation changes the question: the answer is averaged across studies with differing true correlations, not power at your entered correlation.",
-        "It can raise or lower reported power and is not an automatic safety margin. Labs, samples, materials and procedures can differ.",
-        "This is its SD between studies on Fisher's z scale, which is close to r for small values. Kenny and Judd (2019) take",
-        "25% of a small, medium and large effect as small, medium and large variation; for r = .1, .3 and .5 that is about",
-        "0.025, 0.075 and 0.125. The correlation above is then the average across studies (McShane & Bockenholt, 2014).",
-        "If a meta-analysis of this correlation reports how much it varies (tau, on Fisher's z), use that instead.",
-        "Empty or 0 gives the usual calculation for the correlation you entered. With variation entered, the results show",
-        "the answer with no, small, medium and large variation."),
+      help = paste("Optional. Leave empty to plan for the correlation you entered. If you enter a value, the answer is averaged over",
+        "studies whose true correlations differ by this much (an SD on Fisher's z, which is close to r for small values;",
+        "McShane & Bockenholt, 2014). That changes the question, and it can raise or lower power. The best source is a",
+        "meta-analysis of this correlation that reports tau on Fisher's z. powerkit knows of no published reference values on",
+        "this scale; 0.025, 0.075 and 0.125 are a quarter of r = .1, .3 and .5, the rule Kenny and Judd (2019) use for d,",
+        "and are only illustrations. The results show the answer at each of them and at your value."),
       shown_if = c(list(list(field = "method", is = "pearson")), common))))
   }
   list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
     type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
     default_source = "Starts empty: power for the effect entered; choose variation only to average across differing study effects",
-    help = paste("Leave empty for power at the effect you entered. To explore smaller effects, use the comparison on the results screen.",
-      "Entering variation changes the question: the answer is averaged across studies with differing true effects, not power at your entered effect.",
-      "It can raise or lower reported power and is not an automatic safety margin. Labs, samples, materials and procedures can differ.",
-      "Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 as small, medium and large variation, and argue that zero",
-      "should not be the default. If a meta-analysis of this effect reports how much it varies (tau, in d), use that instead.",
-      "With variation entered, the effect above becomes the average across studies. Empty or 0 gives the usual calculation for the effect entered.",
-      "With variation entered, the results compare no, small, medium and large variation.",
-      "It needs equal SDs in the two groups."),
+    fold = "The effect may differ from study to study (optional)",
+    help = paste("Optional. Leave empty to plan for the effect you entered. If you enter a value, the answer is averaged over",
+      "studies whose true effects differ by this much (as an SD in d), which changes the question; it can raise or lower",
+      "power. The best source is a meta-analysis of this effect that reports tau. Kenny and Judd (2019) use 0.05, 0.125",
+      "and 0.20 as examples; they are a quarter of Cohen's 0.2, 0.5 and 0.8, so treat them as illustrations, not estimates",
+      "for your field. The results show the answer at each of them and at your value. It needs equal SDs in the two groups."),
     shown_if = c(list(list(field = "method", is_one_of = c("t_test", "student_t", "welch_t"))), common)))
 }
 
@@ -725,7 +753,7 @@ with_eta_squared <- function(group, template) {
   fields <- list()
   for (f in group$fields) {
     if (identical(f$id, "metric")) {
-      f$choices <- c(f$choices, list(eta_squared = "An effect size: partial eta-squared, as in G*Power"))
+      f$choices <- c(f$choices, list(eta_squared = if ("f" %in% conversion_choices[[template]]) "An effect size: partial eta-squared or Cohen's f, as in G*Power" else "An effect size: partial eta-squared, as in G*Power"))
       source <- if (mixed) list(list(
         id = "eta_source", label = "Where does your partial eta-squared come from?", type = "select", required = TRUE,
         path = "population.eta_source", shown_if = by_effect,
@@ -812,7 +840,11 @@ conversion_fields <- function(template, when = list()) {
     labels$odds_ratio <- "An odds ratio (group 2's odds of 'yes' over group 1's), with group 1's proportion above"
     labels$risk_ratio <- "A risk ratio (group 2's proportion over group 1's), with group 1's proportion above"
   }
-  choices <- c(list(none = "No: I'll enter the effect size myself"), labels)
+  # Cohen's f is G*Power's own input for an ANOVA, not a published form:
+  # say so where it is offered, so it is found.
+  has_f <- "f" %in% from
+  if (has_f) labels$f <- "Cohen's f (the effect size G*Power asks for)"
+  choices <- c(list(none = if (has_f) "No: I'll enter partial eta-squared" else "No: I'll enter the effect size myself"), labels)
   sets <- stats::setNames(lapply(from, function(x) list(list(path = "effect_justification.conversion.from", value = x))), from)
   planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size"))),
     # A published F from a repeated-measures ANOVA gives its own kind of
@@ -831,7 +863,7 @@ conversion_fields <- function(template, when = list()) {
            conversion = TRUE, path = "effect_justification.conversion.n2", shown_if = sized, help = help))
   }
   c(Filter(Negate(is.null), list(
-    list(id = "conv_from", label = "Is your effect size published in another form?", type = "select", default = "none",
+    list(id = "conv_from", label = if (has_f) "Do you have Cohen's f or an F statistic instead?" else "Is your effect size published in another form?", type = "select", default = "none",
          choices = choices, sets = sets, shown_if = planning,
          help = if (proportions) paste(
            "powerkit works out group 2's proportion from the ratio and group 1's proportion (an odds ratio with the effectsize",
@@ -870,7 +902,7 @@ with_conversion <- function(group, template) {
 }
 
 guess_note <- paste(
-  "Before you press \u201cCheck my answers\u201d, write down what you expect:",
+  "Before you press \u201cCalculate\u201d, write down what you expect:",
   "the number of participants (for the sample size), the power as a percentage (for power),",
   "or the size of the smallest effect you could detect. Your guess is shown next to the answer;",
   "it isn't part of the plan, the R script or the write-up."
@@ -883,10 +915,15 @@ guess_note <- paste(
 # 2026) and for "all of several" (which raises each test's target power so
 # that all succeed together with the target power; docs/decisions.md, 19
 # October 2026). From a plan or an older project, it starts at the claim
-# given then. It sits with the settings: most studies have one test.
+# given then. It is in view on the input screen (12 November 2026): the
+# multiple-testing question is one the usual tools never ask. "related"
+# (12 November 2026) is for a researcher who holds the error-statistical
+# view that separate claims from a related group of tests need a
+# correction (Mayo, 2018): the same Bonferroni division as "any".
 claim_choices <- list(
   one = "One test: my conclusion rests on this test alone",
-  each = "Several claims, each standing on its own",
+  each = "Several claims, each standing on its own (no correction)",
+  related = "Several claims from a related group of tests, corrected as a group (Bonferroni)",
   any = "Any of several tests: the claim holds if at least one is significant",
   all = "All of several tests: the claim needs every one to be significant"
 )
@@ -894,8 +931,13 @@ claim_choices <- list(
 claim_notes <- function() list(
   each = paste(
     "You said each test supports its own claim. Power this test on its own; run the input screen again for each of the others.",
-    "This setting applies no correction across the claims (Rubin, 2021); it does not control the chance of any false positive across the collection. If any positive test would count towards one conclusion, choose the any-test option instead.",
+    "This setting applies no correction across the claims (Rubin, 2021); it does not control the chance of any false positive across the collection. If any positive test would count towards one conclusion, choose the any-test option instead; if you want a correction because the tests form a related group, choose the corrected option.",
     philosophy_note
+  ),
+  related = paste(
+    "You said each test supports its own claim, and that the tests form a related group you want to correct for, such as several outcomes of the same treatment.",
+    "powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test; plan each of the others the same way.",
+    "This follows the error-statistical view that a related group of tests needs a correction (Mayo, 2018, pp. 275\u2013276); under Rubin's (2021) view, separate claims need none."
   ),
   any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
   all = paste(
@@ -905,14 +947,16 @@ claim_notes <- function() list(
   )
 )
 
-claim_groups <- function(claim = "one", n_tests = NULL) {
+claim_groups <- function(claim = "one", n_tests = NULL, from_plan = FALSE) {
   claim <- claim %||% "one"
   if (!claim %in% names(claim_choices)) claim <- "one"
   fields <- list(
-    list(id = "claim", label = "Your claim: how many tests does your conclusion rest on?", type = "select",
-         choices = claim_choices, default = claim, choice_notes = claim_notes()),
+    list(id = "claim", label = "How many tests does your conclusion rest on?", type = "select",
+         choices = claim_choices, default = claim, choice_notes = claim_notes(),
+         help = if (isTRUE(from_plan)) "Set by your study plan, so that every analysis in it agrees. To change it, change the plan's claim." else
+           "Most studies rest on one test. If yours runs several, say how they count: it can change the significance level or the power each test needs."),
     list(id = "n_tests", label = "Number of tests", type = "number", required = TRUE, min = 2, integer = TRUE,
-         default = n_tests, applies_if_claim = c("any", "all"),
+         default = n_tests, applies_if_claim = c("related", "any", "all"),
          shown_if = list(list(field = "claim", is_not = "one"), list(field = "claim", is_not = "each"))),
     list(id = "all_dependence", label = "Planning for all tests: what can you assume?", type = "select", required = TRUE, default = "unknown",
          shown_for_goals = c("sample_size", "sensitivity"),
@@ -920,7 +964,7 @@ claim_groups <- function(claim = "one", n_tests = NULL) {
          choices = list(independent = "Independent tests: use the product of their powers",
            unknown = "Dependence unknown: use a sufficient target that may be conservative"),
          shown_if = list(field = "claim", is = "all"),
-         help = "Independence is about the tests' significance decisions, not just their predictors; using the same participants does not establish it. Choose unknown dependence if you cannot justify independence. The sufficient target needs no correlation between tests. Each test's unconditional successful-study probability must reach it under the same population assumptions. Conditional power among valid fits alone does not establish this when fits fail. This is a sufficient bound, not an estimate of joint power.")
+         help = "If you can't say how the tests' results are related, choose \"unknown\": measuring the same participants does not make the tests independent. powerkit then sets each test's power high enough that all of them succeed together at least as often as your target, whatever the relationship. This is a safe bound: the true chance is usually higher.")
   )
   list(list(input = NULL, title = "Your claim", fields = fields))
 }
@@ -950,6 +994,12 @@ claim_result_note <- function(values, alpha_used, goal = NULL) {
     values$claim %||% "one",
     one = NULL,
     each = "Your claim: several claims, each standing on its own. This result is for one test, with no correction; work out each of the others the same way.",
+    related = if (is.null(alpha_used)) {
+      sprintf("Your claim: %s related tests, corrected as a group. A Bayes factor test has no significance level, so powerkit applies no correction.", values$n_tests)
+    } else sprintf(
+      "Your claim: %s related tests, each its own claim, corrected as a group. The significance level for this test is %s divided by %s (Bonferroni): %s. Work out each of the others the same way.",
+      values$n_tests, format(signif(alpha_used * as.numeric(values$n_tests), 3)), values$n_tests, format(signif(alpha_used, 3))
+    ),
     any = if (is.null(alpha_used)) {
       # Bayes factor tests have no significance level to divide.
       sprintf("Your claim: any of %s tests. A Bayes factor test has no significance level, so powerkit applies no correction; the more tests you run, the more chances one of them has to give misleading evidence.", values$n_tests)
@@ -1076,7 +1126,7 @@ form_problems <- function(fields, values) {
     # Required: marked so, an effect size, or needed for the goal chosen.
     needed <- isTRUE(f$required) || isTRUE(f$effect) || !is.null(f$needed_for) || !is.null(f$needed_if_just)
     if (blank(v)) {
-      if (effect_optional(f, values)) next
+      if (effect_optional(f, values) || source_not_asked(f, values)) next
       if (isTRUE(f$effect)) {
         add(sprintf("%s is empty. Enter the value you expect; powerkit doesn't fill in effect sizes.", quote_label(f)))
       } else if (needed) {
@@ -1088,6 +1138,14 @@ form_problems <- function(fields, values) {
       x <- parse_number(v)
       if (is.nan(x)) {
         add(sprintf("%s should be a number written with a decimal point, such as 0.3.", quote_label(f)))
+        next
+      }
+      # A percentage typed where a proportion is asked for (80 for 80%
+      # power, 5 for a 5% significance level): say what to type instead.
+      top <- f$max_exclusive %||% f[["max"]]
+      bottom <- f$min_exclusive %||% f[["min"]]
+      if (!is.null(top) && top <= 1 && !is.null(bottom) && bottom >= 0 && x >= 2 && x <= 100) {
+        add(sprintf("%s is entered as a proportion between 0 and 1: for %s%%, type %s.", quote_label(f), format(x), format(x / 100)))
         next
       }
       if (!is.null(f[["min"]]) && x < f[["min"]]) add(sprintf("%s must be at least %s.", quote_label(f), f[["min"]]))
@@ -1131,6 +1189,17 @@ form_problems <- function(fields, values) {
     read_scenario_library(values$scenario_library, fields)
     character()
   }, error = function(e) conditionMessage(e)) else character()
+  # Partial eta-squared (or Cohen's f turned into it) plans the classical
+  # F test only; said here, before the engine is called, in the screen's
+  # own words (11 November 2026: the default, Welch's ANOVA, otherwise
+  # failed on the engine's message after a long wait).
+  version <- values$test_version %||% values$method
+  if (identical(values$metric, "eta_squared") && !blank(version) && !version %in% c("anova_f", "ancova_f") &&
+      any(vapply(fields, function(f) identical(f$id, "test_version") && field_applies(f, values), logical(1)))) {
+    problems <- c(problems, c(test_version = paste0(
+      "An effect size (partial eta-squared or Cohen's f) plans the classical ANOVA only. ",
+      "Under \u201cTest version\u201d choose the classical ANOVA, or give the group means and SD to keep the version you chose.")))
+  }
   c(problems, combination_problems(values), scenario_problem)
 }
 
@@ -1195,6 +1264,7 @@ build_spec <- function(forms, ep_id, fields, values) {
     if ((is.null(f$path) && is.null(f$sets)) || !field_applies(f, values)) next
     v <- values[[f$id]]
     if (blank(v) && effect_optional(f, values)) v <- empty_effect(f, values)
+    if (blank(v) && source_not_asked(f, values)) v <- "none"
     # A field left empty may stand for another field's value (E34: the
     # baseline score's R-squared between groups starts as the one within).
     if (blank(v) && !is.null(f$copy_if_empty)) v <- values[[f$copy_if_empty]]
@@ -1234,6 +1304,9 @@ build_spec <- function(forms, ep_id, fields, values) {
     if (spec$template %in% c("two_groups", "paired", "one_group")) spec$target_test$method <- "noncentral_t"
     return(spec)
   }
+  # The level is what a justified alpha finds, so it isn't asked for; the
+  # engine's comparison row uses the usual 0.05.
+  if (identical(values$goal, "justified_alpha") && is.null(spec$target_test$alpha)) spec$target_test$alpha <- 0.05
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
   if (identical(spec$goal$type, "sample_size") || identical(spec$goal$type, "sensitivity")) spec$goal$power <- claim_power(spec$goal$power, values)
   # The range of sample sizes is several engine runs (sensitivity_curve());
@@ -1272,10 +1345,18 @@ effect_optional <- function(f, values) {
     (isTRUE(values$goal %in% f$optional_for) || identical(values$just_type, "none"))
 }
 
+# Finding the smallest detectable effect enters no effect size, so it needs
+# no source for one: the question may stay empty, and the spec records
+# "none" (11 November 2026). Only where the card offers that answer.
+source_not_asked <- function(f, values) {
+  identical(f$id, "just_type") && "none" %in% names(f$choices) &&
+    isTRUE(values$goal %in% c("sensitivity", "sensitivity_curve"))
+}
+
 # Problems with the combination of answers, beyond single fields.
 combination_problems <- function(values) {
   if (identical(values$just_type, "none") && !isTRUE(values$goal %in% c("sensitivity", "sensitivity_curve"))) {
-    return("With no effect size to plan for, there is no sample size or power to work out. Under \u201cWhat do you want to find out?\u201d, choose the smallest effect you could detect, at a given sample size or across a range of sample sizes.")
+    return(c(just_type = "\u201cI can't justify an effect size\u201d leaves no effect to plan for, so there is no sample size or power to work out. If you are using a conventional value, choose \u201cA convention or rule of thumb\u201d as the source. Otherwise, under \u201cWhat do you want to find out?\u201d, choose the smallest effect you could detect."))
   }
   character()
 }

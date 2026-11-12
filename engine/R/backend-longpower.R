@@ -31,7 +31,7 @@ growth_inputs <- function(spec) {
   cov_is <- (pop$r_intercept_slope %||% 0) * s_i * s_s
   R <- outer(t, t, function(a, b) s_i^2 + a * b * s_s^2 + (a + b) * cov_is) + diag(pop$sd_residual^2, length(t))
   retention <- if (is.null(pop$retention)) rep(1, length(t)) else as.numeric(unlist(pop$retention))
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   list(
     t = t, R = R, delta = pop$slope_difference, alpha = spec$target_test$alpha,
     alternative = spec$target_test$alternative %||% "two_sided",

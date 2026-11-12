@@ -73,7 +73,7 @@ heterogeneity_problems <- function(spec) {
     problems <- c(problems, "Variation between studies is planned for two groups with equal SDs (an SD ratio of 1). Empty 'How much might the true effect vary between studies?', or give equal SDs.")
   }
   if (identical(spec$template, "independent_t") && identical(method, "welch_t") &&
-      !isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) {
+      !isTRUE(all.equal(allocation_ratio(spec), 1))) {
     problems <- c(problems, paste("Variation between studies with Welch's test currently requires equal group sizes.",
       "The variation formula uses Student's degrees of freedom, which differ from Welch's for unequal groups.",
       "Use equal allocation or plan without between-study variation; do not change your intended analysis only to obtain a number."))
@@ -91,7 +91,7 @@ heterogeneity_problems <- function(spec) {
 # test's degrees of freedom.
 heterogeneity_se0 <- function(spec, n) {
   if (identical(spec$template, "independent_t")) {
-    ratio <- spec$options$allocation_ratio %||% 1
+    ratio <- allocation_ratio(spec)
     n1 <- round(n / (1 + ratio))
     return(list(se = sqrt(1 / n1 + 1 / (n - n1)), df = n - 2))
   }
@@ -144,6 +144,9 @@ heterogeneity_adjustment_r <- function(spec, n, mu = NULL) {
 heterogeneity_backend <- function(spec, seed = NULL) {
   student <- spec
   student$target_test$method <- switch(spec$template, independent_t = "student_t", correlation = "pearson", "t_test")
+  # The correlation's method is defined on Fisher's z (pwr.r.test()), at
+  # every level of variation, none included.
+  if (identical(spec$template, "correlation")) student$options$correlation_formula <- "fisher_z"
   inputs <- pwr_inputs(student)
   base_args <- inputs$args
   effect_field <- heterogeneity_effect_field(spec)
@@ -254,6 +257,9 @@ heterogeneity_record_at <- function(spec, n) {
   usual <- spec
   usual$population$tau <- NULL
   if (identical(spec$template, "independent_t")) usual$target_test$method <- "student_t"
+  # The comparison isolates the variation between studies, so the
+  # correlation without it is on Fisher's z too.
+  if (identical(spec$template, "correlation")) usual$options$correlation_formula <- "fisher_z"
   inputs <- pwr_inputs(usual)
   list(tau = spec$population$tau, effective_alpha = a$alpha, q = a$q,
     power = heterogeneity_backend(spec)$exact_power(n), power_without = pwr_power(inputs, n), n = n,
@@ -265,7 +271,7 @@ heterogeneity_record_at <- function(spec, n) {
 heterogeneity_script <- function(spec, result) {
   if (identical(spec$template, "correlation")) return(heterogeneity_script_r(spec, result))
   two <- identical(spec$template, "independent_t")
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   mu <- if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d
   alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
   tails <- if (identical(alternative, "two.sided")) 2 else 1

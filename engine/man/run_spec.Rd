@@ -238,9 +238,12 @@ zero (template \code{latent_regression}, \code{semPower.powerRegression()}).
 ANOVA designs the default is \code{"exact"} (Superpower's \code{ANOVA_exact()},
 exact for the specified population), and for basic tests other than
 Welch's t-test it is \code{"exact"} too (pwr's analytic formulas: noncentral
-t and chi-square distributions; Fisher's z for a correlation, an
-approximation). Two proportions use the z test with pooled variance under
-the null and no continuity correction, as G*Power does
+t and chi-square distributions). A Pearson correlation uses the exact
+distribution of r, as G\emph{Power does (\code{pwrss::power.exact.onecor()}); with
+\code{options > correlation_formula = "fisher_z"} it uses pwr's Fisher's z
+approximation (\code{pwr.r.test()}), which a correlation that varies between
+studies (\code{population > tau}) always uses. Two proportions use the z test with pooled variance under
+the null and no continuity correction, as G}Power does
 (\code{power.prop.test(strict = TRUE)} for equal groups,
 \code{pwrss::power.z.twoprops()} for unequal groups); with
 \code{options > proportions_formula = "arcsine"} they use pwr's Cohen's h (the

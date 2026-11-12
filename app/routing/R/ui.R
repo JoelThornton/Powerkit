@@ -446,7 +446,7 @@ route_icon <- function(id) {
     tags$path(d = path, fill = "currentColor"))
 }
 
-start_ui <- function(tree, start = list(), bayes_toggle = NULL, saved_projects = NULL) {
+start_ui <- function(tree, start = list(), saved_projects = NULL) {
   routes <- tree$routes$options
   if (!guided_route_enabled(tree)) routes <- Filter(function(r) r$id != "guided", routes)
   local <- isTRUE(getOption("powerkit.local"))
@@ -477,12 +477,14 @@ start_ui <- function(tree, start = list(), bayes_toggle = NULL, saved_projects =
         onclick = paste0("var p = document.getElementById('saved_projects_panel'); var open = p.hidden; p.hidden = !open; ",
           "this.setAttribute('aria-expanded', open ? 'true' : 'false'); if (open) p.scrollIntoView({block: 'nearest'});"),
         "Open a saved or shared project"),
-      bayes_toggle,
       span(class = "local-download",
         if (local) tagList(tags$strong("Running on your computer."), " "),
         tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
           if (local) "Download and update instructions" else "Run powerkit on your own computer"))),
     if (!is.null(saved_projects)) div(id = "saved_projects_panel", class = "saved-projects", hidden = NA, saved_projects),
+    # One line for someone trying the prototype out: what to do and where
+    # to say what went wrong (11 November 2026).
+    if (!is.null(tree$routes$tester_note)) p(class = "start-tester", tree$routes$tester_note),
     placeholders_at(tree, "start")
   )
 }
@@ -507,7 +509,7 @@ trail_ui <- function(history, tree = NULL) {
   )
 }
 
-node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
+node_ui <- function(tree, node_id, history, ctx = list(), route = NULL, bayes_on = FALSE) {
   node <- tree$nodes[[node_id]]
   label <- node$sub_id %||% node$doc_id
   opts <- visible_options(tree, node, ctx)
@@ -532,6 +534,8 @@ node_ui <- function(tree, node_id, history, ctx = list(), route = NULL) {
     # isn't shown to users or read out by screen readers.
     div(class = "question-id", hidden = NA, `aria-hidden` = "true", `data-question-id` = label,
       sprintf("%s %s", if (screening) "Screening question" else "Question", label)),
+    # The Bayes factor switch, on the first question only.
+    if (length(history) == 0) bayes_mode_toggle_ui(bayes_on, "guided"),
     p(class = "question-step", sprintf("Question %d", length(history) + 1)),
     h2(node$text),
     if (!is.null(node$help)) p(class = "lead", node$help),
@@ -562,9 +566,13 @@ known_status_badge <- list(
   not_in_powerkit = c("known-badge known-badge-not", "Not in powerkit yet")
 )
 
-known_ui <- function(tree, history = list(), ctx = NULL) {
+known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
   eps <- tree$endpoints
   if (!is.null(ctx)) eps <- eps[endpoints_for_context(tree, ctx)]
+  # With Bayes factors switched on, only the designs that have a Bayes
+  # factor version (12 November 2026).
+  before_bayes <- length(eps)
+  if (isTRUE(bayes_on)) eps <- eps[intersect(names(eps), names(tree$bayes_designs))]
   shown_name <- function(id) {
     name <- technical_name(eps[[id]])
     if (maintainer_view()) sprintf("%s (%s)", name, id) else name
@@ -592,6 +600,11 @@ known_ui <- function(tree, history = list(), ctx = NULL) {
     trail_ui(history, tree),
     h2("Which analysis do you want?"),
     p(class = "lead", "Search for it, pick a common one, or open its group. Each analysis opens its card, which says what it assumes and needs."),
+    bayes_mode_toggle_ui(bayes_on, "known", length(tree$bayes_designs)),
+    if (isTRUE(bayes_on)) {
+      p(class = "text-muted known-bayes-count", sprintf("Showing the %d of %d analyses with a Bayes factor version. Switch it off to see them all.",
+        length(eps), before_bayes))
+    },
     if (!is.null(ctx)) {
       p(class = "text-muted", sprintf("Showing the %d of %d analyses that fit your screening answers. To see others, change an answer above.",
         length(eps), length(tree$endpoints)))
@@ -767,7 +780,7 @@ function powerkitRestoreAnalyses() {
 # "More about this analysis".
 validated_line_ui <- function(tree, ep) {
   if (!identical(ep$status, "runs_validated")) return(NULL)
-  p(class = "validated-line", tags$strong("Historical design-level record: "), ep$validation$note, " ", validation_scope_note, " ",
+  p(class = "validated-line", tags$strong("Checks for this analysis in general: "), ep$validation$note, " ", validation_scope_note, " ",
     tags$a(href = tree$links$validation_log, target = "_blank", "Validation log"), " \u00b7 ",
     tags$a(href = paste0(tree$links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file)))
 }
@@ -909,7 +922,7 @@ validation_scope_note <- "Checks apply to the cases described in this record, no
 card_facts_ui <- function(tree, ep_id, ep) {
   how <- unname(tree$calculate_how[ep_id])
   if (!length(how) || is.na(how) || !ep$status %in% c("runs_validated", "runs_validation_in_progress")) return(NULL)
-  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded; see \"More about this analysis\" below" else "Validation in progress"
+  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded (details below)" else "Validation in progress"
   fact <- function(label, value, cls = NULL) div(class = paste("card-fact", cls), tags$span(class = "card-fact-label", label), tags$span(class = "card-fact-value", value))
   div(class = "card-facts",
     fact("Calculates", card_how_words[[how]], paste0("how-", how)),
@@ -923,7 +936,9 @@ card_versions_ui <- function(tree, ep) {
   items <- list(rank_test_ui(tree, ep), if (isTRUE(ep$bayes_test)) p(class = "bayes-test-note", tree$bayes_test_text))
   items <- Filter(Negate(is.null), items)
   if (!length(items)) return(NULL)
-  div(class = "card-versions", tags$h3(class = "card-section-title", "Other versions, chosen on the next screen"),
+  # Folded (11 November 2026): the card confirms the analysis; the versions
+  # are chosen, and explained, on the next screen.
+  tags$details(class = "card-versions", tags$summary(class = "card-section-title", "Other versions, chosen on the next screen"),
     tags$ul(lapply(items, tags$li)))
 }
 
@@ -1254,6 +1269,7 @@ plan_form_start <- function(start, id, primary, rule) {
   several <- id %in% primary && length(primary) >= 2
   start$claim <- if (several) rule %||% "each" else "one"
   start$n_tests <- if (several && start$claim %in% c("any", "all")) length(primary)
+  start$claim_from_plan <- TRUE
   start
 }
 

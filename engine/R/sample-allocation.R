@@ -10,18 +10,18 @@ sample_allocation <- function(spec) {
   }
   if (template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances",
       "ordinal_two_groups", "log_rank", "tost_independent", "noninf_independent", "noninf_two_proportions")) {
-    return(weights(c(1, spec$options$allocation_ratio %||% 1)))
+    return(weights(c(1, allocation_ratio(spec))))
   }
   if (identical(template, "tost_two_proportions")) return(weights(c(1, 1)))
   if (identical(spec$design, "signal_detection")) {
     return(if (identical(spec$variables$G$type, "binary")) weights(c(1, 1)) else single)
   }
-  if (identical(template, "growth_curve")) return(weights(c(1, spec$options$allocation_ratio %||% 1)))
+  if (identical(template, "growth_curve")) return(weights(c(1, allocation_ratio(spec))))
   if (identical(spec$design, "irt")) return(weights(c(1, 1)))
   if (identical(template, "invariance")) {
     if (identical(spec$population$over, "occasions")) return(single)
     k <- spec$population$n_groups %||% 2
-    return(weights(if (k == 2) c(1, spec$options$allocation_ratio %||% 1) else rep(1, k)))
+    return(weights(if (k == 2) c(1, allocation_ratio(spec)) else rep(1, k)))
   }
   if (identical(template, "2x2_between")) {
     return(weights(if (unequal_cells(spec)) cell_ratio_vector(spec) else rep(1, 4), "cell"))
@@ -125,4 +125,49 @@ analysed_groups_code <- function(spec, total = "n_analysed") {
     partially_grouped = sprintf("groups_analysed <- c(rep(%s, %s / %s / 2), %s / 2)", r_code(allocation$size), total, r_code(allocation$size), total),
     sprintf("groups_analysed <- %s # one group", total))
   c(sprintf("if (%s %%%% %s != 0) stop(\"The analysed sample size must retain the whole group allocation (a multiple of %s).\")", total, r_code(step), r_code(step)), split)
+}
+
+# The relative size of group 2 that a plan uses. A ratio typed as a rounded
+# decimal (0.67 for two to three) is exactly 67 : 100, which only totals
+# that are multiples of 167 can split into whole groups, so the sample size
+# search would step in 167s and overshoot. When the exact split needs a
+# step above 50, the plan uses the simplest whole-number ratio that rounds
+# to the value as entered (2 : 3 for 0.67), found on the Stern-Brocot tree.
+# Ratios with a small exact step (1 : 2, 0.35 = 7 : 20) are left as given.
+# This is allocation arithmetic, not a power approximation: the power is
+# computed for the whole groups reported.
+allocation_ratio <- function(spec) {
+  simplified_allocation(spec$options$allocation_ratio %||% 1)$ratio
+}
+
+simplified_allocation <- function(ratio) {
+  as_given <- list(ratio = ratio, parts = NULL, simplified = FALSE)
+  if (!is.numeric(ratio) || length(ratio) != 1 || !is.finite(ratio) || ratio <= 0) return(as_given)
+  text <- format(ratio, digits = 15, scientific = FALSE)
+  decimals <- if (grepl(".", text, fixed = TRUE)) nchar(sub("^[^.]*\\.", "", text)) else 0
+  if (decimals == 0 || decimals > 6) return(as_given)
+  exact_step <- tryCatch(integer_allocation_step(c(1, ratio)), error = function(e) Inf)
+  if (exact_step <= 50) return(as_given)
+  half <- 0.5 * 10^-decimals
+  lower <- ratio - half
+  upper <- ratio + half
+  # The fraction with the smallest denominator in [lower, upper).
+  a <- 0; b <- 1; c <- 1; d <- 0
+  for (i in seq_len(10000)) {
+    p <- a + c; q <- b + d
+    value <- p / q
+    if (value < lower) { a <- p; b <- q } else if (value >= upper) { c <- p; d <- q } else break
+  }
+  if (p + q >= exact_step) return(as_given)
+  # Group 1 : group 2 = q : p.
+  list(ratio = p / q, parts = c(q, p), simplified = TRUE, entered = ratio)
+}
+
+# For the result: the whole-number split a plan used in place of a rounded
+# decimal ratio, or NULL when the ratio was used as given.
+planned_allocation <- function(spec) {
+  if (is.null(spec$options$allocation_ratio)) return(NULL)
+  found <- simplified_allocation(spec$options$allocation_ratio)
+  if (!isTRUE(found$simplified)) return(NULL)
+  list(entered = found$entered, ratio = found$ratio, group1 = found$parts[1], group2 = found$parts[2])
 }

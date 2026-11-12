@@ -219,12 +219,30 @@ test_that("E1-E6 by formula: the exported pwr script reproduces powerkit", {
     spec <- formula_spec(name, list(type = "power", n = ns[[name]]))
     result <- run_spec(spec)
     # Two proportions in equal groups use base R's power.prop.test()
-    # (Departure 11): the script needs no package.
-    backend <- if (name == "two_proportions") "stats" else "pwr"
+    # (Departure 11): the script needs no package. The correlation uses
+    # pwrss's exact method.
+    backend <- switch(name, two_proportions = "stats", correlation = "pwrss", "pwr")
     expect_equal(result$provenance$backend, backend, info = name)
     run <- expect_script_reproduces_power(spec, result)
     expect_equal(any(grepl("library(pwr)", run$script, fixed = TRUE)), backend == "pwr", info = name)
   }
+})
+
+test_that("correlation: scripts reproduce powerkit one-sided in either direction, and by Fisher's z", {
+  skip_unless_scripts_can_run()
+  for (alternative in c("greater", "less")) {
+    spec <- formula_spec("correlation", list(type = "power", n = 100))
+    spec$target_test$alternative <- alternative
+    expect_script_reproduces_power(spec, run_spec(spec))
+    spec$goal <- list(type = "sensitivity", n = 100, power = 0.8)
+    result <- run_spec(spec)
+    expect_equal(run_exported_script(spec, result)$reproduced$effect, result$sensitivity$effect, tolerance = 1e-8, info = alternative)
+  }
+  fisher <- formula_spec("correlation", list(type = "power", n = 100), options = list(seed = 7, correlation_formula = "fisher_z"))
+  result <- run_spec(fisher)
+  expect_equal(result$provenance$backend, "pwr")
+  run <- expect_script_reproduces_power(fisher, result)
+  expect_true(any(grepl("pwr.r.test(", run$script, fixed = TRUE)))
 })
 
 test_that("two proportions by the z test: one-sided scripts reproduce powerkit, either direction", {

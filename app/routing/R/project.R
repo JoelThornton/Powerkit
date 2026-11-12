@@ -65,7 +65,7 @@ project_form_matches_spec <- function(project, forms,
 calculation_stale_ui <- function() {
   div(class = "alert alert-warning", role = "status",
     tags$strong("These answers need recalculating."),
-    " The result below may use different answers. Press \u201cCheck my answers\u201d again before saving or adding it to a plan.")
+    " The result below may use different answers. Press \u201cCalculate\u201d again before saving or adding it to a plan.")
 }
 
 # What to put back into the app's state when a project is opened, or a
@@ -96,7 +96,7 @@ restore_from_project <- function(route, tree, forms) {
 # The notice shown on the input screen after a project is opened. With
 # `shown` TRUE the saved result is on screen below it, as it was saved,
 # not run again (a simulation can take minutes); "Run it again to check"
-# runs it, as "Check my answers" does.
+# runs it, as "Calculate" does.
 project_opened_ui <- function(project, shown = FALSE) {
   saved <- project$result
   div(
@@ -109,9 +109,9 @@ project_opened_ui <- function(project, shown = FALSE) {
         actionButton("rerun_saved", "Run it again to check", class = "btn btn-outline-primary btn-sm")
       )
     } else if (!is.null(saved)) {
-      " Press \u201cCheck my answers\u201d to reproduce the saved result; it should match exactly."
+      " Press \u201cCalculate\u201d to reproduce the saved result; it should match exactly."
     } else {
-      " Press \u201cCheck my answers\u201d to run it."
+      " Press \u201cCalculate\u201d to run it."
     },
     if (length(project$notes) > 0) tags$ul(lapply(project$notes, tags$li))
   )
@@ -226,7 +226,7 @@ plan_check_ui <- function(tree, forms, project) {
     h3(class = "h5", "What the plan is for"),
     p(tags$strong(ep$plain_name %||% ep_id), if (!is.null(ep$doc_name)) sprintf(" (%s)", ep$doc_name)),
     h3(class = "h5", "What it found"),
-    if (is.null(result)) p("The file has no saved result. Open it in the app and press “Check my answers” to run it.") else
+    if (is.null(result)) p("The file has no saved result. Open it in the app and press “Calculate” to run it.") else
       p(result_sentences(project$spec, result)[["headline"]]),
     if (!is.null(result) && identical(result$goal_type, "power") && !is.null(result$curve$power)) {
       pw <- as.numeric(unlist(result$curve$power))[1]

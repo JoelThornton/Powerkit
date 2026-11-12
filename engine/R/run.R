@@ -131,8 +131,11 @@
 #' ANOVA designs the default is `"exact"` (Superpower's `ANOVA_exact()`,
 #' exact for the specified population), and for basic tests other than
 #' Welch's t-test it is `"exact"` too (pwr's analytic formulas: noncentral
-#' t and chi-square distributions; Fisher's z for a correlation, an
-#' approximation). Two proportions use the z test with pooled variance under
+#' t and chi-square distributions). A Pearson correlation uses the exact
+#' distribution of r, as G*Power does (`pwrss::power.exact.onecor()`); with
+#' `options > correlation_formula = "fisher_z"` it uses pwr's Fisher's z
+#' approximation (`pwr.r.test()`), which a correlation that varies between
+#' studies (`population > tau`) always uses. Two proportions use the z test with pooled variance under
 #' the null and no continuity correction, as G*Power does
 #' (`power.prop.test(strict = TRUE)` for equal groups,
 #' `pwrss::power.z.twoprops()` for unequal groups); with
@@ -378,8 +381,11 @@ run_spec <- function(spec) {
       manova = manova_summary(spec, backend, method, n_analysed),
       type1 = its_type1(spec, n_analysed, nrep, seed %||% 1L),
       details = test_details(backend, goal$type, simulating, n_analysed) %||%
-        if (identical(goal$type, "power") || identical(goal$type, "sample_size")) critical_effect_details(critical),
+        if (identical(goal$type, "power") || identical(goal$type, "sample_size")) critical_effect_details(critical, exact = correlation_exact(spec)),
       critical_effect = critical,
+      allocation = planned_allocation(spec),
+      # The step between totals that split into whole groups, for curves drawn around this result.
+      n_step = backend$n_step %||% 1,
       check_run = check,
       provenance = list(
         evidence = analysis_evidence(spec, computation_method = method),

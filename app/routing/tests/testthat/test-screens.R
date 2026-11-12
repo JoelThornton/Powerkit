@@ -32,7 +32,7 @@ test_that("every end-point card renders, with its status and inputs", {
     }
     if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, if (runs) "What you('|&#39;)ll need" else "What you would enter", label = id)
     expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
-      runs_validated = "Historical design-level record: ", runs_validation_in_progress = "Runs, validation in progress.",
+      runs_validated = "Checks for this analysis in general: ", runs_validation_in_progress = "Runs, validation in progress.",
       coming_soon = "Coming soon.",
       not_in_powerkit = if (isTRUE(tree$endpoints[[id]]$no_ready_made_tool)) "Not in powerkit yet." else tree$endpoints[[id]]$not_in_powerkit_heading %||% "Not in powerkit yet: use")
     expect_match(html, expected, fixed = TRUE, label = id)
@@ -643,7 +643,7 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   html <- as.character(card_ui(tree, "E2"))
   expect_match(html, "class=\"card-facts\"", fixed = TRUE)
   expect_match(html, "In a second or two", fixed = TRUE)
-  expect_match(html, "Checks recorded; see \"More about this analysis\" below", fixed = TRUE)
+  expect_match(html, "Checks recorded (details below)", fixed = TRUE)
   # Its other versions (rank test, Bayes factor) are gathered in one box.
   expect_match(html, "Other versions, chosen on the next screen", fixed = TRUE)
   expect_match(as.character(card_ui(tree, "E13")), "A preview here, then an R script", fixed = TRUE)

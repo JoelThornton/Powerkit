@@ -5,15 +5,19 @@ evidence_lines <- function(record) {
   labels <- c(package_agreement = "Software agreement", independent = "Independent reference",
     published = "Published example", full_validation = "Method-validation run")
   states <- c(recorded = "recorded cases", scoped_only = "scoped checks only",
-    pending = "benchmark pending transcription", not_linked = "no linked record",
+    pending = "a published benchmark is still to be transcribed", not_linked = "none recorded for exactly these settings",
     outside_scope = "outside the recorded case settings")
   c(vapply(names(labels), function(k) {
     item <- record$categories[[k]]
     state <- unname(states[item$status %||% "not_linked"])
     if (length(state) != 1 || is.na(state)) state <- "unrecognised status"
-    paste0(labels[[k]], ": ", state, ". ", item$note %||% "")
-  }, ""), paste("Coverage:", record$scope),
-    sprintf("Evidence registry %s; record %s; SHA-256 %s.", record$registry_version, record$record_id, record$registry_sha256))
+    # The registry's own note for a missing record repeats the status in
+    # its bookkeeping terms; the status says it in plain words.
+    note <- if (identical(item$status %||% "not_linked", "not_linked")) "" else item$note %||% ""
+    trimws(paste0(labels[[k]], ": ", state, ". ", note))
+  }, ""), paste("Coverage:", sub("Complete inputs may narrow the variant. No linked record is not a failed check.",
+      "filling in all your settings can narrow which checks apply. \"None recorded\" is not a failed check.", record$scope, fixed = TRUE)),
+    sprintf("For reference: evidence registry %s, record %s, SHA-256 %s.", record$registry_version, record$record_id, record$registry_sha256))
 }
 
 # The same record for a reader of the planning document: what was checked,
@@ -40,13 +44,13 @@ evidence_reader_lines <- function(record) {
     sprintf("(Evidence record %s, registry version %s.)", record$record_id, record$registry_version))
 }
 
-evidence_ui <- function(record, title = "Evidence for this analysis variant") {
+evidence_ui <- function(record, title = "Checks recorded for exactly these settings") {
   tags$details(class = "result-validation small",
     tags$summary(title),
     tags$ul(lapply(evidence_lines(record), tags$li)),
     lapply(record$sources, function(s) p(tags$a(href = s$url, target = "_blank", rel = "noopener",
       paste("Source record", s$date)), ": ", s$note)),
-    p("These are representative case records, not validation of every parameter value. No linked record means unknown coverage. Ordinary tests, method checks and review by a statistician are different kinds of evidence."))
+    p("These are checks of example cases, not of every value you could enter. \"None recorded\" means no separate check exists for exactly these settings, not that one failed; the checks for this analysis in general are listed just below. A statistician's review of the methods is a different kind of evidence, and is still to come."))
 }
 
 capability_metadata <- function(form, fields, values) {

@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 11 November 2026 (start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -11,10 +11,49 @@ powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
 
+A pre-tester review on 11 November corrected three calculations: decimal
+group-size ratios are planned as the simplest matching whole split
+(`docs/conventions.md`, "Group sizes given as a ratio"), non-inferiority
+t-tests use the one-sided t-test against the margin, and a search whose
+power cannot rise says so. Precision planning for one group and paired
+data accepts assurance. In the app, exports no longer wait for a written
+effect-size reason, the run button is "Calculate", Welch's t-test has the
+explore panels, and partial eta-squared with Welch's ANOVA is caught on the
+input screen. The study plan is reachable from every screen and kept in
+the browser; a result is reused when only free-text answers change; a
+conventional effect size can be recorded as one. The non-inferiority and allocation unit tests and the
+non-inferiority validation chunk were run; no full validation run is
+claimed. Minimum-effect tests now use the same shifted t-test (12
+November; the equivalence validation chunk was run). The rounded-group-size
+search is queued.
+
+Simple mediation (E10, E16) starts on a quick estimate by formula (the
+joint-significance test, pwrss), marked as an estimate on the result, with
+the simulated methods for the number to report (12 November).
+
+The claim (how many tests a conclusion rests on) is asked in view on every
+input screen, with a Bonferroni choice for related tests (12 November).
+
+Results now help users compare with the tools they know (12 November):
+Student's answer beside Welch's, the cost of a stricter alpha, Cohen's f
+named on the ANOVA screens, and plainer wording in the checks panel and
+the advice on effect sizes.
+
+The correlation card plans by the exact distribution of r, as G*Power (12
+November; Departure 10 retired), with Fisher's z as a choice.
+
+Repeated measures with SDs or correlations that differ now default to the
+Greenhouse-Geisser corrected F test (12 November, Departure 26); the
+uncorrected test stays as a choice with a warning.
+
+The input screens were shortened (11 November): the two-group t-test
+screen shows about 670 words at first sight, from about 1,200, with the
+spread ratio and between-study variation folded. Wording only.
+
 The start screen was laid out again before colleagues try the app
 (11 November): a title and one-sentence introduction, the three routes
-with more room, and saved projects, Bayes mode and the local download in
-one row under a divider. Presentation only; no method, default or evidence
+with more room, and saved projects and the local download in one row
+under a divider. Presentation only; no method, default or evidence
 claim changes.
 
 The [R checklist](release-readiness-review.md#fix-checklist) now records checked
@@ -174,9 +213,12 @@ and automated accessibility checks passed locally for the exercised routes.
   fifteen designs, with JASP's default priors; p-value results of the
   exact ones offer "Add a Bayes factor?", and Bayes factor t-test results
   show three prior widths, a sequential plan and an uncertain effect.
-  Bayes mode, an opt-in switch on the start screen, opens every card on
-  its Bayes factor version and asks how unsure the user is about the
-  effect instead of assuming 0.
+  An opt-in switch, "I'll analyse with Bayes factors", at the top of
+  "I know my analysis" (where it narrows the list to the 15 designs with
+  a Bayes factor version) and of "Help me choose" (12 November; it was a
+  "Bayes mode" on the start screen), opens every card on its Bayes factor
+  version and asks how unsure the user is about the effect instead of
+  assuming 0.
   Informed priors wait on a bfpwr fault (`upstream-questions.md`).
 
 - **Effect sizes:** the commonest cards take what researchers have: a

@@ -18,7 +18,7 @@ test_that("simulation choices disclose supported populations and Welch's current
     expect_false(isTRUE(f$required))
   }
   method <- Filter(function(f) identical(f$id, "method"), form_fields(forms$forms$E2$groups))[[1]]
-  expect_match(method$choice_notes$welch_t, "your stated group spreads", fixed = TRUE)
+  expect_match(method$choice_notes$welch_t, "Plans for normal scores", fixed = TRUE)
   expect_match(basic_method_field(forms, "E2")$help, "normal scores", fixed = TRUE)
 })
 

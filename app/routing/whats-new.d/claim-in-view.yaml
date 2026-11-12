@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-12"
+    title: "How many tests your conclusion rests on, asked in view"
+    text: "The input screens now ask \"How many tests does your conclusion rest on?\" in the main run of questions instead of under Settings, with one test chosen to start. If your study runs several related tests, such as several outcomes of one treatment, a new choice corrects for them as a group (Bonferroni), for researchers who hold that such tests need a correction. Inside a study plan the screen says the plan sets this answer."

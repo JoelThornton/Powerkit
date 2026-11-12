@@ -62,6 +62,7 @@ population_problems <- function(spec) {
     check_justified_alpha(spec),
     check_precision(spec),
     check_proportions_formula_allowed(spec),
+    check_correlation_formula_allowed(spec),
     continuity_problems(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
@@ -90,6 +91,19 @@ spec_advice <- function(spec) {
       "large. Consider a smallest effect of interest instead, plan with the ",
       "safeguard effect size, or adjust the pilot estimate and say how ",
       "(\"How you adjusted it\" on the input screen)."
+    ))
+  }
+  # A benchmark is not evidence about this effect; Lakens (2022; refs.bib
+  # Lakens2022_justification) lists it as the weakest basis for a sample
+  # size. Recorded, with advice, so that a benchmark is not written up as
+  # a smallest effect of interest.
+  if (identical(spec$effect_justification$type, "convention")) {
+    advice <- c(advice, paste0(
+      "The effect size is a convention or rule of thumb, not evidence about ",
+      "this effect, so the sample size is only as good as that guess. Look at ",
+      "how the answer changes for smaller effects, and replace the convention ",
+      "with the smallest effect that would matter or an estimate from ",
+      "earlier studies when you can."
     ))
   }
   # Observed power: allowed, with a warning (judgement call 3.1, decided
@@ -144,7 +158,7 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test).
 exact_available <- function(spec) {
-  bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
+  bayes_factor_test(spec) || minimum_effect_test(spec) || mediation_joint_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !simulated_count_test(spec) && !robust_regression(spec) &&
     !pairwise_comparison(spec) &&
     !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec))) && (
@@ -641,7 +655,7 @@ check_bayes_factor <- function(spec) {
       "'target_test > prior_a', 'prior_b' and 'one_sided_null' belong to the Bayes factor test of one proportion; ",
       "a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'."))
   }
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   if (!isTRUE(all.equal(ratio, 1))) {
     return(paste0(
       "The Bayes factor t-test for two groups is calculated for equal groups ",
@@ -884,6 +898,24 @@ check_method_allowed <- function(spec) {
     "'options > method' 'exact' is only available for 2x2 ANOVA designs and ",
     "basic tests; remove it or use 'simulation'."
   )
+}
+
+# The formula choice for a correlation (exact or Fisher's z) applies only
+# to Pearson's correlation calculated by formula.
+check_correlation_formula_allowed <- function(spec) {
+  if (is.null(spec$options$correlation_formula)) {
+    return(character())
+  }
+  if (!identical(spec$template, "correlation") || !identical(spec$target_test$method %||% "pearson", "pearson")) {
+    return("'options > correlation_formula' only applies to the test of Pearson's correlation; remove it.")
+  }
+  if (identical(spec$options$method, "simulation")) {
+    return(paste0(
+      "'options > correlation_formula' only applies when power is calculated by formula; ",
+      "remove it or remove 'options > method' 'simulation'."
+    ))
+  }
+  character()
 }
 
 # The formula choice for two proportions (z test or arcsine) applies only
@@ -1560,7 +1592,7 @@ check_sem_invariance <- function(spec) {
   if (!over_time && !is.null(pop$n_occasions)) {
     return("'population > n_occasions' is only used for invariance over occasions ('population > over' 'occasions'); across groups, give 'population > n_groups'.")
   }
-  if ((pop$n_groups %||% 2) > 2 && !identical(as.numeric(spec$options$allocation_ratio %||% 1), 1)) {
+  if ((pop$n_groups %||% 2) > 2 && !identical(as.numeric(allocation_ratio(spec)), 1)) {
     return("With three or more groups, the groups are equal in size: remove 'options > allocation_ratio' (or set it to 1), which is for two groups.")
   }
   several <- (pop$factors %||% 1) > 1
@@ -2386,12 +2418,30 @@ check_path_model <- function(spec) {
     check_correlation_names(spec, model),
     check_target_path(spec, model),
     check_modmed_binary(spec),
-    check_modmed_effect(spec)
+    check_modmed_effect(spec),
+    check_mediation_joint(spec, model)
   )
   if (length(problems) > 0) {
     return(problems)
   }
   check_implied_variances(spec, model)
+}
+
+# The joint-significance estimate (backend-mediation-joint.R) is pwrss's
+# formula for one mediator; it has no confidence interval to draw.
+check_mediation_joint <- function(spec, model) {
+  if (!identical(spec$target_test$method, "joint_significance")) return(character())
+  problems <- character()
+  if (!identical(spec$template, "process_4") || !identical(model$mediators, "M")) {
+    problems <- c(problems, "The joint-significance estimate ('target_test > method' \"joint_significance\") is for simple mediation with one mediator (template \"process_4\", mediator M); use \"monte_carlo_ci\" for this model.")
+  }
+  if (!is.null(spec$options$ci_draws)) {
+    problems <- c(problems, "The joint-significance estimate draws no confidence interval: remove 'options > ci_draws'.")
+  }
+  if (identical(spec$options$method, "simulation")) {
+    problems <- c(problems, "The joint-significance estimate is a formula with nothing to simulate: remove 'options > method', or choose \"monte_carlo_ci\" for the simulated test.")
+  }
+  problems
 }
 
 # A yes/no X or W in moderated mediation (E17): each proportion only with a
@@ -2798,7 +2848,7 @@ minimum_n <- function(spec) {
       # Two people in the smaller group (pwr.t2n.test() needs them): with
       # an allocation of 1 : 3, eight in all, not four.
       independent_t = {
-        ratio <- spec$options$allocation_ratio %||% 1
+        ratio <- allocation_ratio(spec)
         max(4, ceiling(2 * (1 + ratio) / min(1, ratio)))
       },
       chi_square_independence = length(spec$variables$X$levels) * length(spec$variables$Y$levels),
@@ -3006,7 +3056,7 @@ group_split <- function(spec) {
     return(list(rule = "split into 2 equal groups", valid = function(n) n %% 2 == 0))
   }
   if (spec$template == "growth_curve") {
-    w <- c(1, spec$options$allocation_ratio %||% 1)
+    w <- c(1, allocation_ratio(spec))
     if (isTRUE(all.equal(w[2], 1))) {
       return(list(rule = "split into 2 equal groups", valid = function(n) n %% 2 == 0))
     }
@@ -3099,7 +3149,7 @@ group_split <- function(spec) {
   if (spec$template %in% c("independent_t", "two_proportions", "two_correlations", "two_variances", "ordinal_two_groups", "tost_independent",
                            "noninf_independent", "noninf_two_proportions", "log_rank") ||
       (identical(spec$template, "invariance") && !identical(spec$population$over, "occasions") && (spec$population$n_groups %||% 2) == 2)) {
-    ratio <- spec$options$allocation_ratio %||% 1
+    ratio <- allocation_ratio(spec)
     return(list(
       rule = sprintf("split into two whole groups in the ratio 1 : %s", format_number(ratio)),
       valid = function(n) whole(n / (1 + ratio)) && whole(n * ratio / (1 + ratio))

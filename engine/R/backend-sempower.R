@@ -261,7 +261,7 @@ sem_group_weights <- function(spec) {
   if (groups > 2) {
     return(rep(1 / groups, groups))
   }
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   c(1, ratio) / (1 + ratio)
 }
 

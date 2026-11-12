@@ -147,7 +147,9 @@ Search there for a design, package or date; a reference elsewhere to
   per pair of cells, as E54 asks per pair of conditions.
 - **Correction:** none by default (Superpower's and G\*Power's epsilon of
   1), Greenhouse-Geisser or Huynh-Feldt on request, only where a within
-  factor has three or more levels; not a departure.
+  factor has three or more levels; not a departure. Replaced on 11
+  November 2026: Greenhouse-Geisser by default ("Sphericity correction by
+  default", Departure 26).
 - **Not built:** mixed designs with unequal groups, which Superpower's
   simulation refuses (`next.md`); built since, see "Mixed designs with
   unequal groups" below.
@@ -2674,3 +2676,134 @@ An explicit 80% target-power shortcut does not prefill the target or choose
 an effect assumption. Explain the existing paired change-score-SD route when
 the correlation is unavailable. This round changes no statistical formula
 or analysis default and does not close the scientific validation requirements.
+
+### Pre-tester review fixes, 11 November 2026
+
+Group sizes given as a decimal ratio are planned as the simplest whole
+split that rounds to the ratio as typed when the exact split would move the
+total in steps above 50 (0.67 as 2:3); the result and write-up state the
+split used. This replaces "always honour the typed ratio exactly", which
+returned up to a full step too many people. A search over rounded group
+sizes at every total is queued in `next.md`. Non-inferiority t-tests are
+planned as the one-sided t-test of the difference against the margin (a
+central-t null), the test researchers run, not pwrss's noncentral-null
+`margin`; minimum-effect tests keep pwrss's form (Known difference 10; changed 12 November 2026, see below)
+until that is decided separately. A search that cannot reach the target
+because power does not rise with n says so.
+
+Saving, the R script and the write-up no longer require a written reason
+for the effect size: a required text box produces filler, and a blocked
+export stops a plan being shared for criticism. The write-up states "No
+justification for the effect size was recorded." instead. Explanations
+stay on by default once the basic screens are cut to about 450 words. The
+alpha box stays empty by default and the result is to show what another
+level would cost. A Bonferroni option for related tests is to be offered
+under separate claims. Prototype warnings stay, with one line for testers
+on the start screen. Between-study variation stays, folded. The claim
+setting stays folded for this round.
+
+An effect size taken from a convention can be recorded as one
+(`effect_justification.type = "convention"`), with advice that it is not
+evidence about the effect: without it, a researcher using Cohen's
+benchmarks had to record the value as a smallest effect of interest.
+Finding the smallest detectable effect asks for no effect-size source.
+
+
+### Sphericity correction by default, 11 November 2026
+
+When a repeated-measures design's SDs or correlations are entered as
+different, the app plans for the Greenhouse-Geisser corrected F test
+unless the user chooses Huynh-Feldt or none (Departure 26 in
+`conventions.md`). The earlier default, no correction, followed
+Superpower's argument default, but the uncorrected test is not valid once
+sphericity fails: in the review's example it rejected a true null 6.7% of
+the time at alpha = .05, and its power (80.5%) was shown beside no warning.
+"None" stays as a choice and carries a warning. The corrected power from
+Superpower's exact data set is itself an approximation (a few points off
+in either direction in the two recorded checks), which the result states
+and the simulation route checks; the open mixed-design discrepancy in
+`validation-log.md` is unchanged by this.
+
+### Exact method for the correlation, 12 November 2026
+
+A Pearson correlation is planned from the exact distribution of r (pwrss's
+`power.exact.onecor()`), G\*Power's default, with pwr's Fisher's z as an
+option (`options > correlation_formula`). This reverses the decision of 17
+October 2026 to keep Fisher's z (Departure 10, now retired). That decision
+rested on the two methods agreeing within 0.004 in power for r = .3 to .5;
+outside that range they do not (r = .9, N = 6: 77.2% against 81.6%), the
+exact method is in a package powerkit already calls, and a researcher
+comparing powerkit with G\*Power met the difference on the first
+correlation tried (85 against 84 for r = .3). A correlation that varies
+between studies stays on Fisher's z, where McShane and Bockenholt's method
+is defined, and its comparisons with no variation are made on the same
+scale. The Labs power picture still draws Fisher's z curves.
+
+
+### Significance level: the usual level labelled, two stricter ones beside it, 12 November 2026
+
+The significance level stays empty on every card, with 0.05 one click
+away and labelled as the usual level, as most studies in the behavioural and social sciences and their
+readers use it. 0.01 and 0.005 sit beside it, with one line on when they
+fit (many tests, or a surprising claim that needs stronger evidence), and
+formula-based results show the sample size at all three. Three equal
+buttons were considered and not adopted: they would suggest the three are
+equally common, which would confuse more than it informs.
+
+### Minimum-effect tests planned as the shifted t-test, 12 November 2026
+
+The minimum-effect test versions of the one-sample, paired and two-group
+t-test cards are planned as the test researchers run: a t-test of the
+difference against the smallest effect of interest held fixed in the
+outcome's own units (`t.test(mu = margin)`, TOSTER's
+`t_TOST(hypothesis = "MET")`), a central t shifted by the margin. pwrss
+computes its power when given the effect minus the margin, as for
+non-inferiority since 11 November 2026. pwrss's own `margin` argument,
+used until now, tests a margin held fixed in SD units and has slightly
+less power (Known difference 10, now retired): for d = 0.5, a margin of
+0.2 and 80% power it asked for 282 people where 278 are enough. A
+two-sided test adds the small far tail from pwr's one-sided t-test, which
+pwrss's one-sided test cannot give.
+
+### The claim in view, with a correction for related tests, 12 November 2026
+
+The claim question ("How many tests does your conclusion rest on?") moves
+from Settings into the study section of every input screen, starting at
+one test. It carries powerkit's position on multiple testing, which the
+usual tools never ask about, and folded away it was rarely seen. A fifth
+choice, several claims from a related group of tests corrected as a group
+(Bonferroni), lets a researcher who holds the error-statistical view
+(Mayo, 2018) act on it; the default for separate claims stays
+uncorrected (Rubin, 2021), and both views are stated on the screen.
+Screens opened from a study plan say the plan sets the claim.
+
+### Simple mediation: a quick estimate first, the simulation for the report, 12 November 2026
+
+The simple mediation screens (one mediator, X a score or two groups) start
+on a quick estimate: the joint-significance test (both paths significant),
+with power from pwrss's `power.z.mediation(method = "joint")` formula. It
+is instant and gives a sample size, where the simulated Monte Carlo
+interval needs about 12 minutes for power at one N and an R script for a
+sample size. A researcher planning a study could otherwise get no number
+in the app at all. The result says at the top that it is an estimate for
+planning, how optimistic it is (with paths of .3 and N = 100: 75.0%,
+against 72.4% for a simulation of the joint test with regressions and
+71.1% for the simulated Monte Carlo interval), and how to get the number
+to report: choose a simulated method. pwrss's default test, Sobel's, was
+not used: it is much further from the simulated interval (58.3% at the
+same settings). powerkit passes R-squared of Y with the 2 a b c'
+term that pwrss's default leaves out (docs/upstream-questions.md).
+Parallel, serial and moderated mediation keep the simulated methods only.
+
+### Bayes factors: a switch where analyses are chosen, not a mode on the start screen, 12 November 2026
+
+The "Bayes mode" switch on the start screen never showed which analyses
+have a Bayes factor version (15 of 77), so a researcher found out card by
+card. The switch, now "I'll analyse with Bayes factors", sits at the top
+of "I know my analysis", where turning it on lists only those 15 designs
+with the count, and on the first question of "Help me choose", whose end
+card says whether the design has a Bayes factor version. What it does to
+a card is unchanged: the input screen opens on the Bayes factor version
+and asks how unsure the user is about the effect. A filter alone was
+considered and not adopted: it would leave cards opening on the p-value
+version and give "Help me choose" no way to plan with Bayes factors.

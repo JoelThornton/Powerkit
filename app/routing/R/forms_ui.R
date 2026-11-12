@@ -10,14 +10,16 @@ compact_field_label <- function(f) {
     alpha_reason = "Alpha rationale", alternative = "Tail(s)", alternative_reason = "One-sided test rationale",
     effect_units = "Effect-size input", d = "Standardised difference (d)", dz = "Standardised change (dz)",
     welch_sd_ratio = "SD ratio (group 2 / group 1)", just_type = "Effect-size source",
-    just_source = "Effect-size rationale (needed to export)", just_adjustment = "Effect adjustment",
+    just_source = "Effect-size rationale", just_adjustment = "Effect adjustment",
     conv_from = "Effect-size conversion")
   if (f$id %in% names(labels)) unname(labels[[f$id]]) else NULL
 }
 
 # Identify the calculation's captured test, not a subsequently edited selector.
-selected_method_label <- function(spec, fields) {
-  for (f in fields) if (identical(f$path, "target_test.method") &&
+# A selector hidden by the other answers does not name the test (the
+# regression card's coefficient test, when the question is an R-squared).
+selected_method_label <- function(spec, fields, values = NULL) {
+  for (f in fields) if (identical(f$path, "target_test.method") && (is.null(values) || field_applies(f, values)) &&
       isTRUE(spec$target_test$method %in% names(f$choices))) return(f$choices[[spec$target_test$method]])
   NULL
 }
@@ -36,7 +38,7 @@ field_ui <- function(f, value, described_by = character()) {
   source_id <- paste0(id, "_default")
   help_id <- paste0(id, "_help")
   if (!is.null(f$help)) described_by <- c(help_id, described_by)
-  if (!is.null(f$default_source)) described_by <- c(described_by, source_id)
+  if (!is.null(f$default_source) && !is.null(f[["default"]]) && !identical(f$type, "select")) described_by <- c(described_by, source_id)
   current <- if (is.null(value) || length(value) == 0) "" else as.character(value)
   input <- switch(
     f$type,
@@ -72,7 +74,7 @@ field_ui <- function(f, value, described_by = character()) {
     tags$button(type = "button", class = "btn btn-sm btn-outline-secondary usual-value",
     id = paste0(id, "_usual", if (i > 1) paste0("_", i)), `data-target` = id, `data-value` = as.character(value),
     onclick = "var e = document.getElementById(this.getAttribute('data-target')); e.value = this.getAttribute('data-value'); e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); e.focus();",
-    if (!is.null(f$shortcuts)) sprintf("%s%%", format(100 * value)) else f$usual_label %||% sprintf("Use %s", value))
+    if (!is.null(f$shortcut_labels)) f$shortcut_labels[[i]] else if (!is.null(f$shortcuts)) sprintf("%s%%", format(100 * value)) else f$usual_label %||% sprintf("Use %s", value))
   }))
   field <- div(
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
@@ -83,7 +85,10 @@ field_ui <- function(f, value, described_by = character()) {
       paste0(id, "_info"), f$label,
       if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
       input_guide_ui(f),
-    if (!is.null(f$default_source)) div(id = source_id, class = "default-source", title = f$default_source,
+    # Shown only where a number is filled in to start with: a line about an
+    # empty box or a pre-selected choice describes the app, not the study
+    # (11 November 2026).
+    if (!is.null(f$default_source) && !is.null(f[["default"]]) && !identical(f$type, "select")) div(id = source_id, class = "default-source", title = f$default_source,
       # A choice's default is already shown selected, so only its source is
       # added (naming it again garbled the sentence).
       if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else if (identical(f$type, "select") && !is.null(f[["default"]])) paste0("Selected to start with: ", short_source(f$default_source), ".")
@@ -140,6 +145,12 @@ field_ui <- function(f, value, described_by = character()) {
   # chosen, instead of saying which goals need them.
   # (`shown_for_goals`: the same for an optional field, such as the reason
   # for the target power.)
+  # A field most people leave as it starts sits under one closed line
+  # (`fold`), open when it holds something other than its starting value.
+  if (!is.null(f$fold)) {
+    changed <- !blank(value) && !identical(as.character(value), as.character(f[["default"]] %||% ""))
+    field <- tags$details(class = "field-fold", open = if (changed) NA, tags$summary(f$fold), field)
+  }
   goals <- f$needed_for %||% f$shown_for_goals
   if (!is.null(goals)) {
     field <- conditionalPanel(paste(sprintf("input.f_goal == '%s'", goals), collapse = " || "), field)
@@ -270,7 +281,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     trail_ui(history, tree),
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(name_swap(paste0("Your values: ", ep$plain_name), technical_name(ep))),
-    p(class = "lead", "Everything is needed unless it says optional."),
+    p(class = "lead", "Fields marked optional can be left empty."),
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
       tags$span(class = "badge-progress", "Validation in progress"),
       explanation_ui("form-validation-info", "Validation status", ep$validation$note)),
@@ -284,12 +295,12 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
       tags$button(type = "button", id = "form_needed", class = "btn btn-link form-needed", hidden = NA,
         `aria-live` = "polite", onclick = "pkGoToNeeded()"),
       actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
-      actionButton("form_check", "Check my answers", class = "btn btn-primary")
+      actionButton("form_check", "Calculate", class = "btn btn-primary")
     ),
     # Saving a draft is a secondary action, so it sits after the fields
     # rather than above them.
     div(class = "form-draft-save mt-3", download_button("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary"),
-      p(class = "hint", "Not finished? Save your answers, including blanks. No calculation or effect-size justification is needed. Reopen the downloaded file from the start screen.")),
+      p(class = "hint", "Saves your answers so far to a file you can reopen from the start screen.")),
     div(id = "copy-status", class = "visually-hidden", `aria-live` = "polite"),
     uiOutput("form_copy_text"),
     uiOutput("form_result")
@@ -356,8 +367,9 @@ observed_power_warning_ui <- function() {
 # project files and write-up don't depend on this order.
 form_section <- function(g) {
   ids <- vapply(g$fields, `[[`, "", "id")
-  # The claim sits with the settings: most studies rest on one test.
-  if (identical(g$title, "Your claim")) return("settings")
+  # The claim is in view (12 November 2026): it can change the
+  # significance level or the power each test needs.
+  if (identical(g$title, "Your claim")) return("study")
   if ("goal" %in% ids) return("goal")
   if (identical(g$title, "Simulation accuracy")) return("accuracy")
   if (identical(g$title, "Assumptions and named alternatives")) return("scenarios")
@@ -439,10 +451,10 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
     if (length(settings)) tags$details(class = "form-settings", open = if (changed) NA,
       tags$summary(tags$span(class = "form-settings-title", "Settings"),
-        tags$span(class = "hint", " (each starts at the default of the tool powerkit uses; open to change)"), ": ",
+        tags$span(class = "hint", " (open to change)"), ": ",
         settings_summary_ui(settings, values)),
       part("settings")),
-    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess first (optional)"), part("guess"))
+    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional, to learn how power behaves)"), part("guess"))
   )
 }
 
@@ -460,6 +472,7 @@ needed_js <- "
       for (var a = el.parentElement; a; a = a.parentElement) {
         if (a.classList.contains('shiny-panel-conditional') && getComputedStyle(a).display === 'none') return false;
       }
+      if (el.id === 'f_just_type' && /^sensitivity/.test(value('f_goal')) && el.querySelector('option[value=none]')) return false;
       var optionalFor = el.getAttribute('data-optional-for');
       if (optionalFor && (optionalFor.split(' ').indexOf(value('f_goal')) >= 0 || value('f_just_type') === 'none')) return false;
       return !el.value || !String(el.value).trim();
@@ -591,9 +604,9 @@ effect_help_ui <- function(form, groups) {
       tags$dd("Start in your measure's own units: the smallest difference that would matter for your theory or in practice (for example, 3 points on a questionnaire). ", convert,
         " Choose \u201cThe smallest effect that would matter\u201d as the source and say why that difference matters."),
       tags$dt("A meta-analysis"),
-      tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate, say which estimate you took, and why. Pooled estimates are inflated by publication bias too, so prefer one adjusted for bias where the meta-analysis reports it (Carter, Sch\u00f6nbrodt, Gervais & Hilgard, 2019). Choose \u201cA meta-analysis\u201d as the source."),
+      tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate and say which one you took. Publication bias can inflate pooled estimates, and no single correction works in all conditions (Carter, Sch\u00f6nbrodt, Gervais & Hilgard, 2019). If the meta-analysis reports bias-adjusted estimates, look at the range they span and plan for a value within it that you can defend. Choose \u201cA meta-analysis\u201d as the source."),
       tags$dt("One previous study"),
-      tags$dd("A single published effect tends to be larger than the true one, so reduce it and say how; powerkit asks you to. Choose \u201cA previous study\u201d as the source."),
+      tags$dd("An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. Choose \u201cA previous study\u201d as the source."),
       tags$dt("A pilot study"),
       tags$dd("A pilot is for checking that the study can be run, not for finding the effect: its estimate is very uncertain, and planning only after a promising pilot makes the plan too small on average (Albers & Lakens, 2018). If you use it anyway, plan for a smaller effect (the safeguard value, where this screen offers it) and say how. Choose \u201cA pilot study\u201d as the source."),
       unsure))

@@ -282,7 +282,7 @@
       ]
     },
     "effect_justification": {
-      "description": "Why the effect size is what it is: it feeds the write-up and prevents unexamined 'medium effect' defaults. 'none' records honestly that no effect size can be justified (for example with a fixed sample size). The source, the user's reasoning, is optional in the spec; the app asks for it before a plan is saved or exported.",
+      "description": "Why the effect size is what it is: it feeds the write-up and prevents unexamined 'medium effect' defaults. 'convention' records that the value is a benchmark such as Cohen's small, medium or large, not evidence about the effect. 'none' records honestly that no effect size can be justified (for example with a fixed sample size). The source, the user's reasoning, is optional in the spec; the app asks for it before a plan is saved or exported.",
       "type": "object",
       "required": [
         "type"
@@ -295,6 +295,7 @@
             "meta_analysis",
             "prior_study",
             "pilot_study",
+            "convention",
             "own_study_result",
             "none"
           ]
@@ -941,6 +942,13 @@
             "type": "integer",
             "minimum": 1
           }
+        },
+        "correlation_formula": {
+          "description": "Pearson's correlation only, with method exact: exact (the default) is the exact distribution of r under a bivariate normal population, as in G*Power, via pwrss::power.exact.onecor(); fisher_z is pwr's formula on Fisher's z (pwr.r.test()), an approximation. A correlation that varies between studies (population > tau) is always planned on Fisher's z.",
+          "enum": [
+            "exact",
+            "fisher_z"
+          ]
         },
         "proportions_formula": {
           "description": "Two proportions only, with method exact: z_test (the default) is the z test of two proportions with pooled variance under the null and no continuity correction, as in G*Power, via stats::power.prop.test() for equal groups and pwrss::power.z.twoprops() for unequal groups; arcsine is pwr's formula with Cohen's h (pwr.2p2n.test()).",
@@ -3680,8 +3688,10 @@
                     "enum": [
                       "monte_carlo_ci",
                       "percentile_bootstrap",
-                      "ols_percentile_bootstrap"
-                    ]
+                      "ols_percentile_bootstrap",
+                      "joint_significance"
+                    ],
+                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate"
                   }
                 }
               }
@@ -9914,11 +9924,6 @@
               ]
             }
           }
-        },
-        "goal": {
-          "properties": {
-            "assurance": false
-          }
         }
       }
     },
@@ -9966,11 +9971,6 @@
                 "noncentral_t"
               ]
             }
-          }
-        },
-        "goal": {
-          "properties": {
-            "assurance": false
           }
         }
       }

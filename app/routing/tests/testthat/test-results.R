@@ -125,7 +125,7 @@ test_that("the progress bar is an estimate from the usual run time, and says so"
   expect_identical(progress_text(12.4, 80), "Running for 12 seconds. This usually takes about 80 seconds.")
   expect_match(progress_text(90, 80), "taking longer than the usual 80 seconds", fixed = TRUE)
   html <- as.character(calculating_background_ui(80))
-  expect_match(html, "Estimated progress", fixed = TRUE)
+  expect_match(html, "Progress, estimated from the usual run time", fixed = TRUE)
   expect_match(html, "<progress", fixed = TRUE)
   expect_match(html, "calc_cancel", fixed = TRUE)
   expect_match(as.character(cancelled_ui()), "Calculation cancelled", fixed = TRUE)
@@ -228,7 +228,7 @@ test_that("the result screen shows the number, inputs, backend, validation statu
   expect_no_match(html, "Calculated by simulation with", fixed = TRUE)
   expect_no_match(html, "Calculated with a formula", fixed = TRUE)       # Departure 9, retired 7 November 2026
   expect_match(html, "the z test as G*Power runs it", fixed = TRUE)      # Departure 11
-  expect_match(html, "Historical design-level note", fixed = TRUE)                       # basic chunk rerun after #42
+  expect_match(html, "Checks for this analysis in general", fixed = TRUE)                       # basic chunk rerun after #42
   expect_match(html, "No continuity correction", fixed = TRUE)            # Departure 5
   # Departures that change the answer stay in view, with a pointer from the
   # answer; the ones that don't (11) are folded.
@@ -472,7 +472,7 @@ test_that("waits are stated in seconds or minutes", {
   expect_identical(progress_text(1, 734), "Running for 1 second. This usually takes about 12 minutes.")
   html <- as.character(calculating_background_ui(734, "Running the full analysis (1,000 simulations)\u2026"))
   expect_match(html, "Running the full analysis (1,000 simulations)", fixed = TRUE)
-  expect_match(html, "This usually takes about 12 minutes on one core.", fixed = TRUE)
+  expect_match(html, "This takes about 12 minutes on a recent computer", fixed = TRUE)
 })
 
 test_that("with attrition, the result shows the number analysed and the number to recruit", {
@@ -522,14 +522,14 @@ test_that("the range of sample sizes shows the smallest effect at 80% and 95% po
   expect_equal(calc$status, "ok")
   tab <- calc$curve_table
   expect_equal(tab$n, c(20, 40, 60, 80, 100, 120, 140, 160))
-  expect_equal(tab$power_80[8], pwr::pwr.r.test(n = 160, r = NULL, power = 0.8)$r)
+  # The exact method (pwrss) has the target power at the correlation found.
+  expect_equal(pwrss::power.exact.onecor(rho = tab$power_80[8], n = 160, alpha = 0.05, verbose = 0)$power, 0.8, tolerance = 1e-6)
   expect_true(all(tab$power_95 > tab$power_80))
   expect_true(all(diff(tab$power_80) < 0))
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
   expect_match(html, "The smallest effect you could detect at each sample size", fixed = TRUE)
-  # No reasoning written: no saving or exporting yet.
-  expect_match(html, "To save this plan, download its R script or get its write-up", fixed = TRUE)
-  expect_no_match(html, "download_project", fixed = TRUE)
+  # No reasoning written: saving and exporting still work (11 November 2026).
+  expect_match(html, "download_project", fixed = TRUE)
   values$just_source <- "No earlier study measures this; the pool is fixed at 160."
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
   expect_match(html, "download_project", fixed = TRUE)
@@ -653,14 +653,16 @@ test_that("the write-up states the test, alpha, power and its reason, the effect
   expect_no_match(paste(w, collapse = " "), "noncentrality|critical value", ignore.case = TRUE)
 })
 
-test_that("the write-up needs the reasoning, and words the fixed-N route and the claim", {
+test_that("the write-up says when no reasoning was recorded, and words the fixed-N route and the claim", {
   spec <- light_spec("E4", goal = list(type = "sensitivity", n = 80L, power = 0.8))
   spec$target_test$alpha <- 0.025 # build_spec() divides alpha for "any of 2"
   calc <- run_calculation(spec, seed = forms$default_seed)
   fields <- form_fields(form_groups(forms, "E4"))
   values <- modifyList(form_examples[["E4"]], list(just_type = "none", situation = "fixed", claim = "any", n_tests = "2"))
   values$just_source <- ""
-  expect_null(writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values))
+  bare <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values)
+  expect_match(bare[["short"]], "No justification for the effect size was recorded.", fixed = TRUE)
+  expect_false(any(grepl("no reason recorded]]", bare, fixed = TRUE)))
   values$just_source <- "Our participant pool has 80 students a year."
   w <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "A sensitivity power analysis", fixed = TRUE)
@@ -726,7 +728,7 @@ test_that("one-way ANOVA, regression, one proportion and McNemar run on the engi
   expect_equal(calc$result$n_required$n, 129)
   html <- as.character(result_panel_ui(tree, forms, "E26", form_fields(form_groups(forms, "E26")), form_examples$E26, calc))
   expect_match(html, "exact tests of counts", fixed = TRUE)           # Known difference 2
-  expect_match(html, "Historical design-level note", fixed = TRUE)
+  expect_match(html, "Checks for this analysis in general", fixed = TRUE)
   expect_match(html, "pwrss's formula, pwrss::power.exact.mcnemar(), no simulation", fixed = TRUE)
   for (ep in c("E24", "E25")) {
     calc <- run_calculation(light_spec(ep), run, seed = 1L)
@@ -1221,7 +1223,7 @@ test_that("two dependent correlations run on pwrss's unpooled Steiger test, with
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend_function, "pwrss::power.z.twocors.steiger")
   html <- as.character(result_panel_ui(tree, forms, "E51", fields, form_examples$E51, calc))
-  expect_match(html, "Historical design-level note", fixed = TRUE)
+  expect_match(html, "Checks for this analysis in general", fixed = TRUE)
   expect_match(html, "139 and 875", fixed = TRUE)                          # Departure 12
   # The G*Power manual's example without a shared variable (28.3.1): 886.
   values <- c(list(comparison = "nonoverlapping_correlations", X1_label = "Stress at 14", Y1_label = "Sleep at 14",
@@ -1255,7 +1257,7 @@ test_that("equivalence tests run on TOSTER for each comparison, with their own w
   expect_match(s[["reading"]], "closer to a bound, fewer would", fixed = TRUE)
   expect_no_match(s[["reading"]], "significant result", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E36", fields, values, calc))
-  expect_match(html, "Historical design-level note", fixed = TRUE)
+  expect_match(html, "Checks for this analysis in general", fixed = TRUE)
   w <- writeup_text(forms$forms$E36, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "an equivalence test (two one-sided tests, TOST) of two independent groups (each one-sided test at \u03b1 = .05)", fixed = TRUE)
   expect_match(w[["short"]], "equivalence bound (\u00b1) = 0.5", fixed = TRUE)
@@ -1295,7 +1297,7 @@ test_that("a planned contrast runs on pwrss, and refuses weights that don't add 
   expect_identical(calc$result$provenance$backend_function, "pwrss::power.t.contrasts")
   expect_gt(calc$result$n_required$n, 0)
   html <- as.character(result_panel_ui(tree, forms, "E19", fields, form_examples$E19, calc))
-  expect_match(html, "Historical design-level note", fixed = TRUE)
+  expect_match(html, "Checks for this analysis in general", fixed = TRUE)
   # Weights that don't add up to 0 are refused in plain English.
   bad <- build_spec(forms, "E19", fields, modifyList(form_examples$E19, list(weights = "-1, 0, 0, 2")))
   expect_error(run(bad), "must add up to 0", fixed = TRUE)
@@ -1309,7 +1311,7 @@ test_that("Poisson regression runs on pwrss, with the exposure and a yes/no pred
   n_one_year <- calc$result$n_required$n
   expect_gt(n_one_year, 0)
   html <- as.character(result_panel_ui(tree, forms, "E28", fields, form_examples$E28, calc))
-  expect_match(html, "Historical design-level note", fixed = TRUE)
+  expect_match(html, "Checks for this analysis in general", fixed = TRUE)
   # Following people for longer means more events, so fewer people.
   values <- modifyList(form_examples$E28, list(mean_exposure = "2"))
   calc <- run_calculation(build_spec(forms, "E28", fields, values), run, seed = 1L)
@@ -1336,7 +1338,7 @@ test_that("a cluster-randomised trial runs on powertools, with the groups and th
   expect_match(words[["detail"]], "The design effect is 1.95", fixed = TRUE)
   expect_match(words[["detail"]], "intraclass correlation 0.05", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E34", fields, form_examples$E34, calc))
-  expect_match(html, "Historical design-level note", fixed = TRUE)
+  expect_match(html, "Checks for this analysis in general", fixed = TRUE)
   values <- modifyList(form_examples$E34, list(just_source = "A pilot study."))
   w <- writeup_text(forms$forms$E34, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "the design effect is 1.95", fixed = TRUE)
@@ -1458,7 +1460,7 @@ test_that("logistic regression runs on pwrss, with Known difference 3 only when 
   expect_gt(calc$result$n_required$n, 0)
   expect_length(known_difference_keys(forms, "E27", calc$spec), 0)
   html <- as.character(result_panel_ui(tree, forms, "E27", fields, form_examples$E27, calc))
-  expect_match(html, "Historical design-level note", fixed = TRUE)
+  expect_match(html, "Checks for this analysis in general", fixed = TRUE)
   expect_no_match(html, "395 against 375", fixed = TRUE)
   # With R-squared above 0, the result screen and the write-up say so.
   values <- modifyList(form_examples$E27, list(r2_other = "0.1", just_source = "A pilot study."))
@@ -1487,7 +1489,7 @@ test_that("the variance tests are calculated exactly, as G*Power does, with no k
     expect_null(forms$forms[[ep]]$known_differences)
     fields <- form_fields(form_groups(forms, ep))
     html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
-    expect_match(html, "Historical design-level note", fixed = TRUE, label = ep)
+    expect_match(html, "Checks for this analysis in general", fixed = TRUE, label = ep)
     expect_no_match(html, "G*Power computes them exactly", fixed = TRUE, label = ep)
     expect_match(html, "Calculated by the R package\\s*<strong>stats</strong>", label = ep)
     expect_match(html, "G*Power 3.1 manual", fixed = TRUE, label = ep)
@@ -1503,7 +1505,7 @@ test_that("goodness of fit and two correlations run on pwrss, with their notes",
     expect_identical(calc$result$provenance$backend_function, fns[[ep]], label = ep)
     expect_gt(calc$result$n_required$n, 0)
     html <- as.character(result_panel_ui(tree, forms, ep, fields, form_examples[[ep]], calc))
-    expect_match(html, "Historical design-level note", fixed = TRUE, label = ep)
+    expect_match(html, "Checks for this analysis in general", fixed = TRUE, label = ep)
   }
 })
 
@@ -1638,8 +1640,14 @@ test_that("the write-up has a plain-words version for an ethics application, for
     format(round(calc$result$sensitivity$effect, 3), nsmall = 2)), fixed = TRUE)
   expect_match(e, "Our reasoning about the size of the effect:", fixed = TRUE)
 
-  # No reasoning, no write-up and no ethics version.
-  expect_null(writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(just_source = ""))))
+  # No reasoning: every version says so in place of the reason.
+  bare <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(just_source = "")))
+  for (version in names(bare)[!is.na(bare)]) {
+    expect_match(bare[[version]], "No justification for the effect size was recorded.", fixed = TRUE, info = version)
+    expect_no_match(bare[[version]], "no reason recorded]]", fixed = TRUE, info = version)
+  }
+  # A reason written for different values still holds the write-up back.
+  expect_null(writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(source_stale = TRUE))))
 })
 
 # Sharing the server: a limit on background calculations --------------------

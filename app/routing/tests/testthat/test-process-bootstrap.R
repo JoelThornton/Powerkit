@@ -4,7 +4,9 @@ test_that("each mediation card exposes the analysis and resample settings in one
     fields <- form_fields(groups)
     method <- Filter(function(f) identical(f$id, "method"), fields)
     expect_length(method, 1)
-    expect_setequal(names(method[[1]]$choices), c("monte_carlo_ci", "percentile_bootstrap", "ols_percentile_bootstrap"))
+    simulated <- c("monte_carlo_ci", "percentile_bootstrap", "ols_percentile_bootstrap")
+    # Simple mediation also offers the quick estimate (12 November 2026).
+    expect_setequal(names(method[[1]]$choices), if (ep %in% c("E10", "E16")) c("joint_significance", simulated) else simulated)
     expect_equal(sum(vapply(fields, function(f) identical(f$id, "ci_draws"), logical(1))), 1)
     group <- Filter(function(g) identical(g$title, "Which mediation analysis will you run?"), groups)[[1]]
     expect_identical(form_section(group), "study")

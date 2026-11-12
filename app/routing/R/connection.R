@@ -62,7 +62,7 @@ connection_css <- "
 
 connection_js <- "
 (function() {
-  var KEY = 'powerkit-autosave';
+  var KEY = 'powerkit-autosave', PLAN_KEY = 'powerkit-study-plan';
   var busyTimer = null;
   // The busy bar: shown when Shiny has been busy for a moment, so quick
   // clicks don't flash it.
@@ -104,6 +104,9 @@ connection_js <- "
     var saved = null;
     try { saved = window.localStorage.getItem(KEY); } catch (e) {}
     if (saved) Shiny.setInputValue('pk_saved_draft', saved, {priority: 'event'});
+    var plan = null;
+    try { plan = window.localStorage.getItem(PLAN_KEY); } catch (e) {}
+    if (plan) Shiny.setInputValue('pk_saved_plan', plan, {priority: 'event'});
     // A small message every 20 seconds while the page is being used (in
     // view and used in the last 20 minutes) or a calculation runs, so that
     // the connection isn't closed for being quiet while the visitor reads
@@ -151,6 +154,9 @@ connection_js <- "
   var aboutStarted = false;
   $(document).on('shiny:value', function(e) {
     if (e.name === 'screen' && !aboutStarted) { aboutStarted = true; setTimeout(fetchAbout, 1500); }
+  });
+  Shiny.addCustomMessageHandler('pk_plan_save', function(text) {
+    try { if (text) window.localStorage.setItem(PLAN_KEY, text); else window.localStorage.removeItem(PLAN_KEY); } catch (e) {}
   });
   Shiny.addCustomMessageHandler('pk_autosave', function(text) {
     try { if (text) window.localStorage.setItem(KEY, text); else window.localStorage.removeItem(KEY); } catch (e) {}

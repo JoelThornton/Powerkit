@@ -9,7 +9,7 @@ async function put(page,id,value){
 test('binary-predictor mediation warns before inputs and tracks the chosen method',async({page})=>{
  await open(page,'E17');
  await expect(page.locator('#selected_evidence .planning-critical')).toContainText('test too liberal');
- await expect(page.locator('#selected_evidence')).toContainText('Complete the required answers');
+ await expect(page.locator('#selected_evidence')).not.toContainText('Checks covering my selected settings');
  await page.locator('#explanations_on').uncheck();
  await expect(page.locator('#selected_evidence .planning-critical')).toBeVisible();
  await put(page,'method','ols_percentile_bootstrap');
@@ -33,7 +33,7 @@ test('power shortcut is explicit and regression explains its initially hidden in
  await open(page,'E2');
  await expect(page.locator('#f_power')).toHaveValue('');
  await put(page,'goal','sample_size');
- await expect(page.locator('#f_power_help')).toContainText('For a single significance test');
+ await expect(page.locator('#f_power_help')).toContainText('chance your test comes out significant');
  await page.locator('#f_power_usual').click();
  await expect(page.locator('#f_power')).toHaveValue('0.8');
  await open(page,'E24');
