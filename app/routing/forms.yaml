@@ -2876,6 +2876,9 @@ forms:
     # Two groups are calculated exactly (Hotelling's T-squared), as G*Power
     # does, so Known difference 8 is about three or more groups.
     known_differences_if_groups_above: {"8": 2}
+    # Pillai's V is computed by G*Power's own formula (Faul et al., 2007),
+    # so Known difference 8 is about the means route only.
+    known_differences_if_metric: {"8": raw}
     outcomes: Y_labels
     base: {spec_version: "0.1", design: basic_test, template: manova,
            variables: {A: {type: between_factor}}, population: {metric: raw},
@@ -2899,20 +2902,29 @@ forms:
              shown_if: {field: manova_factors, is: two}}
           - {id: Y_labels, label: "The outcomes (two to nine), separated by commas", type: levels, required: true,
              help: "The scores compared together, for example anxiety, depression, stress."}
-      - input: "The expected means on each outcome"
+      - input: "The expected means on each outcome, or Pillai's V"
         fields:
+          - {id: manova_metric, label: "How you'll give the effect", type: select, path: population.metric,
+             choices: {raw: "As each group's mean on each outcome", pillai_v: "As an effect size: Pillai's V, as in G*Power"},
+             default: raw, default_source: "the means, from which powerkit works out the test; Pillai's V is G*Power's single effect size for a MANOVA (Faul et al., 2007)",
+             help: "Means show which outcomes you expect the groups to differ on, and can be justified from earlier studies or from the differences that would matter. Pillai's V is one number for the whole pattern, so it hides which differences it assumes."}
+          - {id: pillai_v, label: "Pillai's V of the effect you test", writeup_label: "Pillai's V", type: number, path: population.pillai_v, effect: true, min_exclusive: 0,
+             help: "Pillai's trace, as G*Power's MANOVA tests take it: between 0 and the smaller of the number of outcomes and the number of groups minus 1 (for an interaction, its degrees of freedom). powerkit treats it as the true effect, as G*Power does; a published V is that study's estimate and tends to be too large. Power is by the formula of Faul et al. (2007), as in G*Power; the outcomes' SDs and correlation aren't needed.",
+             shown_if: {field: manova_metric, is: pillai_v}}
           - {id: means, writeup_label: "group means", label: "Means: one line per group, with one number per outcome, separated by commas", type: table, path: population.means, effect: true,
              rows_from: A_levels, cols_from: Y_labels, rows_name: "group", cols_name: "outcome",
-             shown_if: {field: manova_factors, is_not: two}}
+             alternative: {field: manova_metric, value: pillai_v, label: "Give Pillai's V instead"},
+             shown_if: [{field: manova_factors, is_not: two}, {field: manova_metric, is_not: pillai_v}]}
           - {id: cell_means, writeup_label: "group means", label: "Means: one line per combination of the two factors (the first factor's levels slowest: first with first, first with second, ...), with one number per outcome", type: table, path: population.means, effect: true,
              rows_from: [A_levels, B_levels], cols_from: Y_labels, rows_name: "combination", cols_name: "outcome",
-             shown_if: {field: manova_factors, is: two}}
+             alternative: {field: manova_metric, value: pillai_v, label: "Give Pillai's V instead"},
+             shown_if: [{field: manova_factors, is: two}, {field: manova_metric, is_not: pillai_v}]}
       - input: "Each outcome's SD, and the correlation between the outcomes"
         fields:
           - {id: sds, writeup_label: "outcome SDs", label: "SDs: one for each outcome, in the same order, separated by commas", type: numbers, per_levels: Y_labels, path: population.sds, effect: true,
-             help: "Within a group, in the means' units; the same in every group."}
+             help: "Within a group, in the means' units; the same in every group.", shown_if: {field: manova_metric, is_not: pillai_v}}
           - {id: manova_r, writeup_label: "correlation between the outcomes", label: "Correlation between any two outcomes within a group (the same for every pair)", type: number, path: population.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true,
-             help: "How strongly people's scores on two outcomes go together, for example 0.5 for related questionnaires."}
+             help: "How strongly people's scores on two outcomes go together, for example 0.5 for related questionnaires.", shown_if: {field: manova_metric, is_not: pillai_v}}
       - input: "MANOVA or PERMANOVA"
         fields:
           - {id: manova_test, label: "Test", type: select, path: target_test.method, required: true,

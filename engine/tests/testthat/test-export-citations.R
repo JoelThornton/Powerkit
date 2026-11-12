@@ -110,7 +110,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # cross-lagged panel model's paper and powRICLPM's method paper
   # (6 November 2026), and seven sources named in user-facing text, each
   # opened by its DOI (7 November 2026), and two sources on adjusting pilot
-  # and meta-analytic effect sizes (7 November 2026).
+  # and meta-analytic effect sizes (7 November 2026), and G*Power 3's paper
+  # for MANOVA power from Pillai's V (12 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -141,7 +142,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Delacre2017_welch = "verified", Delacre2019_welch_f = "verified",
       Simonsohn2015_telescopes = "verified", Pawel2026_replication = "verified",
       Anderson2016_replication = "verified", Kenny2019_heterogeneity = "verified",
-      McShane2014_river = "verified", Dwan2019_crossover = "verified"
+      McShane2014_river = "verified", Dwan2019_crossover = "verified", Faul2007_gpower = "verified"
     )
   )
 })
