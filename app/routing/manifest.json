@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "dc5d065a1feae3b3a54cda4bb89d5fb27ec9c9b8",
-        "RemoteSha": "dc5d065a1feae3b3a54cda4bb89d5fb27ec9c9b8",
+        "RemoteRef": "df210990451b68b05858ae3cf9f808f1b87a3722",
+        "RemoteSha": "df210990451b68b05858ae3cf9f808f1b87a3722",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "dc5d065a1feae3b3a54cda4bb89d5fb27ec9c9b8",
-        "GithubSHA1": "dc5d065a1feae3b3a54cda4bb89d5fb27ec9c9b8",
+        "GithubRef": "df210990451b68b05858ae3cf9f808f1b87a3722",
+        "GithubSHA1": "df210990451b68b05858ae3cf9f808f1b87a3722",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-12 10:56:38 UTC; runner",
+        "Packaged": "2026-11-12 12:34:21 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-12 10:57:19 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-12 12:34:58 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,7 +8560,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "e21748a75614dcadf6955934ba5993d3"
+      "checksum": "b6cfa357438018b31332a2bbfbac146b"
     },
     "forms.yaml": {
       "checksum": "ece5dcdec0cf32237e4be7a87cffeb0f"
@@ -8611,7 +8611,7 @@
       "checksum": "a606e91a440ff249228881df2521fa04"
     },
     "R/planning-safeguards.R": {
-      "checksum": "60bdf31c2ca74f0a55734bc06dab73f8"
+      "checksum": "5a565b224388f513252a99e026a1c724"
     },
     "R/planning.R": {
       "checksum": "fac261194bf635a352ca91ece1941c4f"
@@ -8620,7 +8620,7 @@
       "checksum": "66d95aa1c7090a0aea4123ff87790ee9"
     },
     "R/replication.R": {
-      "checksum": "df0bcfe1cf3f7cc29bd89d61c4116c90"
+      "checksum": "c9e579651fa24feefadfac057183c1e1"
     },
     "R/results.R": {
       "checksum": "e6c80413a416c15914e4030a1d9a96c1"
@@ -8656,7 +8656,7 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "82c0ebe82723ae1ed5492b0ed3955d05"
+      "checksum": "683a710496578bc990166c0c1071db2c"
     },
     "whats-new.d/allocation-noninferiority-direction.yaml": {
       "checksum": "bf48d5d018466c52898128cd210c94d7"
@@ -8679,8 +8679,14 @@
     "whats-new.d/minimum-effect-shifted-test.yaml": {
       "checksum": "6702d5daf7f00bb0d553935b5d687416"
     },
+    "whats-new.d/moderation-result-crash.yaml": {
+      "checksum": "b71523232033d0fa3139864fc26bde21"
+    },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
+    },
+    "whats-new.d/replication-from-the-finder.yaml": {
+      "checksum": "9e18d03387414cd6322b4be917a75761"
     },
     "whats-new.d/review-usability-2026-11-11.yaml": {
       "checksum": "4a39f1e5b2f9da7e645edf57edccc74a"

@@ -29,6 +29,41 @@ replication_designs_ui <- c(
   "Two scores and how they are related (r)" = "correlation"
 )
 
+# Replicating a published finding from the design finder (12 November
+# 2026): the aim asks the original's design like any other, and the card
+# it ends on says how to plan the replication. The planner's own designs
+# (above) are offered it, on the same design; every other card plans the
+# replication itself, for a significant result again.
+replication_card_templates <- c(independent_t = "two_groups", paired_t = "paired", one_sample_t = "one_sample", correlation = "correlation")
+
+replicating <- function(start) identical(start$aim, "replicate")
+
+replication_card_design <- function(forms, ep_id) {
+  template <- forms$forms[[ep_id %||% ""]]$base$template %||% ""
+  if (template %in% names(replication_card_templates)) unname(replication_card_templates[[template]]) else NULL
+}
+
+replication_card_note <- function(forms, ep_id) {
+  planner <- !is.null(replication_card_design(forms, ep_id))
+  div(class = "labs-return replication-card-note", role = "note",
+    p(tags$strong("Planning a replication. "),
+      "Enter the original study's effect on the next screen; its source starts as an earlier study. ",
+      "A published effect is often larger than the true one, because larger effects are more likely to be published, so consider planning for a smaller effect as well, such as the smallest that would matter."),
+    if (planner) {
+      p(class = "mb-0", "For this design, the replication planner gives the sample size for each goal a replication can have (a significant result again, a pooled estimate, agreement with the original, Bayes factors) and a write-up. ",
+        actionLink("rep_open_planner", "Open the replication planner"), " (in Labs, experimental), or carry on here for a significant result again.")
+    } else {
+      p(class = "mb-0", "This card plans the replication for a significant result again. The replication planner's other goals cover t-tests and correlations only for now.")
+    })
+}
+
+# The input screen's starting values when replicating: the effect comes
+# from an earlier study, unless the user has already chosen.
+replication_form_values <- function(values) {
+  if (is.null(values$just_type)) values$just_type <- "prior_study"
+  values
+}
+
 # How much the true effect may vary between studies (Kenny & Judd, 2019,
 # whose representative values for d these are).
 replication_taus <- c(

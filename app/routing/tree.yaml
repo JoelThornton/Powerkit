@@ -266,7 +266,10 @@ start_questions:
     question: "What is your study trying to do?"
     options:
       predict: {label: "Test a prediction", help: "For example, that a training improves memory scores."}
-      replicate: {label: "Replicate a published finding", help: "Plan a replication: the sample size for each goal it can have, how it differs from the original, and a write-up. Opens the replication planner in Labs.", labs: replication}
+      # The original's design is asked first, so every design reaches its
+      # card (12 November 2026); the four designs the replication planner
+      # covers are offered it from the card (R/replication.R).
+      replicate: {label: "Replicate a published finding", help: "A few questions about the original study's design find its analysis, and you plan the replication there. For a t-test or correlation, the replication planner adds the sample size for each goal a replication can have."}
       meta: {label: "Combine studies others have done (a meta-analysis)", help: "For a systematic review you are planning, before the studies are found.", next: E61}
       estimate: {label: "Estimate how big something is", help: "Plan the sample size for a confidence interval of a chosen width, or see its width at a given sample size. The next screen lets you choose what to estimate.", next: E46}
       reliability: {label: "Show that a measure is reliable, or that raters agree", help: "For example, that two raters' scores agree (an ICC), that a scale's items hang together (Cronbach's alpha), or that raters choose the same category (kappa).", next: E69}

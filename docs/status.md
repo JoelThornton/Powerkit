@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 12 November 2026 (sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (moderated regression result screen fixed; replication from the design finder; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -10,6 +10,10 @@ page as it stood before each rewrite.*
 powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
+
+The moderated regression cards' result screen, which stopped with an
+error for the sample size and power since 10 November, shows its result
+again (fixed 12 November, with a test).
 
 A pre-tester review on 11 November corrected three calculations: decimal
 group-size ratios are planned as the simplest matching whole split
@@ -262,7 +266,11 @@ and automated accessibility checks passed locally for the exercised routes.
   the true effect, with BayesRepDesign (Pawel, Consonni & Held, 2026)
   and the small-telescopes card's own calculation, how the replication
   differs, and a write-up with an R script, in sections saved to a file.
-  It opens from the start screen's "Replicate a published finding".
+  The design finder's "Replicate a published finding" asks the original
+  study's design (12 November 2026): the planner's four designs link to
+  it from their card, and every other design plans the replication on
+  its own card. The replication plan that wraps any card is queued
+  (`next.md` items 21 to 23).
 
 PR #368 added selectable continuity-corrected two-proportion and
 2 by 2 contingency tests, leaving existing defaults intact. Inputs/results

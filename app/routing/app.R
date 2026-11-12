@@ -1077,14 +1077,10 @@ server <- function(input, output, session) {
       # then doesn't ask it again.
       state$history <- list(); state$ctx <- aim_context(tree, state$start)
       exit <- start_exit(tree, state$start)
-      labs_tool <- aim_question(tree)$options[[value]]$labs
-      if (!is.null(labs_tool)) {
-        # Replicating a published finding opens the replication planner
-        # in Labs (aim "replicate"); the start screen stays behind it.
-        state$screen <- "aim"
-        session$sendCustomMessage("labs_open", labs_tool)
-        updateTabsetPanel(session, "tabs", selected = labs_tab_title)
-      } else if (!is.null(exit)) {
+      # Replicating a published finding asks the original's design like
+      # any other aim; its card then says how to plan the replication
+      # (replication_card_note(), R/replication.R).
+      if (!is.null(exit)) {
         state$endpoint <- exit; state$came_from <- "node"; state$screen <- "card"
       } else {
         # Every route starts with the screening questions.
@@ -1128,6 +1124,7 @@ server <- function(input, output, session) {
       # From the pre-replication notes: the user's own words as the reasoning.
       state$form_values <- if (isTRUE(state$from_labs) && !is.null(state$labs_seed)) list(just_source = state$labs_seed) else list()
       state$form_values <- bayes_mode_form_values(tree, state$endpoint, state$form_values, state$bayes_mode)
+      if (replicating(state$start)) state$form_values <- replication_form_values(state$form_values)
       state$form_k <- 2L; state$calc <- NULL
       state$screen <- "form"
     } else if (pick == "form_back") {
@@ -2155,6 +2152,13 @@ server <- function(input, output, session) {
     session$sendCustomMessage("labs_open", "prereplication")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
+  # From a replicated design's card: the planner, on the same design.
+  observeEvent(input$rep_open_planner, {
+    design <- replication_card_design(forms, state$endpoint)
+    if (!is.null(design)) updateSelectInput(session, "rep_design", selected = design)
+    session$sendCustomMessage("labs_open", "replication")
+    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  })
   observeEvent(input$go_labs_replication, {
     session$sendCustomMessage("labs_open", "replication")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
@@ -2287,6 +2291,7 @@ server <- function(input, output, session) {
         if (identical(state$route, "guided") && !identical(state$ctx$grouping, "independent"))
           div(class = "status status-soon guided-single-note", tree$guided$single_analysis_note),
         bayes_mode_card_note(tree, state$endpoint, state$bayes_mode),
+        if (replicating(state$start)) replication_card_note(forms, state$endpoint),
         card_ui(tree, state$endpoint, history = state$history),
         card_nav_ui(forms, state$endpoint),
         mismatch_ui("mismatch-path", path_text(tree, route_by_id(tree, state$route)$label, state$history, state$endpoint))
