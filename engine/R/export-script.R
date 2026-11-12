@@ -55,6 +55,8 @@ export_script <- function(spec, result, file = NULL) {
       heterogeneity_script(spec, result)
     } else if (variance_formula_test(spec)) {
       variance_script(spec, result)
+    } else if (manova_by_v(spec)) {
+      pillai_script(spec, result)
     } else if (hotelling_formula_test(spec)) {
       hotelling_script(spec, result)
     } else {
@@ -1154,6 +1156,47 @@ hotelling_script <- function(spec, result) {
     "}",
     "",
     pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# A MANOVA given by Pillai's V, by Faul et al.'s (2007) O'Brien and Shieh
+# approximation, in base R (backend-hotelling.R, pillai_backend()).
+pillai_script <- function(spec, result) {
+  inputs <- pillai_inputs(spec)
+  sensitivity <- identical(spec$goal$type, "sensitivity")
+  c(
+    script_header(spec, result, "base R's stats package", inputs$description),
+    "# Inputs ----",
+    if (!sensitivity) sprintf("v <- %s # Pillai's V of the effect tested (the population value, as G*Power takes it)", r_code(inputs$v)),
+    sprintf("outcomes <- %d # number of outcomes", inputs$outcomes),
+    sprintf("groups <- %d # number of groups (every combination of the factors)", inputs$groups),
+    sprintf("effect_df <- %d # the effect's degrees of freedom", inputs$effect_df),
+    goal_inputs(spec, result),
+    "",
+    "# Faul, Erdfelder, Lang & Buchner (2007), Table 5, Pillai's V with the",
+    "# O'Brien and Shieh algorithm: f^2 = V / (s - V), F with df1 = outcomes x",
+    "# effect_df and df2 = s (N - groups - outcomes + s), noncentrality N s f^2.",
+    "s <- min(outcomes, effect_df)",
+    "power_at <- function(n_total, v_effect = v) {",
+    "  f2 <- v_effect / (s - v_effect)",
+    "  df1 <- outcomes * effect_df",
+    "  df2 <- s * (n_total - groups - outcomes + s)",
+    "  critical <- qf(1 - alpha, df1, df2)",
+    "  pf(critical, df1, df2, ncp = n_total * s * f2, lower.tail = FALSE)",
+    "}",
+    "",
+    if (sensitivity) c(
+      "# Smallest detectable V ----",
+      "# Power rises with V, so the V that gives the target power is found by",
+      "# uniroot() between 0 and s.",
+      "v_found <- uniroot(function(v) power_at(n_total, v) - target_power, c(1e-10, s * (1 - 1e-9)), tol = 1e-10)$root",
+      "cat(sprintf(\"Smallest detectable Pillai's V with n = %s: %.4f\\n\", n_total, v_found))",
+      "",
+      "reproduced <- list(v = v_found)",
+      sprintf("powerkit_result <- list(v = %s)", r_code(result$sensitivity$effect)),
+      ""
+    ) else pwr_goal_section(spec, result),
     comparison_section()
   )
 }

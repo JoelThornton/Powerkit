@@ -185,3 +185,24 @@ test_that("two-way MANOVA: Type I error is near alpha for each effect", {
     expect_type1_near(engine_power(spec), alpha = 0.05)
   }
 })
+
+test_that("MANOVA global effect given by Pillai's V: matches G*Power 3.1 (published)", {
+  skip_unless_full_validation()
+  # Source to transcribe: G*Power 3.1, "F tests - MANOVA: Global effects", a
+  # post hoc analysis with Pillai V and the O'Brien-Shieh algorithm in its
+  # Options (Faul et al., 2007, Table 5): the effect size f^2(V) (or Pillai
+  # V from its Determine panel), alpha, the total sample size, the number of
+  # groups, the number of response variables and the power in the output.
+  # powerkit computes the same formula, so the powers should agree closely.
+  pillai_v <- TODO_PUBLISHED_VALUE # Determine panel: Pillai V
+  alpha <- TODO_PUBLISHED_VALUE # alpha err prob
+  total_n <- TODO_PUBLISHED_VALUE # Total sample size
+  groups <- TODO_PUBLISHED_VALUE # Number of groups
+  responses <- TODO_PUBLISHED_VALUE # Number of response variables
+  published_power <- TODO_PUBLISHED_VALUE # Output: Power (1-beta err prob)
+  skip_if_todo(pillai_v, alpha, total_n, groups, responses, published_power)
+
+  spec <- manova_validation_spec(rep(list(rep(0, responses)), groups), rep(1, responses), 0, seed = 104, n = total_n, alpha = alpha)
+  spec$population <- list(metric = "pillai_v", pillai_v = pillai_v)
+  expect_power_near(engine_power(spec), published_power)
+})

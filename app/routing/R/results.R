@@ -1787,7 +1787,7 @@ run_sensitivity_curve <- function(spec, run = engine_function("run_spec"), seed 
 }
 
 curve_table_ui <- function(spec, result, table) {
-  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "p2", r2 = "R-squared", partial_r2 = "partial R-squared", "effect")
+  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "p2", r2 = "R-squared", partial_r2 = "partial R-squared", V = "Pillai's V", "effect")
   # Two proportions: the column is group 2's proportion, not a size.
   heading <- function(power) {
     if (identical(name, "p2")) sprintf("Group 2's proportion, %s power", power) else sprintf("Smallest %s, %s power", name, power)

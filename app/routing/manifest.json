@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "a411d9b7ff65abc60af47562e7df006a8026129f",
-        "RemoteSha": "a411d9b7ff65abc60af47562e7df006a8026129f",
+        "RemoteRef": "e0445b84f8fc970f891a2b8341a2d598cae181e0",
+        "RemoteSha": "e0445b84f8fc970f891a2b8341a2d598cae181e0",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "a411d9b7ff65abc60af47562e7df006a8026129f",
-        "GithubSHA1": "a411d9b7ff65abc60af47562e7df006a8026129f",
+        "GithubRef": "e0445b84f8fc970f891a2b8341a2d598cae181e0",
+        "GithubSHA1": "e0445b84f8fc970f891a2b8341a2d598cae181e0",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-12 15:08:48 UTC; runner",
+        "Packaged": "2026-11-12 16:32:42 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-12 15:09:33 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-12 16:33:18 UTC; unix"
       }
     },
     "powertools": {
@@ -8563,7 +8563,7 @@
       "checksum": "c574aeeaa80109c0b36a0629db8eaaec"
     },
     "forms.yaml": {
-      "checksum": "b5c91d8503f29cb0a3f275d5a8f75381"
+      "checksum": "6a70f0cf1b1382c212fe8eec96227a82"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
@@ -8617,7 +8617,7 @@
       "checksum": "5a565b224388f513252a99e026a1c724"
     },
     "R/planning.R": {
-      "checksum": "fac261194bf635a352ca91ece1941c4f"
+      "checksum": "db07afa145fb801ce0d41ce462611d47"
     },
     "R/project.R": {
       "checksum": "66d95aa1c7090a0aea4123ff87790ee9"
@@ -8626,7 +8626,7 @@
       "checksum": "c9e579651fa24feefadfac057183c1e1"
     },
     "R/results.R": {
-      "checksum": "45aade622d86b21779b0b2f3298d96d0"
+      "checksum": "9cac1441c0163b6b6d6ca4434679fbe2"
     },
     "R/route-fit.R": {
       "checksum": "763727cf1f8850d8c1747dfa9428c333"
@@ -8665,7 +8665,7 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "c2255b6e3f752b9ce73513121a6ff4dc"
+      "checksum": "12b579aaa15cd613e06a9151820b19f8"
     },
     "whats-new.d/allocation-noninferiority-direction.yaml": {
       "checksum": "bf48d5d018466c52898128cd210c94d7"
@@ -8681,6 +8681,9 @@
     },
     "whats-new.d/correlation-exact-method.yaml": {
       "checksum": "e84231191d34fa0a34923812599b666b"
+    },
+    "whats-new.d/manova-pillai-v.yaml": {
+      "checksum": "11912d371115f80b4257bab61f1bb254"
     },
     "whats-new.d/mediation-quick-estimate.yaml": {
       "checksum": "5d87b038709a0ff0c611771d55e528e1"

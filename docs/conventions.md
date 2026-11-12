@@ -2306,7 +2306,18 @@ Wired into the app on 18 October 2026 (E25, E26).*
   `backend-hotelling.R`), as G\*Power computes it, under CLAUDE.md's rule
   on published formulas. The simulations (`p_hotelling_one()`,
   `p_manova()`) stay available on request, and this difference applies
-  only to three or more groups.
+  only to three or more groups, with the effect given by the means.
+- **Pillai's V (12 November 2026):** a MANOVA given by Pillai's V instead
+  of means is computed by G\*Power's own formula (Faul et al., 2007,
+  Table 5, Pillai's V with the O'Brien and Shieh algorithm the paper
+  recommends; `pillai_backend()`), so this difference doesn't apply to it.
+  It agrees with Spower's simulation of the same MANOVA from means whose
+  population V is known (`test-backend-pillai-v.R`), and with two groups
+  it equals the exact Hotelling's T-squared. O'Brien and Shieh is
+  G\*Power 3.1's default in its Options for this test (checked in G\*Power
+  3.1, 12 November 2026); it can also be set to Muller and Peterson's
+  (1984) algorithm, which the paper says underestimates power, and
+  powerkit doesn't offer that.
 - **Size:** with two groups, the Monte Carlo error alone: 0.393 simulated
   against 0.392 exact (pwrss's F test of R-squared, which equals two-group
   Hotelling's T-squared) for three outcomes correlated 0.4 and N = 100.

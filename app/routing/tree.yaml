@@ -2127,8 +2127,8 @@ endpoints:
     technical_name: "MANOVA and two-sample Hotelling’s T²"
     plain_name: "Do two or more groups differ on several outcomes at once?"
     template: "basic_test / manova"
-    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution. PERMANOVA: Spower with powerkit's p_permanova() experiment around vegan's adonis2(), by simulation"
-    method: "Simulation (three or more groups) or formula (two groups)"
+    backend: "Three or more groups: Spower with powerkit's p_manova() experiment, multivariate normal scores analysed with stats::manova() (Pillai's trace), by simulation. Two groups: powerkit's formula with base R's stats::pf(), Hotelling's T-squared by its noncentral F distribution. Pillai's V: powerkit's formula with stats::pf(), Faul et al.'s (2007) O'Brien and Shieh approximation, as G*Power. PERMANOVA: Spower with powerkit's p_permanova() experiment around vegan's adonis2(), by simulation"
+    method: "Simulation (three or more groups) or formula (two groups, or Pillai's V)"
     status: runs_validation_in_progress
     validation: {file: test-validation-manova.R, note: "With two groups it matches Hotelling's T-squared computed exactly (pwrss); with three it matches a simulation written separately, recovers the means, SDs and correlation in its check run, and keeps the Type I error at alpha. Not yet checked against G*Power's own examples."}
     card_points:
@@ -2136,10 +2136,10 @@ endpoints:
       - "The test is Pillai's trace, as in G*Power. With two groups every MANOVA statistic gives the same answer."
       - "With two factors crossed (different people in every combination), the test is of either factor or their interaction, each with Pillai's trace."
       - "You give each group's expected mean on each outcome, each outcome's SD, and how strongly the outcomes are correlated. That correlation matters: outcomes that go together carry less separate information."
-      - "Why means and not one effect size: the simulation draws scores from a population, so it needs each group's means, the SDs and the correlation. A single effect size, such as Pillai's V from a published MANOVA, doesn't say what those are, and no package powerkit builds on turns one into them."
+      - "Or give one effect size, Pillai's V, as in G*Power: powerkit then uses G*Power's formula (Faul et al., 2007), and needs no SDs or correlation. Means are the default because they show which outcomes you expect to differ; a single V hides that, and a published V tends to be too large."
       - "With two groups the answer is calculated exactly, as G*Power does. With three or more it is simulated, so it carries a little random error; G*Power uses an approximation there."
       - "PERMANOVA, a permutation test on the distances between people's standardised scores (vegan's adonis2()), is a choice for scores that aren't normal: you choose their shape, and powerkit simulates it."
-    inputs: ["The groups and the outcomes", "The expected means on each outcome", "Each outcome's SD, and the correlation between the outcomes", "MANOVA or PERMANOVA"]
+    inputs: ["The groups and the outcomes", "The expected means on each outcome, or Pillai's V", "Each outcome's SD, and the correlation between the outcomes", "MANOVA or PERMANOVA"]
     tier: v2
     alternatives: ["a separate ANOVA for each outcome, with the significance level adjusted for the number of outcomes", "a discriminant analysis, if the question is which outcomes separate the groups", "PERMANOVA, for scores that aren't normal (a choice on the next screen)"]
   E60:

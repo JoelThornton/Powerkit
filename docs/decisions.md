@@ -2908,3 +2908,24 @@ switches to it; until now it was a choice under "Units of the means".
 Cards without one (MANOVA, the within-participants factorial and the
 logistic factorial) are separate work.
 
+### MANOVA: Pillai's V as an alternative to the means, 12 November 2026
+
+The MANOVA card asked only for each group's means on each outcome, with
+the outcomes' SDs and correlation, because its power for three or more
+groups was simulated and a simulation needs a population. Researchers
+coming from G\*Power have a single effect size, Pillai's V, and no way to
+use it. The card now offers "As an effect size: Pillai's V, as in
+G\*Power" beside the means (and as a link beside the grid). Power is then
+computed by the published formula G\*Power uses (Faul, Erdfelder, Lang &
+Buchner, 2007, Table 5: Pillai's V with the O'Brien and Shieh algorithm
+that paper recommends over Muller and Peterson's, f^2(V) = V / (s - V),
+noncentrality N s f^2(V)), under CLAUDE.md's rule on published
+closed-form results. It agrees with Spower's simulation of the same
+MANOVA from means whose population V is known, and with two groups it
+equals the exact Hotelling's T-squared. Means stay the default: they
+show which outcomes are expected to differ and can be justified from
+earlier studies, where one V hides the pattern it assumes and a
+published V is a biased estimate, as the field's help says. The
+smallest detectable V is available in the engine; the card doesn't offer
+that goal yet, because the means route has none.
+

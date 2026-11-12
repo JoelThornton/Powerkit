@@ -1684,7 +1684,7 @@ check_basic_test <- function(spec) {
     chi_square_independence = if (chisq_by_w(spec)) check_chisq_w(spec) else check_probability_table(spec),
     chi_square_gof = if (chisq_by_w(spec)) check_chisq_w(spec) else check_gof_probabilities(spec),
     mcnemar = check_discordant_proportions(spec),
-    manova = check_manova(spec),
+    manova = if (manova_by_v(spec)) check_manova_v(spec) else check_manova(spec),
     hotelling_one = check_hotelling_one(spec),
     overlapping_correlations = ,
     nonoverlapping_correlations = check_dependent_correlations(spec),
@@ -1841,6 +1841,36 @@ check_manova <- function(spec) {
     problems <- c(problems, sprintf(
       "With %d outcomes, the correlation between every pair can't be %s or lower (it must be above %s), or the outcomes couldn't all be correlated that way at once.",
       p, format_number(-1 / (p - 1)), format_number(round(-1 / (p - 1), 3))))
+  }
+  problems
+}
+
+# MANOVA given by Pillai's V: V lies between 0 and s, the smaller of the
+# number of outcomes and the effect's degrees of freedom; the formula has
+# no simulation, and PERMANOVA needs the means and the scores' shape.
+check_manova_v <- function(spec) {
+  outcomes <- manova_outcomes(spec)
+  p <- length(outcomes)
+  two <- !is.null(spec$variables$B)
+  problems <- character()
+  if (!identical(outcomes, paste0("Y", seq_len(p)))) {
+    problems <- c(problems, sprintf("The outcomes should be named Y1 to Y%d, with none missing.", p))
+  }
+  if (!two && !identical(spec$target_test$effect, "main_effect_A")) {
+    problems <- c(problems, "With one factor the test is of A ('target_test > effect' \"main_effect_A\"); B's effect and the interaction need a second factor B.")
+  }
+  if (permanova_test(spec)) {
+    problems <- c(problems, "PERMANOVA needs the groups' means and the shape of the scores; Pillai's V gives MANOVA's test of Pillai's trace only.")
+  }
+  if (identical(spec$options$method, "simulation")) {
+    problems <- c(problems, "With Pillai's V, power is worked out by formula; a simulation needs the groups' means ('population > metric' \"raw\").")
+  }
+  s <- min(p, manova_effect_df(spec))
+  v <- spec$population$pillai_v
+  if (is.numeric(v) && v >= s) {
+    problems <- c(problems, sprintf(
+      "Pillai's V must be less than %d here, the smaller of the number of outcomes (%d) and the effect's degrees of freedom (%d); it is %s.",
+      s, p, manova_effect_df(spec), format_number(v)))
   }
   problems
 }
@@ -3185,7 +3215,7 @@ target_effect_is_zero <- function(spec) {
       two_variances = ,
       paired_variances = pop$var1 - pop$var2,
       # The largest difference between two groups on any outcome.
-      manova = {
+      manova = if (manova_by_v(spec)) pop$pillai_v else {
         means <- do.call(rbind, lapply(pop$means, as.numeric))
         if (is.null(spec$variables$B)) {
           max(apply(means, 2, function(x) diff(range(x))))
