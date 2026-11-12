@@ -275,3 +275,36 @@ test_that("the claim is asked in view, and related tests can be corrected as a g
   plan_claim <- Filter(function(f) identical(f$id, "claim"), form_fields(from_plan))[[1]]
   expect_match(plan_claim$help, "Set by your study plan", fixed = TRUE)
 })
+
+test_that("simple mediation opens on a quick estimate, clearly marked, with the full simulation one choice away", {
+  for (ep in c("E10", "E16")) {
+    fields <- form_fields(form_groups(forms, ep))
+    method <- Filter(function(f) identical(f$id, "method"), fields)[[1]]
+    expect_identical(method$default, "joint_significance", label = ep)
+    expect_setequal(names(method$choices), c("joint_significance", "monte_carlo_ci", "ols_percentile_bootstrap", "percentile_bootstrap"))
+    draws <- Filter(function(f) identical(f$id, "ci_draws"), fields)[[1]]
+    expect_false(field_applies(draws, list(method = "joint_significance")), label = ep)
+    expect_true(field_applies(draws, list(method = "monte_carlo_ci")), label = ep)
+  }
+  fields <- form_fields(form_groups(forms, "E10"))
+  values <- modifyList(form_examples$E10, list(method = "joint_significance", goal = "sample_size", power = "0.8",
+    p_X_M = "0.3", p_M_Y = "0.3", p_X_Y = "0"))
+  spec <- build_spec(forms, "E10", fields, values)
+  expect_identical(spec$target_test$method, "joint_significance")
+  # A formula: no background run, no preview.
+  expect_false(runs_long(forms, "E10", spec))
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_equal(calc$result$n_required$n, 110)
+  notice <- as.character(mediation_estimate_ui(calc$spec))
+  expect_match(notice, "quick estimate", fixed = TRUE)
+  expect_match(notice, "Full simulation", fixed = TRUE)
+  expect_false(any(c("6", "8") %in% names(departures_for(forms, "E10", calc$spec))))
+  # The full simulation still takes the long route.
+  full <- build_spec(forms, "E10", fields, modifyList(values, list(method = "monte_carlo_ci")))
+  expect_true(runs_long(forms, "E10", full))
+  expect_null(mediation_estimate_ui(full))
+  # Parallel mediation keeps the simulated methods only.
+  parallel <- Filter(function(f) identical(f$id, "method"), form_fields(form_groups(forms, "E11")))[[1]]
+  expect_false("joint_significance" %in% names(parallel$choices))
+})

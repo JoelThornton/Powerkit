@@ -23,9 +23,25 @@
 # simulations > method_routes: the Bayes factor of a repeated-measures
 # ANOVA effect, about 0.8 s per simulated study).
 runs_long <- function(forms, ep_id, spec = NULL) {
+  # Simple mediation's quick estimate is a formula (12 November 2026).
+  if (mediation_estimate(spec)) return(FALSE)
   if (ep_id %in% names(forms$simulations$endpoints)) return(TRUE)
   route <- forms$simulations$method_routes[[ep_id]]
   !is.null(route) && !is.null(spec) && identical(spec$target_test$method, route$method)
+}
+
+mediation_estimate <- function(spec) {
+  !is.null(spec) && identical(spec$design, "mediation") && identical(spec$target_test$method, "joint_significance")
+}
+
+# The estimate's notice, at the top of the result: what it is, how rough,
+# and how to get the number to report.
+mediation_estimate_ui <- function(spec) {
+  if (!mediation_estimate(spec)) return(NULL)
+  div(class = "result-estimate-notice alert alert-warning", role = "note",
+    tags$p(tags$strong("This is a quick estimate, for planning.")),
+    tags$p("It comes from a formula for the joint-significance test (both paths significant), so it is instant, but it is optimistic: with paths of .3 and 100 people it gives 75% power where the full simulation gives 71%, so the sample size it gives can be about 10% short."),
+    tags$p("For the number you report, choose \u201cFull simulation\u201d under \u201cHow to work it out\u201d: power at a fixed sample size runs here in about 12 minutes, and the sample size comes as an R script to run on your own computer."))
 }
 
 long_settings <- function(forms, ep_id) forms$simulations$endpoints[[ep_id]] %||% forms$simulations$method_routes[[ep_id]]

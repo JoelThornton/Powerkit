@@ -19,20 +19,28 @@ bayes_mode_js <- "
   });
 "
 
-bayes_mode_toggle_ui <- function(on = FALSE) {
+# From 12 November 2026 the switch sits at the top of both ways to find an
+# analysis, not on the start screen: on "I know my analysis" it also
+# narrows the list to the designs with a Bayes factor version, so a
+# researcher sees which they are (`where` = "known" or "guided").
+bayes_mode_toggle_ui <- function(on = FALSE, where = "known", n_designs = NULL) {
+  help <- if (identical(where, "known")) {
+    sprintf("Shows only the analyses with a Bayes factor version%s. Each opens with that version chosen, and its result leads with the chances of strong evidence for an effect, strong evidence for none, and misleading evidence. You can switch back to a p-value on any card.",
+      if (!is.null(n_designs)) sprintf(" (%d of them)", n_designs) else "")
+  } else {
+    "The design your answers lead to opens with its Bayes factor version chosen, if it has one, and says so if it hasn't. Its result leads with the chances of strong evidence for an effect, strong evidence for none, and misleading evidence."
+  }
   div(class = "bayes-mode-toggle",
     div(class = "form-check form-switch",
       tags$input(class = "form-check-input", type = "checkbox", role = "switch", id = "bayes_mode_switch",
         checked = if (isTRUE(on)) NA,
         `aria-describedby` = "bayes_mode_help",
         onchange = "pkSetBayesMode(this.checked)"),
-      tags$label(class = "form-check-label", `for` = "bayes_mode_switch", "Bayes mode: I'll analyse with Bayes factors")),
+      tags$label(class = "form-check-label", `for` = "bayes_mode_switch", "I'll analyse with Bayes factors")),
     # The explanation is one click away, so the start screen stays short.
     tags$details(class = "bayes-mode-what",
       tags$summary("What is this?"),
-      p(id = "bayes_mode_help", class = "small mb-0",
-        "Every design that has a Bayes factor version opens with it chosen, and its result leads with the chances of strong",
-        "evidence for an effect, strong evidence for none, and misleading evidence. You can switch back to a p-value on any card.")))
+      p(id = "bayes_mode_help", class = "small mb-0", help)))
 }
 
 # The note on a card in Bayes mode: whether its input screen opens on the
@@ -41,10 +49,10 @@ bayes_mode_card_note <- function(tree, ep_id, on = FALSE) {
   if (!isTRUE(on) || is.null(tree$endpoints[[ep_id]])) return(NULL)
   if (!is.null(tree$bayes_designs[[ep_id]])) {
     return(div(class = "status bayes-mode-note", role = "note",
-      tags$strong("Bayes mode: "), "the input screen opens with this design's Bayes factor version chosen."))
+      tags$strong("Bayes factors: "), "the input screen opens with this design's Bayes factor version chosen."))
   }
   div(class = "status status-soon bayes-mode-note", role = "note",
-    tags$strong("Bayes mode: "), "powerkit has no Bayes factor version of this design yet, so its plan uses a p-value.")
+    tags$strong("Bayes factors: "), "powerkit has no Bayes factor version of this design yet, so its plan uses a p-value.")
 }
 
 # In Bayes mode the Bayes factor tests plan with a design prior by
@@ -63,12 +71,12 @@ bayes_mode_groups <- function(groups, on = FALSE) {
       # The test version: the Bayes factor version to start with.
       if (identical(f$path, "target_test.method") && "bayes_factor" %in% names(f$choices)) {
         f[["default"]] <- "bayes_factor"
-        f$default_source <- "Bayes mode, which you turned on at the start; any other version can still be chosen"
+        f$default_source <- "the Bayes factor version, because you said you will analyse with Bayes factors; any other version can still be chosen"
         return(f)
       }
       if (!f$id %in% bayes_mode_prior_fields) return(f)
       f[["default"]] <- NULL
-      f$default_source <- paste("Bayes mode: say how unsure you are about the effect, so the plan averages over the effects you",
+      f$default_source <- paste("Analysing with Bayes factors: say how unsure you are about the effect, so the plan averages over the effects you",
         "think plausible (a design prior; O'Hagan, Stevens and Campbell, 2005, call the result assurance). powerkit won't",
         "suggest an SD: choose one you could defend, for example from the earlier study's standard error. 0 plans for",
         "exactly the value entered")

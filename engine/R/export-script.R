@@ -60,7 +60,9 @@ export_script <- function(spec, result, file = NULL) {
     } else {
       pwr_script(spec, result)
     },
-    pwrss = if (spec$design == "generic_test") {
+    pwrss = if (mediation_joint_test(spec)) {
+      mediation_joint_script(spec, result)
+    } else if (spec$design == "generic_test") {
       generic_script(spec, result)
     } else if (small_telescopes_test(spec)) {
       telescope_script(spec, result)

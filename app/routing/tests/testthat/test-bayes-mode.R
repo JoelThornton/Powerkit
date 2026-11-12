@@ -1,19 +1,35 @@
-# Bayes mode (R/bayes-mode.R): an opt-in switch on the start screen; with it
+# Bayes factors (R/bayes-mode.R): an opt-in switch on both ways to find an
+# analysis (from 12 November 2026; on the start screen before); with it
 # on, a card with a Bayes factor version opens its input screen on that
 # version, and a card without one says so.
 
-test_that("the switch is on the start screen, off unless chosen", {
+test_that("the switch is on both ways to find an analysis, off unless chosen, and not on the start screen", {
   off <- as.character(bayes_mode_toggle_ui(FALSE))
-  expect_match(off, "Bayes mode: I'll analyse with Bayes factors", fixed = TRUE)
+  expect_match(off, "I'll analyse with Bayes factors", fixed = TRUE)
   expect_match(off, "pkSetBayesMode(this.checked)", fixed = TRUE)
   # Kept for the browser tab, so a reload keeps it.
   expect_match(bayes_mode_js, "sessionStorage.getItem('powerkit-bayes-mode')", fixed = TRUE)
   expect_no_match(off, " checked[ />=]", perl = TRUE)
   expect_match(as.character(bayes_mode_toggle_ui(TRUE)), " checked[ />=]", perl = TRUE)
+  expect_no_match(as.character(start_ui(tree)), "bayes_mode_switch", fixed = TRUE)
+  expect_match(as.character(known_ui(tree)), "bayes_mode_switch", fixed = TRUE)
+  first <- names(tree$nodes)[1]
+  expect_match(as.character(node_ui(tree, first, list())), "bayes_mode_switch", fixed = TRUE)
+  expect_no_match(as.character(node_ui(tree, first, list(list(node = first, answer = "x")))), "bayes_mode_switch", fixed = TRUE)
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(code, "bayes_mode_toggle_ui(isolate(state$bayes_mode))", fixed = TRUE)
+  expect_match(code, "known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode)", fixed = TRUE)
   expect_match(code, "bayes_mode = FALSE", fixed = TRUE)
   expect_match(code, "tags$script(HTML(bayes_mode_js))", fixed = TRUE)
+})
+
+test_that("with Bayes factors on, the list shows only the designs with a Bayes factor version", {
+  all <- as.character(known_ui(tree))
+  on <- as.character(known_ui(tree, bayes_on = TRUE))
+  shown <- function(html) unique(regmatches(html, gregexpr('data-ep="E[0-9]+"', html))[[1]])
+  ids <- sub('data-ep="(E[0-9]+)"', "\\1", shown(on))
+  expect_setequal(ids, intersect(names(tree$endpoints), names(tree$bayes_designs)))
+  expect_gt(length(shown(all)), length(ids))
+  expect_match(on, sprintf("Showing the %d of %d analyses with a Bayes factor version", length(ids), length(tree$endpoints)), fixed = TRUE)
 })
 
 test_that("in Bayes mode a card with a Bayes factor version opens on it", {
@@ -56,7 +72,7 @@ test_that("in Bayes mode the t-tests wait for how unsure you are about the effec
   # The test version's note says why the Bayes factor is chosen.
   version <- Filter(function(f) identical(f$path, "target_test.method"), form_fields(bayes_mode_groups(groups, TRUE)))[[1]]
   expect_identical(version[["default"]], "bayes_factor")
-  expect_match(version$default_source, "Bayes mode", fixed = TRUE)
+  expect_match(version$default_source, "analyse with Bayes factors", fixed = TRUE)
   # Off, nothing changes.
   expect_identical(bayes_mode_groups(groups, FALSE), groups)
   # The correlation and the proportions too.

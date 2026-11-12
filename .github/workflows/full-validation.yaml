@@ -108,6 +108,7 @@ on:
           - modmed_binary
           - corrected_counts
           - process_bootstrap
+          - mediation_joint
           - mediation_crosscheck
           - mediation_crosscheck_parallel
           - mediation_crosscheck_serial

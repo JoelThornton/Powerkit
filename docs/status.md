@@ -27,6 +27,10 @@ claimed. Minimum-effect tests now use the same shifted t-test (12
 November; the equivalence validation chunk was run). The rounded-group-size
 search is queued.
 
+Simple mediation (E10, E16) starts on a quick estimate by formula (the
+joint-significance test, pwrss), marked as an estimate on the result, with
+the simulated methods for the number to report (12 November).
+
 The claim (how many tests a conclusion rests on) is asked in view on every
 input screen, with a Bonferroni choice for related tests (12 November).
 
@@ -48,8 +52,8 @@ spread ratio and between-study variation folded. Wording only.
 
 The start screen was laid out again before colleagues try the app
 (11 November): a title and one-sentence introduction, the three routes
-with more room, and saved projects, Bayes mode and the local download in
-one row under a divider. Presentation only; no method, default or evidence
+with more room, and saved projects and the local download in one row
+under a divider. Presentation only; no method, default or evidence
 claim changes.
 
 The [R checklist](release-readiness-review.md#fix-checklist) now records checked
@@ -209,9 +213,12 @@ and automated accessibility checks passed locally for the exercised routes.
   fifteen designs, with JASP's default priors; p-value results of the
   exact ones offer "Add a Bayes factor?", and Bayes factor t-test results
   show three prior widths, a sequential plan and an uncertain effect.
-  Bayes mode, an opt-in switch on the start screen, opens every card on
-  its Bayes factor version and asks how unsure the user is about the
-  effect instead of assuming 0.
+  An opt-in switch, "I'll analyse with Bayes factors", at the top of
+  "I know my analysis" (where it narrows the list to the 15 designs with
+  a Bayes factor version) and of "Help me choose" (12 November; it was a
+  "Bayes mode" on the start screen), opens every card on its Bayes factor
+  version and asks how unsure the user is about the effect instead of
+  assuming 0.
   Informed priors wait on a bfpwr fault (`upstream-questions.md`).
 
 - **Effect sizes:** the commonest cards take what researchers have: a

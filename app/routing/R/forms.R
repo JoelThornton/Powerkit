@@ -174,6 +174,8 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
           f$label <- "Draws or bootstrap resamples per confidence interval"
           f$empty_text <- "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap"
           f$help <- "A numerical accuracy setting, not an effect-size assumption. Leave empty for the defaults, or match the resample count in your planned analysis. More draws reduce simulation noise and take longer."
+          # The quick estimate draws no interval.
+          if (simple_mediation_card(form)) f$shown_if <- list(field = "method", is_not = "joint_significance")
         }
         f
       })
@@ -186,7 +188,7 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
         type = "number", path = "options.ci_draws", optional = TRUE, min = 100, max = 100000, integer = TRUE,
         empty_text = "1,000 for Monte Carlo/ML bootstrap; 5,000 for OLS bootstrap",
         help = "Leave empty for the numerical default, or match your planned analysis. More draws reduce simulation noise and take longer.")))))
-    groups <- c(list(mediation_analysis_group()), groups)
+    groups <- c(list(mediation_analysis_group(simple_mediation_card(form))), groups)
   }
   if (!is.null(form$mediators)) {
     groups <- c(list(list(input = NULL, title = "How many mediators", fields = list(list(
@@ -220,7 +222,30 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
 
 # The estimator and interval are chosen together so PROCESS-style planning
 # cannot accidentally keep lavaan ML or a Monte Carlo interval.
-mediation_analysis_group <- function() {
+# Simple mediation (one mediator: E10, E16) also offers a quick estimate
+# (12 November 2026): the joint-significance test by pwrss's formula,
+# instant and with a sample size, which the simulated interval can't give
+# in the app. It is where the screen starts, and the result says plainly
+# that it is an estimate and how to get the number to report.
+simple_mediation_card <- function(form) {
+  identical(form$base$design, "mediation") && identical(form$base$template, "process_4") && is.null(form$mediators)
+}
+
+mediation_analysis_group <- function(simple = FALSE) {
+  group <- mediation_analysis_group_full()
+  if (!simple) return(group)
+  f <- group$fields[[1]]
+  f$choices <- c(list(joint_significance = "Quick estimate: both paths significant, by formula (instant, for planning)"), f$choices)
+  f$default <- "joint_significance"
+  f$default_source <- "the quick estimate, so the screen gives an answer straight away (pwrss's power.z.mediation(method = 'joint') formula, a little optimistic); choose a simulated method for the number you report"
+  f$choice_notes <- list(
+    joint_significance = "An estimate for planning, not for your write-up. The joint-significance test counts the indirect effect when both paths are significant; its power comes from a formula, so the answer is instant, but it is optimistic: with paths of .3 and 100 people it gives 75% power where the full simulation gives 71%, so the sample size it gives can be about 10% short. For the number you report, choose one of the simulated methods: power at a fixed sample size runs here in about 12 minutes, and the sample size comes as an R script for your own computer.")
+  f$help <- paste("Start with the quick estimate to see roughly how many people you need.", f$help)
+  group$fields[[1]] <- f
+  group
+}
+
+mediation_analysis_group_full <- function() {
   list(input = NULL, title = "Which mediation analysis will you run?",
     note = "Choose the method you will use to analyse your study. PROCESS is one way of running mediation; its model number alone does not identify the test.",
     note_more = "The PROCESS-style option fits each equation by ordinary least squares (OLS) and resamples whole participants. It covers the displayed model with complete independent observations and continuous mediators/outcomes, using the existing normal-error population generator. It does not run PROCESS itself or cover its logistic, clustered/stratified bootstrap, measurement-error or bias-corrected options.",

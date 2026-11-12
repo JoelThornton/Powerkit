@@ -2303,6 +2303,8 @@ departures_for <- function(forms, ep_id, spec) {
   if (identical(spec$template, "chi_square_independence") &&
       (length(spec$variables$X$levels) != 2L || length(spec$variables$Y$levels) != 2L)) keys <- setdiff(keys, "5")
   if (identical(spec$target_test$method, "ols_percentile_bootstrap")) keys <- setdiff(keys, c("6", "7"))
+  # The quick estimate fits no lavaan model and draws no interval.
+  if (identical(spec$target_test$method, "joint_significance")) keys <- setdiff(keys, c("6", "8"))
   if (!spec$template %in% c("process_58", "process_59")) keys <- setdiff(keys, "19")
   # Departure 20 (both of each DIF item's parameters tested) applies unless
   # the user keeps irtpwr's own choice.
@@ -2761,6 +2763,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     result_sections_ui(as.list(sections[!is.na(sections)])),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
     h3(class = "h4", "Your result"),
+    mediation_estimate_ui(spec),
     planning_warnings_ui(spec, result),
     simulation_failures_ui(result),
     if (!is.null(label <- selected_method_label(spec, fields, values))) p(class = "result-analysis", tags$strong(label)),
