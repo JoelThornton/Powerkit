@@ -6,3 +6,8 @@
   finder again (the aim question first, the analysis list without
   screening questions, names opened before filling them) and runs end
   to end with no axe-core violations at 1000px and 375px.
+* App wording (review S-21): the About page says powerkit doesn't use AI
+  when you use it (every calculation is a package's or a documented
+  implementation, the write-up fixed wording); observed power is the
+  last source of an effect size, and its warning points to where the
+  expected effect comes from; the Labs learning-aid line is shorter.

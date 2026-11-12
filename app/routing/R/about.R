@@ -206,7 +206,7 @@ about_ui <- function(tree, forms) {
             tags$li(tags$strong("It doesn't choose your effect size. "), "It asks where yours comes from and helps you explain it, ",
               "but the number and the reasoning are yours."),
             tags$li(tags$strong("It doesn't collect or analyse your data. "), "It plans a study; it doesn't run one."),
-            tags$li(tags$strong("It doesn't use AI to calculate or to write anything you see. "), "Calculations use the packages below or documented implementations in powerkit, ",
+            tags$li(tags$strong("It doesn't use AI when you use it. "), "Every calculation is one of the packages below or a documented implementation in powerkit, ",
               "and the write-up is fixed wording filled in with your numbers."),
             tags$li(tags$strong("It doesn't replace a statistician for unusual designs. "), "If no card fits your study, ",
               "or a card gives guidance only, ask someone who knows your design."))))),
