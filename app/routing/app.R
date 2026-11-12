@@ -75,8 +75,7 @@ app_css <- "
   .choice:hover .choice-help, .choice:focus .choice-help, .choice:active .choice-help { color: #fff; }
   .trail { margin-bottom: 1rem; }
   .trail-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-  .trail .chip { margin: 0; min-height: 44px; min-width: 44px; display: inline-flex; flex-direction: column; align-items: flex-start; text-align: left; border-radius: 10px; padding: 0.3rem 0.7rem; max-width: 16rem; line-height: 1.25; }
-  .chip-q { font-size: 0.72rem; color: #6b7684; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .trail .chip { margin: 0; min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; text-align: left; border-radius: 999px; padding: 0.25rem 0.8rem; line-height: 1.25; }
   .chip-a { font-weight: 600; font-size: 0.85rem; }
   .trail .chip:hover, .trail .chip:focus { border-color: var(--pk-blue); }
   .question-step { color: var(--pk-blue); font-weight: 600; font-size: 0.85rem; letter-spacing: 0.02em; text-transform: uppercase; margin: 0.25rem 0 0.15rem; }
@@ -407,6 +406,22 @@ app_css <- "
   .choice:hover .choice-help, .choice:focus .choice-help, .choice:active .choice-help { color: #3d4852; }
   .choice:active { background: #eef4fa; color: var(--pk-navy); }
   .choice-safety { background: transparent; box-shadow: none; border: 1.5px dashed #a9b3c1; }
+  /* Each card's words start at its top, so a short answer doesn't float
+     in a tall card beside a long one (12 November 2026). */
+  .choices > .choice { display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; text-align: left; }
+  .choices-group { grid-column: 1 / -1; margin: 0.4rem 0 -0.2rem 0; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #5a6b85; }
+  .choices-group:first-child { margin-top: 0; }
+  /* A new screen's card that happens to sit under the pointer doesn't
+     light up until the pointer moves, so it doesn't look already chosen. */
+  .pk-fresh .choice:hover:not(:focus) { border-color: var(--pk-line); transform: none; box-shadow: var(--pk-shadow); }
+  .pk-fresh .choices-numbered > .choice:hover:not(:focus)::before { border-color: var(--pk-line); color: #5d6875; }
+  .aim-main { margin-bottom: 0.75rem; }
+  .aim-first { min-height: 6rem; padding: 1.25rem 1.4rem; }
+  .aim-first .choice-label { font-size: 1.2rem; color: var(--pk-blue); }
+  .aim-others-label { margin: 1.25rem 0 0.5rem; color: #3d4852; font-weight: 500; }
+  .aim-others .choice { padding: 0.8rem 1rem; }
+  .aim-others .choice-label { font-size: 0.98rem; }
+  .aim-others .choice-help { font-size: 0.85rem; }
   .route-choices .choice { padding: 1.25rem; min-height: 7.5rem; }
   .route-choices .choice-label { font-size: 1.15rem; color: var(--pk-blue); margin-bottom: 0.25rem; }
   .route-choices .choice { display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; }
@@ -594,6 +609,13 @@ app_css <- "
   .known-family[open] > summary { border-bottom: 1px solid var(--pk-line); border-radius: var(--pk-radius) var(--pk-radius) 0 0; }
   .known-family-items { display: grid; grid-template-columns: 1fr; gap: 0.6rem; padding: 0.9rem 1rem 1rem 1rem; }
   @media (min-width: 768px) { .known-family-items { grid-template-columns: 1fr 1fr; } }
+  /* The groups in two columns on a wide screen (12 November 2026): one
+     column of fourteen full-width bars was a long grey ladder. */
+  @media (min-width: 992px) {
+    .known-groups { display: grid; grid-template-columns: 1fr 1fr; column-gap: 0.75rem; align-items: start; }
+    .known-groups .known-family-items { grid-template-columns: 1fr; }
+  }
+  .known-way-out { margin-top: 1.25rem; color: #3d4852; }
   .known-item { display: flex; }
   .known-item[hidden] { display: none; }
   .known-choice { width: 100%; box-shadow: none; border: 1px solid var(--pk-line); padding: 0.8rem 1rem;
@@ -731,6 +753,11 @@ copy_js <- "
 focus_js <- "
   $(document).on('shiny:value', function(e) {
     if (e.name !== 'screen') return;
+    var screen = document.getElementById('screen');
+    if (screen) {
+      screen.classList.add('pk-fresh');
+      document.addEventListener('mousemove', function() { screen.classList.remove('pk-fresh'); }, { once: true });
+    }
     setTimeout(function() {
       var h = document.querySelector('#screen h2');
       if (h && document.activeElement && document.activeElement !== document.body && !document.getElementById('screen').contains(document.activeElement)) return;

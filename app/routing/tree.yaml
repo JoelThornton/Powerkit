@@ -282,7 +282,6 @@ routes:
   lead: "Describe your design and enter what you know about the effect. Powerkit gives the sample size, power or precision, with a methods paragraph and an R script that reproduces the answer."
   tester_note: "Powerkit is a prototype. If you are trying it out, plan a study the way you usually would, plan it again here, and use \u201cFeedback on this screen\u201d at the top of any page to say what differed, took longer or was unclear."
   screening_start: s1
-  screening_note: "First, four questions check that your design is one powerkit can advise on. No test is suggested until then."
   # "I know my analysis" can skip the screening and see every analysis. The
   # questions then become a filter the user can apply afterwards.
   skip_screening:
@@ -474,32 +473,35 @@ nodes:
     doc_id: F1
     text: "How many things did you vary or compare?"
     help: "Each thing you vary is called a factor (for example 'condition' or 'time')."
+    # People measured once (12 November 2026): the number of groups is
+    # asked on this screen, under "One thing", rather than on a screen of
+    # its own (F2), so the commonest designs take one question fewer. An
+    # option's `group` is a small heading over the options that share it.
     options:
-      - {label: "One", next: f2_by_times}
-      - {label: "Two, each with exactly two levels (a 2 x 2 design)", next: f4,
+      - {label: "One group, compared with a fixed value", next: E1, when: {times: once}, group: "One thing",
+         help: "e.g. a class's mean score compared with the national norm."}
+      - {label: "Two groups, different people in each", next: E2, when: {times: once}, group: "One thing",
+         help: "e.g. a training group and a control group."}
+      - {label: "Three or more groups, different people in each", next: f2a, when: {times: once}, group: "One thing"}
+      - {label: "One", next: f2_by_times, when: {times: [twice, many_conditions]}}
+      - {label: "Two, each with exactly two levels (a 2 x 2 design)", next: f4, group: "Two or more things",
          help: "Crossed: every combination appears, for example two conditions for both younger and older people."}
-      - {label: "Two, crossed, at least one with three or more levels", next: f3a_by_times,
+      - {label: "Two, crossed, at least one with three or more levels", next: f3a_by_times, group: "Two or more things",
          help: "For example two groups each measured at three timepoints."}
-      - {label: "Three, crossed (every combination appears)", next: E56}
-      - {label: "Four or more", next: E-unsure}
+      - {label: "Three, crossed (every combination appears)", next: E56, group: "Two or more things"}
+      - {label: "Four or more", next: E-unsure, group: "Two or more things"}
+      - {label: "One group, its several outcomes compared with fixed values at once", next: E60, when: {times: once}, group: "Several outcomes at once",
+         help: "e.g. a clinic sample's anxiety, depression and stress compared with the scales' published norms together (one-sample Hotelling's T-squared)."}
+      - {label: "Two or more groups, compared on several outcomes at once", next: E59, when: {times: once}, group: "Several outcomes at once",
+         help: "e.g. three therapy groups compared on anxiety, depression and stress together (MANOVA; Hotelling's T-squared for two groups)."}
   # Questions with one possible answer for the screening's "times" are
-  # skipped: these automatic nodes go straight on.
+  # skipped: these automatic nodes go straight on. People measured once
+  # answer the number of groups in F1.
   f2_by_times:
     doc_id: F2
-    text: "How many groups or conditions? (answered by S3 when the people are measured twice)"
+    text: "How many groups or conditions? (answered by S3 when the people are measured twice or more)"
     branch_on: times
-    routes: {once: f2, twice: E3, many_conditions: f2a}
-  f2:
-    doc_id: F2
-    text: "How many groups or conditions?"
-    options:
-      - {label: "One group, compared with a fixed value", next: E1, when: {times: once}}
-      - {label: "Two, with different people in each", next: E2, when: {times: once}}
-      - {label: "Three or more", next: f2a, when: {times: [once, many_conditions]}}
-      - {label: "One group, its several outcomes compared with fixed values at once", next: E60, when: {times: once},
-         help: "e.g. a clinic sample's anxiety, depression and stress compared with the scales' published norms together (one-sample Hotelling's T-squared)."}
-      - {label: "Two or more, compared on several outcomes at once", next: E59, when: {times: once},
-         help: "e.g. three therapy groups compared on anxiety, depression and stress together (MANOVA; Hotelling's T-squared for two groups)."}
+    routes: {twice: E3, many_conditions: f2a}
   f2a:
     doc_id: F2a
     text: "What does your hypothesis say about the groups?"
@@ -765,7 +767,7 @@ nodes:
   me1:
     doc_id: ME1
     text: "What is the cause (X)?"
-    help: "Even when you assign X, the go-between (mediator) isn't assigned, so its effect on the outcome is observational."
+    help: "Even when you assign X, the mediator isn't assigned, so its effect on the outcome is observational."
     refs: "decision D9"
     options:
       - {label: "Two conditions you assigned, or two groups", next: me4_xbin}
@@ -773,13 +775,13 @@ nodes:
       - {label: "Three or more conditions or groups", next: E42}
   me4_xbin:
     doc_id: ME4
-    text: "Is each go-between (mediator) a score?"
+    text: "Is each mediator a score?"
     options:
       - {label: "Yes", next: me2_xbin}
       - {label: "No, at least one is yes/no or a category", next: E39}
   me2_xbin:
     doc_id: ME2
-    text: "How many go-betweens (mediators)?"
+    text: "How many mediators?"
     options:
       - {label: "One", next: E16}
       - {label: "Two or more", next: me3_xbin}
@@ -793,13 +795,13 @@ nodes:
       - {label: "In a chain: X affects the first, which affects the next", next: E12}
   me4:
     doc_id: ME4
-    text: "Is each go-between (mediator) a score?"
+    text: "Is each mediator a score?"
     options:
       - {label: "Yes", next: me2}
       - {label: "No, at least one is yes/no or a category", next: E39}
   me2:
     doc_id: ME2
-    text: "How many go-betweens (mediators)?"
+    text: "How many mediators?"
     options:
       - {label: "One", next: E10}
       - {label: "Two or more", next: me3}
@@ -1063,7 +1065,7 @@ endpoints:
     doc_name: "Chi-square test of independence"
     technical_name: "Chi-square test of independence"
     plain_name: "Test whether two sets of categories are related"
-    search_words: "crosstab contingency table continuity corrected yates"
+    search_words: "crosstab contingency table continuity corrected yates chi2 chi squared chi-square test of independence"
     template: "basic_test / chi_square_independence"
     backend: "pwr: pwr.chisq.test() (Spower simulation if you choose it); BayesFactor's contingencyTableBF() for the Bayes factor, simulated with Spower"
     method: "Formula (no simulation); simulation for the Bayes factor"
@@ -1081,7 +1083,7 @@ endpoints:
     doc_name: "2 x 2 between-participants ANOVA (main effect or interaction)"
     technical_name: "2 × 2 between-subjects ANOVA"
     plain_name: "Two factors crossed, different people in each of the four groups"
-    search_words: "factorial two way anova between-subjects between subjects 2x2"
+    search_words: "factorial two way anova between-subjects between subjects 2x2 cohen's f eta squared partial eta-squared"
     template: "factorial_anova / 2x2_between"
     backend: "Superpower: ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
@@ -1096,7 +1098,7 @@ endpoints:
     doc_name: "2 x 2 mixed ANOVA (incl. group × time)"
     technical_name: "2 × 2 mixed ANOVA"
     plain_name: "One factor between people, one within (including group x time)"
-    search_words: "repeated measures split plot group by time pre post two way anova mixed design between within 2x2 crossover counterbalanced"
+    search_words: "repeated measures split plot group by time pre post two way anova mixed design between within 2x2 crossover counterbalanced mixed anova cohen's f eta squared partial eta-squared"
     card_points:
       - "Unequal groups are simulated (Spower, with afex fitting each ANOVA); equal groups are calculated exactly."
       - "A crossover analysis may need period, sequence and carry-over assumptions. This card plans the specified mixed ANOVA; it is not a separately validated crossover analysis. Do not replace an adjusted crossover model with the ordinary paired-test card."
@@ -1124,7 +1126,7 @@ endpoints:
   E10:
     doc_name: "Simple mediation (PROCESS model 4)"
     technical_name: "Simple mediation"
-    plain_name: "X affects Y through one go-between (M)"
+    plain_name: "X affects Y through one mediator (M)"
     template: "mediation / process_4 (mediator M)"
     backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI; pwrss's power.z.mediation(method = 'joint') for the quick estimate (joint-significance test)"
     method: Simulation
@@ -1136,7 +1138,7 @@ endpoints:
   E11:
     doc_name: "Parallel mediation (PROCESS model 4)"
     technical_name: "Parallel mediation"
-    plain_name: "X affects Y through several go-betweens side by side"
+    plain_name: "X affects Y through several mediators side by side"
     template: "mediation / process_4 (mediators M1, M2, ...)"
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
@@ -1148,7 +1150,7 @@ endpoints:
   E12:
     doc_name: "Serial mediation (PROCESS model 6)"
     technical_name: "Serial mediation"
-    plain_name: "X affects Y through a chain of go-betweens"
+    plain_name: "X affects Y through a chain of mediators"
     template: "mediation / process_6 (M1 to M4)"
     backend: "power4mome: power4test() with test_indirect_effect()"
     method: Simulation
@@ -1210,7 +1212,7 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-validation-mediation-binary.R, note: "Matches power4mome called directly, recovers the paths and the group split in its check run, and keeps the Type I error at alpha, in the engine's tests. Not yet checked against a published example."}
     card_points:
-      - "X is two conditions or two groups, such as a self-affirmation or control condition, and it affects Y through one go-between (M)."
+      - "X is two conditions or two groups, such as a self-affirmation or control condition, and it affects Y through one mediator (M)."
       - "You give X's effects as Cohen's d of the groups (on M, and on Y overall), or as standardised paths per SD of X; with d, powerkit finds the paths and shows them with the result."
       - "You can give the share of people in each group (equal by default)."
       - "With two or more mediators and a yes/no X, use the parallel or serial mediation screen and choose two groups for X."
@@ -1242,7 +1244,7 @@ endpoints:
     doc_name: "One-way ANOVA (different people), omnibus"
     technical_name: "One-way between-subjects ANOVA"
     plain_name: "Any difference among three or more groups"
-    search_words: "one way anova between subjects kruskal wallis pairwise post hoc bonferroni holm comparisons"
+    search_words: "one way anova between subjects kruskal wallis pairwise post hoc bonferroni holm comparisons cohen's f eta squared partial eta-squared"
     template: "factorial_anova / oneway_between"
     backend: "Superpower: ANOVA_design(\"kb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower's p_anova.test(var.equal = FALSE) for Welch's F; Spower's p_kruskal.test() for the Kruskal-Wallis test; BayesFactor's oneWayAOV.Fstat() for the Bayes factor (exact)"
     method: "Exact dataset (no repeated simulation); simulation for Welch's F and the Kruskal-Wallis test"
@@ -1314,7 +1316,7 @@ endpoints:
     doc_name: "Two-factor within-participants ANOVA (2 x 2 or larger)"
     technical_name: "Two-way repeated-measures ANOVA"
     plain_name: "Two factors crossed, everyone in every combination"
-    search_words: "repeated measures within subjects two way anova"
+    search_words: "repeated measures within subjects two way anova cohen's f eta squared partial eta-squared"
     template: "factorial_anova / factorial_within"
     backend: "Superpower: ANOVA_design(\"kw*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
@@ -1333,7 +1335,7 @@ endpoints:
     doc_name: "Larger factorial ANOVA, different people in every cell (2 x 3, 3 x 3, ...)"
     technical_name: "Two-way between-subjects ANOVA"
     plain_name: "Factorial designs bigger than 2 x 2, with different people in every group"
-    search_words: "factorial two way anova 2x3 3x3"
+    search_words: "factorial two way anova 2x3 3x3 cohen's f eta squared partial eta-squared"
     template: "factorial_anova / factorial_between"
     backend: "Superpower: ANOVA_design(\"kb*mb\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
@@ -1352,7 +1354,7 @@ endpoints:
     doc_name: "2 x 2 ANOVA with unequal group sizes"
     technical_name: "2 × 2 ANOVA: unequal group sizes"
     plain_name: "A 2 x 2 design where the groups differ in size"
-    search_words: "unbalanced two way anova"
+    search_words: "unbalanced two way anova cohen's f eta squared partial eta-squared"
     template: "factorial_anova / 2x2_between, options > cell_ratio"
     backend: "Superpower: ANOVA_power() with one n per cell (simulation); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: Simulation
@@ -1387,7 +1389,7 @@ endpoints:
     doc_name: "Multiple regression (R² or one coefficient)"
     technical_name: "Multiple regression"
     plain_name: "Several predictors at once, or one predictor controlling for others"
-    search_words: "linear regression ols coefficient r squared robust standard errors hc3 hc4 heteroscedasticity quantile median regression partial correlation covariates moderated treatment effect"
+    search_words: "linear regression ols coefficient r squared robust standard errors hc3 hc4 heteroscedasticity quantile median regression partial correlation covariates moderated treatment effect multiple regression hierarchical regression r squared change f squared f2 f² cohen's f squared"
     template: "multiple_regression / r2_zero, r2_increase, single_coefficient"
     backend: "pwrss: power.f.regression() (the F test, by formula); Spower with car (HC3 and HC4 standard errors) or quantreg (quantile regression) for one coefficient tested those ways (simulated)"
     method: "Formula (no simulation); simulation for robust standard errors and quantile regression"
@@ -2033,6 +2035,7 @@ endpoints:
     doc_name: "Two independent correlations"
     technical_name: "Two independent correlations"
     plain_name: "Compare a correlation between two separate groups"
+    search_words: "difference between correlations fisher z two independent correlations"
     template: "basic_test / two_correlations"
     backend: "pwrss: power.z.twocors() (Fisher's z test, by formula)"
     method: "Formula (no simulation)"
@@ -2064,6 +2067,7 @@ endpoints:
     doc_name: "Two dependent correlations"
     technical_name: "Two dependent correlations"
     plain_name: "Compare two correlations in the same people"
+    search_words: "difference between correlations dependent correlations overlapping steiger"
     template: "basic_test / overlapping_correlations, nonoverlapping_correlations"
     backend: "pwrss: power.z.twocors.steiger() (Steiger's z test, unpooled as in G*Power, by formula)"
     method: "Formula (no simulation)"
@@ -2187,7 +2191,7 @@ endpoints:
     doc_name: "One-way repeated-measures ANOVA, omnibus"
     technical_name: "One-way repeated-measures ANOVA"
     plain_name: "Any difference among three or more conditions, the same people in each"
-    search_words: "repeated measures within subjects one way anova friedman pairwise post hoc"
+    search_words: "repeated measures within subjects one way anova friedman pairwise post hoc cohen's f eta squared partial eta-squared"
     template: "factorial_anova / oneway_within"
     backend: "Superpower: ANOVA_design(\"kw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"
@@ -2207,7 +2211,7 @@ endpoints:
     doc_name: "Mixed ANOVA beyond 2 x 2 (e.g. group by time with three or more timepoints)"
     technical_name: "Mixed ANOVA"
     plain_name: "Groups of different people, each measured in every condition or at every timepoint"
-    search_words: "repeated measures split plot group by time anova"
+    search_words: "repeated measures split plot group by time anova mixed anova cohen's f eta squared partial eta-squared"
     template: "factorial_anova / mixed"
     backend: "Superpower: ANOVA_design(\"kb*mw\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); for unequal groups, a Spower simulation analysed with afex's aov_car(); Spower with ARTool's art() and artlm() for the aligned rank transform"
     method: "Exact dataset (no repeated simulation)"
@@ -2224,7 +2228,7 @@ endpoints:
     doc_name: "Three-factor ANOVA (2 x 2 x 2 or larger; any mix of between and within factors)"
     technical_name: "Three-way ANOVA"
     plain_name: "Three factors crossed, such as group by time by task"
-    search_words: "repeated measures three way anova factorial"
+    search_words: "repeated measures three way anova factorial cohen's f eta squared partial eta-squared"
     template: "factorial_anova / factorial_three"
     backend: "Superpower: ANOVA_design() with three factors (such as \"2b*2w*2w\") and ANOVA_exact() (ANOVA_power() if simulation is chosen)"
     method: "Exact dataset (no repeated simulation)"
@@ -2291,7 +2295,7 @@ guided:
       screen_map: {score: [score], yesno: [yesno, categories]}
       options: {score: "A score or scale", yesno: "Yes/no", categories: "One of several categories", count: "A count", ordinal: "Ordered categories", notsure: "None of these fit / I'm not sure"}
     - id: mediators
-      label: "Mediators (go-betweens)"
+      label: "Mediators"
       options: {none: "None", one: "One (a score)", several: "Two or more (scores)", notscore: "At least one that isn't a score", notsure: "None of these fit / I'm not sure"}
     - id: moderator
       label: "Moderator (W)"
@@ -2554,7 +2558,7 @@ glossary:
   - {term: "breakpoint", pattern: "breakpoint", hint: "The point in time at which the trend may change (for example, when an intervention started)."}
   - {term: "level and slope", pattern: "level and slope", hint: "The level is how high the trend is; the slope is how fast it rises or falls."}
   - {term: "autocorrelation", pattern: "autocorrelation", hint: "How much each measurement depends on the ones just before it."}
-  - {term: "mediator", pattern: "\\bmediators?('s|s')?\\b", hint: "A variable through which X affects the outcome (a go-between)."}
+  - {term: "mediator", pattern: "\\bmediators?('s|s')?\\b", hint: "A variable through which X affects the outcome."}
   - {term: "predictor", pattern: "\\bpredictors?\\b", hint: "A variable used to explain or predict the outcome."}
   - {term: "confidence interval (CI)", pattern: "\\bCI\\b", hint: "A range of plausible values for an effect, estimated from the data."}
   - {term: "prior", pattern: "\\bprior\\b", hint: "The range of effect sizes you consider plausible before seeing the data, written as a distribution."}

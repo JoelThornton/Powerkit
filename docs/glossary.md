@@ -59,7 +59,7 @@ only partly supported, and the details are listed there.
 | breakpoint | The point in time at which the trend may change (for example, when an intervention started). | E45 |
 | level and slope | The level is how high the trend is; the slope is how fast it rises or falls. | E45 |
 | autocorrelation | How much each measurement depends on the ones just before it. | E45 |
-| mediator | A variable through which X affects the outcome (a go-between). | E11, E39, E40 |
+| mediator | A variable through which X affects the outcome. | E11, E39, E40 |
 | predictor | A variable used to explain or predict the outcome. | E17, E24 |
 | confidence interval (CI) | A range of plausible values for an effect, estimated from the data. | E10 |
 | prior | The range of effect sizes you consider plausible before seeing the data, written as a distribution. | E-bayes |

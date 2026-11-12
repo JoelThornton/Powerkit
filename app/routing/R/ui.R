@@ -405,16 +405,22 @@ nav_js <- "
 # cards (start_exit()); testing a prediction goes on to the screening.
 aim_question <- function(tree) Filter(function(q) identical(q$id, "aim"), tree$start_questions)[[1]]
 
+# Most studies test a prediction, so that answer is one wide card at the
+# top and the other aims sit under it, smaller (12 November 2026): six
+# equal cards made the commonest answer as hard to find as the rarest.
 aim_ui <- function(tree) {
   q <- aim_question(tree)
+  keys <- names(q$options)
+  card <- function(k, class = "btn btn-outline-primary choice") {
+    o <- q$options[[k]]
+    pick_button(o$label, paste0("aim:", k), o$help, class = class)
+  }
   tagList(
     screen_nav_ui(),
     h2(q$question),
-    div(class = "choices", lapply(names(q$options), function(k) {
-      o <- q$options[[k]]
-      pick_button(o$label, paste0("aim:", k), o$help)
-    })),
-    p(class = "text-muted small", tree$routes$screening_note)
+    div(class = "choices list aim-main", card(keys[1], "btn btn-outline-primary choice aim-first")),
+    p(class = "aim-others-label", tree$routes$aim_others %||% "Or, if your study aims to\u2026"),
+    div(class = "choices aim-others", lapply(keys[-1], card))
   )
 }
 
@@ -491,6 +497,9 @@ start_ui <- function(tree, start = list(), saved_projects = NULL) {
 
 # Trail of answers so far ------------------------------------------------------
 
+# Answers only, as one line of small chips (12 November 2026): with each
+# question above its answer, cut short, the trail took two rows. The
+# question is the chip's tooltip and part of its accessible name.
 trail_ui <- function(history, tree = NULL) {
   if (length(history) == 0) return(NULL)
   div(
@@ -501,8 +510,8 @@ trail_ui <- function(history, tree = NULL) {
       tags$button(
         type = "button", class = "chip",
         title = if (!is.null(question)) paste0(question, " Click to change your answer."),
+        `aria-label` = if (!is.null(question)) paste0(question, " ", history[[i]]$answer, ". Change this answer."),
         onclick = sprintf("Shiny.setInputValue('pick', 'trail:%d', {priority: 'event'})", i),
-        if (!is.null(question)) tags$span(class = "chip-q", question),
         tags$span(class = "chip-a", history[[i]]$answer)
       )
     }))
@@ -539,7 +548,7 @@ node_ui <- function(tree, node_id, history, ctx = list(), route = NULL, bayes_on
     p(class = "question-step", sprintf("Question %d", length(history) + 1)),
     h2(node$text),
     if (!is.null(node$help)) p(class = "lead", node$help),
-    div(class = "choices choices-numbered", lapply(which(!is_safety), choice)),
+    div(class = "choices choices-numbered", choice_groups(opts, which(!is_safety), choice)),
     if (any(is_safety)) div(class = "choices choices-way-out", lapply(which(is_safety), choice)),
     p(class = "choices-keys", "Tip: press 1 to ", sum(!is_safety), " to choose."),
     if (may_skip) {
@@ -549,6 +558,19 @@ node_ui <- function(tree, node_id, history, ctx = list(), route = NULL, bayes_on
     },
     placeholders_at(tree, node_id)
   )
+}
+
+# Options with a `group` (tree.yaml) sit under a small heading for their
+# group, in order; the headings are shown only when every option has one.
+choice_groups <- function(opts, idx, choice) {
+  groups <- vapply(opts[idx], function(o) o$group %||% NA_character_, "")
+  if (anyNA(groups)) return(lapply(idx, choice))
+  out <- list()
+  for (k in seq_along(idx)) {
+    if (k == 1 || groups[k] != groups[k - 1]) out <- c(out, list(p(class = "choices-group", groups[k])))
+    out <- c(out, list(choice(idx[k])))
+  }
+  out
 }
 
 # "I know my analysis" list ---------------------------------------------------
@@ -639,7 +661,7 @@ known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
       h3(class = "known-section-title", id = "known_groups_title", "All analyses, by group"),
       tags$button(type = "button", class = "btn btn-link known-open-all", id = "known_open_all",
         onclick = "powerkitOpenAllFamilies(this)", "Open all groups")),
-    cached_html(list("known_groups", eps, families, maintainer_view()), function() lapply(families, function(f) {
+    div(class = "known-groups", cached_html(list("known_groups", eps, families, maintainer_view()), function() lapply(families, function(f) {
       ids <- intersect(unlist(f$endpoints), names(eps))
       tags$details(class = "known-family", `data-family` = f$id,
         tags$summary(
@@ -647,10 +669,16 @@ known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
           tags$span(class = "known-family-count", `data-total` = length(ids),
             `aria-label` = sprintf("%d analyses", length(ids)), length(ids))),
         div(class = "known-family-items", lapply(seq_along(ids), function(i) tagAppendAttributes(item(ids[i], f), `data-index` = i))))
-    })),
-    div(class = "choices list mt-4",
-      pick_button(tree$safety_net$label, paste0("ep:", tree$safety_net$endpoint), class = "btn btn-outline-secondary choice choice-safety"),
-      pick_button("Not sure which? Answer a few questions instead", "route:choose", class = "btn btn-outline-secondary choice choice-safety")),
+    }))),
+    # One line for both ways out (12 November 2026): two dashed boxes said
+    # nearly the same thing.
+    p(class = "known-way-out", "Can't find it? ",
+      tags$button(type = "button", class = "btn btn-link known-inline-link",
+        onclick = "Shiny.setInputValue('pick', 'route:choose', {priority: 'event'})", "Answer a few questions instead", .noWS = "outside"),
+      ", or ",
+      tags$button(type = "button", class = "btn btn-link known-inline-link",
+        onclick = sprintf("Shiny.setInputValue('pick', 'ep:%s', {priority: 'event'})", tree$safety_net$endpoint), "see what to do when none of these fits", .noWS = "outside"),
+      "."),
     tags$script(HTML(known_search_js)),
     tags$script(HTML("powerkitRestoreAnalyses();"))
   )
@@ -677,6 +705,8 @@ cached_html <- function(key_parts, build) {
 # brackets and other punctuation as spaces, so "t-test" and "t test" match.
 search_text <- function(...) {
   text <- tolower(paste(unlist(list(...)), collapse = " "))
+  # "Cohen's f" and "cohens f" match each other.
+  text <- gsub("['\u2019]", "", text)
   text <- gsub("[^a-z0-9²×]+", " ", text)
   paste0(" ", trimws(gsub("\\s+", " ", text)), " ")
 }
@@ -694,7 +724,7 @@ search_text <- function(...) {
 known_search_js <- "
 window.powerkitKnown = window.powerkitKnown || { query: '', open: [], back: null };
 function powerkitFilterAnalyses(query) {
-  var words = query.toLowerCase().replace(/[^a-z0-9\\u00b2\\u00d7]+/g, ' ').split(' ').filter(function(w) { return w.length > 0; });
+  var words = query.toLowerCase().replace(/['\\u2019]/g, '').replace(/[^a-z0-9\\u00b2\\u00d7]+/g, ' ').split(' ').filter(function(w) { return w.length > 0; });
   var any = false, items = 0, groups = 0;
   document.querySelectorAll('.known-family').forEach(function(family) {
     var shown = 0;
