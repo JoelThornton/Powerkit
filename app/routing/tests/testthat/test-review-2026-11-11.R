@@ -364,3 +364,15 @@ test_that("every table input is a grid named from its level fields, with the tex
   expect_match(as.character(field_ui(means, NULL)), "asks for means rather than one overall effect size", fixed = TRUE)
   expect_match(as.character(field_ui(means, NULL)), "See an example", fixed = TRUE)
 })
+
+test_that("a table card that also takes one effect size offers it beside the grid", {
+  alt_of <- function(card) {
+    fields <- form_fields(form_groups(forms, card))
+    tab <- Find(function(f) identical(f$type, "table"), fields)
+    html <- as.character(field_ui(tab, NULL))
+    regmatches(html, regexpr('pk-grid-alt"[^>]*data-field="[^"]+" data-value="[^"]+"', html))
+  }
+  expect_match(alt_of("E6"), 'data-field="f_chisq_metric" data-value="w"', fixed = TRUE)
+  expect_match(alt_of("E21"), 'data-field="f_metric" data-value="eta_squared"', fixed = TRUE)
+  expect_match(alt_of("E55"), 'data-value="eta_squared"', fixed = TRUE)
+})

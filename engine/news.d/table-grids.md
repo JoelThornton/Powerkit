@@ -9,3 +9,8 @@
   label names what goes in; the line-by-line layout is shown only with
   the text box. Each grid has an example and, for means, a line on why
   powerkit asks for means.
+* App: a table field with an `alternative` (forms.yaml on E6;
+  `with_eta_squared()` on the ANOVA and ANCOVA cards) shows a link beside
+  the grid that sets the card's effect-size choice to Cohen's w or
+  partial eta-squared, which was otherwise offered only as a choice under
+  "Units of the means".

@@ -15,8 +15,10 @@ Tables of means, SDs and proportions (two-factor, mixed and repeated
 measures ANOVA, ANCOVA, MANOVA, chi-square and logistic factorial cards)
 are entered in a grid whose rows and columns are named from the levels
 typed above it, with an example and a line on why powerkit asks for
-means; the text box stays for pasting (`decisions.md`, 12 November 2026).
-A single overall effect size for these cards is next.
+means; the text box stays for pasting, and a link beside the grid
+switches to Cohen's w or partial eta-squared where the card takes one
+(`decisions.md`, 12 November 2026). A single overall effect size for
+MANOVA and the other cards without one is next.
 
 The moderated regression cards' result screen, which stopped with an
 error for the sample size and power since 10 November, shows its result

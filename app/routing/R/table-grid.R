@@ -29,6 +29,19 @@ table_grid_layout <- function(f) {
   paste0("As text: ", layout, ".")
 }
 
+# A card that also takes one overall effect size (Cohen's w, partial
+# eta-squared) offers it beside the grid: the choice sets the select that
+# switches the form over (`alternative` in forms.yaml or with_eta_squared()).
+table_grid_alternative_ui <- function(f) {
+  alt <- f$alternative
+  if (is.null(alt)) return(NULL)
+  tags$button(type = "button", class = "btn btn-link btn-sm pk-grid-alt",
+    `data-field` = field_input_id(list(id = alt$field)), `data-value` = alt$value,
+    onclick = paste("var s = document.getElementById(this.getAttribute('data-field')); if (!s) return;",
+      "s.value = this.getAttribute('data-value'); if (window.jQuery) jQuery(s).trigger('change'); else s.dispatchEvent(new Event('change', {bubbles: true}));"),
+    alt$label)
+}
+
 # The grid's container: the JS builds it from the level fields' values.
 table_grid_ui <- function(f) {
   id <- field_input_id(f)
@@ -42,7 +55,9 @@ table_grid_ui <- function(f) {
     p(class = "small pk-grid-note", table_grid_note(f)),
     div(class = "pk-grid-body"),
     table_grid_example(f),
-    tags$button(type = "button", class = "btn btn-link btn-sm pk-grid-text", "Type it as text instead"),
+    div(class = "pk-grid-ways",
+      tags$button(type = "button", class = "btn btn-link btn-sm pk-grid-text", "Type it as text instead"),
+      table_grid_alternative_ui(f)),
     if (!is.null(table_grid_layout(f))) p(class = "small pk-grid-layout", hidden = NA, table_grid_layout(f)))
 }
 

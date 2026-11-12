@@ -2901,6 +2901,10 @@ and powerkit works out the effect size from them, where a single effect
 size such as f or Pillai's V hides which differences it assumes. The
 grid writes into the same text value as before, so checks, saved work,
 drafts and exports are unchanged, and "Type it as text instead" shows the
-text box for pasting. Means stay the default; a single overall effect
-size as an option is separate work.
+text box for pasting. Means stay the default. Where a card already
+takes one overall effect size (Cohen's w on the chi-square card, partial
+eta-squared on the ANOVA and ANCOVA cards), a link beside the grid
+switches to it; until now it was a choice under "Units of the means".
+Cards without one (MANOVA, the within-participants factorial and the
+logistic factorial) are separate work.
 
