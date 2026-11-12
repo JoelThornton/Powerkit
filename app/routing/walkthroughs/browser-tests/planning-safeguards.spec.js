@@ -20,7 +20,7 @@ test('all-test planning starts with unknown dependence and evidence follows comp
  await put(page,'just_type','smallest_effect_of_interest'); await put(page,'just_source','Synthetic browser scenario');
  await expect(page.locator('#selected_evidence')).toContainText('Checks covering my selected settings');
   await page.locator('#selected_evidence').getByText('Checks covering my selected settings', { exact: true }).click();
- await expect(page.locator('#selected_evidence')).toContainText('not validation of every parameter value');
+ await expect(page.locator('#selected_evidence')).toContainText('not of every value you could enter');
 });
 test('interaction sensitivity carries the proposed effect into its simulation form',async({page})=>{
  await open(page,'E9');
