@@ -434,3 +434,34 @@ test_that("the analysis list has its groups in a grid and one closing line (D-09
   expect_match(tree$endpoints$E55$search_words, "mixed anova", fixed = TRUE)
   expect_match(tree$endpoints$E10$plain_name, "mediator", fixed = TRUE)
 })
+
+test_that("the goal and the test's direction are rows of buttons over their menus (D-13)", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  goal <- Filter(function(f) identical(f$id, "goal"), fields)[[1]]
+  expect_true(isTRUE(goal$buttons))
+  expect_identical(goal$button_labels$sample_size, "Sample size")
+  html <- as.character(field_ui(goal, NULL))
+  expect_match(html, 'class="pk-choice-buttons"', fixed = TRUE)
+  expect_match(html, '<select[^>]*id="f_goal"')
+  alt <- Filter(function(f) identical(f$id, "alternative"), fields)[[1]]
+  expect_identical(alt$button_labels$two_sided, "Either direction")
+  # A meta-analysis counts studies.
+  expect_identical(goal_button_labels(list(meta = TRUE))$sample_size, "Number of studies")
+})
+
+test_that("the still-needed line names the answers, and settings read at a glance (C-02, D-18)", {
+  expect_identical(needed_name(list(id = "goal", label = "What do you want to find out?")), "your goal")
+  expect_identical(needed_name(list(id = "alpha", label = "Significance level (alpha)")), "significance level")
+  expect_identical(needed_name(list(id = "x", label = "ICC: the share of variance")), "ICC")
+  html <- as.character(field_ui(list(id = "alpha", label = "Significance level (alpha)", type = "number", required = TRUE), NULL))
+  expect_match(html, 'data-needed-name="significance level"', fixed = TRUE)
+  line <- as.character(settings_summary_ui(list(list(fields = list(
+    list(id = "allocation_ratio", label = "Size of group 2 divided by size of group 1", type = "number", default = 1),
+    list(id = "attrition", label = "Proportion you expect to lose", type = "number")))), list()))
+  expect_match(line, "Group 2 / group 1: ", fixed = TRUE)
+  expect_match(line, "Dropout: ", fixed = TRUE)
+})
+
+test_that("an info button outside a field names what it explains (D-17)", {
+  expect_match(as.character(explanation_ui("x", "What this planning goal means", p("text"))), 'data-label="What this planning goal means"', fixed = TRUE)
+})

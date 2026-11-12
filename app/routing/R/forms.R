@@ -408,6 +408,7 @@ direction_group <- function(tool, shown_if = NULL) {
         greater = "Positive effects only (one-sided test)",
         less = "Negative effects only (one-sided test)",
         two_sided = "Effects in either direction (two-sided test; a directional prediction is still possible)"),
+      buttons = TRUE, button_labels = list(greater = "Positive only", less = "Negative only", two_sided = "Either direction"),
       default_source = paste0("Not filled in for you (for reference: ", tool[["alternative_source"]], ")"),
       shown_if = shown_if
     ),
@@ -457,7 +458,8 @@ precision_goal_fields <- function(tool) {
   list(
     list(id = "goal", label = "What do you want to find out?", type = "select", required = TRUE,
          choices = list(precision_n = "The sample size for an interval this narrow",
-           precision_width = "How narrow the interval would be at a given sample size")),
+           precision_width = "How narrow the interval would be at a given sample size"),
+         buttons = TRUE, button_labels = list(precision_n = "Sample size", precision_width = "Interval width")),
     list(id = "width", writeup_label = "interval width", label = "Target interval width (upper limit minus lower, in the estimate's own units)",
          help = "For example 0.4 for d (about \u00b10.2), 0.2 for a correlation, or 0.1 for a proportion (about \u00b15 percentage points).",
          type = "number", path = "goal.width", needed_for = "precision_n", min_exclusive = 0),
@@ -484,6 +486,16 @@ precision_goal_fields <- function(tool) {
   )
 }
 
+# Short titles for the goal buttons (R/choice-buttons.R); each goal's full
+# wording is the line under its title.
+goal_button_labels <- function(form) {
+  units <- if (isTRUE(form$meta)) "Number of studies" else if (identical(form$units, "pairs")) "Number of pairs" else "Sample size"
+  if (isTRUE(form$generic)) return(list(power = "Power", sensitivity = "Noncentrality needed"))
+  list(sample_size = units, power = "Power", sensitivity = "Smallest detectable effect",
+    sensitivity_curve = if (isTRUE(form$sensitivity)) "Smallest effect, by sample size" else "Smallest detectable effect",
+    justified_alpha = "Balanced significance level")
+}
+
 # The closing questions every form asks (decision-tree.md, table 2.2).
 closing_groups <- function(forms, ep_id, start = list()) {
   form <- forms$forms[[ep_id]]
@@ -503,7 +515,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # A justified alpha (JustifyAlpha's optimal_alpha()): the one-sample,
   # paired and two-group t-tests and the correlation (E1-E4).
   if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "A significance level that balances the two errors, at a given sample size"
-  goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
+  goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals,
+    buttons = TRUE, button_labels = goal_button_labels(form))
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
   bayes_field <- offers_bayes_factor(form)
