@@ -413,7 +413,7 @@ observed_power_warning_ui <- function() {
       "Power calculated from a finished study's own effect is a post hoc power analysis, and ",
       "\u201cpost hoc power analyses are useless at best, misleading at worst\u201d ",
       "(Rubin, 2025, p. 14, citing Dziak et al., 2020). Use it only if you have to, for example if a reviewer asks, ",
-      "and say how it was calculated. To plan a new study, choose the smallest effect that would matter instead."))
+      "and say how it was calculated. To plan a new study, choose where your expected effect comes from."))
 }
 
 # Sections of the input screen (22 October 2026) ---------------------------

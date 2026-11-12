@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "b1ddda418310b427d3e0417b8e4f7c420ccc6f6d",
-        "RemoteSha": "b1ddda418310b427d3e0417b8e4f7c420ccc6f6d",
+        "RemoteRef": "65b5ade1237c38c3412dbbb3c761a127dd17fb27",
+        "RemoteSha": "65b5ade1237c38c3412dbbb3c761a127dd17fb27",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "b1ddda418310b427d3e0417b8e4f7c420ccc6f6d",
-        "GithubSHA1": "b1ddda418310b427d3e0417b8e4f7c420ccc6f6d",
+        "GithubRef": "65b5ade1237c38c3412dbbb3c761a127dd17fb27",
+        "GithubSHA1": "65b5ade1237c38c3412dbbb3c761a127dd17fb27",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-12 20:17:33 UTC; runner",
+        "Packaged": "2026-11-12 21:04:16 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-12 20:18:20 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-12 21:04:59 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,7 +8560,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "c45fd5d20515c755201ae1885232724b"
+      "checksum": "935feda2fab0dfd44d3e7a38af43115b"
     },
     "forms.yaml": {
       "checksum": "229847c0f4eb52441e27b92bb32fe7f1"
@@ -8575,7 +8575,7 @@
       "checksum": "b87673bc767f55f9817b7d4300430027"
     },
     "R/about.R": {
-      "checksum": "841d59cc621b2f0333f7a727a9648772"
+      "checksum": "85a90474db90ea3b9ab7ac447ce56985"
     },
     "R/bayes-mode.R": {
       "checksum": "e10b19e450619c20302ad452b0e63ba1"
@@ -8602,10 +8602,10 @@
       "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
     },
     "R/forms_ui.R": {
-      "checksum": "2caf345cf1932950fd63fc853b204c27"
+      "checksum": "cca79536d976c398d869ee1b3761a0a7"
     },
     "R/forms.R": {
-      "checksum": "02d555f3b6e3483f020b70a41490841b"
+      "checksum": "bd444e590b3e1e5f5f097b4cbb0ed82c"
     },
     "R/input-support.R": {
       "checksum": "6cf35ca8f05a2d4a91b08507fc478730"
@@ -8629,7 +8629,7 @@
       "checksum": "c9e579651fa24feefadfac057183c1e1"
     },
     "R/results.R": {
-      "checksum": "da8bc0d761ee652ec7b596427aad2fef"
+      "checksum": "076c800661e21b51c43045d90934b7f2"
     },
     "R/route-fit.R": {
       "checksum": "763727cf1f8850d8c1747dfa9428c333"
@@ -8669,6 +8669,9 @@
     },
     "tree.yaml": {
       "checksum": "7aeaed482b1749e41e88687a01b4c3c0"
+    },
+    "whats-new.d/accessibility-small-fixes.yaml": {
+      "checksum": "b5563ceac91b92eb0ff60e72ac0533ac"
     },
     "whats-new.d/allocation-noninferiority-direction.yaml": {
       "checksum": "bf48d5d018466c52898128cd210c94d7"

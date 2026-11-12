@@ -622,9 +622,10 @@ closing_groups <- function(forms, ep_id, start = list()) {
            choices = c(list(
              smallest_effect_of_interest = "The smallest effect that would matter",
              meta_analysis = "A meta-analysis", prior_study = "A previous study", pilot_study = "A pilot study",
-             convention = "A convention or rule of thumb (such as Cohen's small, medium or large)",
-             own_study_result = "The result of my finished study (observed power)"),
-             if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"))),
+             convention = "A convention or rule of thumb (such as Cohen's small, medium or large)"),
+             if (isTRUE(form$sensitivity_without_effect)) list(none = "I can't justify an effect size"),
+             # Last, as the source for a finished study rather than a new one (S-21).
+             list(own_study_result = "The result of my finished study (observed power)"))),
       list(id = "just_source", label = "Why this effect size?",
            help = "In your own words: where the number comes from, or why there isn't one. Any length, any language. If you leave it empty, the write-up says no justification was recorded.",
            type = "text", path = "effect_justification.source", optional = TRUE),
