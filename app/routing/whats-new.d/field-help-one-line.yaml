@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "One line of help per question"
-    text: "Each question on the input screen now shows one short line of help. The rest (what it means, where to find a value, why it starts where it does) opens from the small info button beside the question, and the optional reasons for the write-up are a single link until you want them."

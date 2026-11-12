@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 12 November 2026 (replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -22,6 +22,13 @@ G*Power, computed by G*Power's published formula (Faul et al., 2007) and
 checked against simulation, and the regression card takes Cohen's
 f-squared, as G*Power does, converted by the engine; the within-participants and logistic
 factorial cards still take only their tables.
+
+Results come sooner (12 November 2026): the spare R process prepares
+the spec checker and Superpower before a calculation needs them, and an
+ANOVA's sample size is shown before its 80/90/95% comparison table,
+which fills in after it. Welch's ANOVA, the one-way default, is still
+simulated (about 11 seconds locally); a formula for it is `next.md`
+item 24.
 
 The moderated regression cards' result screen, which stopped with an
 error for the sample size and power since 10 November, shows its result

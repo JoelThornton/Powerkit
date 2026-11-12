@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "Repeated measures: the corrected test by default when spreads or correlations differ"
-    text: "If you say the SDs or correlations differ between conditions, powerkit now plans for the Greenhouse-Geisser corrected F test, the one statistics programs report in that case, unless you choose otherwise. The uncorrected test gives false positives more often than your significance level there, so its power looked better than it should. You can still choose it; the result then carries a warning. Plans made before this with unequal SDs or correlations and no correction will ask for more people now (52 rather than 40 in powerkit's example)."

@@ -1390,10 +1390,12 @@ server <- function(input, output, session) {
       usual <- if (state$endpoint %in% names(forms$background) || runs_in_background(forms, state$endpoint, spec))
         usual_seconds(forms, state$endpoint, spec$goal$type) else NA_real_
       output$form_result <- renderUI(calculating_background_ui(usual))
-      # The comparison line's two searches run there too (cost_line()).
+      # The comparison line's two searches run there too (cost_line()),
+      # straight after a quick search; after a search of more than a
+      # second, the result is shown first and they follow (cost_pending).
       cost_powers <- if (!state$endpoint %in% names(forms$background)) cost_line_powers(values)
       start_job("calc", spec, usual, list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice, route = calc_route,
-        finish = !is.null(cost_powers), key = key), cost_powers = cost_powers)
+        finish = !is.null(cost_powers), key = key, cost_powers = cost_powers), cost_powers = cost_powers, defer_after = 1)
     } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint)) {
       # Show "Calculating" first; the engine runs once that has reached the
       # browser (well under a second for these: a power or precision goal on
@@ -1553,7 +1555,7 @@ server <- function(input, output, session) {
   finish_calc <- function(calc, route, values) {
     calc$route <- route
     if (!identical(calc$status, "ok")) return(calc)
-    calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values, ns = calc$cost_ns)
+    if (!isTRUE(calc$cost_pending)) calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values, ns = calc$cost_ns)
     calc$alpha_line <- tryCatch(alpha_cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values), error = function(e) NULL)
     calc$usual_line <- tryCatch(usual_test_line(calc$spec, calc$result, seed = forms$default_seed), error = function(e) NULL)
     if (is_bayes_test(calc$spec) && calc$spec$template %in% c("one_sample_t", "paired_t", "independent_t")) {
@@ -1575,8 +1577,9 @@ server <- function(input, output, session) {
   # Nothing starts while the server is at its limit (background_limit()).
   # `target`: the output the run's result is shown in (the input screen's,
   # or the whole-study simulation's).
-  start_job <- function(kind, spec, usual, shown, target = "form_result", cost_powers = NULL, curve = NULL) {
+  start_job <- function(kind, spec, usual, shown, target = "form_result", cost_powers = NULL, curve = NULL, cost_only = FALSE, defer_after = Inf) {
     if (background_running() >= background_limit(forms)) {
+      if (identical(kind, "cost")) return(invisible(FALSE))
       output[[target]] <- renderUI(busy_ui())
       session$sendCustomMessage("focus_result", target)
       return(invisible(FALSE))
@@ -1584,11 +1587,13 @@ server <- function(input, output, session) {
     job$kind <- kind
     job$target <- target
     job$screen <- isolate(state$screen)
-    job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed, cost_powers = cost_powers, curve = curve))
+    job$process <- register_background(start_background_calculation(spec, seed = forms$default_seed, cost_powers = cost_powers, curve = curve,
+      cost_only = cost_only, defer_after = defer_after))
     job$started <- Sys.time()
     job$usual <- usual
     job$shown <- shown
     job_running(TRUE)
+    invisible(TRUE)
   }
   session$onSessionEnded(cancel_job)
   observe({
@@ -1597,6 +1602,8 @@ server <- function(input, output, session) {
     # Often in the first seconds, when most searches finish.
     invalidateLater(if (elapsed < 3) 100 else 500)
     if (job$process$is_alive()) {
+      # The comparison's searches after a result has no progress bar.
+      if (identical(job$kind, "cost")) return()
       value <- progress_estimate(elapsed, job$usual)
       session$sendCustomMessage("calc_progress", list(
         value = if (is.na(value)) NULL else round(100 * value),
@@ -1627,13 +1634,27 @@ server <- function(input, output, session) {
       output$ws_curve <- renderUI(whole_study_curve_ui(calc))
       session$sendCustomMessage("focus_result", "ws_curve")
       return()
+    } else if (identical(job$kind, "cost")) {
+      # The comparison's sample sizes, for a result already on screen: the
+      # table takes the place of its "working out" line, and the stored
+      # result gets it too (calc_cost_done(), R/results.R).
+      done <- calc_cost_done(shown$calc, calc, seed = forms$default_seed, values = shown$values)
+      keep_calculation(shown$key, done)
+      output$result_cost <- renderUI(comparison_ui(done$spec, done$cost_line, done$alpha_line))
+      return()
     } else {
       # A search gets what the in-process route adds (finish_calc()); the
       # long runs (forms.yaml, `background`) are shown as they come.
       calc <- if (isTRUE(shown$finish)) finish_calc(calc, shown$route, shown$values) else { calc$route <- shown$route; calc }
-      keep_calculation(shown$key, calc)
+      if (!isTRUE(calc$cost_pending)) keep_calculation(shown$key, calc)
       state$calc <- calc
       output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
+      if (isTRUE(calc$cost_pending)) {
+        output$result_cost <- renderUI(cost_pending_ui())
+        started <- start_job("cost", calc$spec, NA_real_, c(shown, list(calc = calc)), cost_powers = shown$cost_powers, cost_only = TRUE)
+        # No room on the server for now: the result stands without its comparison.
+        if (isFALSE(started)) output$result_cost <- renderUI(NULL)
+      }
     }
     session$sendCustomMessage("focus_result", "form_result")
   })

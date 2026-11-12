@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "MANOVA takes Pillai's V, as G*Power does"
-    text: "On the MANOVA card you can now give the effect as one number, Pillai's V, instead of each group's means, for example to match a G*Power analysis. powerkit then uses G*Power's own published formula, so the answer is immediate and needs no SDs or correlation. Means are still the default, because they show which outcomes you expect to differ."

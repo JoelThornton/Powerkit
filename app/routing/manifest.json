@@ -6239,7 +6239,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.61.3",
+        "Version": "0.62.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "66eccfb8264472a2959620d54931c3818617108c",
-        "RemoteSha": "66eccfb8264472a2959620d54931c3818617108c",
+        "RemoteRef": "ce01d18c6740b966b69e2d53b6772c582d215b7f",
+        "RemoteSha": "ce01d18c6740b966b69e2d53b6772c582d215b7f",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "66eccfb8264472a2959620d54931c3818617108c",
-        "GithubSHA1": "66eccfb8264472a2959620d54931c3818617108c",
+        "GithubRef": "ce01d18c6740b966b69e2d53b6772c582d215b7f",
+        "GithubSHA1": "ce01d18c6740b966b69e2d53b6772c582d215b7f",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-12 22:47:56 UTC; runner",
+        "Packaged": "2026-11-12 23:40:30 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-12 22:48:32 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-12 23:41:15 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,10 +8560,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "2b718cde9f6511718534975d9a822aa9"
+      "checksum": "20c8c0dd705f4b5865ef2649ed148053"
     },
     "forms.yaml": {
-      "checksum": "229847c0f4eb52441e27b92bb32fe7f1"
+      "checksum": "c290ff6352c3f14e4ec5530666cf881a"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
@@ -8629,7 +8629,7 @@
       "checksum": "2762fa9c6db795684b494c7fc2193aa8"
     },
     "R/results.R": {
-      "checksum": "076c800661e21b51c43045d90934b7f2"
+      "checksum": "e9c3349cbc3b2fdf4f89a6bc6478df1e"
     },
     "R/route-fit.R": {
       "checksum": "763727cf1f8850d8c1747dfa9428c333"
@@ -8670,83 +8670,11 @@
     "tree.yaml": {
       "checksum": "7aeaed482b1749e41e88687a01b4c3c0"
     },
-    "whats-new.d/accessibility-small-fixes.yaml": {
-      "checksum": "b5563ceac91b92eb0ff60e72ac0533ac"
-    },
-    "whats-new.d/allocation-noninferiority-direction.yaml": {
-      "checksum": "bf48d5d018466c52898128cd210c94d7"
-    },
-    "whats-new.d/bayes-factor-switch.yaml": {
-      "checksum": "12a826503a9bddc99449c38e2db76731"
-    },
-    "whats-new.d/claim-in-view.yaml": {
-      "checksum": "7844e0500d2c7e1d32e613255548b24f"
-    },
-    "whats-new.d/clearer-comparisons-and-wording.yaml": {
-      "checksum": "6953a6f14a4109e0e04ec9e3768999dc"
-    },
-    "whats-new.d/correlation-exact-method.yaml": {
-      "checksum": "e84231191d34fa0a34923812599b666b"
-    },
-    "whats-new.d/field-help-one-line.yaml": {
-      "checksum": "7bdb62f14673e3eaf9741050672a1b08"
-    },
-    "whats-new.d/finder-fewer-screens.yaml": {
-      "checksum": "41a6f85c21af9d6704d7af8a059f72d7"
-    },
-    "whats-new.d/form-goal-buttons.yaml": {
-      "checksum": "b6fcc1464be063a7e91a2496269ae94f"
-    },
-    "whats-new.d/manova-pillai-v.yaml": {
-      "checksum": "11912d371115f80b4257bab61f1bb254"
-    },
-    "whats-new.d/mediation-quick-estimate.yaml": {
-      "checksum": "5d87b038709a0ff0c611771d55e528e1"
-    },
-    "whats-new.d/minimum-effect-shifted-test.yaml": {
-      "checksum": "6702d5daf7f00bb0d553935b5d687416"
-    },
-    "whats-new.d/moderation-result-crash.yaml": {
-      "checksum": "b71523232033d0fa3139864fc26bde21"
-    },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
     },
-    "whats-new.d/regression-f2.yaml": {
-      "checksum": "b05dee4fba910765a6a3c07bbed3da4b"
-    },
-    "whats-new.d/replication-from-the-finder.yaml": {
-      "checksum": "9e18d03387414cd6322b4be917a75761"
-    },
-    "whats-new.d/replication-simple-answer.yaml": {
-      "checksum": "9efb9d0c6a50dc832affdc7854c43545"
-    },
-    "whats-new.d/result-clarity.yaml": {
-      "checksum": "9824e48b20d03d497623b86326a6603f"
-    },
-    "whats-new.d/result-screen-calm.yaml": {
-      "checksum": "32cccbde659bd3cc769f80757733705d"
-    },
-    "whats-new.d/review-usability-2026-11-11.yaml": {
-      "checksum": "4a39f1e5b2f9da7e645edf57edccc74a"
-    },
-    "whats-new.d/route-fit.yaml": {
-      "checksum": "037e39505110944f5b1da49fb71515f3"
-    },
-    "whats-new.d/shorter-input-screens.yaml": {
-      "checksum": "cb1766c72e4f845e657a755ae8088402"
-    },
-    "whats-new.d/sphericity-correction-default.yaml": {
-      "checksum": "e424c204caa91809909b37767946267b"
-    },
-    "whats-new.d/start-screen-layout.yaml": {
-      "checksum": "a008e3a45f9ba9dccc070668b6c38360"
-    },
-    "whats-new.d/table-grids.yaml": {
-      "checksum": "71610f245984952d7393c727cc7aa1dd"
-    },
     "whats-new.yaml": {
-      "checksum": "af954444e096e5ee5a4b5ea51dbda05e"
+      "checksum": "c37439df1bd5351b2ed9437be9a9ca0c"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

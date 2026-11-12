@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "Tables of means are a grid of labelled boxes"
-    text: "Where an analysis asks for a table of means, SDs or proportions (for example, MANOVA's means for each group on each outcome), you now fill in a grid whose rows and columns carry the names you gave your groups, outcomes or conditions, one box per number. An example shows a filled grid, and you can still type or paste the numbers as text. Where an analysis also takes one overall effect size (Cohen's w for a chi-square test, partial eta-squared for most ANOVAs), a link beside the grid switches to it."
