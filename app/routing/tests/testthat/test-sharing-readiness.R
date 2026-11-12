@@ -7,7 +7,7 @@ test_that("known mediation limitations appear before numerical answers are compl
   html <- as.character(selected_evidence_ui(forms,"E17",fields,values))
   expect_match(html,"Important limitation",fixed=TRUE)
   expect_match(html,"test too liberal",fixed=TRUE)
-  expect_match(html,"Complete the required answers",fixed=TRUE)
+  expect_no_match(html,"Evidence depends on",fixed=TRUE)
   values$method <- "ols_percentile_bootstrap"
   html <- as.character(selected_evidence_ui(forms,"E17",fields,values))
   expect_match(html,"not a calibration estimate for the selected bootstrap",fixed=TRUE)
@@ -23,9 +23,9 @@ test_that("power offers an explicit informed shortcut and remains blank initiall
   expect_equal(f$usual,.8)
   expect_equal(f$shortcuts,c(.8,.9,.95))
   expect_match(as.character(field_ui(f,NULL)),'data-value="0.8"',fixed=TRUE)
-  expect_match(f$help,"under the population you specify",fixed=TRUE)
-  expect_match(f$help,"not a scientific recommendation",fixed=TRUE)
-  expect_match(f$help,"20, 10 and 5 missed effects",fixed=TRUE)
+  expect_match(f$help,"if the effect is the size you enter",fixed=TRUE)
+  expect_match(f$help,"80% is a habit, not a rule",fixed=TRUE)
+  expect_match(f$help,"not the chance your hypothesis is true",fixed=TRUE)
   paired <- form_fields(form_groups(forms,"E3"))
   r <- Filter(function(f) identical(f$id,"raw_r"),paired)[[1]]
   expect_null(r$default)

@@ -5,7 +5,7 @@ test_that("the current capability table includes every card and declared test ch
   expect_true(any(grepl("Welch", e2$choice)))
   expect_true(any(grepl("Mann-Whitney", e2$choice)))
   expect_true(all(nzchar(rows$access)))
-  expect_match(paste(e2$restrictions, collapse = " "), "root mean square", fixed = TRUE)
+  expect_match(paste(e2$restrictions, collapse = " "), "sqrt((SD1 squared + SD2 squared) / 2)", fixed = TRUE)
   # Adding a form choice updates discovery without editing a second list.
   changed <- forms
   for (i in seq_along(changed$forms$E2$groups)) {
