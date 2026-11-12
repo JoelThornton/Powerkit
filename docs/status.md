@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 12 November 2026 (one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -220,7 +220,8 @@ and automated accessibility checks passed locally for the exercised routes.
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
   Bayes mode (item 17) waits on a decision.
 
-- **What calculates:** 70 of the 77 cards run in the app (`tree.yaml`'s
+- **What calculates:** 70 of the 76 analyses run in the app, as the About
+  page says (77 cards, counting the "none of these fit" card; `tree.yaml`'s
   statuses); the other seven say powerkit can't plan them yet and point
   elsewhere. 55 calculate in the app directly (`forms.yaml`'s
   `calculates`), by a package's formula where one exists, otherwise by

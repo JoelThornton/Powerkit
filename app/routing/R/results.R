@@ -2797,7 +2797,7 @@ labs_learn_ui <- function(spec, result) {
     link("learn_picture", "see what this power means"), " (the power visualiser, at this sample size and effect)",
     if (!is.null(variation)) paste0("; ", link("learn_variation", "see why significant results overestimate effects"),
       " (this study repeated 1,000 times)"),
-    ". They draw the textbook version of the test, so their power can differ slightly from this result's.")))
+    " (both drawn for the textbook version of the test).")))
 }
 
 result_panel_ui <- function(tree, forms, ep_id, fields, values, calc, check_advice = character()) {
