@@ -465,3 +465,17 @@ test_that("the still-needed line names the answers, and settings read at a glanc
 test_that("an info button outside a field names what it explains (D-17)", {
   expect_match(as.character(explanation_ui("x", "What this planning goal means", p("text"))), 'data-label="What this planning goal means"', fixed = TRUE)
 })
+
+test_that("the regression card takes Cohen's f-squared, converted by the engine (C-07)", {
+  fields <- form_fields(form_groups(forms, "E24"))
+  values <- list(question = "r2_increase", goal = "sample_size", r2_given = "f2", f2 = "0.0588", r2_reduced = "0",
+    predictors_total = "5", predictors_tested = "2", Y_label = "Wellbeing", power = "0.8", alpha = "0.05",
+    just_type = "smallest_effect_of_interest")
+  expect_length(form_problems(fields, values), 0)
+  spec <- build_spec(forms, "E24", fields, values)
+  expect_identical(spec$effect_justification$conversion, list(from = "f2", value = 0.0588))
+  expect_null(spec$population$r2_full)
+  # With R-squared chosen, or for the smallest detectable effect, no conversion.
+  expect_null(build_spec(forms, "E24", fields, utils::modifyList(values, list(r2_given = "r2", r2_full = "0.1")))$effect_justification$conversion)
+  expect_null(build_spec(forms, "E24", fields, utils::modifyList(values, list(goal = "sensitivity", n = "100")))$effect_justification$conversion)
+})

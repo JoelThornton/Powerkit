@@ -1414,8 +1414,9 @@ telescope_sentences <- function(spec, result) {
 conversion_sentence <- function(result) {
   conv <- result$effect_conversion
   if (is.null(conv)) return(NULL)
-  sprintf("Effect size converted: the published %s of %s%s gives %s = %s, %s.",
-    sub("^an? ", "", conv$from_name), format(conv$value), conversion_details(conv),
+  # Cohen's f-squared is G*Power's own input, not only a published form.
+  sprintf("Effect size converted: the %s%s of %s%s gives %s = %s, %s.",
+    if (identical(conv$from, "f2")) "" else "published ", sub("^an? ", "", conv$from_name), format(conv$value), conversion_details(conv),
     conv$effect_name, format(round(conv$converted, 3), nsmall = 2), conversion_by(conv))
 }
 
@@ -3193,8 +3194,9 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # A converted effect: the published value, what it became and how,
   # after any other values the reader needs (two proportions: group 1's).
   if (!is.null(conv <- result$effect_conversion)) {
-    converted <- sprintf("%s = %s, converted from the published %s of %s%s %s",
-      conv$effect_name, format(round(conv$converted, 3), nsmall = 2), sub("^an? ", "", conv$from_name), format(conv$value),
+    converted <- sprintf("%s = %s, converted from the %s%s of %s%s %s",
+      conv$effect_name, format(round(conv$converted, 3), nsmall = 2), if (identical(conv$from, "f2")) "" else "published ",
+      sub("^an? ", "", conv$from_name), format(conv$value),
       conversion_details(conv), conversion_by(conv))
     effect <- if (is.null(effect)) converted else paste0(effect, "; ", converted)
   }

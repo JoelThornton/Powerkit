@@ -2469,14 +2469,24 @@ forms:
              shown_if: {field: question, is: single_coefficient}}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
         fields:
+          # Cohen's f-squared, G*Power's input (12 November 2026): the engine
+          # converts it (effectsize's f2_to_eta2()) into the R-squared the
+          # question takes, so the R-squared boxes give way to it.
+          - {id: r2_given, label: "How you'll give the effect", type: select, optional: true, default: r2,
+             choices: {r2: "As R-squared", f2: "As Cohen's f-squared, as in G*Power"},
+             sets: {f2: [{path: effect_justification.conversion.from, value: f2}]},
+             shown_if: [{field: question, is_one_of: [r2_zero, r2_increase, single_coefficient]}, {field: goal, is_one_of: [power, sample_size]}]}
+          - {id: f2, writeup_label: "Cohen's f²", label: "Cohen's f-squared", type: number, path: effect_justification.conversion.value, conversion: true, required: true, min_exclusive: 0,
+             shown_if: [{field: question, is_one_of: [r2_zero, r2_increase, single_coefficient]}, {field: goal, is_one_of: [power, sample_size]}, {field: r2_given, is: f2}],
+             help: "As G*Power asks for it: R² / (1 − R²) against 0; for one predictor or a set, the R-squared it adds over 1 minus the R-squared with all the predictors. powerkit turns it into R-squared (with the effectsize package) and shows the result. For a set, give the R-squared without the tested predictors below too (0 if there are none)."}
           - {id: r2, writeup_label: "R²", label: "R-squared of the model (0 to 1)", type: number, path: population.r2, effect: true, min: 0, max_exclusive: 1,
-             shown_if: {field: question, is: r2_zero}}
+             shown_if: [{field: question, is: r2_zero}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}]}
           - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors (0 to 1)", type: number, path: population.r2_full, effect: true, when_empty: same_as_r2_reduced, min: 0, max_exclusive: 1,
-             shown_if: {field: question, is: r2_increase}}
+             shown_if: [{field: question, is: r2_increase}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}]}
           - {id: r2_reduced, writeup_label: "R² without the tested predictors", label: "R-squared without the predictors you are testing (0 to 1; 0 if there are no others)", type: number, path: population.r2_reduced, effect: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: r2_increase}}
           - {id: partial_r2, writeup_label: "partial R²", label: "Partial R-squared of the predictor (0 to 1)", type: number, path: population.partial_r2, effect: true, min: 0, max_exclusive: 1,
-             shown_if: {field: question, is: single_coefficient},
+             shown_if: [{field: question, is: single_coefficient}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}],
              help: "The share of the outcome's variance left over by the other predictors that this one explains: its squared partial correlation. From R-squared with and without it, (R² with − R² without) / (1 − R² without). G*Power asks for Cohen's f², which is partial R² / (1 − partial R²)."}
       - input: "Number of predictors"
         fields:
