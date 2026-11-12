@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-12"
+    title: "Faster answers"
+    text: "Answers come sooner: most simple tests now answer in about a second, and ANOVA designs show the sample size as soon as it is found, then fill in the 80%, 90% and 95% comparison below it. Welch's ANOVA and a few other simulated tests now say how long they usually take."

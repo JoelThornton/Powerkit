@@ -3146,6 +3146,49 @@ test_that("the warm spare process gives the same result as the engine, and its c
   expect_match(collect_background_calculation(slow)$message, "stopped unexpectedly", fixed = TRUE)
 })
 
+test_that("after a long search the result comes first and its comparison follows (C-16)", {
+  skip_without_run()
+  skip_on_cran()
+  spec <- light_spec("E1", goal = list(type = "sample_size", power = 0.9))
+  spec$options$seed <- 1L
+  engine <- file.path(repo_dir, "engine")
+  # Any search takes more than 0 seconds, so this one is deferred.
+  job <- start_background_calculation(spec, seed = 1L, engine_dir = engine, cost_powers = c(0.8, 0.9, 0.95), spare = FALSE, defer_after = 0)
+  job$wait(60000)
+  calc <- collect_background_calculation(job)
+  expect_true(calc$cost_pending)
+  expect_null(calc$cost_ns)
+  direct <- quiet_run(spec)
+  expect_identical(calc$result$n_required$n, direct$n_required$n)
+  # The result screen leaves a place for the comparison, and no table yet.
+  html <- as.character(result_panel_ui(tree, forms, "E1", form_fields(form_groups(forms, "E1")), form_examples$E1, calc))
+  expect_match(html, "id=\"result_cost\"", fixed = TRUE)
+  expect_no_match(html, "result-compare-table", fixed = TRUE)
+  expect_match(as.character(cost_pending_ui()), "for comparison", fixed = TRUE)
+  # The comparison's own searches, then the result with them.
+  cost <- start_background_calculation(spec, seed = 1L, engine_dir = engine, cost_powers = c(0.8, 0.9, 0.95), spare = FALSE, cost_only = TRUE)
+  cost$wait(60000)
+  found <- collect_background_calculation(cost)
+  expect_true(is.na(found$cost_ns[[2]]))
+  done <- calc_cost_done(calc, found)
+  at <- function(power) { s <- spec; s$goal$power <- power; quiet_run(s)$n_required$n }
+  expect_equal(unname(done$cost_ns), c(at(0.8), direct$n_required$n, at(0.95)))
+  expect_null(done$cost_pending)
+  expect_match(as.character(comparison_ui(done$spec, done$cost_line)), "result-compare-table", fixed = TRUE)
+  # A quick search keeps them together (the default never defers).
+  quick <- start_background_calculation(spec, seed = 1L, engine_dir = engine, cost_powers = c(0.8, 0.9, 0.95), spare = FALSE)
+  quick$wait(60000)
+  expect_length(collect_background_calculation(quick)$cost_ns, 3)
+  # A failed comparison leaves the result without a table rather than searching here.
+  expect_null(calc_cost_done(calc, list(status = "error", message = "x"))$cost_line)
+})
+
+test_that("the warm spare compiles the spec checker before anyone waits for it", {
+  body <- paste(deparse(spare_preload), collapse = "\n")
+  expect_match(body, "read_spec", fixed = TRUE)
+  expect_match(body, "run_spec", fixed = TRUE)
+})
+
 test_that("a generic test's power has no participant count under it", {
   fig <- result_figure(list(design = "generic_test", template = "generic_t", variables = list(), population = list()),
     list(goal_type = "power", curve = data.frame(n = NA_real_, power = 0.68)))

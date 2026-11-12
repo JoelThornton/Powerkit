@@ -169,6 +169,11 @@ simulated_times:
   E32: {power: 4, sample_size: 30}
   E45: {power: 2, sample_size: 10}
   E72: {power: 2, sample_size: 10}
+  # Measured 12 November 2026 the same way: Welch's ANOVA (the one-way
+  # ANOVA's default), the trend test and two paired variances.
+  E66: {power: 2, sample_size: 16}
+  E18: {power: 1, sample_size: 11}
+  E57: {power: 1, sample_size: 10}
 # At most this many background calculations (E9 and E10-E14's preview and
 # full run) at once, across everyone using the app; others are asked to try
 # again shortly (R/results.R, background_limit()). Two suits a server with

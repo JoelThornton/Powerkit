@@ -102,7 +102,13 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
 # `cost_powers`: the powers for the result's comparison line (cost_line()),
 # whose sample sizes are two more searches, so they are run here too rather
 # than in the app's own process.
-background_worker <- function(spec, seed, engine_dir, cores, run_calculation, cost_powers = NULL, curve = NULL) {
+# A search that itself took longer than `defer_after` seconds (Superpower's
+# ANOVAs, InteractionPoweR) would keep the answer waiting for two more like
+# it, so the result goes back without them, marked `cost_pending`, and the
+# app runs them next (`cost_only`: the comparison line's searches alone,
+# their own power left NA and filled from the result in the app).
+background_worker <- function(spec, seed, engine_dir, cores, run_calculation, cost_powers = NULL, curve = NULL, cost_only = FALSE,
+                              defer_after = Inf) {
   options(powerkit.cores = cores)
   # A whole-study simulation (experimental) runs run_whole_study(), and its
   # rough power curve whole_study_curve().
@@ -117,7 +123,14 @@ background_worker <- function(spec, seed, engine_dir, cores, run_calculation, co
     curve_fun <- run
     run <- function(spec) curve_fun(spec, multipliers = unlist(curve$multipliers), nrep = curve$nrep)
   }
-  calc <- run_calculation(spec, run, seed)
+  started <- Sys.time()
+  calc <- if (cost_only) list(status = "ok", result = list(goal_type = "sample_size", n_required = list(n = NA_real_), provenance = list()))
+    else run_calculation(spec, run, seed)
+  if (length(cost_powers) && !cost_only && as.numeric(difftime(Sys.time(), started, units = "secs")) > defer_after) {
+    calc$cost_pending <- identical(calc$status, "ok") && identical(calc$result$goal_type, "sample_size") &&
+      !identical(calc$result$provenance$method, "simulation")
+    return(calc)
+  }
   if (length(cost_powers) && identical(calc$status, "ok") && identical(calc$result$goal_type, "sample_size") &&
       !identical(calc$result$provenance$method, "simulation")) {
     calc$cost_ns <- vapply(cost_powers, function(power) {
@@ -138,12 +151,12 @@ background_worker <- function(spec, seed, engine_dir, cores, run_calculation, co
 start_background_calculation <- function(spec, seed = 1L,
                                          engine_dir = file.path(routing_root(), "..", "..", "engine"),
                                          cost_powers = NULL, spare = isTRUE(getOption("powerkit.warm_spare")),
-                                         curve = NULL) {
+                                         curve = NULL, cost_only = FALSE, defer_after = Inf) {
   calc_fun <- run_calculation
   environment(calc_fun) <- baseenv()
   engine_dir <- normalizePath(engine_dir, mustWork = FALSE)
   args <- list(spec = spec, seed = seed, engine_dir = engine_dir,
-               cores = getOption("powerkit.cores"), run_calculation = calc_fun, cost_powers = cost_powers, curve = curve)
+               cores = getOption("powerkit.cores"), run_calculation = calc_fun, cost_powers = cost_powers, curve = curve, cost_only = cost_only, defer_after = defer_after)
   warm <- if (spare) take_spare()
   if (spare) keep_spare(engine_dir)
   if (!is.null(warm)) return(session_job(warm, background_worker, args))
@@ -162,11 +175,22 @@ start_background_calculation <- function(spec, seed = 1L,
 spare_packages <- c("pwr", "pwrss", "Superpower", "Spower")
 background_spare <- new.env()
 
+# Loading is not all of it: the first run in a process also compiles the
+# spec checker (the JSON schema, in V8), which took 1.3 seconds of a
+# 1.4-second t-test (measured 12 November 2026), and Superpower sets up
+# its plotting on its first call. So the spare runs one small example
+# first (the engine's 2 x 2 example, its power at 40 people, about half
+# a second), while nobody is waiting for it.
 spare_preload <- function(engine_dir, packages) {
   if (!requireNamespace("powerkit", quietly = TRUE)) {
     suppressMessages(pkgload::load_all(engine_dir, export_all = FALSE, helpers = FALSE, quiet = TRUE, attach = FALSE))
   }
   for (p in packages) requireNamespace(p, quietly = TRUE)
+  try(suppressWarnings(suppressMessages({
+    example <- getExportedValue("powerkit", "read_spec")(system.file("specs", "anova_2x2_between.json", package = "powerkit"))
+    example$goal <- list(type = "power", n = 40L)
+    getExportedValue("powerkit", "run_spec")(example)
+  })), silent = TRUE)
   TRUE
 }
 
@@ -1560,6 +1584,28 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
     note = "Which power you choose, and why, belongs in your write-up."))
 }
 
+# Shown where the comparison table will be while its sample sizes are
+# worked out after the result (background_worker()'s cost_pending).
+cost_pending_ui <- function() {
+  p(class = "result-cost-pending small", role = "status",
+    "Working out the sample sizes for 80%, 90% and 95% power, for comparison\u2026")
+}
+
+# A result shown before its comparison, with the comparison's sample sizes
+# (`found`, from background_worker(cost_only = TRUE)) added: its own
+# power's n is the result's.
+calc_cost_done <- function(calc, found, seed = 1L, values = list()) {
+  calc$cost_pending <- NULL
+  ns <- if (identical(found$status, "ok")) found$cost_ns
+  if (length(ns)) {
+    ns[is.na(ns) & vapply(cost_line_powers(values), function(p) isTRUE(all.equal(p, calc$spec$goal$power)), logical(1))] <-
+      as.numeric(calc$result$n_required$n)
+    calc$cost_ns <- ns
+    calc$cost_line <- tryCatch(cost_line(calc$spec, calc$result, seed = seed, values = values, ns = ns), error = function(e) NULL)
+  }
+  calc
+}
+
 # What the significance level costs: the sample size at .05, .01 and .005
 # side by side, as cost_line() does for power, so alpha is as examined as
 # power is. For the basic tests worked out by formula only (three more
@@ -2868,7 +2914,9 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     p(class = "result-headline lead", words[["headline"]],
       if (!is.na(words["reading"])) tagList(" ", tags$span(class = "result-reading", reading_sentence(words[["reading"]])))),
     if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
-    comparison_ui(spec, calc$cost_line, calc$alpha_line),
+    # After a long search the comparison's sample sizes follow the result
+    # (cost_pending): the app fills this in when they are found.
+    if (isTRUE(calc$cost_pending)) uiOutput("result_cost") else comparison_ui(spec, calc$cost_line, calc$alpha_line),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(gd <- group_d_sentence(result))) p(class = "result-conversion", gd),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),

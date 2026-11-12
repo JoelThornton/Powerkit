@@ -3064,3 +3064,20 @@ it is shrunk towards zero. Both beliefs are given, not only the
 reported one, because planning on a published effect as reported
 usually underpowers a replication. The numbers are the table's own;
 the table and the other goals follow, so nothing is hidden.
+
+### Results sooner: a warmed process, and the answer before its comparison, 12 November 2026
+
+Colleague testing timed formula answers at 6 to 12 seconds online and
+ANOVA designs at about 35. Timing the app locally showed where the time
+went. Each calculation runs in a fresh R process, and that process's
+first spec check compiles the JSON schema in V8: 1.3 of the 1.4
+seconds of a t-test's sample size. The ANOVA cards' sample-size search
+was followed by two more (80%, 90% and 95% power, for the comparison
+table), tripling the wait. The spare process now runs one small example
+while idle, so the checker and Superpower are ready. A search that takes
+more than a second shows its answer at once, and the comparison's
+searches follow and fill in the table. Nothing in the numbers changes.
+Welch's ANOVA, the default for one-way ANOVA, is simulated (about 11
+seconds here for a sample size) because no package has a formula for its
+power. A published approximation could make it instant, but that is a
+method choice and is queued, not made here.
