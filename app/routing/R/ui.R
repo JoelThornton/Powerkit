@@ -241,7 +241,7 @@ terms_js <- "
   window.pkSyncExplanations = function(reset) {
     var compact = document.documentElement.classList.contains('terms-mode');
     document.querySelectorAll('details.explanation-help').forEach(function(el) {
-      if (reset || !el.hasAttribute('data-explanation-ready')) el.open = !compact;
+      if (reset || !el.hasAttribute('data-explanation-ready')) el.open = !compact && !el.classList.contains('field-more');
       el.setAttribute('data-explanation-ready', '1');
       var summary = el.querySelector(':scope > summary');
       if (summary) summary.setAttribute('aria-expanded', el.open ? 'true' : 'false');
@@ -255,7 +255,7 @@ terms_js <- "
       var visible = base.filter(function(id) {
         var ref = document.getElementById(id); if (!ref) return false;
         var disclosure = ref.closest('details.explanation-help');
-        return !(disclosure && !disclosure.open) && !(compact && ref.closest('.form-terms'));
+        return !(disclosure && !disclosure.open) && !(compact && (ref.closest('.form-terms') || ref.classList.contains('field-lead')));
       });
       var ids = visible.concat(other);
       if (ids.length) el.setAttribute('aria-describedby', ids.join(' ')); else el.removeAttribute('aria-describedby');

@@ -505,3 +505,24 @@ test_that("the result says the answer once, with the comparison as a table (D-22
   expect_match(panel, "Technical records: values used, seed, versions and the spec file", fixed = TRUE)
   expect_match(panel, 'id="result-heading" tabindex="-1" data-result-focus="true"', fixed = TRUE)
 })
+
+test_that("a field shows one line of help, the rest behind its info button (D-11)", {
+  expect_identical(help_sentences("The chance (0.8 means 80%). Higher power needs more people. It is “not” this."),
+    c("The chance (0.8 means 80%).", "Higher power needs more people.", "It is “not” this."))
+  expect_identical(help_lead("One sentence, e.g. this one."), "One sentence, e.g. this one.")
+  expect_null(help_rest("One sentence."))
+  f <- list(id = "power", label = "Target power", type = "number", help = "First line. The rest.")
+  html <- as.character(field_ui(f, ""))
+  expect_match(html, '<div id="f_power_help_lead" class="field-help field-lead">First line.</div>', fixed = TRUE)
+  expect_match(html, '<div id="f_power_help" class="field-help">The rest.</div>', fixed = TRUE)
+  expect_match(html, 'class="explanation-help field-more"', fixed = TRUE)
+  # A field with a prompt shows the prompt and folds all of its help.
+  html <- as.character(field_ui(modifyList(f, list(prompt = "A prompt.")), ""))
+  expect_no_match(html, "f_power_help_lead", fixed = TRUE)
+  expect_match(html, '<div id="f_power_help" class="field-help">First line. The rest.</div>', fixed = TRUE)
+  # A reason for the write-up is one closed line.
+  html <- as.character(field_ui(list(id = "alpha_reason", label = "Why this significance level", type = "text", optional = TRUE), ""))
+  expect_match(html, "<summary>Add a reason for the write-up (optional)</summary>", fixed = TRUE)
+  # The fold starts closed in both explanation modes.
+  expect_match(terms_js, "!el.classList.contains('field-more')", fixed = TRUE)
+})

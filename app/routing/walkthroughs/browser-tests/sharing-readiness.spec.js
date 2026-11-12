@@ -33,7 +33,7 @@ test('power shortcut is explicit and regression explains its initially hidden in
  await open(page,'E2');
  await expect(page.locator('#f_power')).toHaveValue('');
  await put(page,'goal','sample_size');
- await expect(page.locator('#f_power_help')).toContainText('chance your test comes out significant');
+ await expect(page.locator('#f_power_help_lead')).toContainText('chance your test comes out significant');
  await page.locator('#f_power_usual').click();
  await expect(page.locator('#f_power')).toHaveValue('0.8');
  await open(page,'E24');

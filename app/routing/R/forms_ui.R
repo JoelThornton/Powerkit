@@ -51,7 +51,7 @@ field_ui <- function(f, value, described_by = character()) {
   if (identical(f$type, "table")) label <- table_grid_label(label)
   source_id <- paste0(id, "_default")
   help_id <- paste0(id, "_help")
-  if (!is.null(f$help)) described_by <- c(help_id, described_by)
+  if (!is.null(f$help)) described_by <- c(if (is.null(f$prompt) && !is.null(help_lead(f$help))) paste0(help_id, "_lead"), help_id, described_by)
   if (!is.null(f$default_source) && !is.null(f[["default"]]) && !identical(f$type, "select")) described_by <- c(described_by, source_id)
   current <- if (is.null(value) || length(value) == 0) "" else as.character(value)
   input <- switch(
@@ -98,14 +98,16 @@ field_ui <- function(f, value, described_by = character()) {
     onclick = "var e = document.getElementById(this.getAttribute('data-target')); e.value = this.getAttribute('data-value'); e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); e.focus();",
     if (!is.null(f$shortcut_labels)) f$shortcut_labels[[i]] else if (!is.null(f$shortcuts)) sprintf("%s%%", format(100 * value)) else f$usual_label %||% sprintf("Use %s", value))
   }))
-  field <- div(
-    class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
-    input,
-    usual,
-    if (!is.null(f$prompt)) div(id = paste0(id, "_prompt"), class = "field-prompt small", f$prompt),
-    if (!is.null(f$help) || !is.null(f$default_source) || !is.null(input_guide(f))) explanation_ui(
-      paste0(id, "_info"), f$label,
-      if (!is.null(f$help)) div(id = help_id, class = "field-help", f$help),
+  # One line of help in view, the rest behind the field's info button
+  # (design review D-11, 12 November 2026): the field's prompt if it has
+  # one, otherwise the first sentence of its help. The fold is closed in
+  # both explanation modes; with explanations off the line folds too.
+  lead <- if (is.null(f$prompt)) help_lead(f$help)
+  rest <- if (!is.null(lead)) help_rest(f$help) else f$help
+  more <- if (!is.null(f$help) || !is.null(f$default_source) || !is.null(input_guide(f))) explanation_ui(
+      paste0(id, "_info"), f$label, class = "field-more",
+      if (!is.null(lead)) div(class = "field-help field-lead-copy", lead),
+      if (!is.null(f$help)) div(id = help_id, class = "field-help", rest %||% ""),
       input_guide_ui(f),
     # Shown only where a number is filled in to start with: a line about an
     # empty box or a pre-selected choice describes the app, not the study
@@ -116,6 +118,17 @@ field_ui <- function(f, value, described_by = character()) {
       if (!is.null(f[["default"]]) && !identical(f$type, "select")) sprintf("Starts at %s: %s.", f$choices[[as.character(f[["default"]])]] %||% f[["default"]], short_source(f$default_source)) else if (identical(f$type, "select") && !is.null(f[["default"]])) paste0("Selected to start with: ", short_source(f$default_source), ".")
       else paste0(short_source(f$default_source), ".")
     ))
+  # The info button sits just after the label, and opens below it.
+  beside_label <- !is.null(more) && inherits(input, "shiny.tag") && length(input$children) &&
+    inherits(input$children[[1]], "shiny.tag") && identical(input$children[[1]]$name, "label")
+  if (beside_label) input <- htmltools::tagInsertChildren(input, more, after = 1)
+  field <- div(
+    class = paste("form-field", if (isTRUE(f$effect)) "effect-field", if (beside_label) "has-field-more"),
+    input,
+    usual,
+    if (!is.null(f$prompt)) div(id = paste0(id, "_prompt"), class = "field-prompt small", f$prompt),
+    if (!is.null(lead)) div(id = paste0(help_id, "_lead"), class = "field-help field-lead", lead),
+    if (!beside_label) more
   )
   # The uncertainty about an effect, read as a range (5 November 2026): an
   # SD around the effect entered is about 95% sure to hold the effect
@@ -169,6 +182,8 @@ field_ui <- function(f, value, described_by = character()) {
   # for the target power.)
   # A field most people leave as it starts sits under one closed line
   # (`fold`), open when it holds something other than its starting value.
+  # A reason for a value, for the write-up, is one line until opened (D-11).
+  if (is.null(f$fold) && grepl("_reason$", f$id) && !identical(f$type, "select")) f$fold <- "Add a reason for the write-up (optional)"
   if (!is.null(f$fold)) {
     changed <- !blank(value) && !identical(as.character(value), as.character(f[["default"]] %||% ""))
     field <- tags$details(class = "field-fold", open = if (changed) NA, tags$summary(f$fold), field)
@@ -181,6 +196,28 @@ field_ui <- function(f, value, described_by = character()) {
   # Shown or hidden in the browser as the other choices change; the server
   # ignores a hidden field's value (field_applies()).
   conditionalPanel(shown_if_js(f), field)
+}
+
+# A field's help in two parts (D-11): the first sentence, shown under the
+# field, and the rest, behind its info button. Help of one sentence is all
+# lead.
+help_lead <- function(help) {
+  if (is.null(help) || !nzchar(trimws(help))) return(NULL)
+  parts <- help_sentences(help)
+  parts[[1]]
+}
+help_rest <- function(help) {
+  parts <- help_sentences(help)
+  if (length(parts) < 2) return(NULL)
+  paste(parts[-1], collapse = " ")
+}
+# Splits after a full stop, question or exclamation mark followed by a space
+# and a capital letter or opening quote, so "e.g. 0.8" and "(0.8 means
+# 80%)." don't split a sentence.
+help_sentences <- function(help) {
+  x <- trimws(help)
+  parts <- strsplit(x, "(?<=[.!?])\\s+(?=[A-Z\u201c\"])", perl = TRUE)[[1]]
+  parts[nzchar(parts)]
 }
 
 # Adds `attrs` to the first element named `tag_name` inside `tag`, e.g.
