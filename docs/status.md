@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 12 November 2026 (the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -19,7 +19,8 @@ means; the text box stays for pasting, and a link beside the grid
 switches to Cohen's w or partial eta-squared where the card takes one
 (`decisions.md`, 12 November 2026). MANOVA also takes Pillai's V, as in
 G*Power, computed by G*Power's published formula (Faul et al., 2007) and
-checked against simulation; the within-participants and logistic
+checked against simulation, and the regression card takes Cohen's
+f-squared, as G*Power does, converted by the engine; the within-participants and logistic
 factorial cards still take only their tables.
 
 The moderated regression cards' result screen, which stopped with an

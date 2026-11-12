@@ -12,12 +12,15 @@ convert_effect(
   n1 = NULL,
   n2 = NULL,
   df = NULL,
-  p0 = NULL
+  p0 = NULL,
+  r2_reduced = 0
 )
 }
 \arguments{
 \item{from}{The form of the published effect: \code{"t"}, \code{"F"}, \code{"r"},
-\code{"d"}, \code{"odds_ratio"}, \code{"risk_ratio"} or \code{"f"}.}
+\code{"d"}, \code{"odds_ratio"}, \code{"risk_ratio"}, \code{"f"} or \code{"f2"} (Cohen's
+f-squared, for multiple regression: \code{"r2_zero"},
+\code{"single_coefficient"} and \code{"r2_increase"}).}
 
 \item{value}{The published value.}
 
@@ -37,6 +40,10 @@ into an ANOVA's partial eta-squared.}
 
 \item{p0}{Group 1's proportion, for an odds ratio or a risk ratio
 converted into group 2's proportion (\code{"two_proportions"}).}
+
+\item{r2_reduced}{R-squared without the tested predictors, for Cohen's
+f-squared converted into R-squared with all the predictors
+(\code{"r2_increase"}); 0 if there are none.}
 }
 \value{
 A list: \code{effect_name} and \code{value} (the converted effect),
