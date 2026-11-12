@@ -291,7 +291,7 @@ terms_js <- "
 # Native summary controls work with keyboard, touch and assistive technology.
 explanation_ui <- function(id, label, ..., class = NULL) {
   tags$details(id = id, class = paste("explanation-help", class), open = NA,
-    tags$summary(id = paste0(id, "_toggle"), role = "button", title = paste("Info:", label),
+    tags$summary(id = paste0(id, "_toggle"), role = "button", title = paste("Info:", label), `data-label` = label,
       `aria-label` = paste("Info:", label), `aria-controls` = paste0(id, "_body"),
       tags$span(`aria-hidden` = "true", "i")),
     div(id = paste0(id, "_body"), class = "explanation-content", ...))
