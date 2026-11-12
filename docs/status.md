@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 12 November 2026 (moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -10,6 +10,13 @@ page as it stood before each rewrite.*
 powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`.
+
+Tables of means, SDs and proportions (two-factor, mixed and repeated
+measures ANOVA, ANCOVA, MANOVA, chi-square and logistic factorial cards)
+are entered in a grid whose rows and columns are named from the levels
+typed above it, with an example and a line on why powerkit asks for
+means; the text box stays for pasting (`decisions.md`, 12 November 2026).
+A single overall effect size for these cards is next.
 
 The moderated regression cards' result screen, which stopped with an
 error for the sample size and power since 10 November, shows its result

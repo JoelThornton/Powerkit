@@ -345,3 +345,22 @@ test_that("an empty adjustment box says where it is and why it is asked", {
   problems <- form_problems(fields, values)
   expect_match(problems, "in the box under “Source of the effect size”", fixed = TRUE, all = FALSE)
 })
+
+test_that("every table input is a grid named from its level fields, with the text box kept underneath", {
+  fields <- unlist(lapply(names(forms$forms), function(id) form_fields(form_groups(forms, id))), recursive = FALSE)
+  tables <- Filter(function(f) identical(f$type, "table"), fields)
+  expect_gte(length(tables), 11)
+  ids <- vapply(fields, function(f) f$id %||% "", character(1))
+  for (f in tables) {
+    html <- as.character(field_ui(f, NULL))
+    expect_match(html, sprintf('class="pk-grid" id="f_%s_grid"', f$id), fixed = TRUE)
+    expect_match(html, sprintf('<textarea id="f_%s"', f$id), fixed = TRUE)
+    # The label names what goes in; the line-by-line layout shows only with the text box.
+    expect_false(grepl("one line per", table_grid_label(f$label)))
+    expect_match(html, "As text: one line", fixed = TRUE)
+    for (src in c(unlist(f$rows_from %||% "X_levels"), f$cols_from %||% "Y_levels")) expect_true(src %in% ids, info = paste(f$id, src))
+  }
+  means <- Find(function(f) identical(f$path, "population.means"), tables)
+  expect_match(as.character(field_ui(means, NULL)), "asks for means rather than one overall effect size", fixed = TRUE)
+  expect_match(as.character(field_ui(means, NULL)), "See an example", fixed = TRUE)
+})
