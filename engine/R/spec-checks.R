@@ -2847,9 +2847,13 @@ minimum_n <- function(spec) {
       paired_t = 3,
       # Two people in the smaller group (pwr.t2n.test() needs them): with
       # an allocation of 1 : 3, eight in all, not four.
+      # Welch's test: four in the smaller group, so that Satterthwaite's df
+      # (at least the smaller group's n - 1) reaches the 3 pwrss's
+      # power.t.welch() needs whatever the SDs.
       independent_t = {
         ratio <- allocation_ratio(spec)
-        max(4, ceiling(2 * (1 + ratio) / min(1, ratio)))
+        smallest <- if (identical(spec$target_test$method, "welch_t")) 4 else 2
+        max(2 * smallest, ceiling(smallest * (1 + ratio) / min(1, ratio)))
       },
       chi_square_independence = length(spec$variables$X$levels) * length(spec$variables$Y$levels),
       chi_square_gof = length(spec$variables$Y$levels),

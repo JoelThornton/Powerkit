@@ -42,8 +42,24 @@ test_that("a one-sided test, unequal groups and a required n change the critical
   expect_lt(needed$critical_effect$value, 0.4)
 })
 
+test_that("Welch's test with equal groups gives Student's critical effect, which holds at equal observed SDs", {
+  welch <- run_spec(critical_spec("independent_t", method = "welch_t", alternative = "two_sided"))$critical_effect
+  student <- run_spec(critical_spec("independent_t"))$critical_effect
+  expect_true(welch$welch)
+  expect_false(student$welch)
+  expect_equal(welch$value, student$value)
+  # At that observed d, with equal observed SDs, t.test()'s Welch p-value is alpha.
+  n <- 32
+  x <- as.numeric(scale(stats::rnorm(n)))
+  y <- as.numeric(scale(stats::rnorm(n))) + welch$value
+  expect_equal(stats::t.test(y, x)$p.value, 0.05, tolerance = 1e-8)
+  # Unequal groups: Satterthwaite's df differs from Student's, so none.
+  unequal <- critical_spec("independent_t", goal = list(type = "power", n = 90L), method = "welch_t")
+  unequal$options$allocation_ratio <- 2
+  expect_null(run_spec(unequal)$critical_effect)
+})
+
 test_that("designs outside Perugini et al.'s formulas, and the justified alpha, give none", {
-  expect_null(run_spec(critical_spec("independent_t", method = "welch_t", alternative = "two_sided"))$critical_effect)
   expect_null(critical_effect(validate_spec(critical_spec("correlation", method = "spearman")), 64))
   if (requireNamespace("JustifyAlpha", quietly = TRUE)) {
     jalpha <- critical_spec("independent_t", goal = list(type = "justified_alpha", n = 64L))

@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "df210990451b68b05858ae3cf9f808f1b87a3722",
-        "RemoteSha": "df210990451b68b05858ae3cf9f808f1b87a3722",
+        "RemoteRef": "2e8454f2f30a64ae7135b6dec3e9c122ad03af06",
+        "RemoteSha": "2e8454f2f30a64ae7135b6dec3e9c122ad03af06",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "df210990451b68b05858ae3cf9f808f1b87a3722",
-        "GithubSHA1": "df210990451b68b05858ae3cf9f808f1b87a3722",
+        "GithubRef": "2e8454f2f30a64ae7135b6dec3e9c122ad03af06",
+        "GithubSHA1": "2e8454f2f30a64ae7135b6dec3e9c122ad03af06",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-12 12:34:21 UTC; runner",
+        "Packaged": "2026-11-12 13:20:46 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-12 12:34:58 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-12 13:21:13 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,10 +8560,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "b6cfa357438018b31332a2bbfbac146b"
+      "checksum": "4514a1a93aec6d6585ced6ff46eda6a4"
     },
     "forms.yaml": {
-      "checksum": "ece5dcdec0cf32237e4be7a87cffeb0f"
+      "checksum": "b7f43aeba443338ca147f3c19910643a"
     },
     "methods-map.yaml": {
       "checksum": "95e47c58f2b5274b63cde74efa7a08f0"
@@ -8599,7 +8599,7 @@
       "checksum": "a5a9e9ed6acc237082abc6ab17aac1e5"
     },
     "R/forms.R": {
-      "checksum": "78083f342c7a80fad01ce26a78e0f233"
+      "checksum": "d3bfc5823eb093844729fa83bc735088"
     },
     "R/input-support.R": {
       "checksum": "6cf35ca8f05a2d4a91b08507fc478730"
@@ -8623,7 +8623,10 @@
       "checksum": "c9e579651fa24feefadfac057183c1e1"
     },
     "R/results.R": {
-      "checksum": "e6c80413a416c15914e4030a1d9a96c1"
+      "checksum": "45aade622d86b21779b0b2f3298d96d0"
+    },
+    "R/route-fit.R": {
+      "checksum": "763727cf1f8850d8c1747dfa9428c333"
     },
     "R/sample.R": {
       "checksum": "5a2faf0bd5eeff5c04489743edadd733"
@@ -8647,7 +8650,7 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "2d708252f8332f732f4bc0914b5c1ee1"
+      "checksum": "df4fb35e9350abbea8b0988f9043ffef"
     },
     "R/whole-study.R": {
       "checksum": "c1288194459f13a3ab4503f95dfd2b55"
@@ -8656,7 +8659,7 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "683a710496578bc990166c0c1071db2c"
+      "checksum": "c2255b6e3f752b9ce73513121a6ff4dc"
     },
     "whats-new.d/allocation-noninferiority-direction.yaml": {
       "checksum": "bf48d5d018466c52898128cd210c94d7"
@@ -8688,8 +8691,14 @@
     "whats-new.d/replication-from-the-finder.yaml": {
       "checksum": "9e18d03387414cd6322b4be917a75761"
     },
+    "whats-new.d/result-clarity.yaml": {
+      "checksum": "9824e48b20d03d497623b86326a6603f"
+    },
     "whats-new.d/review-usability-2026-11-11.yaml": {
       "checksum": "4a39f1e5b2f9da7e645edf57edccc74a"
+    },
+    "whats-new.d/route-fit.yaml": {
+      "checksum": "037e39505110944f5b1da49fb71515f3"
     },
     "whats-new.d/shorter-input-screens.yaml": {
       "checksum": "cb1766c72e4f845e657a755ae8088402"

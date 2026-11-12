@@ -347,6 +347,7 @@ known_differences:
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
   "12": "Bayes factor test of a correlation: powerkit's default prior width is JASP's, 1 (every correlation equally likely beforehand). BayesFactor, the R package that computes the Bayes factor, defaults to a narrower 1/3, which needs fewer people for a moderate correlation: 146 against 162 for r = .3, BF10 of at least 10 and 80%. Set the prior width to 1/3 (0.333) to match BayesFactor; at the same width the two give the same Bayes factor as JASP."
   "14": "Mediation: powerkit plans for the Monte Carlo confidence interval of the indirect effect, as power4mome does, while PROCESS, the usual software for the analysis, reports a percentile bootstrap interval by default. The two are different tests, so their power can differ a little (powerkit's validation compares them for simple mediation); say in your write-up which interval you will report."
+  "15": "ANCOVA: powerkit uses Shieh's (2020) method (pwrss), which treats the covariate as random, as it is when people come with their own before scores. G*Power treats the covariate as fixed, which gives a little more power and so a slightly smaller sample size: in a three-group example, 87 in G*Power against 90 here."
   "13": "One-sided Bayes factor test of two proportions: JASP estimates the chance that one group's proportion is the higher from 10,000 random draws, so its one-sided Bayes factor varies slightly from run to run (about 0.1% for 20 of 50 against 30 of 50). powerkit calculates that chance exactly. The two-sided Bayes factor is the same in both."
 
 # The same known differences as one sentence for the methods paragraph
@@ -366,6 +367,7 @@ known_differences_methods:
   "9": "For a correlation, metapower rounds Fisher's z to two decimals before computing power, which can move power by about a point; under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where Valentine, Pigott and Rothstein (2010) treat it as known."
   "12": "The Bayes factor used a stretched beta prior of width 1 on the correlation, JASP's default; the BayesFactor package's own default, 1/3, gives a somewhat smaller sample size."
   "14": "Power was estimated for a Monte Carlo confidence interval of the indirect effect; the percentile bootstrap interval PROCESS reports by default is a different test, whose power can differ a little."
+  "15": "The ANCOVA's power was calculated by Shieh's (2020) method (pwrss's power.f.ancova.shieh()), which treats the covariate as random; G*Power treats it as fixed, which gives slightly more power and a slightly smaller sample size."
   "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
 
 forms:
@@ -2397,6 +2399,7 @@ forms:
     sides: false
     methods_name: "an ANCOVA (Shieh's method)"
     tool: pwrss
+    known_differences: ["15"]
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_ancova,
            variables: {A: {type: between_factor}, "Y": {type: continuous}},

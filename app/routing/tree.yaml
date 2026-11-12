@@ -359,19 +359,22 @@ nodes:
       - {label: "Something measured on each member, and how it relates to their own and their partner's outcome", next: E65, when: {outcome: [yesno, count, ordinal]}}
       - {label: "Conditions given to whole pairs", next: E34, help: "e.g. couples randomised to a programme or a waiting list: a cluster-randomised trial with groups of two."}
       - {label: "Something else, such as a condition given to one member of each pair", next: E65}
+  # Counts and ordered categories over many trials (12 November 2026): a
+  # generalised mixed model for the conditions, E75's design, not E41's
+  # correlations.
   s2_trials:
     doc_id: S2a
     text: "What does your main hypothesis compare?"
     help: "powerkit calculates two or more conditions with a score or a yes/no answer on each trial, every participant responding in all of them or each in one."
     options:
       - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: [score, yesno]}, help: "e.g. emotional and neutral words, each person reading both kinds."}
-      - {label: "Two conditions, and each person responds in both", next: E41, when: {outcome: [count, ordinal]}}
+      - {label: "Two conditions, and each person responds in both", next: E75, when: {outcome: [count, ordinal]}}
       - {label: "Two conditions, and each person is in one of them", next: E33, when: {outcome: [score, yesno]}, help: "e.g. one group reads emotional words and another neutral words, each person rating many words."}
-      - {label: "Two conditions, and each person is in one of them", next: E41, when: {outcome: [count, ordinal]}}
+      - {label: "Two conditions, and each person is in one of them", next: E75, when: {outcome: [count, ordinal]}}
       - {label: "Three or more conditions, and each person responds in all of them", next: E63, when: {outcome: [score, yesno]}, help: "e.g. happy, angry and neutral faces, each person seeing all three kinds."}
-      - {label: "Three or more conditions, and each person responds in all of them", next: E41, when: {outcome: [count, ordinal]}}
+      - {label: "Three or more conditions, and each person responds in all of them", next: E75, when: {outcome: [count, ordinal]}}
       - {label: "Three or more conditions, and each person is in one of them", next: E63, when: {outcome: [score, yesno]}, help: "e.g. three groups, each rating a different kind of face."}
-      - {label: "Three or more conditions, and each person is in one of them", next: E41, when: {outcome: [count, ordinal]}}
+      - {label: "Three or more conditions, and each person is in one of them", next: E75, when: {outcome: [count, ordinal]}}
       - {label: "A score measured on each item, and how it relates to the response", next: E67, when: {outcome: [score, yesno]}, help: "e.g. how a word's frequency relates to how fast people read it."}
       - {label: "A score measured on each item, and how it relates to the response", next: E41, when: {outcome: [count, ordinal]}}
       - {label: "Something else", next: E41}
@@ -1988,7 +1991,8 @@ endpoints:
     validation: {file: test-validation-precision.R, note: "Matches MBESS and presize called directly, and simulated intervals give the expected width and, with assurance, the chance of a narrow enough interval. Not yet checked against a published example."}
     card_points:
       - "Plans the sample size for how precisely the study estimates its result (the width of its confidence interval), rather than for power."
-      - "For Cohen's d between two groups, d_z for paired scores, a standardised mean, a correlation (Pearson's, Spearman's or Kendall's) or a proportion."
+      - "For Cohen's d between two groups, d_z for paired scores, a standardised mean, a difference between two means in the outcome's own units, a correlation (Pearson's, Spearman's or Kendall's), a proportion, an odds ratio, an intraclass correlation or one predictor's coefficient in a multiple regression."
+      - "It assumes separate people (or simple pairs of scores). For people within groups, such as pupils in classes, or three or more conditions per person, the interval would be wider than this card says: powerkit has no precision plan for those designs yet."
       - "Gives the sample size for the width you set, or the width you would get at a given sample size. For d and standardised means you can also ask for a chance (assurance) that the interval is narrow enough."
     inputs: ["What you want to estimate", "Names", "The value you expect", "The kind of interval"]
     tier: v2
