@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "Minimum-effect tests match the test you run"
-    text: "A minimum-effect test (showing an effect is larger than the smallest effect you care about) is now planned as the t-test you would run, against that smallest effect in your measure's own units. Before, it was planned for a slightly different test and asked for a few more people than needed (282 rather than 278 for d = 0.5, a smallest effect of 0.2 and 80% power)."

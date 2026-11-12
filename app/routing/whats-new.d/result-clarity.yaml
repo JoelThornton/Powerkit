@@ -1,7 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "\"The smallest effect\" now comes with what would be significant"
-    text: "The smallest-effect result says what \"detect\" means: found significant in, say, 80% of studies. Beside it is the smallest observed effect that would be significant in any one study, which is smaller. Welch's t-test, the default, now shows it too when the groups are the same size."
-  - date: "2026-11-12"
-    title: "Differences from G*Power said on the result"
-    text: "A factorial design's sample size now says it is a whole number of people in each group, which is why G*Power's total can be a few people lower. The ANCOVA result says that powerkit treats the covariate as random, which gives a slightly larger sample than G*Power."

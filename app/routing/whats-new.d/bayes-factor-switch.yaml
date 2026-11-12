@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "See which analyses have a Bayes factor version"
-    text: "The \"Bayes mode\" switch has moved from the start screen to where you choose an analysis, and is now called \"I'll analyse with Bayes factors\". In \"I know my analysis\", turning it on lists only the analyses that have a Bayes factor version. In \"Help me choose\" it is on the first question. Either way, the analysis opens on its Bayes factor version, as before."

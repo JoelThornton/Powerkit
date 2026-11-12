@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "Regression takes Cohen's f-squared"
-    text: "The multiple regression analysis now lets you give the effect as Cohen's f-squared, the number G*Power asks for, instead of working out R-squared values. powerkit converts it into R-squared and shows the conversion with the result."
