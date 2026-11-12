@@ -16,7 +16,7 @@ test_that("powerkit's justified alpha is optimal_alpha() called directly on pwr'
     independent_t = "pwr::pwr.t.test(n = 32, d = %s, sig.level = x, type = 'two.sample', alternative = 'two.sided')$power",
     one_sample_t = "pwr::pwr.t.test(n = 64, d = %s, sig.level = x, type = 'one.sample', alternative = 'two.sided')$power",
     paired_t = "pwr::pwr.t.test(n = 64, d = %s, sig.level = x, type = 'paired', alternative = 'two.sided')$power",
-    correlation = "pwr::pwr.r.test(n = 64, r = %s, sig.level = x, alternative = 'two.sided')$power"
+    correlation = "pwrss::power.exact.onecor(rho = %s, null.rho = 0, n = 64, alternative = 'two.sided', verbose = 0, alpha = x)$power"
   )
   for (name in names(direct)) {
     spec <- ja_spec(name)
@@ -28,7 +28,7 @@ test_that("powerkit's justified alpha is optimal_alpha() called directly on pwr'
     expect_equal(j$alpha, expected$alpha, tolerance = 1e-8, label = name)
     expect_equal(j$beta, expected$beta, tolerance = 1e-8, label = name)
     expect_equal(result$curve$power, 1 - expected$beta, tolerance = 1e-8)
-    expect_equal(result$provenance$backend, "pwr")
+    expect_equal(result$provenance$backend, if (name == "correlation") "pwrss" else "pwr")
     expect_true("JustifyAlpha" %in% names(result$provenance$packages))
   }
 })

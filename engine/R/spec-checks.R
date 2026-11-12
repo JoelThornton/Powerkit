@@ -62,6 +62,7 @@ population_problems <- function(spec) {
     check_justified_alpha(spec),
     check_precision(spec),
     check_proportions_formula_allowed(spec),
+    check_correlation_formula_allowed(spec),
     continuity_problems(spec),
     check_direction_allowed(spec),
     check_weights_allowed(spec),
@@ -897,6 +898,24 @@ check_method_allowed <- function(spec) {
     "'options > method' 'exact' is only available for 2x2 ANOVA designs and ",
     "basic tests; remove it or use 'simulation'."
   )
+}
+
+# The formula choice for a correlation (exact or Fisher's z) applies only
+# to Pearson's correlation calculated by formula.
+check_correlation_formula_allowed <- function(spec) {
+  if (is.null(spec$options$correlation_formula)) {
+    return(character())
+  }
+  if (!identical(spec$template, "correlation") || !identical(spec$target_test$method %||% "pearson", "pearson")) {
+    return("'options > correlation_formula' only applies to the test of Pearson's correlation; remove it.")
+  }
+  if (identical(spec$options$method, "simulation")) {
+    return(paste0(
+      "'options > correlation_formula' only applies when power is calculated by formula; ",
+      "remove it or remove 'options > method' 'simulation'."
+    ))
+  }
+  character()
 }
 
 # The formula choice for two proportions (z test or arcsine) applies only

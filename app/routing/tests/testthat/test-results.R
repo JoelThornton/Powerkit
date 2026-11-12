@@ -522,7 +522,8 @@ test_that("the range of sample sizes shows the smallest effect at 80% and 95% po
   expect_equal(calc$status, "ok")
   tab <- calc$curve_table
   expect_equal(tab$n, c(20, 40, 60, 80, 100, 120, 140, 160))
-  expect_equal(tab$power_80[8], pwr::pwr.r.test(n = 160, r = NULL, power = 0.8)$r)
+  # The exact method (pwrss) has the target power at the correlation found.
+  expect_equal(pwrss::power.exact.onecor(rho = tab$power_80[8], n = 160, alpha = 0.05, verbose = 0)$power, 0.8, tolerance = 1e-6)
   expect_true(all(tab$power_95 > tab$power_80))
   expect_true(all(diff(tab$power_80) < 0))
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))

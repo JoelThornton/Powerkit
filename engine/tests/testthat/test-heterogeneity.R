@@ -152,13 +152,18 @@ test_that("Departure 23: the cards' starting variation of 0.05 against none", {
 
 # A correlation: McShane and Bockenholt (2014, Appendix B), on Fisher's z.
 
-test_that("a correlation with no variation is pwr.r.test's usual answer", {
+test_that("a correlation with no variation is the usual answer; the variation is added on Fisher's z", {
+  # Without variation the correlation is planned by the exact method
+  # (pwrss); with it, on Fisher's z (pwr.r.test()), where the method is
+  # defined. As the variation goes to 0 the answer goes to pwr.r.test()'s,
+  # which is within 0.004 of the exact one here.
   usual <- run_spec(het_r_spec(tau = NULL))
   zero <- run_spec(het_r_spec(tau = 0))
   tiny <- run_spec(het_r_spec(tau = 1e-8))
-  expect_equal(usual$curve$power, pwr::pwr.r.test(n = 100, r = 0.3)$power)
+  expect_equal(usual$curve$power, pwrss::power.exact.onecor(rho = 0.3, n = 100, alpha = 0.05, verbose = 0)$power)
   expect_equal(zero$curve$power, usual$curve$power)
-  expect_equal(tiny$curve$power, usual$curve$power, tolerance = 1e-6)
+  expect_equal(tiny$curve$power, pwr::pwr.r.test(n = 100, r = 0.3)$power, tolerance = 1e-6)
+  expect_lt(abs(tiny$curve$power - usual$curve$power), 0.004)
 })
 
 test_that("a correlation's power is McShane and Bockenholt's normal model on Fisher's z", {
@@ -220,7 +225,13 @@ test_that("the correlation's R script gives the same power with pwr alone", {
 })
 
 test_that("Departure 24: the correlation card's starting variation of 0.025 against none", {
-  n_for <- function(r, tau) run_spec(het_r_spec(r = r, tau = tau, goal = list(type = "sample_size", power = 0.8)))$n_required$n
+  # Both on Fisher's z, so the difference is the variation's alone (the
+  # exact method without variation gives 84 for r = .3).
+  n_for <- function(r, tau) {
+    spec <- het_r_spec(r = r, tau = tau, goal = list(type = "sample_size", power = 0.8))
+    spec$options$correlation_formula <- "fisher_z"
+    run_spec(spec)$n_required$n
+  }
   expect_equal(n_for(0.1, NULL), 782)
   expect_equal(n_for(0.1, 0.025), 904)
   expect_equal(n_for(0.3, NULL), 85)

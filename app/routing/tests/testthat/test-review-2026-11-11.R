@@ -161,3 +161,51 @@ test_that("the two-proportions z test warns when an expected count is small, and
   spec$population <- list(p1 = 0.05, p2 = 0.30); spec$target_test$method <- "fisher_exact"
   expect_null(small_count_note(spec, list(goal_type = "power", curve = list(n = 20))))
 })
+
+test_that("unequal SDs or correlations plan for the Greenhouse-Geisser test by default (Departure 26)", {
+  for (ep in c("E54", "E55", "E20")) {
+    fields <- form_fields(form_groups(forms, ep))
+    correction <- Filter(function(f) identical(f$id, "correction"), fields)[[1]]
+    expect_identical(correction$default, "GG", info = ep)
+    expect_true("26" %in% unlist(forms$forms[[ep]]$departures), info = ep)
+  }
+  spec <- list(design = "factorial_anova", template = "oneway_within",
+    variables = list(A = list(type = "within_factor", levels = list("a", "b", "c")), Y = list(type = "continuous")),
+    population = list(means = list(600, 620, 650), sd = list(100, 100, 100), r = list(0.8, 0.5, 0.2)),
+    target_test = list(effect = "main_effect_A", method = "anova_f", correction = "GG"))
+  expect_match(departures_for(forms, "E54", spec), "Greenhouse-Geisser corrected F test unless you choose otherwise", all = FALSE)
+  expect_null(uncorrected_f_note(spec))
+  # The uncorrected test stays available, with a warning and no departure.
+  spec$target_test$correction <- "none"
+  expect_false(any(grepl("unless you choose otherwise; Superpower", departures_for(forms, "E54", spec), fixed = TRUE)))
+  expect_match(uncorrected_f_note(spec), "false positives more often than your significance level", fixed = TRUE)
+  expect_true(uncorrected_f_note(spec) %in% planning_warning_notes(spec))
+  # One SD and one correlation keep sphericity: neither applies.
+  same <- modifyList(spec, list(population = list(sd = 100, r = 0.5)))
+  same$population$sd <- 100; same$population$r <- 0.5
+  expect_null(uncorrected_f_note(same))
+  # Two repeated measurements cannot break sphericity.
+  two <- spec
+  two$variables$A$levels <- list("a", "b")
+  expect_null(uncorrected_f_note(two))
+  two$target_test$correction <- "GG"
+  expect_false(any(grepl("Superpower applies no correction", departures_for(forms, "E54", two), fixed = TRUE)))
+})
+
+test_that("the correlation card plans by the exact method, with Fisher's z as a choice", {
+  fields <- form_fields(form_groups(forms, "E4"))
+  formula <- Filter(function(f) identical(f$id, "correlation_formula"), fields)[[1]]
+  expect_identical(formula$default, "exact")
+  expect_identical(names(formula$choices), c("exact", "fisher_z"))
+  spec <- list(design = "basic_test", template = "correlation", target_test = list(method = "pearson"),
+    population = list(r = 0.3), options = list())
+  # The exact method is G*Power's: no note. Fisher's z carries one.
+  expect_false(any(grepl("Fisher's z, an approximation", departures_for(forms, "E4", spec), fixed = TRUE)))
+  spec$options$correlation_formula <- "fisher_z"
+  expect_match(departures_for(forms, "E4", spec), "85 rather than 84", all = FALSE)
+  skip_without_run()
+  values <- modifyList(form_examples$E4, list(r = "0.3", goal = "sample_size", power = "0.8", alpha = "0.05"))
+  calc <- run_calculation(build_spec(forms, "E4", fields, values), run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_equal(calc$result$n_required$n, 84)
+})

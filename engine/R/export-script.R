@@ -1160,6 +1160,13 @@ hotelling_script <- function(spec, result) {
 
 pwr_script <- function(spec, result) {
   inputs <- pwr_inputs(spec)
+  if (correlation_exact(spec) && identical(spec$goal$type, "sensitivity")) {
+    # The search looks in the direction of the test, so power_at() is
+    # written for a correlation in that direction (pwr_sensitivity_r_exact()).
+    found <- spec
+    found$population$r <- result$sensitivity$effect
+    inputs <- pwr_inputs(found)
+  }
   c(
     script_header(spec, result, inputs$package, inputs$description),
     switch(
@@ -1196,6 +1203,9 @@ pwr_script_call_lines <- function(spec, inputs) {
     "  n_group2 <- n_total - n_group1"
   )
   ratio <- allocation_ratio(spec)
+  if (identical(inputs$fun, "power.exact.onecor")) {
+    return(exact_correlation_script_lines(inputs))
+  }
   if (inputs$fun %in% c("power.prop.test", "power.z.twoprops")) {
     return(prop_test_script_lines(spec, inputs))
   }
@@ -1242,6 +1252,41 @@ pwr_script_call_lines <- function(spec, inputs) {
     ))
   )
   c(call$pre, paste0("  ", call$head), paste0("    ", ensure_commas(call$args)), "  )$power")
+}
+
+# The body of power_at() for Pearson's correlation by the exact
+# distribution of r (pwrss's power.exact.onecor(), as G*Power). pwrss's
+# one-sided test is in the direction of rho, so a one-sided test against
+# the specified correlation is the two-sided power at 2 x alpha minus the
+# one-sided power (pwr_power()).
+exact_correlation_script_lines <- function(inputs) {
+  args <- inputs$args(4)
+  call <- function(alternative, sig) {
+    c(
+      "  power.exact.onecor( # the exact distribution of r, as G*Power",
+      paste0("    ", ensure_commas(c(
+        "rho = r", "null.rho = 0", "n = n_total",
+        sprintf("alpha = %s", sig),
+        sprintf("alternative = %s", r_code(alternative)),
+        "verbose = 0"
+      ))),
+      "  )$power"
+    )
+  }
+  if (!isTRUE(inputs$against_effect)) {
+    note <- if (args$alternative == "one.sided") {
+      "  # One-sided, in the direction of the specified correlation."
+    }
+    return(c(note, call(args$alternative, "alpha")))
+  }
+  c(
+    "  # One-sided, against the specified correlation: power.exact.onecor()",
+    "  # tests in the direction of rho, so the power is the two-sided power at",
+    "  # 2 x alpha minus the one-sided power at alpha (the tail away from r).",
+    sub("^  power", "  both_tails <- power", call("two.sided", "2 * alpha")),
+    sub("^  power", "  toward_effect <- power", call("one.sided", "alpha")),
+    "  both_tails - toward_effect"
+  )
 }
 
 # The body of power_at() for two proportions by the z test with pooled
@@ -1383,9 +1428,24 @@ pwr_sensitivity_section <- function(spec, result) {
     paired_t = solve("dz", sprintf(
       "pwr.t.test(n = n_total, d = NULL, sig.level = alpha, power = target_power, type = \"paired\", %s)", alt
     ), "d"),
-    correlation = solve("r", sprintf(
-      "pwr.r.test(n = n_total, r = NULL, sig.level = alpha, power = target_power, %s)", alt
-    ), "r"),
+    correlation = if (correlation_exact(spec)) {
+      direction <- switch(spec$target_test$alternative %||% "two_sided",
+        two_sided = if (isTRUE(spec$population$r < 0)) -1 else 1, greater = 1, less = -1)
+      c(
+        "# pwrss has no solver for the correlation, so it is searched with",
+        "# power_at(): the smallest r, in the direction below, with the target power.",
+        sprintf("direction <- %s # the sign of the correlation looked for", r_code(direction)),
+        "power_for <- function(size) {",
+        "  r <<- direction * size",
+        "  power_at(n_total)",
+        "}",
+        "r <- direction * uniroot(function(size) power_for(size) - target_power, lower = 1e-12, upper = 1 - 1e-9, tol = 1e-10)$root"
+      )
+    } else {
+      solve("r", sprintf(
+        "pwr.r.test(n = n_total, r = NULL, sig.level = alpha, power = target_power, %s)", alt
+      ), "r")
+    },
     chi_square_independence = c(
       "w <- pwr.chisq.test(N = n_total, w = NULL, df = df, sig.level = alpha, power = target_power)$w",
       "# The power at that w, with the same pwr call as for power.",

@@ -76,19 +76,25 @@ test_that("semPower's chi-square details reproduce its power, for model fit and 
   }
 })
 
-test_that("a correlation's details are the t test's critical t, which with Fisher's z give pwr's power", {
+test_that("a correlation's details are the t test's critical t; with Fisher's z they give pwr's power", {
   result <- run_spec(spec_at("correlation.json", list(type = "power", n = 80)))
   d <- result$details
   expect_identical(d$statistic, "t")
   expect_equal(d$df, 78)
   expect_equal(d$critical, stats::qt(c(0.025, 0.975), 78))
   expect_true(is.na(d$ncp))
-  # pwr.r.test()'s own steps (two-sided) from that critical t.
+  # The default is the exact distribution of r, and the note says so.
+  expect_match(d$note, "exact distribution of r", fixed = TRUE)
+  # pwr.r.test()'s own steps (two-sided) from that critical t, on request.
+  fisher <- spec_at("correlation.json", list(type = "power", n = 80))
+  fisher$options$correlation_formula <- "fisher_z"
+  result <- run_spec(fisher)
   r <- -0.2
   rc <- sqrt(d$critical[2]^2 / (d$critical[2]^2 + 78))
   zr <- atanh(r) + r / (2 * 79)
   power <- stats::pnorm((zr - atanh(rc)) * sqrt(77)) + stats::pnorm((-zr - atanh(rc)) * sqrt(77))
   expect_equal(power, result$curve$power, tolerance = 1e-8)
-  expect_match(d$note, "Fisher's z", fixed = TRUE)
+  expect_equal(result$details$critical, d$critical)
+  expect_match(result$details$note, "Fisher's z", fixed = TRUE)
 })
 

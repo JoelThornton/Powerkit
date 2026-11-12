@@ -1025,8 +1025,8 @@ endpoints:
     plain_name: "Test whether two scores are related"
     search_words: "pearson r association"
     template: "basic_test / correlation"
-    backend: "pwr: pwr.r.test(), using Fisher's z; G*Power uses the exact method, which differs by at most 0.004 in power and 1 participant in N for r = .3 to .5 and N = 20 to 100 (Spower simulation if you choose it); Spower's p_r(method = \"spearman\" or \"kendall\") for the rank correlations; BayesFactor's correlationBF() for the Bayes factor test (JASP's Bayes factor), with SuppDists for the distribution of r"
-    refs: "Departures 9, 10 and 15, Known differences 11 and 12 (docs/conventions.md)"
+    backend: "pwrss: power.exact.onecor(), the exact distribution of r, as G*Power (pwr's pwr.r.test(), Fisher's z, or Spower simulation if you choose it); Spower's p_r(method = \"spearman\" or \"kendall\") for the rank correlations; BayesFactor's correlationBF() for the Bayes factor test (JASP's Bayes factor), with SuppDists for the distribution of r"
+    refs: "Departure 15, Known differences 11 and 12 (docs/conventions.md)"
     method: "Formula (no simulation)"
     inputs: ["Names of the two variables", "The expected correlation r", "Pearson's r, Spearman's rho, Kendall's tau or a Bayes factor test"]
     status: runs_validated
@@ -1317,7 +1317,7 @@ endpoints:
     card_points:
       - "Both factors are measured in everyone, such as cue (valid or invalid) by delay (short, medium or long) in a reaction-time task: each person does every combination."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
-      - "One SD and one correlation for every pair of combinations, so that sphericity holds; or an SD for each combination and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one."
+      - "One SD and one correlation for every pair of combinations, so that sphericity holds; or an SD for each combination and a correlation for each pair, with the F tests then corrected for sphericity (Greenhouse-Geisser unless you choose otherwise)."
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two conditions", "Which effect", "The F test, the aligned rank transform or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts, such as the interaction's linear trend", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures", "the aligned rank transform, if you analyse ranks (a choice on the next screen)"]
@@ -2189,7 +2189,7 @@ endpoints:
     card_points:
       - "Everyone takes part in every condition, such as three task difficulties or three timepoints, and the test asks whether the condition means differ at all."
       - "Because the same people give every score, you also give the correlation between people's scores in any two conditions: the higher it is, the fewer people you need."
-      - "With one SD for every condition and one correlation for every pair, sphericity holds and no correction is needed. If they differ, give an SD for each condition and a correlation for each pair, and choose a Greenhouse-Geisser or Huynh-Feldt correction if you will report the corrected F test; the MANOVA approach, which doesn't assume sphericity, is shown beside it."
+      - "With one SD for every condition and one correlation for every pair, sphericity holds and no correction is needed. If they differ, give an SD for each condition and a correlation for each pair, and the F test is then corrected for sphericity (Greenhouse-Geisser unless you choose otherwise); the MANOVA approach, which doesn't assume sphericity, is shown beside it."
       - "Will you analyse the study by comparing pairs of conditions rather than the F test? Choose pairwise comparisons as the test version: powerkit gives the power of the pair you name (a paired t-test), with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
     inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions", "The ANOVA, Friedman's test, pairwise comparisons or a Bayes factor"]
     tier: v2
@@ -2209,7 +2209,7 @@ endpoints:
     card_points:
       - "One factor is different people (such as therapy or waiting list) and the other is measured in everyone (such as before, after and at follow-up). At least one of them has three or more levels."
       - "Power is for one effect: the groups' difference, the change over time or conditions, or the interaction (whether the change differs between groups), which is usually the hypothesis in a trial."
-      - "Equal or unequal group sizes (unequal groups are simulated). One SD and one correlation for every pair of timepoints or conditions, so that sphericity holds; or an SD for each cell and a correlation for each pair, with a Greenhouse-Geisser or Huynh-Feldt correction if you will report one, and the MANOVA approach shown beside it."
+      - "Equal or unequal group sizes (unequal groups are simulated). One SD and one correlation for every pair of timepoints or conditions, so that sphericity holds; or an SD for each cell and a correlation for each pair, with the F tests then corrected for sphericity (Greenhouse-Geisser unless you choose otherwise) and the MANOVA approach shown beside it."
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "The correlation between any two timepoints or conditions", "Which effect", "The F test, the aligned rank transform or a Bayes factor", "The size of each group"]
     tier: v2
     alternatives: ["ANCOVA on the last timepoint, adjusting for the first", "planned contrasts, such as a linear trend over time by group", "a mixed-effects model", "the multivariate (MANOVA) approach to repeated measures", "the aligned rank transform, if you analyse ranks (a choice on the next screen)"]

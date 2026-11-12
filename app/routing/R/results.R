@@ -805,6 +805,28 @@ assumes_sphericity <- function(spec) {
   length(unlist(spec$population$sd)) <= 1 && length(unlist(spec$population$r)) <= 1
 }
 
+# Sphericity can fail when the SDs or correlations were entered as
+# different and a within-participants factor has three or more levels
+# (with two levels there is one difference score, so nothing to violate).
+sphericity_can_fail <- function(spec) {
+  within_levels <- vapply(spec$variables, function(v) {
+    if (identical(v$type, "within_factor")) length(unlist(v$levels)) else 0L
+  }, integer(1))
+  !assumes_sphericity(spec) && any(within_levels >= 3L)
+}
+
+# The uncorrected F test, chosen although the SDs or correlations differ:
+# its false-positive rate is no longer alpha, so its power flatters it.
+uncorrected_f_note <- function(spec) {
+  if (!identical(spec$design, "factorial_anova") || !sphericity_can_fail(spec) ||
+      !identical(spec$target_test$correction %||% "none", "none") ||
+      !identical(spec$target_test$method %||% "anova_f", "anova_f") ||
+      is_rank_test(spec) || is_bayes_test(spec) || is_pairwise(spec)) return(NULL)
+  paste("You chose the uncorrected F test, but the SDs and correlations you gave need not keep sphericity.",
+    "Without sphericity this test gives false positives more often than your significance level, so the power shown is higher than a valid test would have.",
+    "Statistics programs report the Greenhouse-Geisser corrected test for this reason: choose it under the sphericity correction to plan for it, or plan for the MANOVA approach.")
+}
+
 sphericity_correction_words <- function(spec) {
   switch(spec$target_test$correction %||% "none",
     none = "with no correction", GG = "with the Greenhouse-Geisser correction", HF = "with the Huynh-Feldt correction")
@@ -2241,6 +2263,9 @@ departures_for <- function(forms, ep_id, spec) {
   # correlation; the z test for two proportions) apply only when the formula was used, not to simulation
   # or Welch's t-test (whose formula, pwrss's, is chosen by the user).
   if (identical(spec$options$method, "simulation") || identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_rank_correlation(spec) || is_bayes_test(spec)) keys <- setdiff(keys, c("9", "10", "11"))
+  # Key 10 is the note on Fisher's z, shown when the user chooses it over
+  # the exact method (the departure itself was retired on 12 November 2026).
+  if (!identical(spec$options$correlation_formula, "fisher_z") || isTRUE(spec$population$tau > 0)) keys <- setdiff(keys, "10")
   # Departure 21 (Welch's t-test by default) applies when Welch's test is
   # the one planned for.
   if (!identical(spec$target_test$method, "welch_t")) keys <- setdiff(keys, "21")
@@ -2264,6 +2289,10 @@ departures_for <- function(forms, ep_id, spec) {
   if (identical(spec$variables$Y$type, "binary") && identical(spec$design, "mixed_model")) keys <- setdiff(keys, "16")
   # Departure 18 is about the Hartung-Knapp test, when it is used.
   if (!is_hartung_knapp(spec)) keys <- setdiff(keys, "18")
+  # Departure 26 (Greenhouse-Geisser by default) applies when the SDs or
+  # correlations differ and the F test is corrected.
+  if (!sphericity_can_fail(spec) || !isTRUE(spec$target_test$correction %in% c("GG", "HF")) ||
+      is_rank_test(spec) || is_bayes_test(spec) || is_pairwise(spec)) keys <- setdiff(keys, "26")
   # Departure 17 is about adjusting pairwise comparisons, when they are
   # adjusted.
   if (!is_pairwise(spec) || identical(spec$target_test$p_adjust %||% "holm", "none")) keys <- setdiff(keys, "17")

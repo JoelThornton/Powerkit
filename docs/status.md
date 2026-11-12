@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 11 November 2026 (pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -25,6 +25,13 @@ conventional effect size can be recorded as one. The non-inferiority and allocat
 non-inferiority validation chunk were run; no full validation run is
 claimed. Open from the same review: minimum-effect tests still use pwrss's
 margin, and the rounded-group-size search is queued.
+
+The correlation card plans by the exact distribution of r, as G*Power (12
+November; Departure 10 retired), with Fisher's z as a choice.
+
+Repeated measures with SDs or correlations that differ now default to the
+Greenhouse-Geisser corrected F test (12 November, Departure 26); the
+uncorrected test stays as a choice with a warning.
 
 The input screens were shortened (11 November): the two-group t-test
 screen shows about 670 words at first sight, from about 1,200, with the

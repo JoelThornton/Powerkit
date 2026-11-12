@@ -296,6 +296,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "26": "Repeated measures with SDs or correlations that differ: powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. The corrected power is itself an approximation: simulated studies gave 71.5%."
   "25": "Precision planning: for d, a standardised mean and a regression coefficient, powerkit plans for a chance (assurance) that the interval is no wider than your target, unless you choose MBESS's default of the expected width. An expected width is an average, so planned only for it, about half of studies get an interval wider than planned; MBESS's assurance sets that chance instead. For a regression coefficient with a width of 0.2, 349 people give that width on average; 373 give it with 80% assurance and 386 with 90%. For d = 0.5 and a width of 0.4, 199 per group against 201 and 202."
   "24": "Correlations that vary between studies (optional): an entered SD on Fisher's z makes the correlation an average across studies, following McShane and Bockenholt (2014). This averages significance across differing true correlations; it is not power at the average correlation and can raise or lower the answer. It does not guarantee power in your particular setting. New plans start without variation; empty or 0 gives the usual calculation. As an illustration, r = .1 with variation SD 0.025 and 80% power needs 904 people against 782 without; r = .3 needs 86 against 85."
   "23": "Effects that vary between studies (optional): an entered SD makes the effect an average across studies, following Kenny and Judd (2019). This averages significance across differing true effects; it is not power at the average effect and can raise or lower the answer. It does not guarantee power in your particular setting. New plans start without variation; empty or 0 gives the usual calculation. As an illustration, d = 0.3 with variation SD 0.05 and 80% power needs 376 people in total against 352 without."
@@ -306,7 +307,7 @@ departures:
   "1": "Required N for a 2 x 2 interaction: powerkit gives the smallest N at which the exact F test reaches the target power. Sommet et al.'s (2023) z approximation gives slightly smaller numbers: 4 participants fewer (one per cell) in their two published examples."
   "2": "Mixed design: powerkit uses Superpower's ANOVA_exact(), which reproduces the G*Power values Superpower's vignette reports, not ANOVA_exact2(). The two differ slightly (91.2% vs 90.5% in the vignette's example)."
   "3": "Superpower's exact dataset is built under this run's seed, so the result is identical each time with the same seed. The size of this difference is about 1e-15 in power, with no practical effect."
-  "10": "Correlation: pwr's formula uses Fisher's z, an approximation; G*Power uses the exact distribution of r. For r = .3 to .5 and N = 20 to 100 they differ by at most 0.004 in power, and the required N by at most 1 participant (85 rather than 84 for r = .3 and 80% power)."
+  "10": "Correlation: you chose pwr's formula, which uses Fisher's z, an approximation. powerkit's default, like G*Power's, is the exact distribution of r. For r = .3 to .5 and N = 20 to 100 the two differ by at most 0.004 in power and 1 participant (85 rather than 84 for r = .3 and 80% power); for a large correlation in a small sample the gap is wider (r = .9 and N = 6: 77.2% by Fisher's z, 81.6% exactly)."
   "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power; powerkit keeps the groups in the exact ratio you give, so its required N can be a few higher (for 95% power with group 2 twice the size of group 1, 372 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
   "12": "Two dependent correlations: Steiger's z test as G*Power computes it, with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. powerkit reproduces the G*Power manual's two examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
   "13": "Whole-study simulation (experimental): separate power calculations do not establish the chance that several tests all succeed. Here one population model generates each study and the supported analyses use the same data, so their joint success is counted directly. Comparisons with separate calculations cover the recorded cases only; omitted model terms can change what an individual analysis estimates. This is not validation of every study plan."
@@ -633,7 +634,7 @@ forms:
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {pearson: "Pearson's r", spearman: "Spearman's rho (rank-based), simulated", kendall: "Kendall's tau (rank-based), simulated", bayes_factor: "Bayes factor test of Pearson's r (as in JASP's Bayesian correlation), instead of a p-value"},
-             default: pearson, default_source: "Pearson's r, the correlation pwr computes (pwr.r.test(), pwr 1.3-0)",
+             default: pearson, default_source: "Pearson's r, the correlation G*Power and pwr plan for",
              help: "For Spearman's or Kendall's, enter r above as the Pearson correlation of the scores; powerkit simulates the rank test on scores of the shape you choose below with that correlation."}
           - {id: score_shape, label: "The shape of both scores", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is_one_of: [spearman, kendall]},
@@ -652,6 +653,11 @@ forms:
              shown_if: {field: method, is: bayes_factor},
              default: 0, default_source: "powerkit's default: plan for exactly the correlation you entered, as a usual power analysis does (docs/conventions.md, Departure 15)",
              help: "Above 0, powerkit averages over correlations spread around yours (a stretched beta design prior with this SD): the average power over your uncertainty."}
+    method_extra:
+      - {id: correlation_formula, label: "Which formula", type: select, path: options.correlation_formula, optional: true,
+         shown_if: [{field: calc_method, is: exact}, {field: method, is: pearson}],
+         choices: {exact: "Exact, as in G*Power (the exact distribution of r; pwrss)", fisher_z: "Fisher's z, an approximation (pwr)"},
+         default: exact, default_source: "the exact method, G*Power's default for this test (pwrss's power.exact.onecor(), pwrss 1.3.3)"}
 
   E5:
     methods_name: "a test of two proportions (z test)"
@@ -2013,7 +2019,7 @@ forms:
     sides: false
     methods_name: "a one-way repeated-measures ANOVA"
     tool: Superpower
-    departures: ["3", "17"]
+    departures: ["3", "17", "26"]
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_within,
            variables: {A: {type: within_factor}, "Y": {type: continuous}},
@@ -2034,7 +2040,7 @@ forms:
           - {id: spread, label: "Are the SD and the correlation the same in every condition?", type: select, required: true,
              choices: {same: "Yes: one SD, and one correlation for every pair of conditions", differ: "No: an SD for each condition and a correlation for each pair"},
              default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
-             help: "When they differ, sphericity can fail: choose a correction below if you will report the corrected F test, and compare the MANOVA approach shown with the result."}
+             help: "When they differ, sphericity can fail, so powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise below. Compare the MANOVA approach shown with the result."}
           - {id: sd, writeup_label: "SD", label: "SD (the same in every condition; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: spread, is_not: differ}}
           - {id: sds, writeup_label: "SDs", label: "SDs: one for each condition, in the same order, separated by commas (in the means' units)", type: numbers, per_levels: A_levels, path: population.sd, effect: true,
@@ -2049,7 +2055,8 @@ forms:
           - {id: correction, label: "Sphericity correction of the F test", type: select, path: target_test.correction, required: true,
              shown_if: {field: spread, is: differ},
              choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
-             default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
+             default: GG, default_source: "powerkit's choice: once the SDs or correlations differ, the uncorrected F test gives false positives more often than alpha, and the Greenhouse-Geisser correction is what researchers usually report (Superpower's own default is no correction)",
+             choice_notes: {none: "The uncorrected F test is only valid if sphericity holds. With the SDs and correlations you describe it need not, and the test can then give false positives more often than alpha."}}
       - input: "The ANOVA, Friedman's test, pairwise comparisons or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
@@ -2094,7 +2101,7 @@ forms:
     sensitivity: true
     sides: false
     methods_name: "a mixed ANOVA (between- by within-participants factor)"
-    departures: ["3"]
+    departures: ["3", "26"]
     tool: Superpower
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: mixed,
@@ -2119,7 +2126,7 @@ forms:
           - {id: spread, label: "Are the SD and the correlation the same everywhere?", type: select, required: true,
              choices: {same: "Yes: one SD, and one correlation for every pair of timepoints or conditions", differ: "No: an SD for each cell and a correlation for each pair of timepoints or conditions"},
              default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
-             help: "Scores often spread out over time, and measurements further apart usually correlate less. Then sphericity can fail: choose a correction below if you will report the corrected F test, and compare the MANOVA approach shown with the result."}
+             help: "Scores often spread out over time, and measurements further apart usually correlate less. Then sphericity can fail, so powerkit plans for the Greenhouse-Geisser corrected F tests unless you choose otherwise below. Compare the MANOVA approach shown with the result."}
           - {id: sd, writeup_label: "SD", label: "SD (the same in every cell; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: spread, is_not: differ}}
           - {id: sds, writeup_label: "cell SDs", label: "SDs: one line per group, with one number per timepoint or condition, separated by commas (in the means' units)", type: table, path: population.sd, effect: true,
@@ -2134,7 +2141,8 @@ forms:
           - {id: correction, label: "Sphericity correction of the F tests", type: select, path: target_test.correction, required: true,
              shown_if: [{field: spread, is: differ}, {field: test_version, is_not: aligned_rank_transform}],
              choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
-             default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
+             default: GG, default_source: "powerkit's choice: once the SDs or correlations differ, the uncorrected F test gives false positives more often than alpha, and the Greenhouse-Geisser correction is what researchers usually report (Superpower's own default is no correction)",
+             choice_notes: {none: "The uncorrected F test is only valid if sphericity holds. With the SDs and correlations you describe it need not, and the test can then give false positives more often than alpha."}}
       - input: "Which effect"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,
@@ -2251,7 +2259,7 @@ forms:
     sensitivity: true
     sides: false
     methods_name: "a two-factor within-participants ANOVA"
-    departures: ["3"]
+    departures: ["3", "26"]
     tool: Superpower
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: factorial_within,
@@ -2276,7 +2284,7 @@ forms:
           - {id: spread, label: "Are the SD and the correlation the same in every combination?", type: select, required: true,
              choices: {same: "Yes: one SD, and one correlation for every pair of combinations", differ: "No: an SD for each combination and a correlation for each pair"},
              default: same, default_source: "one SD and one correlation, as Superpower's examples and G*Power's repeated-measures analysis take them",
-             help: "When they differ, sphericity can fail: choose a correction below if you will report the corrected F test, and compare the MANOVA approach shown with the result."}
+             help: "When they differ, sphericity can fail, so powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise below. Compare the MANOVA approach shown with the result."}
           - {id: sd, writeup_label: "SD", label: "SD (the same in every combination; 1 if the means are in SD units)", type: number, path: population.sd, effect: true, min_exclusive: 0,
              shown_if: {field: spread, is_not: differ}}
           - {id: sds, writeup_label: "cell SDs", label: "SDs: one line per level of the first factor, with one number per level of the second, separated by commas (in the means' units)", type: table, path: population.sd, effect: true,
@@ -2291,7 +2299,8 @@ forms:
           - {id: correction, label: "Sphericity correction of the F tests", type: select, path: target_test.correction, required: true,
              shown_if: [{field: spread, is: differ}, {field: test_version, is_not: aligned_rank_transform}],
              choices: {none: "None", GG: "Greenhouse-Geisser", HF: "Huynh-Feldt"},
-             default: none, default_source: "Superpower's default (ANOVA_exact(), Superpower 0.2.4.1), and G*Power's epsilon of 1"}
+             default: GG, default_source: "powerkit's choice: once the SDs or correlations differ, the uncorrected F test gives false positives more often than alpha, and the Greenhouse-Geisser correction is what researchers usually report (Superpower's own default is no correction)",
+             choice_notes: {none: "The uncorrected F test is only valid if sphericity holds. With the SDs and correlations you describe it need not, and the test can then give false positives more often than alpha."}}
       - input: "Which effect"
         fields:
           - {id: effect, label: "Which effect", type: select, path: target_test.effect, required: true,

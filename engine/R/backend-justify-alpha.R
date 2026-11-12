@@ -36,10 +36,17 @@ justified_alpha_power_function <- function(spec, n) {
     return(sprintf("pwrss::power.t.welch(%s, alpha = x)$power", text))
   }
   inputs <- pwr_inputs(spec)
+  if (isTRUE(inputs$against_effect)) {
+    # A one-sided test against the expected correlation: pwr.r.test()
+    # takes the direction itself, where the exact call needs two calls.
+    spec$options$correlation_formula <- "fisher_z"
+    inputs <- pwr_inputs(spec)
+  }
   args <- inputs$args(n)
-  args[[inputs$alpha_arg %||% "sig.level"]] <- NULL
+  alpha_arg <- inputs$alpha_arg %||% "sig.level"
+  args[[alpha_arg]] <- NULL
   text <- paste(sprintf("%s = %s", names(args), vapply(args, r_code, character(1))), collapse = ", ")
-  sprintf("%s::%s(%s, sig.level = x)$power", inputs$package, inputs$fun, text)
+  sprintf("%s::%s(%s, %s = x)$power", inputs$package, inputs$fun, text, alpha_arg)
 }
 
 justify_alpha <- function(spec) {

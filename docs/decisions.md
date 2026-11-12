@@ -147,7 +147,9 @@ Search there for a design, package or date; a reference elsewhere to
   per pair of cells, as E54 asks per pair of conditions.
 - **Correction:** none by default (Superpower's and G\*Power's epsilon of
   1), Greenhouse-Geisser or Huynh-Feldt on request, only where a within
-  factor has three or more levels; not a departure.
+  factor has three or more levels; not a departure. Replaced on 11
+  November 2026: Greenhouse-Geisser by default ("Sphericity correction by
+  default", Departure 26).
 - **Not built:** mixed designs with unequal groups, which Superpower's
   simulation refuses (`next.md`); built since, see "Mixed designs with
   unequal groups" below.
@@ -2705,3 +2707,35 @@ An effect size taken from a convention can be recorded as one
 evidence about the effect: without it, a researcher using Cohen's
 benchmarks had to record the value as a smallest effect of interest.
 Finding the smallest detectable effect asks for no effect-size source.
+
+
+### Sphericity correction by default, 11 November 2026
+
+When a repeated-measures design's SDs or correlations are entered as
+different, the app plans for the Greenhouse-Geisser corrected F test
+unless the user chooses Huynh-Feldt or none (Departure 26 in
+`conventions.md`). The earlier default, no correction, followed
+Superpower's argument default, but the uncorrected test is not valid once
+sphericity fails: in the review's example it rejected a true null 6.7% of
+the time at alpha = .05, and its power (80.5%) was shown beside no warning.
+"None" stays as a choice and carries a warning. The corrected power from
+Superpower's exact data set is itself an approximation (a few points off
+in either direction in the two recorded checks), which the result states
+and the simulation route checks; the open mixed-design discrepancy in
+`validation-log.md` is unchanged by this.
+
+### Exact method for the correlation, 12 November 2026
+
+A Pearson correlation is planned from the exact distribution of r (pwrss's
+`power.exact.onecor()`), G\*Power's default, with pwr's Fisher's z as an
+option (`options > correlation_formula`). This reverses the decision of 17
+October 2026 to keep Fisher's z (Departure 10, now retired). That decision
+rested on the two methods agreeing within 0.004 in power for r = .3 to .5;
+outside that range they do not (r = .9, N = 6: 77.2% against 81.6%), the
+exact method is in a package powerkit already calls, and a researcher
+comparing powerkit with G\*Power met the difference on the first
+correlation tried (85 against 84 for r = .3). A correlation that varies
+between studies stays on Fisher's z, where McShane and Bockenholt's method
+is defined, and its comparisons with no variation are made on the same
+scale. The Labs power picture still draws Fisher's z curves.
+

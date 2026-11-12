@@ -943,6 +943,13 @@
             "minimum": 1
           }
         },
+        "correlation_formula": {
+          "description": "Pearson's correlation only, with method exact: exact (the default) is the exact distribution of r under a bivariate normal population, as in G*Power, via pwrss::power.exact.onecor(); fisher_z is pwr's formula on Fisher's z (pwr.r.test()), an approximation. A correlation that varies between studies (population > tau) is always planned on Fisher's z.",
+          "enum": [
+            "exact",
+            "fisher_z"
+          ]
+        },
         "proportions_formula": {
           "description": "Two proportions only, with method exact: z_test (the default) is the z test of two proportions with pooled variance under the null and no continuity correction, as in G*Power, via stats::power.prop.test() for equal groups and pwrss::power.z.twoprops() for unequal groups; arcsine is pwr's formula with Cohen's h (pwr.2p2n.test()).",
           "enum": [
