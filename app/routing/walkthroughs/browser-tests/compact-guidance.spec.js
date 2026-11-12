@@ -63,7 +63,7 @@ for (const width of [1100, 375, 320]) test(`compact guidance is optional, access
   await page.screenshot({ path: info.outputPath('compact-input-form.png'), fullPage: true });
 });
 
-test('compact results fold interpretation but keep the answer and analysis visible', async ({ page }) => {
+test('compact results keep the answer, its plain reading and the analysis visible', async ({ page }) => {
   await open(page);
   for (const [id, value] of Object.entries({ power: '0.9', d: '0.4', alpha: '0.05', alternative: 'two_sided',
     just_type: 'smallest_effect_of_interest', just_source: 'Fictional compact-mode check.' })) await put(page, id, value);
@@ -72,7 +72,7 @@ test('compact results fold interpretation but keep the answer and analysis visib
   await expect(page.locator('.result-panel')).toBeVisible();
   await expect(page.locator('.result-figure-value')).toBeVisible();
   await expect(page.locator('.result-analysis')).toContainText("Welch");
-  await expect(page.locator('.result-reading')).toBeHidden();
-  await page.locator('#result-reading-info > summary').click();
-  await expect(page.locator('.result-reading')).toBeVisible();
+  // The plain reading is part of the answer's sentence (design review
+  // D-22), so it stays visible when explanations are off.
+  await expect(page.locator('.result-headline .result-reading')).toBeVisible();
 });

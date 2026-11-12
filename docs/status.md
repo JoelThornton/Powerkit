@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 12 November 2026 (regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -34,7 +34,10 @@ analysis list shows its groups in two columns and finds the names
 researchers use, such as Cohen's f or mixed ANOVA. On the form, the
 goal and the test's direction are rows of buttons, the bar names the
 answers still needed, and the effect section uses the same white cards
-as the rest (`decisions.md`, 12 November 2026).
+as the rest. The result says the answer once, with the sample size at
+other powers and significance levels in a small table, and keeps the
+records for checking it under one "Technical records" fold
+(`decisions.md`, 12 November 2026).
 
 Every route through the design finder now ends on a card that can hold
 the user's answers or says at the top what it can't do (the equivalence

@@ -535,6 +535,33 @@ app_css <- "
   .result-main.has-hero > p:not(.result-headline):not(.result-reading):not(.result-guess) { font-size: 0.92rem; color: #4a5568; margin-bottom: 0.45rem; }
   .result-main.has-hero .result-reading { font-size: 1rem; }
   .result-save .nav-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  /* The answer said once (design review D-22, 12 November 2026). */
+  #result-heading:focus { outline: none; }
+  #result-heading:focus-visible { outline: 3px solid var(--pk-blue); outline-offset: 3px; border-radius: 4px; }
+  .result-main.has-hero .result-headline .result-reading { font-size: inherit; }
+  .result-compare { margin: 0.75rem 0 1rem; }
+  .result-compare-tables { display: flex; flex-wrap: wrap; gap: 0.75rem 2rem; }
+  .result-compare-table { border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+  .result-compare-table caption { caption-side: top; padding: 0 0 0.25rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: #5a6b85; }
+  .result-compare-table th, .result-compare-table td { padding: 0.3rem 0.85rem 0.3rem 0; text-align: left; vertical-align: top; border-bottom: 1px solid var(--pk-line); }
+  .result-compare-table thead th { font-weight: 600; color: #4a5568; }
+  .result-compare-table tbody th { font-weight: 500; color: #4a5568; padding-right: 1.25rem; }
+  .result-compare-table td { color: #1f2d45; }
+  .result-compare-table .is-current { font-weight: 700; color: var(--pk-navy); }
+  .result-compare-groups { display: block; font-size: 0.78rem; font-weight: 400; color: #5a6b85; }
+  .result-compare-note { font-size: 0.85rem; color: #4a5568; margin: 0.4rem 0 0; }
+  .result-main .result-details { font-size: 0.88rem; color: #4a5568; margin: 0.75rem 0 0.5rem; }
+  .result-main .result-details > strong { color: #2d3b52; }
+  /* Downloads (D-24) and the technical records (D-23). */
+  .result-downloads-notes { list-style: none; padding: 0; margin: 0.6rem 0 0.25rem; color: #4a5568; }
+  .result-downloads-notes li { margin: 0.1rem 0; }
+  .simulated-data { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--pk-line); }
+  .simulated-data-note { margin: 0.4rem 0 0; }
+  .result-how details.result-validation, .result-how details.result-more { margin: 0.25rem 0 0; }
+  .result-how details.result-validation > summary, .result-how details.result-more > summary,
+  .simulated-data-more > summary { cursor: pointer; color: var(--pk-blue); font-size: 0.95rem; min-height: 36px; display: flex; align-items: center; }
+  .result-how h4.h6 { margin-top: 1rem; }
+  .result-records-body { border-left: 3px solid var(--pk-line); padding: 0.25rem 0 0.25rem 1rem; margin: 0.25rem 0 0.5rem; }
   .result-sure .explore-panel, .result-sure .scenario-panel { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--pk-line); }
   .result-learn { margin: 0.75rem 0 1rem; color: #3d4852; }
   .writeup-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0 0.3rem 0; }
@@ -740,10 +767,15 @@ copy_js <- "
   // so everyone sees it and keyboard and screen-reader users hear it. The
   // message can arrive before or after the new result is drawn, so this
   // waits briefly for the output's content to change, and shows it then.
+  // A finished result moves focus to its \u201cYour result\u201d heading, so a
+  // screen reader starts at the answer rather than the section links
+  // (design review D-31); the window still shows the whole panel.
   window.pkShowResult = function(id) {
     var el = document.querySelector('#' + id + ' [tabindex]') || document.getElementById(id);
     if (!el) return;
     el.scrollIntoView({ block: 'start' });
+    var h = document.querySelector('#' + id + ' [data-result-focus]');
+    if (h) { h.focus({ preventScroll: true }); return; }
     if (el.hasAttribute('tabindex')) el.focus({ preventScroll: true });
   };
   window.pkResultWatch = {};
