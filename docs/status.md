@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 12 November 2026 (small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -303,7 +303,10 @@ and automated accessibility checks passed locally for the exercised routes.
   The design finder's "Replicate a published finding" asks the original
   study's design (12 November 2026): the planner's four designs link to
   it from their card, and every other design plans the replication on
-  its own card. The replication plan that wraps any card is queued
+  its own card. The planner gives its simple answer first (12 November
+  2026): a button at the end of section 1, and one sentence with the
+  sample size for a significant result again, as reported and shrunk,
+  above the table. The replication plan that wraps any card is queued
   (`next.md` items 21 to 23).
 
 PR #368 added selectable continuity-corrected two-proportion and

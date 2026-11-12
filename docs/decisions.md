@@ -3048,3 +3048,19 @@ The optional reasons for the write-up ("Why this significance level",
 "Why this target power" and the like) are one closed "Add a reason for
 the write-up" line. The effect size's own reason stays in view, because
 the write-up and saved files say when it is missing.
+
+### The replication planner's simple answer first, 12 November 2026
+
+The planner asked for a goal, three beliefs about the true effect and
+several settings before showing any number, and its result was a table
+of six goals by three beliefs. Most people planning a replication first
+want the sample size for a significant result again, the goal the
+planner's other goals (Anderson & Maxwell, 2016) are compared with.
+Section 1 now ends with a button that plans straight from the original
+study, using section 2's settings, and the result opens with one
+sentence: the sample size for a significant result again in the
+original's direction if the true effect is as large as reported, and if
+it is shrunk towards zero. Both beliefs are given, not only the
+reported one, because planning on a published effect as reported
+usually underpowers a replication. The numbers are the table's own;
+the table and the other goals follow, so nothing is hidden.

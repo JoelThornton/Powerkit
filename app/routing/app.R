@@ -2359,11 +2359,22 @@ server <- function(input, output, session) {
       # A new step after going back drops the steps that were ahead.
       if (nav$pos < length(nav$snaps)) nav$snaps <- nav$snaps[seq_len(nav$pos)]
       snap <- nav_snapshot(); snap$key <- key
-      nav$snaps[[nav$pos + 1L]] <- snap
-      nav$pos <- nav$pos + 1L
-      session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L,
-        page = page_slug(input$tabs), tool = if (identical(input$tabs, labs_tab_title)) input$labs_tool %||% "" else "",
-        card = card_in_address(state$screen, state$endpoint, input$tabs)))
+      push <- function(snap, tool) {
+        nav$snaps[[nav$pos + 1L]] <- snap
+        nav$pos <- nav$pos + 1L
+        session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L,
+          page = page_slug(input$tabs), tool = tool, card = card_in_address(snap$screen, snap$endpoint, snap$tab)))
+      }
+      tool <- if (identical(input$tabs, labs_tab_title)) input$labs_tool %||% "" else ""
+      # A tool opened straight after the Labs tab (both changes arriving
+      # together) still gets the Labs menu as its own entry, so Back
+      # returns to the menu rather than leaving Labs.
+      if (nzchar(tool) && nav$pos > 0 && !identical(nav$snaps[[nav$pos]]$tab, labs_tab_title)) {
+        menu <- snap; menu$labs_tool <- ""
+        menu$key <- nav_key(state$screen, state$node, state$endpoint, length(state$history), input$tabs, "")
+        push(menu, "")
+      }
+      push(snap, tool)
     })
   })
   observeEvent(input$pk_nav_to, {
