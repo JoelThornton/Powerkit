@@ -3011,3 +3011,25 @@ The result and the write-up show the conversion. The power is the same
 as for the R-squared values that give that f-squared, and equals the
 noncentral F power with lambda = f^2 N
 (engine/tests/testthat/test-effect-conversion-f2.R).
+
+### The result said once, 12 November 2026
+
+The result's answer card repeated the answer three or four times (the
+figure, the headline, an "In plain words" paragraph, the comparison
+sentences and the power at the whole sample size), in alternating dark
+and grey text. It now shows the figure, then one sentence with its
+plain reading ("If the true effect is the one you entered, about 8 in
+10 studies like this would get a significant result"), then the sample
+size at 80%, 90% and 95% power and at alpha .05, .01 and .005 as two
+small tables with the level used marked, then one smaller "Details"
+paragraph (the usual tool's answer, the power reached, the effect
+size's source, how the number was found), then the notes. The plain
+reading is part of the answer and is shown whether explanations are on
+or off. "How it was calculated" keeps the checks and the differences
+from the usual tools in view, as the conventions rule requires, and
+puts the values and seed, the technical details, the versions and the
+spec file under one "Technical records" fold. The R script is the
+main download; the planning document, project file and citations are
+equal buttons beside it, each explained in one line. After calculating,
+focus moves to the "Your result" heading, so a screen reader starts at
+the answer.

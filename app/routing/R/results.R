@@ -1232,6 +1232,27 @@ plain_reading <- function(power, outcome = "get a significant result",
   sprintf("In plain words: if %s, about %s studies like this would %s. %s", condition, count, outcome, if_not)
 }
 
+# The plain reading as the second sentence of the headline (D-22): without
+# its "In plain words:" label, starting with a capital.
+reading_sentence <- function(reading) {
+  x <- sub("^In plain words: ", "", reading)
+  paste0(toupper(substr(x, 1, 1)), substring(x, 2))
+}
+
+# The lines that support the answer, in one smaller paragraph under it
+# (D-22): the usual tool's answer, the power reached at the whole sample
+# size, where the effect size comes from and how the number was found.
+result_details_ui <- function(usual, actual, reasoning, detail) {
+  parts <- list(
+    if (!is.null(usual)) tags$span(class = "result-usual-line", usual),
+    if (!is.null(actual)) tags$span(class = "result-actual-power", actual),
+    if (!is.null(reasoning)) tags$span(class = "result-reasoning", reasoning),
+    if (!is.null(detail) && !is.na(detail) && nzchar(detail)) tags$span(class = "result-detail", detail))
+  parts <- Filter(Negate(is.null), parts)
+  if (!length(parts)) return(NULL)
+  p(class = "result-details", tags$strong("Details. "), lapply(parts, function(x) tagList(x, " ")))
+}
+
 # What power can't tell you, under every result.
 power_limits <- "Power is only about how often a study like this would get a significant result. It can't tell you whether your measures are valid and reliable, whether the design tests your theory, or whether the effect is worth caring about."
 
@@ -1527,11 +1548,16 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
   n <- if (length(ns) == length(powers)) unlist(ns) else vapply(powers, function(p) as.numeric(n_at(p)), numeric(1))
   if (anyNA(n)) return(NULL)
   together <- if (!identical(claim_power(0.8, values), 0.8)) " (for all the tests together)" else ""
-  sprintf(
+  text <- sprintf(
     "For comparison: 80%% power%s needs %s %s%s; 90%% power needs %s%s; 95%% power needs %s%s. Which you choose, and why, belongs in your write-up.",
     together, whole(n[[1]]), n_unit(spec) %||% "participants", group_text(spec, n[[1]]),
     whole(n[[2]]), group_text(spec, n[[2]]), whole(n[[3]]), group_text(spec, n[[3]])
   )
+  # The numbers, for the result's comparison table (comparison_ui()).
+  structure(text, table = list(title = paste0("Target power", together), levels = c("80%", "90%", "95%"), n = n,
+    groups = vapply(n, function(x) trimws(gsub("[()]", "", group_text(spec, x))), character(1)),
+    current = which(vapply(c(0.8, 0.9, 0.95), function(x) isTRUE(all.equal(x, spec$goal$power)), logical(1))),
+    note = "Which power you choose, and why, belongs in your write-up."))
 }
 
 # What the significance level costs: the sample size at .05, .01 and .005
@@ -1552,8 +1578,39 @@ alpha_cost_line <- function(spec, result, run = engine_function("run_spec"), see
     if (identical(calc$status, "ok")) as.numeric(calc$result$n_required$n) else NA_real_
   }, numeric(1))
   if (anyNA(n)) return(NULL)
-  sprintf("What the significance level costs, at the same power: .05 needs %s %s; .01 needs %s; .005 needs %s. A lower level means fewer false positives and more people.",
+  text <- sprintf("What the significance level costs, at the same power: .05 needs %s %s; .01 needs %s; .005 needs %s. A lower level means fewer false positives and more people.",
     whole(n[[1]]), n_unit(spec) %||% "participants", whole(n[[2]]), whole(n[[3]]))
+  structure(text, table = list(title = "Significance level, at the same power", levels = c(".05", ".01", ".005"), n = n,
+    groups = vapply(n, function(x) trimws(gsub("[()]", "", group_text(spec, x))), character(1)),
+    current = which(vapply(levels, function(a) isTRUE(all.equal(a, spec$target_test$alpha)), logical(1))),
+    note = "A lower level means fewer false positives and more people."))
+}
+
+# The comparison under the answer (design review D-22, 12 November 2026):
+# the sample size at other target powers and other significance levels, as
+# one or two small tables side by side rather than sentences, with the
+# level used marked. A line without its numbers (an older caller) is shown
+# as the sentence it is.
+comparison_ui <- function(spec, ...) {
+  lines <- Filter(Negate(is.null), list(...))
+  if (!length(lines)) return(NULL)
+  unit <- n_unit(spec) %||% "participants"
+  one <- function(line) {
+    t <- attr(line, "table")
+    if (is.null(t)) return(p(class = "result-cost-line", as.character(line)))
+    cell <- function(i, tag) tag(class = if (i %in% t$current) "is-current",
+      whole(t$n[[i]]), if (nzchar(t$groups[[i]])) tags$span(class = "result-compare-groups", t$groups[[i]]))
+    tags$table(class = "result-compare-table",
+      tags$caption(t$title),
+      tags$thead(tags$tr(tags$th(scope = "col", class = "visually-hidden", "Level"),
+        lapply(seq_along(t$levels), function(i) tags$th(scope = "col", class = if (i %in% t$current) "is-current",
+          t$levels[[i]], if (i %in% t$current) tags$span(class = "visually-hidden", " (yours)"))))),
+      tags$tbody(tags$tr(tags$th(scope = "row", paste0(toupper(substr(unit, 1, 1)), substring(unit, 2))), lapply(seq_along(t$n), cell, tag = tags$td))))
+  }
+  notes <- Filter(Negate(is.null), lapply(lines, function(l) attr(l, "table")$note))
+  div(class = "result-compare",
+    div(class = "result-compare-tables", lapply(lines, one)),
+    if (length(notes)) p(class = "result-compare-note", paste(notes, collapse = " ")))
 }
 
 # Welch's t-test is powerkit's default for two groups; G*Power and pwr plan
@@ -2421,7 +2478,7 @@ known_differences_for <- function(forms, ep_id, spec = NULL) {
 
 validation_ui <- function(ep, result = NULL) {
   tagList(evidence_ui(result$provenance$evidence),
-    tags$details(tags$summary("Checks for this analysis in general"), p(ep$validation$note %||% "No design-level note is recorded.", " ", validation_scope_note)))
+    tags$details(class = "result-validation small", tags$summary("Checks for this analysis in general"), p(ep$validation$note %||% "No design-level note is recorded.", " ", validation_scope_note)))
 }
 
 provenance_lines <- function(result) {
@@ -2794,7 +2851,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     class = "result-panel", role = "status", tabindex = "-1",
     result_sections_ui(as.list(sections[!is.na(sections)])),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
-    h3(class = "h4", "Your result"),
+    h3(class = "h4", id = "result-heading", tabindex = "-1", `data-result-focus` = "true", "Your result"),
     mediation_estimate_ui(spec),
     planning_warnings_ui(spec, result),
     simulation_failures_ui(result),
@@ -2805,13 +2862,13 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(interaction_verification_values(calc, values))) tagList(
       actionButton("verify_interaction", "Check this effect by simulation", class = "btn btn-outline-primary"),
       p(class = "small", "Keeps this sample size and the other assumptions, puts the proposed effect into a power calculation, and lets you check it before running.")),
-    p(class = "result-headline lead", words[["headline"]]),
+    # The answer once (design review D-22): the headline with its plain
+    # reading, the comparison as a small table, and the supporting lines
+    # together in one smaller "Details" paragraph below.
+    p(class = "result-headline lead", words[["headline"]],
+      if (!is.na(words["reading"])) tagList(" ", tags$span(class = "result-reading", reading_sentence(words[["reading"]])))),
     if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
-    if (!is.na(words["reading"])) explanation_ui("result-reading-info", "Reading this result", p(class = "result-reading", words[["reading"]])),
-    if (!is.null(calc$cost_line)) p(class = "result-cost-line", calc$cost_line),
-    if (!is.null(calc$alpha_line)) p(class = "result-cost-line result-alpha-line", calc$alpha_line),
-    if (!is.null(calc$usual_line)) p(class = "result-cost-line result-usual-line", calc$usual_line),
-    if (!is.null(line <- reasoning_line(values))) explanation_ui("result-reasoning-info", "Your effect-size reasoning", p(class = "result-reasoning", line)),
+    comparison_ui(spec, calc$cost_line, calc$alpha_line),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(gd <- group_d_sentence(result))) p(class = "result-conversion", gd),
     if (!is.null(sg <- safeguard_sentence(result))) p(class = "result-safeguard", sg),
@@ -2821,11 +2878,10 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     heterogeneity_range_ui(result),
     if (!is.null(t1 <- type1_sentence(result))) p(class = "result-type1", t1),
     source_stale_ui(fields, values),
-    if (!is.null(actual <- actual_power_sentence(spec, result))) p(class = "result-actual-power", actual),
     if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
       p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
       p(class = "small", recruit[["caveat"]])),
-    p(class = "result-detail", words[["detail"]]),
+    result_details_ui(calc$usual_line, actual_power_sentence(spec, result), reasoning_line(values), words[["detail"]]),
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
     # Not when the only difference is Welch's test and Student's answer,
     # shown just above, is the same: then the usual tools agree.
@@ -2853,14 +2909,19 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (blank(values$just_source)) p(class = "export-needs-reasoning",
       tags$strong("No reason for the effect size is recorded yet. "),
       "The write-up and saved files say so. To add one, write it under \u201cWhere your effect size comes from\u201d and press \u201cCalculate\u201d again."),
-    div(class = "nav-buttons",
-      if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
-      download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
-      if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
+    # One main download and a row of equal secondary ones, each explained
+    # in one short line below (design review D-24, 12 November 2026).
+    div(class = "nav-buttons result-downloads",
+      if (can_export) download_button("download_script", "Download R script", class = "btn btn-primary"),
       if (can_export) document_menu("planning_document", "download_planning_docx", "download_planning_document",
-        "Planning document (PDF)", "the planning document")),
+        "Planning document (PDF)", "the planning document"),
+      if (can_export) download_button("download_project", "Save project", class = "btn btn-outline-primary"),
+      download_button("download_citations", "Citations", class = "btn btn-outline-primary")),
+    tags$ul(class = "result-downloads-notes small",
+      if (can_export) tags$li(tags$strong("R script: "), "reproduces this result with ", p_$backend, " alone; powerkit isn't needed."),
+      if (can_export) tags$li(tags$strong("Save project: "), "your answers, values, seed and result in one file; open it from the start screen to carry on."),
+      tags$li(tags$strong("Citations: "), "the package's own citation(), its method paper and the software used.")),
     if (can_export) uiOutput("study_plan_bar"),
-    p(class = "small", "The R script reproduces this result with ", p_$backend, " alone (powerkit isn't needed). Citations lists the package's own citation(), its method paper and the software used. Save project keeps your answers, values, seed and result in one file on your computer; open it from the start screen to carry on or reproduce the result."),
     simulated_data_ui(spec, result)),
     div(class = "result-card result-how", id = "result-how-card",
     h4(class = "h5", "How it was calculated"),
@@ -2871,7 +2932,6 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
         "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations above."),
     validation_ui(ep, result),
-    technical_details_ui(result),
     if (length(departures_in_view)) tagList(
       h4(class = "h6", "Where powerkit differs from the tool's defaults"),
       tags$ul(class = "result-departures", lapply(unname(departures_in_view), tags$li))
@@ -2883,19 +2943,25 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       h4(class = "h6", "Where other established tools give a different answer"),
       tags$ul(class = "result-known-differences", lapply(unname(known), tags$li))
     ),
-    tags$details(class = "result-more",
-      tags$summary("More about this result: the values it used, the seed, and what power can't tell you"),
-      h4(class = "h6", "What this result used"),
-      tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li)),
-      p(class = "result-seed small",
-        sprintf("Seed: %s. ", p_$seed),
-        if (simulated(result)) "You can change it under \u201cRandom seed\u201d above and calculate again." else
-          "Nothing was simulated, so the seed doesn't change this result in practice."),
-      p(class = "result-observed small", not_observed_power),
-      p(class = "result-limits small", if (is_bayes_test(spec)) bayes_wording(power_limits) else power_limits)),
     placeholders_at(tree, "result"),
-    tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
-    tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
+    # The records a reader rarely needs, under one fold with plain titles
+    # (design review D-23, 12 November 2026); the differences from the
+    # usual tools stay visible above.
+    tags$details(class = "result-more result-records",
+      tags$summary("Technical records: values used, seed, versions and the spec file"),
+      div(class = "result-records-body",
+        tags$details(class = "result-more",
+          tags$summary("Values and seed used, and what power can't tell you"),
+          tags$ul(class = "result-inputs", lapply(entered_lines(fields, values), tags$li)),
+          p(class = "result-seed small",
+            sprintf("Seed: %s. ", p_$seed),
+            if (simulated(result)) "You can change it under \u201cRandom seed\u201d above and calculate again." else
+              "Nothing was simulated, so the seed doesn't change this result in practice."),
+          p(class = "result-observed small", not_observed_power),
+          p(class = "result-limits small", if (is_bayes_test(spec)) bayes_wording(power_limits) else power_limits)),
+        technical_details_ui(result),
+        tags$details(class = "result-more", tags$summary("Versions and spec hash (reproducibility record)"), tags$ul(lapply(provenance_lines(result), tags$li))),
+        tags$details(class = "result-more", tags$summary("Spec file: the design that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))))
   )
 }
 
@@ -3470,13 +3536,17 @@ simulated_data_ui <- function(spec, result) {
   if (!available) {
     return(p(class = "small simulated-data-unavailable", "A simulated data set isn't available for this design yet."))
   }
+  # One line visible, the rest a click away (design review D-24).
   div(class = "simulated-data",
     download_button("download_simulated_data", sprintf("Simulated data set (CSV, n = %s)", format(n)), class = "btn btn-outline-secondary"),
     p(class = "small simulated-data-note", tags$strong("Simulated, not real data. "),
-      "One made-up data set of the planned size, drawn from the population you entered. Use it to write and check your analysis code (in R, SPSS, JASP, jamovi or Python) before the real data arrive. It is not evidence, not a pilot, and not a substitute for your analysis plan. Every row says SIMULATED_NOT_REAL_DATA in its first column, and the R script builds the same data set.",
-      # A choice the data set makes that the plan leaves open (the engine's
-      # simulated_data_note()).
-      tryCatch(engine_function("simulated_data_note")(spec), error = function(e) NULL)))
+      "A made-up data set of the planned size, for writing and checking your analysis code before the real data arrive."),
+    tags$details(class = "result-more simulated-data-more small",
+      tags$summary("More about the simulated data"),
+      p("Drawn from the population you entered. Use it in R, SPSS, JASP, jamovi or Python. It is not evidence, not a pilot, and not a substitute for your analysis plan. Every row says SIMULATED_NOT_REAL_DATA in its first column, and the R script builds the same data set.",
+        # A choice the data set makes that the plan leaves open (the engine's
+        # simulated_data_note()).
+        tryCatch(engine_function("simulated_data_note")(spec), error = function(e) NULL))))
 }
 
 # The n the simulated data set uses: the required n for a sample-size
@@ -3693,7 +3763,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
     class = "result-panel", role = "status", tabindex = "-1",
     result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
-      h3(class = "h4", "Your result"),
+      h3(class = "h4", id = "result-heading", tabindex = "-1", `data-result-focus` = "true", "Your result"),
       simulation_failures_ui(result),
       hero,
       p(class = "result-headline lead", words[["headline"]]),
