@@ -757,6 +757,12 @@ with_eta_squared <- function(group, template) {
     if (isTRUE(f$effect) || isTRUE(f$in_effect_text) || identical(f$id, "sd_mode")) {
       f$shown_if <- c(shown_if_conditions(f), list(by_means))
     }
+    # The table of means offers the effect size in its place, so the
+    # option isn't only a choice under "Units of the means" (12 November 2026).
+    if (identical(f$type, "table") && identical(f$path, "population.means")) {
+      f$alternative <- list(field = "metric", value = "eta_squared",
+        label = if ("f" %in% conversion_choices[[template]]) "Give partial eta-squared or Cohen's f instead" else "Give partial eta-squared instead")
+    }
     f
   }
   mixed <- template %in% eta_squared_mixed_templates

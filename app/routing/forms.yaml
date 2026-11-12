@@ -742,6 +742,7 @@ forms:
              choices: {proportion: "As a table of proportions", w: "As an effect size: Cohen's w, as in G*Power"},
              default: proportion, default_source: "the proportions, from which pwr's ES.w2() works out Cohen's w (pwr 1.3-0); pwr.chisq.test() itself takes w"}
           - {id: probabilities, label: "Proportions: one line per category of the first variable, one number per category of the second, separated by commas", type: table, path: population.probabilities, effect: true, when_empty: no_association,
+             alternative: {field: chisq_metric, value: w, label: "Give Cohen's w instead"},
              shown_if: {field: chisq_metric, is_not: w}}
           - {id: w, label: "Cohen's w", writeup_label: "Cohen's w", type: number, path: population.w, effect: true, min_exclusive: 0,
              help: "Cohen's w for the association, as G*Power takes it. The degrees of freedom come from the numbers of categories. powerkit treats it as the true effect; a published value tends to be too large.",

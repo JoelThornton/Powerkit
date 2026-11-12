@@ -2884,3 +2884,27 @@ many trials now reach the repeated counts and ratings card (E75), whose
 design they are. Building equivalence or other outcomes into those cards
 is separate work; the note is the minimum so that no route drops an
 answer silently.
+
+### Tables of means entered in a labelled grid, 12 November 2026
+
+Cards whose effect is a pattern of means, SDs or proportions across
+groups and outcomes, conditions or factor levels asked for it as text,
+one line per row and one number per column, with the order of rows set
+out in the label. That is hard to follow and easy to get wrong in the
+order. Each such table is now a grid: its rows and columns are named
+from the levels the user has already typed (a count such as 3 gives
+Group 1 to Group 3, as elsewhere), combinations of two factors are rows
+named "first × second", and each box takes one number. An example shows
+a filled grid, and one line says why powerkit asks for means: they can be
+justified from earlier studies or from the difference that would matter,
+and powerkit works out the effect size from them, where a single effect
+size such as f or Pillai's V hides which differences it assumes. The
+grid writes into the same text value as before, so checks, saved work,
+drafts and exports are unchanged, and "Type it as text instead" shows the
+text box for pasting. Means stay the default. Where a card already
+takes one overall effect size (Cohen's w on the chi-square card, partial
+eta-squared on the ANOVA and ANCOVA cards), a link beside the grid
+switches to it; until now it was a choice under "Units of the means".
+Cards without one (MANOVA, the within-participants factorial and the
+logistic factorial) are separate work.
+
