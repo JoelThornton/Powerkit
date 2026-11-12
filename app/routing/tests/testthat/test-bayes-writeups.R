@@ -72,7 +72,8 @@ test_that("a plan that reports both has a write-up with the Bayes factor as its 
   html <- as.character(bayes_companion_ui(calc$spec, calc$result, comp, w))
   expect_match(html, "Write-up for both", fixed = TRUE)
   expect_match(html, "writeup_both_short", fixed = TRUE)
-  # Without a write-up (no reasoning given yet), the short wording stays.
+  # With no reasoning given, the write-up says so.
   expect_match(as.character(bayes_companion_ui(calc$spec, calc$result, comp)), "Wording for your plan", fixed = TRUE)
-  expect_null(bayes_companion_writeup(forms$forms$E2, calc$spec, calc$result, fields, modifyList(values, list(just_source = "")), comp))
+  expect_match(bayes_companion_writeup(forms$forms$E2, calc$spec, calc$result, fields, modifyList(values, list(just_source = "")), comp)[["short"]],
+    "No justification for the effect size was recorded.", fixed = TRUE)
 })

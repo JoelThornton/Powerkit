@@ -11,7 +11,7 @@ async function put(page,id,value){
 }
 test('all-test planning starts with unknown dependence and evidence follows complete inputs',async({page})=>{
  await open(page,'E2');
- await expect(page.locator('#selected_evidence')).toContainText('Complete the required answers');
+ await expect(page.locator('#selected_evidence')).not.toContainText('Checks covering my selected settings');
  await put(page,'claim','all'); await put(page,'n_tests','2');
  await expect(page.locator('#f_all_dependence')).toHaveValue('unknown');
  await put(page,'goal','power'); await put(page,'method','student_t');

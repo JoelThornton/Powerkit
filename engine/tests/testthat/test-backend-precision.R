@@ -91,6 +91,15 @@ test_that("a standardised mean and d_z are MBESS's ss.aipe.sm()", {
   expect_identical(run_quietly(paired)$precision$n, r$precision$n)
   lims <- MBESS::ci.sm(sm = 0.5, N = r$precision$n, conf.level = 0.95)
   expect_equal(r$precision$width, lims$Upper.Conf.Limit.Standardized.Mean - lims$Lower.Conf.Limit.Standardized.Mean)
+  # With assurance, the input screen's starting choice for these two
+  # estimates: the schema refused it until 11 November 2026.
+  for (spec in list(one, paired)) {
+    spec$goal$assurance <- 0.9
+    sure <- run_quietly(spec)
+    expect_identical(sure$precision$n, as.integer(MBESS::ss.aipe.sm(sm = 0.5, width = 0.4, conf.level = 0.95, assurance = 0.9)))
+    expect_equal(sure$precision$assurance, 0.9)
+    expect_gt(sure$precision$n, r$precision$n)
+  }
 })
 
 test_that("the exported script reproduces the sample size and width with the package alone", {

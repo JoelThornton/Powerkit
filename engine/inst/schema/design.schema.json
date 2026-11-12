@@ -282,7 +282,7 @@
       ]
     },
     "effect_justification": {
-      "description": "Why the effect size is what it is: it feeds the write-up and prevents unexamined 'medium effect' defaults. 'none' records honestly that no effect size can be justified (for example with a fixed sample size). The source, the user's reasoning, is optional in the spec; the app asks for it before a plan is saved or exported.",
+      "description": "Why the effect size is what it is: it feeds the write-up and prevents unexamined 'medium effect' defaults. 'convention' records that the value is a benchmark such as Cohen's small, medium or large, not evidence about the effect. 'none' records honestly that no effect size can be justified (for example with a fixed sample size). The source, the user's reasoning, is optional in the spec; the app asks for it before a plan is saved or exported.",
       "type": "object",
       "required": [
         "type"
@@ -295,6 +295,7 @@
             "meta_analysis",
             "prior_study",
             "pilot_study",
+            "convention",
             "own_study_result",
             "none"
           ]
@@ -9914,11 +9915,6 @@
               ]
             }
           }
-        },
-        "goal": {
-          "properties": {
-            "assurance": false
-          }
         }
       }
     },
@@ -9966,11 +9962,6 @@
                 "noncentral_t"
               ]
             }
-          }
-        },
-        "goal": {
-          "properties": {
-            "assurance": false
           }
         }
       }

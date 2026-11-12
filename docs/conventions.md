@@ -392,18 +392,41 @@ because `power_twoprop()` takes one group size. The required n agrees
 with TOSTER's own solution for n, rounded up (unit tests). Not a
 departure: TOSTER's own calculation.
 
-**Non-inferiority (from 29 October 2026, 0.22.0).** G\*Power plans
-non-inferiority as a one-sided test against the margin (the t tests with
-a shifted null). powerkit does the same with pwrss's `power.t.student()`
-and `power.z.twoprops()` (`margin`, `alternative = "one.sided"`, pwrss
-0.3.1 help). The effect is passed with better as positive and the margin
-as −margin. pwrss chooses the side of a one-sided test from the sign of
-the effect minus the margin, not from the margin alone (checked: margins
-of −0.3 and +0.3 give the same power at d = 0), so powerkit refuses an
-expected effect at or beyond the margin rather than let the test run the
-wrong way. Group 2 is the new condition. The usual one-sided alpha in
-non-inferiority trials is 0.025; the screen's default alpha stays 0.05
-and the example specs use 0.025. Not a departure: pwrss's own test.
+**Non-inferiority (from 29 October 2026, 0.22.0; t-tests corrected 11
+November 2026).** G\*Power plans non-inferiority as a one-sided test
+against the margin (the t tests with a shifted null). For the t-tests
+powerkit does the same: the margin is a fixed amount in the outcome's own
+units, the analysis is an ordinary one-sided t-test of the difference from
+−margin (`t.test(mu = -margin)`), and its power is that of a one-sided
+t-test of the expected effect plus the margin against 0. pwrss's
+`power.t.student()` computes it, given `d = effect + margin` and
+`margin = 0`. Until 11 November 2026 powerkit passed the margin through
+pwrss's own `margin` argument, which holds the margin fixed in SD units
+(a noncentral t under the null); that is a different test with slightly
+higher power, and it returned sample sizes about two smaller than the
+shifted test needs (one sample, margin 0.3, one-sided alpha .025, 80%
+power: 88 rather than 90, which pwr's one-sided t-test and a simulation of
+`t.test(mu = -0.3)` both confirm). Two proportions still use
+`power.z.twoprops()` with `margin`, where the margin is a difference in
+proportions and no such distinction arises. The effect is passed with
+better as positive; powerkit refuses an expected effect at or beyond the
+margin. Group 2 is the new condition. The usual one-sided alpha in
+non-inferiority trials is 0.025; the example specs use 0.025. The
+minimum-effect test versions of the t-test cards still use pwrss's
+`margin` (Known difference 10): whether they should follow is an open
+question.
+
+**Group sizes given as a ratio (from 11 November 2026).** powerkit plans
+whole groups in the ratio entered, so the total moves in steps (2 for
+equal groups, 3 for 1 : 2). A ratio typed as a rounded decimal is exact
+only in very large steps (0.67 is 67 : 100, a step of 167), which made the
+sample size search overshoot (167 where about 133 are needed). When the
+exact split needs a step above 50, powerkit plans the simplest
+whole-number split that rounds to the ratio as entered (2 : 3 for 0.67,
+1 : 3 for 0.33, 19 : 26 for 1.37) and says so on the result and in the
+methods paragraph. G\*Power instead searches every total and rounds each
+group; powerkit's answer can be a few people higher because the total
+still moves in steps of the simplified split.
 
 ## Cluster-randomised trials (whole groups assigned to two conditions)
 

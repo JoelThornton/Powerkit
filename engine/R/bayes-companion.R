@@ -131,7 +131,7 @@ companion_package <- function(template) {
 companion_agreement_t <- function(spec, b, n, k) {
   inputs <- bfpwr_inputs(b)
   two <- identical(inputs$type, "two.sample")
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   if (two && !isTRUE(all.equal(ratio, 1))) return(NULL)
   size <- inputs$size(n)
   df <- if (two) n - 2 else n - 1

@@ -52,7 +52,7 @@ evidence_metadata <- function(spec) {
     mediators = sum(grepl("^M[0-9]*$", names(spec$variables))),
     score_shape = spec$population$score_shape %||% "normal",
     sd_ratio = spec$population$sd_ratio %||% 1,
-    allocation_ratio = spec$options$allocation_ratio %||% 1,
+    allocation_ratio = allocation_ratio(spec),
     measurement_error = any(reliabilities < 1),
     specified_correlations = if (length(correlations) && any(correlations != 0)) "nonzero" else "none")
   spec

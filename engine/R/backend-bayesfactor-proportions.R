@@ -49,7 +49,7 @@ bfprop_inputs <- function(spec) {
     a = tt$prior_concentration %||% bfprop_defaults$prior_concentration,
     # "greater": group 2's proportion is the higher, as for the z test.
     alternative = bfpwr_alternative(spec),
-    ratio = spec$options$allocation_ratio %||% 1
+    ratio = allocation_ratio(spec)
   )
 }
 

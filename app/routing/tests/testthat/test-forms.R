@@ -405,7 +405,7 @@ test_that("'I can't justify an effect size' is offered for the basic tests, and 
   fields <- form_fields(form_groups(forms, "E4"))
   values <- form_examples[["E4"]]
   values$just_type <- "none"; values$just_source <- ""; values$r <- ""
-  expect_match(form_problems(fields, values), "With no effect size to plan for", fixed = TRUE, all = FALSE)
+  expect_match(form_problems(fields, values), "leaves no effect to plan for", fixed = TRUE, all = FALSE)
   values$goal <- "sensitivity_curve"; values$n_max <- "200"
   expect_length(form_problems(fields, values), 0)
   spec <- build_spec(forms, "E4", fields, values)
@@ -645,8 +645,9 @@ test_that("long labels are short, with the detail as help linked to the field", 
   fields <- fields_for("E2")
   just <- Filter(function(f) f$id == "just_source", fields)[[1]]
   html <- as.character(field_ui(just, NULL))
-  expect_match(html, "Why this effect size? (needed to save or export the plan)", fixed = TRUE)
-  expect_false(grepl("(optional)", html, fixed = TRUE))
+  # Optional since 11 November 2026: an empty reason no longer locks the write-up or the downloads.
+  expect_match(html, "Why this effect size? (optional)", fixed = TRUE)
+  expect_no_match(html, "needed to save or export", fixed = TRUE)
   expect_match(html, 'id="f_just_source_help"', fixed = TRUE)
   expect_match(html, 'aria-describedby="f_just_source_help"', fixed = TRUE)
   for (f in fields) expect_lt(nchar(f$label), 80, label = f$id)
@@ -1024,10 +1025,11 @@ test_that("the input screens read plainly: optional names on the card, a test qu
   # The test-version box asks a question, not the card's list of tests.
   expect_match(html, "Which test you&#39;ll run|Which test you'll run")
   expect_no_match(html, "<legend class=\"h6\">Student&#39;s or Welch&#39;s", fixed = TRUE)
-  # A pre-selected choice's note says what it is about.
-  expect_match(html, "Selected to start with: Welch&#39;s t-test, as Delacre|Selected to start with: Welch's t-test, as Delacre")
-  # The direction, which has no default, keeps its own note.
-  expect_match(html, "Not filled in for you.", fixed = TRUE)
+  # A pre-selected choice and an empty box carry no line about how they
+  # start (11 November 2026): only a number filled in to start with does.
+  expect_no_match(html, "Selected to start with:", fixed = TRUE)
+  expect_no_match(html, "Not filled in for you.", fixed = TRUE)
+  expect_no_match(html, "Empty on every card", fixed = TRUE)
   # No developer wording in a default's note.
   for (ep in names(forms$forms)) for (f in form_fields(form_groups(forms, ep))) if (!is.null(f$default_source))
     expect_no_match(short_source(f$default_source), "design spec|decided on", label = paste(ep, f$id))

@@ -43,6 +43,30 @@ usual_seconds <- function(forms, ep_id, goal) {
 # result and the result (and its script) can be reproduced. Returns
 # list(status = "ok", spec, result, notes) or list(status = "error",
 # message) with a plain-English message.
+# --- Reusing a result when only the words changed ---------------------------
+# A reason, a research question or the effect-size reasoning is recorded
+# in the spec but does not enter the calculation, so editing one must not
+# run the engine again (a simulated design can take minutes). The key is
+# the spec without those answers; a result found under the same key is
+# shown again with the new words (11 November 2026).
+words_only_field <- function(f) {
+  identical(f$type, "text") && !is.null(f$path) &&
+    (f$id %in% c("just_source", "just_adjustment", "research_question") || grepl("_reason$", f$id))
+}
+calculation_key <- function(spec, fields, extra = NULL) {
+  for (f in Filter(words_only_field, fields)) spec <- set_path(spec, split_path(f$path), NULL)
+  if (length(spec$effect_justification) == 0) spec$effect_justification <- NULL
+  rlang::hash(list(spec, extra))
+}
+# The stored result, carrying the spec as it now reads: the record of what
+# was run (the spec hash) has to match the spec that is saved and exported.
+reused_calculation <- function(calc, spec, hash = engine_function("spec_hash")) {
+  if (is.null(spec$options$seed)) spec$options$seed <- calc$spec$options$seed
+  calc$spec <- spec
+  if (!is.null(hash) && !is.null(calc$result$provenance$spec_hash)) calc$result$provenance$spec_hash <- hash(spec)
+  calc
+}
+
 run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) {
   if (is.null(run)) {
     return(list(status = "error", message = "The calculation needs powerkit's engine, which isn't installed where this prototype is running."))
@@ -53,7 +77,12 @@ run_calculation <- function(spec, run = engine_function("run_spec"), seed = 1L) 
   notes <- character()
   result <- tryCatch(
     withCallingHandlers(run(spec), warning = function(w) {
-      notes <<- c(notes, conditionMessage(w))
+      # A package's notice about its own code (a deprecated argument inside
+      # Superpower's plotting, say) says nothing about the plan, so it is
+      # not a note. Written out here, not as a helper: this function is
+      # sent to a separate R process, which has none of the app's others.
+      housekeeping <- grepl("deprecated|lifecycle::|will be removed in|is defunct|report (the|this) issue", conditionMessage(w), ignore.case = TRUE)
+      if (!housekeeping) notes <<- c(notes, conditionMessage(w))
       invokeRestart("muffleWarning")
     }),
     error = function(e) {
@@ -239,7 +268,7 @@ busy_ui <- function() {
   div(class = "form-problems", role = "status", tabindex = "-1",
     h3(class = "h5", "powerkit is busy just now"),
     p("Other people's long calculations are using the server, so this one can't start yet. ",
-      "Please choose \u201cCheck my answers\u201d again in a minute or two. ",
+      "Please choose \u201cCalculate\u201d again in a minute or two. ",
       "Quick calculations, such as t-tests, correlations and ANOVA, still work as usual."))
 }
 
@@ -1190,6 +1219,7 @@ reasoning_line <- function(values) {
   if (blank(values$just_type)) return(NULL)
   types <- list(smallest_effect_of_interest = "the smallest effect that would matter", meta_analysis = "a meta-analysis",
                 prior_study = "a previous study", pilot_study = "a pilot study",
+                convention = "a convention or rule of thumb, not evidence about this effect",
                 own_study_result = "the finished study's own result (observed power)", none = "none (you said you can't justify an effect size)")
   label <- types[[values$just_type]] %||% values$just_type
   if (blank(values$just_source)) return(sprintf("Effect size source: %s.", label))
@@ -1448,7 +1478,7 @@ source_stale_ui <- function(fields, values) {
       if (!blank(values$source_was) && !blank(now)) sprintf(" (it was %s; it is now %s)", values$source_was, now), ". ",
       "Your reasoning is kept as you wrote it. Until you confirm it or edit it, the plan can't be saved or exported and there is no write-up."),
     actionButton("source_still_applies", "Yes, it still applies", class = "btn btn-outline-primary"),
-    span(class = "small", " or edit your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again."))
+    span(class = "small", " or edit your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCalculate\u201d again."))
 }
 
 # The sample size at 80% and at 95% power side by side (the new design:
@@ -1482,8 +1512,10 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
 # size the user tries, kept apart from the plan. The t-tests and the
 # correlation by formula only for now. The app only calls the engine.
 explore_effect <- function(spec) {
+  # Every formula-based version, Welch's t-test (the two-group default)
+  # included: its power comes from pwrss's formula, as quickly as Student's.
   if (!identical(spec$design, "basic_test") || identical(spec$options$method, "simulation") ||
-      identical(spec$target_test$method, "welch_t") || is_rank_test(spec) || is_rank_correlation(spec)) return(NULL)
+      is_rank_test(spec) || is_rank_correlation(spec)) return(NULL)
   switch(spec$template,
     one_sample_t = list(field = "d", label = "Cohen's d", max = 1.5),
     independent_t = list(field = "d", label = "Cohen's d", max = 1.5),
@@ -1492,11 +1524,18 @@ explore_effect <- function(spec) {
     NULL)
 }
 
+# The step between totals that split into whole groups: the engine's own
+# (result$n_step), so unequal groups get a curve too; older saved results
+# fall back to 2 for two equal groups.
+curve_step <- function(spec, result = NULL) {
+  result$n_step %||% if (identical(spec$template, "independent_t") && isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) 2 else 1
+}
+
 explore_sizes <- function(spec, result) {
   n <- if (identical(result$goal_type, "sample_size")) result$n_required$n else spec$goal$n
-  step <- if (identical(spec$template, "independent_t") && isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) 2 else 1
+  step <- curve_step(spec, result)
   ns <- step * round(seq(max(8, n / 4), 2 * n, length.out = 12) / step)
-  unique(pmax(ns, 8))
+  unique(pmax(ns, step * ceiling(8 / step)))
 }
 
 # A curve or scenario sets the effect itself, so no safeguard is applied
@@ -1565,8 +1604,8 @@ scenario_curves <- function(spec, result, conservative = NA, optimistic = NA, n 
   effects <- scenario_effects(spec, result, conservative, optimistic)
   # Wide enough to show where every line reaches the target power.
   top <- max(c(explore_sizes(spec, result), 1.25 * n), na.rm = TRUE)
-  step <- if (identical(spec$template, "independent_t") && isTRUE(all.equal(spec$options$allocation_ratio %||% 1, 1))) 2 else 1
-  ns <- sort(unique(c(pmax(8, step * round(seq(8, top, length.out = 15) / step)), n_analysed(result))))
+  step <- curve_step(spec, result)
+  ns <- sort(unique(c(pmax(step * ceiling(8 / step), step * round(seq(8, top, length.out = 15) / step)), n_analysed(result))))
   do.call(rbind, lapply(names(effects), function(k) {
     power <- vapply(ns, function(at) {
       s <- spec
@@ -1938,8 +1977,12 @@ calculating_background_ui <- function(usual, title = "Calculating with powerkit'
   usual_words <- if (is.na(usual)) NULL else if (usual < 120) sprintf("%s seconds", whole(usual)) else sprintf("%s minutes", whole(round(usual / 60)))
   div(class = "result-panel calculating calc-progress", tabindex = "-1",
     p(role = "status", tags$strong(title),
-      if (!is.null(usual_words)) sprintf(" This usually takes about %s on one core.", usual_words)),
-    tags$label(`for` = "calc-progress-bar", class = "small", "Estimated progress (from the usual run time; the backend doesn't report its own)"),
+      # The usual times were measured on a recent computer; the shared
+      # online server is slower (11 November 2026: a 30-second estimate
+      # took two minutes there), so the online copy says so.
+      if (!is.null(usual_words)) sprintf(" This takes about %s on a recent computer%s.", usual_words,
+        if (isTRUE(getOption("powerkit.local"))) "" else "; the online version shares a small server and can take several times longer")),
+    tags$label(`for` = "calc-progress-bar", class = "small", "Progress, estimated from the usual run time"),
     tags$progress(id = "calc-progress-bar", max = "100", value = "0", style = "width: 100%; height: 1.25rem;"),
     p(id = "calc-progress-text", class = "small", progress_text(0, usual)),
     actionButton("calc_cancel", "Cancel", class = "btn btn-outline-danger"))
@@ -1948,7 +1991,7 @@ calculating_background_ui <- function(usual, title = "Calculating with powerkit'
 cancelled_ui <- function() {
   div(class = "form-problems", role = "status", tabindex = "-1",
     h3(class = "h5", "Calculation cancelled"),
-    p("Nothing was calculated. Change your answers if you like, and choose \u201cCheck my answers\u201d to run it again."))
+    p("Nothing was calculated. Change your answers if you like, and choose \u201cCalculate\u201d to run it again."))
 }
 
 # The values the user entered, as "label: value" lines (fields that apply
@@ -2296,6 +2339,35 @@ provenance_lines <- function(result) {
   )
 }
 
+# A group-size ratio typed as a rounded decimal (0.67) is planned as the
+# simplest whole split that rounds to it (2 : 3); the engine's result
+# says when it did that (planned_allocation()).
+allocation_note <- function(result) {
+  a <- result$allocation
+  if (is.null(a)) return(NULL)
+  sprintf("The group sizes were planned as %s : %s (group 1 : group 2), the simplest whole split that rounds to the ratio you entered (%s). Taken exactly, %s could only be met by much larger steps in the total sample size.",
+    format(a$group1), format(a$group2), format(a$entered), format(a$entered))
+}
+
+# Two proportions by the z test: the normal approximation is unreliable
+# when a group is expected to hold fewer than about five people with (or
+# without) the outcome; its real false-positive rate and power then differ
+# from the formula's (Cochran's rule of thumb for expected counts). The
+# card offers Fisher's exact test, whose power is computed exactly.
+small_count_note <- function(spec, result) {
+  if (!identical(spec$template, "two_proportions") || !isTRUE((spec$target_test$method %||% "z_test") %in% c("z_test", "z_test_corrected"))) return(NULL)
+  n <- switch(result$goal_type %||% "", sample_size = result$n_required$n, power = result$curve$n[1], spec$goal$n)
+  p <- c(spec$population$p1, spec$population$p2)
+  if (is.null(n) || length(n) != 1 || is.na(n) || length(p) != 2 || any(!is.finite(as.numeric(p)))) return(NULL)
+  ratio <- result$allocation$ratio %||% spec$options$allocation_ratio %||% 1
+  groups <- n * c(1, ratio) / (1 + ratio)
+  smallest <- min(groups * as.numeric(p), groups * (1 - as.numeric(p)))
+  if (smallest >= 5) return(NULL)
+  sprintf(paste0("With these proportions and this sample size, one group is expected to hold only about %s people with (or without) the outcome. ",
+    "The z test's formula is unreliable when an expected count is below about 5: the real power and false-positive rate can both differ from the figures here. ",
+    "Choose Fisher's exact test under \u201cTest version\u201d, whose power is worked out exactly."), format(round(smallest, 1)))
+}
+
 welch_population_note <- function(spec) {
   if (!identical(spec$template, "independent_t") || !identical(spec$target_test$method, "welch_t")) return(NULL)
   # Small telescopes plans Student's test against d33 (small-telescopes.R).
@@ -2582,9 +2654,9 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), source_note(values), group_difference_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
-  # The reasoning is needed to save or export, not to calculate.
-  can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), allocation_note(result), small_count_note(spec, result), source_note(values), group_difference_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
+  # A missing reason no longer locks the downloads; the write-up says none was recorded.
+  can_export <- !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring
   # it; then saving and the write-up; then how it was calculated, where
   # powerkit differs from the usual tools, and the technical records. The
@@ -2612,7 +2684,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     h3(class = "h4", "Your result"),
     planning_warnings_ui(spec, result),
     simulation_failures_ui(result),
-    if (!is.null(label <- selected_method_label(spec, fields))) p(class = "result-analysis", tags$strong(label)),
+    if (!is.null(label <- selected_method_label(spec, fields, values))) p(class = "result-analysis", tags$strong(label)),
     hero,
     if (!is.null(corrected_count_verification_values(calc, values))) actionButton("verify_corrected_count", "Check power at this sample size", class = "btn btn-outline-primary"),
     if (!is.null(corrected_anova_verification_values(calc, values))) actionButton("verify_corrected_anova", "Check this sample size by simulation", class = "btn btn-outline-primary"),
@@ -2658,9 +2730,9 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
       vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known)),
     h4(class = "h6 mt-3", "Downloads"),
-    if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
-      tags$strong("To save this plan, download its R script or get its write-up, "),
-      "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again. Exploring doesn't need it; a plan you keep or share does."),
+    if (blank(values$just_source)) p(class = "export-needs-reasoning",
+      tags$strong("No reason for the effect size is recorded yet. "),
+      "The write-up and saved files say so. To add one, write it under \u201cWhere your effect size comes from\u201d and press \u201cCalculate\u201d again."),
     div(class = "nav-buttons",
       if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
       download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
@@ -2722,6 +2794,7 @@ writeup_source <- c(
   meta_analysis = "an estimate from a meta-analysis",
   prior_study = "an estimate from a previous study",
   pilot_study = "an estimate from a pilot study",
+  convention = "a conventional benchmark rather than evidence about this effect",
   own_study_result = "the effect observed in the finished study itself (observed power)"
 )
 
@@ -2861,8 +2934,27 @@ meta_units <- function(text) {
 
 # Returns c(short = ..., full = ...), or NULL when there is no reasoning
 # (the write-up, like saving, needs it).
+# A write-up with no reason recorded for the effect size says so in the
+# sentence where the reason would be (decided 11 November 2026): the
+# paragraph, the R script and the saved project no longer wait for one.
+no_reason_token <- "[[no reason recorded]]"
+no_reason_sentence <- "No justification for the effect size was recorded."
+without_reason <- function(text) {
+  if (is.null(text)) return(NULL)
+  quoted <- writeup_quote(no_reason_token)
+  out <- gsub(paste0("Our reasoning about the size of the effect: ", quoted, "."), no_reason_sentence, text, fixed = TRUE)
+  out <- gsub(paste0("; the reasoning: ", quoted, "."), paste0(". ", no_reason_sentence), out, fixed = TRUE)
+  out <- gsub(paste0(": ", quoted, "."), paste0(". ", no_reason_sentence), out, fixed = TRUE)
+  out <- gsub(quoted, "no justification recorded", out, fixed = TRUE)
+  gsub(no_reason_token, "no justification recorded", out, fixed = TRUE)
+}
+
 writeup_text <- function(form, spec, result, fields, values, departures = character(), known_methods = character(), known = character()) {
-  if (blank(values$just_source) || isTRUE(values$source_stale)) return(NULL)
+  if (isTRUE(values$source_stale)) return(NULL)
+  if (blank(values$just_source)) {
+    values$just_source <- no_reason_token
+    return(without_reason(writeup_text(form, spec, result, fields, values, departures, known_methods, known)))
+  }
   name <- form$methods_name
   if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
@@ -3102,7 +3194,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, welch_population_note(spec), mediation_analysis_sentence(result), count_test_sentence(spec),
+  main <- c(main, welch_population_note(spec), allocation_note(result), mediation_analysis_sentence(result), count_test_sentence(spec),
     if (identical(spec$template, "paired_t")) "The paired analysis models within-person differences without period, sequence or carry-over terms.")
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {
@@ -3376,7 +3468,11 @@ precision_sentences <- function(spec, result) {
 }
 
 precision_writeup <- function(form, spec, result, fields, values, departures = character()) {
-  if (blank(values$just_source) || isTRUE(values$source_stale)) return(NULL)
+  if (isTRUE(values$source_stale)) return(NULL)
+  if (blank(values$just_source)) {
+    values$just_source <- no_reason_token
+    return(without_reason(precision_writeup(form, spec, result, fields, values, departures)))
+  }
   pr <- result$precision
   p <- result$provenance
   estimate <- precision_estimate_text(spec)
@@ -3466,7 +3562,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
   departures <- departures_for(forms, ep_id, spec)
   cost <- tryCatch(assurance_cost_line(spec, result), error = function(e) NULL)
   p_ <- result$provenance
-  can_export <- !blank(values$just_source) && !isTRUE(values$source_stale)
+  can_export <- !isTRUE(values$source_stale)
   hero <- tryCatch(precision_hero_ui(spec, result), error = function(e) NULL)
   # The same order as a power result: the answer, then the write-up and
   # downloads, then how it was calculated.
@@ -3491,9 +3587,9 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       h4(class = "h5", "Write it up and save it"),
       writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values, departures)),
       h4(class = "h6 mt-3", "Downloads"),
-      if (!can_export && blank(values$just_source)) p(class = "export-needs-reasoning",
-        tags$strong("To save this plan, download its R script or get its write-up, "),
-        "write your reasoning under \u201cWhere your effect size comes from\u201d and press \u201cCheck my answers\u201d again."),
+      if (blank(values$just_source)) p(class = "export-needs-reasoning",
+        tags$strong("No reason for the effect size is recorded yet. "),
+        "The write-up and saved files say so. To add one, write it under \u201cWhere your effect size comes from\u201d and press \u201cCalculate\u201d again."),
       div(class = "nav-buttons",
         if (can_export) download_button("download_script", "Download R script", class = "btn btn-outline-primary"),
         download_button("download_citations", "Citations", class = "btn btn-outline-primary"),

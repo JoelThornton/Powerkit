@@ -62,7 +62,7 @@ noninf_effect <- function(spec) {
 noninf_inputs <- function(spec) {
   pop <- spec$population
   alpha <- spec$target_test$alpha
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   sizes <- function(n) {
     n1 <- round(n / (1 + ratio))
     c(n1, n - n1)
@@ -82,8 +82,18 @@ noninf_inputs <- function(spec) {
     }))
   }
   design <- switch(spec$template, noninf_independent = "independent", noninf_paired = "paired", noninf_one_sample = "one.sample")
-  list(fun = "power.t.student", effect = noninf_effect(spec), margin = margin, design = design, args = function(n) {
-    common <- list(d = noninf_effect(spec), margin = margin, alpha = alpha, alternative = "one.sided", design = design, verbose = 0)
+  # The t-tests: the margin is a fixed amount in the outcome's own units,
+  # so the analysis is an ordinary one-sided t-test of the difference from
+  # -margin (t.test(mu = -margin)), a central t under its null. Its power
+  # is that of a one-sided t-test of the effect plus the margin against 0
+  # (Julious, 2004; G*Power's shifted-null t-tests), which is what pwrss
+  # receives. pwrss's own `margin` argument instead holds the margin fixed
+  # in SD units (a noncentral t under the null), a different test whose
+  # power is slightly higher: it gave sample sizes about two too small for
+  # the test researchers run.
+  shifted <- noninf_effect(spec) - margin
+  list(fun = "power.t.student", effect = noninf_effect(spec), margin = margin, shifted = shifted, design = design, args = function(n) {
+    common <- list(d = shifted, margin = 0, alpha = alpha, alternative = "one.sided", design = design, verbose = 0)
     if (identical(design, "independent")) {
       s <- sizes(n)
       c(common, list(n2 = s[2], n.ratio = s[1] / s[2]))
@@ -99,7 +109,8 @@ noninf_check_run <- function(spec, inputs) {
   rows <- data.frame(
     parameter = c("margin passed to pwrss (minus the margin, better is positive)", "expected effect, better is positive"),
     specified = c(-spec$population$margin, noninf_effect(spec)),
-    recovered = c(args$margin, if (is.null(args$d)) args$prob1 - args$prob2 else args$d)
+    # The t-tests receive the effect minus the margin against 0 (noninf_inputs()).
+    recovered = if (is.null(args$d)) c(args$margin, args$prob1 - args$prob2) else c(inputs$effect - args$d, inputs$effect)
   )
   rows$ok <- mapply(function(a, b) isTRUE(all.equal(a, b)), rows$specified, rows$recovered)
   rows
@@ -112,7 +123,7 @@ noninf_script <- function(spec, result) {
   fixed <- args[setdiff(names(args), c("n2", "n.ratio"))]
   arg_lines <- vapply(names(fixed), function(a) sprintf("    %s = %s,", a, r_code(fixed[[a]])), character(1))
   sizes <- if (identical(inputs$design, "independent") || identical(inputs$fun, "power.z.twoprops")) {
-    ratio <- spec$options$allocation_ratio %||% 1
+    ratio <- allocation_ratio(spec)
     first <- identical(inputs$fun, "power.t.student") || noninf_sign(spec) < 0
     c(
       sprintf("  n1 <- round(n_total / (1 + %s)) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
@@ -131,8 +142,13 @@ noninf_script <- function(spec, result) {
     goal_inputs(spec, result),
     "",
     "# Power of the one-sided non-inferiority test at a total sample size.",
-    "# The effect is oriented so that better is positive, and the margin is",
-    "# minus the largest difference in the wrong direction that is acceptable.",
+    if (identical(inputs$fun, "power.t.student")) c(
+      "# The effect is oriented so that better is positive. The test is an ordinary",
+      "# one-sided t-test of the difference from minus the margin, so d below is the",
+      sprintf("# expected effect (%s) plus the margin (%s), tested against 0.", format_number(inputs$effect), format_number(-inputs$margin))
+    ) else c(
+      "# The effect is oriented so that better is positive, and the margin is",
+      "# minus the largest difference in the wrong direction that is acceptable."),
     "power_at <- function(n_total) {",
     sizes,
     sprintf("  do.call(%s, c(list(", inputs$fun),
@@ -190,7 +206,7 @@ met_inputs <- function(spec) {
   pop <- spec$population
   m <- pop$margin
   side <- met_side(spec)
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   design <- switch(spec$template, independent_t = "independent", paired_t = "paired", one_sample_t = "one.sample")
   margin <- if (side == 0) c(-m, m) else side * m
   alternative <- if (side == 0) "two.one.sided" else "one.sided"
@@ -313,7 +329,7 @@ met_script <- function(spec, result) {
   fixed <- args[setdiff(names(args), c("n2", "n.ratio", "d", "alpha"))]
   arg_lines <- vapply(names(fixed), function(a) sprintf("    %s = %s,", a, r_code(fixed[[a]])), character(1))
   sizes <- if (identical(inputs$design, "independent")) {
-    ratio <- spec$options$allocation_ratio %||% 1
+    ratio <- allocation_ratio(spec)
     c(
       sprintf("  n1 <- round(n_total / (1 + %s)) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
       "  n2 <- n_total - n1",

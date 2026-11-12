@@ -309,7 +309,7 @@ sim_basic_code <- function(spec, n) {
 # The groups of a two-group design: group 1's size and group 2's, from the
 # total n and the allocation ratio n2 / n1.
 sim_two_groups <- function(spec, n) {
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   n1 <- round(n / (1 + ratio))
   c(n1, n - n1)
 }

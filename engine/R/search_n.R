@@ -156,6 +156,16 @@ bracket_n <- function(power_at, target, n_min, step, n_max = 1e5, rel_tol = 0, c
   repeat {
     if (high == cap) {
       if (!is.null(cap_message)) abort_run(sprintf(cap_message, target, format(cap, big.mark = ",")))
+      # Power that has not risen from the smallest sample to the largest
+      # will not reach the target at any size: a one-sided test pointed
+      # away from the effect, or no effect at all.
+      if (power_at(cap) <= power_at(n_min)) {
+        abort_run(paste0(
+          "No sample size reaches the target power: power does not rise as the sample grows. ",
+          "This happens when a one-sided test points away from the effect you specified, or when the effect is zero. ",
+          "Check the direction of the test and the population values."
+        ))
+      }
       abort_run(sprintf(
         "The target power of %s was not reached by the search limit (%s, the largest valid sample size checked). A larger sample may still reach it. Check your assumptions or assess power at a specified sample size.",
         target, format(cap, big.mark = ",")

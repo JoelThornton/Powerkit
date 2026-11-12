@@ -1,6 +1,6 @@
 test_that("input evidence uses complete selected settings and preserves unknown coverage", {
   fields <- form_fields(form_groups(forms, "E2"))
-  expect_match(as.character(selected_evidence_ui(forms, "E2", fields, list())), "Complete the required answers", fixed=TRUE)
+  expect_no_match(as.character(selected_evidence_ui(forms, "E2", fields, list())), "Evidence depends on", fixed=TRUE)
   v <- modifyList(form_examples$E2, list(goal="power", n="120"))
   html <- as.character(selected_evidence_ui(forms, "E2", fields, v))
   expect_match(html, "Checks covering my selected settings", fixed=TRUE)

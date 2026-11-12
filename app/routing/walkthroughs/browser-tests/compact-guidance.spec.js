@@ -18,7 +18,7 @@ for (const width of [1100, 375, 320]) test(`compact guidance is optional, access
   await page.setViewportSize({ width, height: 900 });
   await open(page);
   await expect(page.locator('#f_power_help')).toBeVisible();
-  await expect(page.locator('#f_power_help')).toContainText('not a scientific recommendation');
+  await expect(page.locator('#f_power_help')).toContainText('a habit, not a rule');
   await expect(page.locator('#f_power')).toHaveValue('');
   await expect(page.locator('[data-target="f_power"]')).toHaveText(['80%', '90%', '95%']);
   await page.locator('[data-target="f_power"][data-value="0.9"]').click();

@@ -1,11 +1,47 @@
-test_that("allocation periods use the intended integer weights beyond the old scan limit", {
+test_that("a ratio typed as a rounded decimal is planned as the simplest whole split that rounds to it", {
+  # 1.333 is exactly 1000 : 1333, which only multiples of 2333 can split
+  # into whole groups; the plan uses 3 : 4.
   spec <- example_spec("independent_t")
   spec$options$allocation_ratio <- 1.333
-  expect_equal(valid_n_step(spec), 2333)
+  expect_equal(integer_allocation_step(c(1, 1.333)), 2333)
+  expect_equal(allocation_ratio(spec), 4 / 3)
+  expect_equal(valid_n_step(spec), 7)
   expect_true(group_split(spec)$valid(valid_n_step(spec)))
-  expect_equal(analysed_groups(spec, 2333), c(1000, 1333))
-  expect_length(check_n(spec, 2333), 0)
-  expect_match(check_n(spec, 2332), "2333|2,333")
+  expect_equal(analysed_groups(spec, 70), c(30, 40))
+  expect_length(check_n(spec, 70), 0)
+  expect_match(check_n(spec, 71), "70")
+  expect_equal(planned_allocation(spec)[c("entered", "group1", "group2")], list(entered = 1.333, group1 = 3, group2 = 4))
+  # 0.67, 0.33 and 1.37 as typed; the simplified ratio always rounds to the entry.
+  for (case in list(c(0.67, 3, 2), c(0.33, 3, 1), c(1.37, 19, 26), c(0.6667, 3, 2))) {
+    found <- simplified_allocation(case[1])
+    expect_equal(found$parts, case[2:3], info = case[1])
+    expect_equal(round(found$ratio, nchar(sub("^[^.]*\\.", "", format(case[1])))), case[1], info = case[1])
+  }
+  # Ratios whose exact split is already manageable are used as given.
+  for (ratio in c(1, 2, 0.5, 1.5, 0.3, 0.35, 0.25, 3)) {
+    expect_false(simplified_allocation(ratio)$simplified, info = ratio)
+    expect_equal(simplified_allocation(ratio)$ratio, ratio)
+  }
+  spec$options$allocation_ratio <- 2
+  expect_null(planned_allocation(spec))
+})
+
+test_that("a decimal ratio no longer inflates the two-group sample size", {
+  # d = 0.5, 80% power, Student's test: about 133 with groups near 0.67 : 1;
+  # the exact 67 : 100 split allowed only multiples of 167.
+  spec <- example_spec("independent_t")
+  spec$population$d <- 0.5
+  spec$target_test$method <- "student_t"
+  spec$goal <- list(type = "sample_size", power = 0.8)
+  spec$options <- list(seed = 1, allocation_ratio = 0.67)
+  result <- run_spec(spec)
+  expect_equal(result$n_required$n, 135)
+  expect_equal(result$allocation$group1, 3)
+  expect_gte(pwr::pwr.t2n.test(n1 = 81, n2 = 54, d = 0.5)$power, 0.8)
+  expect_lt(pwr::pwr.t2n.test(n1 = 78, n2 = 52, d = 0.5)$power, 0.8)
+})
+
+test_that("integer allocation steps recover simple ratios", {
   expect_equal(integer_allocation_step(c(1, 1 / 3)), 4)
   expect_equal(integer_allocation_step(c(0.1, 0.2, 0.3)), 6)
   for (w in list(c(2, 3), c(3, 4), c(2, 3, 5), c(1000, 1333))) {

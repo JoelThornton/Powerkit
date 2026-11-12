@@ -68,7 +68,7 @@ pwr_backend <- function(spec, seed = NULL) {
 # its arguments at total sample size n.
 pwr_inputs <- function(spec) {
   pop <- spec$population
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
   groups <- function(n) {
     n1 <- round(n / (1 + ratio))
@@ -291,7 +291,7 @@ pwr_sensitivity <- function(spec, n, target) {
   pop <- spec$population
   alpha <- spec$target_test$alpha
   alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   equal <- isTRUE(all.equal(ratio, 1))
   signed <- function(value, specified) {
     # A zero specified effect (none given) gives a positive result.

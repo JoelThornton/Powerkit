@@ -643,7 +643,7 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   html <- as.character(card_ui(tree, "E2"))
   expect_match(html, "class=\"card-facts\"", fixed = TRUE)
   expect_match(html, "In a second or two", fixed = TRUE)
-  expect_match(html, "Checks recorded; see \"More about this analysis\" below", fixed = TRUE)
+  expect_match(html, "Checks recorded (details below)", fixed = TRUE)
   # Its other versions (rank test, Bayes factor) are gathered in one box.
   expect_match(html, "Other versions, chosen on the next screen", fixed = TRUE)
   expect_match(as.character(card_ui(tree, "E13")), "A preview here, then an R script", fixed = TRUE)

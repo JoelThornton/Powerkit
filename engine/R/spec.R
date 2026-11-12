@@ -256,7 +256,7 @@ effect_from_units <- function(spec) {
   pop <- spec$population
   if (identical(spec$template, "independent_t") && identical(pop$metric, "point_biserial")) {
     return(list(name = "Cohen's d", value = pop$d, r = pop$r,
-      share = point_biserial_share(spec$options$allocation_ratio %||% 1)))
+      share = point_biserial_share(allocation_ratio(spec))))
   }
   # Only the t-tests and their equivalence tests turn raw means into d or
   # d_z; MANOVA and one-sample Hotelling's T-squared also take raw means,

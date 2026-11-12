@@ -126,7 +126,7 @@ telescope_backend <- function(spec, seed = NULL) {
   # The original effect's sign: the replication asks whether the effect is
   # smaller than d33 in that direction.
   margin <- sign(spec$population[[rule$effect]]) * yardstick$effect
-  ratio <- spec$options$allocation_ratio %||% 1
+  ratio <- allocation_ratio(spec)
   correlation <- identical(spec$template, "correlation")
   fun <- if (correlation) "power.z.onecor" else "power.t.student"
   # `truth` is the true effect, as a share of the margin: 0 for the plan,
@@ -208,7 +208,7 @@ telescope_script <- function(spec, result) {
     sprintf("pwr.t.test(n = %s, power = 1/3, sig.level = original_alpha, type = \"%s\")$d", st$n,
       if (spec$template == "paired_t") "paired" else "one.sample"))
   sizes <- if (identical(rule$design, "independent")) {
-    ratio <- spec$options$allocation_ratio %||% 1
+    ratio <- allocation_ratio(spec)
     c(
       sprintf("  n1 <- round(n_total / (1 + %s)) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
       "  n2 <- n_total - n1"
