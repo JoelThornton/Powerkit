@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "e0445b84f8fc970f891a2b8341a2d598cae181e0",
-        "RemoteSha": "e0445b84f8fc970f891a2b8341a2d598cae181e0",
+        "RemoteRef": "6f68eaa5b2478f382aab09fbaeb88439406590f7",
+        "RemoteSha": "6f68eaa5b2478f382aab09fbaeb88439406590f7",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "e0445b84f8fc970f891a2b8341a2d598cae181e0",
-        "GithubSHA1": "e0445b84f8fc970f891a2b8341a2d598cae181e0",
+        "GithubRef": "6f68eaa5b2478f382aab09fbaeb88439406590f7",
+        "GithubSHA1": "6f68eaa5b2478f382aab09fbaeb88439406590f7",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-12 16:32:42 UTC; runner",
+        "Packaged": "2026-11-12 17:15:49 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-12 16:33:18 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-12 17:16:27 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,7 +8560,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "c574aeeaa80109c0b36a0629db8eaaec"
+      "checksum": "ad643d4fb1b8923bc5730a72d257ab29"
     },
     "forms.yaml": {
       "checksum": "6a70f0cf1b1382c212fe8eec96227a82"
@@ -8569,7 +8569,7 @@
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
     },
     "methods-map.yaml": {
-      "checksum": "95e47c58f2b5274b63cde74efa7a08f0"
+      "checksum": "e95765e8bacf8100041e04cde606e8d5"
     },
     "optional-packages.R": {
       "checksum": "b87673bc767f55f9817b7d4300430027"
@@ -8656,7 +8656,7 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "df4fb35e9350abbea8b0988f9043ffef"
+      "checksum": "f25a3279ba6a6609daa495e6254a8811"
     },
     "R/whole-study.R": {
       "checksum": "c1288194459f13a3ab4503f95dfd2b55"
@@ -8665,7 +8665,7 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "12b579aaa15cd613e06a9151820b19f8"
+      "checksum": "7aeaed482b1749e41e88687a01b4c3c0"
     },
     "whats-new.d/allocation-noninferiority-direction.yaml": {
       "checksum": "bf48d5d018466c52898128cd210c94d7"
@@ -8681,6 +8681,9 @@
     },
     "whats-new.d/correlation-exact-method.yaml": {
       "checksum": "e84231191d34fa0a34923812599b666b"
+    },
+    "whats-new.d/finder-fewer-screens.yaml": {
+      "checksum": "41a6f85c21af9d6704d7af8a059f72d7"
     },
     "whats-new.d/manova-pillai-v.yaml": {
       "checksum": "11912d371115f80b4257bab61f1bb254"

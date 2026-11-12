@@ -118,7 +118,8 @@ test_that("every question, in every context a user can reach, offers 'None of th
   for (id in names(Filter(Negate(is_automatic), tree$nodes))) {
     expect_match(as.character(node_ui(tree, id, list())), label, fixed = TRUE, label = id)
   }
-  expect_match(as.character(known_ui(tree)), label, fixed = TRUE)
+  # The analysis list offers it as a link in one closing line (12 November 2026).
+  expect_match(as.character(known_ui(tree)), sprintf("&#39;ep:%s&#39;", tree$safety_net$endpoint), fixed = TRUE)
 })
 
 test_that("the guided route offers the safety net for every variable and follow-up question", {
@@ -174,10 +175,10 @@ test_that("two measurements still reach the before/after tests, and one measurem
   # One factor measured twice can only be the same people in both
   # conditions, so it goes straight to the paired test.
   expect_identical(follow_answers(tree, c(screen_score, "Twice", "A difference between groups or conditions", "One")), "E3")
-  once <- c(screen_score, "Once", "A difference between groups or conditions", "One")
-  expect_identical(follow_answers(tree, c(once, "Two, with different people in each")), "E2")
-  f2 <- vapply(visible_options(tree, tree$nodes$f2, list(outcome = "score", times = "once")), `[[`, "", "label")
-  expect_false(any(grepl("same people", f2, fixed = TRUE)))
+  once <- c(screen_score, "Once", "A difference between groups or conditions")
+  expect_identical(follow_answers(tree, c(once, "Two groups, different people in each")), "E2")
+  f1 <- vapply(visible_options(tree, tree$nodes$f1, list(outcome = "score", times = "once")), `[[`, "", "label")
+  expect_false(any(grepl("same people", f1, fixed = TRUE)))
 })
 
 test_that("time series reach the longitudinal card, not a count or score test", {
@@ -382,14 +383,14 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
   diff <- "A difference between groups or conditions"
   rel <- "A relationship between two things you measure"
   rows <- list(
-    "One-sample t-test" = list(c(once(score), diff, "One", "One group, compared with a fixed value"), "E1"),
+    "One-sample t-test" = list(c(once(score), diff, "One group, compared with a fixed value"), "E1"),
     "Binomial test" = list(c(once(yesno), diff, "One group against a known proportion"), "E25"),
-    "Two independent samples t-test" = list(c(once(score), diff, "One", "Two, with different people in each"), "E2"),
+    "Two independent samples t-test" = list(c(once(score), diff, "Two groups, different people in each"), "E2"),
     "Chi-square test of independence" = list(c(once(yesno), diff, "Groups, with an outcome in categories (not just yes/no)"), "E6"),
     "Chi-square test, relationship path" = list(c(once(yesno), rel, "One of several categories (and the other variable is categories too)"), "E6"),
     "Paired t-test" = list(c(twice(score), diff, "One"), "E3"),
     "McNemar's test" = list(c(twice(yesno), diff), "E26"),
-    "One-way ANOVA" = list(c(once(score), diff, "One", "Three or more", "Any difference among the groups"), "E18"),
+    "One-way ANOVA" = list(c(once(score), diff, "Three or more groups, different people in each", "Any difference among the groups"), "E18"),
     "Three-factor ANOVA, group by time by task" = list(c(twice(score), diff, "Three, crossed (every combination appears)"), "E56"),
     "One-way repeated measures ANOVA" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "One", "Any difference among the conditions"), "E54"),
     "Mixed ANOVA, group by three timepoints" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, LARGER, "One factor different people, the other everyone got every level"), "E55"),

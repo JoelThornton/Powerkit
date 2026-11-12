@@ -672,7 +672,7 @@ Notes on the final card and in the write-up (decision D9), stated neutrally:
 - Always: *"The M → Y path is not randomised, even when X is manipulated,
   because participants are not assigned to levels of M."*
 
-### ME2. How many go-betweens (mediators)?
+### ME2. How many mediators?
 
 **One** *(picture: X → M → Y)*
 Not sure? Example: *workload → exhaustion → intention to quit.*
@@ -698,7 +698,7 @@ increases effort, which raises grades.*
 → ME4, then `mediation / process_6` (2 to 4 mediators; more is **Coming later
 (not in spec)**). Analysis name: *serial mediation (PROCESS model 6).*
 
-### ME4. Is each go-between (mediator) a score?
+### ME4. Is each mediator a score?
 
 **Yes** → the form for the template chosen in ME2 or ME3: **Available**
 when X is a measured score; **Coming later (spec ready)** when X is

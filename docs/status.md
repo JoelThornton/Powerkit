@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 12 November 2026 (MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 12 November 2026 (choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -25,6 +25,13 @@ factorial cards still take only their tables.
 The moderated regression cards' result screen, which stopped with an
 error for the sample size and power since 10 November, shows its result
 again (fixed 12 November, with a test).
+
+"Help me choose" reaches the t-test, one-way ANOVA and MANOVA one
+question sooner (the number of groups is asked with the number of
+factors), the aim screen leads with "Test a prediction", and the
+analysis list shows its groups in two columns and finds the names
+researchers use, such as Cohen's f or mixed ANOVA (`decisions.md`,
+12 November 2026).
 
 Every route through the design finder now ends on a card that can hold
 the user's answers or says at the top what it can't do (the equivalence

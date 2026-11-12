@@ -188,9 +188,9 @@ relations:
   - {from: E5, to: E26, label: "in the same people becomes"}
   - {from: E5, to: E66, label: "for groups in order becomes"}
   # Mediation
-  - {from: E24, to: E10, label: "with an effect through a go-between becomes"}
-  - {from: E10, to: E11, label: "with several go-betweens side by side becomes"}
-  - {from: E10, to: E12, label: "with a chain of go-betweens becomes"}
+  - {from: E24, to: E10, label: "with an effect through a mediator becomes"}
+  - {from: E10, to: E11, label: "with several mediators side by side becomes"}
+  - {from: E10, to: E12, label: "with a chain of mediators becomes"}
   - {from: E10, to: E13, label: "with W changing the X -> M link becomes"}
   - {from: E10, to: E14, label: "with W changing the M -> Y link becomes"}
   - {from: E10, to: E16, label: "with a yes/no X is"}

@@ -29,7 +29,7 @@ const URL = process.env.PROTOTYPE_URL || 'http://127.0.0.1:8765/';
     await audit('start');
     await btn('Help me choose'); await audit('screening question S1');
     await label('A score or scale'); await label('Independent people'); await label('Once');
-    await label('A difference between groups or conditions'); await label('One'); await label('Two, with different people in each');
+    await label('A difference between groups or conditions'); await label('Two groups, different people in each');
     await audit('card E2 (runs)');
     // The input screen: empty, after a check with problems, and when valid.
     await btn('Enter your values'); await audit('input screen E2');
