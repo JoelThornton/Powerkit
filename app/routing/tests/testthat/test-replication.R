@@ -82,11 +82,35 @@ test_that("the planner's file keeps its own fields and nothing else", {
   expect_null(replication_read_file(path))
 })
 
-test_that("the planner opens from the start screen, the notes and the main route's signpost", {
+test_that("replicating from the finder asks the original's design, and its card says how to plan it", {
   aim <- aim_question(tree)
-  expect_identical(aim$options$replicate$labs, "replication")
+  # No shortcut past the design questions: every design reaches its card.
+  expect_null(aim$options$replicate$labs)
+  expect_null(aim$options$replicate$`next`)
+  expect_true(replicating(list(aim = "replicate")))
+  expect_false(replicating(list(aim = "predict")))
+  # The planner's four designs are offered it, on the same design.
+  for (ep in c("E1", "E2", "E3")) expect_false(is.null(replication_card_design(forms, ep)))
+  expect_identical(replication_card_design(forms, "E2"), "two_groups")
+  two_groups <- as.character(replication_card_note(forms, "E2"))
+  expect_match(two_groups, "rep_open_planner", fixed = TRUE)
+  expect_true("two_groups" %in% replication_designs_ui)
+  # Any other design plans the replication on its own card.
+  other <- setdiff(names(forms$forms), names(Filter(function(f) isTRUE(f$base$template %in% names(replication_card_templates)), forms$forms)))[1]
+  expect_null(replication_card_design(forms, other))
+  note <- as.character(replication_card_note(forms, other))
+  expect_no_match(note, "rep_open_planner", fixed = TRUE)
+  expect_match(note, "a significant result again", fixed = TRUE)
+  # The effect's source starts as an earlier study, unless already chosen.
+  expect_identical(replication_form_values(list())$just_type, "prior_study")
+  expect_identical(replication_form_values(list(just_type = "pilot_study"))$just_type, "pilot_study")
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(code, "aim_question(tree)$options[[value]]$labs", fixed = TRUE)
+  expect_match(code, "if (replicating(state$start)) replication_card_note(forms, state$endpoint)", fixed = TRUE)
+  expect_match(code, "observeEvent(input$rep_open_planner", fixed = TRUE)
+})
+
+test_that("the planner opens from the notes and the main route's signpost", {
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "replication_server(input, output, session", fixed = TRUE)
   expect_match(as.character(labs_next_ui("go", FALSE)), "pkLabsOpen(&#39;replication&#39;)", fixed = TRUE)
   expect_match(as.character(labs_next_ui("change", FALSE)), "pkLabsOpen(&#39;replication&#39;)", fixed = TRUE)
