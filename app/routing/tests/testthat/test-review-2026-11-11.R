@@ -395,3 +395,42 @@ test_that("MANOVA takes Pillai's V instead of means, computed by formula without
   w <- writeup_text(forms$forms[["E59"]], calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "Pillai's V = 0.1", fixed = TRUE)
 })
+
+test_that("the commonest designs take one screen fewer, with the options grouped (D-06, D-07)", {
+  diff <- c("A score or scale", "Independent people", "Once", "A difference between groups or conditions")
+  expect_identical(follow_answers(tree, c(diff, "Two groups, different people in each")), "E2")
+  expect_identical(follow_answers(tree, c(diff, "One group, compared with a fixed value")), "E1")
+  expect_identical(follow_answers(tree, c(diff, "Two or more groups, compared on several outcomes at once")), "E59")
+  expect_identical(follow_answers(tree, c(diff, "Three or more groups, different people in each")), "f2a")
+  # Measured twice: "One" still goes straight to the paired test.
+  expect_identical(follow_answers(tree, c("A score or scale", "Independent people", "Twice", "A difference between groups or conditions", "One")), "E3")
+  html <- as.character(node_ui(tree, "f1", list(), list(outcome = "score", grouping = "independent", times = "once")))
+  for (g in c("One thing", "Two or more things", "Several outcomes at once")) expect_match(html, sprintf('class="choices-group">%s<', g), fixed = TRUE)
+  # Without a group on every option (measured twice), no headings.
+  expect_no_match(as.character(node_ui(tree, "f1", list(), list(outcome = "score", times = "twice"))), "choices-group", fixed = TRUE)
+})
+
+test_that("the aim screen puts testing a prediction first, without the screening warning (D-06)", {
+  html <- as.character(aim_ui(tree))
+  expect_match(html, "aim-first", fixed = TRUE)
+  expect_lt(regexpr("Test a prediction", html, fixed = TRUE), regexpr("Or, if your study aims to", html, fixed = TRUE))
+  expect_no_match(html, "No test is suggested until then", fixed = TRUE)
+})
+
+test_that("the answers trail shows answers only, with the question in the tooltip (D-08)", {
+  html <- as.character(trail_ui(list(list(node = "s1", answer = "A score or scale")), tree))
+  expect_no_match(html, "chip-q", fixed = TRUE)
+  expect_match(html, "What kind of outcome will you measure? Click to change your answer.", fixed = TRUE)
+})
+
+test_that("the analysis list has its groups in a grid and one closing line (D-09, C-13)", {
+  html <- as.character(known_ui(tree))
+  expect_match(html, 'class="known-groups"', fixed = TRUE)
+  expect_match(html, "Can't find it?", fixed = TRUE)
+  expect_no_match(html, "Not sure which? Answer a few questions instead", fixed = TRUE)
+  # The names researchers use find the cards; an apostrophe doesn't matter.
+  expect_identical(search_text("Cohen's f"), search_text("cohens f"))
+  expect_match(tree$endpoints$E24$search_words, "f squared", fixed = TRUE)
+  expect_match(tree$endpoints$E55$search_words, "mixed anova", fixed = TRUE)
+  expect_match(tree$endpoints$E10$plain_name, "mediator", fixed = TRUE)
+})

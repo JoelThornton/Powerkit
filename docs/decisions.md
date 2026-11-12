@@ -2929,3 +2929,35 @@ published V is a biased estimate, as the field's help says. The
 smallest detectable V is available in the engine; the card doesn't offer
 that goal yet, because the means route has none.
 
+
+### Choosing an analysis: fewer screens and calmer cards, 12 November 2026
+
+A design review found that "Help me choose" took seven screens to reach
+the independent-samples t-test, the commonest design, and that "I know my
+analysis" read as a long ladder of groups. Five changes, none of which
+changes where any answer leads:
+
+- For people measured once, "How many things did you vary or compare?"
+  (F1) now also asks how many groups, under "One thing", and offers the
+  several-outcomes designs (E59, E60) under "Several outcomes at once".
+  F2 is no longer a screen of its own for them, so the t-test, one-way
+  ANOVA and MANOVA routes take one question fewer. People measured twice
+  or more still answer "One" and go on as before (F2 is answered by S3).
+- On the aim screen, "Test a prediction" is one wide card at the top and
+  the other aims sit under "Or, if your study aims to…". The line
+  warning that four screening questions come first is gone. A "Question
+  N of M" count was tried and left out: the questions still to come
+  range from one to eleven at the start and from one to four even at F1,
+  so no honest total could be given.
+- Question cards align their words at the top, a card under the pointer
+  when a screen opens doesn't light up until the pointer moves (it read
+  as already chosen), and the answers trail shows the answers only, with
+  each question in the chip's tooltip and accessible name.
+- The analysis list shows its groups in two columns on a wide screen,
+  and its two dashed boxes ("None of these fit", "Not sure which?") are
+  one closing line with both links.
+- The search matches the names researchers use: "Cohen's f" and
+  "cohens f" match each other, and the ANOVA cards, the regression card
+  (f squared, R squared change, hierarchical regression), the chi-square
+  card and the two comparisons of correlations carry those words. The
+  mediation cards say "mediator", not "go-between".
