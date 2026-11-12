@@ -35,6 +35,9 @@ field_ui <- function(f, value, described_by = character()) {
   short <- compact_field_label(f)
   if (!is.null(short)) label <- name_swap(label,
     if (field_is_optional(f) || !is.null(f$name_default)) paste0(short, " (optional)") else short)
+  # A table's label names what goes in it; the line-by-line layout it
+  # also describes is shown only when typing it as text (R/table-grid.R).
+  if (identical(f$type, "table")) label <- table_grid_label(label)
   source_id <- paste0(id, "_default")
   help_id <- paste0(id, "_help")
   if (!is.null(f$help)) described_by <- c(help_id, described_by)
@@ -45,7 +48,9 @@ field_ui <- function(f, value, described_by = character()) {
     scenario_library = scenario_library_ui(f, current),
     select = selectInput(id, label, choices = c("Choose one" = "", stats::setNames(names(f$choices), unlist(f$choices))),
                          selected = current, selectize = FALSE, width = "100%"),
-    table = textAreaInput(id, label, value = current, rows = 4, width = "100%"),
+    # The labelled grid (R/table-grid.R) sits between the label and the
+    # text box it fills in.
+    table = htmltools::tagInsertChildren(textAreaInput(id, label, value = current, rows = 4, width = "100%"), table_grid_ui(f), after = 1),
     textInput(id, label, value = current, width = "100%", placeholder = f$name_default)
   )
   # Attributes on the input element itself.
