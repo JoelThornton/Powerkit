@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "Correlation: the exact method, as G*Power"
-    text: "The test of a correlation is now planned with the exact method G*Power uses, so the two give the same answer (84 people for r = .3 and 80% power, where powerkit said 85). The approximation powerkit used before, Fisher's z, is still there under \"How power is worked out\"; it is close for mid-sized correlations and less so for a large correlation in a small sample."

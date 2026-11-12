@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "Moderated regression results show again"
-    text: "Working out the sample size or power for moderated regression (with a measured or a two-group predictor) stopped with \"An error has occurred\" instead of showing the result. It now shows the result."

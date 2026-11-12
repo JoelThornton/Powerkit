@@ -1,3 +1,263 @@
+# powerkit 0.62.0
+
+* App: the top bar's buttons ("Copy page link", "Feedback on this
+  screen") show a focus ring when reached by keyboard, and the "Tip:
+  press 1 to N" line under the finder's answers has enough contrast
+  (WCAG AA). The repository's accessibility audit script
+  (app/routing/walkthroughs/accessibility.js) follows the current
+  finder again (the aim question first, the analysis list without
+  screening questions, names opened before filling them) and runs end
+  to end with no axe-core violations at 1000px and 375px.
+* App wording (review S-21): the About page says powerkit doesn't use AI
+  when you use it (every calculation is a package's or a documented
+  implementation, the write-up fixed wording); observed power is the
+  last source of an effect size, and its warning points to where the
+  expected effect comes from; the Labs learning-aid line is shorter.
+
+* Unequal groups: a group-size ratio typed as a rounded decimal (0.67, 0.33, 1.37) is now planned as the simplest whole-number split that rounds to it (2 : 3, 1 : 3, 19 : 26) when the exact split would need a step above 50 in the total sample size. Taken exactly, 0.67 is 67 : 100, so only multiples of 167 were searched and the two-group t-test returned 167 people where about 133 are needed; it now returns 135. Applies to every two-group design with `options > allocation_ratio`. The result carries the split used (`allocation`), and the app states it on the result and in the methods paragraph.
+* Non-inferiority t-tests (one sample, paired, two groups) are planned as the one-sided t-test of the difference from minus the margin, with the margin fixed in the outcome's units, as G*Power's shifted-null t-tests are. pwrss's `margin` argument, used before, fixes the margin in SD units and gave sample sizes about two too small (one sample, margin 0.3, one-sided alpha .025, 80% power: 88, now 90). Checked against pwr's one-sided t-test. Sample sizes for these three designs rise slightly; two proportions are unchanged.
+* A sample size search whose power does not rise with the sample (a one-sided test pointed away from the effect, or a zero effect) now says that no sample size reaches the target, instead of suggesting a larger sample might.
+* Precision planning: `template_precision_one_group` and
+  `template_precision_paired` accept `goal.assurance`, which
+  `MBESS::ss.aipe.sm()` has always supported; the schema refused it, so the
+  app's starting settings for those two estimates failed.
+* App: exports no longer require a written effect-size justification
+  (the write-up records that none was given); the run button is
+  "Calculate"; Welch's t-test gets the explore panels; a form-level check
+  catches partial eta-squared with a test version other than the
+  classical F; whole-number percentages get a specific message.
+* `effect_justification.type` accepts `convention` (a benchmark such as
+  Cohen's small, medium or large), with advice from `validate_spec()` that
+  a convention is not evidence about the effect (Lakens, 2022).
+* App: the study plan is reachable from the top bar on every screen and
+  kept in the browser's localStorage in the study-plan file format;
+  results are cached per session by the spec without its free-text
+  answers, so a text-only edit reuses the result (with the spec hash
+  recomputed for the spec as saved).
+
+* App: the Bayes factor switch ("I'll analyse with Bayes factors") moves
+  from the start screen to the top of "I know my analysis", where it
+  narrows the list to the designs with a Bayes factor version, and to the
+  first question of "Help me choose". Its effect on a card is unchanged.
+
+* App: the claim ("How many tests does your conclusion rest on?") is asked
+  in the study section of the input screens rather than under Settings,
+  and gains a choice for several claims from a related group of tests,
+  corrected as a group by Bonferroni's division of alpha, for the
+  error-statistical view (Mayo, 2018). Screens opened from a study plan
+  say the plan sets the claim.
+
+* App: `usual_test_line()` gives Student's answer beside a Welch's t-test
+  result; `alpha_cost_line()` gives the sample size at alpha .05, .01 and
+  .005 for formula-based basic tests; the justified-alpha goal no longer
+  asks for alpha (0.05 is passed for the comparison row); Cohen's f is
+  named on the ANOVA forms' conversion choice; evidence panel, Bayes
+  add-on, single-study and meta-analysis advice, Bayes threshold labels
+  and the between-study variation help and table are reworded.
+
+* Pearson's correlation (`basic_test / correlation`) is computed from the
+  exact distribution of r by `pwrss::power.exact.onecor()`, as G*Power,
+  for power, the sample size, the smallest detectable correlation (searched
+  with the same call) and a justified alpha. `options >
+  correlation_formula = "fisher_z"` keeps `pwr::pwr.r.test()`. A
+  correlation with `population > tau` stays on Fisher's z. The exported
+  script calls the same function. Departure 10 is retired.
+
+* App: results arrive sooner. The warm spare R process now runs one
+  small example while it waits, so the spec checker (the JSON schema,
+  compiled in V8) and Superpower's first-call setup are ready before a
+  calculation starts; they took 1.3 of the 1.4 seconds of a t-test's
+  sample size in a fresh process. A sample-size search that takes more
+  than a second (Superpower's ANOVAs, InteractionPoweR) now shows its
+  result first, with "Working out the sample sizes for 80%, 90% and 95%
+  power" where the comparison table goes; the table's two further
+  searches run next in the background and fill it in. On the example
+  values, a t-test's answer came in 0.9 seconds instead of 2.1, and the
+  2 x 2 mixed ANOVA's in 2.5 seconds instead of about 7. Welch's ANOVA
+  (the one-way ANOVA's default), the trend test and two paired variances
+  have usual run times (forms.yaml, `simulated_times`), so their progress
+  bars estimate and say how long the run usually takes.
+
+* App: each field shows one line of help, its prompt or the first
+  sentence of its help (`help_lead()`, `help_sentences()`), and keeps the
+  rest, the input guide and the starting value's source behind an info
+  button beside its label (`field-more`), closed in both explanation
+  modes. With explanations off the line folds too. A reason field for the
+  write-up (`*_reason`) is one closed "Add a reason for the write-up"
+  line.
+
+* App: "How many things did you vary or compare?" (F1) asks how many
+  groups for people measured once, under "One thing", and offers the
+  several-outcomes designs under "Several outcomes at once", so F2 is
+  no longer its own screen for them; options with a `group` in
+  tree.yaml are shown under small headings (`choice_groups()`). The aim
+  screen leads with "Test a prediction"; the screening warning under it
+  is removed. Question cards align to the top, a card under the pointer
+  when a screen opens isn't highlighted until the pointer moves, and the
+  answers trail shows answers only.
+* App: the analysis list shows its groups in two columns at desktop
+  width and one closing line for both ways out. The search ignores
+  apostrophes, and more cards carry the names researchers search for
+  (Cohen's f, f squared, mixed ANOVA, chi-square, difference between
+  correlations). "Go-between" is "mediator" throughout.
+
+* App: a select field with `buttons: true` is shown as a row of buttons
+  over its hidden menu (app/routing/R/choice-buttons.R), with short
+  titles from `button_labels`; used for the goal (`goal_button_labels()`)
+  and the test's direction. The "still needed" line names the first
+  empty answers (`needed_name()`, `data-needed-name`). The effect
+  section's groups use the standard card style, and its two helpers are
+  plain lines. With explanations off, info buttons not beside a field's label
+  show their label as a small link (`data-label`). The settings summary uses short names.
+
+* App: opening a Labs tool straight after the Labs tab (the two changes
+  reaching the server together) now records the Labs menu as its own
+  history entry, so the browser's Back button returns to the menu rather
+  than leaving Labs.
+
+* A MANOVA (`template` "manova") can be given by Pillai's V
+  (`population > metric` "pillai_v", `population > pillai_v`) instead of
+  the groups' means. Power, the sample size and the smallest detectable V
+  are computed by Faul, Erdfelder, Lang and Buchner's (2007, refs.bib
+  Faul2007_gpower) formula, Table 5, Pillai's V with the O'Brien and Shieh
+  algorithm: f^2(V) = V / (s - V), F with a c and s (N - r - a + s)
+  degrees of freedom and noncentrality N s f^2(V)
+  (`pillai_backend()`). It agrees with Spower's simulation of the same
+  MANOVA from means whose population V is known, and with two groups it
+  equals the exact Hotelling's T-squared (`test-backend-pillai-v.R`). The
+  exported script reproduces it with base R, and the citations export
+  names the paper as the formula's source. `pillai_v_from_means()` gives
+  the population V of a table of means.
+
+* Simple mediation (one mediator, `template` "process_4") gains a quick
+  estimate: `target_test > method` "joint_significance", the test that
+  counts the indirect effect when both paths are significant, with power
+  from pwrss's `power.z.mediation(method = "joint")` formula. It is
+  instant and gives a sample size, which the simulated Monte Carlo
+  interval cannot do in the app. It is optimistic: with paths of .3 and
+  N = 100 it gives 75.0% power, against 72.4% for a simulation of the
+  joint-significance test with regressions and 71.1% for powerkit's
+  simulated Monte Carlo interval (2,000 replications). powerkit passes R-squared of Y with the
+  2 a b c' term, which pwrss's default leaves out.
+
+* Minimum-effect tests on the one-sample, paired and two-group t-tests are
+  now planned as the test researchers run, `t.test(mu = margin)` (a
+  central t shifted by the smallest effect of interest), as
+  non-inferiority tests already are: pwrss's `power.t.student()` receives
+  the effect minus the margin. pwrss's `margin` argument, used before,
+  tests a margin fixed in SD units and asked for a few more people (282
+  rather than 278 for d = 0.5, a margin of 0.2 and 80% power). Two-sided
+  tests add the far tail from pwr's one-sided t-test. The smallest
+  detectable effect is found by root-finding, and the R script reproduces
+  every goal. Known difference 10 is retired.
+
+* App: the moderated regression cards (E9 and E15) no longer stop with
+  "An error has occurred" when the sample size or power is calculated.
+  The check that offers to verify a smallest-effect result read a field
+  that those results hold as a bare value.
+
+* Engine: `convert_effect()` and a spec's `effect_justification >
+  conversion` take Cohen's f-squared (`from: "f2"`) for multiple
+  regression: into R-squared (`r2_zero`), the partial R-squared
+  (`single_coefficient`), or R-squared with all the predictors given
+  `population > r2_reduced` (`r2_increase`), with effectsize's
+  `f2_to_eta2()`. New argument `r2_reduced`.
+* App: the regression card (E24) offers "As Cohen's f-squared, as in
+  G*Power" for the sample size and power goals; the result and write-up
+  show the conversion.
+
+* The design finder's "Replicate a published finding" asks the original
+  study's design instead of opening the Labs replication planner, which
+  covers four designs. The card it ends on says how to plan the
+  replication: the planner's designs (two groups, one sample, pairs and a
+  correlation) link to it on the same design, and every other card plans
+  for a significant result again, with the effect's source starting as an
+  earlier study (app only).
+
+* App, Labs replication planner: section 1 has a "Show the sample size
+  to replicate it" button, so a sample size comes before any choice of
+  goal or belief, and the result opens with one sentence giving the
+  sample size for a significant result again in the original's
+  direction, if the true effect is as large as reported and if it is
+  shrunk towards zero. The numbers are the goals table's own first row;
+  the table, the other goals and the beliefs follow unchanged.
+
+* Welch's t-test with equal groups now reports its critical effect size
+  (the smallest observed d that would be significant). It is Student's
+  value, which Welch's test gives exactly when the two groups' observed
+  SDs are equal, and is stated as such; unequal groups still give none.
+* Welch's t-test needs four people in the smaller group (eight in all
+  with equal groups), so that pwrss's `power.t.welch()` always has the
+  three degrees of freedom it needs; a smaller sample is refused in plain
+  English instead of failing inside pwrss.
+* App: the smallest-effect result says beside it which observed effect
+  would be significant in any one study; factorial sample sizes say they
+  are whole groups, where G*Power's total can be a few lower; the ANCOVA
+  result shows that Shieh's method differs from G*Power's (Known
+  difference 15); an empty "How you adjusted it" says where the box is
+  and why it is asked.
+
+* App: the result's answer card says the answer once. The plain reading
+  is the headline's second sentence (`reading_sentence()`); the sample
+  size at other target powers and significance levels is a small table
+  (`comparison_ui()`, from the numbers `cost_line()` and
+  `alpha_cost_line()` now attach to their sentences); the usual tool's
+  answer, the power reached, the effect size's source and the method
+  note share one "Details" paragraph (`result_details_ui()`). "How it was
+  calculated" keeps the checks and the differences from the usual tools
+  visible and puts the values, seed, technical details, versions and
+  spec under one "Technical records" fold. The downloads are one primary
+  button and a row of equal ones with a line each; the simulated data's
+  note is one line with the rest folded. After calculating, focus moves
+  to the "Your result" heading.
+
+* App: no route through the design finder quietly drops what the user
+  said. A card reached with the aim "Show there's no meaningful effect"
+  that has no equivalence test says so at the top, and the equivalence
+  card says when the design described isn't one it covers. Cards built
+  for a score (growth curves, interrupted time series, cross-lagged
+  panels) name a yes/no, count or rating outcome they can't take, as does
+  the cluster card for ordered categories and McNemar's card for three or
+  more conditions; such a card is headed "The closest analysis powerkit
+  has". "Plan my whole study" says when the Bayes factor switch is on
+  that its plan and simulation use p-values, and gives the right reason
+  when an aim leads to one card. Counts and ratings over many trials go to
+  the repeated counts card (E75). The safety net offers search and the
+  methods map; cards without the smallest-effect goal say so for a fixed
+  sample; E24's goal label no longer refers to an option it lacks; the
+  precision card lists all its estimates and says it assumes separate
+  people.
+
+* App: shorter field help for power, alpha and test direction; default
+  notes shown only for pre-filled numbers; a `fold` field attribute puts a
+  rarely changed field under a closed line (the Welch SD ratio and
+  between-study variation); the card's other versions are folded.
+
+* App: with an SD per condition or a correlation per pair, the one-way
+  repeated-measures, mixed and two-factor within forms default to the
+  Greenhouse-Geisser correction (Departure 26 in `docs/conventions.md`);
+  choosing no correction shows a warning above the answer. The engine's
+  handling of a spec without `target_test > correction` is unchanged.
+
+* App: the start screen opens with a title and a one-sentence introduction, gives the three routes more room, and moves the saved-project panel, the Bayes mode switch (its explanation behind "What is this?") and the local-download link into one row under a divider. The step bar is hidden on the start screen, only "Help me choose" carries a tag, and the header switch reads "Show explanations".
+
+* App: table inputs (means, SDs and proportions on E6, E20, E21, E23,
+  E47, E55, E56 and E59) are entered in a labelled grid
+  (app/routing/R/table-grid.R). Rows and columns are named from the
+  fields in `rows_from` and `cols_from`, with counts expanded as
+  `expand_level_counts()` does and two-factor rows named as
+  combinations. The grid writes the same comma-and-line text into the
+  field's text box, which the server still reads, so validation, drafts
+  and exports are unchanged; "Type it as text instead" shows the box. The
+  label names what goes in; the line-by-line layout is shown only with
+  the text box. Each grid has an example and, for means, a line on why
+  powerkit asks for means.
+* App: a table field with an `alternative` (forms.yaml on E6;
+  `with_eta_squared()` on the ANOVA and ANCOVA cards) shows a link beside
+  the grid that sets the card's effect-size choice to Cohen's w or
+  partial eta-squared, which was otherwise offered only as a choice under
+  "Units of the means".
+
 # powerkit 0.61.3
 
 * Explanations-off now puts routine field help, default provenance, group notes and basic result interpretation behind native, named info disclosures. Keep errors, required units, selected methods and scientific warnings visible; preserve input values and active error descriptions when help toggles. Add concise shared field/group labels without changing spec metadata or calculations.

@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "Simple mediation gives an answer straight away"
-    text: "The simple mediation screens now start with a quick estimate worked out by formula, including the sample size, so you get a number at once instead of waiting or running an R script. The result says clearly that it is an estimate for planning, and how optimistic it is (75% power where the full simulation gives 71%, for paths of .3 and 100 people). For the number you report, choose one of the simulated methods."

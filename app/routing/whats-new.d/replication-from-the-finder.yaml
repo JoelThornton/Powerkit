@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-12"
-    title: "Replicate a study of any design"
-    text: "\"Replicate a published finding\" used to open the replication planner, which only covers t-tests and correlations. It now asks a few questions about the original study's design and takes you to its analysis, with a note on planning a replication. For a t-test or correlation, the note links to the replication planner on the same design."
