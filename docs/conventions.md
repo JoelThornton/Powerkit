@@ -2482,6 +2482,26 @@ every PROCESS option is not established.
   "14").
 - **Methods paragraph:** `known_differences_methods`, key "14".
 
+### 15. ANCOVA from adjusted means: Shieh's method treats the covariate as random, where G\*Power treats it as fixed
+
+- **What differs:** the ANCOVA card (E23) plans from the adjusted group
+  means with pwrss's `power.f.ancova.shieh()`, Shieh's (2020) method,
+  which allows for the covariate being random, as it is in most studies
+  (people arrive with their own before scores). G\*Power's ANCOVA treats
+  the covariate as fixed (lambda = f^2 N, error df N minus the groups
+  minus the covariates), which gives a little more power and so a slightly
+  smaller sample size. This was recorded under "ANCOVA" above but not
+  shown on the result until 12 November 2026.
+- **Size:** for adjusted means 20, 18 and 16, SD 6 and one covariate
+  explaining 36%, 81.3% (Shieh) against 81.8% (fixed) with 90 people
+  (`engine/tests/testthat/test-backend-anova-eta.R`, "an ANCOVA from its
+  means (Shieh's method) and from the same partial eta-squared (G*Power's)
+  differ a little"). A pre-release comparison found 90 against
+  G\*Power's 87 for a three-group example.
+- **Shown to users:** on every E23 result (`app/routing/forms.yaml`,
+  `known_differences`, key "15").
+- **Methods paragraph:** `known_differences_methods`, key "15".
+
 ## All-tests sufficient power target under unknown dependence
 
 For a claim requiring every one of k tests to succeed, let F_i denote

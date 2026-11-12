@@ -1154,7 +1154,7 @@ goal_sentences <- function(spec, result) {
             whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
             name, format(round(s$effect, 3), nsmall = 2), s$effect_description
           )),
-          detail = if (isTRUE(s$approximation)) {
+          detail = paste(c(if (isTRUE(s$approximation)) {
             sprintf(
               "This is an approximate threshold for %s power from InteractionPoweR's fixed-model formula (%s(), no simulation). It does not establish that the simulated-study analysis reaches that power. Check the proposed effect using power at your fixed sample size; formula and simulation can differ.",
               percent(spec$goal$power), result$provenance$backend_function
@@ -1164,7 +1164,7 @@ goal_sentences <- function(spec, result) {
               "Smaller true effects than this would give a significant result less often than %s of the time. Worked out by formula (%s), which finds the effect directly.",
               percent(spec$goal$power), exact_source(result)
             )
-          }
+          }, sensitivity_critical_text(spec, result)), collapse = " ")
         )
       } else {
         c(
@@ -1899,20 +1899,38 @@ critical_effect_value_text <- function(ce) {
 
 critical_effect_note <- function(spec, result) {
   ce <- result$critical_effect
-  if (is.null(ce)) return(NULL)
+  # The smallest-effect result says it in its own detail (S-16).
+  if (is.null(ce) || identical(spec$goal$type, "sensitivity")) return(NULL)
   sides <- if (identical(ce$alternative, "two_sided")) "two-sided" else "one-sided"
-  sprintf(paste(
+  paste0(sprintf(paste(
     "Critical effect size: at N = %s%s, alpha = %s, %s, an observed %s would be statistically significant, whatever the true effect",
     "(Perugini et al., 2025). It describes the result your data can show, not the effect assumed for power: a smaller observed",
     "effect would not be significant."),
-    whole(ce$n), group_text(spec, ce$n), writeup_alpha(ce$alpha), sides, critical_effect_value_text(ce))
+    whole(ce$n), group_text(spec, ce$n), writeup_alpha(ce$alpha), sides, critical_effect_value_text(ce)),
+    critical_effect_welch_text(ce))
+}
+
+# Welch's test with equal groups: the critical effect holds when the two
+# groups' observed SDs are equal (critical_effect(), engine).
+critical_effect_welch_text <- function(ce) {
+  if (isTRUE(ce$welch)) " For Welch's test this holds when the two groups' observed SDs are equal; with unequal SDs it is a little different." else ""
+}
+
+# The smallest-effect result (S-16): the effect found significant in most
+# studies, beside the smallest observed effect that would be significant
+# in any one, so "detect" isn't read as the second.
+sensitivity_critical_text <- function(spec, result) {
+  ce <- result$critical_effect
+  if (is.null(ce)) return(NULL)
+  sprintf("\u201cDetect\u201d here means found significant in %s of studies. In any one study of this size, a smaller observed effect is enough: an observed %s would be significant (the critical effect size; Perugini et al., 2025).%s",
+    percent(spec$goal$power), critical_effect_value_text(ce), critical_effect_welch_text(ce))
 }
 
 critical_effect_sentence <- function(result) {
   ce <- result$critical_effect
   if (is.null(ce)) return(NULL)
-  sprintf("At this sample size, the critical effect size (the smallest observed effect that would be significant; Perugini et al., 2025) is an observed %s.",
-    critical_effect_value_text(ce))
+  paste0(sprintf("At this sample size, the critical effect size (the smallest observed effect that would be significant; Perugini et al., 2025) is an observed %s.",
+    critical_effect_value_text(ce)), critical_effect_welch_text(ce))
 }
 
 # Moderated mediation with a yes/no X (E17): in powerkit's validation the
@@ -2423,6 +2441,19 @@ provenance_lines <- function(result) {
 # A group-size ratio typed as a rounded decimal (0.67) is planned as the
 # simplest whole split that rounds to it (2 : 3); the engine's result
 # says when it did that (planned_allocation()).
+# Factorial and one-way designs with equal groups (M-10): the total is
+# rounded up to whole groups, where G*Power reports the total its formula
+# gives, so the two can differ by a few people.
+whole_groups_note <- function(spec, result) {
+  step <- result$n_step %||% 1
+  if (!identical(spec$design, "factorial_anova") || !identical(result$goal_type, "sample_size") || step <= 2 ||
+      !is.null(result$allocation) || !is.list(result$n_required)) return(NULL)
+  n <- result$n_required$n
+  if (!is.numeric(n) || n %% step != 0) return(NULL)
+  sprintf("The total is a whole number of people in each of the %s groups (%s each), the smallest such total that reaches the target. G*Power gives the total its formula reaches, which can be a few people lower and not split evenly.",
+    whole(step), whole(n / step))
+}
+
 allocation_note <- function(result) {
   a <- result$allocation
   if (is.null(a)) return(NULL)
@@ -2735,7 +2766,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   known <- known_differences_for(forms, ep_id, spec)
   folded <- names(departures) %in% unlist(forms$departures_folded)
   departures_in_view <- departures[!folded]
-  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), allocation_note(result), small_count_note(spec, result), source_note(values), group_difference_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
+  notes <- unique(c(claim_result_note(values, spec$target_test$alpha, values$goal), welch_population_note(spec), allocation_note(result), whole_groups_note(spec, result), small_count_note(spec, result), source_note(values), group_difference_note(spec), critical_effect_note(spec, result), check_advice, calc$notes))
   # A missing reason no longer locks the downloads; the write-up says none was recorded.
   can_export <- !isTRUE(values$source_stale)
   # In cards: the answer first, with notes on reading it; then exploring
@@ -3284,7 +3315,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
-  main <- c(main, welch_population_note(spec), allocation_note(result), mediation_analysis_sentence(result), count_test_sentence(spec),
+  main <- c(main, welch_population_note(spec), allocation_note(result), whole_groups_note(spec, result), mediation_analysis_sentence(result), count_test_sentence(spec),
     if (identical(spec$template, "paired_t")) "The paired analysis models within-person differences without period, sequence or carry-over terms.")
   main <- c(main, cluster_writeup(result, spec), if (is_sem_fit(spec)) sem_writeup(result),
             if (!is.null(result$manova)) {

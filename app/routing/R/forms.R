@@ -498,7 +498,8 @@ closing_groups <- function(forms, ep_id, start = list()) {
   pairs <- identical(form$units, "pairs")
   if (pairs) goals <- list(sample_size = "The number of pairs I need", power = "The power I'd have with a given number of pairs")
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I'd have a good chance of finding, at a given sample size"
-  if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The same, across a range of sample sizes"
+  # "The same" only follows the goal it repeats (E24 has the range alone).
+  if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- if (isTRUE(form$sensitivity)) "The same, across a range of sample sizes" else "The smallest effect I'd have a good chance of finding, across a range of sample sizes"
   # A justified alpha (JustifyAlpha's optimal_alpha()): the one-sample,
   # paired and two-group t-tests and the correlation (E1-E4).
   if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "A significance level that balances the two errors, at a given sample size"
@@ -522,6 +523,13 @@ closing_groups <- function(forms, ep_id, start = list()) {
       fixed = "Yes: a participant pool, a budget or a rare group sets it"),
     default = if (identical(start$situation, "fixed")) "fixed" else "choose",
     shown_for_goals = c("power", "sensitivity", "justified_alpha"), optional = TRUE)
+  # A card without the smallest-effect goal says so when the sample is
+  # fixed, the case that goal is for (coverage audit, 12 November 2026).
+  if (!isTRUE(form$sensitivity) && !isTRUE(form$generic) && !isTRUE(form$sensitivity_without_effect)) {
+    situation$choice_notes <- list(fixed = paste(
+      "This card doesn't yet give the smallest effect a fixed sample could detect. It gives the power at your sample size for the",
+      "effect you enter: try the smallest effect that would matter, and a few others, to see which your sample can find."))
+  }
   test <- list(
     goal,
     list(id = "power", label = "Target power", help = "The chance your test comes out significant if the effect is the size you enter (0.8 means 80%). Higher power needs more people. Weigh what a missed effect would cost against what recruiting costs; 80% is a habit, not a rule. It is not the chance your hypothesis is true.",
@@ -611,6 +619,9 @@ closing_groups <- function(forms, ep_id, start = list()) {
       # less precise, so it gets the same question.
       list(id = "just_adjustment", label = "How you adjusted it", help = "An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. If you kept the estimate unchanged, say why.",
            type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
+           # Said where the problem is listed, since the box appears only
+           # once a pilot or previous study is chosen (C-15).
+           empty_message = "\u201cHow you adjusted it\u201d is empty. An effect from one study (a pilot or a previous study) is uncertain, so powerkit asks how you allowed for that: say in a sentence, in the box under \u201cSource of the effect size\u201d, whether you planned for a smaller value or why you kept the estimate unchanged. Any wording is fine.",
            shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
              list(field = "sg_use", is_not = "telescopes")))
     ), safeguard_fields(form$base$template), heterogeneity_fields(form$base$template))),
@@ -1130,7 +1141,7 @@ form_problems <- function(fields, values) {
       if (isTRUE(f$effect)) {
         add(sprintf("%s is empty. Enter the value you expect; powerkit doesn't fill in effect sizes.", quote_label(f)))
       } else if (needed) {
-        add(sprintf("%s is empty.", quote_label(f)))
+        add(f$empty_message %||% sprintf("%s is empty.", quote_label(f)))
       }
       next
     }

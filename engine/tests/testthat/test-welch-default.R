@@ -73,3 +73,15 @@ test_that("the script reproduces Welch's smallest detectable effect", {
   utils::capture.output(sys.source(path, envir = env))
   expect_equal(env$reproduced$effect, result$sensitivity$effect, tolerance = 1e-6)
 })
+
+test_that("Welch's test needs four in the smaller group, and says so in plain English", {
+  small <- welch_default_spec("welch_t", 0.8, 1, list(type = "power", n = 6L))
+  expect_spec_problem(small, "needs at least 8 participants")
+  # Student's test keeps its two per group.
+  student <- welch_default_spec("student_t", 0.8, 1, list(type = "power", n = 6L))
+  expect_true(is.numeric(run_spec(student)$curve$power))
+  # With pwrss's smallest df, every SD ratio runs.
+  spread <- welch_default_spec("welch_t", 0.8, 1, list(type = "power", n = 8L))
+  spread$population$sd_ratio <- 4
+  expect_true(is.numeric(run_spec(spread)$curve$power))
+})

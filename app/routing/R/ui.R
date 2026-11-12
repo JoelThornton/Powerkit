@@ -942,7 +942,7 @@ card_versions_ui <- function(tree, ep) {
     tags$ul(lapply(items, tags$li)))
 }
 
-card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0("forms", envir = environment(card_ui))) {
+card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0("forms", envir = environment(card_ui)), fits = TRUE) {
   ep <- tree$endpoints[[ep_id]]
   # Headings follow the page outline: the full card's title is the screen's
   # h2; a compact card sits under the plan's h2.
@@ -959,14 +959,16 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
       # The end point's ID and engine template are for reviewers: kept in
       # the page source, shown only in the maintainer's view.
       div(class = "card-eid", hidden = if (!maintainer_view()) NA, `aria-hidden` = if (!maintainer_view()) "true", ep_id),
-      if (!compact) p(class = "card-eyebrow", if (length(history)) "The analysis that fits your answers" else "Analysis"),
+      # A card that can't hold everything the user said (route_fit_ui()) is
+      # the closest, not the one that fits.
+      if (!compact) p(class = "card-eyebrow", if (!length(history)) "Analysis" else if (fits) "The analysis that fits your answers" else "The closest analysis powerkit has"),
       (if (compact) h3 else h2)(class = "card-title h3", name_swap(ep$plain_name, technical_name(ep))),
       p(class = "standard-name", "Standard name: ", tags$strong(technical_name(ep)), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
       if (!is.null(standard_name(ep$doc_name)$also)) p(class = "also-called small text-muted", standard_name(ep$doc_name)$also),
       hints_ui(tree, standard_name(ep$doc_name)$name),
       if (!compact) card_facts_ui(tree, ep_id, ep),
       status_ui(tree, ep),
-      if (identical(ep_id, tree$safety_net$endpoint) && !compact) prepare_ui(tree, history),
+      if (identical(ep_id, tree$safety_net$endpoint) && !compact) tagList(prepare_ui(tree, history), safety_net_ways_ui()),
       if (!is.null(ep$card_points) && is.null(ep$guide)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
       other_analyses_ui(tree, ep),
       # What the input screen will ask, shown openly on a card that runs, so

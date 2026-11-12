@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-12"
+    title: "Cards say when they can't do what you asked"
+    text: "If you said you want to show there's no meaningful effect, or that your outcome is a yes/no answer, a count or a rating, and the analysis you reach can't do that, it now says so at the top and suggests where to go. \"Plan my whole study\" says that its simulation uses p-values when you've chosen Bayes factors, and \"None of these fit\" now offers search and the methods map."

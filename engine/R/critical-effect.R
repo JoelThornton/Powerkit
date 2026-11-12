@@ -14,13 +14,20 @@
 # each side; one-sided tests t_c = qt(1 - alpha, df) on the side tested.
 # Checked against simulated studies in test-validation-critical-effect.R.
 # Only for the designs pwr computes (pwr_covers()): Student's t-tests and
-# Pearson's correlation, not Welch's t, the minimum-effect, rank or Bayes
-# factor versions.
+# Pearson's correlation, not the minimum-effect, rank or Bayes factor
+# versions. Welch's t-test with equal groups is the one addition: when the
+# two groups' observed SDs are equal, Welch's t equals Student's t
+# (s^2 / n1 + s^2 / n2 is the pooled variance times 1 / n1 + 1 / n2) and
+# Satterthwaite's df equals n1 + n2 - 2, so the critical effect is
+# Student's, stated as holding at equal observed SDs (`welch = TRUE`). With
+# unequal groups Satterthwaite's df differs from Student's even then, so
+# none is given.
 
 critical_effect_templates <- c("one_sample_t", "paired_t", "independent_t", "correlation")
 
 critical_effect <- function(spec, n) {
-  if (!isTRUE(spec$template %in% critical_effect_templates) || !isTRUE(pwr_covers(spec))) return(NULL)
+  welch <- critical_effect_welch(spec)
+  if (!isTRUE(spec$template %in% critical_effect_templates) || !(isTRUE(pwr_covers(spec)) || welch)) return(NULL)
   if (!is.numeric(n) || length(n) != 1 || is.na(n)) return(NULL)
   alpha <- spec$target_test$alpha %||% 0.05
   alternative <- spec$target_test$alternative %||% "two_sided"
@@ -47,8 +54,16 @@ critical_effect <- function(spec, n) {
     groups = groups,
     df = df,
     t_critical = t_critical,
+    welch = welch,
     source = "Perugini et al. (2025)"
   )
+}
+
+# Welch's t-test with equal groups (see above): the only test pwr doesn't
+# compute that has a critical effect here.
+critical_effect_welch <- function(spec) {
+  identical(spec$template, "independent_t") && identical(spec$target_test$method, "welch_t") &&
+    !bayes_factor_test(spec) && !minimum_effect_test(spec) && isTRUE(all.equal(allocation_ratio(spec), 1))
 }
 
 # The two groups' sizes at total n, as the power calculation splits them

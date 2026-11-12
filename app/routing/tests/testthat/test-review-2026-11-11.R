@@ -308,3 +308,40 @@ test_that("simple mediation opens on a quick estimate, clearly marked, with the 
   parallel <- Filter(function(f) identical(f$id, "method"), form_fields(form_groups(forms, "E11")))[[1]]
   expect_false("joint_significance" %in% names(parallel$choices))
 })
+
+test_that("the smallest-effect result gives the critical effect beside it, for Welch's default too", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples$E2, list(goal = "sensitivity", n = "100", power = "0.8", alpha = "0.05", d = ""))
+  calc <- run_calculation(build_spec(forms, "E2", fields, values), seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_true(isTRUE(calc$result$critical_effect$welch))
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["detail"]], "“Detect” here means found significant in 80% of studies", fixed = TRUE)
+  expect_match(words[["detail"]], "Cohen's d beyond ±0.40", fixed = TRUE)
+  expect_match(words[["detail"]], "observed SDs are equal", fixed = TRUE)
+  # Not said a second time among the notes.
+  expect_null(critical_effect_note(calc$spec, calc$result))
+})
+
+test_that("a factorial total rounded to whole groups says so, and the ANCOVA says it differs from G*Power", {
+  fields <- form_fields(form_groups(forms, "E7"))
+  values <- modifyList(form_examples$E7, list(goal = "sample_size", power = "0.8", alpha = "0.05"))
+  calc <- run_calculation(build_spec(forms, "E7", fields, values), seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  note <- whole_groups_note(calc$spec, calc$result)
+  expect_match(note, "each of the 4 groups", fixed = TRUE)
+  expect_match(note, sprintf("(%s each)", calc$result$n_required$n / 4), fixed = TRUE)
+  # Power at a given N says nothing.
+  power <- run_calculation(build_spec(forms, "E7", fields, modifyList(values, list(goal = "power", n = "120"))), seed = forms$default_seed)
+  expect_null(whole_groups_note(power$spec, power$result))
+  spec <- build_spec(forms, "E23", form_fields(form_groups(forms, "E23")), modifyList(form_examples$E23, list(goal = "power", n = "90", alpha = "0.05")))
+  expect_true("15" %in% known_difference_keys(forms, "E23", spec))
+  expect_match(forms$known_differences[["15"]], "Shieh", fixed = TRUE)
+})
+
+test_that("an empty adjustment box says where it is and why it is asked", {
+  fields <- form_fields(form_groups(forms, "E1"))
+  values <- modifyList(form_examples$E1, list(just_type = "pilot_study", just_adjustment = ""))
+  problems <- form_problems(fields, values)
+  expect_match(problems, "in the box under “Source of the effect size”", fixed = TRUE, all = FALSE)
+})

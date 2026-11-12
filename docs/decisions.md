@@ -2844,3 +2844,43 @@ it from their card, on the same design; every other card says it plans
 the replication for a significant result again, and the input screen
 starts with the effect's source as an earlier study. The other steps are
 queue items in `next.md`.
+
+### Welch's t-test: a critical effect size with equal groups, 12 November 2026
+
+Perugini et al.'s (2025) critical effect size is defined for Student's
+t-test. With equal groups, Welch's t equals Student's t whenever the two
+groups' observed SDs are equal, and Satterthwaite's degrees of freedom
+then equal n1 + n2 - 2, so the critical observed d is Student's exactly
+under that condition. powerkit now reports it for Welch's test with equal
+groups, stated as holding at equal observed SDs (with unequal observed
+SDs it is a little different); a test checks that `t.test()`'s Welch
+p-value at that observed d is alpha. With unequal groups Satterthwaite's
+df differs from Student's even at equal SDs, so none is reported. The
+smallest-effect result now gives the critical effect beside it, because
+"the smallest effect you could detect" is often read as the smallest
+result that would be significant.
+
+### ANCOVA: Shieh's method shown as a difference from G*Power, 12 November 2026
+
+The ANCOVA card plans with Shieh's (2020) method, which treats the
+covariate as random; G*Power treats it as fixed and gives a slightly
+smaller sample size. This was recorded in conventions.md but not shown on
+the result. It is now Known difference 15, shown on every ANCOVA result
+and in the methods paragraph. Shieh's method stays the default: in most
+studies the covariate (such as a before score) is measured on people as
+they come, not fixed by design.
+
+### Routes say what their card can't do, 12 November 2026
+
+A route through the design finder carries the user's answers (the aim,
+the outcome, the number of measurements) to a card. Where the card can't
+hold an answer, it now says so at the top, names the answer, and says
+where to go, and is headed "The closest analysis powerkit has" rather
+than "The analysis that fits your answers". This covers the equivalence
+aim on cards without an equivalence test, the equivalence card for
+designs it doesn't cover, non-score outcomes on score-only cards, and
+Bayes factors on "Plan my whole study". Counts and ordered categories over
+many trials now reach the repeated counts and ratings card (E75), whose
+design they are. Building equivalence or other outcomes into those cards
+is separate work; the note is the minimum so that no route drops an
+answer silently.
