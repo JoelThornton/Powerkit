@@ -27,6 +27,10 @@ claimed. Minimum-effect tests now use the same shifted t-test (12
 November; the equivalence validation chunk was run). The rounded-group-size
 search is queued.
 
+Simple mediation (E10, E16) starts on a quick estimate by formula (the
+joint-significance test, pwrss), marked as an estimate on the result, with
+the simulated methods for the number to report (12 November).
+
 The claim (how many tests a conclusion rests on) is asked in view on every
 input screen, with a Bonferroni choice for related tests (12 November).
 

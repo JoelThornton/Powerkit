@@ -2776,3 +2776,21 @@ choice, several claims from a related group of tests corrected as a group
 (Mayo, 2018) act on it; the default for separate claims stays
 uncorrected (Rubin, 2021), and both views are stated on the screen.
 Screens opened from a study plan say the plan sets the claim.
+
+### Simple mediation: a quick estimate first, the simulation for the report, 12 November 2026
+
+The simple mediation screens (one mediator, X a score or two groups) start
+on a quick estimate: the joint-significance test (both paths significant),
+with power from pwrss's `power.z.mediation(method = "joint")` formula. It
+is instant and gives a sample size, where the simulated Monte Carlo
+interval needs about 12 minutes for power at one N and an R script for a
+sample size. A researcher planning a study could otherwise get no number
+in the app at all. The result says at the top that it is an estimate for
+planning, how optimistic it is (with paths of .3 and N = 100: 75.0%,
+against 72.4% for a simulation of the joint test with regressions and
+71.1% for the simulated Monte Carlo interval), and how to get the number
+to report: choose a simulated method. pwrss's default test, Sobel's, was
+not used: it is much further from the simulated interval (58.3% at the
+same settings). powerkit passes R-squared of Y with the 2 a b c'
+term that pwrss's default leaves out (docs/upstream-questions.md).
+Parallel, serial and moderated mediation keep the simulated methods only.

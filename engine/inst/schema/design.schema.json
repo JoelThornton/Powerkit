@@ -3688,8 +3688,10 @@
                     "enum": [
                       "monte_carlo_ci",
                       "percentile_bootstrap",
-                      "ols_percentile_bootstrap"
-                    ]
+                      "ols_percentile_bootstrap",
+                      "joint_significance"
+                    ],
+                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate"
                   }
                 }
               }

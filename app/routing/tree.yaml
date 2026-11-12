@@ -1120,13 +1120,13 @@ endpoints:
     technical_name: "Simple mediation"
     plain_name: "X affects Y through one go-between (M)"
     template: "mediation / process_4 (mediator M)"
-    backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI"
+    backend: "power4mome: power4test() with test_indirect_effect(), Monte Carlo CI; pwrss's power.z.mediation(method = 'joint') for the quick estimate (joint-significance test)"
     method: Simulation
     inputs: ["Standardised paths X -> M, M -> Y and X -> Y"]
     status: runs_validated
     validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
     tier: MVP
-    alternatives: ["a bootstrap confidence interval", "the joint-significance test", "the Sobel test"]
+    alternatives: ["a bootstrap confidence interval", "the Sobel test"]
   E11:
     doc_name: "Parallel mediation (PROCESS model 4)"
     technical_name: "Parallel mediation"

@@ -158,7 +158,7 @@ uses_simulation <- function(spec) {
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
 # regression, and Welch's t-test).
 exact_available <- function(spec) {
-  bayes_factor_test(spec) || minimum_effect_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
+  bayes_factor_test(spec) || minimum_effect_test(spec) || mediation_joint_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !simulated_count_test(spec) && !robust_regression(spec) &&
     !pairwise_comparison(spec) &&
     !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec))) && (
@@ -2418,12 +2418,30 @@ check_path_model <- function(spec) {
     check_correlation_names(spec, model),
     check_target_path(spec, model),
     check_modmed_binary(spec),
-    check_modmed_effect(spec)
+    check_modmed_effect(spec),
+    check_mediation_joint(spec, model)
   )
   if (length(problems) > 0) {
     return(problems)
   }
   check_implied_variances(spec, model)
+}
+
+# The joint-significance estimate (backend-mediation-joint.R) is pwrss's
+# formula for one mediator; it has no confidence interval to draw.
+check_mediation_joint <- function(spec, model) {
+  if (!identical(spec$target_test$method, "joint_significance")) return(character())
+  problems <- character()
+  if (!identical(spec$template, "process_4") || !identical(model$mediators, "M")) {
+    problems <- c(problems, "The joint-significance estimate ('target_test > method' \"joint_significance\") is for simple mediation with one mediator (template \"process_4\", mediator M); use \"monte_carlo_ci\" for this model.")
+  }
+  if (!is.null(spec$options$ci_draws)) {
+    problems <- c(problems, "The joint-significance estimate draws no confidence interval: remove 'options > ci_draws'.")
+  }
+  if (identical(spec$options$method, "simulation")) {
+    problems <- c(problems, "The joint-significance estimate is a formula with nothing to simulate: remove 'options > method', or choose \"monte_carlo_ci\" for the simulated test.")
+  }
+  problems
 }
 
 # A yes/no X or W in moderated mediation (E17): each proportion only with a
