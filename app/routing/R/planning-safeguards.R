@@ -65,7 +65,7 @@ attrition_planning_note <- function(spec) {
 
 # These limitations stay visible with explanations off and precede the answer.
 planning_warning_notes <- function(spec, result = NULL) unique(c(
-  gg_planning_note(spec), binary_x_modmed_note(spec), attrition_planning_note(spec),
+  gg_planning_note(spec), uncorrected_f_note(spec), binary_x_modmed_note(spec), attrition_planning_note(spec),
   if (!is.null(result)) corrected_count_search_note(spec, result)
 ))
 planning_warnings_ui <- function(spec, result = NULL) {

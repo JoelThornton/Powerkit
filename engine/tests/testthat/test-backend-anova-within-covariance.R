@@ -37,6 +37,24 @@ test_that("without sphericity, the corrections cost power; with it, they change 
   expect_equal(run_quietly(equal)$curve$power, run_quietly(covariance_spec("none", sd = 100, r = 0.6))$curve$power, tolerance = 1e-6)
 })
 
+test_that("departure: the size of the Greenhouse-Geisser correction, the app's default (Departure 26)", {
+  # docs/conventions.md, Departure 26: means 600, 620 and 650, SD 100,
+  # correlations .8, .5 and .2, 40 people. Superpower's default (no
+  # correction) gives 80.5%; the corrected test, which the app plans for
+  # once the SDs or correlations differ, 68.4%, and needs 52 people for 80%.
+  spec <- function(correction, goal = list(type = "power", n = 40)) {
+    s <- covariance_spec(correction, sd = c(100, 100, 100), r = c(0.8, 0.5, 0.2))
+    s$population$means <- list(600, 620, 650)
+    s$goal <- goal
+    s
+  }
+  expect_equal(run_quietly(spec("none"))$curve$power, 0.805, tolerance = 0.001)
+  expect_equal(run_quietly(spec("GG"))$curve$power, 0.684, tolerance = 0.001)
+  target <- list(type = "sample_size", power = 0.8)
+  expect_equal(run_quietly(spec("none", target))$n_required$n, 40)
+  expect_equal(run_quietly(spec("GG", target))$n_required$n, 52)
+})
+
 test_that("impossible or mismatched SDs and correlations are refused in plain words", {
   expect_spec_problem(covariance_spec(r = c(0.9, 0.1, 0.9)), "can't all hold at once")
   expect_spec_problem(covariance_spec(r = c(0.5, 0.5, 0.5, 0.5)), "one correlation per pair of conditions (3")

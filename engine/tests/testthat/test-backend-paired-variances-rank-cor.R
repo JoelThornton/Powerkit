@@ -31,10 +31,10 @@ test_that("Spearman's rho and Kendall's tau are simulated with Spower's p_r(meth
     direct <- Spower::Spower(Spower::p_r(n = 80, r = 0.3, method = method), replications = 200, verbose = FALSE)
     expect_equal(result$curve$power, direct$power, info = method)
   }
-  # Pearson keeps the formula by default.
+  # Pearson keeps a formula by default: the exact distribution of r (pwrss).
   spec <- rank_cor_spec("pearson")
   spec$options$nrep <- NULL
-  expect_equal(run_spec(spec)$provenance$backend, "pwr")
+  expect_equal(run_spec(spec)$provenance$backend, "pwrss")
 })
 
 test_that("the rank correlations have no formula", {

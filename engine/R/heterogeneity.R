@@ -144,6 +144,9 @@ heterogeneity_adjustment_r <- function(spec, n, mu = NULL) {
 heterogeneity_backend <- function(spec, seed = NULL) {
   student <- spec
   student$target_test$method <- switch(spec$template, independent_t = "student_t", correlation = "pearson", "t_test")
+  # The correlation's method is defined on Fisher's z (pwr.r.test()), at
+  # every level of variation, none included.
+  if (identical(spec$template, "correlation")) student$options$correlation_formula <- "fisher_z"
   inputs <- pwr_inputs(student)
   base_args <- inputs$args
   effect_field <- heterogeneity_effect_field(spec)
@@ -254,6 +257,9 @@ heterogeneity_record_at <- function(spec, n) {
   usual <- spec
   usual$population$tau <- NULL
   if (identical(spec$template, "independent_t")) usual$target_test$method <- "student_t"
+  # The comparison isolates the variation between studies, so the
+  # correlation without it is on Fisher's z too.
+  if (identical(spec$template, "correlation")) usual$options$correlation_formula <- "fisher_z"
   inputs <- pwr_inputs(usual)
   list(tau = spec$population$tau, effective_alpha = a$alpha, q = a$q,
     power = heterogeneity_backend(spec)$exact_power(n), power_without = pwr_power(inputs, n), n = n,

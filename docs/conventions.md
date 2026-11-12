@@ -99,7 +99,7 @@ power while matching G\*Power) is folded there instead
 | InteractionPoweR | Not covered: to check | | |
 | power4mome | Not covered: to check | | |
 | Spower | `p_r()`: `cor.test()` (Pearson, exact t test against 0); `p_prop.test()`: `prop.test()`; `p_chisq.test()`: `chisq.test()`, which for a matrix of cell probabilities is the test of independence (its null pattern `P0` is then not used) [Spower-src] | `r`; `prop` (one per group); `P` (cell probabilities) [Spower-src] | Yates' continuity correction on by default (`correct = TRUE`) in `p_prop.test()` and `p_chisq.test()`; `n` is per group for `p_prop.test()` and the total for `p_chisq.test()` [Spower-src] |
-| **powerkit** | **By default, a formula** (Departure 9): `pwr.r.test()` (Fisher's z approximation); for two proportions the z test with pooled variance under the null, as G*Power (Departure 11): base R's `stats::power.prop.test(strict = TRUE)` for equal groups and `pwrss::power.z.twoprops(std.error = "pooled")` for unequal groups, or on request `pwr.2p2n.test()` with Cohen's h = ES.h(p2, p1) (arcsine approximation), none with a continuity correction; and `pwr.chisq.test()` with Cohen's w = ES.w2(P) and df = (rows - 1)(columns - 1). **On request:** Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()`; one-sided correlation and proportions tests pass `alternative` (for two proportions powerkit's `"greater"`, p2 > p1, is Spower's `"less"`; the chi-square test is two-sided only) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
+| **powerkit** | **By default, a formula** (Departure 9): for a correlation the exact distribution of r, as G*Power, by `pwrss::power.exact.onecor()` (pwr's `pwr.r.test()`, Fisher's z, on request; Departure 10, retired); for two proportions the z test with pooled variance under the null, as G*Power (Departure 11): base R's `stats::power.prop.test(strict = TRUE)` for equal groups and `pwrss::power.z.twoprops(std.error = "pooled")` for unequal groups, or on request `pwr.2p2n.test()` with Cohen's h = ES.h(p2, p1) (arcsine approximation), none with a continuity correction; and `pwr.chisq.test()` with Cohen's w = ES.w2(P) and df = (rows - 1)(columns - 1). **On request:** Spower's `p_r()`, `p_prop.test()` and `p_chisq.test()`; one-sided correlation and proportions tests pass `alternative` (for two proportions powerkit's `"greater"`, p2 > p1, is Spower's `"less"`; the chi-square test is two-sided only) [powerkit] | `r`; `p1`, `p2` ("greater" = p2 > p1); a table of cell probabilities | **No continuity correction** (`correct = FALSE`), as in G*Power (maintainer's decision 6; Departure 5) |
 
 ### Two dependent correlations (one group): common index or none
 
@@ -1018,7 +1018,25 @@ kept under "Not departures, but worth stating" ("Basic tests: a formula,
 not simulation"). The result screen and the methods paragraph no longer
 list it (maintainer's decision, 7 November 2026; `docs/decisions.md`).
 
-### 10. Correlation (E4): Fisher's z, not G\*Power's exact method
+### 10. Correlation (E4): Fisher's z, not G\*Power's exact method (retired 12 November 2026: the exact method is the default)
+
+**Retired.** From 12 November 2026 powerkit plans a Pearson correlation
+from the exact distribution of r, by pwrss 1.3.3's `power.exact.onecor()`,
+as G\*Power does, so there is no departure (`docs/decisions.md`, "Exact
+method for the correlation"). pwr's Fisher's z stays as a choice
+(`options > correlation_formula = "fisher_z"`), and the result then
+carries a note with the size of the difference (key "10" in
+`app/routing/forms.yaml`). A correlation that varies between studies
+(Departure 24) is still planned on Fisher's z, where that method is
+defined. Reason for the change: the approximation's accuracy statement
+below holds for mid-sized correlations only; for r = .9 and N = 6 Fisher's
+z gives 77.2% power where the exact figure is 81.6%, and asks for a seventh
+person. pwrss's one-sided call stops at a correlation of exactly 0
+(`docs/upstream-questions.md`); powerkit passes the smallest positive
+number there, where the power is alpha. Test: `test-backend-pwr.R`,
+"correlation: the exact method by default, Fisher's z on request". The
+entry as it stood:
+
 
 - **Established convention:** G\*Power computes power for a correlation
   from the exact distribution of r by default, using "the algorithm
@@ -1043,8 +1061,8 @@ list it (maintainer's decision, 7 November 2026; `docs/decisions.md`).
   power differs by at most 1: 85 rather than 84 at r = .3; the same at
   r = .4 (46) and r = .5 (29). The full table is in
   [`archive/judgement-calls-decided.md`](archive/judgement-calls-decided.md), G6.
-- **Test:** `test-backend-pwr.R`, "departure: correlation by Fisher's z,
-  not G\*Power's exact method (Departure 10)".
+- **Test:** `test-backend-pwr.R`, "correlation: the exact method by
+  default, Fisher's z on request (Departure 10, retired)".
 - **Shown to users / in the methods paragraph:** on E4's card (backend
   line) and on the result screen when the formula was used
   (`app/routing/forms.yaml`, `departures`). Stated in the full version of the write-up
@@ -1649,6 +1667,43 @@ explain the option; they no longer describe the starting default.
   assurance (`app/routing/R/results.R`, `departures_for()`), with a line
   comparing the sample size on average and at 80%, 90% and 95%
   assurance, and in the methods paragraph.
+
+### 26. Repeated measures with unequal SDs or correlations: the Greenhouse-Geisser correction by default, not Superpower's none
+
+Decided by the maintainer on 11 November 2026 (`docs/decisions.md`,
+"Sphericity correction by default"). It replaces "none by default" in the
+decision of 1 November 2026.
+
+- **Established convention:** Superpower's `ANOVA_exact()` and
+  `ANOVA_power()` apply no sphericity correction unless asked
+  (`correction = "none"`, Superpower 0.2.4.1). G\*Power's
+  repeated-measures analysis takes a nonsphericity correction epsilon,
+  1 by default, and one correlation for every pair.
+- **powerkit:** when the SDs or correlations are entered as different on
+  the one-way repeated-measures, mixed and two-factor within cards, the
+  form's correction is Greenhouse-Geisser unless the user chooses
+  Huynh-Feldt or none. Without sphericity the uncorrected F test does not
+  hold its false-positive rate, so its power describes a test that is not
+  valid, and statistics programs report the corrected test in that case.
+  Choosing "none" then puts a warning above the answer. A spec written by
+  hand without `target_test > correction` is still run uncorrected, as
+  Superpower would.
+- **Size:** three conditions, means 600, 620 and 650, SD 100, correlations
+  .8, .5 and .2, 40 people: 68.4% power with the correction against 80.5%
+  without, and 52 people rather than 40 for 80% power. In 40,000 simulated
+  studies of that population (base R, with the F test and epsilon computed
+  directly) the uncorrected test rejected a true null 6.7% of the time and
+  the corrected test 4.8%; the corrected test's simulated power was 71.5%,
+  so the corrected figure from `ANOVA_exact()` is an approximation, here
+  about 3 points low. In the mixed-design check of
+  `docs/validation-log.md` (7 to 10 November 2026) it was about 1.5 points
+  high. The result screen says so and offers the simulation.
+- **Test:** `test-backend-anova-within-covariance.R`, "departure: the size
+  of the Greenhouse-Geisser correction".
+- **Shown to users:** on the three cards' result screens when the
+  correction is applied and a within-participants factor has three or more
+  levels (`app/routing/forms.yaml`, `departures`, key "26"), and in the
+  methods paragraph, which also names the correction.
 
 ## Known differences
 

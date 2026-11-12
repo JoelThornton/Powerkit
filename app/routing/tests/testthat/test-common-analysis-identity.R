@@ -4,7 +4,7 @@ test_that("common form choices reach their intended analysis and preserve fixed 
     list(id="E2",change=list(method="welch_t"),backend="pwrss",method="welch_t"),
     list(id="E2",change=list(method="student_t"),backend="pwr",method="student_t"),
     list(id="E3",change=list(method="t_test"),backend="pwr",method="t_test"),
-    list(id="E4",change=list(method="pearson"),backend="pwr",method="pearson"),
+    list(id="E4",change=list(method="pearson"),backend="pwrss",method="pearson"),
     list(id="E5",change=list(method="z_test"),backend="stats",method="z_test"),
     list(id="E6",change=list(method="pearson_chi_square"),backend="pwr",method="pearson_chi_square"),
     list(id="E7",change=list(test_version="anova_f",method="exact"),backend="Superpower",method="anova_f"),

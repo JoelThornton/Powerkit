@@ -25,8 +25,9 @@ test_that("every basic test except Welch's runs on pwr by default, exactly", {
   for (name in pwr_templates) {
     result <- run_spec(pwr_spec(name, list(type = "power", n = 100)))
     # Two proportions in equal groups use base R's power.prop.test()
-    # (Departure 11); every other basic test uses pwr.
-    backend <- if (name == "two_proportions") "stats" else "pwr"
+    # (Departure 11) and the correlation pwrss's exact method; every other
+    # basic test uses pwr.
+    backend <- switch(name, two_proportions = "stats", correlation = "pwrss", "pwr")
     expect_equal(result$provenance$backend, backend, info = name)
     expect_equal(result$provenance$method, "exact", info = name)
     expect_equal(result$curve$mcse, 0, info = name)
@@ -43,7 +44,8 @@ test_that("pwr's results equal direct pwr calls", {
   paired <- example_spec("paired_t")$population$dz
   expect_equal(at("paired_t", 40), pwr::pwr.t.test(n = 40, d = paired, type = "paired")$power)
   r <- example_spec("correlation")$population$r
-  expect_equal(at("correlation", 90), pwr::pwr.r.test(n = 90, r = r)$power)
+  expect_equal(at("correlation", 90), pwrss::power.exact.onecor(rho = r, n = 90, alpha = 0.05, verbose = 0)$power)
+  expect_equal(at("correlation", 90, options = list(correlation_formula = "fisher_z")), pwr::pwr.r.test(n = 90, r = r)$power)
   pop <- example_spec("two_proportions")$population
   expect_equal(
     at("two_proportions", 300),
@@ -127,7 +129,7 @@ test_that("departure: pwr's formula vs Spower's simulation (Departure 9)", {
     one_sample_t = list(n = 90, formula = 0.8038, simulation = 0.8060),
     independent_t = list(n = 200, formula = 0.8036, simulation = 0.7954),
     paired_t = list(n = 60, formula = 0.7601, simulation = 0.7580),
-    correlation = list(n = 120, formula = 0.5952, simulation = 0.5926),
+    correlation = list(n = 120, formula = 0.5954, simulation = 0.5926),
     two_proportions = list(n = 340, formula = 0.4892, simulation = 0.4858),
     chi_square_independence = list(n = 150, formula = 0.0855, simulation = 0.0870)
   )
@@ -143,29 +145,50 @@ test_that("departure: pwr's formula vs Spower's simulation (Departure 9)", {
   }
 })
 
-test_that("departure: correlation by Fisher's z, not G*Power's exact method (Departure 10)", {
-  # pwr.r.test() uses Fisher's z; G*Power uses the exact distribution of r
-  # (docs/conventions.md, Departure 10). Reference values: pwrss 1.3.3,
-  # power.exact.onecor(), the exact method of Barabesi and Greco (2002) that
-  # G*Power uses; it reproduces the G*Power 3.1 manual's examples for this
-  # test (section 3.3: N = 1928; power 0.482927). Two-sided, alpha .05.
+test_that("correlation: the exact method by default, Fisher's z on request (Departure 10, retired)", {
+  # G*Power uses the exact distribution of r, and so does powerkit, by
+  # pwrss 1.3.3's power.exact.onecor() (docs/conventions.md, Departure 10,
+  # retired 12 November 2026); it reproduces the G*Power 3.1 manual's
+  # examples for this test (section 3.3: N = 1928; power 0.482927).
+  # Reference values to four decimals, two-sided, alpha .05. pwr's
+  # pwr.r.test() (Fisher's z) stays within 0.004 of them here, and further
+  # off for a large correlation in a small sample.
   exact <- list(
     "0.3" = c(`20` = 0.2539, `50` = 0.5722, `100` = 0.8652),
     "0.4" = c(`20` = 0.4303, `50` = 0.8352, `100` = 0.9871),
     "0.5" = c(`20` = 0.6417, `50` = 0.9672, `100` = 0.9997)
   )
+  at <- function(r, n, formula = NULL, goal = list(type = "power", n = as.integer(n))) {
+    spec <- pwr_spec("correlation", goal)
+    spec$population$r <- as.numeric(r)
+    spec$options$correlation_formula <- formula
+    run_quietly(spec)
+  }
   for (r in names(exact)) {
     for (n in names(exact[[r]])) {
-      spec <- pwr_spec("correlation", list(type = "power", n = as.integer(n)))
-      spec$population$r <- as.numeric(r)
-      power <- run_quietly(spec)$curve$power
-      expect_lt(abs(power - exact[[r]][[n]]), 0.004, label = paste("r =", r, "n =", n))
+      expect_equal(round(at(r, n)$curve$power, 4), exact[[r]][[n]], label = paste("r =", r, "n =", n))
+      expect_lt(abs(at(r, n, "fisher_z")$curve$power - exact[[r]][[n]]), 0.004, label = paste("Fisher's z, r =", r, "n =", n))
     }
   }
-  # Required N for 80% power at r = .3: 85 by Fisher's z, 84 exactly.
-  spec <- pwr_spec("correlation", list(type = "sample_size", power = 0.8))
-  spec$population$r <- 0.3
-  expect_identical(as.integer(run_quietly(spec)$n_required$n), 85L)
+  # Required N for 80% power at r = .3: 84 exactly, 85 by Fisher's z.
+  target <- list(type = "sample_size", power = 0.8)
+  expect_identical(as.integer(at(0.3, goal = target)$n_required$n), 84L)
+  expect_identical(as.integer(at(0.3, formula = "fisher_z", goal = target)$n_required$n), 85L)
+  # A large correlation in a small sample: r = .9, n = 6 has 81.6% power
+  # exactly and 77.2% by Fisher's z, which asks for a seventh person.
+  expect_equal(at(0.9, 6)$curve$power, 0.816, tolerance = 0.001)
+  expect_equal(at(0.9, 6, "fisher_z")$curve$power, 0.772, tolerance = 0.001)
+  expect_identical(as.integer(at(0.9, goal = target)$n_required$n), 6L)
+  expect_identical(as.integer(at(0.9, formula = "fisher_z", goal = target)$n_required$n), 7L)
+  # A one-sided test against the expected correlation has almost no power,
+  # as pwr's own one-sided call says.
+  against <- pwr_spec("correlation", list(type = "power", n = 84L))
+  against$population$r <- -0.3
+  against$target_test$alternative <- "greater"
+  expect_lt(run_quietly(against)$curve$power, 1e-4)
+  # The option belongs to Pearson's correlation by formula.
+  wrong <- pwr_spec("paired_t", list(type = "power", n = 40L), options = list(correlation_formula = "fisher_z"))
+  expect_spec_problem(wrong, "only applies to the test of Pearson's correlation")
 })
 
 test_that("two proportions: the z test equals G*Power's (Departure 11)", {
@@ -367,8 +390,13 @@ test_that("the smallest detectable effect equals pwr's own solution for the effe
   expect_equal(s$effect_name, "d_z")
   expect_equal(abs(s$effect), pwr::pwr.t.test(n = 40, d = NULL, power = 0.8, type = "paired")$d)
 
+  # pwrss has no solver for the correlation: powerkit searches it, and the
+  # exact call has the target power at the r found.
   s <- sens("correlation", 90)
-  expect_equal(abs(s$effect), pwr::pwr.r.test(n = 90, r = NULL, power = 0.8)$r)
+  expect_equal(pwrss::power.exact.onecor(rho = abs(s$effect), n = 90, alpha = 0.05, verbose = 0)$power, 0.8, tolerance = 1e-6)
+  fisher <- run_spec(pwr_spec("correlation", list(type = "sensitivity", n = 90, power = 0.8),
+    options = list(correlation_formula = "fisher_z")))$sensitivity
+  expect_equal(abs(fisher$effect), pwr::pwr.r.test(n = 90, r = NULL, power = 0.8)$r)
   expect_equal(sign(s$effect), sign(example_spec("correlation")$population$r))
 
   p <- probability_matrix(example_spec("chi_square_independence"))
@@ -426,7 +454,9 @@ test_that("the basic tests need no effect size for the smallest detectable effec
   expect_equal(run_spec(spec)$sensitivity$effect, pwr::pwr.t.test(n = 64, d = NULL, power = 0.8)$d)
   spec <- pwr_spec("correlation", list(type = "sensitivity", n = 90, power = 0.95))
   spec$population$r <- 0
-  expect_equal(run_spec(spec)$sensitivity$effect, pwr::pwr.r.test(n = 90, r = NULL, power = 0.95)$r)
+  found <- run_spec(spec)$sensitivity$effect
+  expect_gt(found, 0)
+  expect_equal(pwrss::power.exact.onecor(rho = found, n = 90, alpha = 0.05, verbose = 0)$power, 0.95, tolerance = 1e-6)
   # Two proportions with no difference given: group 2's proportion goes up
   # from group 1's, to the target power.
   spec <- pwr_spec("two_proportions", list(type = "sensitivity", n = 300, power = 0.8))
