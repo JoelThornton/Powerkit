@@ -173,15 +173,12 @@ app_css <- "
   .terms-mode .form-field { position: relative; margin-bottom: 0.4rem; }
   .terms-mode .form-field > .explanation-help { margin: 0; }
   .terms-mode .form-field > .explanation-help > summary { position: absolute; right: 0; top: 0; }
-  /* No info button on a line of its own (12 November 2026): a group's
-     note sits at the top right of its box, level with the box's title, as
-     a field's sits level with its label; any other one is a small text
-     link naming what it explains. */
-  .terms-mode .form-group-box { position: relative; }
-  .terms-mode .form-group-box > .explanation-help { margin: 0; }
-  .terms-mode .form-group-box > .explanation-help > summary { position: absolute; right: 1rem; top: 0.6rem; }
-  .terms-mode :not(.form-field):not(.form-group-box) > .explanation-help > summary { min-width: 0; min-height: 32px; border: 0; background: none; padding: 0; gap: 0.4rem; font-size: 0.88rem; }
-  .terms-mode :not(.form-field):not(.form-group-box) > .explanation-help > summary::after { content: attr(data-label); text-decoration: underline; }
+  /* No bare info button on a line of its own (12 November 2026): one not
+     beside a field's label is a small text link naming what it explains.
+     (Placed at the top right of its box, a group's button crowded the
+     first field's.) */
+  .terms-mode :not(.form-field) > .explanation-help > summary { min-width: 0; min-height: 32px; border: 0; background: none; padding: 0; gap: 0.4rem; font-size: 0.88rem; }
+  .terms-mode :not(.form-field) > .explanation-help > summary::after { content: attr(data-label); text-decoration: underline; }
   .terms-mode .form-field label.control-label { min-height: 44px; padding-right: 3.25rem; display: flex; align-items: center; }
   .field-problem { font-size: 0.9rem; color: #8a1f1f; border-left: 3px solid #a12a2a; background: #fbeaea; padding: 0.2rem 0.5rem; margin-top: 0.3rem; }
   [aria-invalid='true'] { border-color: #a12a2a !important; }

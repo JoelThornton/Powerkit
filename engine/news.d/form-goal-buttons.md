@@ -4,6 +4,5 @@
   and the test's direction. The "still needed" line names the first
   empty answers (`needed_name()`, `data-needed-name`). The effect
   section's groups use the standard card style, and its two helpers are
-  plain lines. With explanations off, group info buttons sit at the top
-  right of their box and other standalone ones show their label
-  (`data-label`). The settings summary uses short names.
+  plain lines. With explanations off, info buttons not beside a field's label
+  show their label as a small link (`data-label`). The settings summary uses short names.

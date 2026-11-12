@@ -2985,9 +2985,9 @@ some info buttons stood on lines of their own. Changes:
   blue borders are kept for focus and the chosen answer. "Don't know
   what effect to expect?" and "Not sure what number to put here?" are
   quiet lines rather than coloured panels.
-- With explanations off, a group's info button sits at the top right
-  of its box, level with the title, and any other is a small link
-  naming what it explains.
+- With explanations off, an info button that is not beside a field's
+  label is a small link naming what it explains ("Hypothesis",
+  "What this planning goal means"), not a bare button on its own line.
 - The settings line uses short names ("Group 2 / group 1: 1 · Dropout:
   none · Seed: 1 · Change").
 
