@@ -2993,3 +2993,21 @@ some info buttons stood on lines of their own. Changes:
 
 The review's other form findings (one line of help per field, D-11;
 f-squared for regression, C-07) are separate changes.
+
+### Multiple regression given by Cohen's f-squared, 12 November 2026
+
+G*Power's multiple regression asks for Cohen's f-squared; the regression
+card asked for R-squared values only (R-squared, R-squared with and
+without the tested predictors, or a predictor's partial R-squared), so a
+researcher with f-squared had to work them out. The card now offers "As
+Cohen's f-squared, as in G*Power" for the sample size and the power. The
+engine converts it, as it converts the other effect sizes given in
+another form, with the effectsize package's f2_to_eta2() (f^2 / (1 +
+f^2)): R-squared against 0, the partial R-squared of one predictor, and
+for a tested set the R-squared with all the predictors given the
+R-squared without them, R2_full = R2_reduced + partial (1 - R2_reduced),
+so that (R2_full - R2_reduced) / (1 - R2_full) is the f-squared given.
+The result and the write-up show the conversion. The power is the same
+as for the R-squared values that give that f-squared, and equals the
+noncentral F power with lambda = f^2 N
+(engine/tests/testthat/test-effect-conversion-f2.R).
