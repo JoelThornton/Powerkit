@@ -2363,7 +2363,7 @@ server <- function(input, output, session) {
         nav$snaps[[nav$pos + 1L]] <- snap
         nav$pos <- nav$pos + 1L
         session$sendCustomMessage("pk_nav", list(pos = nav$pos, replace = nav$pos == 1L,
-          page = page_slug(snap$tab), tool = tool, card = card_in_address(snap$screen, snap$endpoint, snap$tab)))
+          page = page_slug(input$tabs), tool = tool, card = card_in_address(snap$screen, snap$endpoint, snap$tab)))
       }
       tool <- if (identical(input$tabs, labs_tab_title)) input$labs_tool %||% "" else ""
       # A tool opened straight after the Labs tab (both changes arriving
