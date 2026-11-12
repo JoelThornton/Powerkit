@@ -23,8 +23,17 @@ input screen. The study plan is reachable from every screen and kept in
 the browser; a result is reused when only free-text answers change; a
 conventional effect size can be recorded as one. The non-inferiority and allocation unit tests and the
 non-inferiority validation chunk were run; no full validation run is
-claimed. Open from the same review: minimum-effect tests still use pwrss's
-margin, and the rounded-group-size search is queued.
+claimed. Minimum-effect tests now use the same shifted t-test (12
+November; the equivalence validation chunk was run). The rounded-group-size
+search is queued.
+
+The claim (how many tests a conclusion rests on) is asked in view on every
+input screen, with a Bonferroni choice for related tests (12 November).
+
+Results now help users compare with the tools they know (12 November):
+Student's answer beside Welch's, the cost of a stricter alpha, Cohen's f
+named on the ANOVA screens, and plainer wording in the checks panel and
+the advice on effect sizes.
 
 The correlation card plans by the exact distribution of r, as G*Power (12
 November; Departure 10 retired), with Fisher's z as a choice.

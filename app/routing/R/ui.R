@@ -770,7 +770,7 @@ function powerkitRestoreAnalyses() {
 # "More about this analysis".
 validated_line_ui <- function(tree, ep) {
   if (!identical(ep$status, "runs_validated")) return(NULL)
-  p(class = "validated-line", tags$strong("Historical design-level record: "), ep$validation$note, " ", validation_scope_note, " ",
+  p(class = "validated-line", tags$strong("Checks for this analysis in general: "), ep$validation$note, " ", validation_scope_note, " ",
     tags$a(href = tree$links$validation_log, target = "_blank", "Validation log"), " \u00b7 ",
     tags$a(href = paste0(tree$links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file)))
 }
@@ -1259,6 +1259,7 @@ plan_form_start <- function(start, id, primary, rule) {
   several <- id %in% primary && length(primary) >= 2
   start$claim <- if (several) rule %||% "each" else "one"
   start$n_tests <- if (several && start$claim %in% c("any", "all")) length(primary)
+  start$claim_from_plan <- TRUE
   start
 }
 

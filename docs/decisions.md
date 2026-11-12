@@ -2687,7 +2687,7 @@ returned up to a full step too many people. A search over rounded group
 sizes at every total is queued in `next.md`. Non-inferiority t-tests are
 planned as the one-sided t-test of the difference against the margin (a
 central-t null), the test researchers run, not pwrss's noncentral-null
-`margin`; minimum-effect tests keep pwrss's form (Known difference 10)
+`margin`; minimum-effect tests keep pwrss's form (Known difference 10; changed 12 November 2026, see below)
 until that is decided separately. A search that cannot reach the target
 because power does not rise with n says so.
 
@@ -2739,3 +2739,40 @@ between studies stays on Fisher's z, where McShane and Bockenholt's method
 is defined, and its comparisons with no variation are made on the same
 scale. The Labs power picture still draws Fisher's z curves.
 
+
+### Significance level: the usual level labelled, two stricter ones beside it, 12 November 2026
+
+The significance level stays empty on every card, with 0.05 one click
+away and labelled as the usual level, as most studies in the behavioural and social sciences and their
+readers use it. 0.01 and 0.005 sit beside it, with one line on when they
+fit (many tests, or a surprising claim that needs stronger evidence), and
+formula-based results show the sample size at all three. Three equal
+buttons were considered and not adopted: they would suggest the three are
+equally common, which would confuse more than it informs.
+
+### Minimum-effect tests planned as the shifted t-test, 12 November 2026
+
+The minimum-effect test versions of the one-sample, paired and two-group
+t-test cards are planned as the test researchers run: a t-test of the
+difference against the smallest effect of interest held fixed in the
+outcome's own units (`t.test(mu = margin)`, TOSTER's
+`t_TOST(hypothesis = "MET")`), a central t shifted by the margin. pwrss
+computes its power when given the effect minus the margin, as for
+non-inferiority since 11 November 2026. pwrss's own `margin` argument,
+used until now, tests a margin held fixed in SD units and has slightly
+less power (Known difference 10, now retired): for d = 0.5, a margin of
+0.2 and 80% power it asked for 282 people where 278 are enough. A
+two-sided test adds the small far tail from pwr's one-sided t-test, which
+pwrss's one-sided test cannot give.
+
+### The claim in view, with a correction for related tests, 12 November 2026
+
+The claim question ("How many tests does your conclusion rest on?") moves
+from Settings into the study section of every input screen, starting at
+one test. It carries powerkit's position on multiple testing, which the
+usual tools never ask about, and folded away it was rarely seen. A fifth
+choice, several claims from a related group of tests corrected as a group
+(Bonferroni), lets a researcher who holds the error-statistical view
+(Mayo, 2018) act on it; the default for separate claims stays
+uncorrected (Rubin, 2021), and both views are stated on the screen.
+Screens opened from a study plan say the plan sets the claim.

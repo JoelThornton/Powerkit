@@ -40,7 +40,8 @@ test_that("a variation reaches the spec, the result and the write-up; empty leav
   expect_match(html, "Variation between studies", fixed = TRUE)
   # The range: none, small, medium and large (0.2, the value entered).
   expect_match(html, "result-heterogeneity-table", fixed = TRUE)
-  expect_match(html, "Large (your value)", fixed = TRUE)
+  expect_match(html, "<td>Your value</td>", fixed = TRUE)
+  expect_no_match(html, "<td>Large", fixed = TRUE)
   expect_match(html, "None (the same in every study)", fixed = TRUE)
   text <- paste(writeup_text(forms$forms$E2, spec, calc$result, fields, values), collapse = " ")
   expect_match(text, "following Kenny and Judd (2019)", fixed = TRUE)
@@ -90,7 +91,7 @@ test_that("the correlation card plans a varying correlation on Fisher's z, with 
   expect_equal(calc$result$heterogeneity$scale, "Fisher's z")
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
   expect_match(html, "on Fisher&#39;s z scale|on Fisher's z scale")
-  expect_match(html, "Small (your value)", fixed = TRUE)
+  expect_match(html, "<td>Your value</td>", fixed = TRUE)
   expect_match(html, "People needed", fixed = TRUE)
   expect_true("24" %in% names(departures_for(forms, "E4", spec)))
   expect_false("23" %in% names(departures_for(forms, "E4", spec)))
@@ -112,7 +113,7 @@ test_that("new ordinary plans stay fixed-effect while stored variation remains e
     expect_null(fresh$population$tau, label = ep)
     field <- Filter(function(f) identical(f$id, "het_tau"), fields)[[1]]
     html <- as.character(field_ui(field, NULL))
-    expect_match(html, "not an automatic safety margin", fixed = TRUE)
+    expect_match(html, "changes the question", fixed = TRUE)
     for (tau in c(0, 0.05, 0.2)) {
       saved <- modifyList(values, list(het_tau = tau))
       route <- project_route(list(endpoint = ep), saved)

@@ -1456,6 +1456,8 @@ server <- function(input, output, session) {
     calc$route <- route
     if (!identical(calc$status, "ok")) return(calc)
     calc$cost_line <- cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values, ns = calc$cost_ns)
+    calc$alpha_line <- tryCatch(alpha_cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values), error = function(e) NULL)
+    calc$usual_line <- tryCatch(usual_test_line(calc$spec, calc$result, seed = forms$default_seed), error = function(e) NULL)
     if (is_bayes_test(calc$spec) && calc$spec$template %in% c("one_sample_t", "paired_t", "independent_t")) {
       calc$robustness <- tryCatch(engine_function("bayes_robustness")(calc$spec, bayes_companion_n(calc$spec, calc$result)), error = function(e) NULL)
     }

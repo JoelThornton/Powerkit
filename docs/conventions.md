@@ -412,9 +412,12 @@ proportions and no such distinction arises. The effect is passed with
 better as positive; powerkit refuses an expected effect at or beyond the
 margin. Group 2 is the new condition. The usual one-sided alpha in
 non-inferiority trials is 0.025; the example specs use 0.025. The
-minimum-effect test versions of the t-test cards still use pwrss's
-`margin` (Known difference 10): whether they should follow is an open
-question.
+minimum-effect test versions of the t-test cards follow the same shifted
+test from 12 November 2026 (Known difference 10, retired): a one-sided
+test passes pwrss d = effect - margin on the tested side and margin = 0;
+a two-sided test adds both tails at alpha / 2, the far tail (a
+significant result beyond the margin on the wrong side) from pwr's
+one-sided t-test, which pwrss's one-sided test cannot give.
 
 **Group sizes given as a ratio (from 11 November 2026).** powerkit plans
 whole groups in the ratio entered, so the total moves in steps (2 for
@@ -2359,35 +2362,32 @@ Wired into the app on 18 October 2026 (E25, E26).*
   (`app/routing/forms.yaml`, `known_differences`, key "9").
 - **Methods paragraph:** `known_differences_methods`, key "9".
 
-### 10. Minimum-effect tests: a margin in SD units, slightly below a margin in the outcome's units
+### 10. Minimum-effect tests: a margin in SD units, slightly below a margin in the outcome's units (retired 12 November 2026: powerkit plans the shifted test)
 
-- **What differs:** a minimum-effect test (the t-test cards' test version
-  "minimum_effect", 31 October 2026) is computed with pwrss's
-  `power.t.student()` with the margin on the effect's side. pwrss tests the
-  t statistic of the mean difference against a noncentral t distribution
-  whose noncentrality is the margin divided by the standard error: the
-  exact test of a smallest effect of interest given in SD units. A margin
-  fixed in the outcome's own units, tested with a central t shifted by the
-  margin (as TOSTER's `t_TOST(hypothesis = "MET")` does), has very
-  slightly more power at the same N. G\*Power has no minimum-effect test.
-- **Size:** for 57 per group, d = 0.5 and a margin of 0.2 (one-sided,
-  alpha .05): 47.2% against 47.9%; across N 20-200 per group, d 0.3-0.8
-  and margins 0.1-0.2, at most 1.2 points (20 per group, d = 0.8, margin
-  0.2). For 80% power, 141 per group against 139 (d = 0.5, margin 0.2) and
-  317 against 310 (margin 0.3). The smallest detectable d for 57 per group
-  and a margin of 0.2 is 0.6735 (pwrss), 0.6686 with the shifted test.
-- **Not a difference:** the same noncentral-t calculation with one
-  group's degrees of freedom (n - 1 = 56) in place of the test's (2n - 2 =
-  112) gives 0.681; that figure comes from the degrees of freedom, not
-  from pwrss.
-- **Test:** `engine/tests/testthat/test-backend-minimum-effect.R`, "a
-  margin in SD units differs very slightly from one in the outcome's own
-  units (Known difference 10)" and "pwrss's power is the exact power of
-  the t-test against a margin in SD units".
-- **Shown to users:** on the one-sample, paired and two-group result
-  screens when the minimum-effect test is chosen (`app/routing/forms.yaml`,
-  `known_differences`, key "10").
-- **Methods paragraph:** `known_differences_methods`, key "10".
+- **What differed:** from 31 October to 12 November 2026 a minimum-effect
+  test (the t-test cards' test version "minimum_effect") was computed with
+  pwrss's `power.t.student()` with its `margin` argument, which tests the
+  t statistic against a noncentral t whose noncentrality is the margin
+  divided by the standard error: the test of a smallest effect of interest
+  held fixed in SD units. The test researchers run holds the margin fixed
+  in the outcome's own units, `t.test(mu = margin)` or TOSTER's
+  `t_TOST(hypothesis = "MET")`: a central t shifted by the margin. Its
+  power is slightly higher, so the earlier sample sizes were a few too
+  large. powerkit now plans the shifted test, as it does for
+  non-inferiority (11 November 2026), and this is no longer a difference.
+  G\*Power has no minimum-effect test.
+- **Size, for the record:** for 57 per group, d = 0.5 and a margin of 0.2
+  (one-sided, alpha .05): 47.9% now against 47.2% before; for 80% power,
+  278 in total against 282. The smallest detectable d for 57 per group is
+  0.6686 now, 0.6735 before.
+- **Test:** `engine/tests/testthat/test-backend-minimum-effect.R`,
+  "pwrss's own margin argument, a margin in SD units, gives slightly less
+  power (Known difference 10, retired)" (the size), "the power is the
+  exact power of t.test(mu = margin), a central t shifted by the margin"
+  and "a simulation of t.test(mu = margin) agrees with the formula".
+- **Shown to users:** no longer listed on any card; the note
+  (`app/routing/forms.yaml`, `known_differences`, key "10") is kept for
+  results saved before then.
 
 ### 11. Justified alpha: minimising the weighted errors by default, where G\*Power's compromise balances them
 

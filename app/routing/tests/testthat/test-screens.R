@@ -32,7 +32,7 @@ test_that("every end-point card renders, with its status and inputs", {
     }
     if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, if (runs) "What you('|&#39;)ll need" else "What you would enter", label = id)
     expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
-      runs_validated = "Historical design-level record: ", runs_validation_in_progress = "Runs, validation in progress.",
+      runs_validated = "Checks for this analysis in general: ", runs_validation_in_progress = "Runs, validation in progress.",
       coming_soon = "Coming soon.",
       not_in_powerkit = if (isTRUE(tree$endpoints[[id]]$no_ready_made_tool)) "Not in powerkit yet." else tree$endpoints[[id]]$not_in_powerkit_heading %||% "Not in powerkit yet: use")
     expect_match(html, expected, fixed = TRUE, label = id)

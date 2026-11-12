@@ -1186,8 +1186,8 @@ goal_sentences <- function(spec, result) {
           justified_alpha_test_text(spec), percent(j$power)
         ),
         detail = sprintf(
-          "%s At the usual alpha = %s, power would be %s. Found by JustifyAlpha's optimal_alpha(), which searches over alpha with power from pwr's formula (%s).",
-          justified_alpha_weights_text(j), alpha_text(j$conventional_alpha), percent(j$conventional_power), exact_source(result)
+          "%s For comparison, at the usual alpha = %s power would be %s. Found by JustifyAlpha's optimal_alpha(), which searches over alpha with power from %s's formula (%s).",
+          justified_alpha_weights_text(j), alpha_text(j$conventional_alpha), percent(j$conventional_power), result$provenance$backend %||% "pwr", exact_source(result)
         )
       )
     }
@@ -1327,18 +1327,21 @@ heterogeneity_range_ui <- function(result) {
     if (is.na(v)) return("not reached")
     switch(goal, power = percent(v), sample_size = whole(v), format(round(v, 3), nsmall = 2))
   }
-  names <- c(none = "None (the same in every study)", small = "Small", medium = "Medium", large = "Large", entered = "Your value")
+  # Rows are named by their value, not as small, medium and large: the
+  # three reference values are illustrations, not the plausible states.
+  names <- c(none = "None (the same in every study)", small = "Example value", medium = "Example value", large = "Example value", entered = "Your value")
   rows <- lapply(seq_len(nrow(range)), function(i) {
     label <- names[[range$level[i]]]
-    if (isTRUE(range$entered[i]) && !identical(range$level[i], "entered")) label <- paste0(label, " (your value)")
+    if (isTRUE(range$entered[i])) label <- "Your value"
     row <- tags$tr(tags$td(label), tags$td(format(range$tau[i])), tags$td(show(range$value[i])))
     if (isTRUE(range$entered[i])) row <- tagAppendAttributes(row, class = "table-active")
     row
   })
   div(class = "result-heterogeneity-range",
-    p(paste0("How much the answer depends on the variation you assume. Small, medium and large are Kenny and Judd's (2019) ",
-      "25% of a small, medium and large ", if (r) "correlation" else "effect",
-      ". If a meta-analysis of this effect reports how much it varies (tau), that is better evidence than any of these.")),
+    p(paste0("How much the answer depends on the variation you assume. The example values are a quarter of ",
+      if (r) "r = .1, .3 and .5" else "Cohen's d = 0.2, 0.5 and 0.8", " (the rule Kenny and Judd, 2019, use",
+      if (r) " for d" else "", "): illustrations, not estimates for your field. ",
+      "If a meta-analysis of this effect reports how much it varies (tau), that is better evidence than any of these.")),
     tags$table(class = "table table-sm result-heterogeneity-table",
       tags$thead(tags$tr(tags$th("Variation between studies"), tags$th(if (r) "SD (Fisher's z)" else "SD (d)"), tags$th(header))),
       tags$tbody(rows)))
@@ -1528,6 +1531,53 @@ cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L
     together, whole(n[[1]]), n_unit(spec) %||% "participants", group_text(spec, n[[1]]),
     whole(n[[2]]), group_text(spec, n[[2]]), whole(n[[3]]), group_text(spec, n[[3]])
   )
+}
+
+# What the significance level costs: the sample size at .05, .01 and .005
+# side by side, as cost_line() does for power, so alpha is as examined as
+# power is. For the basic tests worked out by formula only (three more
+# engine calls, each instant); with several tests sharing alpha the level
+# is already adjusted, so the line is left out.
+alpha_cost_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L, values = list()) {
+  if (!identical(result$goal_type, "sample_size") || simulated(result) || !identical(spec$design, "basic_test") ||
+      !isTRUE(result$provenance$backend %in% c("pwr", "pwrss", "stats")) || !is.numeric(spec$target_test$alpha) ||
+      isTRUE(values$claim %in% c("related", "any", "all"))) return(NULL)
+  levels <- c(0.05, 0.01, 0.005)
+  n <- vapply(levels, function(a) {
+    if (isTRUE(all.equal(a, spec$target_test$alpha))) return(as.numeric(result$n_required$n))
+    s <- spec
+    s$target_test$alpha <- a
+    calc <- run_calculation(s, run, seed)
+    if (identical(calc$status, "ok")) as.numeric(calc$result$n_required$n) else NA_real_
+  }, numeric(1))
+  if (anyNA(n)) return(NULL)
+  sprintf("What the significance level costs, at the same power: .05 needs %s %s; .01 needs %s; .005 needs %s. A lower level means fewer false positives and more people.",
+    whole(n[[1]]), n_unit(spec) %||% "participants", whole(n[[2]]), whole(n[[3]]))
+}
+
+# Welch's t-test is powerkit's default for two groups; G*Power and pwr plan
+# for Student's. The same plan by Student's test, in one line, so a
+# researcher checking powerkit against the tool they know sees the matching
+# number without changing the test (one more engine call, by formula).
+usual_test_line <- function(spec, result, run = engine_function("run_spec"), seed = 1L) {
+  if (!identical(spec$design, "basic_test") || !identical(spec$template, "independent_t") ||
+      !identical(spec$target_test$method, "welch_t") || simulated(result) ||
+      !isTRUE(result$goal_type %in% c("sample_size", "power")) ||
+      (is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0))) return(NULL)
+  student <- spec
+  student$target_test$method <- "student_t"
+  student$population$sd_ratio <- NULL
+  student$options$method <- NULL
+  calc <- run_calculation(student, run, seed)
+  if (!identical(calc$status, "ok")) return(NULL)
+  spreads <- if (isTRUE(all.equal(as.numeric(spec$population$sd_ratio %||% 1), 1))) "" else ", which assumes equal spreads,"
+  if (identical(result$goal_type, "sample_size")) {
+    n <- calc$result$n_required$n
+    same <- isTRUE(all.equal(as.numeric(n), as.numeric(result$n_required$n)))
+    return(sprintf("With Student's t-test%s (the test G*Power and pwr plan for) the answer is %s%s%s.",
+      spreads, whole(n), group_text(student, n), if (same) ", the same" else ""))
+  }
+  sprintf("With Student's t-test%s (the test G*Power and pwr plan for) the power is %s.", spreads, sprintf("%.1f%%", 100 * calc$result$curve$power))
 }
 
 # The explore panel (the new design): power by sample size for any effect
@@ -1793,7 +1843,7 @@ guess_gap <- function(guess, answer) {
 # A short warning for effect sizes taken from one earlier study.
 source_note <- function(values) {
   if (!identical(values$just_type, "prior_study") || isTRUE(values$sg_use %in% c("yes", "telescopes"))) return(NULL)
-  "Your effect size comes from one earlier study. Published effects from single studies tend to be larger than the true effect, so a sample size based on one can be too small. Adjusting it (and saying how) helps; the BUCSS R package offers a bias-corrected approach."
+  "Your effect size comes from one earlier study. An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. The BUCSS R package offers a correction for publication bias."
 }
 
 # The power the reported N actually gives (judgement-calls.md G5; the
@@ -2350,7 +2400,7 @@ known_differences_for <- function(forms, ep_id, spec = NULL) {
 
 validation_ui <- function(ep, result = NULL) {
   tagList(evidence_ui(result$provenance$evidence),
-    tags$details(tags$summary("Historical design-level note"), p(ep$validation$note %||% "No design-level note is recorded.", " ", validation_scope_note)))
+    tags$details(tags$summary("Checks for this analysis in general"), p(ep$validation$note %||% "No design-level note is recorded.", " ", validation_scope_note)))
 }
 
 provenance_lines <- function(result) {
@@ -2703,7 +2753,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
     `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
-    `result-bayes` = if (!is.null(bayes_card)) "Add a Bayes factor?",
+    `result-bayes` = if (!is.null(bayes_card)) "If it isn't significant",
     `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
   div(
@@ -2724,6 +2774,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(guess <- guess_line(values, result))) p(class = "result-guess", tags$strong(guess)),
     if (!is.na(words["reading"])) explanation_ui("result-reading-info", "Reading this result", p(class = "result-reading", words[["reading"]])),
     if (!is.null(calc$cost_line)) p(class = "result-cost-line", calc$cost_line),
+    if (!is.null(calc$alpha_line)) p(class = "result-cost-line result-alpha-line", calc$alpha_line),
+    if (!is.null(calc$usual_line)) p(class = "result-cost-line result-usual-line", calc$usual_line),
     if (!is.null(line <- reasoning_line(values))) explanation_ui("result-reasoning-info", "Your effect-size reasoning", p(class = "result-reasoning", line)),
     if (!is.null(cv <- conversion_sentence(result))) p(class = "result-conversion", cv),
     if (!is.null(gd <- group_d_sentence(result))) p(class = "result-conversion", gd),
@@ -2740,7 +2792,11 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       p(class = "small", recruit[["caveat"]])),
     p(class = "result-detail", words[["detail"]]),
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
-    if (length(known) || length(departures_in_view)) p(class = "result-differs-pointer small",
+    # Not when the only difference is Welch's test and Student's answer,
+    # shown just above, is the same: then the usual tools agree.
+    if ((length(known) || length(departures_in_view)) &&
+        !(isTRUE(grepl(", the same.", calc$usual_line %||% "", fixed = TRUE)) && !length(known) && identical(names(departures_in_view), "21")))
+      p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below.")),
     if (!is.null(telescope_sure) || !is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
@@ -2923,6 +2979,8 @@ writeup_claim <- function(values, spec) {
   switch(values$claim %||% "one",
     one = NULL,
     each = "Each hypothesis was treated as a separate claim, so no correction for multiple tests was applied. This calculation plans one test; it does not control the chance of a false positive across the collection.",
+    related = if (!is.null(spec$target_test$alpha)) sprintf("Each of %s related tests supports its own claim, and the tests were corrected as a group: alpha was divided by %s (Bonferroni), giving α = %s for this test.",
+      values$n_tests, values$n_tests, writeup_alpha(spec$target_test$alpha)),
     any = if (!is.null(spec$target_test$alpha)) sprintf("The claim is supported if any one of %s tests is significant, so alpha was divided by %s (Bonferroni), giving α = %s for this test. The reported power is for this test at its adjusted alpha, not the probability that any test in the set succeeds.",
       values$n_tests, values$n_tests, writeup_alpha(spec$target_test$alpha)),
     all = {
@@ -3337,7 +3395,7 @@ ethics_text <- function(spec, result, fields, values) {
   set_by <- if (fixed) "This number is set by the resources available, not chosen by a power analysis."
   body <- switch(result$goal_type,
     sample_size = c(include, recruit_line, if (is_bayes_test(spec)) "This number comes from a Bayes factor design analysis." else "This number comes from a power analysis.", basis, chance(spec$goal$power),
-      "With fewer participants, the study would be more likely to miss the effect, so people's time could go into a study that can't answer its question. This number is enough for that aim without asking more people to take part than it needs."),
+      "With fewer participants the study would be more likely to miss an effect of this size, and its estimate would be less precise. More participants would add precision at the cost of more people's time. This number is our judgement of that balance, and it depends on the effect size assumed above."),
     power = c(include, recruit_line, set_by, basis, chance(result$curve$power[1])),
     sensitivity = {
       s <- result$sensitivity
@@ -3661,8 +3719,8 @@ bayes_companion_applies <- function(tree, ep_id, spec, result) {
 bayes_companion_card_ui <- function(tree, ep_id, spec, result) {
   if (!bayes_companion_applies(tree, ep_id, spec, result)) return(NULL)
   div(class = "result-card result-bayes", id = "result-bayes",
-    h4(class = "h5", "Add a Bayes factor?"),
-    p("A p-value can't show that an effect is absent: a non-significant result only fails to find one. A Bayes factor can show either. Many researchers report both, and a study meant to be judged both ways needs enough people for both."),
+    h4(class = "h5", "Planning to interpret a non-significant result?"),
+    p("A non-significant result is not evidence that an effect is absent. Two ways to plan for that question: an equivalence test (is the effect too small to matter?), which has its own analysis in powerkit, or a Bayes factor (do the data favour no effect over the effects your prior expects?). Either can need more people than this plan."),
     actionButton("bayes_companion_show", "See what a Bayes factor would add to this plan", class = "btn btn-outline-primary",
       onclick = "this.hidden = true;"),
     uiOutput("bayes_companion"))
@@ -3714,8 +3772,8 @@ bayes_companion_ui <- function(spec, result, comp, writeup = NULL) {
       tags$ul(class = "result-bayes-agree",
         tags$li(sprintf("If the effect is as you planned: both find it %s of the time; only the p-value %s; only the Bayes factor %s; neither %s.",
           pr("effect", TRUE, "effect"), pr("effect", TRUE, c("neither", "null")), pr("effect", FALSE, "effect"), pr("effect", FALSE, c("neither", "null")))),
-        tags$li(sprintf("If there is no effect: the p-value is significant %s of the time, as its alpha allows; the Bayes factor shows there is no effect %s of the time, and gives misleading evidence for one %s.",
-          pr("none", TRUE, c("effect", "neither", "null")), pr("none", c(TRUE, FALSE), "null"), pr("none", c(TRUE, FALSE), "effect")))))
+        tags$li(sprintf("If there is no effect: the p-value is significant %s of the time, as its alpha allows; the Bayes factor favours no effect by at least %s to 1 %s of the time, and favours an effect by that much (misleading evidence) %s.",
+          pr("none", TRUE, c("effect", "neither", "null")), format(k), pr("none", c(TRUE, FALSE), "null"), pr("none", c(TRUE, FALSE), "effect")))))
   }
   div(class = "result-bayes-body mt-3",
     p(sprintf("With %s %s, analysing the same data with %s would give:", whole(comp$n), units, bayes_companion_test_words(spec, comp))),

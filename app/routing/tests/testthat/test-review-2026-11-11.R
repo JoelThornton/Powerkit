@@ -208,3 +208,70 @@ test_that("the correlation card plans by the exact method, with Fisher's z as a 
   expect_identical(calc$status, "ok")
   expect_equal(calc$result$n_required$n, 84)
 })
+
+test_that("a Welch's t-test result also gives Student's answer, the one G*Power and pwr give", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples$E2, list(d = "0.5", goal = "sample_size", power = "0.8", alpha = "0.05"))
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_identical(spec$target_test$method, "welch_t")
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  line <- usual_test_line(calc$spec, calc$result, seed = forms$default_seed)
+  expect_match(line, "With Student's t-test (the test G*Power and pwr plan for) the answer is 128", fixed = TRUE)
+  # Student's own result needs no such line.
+  spec$target_test$method <- "student_t"
+  student <- run_calculation(spec, seed = forms$default_seed)
+  expect_null(usual_test_line(student$spec, student$result))
+})
+
+test_that("a formula result shows what the significance level costs", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  values <- modifyList(form_examples$E2, list(d = "0.5", goal = "sample_size", power = "0.8", alpha = "0.05", method = "student_t"))
+  spec <- build_spec(forms, "E2", fields, values)
+  calc <- run_calculation(spec, seed = forms$default_seed)
+  line <- alpha_cost_line(calc$spec, calc$result, seed = forms$default_seed, values = values)
+  # pwr's figures for d = 0.5 and 80% power: 128, 192 and 218.
+  expect_match(line, ".05 needs 128 participants; .01 needs 192; .005 needs 218", fixed = TRUE)
+  # Several tests sharing alpha: the level is adjusted already, so no line.
+  expect_null(alpha_cost_line(calc$spec, calc$result, values = modifyList(values, list(claim = "any"))))
+  # Not for a goal other than the sample size.
+  power <- calc$result
+  power$goal_type <- "power"
+  expect_null(alpha_cost_line(calc$spec, power))
+})
+
+test_that("finding the significance level does not ask for one first", {
+  fields <- form_fields(form_groups(forms, "E2"))
+  alpha <- Filter(function(f) identical(f$id, "alpha"), fields)[[1]]
+  expect_false(field_applies(alpha, list(goal = "justified_alpha")))
+  expect_true(field_applies(alpha, list(goal = "sample_size")))
+  values <- modifyList(form_examples$E2, list(goal = "justified_alpha", n = "64", alpha = "", method = "student_t"))
+  expect_false(any(grepl("alpha", names(form_problems(fields, values)))))
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_identical(spec$goal$type, "justified_alpha")
+  expect_equal(spec$target_test$alpha, 0.05)
+})
+
+test_that("the claim is asked in view, and related tests can be corrected as a group", {
+  groups <- form_groups(forms, "E2")
+  claim_group <- Filter(function(g) identical(g$title, "Your claim"), groups)[[1]]
+  expect_identical(form_section(claim_group), "study")
+  fields <- form_fields(groups)
+  claim <- Filter(function(f) identical(f$id, "claim"), fields)[[1]]
+  expect_identical(claim$label, "How many tests does your conclusion rest on?")
+  expect_true("related" %in% names(claim$choices))
+  # The related group divides alpha by the number of tests, as "any" does.
+  values <- modifyList(form_examples$E2, list(claim = "related", n_tests = "4", alpha = "0.05", goal = "sample_size", power = "0.8"))
+  expect_equal(claim_alpha(0.05, values), 0.0125)
+  n_tests <- Filter(function(f) identical(f$id, "n_tests"), fields)[[1]]
+  expect_true(field_applies(n_tests, values))
+  expect_match(claim_result_note(values, 0.0125), "corrected as a group", fixed = TRUE)
+  spec <- build_spec(forms, "E2", fields, values)
+  expect_equal(spec$target_test$alpha, 0.0125)
+  expect_match(writeup_claim(values, spec), "Bonferroni", fixed = TRUE)
+  # Separate claims stay uncorrected.
+  expect_equal(claim_alpha(0.05, modifyList(values, list(claim = "each"))), 0.05)
+  # From a study plan, the screen says the plan sets it.
+  from_plan <- form_groups(forms, "E2", start = plan_form_start(list(), "a", c("a", "b"), "any"))
+  plan_claim <- Filter(function(f) identical(f$id, "claim"), form_fields(from_plan))[[1]]
+  expect_match(plan_claim$help, "Set by your study plan", fixed = TRUE)
+})

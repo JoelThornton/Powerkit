@@ -342,7 +342,7 @@ known_differences:
   "6": "Bayes factor t-tests: bfpwr calculates the chance of strong evidence by formula, treating the effect estimate as normally distributed, which is close in larger samples but gives a little less than simulating the Bayes factor itself (as BFDA does) in small ones: for a one-sample test with d = 0.4 and BF10 of at least 10, 7.6% against about 11% with 20 people, and 28.3% against about 30% with 40."
   "7": "Moderation by its R-squared change uses pwrss's fixed-model regression formula. In the recorded example, power was 59.9% with pwrss versus 58.3% with InteractionPoweR's formula at N = 200 and R-squared change .0225. The correlation route instead simulates studies; these methods need not agree, and this example does not bound the difference."
   "8": "MANOVA with three or more groups: powerkit simulates power (Spower), because no package it builds on has a formula for it; G*Power computes Pillai's trace with an F approximation. How far G*Power's approximation sits from the simulated power hasn't been measured yet. With two groups both calculate Hotelling's T-squared exactly."
-  "10": "Minimum-effect tests: pwrss treats the smallest effect of interest as a value in SD units and tests against it exactly. A margin fixed in your measure's own units, tested as TOSTER's minimum-effect test does, gives very slightly more power (at most about a point here; for d = 0.5 and a margin of 0.2, 141 per group against 139). G*Power has no minimum-effect test."
+  "10": "Minimum-effect tests (retired 12 November 2026): powerkit used pwrss's t-test against the smallest effect of interest in SD units, which gives very slightly less power than the test researchers run (a t-test against the margin in the measure's own units, as TOSTER's minimum-effect test does). powerkit now plans that test; this note is kept for results saved before then."
   "11": "Alpha chosen by weighing the two errors: powerkit's default makes the weighted total of the two errors as small as possible, JustifyAlpha's default. G*Power's compromise power analysis instead makes them equal (beta = q x alpha); choose \"Make the weighted errors equal\", with q as how many times worse a false positive is, for its answer. For d = 0.5 and 64 people, alpha is .184 when minimising and .221 when balancing."
   "9": "Meta-analysis: for a correlation, metapower rounds Fisher's z to two decimals before computing power, so its answer can differ from the exact one by up to about 1.3 points (85.6% against 84.3% for r = 0.25 in five studies of 30). Under the random-effects model it allows for the between-study variance being estimated (Jackson and Turner, 2017), where the formulas in Valentine, Pigott and Rothstein (2010) treat it as known; in their worked example the two give 68% and 68.3%."
   "12": "Bayes factor test of a correlation: powerkit's default prior width is JASP's, 1 (every correlation equally likely beforehand). BayesFactor, the R package that computes the Bayes factor, defaults to a narrower 1/3, which needs fewer people for a moderate correlation: 146 against 162 for r = .3, BF10 of at least 10 and 80%. Set the prior width to 1/3 (0.333) to match BayesFactor; at the same width the two give the same Bayes factor as JASP."
@@ -372,8 +372,8 @@ forms:
   E1:
     methods_name: "a one-sample t-test"
     departures: ["15", "23"]
-    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
-    known_differences: ["5", "6", "10", "11"]
+    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor}
+    known_differences: ["5", "6", "11"]
     known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
@@ -411,9 +411,9 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_wilcox.test(), Spower 0.7)",
              help: "The signed-rank test assumes the scores are symmetric, so a skewed shape isn't offered here. The effect stays the same d: the whole distribution shifts by it."}
-          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the effect exists than if it doesn't. Power here is the chance that BF10 reaches this number."}
           - {id: prior_scale, label: "Scale of the analysis prior (a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: method, is: bayes_factor},
@@ -433,8 +433,8 @@ forms:
   E2:
     methods_name: "an independent-samples t-test"
     departures: ["21", "15", "23"]
-    known_differences_if_method: {"5": mann_whitney, "6": bayes_factor, "10": minimum_effect}
-    known_differences: ["5", "6", "10", "11"]
+    known_differences_if_method: {"5": mann_whitney, "6": bayes_factor}
+    known_differences: ["5", "6", "11"]
     known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
@@ -508,9 +508,9 @@ forms:
              shown_if: {field: method, is: brunner_munzel},
              default: 1, default_source: "equal spread, the assumption of the Mann-Whitney test that the Brunner-Munzel test relaxes",
              help: "The Brunner-Munzel test stays valid when the groups differ in spread as well as level. Your effect size is the mean difference divided by the average of the two SDs, sqrt((SD1^2 + SD2^2) / 2)."}
-          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the effect exists than if it doesn't. Power here is the chance that BF10 reaches this number."}
           - {id: prior_scale, label: "Scale of the analysis prior (a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: method, is: bayes_factor},
@@ -538,8 +538,8 @@ forms:
     scope_note: "Crossover study? This card does not model period, sequence or carry-over effects. Use it only for an ordinary paired analysis when omitting those terms is justified; it does not plan an adjusted crossover analysis."
     methods_name: "a paired-samples t-test"
     departures: ["15", "23"]
-    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor, "10": minimum_effect}
-    known_differences: ["5", "6", "10", "11"]
+    known_differences_if_method: {"5": wilcoxon_signed_rank, "6": bayes_factor}
+    known_differences: ["5", "6", "11"]
     known_differences_if_goal: {"11": justified_alpha}
     tool: pwr
     sensitivity: true
@@ -588,9 +588,9 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_wilcox.test(), Spower 0.7)",
              help: "The signed-rank test assumes people's changes are symmetric, so a skewed shape isn't offered here. The effect stays the same d_z: the whole distribution of changes shifts by it."}
-          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the effect exists than if it doesn't. Power here is the chance that BF10 reaches this number."}
           - {id: prior_scale, label: "Scale of the analysis prior (a Cauchy distribution centred on 0)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: method, is: bayes_factor},
@@ -641,9 +641,9 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_r(), Spower 0.7)",
              help: "A rank correlation's advantage over Pearson's r is in skewed or heavy-tailed data. The second score is drawn as r times the first plus another draw of the same shape, so its shape is close to, not exactly, the one chosen."}
-          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the two scores are correlated than if they aren't. Power here is the chance that BF10 reaches this number."}
           - {id: prior_width, label: "Width of the analysis prior on the correlation (a stretched beta distribution)", type: number, path: target_test.prior_width, required: true, min_exclusive: 0,
              shown_if: {field: method, is: bayes_factor},
@@ -693,9 +693,9 @@ forms:
              default: z_test, default_source: "the test G*Power and pwr's formulas cover for two independent proportions",
              help: "Choose the test you will actually use to analyse your study. R's prop.test() applies continuity correction by default; that can lower power compared with the uncorrected test.",
              choice_notes: {fisher_exact: "An exact test of two independent proportions, rather than a large-sample z approximation. Group sizes and expected proportions still determine its power.", z_test_corrected: "Simulates independent people in two groups with fixed group sizes, then runs R's prop.test(correct = TRUE). Power and required sample size are supported; to compare effects, run separate fixed-sample power plans. This is not Fisher's exact test, and the correction does not make a sparse-data approximation exact."}}
-          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the groups' proportions differ than if they are the same. Power here is the chance that BF10 reaches this number."}
           - {id: prior_concentration, label: "Prior concentration", type: number, path: target_test.prior_concentration, required: true, min: 1,
              shown_if: {field: method, is: bayes_factor},
@@ -751,9 +751,9 @@ forms:
              default: pearson_chi_square, default_source: "Pearson's chi-square test, which pwr computes (pwr.chisq.test(), pwr 1.3-0) as G*Power does",
              help: "Choose the test in your analysis plan. R's chisq.test() uses continuity correction by default for 2 by 2 tables only. The corrected and Bayes factor versions need the table of proportions, not Cohen's w.",
              choice_notes: {pearson_chi_square_corrected: "Needs a 2 by 2 table of population proportions. Simulates independent people with a fixed total sample size; row and column totals vary. If group sizes are fixed, use the two-proportions design instead. Supports power and required sample size; to compare effects, run separate fixed-sample power plans. Sparse counts can still make this approximate test unsuitable."}}
-          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the two variables are associated than if they aren't. Power here is the chance that BF10 reaches this number."}
           - {id: sampling_plan, label: "Sampling plan of the analysis", type: select, path: target_test.sampling_plan, required: true,
              shown_if: {field: method, is: bayes_factor},
@@ -825,9 +825,9 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
              help: "Every cell has the same shape, with its own mean and SD. A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
-          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
              default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
@@ -900,9 +900,9 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
              help: "Every cell has the same shape, with its own mean and SD. A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
-          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
              default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
@@ -977,9 +977,9 @@ forms:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
-          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
              default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
@@ -1996,9 +1996,9 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_kruskal.test(), Spower 0.7)",
              help: "Every group has the same shape; the groups differ only by a shift (their means). A rank test's power depends on this shape; the parametric test's figure assumes normal scores."}
-          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the group means differ than if they are all equal. Power here is the chance that BF10 reaches this number."}
           - {id: prior_scale, label: "Scale of the analysis prior on the group effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
@@ -2064,9 +2064,9 @@ forms:
                        t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
              sets: {t_test: [{path: target_test.effect, value: pairwise}]},
              default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)"}
-          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
              default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
@@ -2152,9 +2152,9 @@ forms:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
-          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
              default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
@@ -2310,9 +2310,9 @@ forms:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "ANOVA (F test)", aligned_rank_transform: "Aligned rank transform ANOVA (rank-based), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
              default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does"}
-          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
              default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml); participants get JASP's r scale for random effects, 1"}
@@ -2376,9 +2376,9 @@ forms:
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, as Spower's rank-test experiments default to (Spower 0.7)",
              help: "Every cell has the same shape, with its own mean and SD. A rank test's power depends on this shape; the ANOVA's figure assumes normal scores."}
-          - {id: evidence_threshold, label: "Strong evidence: the inclusion Bayes factor you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
           - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
              shown_if: {field: test_version, is: bayes_factor},
              default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
@@ -2528,9 +2528,9 @@ forms:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {exact_binomial: "Exact binomial test", bayes_factor: "Bayes factor test (beta prior, as in JASP's Bayesian binomial test), instead of a p-value"},
              default: exact_binomial, default_source: "the exact binomial test pwrss computes (power.exact.oneprop(), pwrss 1.3.3)"}
-          - {id: evidence_threshold, label: "Strong evidence: the Bayes factor (BF10) you want the study to reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
-             usual: 10, usual_label: "Use 10, the usual threshold", default_source: "Empty: choose the evidence your claim needs; 10 is the usual threshold, bfpwr's default (pbinbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (pbinbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
              help: "BF10 is how many times more likely the data are if the proportion differs from the fixed value than if it doesn't. Power here is the chance that BF10 reaches this number."}
           - {id: prior_a, label: "Analysis prior Beta(a, b): a", type: number, path: target_test.prior_a, required: true, min_exclusive: 0,
              shown_if: {field: method, is: bayes_factor},
@@ -3016,7 +3016,7 @@ forms:
              help: "Plan with the test you will run. The z test is what metapower and many older meta-analyses use; it is too often significant when there are few studies.",
              shown_if: [{field: meta_model, is: random}, {field: meta_question, is_one_of: [mean_effect, subgroups]}]}
           - {id: meta_reg_test, label: "Test of the moderator's slope", type: select, path: target_test.test, required: true,
-             choices: {hartung_knapp: "Hartung-Knapp (recommended)", z: "z test"}, default: hartung_knapp,
+             choices: {hartung_knapp: "Hartung-Knapp", z: "z test"}, default: hartung_knapp,
              default_source: "powerkit's choice (Departure 18), as for the average effect: the Hartung-Knapp test keeps false positives closer to alpha with few studies",
              shown_if: {field: meta_question, is: meta_regression}}
 

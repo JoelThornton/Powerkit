@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-12"
+    title: "Easier comparison with G*Power, and plainer wording"
+    text: "A two-group result planned with Welch's test now also gives the answer for Student's t-test, the one G*Power gives, so you can compare without changing the test. Results worked out by formula show what a stricter significance level would cost (.01 and .005 beside .05). On the ANOVA screens Cohen's f, G*Power's effect size, is offered by name. Finding the significance level that balances the two errors no longer asks you for a level first. The checks panel says \"none recorded\" in plain words instead of registry terms. The note on non-significant results no longer says a Bayes factor can show an effect is absent, and points to the equivalence test too. Advice about effect sizes from one study or a meta-analysis now says the same thing everywhere, and variation between studies is shown at example values rather than as small, medium and large."

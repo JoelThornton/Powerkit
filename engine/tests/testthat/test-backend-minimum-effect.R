@@ -1,6 +1,7 @@
 # Minimum-effect tests (target_test > method "minimum_effect") on the
 # one-sample, paired and two-group t-tests, by pwrss's power.t.student()
-# with the margin on the effect's side; and the two-group t-test given by
+# for the effect minus the margin (the shifted t-test, t.test(mu = margin));
+# and the two-group t-test given by
 # a point-biserial correlation (population > metric "point_biserial").
 
 expect_script_reproduces <- function(spec) {
@@ -21,86 +22,104 @@ met_spec <- function(template = "independent_t", goal = list(type = "power", n =
   spec
 }
 
-test_that("power is pwrss's for the margin on the effect's side", {
+test_that("power is the shifted t-test's: pwrss's one-sided t-test of the effect minus the margin", {
   result <- run_spec(met_spec())
   expect_equal(result$provenance$backend_function, "pwrss::power.t.student")
-  direct <- pwrss::power.t.student(d = 0.5, margin = 0.2, n2 = 57, n.ratio = 1, alpha = 0.05,
+  direct <- pwrss::power.t.student(d = 0.3, margin = 0, n2 = 57, n.ratio = 1, alpha = 0.05,
                                    alternative = "one.sided", verbose = 0)$power
   expect_equal(result$curve$power, direct)
   expect_true(all(result$check_run$ok))
   # Lower scores: the margin's sign follows the side.
   less <- run_spec(met_spec(d = -0.5, alternative = "less"))$curve$power
   expect_equal(less, direct)
-  # Two-sided: outside both margins, alpha / 2 in each tail.
-  two <- run_spec(met_spec(alternative = NULL))$curve$power
-  direct_two <- pwrss::power.t.student(d = 0.5, margin = c(-0.2, 0.2), n2 = 57, n.ratio = 1, alpha = 0.05,
-                                       alternative = "two.one.sided", verbose = 0)$power
-  expect_equal(two, direct_two)
-  expect_lt(two, direct)
+  # Two-sided: outside both margins, alpha / 2 in each tail; the tail on
+  # the wrong side comes from pwr.
+  two <- run_spec(met_spec(alternative = NULL))
+  main <- pwrss::power.t.student(d = 0.3, margin = 0, n2 = 57, n.ratio = 1, alpha = 0.025,
+                                 alternative = "one.sided", verbose = 0)$power
+  far <- pwr::pwr.t2n.test(n1 = 57, n2 = 57, d = 0.7, sig.level = 0.025, alternative = "less")$power
+  expect_equal(two$curve$power, main + far)
+  expect_lt(two$curve$power, direct)
+  expect_true(all(c("pwrss", "pwr") %in% names(two$provenance$packages)))
   # Paired and one sample.
   paired <- run_spec(met_spec("paired_t", goal = list(type = "power", n = 60)))$curve$power
-  expect_equal(paired, pwrss::power.t.student(d = 0.5, margin = 0.2, n2 = 60, design = "paired", alpha = 0.05,
+  expect_equal(paired, pwrss::power.t.student(d = 0.3, margin = 0, n2 = 60, design = "paired", alpha = 0.05,
                                               alternative = "one.sided", verbose = 0)$power)
   one <- run_spec(met_spec("one_sample_t", goal = list(type = "power", n = 60)))$curve$power
   expect_equal(one, paired)
 })
 
-test_that("pwrss's power is the exact power of the t-test against a margin in SD units", {
-  # The test rejects when the t statistic of the mean difference exceeds
-  # the 95th centile of the noncentral t with noncentrality margin / SE.
-  # Written here with base R's t distributions, independently of pwrss.
+test_that("the power is the exact power of t.test(mu = margin), a central t shifted by the margin", {
+  # The test rejects when the t statistic of the mean difference minus the
+  # margin exceeds the 95th centile of the central t. Written here with
+  # base R's t distributions, independently of pwrss.
   n <- 57
   se <- sqrt(2 / n)
   df <- 2 * n - 2
-  by_hand <- function(d) stats::pt(stats::qt(0.95, df, ncp = 0.2 / se), df, ncp = d / se, lower.tail = FALSE)
+  by_hand <- function(d) stats::pt(stats::qt(0.95, df), df, ncp = (d - 0.2) / se, lower.tail = FALSE)
   expect_equal(run_spec(met_spec())$curve$power, by_hand(0.5), tolerance = 1e-8)
+  # Two-sided, both tails written out.
+  two_by_hand <- stats::pt(stats::qt(0.975, df), df, ncp = (0.5 - 0.2) / se, lower.tail = FALSE) +
+    stats::pt(stats::qt(0.025, df), df, ncp = (0.5 + 0.2) / se)
+  expect_equal(run_spec(met_spec(alternative = NULL))$curve$power, two_by_hand, tolerance = 1e-8)
   # At the margin itself the rejection rate is alpha.
   expect_equal(by_hand(0.2), 0.05, tolerance = 1e-8)
+  expect_equal(run_spec(met_spec(d = 0.2 + 1e-9))$curve$power, 0.05, tolerance = 1e-6)
 })
 
-test_that("the smallest detectable effect is pwrss's, 0.6735 for 57 per group and a margin of 0.2", {
+test_that("a simulation of t.test(mu = margin) agrees with the formula", {
+  set.seed(712)
+  n <- 40
+  reject <- replicate(4000, {
+    y1 <- stats::rnorm(n)
+    y2 <- stats::rnorm(n, mean = 0.6)
+    stats::t.test(y2 - 0.2, y1, var.equal = TRUE, alternative = "greater")$p.value < 0.05
+  })
+  power <- run_spec(met_spec(d = 0.6, goal = list(type = "power", n = 2 * n)))$curve$power
+  expect_lt(abs(mean(reject) - power), 4 * sqrt(power * (1 - power) / 4000))
+})
+
+test_that("the smallest detectable effect is the shifted test's, 0.6686 for 57 per group and a margin of 0.2", {
   sens <- run_spec(met_spec(d = 0, goal = list(type = "sensitivity", n = 114, power = 0.8)))$sensitivity
-  direct <- pwrss::power.t.student(d = NULL, margin = 0.2, n2 = 57, power = 0.8, alpha = 0.05,
-                                   alternative = "one.sided", verbose = 0)$d
-  expect_equal(sens$effect, direct)
-  expect_equal(round(sens$effect, 4), 0.6735)
+  shifted <- pwrss::power.t.student(d = NULL, margin = 0, n2 = 57, power = 0.8, alpha = 0.05,
+                                    alternative = "one.sided", verbose = 0)$d
+  expect_equal(sens$effect, shifted + 0.2, tolerance = 1e-6)
+  expect_equal(round(sens$effect, 4), 0.6686)
   expect_equal(sens$power, 0.8, tolerance = 1e-6)
-  # The same calculation with one group's degrees of freedom (n - 1 = 56)
-  # in place of the test's (2n - 2 = 112) gives 0.681: the difference is
-  # in the degrees of freedom, not in pwrss.
-  se <- sqrt(2 / 57)
-  wrong_df <- stats::uniroot(function(d) {
-    stats::pt(stats::qt(0.95, 56, ncp = 0.2 / se), 56, ncp = d / se, lower.tail = FALSE) - 0.8
-  }, c(0.2, 2), tol = 1e-10)$root
-  expect_equal(round(wrong_df, 3), 0.681)
   # Below: negative, on the "less" side.
   less <- run_spec(met_spec(d = 0, alternative = "less", goal = list(type = "sensitivity", n = 114, power = 0.8)))$sensitivity
-  expect_equal(less$effect, -direct, tolerance = 1e-6)
+  expect_equal(less$effect, -sens$effect, tolerance = 1e-6)
+  # Two-sided: the effect whose power, both tails together, is the target.
+  two <- run_spec(met_spec(d = 0, alternative = NULL, goal = list(type = "sensitivity", n = 114, power = 0.8)))$sensitivity
+  expect_gt(two$effect, sens$effect)
+  expect_equal(two$power, 0.8, tolerance = 1e-6)
 })
 
-test_that("a margin in SD units differs very slightly from one in the outcome's own units (Known difference 10)", {
-  # TOSTER's t_TOST(hypothesis = "MET") with a bound in raw units tests a
-  # central t shifted by the bound: slightly higher power at the same n.
-  n <- 57
-  se <- sqrt(2 / n)
-  df <- 2 * n - 2
-  shifted <- stats::pt(stats::qt(0.95, df), df, ncp = (0.5 - 0.2) / se, lower.tail = FALSE)
-  pwrss_power <- run_spec(met_spec())$curve$power
-  expect_gt(shifted, pwrss_power)
-  expect_lt(shifted - pwrss_power, 0.02)
+test_that("pwrss's own margin argument, a margin in SD units, gives slightly less power (Known difference 10, retired)", {
+  # Until 12 November 2026 powerkit passed the margin through pwrss's
+  # `margin` argument: a noncentral t under the null, the test of a margin
+  # in SD units. The size of the difference, for the record.
+  pwrss_margin <- pwrss::power.t.student(d = 0.5, margin = 0.2, n2 = 57, n.ratio = 1, alpha = 0.05,
+                                         alternative = "one.sided", verbose = 0)$power
+  shifted <- run_spec(met_spec())$curve$power
+  expect_equal(round(c(shifted, pwrss_margin), 3), c(0.479, 0.472))
+  n_shifted <- run_spec(met_spec(goal = list(type = "sample_size", power = 0.8)))$n_required$n
+  n_margin <- sum(pwrss::power.t.student(d = 0.5, margin = 0.2, power = 0.8, alpha = 0.05,
+                                         alternative = "one.sided", verbose = 0)$n)
+  expect_equal(c(n_shifted, n_margin), c(278, 282))
 })
 
-test_that("the required n is pwrss's, and grows as the margin nears the effect", {
+test_that("the required n is the shifted test's, and grows as the margin nears the effect", {
   n <- run_spec(met_spec(goal = list(type = "sample_size", power = 0.8)))$n_required$n
-  per_group <- pwrss::power.t.student(d = 0.5, margin = 0.2, power = 0.8, alpha = 0.05, alternative = "one.sided", verbose = 0)$n
-  expect_equal(n, sum(per_group))
+  per_group <- pwrss::power.t.student(d = 0.3, margin = 0, power = 0.8, alpha = 0.05, alternative = "one.sided", verbose = 0)$n
+  expect_equal(n, 2 * ceiling(unname(per_group[1])))
   wider <- run_spec(met_spec(margin = 0.3, goal = list(type = "sample_size", power = 0.8)))$n_required$n
   expect_gt(wider, n)
 })
 
 test_that("unequal groups pass both group sizes to pwrss", {
   result <- run_spec(met_spec(goal = list(type = "power", n = 150), options = list(allocation_ratio = 2)))
-  direct <- pwrss::power.t.student(d = 0.5, margin = 0.2, n2 = 100, n.ratio = 0.5, alpha = 0.05,
+  direct <- pwrss::power.t.student(d = 0.3, margin = 0, n2 = 100, n.ratio = 0.5, alpha = 0.05,
                                    alternative = "one.sided", verbose = 0)$power
   expect_equal(result$curve$power, direct)
 })
@@ -133,6 +152,8 @@ test_that("the exported script reproduces each goal", {
     expect_script_reproduces(spec)
   }
   expect_script_reproduces(met_spec(alternative = NULL, goal = list(type = "power", n = 100)))
+  expect_script_reproduces(met_spec(alternative = NULL, d = 0, goal = list(type = "sensitivity", n = 114, power = 0.8)))
+  expect_script_reproduces(met_spec("paired_t", alternative = NULL, goal = list(type = "power", n = 60)))
 })
 
 # Point-biserial r ------------------------------------------------------------

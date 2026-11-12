@@ -165,25 +165,29 @@ noninf_script <- function(spec, result) {
 #
 # A minimum-effect test asks whether an effect is larger than a smallest
 # effect of interest, not merely different from 0: the counterpart of an
-# equivalence test. On the one-sample, paired and two-group t-test
-# cards it is a test version (target_test > method "minimum_effect"),
-# computed with the same pwrss function as non-inferiority,
-# power.t.student(), with the margin on the effect's side of 0 ("For
-# non-inferiority or superiority tests, add or subtract the margin from the
-# null hypothesis value and use alternative = 'one.sided'", pwrss 1.3.3
-# help):
-#   one-sided ("greater" or "less"): alternative = "one.sided", margin =
-#     +m or -m, so H1 is d > m (or d < -m);
-#   two-sided: alternative = "two.one.sided" with margin = c(-m, m), whose
-#     power pwrss computes as the chance the effect is shown to lie outside
-#     both margins (each tail at alpha / 2) when the expected effect is
-#     outside them.
-# pwrss tests the t statistic of the mean difference against a noncentral
-# t distribution centred on the margin (null.ncp = margin / SE): the exact
-# test of a margin given in SD units. A margin fixed in the outcome's own
-# units, tested with a shifted central t (as TOSTER's t_TOST(hypothesis =
-# "MET") does), gives very slightly higher power (docs/conventions.md,
-# Known difference 10).
+# equivalence test. On the one-sample, paired and two-group t-tests it is
+# a test version (target_test > method "minimum_effect").
+#
+# The test researchers run holds the margin fixed in the outcome's own
+# units and tests the mean difference against it with an ordinary t-test
+# (t.test(mu = margin); TOSTER's t_TOST(hypothesis = "MET")): a central t
+# shifted by the margin. Its power is that of a one-sided t-test of the
+# expected effect minus the margin against 0, which pwrss's
+# power.t.student() computes when given d = effect - margin and margin = 0,
+# exactly as for non-inferiority (noninf_inputs()):
+#   one-sided ("greater" or "less"): the effect minus the margin on that
+#     side, alternative = "one.sided" at alpha;
+#   two-sided: the effect is shown to lie outside both margins, alpha / 2
+#     in each tail. The tail on the effect's side is pwrss's one-sided
+#     power at alpha / 2; the other tail (the chance of a significant
+#     result on the wrong side, almost always negligible) is pwr's
+#     one-sided t-test power in that direction, which pwrss's one-sided
+#     test cannot give because it always tests the direction of d.
+# Until 12 November 2026 powerkit passed the margin through pwrss's own
+# `margin` argument, which holds the margin fixed in SD units (a
+# noncentral t under the null): a different test with slightly lower
+# power, so its sample sizes were a few too large (docs/conventions.md,
+# Known difference 10, retired).
 
 minimum_effect_test <- function(spec) {
   identical(spec$target_test$method, "minimum_effect") &&
@@ -206,32 +210,58 @@ met_inputs <- function(spec) {
   pop <- spec$population
   m <- pop$margin
   side <- met_side(spec)
+  alpha <- spec$target_test$alpha
   ratio <- allocation_ratio(spec)
   design <- switch(spec$template, independent_t = "independent", paired_t = "paired", one_sample_t = "one.sample")
-  margin <- if (side == 0) c(-m, m) else side * m
-  alternative <- if (side == 0) "two.one.sided" else "one.sided"
   sizes <- function(n) {
     if (!identical(design, "independent")) return(list(n2 = n))
     n1 <- round(n / (1 + ratio))
     list(n2 = n - n1, n.ratio = n1 / (n - n1))
   }
-  list(
-    fun = "power.t.student", design = design, margin = margin, alternative = alternative, side = side, sizes = sizes,
-    args = function(n, d = met_effect(spec)) {
-      c(list(d = d, margin = margin, alpha = spec$target_test$alpha, alternative = alternative, design = design, verbose = 0), sizes(n))
+  # The side the effect is tested on: the test's side, or for a two-sided
+  # test the side of the expected effect.
+  effect_side <- function(d) if (side != 0) side else if (isTRUE(d < 0)) -1 else 1
+  tail_alpha <- if (side == 0) alpha / 2 else alpha
+  # pwrss's arguments for the tail on the effect's side: the effect minus
+  # the margin on that side, tested against 0.
+  args <- function(n, d = met_effect(spec)) {
+    c(list(d = d - effect_side(d) * m, margin = 0, alpha = tail_alpha, alternative = "one.sided",
+           design = design, verbose = 0), sizes(n))
+  }
+  # Two-sided only: the chance of a significant result beyond the margin
+  # on the other side, from pwr's one-sided t-test in that direction.
+  far_tail <- function(n, d = met_effect(spec)) {
+    if (side != 0) return(0)
+    s <- effect_side(d)
+    far_d <- d + s * m
+    direction <- if (s > 0) "less" else "greater"
+    out <- if (identical(design, "independent")) {
+      z <- sizes(n)
+      n1 <- round(z$n2 * z$n.ratio)
+      quietly(pwr::pwr.t2n.test(n1 = n1, n2 = z$n2, d = far_d, sig.level = alpha / 2, alternative = direction))
+    } else {
+      quietly(pwr::pwr.t.test(n = n, d = far_d, sig.level = alpha / 2, type = "one.sample", alternative = direction))
     }
+    out$power
+  }
+  power <- function(n, d = met_effect(spec)) {
+    main <- call_backend("pwrss", quietly(do.call(pwrss::power.t.student, args(n, d))))$power
+    main + if (side == 0) call_backend("pwr", far_tail(n, d)) else 0
+  }
+  list(
+    fun = "power.t.student", design = design, margin = m, side = side, sizes = sizes, alpha = alpha,
+    tail_alpha = tail_alpha, effect_side = effect_side, args = args, far_tail = far_tail, power = power
   )
 }
 
 met_backend <- function(spec, seed = NULL) {
   inputs <- met_inputs(spec)
   step <- valid_n_step(spec)
-  power_at <- function(n) {
-    call_backend("pwrss", quietly(do.call(pwrss::power.t.student, inputs$args(n))))$power
-  }
+  power_at <- function(n) inputs$power(n)
+  two_sided <- inputs$side == 0
   list(
     name = "pwrss",
-    packages = "pwrss",
+    packages = if (two_sided) c("pwrss", "pwr") else "pwrss",
     methods = "exact",
     default_method = "exact",
     functions = c(exact = "pwrss::power.t.student"),
@@ -247,22 +277,26 @@ met_backend <- function(spec, seed = NULL) {
 }
 
 # The smallest effect the minimum-effect test detects with the target
-# power: pwrss's own solution (d = NULL), on the side of the expected
-# effect (positive when none is given, or for a two-sided test with a
-# positive or zero effect).
+# power, on the side of the expected effect (positive when none is given,
+# or for a two-sided test with a positive or zero effect): the effect
+# whose power is the target, found by root-finding beyond the margin.
 met_sensitivity <- function(spec, inputs, n, power) {
   effect <- met_effect(spec) %||% 0
   negative <- inputs$side < 0 || (inputs$side == 0 && isTRUE(effect < 0))
-  args <- inputs$args(n, d = NULL)
-  args$power <- power
-  args$req.sign <- if (negative) "-" else "+"
-  found <- tryCatch(call_backend("pwrss", quietly(do.call(pwrss::power.t.student, args))), error = function(e) NULL)
-  if (is.null(found) || !is.finite(found$d)) {
+  s <- if (negative) -1 else 1
+  m <- inputs$margin
+  gap <- function(d) inputs$power(n, s * d) - power
+  found <- tryCatch({
+    upper <- m + 1
+    while (gap(upper) < 0 && upper < m + 50) upper <- upper * 2
+    stats::uniroot(gap, c(m + 1e-9, upper), tol = 1e-10)$root
+  }, error = function(e) NULL)
+  if (is.null(found) || !is.finite(found)) {
     abort_run("No effect beyond the smallest effect of interest reaches the target power at this n. Check the margin and the direction of the test.")
   }
   name <- if (identical(spec$template, "paired_t")) "d_z" else "d"
   list(
-    effect = found$d, effect_name = name, power = found$power,
+    effect = s * found, effect_name = name, power = inputs$power(n, s * found),
     effect_description = switch(spec$template,
       paired_t = "Cohen's d_z (mean of the differences, in SDs of the differences)",
       independent_t = "Cohen's d (group 2 minus group 1, in SDs)",
@@ -272,12 +306,15 @@ met_sensitivity <- function(spec, inputs, n, power) {
 
 # Check run: no simulated data; the check confirms what pwrss receives.
 met_check_run <- function(spec, inputs) {
-  args <- inputs$args(100)
+  d <- met_effect(spec)
+  args <- inputs$args(100, d %||% 0)
   m <- spec$population$margin
+  side <- inputs$effect_side(d %||% 0)
   rows <- data.frame(
-    parameter = c("smallest effect of interest (margin) passed to pwrss", "expected effect"),
-    specified = c(if (inputs$side == 0) m else inputs$side * m, met_effect(spec) %||% NA_real_),
-    recovered = c(if (inputs$side == 0) max(args$margin) else args$margin, args$d %||% NA_real_)
+    parameter = c("smallest effect of interest (margin), on the tested side",
+                  "expected effect minus the margin, passed to pwrss as d against 0"),
+    specified = c(side * m, if (is.null(d)) NA_real_ else d - side * m),
+    recovered = c((d %||% 0) - args$d, if (is.null(d)) NA_real_ else args$d)
   )
   rows$ok <- mapply(function(a, b) isTRUE(all.equal(a, b)) || (is.na(a) && is.na(b)), rows$specified, rows$recovered)
   rows
@@ -323,41 +360,50 @@ check_minimum_effect <- function(spec) {
 # pwrss's own solution for the smallest detectable effect.
 met_script <- function(spec, result) {
   inputs <- met_inputs(spec)
-  args <- inputs$args(100)
   effect <- if (identical(spec$template, "paired_t")) "dz" else "d"
   sensitivity <- identical(spec$goal$type, "sensitivity")
-  fixed <- args[setdiff(names(args), c("n2", "n.ratio", "d", "alpha"))]
-  arg_lines <- vapply(names(fixed), function(a) sprintf("    %s = %s,", a, r_code(fixed[[a]])), character(1))
-  sizes <- if (identical(inputs$design, "independent")) {
+  two_sided <- inputs$side == 0
+  independent <- identical(inputs$design, "independent")
+  sizes <- if (independent) {
     ratio <- allocation_ratio(spec)
     c(
       sprintf("  n1 <- round(n_total / (1 + %s)) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
-      "  n2 <- n_total - n1",
-      "  sizes <- list(n2 = n2, n.ratio = n1 / n2)"
+      "  n2 <- n_total - n1"
     )
   } else {
-    "  sizes <- list(n2 = n_total)"
+    character()
   }
-  side <- switch(as.character(inputs$side), "1" = "above the margin", "-1" = "below minus the margin",
+  side_text <- switch(as.character(inputs$side), "1" = "above the margin", "-1" = "below minus the margin",
     "outside both margins (two-sided, alpha / 2 in each tail)")
-  call <- function(effect_arg, extra = NULL) c(
-    sprintf("  do.call(pwrss::power.t.student, c(list(d = %s, alpha = alpha,", effect_arg),
-    sub(",$", "", paste(arg_lines, collapse = "\n")),
-    if (!is.null(extra)) paste0("    , ", extra),
-    "  ), sizes))"
+  side_line <- if (two_sided) {
+    "  side <- if (es < 0) -1 else 1 # the side of the expected effect"
+  } else {
+    sprintf("  side <- %d # the side the test is on", inputs$side)
+  }
+  pwrss_call <- sprintf(
+    "  main <- pwrss::power.t.student(d = es - side * margin, margin = 0, alpha = %s, alternative = \"one.sided\",\n    design = %s, %s, verbose = 0)$power",
+    if (two_sided) "alpha / 2" else "alpha", r_code(inputs$design),
+    if (independent) "n2 = n2, n.ratio = n1 / n2" else "n2 = n_total"
+  )
+  far_call <- if (!two_sided) character() else c(
+    "  # The other tail: a significant result beyond the margin on the wrong",
+    "  # side (pwr's one-sided t-test in that direction; almost always tiny).",
+    if (independent) {
+      "  far <- pwr::pwr.t2n.test(n1 = n1, n2 = n2, d = es + side * margin, sig.level = alpha / 2,"
+    } else {
+      "  far <- pwr::pwr.t.test(n = n_total, d = es + side * margin, sig.level = alpha / 2, type = \"one.sample\","
+    },
+    "    alternative = if (side > 0) \"less\" else \"greater\")$power"
   )
   goal <- if (sensitivity) {
     s <- result$sensitivity
+    sign <- if (s$effect < 0) -1 else 1
     c(
       "# Smallest detectable effect ----",
-      "# pwrss finds the effect itself when d = NULL, beyond the margin on the",
-      "# side given by req.sign.",
-      "smallest <- function(n_total) {",
-      sizes,
-      call("NULL", sprintf("power = target_power, req.sign = %s", r_code(if (s$effect < 0) "-" else "+"))),
-      "}",
-      sprintf("%s <- smallest(n_total)$d", effect),
-      "power <- power_at(n_total)",
+      "# The effect beyond the margin whose power is the target, by root-finding.",
+      sprintf("%s <- %s * stats::uniroot(function(x) power_at(n_total, %s * x) - target_power,", effect, sign, sign),
+      "  c(margin + 1e-9, margin + 10), tol = 1e-10)$root",
+      sprintf("power <- power_at(n_total, %s)", effect),
       sprintf("cat(sprintf(\"Smallest detectable effect: %s = %%.4g (power %%.4f)\\n\", %s, power))", effect, effect),
       "",
       sprintf("reproduced <- list(effect = %s, power = power)", effect),
@@ -368,18 +414,24 @@ met_script <- function(spec, result) {
     pwr_goal_section(spec, result)
   }
   c(
-    script_header(spec, result, "pwrss", "pwrss::power.t.student(margin)"),
+    script_header(spec, result, "pwrss", "pwrss::power.t.student()"),
     "library(pwrss)",
+    if (two_sided) "library(pwr)",
     "",
     "# Inputs ----",
     goal_inputs(spec, result),
     if (!sensitivity) sprintf("%s <- %s # the expected effect", effect, r_code(met_effect(spec))),
+    sprintf("margin <- %s # the smallest effect of interest, in the same SD units", r_code(inputs$margin)),
     "",
-    sprintf("# Power of the minimum-effect test: the effect is shown to lie %s,", side),
-    "# the smallest effect of interest, in the same SD units as the effect.",
-    "power_at <- function(n_total) {",
+    sprintf("# Power of the minimum-effect test: the effect is shown to lie %s.", side_text),
+    "# The test is t.test(mu = margin): a t-test of the effect minus the margin",
+    "# against 0 (a central t shifted by the margin).",
+    sprintf("power_at <- function(n_total, es = %s) {", if (sensitivity) "NULL" else effect),
     sizes,
-    (function(x) { x[length(x)] <- paste0(x[length(x)], "$power"); x })(call(effect)),
+    side_line,
+    pwrss_call,
+    far_call,
+    if (two_sided) "  main + far" else "  main",
     "}",
     "",
     goal,

@@ -74,7 +74,7 @@ field_ui <- function(f, value, described_by = character()) {
     tags$button(type = "button", class = "btn btn-sm btn-outline-secondary usual-value",
     id = paste0(id, "_usual", if (i > 1) paste0("_", i)), `data-target` = id, `data-value` = as.character(value),
     onclick = "var e = document.getElementById(this.getAttribute('data-target')); e.value = this.getAttribute('data-value'); e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); e.focus();",
-    if (!is.null(f$shortcuts)) sprintf("%s%%", format(100 * value)) else f$usual_label %||% sprintf("Use %s", value))
+    if (!is.null(f$shortcut_labels)) f$shortcut_labels[[i]] else if (!is.null(f$shortcuts)) sprintf("%s%%", format(100 * value)) else f$usual_label %||% sprintf("Use %s", value))
   }))
   field <- div(
     class = paste("form-field", if (isTRUE(f$effect)) "effect-field"),
@@ -367,8 +367,9 @@ observed_power_warning_ui <- function() {
 # project files and write-up don't depend on this order.
 form_section <- function(g) {
   ids <- vapply(g$fields, `[[`, "", "id")
-  # The claim sits with the settings: most studies rest on one test.
-  if (identical(g$title, "Your claim")) return("settings")
+  # The claim is in view (12 November 2026): it can change the
+  # significance level or the power each test needs.
+  if (identical(g$title, "Your claim")) return("study")
   if ("goal" %in% ids) return("goal")
   if (identical(g$title, "Simulation accuracy")) return("accuracy")
   if (identical(g$title, "Assumptions and named alternatives")) return("scenarios")
@@ -453,7 +454,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
         tags$span(class = "hint", " (open to change)"), ": ",
         settings_summary_ui(settings, values)),
       part("settings")),
-    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess first (optional)"), part("guess"))
+    if (any(section == "guess")) tags$details(class = "form-guess", tags$summary("Guess the answer first (optional, to learn how power behaves)"), part("guess"))
   )
 }
 
@@ -603,9 +604,9 @@ effect_help_ui <- function(form, groups) {
       tags$dd("Start in your measure's own units: the smallest difference that would matter for your theory or in practice (for example, 3 points on a questionnaire). ", convert,
         " Choose \u201cThe smallest effect that would matter\u201d as the source and say why that difference matters."),
       tags$dt("A meta-analysis"),
-      tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate, say which estimate you took, and why. Pooled estimates are inflated by publication bias too, so prefer one adjusted for bias where the meta-analysis reports it (Carter, Sch\u00f6nbrodt, Gervais & Hilgard, 2019). Choose \u201cA meta-analysis\u201d as the source."),
+      tags$dd("If someone has pooled studies like yours, use the meta-analysis's estimate and say which one you took. Publication bias can inflate pooled estimates, and no single correction works in all conditions (Carter, Sch\u00f6nbrodt, Gervais & Hilgard, 2019). If the meta-analysis reports bias-adjusted estimates, look at the range they span and plan for a value within it that you can defend. Choose \u201cA meta-analysis\u201d as the source."),
       tags$dt("One previous study"),
-      tags$dd("A single published effect tends to be larger than the true one, so reduce it and say how; powerkit asks you to. Choose \u201cA previous study\u201d as the source."),
+      tags$dd("An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. Choose \u201cA previous study\u201d as the source."),
       tags$dt("A pilot study"),
       tags$dd("A pilot is for checking that the study can be run, not for finding the effect: its estimate is very uncertain, and planning only after a promising pilot makes the plan too small on average (Albers & Lakens, 2018). If you use it anyway, plan for a smaller effect (the safeguard value, where this screen offers it) and say how. Choose \u201cA pilot study\u201d as the source."),
       unsure))
