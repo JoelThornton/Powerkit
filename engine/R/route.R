@@ -186,7 +186,13 @@ route_backend <- function(spec, seed = NULL) {
       spower_backend(spec, seed)
     },
     "basic_test/paired_variances" = ,
-    "basic_test/manova" = ,
+    "basic_test/manova" = if (manova_by_v(spec)) {
+      pillai_backend(spec, seed)
+    } else if (basic_test_method(spec) == "exact") {
+      hotelling_backend(spec, seed)
+    } else {
+      spower_backend(spec, seed)
+    },
     "basic_test/hotelling_one" = if (basic_test_method(spec) == "exact") {
       hotelling_backend(spec, seed)
     } else {

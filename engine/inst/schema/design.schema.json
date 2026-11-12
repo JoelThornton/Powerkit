@@ -5699,15 +5699,21 @@
         },
         "population": {
           "required": [
-            "metric",
-            "means",
-            "sds",
-            "r"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {
             "metric": {
-              "const": "raw"
+              "enum": [
+                "raw",
+                "pillai_v"
+              ],
+              "description": "'raw': the effect is given by the groups' means ('means'), with the outcomes' SDs ('sds') and correlation ('r'). 'pillai_v': it is given by Pillai's V ('pillai_v'), as in G*Power, treated as the population value (since 12 November 2026)."
+            },
+            "pillai_v": {
+              "description": "With metric 'pillai_v': Pillai's V (Pillai's trace) of the effect tested, as G*Power's MANOVA tests take it, between 0 and s = min(number of outcomes, the effect's degrees of freedom). Power is by Faul et al.'s (2007) O'Brien and Shieh approximation.",
+              "type": "number",
+              "exclusiveMinimum": 0
             },
             "means": {
               "description": "Expected mean of each outcome in each group: one row per group, in the order of A's levels, each with one mean per outcome, in the order Y1, Y2, ... With a second factor B, one row per combination of A and B, A's levels outer (A1 with B1, A1 with B2, ..., A2 with B1, ...).",
@@ -5746,7 +5752,39 @@
                 "heavy_tailed"
               ]
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "metric": {
+                    "const": "pillai_v"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "pillai_v"
+                ],
+                "properties": {
+                  "means": false,
+                  "sds": false,
+                  "r": false,
+                  "score_shape": false
+                }
+              },
+              "else": {
+                "required": [
+                  "means",
+                  "sds",
+                  "r"
+                ],
+                "properties": {
+                  "pillai_v": false
+                }
+              }
+            }
+          ]
         },
         "target_test": {
           "properties": {

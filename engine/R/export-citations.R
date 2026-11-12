@@ -37,7 +37,8 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
   package <- result$provenance$backend
   entries <- read_bib(refs)
   package_cit <- package_citation(package)
-  method_ref <- entries[[method_paper_key(package)]]
+  formula_key <- formula_reference_key(result$provenance)
+  method_ref <- entries[[formula_key %||% method_paper_key(package)]]
   items <- list(
     package = list(
       label = sprintf("%s, the package that computed this power analysis (from citation(\"%s\"))", package, package),
@@ -45,9 +46,9 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
       key = paste0(package, "_package")
     ),
     method = list(
-      label = sprintf("%s's method paper", package),
+      label = if (is.null(formula_key)) sprintf("%s's method paper", package) else "The published formula powerkit computed power from",
       ref = method_ref,
-      key = method_paper_key(package),
+      key = formula_key %||% method_paper_key(package),
       same_as = if (!is.null(method_ref) && same_doi(method_ref, package_cit)) paste0(package, "_package")
     ),
     powerkit = list(
@@ -84,6 +85,13 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
 }
 
 refs_path <- function() system.file("citations", "refs.bib", package = "powerkit")
+
+# A result powerkit computed from a published formula in base R names that
+# source in its function (MANOVA by Pillai's V: Faul et al., 2007); its
+# refs.bib key is cited as the method paper in place of stats_method.
+formula_reference_key <- function(provenance) {
+  if (identical(provenance$backend, "stats") && grepl("Pillai's V", provenance$backend_function %||% "", fixed = TRUE)) "Faul2007_gpower"
+}
 
 # Keys powerkit looks up in refs.bib (listed at the top of refs.bib).
 method_paper_key <- function(package) paste0(package, "_method")
