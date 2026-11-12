@@ -2739,3 +2739,13 @@ between studies stays on Fisher's z, where McShane and Bockenholt's method
 is defined, and its comparisons with no variation are made on the same
 scale. The Labs power picture still draws Fisher's z curves.
 
+
+### Significance level: the usual level labelled, two stricter ones beside it, 12 November 2026
+
+The significance level stays empty on every card, with 0.05 one click
+away and labelled as the usual level, as most psychology studies and their
+readers use it. 0.01 and 0.005 sit beside it, with one line on when they
+fit (many tests, or a surprising claim that needs stronger evidence), and
+formula-based results show the sample size at all three. Three equal
+buttons were considered and not adopted: they would suggest the three are
+equally common, which would confuse more than it informs.

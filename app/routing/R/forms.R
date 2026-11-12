@@ -472,11 +472,11 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # Dyadic data (E44): n is the number of pairs.
   pairs <- identical(form$units, "pairs")
   if (pairs) goals <- list(sample_size = "The number of pairs I need", power = "The power I'd have with a given number of pairs")
-  if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I could detect at a given sample size"
-  if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The smallest effect I could detect across a range of sample sizes"
+  if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I'd have a good chance of finding, at a given sample size"
+  if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- "The same, across a range of sample sizes"
   # A justified alpha (JustifyAlpha's optimal_alpha()): the one-sample,
   # paired and two-group t-tests and the correlation (E1-E4).
-  if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "The significance level that best balances the two errors at a given sample size"
+  if (isTRUE(form$justified_alpha)) goals$justified_alpha <- "A significance level that balances the two errors, at a given sample size"
   goal <- list(id = "goal", label = "What do you want to find out?", type = "select", path = "goal.type", required = TRUE, choices = goals)
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
@@ -526,12 +526,22 @@ closing_groups <- function(forms, ep_id, start = list()) {
          # click gives the usual level, so choosing it is the user's act.
          min_exclusive = 0, max = 0.5, default = NULL, usual = tool[["alpha"]] %||% 0.05,
          usual_label = sprintf("Use %s, the usual level", format(tool[["alpha"]] %||% 0.05)),
+         # .05 is the usual level in psychology and what readers expect; the
+         # two stricter levels sit beside it, with when they fit, and the
+         # result shows what each costs (12 November 2026).
+         shortcuts = c(tool[["alpha"]] %||% 0.05, 0.01, 0.005),
+         shortcut_labels = c(sprintf("Use %s, the usual level", format(tool[["alpha"]] %||% 0.05)), "0.01", "0.005"),
+         prompt = "0.01 or 0.005 fit a study that runs many tests, or a surprising claim that needs stronger evidence. Results worked out by formula show what each would cost.",
          default_source = sprintf("Empty on every card: choose the level your claim needs; %s is the usual one, %s", format(tool[["alpha"]] %||% 0.05),
-           tool[["alpha_source"]]), shown_if = no_bayes),
+           tool[["alpha_source"]]),
+         # Not asked when the goal is to find the level (the balance of the
+         # two errors): build_spec() gives the engine the usual 0.05 for
+         # its comparison row.
+         shown_if = Filter(Negate(is.null), list(no_bayes, list(field = "goal", is_not = "justified_alpha")))),
     # Goes in the write-up when given (8 November 2026: asked whatever the
     # level, and optional).
     list(id = "alpha_reason", label = "Why this significance level", help = "Goes in the write-up; for example \"the claim is new, so stronger evidence is wanted\".",
-         type = "text", optional = TRUE, shown_if = no_bayes)
+         type = "text", optional = TRUE, shown_if = Filter(Negate(is.null), list(no_bayes, list(field = "goal", is_not = "justified_alpha"))))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
   # No significance test (latent profiles: the BIC chooses the number of
@@ -574,7 +584,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
            type = "text", path = "effect_justification.source", optional = TRUE),
       # A pilot is as much one study's estimate as a published one, and
       # less precise, so it gets the same question.
-      list(id = "just_adjustment", label = "How you adjusted it", help = "One estimate can be uncertain, especially from a small pilot. Published findings can also be selected for large or significant effects. Explain your defensible effect or range; do not automatically halve an estimate. If you kept it unchanged, say why.",
+      list(id = "just_adjustment", label = "How you adjusted it", help = "An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. If you kept the estimate unchanged, say why.",
            type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
            shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
              list(field = "sg_use", is_not = "telescopes")))
@@ -593,7 +603,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     )),
     # Guess first (optional teaching mode): the guess is shown next to the
     # answer and goes nowhere else (no spec path, not in the exports).
-    list(input = NULL, title = "Guess first (optional)", note = guess_note, fields = list(
+    list(input = NULL, title = "Guess the answer first (optional, to learn how power behaves)", note = guess_note, fields = list(
       list(id = "guess", label = "Your guess", type = "number", optional = TRUE, min = 0,
            shown_if = list(field = "goal", is_not = "sensitivity_curve"))
     ))
@@ -671,29 +681,23 @@ heterogeneity_fields <- function(template) {
       fold = "The correlation may differ from study to study (optional)",
       type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
       default_source = "Starts empty: power for the correlation entered; choose variation only to average across differing study correlations",
-      help = paste("Leave empty for power at the correlation you entered. To explore smaller correlations, use the comparison on the results screen.",
-        "Entering variation changes the question: the answer is averaged across studies with differing true correlations, not power at your entered correlation.",
-        "It can raise or lower reported power and is not an automatic safety margin. Labs, samples, materials and procedures can differ.",
-        "This is its SD between studies on Fisher's z scale, which is close to r for small values. Kenny and Judd (2019) take",
-        "25% of a small, medium and large effect as small, medium and large variation; for r = .1, .3 and .5 that is about",
-        "0.025, 0.075 and 0.125. The correlation above is then the average across studies (McShane & Bockenholt, 2014).",
-        "If a meta-analysis of this correlation reports how much it varies (tau, on Fisher's z), use that instead.",
-        "Empty or 0 gives the usual calculation for the correlation you entered. With variation entered, the results show",
-        "the answer with no, small, medium and large variation."),
+      help = paste("Optional. Leave empty to plan for the correlation you entered. If you enter a value, the answer is averaged over",
+        "studies whose true correlations differ by this much (an SD on Fisher's z, which is close to r for small values;",
+        "McShane & Bockenholt, 2014). That changes the question, and it can raise or lower power. The best source is a",
+        "meta-analysis of this correlation that reports tau on Fisher's z. powerkit knows of no published reference values on",
+        "this scale; 0.025, 0.075 and 0.125 are a quarter of r = .1, .3 and .5, the rule Kenny and Judd (2019) use for d,",
+        "and are only illustrations. The results show the answer at each of them and at your value."),
       shown_if = c(list(list(field = "method", is = "pearson")), common))))
   }
   list(list(id = "het_tau", label = "How much might the true effect vary between studies? (as an SD in d)",
     type = "number", optional = TRUE, min = 0, max = 2, path = "population.tau",
     default_source = "Starts empty: power for the effect entered; choose variation only to average across differing study effects",
     fold = "The effect may differ from study to study (optional)",
-    help = paste("Leave empty for power at the effect you entered. To explore smaller effects, use the comparison on the results screen.",
-      "Entering variation changes the question: the answer is averaged across studies with differing true effects, not power at your entered effect.",
-      "It can raise or lower reported power and is not an automatic safety margin. Labs, samples, materials and procedures can differ.",
-      "Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 as small, medium and large variation, and argue that zero",
-      "should not be the default. If a meta-analysis of this effect reports how much it varies (tau, in d), use that instead.",
-      "With variation entered, the effect above becomes the average across studies. Empty or 0 gives the usual calculation for the effect entered.",
-      "With variation entered, the results compare no, small, medium and large variation.",
-      "It needs equal SDs in the two groups."),
+    help = paste("Optional. Leave empty to plan for the effect you entered. If you enter a value, the answer is averaged over",
+      "studies whose true effects differ by this much (as an SD in d), which changes the question; it can raise or lower",
+      "power. The best source is a meta-analysis of this effect that reports tau. Kenny and Judd (2019) use 0.05, 0.125",
+      "and 0.20 as examples; they are a quarter of Cohen's 0.2, 0.5 and 0.8, so treat them as illustrations, not estimates",
+      "for your field. The results show the answer at each of them and at your value. It needs equal SDs in the two groups."),
     shown_if = c(list(list(field = "method", is_one_of = c("t_test", "student_t", "welch_t"))), common)))
 }
 
@@ -724,7 +728,7 @@ with_eta_squared <- function(group, template) {
   fields <- list()
   for (f in group$fields) {
     if (identical(f$id, "metric")) {
-      f$choices <- c(f$choices, list(eta_squared = "An effect size: partial eta-squared, as in G*Power"))
+      f$choices <- c(f$choices, list(eta_squared = if ("f" %in% conversion_choices[[template]]) "An effect size: partial eta-squared or Cohen's f, as in G*Power" else "An effect size: partial eta-squared, as in G*Power"))
       source <- if (mixed) list(list(
         id = "eta_source", label = "Where does your partial eta-squared come from?", type = "select", required = TRUE,
         path = "population.eta_source", shown_if = by_effect,
@@ -811,7 +815,11 @@ conversion_fields <- function(template, when = list()) {
     labels$odds_ratio <- "An odds ratio (group 2's odds of 'yes' over group 1's), with group 1's proportion above"
     labels$risk_ratio <- "A risk ratio (group 2's proportion over group 1's), with group 1's proportion above"
   }
-  choices <- c(list(none = "No: I'll enter the effect size myself"), labels)
+  # Cohen's f is G*Power's own input for an ANOVA, not a published form:
+  # say so where it is offered, so it is found.
+  has_f <- "f" %in% from
+  if (has_f) labels$f <- "Cohen's f (the effect size G*Power asks for)"
+  choices <- c(list(none = if (has_f) "No: I'll enter partial eta-squared" else "No: I'll enter the effect size myself"), labels)
   sets <- stats::setNames(lapply(from, function(x) list(list(path = "effect_justification.conversion.from", value = x))), from)
   planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size"))),
     # A published F from a repeated-measures ANOVA gives its own kind of
@@ -830,7 +838,7 @@ conversion_fields <- function(template, when = list()) {
            conversion = TRUE, path = "effect_justification.conversion.n2", shown_if = sized, help = help))
   }
   c(Filter(Negate(is.null), list(
-    list(id = "conv_from", label = "Is your effect size published in another form?", type = "select", default = "none",
+    list(id = "conv_from", label = if (has_f) "Do you have Cohen's f or an F statistic instead?" else "Is your effect size published in another form?", type = "select", default = "none",
          choices = choices, sets = sets, shown_if = planning,
          help = if (proportions) paste(
            "powerkit works out group 2's proportion from the ratio and group 1's proportion (an odds ratio with the effectsize",
@@ -919,7 +927,7 @@ claim_groups <- function(claim = "one", n_tests = NULL) {
          choices = list(independent = "Independent tests: use the product of their powers",
            unknown = "Dependence unknown: use a sufficient target that may be conservative"),
          shown_if = list(field = "claim", is = "all"),
-         help = "Independence is about the tests' significance decisions, not just their predictors; using the same participants does not establish it. Choose unknown dependence if you cannot justify independence. The sufficient target needs no correlation between tests. Each test's unconditional successful-study probability must reach it under the same population assumptions. Conditional power among valid fits alone does not establish this when fits fail. This is a sufficient bound, not an estimate of joint power.")
+         help = "If you can't say how the tests' results are related, choose \"unknown\": measuring the same participants does not make the tests independent. powerkit then sets each test's power high enough that all of them succeed together at least as often as your target, whatever the relationship. This is a safe bound: the true chance is usually higher.")
   )
   list(list(input = NULL, title = "Your claim", fields = fields))
 }
@@ -1253,6 +1261,9 @@ build_spec <- function(forms, ep_id, fields, values) {
     if (spec$template %in% c("two_groups", "paired", "one_group")) spec$target_test$method <- "noncentral_t"
     return(spec)
   }
+  # The level is what a justified alpha finds, so it isn't asked for; the
+  # engine's comparison row uses the usual 0.05.
+  if (identical(values$goal, "justified_alpha") && is.null(spec$target_test$alpha)) spec$target_test$alpha <- 0.05
   if (!is.null(spec$target_test$alpha)) spec$target_test$alpha <- claim_alpha(spec$target_test$alpha, values)
   if (identical(spec$goal$type, "sample_size") || identical(spec$goal$type, "sensitivity")) spec$goal$power <- claim_power(spec$goal$power, values)
   # The range of sample sizes is several engine runs (sensitivity_curve());

@@ -26,6 +26,11 @@ non-inferiority validation chunk were run; no full validation run is
 claimed. Open from the same review: minimum-effect tests still use pwrss's
 margin, and the rounded-group-size search is queued.
 
+Results now help users compare with the tools they know (12 November):
+Student's answer beside Welch's, the cost of a stricter alpha, Cohen's f
+named on the ANOVA screens, and plainer wording in the checks panel and
+the advice on effect sizes.
+
 The correlation card plans by the exact distribution of r, as G*Power (12
 November; Departure 10 retired), with Fisher's z as a choice.
 

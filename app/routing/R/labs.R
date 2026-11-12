@@ -963,7 +963,7 @@ bayes_ui <- function() {
       numericInput("bayes_effect", "The effect you expect", value = 0.5, min = -5, max = 5, step = 0.05, width = "100%"),
       numericInput("bayes_effect_sd", "How unsure you are about the effect, as an SD (0 = exactly this effect)", value = 0.15, min = 0, max = 5, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. What counts as strong evidence"),
-      radioButtons("bayes_threshold", "Strong evidence: the Bayes factor you want the study to reach (BF10 for an effect, BF01 for no effect)", choices = bayes_thresholds, selected = "10", inline = TRUE),
+      radioButtons("bayes_threshold", "Evidence threshold: the Bayes factor the study should reach (BF10 for an effect, BF01 for no effect)", choices = bayes_thresholds, selected = "10", inline = TRUE),
       p(class = "group-note", "There is no correct threshold: a higher one asks more of the data, and evidence for no effect needs larger studies than evidence for an effect."),
       numericInput("bayes_target", "Find the sample size that gives strong evidence for an effect with this chance", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. When you look at the data"),

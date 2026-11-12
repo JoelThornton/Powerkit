@@ -106,6 +106,6 @@ test_that("attrition and pilot guidance do not imply missing-data modelling or a
   adjustment <- Filter(function(f) identical(f$id, "just_adjustment"), fields)[[1]]
   expect_null(attrition$default)
   expect_match(attrition$help, "compare plausible loss rates", fixed = TRUE)
-  expect_match(adjustment$help, "do not automatically halve", fixed = TRUE)
+  expect_match(adjustment$help, "Plan for a value you can defend", fixed = TRUE)
   expect_false(grepl("pilots because they are small", adjustment$help, fixed = TRUE))
 })

@@ -5,7 +5,7 @@ test_that("input evidence uses complete selected settings and preserves unknown 
   html <- as.character(selected_evidence_ui(forms, "E2", fields, v))
   expect_match(html, "Checks covering my selected settings", fixed=TRUE)
   expect_match(html, "does not validate every test version", fixed=TRUE)
-  expect_match(html, "Source record|no linked record|outside the recorded case settings")
+  expect_match(html, "Source record|none recorded for exactly these settings|outside the recorded case settings")
   expect_match(as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2"), v)), 'id="selected_evidence"', fixed=TRUE)
 })
 
