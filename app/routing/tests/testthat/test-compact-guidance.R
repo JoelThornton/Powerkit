@@ -5,8 +5,11 @@ test_that("routine guidance has named native info controls without wrapping the 
   expect_match(html, 'id="f_power_info"', fixed = TRUE)
   expect_match(html, 'aria-controls="f_power_info_body"', fixed = TRUE)
   expect_match(html, 'aria-label="Info: Target power"', fixed = TRUE)
-  expect_match(html, 'data-guidance-describedby="f_power_help"', fixed = TRUE)
-  expect_lt(regexpr('id="f_power"', html)[1], regexpr('id="f_power_info"', html)[1])
+  # One line in view, the rest behind the info button beside the label (D-11).
+  expect_match(html, 'data-guidance-describedby="f_power_help_lead f_power_help"', fixed = TRUE)
+  expect_match(html, 'class="field-help field-lead">Power guidance.', fixed = TRUE)
+  expect_lt(regexpr('id="f_power-label"', html)[1], regexpr('id="f_power_info"', html)[1])
+  expect_lt(regexpr('id="f_power_info"', html)[1], regexpr('id="f_power"', html)[1])
   for (value in c("0.8", "0.9", "0.95")) expect_match(html, paste0('data-value="', value, '"'), fixed = TRUE)
 })
 

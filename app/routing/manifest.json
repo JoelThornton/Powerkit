@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "c03523f28a9d1be9c8b6d55742b4dd06951f92ea",
-        "RemoteSha": "c03523f28a9d1be9c8b6d55742b4dd06951f92ea",
+        "RemoteRef": "b1ddda418310b427d3e0417b8e4f7c420ccc6f6d",
+        "RemoteSha": "b1ddda418310b427d3e0417b8e4f7c420ccc6f6d",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "c03523f28a9d1be9c8b6d55742b4dd06951f92ea",
-        "GithubSHA1": "c03523f28a9d1be9c8b6d55742b4dd06951f92ea",
+        "GithubRef": "b1ddda418310b427d3e0417b8e4f7c420ccc6f6d",
+        "GithubSHA1": "b1ddda418310b427d3e0417b8e4f7c420ccc6f6d",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-12 19:46:20 UTC; runner",
+        "Packaged": "2026-11-12 20:17:33 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-12 19:47:05 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-12 20:18:20 UTC; unix"
       }
     },
     "powertools": {
@@ -8560,7 +8560,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "753e188ae5ce97892fb721bee394ad00"
+      "checksum": "c45fd5d20515c755201ae1885232724b"
     },
     "forms.yaml": {
       "checksum": "229847c0f4eb52441e27b92bb32fe7f1"
@@ -8602,7 +8602,7 @@
       "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
     },
     "R/forms_ui.R": {
-      "checksum": "e49eba1fcd3d17e53038496fcc549079"
+      "checksum": "2caf345cf1932950fd63fc853b204c27"
     },
     "R/forms.R": {
       "checksum": "02d555f3b6e3483f020b70a41490841b"
@@ -8659,7 +8659,7 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "e34d45383ff0425f229d70f6676a69eb"
+      "checksum": "da5e621d3ed5f1d36261652bf26d74f8"
     },
     "R/whole-study.R": {
       "checksum": "c1288194459f13a3ab4503f95dfd2b55"
@@ -8684,6 +8684,9 @@
     },
     "whats-new.d/correlation-exact-method.yaml": {
       "checksum": "e84231191d34fa0a34923812599b666b"
+    },
+    "whats-new.d/field-help-one-line.yaml": {
+      "checksum": "7bdb62f14673e3eaf9741050672a1b08"
     },
     "whats-new.d/finder-fewer-screens.yaml": {
       "checksum": "41a6f85c21af9d6704d7af8a059f72d7"

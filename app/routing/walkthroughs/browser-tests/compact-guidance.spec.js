@@ -17,7 +17,9 @@ async function put(page, id, value) {
 for (const width of [1100, 375, 320]) test(`compact guidance is optional, accessible and preserves answers at ${width}px`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 900 });
   await open(page);
-  await expect(page.locator('#f_power_help')).toBeVisible();
+  // One line of help in view; the rest behind the info button (D-11).
+  await expect(page.locator('#f_power_help_lead')).toBeVisible();
+  await expect(page.locator('#f_power_help')).toBeHidden();
   await expect(page.locator('#f_power_help')).toContainText('a habit, not a rule');
   await expect(page.locator('#f_power')).toHaveValue('');
   await expect(page.locator('[data-target="f_power"]')).toHaveText(['80%', '90%', '95%']);
@@ -49,8 +51,9 @@ for (const width of [1100, 375, 320]) test(`compact guidance is optional, access
   await help.click();
   await expect(page.locator('#f_alpha')).toHaveAttribute('aria-describedby', /f_alpha_problem/);
   await page.locator('#explanations_on').check();
-  await expect(page.locator('#f_power_help')).toBeVisible();
-  await expect(help).toBeHidden();
+  await expect(page.locator('#f_power_help_lead')).toBeVisible();
+  await expect(page.locator('#f_power_help')).toBeHidden();
+  await expect(help).toBeVisible();
   await page.locator('#explanations_on').uncheck();
   await expect(page.locator('#f_power_help')).toBeHidden();
   await page.addScriptTag({ path: axePath });

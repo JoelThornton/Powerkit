@@ -179,6 +179,25 @@ app_css <- "
      first field's.) */
   .terms-mode :not(.form-field) > .explanation-help > summary { min-width: 0; min-height: 32px; border: 0; background: none; padding: 0; gap: 0.4rem; font-size: 0.88rem; }
   .terms-mode :not(.form-field) > .explanation-help > summary::after { content: attr(data-label); text-decoration: underline; }
+  /* A field's help (design review D-11, 12 November 2026): one line in
+     view, the rest behind the info button beside the label, closed to
+     start with in both modes. With explanations off the line folds too. */
+  .has-field-more label.control-label { display: inline; margin-right: 0.35rem; }
+  .form-field .explanation-help.field-more { display: inline; margin: 0; }
+  .form-field .explanation-help.field-more > summary { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+    min-width: 32px; min-height: 32px; cursor: pointer; color: #0a5a8c; border: 0; background: none; list-style: none; position: static; }
+  .form-field .explanation-help.field-more > summary:hover { background: #eef4fb; border-radius: 50%; }
+  .form-field .explanation-help.field-more > .explanation-content { display: block; }
+  .form-field .explanation-help.field-more:not([open]) > .explanation-content { display: none; }
+  .form-field .explanation-help.field-more[open] > .explanation-content { margin: 0.3rem 0 0.5rem; padding: 0.6rem 0.8rem; background: #f6f8fb; border-radius: 0.5rem; }
+  .has-field-more > .form-group > .field-more + * , .has-field-more > .form-group > .field-more ~ input,
+  .has-field-more > .form-group > .field-more ~ select, .has-field-more > .form-group > .field-more ~ textarea { margin-top: 0.4rem; }
+  .terms-mode .form-field.has-field-more label.control-label { display: inline; min-height: 0; padding-right: 0; }
+  .terms-mode .form-field .explanation-help.field-more > summary { min-width: 32px; min-height: 32px; border: 0; background: none; padding: 0; font-size: 1rem; }
+  .form-field .explanation-help.field-more > summary::after { content: none; }
+  .field-lead-copy { display: none; }
+  .terms-mode .field-lead { display: none; }
+  .terms-mode .field-lead-copy { display: block; }
   .terms-mode .form-field label.control-label { min-height: 44px; padding-right: 3.25rem; display: flex; align-items: center; }
   .field-problem { font-size: 0.9rem; color: #8a1f1f; border-left: 3px solid #a12a2a; background: #fbeaea; padding: 0.2rem 0.5rem; margin-top: 0.3rem; }
   [aria-invalid='true'] { border-color: #a12a2a !important; }
