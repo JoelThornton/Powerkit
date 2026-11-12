@@ -6,7 +6,7 @@
     "engine/inst/evidence/records.json": "855a0b4873446c221ed87792601c903c",
     "scripts/release-support.R": "3ea4c59d3f3ea6b22008db6ed7c3078d",
     "app/routing/R/about.R": "2ec4f33c6e7fd639be201b0edf226da0",
-    "app/routing/R/bayes-mode.R": "16bf977811c6e4d6c5c6ca230aa97d06",
+    "app/routing/R/bayes-mode.R": "14124fd3986ac090640dde770d793b83",
     "app/routing/R/capabilities.R": "cd74a350bb21534a26555b17f2b45f82",
     "app/routing/R/connection.R": "09ffb5ec4e112012a4e1a1d8491b7f59",
     "app/routing/R/count-test-notes.R": "4cf1f0b13017eb96fa32a173840fd335",
@@ -30,7 +30,7 @@
     "app/routing/R/study-plan.R": "132c5d6166578dfd96a84f27f6d92539",
     "app/routing/R/study-variation.R": "3ee565a54c95ef30e0edf0b72f4e36bb",
     "app/routing/R/tree.R": "01a79d77829f35de16f493fbcd58df7c",
-    "app/routing/R/ui.R": "a4c6ed242dc409a1c70fa42b0bcc36fd",
+    "app/routing/R/ui.R": "88aa2f8c0bcf00a8d0c76ef2acaf7eb1",
     "app/routing/R/whole-study.R": "873fca127d181e27c0fc2bb01f6cdb68"
   },
   "evidence_registry": "engine/inst/evidence/records.json",

@@ -2274,12 +2274,12 @@ server <- function(input, output, session) {
     switch(
       state$screen,
       aim = aim_ui(tree),
-      start = start_ui(tree, isolate(state$start), bayes_toggle = bayes_mode_toggle_ui(isolate(state$bayes_mode)),
+      start = start_ui(tree, isolate(state$start),
         saved_projects = div(class = "saved-projects-grid", open_project_ui(), check_project_ui())),
       check = plan_check_ui(tree, forms, state$checked_project),
       study_plan = tagList(screen_nav_ui(back = NULL), study_plan_ui(state$study_plan)),
-      known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx),
-      node = node_ui(tree, state$node, state$history, state$ctx, state$route),
+      known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode),
+      node = node_ui(tree, state$node, state$history, state$ctx, state$route, isolate(state$bayes_mode)),
       card = tagList(
         screen_nav_ui(),
         if (isTRUE(state$from_labs)) labs_return_ui(),

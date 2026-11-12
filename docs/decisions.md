@@ -2794,3 +2794,16 @@ not used: it is much further from the simulated interval (58.3% at the
 same settings). powerkit passes R-squared of Y with the 2 a b c'
 term that pwrss's default leaves out (docs/upstream-questions.md).
 Parallel, serial and moderated mediation keep the simulated methods only.
+
+### Bayes factors: a switch where analyses are chosen, not a mode on the start screen, 12 November 2026
+
+The "Bayes mode" switch on the start screen never showed which analyses
+have a Bayes factor version (15 of 77), so a researcher found out card by
+card. The switch, now "I'll analyse with Bayes factors", sits at the top
+of "I know my analysis", where turning it on lists only those 15 designs
+with the count, and on the first question of "Help me choose", whose end
+card says whether the design has a Bayes factor version. What it does to
+a card is unchanged: the input screen opens on the Bayes factor version
+and asks how unsure the user is about the effect. A filter alone was
+considered and not adopted: it would leave cards opening on the p-value
+version and give "Help me choose" no way to plan with Bayes factors.
