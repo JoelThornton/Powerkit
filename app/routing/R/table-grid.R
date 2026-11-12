@@ -182,14 +182,19 @@ table_grid_js <- "
     if (text) { t.classList.remove('pk-grid-hidden'); t.removeAttribute('tabindex'); t.focus(); }
     else { grid.pkKey = null; build(grid); }
   });
-  // An error link that points to the hidden text box lands on the first empty box instead.
-  document.addEventListener('focusin', function(e) {
-    var t = e.target;
-    if (!t.classList || !t.classList.contains('pk-grid-hidden')) return;
+  // A link to the hidden text box (an error message's) goes to the first empty box instead.
+  // Only links are redirected: focus set by a script or a test stays on the text box.
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest && e.target.closest('a'), href = a ? a.getAttribute('href') || '' : '';
+    var t = href.indexOf('#f_') === 0 && document.getElementById(href.slice(1));
+    if (!t || !t.classList.contains('pk-grid-hidden')) return;
     var grid = document.getElementById(t.id + '_grid');
     var box = grid && (Array.prototype.find.call(grid.querySelectorAll('.pk-grid-body input'), function(i) { return !i.value; }) ||
       grid.querySelector('.pk-grid-body input, .pk-grid-text'));
-    if (box) box.focus();
+    if (!box) return;
+    e.preventDefault();
+    box.scrollIntoView({ block: 'center' });
+    box.focus();
   });
   document.addEventListener('input', function(e) { if (!(e.target.closest && e.target.closest('.pk-grid'))) soon(); });
   if (window.jQuery) jQuery(document).on('change shiny:value shiny:updateinput', soon);
