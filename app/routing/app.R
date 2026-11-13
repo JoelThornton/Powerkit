@@ -1897,7 +1897,8 @@ server <- function(input, output, session) {
   }
   output$study_plan_bar <- renderUI({
     calc <- state$calc
-    req(calc, identical(calc$status, "ok"))
+    if (is.null(calc) || !identical(calc$status, "ok")) return(NULL)
+    if (!calculation_matches_values(calc, current_form_values())) return(calculation_stale_ui())
     hash <- calc$result$provenance$spec_hash
     origin <- state$plan_origin
     from_plan <- !is.null(origin) && identical(origin$endpoint, state$endpoint) && !is.null(state$plans[[origin$plan]])

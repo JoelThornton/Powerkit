@@ -257,8 +257,29 @@ others, but its file format could be the format the others store.
 ## Study plans (design, 13 November 2026)
 
 This replaces the single study plan described in earlier versions of this
-page. It is the design the next three pull requests build; once each
-lands, its part below is rewritten to describe what exists.
+page. It is the design three pull requests build; once each lands, this
+section says what exists.
+
+### What exists now
+
+Part 1 (named plans, their page, and reopening) is built:
+
+- `R/study-plans.R` holds the plans (`state$plans`, by id) and their
+  rules; `R/study-plan.R` draws a plan's page (`plan_page_ui()`) and the
+  bar under a result (`study_plan_bar_ui()`).
+- The engine's plan file carries `id`, `name`, `description` and, per
+  analysis, `plan_role` and `plan_note` (`write_study_plan()`,
+  `read_study_plan()`), at format version 1.
+- The browser keeps `powerkit-study-plan:<id>` per plan (the plan file's
+  text with when it changed and was saved; a plan with no analyses keeps
+  its name and description without a file) and the index
+  `powerkit-study-plans` (`R/connection.R`). A copy over the 3 MB budget
+  or refused by the browser is not written, and the plan's page says to
+  save it.
+- The Study plans page is the tab "Study plans", hidden from the tab row.
+
+Parts 2 (the overview and Download everything) and 3 (Plan my whole study
+joins a plan) are still to build, as described below.
 
 ### Why
 

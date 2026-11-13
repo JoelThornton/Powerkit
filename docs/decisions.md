@@ -3144,3 +3144,26 @@ it and the confirmation screen.
   required checks already make it catch up, so the extra step is small.
   This replaces the 7 November entry's trade-off, under which results
   computed between closes recorded the previous number.
+
+## 2026-11-13 · Several named study plans
+
+- **Why:** the study plan was one unnamed list shown inside "Plan a power
+  analysis". A researcher with several studies could keep only one plan,
+  an analysis opened from a saved plan could not be opened again, and the
+  plan read as part of the start page.
+- **Decided by the maintainer (13 November 2026):** several named plans,
+  kept in the browser and each saved as its own file or link (accounts
+  stay rejected: powerkit stores nothing); a Study plans page of its own,
+  reached from the top bar and `?page=plans`; every analysis opens again;
+  "Download everything" for a plan and "Plan my whole study" starting a
+  plan follow in later pull requests. Because the browser's copy can be
+  cleared without warning, the app keeps asking for a saved file: each
+  plan shows its save status, adding work says the plan is only in this
+  browser, and the top bar marks unsaved plans.
+- **Calls made in building it:** the page is a tab hidden from the tab
+  row, so the tabs still fit one row on a phone; opening a plan file adds
+  it, keeping a different version with the same id beside the existing
+  one rather than replacing it; roles (primary, secondary, check) label
+  analyses and change no number; plan files keep format version 1 with
+  optional new fields, so the previous version still opens them.
+- **Design:** `docs/saving-projects.md`, "Study plans".

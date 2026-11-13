@@ -208,3 +208,64 @@ test('a link straight to a Labs tool opens it, not the starting screen', async (
   await page.locator('#labs_study').fill('Smith (2019)');
   await expect(page.locator('#labs_study')).toHaveValue('Smith (2019)');
 });
+
+test('named study plans: add, rename, keep after a reload, save, reopen and update', async ({ page }, info) => {
+  await tPlan(page);
+  await calculate(page);
+  await page.locator('#plan_add').click();
+  await expect(page.locator('#study_plan_bar')).toContainText('Added to “Study plan,');
+  await expect(page.locator('#study_plan_bar')).toContainText('only in this browser until you save it');
+  await expect(page.locator('.study-plan-chip')).toContainText('Study plans (1)');
+  await expect(page.locator('.study-plan-chip .plan-unsaved-dot')).toHaveCount(1);
+
+  // The Study plans page, from the top bar; then the plan's own page.
+  await page.locator('.study-plan-chip').click();
+  await expect(page.locator('#plans_page h2')).toHaveText('Study plans');
+  await page.locator('.plans-row-name').first().click();
+  await page.locator('.plan-rename summary').click();
+  await page.locator('#plan_name').fill('Thesis study 2');
+  await page.locator('#plan_name_save').click();
+  await expect(page.locator('#plans_page h2.plan-title')).toHaveText('Thesis study 2');
+  await expect(page.locator('#plans_page')).toContainText('Only in this browser');
+
+  // Kept in the browser across a reload.
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.study-plan-chip')).toContainText('Study plans (1)');
+  await page.locator('.study-plan-chip').click();
+  await expect(page.locator('.plans-row-name')).toHaveText('Thesis study 2');
+  await page.locator('.plans-row-name').click();
+
+  // Saving to a file.
+  const file = info.outputPath('thesis.powerkit.json');
+  await expect(page.locator('#download_study_plan')).toHaveAttribute('href', /\/download\//);
+  const pending = page.waitForEvent('download');
+  await page.locator('#download_study_plan').click();
+  const saved = await pending;
+  expect(saved.suggestedFilename()).toBe('powerkit-thesis-study-2.powerkit.json');
+  await saved.saveAs(file);
+  await expect(page.locator('#plans_page')).toContainText('Saved to a file');
+  const text = await fs.readFile(file, 'utf8');
+  expect(JSON.parse(text).name).toBe('Thesis study 2');
+
+  // Opening the analysis again, changing it and updating it in the plan.
+  await page.locator('.plan-item-controls button', { hasText: 'Open' }).click();
+  await expect(page.locator('#form_result .result-panel')).toBeVisible();
+  await expect(page.locator('#study_plan_bar')).toContainText('From your plan “Thesis study 2”');
+  await setValue(page, 'd', '0.5');
+  await calculate(page);
+  await expect(page.locator('#study_plan_bar')).toContainText('changed it');
+  await page.locator('#plan_entry_update').click();
+  await expect(page.locator('#study_plan_bar')).toContainText('Updated in “Thesis study 2”');
+  await page.locator('.study-plan-chip').click();
+  await page.locator('.plans-row-name').click();
+  await expect(page.locator('.plan-item')).toHaveCount(1);
+  await expect(page.locator('#plans_page')).toContainText('Only in this browser');
+
+  // The saved file opened again: a different version, so both are kept.
+  await page.locator('#plans_back').click();
+  await page.locator('#plans_open_file').setInputFiles(file);
+  await expect(page.locator('.shiny-notification', { hasText: 'both are kept' })).toBeVisible();
+  await expect(page.locator('#plans_page h2.plan-title')).toContainText('Thesis study 2 (opened');
+  await page.locator('#plans_back').click();
+  await expect(page.locator('.plans-row-name')).toHaveCount(2);
+});
