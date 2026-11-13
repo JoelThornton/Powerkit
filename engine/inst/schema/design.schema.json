@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/JoelThornton/Powerkit/blob/main/engine/inst/schema/design.schema.json",
   "title": "powerkit design specification",
-  "description": "One study design for a power analysis. Every front door (design forms, model builder, assistant) writes one of these; the engine reads only this. The schema checks structure. Checks that need arithmetic (e.g. that path values imply an R-squared below 1) are done by validate_spec() in R.",
+  "description": "One study design for a power analysis. Every front door (design forms, model builder) writes one of these; the engine reads only this. The schema checks structure. Checks that need arithmetic (e.g. that path values imply an R-squared below 1) are done by validate_spec() in R.",
   "$comment": "spec_version 0.1. When the format changes, add a new version rather than changing the meaning of an existing one: old saved specs must keep running.",
   "type": "object",
   "required": [

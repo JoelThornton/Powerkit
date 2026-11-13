@@ -53,8 +53,6 @@ four-screen design (decided 18 October 2026, `docs/decisions.md`):
    can't tell you, an explore panel, and a write-up (a short methods paragraph
    and a full version).
 
-An optional AI assistant may come last.
-
 ## Status
 
 > **powerkit is in early development. Do not use it to plan real studies
