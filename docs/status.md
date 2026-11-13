@@ -457,6 +457,9 @@ in [`next.md`](next.md).
 
 ## Working environment
 
+- **Claude Code sessions:** `.claude/settings.json` caps the context
+  window before compaction at 400,000 tokens (`autoCompactWindow`), for
+  every Claude Code session on this repository.
 - **CI:** R CMD check and the engine's tests in three parts when the
   engine, `renv.lock` or the CI setup changed; the app's suite in two
   parts and the browser checks on every pull request; the Windows and
@@ -466,3 +469,6 @@ in [`next.md`](next.md).
   environment's setup script, copies R and the packages from the CI image.
   roxygen2 isn't in the image; `CLAUDE.md` says what to do instead.
 - **Open PRs:** GitHub is the list; this page doesn't duplicate it.
+- **Upstream reports:** the questions in `upstream-questions.md` were
+  rerun on 13 November 2026 for longpower 1.0.27, irtpwr 1.0.3 and
+  semPower 2.2.0; all three still reproduce, and none has been sent yet.
