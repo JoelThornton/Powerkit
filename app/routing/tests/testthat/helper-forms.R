@@ -10,6 +10,7 @@ form_examples <- list(
   E3 = c(list(X_label = "Session", X_level1 = "Before", X_level2 = "After", Y_label = "Anxiety score",
               dz = "0.35", method = "t_test", alternative = "two_sided"), closing_ok),
   E4 = c(list(X_label = "Trait mindfulness", Y_label = "Rumination", r = "-0.2", method = "pearson", alternative = "two_sided"), closing_ok),
+  E76 = c(list(X_label = "Hours slept", Y_label = "Next-day mood", r = "0.2", measurements = "7", alternative = "two_sided"), closing_ok),
   E5 = c(list(X_label = "Reminder", X_level1 = "No reminder", X_level2 = "Text reminder", Y_label = "Attended",
               p1 = "0.6", p2 = "0.7", allocation_ratio = "1", method = "z_test", alternative = "two_sided"), closing_ok),
   E6 = c(list(X_label = "Attachment style", X_levels = "Secure, Anxious, Avoidant", Y_label = "Relationship status",

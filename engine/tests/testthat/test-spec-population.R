@@ -239,6 +239,7 @@ zero_effect_cases <- list(
   independent_t = function(s) within(s, population$d <- 0),
   paired_t = function(s) within(s, population$dz <- 0),
   correlation = function(s) within(s, population$r <- 0),
+  repeated_measures_correlation = function(s) within(s, population$r <- 0),
   two_proportions = function(s) within(s, population$p2 <- population$p1),
   two_proportions_corrected = function(s) within(s, population$p2 <- population$p1),
   chi_square_independence_corrected = function(s) within(s, population$probabilities <- list(list(.25, .25), list(.25, .25))),
