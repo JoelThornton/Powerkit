@@ -65,9 +65,20 @@ attrition_planning_note <- function(spec) {
     "Missingness can change power or bias results; this buffer alone does not establish that your planned missing-data analysis reaches the target.")
 }
 
+# Cross-lagged panel (E74) with no measurement error assumed: real scores
+# contain error, which lowers power and attenuates the lagged effects
+# (specialist maths review, M-14), so the result says the power is optimistic.
+riclpm_reliability_note <- function(spec) {
+  if (!identical(spec$template, "riclpm") || !isTRUE((spec$population$reliability %||% 1) >= 1)) return(NULL)
+  paste("This power assumes the scores have no measurement error, which almost no measure achieves, so it is optimistic:",
+    "measurement error lowers power and makes the lagged effects look smaller.",
+    "Enter the measures' reliability (for example their alpha or omega) for a realistic answer.")
+}
+
 # These limitations stay visible with explanations off and precede the answer.
 planning_warning_notes <- function(spec, result = NULL) unique(c(
   gg_planning_note(spec), uncorrected_f_note(spec), binary_x_modmed_note(spec), attrition_planning_note(spec),
+  riclpm_reliability_note(spec),
   if (!is.null(result)) corrected_count_search_note(spec, result)
 ))
 planning_warnings_ui <- function(spec, result = NULL) {

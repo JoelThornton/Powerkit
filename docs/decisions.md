@@ -3122,3 +3122,25 @@ model is a new kind of tool-supplied default, which powerkit's defaults
 are meant to avoid. The design specification stays the only input the
 engine reads, so a future front door of any kind would still go through
 it and the confirmation screen.
+
+## 2026-11-13 · Every change on main gets a version number
+
+- **Why:** under the 7 November rule, notes waited on main until a batch
+  closed, so the app could change while its version stayed the same.
+  Someone checking whether a new build had arrived, or quoting a number
+  from a result, could not tell two different states of the code apart.
+- **Decided by the maintainer (13 November 2026):** every update changes at
+  least the last number. Each pull request that writes a change note runs
+  `scripts/close-batch.R` as its last commit before merging: `minor` for
+  the first pull request of a batch of new features, `patch` for anything
+  else. Main never holds notes without a number, and
+  `test-repo-consistency.R` refuses a branch that leaves any.
+- **What stays:** the note files (`engine/news.d/`,
+  `app/routing/whats-new.d/`), the script, and the meaning of each part
+  of the number. A batch still raises the middle number once.
+- **Trade-off:** two pull requests open at once both set the version, so
+  the second to merge redoes its close after catching up with main
+  (`docs/adding-a-test.md`, "Change notes and version numbers"). The
+  required checks already make it catch up, so the extra step is small.
+  This replaces the 7 November entry's trade-off, under which results
+  computed between closes recorded the previous number.

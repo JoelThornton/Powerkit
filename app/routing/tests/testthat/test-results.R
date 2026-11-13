@@ -330,6 +330,21 @@ test_that("departure 1 shows only for the interaction; the mixed design shows de
   expect_true(any(grepl("ANOVA_exact2", departures_for(forms, "E8", light_spec("E8")))))
 })
 
+test_that("clustered yes/no outcomes show Known difference 16 (powertools' factor 1.2), scores and group treatment don't", {
+  spec <- function(template, metric) list(template = template, population = list(metric = metric))
+  for (tpl in c("cluster_randomised", "multisite")) {
+    expect_match(known_differences_for(forms, "E34", spec(tpl, "proportion")), "multiplies the variance of the log odds ratio by 1.2", fixed = TRUE)
+    expect_length(known_differences_for(forms, "E34", spec(tpl, "standardised")), 0)
+  }
+  expect_length(known_differences_for(forms, "E34", spec("group_treatment", "proportion")), 0)
+  expect_true(nzchar(forms$known_differences_methods[["16"]]))
+})
+
+test_that("the three-way interaction shows Known difference 17 (fixed-model formula above simulation)", {
+  expect_match(known_differences_for(forms, "E31", list(template = "three_way")), "about 940 were needed", fixed = TRUE)
+  expect_true(nzchar(forms$known_differences_methods[["17"]]))
+})
+
 test_that("mediation shows departures 6 and 8, parallel mediators 7, and the interaction Known difference 1", {
   for (ep in c("E10", "E11", "E12", "E13", "E14", "E40", "E16")) {
     shown <- departures_for(forms, ep, light_spec(ep))
@@ -3249,4 +3264,26 @@ test_that("every mediation card says its Monte Carlo interval differs from PROCE
     expect_false("14" %in% known_difference_keys(forms, ep, spec), label = ep)
   }
   expect_match(forms$known_differences_methods[["14"]], "percentile bootstrap", fixed = TRUE)
+})
+
+test_that("a simulated number of studies states its interval (review finding M-17)", {
+  spec <- jsonlite::read_json(system.file("specs", "meta_mean_effect.json", package = "powerkit"))
+  spec$goal <- list(type = "sample_size", power = 0.8)
+  result <- list(goal_type = "sample_size", n_required = list(n = 72, lower = 66, upper = 79),
+    provenance = list(method = "simulation", nrep = 1000))
+  words <- meta_sentences(spec, result)
+  expect_match(words[["detail"]], "required number of studies, from the simulation, is 66 to 79", fixed = TRUE)
+  result$provenance <- list(method = "exact", backend = "metapower", backend_function = "mpower")
+  result$n_required <- list(n = 70, lower = 70, upper = 70)
+  expect_false(grepl("interval", meta_sentences(spec, result)[["detail"]]))
+})
+
+test_that("the cross-lagged panel asks about measurement error, and says power is optimistic without it (M-14)", {
+  fields <- form_fields(form_groups(forms, "E74"))
+  perfect <- build_spec(forms, "E74", fields, form_examples$E74)
+  expect_equal(perfect$population$reliability, 1)
+  expect_match(planning_warning_notes(perfect), "no measurement error", fixed = TRUE)
+  known <- build_spec(forms, "E74", fields, modifyList(form_examples$E74, list(reliability_known = "known", reliability = "0.8")))
+  expect_equal(known$population$reliability, 0.8)
+  expect_false(any(grepl("no measurement error", planning_warning_notes(known), fixed = TRUE)))
 })

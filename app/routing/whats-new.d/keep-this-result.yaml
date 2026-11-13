@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-13"
-    title: "Saving a result is clearer"
-    text: "A \"Keep this result\" box now sits right under the answer, with the three ways to come back to it: save the project file, copy a link, or add it to your study plan. It says \"Not saved yet\" until you do one of them, and your browser asks before you leave a result you haven't kept. The planning document, R script and citations are under \"Documents for your study\", which says plainly that they don't reopen in powerkit. \"Download everything (.zip)\" gives you all of them with the project file in one go, and you can open that zip from the start screen to carry on. Your last result is also kept in this browser, so closing the tab by accident doesn't lose it."
