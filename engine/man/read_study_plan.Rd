@@ -11,7 +11,10 @@ read_study_plan(x)
 }
 \value{
 A \code{powerkit_study_plan}: a list with \code{analyses} (a list of
-\code{powerkit_project}s), \code{saved} and \code{powerkit_version}.
+\code{powerkit_project}s), \code{saved}, \code{powerkit_version}, \code{id}, \code{name} and
+\code{description} (each \code{NULL} when the file has none), and \code{roles} and
+\code{notes}, character vectors with one element per analysis (\code{NA} where
+the file has none).
 }
 \description{
 Reads a file written by \code{\link[=write_study_plan]{write_study_plan()}} (or the app's "Save study

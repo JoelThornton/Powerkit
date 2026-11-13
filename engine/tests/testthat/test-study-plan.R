@@ -37,3 +37,38 @@ test_that("study plans and projects refuse each other's files in plain English",
   expect_error(read_project(write_study_plan(list(list(spec = spec)))), "isn't a powerkit project", class = "powerkit_error")
   expect_error(read_study_plan("{not json"), "isn't valid JSON", class = "powerkit_error")
 })
+
+test_that("a study plan keeps its id, name, description, roles and notes", {
+  spec <- plan_spec("independent_t", list(type = "power", n = 128))
+  res <- run_spec(spec)
+  text <- write_study_plan(list(
+    list(spec = spec, result = res, plan_role = "primary", plan_note = "Main test"),
+    list(spec = spec, result = res)),
+    id = "a1b2c3d4e5f60718", name = "Thesis study 2", description = "Does training help?")
+  plan <- read_study_plan(text)
+  expect_identical(plan$id, "a1b2c3d4e5f60718")
+  expect_identical(plan$name, "Thesis study 2")
+  expect_identical(plan$description, "Does training help?")
+  expect_identical(plan$roles, c("primary", NA))
+  expect_identical(plan$notes, c("Main test", NA))
+  # An opened project keeps its role and note when saved again.
+  opened <- plan$analyses[[1]]
+  opened$plan_role <- "check"
+  opened$plan_note <- "Kept"
+  again <- read_study_plan(write_study_plan(list(opened)))
+  expect_identical(again$roles, "check")
+  expect_identical(again$notes, "Kept")
+})
+
+test_that("a plan without the new fields still reads, and its analyses read as projects", {
+  spec <- plan_spec("independent_t", list(type = "power", n = 128))
+  plan <- read_study_plan(write_study_plan(list(list(spec = spec, result = run_spec(spec)))))
+  expect_null(plan$name)
+  expect_null(plan$id)
+  expect_null(plan$description)
+  expect_identical(plan$roles, NA_character_)
+  expect_identical(plan$notes, NA_character_)
+  expect_s3_class(plan$analyses[[1]], "powerkit_project")
+  top <- names(jsonlite::parse_json(write_study_plan(list(list(spec = spec)))))
+  expect_false(any(c("id", "name", "description") %in% top))
+})
