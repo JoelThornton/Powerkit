@@ -460,6 +460,34 @@ powerkit-<plan-name>-everything.zip
   this zip and open the plan file in it (today's zip reader looks for a
   project file; it learns to prefer the plan file).
 
+### Encouraging a saved file
+
+The browser's copy is a safety net, not the place a plan is kept: Safari
+deletes a site's stored data after 7 days without a visit, a private
+window loses it when closed, and cleaning tools, another browser or
+another computer don't have it. So the app keeps asking for a file
+without getting in the way:
+
+- **Save status everywhere it matters.** Each plan on the plans page and
+  its own page says "Saved to a file <time>" or "Only in this browser:
+  save it to your computer" (a warning style, not an error). The top-bar
+  button carries a small marker, with a text alternative, when any plan
+  has changes not saved to a file.
+- **At the moments work is added.** Adding an analysis, updating one,
+  or a whole-study simulation finishing says "Added to <plan>. It is
+  only in this browser until you save it" with **Save plan** beside it.
+- **On the plans page**, one short line under the heading says why: the
+  browser's copy can be cleared without warning; a saved file or a link
+  keeps the plan.
+- **Durable storage where the browser offers it.** The app asks the
+  browser to keep its storage (`navigator.storage.persist()`), which
+  stops eviction under storage pressure in browsers that grant it; it
+  is not relied on.
+- **Saving in one press.** Save plan is a primary button on the plan
+  page whenever the plan has unsaved changes, and "Download everything"
+  holds the plan file, so either counts as saved. "Copy a link" counts
+  as saved too, with its own wording ("Copied as a link <time>").
+
 ### Storage, files and links
 
 - **In the browser.** Each plan is stored under its own key
@@ -538,9 +566,8 @@ the first), and updates this section.
 - **Update it in the plan** is offered only on the card the analysis was
   opened on; moving to another card turns the result into an ordinary
   one, which "Add to my study plan" adds as a new analysis.
-- **No leaving warning for plans.** They are kept in the browser as they
-  change; the save status on the plan page and the top-bar count tell
-  the user what is only in this browser. The existing warning for an
+- **No leaving warning for plans**, which would fire on every reload;
+  the nudges below do that job instead. The existing warning for an
   unkept result stays.
 - **Roles change no number.** Primary, Secondary and Check label and
   group analyses and order the document; the overview's largest N is
