@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-13"
+    title: "Download everything for a study plan"
+    text: "Each study plan now has an overview, and \"Download everything (.zip)\" saves the whole study in one file: the plan itself, a planning document for the whole study (as Markdown and Word) with a table of your analyses, each one's methods paragraph and every reference once, and each analysis's own documents and R script. Opening the zip in powerkit opens the plan again, on any computer."
+  - date: "2026-11-13"
     title: "Within-person (repeated-measures) correlations"
     text: "powerkit now plans a repeated-measures correlation: two scores measured together on several occasions, such as sleep and mood in a diary study, where the question is whether they rise and fall together within people. Enter the correlation you expect and how many times each person is measured, and powerkit gives the number of people needed, the power, or the smallest correlation you could detect. The design finder reaches it after \"measured more than once\", and searching \"repeated measures correlation\" or \"rmcorr\" finds it."
   - date: "2026-11-13"
