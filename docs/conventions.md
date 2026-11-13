@@ -453,7 +453,7 @@ still moves in steps of the simplified split.
 | --- | --- | --- | --- |
 | G\*Power | No test for clustered designs | — | — |
 | powertools | `crt.parallel.bin()` and `multisite.bin()`: a z test of the log odds ratio between conditions, its variance from the binomial variance in each condition plus the between-group variance `sigma.u`² (for a cluster-randomised trial, the SD of the groups' random intercepts; for a multisite trial, the SD of the effect across groups), both on the log-odds scale, and multiplied by 1.2. The help pages do not give a source for the factor 1.2 (`upstream-questions.md`). Two-sided power is `pnorm(gamma / sqrt(var) - z)`, ignoring the far tail (powertools 1.0.0 help and source, R/crt.parallel.bin.R and R/multisite.bin.R, opened 28 October 2026) | `pc` and `pt`, the proportions in the two conditions | `m`, `m.sd` (cluster-randomised only), `J`, the total number of groups, `alloc.ratio` (multisite only), `sigma.u`, `alpha = 0.05`, `sides = 2` |
-| **powerkit** | powertools' `crt.parallel.bin()` and `multisite.bin()`, by formula; no simulation option (E34, from 28 October 2026) [powerkit] | `p1` and `p2`, the proportion of "yes" in each condition, and `sigma_u` on the log-odds scale; there is no ICC for this outcome | The same number of groups in each condition, or half of each group in each condition (`alloc.ratio = 1`). Groups of the same size only: `cluster_size_sd` is refused, because the relative-efficiency adjustment for varying sizes (`re.clustsize.bin()`) appears to contain a typo (`upstream-questions.md`). No smallest detectable effect, since the functions cannot solve for the proportions. The exported script prints powertools' `crt.varexplore()` or `ms.varexplore()` table, to help judge `sigma_u`. Not a departure: powertools' own method, including its factor 1.2, and no established psychology tool computes this design for comparison |
+| **powerkit** | powertools' `crt.parallel.bin()` and `multisite.bin()`, by formula; no simulation option (E34, from 28 October 2026) [powerkit] | `p1` and `p2`, the proportion of "yes" in each condition, and `sigma_u` on the log-odds scale; there is no ICC for this outcome | The same number of groups in each condition, or half of each group in each condition (`alloc.ratio = 1`). Groups of the same size only: `cluster_size_sd` is refused, because the relative-efficiency adjustment for varying sizes (`re.clustsize.bin()`) appears to contain a typo (`upstream-questions.md`). No smallest detectable effect, since the functions cannot solve for the proportions. The exported script prints powertools' `crt.varexplore()` or `ms.varexplore()` table, to help judge `sigma_u`. Not a departure: powertools' own method, including its factor 1.2, and no established psychology tool computes this design for comparison. The factor's size is Known difference 16 |
 
 ## Group treatment trials (only one condition delivered in groups)
 
@@ -478,7 +478,7 @@ still moves in steps of the simplified split.
 | G\*Power | No test for structural equation models | — | — |
 | semPower | Exact fit only (above) | — | — |
 | WebPower | `wp.sem.rmsea()`: MacCallum, Browne and Sugawara's (1996) tests (the reference in its help). Close fit (`type = "close"`): the critical value from the noncentral chi-square with noncentrality (N − 1) × df × rmsea0², power from the noncentral chi-square at rmsea1; not-close fit (`type = "notclose"`): the lower critical value at rmsea0, power the chance of falling below it at rmsea1 (WebPower 0.9.4 source, read 2 November 2026) | `rmsea0` (the null value) and `rmsea1` (the population RMSEA) | `alpha` 0.05; no default for `rmsea0` |
-| **powerkit** | WebPower's `wp.sem.rmsea()` by formula (E37, from 2 November 2026), with the df counted as for the test of exact fit [powerkit] | `rmsea` (the population RMSEA) and `rmsea_null` | `rmsea_null` 0.05 by default, the null value commonly used with these tests (for example in semTools' `findRMSEApower()` help). The test of exact fit stays the default. At `rmsea_null` 0 the test of close fit is semPower's test of exact fit (tested to 1e-8, and in the check run). Not a departure |
+| **powerkit** | WebPower's `wp.sem.rmsea()` by formula (E37, from 2 November 2026), with the df counted as for the test of exact fit [powerkit] | `rmsea` (the population RMSEA) and `rmsea_null` | `rmsea_null` 0.05 by default, the null value commonly used with these tests (for example in semTools' `findRMSEApower()` help). No test is preselected (from 13 November 2026): the screen asks what the test should do, listing not-close fit first as the route for showing that a model fits well enough, because power for exact or close fit is the chance of rejecting the model. The engine's spec default is still exact fit. At `rmsea_null` 0 the test of close fit is semPower's test of exact fit (tested to 1e-8, and in the check run). Not a departure |
 
 ## Measurement invariance, factor correlations and latent slopes (the chi-square difference test)
 
@@ -1974,6 +1974,54 @@ Wired into the app on 18 October 2026 (E25, E26).*
   the sentence shown with it states the difference, and the cards' methods
   paragraphs are unchanged.
 
+### 16. Yes/no outcomes in clustered designs: powertools' unexplained factor 1.2 asks for more groups than simulation needs
+
+- **What differs:** for a cluster-randomised or multisite trial with a
+  yes/no outcome (E34), powertools' `crt.parallel.bin()` and
+  `multisite.bin()` multiply the variance of the log odds ratio by 1.2,
+  and their help pages give no source for the factor
+  (`upstream-questions.md`, powertools question 1). Simulating the
+  analysis researchers run (lme4's `glmer()` with a random intercept for
+  groups, Wald z test) needs fewer groups: without the factor, the same
+  formula agrees with that simulation closely.
+- **Size:** proportions 0.30 and 0.45, groups of 20, SD of the groups' log
+  odds 0.3: a cluster-randomised trial needs 28 groups with the factor and
+  24 without it (formula power at 28 groups without it 86.7%; a 500-run
+  `glmer()` simulation gave 87.8% at 28 and 83.8% at 24); a multisite
+  trial with an effect SD of 0.3 needs 22 groups with the factor and 19
+  without it (simulation 87.6% at 22). The test is in `engine/tests/testthat/test-backend-powertools.R`,
+  "the factor 1.2 in powertools' yes/no formulas".
+- **Why not a departure (yet):** the factor is powertools' own method,
+  and removing it is a method choice that waits on the maintainer and on
+  its source (`next.md`). Groups are the costliest unit in these trials,
+  so the size is shown rather than left in this file.
+- **Shown to users:** on E34 results with a yes/no outcome when whole
+  groups, or people within groups, are randomised (`app/routing/forms.yaml`,
+  `known_differences`, key "16"). Not for the group treatment trial,
+  whose `irgtt.bin()` has no such factor.
+- **Methods paragraph:** `known_differences_methods`, key "16".
+
+### 17. Three-way regression interactions: the fixed-model formula gives more power than simulated studies
+
+- **What differs:** the three-way interaction card (E31) uses
+  InteractionPoweR's `power_interaction_3way_r2()`, the fixed-model
+  formula for the R-squared change when XWZ is added; InteractionPoweR has
+  no simulation for three-way models. Simulating studies with newly drawn
+  predictors, as Known difference 1 does for two-way interactions, gives
+  less power, and the gap is larger than for two-way models, presumably
+  because the triple product is heavier-tailed still.
+- **Size:** for the example (`regression_three_way.json`: b_XWZ 0.1, X's
+  reliability 0.8), the formula's N for 80% is 853; simulated studies
+  (lm() on new normal predictors, X observed with error) gave 76.2% at 853
+  (3,000 runs), 80.6% at 940 and 82.8% at 1,000 (2,000 each), so about
+  10% more people are needed. With X perfectly reliable: 88.5% by formula,
+  85.5% simulated at 853. Test:
+  `engine/tests/testthat/test-backend-three-way.R`, "simulated studies with
+  random predictors have less power than the fixed-model formula".
+- **Shown to users:** on every E31 result (`app/routing/forms.yaml`,
+  `known_differences`, key "17").
+- **Methods paragraph:** `known_differences_methods`, key "17".
+
 ## Not departures, but worth stating
 
 - **One tail counted for some yes/no outcomes in clustered trials, and for
@@ -2151,7 +2199,14 @@ Wired into the app on 18 October 2026 (E25, E26).*
   and Wright's test of ln(1 - alpha), the test whose sample size
   statpsych's `size.test.cronbach()` gives; statpsych gives no power at a
   given n, so powerkit solves the same formula for power, and its
-  smallest n for a power is statpsych's in every case tested. Kappa is
+  smallest n for a power is statpsych's in every case tested. The
+  formula's large-sample variance is a little small at typical sizes:
+  for 5 items, alpha 0.8 against 0.7, two-sided, 85% power, it gives
+  n = 139, where simulating parallel normal items (two runs of 20,000)
+  gives 84.1% for Bonett's test of ln(1 - alpha) and 85.9% for the Feldt
+  F interval statpsych's `ci.cronbach()` reports (13 November 2026). The
+  shortfall, about a point for the test the formula plans, is
+  statpsych's published method and is not shown on the result. Kappa is
   kappaSize's goodness-of-fit approach (two-sided), which gives a sample
   size, not rounded, for a power; powerkit's power at n is the power for
   which kappaSize gives n, and its sample size kappaSize's rounded up.

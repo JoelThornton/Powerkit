@@ -193,19 +193,24 @@ background_limit: 2
 # in seconds on one core (the bar is estimated from them); `script` is the
 # expected run time in words. Measured or estimated as noted in
 # docs/phase5-simulations.md.
+# Usual run times (seconds) and script estimates. Mediation and PROCESS
+# models were re-measured on 13 November 2026 after the Monte Carlo interval
+# was computed directly from manymome's draws (fast-mediation-test.R): about
+# 0.1 to 0.25 seconds per simulated study, and a PROCESS model 7 required-N
+# search in about 15 minutes on a shared 4-core machine.
 simulations:
   preview_nrep: 100
   endpoints:
     E10:
       full_run: [power]
-      preview: {power: 50}
-      full: {power: 734}
-      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 20}
+      full: {power: 230}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E16:
       full_run: [power]
-      preview: {power: 50}
-      full: {power: 734}
-      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 20}
+      full: {power: 230}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E33:
       full_run: [power]
       preview: {power: 35}
@@ -238,34 +243,34 @@ simulations:
       script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E11:
       full_run: [power]
-      preview: {power: 50}
-      full: {power: 780}
-      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 20}
+      full: {power: 230}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E12:
       full_run: [power]
-      preview: {power: 60}
-      full: {power: 890}
-      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 20}
+      full: {power: 230}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E13:
       full_run: []
-      preview: {power: 165}
-      script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E14:
       full_run: []
-      preview: {power: 170}
-      script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E17:
       full_run: []
-      preview: {power: 170}
-      script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E38:
       full_run: []
-      preview: {power: 200}
-      script: {power: "about 30 minutes on one core (an estimate: two product terms take a little longer than one)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E40:
       full_run: []
-      preview: {power: 200}
-      script: {power: "about 30 minutes on one core (an estimate: two mediators take a little longer than one)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
 
   # One test version of a card that otherwise calculates here: the Bayes
   # factor of a repeated-measures ANOVA effect (about 0.8 s per simulated
@@ -291,7 +296,7 @@ whole_study:
   # each, then the full run at the n found).
   search_runs: [9, 15]
   target_powers: [0.8, 0.85, 0.9, 0.95]
-  seconds_per_replication: {x_y: 0.02, x_m: 0.02, interaction: 0.03, indirect: 0.6, index_of_mome: 1.6, anova_effect: 0.01}
+  seconds_per_replication: {x_y: 0.02, x_m: 0.02, interaction: 0.03, indirect: 0.15, index_of_mome: 0.25, anova_effect: 0.01}
   overhead_seconds: 15
   # A rough power curve in the app (whole_study_curve()), for experiments
   # and regressions only: a mediation's intervals are too slow to run here.
@@ -353,6 +358,8 @@ known_differences:
   "12": "Bayes factor test of a correlation: powerkit's default prior width is JASP's, 1 (every correlation equally likely beforehand). BayesFactor, the R package that computes the Bayes factor, defaults to a narrower 1/3, which needs fewer people for a moderate correlation: 146 against 162 for r = .3, BF10 of at least 10 and 80%. Set the prior width to 1/3 (0.333) to match BayesFactor; at the same width the two give the same Bayes factor as JASP."
   "14": "Mediation: powerkit plans for the Monte Carlo confidence interval of the indirect effect, as power4mome does, while PROCESS, the usual software for the analysis, reports a percentile bootstrap interval by default. The two are different tests, so their power can differ a little (powerkit's validation compares them for simple mediation); say in your write-up which interval you will report."
   "15": "ANCOVA: powerkit uses Shieh's (2020) method (pwrss), which treats the covariate as random, as it is when people come with their own before scores. G*Power treats the covariate as fixed, which gives a little more power and so a slightly smaller sample size: in a three-group example, 87 in G*Power against 90 here."
+  "16": "Yes/no outcomes in groups: powertools' formula multiplies the variance of the log odds ratio by 1.2, a safety margin its help pages give no source for, so it asks for more groups than a simulation of the usual mixed-model analysis (glmer() with a random intercept for groups) needs. In a checked example (proportions .30 and .45, groups of 20, SD of the groups' log odds 0.3) it asked for 28 groups where 24 reached 80% in simulation; for people randomised within groups it asked for 22, where the formula without the factor gives 19 and simulation gave 87.6% power at 22. Your answer is on the safe side by about this much."
+  "17": "Three-way interactions: InteractionPoweR's formula treats the predictors as fixed, as G*Power does. Studies with newly sampled predictors have less power, more so than for two-way interactions: in a checked example the formula's 853 people gave about 76% power in simulation rather than 80%, and about 940 were needed. Consider adding about 10% to this sample size."
   "13": "One-sided Bayes factor test of two proportions: JASP estimates the chance that one group's proportion is the higher from 10,000 random draws, so its one-sided Bayes factor varies slightly from run to run (about 0.1% for 20 of 50 against 30 of 50). powerkit calculates that chance exactly. The two-sided Bayes factor is the same in both."
 
 # The same known differences as one sentence for the methods paragraph
@@ -373,6 +380,8 @@ known_differences_methods:
   "12": "The Bayes factor used a stretched beta prior of width 1 on the correlation, JASP's default; the BayesFactor package's own default, 1/3, gives a somewhat smaller sample size."
   "14": "Power was estimated for a Monte Carlo confidence interval of the indirect effect; the percentile bootstrap interval PROCESS reports by default is a different test, whose power can differ a little."
   "15": "The ANCOVA's power was calculated by Shieh's (2020) method (pwrss's power.f.ancova.shieh()), which treats the covariate as random; G*Power treats it as fixed, which gives slightly more power and a slightly smaller sample size."
+  "16": "The number of groups was calculated with powertools' formula, which multiplies the variance of the log odds ratio by 1.2, a factor its documentation does not source; simulating the mixed-model analysis suggests about a sixth fewer groups would give the target power."
+  "17": "Power was calculated with InteractionPoweR's fixed-model formula for the R-squared change; simulating studies with newly sampled predictors gave lower power in a checked example (about 76% where the formula gave 80%, needing about 10% more participants)."
   "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
 
 forms:
@@ -1110,6 +1119,7 @@ forms:
   E31:
     methods_name: "a three-way regression interaction"
     tool: InteractionPoweR
+    known_differences: ["17"]
     directional: false
     base: {spec_version: "0.1", design: regression_interaction, template: three_way,
            variables: {X: {type: continuous}, W: {type: continuous}, Z: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
@@ -3354,9 +3364,14 @@ forms:
           - {id: ri_correlation, label: "Correlation between people's stable levels of X and Y", type: number, path: population.ri_correlation, required: true, min_exclusive: -1, max_exclusive: 1}
           - {id: within_correlation, label: "Correlation between X and Y at the same wave, within people", type: number, path: population.within_correlation, required: true, min_exclusive: -1, max_exclusive: 1,
              help: "How a person's ups and downs in X and Y go together at the same wave. powRICLPM keeps it the same at every wave."}
-          - {id: reliability, label: "Each score's reliability (optional)", type: number, path: population.reliability, optional: true, min: 0.5, max: 1,
-             default: 1, default_source: "no measurement error, powRICLPM's default (powRICLPM(reliability = 1))",
-             help: "Below 1, measurement error is added to the simulated scores, and the model, which doesn't separate it out, is fitted as usual: power falls and the lagged effects are underestimated."}
+          - {id: reliability_known, label: "Measurement error in the scores", type: select, required: true,
+             choices: {known: "Enter the measures' reliability (recommended)", perfect: "Assume no measurement error (power will be optimistic)"},
+             sets: {perfect: [{path: population.reliability, value: 1}]},
+             default_source: "Not filled in for you, because almost no measure is perfectly reliable (for reference: powRICLPM assumes no measurement error, powRICLPM(reliability = 1))",
+             help: "Real scores contain measurement error, which lowers power and makes the lagged effects look smaller. Most published scales report a reliability (alpha or omega); use the value from samples like yours."}
+          - {id: reliability, label: "Each score's reliability", type: number, path: population.reliability, required: true, min: 0.5, max: 1,
+             shown_if: {field: reliability_known, is: known},
+             help: "For example the measure's alpha or omega in samples like yours. Below 1, measurement error is added to the simulated scores, and the model, which doesn't separate it out, is fitted as usual: power falls and the lagged effects are underestimated."}
 
   # Latent profile analysis (Spower simulation of powerkit's experiment
   # around mclust): the chance the BIC finds the right number of profiles.
@@ -3575,6 +3590,9 @@ forms:
     methods_name: "a clustered design (the test of the difference between conditions, allowing for the grouping)"
     tool: powertools
     departures: ["14"]
+    known_differences: ["16"]
+    known_differences_if_metric: {"16": proportion}
+    known_differences_if_template: {"16": [cluster_randomised, multisite]}
     sensitivity: true
     sensitivity_without_effect: true
     directional: true
@@ -3705,16 +3723,16 @@ forms:
       - input: "Model fit: the test, and the model's RMSEA in the population"
         shown_if: {field: question, is: model_fit}
         fields:
-          - {id: fit_test, label: "Which test of fit", type: select, path: target_test.method, required: true,
+          - {id: fit_test, label: "What you want the test of fit to do", type: select, path: target_test.method, required: true,
              shown_if: {field: question, is: model_fit},
-             choices: {chi_square_exact_fit: "Exact fit: the chi-square test reported by SEM software, to detect any misfit",
-                       chi_square_close_fit: "Close fit (MacCallum and colleagues): to detect misfit worse than a small RMSEA",
-                       chi_square_not_close_fit: "Not-close fit (MacCallum and colleagues): to show the model fits closely"},
-             default: chi_square_exact_fit, default_source: "the chi-square test of exact fit, which semPower computes and SEM software reports",
-             help: "Exact fit asks whether the model is exactly right, which almost no model is. Close fit asks whether its RMSEA is above a small value (0.05); not-close fit asks whether it is below it, so a significant result supports the model (MacCallum, Browne and Sugawara, 1996)."}
+             choices: {chi_square_not_close_fit: "Show that the model fits well enough: the test of not-close fit (MacCallum and colleagues), where a significant result supports the model",
+                       chi_square_close_fit: "Detect a model that fits worse than a small RMSEA: the test of close fit (MacCallum and colleagues)",
+                       chi_square_exact_fit: "Detect any misfit at all: the chi-square test of exact fit that SEM software reports"},
+             default_source: "Not filled in for you, because the tests answer opposite questions (for reference: semPower computes only the test of exact fit)",
+             help: "Power for exact or close fit is the chance of rejecting your model, so planning for it gives the sample size that makes a small misfit most likely to be detected. To gather evidence that a questionnaire's structure holds, plan for not-close fit (MacCallum, Browne and Sugawara, 1996). If what matters is a factor correlation or a path, plan for that instead (the other questions on this card)."}
           - {id: rmsea, writeup_label: "RMSEA", label: "The model's RMSEA in the population", type: number, path: population.rmsea, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: model_fit},
-             help: "For exact or close fit: how wrong the model would have to be for you to want the test to notice (0 would be a model that fits exactly; larger values are worse fit; many studies use 0.05 for exact fit and 0.08 for close fit). For not-close fit: how well you expect the model to fit, below the null value (for example 0.01 or 0.02). Values near the null value need many more people."}
+             help: "For exact or close fit: how wrong the model would have to be for you to want the test to notice (0 would be a model that fits exactly; larger values are worse fit). Choose it from the misfit that would matter for how you will use the model, not from a habitual cut-off. For not-close fit: how well you expect the model to fit, below the null value (for example 0.01 or 0.02). Values near the null value need many more people."}
           - {id: rmsea_null, writeup_label: "RMSEA of the null hypothesis", label: "RMSEA that separates close from not-close fit", type: number, path: population.rmsea_null, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: [{field: question, is: model_fit}, {field: fit_test, is_one_of: [chi_square_close_fit, chi_square_not_close_fit]}],
              default: 0.05, default_source: "0.05, the null value commonly used for these tests (for example in semTools' findRMSEApower() help, rmsea0 = .05)"}

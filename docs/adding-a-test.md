@@ -323,11 +323,14 @@ Merge main in, take main's copies of the version files and bring back
 your notes from before your close commit, then close again:
 
 ```sh
-git checkout origin/main -- engine/DESCRIPTION CITATION.cff engine/NEWS.md \
-  app/routing/whats-new.yaml app/routing/whats-new-archive.yaml
+git checkout origin/main -- engine/DESCRIPTION CITATION.cff engine/NEWS.md app/routing/whats-new.yaml
 git checkout <your close commit>^ -- engine/news.d/<topic>.md app/routing/whats-new.d/<topic>.yaml
 Rscript scripts/close-batch.R patch
 ```
+
+Add `app/routing/whats-new-archive.yaml` to the first line once main has
+one (the script creates it the first time it archives an entry): git
+refuses the whole command if a named file is missing.
 
 The required checks already make a branch catch up with main before it
 merges, so this costs a merge that was needed anyway.
