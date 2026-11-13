@@ -1030,3 +1030,29 @@ whole_study_planning_document <- function(calc, script, departure = NULL) {
     "Run it in R with powerkit installed (its first lines say how). It holds the whole-study specification and seed above, so it gives the same numbers with the same package versions.", "",
     "```r", strsplit(script, "\n", fixed = TRUE)[[1]], "```"))
 }
+
+# The last whole-study run, in a few numbers its study plan keeps and shows
+# (no calculation: the simulation's own results). NULL for a run that
+# didn't finish.
+whole_study_summary <- function(calc, now = Sys.time()) {
+  if (!identical(calc$status, "ok")) return(NULL)
+  r <- calc$result
+  a <- r$analyses
+  joint <- r$joint
+  list(at = format(now, "%Y-%m-%d %H:%M:%S UTC", tz = "UTC"), n = r$n, nrep = r$provenance$nrep, claim = r$claim,
+    joint = if (!is.null(joint) && !identical(r$claim, "each")) list(rule = joint$rule, power = joint$power, lower = joint$lower, upper = joint$upper),
+    analyses = lapply(seq_len(nrow(a)), function(i) list(label = a$label[i], role = a$role[i], power = a$power[i])))
+}
+
+whole_study_summary_text <- function(s) {
+  when <- tryCatch(plan_date_words(as.Date(substr(s$at %||% "", 1L, 10L))), error = function(e) NULL)
+  setting <- sprintf("N = %s, %s simulated studies%s", whole(s$n), whole(s$nrep), if (!is.null(when)) paste0(", ", when) else "")
+  joint <- s$joint
+  if (is.list(joint)) return(sprintf("%s chance that %s is significant (95%% interval %s to %s; %s).", percent(joint$power),
+    if (identical(joint$rule, "all")) "every main analysis" else "at least one main analysis",
+    percent(joint$lower), percent(joint$upper), setting))
+  mains <- Filter(function(a) identical(a$role, "main"), s$analyses %||% list())
+  if (!length(mains)) mains <- s$analyses %||% list()
+  sprintf("power for each main analysis: %s (%s).",
+    paste(vapply(mains, function(a) sprintf("%s %s", a$label, percent(a$power)), ""), collapse = "; "), setting)
+}

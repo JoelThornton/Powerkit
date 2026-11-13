@@ -170,5 +170,5 @@ test_that("an analysis calculated from the whole-study plan joins the study plan
   html <- as.character(study_plan_bar_ui(setNames(list(plan), plan$id), plan$id, "t2", from_guided = TRUE))
   expect_match(html, "with the other analyses of your whole-study plan", fixed = TRUE)
   expect_no_match(html, "plan_add", fixed = TRUE)
-  expect_match(as.character(guided_plan_save_ui(3)), "See your study plan (3 analyses)", fixed = TRUE)
+  expect_match(as.character(guided_plan_save_ui(3, "Whole-study plan, 13 Nov 2026")), "See the study plan “Whole-study plan, 13 Nov 2026” (3 analyses)", fixed = TRUE)
 })

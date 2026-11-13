@@ -348,3 +348,44 @@ test('a plan has an overview, downloads everything as a zip, and the zip opens a
   await expect(other.locator('.plan-item')).toHaveCount(1);
   await other.close();
 });
+
+test('Plan my whole study keeps its plan in a study plan, which saves it and opens it again', async ({ page }, info) => {
+  const pick = async text => {
+    const target = page.locator('#screen button .choice-label').filter({ hasText: new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) });
+    await target.first().click();
+  };
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.locator('#screen button', { hasText: 'Plan my whole study' }).first().click();
+  await page.locator('#screen button', { hasText: 'Test a prediction' }).first().click();
+  for (const a of ['Yes/no, or one of several categories', 'Independent people', 'Once']) await pick(a);
+  await expect(page.locator('input[name="g_x"]').first()).toBeVisible();
+  // Turning back before the list of analyses leaves no plan behind.
+  await expect(page.locator('.study-plan-chip')).toHaveText('Study plans');
+  const vars = { x: 'cond2', outcome: 'yesno', mediators: 'none', moderator: 'none', covariate: 'none' };
+  for (const [k, v] of Object.entries(vars)) await page.check(`input[name="g_${k}"][value="${v}"]`);
+  await page.locator('#screen button', { hasText: 'Next: choose the analyses' }).click();
+  await expect(page.locator('#screen h2')).toContainText('your analyses');
+  await expect(page.locator('.study-plan-chip')).toHaveText(/Study plans \(1\)/);
+  await page.locator('#screen button', { hasText: 'Show my plan' }).click();
+  await expect(page.locator('#screen .plan-item').first()).toBeVisible();
+  await expect(page.locator('.plan-save')).toContainText('See the study plan “Whole-study plan,');
+  // Save this plan saves the study plan holding the guided plan.
+  await expect(page.locator('#download_guided_plan')).toHaveAttribute('href', /\/download\//);
+  const pending = page.waitForEvent('download');
+  await page.locator('#download_guided_plan').click();
+  const saved = await pending;
+  expect(saved.suggestedFilename()).toMatch(/^powerkit-whole-study-plan-.*\.powerkit\.json$/);
+  const file = info.outputPath('whole.powerkit.json');
+  await saved.saveAs(file);
+  const record = JSON.parse(await fs.readFile(file, 'utf8'));
+  expect(record.format).toBe('powerkit-guided-plan');
+  expect(record.study_plan.name).toMatch(/^Whole-study plan, /);
+  expect(record.plan.primary).toBeTruthy();
+  // The plan's page shows the guided plan and opens it again.
+  await page.locator('#plan_view').click();
+  await expect(page.locator('.plan-guided')).toContainText('Whole-study plan');
+  await expect(page.locator('#plans_page')).toContainText('Saved to a file');
+  await page.locator('#plan_open_guided').click();
+  await expect(page.locator('#screen .plan-item').first()).toBeVisible();
+  await expect(page.locator('.study-plan-chip')).toHaveText(/Study plans \(1\)/);
+});

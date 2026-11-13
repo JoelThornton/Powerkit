@@ -114,22 +114,40 @@ plan_unsaved <- function(plan) is.null(plan$saved_at) || plan$changed > plan$sav
 
 # The plan's file text ("" for an empty plan or one that can't be written).
 plan_to_text <- function(plan, write = engine_function("write_study_plan")) {
+  if (!length(plan$entries) && is.list(plan$guided)) return(plan_guided_only_text(plan))
   if (!length(plan$entries) || is.null(write)) return("")
   analyses <- plan_analyses(plan$entries)
   tryCatch(write(analyses, id = plan$id, name = plan$name,
-    description = if (nzchar(plan$description %||% "")) plan$description),
+    description = if (nzchar(plan$description %||% "")) plan$description, guided = plan$guided),
     error = function(e) "")
 }
 
+# A plan holding a guided plan but no calculated analysis yet: a plan file
+# needs an analysis, so it is saved as the guided-plan file it holds, with
+# the study plan's id, name and description beside it. The version before
+# this one opens it as a guided plan; this one opens it as the study plan.
+plan_guided_only_text <- function(plan) {
+  record <- plan$guided
+  record$study_plan <- list(id = plan$id, name = plan$name, description = plan$description %||% "")
+  as.character(jsonlite::toJSON(record, auto_unbox = TRUE, pretty = TRUE, null = "null", digits = NA))
+}
+
+# Whether a plan holds anything worth saving.
+plan_has_content <- function(plan) length(plan$entries) > 0 || is.list(plan$guided)
+
 # A plan from file text, or NULL when the text isn't a readable plan.
 plan_from_text <- function(tree, text, read = engine_function("read_study_plan"), now = Sys.time()) {
-  if (!is.character(text) || length(text) != 1L || !nzchar(text) || nchar(text) > 5e6 || is.null(read)) return(NULL)
+  if (!is.character(text) || length(text) != 1L || !nzchar(text) || nchar(text) > 5e6) return(NULL)
+  guided <- plan_from_guided_text(text, now)
+  if (!is.null(guided)) return(guided)
+  if (is.null(read)) return(NULL)
   file <- tryCatch(read(text), error = function(e) NULL)
   if (is.null(file) || !length(file$analyses)) return(NULL)
   saved_date <- tryCatch(as.Date(substr(file$saved %||% "", 1L, 10L)), error = function(e) NA)
   plan <- new_plan(file$name %||% plan_default_name(if (is.na(saved_date)) as.Date(now) else saved_date), now = now)
   if (is.character(file$id) && grepl("^[0-9a-f]{16}$", file$id)) plan$id <- file$id
   plan$description <- plan_clean_text(file$description %||% "", plan_description_max)
+  if (is.list(file$guided) && identical(file$guided$format, "powerkit-guided-plan")) plan$guided <- file$guided
   for (i in seq_along(file$analyses)) {
     entry <- plan_entry_from_project(tree, file$analyses[[i]])
     role <- file$roles[[i]] %||% NA_character_
@@ -141,6 +159,47 @@ plan_from_text <- function(tree, text, read = engine_function("read_study_plan")
   plan$changed <- now
   plan_mark_saved(plan, "file", now = now)
 }
+
+# A guided-plan file ("Plan my whole study"): one saved by a study plan
+# with no analyses yet (it names the study plan), or one saved before study
+# plans held guided plans, which becomes a new whole-study plan. NULL when
+# the text isn't one.
+plan_from_guided_text <- function(text, now = Sys.time()) {
+  record <- tryCatch(jsonlite::parse_json(text, simplifyVector = FALSE), error = function(e) NULL)
+  if (!is.list(record) || !identical(record$format, "powerkit-guided-plan")) return(NULL)
+  meta <- record$study_plan
+  record$study_plan <- NULL
+  saved_date <- tryCatch(as.Date(substr(record$saved_at %||% "", 1L, 10L)), error = function(e) NA)
+  if (is.na(saved_date)) saved_date <- as.Date(now)
+  plan <- new_plan(if (is.list(meta)) meta$name else plan_default_name(saved_date, "Whole-study plan"), now = now)
+  if (is.list(meta) && is.character(meta$id) && grepl("^[0-9a-f]{16}$", meta$id)) plan$id <- meta$id
+  if (is.list(meta)) plan$description <- plan_clean_text(meta$description %||% "", plan_description_max)
+  plan$guided <- record
+  plan_mark_saved(plan, "file", now = now)
+}
+
+# The guided plan as it stands, kept in its study plan: the guided
+# analyses' roles follow it (primary, or secondary in place of primary; a
+# check the researcher chose stays), and the plan counts as changed only
+# when the record or a role does.
+plan_set_guided <- function(plan, record, primary = character(), now = Sys.time()) {
+  before <- plan_content(plan)
+  plan$guided <- record
+  for (i in seq_along(plan$entries)) {
+    id <- plan$entries[[i]]$plan_id
+    if (is.null(id)) next
+    role <- plan$entries[[i]]$role
+    plan$entries[[i]]$role <- if (id %in% primary) "primary" else if (identical(role, "primary")) "secondary" else role %||% "secondary"
+  }
+  if (identical(before, plan_content(plan))) {
+    plan$guided <- record
+    return(plan)
+  }
+  plan_touch(plan, now)
+}
+
+# What a guided record holds, without when it was saved.
+guided_content <- function(record) if (is.list(record)) record$plan
 
 # The browser's old single plan (key powerkit-study-plan), as a named plan
 # that has not been saved to a file.
@@ -156,7 +215,8 @@ plans_migrate_legacy <- function(tree, text, read = engine_function("read_study_
 # What makes two copies of a plan the same work: not when they were saved.
 plan_content <- function(plan) {
   list(plan$name, plan$description %||% "",
-    lapply(plan$entries, function(e) list(plan_entry_hash(e), e$role, e$note %||% "")))
+    lapply(plan$entries, function(e) list(plan_entry_hash(e), e$role, e$note %||% "")),
+    guided_content(plan$guided))
 }
 
 # Adds an opened plan to the browser's plans without overwriting any:
@@ -191,7 +251,7 @@ plan_browser_record <- function(plan, write = engine_function("write_study_plan"
   text <- plan_to_text(plan, write = write)
   # A plan with no analyses has no file yet (a plan file needs one), so
   # its name and description are kept on their own.
-  if (!nzchar(text) && length(plan$entries)) return("")
+  if (!nzchar(text) && plan_has_content(plan)) return("")
   num <- function(t) if (is.null(t)) NULL else as.numeric(t)
   as.character(jsonlite::toJSON(list(format = "powerkit-plan-in-browser", version = 1L,
     id = plan$id, name = plan$name, description = plan$description %||% "",
@@ -269,7 +329,7 @@ plan_entry_project <- function(entry, write = engine_function("write_project"), 
 # The Study plans page: every plan kept in this browser, and the ways to
 # start or open one.
 plans_list_ui <- function(plans, current = NULL) {
-  unsaved <- Filter(function(p) length(p$entries) > 0 && plan_unsaved(p), plans)
+  unsaved <- Filter(function(p) plan_has_content(p) && plan_unsaved(p), plans)
   row <- function(plan) {
     k <- length(plan$entries)
     largest <- plan_largest_entry(plan$entries)
@@ -291,6 +351,7 @@ plans_list_ui <- function(plans, current = NULL) {
       tags$ul(
         tags$li("Start one here with “New study plan”, then add analyses to it."),
         tags$li("Or calculate any analysis and press “Add this to my study plan” under its result: a plan is made for it."),
+        tags$li("Or start “Plan my whole study”: it makes a whole-study plan that keeps your guided plan and each analysis you calculate from it."),
         tags$li("“Plan my whole study”, on the start screen, plans several analyses of one study together."))),
     if (length(plans)) tags$ul(class = "plans-list", lapply(rev(plans), row)),
     div(class = "nav-buttons",
