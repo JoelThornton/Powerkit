@@ -102,6 +102,7 @@ endpoints:
   E39: ci
   E40: ci
   E41: model
+  E76: t
   E42: ci
   E43: model
   E44: model
@@ -169,6 +170,7 @@ relations:
   - {from: E4, to: E24, label: "with more predictors becomes"}
   - {from: E4, to: E49, label: "compared between two groups is"}
   - {from: E4, to: E51, label: "compared within the same people is"}
+  - {from: E4, to: E76, label: "within people, over several occasions, is"}
   - {from: E24, to: E9, label: "with an interaction becomes"}
   - {from: E9, to: E15, label: "with a yes/no X or W is"}
   - {from: E9, to: E31, label: "with a third variable in the interaction becomes"}

@@ -166,6 +166,9 @@ additional_input_guide <- function(f) {
     "c = 0 represents the unbiased-observer scenario; it is not evidence that your participants have no bias.", "A matched signal-detection fit or justified bias scenario, using criterion c rather than an unconverted alternative bias index."))
   if (f$id %in% c("trials_signal", "trials_noise")) return(make("The number of that kind of trial each person completes in each condition; this is not the number of participants.",
     "40 signal and 60 noise trials means 100 trials per condition per person, rather than N = 100 people.", "Your task protocol and feasible testing duration, with enough trials to estimate individual performance."))
+  if (identical(f$id, "measurements") && identical(f$path, "population.measurements")) return(make("How many times each person is measured on both scores, the same number for everyone. The repeated-measures correlation uses each person's ups and downs around their own average, so every extra occasion adds information.",
+    "Measured on 3 days, each person gives 3 pairs of scores; 100 people then give the test 199 degrees of freedom, N(k - 1) - 1.", "Your study protocol: the number of diary days, sessions or sampling prompts everyone completes.",
+    "If some people will miss occasions, run the plan with the number you expect most people to complete and with a smaller number, and report both."))
   if (identical(f$id, "sd_dprime")) return(make("Between-person spread of true sensitivity, separate from estimation noise caused by finite trial counts.",
     "An observed SD of estimated d-prime from a short task cannot simply be treated as a noise-free SD of true sensitivity.", "A comparable model that separates individual variation from trial noise, or explicitly labelled assumptions when that information is unavailable."))
   if (identical(f$id, "guess")) return(make("Your optional guess for the teaching comparison; it does not enter the power calculation.",
