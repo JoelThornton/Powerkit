@@ -55,3 +55,34 @@ test_that("the exported script reproduces the result", {
     expect_equal(out$reproduced, out$powerkit, tolerance = 1e-10, label = goal$type)
   }
 })
+
+test_that("simulated studies with random predictors have less power than the fixed-model formula (Known difference 17)", {
+  # The example's population built from its true-score correlations: X, W
+  # and Z normal, their standardised products, and the coefficients that
+  # give the specified correlations with Y and b_XWZ = 0.1 (found from a
+  # large sample of the predictors); X observed with reliability 0.8. Each
+  # simulated study draws new predictors and tests XWZ with lm(). At the
+  # formula's N for 80% (853) the simulation gives about 76%; about 940
+  # are needed (docs/conventions.md, Known difference 17).
+  skip_on_cran()
+  withr::local_seed(17)
+  rx <- matrix(c(1, -0.1, 0.1, -0.1, 1, 0, 0.1, 0, 1), 3)
+  terms <- function(t) cbind(t, t[, 1] * t[, 2], t[, 1] * t[, 3], t[, 2] * t[, 3], t[, 1] * t[, 2] * t[, 3])
+  big <- terms(MASS::mvrnorm(5e5, rep(0, 3), rx))
+  centre <- colMeans(big)
+  scale <- apply(big, 2, stats::sd)
+  sigma <- stats::cor(big)
+  b7 <- 0.1
+  beta <- c(solve(sigma[1:6, 1:6], c(-0.3, 0.2, -0.1, 0.1, 0.05, 0) - sigma[1:6, 7] * b7), b7)
+  residual <- 1 - drop(t(beta) %*% sigma %*% beta)
+  n <- 853
+  formula_power <- run_spec(three_way_spec(list(type = "power", n = n)))$curve$power
+  significant <- replicate(1000, {
+    t <- MASS::mvrnorm(n, rep(0, 3), rx)
+    y <- drop(sweep(sweep(terms(t), 2, centre), 2, scale, "/") %*% beta) + stats::rnorm(n, 0, sqrt(residual))
+    x <- sqrt(0.8) * t[, 1] + sqrt(0.2) * stats::rnorm(n)
+    summary(stats::lm(y ~ x * t[, 2] * t[, 3]))$coefficients[8, 4] < 0.05
+  })
+  expect_equal(formula_power, 0.80, tolerance = 0.01)
+  expect_lt(mean(significant), formula_power - 0.01)
+})

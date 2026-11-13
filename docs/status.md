@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 13 November 2026 (the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 13 November 2026 (specialist maths review fixes; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -31,6 +31,17 @@ which fills in after it. Welch's ANOVA, the one-way default, is worked
 out by Levy's approximation as Jan and Shieh (2014) recommend (13
 November 2026), so its answer is instant; the simulation stays as an
 option on the card (`decisions.md`, 13 November 2026).
+
+The second specialist mathematics review (13 November 2026) is finished
+and its fixes, apart from the cross-lagged panel check run (PR #395),
+are in: clustered yes/no outcomes show powertools' unsourced factor 1.2
+as Known difference 16, the three-way interaction's fixed-model formula
+shows its gap from simulated studies as Known difference 17, the SEM
+test of fit has no preselected test (not-close fit listed first), the
+cross-lagged panel card asks for the reliability, and a simulated
+meta-analysis's number of studies shows its interval. Whether to change
+the clustered yes/no and three-way methods is a queue item for the
+maintainer (`next.md`).
 
 The moderated regression cards' result screen, which stopped with an
 error for the sample size and power since 10 November, shows its result
