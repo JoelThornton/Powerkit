@@ -12,6 +12,11 @@ fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`. There is no AI assistant: it was dropped from
 the plan (`decisions.md`, 13 November 2026).
 
+The cross-lagged panel card runs with a reliability below 1 (13
+November 2026): its check run compares the specified lagged effects with
+those recovered from error-free scores, since measurement error
+attenuates them by design (specialist maths review, M-11).
+
 Tables of means, SDs and proportions (two-factor, mixed and repeated
 measures ANOVA, ANCOVA, MANOVA, chi-square and logistic factorial cards)
 are entered in a grid whose rows and columns are named from the levels
@@ -33,7 +38,7 @@ November 2026), so its answer is instant; the simulation stays as an
 option on the card (`decisions.md`, 13 November 2026).
 
 The second specialist mathematics review (13 November 2026) is finished
-and its fixes, apart from the cross-lagged panel check run (PR #395),
+and its fixes, apart from the cross-lagged panel check run (merged in PR #395),
 are in: clustered yes/no outcomes show powertools' unsourced factor 1.2
 as Known difference 16, the three-way interaction's fixed-model formula
 shows its gap from simulated studies as Known difference 17, the SEM
