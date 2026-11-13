@@ -1,13 +1,14 @@
-# Welch's one-way ANOVA (unequal variances) via Spower's
-# p_anova.test(var.equal = FALSE): translation, check run, refusals and the
-# exported script. Few replications.
+# Welch's one-way ANOVA (unequal variances) simulated on request via
+# Spower's p_anova.test(var.equal = FALSE): translation, check run,
+# refusals and the exported script. Few replications. The default, Levy's
+# approximation, is tested in test-backend-welch-levy.R.
 
 welch_spec <- function(n = 90, nrep = 200, sds = list(4, 6, 9)) {
   spec <- example_spec("anova_oneway_between")
   spec$target_test$method <- "welch_f"
   spec$population$sds <- sds
   spec$goal <- list(type = "power", n = n)
-  spec$options <- list(seed = 7, nrep = nrep)
+  spec$options <- list(seed = 7, nrep = nrep, method = "simulation")
   spec
 }
 
@@ -40,10 +41,10 @@ test_that("without SDs per group, every group has the spec's SD", {
   expect_true(all(run_quietly(spec)$check_run$ok))
 })
 
-test_that("Welch's F has no formula, and the SDs per group belong to it alone", {
+test_that("Welch's F has a formula as well, and the SDs per group belong to it alone", {
   spec <- welch_spec()
   spec$options$method <- "exact"
-  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+  expect_identical(route_spec(spec)$name, "stats")
   spec <- welch_spec()
   spec$target_test$method <- "anova_f"
   expect_spec_problem(spec, "only used by Welch's F")

@@ -17,7 +17,10 @@
 #' proportion and McNemar's test on pwrss's exact tests
 #' (`power.exact.oneprop()`, `power.exact.mcnemar()`); and Welch's t-test
 #' by formula (`pwrss::power.t.welch()`, unless
-#' `options > method = "simulation"` asks for Spower's simulation). The
+#' `options > method = "simulation"` asks for Spower's simulation). Welch's
+#' one-way ANOVA (`target_test > method = "welch_f"`) is worked out by
+#' Levy's noncentral F approximation in base R's `stats::pf()`, as Jan and
+#' Shieh (2014) recommend, and simulated with Spower on request. The
 #' others have no simulation option. For the two
 #' exact tests of counts, whose power goes up and down with n, the required
 #' n is the smallest that reaches the target power.
@@ -154,7 +157,8 @@
 #' **Sensitivity.** For the ANOVAs, the shape of the specified pattern is
 #' kept and its size scaled (each cell mean's deviation from the grand mean)
 #' until the target effect reaches the target power at n: exactly for the F
-#' test, and by simulation for Welch's F ([welch_f_sensitivity()], with a
+#' test and for Welch's F (by Levy's approximation), and by simulation for
+#' Welch's F when simulation is asked for ([welch_f_sensitivity()], with a
 #' 95% interval for the scale and the effect). Simulated tests otherwise
 #' have no sensitivity analysis.
 #'
@@ -179,7 +183,7 @@
 #'     with the smallest detectable `effect` (with an `effect_description`)
 #'     and the `power` reached there. For the ANOVAs it also has the `scale`
 #'     applied to the specified pattern, the scaled cell `means` and the
-#'     `cohen_f`; for Welch's F, no `cohen_f` but `simulated = TRUE` and the
+#'     `cohen_f`; for Welch's F, no `cohen_f`, and when simulated, `simulated = TRUE` and the
 #'     95% interval (`scale_lower`, `scale_upper`, `effect_lower`,
 #'     `effect_upper`); for the basic tests on pwr, the `effect_name` (`d`, `d_z`,
 #'     `r`, `w` or `p2`);

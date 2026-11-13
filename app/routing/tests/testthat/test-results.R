@@ -791,15 +791,23 @@ test_that("the rank tests (E1, E2, E3 and E18's test version) are simulated with
   expect_false("skewed" %in% names(shape$choices))
 })
 
-test_that("Welch's F (E18's test version) is simulated with Spower from each group's SD", {
+test_that("Welch's F (E18's test version) is worked out by formula, or simulated with Spower on request, from each group's SD", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E18"))
   values <- modifyList(form_examples$E18, list(test_version = "welch_f", welch_sd_input = "separate", sds = "4, 6, 9", sd = NULL, method = NULL))
   expect_equal(form_problems(fields, values), character())
+  formula <- build_spec(forms, "E18", fields, values)
+  expect_false(identical(formula$options$method, "simulation"))
+  formula$goal <- list(type = "power", n = 60L)
+  by_formula <- run_calculation(formula, run, seed = 1L)
+  expect_match(by_formula$result$provenance$backend_function, "Levy's noncentral F approximation", fixed = TRUE)
+  expect_false(runs_in_background(forms, "E18", formula))
+  expect_match(as.character(result_panel_ui(tree, forms, "E18", fields, values, by_formula)), "Jan", fixed = TRUE)
+  values$welch_f_method <- "simulation"
   spec <- build_spec(forms, "E18", fields, values)
   expect_equal(unlist(spec$population$sds), c(4, 6, 9))
   expect_null(spec$population[["sd"]])
-  expect_null(spec$options$method)
+  expect_identical(spec$options$method, "simulation")
   spec$goal <- list(type = "power", n = 60L)
   spec$options$nrep <- 100L
   calc <- run_calculation(spec, run, seed = 1L)
@@ -838,10 +846,18 @@ test_that("Welch's F is the one-way ANOVA's default, shown as a departure, with 
   expect_false("22" %in% names(departures_for(forms, "E18", f_test)))
 })
 
-test_that("Welch's F's smallest detectable effect is simulated, with its interval on the result and in the methods", {
+test_that("Welch's F's smallest detectable effect is worked out by formula, or simulated with its interval on the result and in the methods", {
   skip_without_run()
   fields <- form_fields(form_groups(forms, "E18"))
   values <- modifyList(form_examples$E18, list(test_version = "welch_f", welch_sd_input = "separate", sds = "4, 6, 9", sd = NULL, method = NULL))
+  formula <- build_spec(forms, "E18", fields, values)
+  formula$goal <- list(type = "sensitivity", n = 90L, power = 0.8)
+  by_formula <- run_calculation(formula, run, seed = 1L)
+  expect_false(isTRUE(by_formula$result$sensitivity$simulated))
+  html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, by_formula))
+  expect_match(html, "until Welch&#39;s F reaches the target power, worked out by formula|until Welch's F reaches the target power, worked out by formula")
+  expect_no_match(html, "the effect = ", fixed = TRUE)
+  values$welch_f_method <- "simulation"
   spec <- build_spec(forms, "E18", fields, values)
   spec$goal <- list(type = "sensitivity", n = 90L, power = 0.8)
   spec$options$nrep <- 200L

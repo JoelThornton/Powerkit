@@ -1546,12 +1546,15 @@ Departure 19 is shown on the affected result and in the methods text.
   in every group.
 - **powerkit:** the one-way ANOVA card (E18) plans for Welch's F
   (`stats::oneway.test(var.equal = FALSE)`) unless the user chooses the
-  classical F test. No package gives Welch's F's power by formula, so it
-  is simulated with Spower (`p_anova.test(var.equal = FALSE)`), from one
-  SD for every group or an SD for each. The smallest detectable effect is
-  simulated too (`welch_f_sensitivity()`): the pattern of means is scaled,
-  starting from the F test's exact answer, and the scale is read from a
-  probit curve of the simulated rejections, with a 95% interval.
+  classical F test, from one SD for every group or an SD for each. No
+  package gives Welch's F's power by formula; since 13 November 2026 it
+  is worked out by Levy's noncentral F approximation, as Jan and Shieh
+  (2014, `Jan2014_welch_anova`) recommend (`backend-welch-anova.R`), and
+  simulated with Spower (`p_anova.test(var.equal = FALSE)`) on request.
+  The smallest detectable effect scales the pattern of means until the
+  formula reaches the target; when simulated (`welch_f_sensitivity()`),
+  the scale is read from a probit curve of the simulated rejections,
+  starting from the F test's exact answer, with a 95% interval.
 - **Why** (the maintainer's decision, 8 November 2026, with
   `Delacre2019_welch_f`): Welch's F keeps the false-positive rate at
   alpha when the groups' SDs differ and loses little power when they
@@ -1566,10 +1569,12 @@ Departure 19 is shown on the affected result and in the methods text.
   for Welch's F; with groups of 45, 30 and 15, the smallest group having
   the largest SD, it is about 13.5% against 5.0% (20,000 simulated studies
   each, powerkit's own check, not a published figure).
-- **Test:** `engine/tests/testthat/test-welch-anova-default.R`; Welch's F
-  against separately simulated `oneway.test()` studies, its false-positive
-  rate and its smallest detectable effect in the `welch_spreads`
-  validation chunk.
+- **Test:** `engine/tests/testthat/test-welch-anova-default.R`; the
+  formula against Jan and Shieh's (2014) tables and Spower's simulation in
+  `test-backend-welch-levy.R`; Welch's F (formula and simulation) against
+  separately simulated `oneway.test()` studies, its false-positive rate
+  and its smallest detectable effect in the `welch_spreads` validation
+  chunk.
 - **Shown to users:** on the E18 result whenever Welch's F is planned for
   (`app/routing/R/results.R`, `departures_for()`), and in the methods
   paragraph.
