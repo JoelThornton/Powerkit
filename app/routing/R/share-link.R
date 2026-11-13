@@ -47,12 +47,6 @@ share_link_ui <- function(kind, id = paste0("share_", kind), class = "btn btn-ou
         onfocus = "this.select()")))
 }
 
-# One line under the downloads explaining what the link is.
-share_link_note <- function() {
-  tags$li(tags$strong("Copy a link: "),
-    "the same as the saved file, inside the link itself. Email it to yourself or a colleague to open it on any computer. powerkit stores nothing, so keep the link (or the file) safe; anyone with it can open your plan.")
-}
-
 share_link_css <- "
   .share-link { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
   .share-link-box { flex-basis: 100%; }
@@ -134,6 +128,7 @@ share_link_js <- sprintf("
     }
     if (input) { input.value = link; holder.hidden = false; }
     pkCopyText(link, status, 'Couldn\\'t copy automatically. Select the link in the box and copy it.');
+    $(document).trigger('pk:share-link', [btn.getAttribute('data-kind')]);
   });
   // Opening a link: read the fragment once the app is connected, take it
   // out of the address bar, and hand the text to the server.
