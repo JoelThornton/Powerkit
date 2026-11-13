@@ -12,6 +12,11 @@ fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`. There is no AI assistant: it was dropped from
 the plan (`decisions.md`, 13 November 2026).
 
+The cross-lagged panel card runs with a reliability below 1 (13
+November 2026): its check run compares the specified lagged effects with
+those recovered from error-free scores, since measurement error
+attenuates them by design (specialist maths review, M-11).
+
 Tables of means, SDs and proportions (two-factor, mixed and repeated
 measures ANOVA, ANCOVA, MANOVA, chi-square and logistic factorial cards)
 are entered in a grid whose rows and columns are named from the levels
