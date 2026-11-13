@@ -3105,3 +3105,20 @@ worked out: Simulation" on the card (`options > method`), for anyone who
 wants the answer from repeated studies. The test planned for is the
 same, so this is not a departure from the established tools (G*Power and
 Superpower have no Welch's F).
+
+### No AI assistant, 13 November 2026
+
+The build guide's phase 7, an optional assistant that would turn a typed
+description of a study into suggested design-finder answers, is dropped
+from the plan, and the reserved `assistant/` folder is removed. powerkit
+has two front doors: the design finder with its forms, and the full-model
+builder. Reasons: the finder is deterministic (the same answers always
+lead to the same form) and reaches every design, including rare ones,
+from a description of the study; an assistant would send researchers'
+unpublished study plans to a third-party service, add a running cost and
+an API key to a public site, and need its own evaluation set to show it
+picks the right design; and a suggested design or number from a language
+model is a new kind of tool-supplied default, which powerkit's defaults
+are meant to avoid. The design specification stays the only input the
+engine reads, so a future front door of any kind would still go through
+it and the confirmation screen.

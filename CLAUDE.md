@@ -4,10 +4,11 @@
 A unified power analysis tool for research studies (built with psychology's
 designs in mind, but not only for psychology: never describe it to users as
 a psychology tool; docs/decisions.md, 5 November 2026). One design specification format,
-routed to established R backends (Spower, power4mome, Superpower, InteractionPoweR),
+routed to established R backends (Spower, power4mome, Superpower, InteractionPoweR
+and the others in engine/DESCRIPTION's Imports and Suggests),
 with a Shiny front end (design finder, design forms, full-model builder,
-confirmation screen, results and exports). An optional AI assistant comes last.
-Full plan: docs/build-guide.md. Product background: docs/strategy.md (if present).
+confirmation screen, results and exports).
+Full plan: docs/build-guide.md.
 
 ## What to work on
 docs/next.md is the ordered queue: take the first item marked Ready (with
@@ -44,10 +45,11 @@ engine-side change alone will fail the app suite.
   has a formula: a simulation is slower and carries random error.
 - Never edit expected values in tests/testthat/test-validation-*. They are transcribed
   from published sources by the maintainer. If a test fails, report why.
-- Validation tests may contain `TODO_PUBLISHED_VALUE` placeholders; leave them for the maintainer.
+- Validation tests may contain `TODO_PUBLISHED_VALUE` placeholders; leave them for the maintainer
+  (a test with a placeholder may be skipped, not deleted).
 - Every result records: spec hash, seed, backend, R and package versions.
 - The Shiny app never computes power; it builds specs and calls the engine.
-- Citations come only from inst/citations/refs.bib or a package's own citation().
+- Citations come only from engine/inst/citations/refs.bib or a package's own citation().
   Never invent references or write one from memory.
 - Plain-English errors for users; no stack traces in the UI.
 - powerkit follows the established tools' conventions by default, so that users
@@ -127,7 +129,7 @@ to read small.
 - docs/status.md is current state only: replace old entries, don't append
   history (git, NEWS.md and docs/archive/ hold that).
 - Prefer updating an existing doc to adding a new one.
-- Read CLAUDE.md, docs/next.md and docs/status.md in full. docs/decisions.md,
+- Read docs/next.md and docs/status.md in full. docs/decisions.md,
   docs/conventions.md, engine/NEWS.md and the YAML files are long records
   (hundreds of KB): search them for the design, date or package in hand
   rather than reading them whole. Decisions from October 2026 are in
@@ -173,7 +175,6 @@ to read small.
   version in engine/DESCRIPTION (not in the CI image that cloud sessions
   copy: install it into a scratch library) rather than editing .Rd files
   by hand.
-  (Validation tests with TODO placeholders may be skipped, not deleted.)
 - Write the change notes as new files: engine/news.d/<topic>.md for the
   developer notes, and app/routing/whats-new.d/<topic>.yaml (the app's
   Updates tab, in plain words) for any change users see. Don't edit

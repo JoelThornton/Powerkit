@@ -24,8 +24,8 @@ offers "None of these fit / I'm not sure". Why: [`routing-audit.md`](routing-aud
 ## Rules the finder follows
 
 - **Deterministic.** The same answers always lead to the same form. There is
-  no AI in the finder; the optional assistant (build phase 7) may fill in the
-  same answers from a description, and the user still sees and confirms them.
+  no AI in the finder, or anywhere in powerkit (`decisions.md`, 13 November
+  2026).
 - **Every answer can be changed.** The path so far is shown as a row of chips
   (e.g. "Different people · Score · Effect depends on W"); clicking a chip
   goes back to that question with the other answers kept where they still
