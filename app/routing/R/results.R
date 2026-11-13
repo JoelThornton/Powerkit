@@ -1168,6 +1168,20 @@ goal_sentences <- function(spec, result) {
             whole(result$provenance$nrep), nrow(result$provenance$simulations), percent(spec$goal$power)
           )
         )
+      } else if (identical(spec$target_test$method, "welch_f")) {
+        # Welch's F by formula: the pattern of means scaled until Levy's
+        # approximation reaches the target.
+        c(
+          headline = sprintf(
+            "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s. The effect: %s.",
+            whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
+            format(signif(s$effect, 3)), s$effect_description
+          ),
+          detail = sprintf(
+            "The pattern of means you entered keeps its shape and is scaled until Welch's F reaches the target power, worked out by formula (%s), with no simulation error.",
+            exact_source(result)
+          )
+        )
       } else if (is.null(s$cohen_f)) {
         # Basic tests (pwr): the effect is solved for directly.
         name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
@@ -2456,7 +2470,7 @@ departures_for <- function(forms, ep_id, spec) {
   # user keeps powerkit's default (no uncertainty about the effect).
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
   # Departure 3 is about Superpower's exact dataset, which the
-  # Kruskal-Wallis test and Welch's F (Spower) don't use.
+  # Kruskal-Wallis test and Welch's F (a formula, or Spower) don't use.
   if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec)) keys <- setdiff(keys, "3")
   # Departure 16 (Satterthwaite's tests) is for a score on each trial; a
   # yes/no outcome is tested by glmer's Wald or likelihood-ratio test.

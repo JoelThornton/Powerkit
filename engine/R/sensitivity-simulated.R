@@ -1,4 +1,6 @@
-# The smallest detectable effect of a simulated test: Welch's F.
+# The smallest detectable effect of a simulated test: Welch's F, when
+# simulation is asked for (by default it is worked out by Levy's
+# approximation, welch_levy_sensitivity()).
 #
 # As for the F test (superpower_sensitivity()), the pattern of means
 # entered keeps its shape and its size (each mean's deviation from the

@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-13"
+    title: "Welch's ANOVA answers at once"
+    text: "The one-way ANOVA's default test, Welch's ANOVA, is now worked out by a published formula (Levy's approximation, recommended by Jan and Shieh, 2014) instead of by simulation. A sample size comes in about a second rather than ten or more, with no simulation noise, and agrees with the simulation to within about 1 percentage point of power. You can still choose the simulation under \"How power is worked out\"."

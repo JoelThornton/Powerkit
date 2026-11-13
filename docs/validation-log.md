@@ -1510,3 +1510,28 @@ The corrected-count high-replication chunk also passed on GitHub in
 PR #372 merge revision 5c251a8, head 3b8bc11: six passes, zero failures/errors,
 one unchanged published-reference placeholder skip. It checks the selected
 fixed-N power/null cases; the fresh returned-N comparisons above are separate.
+
+## 2026-11-13 · Welch's ANOVA by Levy's approximation (local)
+
+`welch_spreads` completed on Linux x86_64 with R 4.5.3 and four test
+workers: **7 PASS, 0 FAIL, 0 ERROR, 0 SKIP, 0 NOT RUN**, on commit
+ce01d18 with this change's uncommitted edits. Each simulation or
+independent reference used 10,000 replications.
+
+- New, the formula: Welch's F by Levy's noncentral F approximation
+  against separately generated groups analysed by `stats::oneway.test()`
+  (means 10, 11 and 13): power .300 against .298 for SDs 4, 6 and 9 at
+  N 90; .635 against .636 for SDs 9, 6 and 4 at N 150; .264 against .269
+  for one SD of 6 at N 60. The predeclared allowance was .01 (Jan and
+  Shieh's largest approximation error, 2014) plus three Monte Carlo
+  standard errors.
+- The simulation, now on request (the specs ask for it): power .3046
+  (MCSE .0046) against the reference .3018; false-positive rate .0512 at
+  alpha .05 with unequal SDs; the smallest detectable effect's studies
+  reach the target.
+- Welch's t-test chunks as on 5 November: formula agreement across
+  allocations, simulation .5732 against .5749, null rate .0499.
+
+Packages: powerkit 0.62.0; Spower 0.7; Superpower 0.2.4.1;
+InteractionPoweR 0.2.4; power4mome 0.2.1; manymome 0.3.7; lavaan 0.7.3;
+testthat 3.3.2.

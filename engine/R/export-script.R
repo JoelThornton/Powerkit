@@ -57,6 +57,8 @@ export_script <- function(spec, result, file = NULL) {
       variance_script(spec, result)
     } else if (manova_by_v(spec)) {
       pillai_script(spec, result)
+    } else if (welch_levy_test(spec)) {
+      welch_levy_script(spec, result)
     } else if (hotelling_formula_test(spec)) {
       hotelling_script(spec, result)
     } else {
@@ -1156,6 +1158,52 @@ hotelling_script <- function(spec, result) {
     "}",
     "",
     pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# Welch's F by Levy's noncentral F approximation, as Jan and Shieh (2014)
+# program it (Appendices C and D), in base R (backend-welch-anova.R).
+welch_levy_script <- function(spec, result) {
+  inputs <- welch_levy_inputs(spec)
+  sensitivity <- identical(spec$goal$type, "sensitivity")
+  c(
+    script_header(spec, result, "base R's stats package", inputs$description),
+    "# Inputs ----",
+    spower_script_inputs(spec),
+    goal_inputs(spec, result),
+    "",
+    "# Levy (1978), as Jan and Shieh (2014, equation 4) recommend: Welch's W is",
+    "# close to the noncentral F distribution with g - 1 and (g^2 - 1) / (3 tau)",
+    "# df and noncentrality sum(omega (mean - weighted mean)^2), where",
+    "# omega = group size / variance. The groups are the same size.",
+    "g <- length(means)",
+    "power_at <- function(n_total, mu = means) {",
+    "  sizes <- rep(n_total / g, g)",
+    "  omega <- sizes / sds^2",
+    "  weighted_mean <- sum(omega * mu) / sum(omega)",
+    "  ncp <- sum(omega * (mu - weighted_mean)^2)",
+    "  tau <- sum((1 - omega / sum(omega))^2 / (sizes - 1))",
+    "  df2 <- (g^2 - 1) / (3 * tau)",
+    "  critical <- qf(1 - alpha, g - 1, df2)",
+    "  pf(critical, g - 1, df2, ncp = ncp, lower.tail = FALSE)",
+    "}",
+    "",
+    if (sensitivity) c(
+      "# Smallest detectable effect ----",
+      "# The pattern of means keeps its shape and its spread about the grand mean",
+      "# is scaled; power rises with the scale, so uniroot() finds it.",
+      "mu_at <- function(scale) mean(means) + scale * (means - mean(means))",
+      "upper <- 1",
+      "while (power_at(n_total, mu_at(upper)) < target_power) upper <- upper * 2",
+      "scale <- uniroot(function(k) power_at(n_total, mu_at(k)) - target_power, c(0, upper), tol = 1e-10)$root",
+      "found <- mu_at(scale)",
+      "cat(sprintf(\"Smallest detectable largest difference between two means with n = %s: %.4f\\n\", n_total, max(found) - min(found)))",
+      "",
+      "reproduced <- list(effect = max(found) - min(found))",
+      sprintf("powerkit_result <- list(effect = %s)", r_code(result$sensitivity$effect)),
+      ""
+    ) else pwr_goal_section(spec, result),
     comparison_section()
   )
 }

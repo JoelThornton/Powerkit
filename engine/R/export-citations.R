@@ -87,10 +87,13 @@ export_citations <- function(result, format = c("text", "bibtex"), file = NULL, 
 refs_path <- function() system.file("citations", "refs.bib", package = "powerkit")
 
 # A result powerkit computed from a published formula in base R names that
-# source in its function (MANOVA by Pillai's V: Faul et al., 2007); its
+# source in its function (MANOVA by Pillai's V: Faul et al., 2007; Welch's
+# F by Levy's approximation: Jan and Shieh, 2014); its
 # refs.bib key is cited as the method paper in place of stats_method.
 formula_reference_key <- function(provenance) {
-  if (identical(provenance$backend, "stats") && grepl("Pillai's V", provenance$backend_function %||% "", fixed = TRUE)) "Faul2007_gpower"
+  fun <- provenance$backend_function %||% ""
+  if (!identical(provenance$backend, "stats")) return(NULL)
+  if (grepl("Pillai's V", fun, fixed = TRUE)) "Faul2007_gpower" else if (grepl("Levy's noncentral F", fun, fixed = TRUE)) "Jan2014_welch_anova"
 }
 
 # Keys powerkit looks up in refs.bib (listed at the top of refs.bib).

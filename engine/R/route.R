@@ -66,9 +66,13 @@ route_backend <- function(spec, seed = NULL) {
     } else if (bffactorial_test(spec)) {
       # Mixed designs: the Bayes factor of an effect, simulated.
       bffactorial_backend(spec, seed)
+    } else if (welch_levy_test(spec)) {
+      # Welch's F by Levy's approximation (backend-welch-anova.R), unless
+      # simulation is asked for.
+      welch_anova_backend(spec, seed)
     } else if (rank_test(spec) || welch_anova(spec)) {
-      # The Kruskal-Wallis test, Welch's F and the aligned rank transform
-      # (2 x 2 between and mixed designs), simulated with Spower.
+      # The Kruskal-Wallis test, Welch's F on request and the aligned rank
+      # transform (2 x 2 between and mixed designs), simulated with Spower.
       spower_backend(spec, seed)
     } else {
       superpower_backend(spec, seed)
