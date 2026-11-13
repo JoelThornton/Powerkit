@@ -443,6 +443,9 @@ in [`next.md`](next.md).
 
 ## Working environment
 
+- **Claude Code sessions:** `.claude/settings.json` caps the context
+  window before compaction at 400,000 tokens (`autoCompactWindow`), for
+  every Claude Code session on this repository.
 - **CI:** R CMD check and the engine's tests in three parts when the
   engine, `renv.lock` or the CI setup changed; the app's suite in two
   parts and the browser checks on every pull request; the Windows and
