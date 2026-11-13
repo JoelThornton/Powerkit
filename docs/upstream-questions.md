@@ -243,6 +243,20 @@ workaround when updating power4mome; no upstream resolution is assumed.
    (`test-validation-modmed-binary.R`). Is a slightly liberal test
    expected here, for example from the normal-theory standard errors of
    the lavaan fit when X is binary, and is there a recommended setting?
+7. **Time spent formatting labels in manymome's Monte Carlo intervals.**
+   With power4mome 0.2.1 and manymome, testing one simulated study for
+   PROCESS model 7 (n = 300, 1,000 Monte Carlo draws) took about 1.6
+   seconds, 93% of it in `manymome::index_of_mome()`, and most of that in
+   `mapply()`, `paste0()` and `formatC()` building labels for each draw
+   (R's profiler, 13 November 2026); fitting the model took about 0.05
+   seconds. Computing the same statistic from the same draws (each path's
+   coefficient at the moderator's value, multiplied along the path) and
+   the same `boot::boot.ci(type = "perc")` interval gives identical
+   results 3 to 7 times faster, so a required-N search goes from hours to
+   minutes. powerkit does this for Monte Carlo intervals of lavaan fits
+   (`engine/R/fast-mediation-test.R`). Could manymome skip the per-draw
+   labels when only the interval is needed, so every power4mome user
+   benefits?
 
 ## Spower
 

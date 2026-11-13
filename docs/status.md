@@ -44,7 +44,10 @@ as Known difference 16, the three-way interaction's fixed-model formula
 shows its gap from simulated studies as Known difference 17, the SEM
 test of fit has no preselected test (not-close fit listed first), the
 cross-lagged panel card asks whether to enter the reliability or assume no measurement error (then the result says power is optimistic), and a simulated
-meta-analysis's number of studies shows its interval. Whether to change
+meta-analysis's number of studies shows its interval. Mediation and
+PROCESS simulations test each simulated study 3 to 7 times faster with
+identical results: the Monte Carlo interval is computed directly from
+manymome's draws (`fast-mediation-test.R`). Whether to change
 the clustered yes/no and three-way methods is a queue item for the
 maintainer (`next.md`).
 
