@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 13 November 2026 (specialist maths review fixes; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 13 November 2026 (specialist maths review fixes; share links for projects, plans and drafts; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -301,8 +301,12 @@ and automated accessibility checks passed locally for the exercised routes.
   assumes, then "How sure can you be?", the write-up with a methods
   paragraph, and downloads: a project file, an R script that reproduces
   it with the backend alone, citations and, for most designs, a simulated
-  data set. Every result records its spec hash, seed, backend, and R and
-  package versions. The pre-replication notes and the study-planning
+  data set. "Copy a link" beside each save button puts the same file
+  inside a link's fragment, so a project, study plan or draft opens on
+  any computer with nothing stored and no account
+  ([`saving-projects.md`](saving-projects.md); not yet tried inside
+  Connect Cloud's frame). Every result records its spec hash, seed,
+  backend, and R and package versions. The pre-replication notes and the study-planning
   document save as PDF, Word and Markdown. Results link to the Labs tool
   that explains them.
 
