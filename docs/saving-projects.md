@@ -31,7 +31,7 @@ was saved, and lose it.
   (.zip)**, said plainly not to reopen in powerkit. The zip holds the
   project file, the planning document (Markdown and Word), the R script,
   the citations, the simulated data set where there is one, and a README
-  naming each file. **Open a saved or shared project** accepts the zip
+  naming each file. The project file is written first with no fallback and the finished zip is checked for it, so the download fails rather than give a zip that can't be reopened. **Open a saved or shared project** accepts the zip
   and opens the one `.powerkit.json` inside it, extracted under its own
   name into a temporary folder.
 - **Safety nets.** The last current result is kept in the browser's

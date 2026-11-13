@@ -1968,31 +1968,7 @@ server <- function(input, output, session) {
     filename = function() sprintf("powerkit-%s-everything.zip", state$endpoint),
     content = function(file) {
       req(calculation_matches_values(state$calc, current_form_values()))
-      calc <- state$calc
-      ep <- state$endpoint
-      dir <- tempfile("powerkit-bundle-")
-      dir.create(dir)
-      on.exit(unlink(dir, recursive = TRUE))
-      files <- c(project = file.path(dir, project_file_name(ep)))
-      engine_function("write_project")(calc$spec, calc$result, route = calc$route, file = files[["project"]])
-      if (!isTRUE(calc$route$form_values$source_stale)) {
-        doc <- planning_document(tree, forms, calc)
-        files[["planning_md"]] <- file.path(dir, "powerkit-study-planning.md")
-        writeLines(doc, files[["planning_md"]], useBytes = TRUE)
-        files[["planning_docx"]] <- file.path(dir, "powerkit-study-planning.docx")
-        if (inherits(try(docx_document(doc, files[["planning_docx"]], powerkit_version()), silent = TRUE), "try-error")) files <- files[names(files) != "planning_docx"]
-      }
-      files[["script"]] <- file.path(dir, sprintf("powerkit-%s-script.R", ep))
-      if (inherits(try(engine_function("export_script")(calc$spec, calc$result, file = files[["script"]]), silent = TRUE), "try-error")) files <- files[names(files) != "script"]
-      files[["citations"]] <- file.path(dir, sprintf("powerkit-%s-citations.txt", ep))
-      engine_function("export_citations")(calc$result, format = "text", file = files[["citations"]])
-      n <- simulated_data_n_for(calc$spec, calc$result)
-      if (!is.na(n) && isTRUE(tryCatch(engine_function("simulated_data_available")(calc$spec), error = function(e) FALSE))) {
-        files[["data"]] <- file.path(dir, sprintf("SIMULATED-not-real-data-%s.csv", ep))
-        if (inherits(try(engine_function("simulated_data")(calc$spec, n, seed = calc$result$provenance$seed %||% 1, file = files[["data"]]), silent = TRUE), "try-error")) files <- files[names(files) != "data"]
-      }
-      writeLines(bundle_readme(ep, files), file.path(dir, "README.txt"))
-      zip::zip(file, files = c("README.txt", basename(files)), root = dir, mode = "mirror")
+      write_bundle(state$calc, state$endpoint, file, tree, forms)
     },
     contentType = "application/zip")
   output$download_draft <- downloadHandler(

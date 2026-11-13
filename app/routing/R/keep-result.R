@@ -165,3 +165,41 @@ bundle_readme <- function(endpoint, files) {
   c(sprintf("powerkit: everything for %s, saved %s", endpoint, format(Sys.time(), "%d %B %Y at %H:%M UTC", tz = "UTC")), "",
     lines, "", "The planning document as a PDF is made from the result screen (Planning document), using your browser's print dialog.")
 }
+
+# "Download everything": the zip. The project file is written first and
+# without a fallback, and the finished zip is checked for it, so a zip that
+# can't be reopened is never handed over: if the project file can't be
+# written the download fails instead. The documents are each skipped if
+# they can't be made, and the README lists what is there.
+write_bundle <- function(calc, ep, file, tree, forms, engine = engine_function) {
+  dir <- tempfile("powerkit-bundle-")
+  dir.create(dir)
+  on.exit(unlink(dir, recursive = TRUE))
+  files <- c(project = file.path(dir, project_file_name(ep)))
+  engine("write_project")(calc$spec, calc$result, route = calc$route, file = files[["project"]])
+  if (!file.exists(files[["project"]]) || !file.size(files[["project"]])) stop("The project file couldn't be written.")
+  attempt <- function(key, path, make) {
+    if (inherits(try(make(path), silent = TRUE), "try-error") || !file.exists(path)) return(files)
+    c(files, stats::setNames(path, key))
+  }
+  if (!isTRUE(calc$route$form_values$source_stale)) {
+    doc <- tryCatch(planning_document(tree, forms, calc), error = function(e) NULL)
+    if (!is.null(doc)) {
+      files <- attempt("planning_md", file.path(dir, "powerkit-study-planning.md"), function(p) writeLines(doc, p, useBytes = TRUE))
+      files <- attempt("planning_docx", file.path(dir, "powerkit-study-planning.docx"), function(p) docx_document(doc, p, powerkit_version()))
+    }
+  }
+  files <- attempt("script", file.path(dir, sprintf("powerkit-%s-script.R", ep)),
+    function(p) engine("export_script")(calc$spec, calc$result, file = p))
+  files <- attempt("citations", file.path(dir, sprintf("powerkit-%s-citations.txt", ep)),
+    function(p) engine("export_citations")(calc$result, format = "text", file = p))
+  n <- simulated_data_n_for(calc$spec, calc$result)
+  if (!is.na(n) && isTRUE(tryCatch(engine("simulated_data_available")(calc$spec), error = function(e) FALSE))) {
+    files <- attempt("data", file.path(dir, sprintf("SIMULATED-not-real-data-%s.csv", ep)),
+      function(p) engine("simulated_data")(calc$spec, n, seed = calc$result$provenance$seed %||% 1, file = p))
+  }
+  writeLines(bundle_readme(ep, files), file.path(dir, "README.txt"))
+  zip::zip(file, files = c("README.txt", basename(files)), root = dir, mode = "mirror")
+  if (!basename(files[["project"]]) %in% zip::zip_list(file)$filename) stop("The zip is missing the project file.")
+  invisible(basename(files))
+}

@@ -108,3 +108,30 @@ test_that("a result brought back from the browser says it still needs keeping", 
   expect_false(grepl("Project opened", back, fixed = TRUE))
   expect_match(as.character(project_opened_ui(project, shown = TRUE)), "Project opened", fixed = TRUE)
 })
+
+test_that("Download everything always holds the project file, and the zip reopens", {
+  engine <- function(name) engine_function(name, file.path(repo_dir, "engine"))
+  skip_if(is.null(engine("write_project")) || is.null(engine("run_spec")), "no engine with project files")
+  ep <- "E2"
+  values <- form_examples[[ep]]
+  spec <- build_spec(forms, ep, form_fields(form_groups(forms, ep)), values)
+  calc <- run_calculation(spec, engine("run_spec"), seed = 11L)
+  calc$route <- list(app = "routing-prototype", route = "choose", endpoint = ep, came_from = "node",
+    ctx = list(), history = list(), form_k = 2L, form_values = values)
+  zipfile <- tempfile(fileext = ".zip")
+  inside <- write_bundle(calc, ep, zipfile, tree, forms, engine = engine)
+  listed <- zip::zip_list(zipfile)$filename
+  expect_true("powerkit-E2-project.powerkit.json" %in% listed)
+  expect_true(all(c("README.txt", "powerkit-E2-script.R", "powerkit-E2-citations.txt") %in% listed))
+  # The zip goes through the same reader as Open, and is a real project.
+  project <- engine("read_project")(zip_project_file(zipfile))
+  expect_identical(project$route$endpoint, ep)
+  expect_identical(engine("spec_hash")(project$spec), calc$result$provenance$spec_hash)
+})
+
+test_that("Download everything fails rather than hand over a zip without the project file", {
+  broken <- function(name) if (identical(name, "write_project")) function(...) stop("no") else function(...) NULL
+  zipfile <- tempfile(fileext = ".zip")
+  expect_error(write_bundle(list(spec = list(), result = list(), route = list()), "E2", zipfile, tree, forms, engine = broken))
+  expect_false(file.exists(zipfile))
+})
