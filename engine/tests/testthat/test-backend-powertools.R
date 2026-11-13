@@ -301,6 +301,29 @@ test_that("the yes/no sample size is a whole number of groups and matches powert
   expect_equal(r2$n_required$n, ceiling(j2) * 20)
 })
 
+test_that("the factor 1.2 in powertools' yes/no formulas: its size (Known difference 16)", {
+  # powertools multiplies the variance of the log odds ratio by 1.2, with
+  # no source given. The same z test without it (written out here from
+  # powertools' own variance) needs 24 groups where powertools needs 28
+  # for a cluster-randomised trial, and 19 where it needs 22 for a
+  # multisite one; a glmer() simulation agreed with the formula without
+  # the factor (docs/conventions.md, Known difference 16).
+  pc <- 0.3; pt <- 0.45; m <- 20; su <- 0.3
+  gamma <- qlogis(pt) - qlogis(pc)
+  ssq <- (1 / (pc * (1 - pc)) + 1 / (pt * (1 - pt))) / 2
+  crt <- function(J, k) pnorm(gamma / sqrt(k * 4 * (ssq + m * su^2) / (m * J)) - qnorm(0.975))
+  ms <- function(J, k) pnorm(gamma / sqrt(k * 4 * (ssq / m + su^2 / 4) / J) - qnorm(0.975))
+  smallest <- function(f, k, step) { J <- seq(step, 200, step); J[which(f(J, k) >= 0.8)[1]] }
+  expect_equal(crt(40, 1.2), powertools::crt.parallel.bin(m = 20, J = 40, pc = pc, pt = pt, sigma.u = su))
+  expect_equal(ms(20, 1.2), powertools::multisite.bin(m = 20, J = 20, pc = pc, pt = pt, sigma.u = su))
+  r <- run_spec(binary_spec("cluster_randomised_binary", list(type = "sample_size", power = 0.8)))
+  expect_equal(r$n_required$n / m, smallest(crt, 1.2, 2))
+  expect_equal(c(smallest(crt, 1.2, 2), smallest(crt, 1, 2)), c(28, 24))
+  r2 <- run_spec(binary_spec("multisite_binary", list(type = "sample_size", power = 0.8)))
+  expect_equal(r2$n_required$n / m, smallest(ms, 1.2, 1))
+  expect_equal(c(smallest(ms, 1.2, 1), smallest(ms, 1, 1)), c(22, 19))
+})
+
 test_that("yes/no spec checks: equal group sizes, no smallest detectable effect, the right fields", {
   expect_spec_problem(binary_spec("cluster_randomised_binary", list(type = "power", n = 800), cluster_size_sd = 3), "same size only")
   expect_spec_problem(binary_spec("cluster_randomised_binary", list(type = "sample_size", power = 0.8), p2 = 0.3), "zero")

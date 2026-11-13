@@ -392,9 +392,14 @@ test_cond_indirect_diff <- function(fit = fit, x = NULL, m = NULL, y = NULL, w =
 }
 
 # The test function: power4mome's own, or powerkit's for the difference
-# between conditional indirect effects.
+# between conditional indirect effects, each wrapped so that a Monte Carlo
+# interval is computed directly from manymome's draws (fast-mediation-test.R;
+# the same result, about ten times faster).
 power4mome_test_fun <- function(name) {
-  if (identical(name, "test_cond_indirect_diff")) test_cond_indirect_diff else getExportedValue("power4mome", name)
+  original <- if (identical(name, "test_cond_indirect_diff")) test_cond_indirect_diff else getExportedValue("power4mome", name)
+  kind <- switch(name, test_indirect_effect = "indirect", test_index_of_mome = "index",
+    test_cond_indirect_diff = "difference", NULL)
+  if (is.null(kind)) original else fast_mediation_test(kind, original)
 }
 
 cond_indirect_difference <- function(spec) {

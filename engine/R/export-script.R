@@ -3546,6 +3546,12 @@ power4mome_script <- function(spec, result) {
   roles <- roles[roles %in% names(args)]
   role_lines <- vapply(roles, function(r) sprintf("%s = %s,", r, r_code(args[[r]])), character(1))
   difference <- identical(inputs$test_name, "test_cond_indirect_diff")
+  # The direct Monte Carlo interval (fast-mediation-test.R) for a lavaan fit;
+  # bootstrap intervals and OLS fits use the original test.
+  fast_kind <- switch(inputs$test_name, test_indirect_effect = "indirect", test_index_of_mome = "index",
+    test_cond_indirect_diff = "difference", NULL)
+  fast <- monte_carlo && !identical(inputs$fit_function, "lm") && !is.null(fast_kind)
+  original_name <- inputs$test_name
   tested <- if (difference) {
     sprintf("# the indirect effect at W = %s minus that at W = %s", format(args$w_to), format(args$w_from))
   } else if (spec$design == "mediation") {
@@ -3606,6 +3612,22 @@ power4mome_script <- function(spec, result) {
       sprintf("test_cond_indirect_diff <- %s", paste(deparse(test_cond_indirect_diff, width.cutoff = 100L), collapse = "\n")),
       ""
     ),
+    if (fast) c(
+      "",
+      "# A faster way to compute the same Monte Carlo interval. manymome, which",
+      "# power4mome's test uses, formats labels for every one of the draws, which",
+      "# takes most of the run time. These functions take the same draws, multiply",
+      "# each path's coefficient (at the moderator's value) along the path, and",
+      "# take the same percentile interval (boot::boot.ci(type = \"perc\")), so every",
+      "# simulated study gets the same interval and decision, several times faster.",
+      "# To use power4mome's own test instead, set test_fun_used below to",
+      sprintf("# %s.", original_name),
+      sprintf("mc_path_effect <- %s", paste(deparse(mc_path_effect, width.cutoff = 100L), collapse = "\n")),
+      sprintf("mc_statistic <- %s", paste(deparse(mc_statistic, width.cutoff = 100L), collapse = "\n")),
+      sprintf("fast_mediation_test <- %s", paste(deparse(fast_mediation_test, width.cutoff = 100L), collapse = "\n")),
+      sprintf("test_fun_used <- fast_mediation_test(%s, %s)", r_code(fast_kind), original_name),
+      ""
+    ),
     sprintf(
       "ci_draws <- %s # %s per confidence interval (power4mome's R)",
       r_code(inputs$ci_draws), if (monte_carlo) "Monte Carlo draws" else "bootstrap resamples"
@@ -3646,7 +3668,7 @@ power4mome_script <- function(spec, result) {
       "    ci_type = %s, # %s", r_code(inputs$ci_type),
       if (monte_carlo) "Monte Carlo confidence intervals" else "percentile bootstrap confidence intervals"
     ),
-    sprintf("    test_fun = %s,", inputs$test_name),
+    if (fast) "    test_fun = test_fun_used, # the faster test above (same results)" else sprintf("    test_fun = %s,", inputs$test_name),
     "    test_args = list(",
     paste0("      ", role_lines[1], " ", tested),
     if (length(role_lines) > 1) paste0("      ", role_lines[-1]),

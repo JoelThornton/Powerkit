@@ -625,10 +625,17 @@ meta_sentences <- function(spec, result) {
     if (heterogeneity) "find significant heterogeneity" else "find it significant"
   if (identical(result$goal_type, "sample_size")) {
     k <- result$n_required$n
+    # A simulated search lands a few studies either side of the true answer
+    # (review finding M-17): say how far, as the other designs do.
+    lo <- result$n_required$lower
+    hi <- result$n_required$upper
+    interval <- if (simulated && is.numeric(lo) && is.numeric(hi) && is.finite(lo) && is.finite(hi) && hi > lo) {
+      sprintf("The 95%% interval for the required number of studies, from the simulation, is %s to %s.", whole(lo), whole(hi))
+    }
     c(
       headline = sprintf("You need %s studies%s for %s power to %s %s, with %s.",
         whole(k), if (subgroups) " (split equally between the kinds)" else "", percent(spec$goal$power), aim, effect, test),
-      detail = paste(source, caution)
+      detail = paste(c(source, interval, caution), collapse = " ")
     )
   } else {
     row <- result$curve[1, ]
@@ -2513,6 +2520,10 @@ known_difference_keys <- function(forms, ep_id, spec = NULL) {
   # the correlations, which are simulated; 7 to the R-squared change).
   by_metric <- form$known_differences_if_metric
   keys <- Filter(function(k) is.null(by_metric[[k]]) || identical(spec$population$metric %||% "correlation", by_metric[[k]]), keys)
+  # Some apply only to some templates (E34's Known difference 16, to the
+  # yes/no formulas of cluster-randomised and multisite trials).
+  by_template <- form$known_differences_if_template
+  keys <- Filter(function(k) is.null(by_template[[k]]) || isTRUE(spec$template %in% unlist(by_template[[k]])), keys)
   # Some apply only when a population value is above 0 (E27's Known
   # difference 3, logistic regression with other predictors).
   above <- form$known_differences_if_above_zero
