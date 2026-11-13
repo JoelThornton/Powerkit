@@ -193,19 +193,24 @@ background_limit: 2
 # in seconds on one core (the bar is estimated from them); `script` is the
 # expected run time in words. Measured or estimated as noted in
 # docs/phase5-simulations.md.
+# Usual run times (seconds) and script estimates. Mediation and PROCESS
+# models were re-measured on 13 November 2026 after the Monte Carlo interval
+# was computed directly from manymome's draws (fast-mediation-test.R): about
+# 0.1 to 0.25 seconds per simulated study, and a PROCESS model 7 required-N
+# search in about 15 minutes on a shared 4-core machine.
 simulations:
   preview_nrep: 100
   endpoints:
     E10:
       full_run: [power]
-      preview: {power: 50}
-      full: {power: 734}
-      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 20}
+      full: {power: 230}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E16:
       full_run: [power]
-      preview: {power: 50}
-      full: {power: 734}
-      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 20}
+      full: {power: 230}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E33:
       full_run: [power]
       preview: {power: 35}
@@ -238,34 +243,34 @@ simulations:
       script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E11:
       full_run: [power]
-      preview: {power: 50}
-      full: {power: 780}
-      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 20}
+      full: {power: 230}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E12:
       full_run: [power]
-      preview: {power: 60}
-      full: {power: 890}
-      script: {sample_size: "about 1 to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 20}
+      full: {power: 230}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E13:
       full_run: []
-      preview: {power: 165}
-      script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E14:
       full_run: []
-      preview: {power: 170}
-      script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E17:
       full_run: []
-      preview: {power: 170}
-      script: {power: "about 25 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E38:
       full_run: []
-      preview: {power: 200}
-      script: {power: "about 30 minutes on one core (an estimate: two product terms take a little longer than one)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E40:
       full_run: []
-      preview: {power: 200}
-      script: {power: "about 30 minutes on one core (an estimate: two mediators take a little longer than one)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+      preview: {power: 30}
+      script: {power: "about 5 minutes on one core (an estimate)", sample_size: "about 30 minutes to an hour on one core (an estimate; 5 to 8 sample sizes are simulated)"}
 
   # One test version of a card that otherwise calculates here: the Bayes
   # factor of a repeated-measures ANOVA effect (about 0.8 s per simulated
@@ -291,7 +296,7 @@ whole_study:
   # each, then the full run at the n found).
   search_runs: [9, 15]
   target_powers: [0.8, 0.85, 0.9, 0.95]
-  seconds_per_replication: {x_y: 0.02, x_m: 0.02, interaction: 0.03, indirect: 0.6, index_of_mome: 1.6, anova_effect: 0.01}
+  seconds_per_replication: {x_y: 0.02, x_m: 0.02, interaction: 0.03, indirect: 0.15, index_of_mome: 0.25, anova_effect: 0.01}
   overhead_seconds: 15
   # A rough power curve in the app (whole_study_curve()), for experiments
   # and regressions only: a mediation's intervals are too slow to run here.
