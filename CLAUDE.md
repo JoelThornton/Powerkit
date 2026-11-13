@@ -43,7 +43,7 @@ engine-side change alone will fail the app suite.
   the source cited and checked against an independent simulation and, where
   G*Power has the test, its answers. Don't simulate only because no package
   has a formula: a simulation is slower and carries random error.
-- Never edit expected values in tests/testthat/test-validation-*. They are transcribed
+- Never edit expected values in engine/tests/testthat/test-validation-*. They are transcribed
   from published sources by the maintainer. If a test fails, report why.
 - Validation tests may contain `TODO_PUBLISHED_VALUE` placeholders; leave them for the maintainer
   (a test with a placeholder may be skipped, not deleted).
