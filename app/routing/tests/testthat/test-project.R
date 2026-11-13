@@ -93,8 +93,12 @@ test_that("the start screen offers to open a project, and results offer to save 
   app <- readLines(file.path(routing_dir, "app.R"))
   expect_true(any(grepl("output$download_project <- downloadHandler", app, fixed = TRUE)))
   expect_true(any(grepl("open_project_ui()", app, fixed = TRUE)))
+  # Under the answer, in "Keep this result" (R/keep-result.R), which both
+  # result panels show.
+  keep <- readLines(file.path(routing_dir, "R", "keep-result.R"))
+  expect_true(any(grepl("download_button(\"download_project\", \"Save project file\"", keep, fixed = TRUE)))
   results <- readLines(file.path(routing_dir, "R", "results.R"))
-  expect_true(any(grepl("download_button(\"download_project\", \"Save project\"", results, fixed = TRUE)))
+  expect_true(any(grepl("keep_result_ui(can_export", results, fixed = TRUE)))
 })
 
 test_that("the notice after opening names the version and any differences", {
@@ -114,12 +118,15 @@ test_that("a reopened project shows its saved result as it was, without running 
   calc <- saved_calc(out$project, saved)
   expect_identical(calc$status, "ok")
   expect_true(calc$saved)
-  # The whole result comes back exactly, so the screen is the same.
+  # The whole result comes back exactly, so the screen is the same, except
+  # that "Keep this result" says the reopened one is already kept.
   expect_identical(unclass(calc$result), unclass(out$calc$result))
-  expect_identical(
-    as.character(result_panel_ui(tree, forms, "E2", out$fields, form_examples[["E2"]], calc)),
-    as.character(result_panel_ui(tree, forms, "E2", out$fields, form_examples[["E2"]], out$calc))
-  )
+  reopened <- as.character(result_panel_ui(tree, forms, "E2", out$fields, form_examples[["E2"]], calc))
+  fresh <- as.character(result_panel_ui(tree, forms, "E2", out$fields, form_examples[["E2"]], out$calc))
+  expect_match(reopened, "Opened from a saved file", fixed = TRUE)
+  expect_match(fresh, "Not saved yet", fixed = TRUE)
+  status <- '<span id="keep-status"[^>]*>[^<]*</span>'
+  expect_identical(sub(status, "", reopened), sub(status, "", fresh))
   html <- as.character(project_opened_ui(out$project, shown = TRUE))
   expect_match(html, "it hasn&#39;t been run again|it hasn't been run again")
   expect_match(html, "rerun_saved", fixed = TRUE)
