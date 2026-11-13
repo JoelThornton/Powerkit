@@ -1885,8 +1885,9 @@ server <- function(input, output, session) {
     state$plans <- plans
   }
   plan_get <- function(id) if (is.character(id) && length(id) == 1L) isolate(state$plans)[[id]]
+  # The plans page is a tab of its own, so a calculation running on the
+  # plan tab carries on while it is open.
   open_plans_page <- function(view = NULL) {
-    cancel_job()
     state$plans_view <- view
     updateTabsetPanel(session, "tabs", selected = "Study plans")
   }
@@ -1958,12 +1959,36 @@ server <- function(input, output, session) {
     }
   })
   observeEvent(input$plans_back, state$plans_view <- NULL)
+  # A link to a plan was made (R/share-link.R): the link holds the plan
+  # itself, so it counts as kept.
+  observeEvent(input$share_link_made, {
+    if (!identical(input$share_link_made$kind, "study_plan")) return()
+    plan <- plan_get(isolate(state$plans_view))
+    if (!is.null(plan)) plans_put(plan_mark_saved(plan, "link"))
+  })
   output$study_plans_chip <- renderUI(study_plans_chip_ui(length(state$plans),
     any(vapply(state$plans, function(p) length(p$entries) > 0 && plan_unsaved(p), logical(1)))))
   outputOptions(output, "study_plans_chip", suspendWhenHidden = FALSE)
+  # The page is drawn again only when what it shows changes, not when a
+  # plan is saved or copied as a link (that would replace the share button
+  # while it is making the link): the save status has its own output.
+  plans_page_shown <- reactiveVal(NULL)
+  observe({
+    strip <- function(p) { p$saved_at <- NULL; p$saved_how <- NULL; p$too_large <- NULL; p }
+    view <- state$plans_view %||% ""
+    shown <- if (!is.null(state$plans[[view]])) list(view = view, plan = strip(state$plans[[view]]), n = length(state$plans))
+      else list(view = "", plans = state$plans, current = state$current_plan)
+    if (!identical(shown, isolate(plans_page_shown()))) plans_page_shown(shown)
+  })
   output$plans_page <- renderUI({
+    shown <- plans_page_shown()
+    req(shown)
+    plan <- isolate(state$plans[[shown$view]])
+    if (is.null(plan)) plans_list_ui(shown$plans, shown$current) else plan_page_ui(plan, shown$n)
+  })
+  output$plan_status <- renderUI({
     plan <- state$plans[[state$plans_view %||% ""]]
-    if (is.null(plan)) plans_list_ui(state$plans, state$current_plan) else plan_page_ui(plan, length(state$plans))
+    if (!is.null(plan)) plan_status_ui(plan)
   })
   observeEvent(input$plans_new, {
     plan <- new_plan()
@@ -1989,6 +2014,8 @@ server <- function(input, output, session) {
     state$plans_view <- NULL
   })
   observeEvent(input$plans_forget_all, {
+    session$sendCustomMessage("pk_plans_forget_all", list())
+    plans_sent$stamp <- list()
     state$plans <- list(); state$current_plan <- NULL; state$plans_view <- NULL; state$plan_origin <- NULL
   })
   # Opening an analysis again: its card, its saved answers and its saved
@@ -2186,6 +2213,7 @@ server <- function(input, output, session) {
         return()
       }
       cancel_job()
+      updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
       state$from_labs <- FALSE; state$labs_seed <- NULL
       for (name in names(restored)) state[[name]] <- restored[[name]]
       state$plan_opened <- plan_record
@@ -2200,6 +2228,7 @@ server <- function(input, output, session) {
         return()
       }
       cancel_job()
+      updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
       state$calc <- NULL; state$long_spec <- NULL
       state$from_labs <- FALSE; state$labs_seed <- NULL
       for (name in names(restored)) state[[name]] <- restored[[name]]
@@ -2245,8 +2274,8 @@ server <- function(input, output, session) {
     })
   })
   observeEvent(input$plans_open_file, {
-    # A plan opens on this page; a project or draft on the plan tab.
-    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+    # A plan opens on this page; a project or draft on the plan tab. A
+    # problem is shown here, where the file was chosen.
     open_saved_file(input$plans_open_file$datapath, function(problem) {
       output$plans_open_message <- renderUI(if (!is.null(problem)) div(class = "alert alert-warning", role = "alert", problem))
     })
@@ -2270,11 +2299,7 @@ server <- function(input, output, session) {
       study_plan = {
         plan <- plan_get(isolate(state$plans_view))
         text <- if (!is.null(plan)) plan_to_text(plan) else ""
-        if (nzchar(text) && nchar(text) <= 4e6) {
-          # Counted as kept: the link holds the plan itself.
-          plans_put(plan_mark_saved(plan, "link"))
-          list(text = text)
-        } else if (nzchar(text)) list(problem = "This plan is too large for a link. Save it to your computer instead.")
+        if (nzchar(text) && nchar(text) <= 4e6) list(text = text) else if (nzchar(text)) list(problem = "This plan is too large for a link. Save it to your computer instead.")
         else list(problem = "Add an analysis to the plan first.")
       },
       guided_plan = share_text_from_file(function(file) {
@@ -2287,6 +2312,7 @@ server <- function(input, output, session) {
   })
   open_in_app <- function(project, restored, from_browser = FALSE) {
     cancel_job()
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
     state$from_labs <- FALSE; state$labs_seed <- NULL
     state$calc <- NULL
     state$long_spec <- NULL

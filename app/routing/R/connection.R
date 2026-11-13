@@ -182,7 +182,7 @@ connection_js <- "
       if (msg.drop_legacy) window.localStorage.removeItem(PLAN_KEY);
       Shiny.setInputValue('pk_plan_stored', {id: msg.id, ok: true, nonce: Date.now()}, {priority: 'event'});
     } catch (e) {
-      try { window.localStorage.removeItem(key); } catch (e2) {}
+      // The copy already kept (the plan before this change) stays.
       Shiny.setInputValue('pk_plan_stored', {id: msg.id, ok: false, nonce: Date.now()}, {priority: 'event'});
     }
     // Ask the browser to keep this site's storage under pressure, where it
@@ -195,11 +195,27 @@ connection_js <- "
   Shiny.addCustomMessageHandler('pk_plan_forget', function(msg) {
     try { window.localStorage.removeItem(PLAN_PREFIX + msg.id); } catch (e) {}
   });
-  Shiny.addCustomMessageHandler('pk_plans_drop_legacy', function() {
+  // \u201cRemove every plan from this browser\u201d: every plan's copy, the index
+  // and the old single plan, including any that couldn't be read.
+  Shiny.addCustomMessageHandler('pk_plans_forget_all', function(msg) {
+    try {
+      var doomed = [];
+      for (var i = 0; i < window.localStorage.length; i++) {
+        var k = window.localStorage.key(i);
+        if (k && (k.indexOf(PLAN_PREFIX) === 0 || k === PLANS_INDEX || k === PLAN_KEY)) doomed.push(k);
+      }
+      doomed.forEach(function(k) { window.localStorage.removeItem(k); });
+    } catch (e) {}
+  });
+  Shiny.addCustomMessageHandler('pk_plans_drop_legacy', function(msg) {
     try { window.localStorage.removeItem(PLAN_KEY); } catch (e) {}
   });
   Shiny.addCustomMessageHandler('pk_plans_index', function(msg) {
-    try { window.localStorage.setItem(PLANS_INDEX, JSON.stringify({current: msg.current || null, ids: msg.ids || []})); } catch (e) {}
+    try {
+      var ids = msg.ids || [];
+      if (ids.length) window.localStorage.setItem(PLANS_INDEX, JSON.stringify({current: msg.current || null, ids: ids}));
+      else window.localStorage.removeItem(PLANS_INDEX);
+    } catch (e) {}
   });
   Shiny.addCustomMessageHandler('pk_autosave', function(text) {
     try { if (text) window.localStorage.setItem(KEY, text); else window.localStorage.removeItem(KEY); } catch (e) {}

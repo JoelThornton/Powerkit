@@ -284,7 +284,9 @@ plan_page_ui <- function(plan, plans_n = 1L) {
       textAreaInput("plan_description", "About this study (optional)", value = plan$description %||% "", rows = 2, width = "100%",
         placeholder = "For example the question, the population and the design."),
       actionButton("plan_description_save", "Save description", class = "btn btn-sm btn-outline-secondary")),
-    p(class = "plan-status-line", plan_status_ui(plan)),
+    # Its own output (filled by the server), so that saving or copying a
+    # link doesn't redraw the page under the share button.
+    p(class = "plan-status-line", uiOutput("plan_status", inline = TRUE)),
     if (k == 0) div(class = "plan-empty result-card",
       p(tags$strong("This plan has no analyses yet.")),
       tags$ol(
@@ -309,8 +311,8 @@ plan_page_ui <- function(plan, plans_n = 1L) {
     else if (k >= 2) p(class = "study-plan-joint plan-note",
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
     div(class = "nav-buttons",
-      actionButton("plan_more", "Add an analysis", class = if (unsaved) "btn btn-outline-primary" else "btn btn-primary"),
-      if (k) download_button("download_study_plan", "Save plan", class = if (unsaved) "btn btn-primary" else "btn btn-outline-primary"),
+      if (k) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
+      actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
       if (k) share_link_ui("study_plan")),
     p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it."),
     p(class = "small plan-delete",

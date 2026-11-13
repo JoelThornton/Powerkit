@@ -163,16 +163,23 @@ plan_content <- function(plan) {
 # the same plan unchanged opens the copy already there; a different
 # version is kept beside it under a new id and name.
 plans_open <- function(plans, incoming, now = Sys.time()) {
+  # A plan here with the same description and analyses is this plan,
+  # whatever its id or name (a copy made by an earlier open, or a file
+  # with no id, which gets a new one each time it is read).
+  same_work <- function(p) identical(plan_content(p)[-1], plan_content(incoming)[-1])
   existing <- plans[[incoming$id]]
+  if (!is.null(existing) && identical(plan_content(existing), plan_content(incoming))) {
+    return(list(plans = plans, id = existing$id, message = NULL))
+  }
+  match <- Filter(same_work, plans)
+  if (length(match)) return(list(plans = plans, id = match[[1]]$id, message = NULL))
   if (is.null(existing)) {
     plans[[incoming$id]] <- incoming
     return(list(plans = plans, id = incoming$id, message = NULL))
   }
-  if (identical(plan_content(existing), plan_content(incoming))) {
-    return(list(plans = plans, id = existing$id, message = NULL))
-  }
   incoming$id <- plan_new_id()
-  incoming$name <- substr(sprintf("%s (opened %s)", incoming$name, plan_date_words(as.Date(now))), 1L, plan_name_max)
+  suffix <- sprintf(" (opened %s)", plan_date_words(as.Date(now)))
+  incoming$name <- paste0(substr(incoming$name, 1L, plan_name_max - nchar(suffix)), suffix)
   plans[[incoming$id]] <- incoming
   list(plans = plans, id = incoming$id,
     message = sprintf("You already had a different version of this plan, so both are kept: the one you opened is “%s”.", incoming$name))
@@ -220,16 +227,19 @@ plans_from_browser <- function(tree, saved, read = engine_function("read_study_p
   plans <- list()
   migrated <- NULL
   if (!is.list(saved)) return(list(plans = plans, current = NULL, migrated = NULL))
-  ids <- unlist(saved$index$ids %||% names(saved$records), use.names = FALSE)
+  # Every record kept loads; the index gives only the order and the
+  # current plan (another tab, or a failed index write, can leave a plan
+  # out of it).
+  ids <- unique(c(unlist(saved$index$ids, use.names = FALSE), names(saved$records)))
   for (id in ids) {
     record <- saved$records[[id]]
     if (!is.character(record)) next
-    plan <- plan_from_browser_record(tree, record, read, now)
+    plan <- tryCatch(plan_from_browser_record(tree, record, read, now), error = function(e) NULL)
     if (!is.null(plan)) plans[[plan$id]] <- plan
   }
   legacy <- saved$legacy
   if (is.character(legacy) && length(legacy) == 1L && nzchar(legacy)) {
-    moved <- plans_migrate_legacy(tree, legacy, read = read, now = now)
+    moved <- tryCatch(plans_migrate_legacy(tree, legacy, read = read, now = now), error = function(e) NULL)
     hashes <- function(p) vapply(p$entries, plan_entry_hash, character(1))
     if (!is.null(moved) && !any(vapply(plans, function(p) identical(hashes(p), hashes(moved)), logical(1)))) {
       plans[[moved$id]] <- moved

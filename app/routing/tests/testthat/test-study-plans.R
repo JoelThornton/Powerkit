@@ -201,13 +201,13 @@ test_that("a plan's page shows each role, the save status, and confirms with any
   expect_match(html, '<option value="check" selected>Check</option>', fixed = TRUE)
   expect_match(html, '<option value="primary" selected>Primary</option>', fixed = TRUE)
   expect_match(html, "Manipulation check", fixed = TRUE)
-  expect_match(html, "plan-status-unsaved", fixed = TRUE)
+  expect_match(as.character(plan_status_ui(p)), "plan-status-unsaved", fixed = TRUE)
   expect_match(html, 'class="[^"]*btn btn-primary"[^>]*id="download_study_plan"')
   # The name sits inside a JSON string in the confirm: its quotes are escaped.
   expect_match(html, "Delete “O&#39;Brien&#39;s \\&quot;study\\&quot;” from this browser?", fixed = TRUE)
   big <- p; big$too_large <- TRUE
-  expect_match(as.character(plan_page_ui(big)), "too large to keep in this browser", fixed = TRUE)
-  saved <- as.character(plan_page_ui(plan_mark_saved(p, "link", now = t0 + 1)))
+  expect_match(as.character(plan_status_ui(big)), "too large to keep in this browser", fixed = TRUE)
+  saved <- as.character(plan_status_ui(plan_mark_saved(p, "link", now = t0 + 1)))
   expect_match(saved, "Copied as a link", fixed = TRUE)
   expect_identical(plan_file_name(p), "powerkit-o-brien-s-study.powerkit.json")
   expect_identical(plan_file_name(new_plan("!!!", now = t0)), "powerkit-study-plan.powerkit.json")
@@ -241,4 +241,54 @@ test_that("an analysis in a plan opens as a project, from a file or from a fresh
   expect_identical(project$route$endpoint, "E2")
   expect_false(is.character(restore_from_project(project$route, tree, forms)))
   expect_identical(plan_entry_project(list(project = project)), project)
+})
+
+test_that("opening the same plan again never piles up copies, with or without an id", {
+  mine <- plan_add_entry(new_plan("Thesis", now = t0), entry_with_hash("A", 128, "h1"), now = t0)
+  file_copy <- mine
+  edited <- plan_edit(mine, description = "Edited here", now = t0 + 5)
+  plans <- setNames(list(edited), edited$id)
+  once <- plans_open(plans, file_copy, now = t0)
+  twice <- plans_open(once$plans, file_copy, now = t0)
+  expect_length(once$plans, 2)
+  expect_length(twice$plans, 2)
+  expect_identical(twice$id, once$id)
+  # A file with no id gets a new one each time it is read: still one copy.
+  no_id <- file_copy; no_id$id <- plan_new_id()
+  again <- plans_open(twice$plans, no_id, now = t0)
+  expect_length(again$plans, 2)
+})
+
+test_that("every plan kept in the browser loads, listed in the index or not", {
+  a <- new_plan("A", now = t0); b <- new_plan("B", now = t0)
+  recs <- setNames(list(plan_browser_record(a), plan_browser_record(b)), c(a$id, b$id))
+  out <- plans_from_browser(tree, list(index = list(current = a$id, ids = list(a$id)), records = recs), now = t0)
+  expect_setequal(names(out$plans), c(a$id, b$id))
+  expect_identical(names(out$plans)[[1]], a$id)
+  out <- plans_from_browser(tree, list(index = list(current = NULL, ids = list()), records = recs), now = t0)
+  expect_length(out$plans, 2)
+})
+
+test_that("a kept plan that fails while being read is left out, not fatal", {
+  p <- plan_add_entry(new_plan("A", now = t0), entry_with_hash("A", 128, "h1"), now = t0)
+  rec <- as.character(jsonlite::toJSON(list(format = "powerkit-plan-in-browser", version = 1L, id = p$id,
+    name = "Broken", changed = 1, file = "{\"format\": \"powerkit-study-plan\"}"), auto_unbox = TRUE))
+  stub <- function(text) list(analyses = list("not a project"), roles = NA_character_, notes = NA_character_)
+  good <- plan_browser_record(new_plan("Good", now = t0))
+  ids <- c(p$id, "0123456789abcdef")
+  out <- plans_from_browser(tree, list(records = setNames(list(rec, good), ids)), read = stub, now = t0)
+  expect_identical(vapply(out$plans, `[[`, "", "name"), setNames("Good", names(out$plans)))
+})
+
+test_that("a plan's save status has its own output, so saving doesn't redraw the page", {
+  html <- as.character(plan_page_ui(plan_add_entry(new_plan("A", now = t0), entry_with_hash("A", 1, "h"), now = t0)))
+  expect_match(html, 'id="plan_status"', fixed = TRUE)
+})
+
+test_that("every browser message handler takes its message, as Shiny requires", {
+  # Shiny refuses a handler with no argument, and the refusal stops the rest
+  # of its script: the plans index and the draft autosave were never set up.
+  files <- c(list.files(file.path(routing_dir, "R"), pattern = "[.]R$", full.names = TRUE), file.path(routing_dir, "app.R"))
+  text <- unlist(lapply(files, readLines, warn = FALSE))
+  expect_identical(grep("addCustomMessageHandler\\([^,]+,\\s*(async\\s+)?function\\s*\\(\\s*\\)", text, value = TRUE), character())
 })
