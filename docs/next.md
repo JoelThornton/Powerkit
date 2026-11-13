@@ -150,9 +150,6 @@ call), and nodes for approaches powerkit doesn't compute.
   metapower, power4mome, powertools and bfpwr each have an open question
   in [`upstream-questions.md`](upstream-questions.md), with the evidence
   ready.
-- **The AI assistant** (build guide phase 7: words or a diagram to a
-  suggested design, always confirmed by the user): whether and when to
-  start it. It comes last by design (`CLAUDE.md`).
 - **Scientific sign-off on the two recurring validation failures** (investigation is Ready above) (`validation-log.md`, 7
   and 8 November 2026): the mixed design's Greenhouse-Geisser check
   (an independent 20,000-study reference agrees with the fitted analysis;

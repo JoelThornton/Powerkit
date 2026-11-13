@@ -2,7 +2,7 @@
 
 Oct 12, 2026
 
-One R simulation engine, three front doors (design forms, full-model builder, optional AI assistant), validated against published results before anything ships. This guide is written to hand to Claude Code.
+One R simulation engine, two front doors (design forms and the full-model builder), validated against published results before anything ships. This guide is written to hand to Claude Code.
 
 **Goal (the maintainer's).** powerkit aims to give psychologists one place to run the power analyses offered by Superpower, Spower, power4mome, InteractionPoweR and G\*Power. It is built on those tools and credits them, and it is validated against them. For the rare cases no form covers, the route is the full-model builder and the R script export. What each tool offers, and where powerkit stands on each capability, is in [`coverage.md`](coverage.md).
 
@@ -25,7 +25,7 @@ The statistics powerkit needs already exist in well-tested, peer-reviewed R pack
 **What this changes in the plan**
 
 - **Wrap, don't reimplement.** Use Spower and power4mome (plus Superpower and InteractionPoweR for their specialities) as engine backends. They are peer-reviewed and maintained, which cuts your validation burden and gives reviewers names they already trust.
-- **powerkit's contribution is a layer on top of them:** the unified specification, the design forms and model builder, the confirmation screen, the write-up and citation generator, and the optional AI assistant.
+- **powerkit's contribution is a layer on top of them:** the unified specification, the design forms and model builder, the confirmation screen, and the write-up and citation generator.
 - **Contact the authors early** (Phil Chalmers for Spower; Shu Fai Cheung for power4mome): share the plan, ask for their advice, and report anything found while wrapping their packages. powerkit depends on their work and should credit it clearly.
 - **Your own validation still matters:** test that your specification-to-engine translation is right, by checking your results equal what each package gives when called directly, and match published examples.
 
@@ -58,7 +58,7 @@ The capability-by-capability inventory of the five tools powerkit builds on, wit
 
 ## 3. Architecture and repository layout
 
-One repository, three parts: an R package that turns a specification into a power result, a Shiny app that builds specifications, and (later) a small AI service that only suggests specifications.
+One repository, two parts: an R package that turns a specification into a power result, and a Shiny app that builds specifications.
 
 ```
 powerkit/                      # working name
@@ -78,7 +78,6 @@ powerkit/                      # working name
 │   ├── forms.yaml             # input definitions and defaults
 │   ├── tree.yaml              # design routing and capability notes
 │   └── tests/testthat/
-├── assistant/README.md         # reserved service; not implemented or loaded
 ├── docs/                      # this guide, decisions log
 ├── renv.lock                  # pinned package versions
 └── CLAUDE.md
@@ -216,7 +215,7 @@ For users who don't know what design they have, the Choose screen offers a guide
 4. **Design details,** asked only when needed: number of factors and levels; whether the moderator is a category or a continuous score; for a 2x2, which picture matches your prediction (lines cross, one effect shrinks, one effect disappears).
 5. **Shortcut:** "I already know my analysis" jumps straight to a form, e.g., "PROCESS Model 7" or "2x2 mixed ANOVA".
 
-The finder ends on one design form, shows the path taken ("Different people · score outcome · effect depends on W"), and names the analysis in standard terms so users learn the vocabulary. "Not sure" is always an option and opens a short explanation with an example from psychology. The optional AI assistant can fill in the same answers from a typed description, but the tree works without it.
+The finder ends on one design form, shows the path taken ("Different people · score outcome · effect depends on W"), and names the analysis in standard terms so users learn the vocabulary. "Not sure" is always an option and opens a short explanation with an example from psychology.
 
 **Exports**
 
@@ -245,7 +244,7 @@ Work in small phases, each ending with passing tests. Give Claude Code this guid
 | 4. Exports | Script export, write-up, citations, prereg text | Exported scripts rerun and match in a clean R session |
 | 5. Shiny app | Four-screen flow for MVP designs | Five PhD students complete a task unaided |
 | 6. v2 designs | Equivalence, GLMs, mixed-effects, AIPE | Their validation tests pass |
-| 7. AI assistant | Words/diagram → suggested spec, user confirms | Suggestions never bypass the confirm screen |
+| 7. AI assistant | Dropped (decisions.md, 13 November 2026) | — |
 | 8. Hosting | Public deploy with queue and limits | Stable under 20 concurrent runs |
 
 *Where the phases stand (10 November 2026):* infrastructure and foundation
@@ -259,7 +258,7 @@ and includes precision planning and multiple v2 designs; this does not mean
 all phase completion criteria have passed. The five-user usability study,
 full published validation, clean reproduction across all supported routes,
 and the 20-concurrent-run hosting check are still outstanding. The AI
-assistant is not implemented. See [status.md](status.md) for current coverage
+assistant (phase 7) is dropped from the plan. See [status.md](status.md) for current coverage
 and [validation-log.md](validation-log.md) for scoped evidence.
 
 **Phase 3b: supported binary X and W are implemented**
