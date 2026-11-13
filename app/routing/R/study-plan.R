@@ -63,11 +63,10 @@ plan_entry_from_project <- function(tree, project) {
 # file is saved again from what was read.
 plan_analyses <- function(entries) {
   lapply(entries, function(e) {
-    if (!is.null(e$project)) {
-      e$project
-    } else {
-      list(spec = e$spec, result = e$result, route = e$route)
-    }
+    a <- if (!is.null(e$project)) e$project else list(spec = e$spec, result = e$result, route = e$route)
+    a$plan_role <- e$role
+    a$plan_note <- if (nzchar(e$note %||% "")) e$note
+    a
   })
 }
 
