@@ -75,6 +75,7 @@ on:
           - welch_spreads
           - variances
           - rmcorr
+          - yuen
           - manova
           - rank
           - bayes

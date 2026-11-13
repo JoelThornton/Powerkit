@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-13"
+    title: "Robust t-tests on trimmed means"
+    text: "The cards for comparing two groups and for comparing the same people twice now offer Yuen's trimmed-means test as a test version, the robust t-test that compares means after trimming 20% of the scores from each end, so a few extreme scores have little pull. powerkit simulates it with the score shape you choose, so you can see how much it gains over the t-test when scores are heavy-tailed. For the paired version, enter the correlation between the two measurements: the trimmed test's power depends on it."

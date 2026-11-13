@@ -43,6 +43,8 @@ spower_backend <- function(spec, seed = NULL) {
       if (jonckheere_test(spec)) "PMCMRplus",
       # p_brunner_munzel() calls brunnermunzel's brunnermunzel.test().
       if (brunner_munzel_test(spec)) "brunnermunzel",
+      # p_yuen() and p_yuend() call WRS2's yuen() and yuend().
+      if (yuen_test(spec)) "WRS2",
       # p_art() calls ARTool's art() and artlm(), then car's Anova();
       # p_art_within() calls aov() through artlm(), or with unequal groups
       # car's Anova() with pbkrtest's Kenward-Roger F tests.
@@ -590,6 +592,25 @@ rank_test_inputs <- function(spec, first_group) {
       args = function(n) list(n = n / k, k = k, means = means, gen_fun = gen)
     ))
   }
+  # Yuen's trimmed-means tests: powerkit's own experiments, p_yuen() on the
+  # Brunner-Munzel test's two groups (brunner_munzel_scores(): the chosen
+  # shape, group 2's SD sd_ratio times group 1's), and p_yuend() on pairs
+  # of measurements of the chosen shape correlated r (yuen_paired_scores()).
+  if (yuen_test(spec)) {
+    shape <- pop$score_shape %||% "normal"
+    trim <- yuen_trim(spec)
+    if (identical(spec$template, "paired_t")) {
+      return(list(
+        experiment = "p_yuend", own = TRUE, rank = "yuend", draw = draw,
+        args = function(n) list(n = n, dz = pop$dz, r = pop$r, shape = shape, trim = trim)
+      ))
+    }
+    sd_ratio <- pop$sd_ratio %||% 1
+    return(list(
+      experiment = "p_yuen", own = TRUE, rank = "yuen", draw = draw,
+      args = function(n) list(n = first_group(n), n2_n1 = ratio, d = pop$d, sd_ratio = sd_ratio, shape = shape, trim = trim)
+    ))
+  }
   # The Brunner-Munzel test: powerkit's own experiment, p_brunner_munzel(),
   # on two groups of the chosen shape that may differ in spread
   # (brunner_munzel_scores()).
@@ -654,6 +675,11 @@ rank_test_description <- function(test, template, alternative) {
   }
   if (identical(template, "oneway_within")) {
     return("Spower::Spower(p_friedman()) (stats::friedman.test())")
+  }
+  if (test$experiment %in% c("p_yuen", "p_yuend")) {
+    return(sprintf("Spower::Spower(%s(trim = %s%s)) (WRS2::%s(tr = %s), Yuen's test of %s trimmed means)",
+      test$experiment, format(test$args(100)$trim), if (alternative == "two_sided") "" else sprintf(", alternative = \"%s\"", spower_alternative(template, alternative)),
+      if (test$experiment == "p_yuen") "yuen" else "yuend", format(test$args(100)$trim), sprintf("%g%%", 100 * test$args(100)$trim)))
   }
   if (identical(test$experiment, "p_brunner_munzel")) {
     return(sprintf("Spower::Spower(p_brunner_munzel(%s)) (brunnermunzel::brunnermunzel.test())",
@@ -743,6 +769,46 @@ sd_ratio_row <- function(first, second, specified) {
 p_brunner_munzel <- function(n, n2_n1, d, sd_ratio, shape, alternative = "two.sided") {
   g <- brunner_munzel_scores(n, n2_n1, d, sd_ratio, shape)
   brunnermunzel::brunnermunzel.test(g$first, g$second, alternative = alternative)$p.value
+}
+
+# Pairs of measurements for Yuen's paired test: each is a person's own
+# level (normal, variance r) plus a deviation of the chosen shape
+# (variance 1 - r), so both have SD 1 and correlate r; the second is
+# shifted by d_z times the SD of the differences, sqrt(2 * (1 - r)).
+yuen_paired_scores <- function(n, dz, r, shape) {
+  draw <- score_shape_sampler(shape)
+  person <- sqrt(r) * stats::rnorm(n)
+  first <- person + sqrt(1 - r) * draw(n)
+  second <- dz * sqrt(2 * (1 - r)) + person + sqrt(1 - r) * draw(n)
+  list(first = first, second = second)
+}
+
+# A one-sided p-value from Yuen's statistic. WRS2's yuen() reports |t|
+# with diff = trimmed mean of the first group minus the second's; yuend()'s
+# t has the sign of diff. As for t.test(x, y), "less" is the alternative in
+# which the first trimmed mean is lower (the second group, or the second
+# measurement, higher).
+yuen_p_value <- function(fit, alternative) {
+  if (alternative == "two.sided") {
+    return(fit$p.value)
+  }
+  t <- sign(fit$diff) * abs(fit$test)
+  stats::pt(t, fit$df, lower.tail = alternative == "less")
+}
+
+# Spower experiment for Yuen's test of two groups (WRS2's yuen()), on
+# brunner_munzel_scores().
+p_yuen <- function(n, n2_n1, d, sd_ratio, shape, trim, alternative = "two.sided") {
+  g <- brunner_munzel_scores(n, n2_n1, d, sd_ratio, shape)
+  data <- data.frame(y = c(g$first, g$second), group = factor(rep(1:2, c(length(g$first), length(g$second)))))
+  yuen_p_value(WRS2::yuen(y ~ group, data = data, tr = trim), alternative)
+}
+
+# Spower experiment for Yuen's paired test (WRS2's yuend()), on
+# yuen_paired_scores().
+p_yuend <- function(n, dz, r, shape, trim, alternative = "two.sided") {
+  g <- yuen_paired_scores(n, dz, r, shape)
+  yuen_p_value(WRS2::yuend(g$first, g$second, tr = trim), alternative)
 }
 
 # The cells of a two-factor between-participants design for the aligned
@@ -2017,7 +2083,29 @@ rank_check_run <- function(spec, args, seed) {
     sizes <- vapply(seq_len(nrow(cells)), function(i) length(by_cell[[paste(cells$a[i], cells$b[i], sep = ".")]]), numeric(1))
     return(check_run_rows(labels, args$means[index], recovered, args$sds[index] / sqrt(sizes)))
   }
-  if (brunner_munzel_test(spec)) {
+  if (yuen_test(spec) && identical(spec$template, "paired_t")) {
+    g <- call_backend("Spower", with_seed(seed, yuen_paired_scores(args$n, args$dz, args$r, args$shape)))
+    # d_z is recovered from the differences, whose SD is sqrt(2 * (1 - r));
+    # r from the two measurements.
+    # The standard error of d_z allows for the differences' kurtosis (the
+    # variance of a log SD is about (kurtosis - 1) / (4 n)), since
+    # heavy-tailed scores make an SD vary far more than normal ones do.
+    differences <- g$second - g$first
+    kurtosis <- mean((differences - mean(differences))^4) / stats::var(differences)^2
+    # r's standard error from its influence function, z1 z2 - r (z1^2 +
+    # z2^2) / 2 for standardised scores, which holds for any shape (Fisher's
+    # (1 - r^2) / sqrt(n) assumes normal scores).
+    z1 <- (g$first - mean(g$first)) / stats::sd(g$first)
+    z2 <- (g$second - mean(g$second)) / stats::sd(g$second)
+    r_hat <- mean(z1 * z2)
+    se_r <- stats::sd(z1 * z2 - r_hat * (z1^2 + z2^2) / 2) / sqrt(args$n)
+    return(rbind(
+      check_run_rows("d_z (mean of the differences, second minus first, over their SD)", pop$dz, mean(differences) / stats::sd(differences),
+        sqrt(1 / args$n + pop$dz^2 * (kurtosis - 1) / (4 * args$n))),
+      check_run_rows("correlation between the two measurements", args$r, stats::cor(g$first, g$second), se_r)
+    ))
+  }
+  if (brunner_munzel_test(spec) || yuen_test(spec)) {
     g <- call_backend("Spower", with_seed(seed, brunner_munzel_scores(args$n, args$n2_n1, args$d, args$sd_ratio, args$shape)))
     # The scores are drawn with a pooled SD of exactly 1, so the difference
     # in means is d itself; its SE uses each group's own SD.

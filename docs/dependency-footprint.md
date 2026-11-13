@@ -2,13 +2,13 @@
 
 Written by `scripts/dependency-footprint.R` from `renv.lock` and `engine/DESCRIPTION`; a test checks the counts are current.
 
-The engine declares 28 direct Imports and 41 Suggests; `renv.lock` pins 305 packages, which the online app's manifest is written from when it is published. The lock includes development and validation tools as well as runtime dependencies.
+The engine declares 28 direct Imports and 42 Suggests; `renv.lock` pins 307 packages, which the online app's manifest is written from when it is published. The lock includes development and validation tools as well as runtime dependencies.
 
 | Scope | Locked packages in dependency closure |
 |---|---:|
-| Full locked environment | 305 |
+| Full locked environment | 307 |
 | Current engine Imports and their locked dependencies | 228 |
-| Engine Imports and Suggests (every backend) and their locked dependencies | 302 |
+| Engine Imports and Suggests (every backend) and their locked dependencies | 304 |
 | Candidate formula-only roots (not an installable profile) | 9 |
 
 These counts measure metadata reachability, not download bytes, installed disk size, startup time, redundancy or security risk. Shared transitive dependencies are counted once. Base R packages are outside the lock graph.
