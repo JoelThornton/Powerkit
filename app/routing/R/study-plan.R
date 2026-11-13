@@ -234,10 +234,11 @@ study_plan_ui <- function(entries) {
     div(class = "nav-buttons",
       actionButton("plan_more", "Add another analysis", class = "btn btn-primary"),
       if (k) download_button("download_study_plan", "Save study plan", class = "btn btn-outline-primary"),
+      if (k) share_link_ui("study_plan"),
       # Discards every analysis: asked first.
       if (k) tags$a(href = "#", id = "plan_clear_link", role = "button",
         onclick = "if (confirm('Start a new plan? This removes every analysis from this one. Save the study plan first if you want to keep it.')) Shiny.setInputValue('plan_clear', Date.now(), {priority: 'event'}); return false;",
         "Start a new plan")),
-    p(class = "small", "\u201cAdd another analysis\u201d starts \u201cHelp me choose\u201d, which finds the next analysis from your study's description. Save study plan keeps every analysis in one file; open it from the start screen.")
+    p(class = "small", "\u201cAdd another analysis\u201d starts \u201cHelp me choose\u201d, which finds the next analysis from your study's description. Save study plan keeps every analysis in one file; open it from the start screen. Copy a link puts the same inside a link that opens the plan on any computer; powerkit stores nothing, so anyone with the link can open it.")
   )
 }
