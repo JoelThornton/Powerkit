@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-13"
+    title: "Download everything for a study plan"
+    text: "Each study plan now has an overview, and \"Download everything (.zip)\" saves the whole study in one file: the plan itself, a planning document for the whole study (as Markdown and Word) with a table of your analyses, each one's methods paragraph and every reference once, and each analysis's own documents and R script. Opening the zip in powerkit opens the plan again, on any computer."
+  - date: "2026-11-13"
     title: "Several study plans, each with a name"
     text: "You can now keep a study plan for each of your studies. \"Study plans\" at the top of every page opens them: give each plan a name and a short description, mark each analysis as primary, secondary or a check, and add a note to it. Any analysis in a plan opens again on its card with your answers and result; if you change it, you choose whether to update it in the plan or add it as a new one. When you add a result and have more than one plan, you pick which plan it goes in. Plans are kept in this browser, which can lose them (Safari clears a site's data after a week without a visit, and private windows forget everything), so each plan shows whether it has been saved, and \"Save plan\" or \"Copy a link\" keeps it for good. Opening a saved plan never replaces one you already have."
   - date: "2026-11-13"
