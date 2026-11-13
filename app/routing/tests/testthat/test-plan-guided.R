@@ -137,3 +137,14 @@ test_that("Save this plan on the guided screens saves the whole study plan", {
   expect_match(as.character(guided_plan_save_ui(2, "Whole-study plan, 13 Nov 2026")), "Whole-study plan, 13 Nov 2026", fixed = TRUE)
   expect_match(as.character(guided_plan_save_ui(0, "Whole-study plan, 13 Nov 2026")), "plan_view", fixed = TRUE)
 })
+
+test_that("a guided plan read back from its file is the same plan as the one in the browser", {
+  state <- guided_state()
+  state$plan_results <- list(a = list(endpoint = "E2", goal = "sample_size", n = 264))
+  plan <- plan_set_guided(new_plan("Whole-study plan, 13 Nov 2026"), guided_plan_record(state), state$primary)
+  back <- plan_from_text(tree, plan_to_text(plan), read = guided_engine("read_study_plan"))
+  expect_identical(plan_content(back), plan_content(plan))
+  opened <- plans_open(setNames(list(plan), plan$id), back)
+  expect_length(opened$plans, 1)
+  expect_null(opened$message)
+})

@@ -1977,7 +1977,7 @@ server <- function(input, output, session) {
     if (!state$screen %in% c("g_analyses", "g_plan", "g_sim") || !is.null(plan_get(state$guided_plan))) return()
     target <- if (identical(state$plan_more_target, state$current_plan)) plan_get(state$plan_more_target)
     plan <- if (!is.null(target) && !is.list(target$guided)) target else new_plan(plan_default_name(Sys.Date(), "Whole-study plan"))
-    plan$guided <- guided_plan_record(reactiveValuesToList(state))
+    plan$guided <- guided_normalise(guided_plan_record(reactiveValuesToList(state)))
     plans_put(plan)
     state$guided_plan <- plan$id
     state$current_plan <- plan$id
@@ -2005,6 +2005,7 @@ server <- function(input, output, session) {
   observeEvent(input$plan_open_guided, {
     plan <- plan_get(isolate(state$plans_view))
     if (is.null(plan) || !is.list(plan$guided)) return()
+    record_opened <- plan$guided
     restored <- restore_guided_plan(plan$guided, tree)
     if (is.character(restored)) {
       showNotification(restored, type = "error")
@@ -2014,9 +2015,12 @@ server <- function(input, output, session) {
     updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
     state$from_labs <- FALSE; state$labs_seed <- NULL
     for (name in names(restored)) state[[name]] <- restored[[name]]
+    # The record as the screens now hold it, without counting as a change.
+    plan$guided <- guided_normalise(guided_plan_record(isolate(reactiveValuesToList(state))))
+    plans_put(plan)
     state$guided_plan <- plan$id
     state$current_plan <- plan$id
-    state$plan_opened <- plan$guided
+    state$plan_opened <- record_opened
   })
   observeEvent(input$plans_view_plan, {
     id <- input$plans_view_plan
@@ -2320,6 +2324,9 @@ server <- function(input, output, session) {
       text <- paste(readLines(path, encoding = "UTF-8", warn = FALSE), collapse = "\n")
       held <- plan_from_text(tree, text)
       if (!is.null(held)) {
+        # The record as the screens now hold it, so the plan isn't marked
+        # changed only because it was opened.
+        held$guided <- guided_normalise(guided_plan_record(isolate(reactiveValuesToList(state))))
         out <- plans_open(isolate(state$plans), held)
         state$plans <- out$plans
         state$guided_plan <- out$id

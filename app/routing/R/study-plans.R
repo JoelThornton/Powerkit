@@ -183,6 +183,7 @@ plan_from_guided_text <- function(text, now = Sys.time()) {
 # check the researcher chose stays), and the plan counts as changed only
 # when the record or a role does.
 plan_set_guided <- function(plan, record, primary = character(), now = Sys.time()) {
+  record <- guided_normalise(record)
   before <- plan_content(plan)
   plan$guided <- record
   for (i in seq_along(plan$entries)) {
@@ -198,8 +199,18 @@ plan_set_guided <- function(plan, record, primary = character(), now = Sys.time(
   plan_touch(plan, now)
 }
 
+# A guided record as its file holds it (vectors become lists, and so on),
+# so the browser's copy and one read back from a file compare equal.
+guided_normalise <- function(record) {
+  if (!is.list(record)) return(record)
+  jsonlite::parse_json(jsonlite::toJSON(record, auto_unbox = TRUE, null = "null", digits = NA), simplifyVector = FALSE)
+}
+
 # What a guided record holds, without when it was saved.
-guided_content <- function(record) if (is.list(record)) record$plan
+guided_content <- function(record) {
+  if (!is.list(record)) return(NULL)
+  as.character(jsonlite::toJSON(record$plan, auto_unbox = TRUE, null = "null", digits = NA))
+}
 
 # The browser's old single plan (key powerkit-study-plan), as a named plan
 # that has not been saved to a file.

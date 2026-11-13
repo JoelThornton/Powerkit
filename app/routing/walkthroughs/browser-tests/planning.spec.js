@@ -388,4 +388,8 @@ test('Plan my whole study keeps its plan in a study plan, which saves it and ope
   await page.locator('#plan_open_guided').click();
   await expect(page.locator('#screen .plan-item').first()).toBeVisible();
   await expect(page.locator('.study-plan-chip')).toHaveText(/Study plans \(1\)/);
+  // Opening it changed nothing, so it is still saved.
+  await page.locator('.study-plan-chip').click();
+  await page.locator('.plans-row-name').click();
+  await expect(page.locator('#plans_page')).toContainText('Saved to a file');
 });
