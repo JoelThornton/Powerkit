@@ -7,6 +7,21 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-13"
+    title: "Saving a result is clearer"
+    text: "A \"Keep this result\" box now sits right under the answer, with the three ways to come back to it: save the project file, copy a link, or add it to your study plan. It says \"Not saved yet\" until you do one of them, and your browser asks before you leave a result you haven't kept. The planning document, R script and citations are under \"Documents for your study\", which says plainly that they don't reopen in powerkit. \"Download everything (.zip)\" gives you all of them with the project file in one go, and you can open that zip from the start screen to carry on. Your last result is also kept in this browser, so closing the tab by accident doesn't lose it."
+  - date: "2026-11-13"
+    title: "Clearer help for how much a multisite effect varies"
+    text: "On the clustered design card, people randomised within groups, the help for how much the effect varies between groups now says how to convert the SD of the effect into the share the field asks for: an SD of 0.2 is 0.01."
+  - date: "2026-11-13"
+    title: "Cross-lagged panel works with reliability below 1"
+    text: "The cross-lagged panel card stopped with an error whenever a score's reliability was below 1, saying powerkit had a bug. It now runs, and the power allows for the measurement error you entered."
+  - date: "2026-11-13"
+    title: "Share a plan with a link"
+    text: "Next to every save button there is now \"Copy a link\". The link opens the same project, study plan or unfinished answers on any computer, so you can email it to yourself or send it to a supervisor or co-author. Your answers travel inside the link itself: powerkit stores nothing and needs no account. Anyone with the link can open the plan, so share it as you would the file. A very large plan is too long for a link; save the file instead."
+  - date: "2026-11-13"
+    title: "Welch's ANOVA answers at once"
+    text: "The one-way ANOVA's default test, Welch's ANOVA, is now worked out by a published formula (Levy's approximation, recommended by Jan and Shieh, 2014) instead of by simulation. A sample size comes in about a second rather than ten or more, with no simulation noise, and agrees with the simulation to within about 1 percentage point of power. You can still choose the simulation under \"How power is worked out\"."
   - date: "2026-11-12"
     title: "Easier to use by keyboard"
     text: "The buttons in the top bar now show a clear outline when you reach them with the Tab key, and the keyboard tip under the design finder's answers is easier to read."

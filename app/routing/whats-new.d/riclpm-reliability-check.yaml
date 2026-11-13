@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-13"
-    title: "Cross-lagged panel works with reliability below 1"
-    text: "The cross-lagged panel card stopped with an error whenever a score's reliability was below 1, saying powerkit had a bug. It now runs, and the power allows for the measurement error you entered."

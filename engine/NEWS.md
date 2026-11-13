@@ -1,3 +1,65 @@
+# powerkit 0.63.0
+
+* App: the result screen separates keeping a result from the documents
+  made from it (`R/keep-result.R`). "Keep this result", at the foot of
+  the answer card, holds Save project file (now the screen's primary
+  button), Copy a link and Add to my study plan, with a status that
+  changes from "Not saved yet" once one is used; "Documents for your
+  study" holds the planning document, the R script, citations and a new
+  "Download everything (.zip)" (project file, planning document as
+  Markdown and Word, R script, citations, the simulated data set where
+  there is one, and a README). "Open a saved or shared project" accepts
+  that zip and opens the one project file inside it. The last current
+  result is kept in the browser's local storage beside the autosaved
+  draft, and the "Continue your plan?" offer brings the result back when
+  it matches the draft's answers; the browser asks before leaving a
+  result that hasn't been kept. No engine change.
+
+* The design schema's description no longer lists an AI assistant among
+  the front doors that write a spec; the planned assistant is dropped
+  (docs/decisions.md, 13 November 2026). No change to the schema itself.
+
+* Cross-lagged panel (RI-CLPM): a design with reliability below 1 no
+  longer stops with a check-run error. The check run compared the lagged
+  effects recovered from scores with measurement error, which powRICLPM's
+  fitted model attenuates by design, with the error-free population
+  values. It now runs on error-free scores (reliability 1), which checks
+  that the population reaches powRICLPM as specified; power is still
+  simulated at the reliability entered. New test at reliabilities 0.9
+  and 0.8.
+
+* App: "Copy a link" beside each save button (project, study plan, the
+  whole-study plan and unfinished drafts) puts the same text the button
+  downloads, compressed with the browser's CompressionStream
+  (deflate-raw, base64url), into the link's fragment (`#shared=1.`).
+  Browsers don't send the fragment to the server, so nothing about the
+  study reaches the host's logs or any store. Opening the link unpacks it
+  in the browser, clears it from the address bar and passes the text to
+  the same reader and checks as "Open a saved or shared project"
+  (`open_saved_file()` in app.R, `R/share-link.R`). Links over 60,000
+  characters are refused in favour of the file; unpacking stops at 5 MB.
+  No engine change.
+
+* Every change that reaches main now gets a version number. Each pull
+  request that writes a change note runs `scripts/close-batch.R` (`minor`
+  for the first of a batch of features, `patch` otherwise) as its last
+  commit, and `test-repo-consistency.R` refuses a branch that leaves
+  notes without a number. Previously notes waited on main until a batch
+  closed, so the app could change while its version stayed the same.
+
+* Welch's one-way ANOVA (`target_test > method = "welch_f"`) is worked out
+  by Levy's (1978) noncentral F approximation in base R's `stats::pf()`
+  (new `backend-welch-anova.R`), as Jan and Shieh (2014) recommend and
+  program it, instead of by simulation: power, sample size and the
+  smallest detectable effect come at once and have no Monte Carlo error.
+  Spower's simulation stays available with `options > method =
+  "simulation"`. The approximation reproduces Jan and Shieh's published
+  Levy powers (Tables 1 and 2) to four decimals, and agrees with Spower's
+  simulation and with separately generated `stats::oneway.test()` studies
+  within .01 plus Monte Carlo error (`test-backend-welch-levy.R`, the
+  `welch_spreads` validation chunk). The exported script computes it in
+  base R. New reference `Jan2014_welch_anova`.
+
 # powerkit 0.62.0
 
 * App: the top bar's buttons ("Copy page link", "Feedback on this
