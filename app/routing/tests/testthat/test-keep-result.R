@@ -37,17 +37,6 @@ test_that("each result panel uses the box once and has no second Save project", 
   expect_false(grepl('uiOutput("study_plan_bar")', results, fixed = TRUE))
 })
 
-make_zip <- function(files) {
-  dir <- tempfile(); dir.create(dir)
-  for (name in names(files)) {
-    dir.create(dirname(file.path(dir, name)), showWarnings = FALSE, recursive = TRUE)
-    writeLines(files[[name]], file.path(dir, name))
-  }
-  out <- tempfile(fileext = ".zip")
-  zip::zip(out, files = names(files), root = dir, mode = "mirror")
-  out
-}
-
 test_that("Open takes the zip from Download everything", {
   plain <- tempfile(fileext = ".powerkit.json")
   writeLines("{}", plain)

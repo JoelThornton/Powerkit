@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-13"
+    title: "Download everything for a study plan"
+    text: "Each study plan now has an overview, and \"Download everything (.zip)\" saves the whole study in one file: the plan itself, a planning document for the whole study (as Markdown and Word) with a table of your analyses, each one's methods paragraph and every reference once, and each analysis's own documents and R script. Opening the zip in powerkit opens the plan again, on any computer."

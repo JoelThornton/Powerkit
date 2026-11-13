@@ -267,6 +267,10 @@ plan_item_ui <- function(e, sets = FALSE) {
 
 # A plan's page on the Study plans page: its name and description, the
 # largest comparable sample size, its analyses, and saving.
+# The plan page's and the study-wide document's wording on sample sizes.
+plan_common_recruitment_caveat <- "The recorded sample units and design structures match. A common recruitment plan also needs the same population, eligibility, allocation and measurement schedule; the maximum alone does not establish those."
+plan_incomparable_note <- "These analyses have different or incomplete sample requirements. Their counts are kept separate; there is no single study-wide sample size here. Participants, pairs, items and studies cannot be compared just by taking the largest number. Matching units also need compatible allocation and measurement schedules."
+
 plan_page_ui <- function(plan, plans_n = 1L) {
   entries <- plan$entries
   k <- length(entries)
@@ -293,18 +297,20 @@ plan_page_ui <- function(plan, plans_n = 1L) {
         tags$li("Press “Add an analysis” to find one with “Help me choose”, or use “I know my analysis”, and calculate its sample size."),
         tags$li("Under the result, press “Add this to my study plan”."),
         tags$li("Do the same for every analysis your conclusions rest on, then save the plan."))),
+    if (k > 0) div(class = "plan-overview",
+      h3(class = "h5", "Overview"),
+      p(class = "plan-role-counts", plan_role_counts_text(entries))),
     if (!is.null(largest)) div(class = "result-hero plan-hero",
       div(class = "result-figure",
         tags$span(class = "result-figure-value", whole(largest$n)),
         tags$span(class = "result-figure-label", paste("largest requirement in", plan_entry_sample(largest)$unit)),
         tags$span(class = "result-figure-sub", if (k == 1) "from your one analysis so far" else sprintf("the largest of your %d analyses", k))),
       p(class = "plan-hero-text", HTML(sprintf(
-        "The largest comparable requirement is <strong>N = %s</strong>, for %s. The recorded sample units and design structures match. A common recruitment plan also needs the same population, eligibility, allocation and measurement schedule; the maximum alone does not establish those.",
-        whole(largest$n), esc(largest$label))))),
+        "The largest comparable requirement is <strong>N = %s</strong>, for %s. %s",
+        whole(largest$n), esc(largest$label), esc(plan_common_recruitment_caveat))))),
     if (k > 0) tags$ol(class = "study-plan-list",
       lapply(entries, function(e) plan_item_ui(e, sets = !is.null(largest) && identical(e$key, largest$key)))),
-    if (k > 1 && is.null(largest)) p(class = "plan-note",
-      "These analyses have different or incomplete sample requirements. Their counts are kept separate; there is no single study-wide sample size here. Participants, pairs, items and studies cannot be compared just by taking the largest number. Matching units also need compatible allocation and measurement schedules."),
+    if (k > 1 && is.null(largest)) p(class = "plan-note", plan_incomparable_note),
     if (joint_power_offered(entries)) joint_power_ui(entries)
     else if (joint_power_needs_student(entries)) p(class = "study-plan-joint plan-note",
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is calculated for Student's t-test only (PUMP's test), and these analyses use Welch's: choose Student's test on each card to see it. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each.")
@@ -313,8 +319,9 @@ plan_page_ui <- function(plan, plans_n = 1L) {
     div(class = "nav-buttons",
       if (k) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
       actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
-      if (k) share_link_ui("study_plan")),
-    p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it."),
+      if (k) share_link_ui("study_plan"),
+      if (k) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
+    p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it. Download everything adds a planning document for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
     p(class = "small plan-delete",
       tags$a(href = "#", role = "button", id = "plan_delete_link",
         onclick = sprintf("if (confirm(%s)) Shiny.setInputValue('plan_delete', Date.now(), {priority: 'event'}); return false;",

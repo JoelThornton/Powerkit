@@ -61,11 +61,7 @@ planning_document <- function(tree, forms, calc) {
     paste0("- ", writeup_field_label(f), ": ", value)
   }
   units <- sample_description(spec)
-  text <- if (identical(spec$design, "precision")) precision_writeup(forms$forms[[id]], spec, result, fields, values, departures_for(forms, id, spec)) else
-    writeup_text(forms$forms[[id]], spec, result, fields, values,
-      departures = departures_for(forms, id, spec),
-      known_methods = vapply(known_difference_keys(forms, id, spec), function(k) forms$known_differences_methods[[k]], ""),
-      known = known_differences_for(forms, id, spec))
+  text <- planning_writeup(forms, id, spec, result, fields, values)
   alternatives <- named_alternative_lines(values, fields)
   c("# Study planning decision document", "",
     sprintf("Planning draft for review, made with %s. This file does not register a preregistration or guarantee the assumptions are correct.", powerkit_cited(result$provenance$packages[["powerkit"]])), "",
@@ -84,6 +80,27 @@ planning_document <- function(tree, forms, calc) {
     "## Validation evidence", evidence_reader_lines(result$provenance$evidence), "",
     "## Reproducibility record", provenance_lines(result), "",
     "Keep the matching project file for the complete structured specification, raw-to-derived conversions and machine-readable result. Review these assumptions and the selected decision rule before using the plan.")
+}
+
+# The card's write-up (short and full methods paragraphs) from the
+# calculation's captured answers.
+planning_writeup <- function(forms, id, spec, result, fields, values) {
+  if (identical(spec$design, "precision")) return(precision_writeup(forms$forms[[id]], spec, result, fields, values, departures_for(forms, id, spec)))
+  writeup_text(forms$forms[[id]], spec, result, fields, values,
+    departures = departures_for(forms, id, spec),
+    known_methods = vapply(known_difference_keys(forms, id, spec), function(k) forms$known_differences_methods[[k]], ""),
+    known = known_differences_for(forms, id, spec))
+}
+
+# The full methods paragraph alone, as the planning document's "Result and
+# methods" has it: for a study plan's document, one per analysis.
+planning_methods_text <- function(tree, forms, calc) {
+  route <- calc$route
+  id <- route$endpoint
+  values <- route$form_values
+  if (is.null(id) || is.null(values)) stop("This result has no captured form answers.")
+  fields <- form_fields(form_groups(forms, id, k = route$form_k %||% 2L))
+  unname(planning_writeup(forms, id, calc$spec, calc$result, fields, values)["full"])
 }
 
 planning_recruitment_lines <- function(result, units) {

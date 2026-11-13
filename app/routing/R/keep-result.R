@@ -126,7 +126,8 @@ last_result_matches_draft <- function(text, draft_record) {
   calculation_matches_values(list(status = "ok", route = route), draft_record$route$form_values %||% list())
 }
 
-# For a zip from "Download everything": the one project file inside it,
+# For a zip from "Download everything": the one project file inside it
+# (for a study plan's zip, the plan file at its top),
 # extracted, so "Open" reads it as if it had been chosen on its own. NULL
 # when the file isn't a zip; a plain-English problem (a string, classed
 # "zip_problem") when it is a zip without exactly one project file.
@@ -140,6 +141,10 @@ zip_project_file <- function(path) {
   listing <- tryCatch(zip::zip_list(path), error = function(e) NULL)
   if (is.null(listing)) return(problem)
   inside <- listing$filename[grepl("\\.powerkit\\.json$", listing$filename) & listing$uncompressed_size <= 5e6]
+  # A study plan's zip holds the plan file at the top and each analysis's
+  # project file in a folder: the one at the top is the one to open.
+  top <- inside[!grepl("/", inside, fixed = TRUE)]
+  if (length(inside) > 1 && length(top) == 1) inside <- top
   if (length(inside) != 1) return(problem)
   dir <- tempfile("powerkit-zip-")
   dir.create(dir)
