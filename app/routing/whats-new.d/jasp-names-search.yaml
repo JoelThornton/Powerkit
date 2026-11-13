@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-13"
-    title: "Search finds analyses by their JASP names"
-    text: "Searching \"I know my analysis\" now finds the cards for analyses that JASP names differently: confirmatory factor analysis and MIMIC models (the latent-variable card), latent growth curves (the longitudinal card), linear and generalised linear mixed models (the multilevel cards), the binomial and A/B tests, contingency tables, and Cochrane and classical meta-analysis. Searching for a repeated-measures correlation finds the card for relationships within people, which powerkit doesn't calculate yet."
