@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-13"
-    title: "Clearer help for how much a multisite effect varies"
-    text: "On the clustered design card, people randomised within groups, the help for how much the effect varies between groups now says how to convert the SD of the effect into the share the field asks for: an SD of 0.2 is 0.01."

@@ -1,7 +1,0 @@
-entries:
-  - date: "2026-11-13"
-    title: "Clearer warnings on three specialist designs"
-    text: "Clustered trials with a yes/no outcome now say that powertools' formula includes an unexplained 20% safety margin, so it asks for more groups than a simulation needs (28 rather than 24 in a checked example). Three-way regression interactions say that their formula, which treats the predictors as fixed, gives a little more power than real studies get (about 10% more people may be needed). A structural equation model's test of fit no longer starts on the test of exact fit: you choose what the test should do, and showing that a model fits well enough (the test of not-close fit) is listed first. The cross-lagged panel card asks about measurement error: enter your measures' reliability, or assume none, in which case the result says the power is optimistic. A simulated number of studies in a meta-analysis now comes with its interval."
-  - date: "2026-11-13"
-    title: "Mediation and PROCESS models simulate several times faster"
-    text: "Each simulated study in a mediation or moderated mediation (PROCESS) analysis is now tested 3 to 7 times faster, with exactly the same answer: the confidence interval is computed straight from the same random draws, skipping slow bookkeeping in the package that computed it before. A required sample size for these designs, which could take hours, now takes minutes to tens of minutes, depending on the design and computer."

@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 13 November 2026 (specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 13 November 2026 (every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -214,8 +214,9 @@ and automated accessibility checks passed locally for the exercised routes.
   design-finder routes, the draft box and page structure, effect-size
   guidance, speed, whole-study planning, input screens, Labs, docs and
   start-up reading, change notes that no longer need catch-up merges
-  (each pull request writes its own note files; `scripts/close-batch.R`
-  sets the version when a batch closes), Welch's tests by default
+  (each pull request writes its own note files and sets the version with
+  `scripts/close-batch.R` before it merges, so every change on main has
+  a number: `decisions.md`, 13 November 2026), Welch's tests by default
   (Welch's t-test on the two-group card, by formula, Departure 21;
   Welch's F on the one-way ANOVA card, by Levy's approximation as Jan
   and Shieh, 2014, recommend, simulated on request, Departure 22), small
