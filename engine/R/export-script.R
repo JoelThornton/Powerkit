@@ -64,7 +64,9 @@ export_script <- function(spec, result, file = NULL) {
     } else {
       pwr_script(spec, result)
     },
-    pwrss = if (mediation_joint_test(spec)) {
+    pwrss = if (rmcorr_test(spec)) {
+      rmcorr_script(spec, result)
+    } else if (mediation_joint_test(spec)) {
       mediation_joint_script(spec, result)
     } else if (spec$design == "generic_test") {
       generic_script(spec, result)
@@ -313,6 +315,10 @@ design_description <- function(spec) {
       "planned comparison of %s across the %d groups of %s (%s), with weights %s; t test of the contrast",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
       paste(format_number(as.numeric(unlist(spec$target_test$weights))), collapse = ", ")
+    ),
+    "basic_test/repeated_measures_correlation" = sprintf(
+      "repeated-measures correlation: do %s and %s go together within people, each measured %s times?",
+      label("X"), label("Y"), spec$population$measurements
     ),
     "basic_test/one_variance" = sprintf(
       "chi-square test of one variance: is the variance of %s different from a fixed value?",
@@ -1105,6 +1111,56 @@ variance_script <- function(spec, result) {
     "}",
     "",
     pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# The repeated-measures correlation (backend-rmcorr.R): pwrss's exact
+# distribution of r at the effective sample size N(k - 1) + 1.
+rmcorr_script <- function(spec, result) {
+  inputs <- rmcorr_inputs(spec)
+  goal <- spec$goal
+  v <- spec$variables
+  alternative <- if (inputs$alternative == "two_sided") "two.sided" else "one.sided"
+  goal_lines <- switch(
+    goal$type,
+    sensitivity = c(
+      "# Smallest detectable correlation ----",
+      "# pwrss has no solver for r, so it is searched with power_at(), as powerkit does.",
+      sprintf("direction <- %s # the sign of the correlation the test looks for", r_code(sign(result$sensitivity$effect))),
+      "r_found <- uniroot(function(r) power_at(n_total, direction * r) - target_power,",
+      "  lower = 1e-9, upper = 1 - 1e-9, tol = 1e-10)$root * direction",
+      "power <- power_at(n_total, r_found)",
+      "cat(sprintf(\"Smallest detectable r_rm with n = %s: %.4f\\n\", n_total, r_found))",
+      "",
+      "reproduced <- list(effect = r_found, power = power)",
+      sprintf("powerkit_result <- list(effect = %s, power = %s)", r_code(result$sensitivity$effect), r_code(result$sensitivity$power)),
+      ""
+    ),
+    pwr_goal_section(spec, result)
+  )
+  c(
+    script_header(spec, result, "pwrss", inputs$description),
+    "library(pwrss)",
+    "",
+    "# Inputs ----",
+    sprintf("r_rm <- %s # repeated-measures correlation of %s and %s within people", r_code(inputs$r), comment_text(v$X$label), comment_text(v$Y$label)),
+    sprintf("measurements <- %s # times each person is measured on both scores (k)", r_code(inputs$k)),
+    goal_inputs(spec, result),
+    "",
+    "# The repeated-measures correlation (Bakdash and Marusich, 2017; the rmcorr",
+    "# package) is tested with N(k - 1) - 1 degrees of freedom for N people, so",
+    "# its power is a Pearson correlation's at the effective sample size",
+    "# N(k - 1) + 1, here from the exact distribution of r.",
+    "power_at <- function(n_people, r = r_rm) {",
+    "  power.exact.onecor(",
+    "    rho = if (r == 0) .Machine$double.eps else r, null.rho = 0,",
+    "    n = n_people * (measurements - 1) + 1, alpha = alpha,",
+    sprintf("    alternative = %s, verbose = 0", r_code(alternative)),
+    "  )$power",
+    "}",
+    "",
+    goal_lines,
     comparison_section()
   )
 }

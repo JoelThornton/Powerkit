@@ -1,0 +1,36 @@
+{
+  "spec_version": "0.1",
+  "design": "basic_test",
+  "template": "repeated_measures_correlation",
+  "variables": {
+    "X": {
+      "type": "continuous",
+      "label": "Hours slept the night before"
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Mood that day"
+    }
+  },
+  "population": {
+    "metric": "correlation",
+    "r": 0.2,
+    "measurements": 3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a within-person correlation of .2 between sleep and next-day mood is the smallest that would matter for advice to participants."
+  },
+  "target_test": {
+    "effect": "correlation",
+    "method": "rmcorr",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "sample_size",
+    "power": 0.8
+  },
+  "options": {
+    "seed": 20261113
+  }
+}

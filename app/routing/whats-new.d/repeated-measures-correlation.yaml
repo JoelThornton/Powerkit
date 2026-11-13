@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-13"
+    title: "Within-person (repeated-measures) correlations"
+    text: "powerkit now plans a repeated-measures correlation: two scores measured together on several occasions, such as sleep and mood in a diary study, where the question is whether they rise and fall together within people. Enter the correlation you expect and how many times each person is measured, and powerkit gives the number of people needed, the power, or the smallest correlation you could detect. The design finder reaches it after \"measured more than once\", and searching \"repeated measures correlation\" or \"rmcorr\" finds it."

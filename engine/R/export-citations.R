@@ -92,6 +92,9 @@ refs_path <- function() system.file("citations", "refs.bib", package = "powerkit
 # refs.bib key is cited as the method paper in place of stats_method.
 formula_reference_key <- function(provenance) {
   fun <- provenance$backend_function %||% ""
+  # The repeated-measures correlation: pwrss's exact r at rmcorr's
+  # effective sample size (backend-rmcorr.R).
+  if (identical(provenance$backend, "pwrss") && grepl("effective sample size N(k - 1) + 1", fun, fixed = TRUE)) return("Bakdash2017_rmcorr")
   if (!identical(provenance$backend, "stats")) return(NULL)
   if (grepl("Pillai's V", fun, fixed = TRUE)) "Faul2007_gpower" else if (grepl("Levy's noncentral F", fun, fixed = TRUE)) "Jan2014_welch_anova"
 }

@@ -511,9 +511,17 @@ test_that("JASP's names for analyses powerkit already plans find their cards", {
   expect_true(found("contingency tables", "E6"))
   expect_true(found("A/B test", "E5"))
   expect_true(found("Cochrane meta-analysis", "E61"))
-  expect_true(found("repeated measures correlation", "E41"))
+  expect_true(found("repeated measures correlation", "E76"))
 })
 
 test_that("a whole-study plan with nested data, pairs or many trials says it becomes one analysis", {
   expect_match(tree$guided$single_analysis_note, "one analysis at a time", fixed = TRUE)
+})
+
+test_that("two scores measured together on several occasions reach the repeated-measures correlation", {
+  node <- tree$nodes$r_within
+  targets <- vapply(node$options, function(o) o$`next`, character(1))
+  expect_identical(targets, c("E76", "E41"))
+  expect_identical(tree$nodes$q3_rel$routes$twice, "r_within")
+  expect_identical(tree$nodes$q3_rel$routes$many_conditions, "r_within")
 })
