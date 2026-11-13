@@ -37,6 +37,7 @@ source(file.path("R", "whole-study.R"), local = TRUE)
 source(file.path("R", "project.R"), local = TRUE)
 source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
+source(file.path("R", "study-plans.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "capabilities.R"), local = TRUE)
 source(file.path("R", "selected-evidence.R"), local = TRUE)
@@ -604,6 +605,23 @@ app_css <- "
   .plan-item-tag { display: inline-block; margin-left: 0.5rem; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
     color: var(--pk-blue); background: #e8f1f8; border-radius: 999px; padding: 0.1rem 0.55rem; vertical-align: 0.1em; }
   .plan-item-n { display: flex; flex-direction: column; align-items: flex-end; min-width: 5rem; }
+  /* Study plans (R/study-plans.R): a page of its own, opened from the top bar. */
+  .nav-tabs .nav-link[data-value='Study plans'] { display: none; }
+  .plan-unsaved-dot { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--pk-amber); margin-left: 0.35rem; vertical-align: middle; }
+  .plan-status-unsaved { color: #7a4b00; font-weight: 600; }
+  .plan-status-saved { color: #2f5a35; }
+  .plans-list { list-style: none; padding: 0; }
+  .plans-row { background: #fff; border: 1px solid var(--pk-line); border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; align-items: baseline; }
+  .plans-row-current { border-left: 4px solid var(--pk-navy); }
+  .plans-row-name { font-weight: 700; font-size: 1.05rem; padding: 0; text-align: left; min-height: 44px; }
+  .plans-row-facts { color: #3d4852; }
+  .plans-keep-note { color: #4a3b16; }
+  .plan-title { margin-bottom: 0.25rem; overflow-wrap: anywhere; }
+  .plan-item-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 0.4rem; }
+  .plan-item-controls .plan-role { width: auto; }
+  .plan-note-edit textarea { min-width: 16rem; }
+  .plan-target { display: inline-flex; gap: 0.4rem; align-items: center; }
+  .plan-target select { width: auto; max-width: 18rem; }
   .plan-item-n-value { font-size: 1.6rem; font-weight: 700; line-height: 1; color: var(--pk-navy); font-variant-numeric: tabular-nums; }
   .plan-item-n-unit { font-size: 0.75rem; color: #5a6b85; }
   .plan-remove { color: #5d6875; min-height: 44px; }
@@ -919,7 +937,7 @@ ui <- function(req) fluidPage(
         # The study plan, reachable from every screen once it holds an
         # analysis (11 November 2026): it was offered only under a fresh
         # result, so moving on looked like losing it.
-        uiOutput("study_plan_chip", inline = TRUE),
+        uiOutput("study_plans_chip", inline = TRUE),
         terms_toggle_ui(),
         # On every screen: the Feedback tab adds the screen and answers the visitor is on.
         tags$button(type = "button", class = "btn btn-sm share-page-btn feedback-here-btn",
@@ -941,6 +959,9 @@ ui <- function(req) fluidPage(
       tabPanel(tab_title(labs_tab_title, "Labs"), value = labs_tab_title, div(class = "pt-3", labs_tab)),
       tabPanel(tab_title("Updates", "Updates"), value = "Updates", div(class = "pt-3", whats_new_tab)),
       tabPanel(tab_title("Feedback", "Feedback"), value = "Feedback", div(class = "pt-3", feedback_tab)),
+      # Opened from "Study plans" in the top bar and by ?page=plans, not
+      # from the tab row, so the tabs still fit one row on a phone.
+      tabPanel("Study plans", value = "Study plans", div(class = "pt-3 plans-page", uiOutput("plans_page"))),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
     tags$footer(class = "small text-muted mt-5", "Powerkit helps plan research studies. ",
@@ -995,7 +1016,11 @@ server <- function(input, output, session) {
     plan_opened = NULL,      # guided route: the saved plan just reopened, for its notice
     ws_calc = NULL,          # whole-study simulation: the last run (run_whole_study())
     ws_spec = NULL,          # whole-study simulation: the spec of the last run, for its download
-    study_plan = list()      # the study plan any card can join (plan_entry()), kept until "Start a new plan"
+    plans = list(),          # the study plans, by id (R/study-plans.R)
+    current_plan = NULL,     # the plan results are added to
+    plans_view = NULL,       # the plan open on the Study plans page (NULL: the list)
+    plan_origin = NULL,      # the plan analysis the open result was opened from
+    plan_just_added = NULL   # the result just added or updated, for the bar's message
   )
   # A link to a card (?card=E8; card_from_query(), R/ui.R) opens it as the
   # list of every analysis does, so Back goes to that list.
@@ -1317,8 +1342,9 @@ server <- function(input, output, session) {
       keep_plan_values(calc$route$form_values %||% isolate(current_form_values()))
       # The same result joins the study plan, in place of this analysis's
       # earlier one, so the two plans are one.
-      state$study_plan <- plan_upsert(isolate(state$study_plan),
-        c(plan_entry(tree, state$endpoint, calc, calc$route), list(plan_id = state$plan_id)))
+      plan <- plan_for_adding()
+      plans_put(plan_upsert(plan, c(plan_entry(tree, state$endpoint, calc, calc$route), list(plan_id = state$plan_id))))
+      state$current_plan <- plan$id
     }
   }, ignoreNULL = TRUE)
 
@@ -1848,51 +1874,229 @@ server <- function(input, output, session) {
     current <- !is.null(calc) && calculation_matches_values(calc, current_form_values())
     session$onFlushed(function() session$sendCustomMessage("calculation_current", current), once = TRUE)
   })
+  # Study plans (R/study-plans.R for the plans, R/study-plan.R for one
+  # plan's page and the bar under a result). state$plans holds every plan
+  # by id; state$current_plan is the one results are added to;
+  # state$plans_view is the plan open on the Study plans page (NULL: the
+  # list of plans).
+  plans_put <- function(plan) {
+    plans <- isolate(state$plans)
+    plans[[plan$id]] <- plan
+    state$plans <- plans
+  }
+  plan_get <- function(id) if (is.character(id) && length(id) == 1L) isolate(state$plans)[[id]]
+  # The plans page is a tab of its own, so a calculation running on the
+  # plan tab carries on while it is open.
+  open_plans_page <- function(view = NULL) {
+    state$plans_view <- view
+    updateTabsetPanel(session, "tabs", selected = "Study plans")
+  }
+  # The plan a result is added to: the current plan, or a new one.
+  plan_for_adding <- function(target = NULL) {
+    if (identical(target, "new")) return(new_plan())
+    plan_get(target) %||% plan_get(isolate(state$current_plan)) %||% new_plan()
+  }
   output$study_plan_bar <- renderUI({
     calc <- state$calc
     if (is.null(calc) || !identical(calc$status, "ok")) return(NULL)
     if (!calculation_matches_values(calc, current_form_values())) return(calculation_stale_ui())
     hash <- calc$result$provenance$spec_hash
-    in_plan <- any(vapply(state$study_plan, function(e) identical(e$result$provenance$spec_hash, hash), logical(1)))
-    study_plan_bar_ui(state$study_plan, in_plan, from_guided = identical(state$came_from, "plan") && !is.null(state$plan_id))
+    origin <- state$plan_origin
+    from_plan <- !is.null(origin) && identical(origin$endpoint, state$endpoint) && !is.null(state$plans[[origin$plan]])
+    study_plan_bar_ui(state$plans, state$current_plan, hash,
+      origin = if (from_plan) origin, from_guided = identical(state$came_from, "plan") && !is.null(state$plan_id),
+      just_added = state$plan_just_added)
   })
+  # Another card: a result opened from a plan is now an ordinary one.
+  observeEvent(state$endpoint, {
+    origin <- state$plan_origin
+    if (!is.null(origin) && !identical(origin$endpoint, state$endpoint)) state$plan_origin <- NULL
+    state$plan_just_added <- NULL
+  }, ignoreNULL = FALSE)
   observeEvent(input$plan_add, {
     calc <- state$calc
     if (is.null(calc) || !identical(calc$status, "ok")) return()
     if (!calculation_matches_values(calc, current_form_values())) return()
-    state$study_plan <- c(state$study_plan, list(plan_entry(tree, state$endpoint, calc, calc$route)))
+    plan <- plan_for_adding(input$plan_target)
+    hash <- calc$result$provenance$spec_hash
+    if (plan_has_result(plan, hash)) return()
+    plan <- plan_add_entry(plan, plan_entry(tree, state$endpoint, calc, calc$route))
+    plans_put(plan)
+    state$current_plan <- plan$id
+    state$plan_just_added <- list(plan = plan$id, hash = hash)
   })
-  observeEvent(input$plan_view, {
-    cancel_job()
-    state$screen <- "study_plan"
-    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+  # A result changed after opening it from a plan: replace the plan's
+  # analysis, or add it beside the old one.
+  observeEvent(input$plan_entry_update, {
+    calc <- state$calc; origin <- state$plan_origin
+    if (is.null(calc) || is.null(origin) || !calculation_matches_values(calc, current_form_values())) return()
+    plan <- plan_get(origin$plan)
+    if (is.null(plan)) return()
+    plans_put(plan_update_entry(plan, origin$key, plan_entry(tree, state$endpoint, calc, calc$route)))
+    hash <- calc$result$provenance$spec_hash
+    state$plan_origin$hash <- hash
+    state$plan_just_added <- list(plan = plan$id, hash = hash, updated = TRUE)
   })
-  output$study_plan_chip <- renderUI(study_plan_chip_ui(length(state$study_plan)))
-  outputOptions(output, "study_plan_chip", suspendWhenHidden = FALSE)
-  # The plan is also kept in this browser (localStorage, never sent
-  # anywhere else), so a reload, a dropped connection or a closed tab
-  # does not lose it; a new session brings it back (R/connection.R).
-  observeEvent(state$study_plan, {
-    session$sendCustomMessage("pk_plan_save", study_plan_for_browser(state$study_plan))
-  }, ignoreInit = TRUE)
-  observeEvent(input$pk_saved_plan, {
-    if (length(state$study_plan)) return()
-    entries <- study_plan_from_browser(tree, input$pk_saved_plan)
-    if (is.null(entries)) {
-      session$sendCustomMessage("pk_plan_save", "")
+  observeEvent(input$plan_entry_add_new, {
+    calc <- state$calc; origin <- state$plan_origin
+    if (is.null(calc) || is.null(origin) || !calculation_matches_values(calc, current_form_values())) return()
+    plan <- plan_get(origin$plan)
+    if (is.null(plan)) return()
+    plan <- plan_add_entry(plan, plan_entry(tree, state$endpoint, calc, calc$route))
+    plans_put(plan)
+    hash <- calc$result$provenance$spec_hash
+    state$plan_origin <- NULL
+    state$plan_just_added <- list(plan = plan$id, hash = hash)
+  })
+  # The top bar, and every "See the study plan" link.
+  observeEvent(input$plans_open_page, open_plans_page(NULL))
+  observeEvent(input$plan_view, open_plans_page(isolate(state$current_plan)))
+  observeEvent(input$plans_view_plan, {
+    id <- input$plans_view_plan
+    if (!is.null(plan_get(id))) {
+      state$current_plan <- id
+      open_plans_page(id)
+    }
+  })
+  observeEvent(input$plans_back, state$plans_view <- NULL)
+  # A link to a plan was made (R/share-link.R): the link holds the plan
+  # itself, so it counts as kept.
+  observeEvent(input$share_link_made, {
+    if (!identical(input$share_link_made$kind, "study_plan")) return()
+    plan <- plan_get(isolate(state$plans_view))
+    if (!is.null(plan)) plans_put(plan_mark_saved(plan, "link"))
+  })
+  output$study_plans_chip <- renderUI(study_plans_chip_ui(length(state$plans),
+    any(vapply(state$plans, function(p) length(p$entries) > 0 && plan_unsaved(p), logical(1)))))
+  outputOptions(output, "study_plans_chip", suspendWhenHidden = FALSE)
+  # The page is drawn again only when what it shows changes, not when a
+  # plan is saved or copied as a link (that would replace the share button
+  # while it is making the link): the save status has its own output.
+  plans_page_shown <- reactiveVal(NULL)
+  observe({
+    strip <- function(p) { p$saved_at <- NULL; p$saved_how <- NULL; p$too_large <- NULL; p }
+    view <- state$plans_view %||% ""
+    shown <- if (!is.null(state$plans[[view]])) list(view = view, plan = strip(state$plans[[view]]), n = length(state$plans))
+      else list(view = "", plans = state$plans, current = state$current_plan)
+    if (!identical(shown, isolate(plans_page_shown()))) plans_page_shown(shown)
+  })
+  output$plans_page <- renderUI({
+    shown <- plans_page_shown()
+    req(shown)
+    plan <- isolate(state$plans[[shown$view]])
+    if (is.null(plan)) plans_list_ui(shown$plans, shown$current) else plan_page_ui(plan, shown$n)
+  })
+  output$plan_status <- renderUI({
+    plan <- state$plans[[state$plans_view %||% ""]]
+    if (!is.null(plan)) plan_status_ui(plan)
+  })
+  observeEvent(input$plans_new, {
+    plan <- new_plan()
+    plans_put(plan)
+    state$current_plan <- plan$id
+    state$plans_view <- plan$id
+  })
+  edit_viewed <- function(f) {
+    plan <- plan_get(isolate(state$plans_view))
+    if (!is.null(plan)) plans_put(f(plan))
+  }
+  observeEvent(input$plan_name_save, edit_viewed(function(p) plan_edit(p, name = input$plan_name)))
+  observeEvent(input$plan_description_save, edit_viewed(function(p) plan_edit(p, description = input$plan_description)))
+  observeEvent(input$plan_entry_role, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_role$key, role = input$plan_entry_role$role)))
+  observeEvent(input$plan_entry_note, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_note$key, note = input$plan_entry_note$note)))
+  observeEvent(input$plan_remove, edit_viewed(function(p) plan_remove_entry(p, input$plan_remove)))
+  observeEvent(input$plan_delete, {
+    id <- isolate(state$plans_view)
+    plans <- isolate(state$plans)
+    plans[[id]] <- NULL
+    state$plans <- plans
+    if (identical(state$current_plan, id)) state$current_plan <- NULL
+    state$plans_view <- NULL
+  })
+  observeEvent(input$plans_forget_all, {
+    session$sendCustomMessage("pk_plans_forget_all", list())
+    plans_sent$stamp <- list()
+    state$plans <- list(); state$current_plan <- NULL; state$plans_view <- NULL; state$plan_origin <- NULL
+  })
+  # Opening an analysis again: its card, its saved answers and its saved
+  # result, as a project file opens; nothing is recalculated.
+  observeEvent(input$plan_entry_open, {
+    plan <- plan_get(isolate(state$plans_view))
+    i <- if (!is.null(plan)) plan_entry_index(plan, input$plan_entry_open) else NA
+    if (is.na(i)) return()
+    entry <- plan$entries[[i]]
+    project <- tryCatch(plan_entry_project(entry), error = function(e) NULL)
+    restored <- if (is.null(project)) "This analysis couldn't be opened." else restore_from_project(project$route, tree, forms)
+    if (is.character(restored)) {
+      showNotification(restored, duration = NULL, type = "warning")
       return()
     }
-    state$study_plan <- entries
-    showNotification(sprintf("Your study plan from your last visit is back (%d %s). Open it with \u201cYour study plan\u201d at the top of the page.",
-      length(entries), if (length(entries) == 1) "analysis" else "analyses"), duration = 12, type = "message")
-  }, once = TRUE)
-  observeEvent(input$plan_clear, state$study_plan <- list())
-  observeEvent(input$plan_remove, {
-    i <- suppressWarnings(as.integer(input$plan_remove))
-    if (!is.na(i) && i >= 1 && i <= length(state$study_plan)) state$study_plan <- state$study_plan[-i]
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+    open_in_app(project, restored)
+    state$current_plan <- plan$id
+    state$plan_origin <- list(plan = plan$id, key = entry$key, endpoint = state$endpoint,
+      hash = project$result$provenance$spec_hash, name = plan$name)
+    state$plan_just_added <- NULL
   })
+  # Kept in this browser (localStorage, never sent anywhere else): one key
+  # per plan and an index (R/connection.R), so a reload, a dropped
+  # connection or a closed tab does not lose them. Each plan is written
+  # again only when it has changed.
+  plans_sent <- new.env()
+  plans_sent$stamp <- list()
+  plans_sent$migrated <- NULL
+  observeEvent(list(state$plans, state$current_plan), {
+    plans <- state$plans
+    for (id in setdiff(names(plans_sent$stamp), names(plans))) {
+      session$sendCustomMessage("pk_plan_forget", list(id = id))
+      plans_sent$stamp[[id]] <- NULL
+    }
+    for (id in names(plans)) {
+      p <- plans[[id]]
+      stamp <- list(p$changed, p$saved_at, p$saved_how, p$name, p$description)
+      if (identical(plans_sent$stamp[[id]], stamp)) next
+      plans_sent$stamp[[id]] <- stamp
+      record <- plan_browser_record(p)
+      if (!nzchar(record)) next
+      session$sendCustomMessage("pk_plan_store", list(id = id, record = record,
+        drop_legacy = identical(plans_sent$migrated, id)))
+    }
+    session$sendCustomMessage("pk_plans_index", list(current = state$current_plan, ids = as.list(names(plans))))
+  }, ignoreInit = TRUE)
+  observeEvent(input$pk_plan_stored, {
+    plan <- plan_get(input$pk_plan_stored$id)
+    if (is.null(plan)) return()
+    too_large <- !isTRUE(input$pk_plan_stored$ok)
+    if (!identical(plan$too_large, too_large)) {
+      plan$too_large <- too_large
+      plans_put(plan)
+    }
+  })
+  observeEvent(input$pk_saved_plans, {
+    out <- plans_from_browser(tree, input$pk_saved_plans)
+    if (is.character(input$pk_saved_plans$legacy) && nzchar(input$pk_saved_plans$legacy) && is.null(out$migrated) &&
+        !is.null(plan_from_text(tree, input$pk_saved_plans$legacy))) {
+      # Its analyses are already in a plan: the old copy can go.
+      session$sendCustomMessage("pk_plans_drop_legacy", list())
+    }
+    if (!length(out$plans)) return()
+    plans_sent$migrated <- out$migrated
+    for (id in names(out$plans)) {
+      # Kept as the browser had them, so they aren't written again...
+      p <- out$plans[[id]]
+      plans_sent$stamp[[id]] <- if (!identical(id, out$migrated)) list(p$changed, p$saved_at, p$saved_how, p$name, p$description)
+    }
+    # ...and a plan made in this session before they arrived is kept too.
+    mine <- isolate(state$plans)
+    state$plans <- c(out$plans[setdiff(names(out$plans), names(mine))], mine)
+    if (is.null(isolate(state$current_plan))) state$current_plan <- out$current
+    k <- length(out$plans)
+    showNotification(sprintf("Your study plans from your last visit are back (%d %s). Open them with “Study plans” at the top of the page.",
+      k, if (k == 1) "plan" else "plans"), duration = 12, type = "message")
+  }, once = TRUE)
   observeEvent(input$plan_joint, {
-    entries <- state$study_plan
+    plan <- plan_get(isolate(state$plans_view))
+    entries <- plan$entries %||% list()
     joint <- engine_function("joint_power")
     rho <- suppressWarnings(as.numeric(input$plan_rho))
     out <- if (is.null(joint)) {
@@ -1910,17 +2114,24 @@ server <- function(input, output, session) {
     })
   })
   observeEvent(input$plan_more, {
-    # The next analysis, found by "Help me choose" from the start.
+    # The next analysis, found by "Help me choose" from the start, added
+    # to this plan.
+    if (!is.null(plan_get(isolate(state$plans_view)))) state$current_plan <- isolate(state$plans_view)
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
     state$start <- list(); state$route <- "choose"; state$history <- list(); state$ctx <- list()
     state$skip_screening <- FALSE; state$calc <- NULL
     state$screen <- "aim"
   })
   output$download_study_plan <- downloadHandler(
-    filename = function() study_plan_file_name(),
+    filename = function() plan_file_name(plan_get(isolate(state$plans_view))),
     content = function(file) {
-      write <- engine_function("write_study_plan")
-      write(plan_analyses(state$study_plan), file = file)
-    }
+      plan <- plan_get(isolate(state$plans_view))
+      text <- if (!is.null(plan)) plan_to_text(plan) else ""
+      if (!nzchar(text)) stop("The plan couldn't be saved.")
+      writeLines(text, file, useBytes = TRUE)
+      plans_put(plan_mark_saved(plan, "file"))
+    },
+    contentType = "application/json"
   )
   # Project files: the engine writes and reads them (write_project(),
   # read_project()); the app passes the route and puts the screen back.
@@ -2002,6 +2213,7 @@ server <- function(input, output, session) {
         return()
       }
       cancel_job()
+      updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
       state$from_labs <- FALSE; state$labs_seed <- NULL
       for (name in names(restored)) state[[name]] <- restored[[name]]
       state$plan_opened <- plan_record
@@ -2016,6 +2228,7 @@ server <- function(input, output, session) {
         return()
       }
       cancel_job()
+      updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
       state$calc <- NULL; state$long_spec <- NULL
       state$from_labs <- FALSE; state$labs_seed <- NULL
       for (name in names(restored)) state[[name]] <- restored[[name]]
@@ -2028,11 +2241,16 @@ server <- function(input, output, session) {
       return()
     }
     # A study plan file opens as the plan; anything else as a project.
-    read_plan <- engine_function("read_study_plan")
-    plan <- if (!is.null(read_plan)) tryCatch(read_plan(path), error = function(e) NULL)
+    text <- if (file.exists(path) && file.size(path) <= 5e6) paste(readLines(path, encoding = "UTF-8", warn = FALSE), collapse = "\n") else ""
+    plan <- if (grepl("powerkit-study-plan", text, fixed = TRUE)) plan_from_text(tree, text)
     if (!is.null(plan)) {
-      state$study_plan <- lapply(plan$analyses, function(p) plan_entry_from_project(tree, p))
-      state$screen <- "study_plan"
+      # Added beside the plans already here; never in place of one.
+      out <- plans_open(isolate(state$plans), plan)
+      state$plans <- out$plans
+      state$current_plan <- out$id
+      report(NULL)
+      if (!is.null(out$message)) showNotification(out$message, duration = 15, type = "message")
+      open_plans_page(out$id)
       return()
     }
     read <- engine_function("read_project")
@@ -2055,6 +2273,13 @@ server <- function(input, output, session) {
       output$open_project_message <- renderUI(if (!is.null(problem)) div(class = "alert alert-warning", role = "alert", problem))
     })
   })
+  observeEvent(input$plans_open_file, {
+    # A plan opens on this page; a project or draft on the plan tab. A
+    # problem is shown here, where the file was chosen.
+    open_saved_file(input$plans_open_file$datapath, function(problem) {
+      output$plans_open_message <- renderUI(if (!is.null(problem)) div(class = "alert alert-warning", role = "alert", problem))
+    })
+  })
   observeEvent(input$pk_shared_link, {
     path <- shared_link_file(input$pk_shared_link$text)
     warn <- function(problem) if (!is.null(problem)) showNotification(problem, duration = NULL, type = "warning")
@@ -2072,8 +2297,10 @@ server <- function(input, output, session) {
       } else tryCatch(list(text = engine_function("write_project")(state$calc$spec, state$calc$result, route = state$calc$route)),
         error = function(e) list(problem = "The link couldn't be made. Save the file instead.")),
       study_plan = {
-        text <- study_plan_for_browser(state$study_plan)
-        if (nzchar(text)) list(text = text) else list(problem = "Add an analysis to the plan first.")
+        plan <- plan_get(isolate(state$plans_view))
+        text <- if (!is.null(plan)) plan_to_text(plan) else ""
+        if (nzchar(text) && nchar(text) <= 4e6) list(text = text) else if (nzchar(text)) list(problem = "This plan is too large for a link. Save it to your computer instead.")
+        else list(problem = "Add an analysis to the plan first.")
       },
       guided_plan = share_text_from_file(function(file) {
         if (identical(state$screen, "g_sim")) save_whole_study_values()
@@ -2085,6 +2312,7 @@ server <- function(input, output, session) {
   })
   open_in_app <- function(project, restored, from_browser = FALSE) {
     cancel_job()
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
     state$from_labs <- FALSE; state$labs_seed <- NULL
     state$calc <- NULL
     state$long_spec <- NULL
@@ -2433,7 +2661,7 @@ server <- function(input, output, session) {
   }
   observe({
     req(input$tabs)
-    key <- nav_key(state$screen, state$node, state$endpoint, length(state$history), input$tabs, input$labs_tool)
+    key <- nav_key(state$screen, state$node, state$endpoint, length(state$history), input$tabs, input$labs_tool, state$plans_view)
     restoring <- nav_restore()
     if (!is.null(restoring)) {
       # Tab and tool updates travel back from the browser asynchronously.
@@ -2493,7 +2721,6 @@ server <- function(input, output, session) {
       start = start_ui(tree, isolate(state$start),
         saved_projects = div(class = "saved-projects-grid", open_project_ui(), check_project_ui())),
       check = plan_check_ui(tree, forms, state$checked_project),
-      study_plan = tagList(screen_nav_ui(back = NULL), study_plan_ui(state$study_plan)),
       known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode),
       node = node_ui(tree, state$node, state$history, state$ctx, state$route, isolate(state$bayes_mode)),
       card = tagList(
@@ -2523,7 +2750,7 @@ server <- function(input, output, session) {
         guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
           history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
           results = state$plan_results, shared = state$plan_shared),
-        guided_plan_save_ui(length(state$study_plan))),
+        guided_plan_save_ui(length(state$plans[[state$current_plan %||% ""]]$entries))),
       g_sim = tagList(whole_study_bayes_note(isolate(state$bayes_mode)), {
         ws <- whole_study_screen()
         if (!isTRUE(ws$plan$ok) || is.null(ws$params)) {

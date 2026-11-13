@@ -7,8 +7,13 @@
 #' reproduced on its own.
 #'
 #' @param analyses A list of analyses, each a list with `spec`, and
-#'   optionally `result` and `route`, as for [write_project()].
+#'   optionally `result` and `route`, as for [write_project()]. An analysis
+#'   may also carry `plan_role` (`"primary"`, `"secondary"` or `"check"`)
+#'   and `plan_note` (free text), kept with it in the file.
 #' @param file Path to write to. If `NULL`, the JSON text is returned.
+#' @param id,name,description Optional single strings: the plan's
+#'   identifier, its name and a description of the study. Fields left
+#'   `NULL` are not written, and older versions of powerkit ignore them.
 #'
 #' @return The JSON text, invisibly when written to `file`.
 #' @seealso [read_study_plan()], [write_project()]
@@ -20,7 +25,7 @@
 #' write_study_plan(list(list(spec = spec, result = run_spec(spec))), file = path)
 #' plan <- read_study_plan(path)
 #' unlink(path)
-write_study_plan <- function(analyses, file = NULL) {
+write_study_plan <- function(analyses, file = NULL, id = NULL, name = NULL, description = NULL) {
   if (!is.list(analyses) || length(analyses) == 0) {
     abort_project("A study plan needs at least one analysis.")
   }
@@ -36,20 +41,30 @@ write_study_plan <- function(analyses, file = NULL) {
       if (!is.null(a$result) && !identical(a$result$provenance$spec_hash, hash)) {
         abort_project("A saved analysis's inputs no longer match its result. Calculate it again before saving the plan.")
       }
-      return(list(format = project_format(), format_version = project_format_version(),
+      entry <- list(format = project_format(), format_version = project_format_version(),
         saved = a$saved, powerkit_version = a$powerkit_version, r_version = a$r_version,
         spec = unclass(spec), spec_hash = hash, route = a$route,
-        result = a$result, screen = a$screen))
+        result = a$result, screen = a$screen)
+    } else {
+      entry <- jsonlite::parse_json(write_project(a$spec, a$result, a$route %||% list()), simplifyVector = FALSE)
     }
-    jsonlite::parse_json(write_project(a$spec, a$result, a$route %||% list()), simplifyVector = FALSE)
+    # Assigning NULL leaves an absent field out of the file.
+    entry$plan_role <- plan_text_field(a$plan_role)
+    entry$plan_note <- plan_text_field(a$plan_note)
+    entry
   })
   plan <- list(
     format = study_plan_format(),
     format_version = project_format_version(),
     saved = format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"),
     powerkit_version = as.character(utils::packageVersion("powerkit")),
+    id = plan_text_field(id),
+    name = plan_text_field(name),
+    description = plan_text_field(description),
     analyses = entries
   )
+  # Optional fields: written only when given.
+  for (field in c("id", "name", "description")) if (is.null(plan[[field]])) plan[[field]] <- NULL
   text <- as.character(jsonlite::toJSON(
     plan,
     auto_unbox = TRUE, digits = NA, null = "null", na = "null", pretty = TRUE
@@ -70,7 +85,10 @@ write_study_plan <- function(analyses, file = NULL) {
 #' @param x Path to a study plan file, or its JSON text.
 #'
 #' @return A `powerkit_study_plan`: a list with `analyses` (a list of
-#'   `powerkit_project`s), `saved` and `powerkit_version`.
+#'   `powerkit_project`s), `saved`, `powerkit_version`, `id`, `name` and
+#'   `description` (each `NULL` when the file has none), and `roles` and
+#'   `notes`, character vectors with one element per analysis (`NA` where
+#'   the file has none).
 #' @seealso [write_study_plan()], [read_project()]
 #' @export
 #' @examples
@@ -100,10 +118,22 @@ read_study_plan <- function(x) {
   analyses <- lapply(raw$analyses, function(a) {
     read_project(jsonlite::toJSON(a, auto_unbox = TRUE, digits = NA, null = "null", na = "null"))
   })
+  per_analysis <- function(field) {
+    vapply(raw$analyses, function(a) plan_text_field(a[[field]]) %||% NA_character_, character(1))
+  }
   structure(
-    list(analyses = analyses, saved = raw$saved, powerkit_version = raw$powerkit_version),
+    list(analyses = analyses, saved = raw$saved, powerkit_version = raw$powerkit_version,
+      id = plan_text_field(raw$id), name = plan_text_field(raw$name),
+      description = plan_text_field(raw$description),
+      roles = per_analysis("plan_role"), notes = per_analysis("plan_note")),
     class = "powerkit_study_plan"
   )
 }
 
 study_plan_format <- function() "powerkit-study-plan"
+
+# A plan's optional text field: one string, or NULL (not written).
+plan_text_field <- function(x) {
+  if (is.list(x) && length(x) == 1L) x <- x[[1]]
+  if (is.character(x) && length(x) == 1L && !is.na(x)) x else NULL
+}

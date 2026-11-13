@@ -149,13 +149,14 @@ progress_ui <- function(current) {
 nav_fields <- c("screen", "from_labs", "labs_seed", "start", "route", "node", "ctx", "history",
   "skip_screening",
   "endpoint", "came_from", "form_values", "form_k", "answers", "ticked", "primary", "asks", "rule",
-  "plan_id", "plan_results", "plan_values", "plan_shared", "plan_filled", "checked_project")
+  "plan_id", "plan_results", "plan_values", "plan_shared", "plan_filled", "checked_project", "plans_view")
 
 # What makes one entry differ from the last: the screen, the question or
 # card on it, how many answers were given, and the tab.
-nav_key <- function(screen, node, endpoint, n_answers, tab, labs_tool = "") {
+nav_key <- function(screen, node, endpoint, n_answers, tab, labs_tool = "", plans_view = "") {
   tool <- if (identical(tab, labs_tab_title)) labs_tool %||% "" else ""
-  paste(screen %||% "", node %||% "", endpoint %||% "", n_answers, tab %||% "", tool, sep = "|")
+  view <- if (identical(tab, "Study plans")) plans_view %||% "" else ""
+  paste(screen %||% "", node %||% "", endpoint %||% "", n_answers, tab %||% "", tool, view, sep = "|")
 }
 
 # Page addresses ---------------------------------------------------------------
@@ -164,7 +165,7 @@ nav_key <- function(screen, node, endpoint, n_answers, tab, labs_tool = "") {
 # shared by link. The plan tab is the plain address.
 page_slugs <- function() {
   c(plan = "Plan a power analysis", about = "About", updates = "Updates",
-    labs = labs_tab_title, feedback = "Feedback", maintainer = "For the maintainer: undecided settings")
+    labs = labs_tab_title, feedback = "Feedback", plans = "Study plans", maintainer = "For the maintainer: undecided settings")
 }
 
 # A tab's name: in full, and a short name that phones show so that all

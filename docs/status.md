@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 13 November 2026 (JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 13 November 2026 (several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -323,6 +323,17 @@ and automated accessibility checks passed locally for the exercised routes.
   backend, and R and package versions. The pre-replication notes and the study-planning
   document save as PDF, Word and Markdown. Results link to the Labs tool
   that explains them.
+
+- **Study plans:** several named plans, each with a description, kept
+  in the browser and saved as a file or a link that opens on any
+  computer. "Study plans" in the top bar opens a page of its own
+  (`?page=plans`) listing them; each plan's page gives the largest
+  comparable N, joint power where it can be calculated, and each analysis
+  with a role (primary, secondary, check), a note, and Open, which brings
+  back its card, answers and saved result. Each plan says whether it has
+  been saved to a file, since the browser's copy can be cleared. "Download
+  everything" for a plan and "Plan my whole study" starting a plan are
+  next ([`saving-projects.md`](saving-projects.md), "Study plans").
 
 - **Experimental: whole-study planning.** The guided plan simulates
   several analyses of one study together, so the chance all succeed is
