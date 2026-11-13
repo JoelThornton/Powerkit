@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-13"
+    title: "Search finds analyses by their JASP names"
+    text: "Searching \"I know my analysis\" now finds the cards for analyses that JASP names differently: confirmatory factor analysis and MIMIC models (the latent-variable card), latent growth curves (the longitudinal card), linear and generalised linear mixed models (the multilevel cards), the binomial and A/B tests, contingency tables, and Cochrane and classical meta-analysis. Searching for a repeated-measures correlation finds the card for relationships within people, which powerkit doesn't calculate yet."
+  - date: "2026-11-13"
     title: "Saving a result is clearer"
     text: "A \"Keep this result\" box now sits right under the answer, with the three ways to come back to it: save the project file, copy a link, or add it to your study plan. It says \"Not saved yet\" until you do one of them, and your browser asks before you leave a result you haven't kept. The planning document, R script and citations are under \"Documents for your study\", which says plainly that they don't reopen in powerkit. \"Download everything (.zip)\" gives you all of them with the project file in one go, and you can open that zip from the start screen to carry on. Your last result is also kept in this browser, so closing the tab by accident doesn't lose it."
   - date: "2026-11-13"

@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 13 November 2026 (several named study plans with a page of their own; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 13 November 2026 (several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -11,6 +11,15 @@ powerkit is in development and **not ready for use**: results are not yet
 fully validated ([`validation-log.md`](validation-log.md)). The working
 rules are in `CLAUDE.md`. There is no AI assistant: it was dropped from
 the plan (`decisions.md`, 13 November 2026).
+
+JASP's analyses were reviewed against powerkit's cards (13 November
+2026; `coverage-roadmap.md`, "JASP's analyses"). Those powerkit already
+plans under other names (CFA, MIMIC, latent growth, mixed models, the
+binomial and A/B tests, contingency tables, Cochrane meta-analysis) are
+now found by those names in "I know my analysis". The rest lead the
+queue in the maintainer's order: three small designs, then every card
+that says powerkit can't calculate it yet, then a Bayes factor version
+of every design that can have one, then the remaining JASP analyses.
 
 The cross-lagged panel card runs with a reliability below 1 (13
 November 2026): its check run compares the specified lagged effects with

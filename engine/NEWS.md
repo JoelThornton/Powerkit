@@ -1,3 +1,7 @@
+# powerkit 0.64.0
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.63.0
 
 * Mediation and moderated mediation (power4mome): the Monte Carlo interval
