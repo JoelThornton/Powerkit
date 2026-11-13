@@ -28,7 +28,9 @@ correlation's exact power at the effective sample size N(k − 1) + 1
 question R2 and by search. Validation in progress: the simulation chunk
 `rmcorr` passes; the published example awaits transcription. Next in the
 queue: Yuen's trimmed-means t-tests, then Bland-Altman limits of
-agreement.
+agreement. A tool showing which uncertain input a plan depends on most
+(one-at-a-time ranges and a tornado chart) is queued after the cards
+that can't yet calculate (`next.md` item 29).
 
 The cross-lagged panel card runs with a reliability below 1 (13
 November 2026): its check run compares the specified lagged effects with
