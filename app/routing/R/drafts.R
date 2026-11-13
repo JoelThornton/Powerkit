@@ -81,11 +81,11 @@ saved_time_ui <- function(saved_at) {
 # The offer to continue an unfinished plan, on the plan tab's first
 # screen only (it covered every tab as a dialog until 7 November 2026).
 # "Not now" keeps the draft; only "Discard my draft" deletes it.
-draft_offer_ui <- function(name, saved_at) {
+draft_offer_ui <- function(name, saved_at, with_result = FALSE) {
   div(class = "draft-offer", role = "region", `aria-labelledby` = "draft_offer_title",
     h3(id = "draft_offer_title", class = "h5", "Continue your unfinished plan?"),
     p(sprintf("You were filling in \"%s\", saved ", name), saved_time_ui(saved_at),
-      ". Your answers are kept in this browser."),
+      if (with_result) ". Your answers and the result you calculated are kept in this browser." else ". Your answers are kept in this browser."),
     div(class = "draft-offer-actions",
       actionButton("pk_restore_yes", "Continue my plan", class = "btn-primary"),
       actionButton("pk_restore_later", "Not now", class = "btn-outline-secondary"),
@@ -167,9 +167,10 @@ guided_plan_save_ui <- function(k = 0) {
   div(class = "plan-save mt-3",
     div(class = "nav-buttons",
       download_button("download_guided_plan", "Save this plan", class = "btn btn-outline-primary"),
+      share_link_ui("guided_plan"),
       if (k > 0) actionLink("plan_view", sprintf("See your study plan (%d %s)", k, if (k == 1) "analysis" else "analyses"))),
     if (k > 0) p(class = "small mt-1", "Each analysis you calculate from this plan is also in your study plan, which collects analyses from any card and saves their results in one file."),
-    p(class = "text-muted small mt-1", "A file on your computer: open it later on the start screen, under “Open a saved or shared project”, to carry on where you left off."))
+    p(class = "text-muted small mt-1", "A file on your computer: open it later on the start screen, under “Open a saved or shared project”, to carry on where you left off. Copy a link puts the same inside a link that opens it on any computer; powerkit stores nothing, so anyone with the link can open it."))
 }
 
 # A whole-study specification downloaded from the simulation's result is

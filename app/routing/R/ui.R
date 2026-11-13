@@ -307,14 +307,19 @@ share_page_ui <- function() {
   div(class = "share-page",
     tags$span(class = "share-page-status", role = "status", `aria-live` = "polite"),
     tags$button(type = "button", class = "btn btn-sm share-page-btn", onclick = "pkSharePage(this)",
-      `data-public` = public_address, title = "Copies a link to this page or Labs tool. To share your answers and results, save a project file.", "Copy page link"))
+      `data-public` = public_address, title = "Copies a link to this page or Labs tool. To share your answers and results, use Copy a link beside Save project.", "Copy page link"))
 }
 
 # Each history entry carries its page in the address (?page=...); a link
 # with ?page= opens that page.
 nav_js <- "
   Shiny.addCustomMessageHandler('calculation_current', function(current) {
-    document.querySelectorAll('#download_project, #download_planning_document, #download_planning_docx, #planning_document_button, #planning_document_formats, #plan_add').forEach(function(el) {
+    // Once the result matches the answers, saving the project keeps more
+    // than a draft would, so the draft row (with its own Copy a link) goes:
+    // one Save and one Copy a link on the page, not two of each.
+    document.querySelectorAll('.form-draft-save').forEach(function(el) { el.hidden = !!current; });
+    $(document).trigger('pk:calculation-current', [!!current]);
+    document.querySelectorAll('#download_project, #share_project, #download_planning_document, #download_planning_docx, #planning_document_button, #planning_document_formats, #plan_add').forEach(function(el) {
       el.classList.toggle('disabled', !current);
       el.setAttribute('aria-disabled', current ? 'false' : 'true');
       if (el.tagName === 'BUTTON') el.disabled = !current;

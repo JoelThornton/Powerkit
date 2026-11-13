@@ -340,8 +340,9 @@ Questions about irtpwr 1.0.3, from running it (5 November 2026).
 1. **The `"DIF2PL"` preset stops when only one parameter differs.** With
    one item whose difficulty differs between the groups (one row in the
    hypothesis matrix), `setup.hypothesis(type = "DIF2PL", altpars = ...)`
-   followed by `irtpwr()` stops with "'x' must be an array of at least
-   two dimensions" (4 items, the first 0.4 harder): the preset's `res()`
+   itself stops, before `irtpwr()` is reached, with "'x' must be an array
+   of at least two dimensions" (4 items, the first 0.4 harder; rerun with
+   irtpwr 1.0.3 on 13 November 2026): the preset's `res()`
    computes `colSums(Amat[, 1:(2 * n.items)])`, and with one row the
    subset drops to a vector, so `colSums()` fails. With two or more
    differing parameters it runs. A single item with uniform DIF is the

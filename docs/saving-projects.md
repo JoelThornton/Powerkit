@@ -10,10 +10,79 @@ the app clears any previous calculation and identifies the reopened work
 as an unvalidated draft. Check the answers before calculating or saving a
 validated project. A draft is not evidence a reviewer can check as a result.
 
-This is explicit file-based recovery. Answers are not automatically saved
-to browser storage or an account, so download a draft before closing or
-leaving an unfinished form. Project files with calculated results retain
+This is explicit file-based recovery: download a draft, or copy a link
+to it (below), before closing or leaving an unfinished form. Project files with calculated results retain
 their separate validation and provenance rules.
+
+## Keeping a result: the result screen (13 November 2026)
+
+The result screen separates the files that reopen in powerkit from the
+documents made from a result (`R/keep-result.R`). Before, six equal
+buttons sat at the foot of a long page, with Save project styled like
+Citations, so a visitor could download the planning PDF, think the work
+was saved, and lose it.
+
+- **Keep this result**, at the foot of the answer card: Save project file
+  (the screen's primary button), Copy a link and Add to my study plan.
+  A status reads "Not saved yet" and changes once one of them is used;
+  a result reopened from a file starts as kept.
+- **Documents for your study**, in "Write it up and save it": the
+  planning document, R script, citations and **Download everything
+  (.zip)**, said plainly not to reopen in powerkit. The zip holds the
+  project file, the planning document (Markdown and Word), the R script,
+  the citations, the simulated data set where there is one, and a README
+  naming each file. The project file is written first with no fallback and the finished zip is checked for it, so the download fails rather than give a zip that can't be reopened. **Open a saved or shared project** accepts the zip
+  and opens the one `.powerkit.json` inside it, extracted under its own
+  name into a temporary folder.
+- **Safety nets.** The last current result is kept in the browser's
+  local storage (key `powerkit-last-result`, up to 1.5 MB) beside the
+  autosaved draft; the "Continue your plan?" offer brings the result back
+  when its answers match the draft's, and says it was kept in this
+  browser only. The browser asks before leaving a result that hasn't been
+  kept, while the app is connected.
+- After Calculate, the input screen's draft row (Save unfinished draft
+  and its Copy a link) is hidden while the result matches the answers, so
+  the page has one Save and one Copy a link; it returns when an answer
+  changes.
+
+## Share links (13 November 2026)
+
+**Copy a link**, beside every save button (Save project, Save study plan,
+Save this plan and Save unfinished draft), makes a link that carries the
+same text the button downloads. The text is compressed in the browser
+(CompressionStream, `deflate-raw`, then base64url) and put in the link's
+fragment: `<address>#shared=1.<data>`. Browsers do not send the fragment
+to the server, so the study never appears in the host's request logs,
+and powerkit stores nothing: the link is the file. Opening the link
+unpacks it in the browser, removes it from the address bar and hands the
+text to the same reader and checks as **Open a saved or shared project**
+(`R/share-link.R`, `open_saved_file()` in `app.R`).
+
+- **Size.** A two-group t-test project makes a link of about 4,400
+  characters, a one-analysis study plan about 4,600 (measured 13 November
+  2026). Links over 60,000 characters are refused with a message to save
+  the file, as some email and chat apps break very long links;
+  unpacking stops at 5 MB.
+- **Privacy.** Anyone with the link can open the plan, as with the
+  file; the About page and each save area say so.
+- **Online app.** The public address frames the app (Connect Cloud).
+  Query strings reach the app through the frame (`?page=`, `?card=`);
+  whether the fragment does too could not be checked from the
+  environment this was built in. If it doesn't, links open the start
+  screen on the public address and work on the app's own address and on
+  local installations; the fix would be to read the plan from the query
+  string instead, at the cost of the host's logs seeing it.
+
+**Ruled out for now (13 November 2026).** Accounts with stored projects
+(option (e) below) need a server-side database, an email service and the
+UK GDPR duties of a controller; the paid database plan alone is a
+monthly cost the project can't carry, and a free plan would still bring
+the legal duties and upkeep. Saving to the user's own OSF project was
+considered and dropped: OSF stops new projects from 16 November 2026
+and makes existing ones read-only on 19 February 2027, keeping
+registrations and preprints ([COS, "OSF is
+Changing"](https://www.cos.io/osf-changes), via search, 13 November 2026). Share links give the main
+gain of accounts, a plan on any computer, without either.
 
 ## Historical saving-model decision
 
@@ -95,6 +164,10 @@ user goes, and offers to restore them next time, on the plan tab's first screen 
   address and port, so it is kept only if the port stays the same.
 
 ### (c) Share links that carry the inputs in the address
+
+*Built on 13 November 2026 in the fragment (above), which avoids the
+log exposure and length limit described here for Shiny's query-string
+bookmarking.*
 
 The app's address encodes the inputs, so copying the link shares the
 design. Shiny supports this with `enableBookmarking(store = "url")`; its

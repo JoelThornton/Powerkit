@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 13 November 2026 (the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 13 November 2026 (share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -287,8 +287,16 @@ and automated accessibility checks passed locally for the exercised routes.
   assumes, then "How sure can you be?", the write-up with a methods
   paragraph, and downloads: a project file, an R script that reproduces
   it with the backend alone, citations and, for most designs, a simulated
-  data set. Every result records its spec hash, seed, backend, and R and
-  package versions. The pre-replication notes and the study-planning
+  data set. A "Keep this result" box under the answer holds Save project
+  file, Copy a link and Add to my study plan, with a "Not saved yet"
+  status, a warning before leaving and browser recovery of the last
+  result; the documents sit apart, with a "Download everything" zip that
+  the Open button also reads. "Copy a link" beside each save button puts the same file
+  inside a link's fragment, so a project, study plan or draft opens on
+  any computer with nothing stored and no account
+  ([`saving-projects.md`](saving-projects.md); not yet tried inside
+  Connect Cloud's frame). Every result records its spec hash, seed,
+  backend, and R and package versions. The pre-replication notes and the study-planning
   document save as PDF, Word and Markdown. Results link to the Labs tool
   that explains them.
 
@@ -443,6 +451,9 @@ in [`next.md`](next.md).
 
 ## Working environment
 
+- **Claude Code sessions:** `.claude/settings.json` caps the context
+  window before compaction at 400,000 tokens (`autoCompactWindow`), for
+  every Claude Code session on this repository.
 - **CI:** R CMD check and the engine's tests in three parts when the
   engine, `renv.lock` or the CI setup changed; the app's suite in two
   parts and the browser checks on every pull request; the Windows and
@@ -452,3 +463,6 @@ in [`next.md`](next.md).
   environment's setup script, copies R and the packages from the CI image.
   roxygen2 isn't in the image; `CLAUDE.md` says what to do instead.
 - **Open PRs:** GitHub is the list; this page doesn't duplicate it.
+- **Upstream reports:** the questions in `upstream-questions.md` were
+  rerun on 13 November 2026 for longpower 1.0.27, irtpwr 1.0.3 and
+  semPower 2.2.0; all three still reproduce, and none has been sent yet.
