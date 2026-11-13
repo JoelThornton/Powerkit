@@ -1173,7 +1173,7 @@ welch_levy_script <- function(spec, result) {
     spower_script_inputs(spec),
     goal_inputs(spec, result),
     "",
-    "# Levy (1978), as Jan and Shieh (2014, equation 4) recommend: Welch's W is",
+    "# Levy's approximation, as Jan and Shieh (2014, equation 4) give and recommend: Welch's W is",
     "# close to the noncentral F distribution with g - 1 and (g^2 - 1) / (3 tau)",
     "# df and noncentrality sum(omega (mean - weighted mean)^2), where",
     "# omega = group size / variance. The groups are the same size.",
