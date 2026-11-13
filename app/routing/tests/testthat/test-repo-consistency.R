@@ -271,6 +271,17 @@ test_that("NEWS.md's top heading is the version in DESCRIPTION", {
   expect_identical(grep("^# powerkit ", news, value = TRUE)[1], paste("# powerkit", version))
 })
 
+test_that("no change note is left without a version", {
+  # Every change that reaches main gets a number (decided 13 November 2026):
+  # a pull request that writes a note runs scripts/close-batch.R before it
+  # merges, which files the note under the new version and deletes it.
+  waiting <- basename(c(Sys.glob(file.path(repo_dir, "engine", "news.d", "*.md")),
+    Sys.glob(file.path(repo_dir, "app", "routing", "whats-new.d", "*.yaml"))))
+  expect(length(waiting) == 0, paste0(
+    "These change notes have no version yet: ", paste(waiting, collapse = ", "),
+    ". Run `Rscript scripts/close-batch.R patch` (or `minor` for the first pull request of a batch of features) as the last commit."))
+})
+
 test_that("every engine note waiting for a version is a list of bullets", {
   # The folder stays (its README says what goes there) when no notes wait.
   expect_true(file.exists(file.path(repo_dir, "engine", "news.d", "README")))

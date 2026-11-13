@@ -75,13 +75,15 @@ engine-side change alone will fail the app suite.
   together from one thread or round, so a batch raises it by one however
   many PRs it holds (0.9 is followed by 0.10). Major (first): a big shift,
   such as leaving prototype (1.0.0) or changing what the site runs on; the
-  maintainer's call. Each PR writes its change notes as files of its own
-  (engine/news.d/<topic>.md, app/routing/whats-new.d/<topic>.yaml), and
-  only the PR that finishes a batch sets the number, by running
-  scripts/close-batch.R, which also keeps CITATION.cff and engine/NEWS.md
-  in step (decided 7 November 2026). Never claim a number for work that
-  isn't in the current batch. Rules: docs/adding-a-test.md, "Change notes
-  and version numbers".
+  maintainer's call. Every change that reaches main gets a number of its
+  own (decided 13 November 2026): each PR writes its change notes as files
+  of its own (engine/news.d/<topic>.md, app/routing/whats-new.d/<topic>.yaml)
+  and, as its last commit before merging, runs scripts/close-batch.R
+  (`minor` for the first PR of a batch of features, `patch` otherwise),
+  which sets the version and keeps CITATION.cff and engine/NEWS.md in
+  step. Main never holds notes without a number; test-repo-consistency.R
+  refuses them. Rules: docs/adding-a-test.md, "Change notes and version
+  numbers".
 
 ## Conventions
 - R package in engine/ with roxygen2 docs, testthat 3rd edition, renv for versions.
@@ -177,7 +179,8 @@ to read small.
   by hand.
 - Write the change notes as new files: engine/news.d/<topic>.md for the
   developer notes, and app/routing/whats-new.d/<topic>.yaml (the app's
-  Updates tab, in plain words) for any change users see. Don't edit
-  engine/NEWS.md, whats-new.yaml or the version except through
-  scripts/close-batch.R.
+  Updates tab, in plain words) for any change users see, then give them
+  their version with scripts/close-batch.R as the PR's last commit. Don't
+  edit engine/NEWS.md, whats-new.yaml or the version except through
+  that script.
 - Update docs/status.md (where the project is and what's next) in every PR.

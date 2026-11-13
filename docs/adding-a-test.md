@@ -55,8 +55,8 @@ Every box ticked, in one PR:
    that you wrote one**: that box is on the author, so say in the PR
    description which entry you added.
 7. Its developer note is in a new file of its own in `engine/news.d/`,
-   and the pull request that finishes the batch gives the notes their
-   version with `scripts/close-batch.R` ("Change notes and version
+   and the pull request gives the notes their version with
+   `scripts/close-batch.R` as its last commit ("Change notes and version
    numbers" below; *test:* the version agreement test and the change-note
    checks in `test-repo-consistency.R`).
 8. [`status.md`](status.md) and [`coverage-roadmap.md`](coverage-roadmap.md)
@@ -237,8 +237,8 @@ result screen and the methods paragraph say so.
 - `app/routing/whats-new.d/<topic>.yaml`: the Updates entry, in the words
   a researcher would use. No E-numbers, no "Departure 6".
 - `engine/news.d/<topic>.md`: the developer-facing entry.
-- The version: only in the pull request that finishes the batch, by
-  `scripts/close-batch.R` (below).
+- The version: set by `scripts/close-batch.R` as the pull request's last
+  commit (below). Every pull request that writes a note sets one.
 - [`status.md`](status.md): where the project now is, replacing the old
   entry rather than adding to it.
 
@@ -263,18 +263,20 @@ The number is major.minor.patch, and each part means something:
   wording fix or a corrected default. 0.9.0 becomes 0.9.1.
 - **Minor (middle number): one batch of new features.** A batch is the
   work built and merged together, usually by one thread or in one round of
-  the queue, and it raises the number by one however many pull requests it
-  holds. 0.9 is followed by 0.10, so a high middle number does not mean
+  the queue. Its first pull request raises the middle number by one; the
+  rest of the batch raise the last number, since each is a version of its
+  own. 0.9 is followed by 0.10, so a high middle number does not mean
   powerkit is nearly finished.
 - **Major (first number): a big shift**, such as leaving prototype (1.0.0,
   the release: validated, published values transcribed, and the designs
   the maintainer wants in it) or changing what the site runs on. This is
   the maintainer's call.
 
-In practice, see "Change notes and version numbers" below: notes wait in
-files of their own, and the pull request that finishes a batch sets the
-number once. Never reserve a number ahead for work that isn't in the
-current batch: parallel pull requests that each took their own number are
+Every change that reaches main is a version of its own (decided 13
+November 2026): if the app or engine changed, the number did too, so a
+number somebody quotes always names one state of the code. See "Change
+notes and version numbers" below. Raise the middle number once per batch,
+not once per pull request: parallel pull requests that each raised it are
 how 0.4.0 became 0.8.0 in about a day. Once main moves on to the next
 number, a workflow tags the finished version (`v0.34.1`) and publishes it
 as a GitHub release with its NEWS section (`scripts/tag-releases.sh`);
@@ -299,12 +301,14 @@ Name the files after the change (`welch-default.md`), not the branch, so
 two pull requests never pick the same name. A pull request that changes
 nothing users or developers would notice writes neither.
 
-The pull request that finishes a batch (the last of a thread's queue
-item, or a lone fix) runs, from the repository root:
+Every pull request that writes a note gives it its version before it
+merges (decided 13 November 2026), so main never holds a change without a
+number. Make it the last commit, once the branch has caught up with main,
+from the repository root:
 
 ```sh
-Rscript scripts/close-batch.R minor   # a batch of features: 0.44.0 -> 0.45.0
-Rscript scripts/close-batch.R patch   # fixes only: 0.44.0 -> 0.44.1
+Rscript scripts/close-batch.R minor   # first pull request of a batch of features: 0.44.0 -> 0.45.0
+Rscript scripts/close-batch.R patch   # anything else: 0.44.0 -> 0.44.1
 ```
 
 It sets the number in `engine/DESCRIPTION` and `CITATION.cff`, puts every
@@ -312,13 +316,26 @@ waiting engine note under one `# powerkit X.Y.Z` heading at the top of
 `NEWS.md`, moves every waiting Updates entry to the top of
 `whats-new.yaml`, moves Updates entries more than a month older than the
 newest to `whats-new-archive.yaml` (the Updates tab shows them with the
-rest), and deletes the files it used. Every note waiting on
-main joins that version, including another thread's, which is right:
-they are all in the code that version names. Between closes, results
-record the previous number with their spec hash and seed, so close a
-batch as soon as its last pull request is ready rather than letting notes
-pile up. Since that one pull request is the only one to change the
-version, no other pull request conflicts over it.
+rest), and deletes the files it used.
+
+If main moves on before your pull request merges, its version is taken.
+Merge main in, take main's copies of the version files and bring back
+your notes from before your close commit, then close again:
+
+```sh
+git checkout origin/main -- engine/DESCRIPTION CITATION.cff engine/NEWS.md app/routing/whats-new.yaml
+git checkout <your close commit>^ -- engine/news.d/<topic>.md app/routing/whats-new.d/<topic>.yaml
+Rscript scripts/close-batch.R patch
+```
+
+Add `app/routing/whats-new-archive.yaml` to the first line once main has
+one (the script creates it the first time it archives an entry): git
+refuses the whole command if a named file is missing.
+
+The required checks already make a branch catch up with main before it
+merges, so this costs a merge that was needed anyway.
+`test-repo-consistency.R` refuses a branch that leaves notes without a
+number, so a forgotten close fails the checks rather than reaching main.
 
 The tests check each waiting file (an Updates file has the same shape as
 `whats-new.yaml`; an engine note starts with a bullet) and that

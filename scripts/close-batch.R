@@ -7,7 +7,8 @@
 #   engine/news.d/<topic>.md            developer notes, Markdown bullets
 #   app/routing/whats-new.d/<topic>.yaml  Updates entries, as in whats-new.yaml
 #
-# The pull request that finishes a batch runs this script, which
+# Every pull request that writes a note runs this script as its last commit
+# (decided 13 November 2026: every change on main has a number), which
 #   - sets the new version in engine/DESCRIPTION and CITATION.cff,
 #   - puts every engine/news.d note under one "# powerkit <version>" heading
 #     at the top of engine/NEWS.md,
@@ -18,8 +19,8 @@
 #     file a pull request reads stays short,
 #   - and deletes the note files it used.
 #
-#   Rscript scripts/close-batch.R minor     # 0.44.0 -> 0.45.0 (a batch of features)
-#   Rscript scripts/close-batch.R patch     # 0.44.0 -> 0.44.1 (fixes only)
+#   Rscript scripts/close-batch.R minor     # 0.44.0 -> 0.45.0 (first PR of a batch of features)
+#   Rscript scripts/close-batch.R patch     # 0.44.0 -> 0.44.1 (anything else)
 #   Rscript scripts/close-batch.R amend     # add to the current unmerged batch
 #   Rscript scripts/close-batch.R 1.0.0     # a number the maintainer chose
 #
