@@ -70,8 +70,6 @@ plan_analyses <- function(entries) {
   })
 }
 
-study_plan_file_name <- function() "powerkit-study-plan.powerkit.json"
-
 # The specs of the plan's analyses.
 plan_specs <- function(entries) lapply(entries, function(e) e$spec %||% e$project$spec)
 
@@ -135,84 +133,163 @@ joint_power_difference <- function(design) {
 
 # An analysis calculated from "Plan my whole study" joins the study plan
 # itself, replacing its own earlier result: one plan, not two.
-plan_upsert <- function(entries, entry) {
-  same <- vapply(entries, function(e) identical(e$plan_id, entry$plan_id), logical(1))
-  if (any(same)) {
-    entries[[which(same)[1]]] <- entry
-    entries
-  } else {
-    c(entries, list(entry))
-  }
+plan_upsert <- function(plan, entry, now = Sys.time()) {
+  same <- vapply(plan$entries, function(e) identical(e$plan_id, entry$plan_id), logical(1))
+  if (any(same)) plan_update_entry(plan, plan$entries[[which(same)[1]]]$key, entry, now = now)
+  else plan_add_entry(plan, entry, now = now)
 }
 
-# The plan as text for the browser's own copy ("" for an empty plan or one
-# that can't be written), and back. The same format as "Save study plan".
-study_plan_for_browser <- function(entries, write = engine_function("write_study_plan")) {
-  if (!length(entries) || is.null(write)) return("")
-  text <- tryCatch(write(plan_analyses(entries)), error = function(e) "")
-  if (nchar(text) > 4e6) "" else text
-}
-study_plan_from_browser <- function(tree, text, read = engine_function("read_study_plan")) {
-  if (!is.character(text) || length(text) != 1 || !nzchar(text) || nchar(text) > 4e6 || is.null(read)) return(NULL)
-  plan <- tryCatch(read(text), error = function(e) NULL)
-  if (is.null(plan) || !length(plan$analyses)) return(NULL)
-  lapply(plan$analyses, function(p) plan_entry_from_project(tree, p))
-}
+# A JavaScript string literal for a confirm() or similar in an onclick
+# attribute: any name or text, quotes and all, stays a string.
+js_string <- function(x) as.character(jsonlite::toJSON(x, auto_unbox = TRUE))
 
-# In the top bar on every screen once the plan holds an analysis.
-study_plan_chip_ui <- function(k) {
-  if (k < 1) return(NULL)
+# In the top bar on every screen: the plans page, with how many plans
+# there are and a marker when any has changes not saved to a file.
+study_plans_chip_ui <- function(k, unsaved = FALSE) {
   tags$button(type = "button", class = "btn btn-sm share-page-btn study-plan-chip",
-    title = "The analyses you have added to your study plan",
-    onclick = "Shiny.setInputValue('plan_view', Date.now(), {priority: 'event'})",
-    sprintf("Your study plan (%d)", k))
+    title = "Your study plans: the analyses for each of your studies",
+    onclick = "Shiny.setInputValue('plans_open_page', Date.now(), {priority: 'event'})",
+    if (k > 0) sprintf("Study plans (%d)", k) else "Study plans",
+    if (isTRUE(unsaved)) tagList(tags$span(class = "plan-unsaved-dot", `aria-hidden` = "true"),
+      tags$span(class = "visually-hidden", ", some not saved to a file")))
 }
 
-# Under a result, in "Write it up and save it".
-study_plan_bar_ui <- function(entries, in_plan, from_guided = FALSE) {
-  k <- length(entries)
+# Under a result, in "Keep this result": add it to a plan (choosing which
+# when there are several), or, for a result opened from a plan and then
+# changed, update it there or add it as a new analysis.
+study_plan_bar_ui <- function(plans, current, hash, origin = NULL, from_guided = FALSE, just_added = NULL) {
+  esc_name <- function(id) plans[[id]]$name
+  in_plan <- function(id) !is.null(plans[[id]]) && plan_has_result(plans[[id]], hash)
+  see <- function(id) actionLink("plan_view", "See the study plan")
+  save_note <- function(id) if (!is.null(plans[[id]]) && plan_unsaved(plans[[id]]))
+    span(class = "plan-status-unsaved small", " It is only in this browser until you save it.")
+  if (!is.null(just_added) && identical(just_added$hash, hash) && !is.null(plans[[just_added$plan]])) {
+    return(div(class = "study-plan-bar nav-buttons mt-2",
+      span(class = "study-plan-added", role = "status",
+        sprintf("%s \u201c%s\u201d.", if (isTRUE(just_added$updated)) "Updated in" else "Added to", esc_name(just_added$plan)),
+        save_note(just_added$plan)),
+      see(just_added$plan)))
+  }
+  if (!is.null(origin)) {
+    if (identical(origin$hash, hash)) {
+      return(div(class = "study-plan-bar nav-buttons mt-2",
+        span(class = "study-plan-added", role = "status", sprintf("From your plan \u201c%s\u201d.", esc_name(origin$plan))),
+        see(origin$plan)))
+    }
+    return(div(class = "study-plan-bar nav-buttons mt-2",
+      span(class = "small", sprintf("You opened this analysis from \u201c%s\u201d and changed it.", esc_name(origin$plan))),
+      actionButton("plan_entry_update", "Update it in the plan", class = "btn btn-outline-primary"),
+      actionButton("plan_entry_add_new", "Add it as a new analysis", class = "btn btn-outline-secondary")))
+  }
+  if (from_guided && !is.null(current) && in_plan(current)) {
+    return(div(class = "study-plan-bar nav-buttons mt-2",
+      span(class = "study-plan-added", role = "status",
+        sprintf("This analysis is in your study plan \u201c%s\u201d, with the other analyses of your whole-study plan.", esc_name(current))),
+      see(current)))
+  }
+  if (!is.null(current) && in_plan(current)) {
+    return(div(class = "study-plan-bar nav-buttons mt-2",
+      span(class = "study-plan-added", role = "status", sprintf("Already in \u201c%s\u201d.", esc_name(current))), see(current)))
+  }
+  ids <- names(plans)
+  ordered <- c(intersect(current, ids), setdiff(ids, current))
   div(class = "study-plan-bar nav-buttons mt-2",
-    if (from_guided && in_plan) span(class = "study-plan-added", role = "status",
-      "This analysis is in your study plan, with the other analyses of your whole-study plan.")
-    else if (in_plan) span(class = "study-plan-added", role = "status", "Added to your study plan.")
-    else actionButton("plan_add", "Add this to my study plan", class = "btn btn-outline-primary"),
-    if (k > 0) actionLink("plan_view", sprintf("See your study plan (%d %s)", k, if (k == 1) "analysis" else "analyses")))
+    actionButton("plan_add", "Add this to my study plan", class = "btn btn-outline-primary"),
+    if (length(ids) >= 2) span(class = "plan-target",
+      tags$label(`for` = "plan_target", class = "small", "Add to"),
+      tags$select(id = "plan_target", class = "form-select form-select-sm",
+        onchange = "Shiny.setInputValue('plan_target', this.value)",
+        lapply(ordered, function(id) tags$option(value = id, plans[[id]]$name)),
+        tags$option(value = "new", "A new plan")),
+      tags$script(HTML(sprintf("Shiny.setInputValue('plan_target', %s);", js_string(ordered[[1]]))))))
 }
 
-# The study plan screen: the largest sample size first, then each
-# analysis with its own N, which can be removed.
-study_plan_ui <- function(entries) {
+# Whether a plan has been saved, said where the plan is shown. The
+# browser's copy can be cleared without warning, so a plan that is only
+# there says so.
+plan_status_ui <- function(plan) {
+  if (isTRUE(plan$too_large)) {
+    return(span(class = "plan-status plan-status-unsaved", "This plan is too large to keep in this browser: save it to your computer."))
+  }
+  if (!length(plan$entries)) return(span(class = "plan-status", "No analyses yet."))
+  if (plan_unsaved(plan)) {
+    return(span(class = "plan-status plan-status-unsaved", "Only in this browser: save it to your computer."))
+  }
+  when <- format(plan$saved_at, "%Y-%m-%d %H:%M:%S UTC", tz = "UTC")
+  span(class = "plan-status plan-status-saved",
+    if (identical(plan$saved_how, "link")) "Copied as a link " else "Saved to a file ", saved_time_ui(when), ".")
+}
+
+# The largest comparable requirement among a plan's analyses, or NULL.
+plan_largest_entry <- function(entries) {
   known_n <- function(e) is.numeric(e$n) && length(e$n) == 1L && is.finite(e$n) && e$n > 0
   comparable <- if (plan_counts_compatible(entries) && all(vapply(entries, known_n, logical(1)))) entries else list()
-  largest <- if (length(comparable)) comparable[[which.max(vapply(comparable, function(e) e$n, numeric(1)))]]
-  esc <- function(x) htmltools::htmlEscape(x)
+  if (length(comparable)) comparable[[which.max(vapply(comparable, function(e) e$n, numeric(1)))]]
+}
+
+# One analysis on its plan's page: what it found, its N, its role and
+# note, and Open and Remove.
+plan_item_ui <- function(e, sets = FALSE) {
+  sample <- plan_entry_sample(e)
+  key <- e$key
+  note_id <- paste0("plan_note_", key)
+  tags$li(class = paste("plan-item", if (sets) "plan-item-sets"),
+    div(class = "plan-item-body",
+      tags$strong(class = "plan-item-name", e$label),
+      if (sets) tags$span(class = "plan-item-tag", "Largest comparable requirement"),
+      if (!is.null(e$headline)) p(class = "small", e$headline)
+      else if (!is.null(e$n)) p(class = "small", sprintf("Sample size from the saved result: %s.", whole(e$n))),
+      p(class = "small", sample$note),
+      if (nzchar(e$note %||% "")) p(class = "small plan-item-note", tags$strong("Note: "), e$note),
+      div(class = "plan-item-controls",
+        tags$button(type = "button", class = "btn btn-sm btn-outline-primary",
+          onclick = sprintf("Shiny.setInputValue('plan_entry_open', %s, {priority: 'event'})", js_string(key)),
+          `aria-label` = sprintf("Open %s", e$label), "Open"),
+        tags$label(class = "small", `for` = paste0("plan_role_", key), "Role"),
+        tags$select(id = paste0("plan_role_", key), class = "form-select form-select-sm plan-role",
+          onchange = sprintf("Shiny.setInputValue('plan_entry_role', {key: %s, role: this.value}, {priority: 'event'})", js_string(key)),
+          lapply(names(plan_roles), function(r) tags$option(value = r, selected = if (identical(e$role, r)) NA, plan_roles[[r]]))),
+        tags$details(class = "plan-note-edit",
+          tags$summary(class = "small", if (nzchar(e$note %||% "")) "Edit note" else "Add a note"),
+          tags$label(class = "visually-hidden", `for` = note_id, sprintf("Note on %s", e$label)),
+          tags$textarea(id = note_id, class = "form-control form-control-sm", rows = 2, maxlength = plan_note_max, e$note %||% ""),
+          tags$button(type = "button", class = "btn btn-sm btn-outline-secondary mt-1",
+            onclick = sprintf("Shiny.setInputValue('plan_entry_note', {key: %s, note: document.getElementById(%s).value}, {priority: 'event'})",
+              js_string(key), js_string(note_id)), "Save note")),
+        tags$button(type = "button", class = "btn btn-link btn-sm plan-remove",
+          `aria-label` = sprintf("Remove %s from the plan", e$label),
+          onclick = sprintf("if (confirm('Remove this analysis from your study plan?')) Shiny.setInputValue('plan_remove', %s, {priority: 'event'})", js_string(key)),
+          "Remove"))),
+    if (!is.null(e$n)) div(class = "plan-item-n",
+      tags$span(class = "plan-item-n-value", whole(e$n)),
+      tags$span(class = "plan-item-n-unit", paste(sample$unit, "needed"))))
+}
+
+# A plan's page on the Study plans page: its name and description, the
+# largest comparable sample size, its analyses, and saving.
+plan_page_ui <- function(plan, plans_n = 1L) {
+  entries <- plan$entries
   k <- length(entries)
-  item <- function(e, i) {
-    sets <- !is.null(largest) && identical(e, largest)
-    sample <- plan_entry_sample(e)
-    tags$li(class = paste("plan-item", if (sets) "plan-item-sets"),
-      div(class = "plan-item-body",
-        tags$strong(class = "plan-item-name", e$label),
-        if (sets) tags$span(class = "plan-item-tag", "Largest comparable requirement"),
-        if (!is.null(e$headline)) p(class = "small", e$headline)
-        else if (!is.null(e$n)) p(class = "small", sprintf("Sample size from the saved result: %s.", whole(e$n)))
-        else p(class = "small", "Opened from a saved plan: open it as a project to see its result."),
-        p(class = "small", sample$note)),
-      if (!is.null(e$n)) div(class = "plan-item-n",
-        tags$span(class = "plan-item-n-value", whole(e$n)),
-        tags$span(class = "plan-item-n-unit", paste(sample$unit, "needed"))),
-      tags$button(type = "button", class = "btn btn-link btn-sm plan-remove",
-        `aria-label` = sprintf("Remove %s from the plan", e$label),
-        onclick = sprintf("if (confirm('Remove this analysis from your study plan?')) Shiny.setInputValue('plan_remove', %d, {priority: 'event'})", i), "Remove"))
-  }
+  largest <- plan_largest_entry(entries)
+  esc <- function(x) htmltools::htmlEscape(x)
+  unsaved <- k > 0 && plan_unsaved(plan)
   tagList(
-    h2("Your study plan"),
-    p("Each analysis is powered on its own card. Add every analysis your study's conclusions rest on."),
+    actionLink("plans_back", "‹ All study plans", class = "plans-back"),
+    h2(class = "plan-title", plan$name),
+    tags$details(class = "plan-rename",
+      tags$summary(class = "small", "Rename"),
+      textInput("plan_name", "Name of this plan", value = plan$name, width = "100%"),
+      actionButton("plan_name_save", "Save name", class = "btn btn-sm btn-outline-secondary")),
+    div(class = "plan-description",
+      textAreaInput("plan_description", "About this study (optional)", value = plan$description %||% "", rows = 2, width = "100%",
+        placeholder = "For example the question, the population and the design."),
+      actionButton("plan_description_save", "Save description", class = "btn btn-sm btn-outline-secondary")),
+    p(class = "plan-status-line", plan_status_ui(plan)),
     if (k == 0) div(class = "plan-empty result-card",
-      p(tags$strong("Your plan is empty.")),
+      p(tags$strong("This plan has no analyses yet.")),
       tags$ol(
-        tags$li("Find an analysis with \u201cHelp me choose\u201d or \u201cI know my analysis\u201d, and calculate its sample size."),
-        tags$li("Under the result, press \u201cAdd this to my study plan\u201d."),
+        tags$li("Press “Add an analysis” to find one with “Help me choose”, or use “I know my analysis”, and calculate its sample size."),
+        tags$li("Under the result, press “Add this to my study plan”."),
         tags$li("Do the same for every analysis your conclusions rest on, then save the plan."))),
     if (!is.null(largest)) div(class = "result-hero plan-hero",
       div(class = "result-figure",
@@ -222,8 +299,9 @@ study_plan_ui <- function(entries) {
       p(class = "plan-hero-text", HTML(sprintf(
         "The largest comparable requirement is <strong>N = %s</strong>, for %s. The recorded sample units and design structures match. A common recruitment plan also needs the same population, eligibility, allocation and measurement schedule; the maximum alone does not establish those.",
         whole(largest$n), esc(largest$label))))),
-    if (k > 0) tags$ol(class = "study-plan-list", Map(item, entries, seq_along(entries))),
-    if (k > 1 && !length(comparable)) p(class = "plan-note",
+    if (k > 0) tags$ol(class = "study-plan-list",
+      lapply(entries, function(e) plan_item_ui(e, sets = !is.null(largest) && identical(e$key, largest$key)))),
+    if (k > 1 && is.null(largest)) p(class = "plan-note",
       "These analyses have different or incomplete sample requirements. Their counts are kept separate; there is no single study-wide sample size here. Participants, pairs, items and studies cannot be compared just by taking the largest number. Matching units also need compatible allocation and measurement schedules."),
     if (joint_power_offered(entries)) joint_power_ui(entries)
     else if (joint_power_needs_student(entries)) p(class = "study-plan-joint plan-note",
@@ -231,13 +309,15 @@ study_plan_ui <- function(entries) {
     else if (k >= 2) p(class = "study-plan-joint plan-note",
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
     div(class = "nav-buttons",
-      actionButton("plan_more", "Add another analysis", class = "btn btn-primary"),
-      if (k) download_button("download_study_plan", "Save study plan", class = "btn btn-outline-primary"),
-      if (k) share_link_ui("study_plan"),
-      # Discards every analysis: asked first.
-      if (k) tags$a(href = "#", id = "plan_clear_link", role = "button",
-        onclick = "if (confirm('Start a new plan? This removes every analysis from this one. Save the study plan first if you want to keep it.')) Shiny.setInputValue('plan_clear', Date.now(), {priority: 'event'}); return false;",
-        "Start a new plan")),
-    p(class = "small", "\u201cAdd another analysis\u201d starts \u201cHelp me choose\u201d, which finds the next analysis from your study's description. Save study plan keeps every analysis in one file; open it from the start screen. Copy a link puts the same inside a link that opens the plan on any computer; powerkit stores nothing, so anyone with the link can open it.")
+      actionButton("plan_more", "Add an analysis", class = if (unsaved) "btn btn-outline-primary" else "btn btn-primary"),
+      if (k) download_button("download_study_plan", "Save plan", class = if (unsaved) "btn btn-primary" else "btn btn-outline-primary"),
+      if (k) share_link_ui("study_plan")),
+    p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it."),
+    p(class = "small plan-delete",
+      tags$a(href = "#", role = "button", id = "plan_delete_link",
+        onclick = sprintf("if (confirm(%s)) Shiny.setInputValue('plan_delete', Date.now(), {priority: 'event'}); return false;",
+          js_string(paste0("Delete “", plan$name, "” from this browser?",
+            if (unsaved) " It has not been saved to a file, so it will be gone." else ""))),
+        "Delete this plan"))
   )
 }

@@ -177,3 +177,125 @@ plans_open <- function(plans, incoming, now = Sys.time()) {
   list(plans = plans, id = incoming$id,
     message = sprintf("You already had a different version of this plan, so both are kept: the one you opened is “%s”.", incoming$name))
 }
+
+# The browser's copy of one plan (key powerkit-study-plan:<id>): the plan
+# file's text, with when it changed and when and how it was last saved.
+plan_browser_record <- function(plan, write = engine_function("write_study_plan")) {
+  text <- plan_to_text(plan, write = write)
+  # A plan with no analyses has no file yet (a plan file needs one), so
+  # its name and description are kept on their own.
+  if (!nzchar(text) && length(plan$entries)) return("")
+  num <- function(t) if (is.null(t)) NULL else as.numeric(t)
+  as.character(jsonlite::toJSON(list(format = "powerkit-plan-in-browser", version = 1L,
+    id = plan$id, name = plan$name, description = plan$description %||% "",
+    changed = num(plan$changed), saved_at = num(plan$saved_at), saved_how = plan$saved_how,
+    file = if (nzchar(text)) text),
+    auto_unbox = TRUE, digits = NA, null = "null"))
+}
+
+plan_from_browser_record <- function(tree, record, read, now) {
+  rec <- tryCatch(jsonlite::parse_json(record, simplifyVector = FALSE), error = function(e) NULL)
+  if (!is.list(rec) || !identical(rec$format, "powerkit-plan-in-browser")) return(NULL)
+  if (is.character(rec$file) && nzchar(rec$file)) {
+    plan <- plan_from_text(tree, rec$file, read = read, now = now)
+    if (is.null(plan)) return(NULL)
+  } else {
+    if (!is.character(rec$id) || !grepl("^[0-9a-f]{16}$", rec$id)) return(NULL)
+    plan <- new_plan(rec$name, now = now)
+    plan$id <- rec$id
+    plan$description <- plan_clean_text(rec$description %||% "", plan_description_max)
+  }
+  time <- function(x) if (is.numeric(x) && length(x) == 1L) as.POSIXct(x, origin = "1970-01-01", tz = "UTC")
+  plan$changed <- time(rec$changed) %||% now
+  plan$saved_at <- time(rec$saved_at)
+  plan$saved_how <- if (!is.null(plan$saved_at) && isTRUE(rec$saved_how %in% c("file", "link"))) rec$saved_how
+  plan
+}
+
+# Everything the browser kept, read once a session starts: the index, each
+# plan's record and, from before plans had names, the single plan. A record
+# that can't be read is left out; the others are kept. `migrated` is the id
+# of the plan made from the old single plan, if one was made.
+plans_from_browser <- function(tree, saved, read = engine_function("read_study_plan"), now = Sys.time()) {
+  plans <- list()
+  migrated <- NULL
+  if (!is.list(saved)) return(list(plans = plans, current = NULL, migrated = NULL))
+  ids <- unlist(saved$index$ids %||% names(saved$records), use.names = FALSE)
+  for (id in ids) {
+    record <- saved$records[[id]]
+    if (!is.character(record)) next
+    plan <- plan_from_browser_record(tree, record, read, now)
+    if (!is.null(plan)) plans[[plan$id]] <- plan
+  }
+  legacy <- saved$legacy
+  if (is.character(legacy) && length(legacy) == 1L && nzchar(legacy)) {
+    moved <- plans_migrate_legacy(tree, legacy, read = read, now = now)
+    hashes <- function(p) vapply(p$entries, plan_entry_hash, character(1))
+    if (!is.null(moved) && !any(vapply(plans, function(p) identical(hashes(p), hashes(moved)), logical(1)))) {
+      plans[[moved$id]] <- moved
+      migrated <- moved$id
+    }
+  }
+  current <- saved$index$current
+  if (!is.character(current) || !current %in% names(plans)) current <- if (length(plans)) names(plans)[[length(plans)]]
+  list(plans = plans, current = current, migrated = migrated)
+}
+
+# The file name for "Save plan": the plan's name, made safe for a file.
+plan_file_name <- function(plan) {
+  slug <- tolower(gsub("[^A-Za-z0-9]+", "-", plan$name %||% ""))
+  slug <- substr(gsub("^-+|-+$", "", slug), 1L, 60L)
+  slug <- gsub("-+$", "", slug)
+  sprintf("powerkit-%s.powerkit.json", if (nzchar(slug)) slug else "study-plan")
+}
+
+# An analysis in a plan as a project, to open on its card: its own project
+# when it came from a file, or one written from its spec, result and route.
+plan_entry_project <- function(entry, write = engine_function("write_project"), read = engine_function("read_project")) {
+  if (!is.null(entry$project)) return(entry$project)
+  read(write(entry$spec, entry$result, route = entry$route %||% list()))
+}
+
+# The Study plans page: every plan kept in this browser, and the ways to
+# start or open one.
+plans_list_ui <- function(plans, current = NULL) {
+  unsaved <- Filter(function(p) length(p$entries) > 0 && plan_unsaved(p), plans)
+  row <- function(plan) {
+    k <- length(plan$entries)
+    largest <- plan_largest_entry(plan$entries)
+    tags$li(class = paste("plans-row", if (identical(plan$id, current)) "plans-row-current"),
+      tags$button(type = "button", class = "btn btn-link plans-row-name",
+        onclick = sprintf("Shiny.setInputValue('plans_view_plan', %s, {priority: 'event'})", js_string(plan$id)),
+        plan$name),
+      span(class = "plans-row-facts small",
+        paste(c(if (k == 1) "1 analysis" else sprintf("%d analyses", k),
+          if (!is.null(largest)) sprintf("largest comparable N = %s", whole(largest$n))), collapse = " · ")),
+      span(class = "small", plan_status_ui(plan)))
+  }
+  tagList(
+    h2("Study plans"),
+    p(class = "plans-keep-note", "Kept in this browser only, which can be cleared without warning. Save each plan to your computer, or copy its link, to keep it."),
+    if (!length(plans)) div(class = "plan-empty result-card",
+      p(tags$strong("You have no study plans yet.")),
+      p("A study plan keeps the analyses one study rests on: each powered on its own card, with the study's name and description, saved together in one file."),
+      tags$ul(
+        tags$li("Start one here with “New study plan”, then add analyses to it."),
+        tags$li("Or calculate any analysis and press “Add this to my study plan” under its result: a plan is made for it."),
+        tags$li("“Plan my whole study”, on the start screen, plans several analyses of one study together."))),
+    if (length(plans)) tags$ul(class = "plans-list", lapply(rev(plans), row)),
+    div(class = "nav-buttons",
+      actionButton("plans_new", "New study plan", class = "btn btn-primary")),
+    div(class = "open-project mt-3",
+      fileInput("plans_open_file", "Open a saved plan", accept = c(".json", "application/json", ".zip", "application/zip"),
+        buttonLabel = "Choose file…", placeholder = "a .powerkit.json file"),
+      uiOutput("plans_open_message")),
+    if (length(plans)) p(class = "small plans-forget",
+      tags$a(href = "#", role = "button", id = "plans_forget_link",
+        onclick = sprintf("if (confirm(%s)) Shiny.setInputValue('plans_forget_all', Date.now(), {priority: 'event'}); return false;",
+          js_string(paste0("Remove every study plan from this browser?",
+            if (length(unsaved)) sprintf(" %d %s not been saved to a file and will be gone.", length(unsaved),
+              if (length(unsaved) == 1) "plan has" else "plans have") else ""))),
+        "Remove every plan from this browser"),
+      " (for a shared computer).")
+  )
+}
