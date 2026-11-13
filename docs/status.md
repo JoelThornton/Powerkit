@@ -43,7 +43,7 @@ are in: clustered yes/no outcomes show powertools' unsourced factor 1.2
 as Known difference 16, the three-way interaction's fixed-model formula
 shows its gap from simulated studies as Known difference 17, the SEM
 test of fit has no preselected test (not-close fit listed first), the
-cross-lagged panel card asks for the reliability, and a simulated
+cross-lagged panel card asks whether to enter the reliability or assume no measurement error (then the result says power is optimistic), and a simulated
 meta-analysis's number of studies shows its interval. Whether to change
 the clustered yes/no and three-way methods is a queue item for the
 maintainer (`next.md`).

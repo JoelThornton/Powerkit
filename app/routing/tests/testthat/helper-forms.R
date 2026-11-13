@@ -81,7 +81,7 @@ form_examples <- list(
                level_change = "-3", slope_change = "0", sigma = "2.5", rho = "0.4", its_method = "gls_reml"), closing_ok),
   E74 = c(list(X_label = "Stress", Y_label = "Sleep problems", waves = "4", riclpm_effect = "cross_lagged_xy", constraints = "none",
                cross_lagged_xy = "0.15", cross_lagged_yx = "0.1", autoregressive_x = "0.4", autoregressive_y = "0.3",
-               icc = "0.5", ri_correlation = "0.3", within_correlation = "0.3", reliability = "1", alternative = "two_sided"), closing_ok),
+               icc = "0.5", ri_correlation = "0.3", within_correlation = "0.3", reliability_known = "perfect", alternative = "two_sided"), closing_ok),
   E73 = c(list(Y_label = "Wellbeing questionnaire", factors = "3", items_per_factor = "5", loading = "0.6", factor_correlation = "0.3",
                congruence = "0.95"), closing_ok),
   E71 = c(list(G_label = "Language version", G_level1 = "English", G_level2 = "Spanish", Y_label = "Reading test",

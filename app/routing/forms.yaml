@@ -3359,9 +3359,14 @@ forms:
           - {id: ri_correlation, label: "Correlation between people's stable levels of X and Y", type: number, path: population.ri_correlation, required: true, min_exclusive: -1, max_exclusive: 1}
           - {id: within_correlation, label: "Correlation between X and Y at the same wave, within people", type: number, path: population.within_correlation, required: true, min_exclusive: -1, max_exclusive: 1,
              help: "How a person's ups and downs in X and Y go together at the same wave. powRICLPM keeps it the same at every wave."}
+          - {id: reliability_known, label: "Measurement error in the scores", type: select, required: true,
+             choices: {known: "Enter the measures' reliability (recommended)", perfect: "Assume no measurement error (power will be optimistic)"},
+             sets: {perfect: [{path: population.reliability, value: 1}]},
+             default_source: "Not filled in for you, because almost no measure is perfectly reliable (for reference: powRICLPM assumes no measurement error, powRICLPM(reliability = 1))",
+             help: "Real scores contain measurement error, which lowers power and makes the lagged effects look smaller. Most published scales report a reliability (alpha or omega); use the value from samples like yours."}
           - {id: reliability, label: "Each score's reliability", type: number, path: population.reliability, required: true, min: 0.5, max: 1,
-             default_source: "Not filled in for you, because almost no measure is perfectly reliable (for reference: powRICLPM's default is 1, no measurement error, powRICLPM(reliability = 1))",
-             help: "From the measure's reported reliability (for example its alpha or omega in samples like yours). Below 1, measurement error is added to the simulated scores, and the model, which doesn't separate it out, is fitted as usual: power falls and the lagged effects are underestimated. Enter 1 only to see the power if there were no measurement error."}
+             shown_if: {field: reliability_known, is: known},
+             help: "For example the measure's alpha or omega in samples like yours. Below 1, measurement error is added to the simulated scores, and the model, which doesn't separate it out, is fitted as usual: power falls and the lagged effects are underestimated."}
 
   # Latent profile analysis (Spower simulation of powerkit's experiment
   # around mclust): the chance the BIC finds the right number of profiles.

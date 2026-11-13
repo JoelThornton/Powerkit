@@ -3277,3 +3277,13 @@ test_that("a simulated number of studies states its interval (review finding M-1
   result$n_required <- list(n = 70, lower = 70, upper = 70)
   expect_false(grepl("interval", meta_sentences(spec, result)[["detail"]]))
 })
+
+test_that("the cross-lagged panel asks about measurement error, and says power is optimistic without it (M-14)", {
+  fields <- form_fields(form_groups(forms, "E74"))
+  perfect <- build_spec(forms, "E74", fields, form_examples$E74)
+  expect_equal(perfect$population$reliability, 1)
+  expect_match(planning_warning_notes(perfect), "no measurement error", fixed = TRUE)
+  known <- build_spec(forms, "E74", fields, modifyList(form_examples$E74, list(reliability_known = "known", reliability = "0.8")))
+  expect_equal(known$population$reliability, 0.8)
+  expect_false(any(grepl("no measurement error", planning_warning_notes(known), fixed = TRUE)))
+})
