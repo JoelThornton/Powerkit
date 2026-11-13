@@ -107,3 +107,10 @@ test_that("Copy a link says what to do when there is nothing to share yet", {
     expect_match(sent[["pk_share_link"]]$problem, "Save the file instead", fixed = TRUE)
   })
 })
+
+test_that("a current result hides the draft row, so the page has one Copy a link", {
+  expect_match(nav_js, "querySelectorAll('.form-draft-save')", fixed = TRUE)
+  expect_match(nav_js, "el.hidden = !!current", fixed = TRUE)
+  app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(app, "current <- !is.null(calc) && calculation_matches_values(calc, current_form_values())", fixed = TRUE)
+})

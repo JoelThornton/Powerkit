@@ -314,6 +314,10 @@ share_page_ui <- function() {
 # with ?page= opens that page.
 nav_js <- "
   Shiny.addCustomMessageHandler('calculation_current', function(current) {
+    // Once the result matches the answers, saving the project keeps more
+    // than a draft would, so the draft row (with its own Copy a link) goes:
+    // one Save and one Copy a link on the page, not two of each.
+    document.querySelectorAll('.form-draft-save').forEach(function(el) { el.hidden = !!current; });
     document.querySelectorAll('#download_project, #share_project, #download_planning_document, #download_planning_docx, #planning_document_button, #planning_document_formats, #plan_add').forEach(function(el) {
       el.classList.toggle('disabled', !current);
       el.setAttribute('aria-disabled', current ? 'false' : 'true');

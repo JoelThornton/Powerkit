@@ -1820,8 +1820,10 @@ server <- function(input, output, session) {
   # The study plan any card can join (R/study-plan.R).
   observe({
     calc <- state$calc
-    if (is.null(calc) || !identical(state$screen, "form")) return()
-    current <- calculation_matches_values(calc, current_form_values())
+    if (!identical(state$screen, "form")) return()
+    # With no result yet the draft row stays; with a current result it
+    # gives way to the result's own Save project and Copy a link.
+    current <- !is.null(calc) && calculation_matches_values(calc, current_form_values())
     session$onFlushed(function() session$sendCustomMessage("calculation_current", current), once = TRUE)
   })
   output$study_plan_bar <- renderUI({
