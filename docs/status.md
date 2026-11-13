@@ -26,9 +26,10 @@ factorial cards still take only their tables.
 Results come sooner (12 November 2026): the spare R process prepares
 the spec checker and Superpower before a calculation needs them, and an
 ANOVA's sample size is shown before its 80/90/95% comparison table,
-which fills in after it. Welch's ANOVA, the one-way default, is still
-simulated (about 11 seconds locally); a formula for it is `next.md`
-item 24.
+which fills in after it. Welch's ANOVA, the one-way default, is worked
+out by Levy's approximation as Jan and Shieh (2014) recommend (13
+November 2026), so its answer is instant; the simulation stays as an
+option on the card (`decisions.md`, 13 November 2026).
 
 The moderated regression cards' result screen, which stopped with an
 error for the sample size and power since 10 November, shows its result
@@ -196,7 +197,8 @@ and automated accessibility checks passed locally for the exercised routes.
   (each pull request writes its own note files; `scripts/close-batch.R`
   sets the version when a batch closes), Welch's tests by default
   (Welch's t-test on the two-group card, by formula, Departure 21;
-  Welch's F on the one-way ANOVA card, simulated, Departure 22), small
+  Welch's F on the one-way ANOVA card, by Levy's approximation as Jan
+  and Shieh, 2014, recommend, simulated on request, Departure 22), small
   telescopes for replications (0.47.2: d33 at the original study's own
   significance level, the power if the true effect is small but not
   zero, and wording that says what a result below d33 does and doesn't
@@ -271,7 +273,7 @@ and automated accessibility checks passed locally for the exercised routes.
   R-squared change; safeguard power for an effect from one study or a
   pilot, or small telescopes for a replication (Simonsohn, 2015); the
   smallest detectable effect on the t-tests, the correlation,
-  proportions, the ANOVAs (Welch's F by simulation), regression and the
+  proportions, the ANOVAs (Welch's F by formula), regression and the
   clustered design (the rest is `next.md` item 9). Results show the critical effect size for the
   t-tests (Student's) and the correlation.
 

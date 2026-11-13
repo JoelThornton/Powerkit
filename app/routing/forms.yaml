@@ -1990,7 +1990,7 @@ forms:
                        bayes_factor: "Bayes factor ANOVA"},
              sets: {t_test: [{path: target_test.effect, value: pairwise}]},
              default: welch_f, default_source: "Welch's F, as Delacre, Leys, Mora and Lakens (2019) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses little power when they don't. G*Power and Superpower plan for the classical F test",
-             choice_notes: {bayes_factor: "Uses the default analysis prior and equal groups; choose the evidence threshold and prior settings below to match the planned Bayesian analysis.", kruskal_wallis: "Rank-based analysis, simulated; power depends on the score shape you choose.", t_test: "Simulates the selected pairwise comparison and applies the adjustment chosen below across all pairs.", welch_f: "No package has a formula for Welch's F's power, so powerkit simulates it (Spower, stats::oneway.test()): a sample size takes up to a minute. With one SD for every group it needs only a few more people than the classical F test.",
+             choice_notes: {bayes_factor: "Uses the default analysis prior and equal groups; choose the evidence threshold and prior settings below to match the planned Bayesian analysis.", kruskal_wallis: "Rank-based analysis, simulated; power depends on the score shape you choose.", t_test: "Simulates the selected pairwise comparison and applies the adjustment chosen below across all pairs.", welch_f: "Its power is worked out by formula (Levy's approximation, which Jan and Shieh, 2014, found within 1 percentage point of simulation), so the answer comes at once; you can choose a simulation instead below. With one SD for every group it needs only a few more people than the classical F test.",
                             anova_f: "Choose the classical F test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or an ANOVA that is one part of a larger model assuming equal spreads. Reporting Welch's F beside it is good practice. Its power is worked out exactly (Superpower), with no simulation."}}
           - {id: comparison, label: "The pair you'll compare: two groups' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
              shown_if: {field: test_version, is: t_test},
@@ -2017,6 +2017,13 @@ forms:
          shown_if: {field: test_version, is: anova_f},
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
+      # Welch's F: Levy's approximation by default, Spower's simulation on
+      # request (13 November 2026).
+      - {id: welch_f_method, label: "How power is worked out", type: select, path: options.method, optional: true,
+         shown_if: {field: test_version, is: welch_f},
+         choices: {exact: "Formula (Levy's approximation, Jan and Shieh 2014): instant, no simulation noise", simulation: "Simulation (Spower, stats::oneway.test()): repeat studies under the specified population; slower"},
+         default: exact, default_source: "Levy's noncentral F approximation to Welch's F, which Jan and Shieh (2014) recommend for power and sample size after finding it within .01 of simulated power; no package powerkit uses has a formula for Welch's F",
+         help: "Both plan for the same test, Welch's F. The formula is an approximation that is very close to simulation; choose the simulation to check it, or to have the answer come from repeated studies."}
 
   # One-way repeated measures (27 October 2026): one within-participants
   # factor, one SD and one correlation for every pair of conditions, so

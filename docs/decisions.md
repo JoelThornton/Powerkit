@@ -3081,3 +3081,27 @@ Welch's ANOVA, the default for one-way ANOVA, is simulated (about 11
 seconds here for a sample size) because no package has a formula for its
 power. A published approximation could make it instant, but that is a
 method choice and is queued, not made here.
+
+### Welch's ANOVA by Levy's approximation, 13 November 2026
+
+Welch's F, the one-way ANOVA card's default test (Departure 22), was
+simulated with Spower because no package powerkit uses gives its power
+by formula: about 11 seconds for a sample size locally and several times
+that online, with Monte Carlo error. Delacre, Leys, Mora and Lakens
+(2019) give Welch's statistic and degrees of freedom but study power by
+simulation only. Jan and Shieh (2014) compare two published
+approximations to Welch's F's distribution under the alternative, Levy's
+(1978) noncentral F and Luh and Guo's (2011), across mean patterns,
+variance patterns and group sizes, find Levy's within .01 of simulated
+power in every case, and recommend it for power and sample size, with
+R code in their appendices. powerkit now uses it by default
+(`backend-welch-anova.R`), under CLAUDE.md's rule for a closed-form
+result from a published source where no package has one. It reproduces
+the paper's Levy powers (Tables 1 and 2) to four decimals and the
+paper's equal-group sample sizes, and agrees with Spower's simulation
+and with separately generated `stats::oneway.test()` studies within .01
+plus Monte Carlo error. The simulation stays available as "How power is
+worked out: Simulation" on the card (`options > method`), for anyone who
+wants the answer from repeated studies. The test planned for is the
+same, so this is not a departure from the established tools (G*Power and
+Superpower have no Welch's F).

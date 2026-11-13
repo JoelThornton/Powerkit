@@ -147,7 +147,8 @@ spec_advice <- function(spec) {
 uses_simulation <- function(spec) {
   # Welch's t-test too is worked out by pwrss's formula unless simulation is
   # requested (8 November 2026: the formula and a simulation agree, and the
-  # formula has no random error).
+  # formula has no random error), and so is Welch's F, by Levy's
+  # approximation (13 November 2026; backend-welch-anova.R).
   default <- if (exact_available(spec)) "exact" else "simulation"
   identical(spec$options$method %||% default, "simulation")
 }
@@ -156,9 +157,11 @@ uses_simulation <- function(spec) {
 # ANOVA_exact()), the basic tests pwr covers, and the tests pwrss covers
 # (one proportion, McNemar, R-squared, Fisher's exact test, goodness of
 # fit, two correlations, ANCOVA, contrasts, logistic and Poisson
-# regression, and Welch's t-test).
+# regression, and Welch's t-test), and Welch's F by Levy's approximation
+# (backend-welch-anova.R).
 exact_available <- function(spec) {
-  bayes_factor_test(spec) || minimum_effect_test(spec) || mediation_joint_test(spec) || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
+  bayes_factor_test(spec) || minimum_effect_test(spec) || mediation_joint_test(spec) ||
+    welch_anova(spec) && identical(spec$template, "oneway_between") || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !simulated_count_test(spec) && !robust_regression(spec) &&
     !pairwise_comparison(spec) &&
     !identical(spec$template, "paired_variances") && !proportion_trend(spec) && !(identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec))) && (
@@ -228,7 +231,7 @@ simulation_available <- function(spec) {
 # (backend-variance.R, backend-hotelling.R). The rank
 # tests are simulated with Spower too (backend-spower.R).
 spower_only <- function(spec) {
-  identical(spec$template, "paired_variances") || identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec)) || rank_test(spec) || welch_anova(spec) ||
+  identical(spec$template, "paired_variances") || identical(spec$template, "manova") && (!manova_two_groups(spec) || permanova_test(spec)) || rank_test(spec) ||
     rank_correlation(spec) || proportion_trend(spec) || simulated_count_test(spec) || robust_regression(spec) || continuity_corrected(spec)
 }
 
@@ -399,8 +402,9 @@ check_sd_ratio <- function(spec) {
 # The Cochran-Armitage test of a trend in proportions (stats::prop.trend.test()).
 proportion_trend <- function(spec) identical(spec$template, "proportion_trend")
 
-# Welch's one-way ANOVA (unequal variances), simulated with Spower's
-# p_anova.test(var.equal = FALSE): no package powerkit uses has a formula.
+# Welch's one-way ANOVA (unequal variances): by Levy's noncentral F
+# approximation (backend-welch-anova.R), or simulated with Spower's
+# p_anova.test(var.equal = FALSE) on request.
 welch_anova <- function(spec) identical(spec$target_test$method, "welch_f")
 
 # Pairwise comparisons after a one-way ANOVA (target_test > effect

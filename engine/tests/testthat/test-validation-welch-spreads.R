@@ -51,13 +51,16 @@ test_that("Welch simulation holds alpha with unequal SDs and unequal groups", {
 
 # Welch's one-way ANOVA (the one-way card's default since November 2026):
 # stats::oneway.test() on separately generated groups with each group's SD.
-welch_anova_validation_spec <- function(goal, means = list(10, 11, 13), sds = list(4, 6, 9)) {
+# Its power is worked out by Levy's approximation (backend-welch-anova.R)
+# unless simulation is asked for; these specs ask for it, and the formula
+# is checked against the same independent studies below.
+welch_anova_validation_spec <- function(goal, means = list(10, 11, 13), sds = list(4, 6, 9), method = "simulation") {
   spec <- example_spec("anova_oneway_between")
   spec$target_test$method <- "welch_f"
   spec$population$means <- means
   spec$population$sds <- sds
   spec$goal <- goal
-  spec$options <- list(seed = 2611L, nrep = validation_nrep())
+  spec$options <- if (is.null(method)) list(seed = 2611L) else list(seed = 2611L, nrep = validation_nrep(), method = method)
   validate_spec(spec)
 }
 
@@ -76,6 +79,19 @@ test_that("Welch's F simulation agrees with separately generated and analysed gr
   reference <- independent_welch_anova_rate(c(10, 11, 13), c(4, 6, 9), 30, validation_nrep(), 4127)
   expect_power_near(binomial_estimate(result$curve$power, validation_nrep()), reference,
     reference_nrep = validation_nrep())
+})
+
+test_that("Welch's F by Levy's approximation agrees with separately generated and analysed groups", {
+  skip_unless_full_validation()
+  for (case in list(list(n = 90, sds = c(4, 6, 9)), list(n = 150, sds = c(9, 6, 4)), list(n = 60, sds = c(6, 6, 6)))) {
+    spec <- welch_anova_validation_spec(list(type = "power", n = case$n), sds = as.list(case$sds), method = NULL)
+    result <- run_spec(spec)
+    expect_identical(result$provenance$method, "exact")
+    reference <- independent_welch_anova_rate(c(10, 11, 13), case$sds, case$n / 3, validation_nrep(), 4129)
+    # Jan and Shieh (2014) found the approximation within .01 of simulated
+    # power; the allowance adds the reference's Monte Carlo error.
+    expect_lt(abs(result$curve$power - reference), 0.01 + 3 * sqrt(reference * (1 - reference) / validation_nrep()))
+  }
 })
 
 test_that("Welch's F simulation holds alpha with unequal SDs", {
