@@ -59,3 +59,15 @@ test_that("a correlation of exactly 0, read from JSON as an integer, is passed t
     cl_yx = 0L, within_cor = 0L, reliability = 1L, constraints = "none"))
   expect_false(is.null(est))
 })
+
+test_that("scores measured with error run, pass the check run and lower power", {
+  # The check run uses error-free scores: with reliability below 1 the
+  # fitted model recovers attenuated lagged effects by design.
+  skip_if_not_installed("powRICLPM")
+  perfect <- suppressWarnings(run_quietly(riclpm_test_spec(n = 300, nrep = 200)))
+  for (r in c(0.9, 0.8)) {
+    noisy <- suppressWarnings(run_quietly(riclpm_test_spec(n = 300, nrep = 200, reliability = r)))
+    expect_true(all(noisy$check_run$ok))
+    expect_lt(noisy$curve$power, perfect$curve$power + 0.05)
+  }
+})

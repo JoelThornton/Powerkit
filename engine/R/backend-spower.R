@@ -1171,9 +1171,18 @@ p_riclpm <- function(n, waves, icc, ri_cor, ar_x, ar_y, cl_xy, cl_yx, within_cor
 }
 
 # Check run: one very large study; the four lagged effects' estimates
-# against the population values.
+# against the population values. It is run on error-free scores
+# (reliability 1): with reliability below 1, powRICLPM adds measurement
+# error to the observed scores and the fitted model, which has no
+# measurement part, recovers attenuated lagged effects. That attenuation
+# is the point of the setting (it lowers power), not a translation
+# error, so comparing those estimates with the specified effects would
+# report a working design as broken. The check confirms that the
+# population reaches powRICLPM as specified; the power is then simulated
+# at the reliability entered.
 riclpm_check_run <- function(args, seed) {
   n <- 20000
+  args$reliability <- 1
   est <- call_backend("powRICLPM", with_seed(seed, do.call(riclpm_fit,
     c(args[setdiff(names(args), c("n", "effect", "alternative"))], list(n = n)))))
   if (is.null(est)) stop("The check run's model did not converge.", call. = FALSE)
