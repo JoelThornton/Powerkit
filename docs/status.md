@@ -455,3 +455,6 @@ in [`next.md`](next.md).
   environment's setup script, copies R and the packages from the CI image.
   roxygen2 isn't in the image; `CLAUDE.md` says what to do instead.
 - **Open PRs:** GitHub is the list; this page doesn't duplicate it.
+- **Upstream reports:** the questions in `upstream-questions.md` were
+  rerun on 13 November 2026 for longpower 1.0.27, irtpwr 1.0.3 and
+  semPower 2.2.0; all three still reproduce, and none has been sent yet.
