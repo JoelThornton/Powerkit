@@ -491,6 +491,29 @@ test_that("search on \"I know my analysis\" finds the names researchers type", {
   expect_match(words("E23"), "ancova", fixed = TRUE)
 })
 
+test_that("JASP's names for analyses powerkit already plans find their cards", {
+  # JASP's menus name these analyses differently from powerkit's cards
+  # (review of JASP's analyses, 13 November 2026). The search matches every
+  # word typed against the card's names and search words, as
+  # powerkitFilterAnalyses() does.
+  found <- function(query, id) {
+    ep <- tree$endpoints[[id]]
+    text <- search_text(ep$plain_name, ep$doc_name, ep$technical_name, ep$search_words)
+    words <- strsplit(trimws(search_text(query)), " ")[[1]]
+    all(vapply(words, function(w) grepl(if (nchar(w) <= 2) paste0(" ", w, " ") else w, text, fixed = TRUE), logical(1)))
+  }
+  expect_true(found("confirmatory factor analysis", "E37"))
+  expect_true(found("MIMIC", "E37"))
+  expect_true(found("latent growth", "E35"))
+  expect_true(found("linear mixed model", "E62"))
+  expect_true(found("generalized linear mixed model", "E67"))
+  expect_true(found("binomial test", "E25"))
+  expect_true(found("contingency tables", "E6"))
+  expect_true(found("A/B test", "E5"))
+  expect_true(found("Cochrane meta-analysis", "E61"))
+  expect_true(found("repeated measures correlation", "E41"))
+})
+
 test_that("a whole-study plan with nested data, pairs or many trials says it becomes one analysis", {
   expect_match(tree$guided$single_analysis_note, "one analysis at a time", fixed = TRUE)
 })

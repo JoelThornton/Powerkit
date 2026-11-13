@@ -414,6 +414,61 @@ Stated so they aren't mistaken for gaps.
 | D3 | Purely computational text studies (for example, topic models) | "has no agreed framework; leave it out rather than invent one" | Build guide, section 2 |
 | D4 | Observed (post hoc) power from a study's own estimate, as a justification | Not a planning question; whether to warn or refuse is open | [B1][] (status Out of scope only if the maintainer decides so) |
 
+## JASP's analyses (13 November 2026)
+
+The analyses in JASP's menus that powerkit had no route for were
+checked against its cards. Each is sorted by whether powerkit already plans it (perhaps under another
+name), whether an established planning method exists (a CRAN package or a
+published closed form, as `CLAUDE.md` requires), and how often researchers
+need it. The work is in `next.md` items 1 to 4, in the maintainer's order:
+the small designs, then every card that says powerkit can't calculate it,
+then Bayes factor versions, then the rest. A package named below as
+"needs" a system library failed to build without it in the cloud
+session image (13 November 2026); the hosted image needs it too.
+
+**Already planned; now found by JASP's name** (search words added):
+confirmatory factor analysis and MIMIC (E37); latent growth (E35: a
+latent growth model of a linear slope is the same model); linear mixed
+models (E33, E35, E62, E63, E67, E68); generalised linear mixed models
+(E67, E68 and E34 for yes/no; repeated counts and ratings are E75);
+moderation and mediation (E9 to E17, E38, E40); the Bayesian binomial test
+(E25); Bayesian contingency tables (E5, E6); classical and Cochrane
+meta-analysis, with Cochran's Q of heterogeneity (E61); the intraclass
+correlation (E69).
+
+**To build** (method and backend; S small, M medium):
+
+| JASP analysis | Method and backend | Size | `next.md` |
+| --- | --- | --- | --- |
+| Repeated-measures (within-person) correlation | rmcorr's documented method: Pearson power with N(k−1)−1 degrees of freedom (Bakdash and Marusich, 2017) | S | 1 |
+| Robust t-tests (Yuen's trimmed means) | WRS2 `yuen()`, `yuend()`, simulated with Spower, on E2 and E3 | S | 1 |
+| Bland-Altman limits of agreement | SimplyAgree `blandPowerCurve()` (Lu et al., 2016) | S | 1 |
+| Within-person moderation and mediation; the other cards marked "Not in powerkit yet" | See item 2 | L | 2 |
+| Bayesian linear regression | BayesFactor `regressionBF()`, `lmBF()`, JASP's default priors, simulated | M | 3 |
+| Bayesian A/B test | abtest `ab_test()` (Gronau and colleagues), simulated, on E5 | S | 3 |
+| Bayesian multinomial, informed multinomial and multi-binomial | multibridge (Sarafoglou and colleagues), simulated, on E48; needs MPFR | M | 3 |
+| Prediction model performance | pmsampsize, pmvalsampsize (Riley and colleagues), closed form; also regularised regression | M | 4 |
+| Network analysis | powerly (Constantin and colleagues), simulated; needs libjpeg | M | 4 |
+| PCA | psych `principal()` as an option on E73 | S | 4 |
+| Log-linear models | Poisson GLM likelihood-ratio test, simulated with Spower | S | 4 |
+| Bayesian informative hypotheses | bain, simulated (SSDbain is not on CRAN); bain needs a compiler fix in the image | M | 4 |
+| PET-PEESE, WAAP-WLS, selection models | metafor, weightr, puniform, simulated within E61 | M | 4 |
+| Cluster analyses (k-means, hierarchical, fuzzy c-means, density-based) | Simulated recovery, as E58 does for latent profiles | M | 4 |
+| PLS-SEM | Kock and Hadaya's inverse square root method, closed form | S | 4 |
+| Circular statistics | circular's Rayleigh and related tests, simulated | S | 4 |
+
+**No planning method; the methods map says why** (`next.md` item 4):
+
+| JASP analysis | Why |
+| --- | --- |
+| Time series: stationarity, ARIMA, spectral analysis | No established planning method for these as analyses; the question usually planned is an intervention's effect, which E45 covers |
+| Machine learning (boosting, trees, k-nearest neighbours, neural networks, random forests, support vector machines) | No power concept; sample size comes from learning curves on pilot data. Regularised regression is covered by pmsampsize |
+| Bayesian linear and generalised linear mixed models | JASP reports posteriors, not Bayes factors: the goal is posterior precision (`next.md` item 19; candidate powerbrmsINLA) |
+| Bayesian unidimensional reliability | No published sample-size method (as for omega, `next.md` item 11) |
+| Bayesian log-linear regression | Rare; two-way tables are covered by E6's Bayes factor |
+| Bayesian meta-analysis (RoBMA, metaBMA) | Each simulated study takes seconds to minutes; an R-script route only if researchers ask |
+| JAGS | A model the user writes: the run-it-yourself simulation route |
+
 ## Summary
 
 Counts are of the rows above. Parts A, B and C have 49, 70 and 12 rows.
