@@ -6258,19 +6258,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "9dc2ebea227aa462457e94b34906c95a5946fbf0",
-        "RemoteSha": "9dc2ebea227aa462457e94b34906c95a5946fbf0",
+        "RemoteRef": "ed8d1343569d7bfb73a1af5b7ce4603d7d6345d4",
+        "RemoteSha": "ed8d1343569d7bfb73a1af5b7ce4603d7d6345d4",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "9dc2ebea227aa462457e94b34906c95a5946fbf0",
-        "GithubSHA1": "9dc2ebea227aa462457e94b34906c95a5946fbf0",
+        "GithubRef": "ed8d1343569d7bfb73a1af5b7ce4603d7d6345d4",
+        "GithubSHA1": "ed8d1343569d7bfb73a1af5b7ce4603d7d6345d4",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-13 12:26:51 UTC; runner",
+        "Packaged": "2026-11-13 13:46:02 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-13 12:27:18 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-13 13:46:45 UTC; unix"
       }
     },
     "powertools": {
@@ -8563,7 +8563,7 @@
       "checksum": "20c8c0dd705f4b5865ef2649ed148053"
     },
     "forms.yaml": {
-      "checksum": "e8fb829100045438b9a0578ce84cdef0"
+      "checksum": "575bfb18d56a9f1985247e36fab61b77"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
@@ -8670,8 +8670,14 @@
     "tree.yaml": {
       "checksum": "9c5d6636d10dcf4bd4566e1698921b83"
     },
+    "whats-new.d/multisite-effect-variation-help.yaml": {
+      "checksum": "82e95117aa3f25c82ad8cbf4fbef1ee7"
+    },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
+    },
+    "whats-new.d/riclpm-reliability-check.yaml": {
+      "checksum": "90d6bd1cd0c5ba8e25d6e538ce641dfc"
     },
     "whats-new.d/welch-anova-formula.yaml": {
       "checksum": "d463c16a9200abca8840130ea20c657f"
