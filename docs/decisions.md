@@ -3167,3 +3167,23 @@ it and the confirmation screen.
   analyses and change no number; plan files keep format version 1 with
   optional new fields, so the previous version still opens them.
 - **Design:** `docs/saving-projects.md`, "Study plans".
+
+### Repeated-measures correlation by its effective sample size, 13 November 2026
+
+A within-person correlation (two scores measured together on several
+occasions, as in diary, experience-sampling and physiology studies) is
+planned on a new card, E76, by the method rmcorr's authors document
+(Bakdash and Marusich, 2017): the repeated-measures correlation is a
+partial correlation controlling for N - 1 person indicators, so its test
+has the distribution of a Pearson correlation's at the effective sample
+size N(k - 1) + 1. powerkit computes that by the exact distribution of r
+(pwrss's `power.exact.onecor()`), as the correlation card does, rather
+than by Fisher's z as in rmcorr's own example; the two differ by about
+0.0002 in power. No new maths is written: the backend changes only the
+sample size passed to pwrss. Simulated studies analysed by the
+repeated-measures correlation's own regression (`lm(y ~ person + x)`)
+agree within Monte Carlo error at three settings, and the Type I error
+holds (`test-validation-rmcorr.R`). E41, relationships within people,
+keeps within-person moderation and mediation (`next.md` item 2) and
+points to E76 for the correlation; a new design-finder question (R2)
+separates the two after "measured twice" or "many conditions".

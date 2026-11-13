@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-13"
+    title: "Within-person (repeated-measures) correlations"
+    text: "powerkit now plans a repeated-measures correlation: two scores measured together on several occasions, such as sleep and mood in a diary study, where the question is whether they rise and fall together within people. Enter the correlation you expect and how many times each person is measured, and powerkit gives the number of people needed, the power, or the smallest correlation you could detect. The design finder reaches it after \"measured more than once\", and searching \"repeated measures correlation\" or \"rmcorr\" finds it."
+  - date: "2026-11-13"
     title: "Several study plans, each with a name"
     text: "You can now keep a study plan for each of your studies. \"Study plans\" at the top of every page opens them: give each plan a name and a short description, mark each analysis as primary, secondary or a check, and add a note to it. Any analysis in a plan opens again on its card with your answers and result; if you change it, you choose whether to update it in the plan or add it as a new one. When you add a result and have more than one plan, you pick which plan it goes in. Plans are kept in this browser, which can lose them (Safari clears a site's data after a week without a visit, and private windows forget everything), so each plan shows whether it has been saved, and \"Save plan\" or \"Copy a link\" keeps it for good. Opening a saved plan never replaces one you already have."
   - date: "2026-11-13"

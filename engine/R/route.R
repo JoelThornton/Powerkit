@@ -154,6 +154,7 @@ route_backend <- function(spec, seed = NULL) {
     } else {
       spower_backend(spec, seed)
     },
+    "basic_test/repeated_measures_correlation" = rmcorr_backend(spec, seed),
     "basic_test/correlation" = if (bayes_factor_test(spec)) {
       bfcor_backend(spec, seed)
     } else if (pwrss_covers(spec)) {

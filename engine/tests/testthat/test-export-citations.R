@@ -143,7 +143,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Simonsohn2015_telescopes = "verified", Pawel2026_replication = "verified",
       Anderson2016_replication = "verified", Kenny2019_heterogeneity = "verified",
       McShane2014_river = "verified", Dwan2019_crossover = "verified", Faul2007_gpower = "verified",
-      Jan2014_welch_anova = "verified"
+      Jan2014_welch_anova = "verified",
+      Bakdash2017_rmcorr = "verified"
     )
   )
 })

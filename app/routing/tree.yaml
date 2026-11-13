@@ -689,7 +689,17 @@ nodes:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
     branch_on: times
-    routes: {once: r1, twice: E41, many_conditions: E41}
+    routes: {once: r1, twice: r_within, many_conditions: r_within}
+  # The same people measured more than once: two scores measured together
+  # on every occasion is the repeated-measures correlation (E76); anything
+  # else within people needs a multilevel model (E41).
+  r_within:
+    doc_id: R2
+    text: "What is the other variable like?"
+    options:
+      - {label: "A score measured on the same occasions, and the question is whether the two go together within people", next: E76,
+         help: "e.g. on days when people sleep longer than usual, is their mood better than usual? Each person is measured on both scores several times."}
+      - {label: "Something else: several predictors, a score measured once per person, or a relationship that depends on something", next: E41}
   r1:
     doc_id: R1
     text: "What is the other variable like?"
@@ -867,7 +877,7 @@ closing_questions:
   # unreliable scores (maintainer decisions, 16 and 29 October 2026;
   # docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31, E15]}
-  - {doc_id: Q-dir, text: "Which directions will your statistical decision test?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E32, E34, E35, E49, E50, E51, E52, E53, E57, E61, E64, E66, E74]}
+  - {doc_id: Q-dir, text: "Which directions will your statistical decision test?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E76, E5, E25, E26, E27, E28, E32, E34, E35, E49, E50, E51, E52, E53, E57, E61, E64, E66, E74]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
@@ -1699,13 +1709,34 @@ endpoints:
     doc_name: "Within-person, repeated-measures or multilevel correlation, moderation or mediation"
     technical_name: "Within-person correlation, moderation and mediation"
     plain_name: "Relationships measured within people, or in nested data"
-    search_words: "mixed model multilevel hlm repeated measures repeated measures correlation rmcorr within-person correlation within person"
+    search_words: "mixed model multilevel hlm repeated measures"
+    card_points:
+      - "Relationships measured within people, or in nested data: whether one score predicts another within people when the relationship depends on something else, or runs through a third variable (within-person moderation and mediation), or a person-level score's link with something measured many times."
+      - "powerkit doesn't calculate these yet. For whether two scores simply go together within people, measured together several times, use the repeated-measures correlation card, which does."
     status: not_in_powerkit
     inputs: ["Depends on the model"]
     packages:
       - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models (moderation, cross-level effects). No tool found for within-person mediation."}
       - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4."}
     tier: later
+  E76:
+    doc_name: "Repeated-measures correlation (two scores measured together on several occasions)"
+    technical_name: "Repeated-measures correlation (rmcorr)"
+    plain_name: "Do two scores go together within people, when each person is measured several times?"
+    search_words: "repeated measures correlation rmcorr within-person correlation within person diary experience sampling esm daily ambulatory repeated observations"
+    template: "basic_test / repeated_measures_correlation"
+    backend: "pwrss: power.exact.onecor() at the effective sample size N(k - 1) + 1, the repeated-measures correlation's degrees of freedom (Bakdash and Marusich, 2017; the rmcorr package)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-rmcorr.R, note: "Matches pwrss called directly, agrees with simulated studies analysed by the repeated-measures correlation's own model (an intercept for each person and one common slope) and keeps the Type I error at alpha, in the engine's tests. Not yet checked against a published example."}
+    card_points:
+      - "Each person is measured on two scores at the same time, several times: for example, sleep and next-day mood on each of seven days. The question is whether the two go together within people: on days when someone sleeps more than usual, is their mood better than usual?"
+      - "This is the repeated-measures correlation (Bakdash and Marusich, 2017; the R package rmcorr, and JASP's repeated-measures correlation). It removes each person's average, so differences between people don't count, and every measurement after the first adds to the power."
+      - "You give the correlation you expect within people and how many times each person is measured; powerkit finds the number of people. By formula, with no simulation."
+      - "It assumes the association is the same for everyone. If it differs between people, a multilevel model with a random slope for each person is the analysis to plan for, and this card would overstate the power."
+    inputs: ["Names of the two scores", "The expected correlation within people, and how many times each person is measured"]
+    tier: v2
+    alternatives: ["a multilevel model with a random slope for each person, if the association differs between people", "the correlation of each person's averages, if the question is about differences between people rather than within them (the correlation card)"]
   E75:
     doc_name: "Repeated measures with a yes/no, count or ordinal outcome (generalised mixed model)"
     technical_name: "Generalised linear mixed models: repeated measures"
@@ -2507,7 +2538,7 @@ known_shortcuts: [E2, E3, E4, E18, E8, E24, E27, E10]
 analysis_families:
   - {id: means, technical_label: "t-tests", label: "Comparing averages (t-tests)", endpoints: [E1, E2, E3]}
   - {id: anova, technical_label: "ANOVA and ANCOVA", label: "ANOVA and ANCOVA", endpoints: [E18, E54, E7, E8, E22, E21, E20, E55, E56, E19, E23, E64]}
-  - {id: correlation, technical_label: "Correlations", label: "Correlations", endpoints: [E4, E49, E51]}
+  - {id: correlation, technical_label: "Correlations", label: "Correlations", endpoints: [E4, E76, E49, E51]}
   - {id: categories, technical_label: "Categorical data", label: "Yes/no, categories and ordered categories", short: "Categories", endpoints: [E25, E5, E26, E6, E48, E70, E29, E66]}
   - {id: regression, technical_label: "Regression", label: "Regression (scores, yes/no and counts)", short: "Regression", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, technical_label: "Moderation", label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}

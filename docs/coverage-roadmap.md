@@ -436,11 +436,14 @@ moderation and mediation (E9 to E17, E38, E40); the Bayesian binomial test
 meta-analysis, with Cochran's Q of heterogeneity (E61); the intraclass
 correlation (E69).
 
+**Built since the review:** the repeated-measures (within-person)
+correlation, card E76 (rmcorr's documented method: Pearson power at the
+effective sample size N(k − 1) + 1, Bakdash and Marusich, 2017).
+
 **To build** (method and backend; S small, M medium):
 
 | JASP analysis | Method and backend | Size | `next.md` |
 | --- | --- | --- | --- |
-| Repeated-measures (within-person) correlation | rmcorr's documented method: Pearson power with N(k−1)−1 degrees of freedom (Bakdash and Marusich, 2017) | S | 1 |
 | Robust t-tests (Yuen's trimmed means) | WRS2 `yuen()`, `yuend()`, simulated with Spower, on E2 and E3 | S | 1 |
 | Bland-Altman limits of agreement | SimplyAgree `blandPowerCurve()` (Lu et al., 2016) | S | 1 |
 | Within-person moderation and mediation; the other cards marked "Not in powerkit yet" | See item 2 | L | 2 |

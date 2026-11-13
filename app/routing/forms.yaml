@@ -139,7 +139,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E45, E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73]
+calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -674,6 +674,28 @@ forms:
          shown_if: [{field: calc_method, is: exact}, {field: method, is: pearson}],
          choices: {exact: "Exact, as in G*Power (the exact distribution of r; pwrss)", fisher_z: "Fisher's z, an approximation (pwr)"},
          default: exact, default_source: "the exact method, G*Power's default for this test (pwrss's power.exact.onecor(), pwrss 1.3.3)"}
+
+  # The repeated-measures correlation (Bakdash and Marusich, 2017): pwrss's
+  # exact distribution of r at the effective sample size N(k - 1) + 1.
+  E76:
+    methods_name: "a repeated-measures correlation"
+    tool: pwrss
+    sensitivity: true
+    directional: true
+    base: {spec_version: "0.1", design: basic_test, template: repeated_measures_correlation,
+           variables: {X: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
+           target_test: {effect: correlation, method: rmcorr}}
+    groups:
+      - input: "Names of the two scores"
+        fields:
+          - {id: X_label, label: "First score", type: text, path: variables.X.label, required: true}
+          - {id: Y_label, label: "Second score", type: text, path: variables.Y.label, required: true}
+      - input: "The expected correlation within people, and how many times each person is measured"
+        fields:
+          - {id: r, writeup_label: "repeated-measures correlation", label: "Correlation within people (r_rm)", type: number, path: population.r, effect: true, min: -1, max: 1,
+             help: "How strongly the two scores go together within people, once each person's own average is removed. rmcorr and JASP report it as r_rm. It is often smaller than the correlation between people's averages."}
+          - {id: measurements, label: "Times each person is measured on both scores", type: number, path: population.measurements, required: true, min: 2, integer: true,
+             help: "For example, 7 for a week of daily diaries. Count only the occasions on which both scores are measured."}
 
   E5:
     methods_name: "a test of two proportions (z test)"

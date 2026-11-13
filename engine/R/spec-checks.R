@@ -950,7 +950,7 @@ check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
                  dependent_correlation_templates(), "single_predictor", if (identical(spec$design, "logistic_regression")) "interaction", "growth_curve",
-                 "single_predictor_count", "one_variance", "two_variances",
+                 "single_predictor_count", "one_variance", "two_variances", "repeated_measures_correlation",
                  "cluster_randomised", "multisite", "group_treatment", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
@@ -984,6 +984,8 @@ check_direction_allowed <- function(spec) {
     # value, or the first group's against the second.
     one_variance = pop$var - pop$var0,
     two_variances = pop$var1 - pop$var2,
+    # "greater" means the two scores rise together within people.
+    repeated_measures_correlation = pop$r,
     # "greater" means the second condition's mean is higher.
     cluster_randomised = ,
     multisite = ,
@@ -2818,7 +2820,7 @@ check_goal <- function(spec, check_effect = TRUE) {
   needs_effect <- goal$type == "sample_size" || !(
     identical(spec$design, "basic_test") &&
       spec$template %in% c(
-        "one_sample_t", "independent_t", "paired_t", "correlation",
+        "one_sample_t", "independent_t", "paired_t", "correlation", "repeated_measures_correlation",
         "two_proportions", "chi_square_independence"
       )
   ) && !identical(spec$design, "generic_test") && !identical(spec$design, "cluster_trial") &&
@@ -2909,6 +2911,10 @@ minimum_n <- function(spec) {
       # people per group for the F test of two.
       one_variance = 2,
       two_variances = 4,
+      # The repeated-measures correlation's effective sample size,
+      # N(k - 1) + 1, must exceed 3 for pwrss's exact distribution of r,
+      # and the analysis needs two people.
+      repeated_measures_correlation = max(2, ceiling(3 / (as.integer(spec$population$measurements %||% 2) - 1)) + 1),
       # Pillai's trace needs more people than outcomes in the residual
       # degrees of freedom: at least p + 2 people in each group.
       manova = manova_groups(spec) * (length(manova_outcomes(spec)) + 2),
@@ -3208,7 +3214,8 @@ target_effect_is_zero <- function(spec) {
       paired_t = pop$dz,
       one_proportion = pop$p - pop$p0,
       mcnemar = pop$p_second_only - pop$p_first_only,
-      correlation = pop$r,
+      correlation = ,
+      repeated_measures_correlation = pop$r,
       two_proportions = pop$p1 - pop$p2,
       two_correlations = pop$r1 - pop$r2,
       overlapping_correlations = ,

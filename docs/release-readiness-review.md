@@ -99,6 +99,7 @@ forms/results plus bounded accessibility checks (R27/R28).
   - [x] Provide numeric-input meaning/source/unknown guidance and the paired change-score-SD route that needs no correlation ([#367](https://github.com/JoelThornton/Powerkit/pull/367), [#369](https://github.com/JoelThornton/Powerkit/pull/369)).
   - [x] Correct pilot-effect guidance and explain plausible attrition scenarios without silently filling unknown values ([#372](https://github.com/JoelThornton/Powerkit/pull/372)).
   - [ ] Extend and evaluate coherent nuisance-parameter scenarios across specialist models.
+  - [ ] Show which uncertain input the answer depends on most: one-at-a-time ranges with a tornado chart, and a two-way grid of the effect against one input (`next.md` item 29).
 
 - [ ] R26. **Open.** Elicit Bayesian design priors in meaningful ranges as well as SDs, distinguish design from analysis priors, and check the reader's understanding. Switching to “Bayes mode” cannot make an unspecified scientific hypothesis or prior defensible. A prior that reproduces an earlier estimate does not automatically address publication selection.
   - [ ] Complete the prior-elicitation and understanding work above; existing SD/range helpers are not a finished review.
