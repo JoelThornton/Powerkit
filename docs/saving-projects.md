@@ -14,6 +14,37 @@ This is explicit file-based recovery: download a draft, or copy a link
 to it (below), before closing or leaving an unfinished form. Project files with calculated results retain
 their separate validation and provenance rules.
 
+## Keeping a result: the result screen (13 November 2026)
+
+The result screen separates the files that reopen in powerkit from the
+documents made from a result (`R/keep-result.R`). Before, six equal
+buttons sat at the foot of a long page, with Save project styled like
+Citations, so a visitor could download the planning PDF, think the work
+was saved, and lose it.
+
+- **Keep this result**, at the foot of the answer card: Save project file
+  (the screen's primary button), Copy a link and Add to my study plan.
+  A status reads "Not saved yet" and changes once one of them is used;
+  a result reopened from a file starts as kept.
+- **Documents for your study**, in "Write it up and save it": the
+  planning document, R script, citations and **Download everything
+  (.zip)**, said plainly not to reopen in powerkit. The zip holds the
+  project file, the planning document (Markdown and Word), the R script,
+  the citations, the simulated data set where there is one, and a README
+  naming each file. **Open a saved or shared project** accepts the zip
+  and opens the one `.powerkit.json` inside it, extracted under its own
+  name into a temporary folder.
+- **Safety nets.** The last current result is kept in the browser's
+  local storage (key `powerkit-last-result`, up to 1.5 MB) beside the
+  autosaved draft; the "Continue your plan?" offer brings the result back
+  when its answers match the draft's, and says it was kept in this
+  browser only. The browser asks before leaving a result that hasn't been
+  kept, while the app is connected.
+- After Calculate, the input screen's draft row (Save unfinished draft
+  and its Copy a link) is hidden while the result matches the answers, so
+  the page has one Save and one Copy a link; it returns when an answer
+  changes.
+
 ## Share links (13 November 2026)
 
 **Copy a link**, beside every save button (Save project, Save study plan,

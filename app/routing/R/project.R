@@ -97,12 +97,14 @@ restore_from_project <- function(route, tree, forms) {
 # `shown` TRUE the saved result is on screen below it, as it was saved,
 # not run again (a simulation can take minutes); "Run it again to check"
 # runs it, as "Calculate" does.
-project_opened_ui <- function(project, shown = FALSE) {
+project_opened_ui <- function(project, shown = FALSE, from_browser = FALSE) {
   saved <- project$result
   div(
     class = "alert alert-info", role = "status",
-    tags$strong("Project opened."),
-    sprintf(" Saved %s with powerkit %s.", project$saved, project$powerkit_version),
+    if (from_browser) tagList(tags$strong("Your last result is back."),
+      " It was kept in this browser only: save the project file or copy a link to keep it.")
+    else tagList(tags$strong("Project opened."),
+      sprintf(" Saved %s with powerkit %s.", project$saved, project$powerkit_version)),
     if (shown) {
       tagList(
         " Below is the saved result, as it was saved: it hasn't been run again. Running it again should give the same numbers. ",
@@ -135,8 +137,8 @@ project_file_name <- function(endpoint) {
 open_project_ui <- function() {
   div(
     class = "open-project mt-4",
-    fileInput("open_project", "Open a saved project, plan or unfinished draft", accept = c(".json", "application/json"),
-      buttonLabel = "Choose file…", placeholder = "a .powerkit.json file"),
+    fileInput("open_project", "Open a saved project, plan or unfinished draft", accept = c(".json", "application/json", ".zip", "application/zip"),
+      buttonLabel = "Choose file…", placeholder = "a .powerkit.json file, or the zip"),
     uiOutput("open_project_message")
   )
 }

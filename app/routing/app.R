@@ -52,6 +52,7 @@ source(file.path("R", "study-variation.R"), local = TRUE)
 source(file.path("R", "map.R"), local = TRUE)
 source(file.path("R", "connection.R"), local = TRUE)
 source(file.path("R", "share-link.R"), local = TRUE)
+source(file.path("R", "keep-result.R"), local = TRUE)
 source(file.path("R", "documents.R"), local = TRUE)
 
 tree <- load_tree("tree.yaml")
@@ -906,7 +907,7 @@ ui <- function(req) fluidPage(
   tags$head(tags$title("Powerkit: power analysis and sample size planning (prototype)"),
     tags$meta(name = "description", content = "Plan sample size, statistical power and precision for your study. Powerkit explains the inputs, supports common research designs and saves reproducible plans. Development prototype: validation is ongoing."),
     tags$link(rel = "canonical", href = paste0(public_address, "/")),
-    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$style(HTML(share_link_css)), tags$script(HTML(share_link_js)), tags$script(HTML(documents_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js)), tags$script(HTML(bayes_mode_js)), tags$style(HTML(table_grid_css)), tags$script(HTML(table_grid_js)), tags$style(HTML(choice_buttons_css)), tags$script(HTML(choice_buttons_js))),
+    tags$style(HTML(app_css)), tags$style(HTML(connection_css)), tags$script(HTML(connection_js)), tags$style(HTML(share_link_css)), tags$script(HTML(share_link_js)), tags$style(HTML(keep_result_css)), tags$script(HTML(keep_result_js)), tags$script(HTML(documents_js)), tags$style(HTML(map_css)), tags$script(HTML(focus_js)), tags$script(HTML(copy_js)), tags$script(HTML(labs_js)), tags$script(HTML(map_js)), tags$script(HTML(feedback_js)), tags$script(HTML(settings_js)), tags$script(HTML(needed_js)), tags$script(HTML(field_problems_js)), tags$script(HTML(effect_unsure_js)), tags$script(HTML(nav_js)), tags$script(HTML(terms_js)), tags$script(HTML(bayes_mode_js)), tags$style(HTML(table_grid_css)), tags$script(HTML(table_grid_js)), tags$style(HTML(choice_buttons_css)), tags$script(HTML(choice_buttons_js))),
   # The name, and that it is a prototype with its version; what the
   # prototype can do is on the About tab (prototype_banner()).
   connection_ui(),
@@ -1112,6 +1113,16 @@ server <- function(input, output, session) {
     req(route)
     session$sendCustomMessage("pk_autosave", as.character(jsonlite::toJSON(autosave_record(route), auto_unbox = TRUE, null = "null")))
   })
+  # The last current result, kept in this browser too, so that a closed
+  # tab or a dropped connection doesn't lose it (R/keep-result.R).
+  observeEvent(state$calc, {
+    calc <- state$calc
+    if (is.null(calc) || !identical(calc$status, "ok") || isTRUE(calc$saved) || !identical(state$screen, "form")) return()
+    if (!calculation_matches_values(calc, current_form_values())) return()
+    session$sendCustomMessage("pk_last_result", last_result_for_browser(calc))
+  }, ignoreInit = TRUE)
+  saved_result_text <- reactiveVal(NULL)
+  observeEvent(input$pk_saved_result, saved_result_text(input$pk_saved_result), once = TRUE)
   # A new session that finds saved answers in the browser offers to bring
   # them back, on the plan tab's first screen, while the visitor hasn't
   # started anything yet (draft_offer_ui()).
@@ -1130,12 +1141,22 @@ server <- function(input, output, session) {
     saved <- saved_draft()
     if (is.null(saved) || !identical(state$screen, "start") || length(state$history)) return(NULL)
     record <- saved$record
-    draft_offer_ui(tree$endpoints[[record$route$endpoint]]$plain_name %||% record$route$endpoint, record$saved_at)
+    draft_offer_ui(tree$endpoints[[record$route$endpoint]]$plain_name %||% record$route$endpoint, record$saved_at,
+      with_result = last_result_matches_draft(saved_result_text(), record))
   })
   observeEvent(input$pk_restore_yes, {
     saved <- saved_draft()
     req(saved)
     saved_draft(NULL)
+    # The result kept for these same answers comes back with them.
+    text <- saved_result_text()
+    if (last_result_matches_draft(text, saved$record)) {
+      path <- shared_link_file(text)
+      on.exit(unlink(path))
+      opened <- TRUE
+      open_saved_file(path, function(problem) if (!is.null(problem)) opened <<- FALSE, from_browser = TRUE)
+      if (opened) return()
+    }
     for (name in names(saved$restored)) state[[name]] <- saved$restored[[name]]
     output$form_result <- renderUI(draft_opened_ui(saved$record$saved_at))
   })
@@ -1144,6 +1165,7 @@ server <- function(input, output, session) {
   observeEvent(input$pk_restore_no, {
     saved_draft(NULL)
     session$sendCustomMessage("pk_autosave", "")
+    session$sendCustomMessage("pk_last_result", "")
   })
   observeEvent(input$pick, {
     pick <- input$pick
@@ -1940,6 +1962,39 @@ server <- function(input, output, session) {
         route = state$calc$route, file = file)
     }
   )
+  # "Download everything": the project file and every document made from
+  # the result, with a note on each (R/keep-result.R).
+  output$download_bundle <- downloadHandler(
+    filename = function() sprintf("powerkit-%s-everything.zip", state$endpoint),
+    content = function(file) {
+      req(calculation_matches_values(state$calc, current_form_values()))
+      calc <- state$calc
+      ep <- state$endpoint
+      dir <- tempfile("powerkit-bundle-")
+      dir.create(dir)
+      on.exit(unlink(dir, recursive = TRUE))
+      files <- c(project = file.path(dir, project_file_name(ep)))
+      engine_function("write_project")(calc$spec, calc$result, route = calc$route, file = files[["project"]])
+      if (!isTRUE(calc$route$form_values$source_stale)) {
+        doc <- planning_document(tree, forms, calc)
+        files[["planning_md"]] <- file.path(dir, "powerkit-study-planning.md")
+        writeLines(doc, files[["planning_md"]], useBytes = TRUE)
+        files[["planning_docx"]] <- file.path(dir, "powerkit-study-planning.docx")
+        if (inherits(try(docx_document(doc, files[["planning_docx"]], powerkit_version()), silent = TRUE), "try-error")) files <- files[names(files) != "planning_docx"]
+      }
+      files[["script"]] <- file.path(dir, sprintf("powerkit-%s-script.R", ep))
+      if (inherits(try(engine_function("export_script")(calc$spec, calc$result, file = files[["script"]]), silent = TRUE), "try-error")) files <- files[names(files) != "script"]
+      files[["citations"]] <- file.path(dir, sprintf("powerkit-%s-citations.txt", ep))
+      engine_function("export_citations")(calc$result, format = "text", file = files[["citations"]])
+      n <- simulated_data_n_for(calc$spec, calc$result)
+      if (!is.na(n) && isTRUE(tryCatch(engine_function("simulated_data_available")(calc$spec), error = function(e) FALSE))) {
+        files[["data"]] <- file.path(dir, sprintf("SIMULATED-not-real-data-%s.csv", ep))
+        if (inherits(try(engine_function("simulated_data")(calc$spec, n, seed = calc$result$provenance$seed %||% 1, file = files[["data"]]), silent = TRUE), "try-error")) files <- files[names(files) != "data"]
+      }
+      writeLines(bundle_readme(ep, files), file.path(dir, "README.txt"))
+      zip::zip(file, files = c("README.txt", basename(files)), root = dir, mode = "mirror")
+    },
+    contentType = "application/zip")
   output$download_draft <- downloadHandler(
     filename = function() sprintf("powerkit-%s-draft.powerkit.json", state$endpoint),
     content = function(file) {
@@ -1958,7 +2013,11 @@ server <- function(input, output, session) {
   # Opening a saved file, or a link that carries one (R/share-link.R): the
   # same reader and checks either way. `report` shows a problem in plain
   # words, or clears an earlier one (NULL).
-  open_saved_file <- function(path, report) {
+  open_saved_file <- function(path, report, from_browser = FALSE) {
+    # "Download everything" saves a zip: open the project file inside it.
+    inside <- zip_project_file(path)
+    if (inherits(inside, "zip_problem")) return(report(as.character(inside)))
+    if (!is.null(inside)) path <- inside
     plan_record <- read_guided_plan_record(path)
     if (!is.null(plan_record)) {
       restored <- restore_guided_plan(plan_record, tree)
@@ -2013,7 +2072,7 @@ server <- function(input, output, session) {
       report(restored)
       return()
     }
-    open_in_app(project, restored)
+    open_in_app(project, restored, from_browser)
   }
   observeEvent(input$open_project, {
     open_saved_file(input$open_project$datapath, function(problem) {
@@ -2048,7 +2107,7 @@ server <- function(input, output, session) {
       list(problem = "The link couldn't be made. Save the file instead."))
     session$sendCustomMessage("pk_share_link", out)
   })
-  open_in_app <- function(project, restored) {
+  open_in_app <- function(project, restored, from_browser = FALSE) {
     cancel_job()
     state$from_labs <- FALSE; state$labs_seed <- NULL
     state$calc <- NULL
@@ -2062,10 +2121,11 @@ server <- function(input, output, session) {
       return()
     }
     calc$form_consistent <- project_form_matches_spec(project, forms)
+    calc$from_browser <- from_browser
     state$calc <- calc
     ep_id <- state$endpoint
     output$form_result <- renderUI(tagList(
-      project_opened_ui(project, shown = TRUE),
+      project_opened_ui(project, shown = TRUE, from_browser = from_browser),
       result_panel_ui(tree, forms, ep_id, current_form_fields(), current_form_values(), calc)
     ))
   }

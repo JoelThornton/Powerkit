@@ -33,7 +33,7 @@ test_that("the link is read from the fragment, which browsers don't send to the 
 })
 
 test_that("every save button that makes a file has a link beside it", {
-  sources <- vapply(file.path(routing_dir, "R", c("results.R", "study-plan.R", "drafts.R", "whole-study.R", "forms_ui.R")),
+  sources <- vapply(file.path(routing_dir, "R", c("keep-result.R", "study-plan.R", "drafts.R", "whole-study.R", "forms_ui.R")),
     function(f) paste(readLines(f), collapse = "\n"), character(1))
   expect_match(sources[[1]], 'share_link_ui("project")', fixed = TRUE)
   expect_match(sources[[2]], 'share_link_ui("study_plan")', fixed = TRUE)

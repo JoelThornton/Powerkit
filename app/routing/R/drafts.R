@@ -81,11 +81,11 @@ saved_time_ui <- function(saved_at) {
 # The offer to continue an unfinished plan, on the plan tab's first
 # screen only (it covered every tab as a dialog until 7 November 2026).
 # "Not now" keeps the draft; only "Discard my draft" deletes it.
-draft_offer_ui <- function(name, saved_at) {
+draft_offer_ui <- function(name, saved_at, with_result = FALSE) {
   div(class = "draft-offer", role = "region", `aria-labelledby` = "draft_offer_title",
     h3(id = "draft_offer_title", class = "h5", "Continue your unfinished plan?"),
     p(sprintf("You were filling in \"%s\", saved ", name), saved_time_ui(saved_at),
-      ". Your answers are kept in this browser."),
+      if (with_result) ". Your answers and the result you calculated are kept in this browser." else ". Your answers are kept in this browser."),
     div(class = "draft-offer-actions",
       actionButton("pk_restore_yes", "Continue my plan", class = "btn-primary"),
       actionButton("pk_restore_later", "Not now", class = "btn-outline-secondary"),
