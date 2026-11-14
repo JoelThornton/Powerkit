@@ -34,6 +34,7 @@ if (FALSE) {
   library(metapower)
   library(mirt)
   library(nnet)
+  library(ordinal)
   library(pbkrtest)
   library(PITS)
   library(PMCMRplus)
