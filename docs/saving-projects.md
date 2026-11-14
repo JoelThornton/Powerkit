@@ -278,8 +278,21 @@ Part 1 (named plans, their page, and reopening) is built:
   save it.
 - The Study plans page is the tab "Study plans", hidden from the tab row.
 
-Parts 2 (the overview and Download everything) and 3 (Plan my whole study
-joins a plan) are still to build, as described below.
+Part 2 (the overview and Download everything) is built too, in
+`R/plan-bundle.R`: the overview line counting analyses by role
+(`plan_role_counts_text()`), the study-wide planning document
+(`plan_planning_document()`, which takes each card's methods paragraph
+from `planning_methods_text()` and merges the results' own citation
+texts, each reference once) and the zip (`write_plan_bundle()`, the plan
+file written first and checked for; each analysis's files from
+`write_bundle()` under `analyses/NN-<card>/`). Joint power calculated on
+the plan's page goes into the document while the plan's analyses stay
+the same. The zip reader (`zip_project_file()`) opens the one
+`.powerkit.json` at the top of a zip when there are others in folders.
+The Word document now keeps Markdown tables.
+
+Part 3 (Plan my whole study joins a plan) is still to build, as described
+below.
 
 ### Why
 

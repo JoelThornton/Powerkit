@@ -72,6 +72,18 @@ docx_parts <- function(file) {
     rels = paste(readLines(file.path(dir, "word", "_rels", "document.xml.rels"), warn = FALSE), collapse = ""))
 }
 
+test_that("a table in a Word document keeps its rows and cells, header in bold", {
+  file <- tempfile(fileext = ".docx")
+  docx_document(c("# Plan", "", "| Analysis | N needed |", "|---|---|", "| Two groups | 128 |", "| Correlation | 85 |", "", "After."), file)
+  parts <- docx_parts(file)
+  ns <- c(w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main")
+  expect_length(xml2::xml_find_all(parts$document, "//w:tbl", ns), 1)
+  expect_length(xml2::xml_find_all(parts$document, "//w:tr", ns), 3)
+  expect_length(xml2::xml_find_all(parts$document, "//w:tc", ns), 6)
+  expect_length(xml2::xml_find_all(parts$document, "//w:tr[1]//w:b", ns), 2)
+  expect_match(xml2::xml_text(parts$document), "Correlation85After.", fixed = TRUE)
+})
+
 test_that("a Word document has the parts Word needs and well-formed XML", {
   file <- tempfile(fileext = ".docx")
   docx_document(c("# Pre-replication of: Smith & Lee (2019)", "", "Text with **bold**, _italic_ and <https://doi.org/10.15626/MP.2024.4155>.",

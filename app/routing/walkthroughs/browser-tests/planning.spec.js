@@ -327,3 +327,24 @@ test('removing every plan clears this browser, the old single plan too', async (
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('.study-plan-chip')).toHaveText('Study plans');
 });
+
+test('a plan has an overview, downloads everything as a zip, and the zip opens as the plan in another browser', async ({ page, browser }, info) => {
+  await planWithOneAnalysis(page);
+  await expect(page.locator('.plan-overview')).toContainText('1 analysis: 1 primary');
+  await expect(page.locator('#download_plan_bundle')).toHaveAttribute('href', /\/download\//);
+  const pending = page.waitForEvent('download');
+  await page.locator('#download_plan_bundle').click();
+  const saved = await pending;
+  expect(saved.suggestedFilename()).toMatch(/^powerkit-study-plan-.*-everything\.zip$/);
+  const file = info.outputPath('plan.zip');
+  await saved.saveAs(file);
+  await expect(page.locator('#plans_page')).toContainText('Saved to a file');
+  // Another browser, with nothing stored: the zip opens as the plan.
+  const other = await browser.newPage();
+  await other.goto('/?page=plans', { waitUntil: 'domcontentloaded' });
+  await expect(other.locator('#plans_page')).toContainText('You have no study plans yet.');
+  await other.locator('#plans_open_file').setInputFiles(file);
+  await expect(other.locator('#plans_page h2.plan-title')).toContainText('Study plan,');
+  await expect(other.locator('.plan-item')).toHaveCount(1);
+  await other.close();
+});
