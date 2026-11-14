@@ -1,0 +1,27 @@
+{
+  "spec_version": "0.1",
+  "design": "mixed_model",
+  "template": "repeated_glmm",
+  "variables": {
+    "W": {"type": "between_factor", "label": "Group", "levels": ["Usual teaching", "Programme"]},
+    "X": {"type": "within_factor", "label": "Occasion", "levels": ["Before", "After"]},
+    "Y": {"type": "count", "label": "Disruptive acts per lesson"}
+  },
+  "population": {
+    "metric": "rate",
+    "rates": [[2, 2], [2, 1.4]],
+    "sd_person": 0.5,
+    "measurements": 2
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a 30% fall in disruptive acts per lesson in the programme group, with no change under usual teaching, is the smallest difference in change of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "likelihood_ratio",
+    "alpha": 0.05
+  },
+  "goal": {"type": "power", "n": 80},
+  "options": {"nrep": 200, "seed": 76}
+}

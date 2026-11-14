@@ -3278,6 +3278,27 @@ groups measured more than once (a group-by-time interaction) and count
 trials with stimulus variation stay in `next.md` item 1. Validation: `test-validation-glmm.R`. Conventions:
 `docs/conventions.md`, "The same people measured more than once".
 
+### Two or more groups measured more than once on E75, 14 November 2026
+
+E75 now plans the group-by-time interaction for a count, yes/no or
+ordered-categories outcome, the follow-up `next.md` named for it: two or
+more groups of people (W, a between factor), each person measured in
+every condition or on every occasion of X, analysed with
+`y ~ group * cond + (1 | person)` and tested for the interaction of group
+and condition (do the groups change differently?). The families, the
+simulation routes (simr for Poisson and yes/no, Spower with
+`glmer.nb()` or `clmm()` for negative binomial counts and ordered
+categories) and the two tests are those of the one-group design; the
+likelihood-ratio test against the additive model stays the default. The
+researcher gives the expected count, chance of 'yes' or odds ratio of a
+higher category in each group and condition, one row per group, and
+powerkit solves for the fixed effects that reproduce them exactly. The
+people are split equally between the groups. Validation:
+`test-validation-glmm.R`, with four interaction cases against a
+separately written simulation and the Type I error with both groups
+changing by the same ratio. Conventions: `docs/conventions.md`, "The
+same people measured more than once".
+
 ### Mediation with X in three or more groups on E42, 14 November 2026
 
 E42, mediation where X is three or more conditions or groups, now

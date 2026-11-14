@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-14"
+    title: "Unequal groups: every total is now considered"
+    text: "When one group is bigger than the other, powerkit now splits each possible total into whole groups as close to your ratio as whole people allow, and finds the smallest total whose groups reach the power you want. Before, the total moved in steps of a whole split of your ratio, which could ask for up to about four more people than needed. The result says which two group sizes the power is for. With equal groups nothing changes."
