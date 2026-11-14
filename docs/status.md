@@ -26,9 +26,13 @@ E76 (13 November 2026): rmcorr's documented method, a Pearson
 correlation's exact power at the effective sample size N(k − 1) + 1
 (Bakdash and Marusich, 2017), reached from the design finder's new
 question R2 and by search. Validation in progress: the simulation chunk
-`rmcorr` passes; the published example awaits transcription. Next in the
-queue: Yuen's trimmed-means t-tests, then Bland-Altman limits of
-agreement. A tool showing which uncertain input a plan depends on most
+`rmcorr` passes; the published example awaits transcription. Yuen's
+trimmed-means t-tests are a test version on the two-group and paired
+cards (E2, E3; WRS2's `yuen()` and `yuend()`, simulated with Spower; the
+paired version asks for the correlation between the measurements).
+Validation in progress: the simulation chunk `yuen` passes; the
+published example awaits transcription. Next in the queue: Bland-Altman
+limits of agreement. A tool showing which uncertain input a plan depends on most
 (one-at-a-time ranges and a tornado chart) is queued after the cards
 that can't yet calculate (`next.md` item 28).
 

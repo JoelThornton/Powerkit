@@ -263,12 +263,12 @@ simulation_accuracy_group <- function(forms, ep_id) {
   choices <- unlist(lapply(form_fields(form$groups), function(f) names(f$choices)))
   offered <- ep_id %in% c(names(forms$background), names(forms$simulations$endpoints)) ||
     isTRUE(form$basic_method) || identical(form$base$design, "factorial_anova") ||
-    any(choices %in% c("simulation", "hartung_knapp", "brunner_munzel", "permanova")) ||
+    any(choices %in% c("simulation", "hartung_knapp", "brunner_munzel", "yuen", "permanova")) ||
     identical(form$base$template, "paired_variances")
   if (!offered) return(NULL)
   when <- NULL
   if (isTRUE(form$basic_method)) when <- list(any = list(
-    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "spearman", "kendall", "z_test_corrected", "pearson_chi_square_corrected")),
+    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "spearman", "kendall", "z_test_corrected", "pearson_chi_square_corrected")),
     list(list(field = "method", is = "welch_t"), list(field = "welch_method", is_not = "exact")),
     list(list(field = "calc_method", is = "simulation"), list(field = "method", is_not = "welch_t"),
       list(field = "method", is_not = "bayes_factor"), list(field = "method", is_not = "minimum_effect"), list(field = "method", is_not = "fisher_exact"))))

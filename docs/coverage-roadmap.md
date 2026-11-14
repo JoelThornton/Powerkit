@@ -438,13 +438,14 @@ correlation (E69).
 
 **Built since the review:** the repeated-measures (within-person)
 correlation, card E76 (rmcorr's documented method: Pearson power at the
-effective sample size N(k − 1) + 1, Bakdash and Marusich, 2017).
+effective sample size N(k − 1) + 1, Bakdash and Marusich, 2017); Yuen's
+trimmed-means t-tests, a test version on E2 and E3 (WRS2's `yuen()` and
+`yuend()`, simulated with Spower).
 
 **To build** (method and backend; S small, M medium):
 
 | JASP analysis | Method and backend | Size | `next.md` |
 | --- | --- | --- | --- |
-| Robust t-tests (Yuen's trimmed means) | WRS2 `yuen()`, `yuend()`, simulated with Spower, on E2 and E3 | S | 1 |
 | Bland-Altman limits of agreement | SimplyAgree `blandPowerCurve()` (Lu et al., 2016) | S | 1 |
 | Within-person moderation and mediation; the other cards marked "Not in powerkit yet" | See item 2 | L | 2 |
 | Bayesian linear regression | BayesFactor `regressionBF()`, `lmBF()`, JASP's default priors, simulated | M | 3 |

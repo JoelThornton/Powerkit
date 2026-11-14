@@ -2233,6 +2233,27 @@ Wired into the app on 18 October 2026 (E25, E26).*
   t approximation, not the permuted test). Tests:
   `test-backend-brunner-munzel.R`; `test-validation-brunner-munzel.R`
   [powerkit, `docs/decisions.md`].
+- **Yuen's trimmed-means tests (E2's and E3's test version): WRS2's
+  tests and default trimming.** G\*Power has no trimmed-means test, so
+  nothing is departed from. powerkit follows WRS2 (Mair and Wilcox, 2020):
+  20% trimmed from each end unless the user changes it (`yuen(tr = 0.2)`),
+  Yuen's statistic with its Welch-type df for two groups and h - 1 df for
+  paired measurements (h the number left after trimming). The effect is
+  entered as for the t-test (Cohen's d or d_z, on means), and the scores
+  are simulated in the chosen shape with that shift, as for the rank
+  tests; for two groups the SD ratio is asked for, with d over
+  sqrt((SD1^2 + SD2^2) / 2) as for the Brunner-Munzel test. With a
+  symmetric shape the trimmed means differ by the same amount as the
+  means; with skewed scores and unequal spreads they also differ when the
+  means are equal, so the test's power then includes that difference.
+  Yuen's paired test trims each measurement separately, so its power
+  depends on the correlation between them, which the form asks for (no
+  default: there is no neutral value); the paired t-test needs d_z alone.
+  WRS2 gives two-sided p-values; a one-sided test uses Yuen's t in the
+  t distribution with the same df. With no trimming the tests are Welch's
+  t-test and the paired t-test (`test-validation-yuen.R` checks the paired
+  case against pwr's exact power). Tests: `test-backend-yuen.R`;
+  `test-validation-yuen.R` [powerkit, `docs/decisions.md`].
 - **Negative binomial regression (E28's model choice): MASS's Wald test.**
   G\*Power has no negative binomial regression, so nothing is departed
   from. The counts are negative binomial with variance mu + k mu^2 (k is
