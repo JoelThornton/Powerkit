@@ -291,7 +291,7 @@ pwrss_script_call_lines <- function(spec, inputs) {
     )),
     independent_t = list(
       pre = c(
-        "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+        "  n_group1 <- floor(n_total / (1 + allocation_ratio) + 0.5)",
         "  n_group2 <- n_total - n_group1",
         if (unequal_welch(spec)) c(
           "  # Change units to pwrss's sample-size-weighted pooled SD at this allocation.",
@@ -309,7 +309,7 @@ pwrss_script_call_lines <- function(spec, inputs) {
     ),
     two_proportions = list(
       pre = c(
-        "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+        "  n_group1 <- floor(n_total / (1 + allocation_ratio) + 0.5)",
         "  n_group2 <- n_total - n_group1"
       ),
       head = "power.exact.fisher( # Fisher's exact test",
@@ -321,7 +321,7 @@ pwrss_script_call_lines <- function(spec, inputs) {
     ),
     two_correlations = list(
       pre = c(
-        "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+        "  n_group1 <- floor(n_total / (1 + allocation_ratio) + 0.5)",
         "  n_group2 <- n_total - n_group1"
       ),
       head = "power.z.twocors( # Fisher's z test of two independent correlations",

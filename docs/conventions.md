@@ -168,7 +168,7 @@ power while matching G\*Power) is folded there instead
 | G*Power | One group: the chi-square test. (N - 1)s^2/sigma0^2 is central chi-square with N - 1 df under H0, and the same distribution scaled by sigma^2/sigma0^2 under H1 (section 26.5) [GP-man]. Two groups: the F test. s1^2/s0^2 is central F with N1 - 1 and N0 - 1 df under H0, scaled by sigma1^2/sigma0^2 under H1 (section 15.5) [GP-man] | The variance ratio var1/var0; the effect-size drawer works it out from two variances. Ratios in [0.999, 1.001] are refused (sections 26.1, 15.1) [GP-man] | Tails (one or two); allocation ratio N2/N1 (two groups, section 15.3) [GP-man] |
 | Spower | `p_var.test()`: one variance plus `sigma2` goes to `EnvStats::varTest()` (the chi-square test); two variances go to `stats::var.test()` (the F test), whatever `test` says, unless `test = "Fligner"`. `test` (Levene, Bartlett, Fligner) is for three groups or more [Spower-src] | `vars` (one variance, or one per group), `sigma2` (the value tested against) [Spower-src] | `alternative`, or `two.tailed`; `two.tailed = FALSE` means `"greater"` whichever way the variances point, so a test of a **smaller** variance needs `alternative = "less"` (`docs/upstream-questions.md`). `n` is one group's size and `n.ratios` the group sizes' ratios, but unequal ratios fail in `gen_var.test()` (`docs/upstream-questions.md`) [Spower-src] |
 | pwr, pwrss, Superpower, InteractionPoweR, power4mome | Not covered: none of them exports a power function for a variance (their exported functions, checked 25 October 2026) | | |
-| **powerkit** | Since 31 October 2026, the exact distributions above, as G\*Power computes them, with base R's `stats::pchisq()` and `stats::pf()` (`backend-variance.R`; CLAUDE.md allows a published closed-form result where no package has one). Spower's `p_var.test()` simulates the same tests with `options > method` "simulation". Known difference 4 is retired [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), `goal.n` is the total. The formula takes an allocation ratio for the two-group test, keeping the ratio exact (G\*Power's own example with N2/N1 = 2 gives 148 and 295, N = 443; powerkit 148 and 296, N = 444); the simulation is refused one while Spower can't draw unequal groups |
+| **powerkit** | Since 31 October 2026, the exact distributions above, as G\*Power computes them, with base R's `stats::pchisq()` and `stats::pf()` (`backend-variance.R`; CLAUDE.md allows a published closed-form result where no package has one). Spower's `p_var.test()` simulates the same tests with `options > method` "simulation". Known difference 4 is retired [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), `goal.n` is the total. The formula takes an allocation ratio for the two-group test, rounding the groups at each total (G\*Power's own example with N2/N1 = 2 gives 148 and 295, N = 443, and so does powerkit; it gave 148 and 296, N = 444, while it kept the ratio exact); the simulation is refused one while Spower can't draw unequal groups |
 
 ## Factorial ANOVA
 
@@ -426,17 +426,28 @@ a two-sided test adds both tails at alpha / 2, the far tail (a
 significant result beyond the margin on the wrong side) from pwr's
 one-sided t-test, which pwrss's one-sided test cannot give.
 
-**Group sizes given as a ratio (from 11 November 2026).** powerkit plans
-whole groups in the ratio entered, so the total moves in steps (2 for
-equal groups, 3 for 1 : 2). A ratio typed as a rounded decimal is exact
-only in very large steps (0.67 is 67 : 100, a step of 167), which made the
-sample size search overshoot (167 where about 133 are needed). When the
-exact split needs a step above 50, powerkit plans the simplest
-whole-number split that rounds to the ratio as entered (2 : 3 for 0.67,
-1 : 3 for 0.33, 19 : 26 for 1.37) and says so on the result and in the
-methods paragraph. G\*Power instead searches every total and rounds each
-group; powerkit's answer can be a few people higher because the total
-still moves in steps of the simplified split.
+**Group sizes given as a ratio (from 14 November 2026).** Two groups in a
+ratio other than 1 are rounded to whole people at every total, as a
+researcher would recruit them: group 1 is N / (1 + ratio) rounded to the
+nearest person (a half rounds up) and group 2 is the rest. Power at each
+total is worked out for those groups, so the sample size search looks at
+every total, and the required N is the smallest total whose rounded groups
+reach the target power. The result and the methods paragraph give the two
+group sizes and the ratio they achieve when it differs from the one
+entered. This follows G\*Power, which also rounds each group of a total,
+with one difference: G\*Power can report a total whose rounded groups fall
+just short of the target (95% power for two proportions, .10 and .25, with
+group 2 twice group 1: G\*Power 123 + 247 = 370 at 0.9498668; powerkit
+124 + 247 = 371 at 0.9509375). Where G\*Power's groups reach the target,
+the two agree (its variance-test example, 148 + 295 = 443; its two
+proportions at a ratio of 3, 70 + 210 = 280). Equal groups (a ratio of 1)
+still move in steps of 2. From 11 to 14 November 2026 powerkit planned a
+rounded decimal as the simplest whole split that rounds to it (2 : 3 for
+0.67), and before that kept the entered ratio exact; both moved the total
+in steps of the whole split and could need up to about four people more
+(372 rather than 371 in the example above). Test:
+`test-sample-allocation.R`, and the G\*Power comparisons in
+`test-backend-pwr.R` and `test-backend-variance.R`.
 
 ## Cluster-randomised trials (whole groups assigned to two conditions)
 
@@ -1121,9 +1132,10 @@ entry as it stood:
   groups (maintainer's decisions, 17 October 2026; `docs/decisions.md`).
   When the user chooses it (`options > proportions_formula = "arcsine"`),
   pwr's `pwr.2p2n.test()` with Cohen's h, powerkit's earlier default.
-  Group sizes keep the exact ratio the user gives (as for every
-  two-group design), and the required N is the smallest such N whose
-  power reaches the target.
+  Unequal groups are rounded to whole people at each total (as for every
+  two-group design: "Group sizes given as a ratio" above), and the
+  required N is the smallest total whose groups' power reaches the
+  target.
 - **Size:**
   - Against G\*Power, equal groups: none to seven decimals (p1 = .10,
     p2 = .25, two-sided, alpha .05: power 0.2344921 at 20 per group; 164
@@ -1138,9 +1150,10 @@ entry as it stood:
     group sizes (0.9498668 at 123 and 247, p1 = .10, p2 = .25). The
     required N can differ by a few: for 95% power at N2/N1 = 2, G\*Power
     gives 123 + 247 = 370, whose power (0.9498668) is just under the
-    target and whose groups aren't exactly 1 : 2; powerkit gives 124 + 248
-    = 372 (123 + 246 gives 0.9496). Cohen's h, the earlier choice for
-    unequal groups, gave 360, 10 fewer than G\*Power. pwrss's values at
+    target; powerkit gives the next total, 124 + 247 = 371 (0.9509375).
+    Until 14 November 2026 powerkit kept the exact ratio and gave
+    124 + 248 = 372 (123 + 246 gives 0.9496). Cohen's h, the earlier choice for
+    unequal groups, gave 360, 10 fewer than G\*Power (359 with the groups rounded at each total). pwrss's values at
     1 : 1, 1 : 2 and 1 : 3 in both directions are in the tests; G\*Power's
     for those inputs are to confirm from the maintainer's screenshots.
   - One-sided tests: `power.prop.test()` and pwrss use |p1 − p2|, so for a
@@ -1152,8 +1165,8 @@ entry as it stood:
   TRUE), and the size of the change from the arcsine (Departure 11)",
   "two proportions in unequal groups use pwrss's z test, as G\*Power
   (Departure 11)", "two proportions: pwrss at 1:1, 1:2 and 1:3, both
-  directions", "departure: unequal groups keep the exact ratio, so N can
-  differ from G\*Power's by a few (Departure 11)", and the two one-sided
+  directions", "departure: unequal groups are rounded at each total, so N
+  can differ from G\*Power's by one (Departure 11)", and the two one-sided
   direction tests.
 - **Shown to users / in the methods paragraph:** on E5's card (backend
   line) and on the result screen when the formula was used
@@ -1563,8 +1576,8 @@ Departure 19 is shown on the affected result and in the methods text.
 - **Size:** with equal spreads and equal groups the two tests need the same
   N (788, 128 and 52 for d = 0.2, 0.5 and 0.8 at 80% power: pwrss's Welch
   df are then n - 2, as Student's). With unequal groups Welch's needs a few
-  more: 147 rather than 144 for d = 0.5 when group 2 is twice the size of
-  group 1, and 176 rather than 172 when it is three times the size.
+  more: 145 rather than 143 for d = 0.5 when group 2 is twice the size of
+  group 1, and 173 rather than 170 when it is three times the size.
 - **Test:** `engine/tests/testthat/test-welch-default.R`.
 - **Shown to users:** on the E2 result whenever Welch's test is planned
   for (`app/routing/R/results.R`, `departures_for()`), and in the methods

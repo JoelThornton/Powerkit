@@ -63,13 +63,19 @@ test_that("specs are translated to Spower's parametrisation", {
   expect_equal(dim(chisq$P), c(3, 2))
 })
 
-test_that("unequal groups need a total n that splits in the allocation ratio", {
-  spec <- sim_spec("two_proportions", goal = list(type = "power", n = 300))
+test_that("unequal groups are rounded to whole people at any total", {
+  spec <- sim_spec("two_proportions", goal = list(type = "power", n = 301))
   spec$options$allocation_ratio <- 2
-  backend <- spower_backend(validate_quietly(spec))
-  expect_equal(backend$n_step, 3)
+  spec <- validate_quietly(spec)
+  expect_equal(route_spec(spec)$n_step, 1)
+  # At 301, group 1 has 100 and group 2 the other 201: Spower is given a
+  # ratio whose product with 100 can't be truncated to 200.
+  args <- spower_inputs(spec_at_total(spec, 301))$args(301)
+  expect_equal(args$n, 100)
+  expect_equal(trunc(args$n * args$n.ratios[2]), 201)
   result <- run_quietly(spec)
-  expect_equal(result$check_run$recovered[result$check_run$parameter == "group size ratio (group 2 / group 1)"], 2)
+  expect_true(all(result$check_run$ok))
+  expect_equal(result$allocation[c("group1", "group2")], list(group1 = 100, group2 = 201))
 })
 
 test_that("one-sided tests use the direction of the spec's effect", {

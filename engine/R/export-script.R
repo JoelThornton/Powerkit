@@ -1134,7 +1134,7 @@ variance_script <- function(spec, result) {
       "  df <- n_total - 1"
     } else {
       c(
-        "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+        "  n_group1 <- floor(n_total / (1 + allocation_ratio) + 0.5)",
         "  df <- c(n_group1 - 1, n_total - n_group1 - 1)"
       )
     },
@@ -1379,7 +1379,7 @@ pwr_script_call_lines <- function(spec, inputs) {
     less = "one-sided: the effect is negative"
   ))
   groups <- c(
-    "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+    "  n_group1 <- floor(n_total / (1 + allocation_ratio) + 0.5)",
     "  n_group2 <- n_total - n_group1"
   )
   ratio <- allocation_ratio(spec)
@@ -1481,7 +1481,7 @@ prop_test_script_lines <- function(spec, inputs) {
   call <- function(alternative, sig) {
     if (pwrss) {
       return(c(
-        "  n_group1 <- round(n_total / (1 + allocation_ratio))",
+        "  n_group1 <- floor(n_total / (1 + allocation_ratio) + 0.5)",
         "  n_group2 <- n_total - n_group1",
         "  power.z.twoprops(",
         paste0("    ", ensure_commas(c(
@@ -1599,7 +1599,7 @@ pwr_sensitivity_section <- function(spec, result) {
       ), "d")
     } else {
       c(
-        "n_group1 <- round(n_total / (1 + allocation_ratio))",
+        "n_group1 <- floor(n_total / (1 + allocation_ratio) + 0.5)",
         solve("d", sprintf(
           "pwr.t2n.test(n1 = n_group1, n2 = n_total - n_group1, d = NULL, sig.level = alpha, power = target_power, %s)", alt
         ), "d")
@@ -2001,8 +2001,12 @@ spower_group_size_lines <- function(spec) {
   }
   if (spec$template %in% c("independent_t", "two_proportions")) {
     return(c(
-      "  # Spower's n is the size of group 1; group 2 has allocation_ratio times as many.",
-      "  n_group1 <- round(batch_n / (1 + allocation_ratio))"
+      "  # Spower's n is the size of group 1, and group 2 is n2_n1 times as large:",
+      "  # the groups rounded to whole people, group 2 the rest of the total (n2_n1",
+      "  # is nudged up by a relative 1e-12 so that rounding error can't drop a person).",
+      "  n_group1 <- floor(batch_n / (1 + allocation_ratio) + 0.5)",
+      "  n2_n1 <- (batch_n - n_group1) / n_group1 * (1 + 1e-12)",
+      if (spec$template == "two_proportions") "  group_ratios <- c(1, n2_n1) # group sizes relative to group 1"
     ))
   }
   if (spec$template == "two_variances") {
@@ -2045,7 +2049,7 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "n = n_group1, # size of group 1",
       "d = d_spower, # -d (see above)",
       "type = \"two.sample\",",
-      "n2_n1 = allocation_ratio, # size of group 2 relative to group 1",
+      "n2_n1 = n2_n1, # size of group 2 relative to group 1",
       if (unequal_welch(spec)) "sds = sds, # each group's population SD in RMS-SD units",
       sprintf("var.equal = %s # %s", if (welch) "FALSE" else "TRUE", if (welch) "FALSE: Welch's t-test" else "TRUE: Student's t-test")
     ),
@@ -2286,7 +2290,6 @@ spower_derived_lines <- function(spec) {
       "# -sqrt(2) * d_z.",
       "d_spower <- -sqrt(2) * dz"
     ),
-    two_proportions = "group_ratios <- c(1, allocation_ratio) # group sizes relative to group 1",
     single_coefficient = c(
       "# The experiment, as powerkit runs it: the tested predictor x and the other",
       "# predictors z1, z2, ... as independent standard normal scores (only the part",
@@ -3076,7 +3079,7 @@ rank_experiment_lines <- function(spec, inputs, one_sided) {
     ),
     independent_t = if (brunner_munzel_test(spec) || yuen_test(spec)) c(
       "n = n_group1, # size of group 1",
-      "n2_n1 = allocation_ratio, # size of group 2 relative to group 1",
+      "n2_n1 = n2_n1, # size of group 2 relative to group 1",
       "d = d, # Cohen's d (group 2 minus group 1)",
       "sd_ratio = sd_ratio",
       if (yuen_test(spec)) "trim = trim"
@@ -3084,7 +3087,7 @@ rank_experiment_lines <- function(spec, inputs, one_sided) {
       "n = n_group1, # size of group 1",
       "d = d_spower, # -d (see above)",
       "type = \"two.sample\",",
-      "n2_n1 = allocation_ratio, # size of group 2 relative to group 1",
+      "n2_n1 = n2_n1, # size of group 2 relative to group 1",
       "parent1 = shifted,",
       "parent2 = unshifted"
     ),

@@ -2912,6 +2912,22 @@ check_n <- function(spec, n) {
 }
 
 minimum_n <- function(spec) {
+  # Two groups rounded at each total (rounded_ratio()): each group needs
+  # what one of two equal groups needs, and the smallest total is the
+  # first whose smaller rounded group has that many.
+  ratio <- rounded_ratio(spec)
+  if (!is.null(ratio)) {
+    equal <- spec
+    equal$options$allocation_ratio <- 1
+    per_group <- ceiling(minimum_n_design(equal) / 2)
+    n <- 2 * per_group
+    while (min(rounded_groups(n, ratio)) < per_group) n <- n + 1
+    return(n)
+  }
+  minimum_n_design(spec)
+}
+
+minimum_n_design <- function(spec) {
   # A whole study (experimental): the smallest n its schema allows.
   if (identical(spec$kind, "whole_study")) {
     if (whole_study_is_experiment(spec)) return(whole_study_experiment_min_n(whole_study_experiment_inputs(spec)))
@@ -3120,6 +3136,8 @@ minimum_n <- function(spec) {
 
 group_split <- function(spec) {
   whole <- function(x) abs(x - round(x)) < 1e-9
+  # Two groups in a ratio other than 1 are rounded at every total.
+  if (!is.null(rounded_ratio(spec))) return(NULL)
   if (identical(spec$design, "meta_analysis") && identical(spec$template, "subgroups")) {
     g <- length(unlist(spec$population$effects))
     return(list(rule = sprintf("split equally between the %d kinds of study", g), valid = function(n) n %% g == 0))

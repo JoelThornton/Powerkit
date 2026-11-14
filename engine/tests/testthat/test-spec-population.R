@@ -209,12 +209,10 @@ test_that("n must split into whole groups, with the nearest valid n suggested", 
   spec$goal$n <- 121
   expect_spec_problem(spec, "split into 2 equal groups")
 
+  # Two groups in a ratio are rounded to whole people at any total.
   spec <- example_spec("independent_t")
   spec$options$allocation_ratio <- 2
   spec$goal <- list(type = "power", n = 100)
-  expect_spec_problem(spec, "in the ratio 1 : 2; 100 doesn't. The nearest that do: 99 and 102.")
-
-  spec$goal$n <- 99
   expect_valid_spec(spec)
 })
 

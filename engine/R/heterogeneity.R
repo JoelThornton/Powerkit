@@ -92,7 +92,7 @@ heterogeneity_problems <- function(spec) {
 heterogeneity_se0 <- function(spec, n) {
   if (identical(spec$template, "independent_t")) {
     ratio <- allocation_ratio(spec)
-    n1 <- round(n / (1 + ratio))
+    n1 <- floor(n / (1 + ratio) + 0.5)
     return(list(se = sqrt(1 / n1 + 1 / (n - n1)), df = n - 2))
   }
   list(se = sqrt(1 / n), df = n - 1)
@@ -241,7 +241,8 @@ heterogeneity_range <- function(spec, n) {
   rows <- lapply(names(levels), function(name) {
     s <- spec
     s$population$tau <- levels[[name]]
-    backend <- heterogeneity_backend(s)
+    # Two groups in a ratio are rounded at each total (rounded_ratio_backend()).
+    backend <- if (is.null(rounded_ratio(s))) heterogeneity_backend(s) else rounded_ratio_backend(s, heterogeneity_backend)
     value <- tryCatch(switch(goal$type,
       power = backend$exact_power(n),
       sample_size = search_n_exact(s, backend, goal$power)$n_required$n,
@@ -253,6 +254,7 @@ heterogeneity_range <- function(spec, n) {
 }
 
 heterogeneity_record_at <- function(spec, n) {
+  spec <- spec_at_total(spec, n)
   a <- heterogeneity_adjustment(spec, n)
   usual <- spec
   usual$population$tau <- NULL
