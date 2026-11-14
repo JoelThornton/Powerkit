@@ -3226,12 +3226,37 @@ The replication layer moves out of Labs into the study plans (queue item
   version still opens it; files the Labs planner saved open as new
   replication plans.
 
+### Bland-Altman limits of agreement on E69, 14 November 2026
+
+The Bland-Altman limits of agreement, which JASP offers, are a fourth
+question on the reliability card: whether two methods of measurement
+agree closely enough to be used in place of each other. The researcher
+gives the expected bias, the SD of the differences and the largest
+difference that would not matter, and agreement is shown when both
+limits, at the outer ends of their two-sided 1 - alpha confidence
+intervals, lie within plus and minus it. powerkit simulates the analysis
+(Spower, with SimplyAgree's `agreement_limit()` on each study), with MOVER
+intervals by default and Bland and Altman's as an option; Lu et al.'s
+(2016) formula, SimplyAgree's `blandPowerCurve()`, is a labelled quick
+option. The formula approximates the analysis it plans for (several points
+off, in either direction) and Bland and Altman's intervals are too narrow
+in small samples, so planning for the simulated MOVER analysis is
+Departure 27 (`docs/conventions.md`). In the app, power at a fixed sample
+size runs on the card and a required sample size comes as an R script
+(about 5 minutes on one core), the route other slow simulations take
+(`forms.yaml`, `simulations > method_routes`, which now accepts several
+test versions). Validation: `test-validation-agreement.R`.
+
+The same review recorded, from de Winter (2026, *Quality & Quantity*), a
+queue item for a permutation test on Welch's t as a test version on E2
+(`next.md` item 28); Welch's t-test stays the default (Departure 21).
+
 ### Corrected repeated-measures tests simulated by default, 14 November 2026
 
 A Greenhouse-Geisser or Huynh-Feldt corrected F test whose effect is not
 spherical (epsilon below 1) is now simulated by default with Superpower's
 `ANOVA_power()`. It is no longer worked out from `ANOVA_exact()`'s exact
-dataset (`conventions.md`, Departure 27). The exact dataset multiplies
+dataset (`conventions.md`, Departure 28). The exact dataset multiplies
 the noncentrality and both degrees of freedom by epsilon. That is an
 approximation, not the corrected test's power. In independent
 simulations it was between 3.2 points too low and 3.3 points too high

@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-14"
+    title: "Do two methods of measurement agree? Bland-Altman limits of agreement"
+    text: "The reliability card now plans a method-comparison study: whether a new device or method agrees closely enough with another to be used in its place. Give the difference you expect between them on average, how much the differences vary, and the largest difference that wouldn't matter; agreement is shown when both limits of agreement, with their confidence intervals, fall inside it. powerkit simulates studies like yours and analyses each one as you will, with MOVER confidence intervals by default, which keep the chance of wrongly showing agreement close to the level you set. The usual published formula is offered as a quick estimate, but it can be well off: in one example it asks for 26 subjects where the analysis needs 33. Power at a fixed sample size runs here; a sample size comes as an R script that takes about 5 minutes."
+  - date: "2026-11-14"
     title: "Replication plans"
     text: "Planning a replication now has a plan of its own: choose \"New replication plan\" on the Study plans page. It keeps the pre-replication notes, the original study, the sample size for each goal a replication can have, how your replication differs and one write-up, saved and shared like any study plan. Find the original study's design with the usual questions, and its analysis is planned on its own card, with the effect labelled as the original's, and kept in the plan. These tools were in Labs before; replication plans saved there still open."
   - date: "2026-11-14"

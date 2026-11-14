@@ -9,7 +9,7 @@ corrected_nonspherical_test <- function(spec) {
 
 # Whether such a test is worked out with Superpower's exact data set: on
 # request, or for the smallest detectable effect, which the engine finds
-# with it (Departure 27 makes simulation the default otherwise).
+# with it (Departure 28 makes simulation the default otherwise).
 gg_exact_route <- function(spec) {
   corrected_nonspherical_test(spec) &&
     (identical(spec$options$method, "exact") || isTRUE(spec$goal$type %in% c("sensitivity", "sensitivity_curve")))
@@ -18,7 +18,7 @@ gg_exact_route <- function(spec) {
 # The exact data set applies the correction by scaling the test's
 # noncentrality and degrees of freedom by epsilon, an approximation that
 # missed simulated power by up to about 3 points in either direction
-# (docs/validation-log.md, 14 November 2026; Departure 27).
+# (docs/validation-log.md, 14 November 2026; Departure 28).
 gg_planning_note <- function(spec) {
   if (!gg_exact_route(spec)) return(NULL)
   smallest <- isTRUE(spec$goal$type %in% c("sensitivity", "sensitivity_curve"))

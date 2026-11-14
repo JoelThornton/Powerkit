@@ -410,6 +410,14 @@ test_text <- function(spec) {
   if (identical(spec$design, "sem")) {
     return(sprintf("%s at alpha = %s", sem_test_name(spec), alpha_text(spec$target_test$alpha)))
   }
+  if (identical(spec$design, "reliability") && identical(spec$template, "bland_altman")) {
+    agree <- spec$target_test$agree_level %||% 0.95
+    intervals <- switch(spec$target_test$method %||% "mover",
+      mover = "MOVER confidence intervals", bland_altman = "Bland and Altman's confidence intervals",
+      lu_formula = "confidence intervals, by Lu et al.'s approximation")
+    return(sprintf("the Bland-Altman %s%% limits of agreement, both within plus and minus %s at the outer ends of their two-sided %s%% %s",
+      format(100 * agree), format(spec$population$margin), format(100 * (1 - (spec$target_test$alpha %||% 0.05))), intervals))
+  }
   if (identical(spec$design, "reliability")) {
     side <- if (identical(spec$target_test$alternative, "greater")) "one-sided" else "two-sided"
     name <- switch(spec$template,
@@ -2502,10 +2510,13 @@ departures_for <- function(forms, ep_id, spec) {
   # correlations differ and the F test is corrected.
   if (!sphericity_can_fail(spec) || !isTRUE(spec$target_test$correction %in% c("GG", "HF")) ||
       is_rank_test(spec) || is_bayes_test(spec) || is_pairwise(spec)) keys <- setdiff(keys, "26")
-  # Departure 27 (such a corrected test simulated by default) applies when
+  # Departure 27 (the Bland-Altman analysis simulated, not Lu et al.'s
+  # formula) applies when the limits of agreement are simulated.
+  if (!identical(spec$template, "bland_altman") || identical(spec$target_test$method, "lu_formula")) keys <- setdiff(keys, "27")
+  # Departure 28 (such a corrected test simulated by default) applies when
   # it is simulated; the exact data set, chosen or used for the smallest
   # detectable effect, carries a warning above the answer instead.
-  if (!corrected_nonspherical_test(spec) || gg_exact_route(spec)) keys <- setdiff(keys, "27")
+  if (!corrected_nonspherical_test(spec) || gg_exact_route(spec)) keys <- setdiff(keys, "28")
   # Departure 17 is about adjusting pairwise comparisons, when they are
   # adjusted.
   if (!is_pairwise(spec) || identical(spec$target_test$p_adjust %||% "holm", "none")) keys <- setdiff(keys, "17")

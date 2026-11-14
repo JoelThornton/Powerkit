@@ -10,7 +10,7 @@ covariance_spec <- function(correction = NULL, n = 30, sd = c(100, 120, 150), r 
   spec$target_test$correction <- correction
   spec$goal <- list(type = "power", n = n)
   # The exact data set, compared with ANOVA_exact() directly; a corrected
-  # test without sphericity is simulated by default (Departure 27).
+  # test without sphericity is simulated by default (Departure 28).
   spec$options$method <- "exact"
   spec
 }
@@ -58,8 +58,8 @@ test_that("departure: the size of the Greenhouse-Geisser correction, the app's d
   expect_equal(run_quietly(spec("GG", target))$n_required$n, 52)
 })
 
-test_that("departure: a corrected test without sphericity is simulated by default (Departure 27)", {
-  # docs/conventions.md, Departure 27. ANOVA_exact() scales the
+test_that("departure: a corrected test without sphericity is simulated by default (Departure 28)", {
+  # docs/conventions.md, Departure 28. ANOVA_exact() scales the
   # noncentrality and the degrees of freedom of a corrected test by
   # epsilon, an approximation; simulated studies give the corrected test's
   # power itself. Departure 26's example: 68.4% from the exact data set,

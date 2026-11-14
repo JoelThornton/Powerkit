@@ -2537,6 +2537,25 @@
       ],
       "Hash": "8b8090247468826de888156efa7abc8e"
     },
+    "patchwork": {
+      "Package": "patchwork",
+      "Version": "1.3.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "cli",
+        "farver",
+        "ggplot2",
+        "grDevices",
+        "graphics",
+        "grid",
+        "gtable",
+        "rlang",
+        "stats",
+        "utils"
+      ],
+      "Hash": "97fc0338dd42af55d170478dfc4c0c03"
+    },
     "pbapply": {
       "Package": "pbapply",
       "Version": "1.7-5",
@@ -3278,6 +3297,36 @@
         "xtable"
       ],
       "Hash": "e71fb3fcf73db153eccd8afed293984f"
+    },
+    "SimplyAgree": {
+      "Package": "SimplyAgree",
+      "Version": "0.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "MASS",
+        "Matrix",
+        "R",
+        "boot",
+        "dplyr",
+        "emmeans",
+        "ggplot2",
+        "insight",
+        "jmvcore",
+        "lifecycle",
+        "lme4",
+        "magrittr",
+        "nlme",
+        "patchwork",
+        "purrr",
+        "quantreg",
+        "scales",
+        "stats",
+        "stringr",
+        "tidyr",
+        "tidyselect"
+      ],
+      "Hash": "c6e8c3ef5c292b8f96fe61ff29ffadd9"
     },
     "simr": {
       "Package": "simr",

@@ -16,14 +16,14 @@ test_that("new all-test plans do not assume independent significance decisions",
   expect_false(calculation_matches_values(calc, list(claim = "all", n_tests = "2", all_dependence = "unknown")))
 })
 
-test_that("a corrected test without sphericity warns only on the exact data set's approximation (Departure 27)", {
+test_that("a corrected test without sphericity warns only on the exact data set's approximation (Departure 28)", {
   spec <- list(design = "factorial_anova", template = "mixed",
     variables = list(A = list(type = "between_factor", levels = list("a", "b")),
       B = list(type = "within_factor", levels = list("x", "y", "z")), Y = list(type = "continuous")),
     population = list(sd = list(6, 7, 8), r = list(0.6, 0.4, 0.6)),
     target_test = list(method = "anova_f", correction = "GG"), goal = list(type = "power", n = 40),
     options = list(method = "simulation"))
-  # Simulated, the default: no warning, and Departure 27 applies.
+  # Simulated, the default: no warning, and Departure 28 applies.
   expect_true(corrected_nonspherical_test(spec))
   expect_null(gg_planning_note(spec))
   # The exact data set, chosen: an approximation, said so above the answer.
@@ -44,19 +44,19 @@ test_that("a corrected test without sphericity warns only on the exact data set'
   expect_null(gg_planning_note(spec))
 })
 
-test_that("Departure 27 is shown for a simulated corrected test, and Departure 3 only for the exact data set", {
+test_that("Departure 28 is shown for a simulated corrected test, and Departure 3 only for the exact data set", {
   fields <- form_fields(form_groups(forms, "E54"))
   v <- modifyList(form_examples$E54, list(goal = "power", n = "40", spread = "differ",
     sds = "100, 100, 100", rs = "0.8, 0.5, 0.2", correction = "GG", gg_method = "simulation"))
   spec <- build_spec(forms, "E54", fields, v)
   expect_identical(spec$options$method, "simulation")
   keys <- names(departures_for(forms, "E54", spec))
-  expect_true("27" %in% keys)
+  expect_true("28" %in% keys)
   expect_false("3" %in% keys)
   spec <- build_spec(forms, "E54", fields, modifyList(v, list(gg_method = "exact")))
   expect_identical(spec$options$method, "exact")
   keys <- names(departures_for(forms, "E54", spec))
-  expect_false("27" %in% keys)
+  expect_false("28" %in% keys)
   expect_true("3" %in% keys)
 })
 

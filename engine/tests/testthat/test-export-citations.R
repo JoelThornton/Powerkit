@@ -111,7 +111,9 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # (6 November 2026), and seven sources named in user-facing text, each
   # opened by its DOI (7 November 2026), and two sources on adjusting pilot
   # and meta-analytic effect sizes (7 November 2026), and G*Power 3's paper
-  # for MANOVA power from Pillai's V (12 November 2026).
+  # for MANOVA power from Pillai's V (12 November 2026), and SimplyAgree's
+  # paper and three sources on the Bland-Altman limits of agreement, from
+  # their PubMed records (14 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -144,7 +146,9 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Anderson2016_replication = "verified", Kenny2019_heterogeneity = "verified",
       McShane2014_river = "verified", Dwan2019_crossover = "verified", Faul2007_gpower = "verified",
       Jan2014_welch_anova = "verified",
-      Bakdash2017_rmcorr = "verified"
+      Bakdash2017_rmcorr = "verified",
+      SimplyAgree_method = "citation", Bland1999_agreement = "verified", Zou2013_loa_mover = "verified",
+      Lu2016_bland_altman_n = "verified"
     )
   )
 })

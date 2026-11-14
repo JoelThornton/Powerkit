@@ -1536,10 +1536,10 @@ Packages: powerkit 0.62.0; Spower 0.7; Superpower 0.2.4.1;
 InteractionPoweR 0.2.4; power4mome 0.2.1; manymome 0.3.7; lavaan 0.7.3;
 testthat 3.3.2.
 
-## 2026-11-14 · The two recurring nightly failures explained; GG chunk file after Departure 27 (local)
+## 2026-11-14 · The two recurring nightly failures explained; GG chunk file after Departure 28 (local)
 
 R 4.5.3 on Linux x86_64; Superpower 0.2.4.1, afex 1.5.1, power4mome
-0.2.1. Engine at main 43b2c05 (0.66.0) plus this change (Departure 27).
+0.2.1. Engine at main 43b2c05 (0.66.0) plus this change (Departure 28).
 
 **Mixed-design Greenhouse-Geisser (ANOVA chunk).** The reference .2313
 is `ANOVA_exact()`'s calculation: noncentrality and both degrees of
@@ -1567,7 +1567,7 @@ The MCSE of each true value is at most .0008. The sign depends on the
 sample size and on how the effect lines up with the covariance, so no
 correction of the approximation is available. Decision: such tests are
 simulated by default (`decisions.md`, 14 November 2026;
-`conventions.md`, Departure 27).
+`conventions.md`, Departure 28).
 
 `test-validation-anova-within-covariance.R` at full validation (10,000
 replications), after the change, took 36 minutes: **5 PASS, 1 FAIL, 1
@@ -1579,7 +1579,7 @@ comparison and the three Type I error checks pass too. The one-way GG
 comparison fails: .4525 against .4706 (MCSE .0050, interval .4541 to
 .4871).
 
-Since Departure 27, the "exact data set" call in these comparisons uses
+Since Departure 28, the "exact data set" call in these comparisons uses
 the default route and is simulated (seed 702). The test therefore
 compares two simulations but counts only one's Monte Carlo error.
 Against the independent .4658, seed 702 is 2.7 MCSE low and seed 703 is
@@ -1609,4 +1609,4 @@ the rejection rates were:
 All are consistent with 5%. At a true 5.38%, a 1,000-study rate above
 .0707 has a 1.2% chance, and the test's fixed seed draws the same 1,000
 studies every night. No engine fault. Re-seeding or more replications is
-the maintainer's call (`next.md` item 6).
+the maintainer's call (`next.md` item 5).

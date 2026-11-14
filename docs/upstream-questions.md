@@ -421,7 +421,7 @@ epsilon. Across fifteen designs ([grid](upstream/superpower-gg-grid.R)),
 that calculation minus the corrected test's simulated power ranged from
 -3.2 to +3.3 points. Its sign depends on the sample size and on how the
 effect lines up with the covariance. powerkit now simulates such tests by
-default (`conventions.md`, Departure 27). The questions below stay open
+default (`conventions.md`, Departure 28). The questions below stay open
 for Superpower's documentation: whether the help should call the
 corrected result an approximation.
 

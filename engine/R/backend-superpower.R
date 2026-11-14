@@ -7,7 +7,7 @@
 # is exact for the specified population and matches G*Power and the
 # published values. Simulation with Superpower::ANOVA_power() is available
 # on request (options > method = "simulation"), and is the default for a
-# corrected F test whose covariance isn't spherical (Departure 27). ANOVA_exact2() is not used:
+# corrected F test whose covariance isn't spherical (Departure 28). ANOVA_exact2() is not used:
 # for mixed designs it gives a different answer from G*Power, ANOVA_exact()
 # and simulation (see docs/decisions.md).
 
@@ -59,7 +59,7 @@ superpower_backend <- function(spec, seed = NULL) {
   # noncentrality and the degrees of freedom by epsilon, an approximation
   # that can miss the power of the corrected test by a few points in either
   # direction (-3.2 to +3.3 in docs/validation-log.md, 14 November 2026),
-  # so such an effect is simulated by default (Departure 27). The exact
+  # so such an effect is simulated by default (Departure 28). The exact
   # route stays available on request, and the smallest detectable effect is
   # still found with it (sensitivity_method), stated as an approximation.
   corrected_nonspherical <- !simulated_only && !identical(inputs$correction %||% "none", "none") &&
@@ -407,7 +407,7 @@ manova_applies <- function(spec) {
 #' @keywords internal
 manova_summary <- function(spec, backend, method, n) {
   # A corrected test without sphericity is simulated by default
-  # (Departure 27); the MANOVA approach beside it is still the exact
+  # (Departure 28); the MANOVA approach beside it is still the exact
   # dataset's, the comparison the form's help points to.
   exact_beside <- identical(method, "exact") || (identical(method, "simulation") && isTRUE(backend$corrected_nonspherical))
   if (!exact_beside || is.null(backend$manova_power) || !manova_applies(spec) || is.null(n) || is.na(n)) {

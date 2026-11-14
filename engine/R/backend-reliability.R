@@ -205,6 +205,9 @@ reliability_check_kappa <- function(inputs, n) {
 }
 
 check_reliability <- function(spec) {
+  if (bland_altman_test(spec)) {
+    return(check_bland_altman(spec))
+  }
   pop <- spec$population
   tt <- spec$target_test
   problems <- character()

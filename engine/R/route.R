@@ -217,6 +217,7 @@ route_backend <- function(spec, seed = NULL) {
     "reliability/icc" = ,
     "reliability/cronbach_alpha" = ,
     "reliability/kappa" = reliability_backend(spec, seed),
+    "reliability/bland_altman" = bland_altman_backend(spec, seed),
     # Differential item functioning in a 2PL model, by irtpwr's analytical
     # method.
     "irt/dif" = irt_backend(spec, seed),

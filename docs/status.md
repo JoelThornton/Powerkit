@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 14 November 2026 (corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 14 November 2026 (corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -31,10 +31,17 @@ trimmed-means t-tests are a test version on the two-group and paired
 cards (E2, E3; WRS2's `yuen()` and `yuend()`, simulated with Spower; the
 paired version asks for the correlation between the measurements).
 Validation in progress: the simulation chunk `yuen` passes; the
-published example awaits transcription. Next in the queue: Bland-Altman
-limits of agreement. A tool showing which uncertain input a plan depends on most
+published example awaits transcription. The Bland-Altman limits of
+agreement are a fourth question on the reliability card (E69, 14 November
+2026): the analysis simulated with SimplyAgree's `agreement_limit()`,
+MOVER intervals by default (Departure 27), Bland and Altman's as an
+option, Lu et al.'s formula as an instant approximation; power at a
+fixed sample size runs on the card, a sample size comes as an R script.
+Validation in progress: the simulation chunk `agreement` passes; the
+published example awaits transcription. Next in the queue: the cards
+that say powerkit can't calculate yet (`next.md` item 1). A tool showing which uncertain input a plan depends on most
 (one-at-a-time ranges and a tornado chart) is queued after the cards
-that can't yet calculate (`next.md` item 28).
+that can't yet calculate (`next.md` item 27).
 
 The cross-lagged panel card runs with a reliability below 1 (13
 November 2026): its check run compares the specified lagged effects with
@@ -134,7 +141,7 @@ November; Departure 10 retired), with Fisher's z as a choice.
 Repeated measures with SDs or correlations that differ now default to the
 Greenhouse-Geisser corrected F test (12 November, Departure 26); the
 uncorrected test stays as a choice with a warning. Since 14 November such
-a corrected test is simulated by default (Departure 27): Superpower's
+a corrected test is simulated by default (Departure 28): Superpower's
 exact dataset scales the test by epsilon, which missed the corrected
 test's power by up to about 3 points either way. It stays available as
 an approximation and still finds the smallest detectable effect, with a
@@ -324,7 +331,7 @@ and automated accessibility checks passed locally for the exercised routes.
   pilot, or small telescopes for a replication (Simonsohn, 2015); the
   smallest detectable effect on the t-tests, the correlation,
   proportions, the ANOVAs (Welch's F by formula), regression and the
-  clustered design (the rest is `next.md` item 9). Results show the critical effect size for the
+  clustered design (the rest is `next.md` item 11). Results show the critical effect size for the
   t-tests (Student's) and the correlation.
 
 - **Results and documents:** a result opens with the answer and what it
@@ -372,7 +379,7 @@ and automated accessibility checks passed locally for the exercised routes.
   role, the claim, the population assumed, the joint and separate powers
   and the R script that reproduces them, marked experimental on its first
   page. It waits for a statistician's check ([`whole-study-method.md`](whole-study-method.md));
-  the designs still to add are in `next.md` item 4.
+  the designs still to add are in `next.md` item 7.
 
 - **Replication plans** (14 November 2026). A replication plan is a kind
   of study plan, started from "New replication plan" on the Study plans
@@ -387,8 +394,8 @@ and automated accessibility checks passed locally for the exercised routes.
   card, with each effect field labelled as the original's, plans the
   replication and keeps the result in the plan. The plan saves, shares
   and downloads like any study plan. Goals for designs beyond the four
-  and an original analysed with Bayes factors are `next.md` items 23 and
-  24.
+  and an original analysed with Bayes factors are `next.md` items 22 and
+  23.
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning
@@ -453,12 +460,12 @@ at fbbd237 (0.61.1), failed only the two recurring partitions: GG .2130
 versus .2313, and binary-X ML/Monte-Carlo null .0750 versus a .0707 limit.
 Both are explained (14 November, `validation-log.md`). The GG reference
 .2313 is Superpower's epsilon-scaled approximation; the corrected test's
-power is .217. Such tests are now simulated by default (Departure 27).
+power is .217. Such tests are now simulated by default (Departure 28).
 The chunk's comparisons now compare two simulations, and the one-way one
 fails on its fixed seed (.4525 against .4706; the independent value is
 .4658). Rewriting those maintainer-owned tests is in `next.md`. The binary-X null rate is 5.38% in
 20,000 studies, consistent with 5%; the fixed seed draws a 1-in-80 sample
-every night. Re-seeding that maintainer-owned test is `next.md` item 6.
+every night. Re-seeding that maintainer-owned test is `next.md` item 5.
 
 ## Known gaps on cards that run
 

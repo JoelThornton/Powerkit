@@ -34,7 +34,7 @@ test_that("there is an example for every template", {
   expect_setequal(unique(templates), c(
     "one_sample_t", "independent_t", "paired_t", "correlation", "repeated_measures_correlation",
     "two_proportions", "chi_square_independence", "2x2_between", "2x2_mixed", "dprime", "lpa", "efa", "its", "riclpm",
-    "two_way", "three_way", "group_moderator", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "crossed_conditions", "item_predictor", "three_level", "growth_curve", "apim", "log_rank", "cox_predictor", "icc", "cronbach_alpha", "kappa", "dif", "mean_effect", "subgroups", "dependent_effects", "meta_regression", "heterogeneity", "process_4", "process_6", "process_7", "process_14", "process_8", "process_58", "process_59",
+    "two_way", "three_way", "group_moderator", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "crossed_conditions", "item_predictor", "three_level", "growth_curve", "apim", "log_rank", "cox_predictor", "icc", "cronbach_alpha", "kappa", "bland_altman", "dif", "mean_effect", "subgroups", "dependent_effects", "meta_regression", "heterogeneity", "process_4", "process_6", "process_7", "process_14", "process_8", "process_58", "process_59",
     # Wave 2 (engine only).
     "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase", "single_coefficient",
     # One-way repeated measures.
