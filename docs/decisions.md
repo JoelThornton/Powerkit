@@ -3188,7 +3188,7 @@ keeps within-person moderation and mediation (`next.md` item 2) and
 points to E76 for the correlation; a new design-finder question (R2)
 separates the two after "measured twice" or "many conditions".
 
-### Yuen's trimmed-means t-tests on E2 and E3, 13 November 2026
+### Yuen's trimmed-means t-tests on E2 and E3, 14 November 2026
 
 Yuen's tests of trimmed means, offered by JASP as robust t-tests, are a
 test version on the two-group and paired cards. WRS2's `yuen()` and
