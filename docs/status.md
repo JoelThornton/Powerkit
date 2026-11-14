@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 14 November 2026 (replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 14 November 2026 (corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -133,7 +133,12 @@ November; Departure 10 retired), with Fisher's z as a choice.
 
 Repeated measures with SDs or correlations that differ now default to the
 Greenhouse-Geisser corrected F test (12 November, Departure 26); the
-uncorrected test stays as a choice with a warning.
+uncorrected test stays as a choice with a warning. Since 14 November such
+a corrected test is simulated by default (Departure 27): Superpower's
+exact dataset scales the test by epsilon, which missed the corrected
+test's power by up to about 3 points either way. It stays available as
+an approximation and still finds the smallest detectable effect, with a
+warning.
 
 The input screens were shortened (11 November): the two-group t-test
 screen shows about 670 words at first sight, from about 1,200, with the
@@ -442,18 +447,16 @@ minutes (389 pass, 2 fail, 110 skipped; skips include partitioning and
 published placeholders). An earlier inspected nightly,
 [9 November run 42570428222](https://github.com/JoelThornton/Powerkit/actions/runs/42570428222),
 also failed the ANOVA and binary-X checks (the latter .077 in 1,000).
-The [10 November run 42772650889](https://github.com/JoelThornton/Powerkit/actions/runs/42772650889)
-also completed with failures in the ANOVA and binary-X chunks; this does not
-resolve either scientific issue. The latest completed nightly inspected,
+The latest completed nightly inspected,
 [11 November run 42968983200](https://github.com/JoelThornton/Powerkit/actions/runs/42968983200),
-at fbbd237 (0.61.1), again failed only these two partitions: GG .2130
-versus .2313 and binary-X ML/Monte-Carlo null .0750 versus the unchanged
-.0707 limit. The two recurring failures concern the
-mixed-design Greenhouse-Geisser check: a new independent 20,000-study
-reference gives .21805 (MCSE .00292), with same-data p-values matching afex
-to 1.9e-15. Fixing epsilon gives .2196, so that alone does not explain
-Superpower's .2313. Investigation and specialist review remain open, and moderated mediation's Type I error with a
-yes/no X (7.5% of 1,000 studies), a question for power4mome's author.
+at fbbd237 (0.61.1), failed only the two recurring partitions: GG .2130
+versus .2313, and binary-X ML/Monte-Carlo null .0750 versus a .0707 limit.
+Both are explained (14 November, `validation-log.md`). The GG reference
+.2313 is Superpower's epsilon-scaled approximation; the corrected test's
+power is .217. Such tests are now simulated by default, and the
+comparison compares two simulations. The binary-X null rate is 5.38% in
+20,000 studies, consistent with 5%; the fixed seed draws a 1-in-80 sample
+every night. Re-seeding that maintainer-owned test is `next.md` item 6.
 
 ## Known gaps on cards that run
 

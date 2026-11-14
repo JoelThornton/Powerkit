@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-14"
+    title: "Corrected repeated-measures tests are now simulated"
+    text: "When the SDs or correlations differ between conditions and you plan for the Greenhouse-Geisser or Huynh-Feldt corrected test, powerkit now works out power by simulating studies, analysed with the corrected test. The quick exact-dataset calculation only approximates the corrected test, and in our checks it was up to about 3 percentage points too high or too low. You can still choose it under \"How power is worked out\", and a warning then says it is approximate. The smallest detectable effect still uses it, with the same warning. Designs with one SD and one correlation, and uncorrected tests, are unchanged."

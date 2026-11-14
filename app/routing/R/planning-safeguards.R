@@ -1,13 +1,39 @@
-# Scoped warning: this is an unresolved approximation discrepancy, not a
-# statement that every corrected repeated-measures design has the same bias.
+# A corrected F test of a within-participants effect whose SDs or
+# correlations differ, so sphericity can fail (the F test, not a rank test,
+# a Bayes factor or pairwise comparisons).
+corrected_nonspherical_test <- function(spec) {
+  identical(spec$design, "factorial_anova") && sphericity_can_fail(spec) &&
+    isTRUE(spec$target_test$correction %in% c("GG", "HF")) &&
+    !is_rank_test(spec) && !is_bayes_test(spec) && !is_pairwise(spec)
+}
+
+# Whether such a test is worked out with Superpower's exact data set: on
+# request, or for the smallest detectable effect, which the engine finds
+# with it (Departure 27 makes simulation the default otherwise).
+gg_exact_route <- function(spec) {
+  corrected_nonspherical_test(spec) &&
+    (identical(spec$options$method, "exact") || isTRUE(spec$goal$type %in% c("sensitivity", "sensitivity_curve")))
+}
+
+# The exact data set applies the correction by scaling the test's
+# noncentrality and degrees of freedom by epsilon, an approximation that
+# missed simulated power by up to about 3 points in either direction
+# (docs/validation-log.md, 14 November 2026; Departure 27).
 gg_planning_note <- function(spec) {
-  if (!identical(spec$design, "factorial_anova") ||
-      !isTRUE(spec$target_test$correction %in% c("GG", "HF")) ||
-      is_rank_test(spec) || is_bayes_test(spec) || is_pairwise(spec)) return(NULL)
-  paste("Corrected repeated-measures planning needs an extra check.",
-    "In a recorded mixed-design Greenhouse-Geisser case, Superpower's exact-data calculation gave higher power than independent simulated studies (.231 versus .218).",
-    "The reason is unresolved; this is not a general error bound, and changing to Huynh-Feldt has not been verified as a remedy.",
-    "Check the proposed sample size by simulation using the same population and corrected analysis before relying on it.")
+  if (!gg_exact_route(spec)) return(NULL)
+  smallest <- isTRUE(spec$goal$type %in% c("sensitivity", "sensitivity_curve"))
+  paste(
+    if (smallest) {
+      "The smallest detectable effect is found with Superpower's exact dataset, which applies the sphericity correction approximately, by scaling the test's degrees of freedom by epsilon."
+    } else {
+      "You chose Superpower's exact dataset, which applies the sphericity correction approximately, by scaling the test's degrees of freedom by epsilon."
+    },
+    "In powerkit's checks this was up to about 3 percentage points too high or too low compared with simulated studies of the corrected test.",
+    if (smallest) {
+      "Before relying on it, enter means of that size and check their power by simulation."
+    } else {
+      "Check the power at this sample size by simulation before relying on it."
+    })
 }
 
 # A sensitivity result is a proposal for a fixed-N simulation, not a
@@ -34,6 +60,7 @@ corrected_anova_verification_values <- function(calc, values) {
   values$goal <- "power"
   values$n <- as.character(n_analysed(calc$result))
   values$method <- "simulation"
+  values$gg_method <- "simulation"
   values
 }
 

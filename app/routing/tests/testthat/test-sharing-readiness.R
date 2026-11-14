@@ -37,14 +37,14 @@ test_that("power offers an explicit informed shortcut and remains blank initiall
 test_that("important result limitations precede the headline and survive copied methods", {
   fields <- form_fields(form_groups(forms,"E55"))
   values <- modifyList(form_examples$E55,list(goal="power",n="60",spread="differ",
-    sds="6,6,6\n6,6,6",rs=".5,.3,.4",correction="GG"))
+    sds="6,6,6\n6,6,6",rs=".5,.3,.4",correction="GG",gg_method="exact"))
   spec <- build_spec(forms,"E55",fields,values)
   result <- powerkit::run_spec(spec)
   calc <- list(status="ok",spec=spec,result=result)
   html <- as.character(result_panel_ui(tree,forms,"E55",fields,values,calc))
   expect_lt(regexpr("planning-critical",html)[1],regexpr('class="result-headline',html)[1])
   expect_equal(lengths(regmatches(html,gregexpr("planning-critical",html,fixed=TRUE))),1L)
-  expect_match(writeup_text(forms$forms$E55,spec,result,fields,values)[["short"]],"reason is unresolved",fixed=TRUE)
+  expect_match(writeup_text(forms$forms$E55,spec,result,fields,values)[["short"]],"applies the sphericity correction approximately",fixed=TRUE)
   binary <- list(design="moderated_mediation",template="process_7",variables=list(X=list(type="binary")),
     target_test=list(method="monte_carlo_ci"))
   expect_match(paste(planning_warning_notes(binary),collapse=" "),"test too liberal",fixed=TRUE)

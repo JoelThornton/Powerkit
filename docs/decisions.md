@@ -3225,3 +3225,31 @@ The replication layer moves out of Labs into the study plans (queue item
   file with the record and the plan's name beside it, so the previous
   version still opens it; files the Labs planner saved open as new
   replication plans.
+
+### Corrected repeated-measures tests simulated by default, 14 November 2026
+
+A Greenhouse-Geisser or Huynh-Feldt corrected F test whose effect is not
+spherical (epsilon below 1) is now simulated by default with Superpower's
+`ANOVA_power()`. It is no longer worked out from `ANOVA_exact()`'s exact
+dataset (`conventions.md`, Departure 27). The exact dataset multiplies
+the noncentrality and both degrees of freedom by epsilon. That is an
+approximation, not the corrected test's power. In independent
+simulations it was between 3.1 points too low and 3.3 points too high
+(`validation-log.md`, 14 November 2026). It is also the reason the
+nightly mixed-design comparison failed (.231 against .218).
+
+Recommendation accepted: simulate by default, because only simulated
+studies analysed with the corrected test give that test's power, and an
+error of a few points matters near a target.
+
+- The exact dataset stays available, labelled as an approximation, with
+  a warning above the answer.
+- The smallest detectable effect is still found with the exact dataset,
+  because the engine has no simulated search for it, and carries the
+  same warning.
+- Spherical designs and uncorrected tests keep the exact dataset, which
+  is exact for them.
+- The engine decides from the population's epsilon, which afex reads on
+  the exact dataset.
+- The cards' "How power is worked out" starts at simulation once the SDs
+  or correlations differ and a correction is chosen.

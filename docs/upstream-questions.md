@@ -43,7 +43,7 @@ below retain their reproduction information and limitations.
 | power4mome: X with three or more categories in mediation | Backend-support question; no independent supported implementation recorded | Unsupported, rather than approximated by a continuous X | A documented generator, effect coding and target test, followed by validation |
 | manymome/power4mome: model 8 moderated-mediation index | Recorded refusal of `index_of_mome()` and conditional-effect comparison | Bypassed by offering the explicitly labelled difference of conditional indirect effects; it is a different target | Index implementation changes; compare estimands and retain both target-specific tests |
 | power4mome: correlated binary X and W | Backend restriction and historical questions; no validated generator recorded | Unsupported where the generator requires zero covariance | A supported joint generator and independent checks at nonzero associations |
-| power4mome: binary-X Monte Carlo interval calibration | `test-validation-modmed-binary.R`, independent OLS interval comparison | Active limitation, disclosed; not treated as validated merely because the simulation runs | Recommended fitting/interval settings or a package change; repeat null and alternative checks |
+| power4mome: binary-X Monte Carlo interval calibration | `test-validation-modmed-binary.R`, independent OLS interval comparison; 20,000-study null check (5.38%, consistent with 5%; `validation-log.md`, 14 November 2026) | Active limitation, disclosed; not treated as validated merely because the simulation runs | Recommended fitting/interval settings or a package change; repeat null and alternative checks |
 | power4mome: models 58/59 fitted residual covariance | Recorded failed standard errors with `M ~~ W` | Bypassed: fitted model supplied without the non-estimable covariance | Fitted-model construction changes; compare standard errors, failures and target decisions |
 | Spower: directional one-/two-variance tests | `upstream/spower-var-test.R`, manual examples 26.3/15.3 | Direction passed explicitly; analytic variance routes avoid this default issue | Changes to `alternative`/`two.tailed`; rerun both directions, including effects opposite to the prediction |
 | Spower: unequal groups in simulated two-variance tests | `gen_var.test()` unequal-length reproduction | Restricted for the simulation route; analytic unequal-allocation F-test route is separate | Generator fixed; compare generated counts and null/alternative rejection before enabling it |
@@ -243,6 +243,15 @@ workaround when updating power4mome; no upstream resolution is assumed.
    (`test-validation-modmed-binary.R`). Is a slightly liberal test
    expected here, for example from the normal-theory standard errors of
    the lavaan fit when X is binary, and is there a recommended setting?
+   Update, 14 November 2026: in 20,000 studies drawn by power4mome's own
+   generator and tested by the same lavaan Monte Carlo interval, the
+   rejection rate was 5.38% (MCSE .16%; 99.9% interval 4.87% to 5.92%).
+   That is consistent with 5%. The OLS t-test gave 4.87% and the OLS
+   Monte Carlo interval 5.17% on the same studies. The nightly 7.5%
+   comes from its fixed seed: a 1,000-study rate above the test's .0707
+   limit has about a 1.2% chance at a true rate of 5.38%, and the same
+   seed draws the same studies every night (`validation-log.md`,
+   14 November 2026). Not to be sent: no package fault is shown.
 7. **Time spent formatting labels in manymome's Monte Carlo intervals.**
    With power4mome 0.2.1 and manymome, testing one simulated study for
    PROCESS model 7 (n = 300, 1,000 Monte Carlo draws) took about 1.6
@@ -405,6 +414,16 @@ gives .231305; independently generated studies analysed by the same GG
 procedure give .21805 in 20,000 (MCSE .00292). Reference p-values match
 afex on identical data. Fixing the population epsilon gives .21960, so
 estimating epsilon alone does not explain the gap.
+
+Update, 14 November 2026: the gap is the approximation itself.
+`ANOVA_exact()` multiplies the noncentrality and both degrees of freedom by
+epsilon. Across thirteen designs ([grid](upstream/superpower-gg-grid.R)),
+that calculation minus the corrected test's simulated power ranged from
+-2.1 to +3.3 points. Its sign depends on the sample size and on how the
+effect lines up with the covariance. powerkit now simulates such tests by
+default (`conventions.md`, Departure 27). The questions below stay open
+for Superpower's documentation: whether the help should call the
+corrected result an approximation.
 
 1. For this covariance/SD configuration and finite N, what assumptions
    justify the exact-data noncentral-F power calculation? Is the result

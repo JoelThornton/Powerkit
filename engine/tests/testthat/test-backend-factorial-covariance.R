@@ -11,6 +11,9 @@ mixed_cov_spec <- function(correction = NULL, sd = list(list(6, 7, 8), list(6, 8
   spec$population$r <- r
   spec$target_test$effect <- "interaction"
   spec$target_test$correction <- correction
+  # The exact data set, compared with ANOVA_exact() directly (a corrected
+  # test without sphericity is simulated by default, Departure 27).
+  spec$options$method <- "exact"
   spec$goal <- list(type = "power", n = n)
   spec
 }
@@ -25,6 +28,9 @@ within_cov_spec <- function(correction = NULL) {
   spec$population$r <- as.list(t(rr)[lower.tri(rr)])
   spec$target_test$effect <- "interaction"
   spec$target_test$correction <- correction
+  # The exact data set, compared with ANOVA_exact() directly (a corrected
+  # test without sphericity is simulated by default, Departure 27).
+  spec$options$method <- "exact"
   spec$goal <- list(type = "power", n = 20)
   spec
 }
