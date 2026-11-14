@@ -281,6 +281,7 @@ zero_effect_cases <- list(
   mediation_simple = function(s) within(s, population$paths[["X->M"]] <- 0),
   mediation_multicategorical = function(s) within(s, population$m_differences[[1]] <- 0),
   mediation_binary_mediator = function(s) within(s, population$m_odds_ratio <- 1),
+  mediation_binary_or_count_outcome = function(s) within(s, population$a <- 0),
   mediation_ols_bootstrap = function(s) within(s, population$paths[["X->M"]] <- 0),
   mediation_parallel = function(s) within(s, population$paths[["M2->Y"]] <- 0),
   mediation_serial = function(s) within(s, population$paths[["M1->M2"]] <- 0),

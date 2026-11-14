@@ -2090,6 +2090,46 @@ test_that("moderation of a count outcome (E32) builds a Poisson or negative bino
   expect_match(w[["short"]], "a negative binomial regression with an interaction (the Wald z test of the X x W coefficient, overdispersion k = 0.5)", fixed = TRUE)
 })
 
+test_that("mediation with a yes/no or count outcome (E32) builds a regmedint spec and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E32"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  med <- list(analysis = "mediation", Y_kind = "count", med_count_model = "negative_binomial", X_type = "binary")
+  expect_false(field_applies(by_id("W_label"), med))
+  expect_false(field_applies(by_id("x_prob"), med))
+  expect_false(field_applies(by_id("count_model"), med))
+  expect_true(field_applies(by_id("med_dispersion"), med))
+  expect_true(field_applies(by_id("M_label"), med))
+  base <- list(analysis = "mediation", Y_label = "Heavy drinking days in a month", X_label = "Condition", X_type = "binary",
+    X_level1 = "Waiting list", X_level2 = "Online programme", M_label = "Coping self-efficacy", med_a = "0.4",
+    W_label = NULL, W_type = NULL, r_xw = NULL, base_prob = NULL, odds_ratio_x = NULL, odds_ratio_w = NULL, odds_ratio_xw = NULL,
+    alternative = NULL, goal = "power", n = "400")
+  values <- modifyList(form_examples$E32, c(base, list(Y_kind = "count", med_count_model = "negative_binomial",
+    med_base_rate = "5", med_b_rr = "0.8", med_direct_rr = "0.95", med_dispersion = "0.5")))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E32", fields, values)
+  expect_identical(spec$design, "mediation")
+  expect_identical(spec$template, "binary_or_count_outcome")
+  expect_null(spec$variables$W)
+  expect_null(spec$variables$Y$levels)
+  expect_identical(spec$variables$M$type, "continuous")
+  expect_identical(spec$population$count_model, "negative_binomial")
+  expect_identical(spec$target_test$method, "delta_method")
+  expect_null(spec$target_test$alternative)
+  # A yes/no outcome.
+  yn <- modifyList(form_examples$E32, c(base, list(Y_kind = "binary", med_y_baseline = "0.3", med_b_or = "0.7")))
+  expect_equal(form_problems(fields, yn), character())
+  spec_yn <- build_spec(forms, "E32", fields, yn)
+  expect_identical(spec_yn$variables$Y$type, "binary")
+  expect_identical(spec_yn$population$metric, "odds_ratio")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E32"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "regression-based causal mediation analysis with a count (negative binomial, overdispersion k = 0.5)", fixed = TRUE)
+})
+
 test_that("PERMANOVA (E59's test version) takes the shape of the scores, reaches vegan and drops MANOVA's known difference", {
   fields <- form_fields(form_groups(forms, "E59"))
   values <- modifyList(form_examples$E59, list(manova_test = "permanova", score_shape = "skewed", goal = "power", n = "90"))

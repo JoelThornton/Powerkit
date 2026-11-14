@@ -3766,7 +3766,8 @@
               "process_4",
               "process_6",
               "multicategorical",
-              "binary_mediator"
+              "binary_mediator",
+              "binary_or_count_outcome"
             ]
           },
           "target_test": {
@@ -3790,7 +3791,7 @@
                       "joint_significance",
                       "delta_method"
                     ],
-                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate. delta_method (a yes/no mediator, template binary_mediator, only): the natural indirect effect's delta-method test in regression-based causal mediation analysis (regmedint), simulated"
+                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate. delta_method (templates binary_mediator and binary_or_count_outcome only): the natural indirect effect's delta-method test in regression-based causal mediation analysis (regmedint), simulated"
                   }
                 }
               }
@@ -3856,6 +3857,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_mediation_binary_mediator"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "binary_or_count_outcome"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mediation_binary_or_count_outcome"
             }
           }
         ]
@@ -13086,6 +13102,111 @@
                 "negative_binomial"
               ],
               "description": "'wald_z': Poisson regression and the Wald z test of the X x W coefficient. 'negative_binomial': negative binomial regression (MASS's glm.nb()), for counts more spread out than a Poisson distribution allows; needs population > dispersion. The same Wald z test."
+            }
+          }
+        }
+      }
+    },
+    "template_mediation_binary_or_count_outcome": {
+      "description": "Mediation with a yes/no or count outcome (E32): linear regression of a score mediator M on X, and logistic (Y yes/no), Poisson or negative binomial (Y a count) regression of Y on M and X, without an X-by-M interaction; the natural indirect effect of X (0 to 1: the second group against the first, or one SD of X) through M tested by its delta-method standard error, as regmedint's regression-based causal mediation analysis computes it (Valeri and VanderWeele, 2013), in a Spower simulation. With X in two groups, the groups are of equal size; goal > n is the total.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "M",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "M": {
+              "description": "The mediator, a score.",
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "description": "The outcome: yes/no (its second level is 'yes') or a count.",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_binary"
+                },
+                {
+                  "$ref": "#/definitions/variable_count"
+                }
+              ]
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "a"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "odds_ratio",
+                "rate_ratio"
+              ]
+            },
+            "a": {
+              "description": "X's effect on M (the second group against the first, or per SD of a score), in M's residual SD (path a).",
+              "type": "number"
+            },
+            "y_baseline": {
+              "description": "Y yes/no only: the chance that Y is yes for the first group of X (or at X's mean) with M at 0, its mean in that group.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "b_odds_ratio": {
+              "description": "Y yes/no only: the odds ratio of Y = yes per residual SD of M, holding X (path b, exp(b)).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "direct_odds_ratio": {
+              "description": "Y yes/no only: the odds ratio of Y = yes for X, holding M (exp(c')). 1 if omitted.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "base_rate": {
+              "description": "Y a count only: the mean count for the first group of X (or at X's mean) with M at 0.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "b_rate_ratio": {
+              "description": "Y a count only: the rate ratio per residual SD of M, holding X (path b, exp(b)).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "direct_rate_ratio": {
+              "description": "Y a count only: the rate ratio for X, holding M (exp(c')). 1 if omitted.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "count_model": {
+              "description": "Y a count only: poisson (the default) or negative_binomial, the model the counts follow and are analysed by.",
+              "enum": [
+                "poisson",
+                "negative_binomial"
+              ]
+            },
+            "dispersion": {
+              "description": "Y a negative binomial count only: k, so that a count's variance is mu + k mu^2.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": {
+              "const": "X->M->Y"
+            },
+            "method": {
+              "const": "delta_method"
             }
           }
         }

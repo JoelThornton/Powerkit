@@ -66,8 +66,13 @@ progress: the chunk `mediation_binm` passes; the published example awaits
 transcription. E32's moderation takes a count outcome too (14 November
 2026): a Poisson or negative binomial regression with the X x W product,
 its Wald z test simulated with Spower; power and a sample size both run
-on the card. Validation in progress: the chunk `count_interaction`
-passes; the published example awaits transcription. Next in the queue: the rest of
+on the card. Its mediation takes a yes/no or count outcome with a score
+mediator (14 November 2026): regression-based causal mediation analysis
+by regmedint (a linear model for the mediator; logistic, Poisson or
+negative binomial for the outcome), the natural indirect effect's
+delta-method test simulated with Spower; power and a sample size both
+run on the card. Validation in progress: the chunks `count_interaction`
+and `mediation_yglm` pass; the published examples await transcription. Next in the queue: the rest of
 those cards (`next.md` item 1), E75's two groups measured more than once
 (a group-by-time interaction) among them. A tool showing which uncertain input a plan depends on most
 (one-at-a-time ranges and a tornado chart) is queued after the cards

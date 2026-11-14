@@ -110,6 +110,7 @@ on:
           - process_4_binary
           - mediation_mcx
           - mediation_binm
+          - mediation_yglm
           - process_6
           - process_7
           - process_14
