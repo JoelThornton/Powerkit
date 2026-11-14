@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-14"
+    title: "Corrected repeated-measures tests are now simulated"
+    text: "When the SDs or correlations differ between conditions and you plan for the Greenhouse-Geisser or Huynh-Feldt corrected test, powerkit now works out power by simulating studies, analysed with the corrected test. The quick exact-dataset calculation only approximates the corrected test, and in our checks it was up to about 3 percentage points too high or too low. You can still choose it under \"How power is worked out\", and a warning then says it is approximate. The smallest detectable effect still uses it, with the same warning. Designs with one SD and one correlation, and uncorrected tests, are unchanged."
+  - date: "2026-11-14"
     title: "Do two methods of measurement agree? Bland-Altman limits of agreement"
     text: "The reliability card now plans a method-comparison study: whether a new device or method agrees closely enough with another to be used in its place. Give the difference you expect between them on average, how much the differences vary, and the largest difference that wouldn't matter; agreement is shown when both limits of agreement, with their confidence intervals, fall inside it. powerkit simulates studies like yours and analyses each one as you will, with MOVER confidence intervals by default, which keep the chance of wrongly showing agreement close to the level you set. The usual published formula is offered as a quick estimate, but it can be well off: in one example it asks for 26 subjects where the analysis needs 33. Power at a fixed sample size runs here; a sample size comes as an R script that takes about 5 minutes."
   - date: "2026-11-14"
