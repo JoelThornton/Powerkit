@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-14"
+    title: "A Bayes factor for multiple regression"
+    text: "The multiple regression card plans a Bayes factor for whether the predictors together explain anything, as JASP's Bayesian linear regression reports it: choose it as the test version for R-squared against 0, and powerkit gives the chance that the Bayes factor reaches your threshold, with JASP's default prior, with no simulation."

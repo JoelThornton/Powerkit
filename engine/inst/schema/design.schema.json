@@ -603,7 +603,7 @@
           "exclusiveMaximum": 1
         },
         "evidence_threshold": {
-          "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion, the correlation, two proportions and the one-way ANOVA): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
+          "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion, the correlation, two proportions, the one-way ANOVA and R-squared in a regression): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
           "type": "number",
           "exclusiveMinimum": 1
         },
@@ -614,7 +614,7 @@
           "maximum": 0.999
         },
         "prior_scale": {
-          "description": "Bayes factor t-tests and the Bayes factor one-way ANOVA only: the scale of the Cauchy analysis prior on the standardised effect under the alternative (the Jeffreys-Zellner-Siow Bayes factor). Default for the t-tests 1/sqrt(2) (about 0.707), bfpwr's default (powertbf01(pscale = 1/sqrt(2))); for the ANOVA 0.5, JASP's 'r scale fixed effects' (BayesFactor's oneWayAOV.Fstat(rscale = 0.5)).",
+          "description": "Bayes factor t-tests, the Bayes factor one-way ANOVA and the Bayes factor for R-squared only: the scale of the Cauchy analysis prior on the standardised effect under the alternative (the Jeffreys-Zellner-Siow Bayes factor). Default for the t-tests 1/sqrt(2) (about 0.707), bfpwr's default (powertbf01(pscale = 1/sqrt(2))); for the ANOVA 0.5, JASP's 'r scale fixed effects' (BayesFactor's oneWayAOV.Fstat(rscale = 0.5)); for R-squared 0.354, JASP's Bayesian linear regression 'r scale' (BayesFactor's 'medium', sqrt(2)/4, in linearReg.R2stat() and regressionBF()).",
           "type": "number",
           "exclusiveMinimum": 0
         },
@@ -4669,9 +4669,10 @@
                       "f_test",
                       "ols_hc3",
                       "ols_hc4",
-                      "quantile_regression"
+                      "quantile_regression",
+                      "bayes_factor"
                     ],
-                    "description": "'f_test': the usual F test (for one coefficient, the square of its t test), by pwrss's formula; the only test for templates r2_zero and r2_increase. Template single_coefficient also allows tests simulated with Spower: 'ols_hc3' and 'ols_hc4', the coefficient's test with heteroscedasticity-consistent standard errors (car's hccm(), types HC3 and HC4, through car's linearHypothesis()), and 'quantile_regression', the test of the coefficient in quantile regression (quantreg's rq() and summary.rq(se = \"nid\"))."
+                    "description": "'f_test': the usual F test (for one coefficient, the square of its t test), by pwrss's formula; the only test for templates r2_zero and r2_increase. Template single_coefficient also allows tests simulated with Spower: 'ols_hc3' and 'ols_hc4', the coefficient's test with heteroscedasticity-consistent standard errors (car's hccm(), types HC3 and HC4, through car's linearHypothesis()), and 'quantile_regression', the test of the coefficient in quantile regression (quantreg's rq() and summary.rq(se = \"nid\")). Template r2_zero also allows 'bayes_factor': the Bayes factor for R-squared (BayesFactor's linearReg.R2stat(), the JZS Bayes factor of regressionBF() and lmBF(), JASP's default Bayesian linear regression), exact."
                   }
                 }
               }
@@ -4945,7 +4946,10 @@
               "const": "r_squared"
             },
             "method": {
-              "const": "f_test"
+              "enum": [
+                "f_test",
+                "bayes_factor"
+              ]
             }
           }
         }
@@ -5051,6 +5055,14 @@
           "properties": {
             "effect": {
               "const": "coefficient"
+            },
+            "method": {
+              "enum": [
+                "f_test",
+                "ols_hc3",
+                "ols_hc4",
+                "quantile_regression"
+              ]
             }
           }
         }

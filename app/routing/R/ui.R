@@ -1339,7 +1339,7 @@ settings_table_ui <- function(tree) {
 bayes_form_designs <- function(tree, forms) {
   field_of <- function(form) {
     fields <- c(unlist(lapply(form$groups, `[[`, "fields"), recursive = FALSE), form$extra)
-    for (f in fields) if (identical(f$type, "select") && "bayes_factor" %in% names(f$choices)) return(f$id)
+    for (f in fields) if (identical(f$type, "select") && "bayes_factor" %in% names(f$choices)) return(f)
     NULL
   }
   out <- list()
@@ -1349,7 +1349,10 @@ bayes_form_designs <- function(tree, forms) {
     form <- forms$forms[[id]]
     if (is.null(form)) next
     field <- field_of(form)
-    if (!is.null(field)) out[[id]] <- list(id = id, field = field)
+    # `requires`: the choices that show the test-version field (E24's
+    # question), set with it in Bayes mode.
+    if (!is.null(field)) out[[id]] <- list(id = id, field = field$id,
+      requires = Filter(function(cond) !is.null(cond[["is"]]), shown_if_conditions(field)))
   }
   out
 }

@@ -3405,3 +3405,23 @@ test_that("repeated counts, yes/no and ordered categories (E75) build valid spec
   expect_equal(unlist(grouped$population$rates), c(2, 2, 2, 1.4))
   expect_silent(powerkit::validate_spec(grouped))
 })
+
+test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and words the result as evidence", {
+  fields <- form_fields(form_groups(forms, "E24"))
+  values <- list(Y_label = "Wellbeing score", question = "r2_zero", r2_test = "bayes_factor", evidence_threshold = "10", prior_scale = "0.354",
+    r2 = "0.1", predictors = "3", goal = "power", n = "150", just_type = "smallest_effect_of_interest", just_source = "Example only")
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("alpha" %in% vapply(applies, function(f) f$id, ""))
+  expect_equal(form_problems(applies, values), character())
+  spec <- build_spec(forms, "E24", fields, values)
+  expect_identical(spec$target_test$method, "bayes_factor")
+  expect_null(spec$target_test$alpha)
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "BayesFactor")
+  text <- paste(result_sentences(calc$spec, calc$result), collapse = " ")
+  expect_match(text, "chance of strong evidence", fixed = TRUE)
+  w <- writeup_text(forms$forms[["E24"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "a Bayes factor test of R-squared in a linear regression", fixed = TRUE)
+  expect_match(w[["short"]], "as in JASP", fixed = TRUE)
+})

@@ -702,6 +702,9 @@ check_bayes_factor <- function(spec) {
   if (bfanova_test(spec)) {
     return(check_bayes_anova(spec))
   }
+  if (bfreg_test(spec)) {
+    return(check_bayes_regression(spec))
+  }
   if (!is.null(spec$target_test$prior_width)) {
     return("'target_test > prior_width' belongs to the Bayes factor test of a correlation; a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'.")
   }

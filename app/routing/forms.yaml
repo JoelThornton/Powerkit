@@ -2755,6 +2755,23 @@ forms:
                     single_coefficient: [{path: target_test.effect, value: coefficient}, {path: variables.X.type, value: continuous}]}}
           - {id: X_label, label: "The predictor you are testing", type: text, path: variables.X.label, required: true,
              shown_if: {field: question, is: single_coefficient}}
+          # The Bayes factor for R-squared (14 November 2026): BayesFactor's
+          # linearReg.R2stat(), the JZS Bayes factor of JASP's Bayesian
+          # linear regression, exact from the noncentral F.
+          - {id: r2_test, label: "Test version", type: select, path: target_test.method, required: true,
+             shown_if: {field: question, is: r2_zero},
+             choices: {f_test: "The F test of R-squared (G*Power's R-squared deviation from zero)",
+                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
+             default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
+             choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model with none, reaches the threshold you choose below. Worked out exactly, with no simulation."}}
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the predictors explain some of the outcome than if they explain none. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_scale, label: "Scale of the analysis prior on the standardised coefficients (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             default: 0.354, default_source: "JASP's Bayesian linear regression (JZS prior, 'r scale' 0.354), the same as BayesFactor's 'medium' scale for continuous predictors (regressionBF(rscaleCont = 'medium'), sqrt(2)/4; BayesFactor 0.9.12-4.8)",
+             help: "The prior you will use when you analyse the data. 0.354 is JASP's default; use the same value as in your analysis plan."}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
         fields:
           # Cohen's f-squared, G*Power's input (12 November 2026): the engine

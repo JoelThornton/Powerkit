@@ -111,7 +111,7 @@ validation_chunks <- function() {
     bayes_factorial = c("test-validation-bayes-factorial.R", "test-validation-bayes-repeated.R"),
     bayes = c("test-validation-bayes-factor.R", "test-validation-bayes-sequential.R", "test-validation-bayes-binomial.R",
       "test-validation-bayes-correlation.R", "test-validation-bayes-proportions.R",
-      "test-validation-bayes-anova.R",
+      "test-validation-bayes-anova.R", "test-validation-bayes-regression.R",
       "test-validation-bayes-table.R", "test-validation-bayes-companion.R"),
     meta = c("test-validation-meta-analysis.R", "test-validation-meta-subgroups.R", "test-validation-meta-dependent.R", "test-validation-meta-more.R"),
     dyadic = c("test-validation-apim.R", "test-validation-apim-moderation.R"),
