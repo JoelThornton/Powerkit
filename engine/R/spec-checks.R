@@ -3066,6 +3066,7 @@ minimum_n <- function(spec) {
       # Repeated counts or yes/no: two people in each condition between
       # people, and enough for the person SD within.
       if (identical(spec$template, "repeated_glmm")) {
+        if (!is.null(spec$variables$W)) max(6, 2 * length(spec$variables$W$levels)) else
         if (identical(spec$variables$X$type, "between_factor")) 2 * length(spec$variables$X$levels) else 6
       } else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
@@ -3173,6 +3174,11 @@ group_split <- function(spec) {
   }
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
+  }
+  if (identical(spec$template, "repeated_glmm") && !is.null(spec$variables$W)) {
+    g <- length(spec$variables$W$levels)
+    return(list(rule = sprintf("split into %d equal groups, one per group of %s", g, spec$variables$W$label %||% "W"),
+      valid = function(n) n %% g == 0))
   }
   if (identical(spec$template, "multicategorical")) {
     k <- length(spec$variables$X$levels)
@@ -3355,6 +3361,11 @@ target_effect_is_zero <- function(spec) {
       if (identical(spec$variables$Y$type, "binary")) diff(as.numeric(unlist(pop$probabilities))) else pop$d
     } else if (identical(spec$template, "item_predictor")) {
       pop$slope
+    } else if (identical(spec$template, "repeated_glmm") && !is.null(spec$variables$W)) {
+      # The group-by-condition interaction: no effect when every group
+      # changes alike (every interaction coefficient 0).
+      inputs <- tryCatch(repeated_glmm_inputs(spec), error = function(e) NULL)
+      if (is.null(inputs)) 1 else max(abs(inputs$fixef[grepl(":", inputs$fixef_names, fixed = TRUE)]), 0)
     } else if (identical(spec$template, "repeated_glmm")) {
       # The conditions' log rates (or log odds): no difference when all are
       # equal.

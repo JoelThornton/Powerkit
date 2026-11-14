@@ -559,7 +559,7 @@ likelihood ratio; not a departure.
 | G\*Power | No test for generalised mixed models | — | — |
 | simr | `powerSim()` on a model built with `makeGlmer()` (any glmer family); `fixed(xname, method)`, `"lr"` by default for a factor, `"chisq"` its Wald chi-square through car [simr help] | The model's own parameters | — |
 | ordinal | `clmm()`: a cumulative link mixed model, logit link and flexible thresholds by default, `logit P(Y <= j) = theta_j - X beta - u` [ordinal help] | The model's own parameters: thresholds and log odds ratios | — |
-| **powerkit** | Poisson and yes/no: simr's `powerSim()` on `makeGlmer()` with `fixed("cond", "lr")` (default) or `fixed("cond", "chisq")`. Negative binomial: Spower running `p_repeated_nb()`, lme4's `glmer.nb()` (theta estimated), with the same two tests. Ordered categories: Spower running `p_repeated_ordinal()`, ordinal's `clmm()` with the logit link, the likelihood-ratio test or the Wald chi-square test of cond's coefficients (E75, from 14 November 2026) [powerkit] | Each condition's expected count (or chance of 'yes') for a typical person, the SD of the person intercepts on the log (log-odds) scale, and for a negative binomial count the overdispersion k (variance mu + k mu^2; lme4's theta is 1 / k). For ordered categories, a typical person's share of answers in each category in the first condition (setting the thresholds) and each condition's odds ratio of a higher category (proportional odds) | `y ~ cond + (1 \| person)`, cond a factor in treatment coding; every person in every condition, or the people split equally between the conditions; `measurements` per person in each condition. A data set whose fit fails counts as not significant, as simr counts it |
+| **powerkit** | Poisson and yes/no: simr's `powerSim()` on `makeGlmer()` with `fixed("cond", "lr")` (default) or `fixed("cond", "chisq")`; with groups (W), `fixed("group:cond", ...)` on `y ~ group * cond + (1 \| person)`. Negative binomial: Spower running `p_repeated_nb()`, lme4's `glmer.nb()` (theta estimated), with the same two tests. Ordered categories: Spower running `p_repeated_ordinal()`, ordinal's `clmm()` with the logit link, the likelihood-ratio test or the Wald chi-square test of cond's coefficients (E75, from 14 November 2026) [powerkit] | Each condition's expected count (or chance of 'yes') for a typical person, the SD of the person intercepts on the log (log-odds) scale, and for a negative binomial count the overdispersion k (variance mu + k mu^2; lme4's theta is 1 / k). For ordered categories, a typical person's share of answers in each category in the first condition (setting the thresholds) and each condition's odds ratio of a higher category (proportional odds) | `y ~ cond + (1 \| person)`, cond a factor in treatment coding; every person in every condition, or the people split equally between the conditions; `measurements` per person in each condition. A data set whose fit fails counts as not significant, as simr counts it |
 
 simr cannot build or refit a negative binomial mixed model (its families
 are glmer's), so the negative binomial version draws each person's
@@ -569,6 +569,19 @@ chi-square test has the same p-value as glmer's Wald z test. The
 likelihood-ratio test is the default, as on the many-conditions card for
 yes/no trials (E63), for the reason lme4's help on p-values gives; not a
 departure, since G\*Power has no such test.
+
+Two or more groups measured more than once (W a between factor, X within
+people, from 14 November 2026) use the same families and tests on
+`y ~ group * cond + (1 | person)`: the test is of the group-by-condition
+interaction, the likelihood-ratio test against `y ~ group + cond +
+(1 | person)` by default or the Wald chi-square test of `group:cond`
+(simr's `fixed("group:cond", ...)`, car's `Anova()` row, or the
+interaction coefficients of `clmm()`). The cells are given one row per
+group, and powerkit solves for the treatment-coded fixed effects that
+reproduce them exactly; the people are split equally between the groups.
+The likelihood-ratio test of the interaction is not a departure: G\*Power
+has no test for these models, and simr's default for a term is the
+likelihood ratio.
 
 Ordered categories are planned on the scale `clmm()` reports: an odds
 ratio above 1 means higher categories (ordinal's sign convention, the

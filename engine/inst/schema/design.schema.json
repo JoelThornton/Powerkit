@@ -9734,7 +9734,7 @@
       }
     },
     "template_repeated_glmm": {
-      "description": "The same people measured more than once with a count, yes/no or ordered-categories outcome: each person gives 'measurements' observations in each condition of X (a within factor: every person in every condition, such as before and after a programme) or in their own condition (a between factor: the people split equally, each measured several times). A generalised linear mixed model with a random intercept for each person, y ~ cond + (1 | person), cond a factor in treatment coding. A count (Y count) is Poisson (population > dispersion absent or 0), built by simr's makeGlmer() and simulated with powerSim(), or negative binomial (dispersion above 0), fitted with lme4's glmer.nb() in a Spower simulation; a yes/no outcome (Y binary) is logistic, built by makeGlmer(); ordered categories (Y categorical, its levels in order, lowest first) are a cumulative link mixed model with the logit link and proportional odds, fitted with the ordinal package's clmm() in a Spower simulation. The test that the conditions differ: target_test > method 'wald' (car's Wald chi-square test of cond, simr's 'chisq'; with two conditions the same p-value as glmer's Wald z) or 'likelihood_ratio' (the model against one without cond). goal > n is the number of people.",
+      "description": "The same people measured more than once with a count, yes/no or ordered-categories outcome: each person gives 'measurements' observations in each condition of X (a within factor: every person in every condition, such as before and after a programme) or in their own condition (a between factor: the people split equally, each measured several times). A generalised linear mixed model with a random intercept for each person, y ~ cond + (1 | person), cond a factor in treatment coding. A count (Y count) is Poisson (population > dispersion absent or 0), built by simr's makeGlmer() and simulated with powerSim(), or negative binomial (dispersion above 0), fitted with lme4's glmer.nb() in a Spower simulation; a yes/no outcome (Y binary) is logistic, built by makeGlmer(); ordered categories (Y categorical, its levels in order, lowest first) are a cumulative link mixed model with the logit link and proportional odds, fitted with the ordinal package's clmm() in a Spower simulation. The test that the conditions differ: target_test > method 'wald' (car's Wald chi-square test of cond, simr's 'chisq'; with two conditions the same p-value as glmer's Wald z) or 'likelihood_ratio' (the model against one without cond). goal > n is the number of people. With groups (W, a between factor) and X within people, the model is y ~ group * cond + (1 | person) and the test is of the group-by-condition interaction (target_test > effect 'interaction'): the likelihood-ratio test against y ~ group + cond + (1 | person) or the Wald chi-square test of group:cond.",
       "properties": {
         "variables": {
           "required": [
@@ -9768,6 +9768,19 @@
                   "$ref": "#/definitions/variable_categorical"
                 }
               ]
+            },
+            "W": {
+              "description": "Optional: the groups the people are in, each person in one (a between factor of two or more levels), for the group-by-condition interaction. X is then within people (the occasions or conditions each person is measured under), and the rates, probabilities or odds ratios are given one row per group of W, one value per condition of X.",
+              "properties": {
+                "type": {
+                  "enum": [
+                    "between_factor"
+                  ]
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
             }
           }
         },
@@ -9787,22 +9800,47 @@
               ]
             },
             "rates": {
-              "description": "Count outcome only: each condition's expected count per measurement for a typical person (random intercept 0), in the order of X's levels.",
+              "description": "Count outcome only: each condition's expected count per measurement for a typical person (random intercept 0), in the order of X's levels. With groups (W): one row per group, in the order of W's levels, each with one value per condition of X.",
               "type": "array",
               "minItems": 2,
               "items": {
-                "type": "number",
-                "exclusiveMinimum": 0
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                ]
               }
             },
             "probabilities": {
-              "description": "Yes/no outcome only: each condition's chance of 'yes' for a typical person (random intercept 0), in the order of X's levels.",
+              "description": "Yes/no outcome only: each condition's chance of 'yes' for a typical person (random intercept 0), in the order of X's levels. With groups (W): one row per group, in the order of W's levels, each with one value per condition of X.",
               "type": "array",
               "minItems": 2,
               "items": {
-                "type": "number",
-                "exclusiveMinimum": 0,
-                "exclusiveMaximum": 1
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "exclusiveMaximum": 1
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "exclusiveMaximum": 1
+                    }
+                  }
+                ]
               }
             },
             "category_probabilities": {
@@ -9816,12 +9854,24 @@
               }
             },
             "odds_ratios": {
-              "description": "Ordered categories only: each condition's odds of a higher category compared with the first condition, the same at every threshold (proportional odds), in the order of X's levels; the first is 1. Above 1: higher categories.",
+              "description": "Ordered categories only: each condition's odds of a higher category compared with the first condition, the same at every threshold (proportional odds), in the order of X's levels; the first is 1. Above 1: higher categories. With groups (W): one row per group, in the order of W's levels, each with one value per condition of X.",
               "type": "array",
               "minItems": 2,
               "items": {
-                "type": "number",
-                "exclusiveMinimum": 0
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                ]
               }
             },
             "sd_person": {
@@ -9854,7 +9904,8 @@
                 "p_adjust": false,
                 "effect": {
                   "enum": [
-                    "condition"
+                    "condition",
+                    "interaction"
                   ]
                 },
                 "method": {

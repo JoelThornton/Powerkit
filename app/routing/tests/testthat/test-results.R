@@ -3323,4 +3323,13 @@ test_that("repeated counts, yes/no and ordered categories (E75) build valid spec
   expect_equal(unlist(ordered$population$odds_ratios), c(1, 1.8))
   expect_null(ordered$population$rates)
   expect_silent(powerkit::validate_spec(ordered))
+  # Two groups measured before and after: the group-by-occasion interaction.
+  grouped <- build_spec(forms, "E75", fields, modifyList(form_examples$E75, list(glmm_groups = "groups",
+    W_label = "Group", W_levels = "Usual teaching, Programme", X_label = "Occasion", X_levels = "Before, After",
+    glmm_people = NULL, glmm_rates = NULL, glmm_rates_groups = "2, 2\n2, 1.4", glmm_measurements = "2")))
+  expect_identical(grouped$variables$W$type, "between_factor")
+  expect_identical(grouped$variables$X$type, "within_factor")
+  expect_identical(grouped$target_test$effect, "interaction")
+  expect_equal(unlist(grouped$population$rates), c(2, 2, 2, 1.4))
+  expect_silent(powerkit::validate_spec(grouped))
 })
