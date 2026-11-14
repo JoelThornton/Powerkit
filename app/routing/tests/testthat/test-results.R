@@ -3415,7 +3415,7 @@ test_that("within-person moderation (E41) counts observations, and the result na
   expect_identical(spec$goal$unit, "observations")
   expect_identical(spec$target_test$effect, "cross_level_interaction")
   skip_without_run()
-  spec$options$nrep <- 30L
+  spec$options$nrep <- 100L
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "simr")
   text <- paste(result_sentences(calc$spec, calc$result), collapse = " ")

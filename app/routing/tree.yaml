@@ -1727,6 +1727,9 @@ endpoints:
     method: "Simulation"
     status: runs_validation_in_progress
     no_ready_made_tool: "Within-person mediation (an occasion-level X affecting an occasion-level mediator and outcome)"
+    # The study plan's analyses that reach this card but that its form
+    # doesn't calculate (R/ui.R, the combined sample size).
+    not_calculated_for: [mediation, modmed]
     validation: {file: test-validation-two-level.R, note: "The same two-level model as the card for people in groups, with occasions in place of people and people in place of groups: agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for each effect, recovers every effect and SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
       - "Each person is measured on many occasions, as in a diary or experience-sampling study. Something measured on each occasion (X, such as the day's stress) predicts the outcome on that occasion (such as evening mood), and something measured once per person (W, such as neuroticism) may change how strongly: within-person moderation, the cross-level interaction."
