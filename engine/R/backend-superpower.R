@@ -58,7 +58,7 @@ superpower_backend <- function(spec, seed = NULL) {
   # (Greenhouse-Geisser epsilon below 1): ANOVA_exact() scales the
   # noncentrality and the degrees of freedom by epsilon, an approximation
   # that can miss the power of the corrected test by a few points in either
-  # direction (-2.1 to +3.3 in docs/validation-log.md, 14 November 2026),
+  # direction (-3.2 to +3.3 in docs/validation-log.md, 14 November 2026),
   # so such an effect is simulated by default (Departure 27). The exact
   # route stays available on request, and the smallest detectable effect is
   # still found with it (sensitivity_method), stated as an approximation.

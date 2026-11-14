@@ -3234,7 +3234,7 @@ spherical (epsilon below 1) is now simulated by default with Superpower's
 dataset (`conventions.md`, Departure 27). The exact dataset multiplies
 the noncentrality and both degrees of freedom by epsilon. That is an
 approximation, not the corrected test's power. In independent
-simulations it was between 3.1 points too low and 3.3 points too high
+simulations it was between 3.2 points too low and 3.3 points too high
 (`validation-log.md`, 14 November 2026). It is also the reason the
 nightly mixed-design comparison failed (.231 against .218).
 

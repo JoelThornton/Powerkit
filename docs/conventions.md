@@ -1748,10 +1748,11 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   exact dataset against 71.5% in 40,000 simulated studies (MCSE .0023). In
   the mixed design of the nightly validation (two groups by three
   occasions, 20 per group, epsilon .758), 23.1% against 21.7% in 400,000
-  studies simulated from sufficient statistics. Across thirteen designs
-  (`docs/upstream/superpower-gg-grid.R`), the exact dataset minus the
-  simulated power ranged from -2.1 to +3.3 points; together with the
-  one-way example, from -3.1 to +3.3 (`docs/validation-log.md`,
+  studies simulated from sufficient statistics. Across fifteen designs
+  (thirteen mixed, two one-way; `docs/upstream/superpower-gg-grid.R`,
+  400,000 studies each, which put Departure 26's example at 71.6%), the
+  exact dataset minus the simulated power ranged from -3.2 to +3.3
+  points (`docs/validation-log.md`,
   14 November 2026).
 - **Test:** `test-backend-anova-within-covariance.R`, "departure: a
   corrected test without sphericity is simulated by default (Departure 27)".

@@ -155,11 +155,13 @@ call), and nodes for approaches powerkit doesn't compute.
   metapower, power4mome, powertools and bfpwr each have an open question
   in [`upstream-questions.md`](upstream-questions.md), with the evidence
   ready.
-- **Scientific sign-off on the two recurring validation failures**
-  (`validation-log.md`, 14 November 2026): the GG comparison in
-  `test-validation-anova-within-covariance.R` now compares the default
-  route, simulated since Departure 27, with a second simulation, so its
-  title ("the exact data set agrees with simulation") no longer describes
-  it; the expected values are unchanged. The binary-X null test's seed is
-  item 6. Both are the maintainer's to retitle or re-seed.
+- **The GG comparisons in `test-validation-anova-within-covariance.R`**
+  (`validation-log.md`, 14 November 2026): since Departure 27 their
+  "exact data set" call is simulated by default. Each now compares two
+  simulations while counting one's Monte Carlo error. The one-way case
+  fails on its fixed seed (.4525 against .4706; the independent value is
+  .4658). Recommendation: compare each with the independent references
+  (.4658 one-way, .2169 mixed; two-factor HF to compute) and retitle
+  them. The test's values are the maintainer's. The binary-X null test's
+  seed is item 6.
 - **Which queue item comes next**, if the order above is wrong.

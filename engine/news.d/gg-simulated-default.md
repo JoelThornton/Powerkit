@@ -3,7 +3,7 @@
   default with `Superpower::ANOVA_power()` (Departure 27). Superpower's
   `ANOVA_exact()` multiplies the noncentrality and degrees of freedom by
   epsilon. That is an approximation, which missed the corrected test's
-  simulated power by -3.1 to +3.3 points (`docs/validation-log.md`,
+  simulated power by -3.2 to +3.3 points (`docs/validation-log.md`,
   14 November 2026). It stays available with `options > method =
   "exact"`, and it still finds the smallest detectable effect: the
   backend's new `sensitivity_method`. The backend reads the population

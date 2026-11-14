@@ -1,6 +1,6 @@
 # Superpower's exact dataset with a Greenhouse-Geisser correction, against
 # the corrected test's power, across thirteen two-group by three-occasion
-# designs (docs/validation-log.md, 14 November 2026; docs/conventions.md,
+# designs and two one-way designs (docs/validation-log.md, 14 November 2026; docs/conventions.md,
 # Departure 27). Base R only; it doesn't call Superpower.
 #
 # approx: ANOVA_exact()'s calculation, written out. The noncentral F with
@@ -15,7 +15,7 @@
 #   identical data.
 # diff: approx - true. The MCSE of `true` is at most .0008.
 #
-# Run: Rscript docs/upstream/superpower-gg-grid.R (about 6 seconds).
+# Run: Rscript docs/upstream/superpower-gg-grid.R (about 8 seconds).
 
 q <- 2L; Q <- qr.Q(qr(contr.helmert(3)))
 eps <- function(s) sum(diag(s))^2 / (q * sum(s * s))
@@ -48,3 +48,24 @@ out <- rbind(
   t(sapply(c(20, 40), function(ng) case(ng, base_means, list(c(4,7,12), c(4,7,12)), matrix(c(1,.8,.1,.8,1,.5,.1,.5,1),3)))))
 print(out)
 cat("MCSE at power .5 with 4e5 reps:", sqrt(.25/4e5), "\n")
+
+# One-way repeated measures (one group of n), the same two quantities.
+one <- function(mu, sds, r, n, reps = 4e5, seed = 1) {
+  R <- diag(3); R[lower.tri(R)] <- r; R <- R + t(R) - diag(3)
+  sig <- diag(sds) %*% R %*% diag(sds); Sz <- t(Q) %*% sig %*% Q
+  delta <- drop(t(Q) %*% mu); e_pop <- eps(Sz); df2 <- (n - 1) * q
+  Fx <- n * sum(delta^2) / sum(diag(Sz))
+  A <- pf(qf(.95, q * e_pop, df2 * e_pop), q * e_pop, df2 * e_pop, ncp = e_pop * q * Fx, lower.tail = FALSE)
+  set.seed(seed)
+  d <- sweep(matrix(rnorm(reps * q), reps) %*% chol(Sz / n), 2, delta, "+")
+  S <- rWishart(reps, n - 1, Sz) / (n - 1)
+  trS <- S[1,1,] + S[2,2,]; trS2 <- S[1,1,]^2 + S[2,2,]^2 + 2 * S[1,2,]^2
+  Fs <- n * rowSums(d^2) / trS; eh <- trS^2 / (q * trS2)
+  B <- mean(pf(Fs, q * eh, df2 * eh, lower.tail = FALSE) < .05)
+  c(n = n, epsilon = round(e_pop, 3), approx = round(A, 4), true = round(B, 4), diff = round(A - B, 4))
+}
+print(rbind(
+  # test-validation-anova-within-covariance.R's one-way case
+  one(c(600, 630, 650), c(100, 120, 150), c(.8, .5, .6), 30),
+  # Departure 26's example
+  one(c(600, 620, 650), c(100, 100, 100), c(.8, .5, .2), 40)))

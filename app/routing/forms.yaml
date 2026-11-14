@@ -2165,7 +2165,7 @@ forms:
       - {id: gg_method, label: "How power is worked out", type: select, path: options.method, required: true,
          shown_if: [{field: test_version, is: anova_f}, {field: spread, is: differ}, {field: correction, is_not: none}, {field: goal, is_not: sensitivity}, {field: goal, is_not: sensitivity_curve}],
          choices: {simulation: "Repeated simulation of the corrected test (recommended)", exact: "Exact dataset, with the correction applied to its degrees of freedom: an approximation"},
-         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 27): the exact dataset scales the test by epsilon, which missed simulated power by 2 to 3 points in either direction",
+         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 27): the exact dataset scales the test by epsilon, which missed simulated power by up to about 3 points in either direction",
          help: "With a sphericity correction and SDs or correlations that differ, only simulated studies give the corrected test's power itself. The exact dataset is instant but approximate.",
          choice_notes: {exact: "This approximation can be a few points too high or too low. Check the sample size by simulation before relying on it."}}
 
@@ -2268,7 +2268,7 @@ forms:
       - {id: gg_method, label: "How power is worked out", type: select, path: options.method, required: true,
          shown_if: [{field: group_sizes, is_not: unequal}, {field: test_version, is: anova_f}, {field: spread, is: differ}, {field: correction, is_not: none}, {field: goal, is_not: sensitivity}, {field: goal, is_not: sensitivity_curve}],
          choices: {simulation: "Repeated simulation of the corrected test (recommended)", exact: "Exact dataset, with the correction applied to its degrees of freedom: an approximation"},
-         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 27): the exact dataset scales the test by epsilon, which missed simulated power by 2 to 3 points in either direction",
+         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 27): the exact dataset scales the test by epsilon, which missed simulated power by up to about 3 points in either direction",
          help: "With a sphericity correction and SDs or correlations that differ, only simulated studies give the corrected test's power itself. The exact dataset is instant but approximate.",
          choice_notes: {exact: "This approximation can be a few points too high or too low. Check the sample size by simulation before relying on it."}}
 
@@ -2426,7 +2426,7 @@ forms:
       - {id: gg_method, label: "How power is worked out", type: select, path: options.method, required: true,
          shown_if: [{field: test_version, is: anova_f}, {field: spread, is: differ}, {field: correction, is_not: none}, {field: goal, is_not: sensitivity}, {field: goal, is_not: sensitivity_curve}],
          choices: {simulation: "Repeated simulation of the corrected test (recommended)", exact: "Exact dataset, with the correction applied to its degrees of freedom: an approximation"},
-         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 27): the exact dataset scales the test by epsilon, which missed simulated power by 2 to 3 points in either direction",
+         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 27): the exact dataset scales the test by epsilon, which missed simulated power by up to about 3 points in either direction",
          help: "With a sphericity correction and SDs or correlations that differ, only simulated studies give the corrected test's power itself. The exact dataset is instant but approximate.",
          choice_notes: {exact: "This approximation can be a few points too high or too low. Check the sample size by simulation before relying on it."}}
 

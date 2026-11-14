@@ -453,8 +453,10 @@ at fbbd237 (0.61.1), failed only the two recurring partitions: GG .2130
 versus .2313, and binary-X ML/Monte-Carlo null .0750 versus a .0707 limit.
 Both are explained (14 November, `validation-log.md`). The GG reference
 .2313 is Superpower's epsilon-scaled approximation; the corrected test's
-power is .217. Such tests are now simulated by default, and the
-comparison compares two simulations. The binary-X null rate is 5.38% in
+power is .217. Such tests are now simulated by default (Departure 27).
+The chunk's comparisons now compare two simulations, and the one-way one
+fails on its fixed seed (.4525 against .4706; the independent value is
+.4658). Rewriting those maintainer-owned tests is in `next.md`. The binary-X null rate is 5.38% in
 20,000 studies, consistent with 5%; the fixed seed draws a 1-in-80 sample
 every night. Re-seeding that maintainer-owned test is `next.md` item 6.
 
