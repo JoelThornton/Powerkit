@@ -438,7 +438,7 @@ flowchart TD
   Q2 -->|A score| Q3{"Q3 Who gives the data?"}
   Q3 -->|The same people, repeatedly,<br/>or nested in groups| E41["E41 Within-person or<br/>multilevel analysis"]
   Q3 -->|Different people| ME1{"ME1 What is the cause (X)?"}
-  ME1 -->|Three or more<br/>conditions or groups| E42["E42 Multi-category X<br/>(not covered by the five tools)"]
+  ME1 -->|Three or more<br/>conditions or groups| E42["E42 Mediation with X<br/>in 3+ groups"]
   ME1 -->|Conditions you assigned<br/>or two groups| ME4B{"ME4 Are your<br/>mediators scores?"}
   ME4B -->|No| E39
   ME4B -->|Yes| ME2B{"ME2 How many mediators?<br/>ME3 How do they connect?"}
@@ -452,8 +452,8 @@ flowchart TD
   ME2 -->|Two or more,<br/>side by side| E11["E11 Parallel mediation<br/>(PROCESS model 4)"]
   ME2 -->|Two to four,<br/>in a chain| E12["E12 Serial mediation<br/>(PROCESS model 6)"]
   class Q2,Q3,ME1,ME2,ME4,ME2B,ME4B q
-  class E10,E11,E12,E16 avail
-  class E32,E39,E41,E42 later
+  class E10,E11,E12,E16,E42 avail
+  class E32,E39,E41 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
   classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
@@ -562,7 +562,7 @@ engine can use the answer today.
 | MO1 | What is your main predictor (X)? | Two conditions you assigned or two groups that exist; a score; three or more groups | `variables.X.type`: `binary` or `continuous` | Score: yes. Binary: the spec accepts it but `run_spec()` refuses it until phase 3b. Three or more groups: **no (flag)**, goes to E30. "Assigned vs existing" isn't stored (only used for wording): **flag** |
 | MO2 | What does the effect depend on (the moderator, W)? | Two conditions or two groups; a score; three or more groups. Asked after either answer to MO1; with a yes/no X, "two groups" leads to the 2 x 2 factor questions | `variables.W.type`: `binary` or `continuous` | Score × score: yes. Binary: refused until phase 3b. Three or more groups: **no (flag)**, goes to E30 |
 | MO3 | Does a third variable change the interaction again? | No / yes | — | Yes → **no (flag)**, three-way not in spec |
-| ME1, MM1 | What is the cause (X)? | Conditions you assigned or two groups / a measured score / (ME1 only) three or more conditions or groups | `variables.X.type` | Score: yes. Binary: refused until phase 3b. Three or more conditions (ME1): **no (flag)**, goes to E42. "Manipulated vs measured" (decision D9 notes) isn't stored: **flag** |
+| ME1, MM1 | What is the cause (X)? | Conditions you assigned or two groups / a measured score / (ME1 only) three or more conditions or groups | `variables.X.type` | Score: yes. Binary: refused until phase 3b. Three or more conditions (ME1): yes, goes to E42 (`template: multicategorical`, X categorical). "Manipulated vs measured" (decision D9 notes) isn't stored: **flag** |
 | ME2, ME3 | How many mediators? Side by side or in a chain? (asked for a yes/no X too, after ME4) | One; two or more side by side; two to four in a chain | `template`: `process_4` (mediator `M`, or `M1`–`M9`) or `process_6` (`M1`–`M4`); `variables.M*` | Yes. Parallel mediation is validated with two mediators only |
 | ME4 | Is each mediator a score? (asked after either answer to ME1) | Yes / no | `variables.M*.type = continuous` | No → **no (flag)** |
 | (form) | Which indirect path is your hypothesis about? | e.g. X → M1 → M2 → Y | `target_test.path` | Yes |
@@ -652,6 +652,7 @@ the two in step.
 | E40 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E15 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E42 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E38 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E18 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -769,7 +770,7 @@ taken from coverage.md, where they are proposals.
 | E40 | Moderated mediation with two or more mediators | `moderated_mediation / process_7, process_14` (parallel mediators M1, M2) | `power4mome::power4test()` with `test_index_of_mome()` for the chosen mediator; residual correlations between the mediators are passed as correlations (power4mome reads them so in a model with a product term). Reached from MM3 and the guided route when there are several mediators | Simulation | Which link W changes, and whether X and W are scores or yes/no (with each yes/no variable's share in its second group); standardised paths for each mediator, including the interactions; the mediators' residual correlation; the mediator whose index is tested | No: recovers the population in its check run and its script reproduces the result in `test-backend-modmed-parallel.R` (not yet in the full validation run; published value TODO) | later | Runs |
 | E41 | Within-person, repeated-measures or multilevel correlation, moderation or mediation | — | Moderation: mlmpower; simr. Mediation: none found (within-person mediation has no ready-made tool; [coverage](coverage.md)) | — | Model-specific | No | later | Not in spec |
 | E76 | Repeated-measures correlation (two scores measured together on several occasions) | `basic_test / repeated_measures_correlation` | `pwrss::power.exact.onecor()` at the effective sample size N(k − 1) + 1 (Bakdash and Marusich, 2017). Reached from Q3 and R2 when the same people are measured more than once | Formula (no simulation) | The repeated-measures correlation r_rm, and the measurements per person | Not yet: `test-validation-rmcorr.R` (direct pwrss call, simulated studies and Type I error pass; published value TODO) | v2 | Runs |
-| E42 | Mediation with a condition of three or more groups (multi-category X) | — | Not covered by the five tools ([coverage](coverage.md)). No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | Relative indirect effects (each condition against a reference) | No | later | Not in spec |
+| E42 | Mediation with a condition of three or more groups (multi-category X) | Spower (lavaan + manymome) | Simulation of powerkit's experiment: each relative indirect effect (dummy coding against the first group) with a Monte Carlo CI | Each later group's d on M, the within-group path M -> Y, optional direct effects | Relative indirect effects (each condition against a reference) | No: agrees with an independent OLS simulation and holds alpha in `test-validation-mediation-mcx.R` (published value TODO) | v2 | Runs |
 | E43 | Time-to-event (survival) outcome: the log-rank test and Cox regression | `survival / log_rank, cox_predictor` | Two groups: `Hmisc::cpower()` (the log-rank test with exponential times, recruitment spread over the accrual period and a minimum follow-up; Schoenfeld's expected events and George and Desu's variance of the log hazard ratio). A measured score: `powerSurvEpi::powerEpiCont.default()` (Hsieh and Lavori's formula for a Cox regression, the hazard ratio per SD, with the R-squared on other predictors). Two-sided. Reached from S1 (2 November 2026) | Formula | Two groups: the proportion of each with the event by a given time, the recruitment period and the shortest follow-up. A score: its hazard ratio per SD, the proportion with the event, its R-squared on the other predictors | No: agrees with simulated log-rank tests and Cox models in `test-validation-survival.R` (published values TODO) | v2 | Runs |
 | E69 | Reliability and agreement: the ICC, Cronbach's alpha, kappa and Bland-Altman limits of agreement | `reliability / icc, cronbach_alpha, kappa, bland_altman` | The ICC: `ICC.Sample.Size::calculateIccPower()` (Walter, Eliasziw and Donner's approximation to the F test of a one-way random-effects ICC). Cronbach's alpha: Bonett and Wright's test, with `statpsych::size.test.cronbach()`'s sample size and power from the same formula. Kappa: `kappaSize::PowerBinary()`, `Power3Cats()`, `Power4Cats()`, `Power5Cats()` (2 to 6 raters, two-sided), power at a given n by root-finding on their power. One-sided or two-sided for the ICC and alpha. Bland-Altman limits of agreement (14 November 2026): each simulated study analysed by `SimplyAgree::agreement_limit()` in Spower, MOVER intervals by default (Departure 27) or Bland and Altman's; Lu et al.'s formula (`SimplyAgree::blandPowerCurve()`) as an option. Reached from the aim screen (2 November 2026) | Formula; simulation for the limits of agreement | The value expected and the value to beat; for the ICC the ratings of each person, for alpha the number of items, for kappa the categories, their shares and the raters; for the limits of agreement the bias, the SD of the differences and the largest acceptable difference | No: agrees with simulated studies in `test-validation-reliability.R` and `test-validation-agreement.R` (published values TODO) | v2 | Runs |
 | E70 | Multinomial logistic regression (outcome in unordered categories) | `logistic_regression / multinomial` | Spower with powerkit's experiment `p_multinomial()` around `nnet::multinom()`: the likelihood-ratio test of the predictor (every category, K − 1 df) by default, or the Wald z test of one category against the first; a score or a yes/no predictor, other predictors through its R² with them. Two-sided. Reached from Q2 (a categorical outcome predicted by a score) and the guided route (4 November 2026) | Simulation | The share in each category at the starting point; the shares at a second point (1 SD higher, or the second group) or each category's odds ratio against the first; R² with the other predictors | No: agrees with the G test of the 2 x K table and a Poisson log-linear fit simulated separately, and pwr's chi-square formula, in `test-validation-multinomial.R` (published value TODO) | v2 | Runs |
@@ -812,7 +813,7 @@ should name them is open question 18. E-unsure is the safety net.
 **For "not in spec" end points the card says so plainly.** It names the
 analysis, the tool from [coverage.md](coverage.md) that covers it, and
 whether the R script export can help. Where no tool offers the analysis
-(E30, E32, E39, E42, and Cochran's Q in E26), the card says plainly: no
+(E30, E32, E39, and Cochran's Q in E26), the card says plainly: no
 ready-made tool; the options are a custom simulation in R (for example
 with Spower) or advice from a statistician. A proposed wording: *"powerkit
 doesn't cover [analysis name] yet. [Tool] does: see [link]. powerkit

@@ -156,10 +156,9 @@ Each **end-point card** shows:
     them."* (whether to name the tools is open question 18);
   - *Not in powerkit yet: use [package]*, with a link and one line on what
     the package does, taken from [`coverage.md`](coverage.md);
-  - for analyses no tool offers (E30, E32, E39, E42, and Cochran's Q in
+  - for analyses no tool offers (E30, E32, E39, and Cochran's Q in
     E26): *no ready-made tool*, with the two options, a custom simulation
-    in R (for example with Spower) or advice from a statistician. E42 also
-    says it isn't covered by the five tools powerkit builds on.
+    in R (for example with Spower) or advice from a statistician.
 
 Screenshots of each route are in
 [`figures/routing-prototype/`](figures/routing-prototype/). Worked examples for every design

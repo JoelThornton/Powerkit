@@ -594,6 +594,23 @@ significant.
 | power4mome | `x_fun` with `rbinary_rs()`: a yes/no variable rescaled to mean 0 and SD 1 [power4mome help] | Standardised paths | — |
 | **powerkit** | power4mome with `rbinary_rs()` for X, W or both (E17, from 1 November 2026); with a yes/no W, the difference between the two groups' conditional indirect effects, the index times the distance between W's two rescaled values (manymome treats a two-valued W as categorical) [powerkit] | Standardised paths, per SD of a yes/no variable | A yes/no X or W uncorrelated with the other predictor. Departures 6 and 8 apply as for models 7 and 14 |
 
+## Mediation with X in three or more groups (E42)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No mediation | — | — |
+| PROCESS | Model 4 with `mcx = 1` (indicator, that is dummy, coding against the first group by default): each relative indirect effect `a_j * b` with a percentile bootstrap interval (Hayes and Preacher, 2014, HayesPreacher2014_multicategorical in refs.bib) | Unstandardised coefficients | 5,000 bootstrap resamples by default |
+| power4mome | Not offered: `x_fun` draws each exogenous variable separately, so it can't draw the mutually exclusive dummies of one factor [power4mome help] | — | — |
+| **powerkit** | Spower running `p_mediation_mcx()`: equal groups, `M ~ D2 + ... + Dk` and `Y ~ M + D2 + ... + Dk` fitted by `lavaan::sem()` (`fixed.x = TRUE`), each tested relative indirect effect `a_j * b` with a 95% Monte Carlo percentile interval from `manymome::do_mc()` (E42, from 14 November 2026) [powerkit] | Each later group's Cohen's d against the first on M (its path a_j), the within-group correlation of M and Y (the standardised path b), and each group's direct effect on Y holding M, in Y's within-group SD | The interval of one named group, or of every group (a study counts only when every interval excludes 0). A fit that fails or doesn't converge, or whose draws fail, counts as not significant. Departure 6 (lavaan, not OLS) applies, and Known difference 14 (a Monte Carlo interval, where PROCESS reports a percentile bootstrap) |
+
+Within each group M has SD 1 and Y's residual SD is `sqrt(1 - b^2)`, so
+b is the within-group correlation of M and Y when the direct effects are
+0, and every effect is in within-group SDs, as Cohen's d is. The
+relative indirect effect of a group is its d on M times b. powerkit
+draws the data before fitting each study, so the exported R script
+reproduces the run exactly. Power for "every group" is the chance that
+all the tested intervals exclude 0, which is lower than any one of them.
+
 ## Meta-analysis with several effects per study (E61, POMADE)
 
 | Tool | Test | Effect size | Settings |

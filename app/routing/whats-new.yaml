@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-14"
+    title: "Mediation with three or more conditions or groups"
+    text: "powerkit now plans mediation where the cause is three or more conditions or groups, such as no message, a gain-framed and a loss-framed message, acting through one mediator. Each group is compared with the first, as PROCESS does by default, and has its own indirect effect: give each group's difference from the first on the mediator, the mediator's link with the outcome, and choose whether one comparison or all of them must be significant. powerkit simulates studies like yours and tests each indirect effect with a Monte Carlo confidence interval. Power at a fixed sample size runs here; the sample size you need comes as an R script."
+  - date: "2026-11-14"
     title: "Counts, yes/no answers and ratings measured more than once"
     text: "powerkit now plans studies in which the same people give a count, a yes/no answer or an answer in ordered categories more than once: the cigarettes each person smokes before and after a programme, how often each pupil disrupts a lesson in two kinds of classroom, or a daily mood rating under two conditions. Give the expected count (or chance of 'yes', or how answers spread over the categories and the odds ratio of a higher answer) in each condition, how much people differ, and how many times each person is measured; for counts that vary more than usual, choose the negative binomial model. powerkit simulates studies analysed with a mixed model with a random intercept for each person. Power at a fixed number of people runs here; the number you need comes as an R script."
   - date: "2026-11-14"

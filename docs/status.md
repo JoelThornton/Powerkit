@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 14 November 2026 (counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 14 November 2026 (mediation with X in three or more groups, card E42; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -47,9 +47,16 @@ logistic models, Spower with lme4's `glmer.nb()` for negative binomial
 counts and ordinal's `clmm()` for ordered categories), the likelihood-ratio test by
 default; power at a fixed number of people runs on the card, a number of
 people comes as an R script. Validation in progress: the chunk `glmm`
-passes; the published example awaits transcription. Next in the queue:
-the rest of those cards (`next.md` item 1), starting with E75's two
-groups measured more than once (a group-by-time interaction). A tool showing which uncertain input a plan depends on most
+passes; the published example awaits transcription. E42, mediation with
+X in three or more groups, calculates too (14 November 2026): each
+group's relative indirect effect against the first (dummy coding, as
+PROCESS does), a Spower simulation of the model fitted by lavaan with
+manymome's Monte Carlo interval, for one group or every group; power at
+a fixed sample size runs on the card, a sample size comes as an R
+script. Validation in progress: the chunk `mediation_mcx` passes; the
+published example awaits transcription. Next in the queue: the rest of
+those cards (`next.md` item 1), E75's two groups measured more than once
+(a group-by-time interaction) among them. A tool showing which uncertain input a plan depends on most
 (one-at-a-time ranges and a tornado chart) is queued after the cards
 that can't yet calculate (`next.md` item 27).
 

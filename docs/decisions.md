@@ -3277,3 +3277,26 @@ people runs on the card; a required number comes as an R script. Two
 groups measured more than once (a group-by-time interaction) and count
 trials with stimulus variation stay in `next.md` item 1. Validation: `test-validation-glmm.R`. Conventions:
 `docs/conventions.md`, "The same people measured more than once".
+
+### Mediation with X in three or more groups on E42, 14 November 2026
+
+E42, mediation where X is three or more conditions or groups, now
+calculates. The analysis is the one PROCESS runs for a multicategorical X
+by default (Hayes and Preacher, 2014): X dummy-coded against its first
+group, and one relative indirect effect per later group, its path to M
+times M's path to Y. power4mome can't draw the dummies of one factor
+(`x_fun` draws each variable separately), so the design is a Spower
+simulation of powerkit's experiment `p_mediation_mcx()`: equal groups,
+the model fitted by lavaan, and each tested relative indirect effect's
+Monte Carlo percentile interval computed from `manymome::do_mc()`'s
+draws, the interval and estimator of the other mediation cards
+(Departure 6, Known difference 14). The researcher gives each later
+group's Cohen's d on M, the within-group path from M to Y and,
+optionally, the direct effects, and chooses one comparison or every
+comparison; with every comparison a study succeeds only when all the
+intervals exclude 0. Power at a fixed sample size runs on the card; a
+required sample size comes as an R script. The bootstrap intervals PROCESS
+reports, and codings other than dummy coding, are not offered yet; the
+Monte Carlo interval is the recommendation, as for every other mediation
+card. Validation: `test-validation-mediation-mcx.R`. Conventions:
+`docs/conventions.md`, "Mediation with X in three or more groups".

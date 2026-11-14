@@ -211,6 +211,11 @@ simulations:
       preview: {power: 20}
       full: {power: 230}
       script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E42:
+      full_run: [power]
+      preview: {power: 15}
+      full: {power: 150}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E33:
       full_run: [power]
       preview: {power: 35}
@@ -1255,6 +1260,36 @@ forms:
       - title: "Monte Carlo draws"
         fields:
           - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, power4mome's default for q_power_mediation())", type: number, path: options.ci_draws, optional: true, empty_text: "1,000 (power4mome's default)", min: 100, max: 100000, integer: true}
+
+  # Mediation with X in three or more groups (E42): dummy-coded relative
+  # indirect effects (Hayes & Preacher, 2014), simulated with Spower,
+  # fitted with lavaan, each tested by manymome's Monte Carlo interval.
+  E42:
+    methods_name: "a mediation model with a multicategorical X (dummy-coded relative indirect effects)"
+    tool: Spower
+    departures: ["6"]
+    known_differences: ["14"]
+    directional: false
+    base: {spec_version: "0.1", design: mediation, template: multicategorical,
+           variables: {X: {type: categorical}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: indirect_effect, path: "X->M->Y", method: monte_carlo_ci}}
+    names: [X, M, "Y"]
+    groups:
+      - input: "X's groups or conditions, the first the reference group"
+        fields:
+          - {id: X_levels, label: "X's groups or conditions, separated by commas (first the reference group, such as a control condition, that each other group is compared with)", type: levels, path: variables.X.levels, required: true,
+             help: "Each group after the first gets a dummy variable, as PROCESS codes a multicategorical X by default, and its own relative indirect effect: its difference from the first group carried through M. The groups are equal in size."}
+      - input: "Each group's difference from the first on M, the path M -> Y, and the direct effects"
+        fields:
+          - {id: mcx_m_differences, writeup_label: "Cohen's d of each group against the first on M", label: "Cohen's d of each group after the first against the first on M, in the same order, separated by commas", type: numbers, per_later_levels: X_levels, path: population.m_differences, effect: true}
+          - {id: mcx_b, writeup_label: "the path M -> Y within groups", label: "Path M -> Y within groups (standardised: the correlation of M and Y within a group)", type: number, path: population.b, effect: true, min_exclusive: -1, max_exclusive: 1}
+          - {id: mcx_direct, writeup_label: "each group's direct effect on Y", label: "Each group's difference from the first on Y holding M (the direct effects), in Y's within-group SDs, separated by commas (optional; empty = 0 for every group)", type: numbers, per_later_levels: X_levels, path: population.direct_differences, optional: true, empty_text: "0 for every group"}
+          - {id: mcx_group, label: "Which group's relative indirect effect must be significant (optional; empty = every group's, all of them)", type: text, path: target_test.group, optional: true, empty_text: "every group's (all must be significant)",
+             help: "Give the name of one group after the first to plan for its comparison alone. With every group, a study succeeds only when every relative indirect effect is significant, which needs more people."}
+      # An expert setting: in Settings, not in the card's list of what you need.
+      - title: "Monte Carlo draws"
+        fields:
+          - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, as for the other mediation cards)", type: number, path: options.ci_draws, optional: true, empty_text: "1,000", min: 100, max: 100000, integer: true}
 
   E33:
     methods_name: "a linear mixed model with participants and items as random factors (Satterthwaite t test)"
