@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-14"
+    title: "Unequal groups: every total is now considered"
+    text: "When one group is bigger than the other, powerkit now splits each possible total into whole groups as close to your ratio as whole people allow, and finds the smallest total whose groups reach the power you want. Before, the total moved in steps of a whole split of your ratio, which could ask for up to about four more people than needed. The result says which two group sizes the power is for. With equal groups nothing changes."
+  - date: "2026-11-14"
     title: "Groups measured more than once: counts, yes/no answers and ratings"
     text: "The card for counts, yes/no answers and ratings measured more than once now also plans studies that compare two or more groups over time, such as a programme group and a control group each measured before and after. Give the expected count (or chance of 'yes', or odds of a higher rating) in each group at each occasion, and powerkit tests whether the groups change differently, the group-by-time interaction in a mixed model with a random intercept for each person."
   - date: "2026-11-14"
