@@ -20,6 +20,7 @@ about_foundation_tools <- list(
   list(package = "bfpwr", role = "Bayes factor t-tests and the Bayes factor test of one proportion"),
   list(package = "BayesFactor", role = "the Bayes factor test of a correlation (the same Bayes factor as JASP's)"),
   list(package = "metapower", role = "the planned meta-analysis's z test"),
+  list(package = "SimplyAgree", role = "Bland-Altman limits of agreement for comparing two measurement methods"),
   list(package = "simr", role = "participants responding to many items (mixed models)"),
   list(package = "PUMP", role = "joint power for several outcomes in a study plan"),
   list(package = "MBESS", role = "precision planning for standardised mean differences and regression coefficients, including interval-width assurance"),

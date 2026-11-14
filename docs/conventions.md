@@ -1720,6 +1720,50 @@ decision of 1 November 2026.
   levels (`app/routing/forms.yaml`, `departures`, key "26"), and in the
   methods paragraph, which also names the correction.
 
+### 27. Bland-Altman limits of agreement: the analysis simulated with MOVER intervals by default, not Lu et al.'s formula
+
+Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
+"Bland-Altman limits of agreement on E69").
+
+- **Established convention:** the published sample-size method for the
+  Bland-Altman limits of agreement is Lu et al.'s (2016) formula, which
+  SimplyAgree provides as `blandPowerCurve()` (SimplyAgree 0.3.0): power
+  1 - beta1 - beta2 from two noncentral t probabilities, for Bland and
+  Altman's (1999) analysis, in which agreement is shown when the outer
+  ends of the two-sided 95% confidence intervals of both limits lie within
+  plus and minus the largest acceptable difference.
+- **powerkit:** simulates the analysis the researcher will run. Spower
+  draws each study's differences from a normal distribution with the
+  bias and SD given, and SimplyAgree's `agreement_limit()` analyses it,
+  with MOVER confidence intervals for the limits (Zou, 2013; its default,
+  `loa_calc = "mover"`) unless the user chooses Bland and Altman's
+  intervals (`"blandaltman"`). Lu et al.'s formula stays as a labelled
+  quick option. `agreement_limit()`'s `alpha` is one-sided, so it is given
+  alpha / 2, which makes its outer bounds those of two-sided 1 - alpha
+  intervals, as Bland and Altman and Lu et al. report them. Two reasons:
+  the formula approximates the analysis it plans for, and Bland and
+  Altman's intervals are too narrow in small samples. With one population
+  limit exactly at the margin, the analysis should show agreement 2.5% of
+  the time; in 40,000 simulated studies, Bland and Altman's intervals did
+  so 5.0% of the time at 30 subjects and 3.8% at 100, the MOVER intervals
+  2.9% and 2.7%.
+- **Size:** bias 0.5, SD of the differences 2.5, margin 8, 95% limits,
+  alpha 0.05. The formula gives 80% power at 26 subjects (82.0%); the
+  MOVER analysis has about 69% there (40,000 simulated studies) and needs
+  33 subjects (powerkit, 1,000 studies per sample size). Against the
+  analysis it describes, Bland and Altman's, the formula is off in both
+  directions: 88.3% against 85.2% at 30 subjects for the example, and
+  52.9% against 61.4% with no bias, an SD of 3.3, a margin of 8 and 100
+  subjects.
+- **Test:** `test-validation-agreement.R`, "the size of the difference
+  between Lu et al.'s approximation and the analysis" (the departure's
+  size) and "with one limit at the margin, agreement is shown about
+  alpha / 2 of the time" (the MOVER intervals' error rate).
+- **Shown to users:** on E69's result screen when the limits of agreement
+  are simulated (`app/routing/forms.yaml`, `departures`, key "27"), in the
+  choice notes for the calculation method, and in the methods paragraph,
+  which names the intervals.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool

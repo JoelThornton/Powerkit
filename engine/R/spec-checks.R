@@ -3399,7 +3399,9 @@ target_effect_is_zero <- function(spec) {
     reliability = switch(spec$template,
       icc = pop$icc - pop$icc_null,
       cronbach_alpha = pop$reliability - pop$reliability_null,
-      kappa = pop$kappa - pop$kappa_null
+      kappa = pop$kappa - pop$kappa_null,
+      # The room between the limits of agreement and the margin.
+      bland_altman = pop$margin - abs(pop$bias) - stats::qnorm(1 - (1 - (spec$target_test$agree_level %||% 0.95)) / 2) * pop$sd_difference
     ),
     survival = if (identical(spec$template, "log_rank")) {
       p <- as.numeric(unlist(pop$p_event))

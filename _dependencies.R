@@ -20,6 +20,7 @@ library(bayestestR)  # inclusion Bayes factors for ANOVA effects (bayesfactor_in
 library(bfpwr)
 library(brunnermunzel) # the Brunner-Munzel test (brunnermunzel.test())
 library(WRS2) # Yuen's trimmed-means tests (yuen(), yuend())
+library(SimplyAgree) # Bland-Altman limits of agreement (agreement_limit(), blandPowerCurve())
 library(quantreg) # quantile regression (rq(), summary.rq())
 library(nnet)     # multinomial logistic regression (multinom())
 library(pscl)     # zero-inflated count regression (zeroinfl())

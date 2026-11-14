@@ -91,6 +91,7 @@ Suggests:
     quantreg,
     semPower,
     simsem,
+    SimplyAgree,
     statpsych,
     survival,
     testthat (>= 3.0.0),
