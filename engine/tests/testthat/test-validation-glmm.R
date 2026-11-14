@@ -14,6 +14,9 @@
 #      for ordered categories) and tested with summary()'s Wald z (two
 #      conditions) or the likelihood ratio, without simr, car or Spower
 #   2. Type I error with no difference between the conditions
+#   The same for two or more groups measured more than once (W between
+#   people), testing the group-by-condition interaction, its Type I error
+#   checked with both groups changing by the same ratio.
 #   3. published example: a placeholder, for the maintainer
 # Generalised mixed models are slow to fit, so these use 1,000
 # replications (glmer.nb(), slower still, 1,000 for the engine and 600 by
@@ -145,6 +148,126 @@ test_that("repeated measures: Type I error near alpha with no difference", {
   # Ordered categories, the likelihood-ratio test.
   ordered <- engine_power(glmm_validation_spec("ordinal", "within_factor", c("A", "B"), c(1, 1), 0.8, 2,
     "likelihood_ratio", 40, seed = 7506, categories = c(0.2, 0.3, 0.3, 0.2)))
+  expect_lt(abs(ordered$power - 0.05), band)
+})
+
+# Two or more groups measured more than once: the group-by-condition
+# interaction ----------------------------------------------------------------
+
+glmm_interaction_spec <- function(outcome, groups, levels, cells, sd_person, measurements, method, n, seed,
+                                  dispersion = NULL, categories = NULL, nrep = glmm_reps) {
+  count <- outcome %in% c("poisson", "negative_binomial")
+  ordered <- outcome == "ordinal"
+  rows <- lapply(cells, as.list)
+  population <- c(
+    list(metric = if (ordered) "proportion" else if (count) "rate" else "probability"),
+    if (ordered) list(category_probabilities = as.list(categories), odds_ratios = rows) else
+      if (count) list(rates = rows) else list(probabilities = rows),
+    list(sd_person = sd_person, measurements = measurements),
+    if (!is.null(dispersion)) list(dispersion = dispersion)
+  )
+  y <- if (ordered) validation_variable("categorical", "Outcome", levels = as.list(paste0("c", seq_along(categories)))) else
+    validation_variable(if (count) "count" else "binary", "Outcome")
+  validation_spec(
+    design = "mixed_model",
+    template = "repeated_glmm",
+    variables = list(
+      W = validation_variable("between_factor", "Group", levels = as.list(groups)),
+      X = validation_variable("within_factor", "Occasion", levels = as.list(levels)),
+      Y = y
+    ),
+    population = population,
+    target_test = list(effect = "interaction", method = method, alpha = 0.05),
+    seed = seed,
+    n = n,
+    options = list(nrep = nrep)
+  )
+}
+
+# An independent simulation of the interaction: each person in one group
+# (equal groups) and every condition, drawn and tested as glmm_by_hand()
+# does, the interaction tested by summary()'s Wald z (one interaction
+# term) or the likelihood ratio against the additive model.
+glmm_interaction_by_hand <- function(outcome, cells, sd_person, measurements, method, n, nrep, seed, dispersion = 0,
+                                     categories = NULL) {
+  g <- length(cells)
+  k <- length(cells[[1]])
+  values <- unlist(cells)
+  eta <- if (outcome == "yes_no") stats::qlogis(values) else log(values)
+  cuts <- if (outcome == "ordinal") stats::qlogis(cumsum(categories)[-length(categories)])
+  rows <- data.frame(person = rep(seq_len(n), each = k * measurements), c = rep(rep(seq_len(k), each = measurements), n))
+  rows$g <- ceiling(rows$person / (n / g))
+  fit_one <- function(formula, d) {
+    tryCatch(suppressMessages(suppressWarnings(switch(outcome,
+      negative_binomial = lme4::glmer.nb(formula, data = d),
+      ordinal = ordinal::clmm(formula, data = d),
+      poisson = lme4::glmer(formula, data = d, family = stats::poisson()),
+      yes_no = lme4::glmer(formula, data = d, family = stats::binomial())))), error = function(e) NULL)
+  }
+  hits <- with_seed(seed, vapply(seq_len(nrep), function(i) {
+    u <- stats::rnorm(n, sd = sd_person)
+    linear <- eta[(rows$g - 1) * k + rows$c] + u[rows$person]
+    d <- rows
+    d$y <- switch(outcome,
+      poisson = stats::rpois(nrow(d), exp(linear)),
+      negative_binomial = stats::rpois(nrow(d), exp(linear) * stats::rgamma(nrow(d), shape = 1 / dispersion, scale = dispersion)),
+      yes_no = stats::rbinom(nrow(d), 1, stats::plogis(linear)),
+      ordinal = factor(findInterval(linear + stats::rlogis(nrow(d)), cuts) + 1L, levels = seq_along(categories),
+        ordered = TRUE))
+    if (outcome == "ordinal") d$y <- droplevels(d$y)
+    d$cond <- factor(d$c)
+    d$grp <- factor(d$g)
+    d$person <- factor(d$person)
+    fit <- fit_one(y ~ grp * cond + (1 | person), d)
+    if (is.null(fit)) return(FALSE)
+    p_value <- if (method == "likelihood_ratio") {
+      reduced <- fit_one(y ~ grp + cond + (1 | person), d)
+      if (is.null(reduced)) return(FALSE)
+      stats::pchisq(2 * (as.numeric(stats::logLik(fit)) - as.numeric(stats::logLik(reduced))), (g - 1) * (k - 1),
+        lower.tail = FALSE)
+    } else {
+      summary(fit)$coefficients["grp2:cond2", "Pr(>|z|)"]
+    }
+    isTRUE(p_value < 0.05)
+  }, logical(1)))
+  list(power = mean(hits), mcse = sqrt(mean(hits) * (1 - mean(hits)) / nrep))
+}
+
+interaction_cases <- list(
+  list(label = "Poisson count, two groups before and after, likelihood ratio", outcome = "poisson",
+    cells = list(c(2, 2), c(2, 1.4)), sd_person = 0.5, measurements = 2, method = "likelihood_ratio", n = 80, reps = glmm_reps),
+  list(label = "yes/no, two groups on three occasions, likelihood ratio", outcome = "yes_no",
+    cells = list(c(0.5, 0.5, 0.5), c(0.5, 0.4, 0.3)), sd_person = 0.6, measurements = 2, method = "likelihood_ratio", n = 80,
+    reps = glmm_reps),
+  list(label = "negative binomial count, two groups before and after, Wald", outcome = "negative_binomial",
+    cells = list(c(3, 3), c(3, 2)), sd_person = 0.4, measurements = 2, method = "wald", n = 80, dispersion = 0.4, reps = 600L),
+  list(label = "ordered categories, two groups before and after, Wald", outcome = "ordinal",
+    cells = list(c(1, 1), c(1, 2)), sd_person = 0.5, measurements = 2, method = "wald", n = 80, categories = c(0.3, 0.4, 0.3),
+    reps = glmm_reps)
+)
+
+for (case in interaction_cases) {
+  test_that(sprintf("repeated measures by group, %s: agrees with an independent simulation (analytic)", case$label), {
+    skip_unless_full_validation()
+    k <- length(case$cells[[1]])
+    spec <- glmm_interaction_spec(case$outcome, c("G1", "G2"), LETTERS[seq_len(k)], case$cells, case$sd_person,
+      case$measurements, case$method, case$n, seed = 7511, dispersion = case$dispersion, categories = case$categories)
+    reference <- glmm_interaction_by_hand(case$outcome, case$cells, case$sd_person, case$measurements, case$method,
+      case$n, case$reps, seed = 7512, dispersion = case$dispersion %||% 0, categories = case$categories)
+    expect_power_agrees_within(engine_power(spec), reference, allowance = 0)
+  })
+}
+
+test_that("repeated measures by group: Type I error near alpha when the groups change alike", {
+  skip_unless_full_validation()
+  band <- 3 * sqrt(0.05 * 0.95 / glmm_reps)
+  # Both groups fall by the same ratio: no interaction, though the
+  # occasions differ.
+  poisson <- engine_power(glmm_interaction_spec("poisson", c("G1", "G2"), c("A", "B"), list(c(2, 1.5), c(3, 2.25)), 0.5, 2,
+    "likelihood_ratio", 80, seed = 7513))
+  expect_lt(abs(poisson$power - 0.05), band)
+  ordered <- engine_power(glmm_interaction_spec("ordinal", c("G1", "G2"), c("A", "B"), list(c(1, 1.5), c(1.2, 1.8)), 0.5, 2,
+    "likelihood_ratio", 80, seed = 7514, categories = c(0.3, 0.4, 0.3)))
   expect_lt(abs(ordered$power - 0.05), band)
 })
 

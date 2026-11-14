@@ -1403,9 +1403,19 @@ forms:
     groups:
       - input: "The conditions, the outcome, and how often each person is measured"
         fields:
+          - {id: glmm_groups, label: "Do you compare two or more groups of people, each measured in every condition?", type: select, required: true,
+             choices: {none: "No: one group of people", groups: "Yes: does the change over the conditions differ between the groups? (a group-by-time interaction)"},
+             sets: {groups: [{path: variables.W.type, value: between_factor}, {path: target_test.effect, value: interaction}]},
+             default: none, default_source: "one group of people, this card's first design",
+             help: "For example, a programme group and a control group, each measured before and after: the test is whether the programme group changes more than the control group, the interaction of group and occasion in the mixed model y ~ group * occasion + (1 | person)."}
+          - {id: W_label, label: "What the groups are (for example, programme or control)", type: text, path: variables.W.label, required: true,
+             shown_if: {field: glmm_groups, is: groups}}
+          - {id: W_levels, label: "The groups, separated by commas (first the comparison group; the people are split equally between them)", type: levels, path: variables.W.levels, required: true,
+             shown_if: {field: glmm_groups, is: groups}}
           - {id: X_label, label: "What the conditions or occasions are (for example, before and after the programme)", type: text, path: variables.X.label, required: true}
           - {id: X_levels, label: "The conditions or occasions, separated by commas (two or more)", type: levels, path: variables.X.levels, required: true}
           - {id: glmm_people, label: "Each person is measured in", type: select, path: variables.X.type, required: true,
+             shown_if: {field: glmm_groups, is_not: groups},
              choices: {within_factor: "Every condition (for example, before and after)", between_factor: "One condition, several times (the people split equally between the conditions)"},
              default: within_factor, default_source: "the same people measured more than once, this card's usual design"}
           - {id: Y_label, label: "Outcome (for example, cigarettes smoked per day)", type: text, path: variables.Y.label, required: true}
@@ -1422,15 +1432,26 @@ forms:
       - input: "The expected count, chance of 'yes' or answers in each condition, and how much people differ"
         fields:
           - {id: glmm_rates, writeup_label: "expected count in each condition", label: "The expected count per measurement in each condition, for a typical person, in the same order, separated by commas (for example, 10, 8)", type: numbers, per_levels: X_levels, path: population.rates, effect: true,
-             shown_if: {field: glmm_outcome, is: count},
+             shown_if: [{field: glmm_outcome, is: count}, {field: glmm_groups, is_not: groups}],
              help: "A typical person is one whose own level is average (random intercept 0). The ratio of two of these is the rate ratio the test looks for."}
           - {id: glmm_probabilities, writeup_label: "chance of yes in each condition", label: "The chance of 'yes' in each condition for a typical person, as proportions in the same order, separated by commas (for example, 0.30, 0.20)", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true,
-             shown_if: {field: glmm_outcome, is: binary}}
+             shown_if: [{field: glmm_outcome, is: binary}, {field: glmm_groups, is_not: groups}]}
           - {id: glmm_categories, writeup_label: "share of answers in each category in the first condition", label: "In the first condition, the share of a typical person's answers in each category, lowest first, separated by commas (they add up to 1; for example, 0.2, 0.3, 0.3, 0.2)", type: numbers, per_levels: Y_levels, path: population.category_probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: glmm_outcome, is: categorical}}
           - {id: glmm_odds_ratios, writeup_label: "odds ratio of a higher category in each condition", label: "Each condition's odds of a higher category compared with the first condition, in the same order, the first 1 (for example, 1, 1.8)", type: numbers, per_levels: X_levels, path: population.odds_ratios, effect: true, min_exclusive: 0,
-             shown_if: {field: glmm_outcome, is: categorical},
+             shown_if: [{field: glmm_outcome, is: categorical}, {field: glmm_groups, is_not: groups}],
              help: "Proportional odds: the same odds ratio at every split of the categories into lower and higher. Above 1 means answers higher on the scale; 1.8 turns the 20% answering in the top category in the first condition into about 31%."}
+          - {id: glmm_rates_groups, writeup_label: "expected count in each group and condition", label: "The expected count per measurement for a typical person: one line per group, with one number per condition, separated by commas", type: table, path: population.rates, effect: true,
+             rows_from: W_levels, cols_from: X_levels, rows_name: "group", cols_name: "condition",
+             shown_if: [{field: glmm_outcome, is: count}, {field: glmm_groups, is: groups}],
+             help: "The test looks for groups whose counts change by different ratios: 2 and 2 for the control group with 2 and 1.4 for the programme group is a 30% fall in the programme group only."}
+          - {id: glmm_probabilities_groups, writeup_label: "chance of yes in each group and condition", label: "The chance of 'yes' for a typical person: one line per group, with one number per condition, separated by commas", type: table, path: population.probabilities, effect: true,
+             rows_from: W_levels, cols_from: X_levels, rows_name: "group", cols_name: "condition",
+             shown_if: [{field: glmm_outcome, is: binary}, {field: glmm_groups, is: groups}]}
+          - {id: glmm_odds_ratios_groups, writeup_label: "odds ratio of a higher category in each group and condition", label: "Each group's odds of a higher category in each condition, compared with the first group in the first condition: one line per group, with one number per condition, the very first 1", type: table, path: population.odds_ratios, effect: true,
+             rows_from: W_levels, cols_from: X_levels, rows_name: "group", cols_name: "condition",
+             shown_if: [{field: glmm_outcome, is: categorical}, {field: glmm_groups, is: groups}],
+             help: "1, 1 for the comparison group and 1, 2 for the other: the second group's odds of a higher answer double between the conditions while the first group's stay the same."}
           - {id: glmm_sd_person, writeup_label: "SD of people's levels", label: "How much people differ in their typical level: the SD of the person intercepts, on the log scale for a count (log-odds for yes/no or ordered categories)", type: number, path: population.sd_person, effect: true, min: 0,
              help: "For a count, 0.5 means that a person one SD above average has a typical count about 1.65 times (exp(0.5)) the average person's."}
           - {id: glmm_distribution, label: "Counts are", type: select, required: true,
@@ -1442,7 +1463,7 @@ forms:
              shown_if: [{field: glmm_outcome, is: count}, {field: glmm_distribution, is: negative_binomial}]}
       - input: "The test"
         fields:
-          - {id: glmm_test, label: "Test that the conditions differ", type: select, path: target_test.method, required: true,
+          - {id: glmm_test, label: "Test (that the conditions differ, or with groups that the groups change differently)", type: select, path: target_test.method, required: true,
              choices: {likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences)", wald: "Wald test (the Wald chi-square; with two conditions, the p-value the model's summary reports)"},
              default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor, as on the many-conditions card (E63)",
              help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison."}

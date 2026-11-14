@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-14"
+    title: "Groups measured more than once: counts, yes/no answers and ratings"
+    text: "The card for counts, yes/no answers and ratings measured more than once now also plans studies that compare two or more groups over time, such as a programme group and a control group each measured before and after. Give the expected count (or chance of 'yes', or odds of a higher rating) in each group at each occasion, and powerkit tests whether the groups change differently, the group-by-time interaction in a mixed model with a random intercept for each person."

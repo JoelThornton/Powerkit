@@ -606,7 +606,8 @@ design_description <- function(spec) {
       if (identical(spec$variables$Y$type, "binary")) "a logistic" else
         if (identical(spec$variables$Y$type, "categorical")) "a cumulative link (proportional odds)" else
         if ((spec$population$dispersion %||% 0) > 0) "a negative binomial" else "a Poisson",
-      if (identical(spec$target_test$method, "likelihood_ratio")) "likelihood ratio" else "Wald chi-square"
+      paste0(if (identical(spec$target_test$method, "likelihood_ratio")) "likelihood ratio" else "Wald chi-square",
+        if (!is.null(spec$variables$W)) sprintf(" of the interaction with %s (%s, between people)", label("W"), levels("W")) else "")
     ),
     "mixed_model/crossed_conditions" = sprintf(
       "participants responding to %s items in %d conditions of %s (%s, %s participants); effect tested: %s",
