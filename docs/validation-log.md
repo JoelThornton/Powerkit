@@ -1536,7 +1536,7 @@ Packages: powerkit 0.62.0; Spower 0.7; Superpower 0.2.4.1;
 InteractionPoweR 0.2.4; power4mome 0.2.1; manymome 0.3.7; lavaan 0.7.3;
 testthat 3.3.2.
 
-## 2026-11-14 · The two recurring nightly failures explained; GG chunk file after Departure 28 (local)
+## 2026-11-14 · The two recurring nightly failures explained; GG chunk after Departure 28 (local)
 
 R 4.5.3 on Linux x86_64; Superpower 0.2.4.1, afex 1.5.1, power4mome
 0.2.1. Engine at main 43b2c05 (0.66.0) plus this change (Departure 28).
@@ -1588,11 +1588,18 @@ Against the independent .4658, seed 702 is 2.7 MCSE low and seed 703 is
 the fixed seed repeats every night. The expected values and seeds are
 the maintainer's and are unchanged.
 
-Recommendation for the maintainer: compare each simulated route with the
-independent references above: .4658 for the one-way case, .2169 for the
-mixed case, and the two-factor HF case still to be computed. Retitle the
-three comparisons, since they no longer compare the exact dataset. Until
-then, this chunk's one-way comparison fails on the fixed seed.
+With the maintainer's approval, the three corrected-test comparisons now
+compare the default (simulated) route with these independent references:
+.4658 for the one-way case, .2169 for the mixed case and .0971 for the
+two-factor HF case (n 20, population GG epsilon .948; computed in
+`docs/upstream/superpower-gg-grid.R`, `hf_case()`, 400,000 studies each).
+The check counts both Monte Carlo errors. Each also bounds the exact
+dataset's approximation within 4 points of the reference. The seeds are
+unchanged.
+
+Rerun of the chunk after that change, same command: **all comparisons
+and Type I error checks PASS, 1 published-reference TODO SKIP**, in 26
+minutes.
 
 **Moderated mediation with a yes/no X (binary-X chunk).** A local run of
 the chunk reproduces the nightly .0750 (limit .0707). In 20,000 studies

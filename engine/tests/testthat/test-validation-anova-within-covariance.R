@@ -1,13 +1,16 @@
 # Validation: repeated measures with an SD per condition (or cell), a
 # correlation per pair and a sphericity correction. Backend: Superpower's
-# ANOVA_exact(correction =) by default; ANOVA_power(correction =) on
-# request. Build guide section 6:
+# ANOVA_power(correction =) by default once sphericity can fail (Departure
+# 28); ANOVA_exact(correction =), an approximation, on request. Build guide
+# section 6:
 #   1. published-example agreement (to choose: a published power analysis
 #      with unequal variances or correlations and a Greenhouse-Geisser or
 #      Huynh-Feldt correction)
-#   2. agreement between Superpower's two routes, which compute it
-#      differently: the exact data set, and simulated data sets each fitted
-#      with afex and corrected
+#   2. agreement with an independent reference: the corrected test's power
+#      in 400,000 studies drawn from their sufficient statistics, in base R
+#      (docs/upstream/superpower-gg-grid.R, whose p-values agree with afex on
+#      identical data; docs/validation-log.md, 14 November 2026). Each test
+#      also bounds the exact data set's approximation at 4 points.
 #   3. Type I error under unequal correlations: near alpha with the
 #      Greenhouse-Geisser correction
 # Expected values below are owned by the maintainer: do not edit them.
@@ -52,12 +55,21 @@ test_that("repeated measures without sphericity: matches a published example (pu
 
 # 2. Agreement between Superpower's two routes -------------------------------------
 
-test_that("repeated measures, Greenhouse-Geisser: the exact data set agrees with simulation", {
+# The independent references (docs/upstream/superpower-gg-grid.R): the
+# corrected test's power in 400,000 studies each.
+reference_nrep <- 4e5
+# How far the exact data set's epsilon scaling may stray from the corrected
+# test's power: it ranged from -3.2 to +3.3 points across fifteen designs.
+exact_approximation_bound <- 0.04
+
+test_that("repeated measures, Greenhouse-Geisser: simulated power agrees with an independent reference", {
   skip_unless_full_validation()
   args <- list(c(600, 630, 650), c(100, 120, 150), c(0.8, 0.5, 0.6), "GG")
-  exact <- engine_power(do.call(within_covariance_spec, c(args, list(seed = 702, n = 30))))
-  simulated <- engine_power(do.call(within_covariance_spec, c(args, list(seed = 703, n = 30, method = "simulation"))))
-  expect_power_near(simulated, exact$power)
+  reference <- 0.4658
+  simulated <- engine_power(do.call(within_covariance_spec, c(args, list(seed = 703, n = 30))))
+  expect_power_near(simulated, reference, reference_nrep = reference_nrep)
+  exact <- engine_power(do.call(within_covariance_spec, c(args, list(seed = 702, n = 30, method = "exact"))))
+  expect_lt(abs(exact$power - reference), exact_approximation_bound)
 })
 
 # 3. Type I error ------------------------------------------------------------------
@@ -111,11 +123,13 @@ mixed_cov_means <- list(list(20, 16, 15), list(20, 19, 18.5))
 mixed_cov_sd <- list(list(6, 7, 8), list(6, 8, 10))
 mixed_cov_r <- list(0.7, 0.3, 0.6)
 
-test_that("mixed design, Greenhouse-Geisser: the exact data set agrees with simulation", {
+test_that("mixed design, Greenhouse-Geisser: simulated power agrees with an independent reference", {
   skip_unless_full_validation()
-  exact <- engine_power(mixed_covariance_spec(mixed_cov_means, mixed_cov_sd, mixed_cov_r, "GG", seed = 705, n = 40))
-  simulated <- engine_power(mixed_covariance_spec(mixed_cov_means, mixed_cov_sd, mixed_cov_r, "GG", seed = 706, n = 40, method = "simulation"))
-  expect_power_near(simulated, exact$power)
+  reference <- 0.2169
+  simulated <- engine_power(mixed_covariance_spec(mixed_cov_means, mixed_cov_sd, mixed_cov_r, "GG", seed = 706, n = 40))
+  expect_power_near(simulated, reference, reference_nrep = reference_nrep)
+  exact <- engine_power(mixed_covariance_spec(mixed_cov_means, mixed_cov_sd, mixed_cov_r, "GG", seed = 705, n = 40, method = "exact"))
+  expect_lt(abs(exact$power - reference), exact_approximation_bound)
 })
 
 test_that("mixed design, unequal correlations: Type I error is near alpha with Greenhouse-Geisser", {
@@ -125,11 +139,13 @@ test_that("mixed design, unequal correlations: Type I error is near alpha with G
   expect_type1_near(engine_power(spec), alpha = 0.05)
 })
 
-test_that("two-factor within design, Huynh-Feldt: the exact data set agrees with simulation", {
+test_that("two-factor within design, Huynh-Feldt: simulated power agrees with an independent reference", {
   skip_unless_full_validation()
-  exact <- engine_power(within_factorial_spec("HF", seed = 708, n = 20))
-  simulated <- engine_power(within_factorial_spec("HF", seed = 709, n = 20, method = "simulation"))
-  expect_power_near(simulated, exact$power)
+  reference <- 0.0971
+  simulated <- engine_power(within_factorial_spec("HF", seed = 709, n = 20))
+  expect_power_near(simulated, reference, reference_nrep = reference_nrep)
+  exact <- engine_power(within_factorial_spec("HF", seed = 708, n = 20, method = "exact"))
+  expect_lt(abs(exact$power - reference), exact_approximation_bound)
 })
 
 test_that("two-factor within design, unequal correlations: Type I error is near alpha with Greenhouse-Geisser", {

@@ -3278,3 +3278,13 @@ error of a few points matters near a target.
   the exact dataset.
 - The cards' "How power is worked out" starts at simulation once the SDs
   or correlations differ and a correction is chosen.
+- With the maintainer's approval, the three corrected-test comparisons in
+  `test-validation-anova-within-covariance.R` were rewritten. After the
+  change, each compared two simulations while counting only one's Monte
+  Carlo error, so a fixed seed could fail every night. Each now compares
+  the simulated default with an independent reference: .4658 (one-way),
+  .2169 (mixed) and .0971 (two-factor, Huynh-Feldt). The references come
+  from 400,000 studies drawn from sufficient statistics in base R
+  (`docs/upstream/superpower-gg-grid.R`). Each test also checks that the
+  exact dataset is within 4 points of its reference. Each simulated call
+  keeps the seed of the original test's simulated call.

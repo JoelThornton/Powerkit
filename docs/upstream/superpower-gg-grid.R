@@ -69,3 +69,28 @@ print(rbind(
   one(c(600, 630, 650), c(100, 120, 150), c(.8, .5, .6), 30),
   # Departure 26's example
   one(c(600, 620, 650), c(100, 100, 100), c(.8, .5, .2), 40)))
+
+# Two-factor within design (2 x 3, interaction), Huynh-Feldt: the reference
+# for test-validation-anova-within-covariance.R. The cells are ordered a1b1,
+# a1b2, a1b3, a2b1, ...; the interaction contrasts are A's contrast times B's
+# orthonormal contrasts. car's Huynh-Feldt epsilon (with Lecoutre's
+# correction), capped at 1, which afex reports. On 30 identical data sets
+# these p-values agree with afex::aov_car(correction = "HF") to 1e-14.
+hf_case <- function(reps = 4e5, seed = 1) {
+  mu <- c(400, 410, 420, 430, 450, 470); sds <- rep(c(70, 85, 100), 2); n <- 20L
+  R <- 0.7 - 0.08 * abs(outer(1:6, 1:6, "-")); diag(R) <- 1
+  sig <- diag(sds) %*% R %*% diag(sds)
+  C <- kronecker(c(1, -1) / sqrt(2), Q)
+  Sz <- t(C) %*% sig %*% C; delta <- drop(t(C) %*% mu); df2 <- (n - 1) * q
+  hf <- function(e) pmin(1, (n * q * e - 2) / (q * (n - 1 - q * e)))
+  e_pop <- eps(Sz); Fx <- n * sum(delta^2) / sum(diag(Sz)); e_hf <- hf(e_pop)
+  A <- pf(qf(.95, q * e_hf, df2 * e_hf), q * e_hf, df2 * e_hf, ncp = e_hf * q * Fx, lower.tail = FALSE)
+  set.seed(seed)
+  d <- sweep(matrix(rnorm(reps * q), reps) %*% chol(Sz / n), 2, delta, "+")
+  S <- rWishart(reps, n - 1, Sz) / (n - 1)
+  trS <- S[1,1,] + S[2,2,]; trS2 <- S[1,1,]^2 + S[2,2,]^2 + 2 * S[1,2,]^2
+  Fs <- n * rowSums(d^2) / trS; e <- hf(trS^2 / (q * trS2))
+  B <- mean(pf(Fs, q * e, df2 * e, lower.tail = FALSE) < .05)
+  c(n = n, epsilon_gg = round(e_pop, 3), approx_hf = round(A, 4), true = round(B, 4), diff = round(A - B, 4))
+}
+print(hf_case())

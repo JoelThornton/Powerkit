@@ -461,9 +461,9 @@ versus .2313, and binary-X ML/Monte-Carlo null .0750 versus a .0707 limit.
 Both are explained (14 November, `validation-log.md`). The GG reference
 .2313 is Superpower's epsilon-scaled approximation; the corrected test's
 power is .217. Such tests are now simulated by default (Departure 28).
-The chunk's comparisons now compare two simulations, and the one-way one
-fails on its fixed seed (.4525 against .4706; the independent value is
-.4658). Rewriting those maintainer-owned tests is in `next.md`. The binary-X null rate is 5.38% in
+With the maintainer's approval, the chunk's three corrected-test checks
+now compare the simulated default with independent references (.4658,
+.2169 and .0971), and bound the exact dataset's approximation at 4 points. The binary-X null rate is 5.38% in
 20,000 studies, consistent with 5%; the fixed seed draws a 1-in-80 sample
 every night. Re-seeding that maintainer-owned test is `next.md` item 5.
 
