@@ -7,6 +7,9 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-14"
+    title: "Robust t-tests on trimmed means"
+    text: "The cards for comparing two groups and for comparing the same people twice now offer Yuen's trimmed-means test as a test version, the robust t-test that compares means after trimming 20% of the scores from each end, so a few extreme scores have little pull. powerkit simulates it with the score shape you choose, so you can see how much it gains over the t-test when scores are heavy-tailed. For the paired version, enter the correlation between the two measurements: the trimmed test's power depends on it."
   - date: "2026-11-13"
     title: "Download everything for a study plan"
     text: "Each study plan now has an overview, and \"Download everything (.zip)\" saves the whole study in one file: the plan itself, a planning document for the whole study (as Markdown and Word) with a table of your analyses, each one's methods paragraph and every reference once, and each analysis's own documents and R script. Opening the zip in powerkit opens the plan again, on any computer."
