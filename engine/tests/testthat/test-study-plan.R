@@ -87,3 +87,16 @@ test_that("a study plan keeps the guided plan's record as it was given", {
   expect_null(read_study_plan(plain)$guided)
   expect_error(write_study_plan(list(list(spec = spec)), guided = "not a record"), "guided")
 })
+
+test_that("a study plan keeps a replication plan's record as it was given", {
+  spec <- read_spec(system.file("specs", "independent_t.json", package = "powerkit"))
+  replication <- list(format = "powerkit-replication-plan", version = 1L,
+    fields = list(rep_study = "Smith (2020)", rep_effect = "0.45"), endpoint = "E2")
+  plan <- read_study_plan(write_study_plan(list(list(spec = spec)), replication = replication))
+  expect_identical(plan$replication$fields$rep_study, "Smith (2020)")
+  expect_identical(plan$replication$endpoint, "E2")
+  plain <- write_study_plan(list(list(spec = spec)))
+  expect_false("replication" %in% names(jsonlite::parse_json(plain)))
+  expect_null(read_study_plan(plain)$replication)
+  expect_error(write_study_plan(list(list(spec = spec)), replication = "not a record"), "replication")
+})

@@ -298,6 +298,7 @@ plan_page_ui <- function(plan, plans_n = 1L) {
   saveable <- plan_has_content(plan)
   tagList(
     actionLink("plans_back", "‹ All study plans", class = "plans-back"),
+    if (plan_is_replication(plan)) p(class = "card-eyebrow", "Replication plan"),
     h2(class = "plan-title", plan$name),
     tags$details(class = "plan-rename",
       tags$summary(class = "small", "Rename"),
@@ -311,7 +312,10 @@ plan_page_ui <- function(plan, plans_n = 1L) {
     # link doesn't redraw the page under the share button.
     p(class = "plan-status-line", uiOutput("plan_status", inline = TRUE)),
     if (is.list(plan$guided)) plan_guided_ui(plan$guided),
-    if (k == 0 && !is.list(plan$guided)) div(class = "plan-empty result-card",
+    if (k == 0 && plan_is_replication(plan)) div(class = "plan-empty result-card",
+      p(tags$strong("The original's analysis isn't planned yet.")),
+      p("Work through the sections below in any order. Under The original study, find its design: its card plans the replication's sample size, and the result is kept here.")),
+    if (k == 0 && !is.list(plan$guided) && !plan_is_replication(plan)) div(class = "plan-empty result-card",
       p(tags$strong("This plan has no analyses yet.")),
       tags$ol(
         tags$li("Press “Add an analysis” to find one with “Help me choose”, or use “I know my analysis”, and calculate its sample size."),
@@ -338,9 +342,9 @@ plan_page_ui <- function(plan, plans_n = 1L) {
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
     div(class = "nav-buttons",
       if (saveable) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
-      actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
+      if (!plan_is_replication(plan)) actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
       if (saveable) share_link_ui("study_plan"),
-      if (k) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
+      if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
     p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it. Download everything adds a planning document for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
     p(class = "small plan-delete",
       tags$a(href = "#", role = "button", id = "plan_delete_link",

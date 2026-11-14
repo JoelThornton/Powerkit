@@ -3187,3 +3187,23 @@ holds (`test-validation-rmcorr.R`). E41, relationships within people,
 keeps within-person moderation and mediation (`next.md` item 2) and
 points to E76 for the correlation; a new design-finder question (R2)
 separates the two after "measured twice" or "many conditions".
+
+### Replication plans: a kind of study plan, 14 November 2026
+
+The replication layer moves out of Labs into the study plans (queue item
+23; `saving-projects.md`, "Replication plans"):
+
+- A replication plan is a study plan with a `replication` record (the
+  pre-replication notes' and the planner's fields, and the original's
+  card). It is kept, saved, shared and downloaded as any study plan, and
+  its analysis is the original's, planned on its own card. Labs keeps no
+  replication tools; a note there starts a replication plan.
+- On the card, each effect field is labelled ", as the original study
+  reported it". The test is not preset: the card's note asks the
+  researcher to choose the test the original used, because the
+  original's test is known only from what they entered under "The
+  original study" as free text, and a guessed preset would be silent.
+- A plan with no analysis yet is saved as the Labs replication planner's
+  file with the record and the plan's name beside it, so the previous
+  version still opens it; files the Labs planner saved open as new
+  replication plans.

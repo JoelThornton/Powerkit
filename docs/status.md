@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 14 November 2026 (tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 14 November 2026 (replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -30,7 +30,7 @@ question R2 and by search. Validation in progress: the simulation chunk
 queue: Yuen's trimmed-means t-tests, then Bland-Altman limits of
 agreement. A tool showing which uncertain input a plan depends on most
 (one-at-a-time ranges and a tornado chart) is queued after the cards
-that can't yet calculate (`next.md` item 29).
+that can't yet calculate (`next.md` item 28).
 
 The cross-lagged panel card runs with a reliability below 1 (13
 November 2026): its check run compares the specified lagged effects with
@@ -365,24 +365,26 @@ and automated accessibility checks passed locally for the exercised routes.
   page. It waits for a statistician's check ([`whole-study-method.md`](whole-study-method.md));
   the designs still to add are in `next.md` item 4.
 
-- **Experimental: Labs.** The pre-replication notes, the replication
-  planner, the methods map, the effect-size converter, the power
-  visualiser, the repeated-studies tool and Bayesian planning (fixed and
-  sequential), all on the cards' engine code and one chart style. The
-  replication planner (8 November 2026) follows the notes: for an
-  original t-test or correlation finding, the sample size for each
-  replication goal (Anderson & Maxwell, 2016) under three beliefs about
-  the true effect, with BayesRepDesign (Pawel, Consonni & Held, 2026)
-  and the small-telescopes card's own calculation, how the replication
-  differs, and a write-up with an R script, in sections saved to a file.
-  The design finder's "Replicate a published finding" asks the original
-  study's design (12 November 2026): the planner's four designs link to
-  it from their card, and every other design plans the replication on
-  its own card. The planner gives its simple answer first (12 November
-  2026): a button at the end of section 1, and one sentence with the
-  sample size for a significant result again, as reported and shrunk,
-  above the table. The replication plan that wraps any card is queued
-  (`next.md` items 21 to 23).
+- **Replication plans** (14 November 2026). A replication plan is a kind
+  of study plan, started from "New replication plan" on the Study plans
+  page, from Labs or from the input screen's signpost for an effect from
+  an earlier study. Its page holds the sections that were Labs' tools:
+  the pre-replication notes (whether to replicate), the original study,
+  the goals table for an original t-test or correlation finding
+  (Anderson & Maxwell, 2016; BayesRepDesign, Pawel, Consonni & Held,
+  2026; the small-telescopes card's calculation) under three beliefs
+  about the true effect, how the replication differs, and one write-up.
+  The original's design is found with the design finder's questions; its
+  card, with each effect field labelled as the original's, plans the
+  replication and keeps the result in the plan. The plan saves, shares
+  and downloads like any study plan. Goals for designs beyond the four
+  and an original analysed with Bayes factors are `next.md` items 23 and
+  24.
+
+- **Experimental: Labs.** The methods map, the effect-size converter,
+  the power visualiser, the repeated-studies tool and Bayesian planning
+  (fixed and sequential), all on the cards' engine code and one chart
+  style. The replication tools moved to replication plans.
 
 PR #368 added selectable continuity-corrected two-proportion and
 2 by 2 contingency tests, leaving existing defaults intact. Inputs/results

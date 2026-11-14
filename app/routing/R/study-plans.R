@@ -115,10 +115,12 @@ plan_unsaved <- function(plan) is.null(plan$saved_at) || plan$changed > plan$sav
 # The plan's file text ("" for an empty plan or one that can't be written).
 plan_to_text <- function(plan, write = engine_function("write_study_plan")) {
   if (!length(plan$entries) && is.list(plan$guided)) return(plan_guided_only_text(plan))
+  if (!length(plan$entries) && plan_is_replication(plan)) return(plan_replication_only_text(plan))
   if (!length(plan$entries) || is.null(write)) return("")
   analyses <- plan_analyses(plan$entries)
   tryCatch(write(analyses, id = plan$id, name = plan$name,
-    description = if (nzchar(plan$description %||% "")) plan$description, guided = plan$guided),
+    description = if (nzchar(plan$description %||% "")) plan$description, guided = plan$guided,
+    replication = if (plan_is_replication(plan)) replication_record(plan$replication$fields, plan$replication$endpoint)),
     error = function(e) "")
 }
 
@@ -133,13 +135,15 @@ plan_guided_only_text <- function(plan) {
 }
 
 # Whether a plan holds anything worth saving.
-plan_has_content <- function(plan) length(plan$entries) > 0 || is.list(plan$guided)
+plan_has_content <- function(plan) length(plan$entries) > 0 || is.list(plan$guided) || plan_is_replication(plan)
 
 # A plan from file text, or NULL when the text isn't a readable plan.
 plan_from_text <- function(tree, text, read = engine_function("read_study_plan"), now = Sys.time()) {
   if (!is.character(text) || length(text) != 1L || !nzchar(text) || nchar(text) > 5e6) return(NULL)
   guided <- plan_from_guided_text(text, now)
   if (!is.null(guided)) return(guided)
+  replication <- plan_from_replication_text(text, now)
+  if (!is.null(replication)) return(replication)
   if (is.null(read)) return(NULL)
   file <- tryCatch(read(text), error = function(e) NULL)
   if (is.null(file) || !length(file$analyses)) return(NULL)
@@ -148,6 +152,7 @@ plan_from_text <- function(tree, text, read = engine_function("read_study_plan")
   if (is.character(file$id) && grepl("^[0-9a-f]{16}$", file$id)) plan$id <- file$id
   plan$description <- plan_clean_text(file$description %||% "", plan_description_max)
   if (is.list(file$guided) && identical(file$guided$format, "powerkit-guided-plan")) plan$guided <- file$guided
+  if (!is.null(replication_normalise(file$replication))) plan$replication <- replication_normalise(file$replication)
   for (i in seq_along(file$analyses)) {
     entry <- plan_entry_from_project(tree, file$analyses[[i]])
     role <- file$roles[[i]] %||% NA_character_
@@ -227,7 +232,7 @@ plans_migrate_legacy <- function(tree, text, read = engine_function("read_study_
 plan_content <- function(plan) {
   list(plan$name, plan$description %||% "",
     lapply(plan$entries, function(e) list(plan_entry_hash(e), e$role, e$note %||% "")),
-    guided_content(plan$guided))
+    guided_content(plan$guided), replication_content(plan$replication))
 }
 
 # Adds an opened plan to the browser's plans without overwriting any:
@@ -348,6 +353,7 @@ plans_list_ui <- function(plans, current = NULL) {
       tags$button(type = "button", class = "btn btn-link plans-row-name",
         onclick = sprintf("Shiny.setInputValue('plans_view_plan', %s, {priority: 'event'})", js_string(plan$id)),
         plan$name),
+      if (plan_is_replication(plan)) span(class = "plans-row-kind small", "Replication plan"),
       span(class = "plans-row-facts small",
         paste(c(if (k == 1) "1 analysis" else sprintf("%d analyses", k),
           if (!is.null(largest)) sprintf("largest comparable N = %s", whole(largest$n))), collapse = " · ")),
@@ -363,10 +369,12 @@ plans_list_ui <- function(plans, current = NULL) {
         tags$li("Start one here with “New study plan”, then add analyses to it."),
         tags$li("Or calculate any analysis and press “Add this to my study plan” under its result: a plan is made for it."),
         tags$li("Or start “Plan my whole study”: it makes a whole-study plan that keeps your guided plan and each analysis you calculate from it."),
-        tags$li("“Plan my whole study”, on the start screen, plans several analyses of one study together."))),
+        tags$li("“Plan my whole study”, on the start screen, plans several analyses of one study together."),
+        tags$li("Replicating a published finding? “New replication plan” keeps the pre-replication notes, the original study, the goals a replication can have, how it differs and its write-up, with the original's analysis planned on its own card."))),
     if (length(plans)) tags$ul(class = "plans-list", lapply(rev(plans), row)),
     div(class = "nav-buttons",
-      actionButton("plans_new", "New study plan", class = "btn btn-primary")),
+      actionButton("plans_new", "New study plan", class = "btn btn-primary"),
+      actionButton("plans_new_replication", "New replication plan", class = "btn btn-outline-primary")),
     div(class = "open-project mt-3",
       fileInput("plans_open_file", "Open a saved plan", accept = c(".json", "application/json", ".zip", "application/zip"),
         buttonLabel = "Choose file…", placeholder = "a .powerkit.json file"),

@@ -46,6 +46,7 @@ source(file.path("R", "planning.R"), local = TRUE)
 source(file.path("R", "scenarios.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "replication.R"), local = TRUE)
+source(file.path("R", "study-plan-replication.R"), local = TRUE)
 source(file.path("R", "bayes-mode.R"), local = TRUE)
 source(file.path("R", "route-fit.R"), local = TRUE)
 source(file.path("R", "table-grid.R"), local = TRUE)
@@ -986,7 +987,10 @@ ui <- function(req) fluidPage(
       tabPanel(tab_title("Feedback", "Feedback"), value = "Feedback", div(class = "pt-3", feedback_tab)),
       # Opened from "Study plans" in the top bar and by ?page=plans, not
       # from the tab row, so the tabs still fit one row on a phone.
-      tabPanel("Study plans", value = "Study plans", div(class = "pt-3 plans-page", uiOutput("plans_page"))),
+      tabPanel("Study plans", value = "Study plans", div(class = "pt-3 plans-page", uiOutput("plans_page"),
+        # A replication plan's workspace (R/study-plan-replication.R): drawn once
+        # and shown for a replication plan, so typing never redraws it.
+        conditionalPanel("output.plan_is_replication", replication_workspace_ui(tree)))),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
     tags$footer(class = "small text-muted mt-5", "Powerkit helps plan research studies. ",
@@ -1048,6 +1052,7 @@ server <- function(input, output, session) {
     plan_just_added = NULL,  # the result just added or updated, for the bar's message
     guided_plan = NULL,      # the study plan the guided route ("Plan my whole study") fills
     plan_more_target = NULL, # the plan whose "Add an analysis" was pressed last
+    rep_plan = NULL,         # the replication plan the replicate aim's card fills (R/study-plan-replication.R)
     ws_result = NULL         # whole-study simulation: the last finished run, summarised for its study plan
   )
   # A link to a card (?card=E8; card_from_query(), R/ui.R) opens it as the
@@ -1252,6 +1257,8 @@ server <- function(input, output, session) {
     } else if (kind == "aim") {
       # Estimation and equivalence go to their cards.
       state$start <- list(aim = value)
+      # A replication started from the finder gets a plan of its own.
+      state$rep_plan <- NULL
       # The aim's goal (equivalence) is carried into the screening, which
       # then doesn't ask it again.
       state$history <- list(); state$ctx <- aim_context(tree, state$start)
@@ -1303,7 +1310,13 @@ server <- function(input, output, session) {
       # From the pre-replication notes: the user's own words as the reasoning.
       state$form_values <- if (isTRUE(state$from_labs) && !is.null(state$labs_seed)) list(just_source = state$labs_seed) else list()
       state$form_values <- bayes_mode_form_values(tree, state$endpoint, state$form_values, state$bayes_mode)
-      if (replicating(state$start)) state$form_values <- replication_form_values(state$form_values)
+      if (replicating(state$start)) {
+        state$form_values <- replication_form_values(state$form_values)
+        # The replication plan's notes, in the user's own words, as the reasoning.
+        rep <- plan_get(state$rep_plan)
+        seed <- if (plan_is_replication(rep)) labs_seed_reasoning(replication_values(rep$replication))
+        if (!is.null(seed) && is.null(state$form_values$just_source)) state$form_values$just_source <- seed
+      }
       state$form_k <- 2L; state$calc <- NULL
       state$screen <- "form"
     } else if (pick == "form_back") {
@@ -2069,7 +2082,10 @@ server <- function(input, output, session) {
   # while it is making the link): the save status has its own output.
   plans_page_shown <- reactiveVal(NULL)
   observe({
-    strip <- function(p) { p$saved_at <- NULL; p$saved_how <- NULL; p$too_large <- NULL; p }
+    # A replication plan's fields are typed in its workspace, which is not
+    # part of this page: changing them doesn't redraw it.
+    strip <- function(p) { p$saved_at <- NULL; p$saved_how <- NULL; p$too_large <- NULL
+      if (plan_is_replication(p)) { p$replication$fields <- NULL; p$changed <- NULL }; p }
     view <- state$plans_view %||% ""
     shown <- if (!is.null(state$plans[[view]])) list(view = view, plan = strip(state$plans[[view]]), n = length(state$plans))
       else list(view = "", plans = state$plans, current = state$current_plan)
@@ -2242,7 +2258,7 @@ server <- function(input, output, session) {
     filename = function() plan_bundle_file_name(plan_get(isolate(state$plans_view))),
     content = function(file) {
       plan <- plan_get(isolate(state$plans_view))
-      if (is.null(plan) || !length(plan$entries)) stop("The plan has no analyses to download.")
+      if (is.null(plan) || (!length(plan$entries) && !plan_is_replication(plan))) stop("The plan has no analyses to download.")
       kept <- joint_kept[[plan$id]]
       joint <- if (!is.null(kept) && identical(kept$analyses, plan_analysis_hashes(plan))) kept$calc
       write_plan_bundle(plan, file, tree, forms, joint = joint)
@@ -2382,7 +2398,9 @@ server <- function(input, output, session) {
     }
     # A study plan file opens as the plan; anything else as a project.
     text <- if (file.exists(path) && file.size(path) <= 5e6) paste(readLines(path, encoding = "UTF-8", warn = FALSE), collapse = "\n") else ""
-    plan <- if (grepl("powerkit-study-plan", text, fixed = TRUE)) plan_from_text(tree, text)
+    # So does a replication planner file (a replication plan with no
+    # analysis yet, or one saved by the Labs planner).
+    plan <- if (grepl("powerkit-study-plan|powerkit-replication-planner", text)) plan_from_text(tree, text)
     if (!is.null(plan)) {
       # Added beside the plans already here; never in place of one.
       out <- plans_open(isolate(state$plans), plan)
@@ -2534,12 +2552,7 @@ server <- function(input, output, session) {
         else "Step 2 has no smallest effect that matters yet; writing one there gives this number something to be compared with."),
       p(class = "small", labs_provenance(calc))))
   })
-  labs_sde_notes <- function() {
-    calc <- labs_sde_calc()
-    if (is.null(calc)) return(NULL)
-    list(sentence = paste(c(labs_sde_sentence(tree, calc, calc$spec$goal$power), labs_telescope_sentence(labs_telescope_calc())), collapse = " "),
-      provenance = labs_provenance(calc))
-  }
+
   # Labs: plan from a published result (R/labs.R). The engine converts and
   # gives the safeguard value; the app only shows them.
   output$pub_from_ui <- renderUI({
@@ -2636,48 +2649,8 @@ server <- function(input, output, session) {
     if (plan_in_progress()) showModal(map_replace_modal()) else map_start_plan(id)
   })
   observeEvent(input$map_plan_confirm, { removeModal(); map_start_plan(input$map_plan) })
-  output$labs_next <- renderUI(labs_next_ui(input$labs_outcome, nzchar(input$labs_test %||% "")))
-  labs_text <- function() labs_report(labs_answers(), input$labs_outcome, labs_sde_notes())
-  output$labs_docx <- downloadHandler(
-    filename = function() sprintf("%s-%s.docx", labs_file_stem(input$labs_outcome), format(Sys.Date())),
-    content = function(file) docx_document(strsplit(labs_text(), "\n", fixed = TRUE)[[1]], file, powerkit_version())
-  )
-  output$labs_download <- downloadHandler(
-    filename = function() sprintf("%s-%s.md", labs_file_stem(input$labs_outcome), format(Sys.Date())),
-    content = function(file) writeLines(labs_text(), file, useBytes = TRUE)
-  )
-  observeEvent(input$labs_document, send_document(session, function() printable_document(strsplit(labs_text(), "\n", fixed = TRUE)[[1]], powerkit_version())))
-  observeEvent(input$labs_copy, {
-    text <- labs_text()
-    output$labs_copy_text <- renderUI(div(class = "form-field mt-2",
-      textAreaInput("labs_copy_box", "Your notes as text (select and copy if the button didn't)", value = text, rows = 10, width = "100%")))
-    session$sendCustomMessage("copy_labs", text)
-  })
-  # Step 6: into the main app, on the original's test where there is one.
-  # A plan in progress there is only replaced after asking; the notes stay
-  # in Labs, and the user's own words go into "Why this effect size?".
-  labs_start_plan <- function() {
-    test <- input$labs_test %||% ""
-    cancel_job()
-    state$history <- list(); state$node <- NULL; state$ctx <- list(); state$calc <- NULL
-    state$from_labs <- TRUE
-    state$labs_seed <- labs_seed_reasoning(labs_answers())
-    if (identical(input$labs_outcome, "go") && nzchar(test)) {
-      state$endpoint <- test; state$came_from <- "known"; state$screen <- "card"
-    } else {
-      state$screen <- "start"
-    }
-    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
-  }
+  output$labs_next <- renderUI(labs_next_ui(input$labs_outcome))
   plan_in_progress <- function() !identical(state$screen, "start") || length(state$history) > 0
-  observeEvent(input$labs_plan, {
-    if (plan_in_progress()) showModal(labs_replace_modal()) else labs_start_plan()
-  })
-  observeEvent(input$labs_plan_confirm, { removeModal(); labs_start_plan() })
-  observeEvent(input$labs_back, {
-    session$sendCustomMessage("labs_open", "prereplication")
-    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
-  })
   # From a result to Labs' teaching tools, set to the result's sample size,
   # effect and alpha (labs_learn_ui()). A slider is widened when the result
   # lies beyond it.
@@ -2716,30 +2689,116 @@ server <- function(input, output, session) {
     session$sendCustomMessage("labs_open", "bayes")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
-  # The one way in from the main route (labs_signpost_ui()).
-  observeEvent(input$go_labs, {
-    session$sendCustomMessage("labs_open", "prereplication")
-    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
-  })
   # The safety net's way on (route_fit.R): the methods map in Labs.
   observeEvent(input$safety_open_map, {
     session$sendCustomMessage("labs_open", "map")
     updateTabsetPanel(session, "tabs", selected = labs_tab_title)
   })
-  # From a replicated design's card: the planner, on the same design.
-  observeEvent(input$rep_open_planner, {
-    design <- replication_card_design(forms, state$endpoint)
-    if (!is.null(design)) updateSelectInput(session, "rep_design", selected = design)
-    session$sendCustomMessage("labs_open", "replication")
-    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  # Replication plans (R/study-plan-replication.R; queue item 23). A study plan
+  # that holds the pre-replication notes and the planner's fields; its
+  # workspace is drawn once on the Study plans page and filled from the
+  # plan that is open.
+  viewed_plan <- function() state$plans[[state$plans_view %||% ""]]
+  output$plan_is_replication <- reactive(plan_is_replication(viewed_plan()))
+  outputOptions(output, "plan_is_replication", suspendWhenHidden = FALSE)
+  rep_server <- replication_server(input, output, session, notes = function() labs_answers(), notes_outcome = function() input$labs_outcome,
+    analyses = function() { plan <- isolate(viewed_plan()); if (plan_is_replication(plan)) replication_analysis_lines(plan, tree, forms) },
+    title = function() isolate(viewed_plan())$name)
+  # Filling the fields from a plan; until they hold its values, nothing is
+  # written back (so one plan's fields never go into another).
+  rep_loaded <- reactiveVal(NULL)
+  rep_fill <- function(plan) {
+    values <- replication_values(plan$replication)
+    for (id in names(values)) {
+      v <- values[[id]]
+      if (id %in% c("rep_design", "rep_tau", "labs_test")) updateSelectInput(session, id, selected = v)
+      else if (identical(id, "rep_threshold")) updateRadioButtons(session, id, selected = v)
+      else if (identical(id, "labs_outcome")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
+      else if (!id %in% c("rep_goal", "rep_prior")) updateTextInput(session, id, value = v)
+    }
+    rep_loaded(list(id = plan$id, values = values, synced = FALSE))
+    rep_server$reset()
+  }
+  observeEvent(state$plans_view, {
+    plan <- plan_get(state$plans_view)
+    if (plan_is_replication(plan) && !identical(isolate(rep_loaded())$id, plan$id)) rep_fill(plan)
+  }, ignoreNULL = FALSE)
+  rep_inputs <- debounce(reactive(stats::setNames(lapply(replication_plan_field_ids, function(id) {
+    v <- input[[id]]; if (is.null(v) || !length(v)) "" else paste(as.character(v), collapse = "\n")
+  }), replication_plan_field_ids)), 600)
+  observe({
+    values <- rep_inputs()
+    id <- isolate(state$plans_view) %||% ""
+    plan <- plan_get(id)
+    # Also run when a plan is filled in: a new plan's values may already be
+    # on screen, so no field changes to say so.
+    loaded <- rep_loaded()
+    if (!plan_is_replication(plan) || is.null(loaded) || !identical(loaded$id, id)) return()
+    if (!isTRUE(loaded$synced)) {
+      same <- setdiff(names(values), c("labs_outcome", "rep_goal", "rep_prior"))
+      if (!identical(values[same], loaded$values[same])) return()
+      loaded$synced <- TRUE
+      rep_loaded(loaded)
+      # The choices the screen can't set before they are drawn keep the plan's.
+      values[c("labs_outcome", "rep_goal", "rep_prior")] <- loaded$values[c("labs_outcome", "rep_goal", "rep_prior")]
+    }
+    updated <- plan_set_replication(plan, fields = values)
+    if (!identical(updated$changed, plan$changed)) plans_put(updated)
   })
-  observeEvent(input$go_labs_replication, {
-    session$sendCustomMessage("labs_open", "replication")
-    updateTabsetPanel(session, "tabs", selected = labs_tab_title)
+  output$rep_card_status <- renderUI({
+    plan <- viewed_plan()
+    if (plan_is_replication(plan)) replication_card_status_ui(tree, plan)
   })
-  # Labs: the replication planner (R/replication.R), with the notes' study
-  # and smallest effect to hand.
-  replication_server(input, output, session, notes = function() labs_answers(), notes_outcome = function() input$labs_outcome)
+  new_replication <- function(endpoint = NULL) {
+    plan <- new_replication_plan()
+    if (!is.null(endpoint)) plan <- plan_set_replication(plan, endpoint = endpoint)
+    plans_put(plan)
+    plan
+  }
+  observeEvent(input$plans_new_replication, open_plans_page(new_replication()$id))
+  observeEvent(input$rep_plan_new_labs, open_plans_page(new_replication()$id))
+  # From the input screen's signpost: a replication plan for this card.
+  observeEvent(input$rep_plan_new_signpost, {
+    plan <- new_replication(if (!is.null(tree$endpoints[[state$endpoint %||% ""]])) state$endpoint)
+    state$rep_plan <- plan$id
+    open_plans_page(plan$id)
+  })
+  # From the workspace to the main route: the finder's replicate aim, or
+  # the original's card, filling this plan.
+  start_replication_route <- function(id, endpoint = NULL) {
+    plan <- plan_get(id)
+    req(plan_is_replication(plan))
+    cancel_job()
+    state$start <- list(aim = "replicate")
+    state$rep_plan <- id; state$current_plan <- id
+    state$history <- list(); state$node <- NULL; state$calc <- NULL; state$route <- "choose"
+    state$ctx <- aim_context(tree, state$start)
+    if (!is.null(endpoint)) {
+      state$endpoint <- endpoint; state$came_from <- "known"; state$screen <- "card"
+    } else {
+      go_to(resolve_target(tree, start_node(tree), state$ctx, state$route))
+    }
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+  }
+  observeEvent(input$rep_find_design, start_replication_route(isolate(state$plans_view)))
+  observeEvent(input$rep_open_card, {
+    plan <- plan_get(isolate(state$plans_view))
+    req(plan_is_replication(plan), plan$replication$endpoint)
+    start_replication_route(plan$id, plan$replication$endpoint)
+  })
+  observeEvent(input$rep_view_plan, open_plans_page(isolate(state$rep_plan)))
+  # The replicate aim's card is kept in a replication plan: the one it was
+  # started from, or a new one.
+  observeEvent(list(state$screen, state$endpoint), {
+    if (!replicating(state$start) || !identical(state$screen, "card")) return()
+    ep <- state$endpoint
+    req(!is.null(tree$endpoints[[ep %||% ""]]))
+    plan <- plan_get(isolate(state$rep_plan))
+    if (!plan_is_replication(plan)) plan <- new_replication_plan()
+    updated <- plan_set_replication(plan, endpoint = ep)
+    if (!identical(updated, isolate(state$plans)[[updated$id]])) plans_put(updated)
+    state$rep_plan <- updated$id; state$current_plan <- updated$id
+  }, ignoreInit = TRUE)
   # The Feedback tab: from the header link, or from "Something doesn't fit?"
   # (which picks "confusing").
   observeEvent(input$go_feedback, {
@@ -2876,7 +2935,7 @@ server <- function(input, output, session) {
           div(class = "status status-soon guided-single-note", single),
         route_fit_ui(tree, state$endpoint, state$ctx),
         bayes_mode_card_note(tree, state$endpoint, state$bayes_mode),
-        if (replicating(state$start)) replication_card_note(forms, state$endpoint),
+        if (replicating(state$start)) replication_card_note(forms, state$endpoint, plan_get(state$rep_plan)),
         card_ui(tree, state$endpoint, history = state$history,
           fits = !length(route_fit_messages(tree, state$endpoint, state$ctx))),
         card_nav_ui(forms, state$endpoint),
@@ -2884,7 +2943,8 @@ server <- function(input, output, session) {
       ),
       form = tagList(
         if (isTRUE(state$from_labs)) labs_return_ui(on_form = TRUE, carried = !is.null(state$labs_seed)),
-        form_ui(tree, forms, state$endpoint, current_form_groups(), isolate(state$form_values), state$history,
+        form_ui(tree, forms, state$endpoint, if (replicating(state$start)) replication_effect_labels(current_form_groups()) else current_form_groups(),
+          isolate(state$form_values), state$history,
           from_plan = identical(state$came_from, "plan"),
           carried = if (identical(state$came_from, "plan")) carried_note_ui(tree, state$plan_filled))),
       g_vars = guided_variables_ui(tree, state$answers, state$ctx, state$history),
