@@ -168,6 +168,7 @@ validation_chunks <- function() {
     multisite = "test-validation-multisite.R",
     sem_fit = "test-validation-sem-model-fit.R",
     sem_latent = "test-validation-sem-latent.R",
+    glmm = "test-validation-glmm.R",
     mixed_model = c("test-validation-mixed-model.R", "test-validation-two-level.R", "test-validation-crossed-conditions.R", "test-validation-crossed-binary.R", "test-validation-three-level.R", "test-validation-item-predictor.R")
   )
 }
@@ -182,7 +183,7 @@ validation_minutes <- function() {
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,
     contrast = 0.3, ancova = 0.3, two_correlations = 0.3, generic = 0.3, equivalence = 0.3, trend = 2, precision = 1,
     whole_study = 175, cluster = 0.3, multisite = 0.3, sem_fit = 0.3,
-    sem_latent = 0.3, mixed_model = 420)
+    sem_latent = 0.3, glmm = 10, mixed_model = 420)
 }
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,

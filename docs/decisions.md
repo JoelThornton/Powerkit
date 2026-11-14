@@ -3251,6 +3251,33 @@ The same review recorded, from de Winter (2026, *Quality & Quantity*), a
 queue item for a permutation test on Welch's t as a test version on E2
 (`next.md` item 28); Welch's t-test stays the default (Departure 21).
 
+### Repeated counts, yes/no answers and ordered categories on E75, 14 November 2026
+
+E75, the same people measured more than once with a count, a yes/no
+answer or an answer in ordered categories, now calculates, by the method `next.md` named for it: a
+generalised linear mixed model with a random intercept for each person,
+`y ~ cond + (1 | person)`, simulated with simr as E33 does for yes/no
+trials. People can be in every condition (before and after a programme)
+or in one of them, measured several times; a count is Poisson or, when
+counts vary more than a Poisson distribution allows, negative binomial
+(the overdispersion k as on E28). simr cannot build or refit a negative
+binomial mixed model, so that version is a Spower simulation of
+powerkit's experiment `p_repeated_nb()`, fitted with lme4's `glmer.nb()`.
+The test is the likelihood-ratio test of the conditions by default, as on
+E63's yes/no version, with car's Wald chi-square test as the option.
+Poisson stays the count default, since the person intercepts already let
+people differ; the input screen says when to choose the negative binomial
+model. Ordered categories are a cumulative link mixed model with the
+logit link and proportional odds, ordinal's `clmm()`, in a Spower
+simulation of `p_repeated_ordinal()`: the researcher gives a typical
+person's share of answers in each category in the first condition and
+each condition's odds ratio of a higher category, as on the
+proportional-odds card for two groups (E29). Power at a fixed number of
+people runs on the card; a required number comes as an R script. Two
+groups measured more than once (a group-by-time interaction) and count
+trials with stimulus variation stay in `next.md` item 1. Validation: `test-validation-glmm.R`. Conventions:
+`docs/conventions.md`, "The same people measured more than once".
+
 ### Corrected repeated-measures tests simulated by default, 14 November 2026
 
 A Greenhouse-Geisser or Huynh-Feldt corrected F test whose effect is not

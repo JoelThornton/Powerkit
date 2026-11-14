@@ -552,6 +552,32 @@ log-odds scale in place of the shares of variance. The test is glmer's
 Wald z test, simr's default for a two-condition predictor, or the
 likelihood ratio; not a departure.
 
+## The same people measured more than once: counts, yes/no and ordered categories (E75)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for generalised mixed models | — | — |
+| simr | `powerSim()` on a model built with `makeGlmer()` (any glmer family); `fixed(xname, method)`, `"lr"` by default for a factor, `"chisq"` its Wald chi-square through car [simr help] | The model's own parameters | — |
+| ordinal | `clmm()`: a cumulative link mixed model, logit link and flexible thresholds by default, `logit P(Y <= j) = theta_j - X beta - u` [ordinal help] | The model's own parameters: thresholds and log odds ratios | — |
+| **powerkit** | Poisson and yes/no: simr's `powerSim()` on `makeGlmer()` with `fixed("cond", "lr")` (default) or `fixed("cond", "chisq")`. Negative binomial: Spower running `p_repeated_nb()`, lme4's `glmer.nb()` (theta estimated), with the same two tests. Ordered categories: Spower running `p_repeated_ordinal()`, ordinal's `clmm()` with the logit link, the likelihood-ratio test or the Wald chi-square test of cond's coefficients (E75, from 14 November 2026) [powerkit] | Each condition's expected count (or chance of 'yes') for a typical person, the SD of the person intercepts on the log (log-odds) scale, and for a negative binomial count the overdispersion k (variance mu + k mu^2; lme4's theta is 1 / k). For ordered categories, a typical person's share of answers in each category in the first condition (setting the thresholds) and each condition's odds ratio of a higher category (proportional odds) | `y ~ cond + (1 \| person)`, cond a factor in treatment coding; every person in every condition, or the people split equally between the conditions; `measurements` per person in each condition. A data set whose fit fails counts as not significant, as simr counts it |
+
+simr cannot build or refit a negative binomial mixed model (its families
+are glmer's), so the negative binomial version draws each person's
+intercept and then each count with `stats::rnbinom()` and fits
+`glmer.nb()` in a Spower simulation. With two conditions the Wald
+chi-square test has the same p-value as glmer's Wald z test. The
+likelihood-ratio test is the default, as on the many-conditions card for
+yes/no trials (E63), for the reason lme4's help on p-values gives; not a
+departure, since G\*Power has no such test.
+
+Ordered categories are planned on the scale `clmm()` reports: an odds
+ratio above 1 means higher categories (ordinal's sign convention, the
+coefficient entering as `theta_j - X beta`), the same direction as the
+proportional-odds card for two groups (E29). Each simulated answer is
+drawn from the cumulative logits given the person's intercept; a data set
+with every answer in one category, or whose fit fails, counts as not
+significant.
+
 ## Moderated mediation with W on both links or the direct path (E38)
 
 | Tool | Test | Effect size | Settings |

@@ -132,6 +132,7 @@ on:
           - multisite
           - sem_fit
           - sem_latent
+          - glmm
           - mixed_model
 
 permissions:

@@ -37,9 +37,10 @@ test_that("no route suggests a test powerkit runs, or will run, before the scree
       if (!is_endpoint_id(end)) next
       # Separate people are asked all of S1-S3; people in groups leave
       # after S2 for the grouped cards (through C1).
-      # Many trials per person leave after S2's follow-up for E33. A time
+      # Many trials per person leave after S2's follow-up for E33 (and E75
+      # for counts). A time
       # until an event is identified by the outcome itself, at S1 (E43).
-      screened <- "s3" %in% p || end == "E43" || ("s2" %in% p && end %in% c("E34", "E62", "E68", "E44", "E65")) || ("s2_trials" %in% p && end %in% c("E33", "E63", "E67"))
+      screened <- "s3" %in% p || end == "E43" || ("s2" %in% p && end %in% c("E34", "E62", "E68", "E44", "E65")) || ("s2_trials" %in% p && end %in% c("E33", "E63", "E67", "E75"))
       if (tree$endpoints[[end]]$status != "not_in_powerkit") expect_true(screened, label = paste(p, collapse = " > "))
     }
   }

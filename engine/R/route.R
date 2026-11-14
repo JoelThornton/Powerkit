@@ -245,6 +245,9 @@ route_backend <- function(spec, seed = NULL) {
     "mixed_model/crossed_conditions" = simr_backend(spec, seed),
     "mixed_model/three_level" = simr_backend(spec, seed),
     "mixed_model/item_predictor" = simr_backend(spec, seed),
+    # Repeated counts or yes/no: simr (Poisson, logistic) or Spower with
+    # glmer.nb() (negative binomial).
+    "mixed_model/repeated_glmm" = repeated_glmm_backend(spec, seed),
     # Growth curves, by Diggle and colleagues' formula (longpower).
     "mixed_model/growth_curve" = growth_backend(spec, seed),
     "logistic_regression/factorial" = ,

@@ -221,6 +221,11 @@ simulations:
       preview: {power: 40}
       full: {power: 400}
       script: {sample_size: "about 30 minutes to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E75:
+      full_run: [power]
+      preview: {power: 20}
+      full: {power: 200}
+      script: {sample_size: "about 20 minutes to 2 hours on one core, longer with a negative binomial count or ordered categories (an estimate; 5 to 8 sample sizes are simulated)"}
     E67:
       full_run: [power]
       preview: {power: 35}
@@ -1385,6 +1390,63 @@ forms:
              shown_if: {field: conditions_test, is: pairwise},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
              default: holm, default_source: "Holm's method, as on the one-way ANOVA cards (Departure 17)"}
+
+  # The same people measured more than once with a count or yes/no outcome
+  # (simr; Spower with glmer.nb() for a negative binomial count), 14
+  # November 2026.
+  E75:
+    methods_name: "a generalised linear mixed model with a random intercept for each person"
+    tool: simr
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: repeated_glmm,
+           variables: {X: {type: within_factor}, "Y": {type: count}}, population: {metric: rate},
+           target_test: {effect: condition}}
+    groups:
+      - input: "The conditions, the outcome, and how often each person is measured"
+        fields:
+          - {id: X_label, label: "What the conditions or occasions are (for example, before and after the programme)", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The conditions or occasions, separated by commas (two or more)", type: levels, path: variables.X.levels, required: true}
+          - {id: glmm_people, label: "Each person is measured in", type: select, path: variables.X.type, required: true,
+             choices: {within_factor: "Every condition (for example, before and after)", between_factor: "One condition, several times (the people split equally between the conditions)"},
+             default: within_factor, default_source: "the same people measured more than once, this card's usual design"}
+          - {id: Y_label, label: "Outcome (for example, cigarettes smoked per day)", type: text, path: variables.Y.label, required: true}
+          - {id: glmm_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {count: "A count (0, 1, 2, ...)", binary: "Yes or no", categorical: "Ordered categories (for example, a rating from 1 to 5)"},
+             sets: {binary: [{path: population.metric, value: probability}], categorical: [{path: population.metric, value: proportion}]},
+             default: count, default_source: "a count, the commoner outcome on this card",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer); with ordered categories, a cumulative link mixed model with proportional odds (the R package ordinal's clmm()). The SD below is then on the log-odds scale."}
+          - {id: Y_levels, label: "The categories, lowest first, separated by commas (three or more)", type: levels, path: variables.Y.levels, required: true,
+             shown_if: {field: glmm_outcome, is: categorical}}
+          - {id: glmm_measurements, writeup_label: "measurements per person in each condition", label: "How many times each person is measured in each condition (1 if once)", type: number, path: population.measurements, required: true, min: 1, integer: true,
+             default: 1, default_source: "one measurement per condition, as in a before-and-after study",
+             help: "With each person in one condition, or a yes/no outcome, at least 2: the person's own average can't be told apart from their measurement otherwise."}
+      - input: "The expected count, chance of 'yes' or answers in each condition, and how much people differ"
+        fields:
+          - {id: glmm_rates, writeup_label: "expected count in each condition", label: "The expected count per measurement in each condition, for a typical person, in the same order, separated by commas (for example, 10, 8)", type: numbers, per_levels: X_levels, path: population.rates, effect: true,
+             shown_if: {field: glmm_outcome, is: count},
+             help: "A typical person is one whose own level is average (random intercept 0). The ratio of two of these is the rate ratio the test looks for."}
+          - {id: glmm_probabilities, writeup_label: "chance of yes in each condition", label: "The chance of 'yes' in each condition for a typical person, as proportions in the same order, separated by commas (for example, 0.30, 0.20)", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true,
+             shown_if: {field: glmm_outcome, is: binary}}
+          - {id: glmm_categories, writeup_label: "share of answers in each category in the first condition", label: "In the first condition, the share of a typical person's answers in each category, lowest first, separated by commas (they add up to 1; for example, 0.2, 0.3, 0.3, 0.2)", type: numbers, per_levels: Y_levels, path: population.category_probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: glmm_outcome, is: categorical}}
+          - {id: glmm_odds_ratios, writeup_label: "odds ratio of a higher category in each condition", label: "Each condition's odds of a higher category compared with the first condition, in the same order, the first 1 (for example, 1, 1.8)", type: numbers, per_levels: X_levels, path: population.odds_ratios, effect: true, min_exclusive: 0,
+             shown_if: {field: glmm_outcome, is: categorical},
+             help: "Proportional odds: the same odds ratio at every split of the categories into lower and higher. Above 1 means answers higher on the scale; 1.8 turns the 20% answering in the top category in the first condition into about 31%."}
+          - {id: glmm_sd_person, writeup_label: "SD of people's levels", label: "How much people differ in their typical level: the SD of the person intercepts, on the log scale for a count (log-odds for yes/no or ordered categories)", type: number, path: population.sd_person, effect: true, min: 0,
+             help: "For a count, 0.5 means that a person one SD above average has a typical count about 1.65 times (exp(0.5)) the average person's."}
+          - {id: glmm_distribution, label: "Counts are", type: select, required: true,
+             shown_if: {field: glmm_outcome, is: count},
+             choices: {poisson: "Poisson: given the person and condition, the variance equals the mean", negative_binomial: "More spread out than Poisson (negative binomial)"},
+             default: poisson, default_source: "the Poisson mixed model, simr's model for counts; the person intercepts already allow people to differ",
+             help: "Counts of behaviour often vary more from one measurement to the next than a Poisson distribution allows. If yours do, choose the negative binomial model: it is slower to simulate (lme4's glmer.nb()), and gives less power for the same counts."}
+          - {id: glmm_dispersion, writeup_label: "overdispersion k", label: "Overdispersion k: a count with expected value mu varies with variance mu + k mu squared (for example, 0.5)", type: number, path: population.dispersion, effect: true, min_exclusive: 0,
+             shown_if: [{field: glmm_outcome, is: count}, {field: glmm_distribution, is: negative_binomial}]}
+      - input: "The test"
+        fields:
+          - {id: glmm_test, label: "Test that the conditions differ", type: select, path: target_test.method, required: true,
+             choices: {likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences)", wald: "Wald test (the Wald chi-square; with two conditions, the p-value the model's summary reports)"},
+             default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor, as on the many-conditions card (E63)",
+             help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison."}
 
   # A predictor measured on each item (simr), 1 November 2026.
   E67:

@@ -212,6 +212,13 @@ form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Ha
                             sd_residual = "120", items = "60", item_design = "between", conditions_test = "pairwise",
                             comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
 
+# E75: disruptive acts per lesson, three lessons in each kind of
+# classroom, a Poisson count.
+form_examples$E75 <- c(list(X_label = "Classroom", X_levels = "Usual, With the programme", glmm_people = "within_factor",
+                            Y_label = "Disruptive acts per lesson", glmm_outcome = "count", glmm_measurements = "3",
+                            glmm_rates = "2, 1.6", glmm_sd_person = "0.5", glmm_distribution = "poisson",
+                            glmm_test = "likelihood_ratio"), closing_ok)
+
 # E68: pupils in classes in schools, whole schools assigned.
 form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score", three_outcome = "continuous",
                             three_assignment = "site", d = "0.25", icc_site = "0.1", icc_group = "0.05",

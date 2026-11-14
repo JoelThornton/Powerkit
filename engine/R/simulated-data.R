@@ -1181,6 +1181,7 @@ sim_mixed_code <- function(spec, n) {
   if (identical(spec$template, "growth_curve")) return(sim_growth_code(spec, n))
   if (identical(spec$template, "two_level")) return(sim_two_level_code(spec, n))
   if (identical(spec$template, "crossed_conditions")) return(sim_crossed_conditions_code(spec, n))
+  if (identical(spec$template, "repeated_glmm")) return(sim_repeated_glmm_code(spec, n))
   if (identical(spec$template, "three_level")) return(sim_three_level_code(spec, n))
   if (identical(spec$template, "item_predictor")) return(sim_item_predictor_code(spec, n))
   inputs <- simr_inputs(spec)
@@ -1493,6 +1494,57 @@ sim_crossed_conditions_code <- function(spec, n) {
     "  item = design$item,",
     sprintf("  %s = design$cond,", sim_label(spec, "X")),
     sprintf("  %s = stats::simulate(model)[[1]]", sim_label(spec, "Y")),
+    ")"
+  )
+}
+
+# The same people measured more than once, a count, yes/no or ordered
+# categories (E75): the
+# same design and model as the simulation (repeated_glmm_design(),
+# repeated_glmm_inputs()), one row per measurement.
+sim_repeated_glmm_code <- function(spec, n) {
+  inputs <- repeated_glmm_inputs(spec)
+  c(
+    sprintf("conditions <- %s", r_code(inputs$levels)),
+    if (inputs$between) {
+      c(
+        sprintf("design <- expand.grid(measurement = seq_len(%d), person = seq_len(%d))", inputs$measurements, n),
+        sprintf("design$cond <- conditions[ceiling(design$person / %s)] # the people split equally, one group per condition",
+          r_code(n / length(inputs$levels)))
+      )
+    } else {
+      sprintf("design <- expand.grid(measurement = seq_len(%d), cond = conditions, person = seq_len(%d), stringsAsFactors = FALSE)",
+        inputs$measurements, n)
+    },
+    "design$person <- factor(design$person)",
+    "design$cond <- factor(design$cond, levels = conditions)",
+    if (inputs$ordinal) {
+      c(
+        sprintf("intercepts <- stats::rnorm(%d, 0, %s) # each person's level, on the log-odds scale", n, r_code(inputs$sd_person)),
+        sprintf("eta <- %s[as.integer(design$cond)] + intercepts[as.integer(design$person)]", r_code(inputs$centre)),
+        sprintf("below <- stats::plogis(outer(-eta, %s, \"+\")) # P(Y <= each category but the last)", r_code(inputs$thresholds)),
+        sprintf("y <- factor(%s[1L + rowSums(stats::runif(nrow(design)) > below)], levels = %s, ordered = TRUE)",
+          r_code(sim_levels(spec, "Y")), r_code(sim_levels(spec, "Y")))
+      )
+    } else if (inputs$nb) {
+      c(
+        sprintf("intercepts <- stats::rnorm(%d, 0, %s) # each person's level, on the log scale", n, r_code(inputs$sd_person)),
+        sprintf("mu <- exp(%s[as.integer(design$cond)] + intercepts[as.integer(design$person)])", r_code(inputs$centre)),
+        sprintf("y <- stats::rnbinom(nrow(design), size = %s, mu = mu) # negative binomial, variance mu + %s mu^2",
+          r_code(1 / inputs$dispersion), r_code(inputs$dispersion))
+      )
+    } else {
+      c(
+        sprintf("model <- simr::makeGlmer(y ~ cond + (1 | person), family = \"%s\", fixef = %s, VarCorr = list(person = %s), data = design)",
+          inputs$family, r_code(inputs$fixef), r_code(inputs$sd_person^2)),
+        "y <- stats::simulate(model)[[1]]"
+      )
+    },
+    "simulated <- data.frame(",
+    "  person = design$person,",
+    sprintf("  %s = design$cond,", sim_label(spec, "X")),
+    "  measurement = design$measurement,",
+    sprintf("  %s = y", sim_label(spec, "Y")),
     ")"
   )
 }

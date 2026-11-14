@@ -256,6 +256,7 @@ zero_effect_cases <- list(
   crossed_two_condition = function(s) within(s, population$difference <- 0),
   mixed_two_level = function(s) within(s, population$b_XW <- 0),
   crossed_conditions = function(s) within(s, population$means <- list(600, 600, 590)),
+  repeated_glmm = function(s) within(s, population$rates <- list(2, 2)),
   item_predictor = function(s) within(s, population$slope <- 0),
   # Small schools (two classes of four), so that the fixed-n check's 240
   # people are a whole number of them (30), above the minimum of six.

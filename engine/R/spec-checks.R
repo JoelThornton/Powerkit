@@ -17,7 +17,7 @@ population_problems <- function(spec) {
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
       switch(spec$template, two_level = check_two_level(spec), crossed_conditions = check_crossed_conditions(spec),
-        growth_curve = check_growth_curve(spec),
+        growth_curve = check_growth_curve(spec), repeated_glmm = check_repeated_glmm(spec),
         three_level = check_three_level(spec), item_predictor = check_item_predictor(spec),
         c(check_crossed_two_condition(spec), check_crossed_outcome(spec, conditions = FALSE)))
     },
@@ -329,6 +329,9 @@ negative_binomial_counts <- function(spec) {
 # The overdispersion is an input to the negative binomial models only, and
 # they need one.
 check_dispersion <- function(spec) {
+  # Repeated counts (E75): dispersion chooses the negative binomial model
+  # itself (check_repeated_glmm()).
+  if (identical(spec$template, "repeated_glmm")) return(character())
   given <- !is.null(spec$population$dispersion)
   if (negative_binomial_counts(spec) && !given) {
     return(paste0(
@@ -3056,7 +3059,12 @@ minimum_n <- function(spec) {
       if (is.null(pop2$groups_per_site)) 10 * pop2$cluster_size else 6 * pop2$cluster_size * pop2$groups_per_site
     } else
       if (identical(spec$template, "three_level")) 6 * spec$population$group_size * spec$population$groups_per_site else
-      if (identical(spec$template, "growth_curve")) 4 else 6,
+      if (identical(spec$template, "growth_curve")) 4 else
+      # Repeated counts or yes/no: two people in each condition between
+      # people, and enough for the person SD within.
+      if (identical(spec$template, "repeated_glmm")) {
+        if (identical(spec$variables$X$type, "between_factor")) 2 * length(spec$variables$X$levels) else 6
+      } else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
     # Subgroups: two studies of each kind, so the within-kind variance has
@@ -3157,7 +3165,7 @@ group_split <- function(spec) {
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
   }
-  if (identical(spec$template, "crossed_conditions") && identical(spec$variables$X$type, "between_factor")) {
+  if (spec$template %in% c("crossed_conditions", "repeated_glmm") && identical(spec$variables$X$type, "between_factor")) {
     k <- length(spec$variables$X$levels)
     return(list(rule = sprintf("split into %d equal groups, one per condition", k), valid = function(n) n %% k == 0))
   }
@@ -3334,6 +3342,13 @@ target_effect_is_zero <- function(spec) {
       if (identical(spec$variables$Y$type, "binary")) diff(as.numeric(unlist(pop$probabilities))) else pop$d
     } else if (identical(spec$template, "item_predictor")) {
       pop$slope
+    } else if (identical(spec$template, "repeated_glmm")) {
+      # The conditions' log rates (or log odds): no difference when all are
+      # equal.
+      centre <- if (identical(spec$variables$Y$type, "count")) log(as.numeric(unlist(pop$rates))) else
+        if (identical(spec$variables$Y$type, "categorical")) log(as.numeric(unlist(pop$odds_ratios))) else
+        stats::qlogis(as.numeric(unlist(pop$probabilities)))
+      if (length(centre)) max(abs(centre - mean(centre))) else 1
     } else if (identical(spec$template, "crossed_conditions")) {
       means <- as.numeric(unlist(pop$means %||% pop$probabilities))
       pair <- match(unlist(spec$target_test$comparison), unlist(spec$variables$X$levels))
