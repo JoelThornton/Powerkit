@@ -63,6 +63,10 @@ connection_css <- "
 connection_js <- "
 (function() {
   var KEY = 'powerkit-autosave', PLAN_KEY = 'powerkit-study-plan';
+  // Study plans (R/study-plans.R): one key per plan and an index. The old
+  // single plan (PLAN_KEY) is read once and removed only after the plan
+  // made from it has been stored.
+  var PLANS_INDEX = 'powerkit-study-plans', PLAN_PREFIX = 'powerkit-study-plan:', PLANS_BUDGET = 3000000;
   var busyTimer = null;
   // The busy bar: shown when Shiny has been busy for a moment, so quick
   // clicks don't flash it.
@@ -104,9 +108,17 @@ connection_js <- "
     var saved = null;
     try { saved = window.localStorage.getItem(KEY); } catch (e) {}
     if (saved) Shiny.setInputValue('pk_saved_draft', saved, {priority: 'event'});
-    var plan = null;
-    try { plan = window.localStorage.getItem(PLAN_KEY); } catch (e) {}
-    if (plan) Shiny.setInputValue('pk_saved_plan', plan, {priority: 'event'});
+    var plans = {records: {}};
+    try {
+      var index = JSON.parse(window.localStorage.getItem(PLANS_INDEX) || 'null');
+      if (index && Array.isArray(index.ids)) plans.index = index;
+      for (var i = 0; i < window.localStorage.length; i++) {
+        var k = window.localStorage.key(i);
+        if (k && k.indexOf(PLAN_PREFIX) === 0) plans.records[k.slice(PLAN_PREFIX.length)] = window.localStorage.getItem(k);
+      }
+      plans.legacy = window.localStorage.getItem(PLAN_KEY);
+    } catch (e) {}
+    if (plans.legacy || Object.keys(plans.records).length) Shiny.setInputValue('pk_saved_plans', plans, {priority: 'event'});
     // A small message every 20 seconds while the page is being used (in
     // view and used in the last 20 minutes) or a calculation runs, so that
     // the connection isn't closed for being quiet while the visitor reads
@@ -155,8 +167,55 @@ connection_js <- "
   $(document).on('shiny:value', function(e) {
     if (e.name === 'screen' && !aboutStarted) { aboutStarted = true; setTimeout(fetchAbout, 1500); }
   });
-  Shiny.addCustomMessageHandler('pk_plan_save', function(text) {
-    try { if (text) window.localStorage.setItem(PLAN_KEY, text); else window.localStorage.removeItem(PLAN_KEY); } catch (e) {}
+  // A plan's copy is written only within the plans' shared budget; a copy
+  // that doesn't fit is reported, so the plan's page can say to save it.
+  var askedToPersist = false;
+  Shiny.addCustomMessageHandler('pk_plan_store', function(msg) {
+    var key = PLAN_PREFIX + msg.id, others = 0;
+    try {
+      for (var i = 0; i < window.localStorage.length; i++) {
+        var k = window.localStorage.key(i);
+        if (k && k.indexOf(PLAN_PREFIX) === 0 && k !== key) others += (window.localStorage.getItem(k) || '').length;
+      }
+      if (others + msg.record.length > PLANS_BUDGET) throw new Error('budget');
+      window.localStorage.setItem(key, msg.record);
+      if (msg.drop_legacy) window.localStorage.removeItem(PLAN_KEY);
+      Shiny.setInputValue('pk_plan_stored', {id: msg.id, ok: true, nonce: Date.now()}, {priority: 'event'});
+    } catch (e) {
+      // The copy already kept (the plan before this change) stays.
+      Shiny.setInputValue('pk_plan_stored', {id: msg.id, ok: false, nonce: Date.now()}, {priority: 'event'});
+    }
+    // Ask the browser to keep this site's storage under pressure, where it
+    // offers that; nothing relies on the answer.
+    if (!askedToPersist && navigator.storage && navigator.storage.persist) {
+      askedToPersist = true;
+      try { navigator.storage.persist().catch(function() {}); } catch (e) {}
+    }
+  });
+  Shiny.addCustomMessageHandler('pk_plan_forget', function(msg) {
+    try { window.localStorage.removeItem(PLAN_PREFIX + msg.id); } catch (e) {}
+  });
+  // \u201cRemove every plan from this browser\u201d: every plan's copy, the index
+  // and the old single plan, including any that couldn't be read.
+  Shiny.addCustomMessageHandler('pk_plans_forget_all', function(msg) {
+    try {
+      var doomed = [];
+      for (var i = 0; i < window.localStorage.length; i++) {
+        var k = window.localStorage.key(i);
+        if (k && (k.indexOf(PLAN_PREFIX) === 0 || k === PLANS_INDEX || k === PLAN_KEY)) doomed.push(k);
+      }
+      doomed.forEach(function(k) { window.localStorage.removeItem(k); });
+    } catch (e) {}
+  });
+  Shiny.addCustomMessageHandler('pk_plans_drop_legacy', function(msg) {
+    try { window.localStorage.removeItem(PLAN_KEY); } catch (e) {}
+  });
+  Shiny.addCustomMessageHandler('pk_plans_index', function(msg) {
+    try {
+      var ids = msg.ids || [];
+      if (ids.length) window.localStorage.setItem(PLANS_INDEX, JSON.stringify({current: msg.current || null, ids: ids}));
+      else window.localStorage.removeItem(PLANS_INDEX);
+    } catch (e) {}
   });
   Shiny.addCustomMessageHandler('pk_autosave', function(text) {
     try { if (text) window.localStorage.setItem(KEY, text); else window.localStorage.removeItem(KEY); } catch (e) {}

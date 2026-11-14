@@ -2537,6 +2537,25 @@
       ],
       "Hash": "8b8090247468826de888156efa7abc8e"
     },
+    "patchwork": {
+      "Package": "patchwork",
+      "Version": "1.3.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "cli",
+        "farver",
+        "ggplot2",
+        "grDevices",
+        "graphics",
+        "grid",
+        "gtable",
+        "rlang",
+        "stats",
+        "utils"
+      ],
+      "Hash": "97fc0338dd42af55d170478dfc4c0c03"
+    },
     "pbapply": {
       "Package": "pbapply",
       "Version": "1.7-5",
@@ -3082,6 +3101,17 @@
       ],
       "Hash": "41b847654f567341725473431dd0d5ab"
     },
+    "reshape": {
+      "Package": "reshape",
+      "Version": "0.8.10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "plyr"
+      ],
+      "Hash": "09a62fc9e02dcf5dd1d938a2118f910d"
+    },
     "reshape2": {
       "Package": "reshape2",
       "Version": "1.4.5",
@@ -3267,6 +3297,36 @@
         "xtable"
       ],
       "Hash": "e71fb3fcf73db153eccd8afed293984f"
+    },
+    "SimplyAgree": {
+      "Package": "SimplyAgree",
+      "Version": "0.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "MASS",
+        "Matrix",
+        "R",
+        "boot",
+        "dplyr",
+        "emmeans",
+        "ggplot2",
+        "insight",
+        "jmvcore",
+        "lifecycle",
+        "lme4",
+        "magrittr",
+        "nlme",
+        "patchwork",
+        "purrr",
+        "quantreg",
+        "scales",
+        "stats",
+        "stringr",
+        "tidyr",
+        "tidyselect"
+      ],
+      "Hash": "c6e8c3ef5c292b8f96fe61ff29ffadd9"
     },
     "simr": {
       "Package": "simr",
@@ -3761,6 +3821,19 @@
         "graphics"
       ],
       "Hash": "d979712ec72df779bc2d30bcc5d0d541"
+    },
+    "WRS2": {
+      "Package": "WRS2",
+      "Version": "1.1-7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "MASS",
+        "R",
+        "plyr",
+        "reshape"
+      ],
+      "Hash": "1d177507707fe17e94d96df70cf5e9d7"
     },
     "xfun": {
       "Package": "xfun",

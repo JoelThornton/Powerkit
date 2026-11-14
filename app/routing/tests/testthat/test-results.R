@@ -3088,6 +3088,27 @@ test_that("reliability: the ICC, Cronbach's alpha and kappa build valid specs an
   expect_match(html, "ICC", fixed = TRUE)
 })
 
+test_that("Bland-Altman limits of agreement: simulated by default on the preview and R script route, Lu et al.'s formula calculates here", {
+  fields <- form_fields(form_groups(forms, "E69"))
+  values <- modifyList(form_examples$E69, list(question = "bland_altman", rel_alternative = NULL, icc = NULL, icc_null = NULL, icc_raters = NULL,
+    Y_label = "Systolic blood pressure (mmHg)", ba_bias = "0.5", ba_sd = "2.5", ba_margin = "8", agree_level = "0.95", ba_method = "mover"))
+  spec <- build_spec(forms, "E69", fields, values)
+  expect_identical(spec$template, "bland_altman")
+  expect_identical(spec$target_test$method, "mover")
+  expect_identical(spec$target_test$agree_level, 0.95)
+  expect_null(spec$target_test$alternative)
+  expect_match(test_text(spec), "the Bland-Altman 95% limits of agreement, both within plus and minus 8 at the outer ends of their two-sided 95% MOVER confidence intervals", fixed = TRUE)
+  expect_true(runs_long(forms, "E69", spec))
+  expect_true("27" %in% names(departures_for(forms, "E69", spec)))
+  lu <- build_spec(forms, "E69", fields, modifyList(values, list(ba_method = "lu_formula")))
+  expect_false(runs_long(forms, "E69", lu))
+  expect_false("27" %in% names(departures_for(forms, "E69", lu)))
+  expect_false(runs_long(forms, "E69", build_spec(forms, "E69", fields, form_examples$E69)))
+  skip_without_run()
+  calc <- run_calculation(lu, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+})
+
 test_that("repeated-measures ANOVAs: the Bayes factor version takes the preview and R script route, the F test calculates here", {
   for (ep in c("E8", "E54", "E55", "E20")) {
     fields <- form_fields(form_groups(forms, ep))

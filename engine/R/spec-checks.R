@@ -70,6 +70,7 @@ population_problems <- function(spec) {
     check_friedman(spec),
     check_art_within(spec),
     check_jonckheere(spec),
+    check_yuen(spec),
     check_sd_ratio(spec),
     check_dispersion(spec),
     check_zero_inflation(spec),
@@ -240,11 +241,23 @@ spower_only <- function(spec) {
 # groups), simulated with Spower's p_wilcox.test() and p_kruskal.test(),
 # and the Jonckheere-Terpstra test (groups in order), Friedman's test, the
 # Brunner-Munzel test and the aligned rank transform ANOVA, simulated by
-# powerkit's own experiments with Spower.
+# powerkit's own experiments with Spower. Yuen's trimmed-means tests are
+# not rank tests, but they are simulated the same way, on scores of a
+# chosen shape, so they share this route (yuen_test()).
 rank_test <- function(spec) {
   isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "kruskal_wallis", "friedman", "jonckheere_terpstra",
-    "aligned_rank_transform"))
+    "aligned_rank_transform", "yuen"))
 }
+
+# Yuen's test of trimmed means (WRS2's yuen() for two groups, yuend() for
+# the same people measured twice; Yuen, 1974), simulated with Spower on
+# scores of the chosen shape: a robust alternative to the t-test that
+# compares the means of the middle 1 - 2 * trim of each group's scores.
+yuen_test <- function(spec) identical(spec$target_test$method, "yuen")
+
+# The proportion trimmed from each end of each group's scores: WRS2's
+# default, 0.2, unless target_test > trim says otherwise.
+yuen_trim <- function(spec) spec$target_test$trim %||% 0.2
 
 # The aligned rank transform ANOVA (ARTool's art() and artlm()), on the
 # two-factor between-participants templates: a rank-based test of each
@@ -385,18 +398,43 @@ jonckheere_test <- function(spec) identical(spec$target_test$method, "jonckheere
 # differ in spread as well as location.
 brunner_munzel_test <- function(spec) identical(spec$target_test$method, "brunner_munzel")
 
+# Yuen's tests: the trimming proportion goes with them only, and the paired
+# test needs the correlation between the two measurements, because yuend()
+# trims each measurement separately, so its power depends on how strongly
+# they correlate as well as on d_z.
+check_yuen <- function(spec) {
+  out <- character()
+  if (!is.null(spec$target_test$trim) && !yuen_test(spec)) {
+    out <- c(out, "'target_test > trim' is only used by Yuen's trimmed-means test; choose it in 'target_test > method', or remove the trim.")
+  }
+  if (identical(spec$template, "paired_t")) {
+    if (!yuen_test(spec) && identical(spec$population$score_shape, "skewed")) {
+      out <- c(out, "'population > score_shape' 'skewed' is only available for Yuen's paired test: the signed-rank test assumes the within-person differences are symmetric, so choose 'normal' or 'heavy_tailed'.")
+    }
+    # [["r"]], not $r, which would also match population > raw.
+    r <- spec$population[["r"]]
+    if (yuen_test(spec) && is.null(r)) {
+      out <- c(out, "Yuen's paired test needs the correlation between the two measurements ('population > r'): it trims each measurement separately, so its power depends on that correlation as well as on d_z.")
+    }
+    if (!yuen_test(spec) && !is.null(r)) {
+      out <- c(out, "'population > r' is only used by Yuen's paired test; the paired t-test and the signed-rank test need only d_z.")
+    }
+  }
+  out
+}
+
 # The ratio of the groups' SDs is explicit for Brunner-Munzel and Welch.
 check_sd_ratio <- function(spec) {
   if (unequal_welch(spec) && (identical(spec$population$metric, "point_biserial") ||
       !is.null(spec$effect_justification$conversion) || !is.null(spec$effect_justification$safeguard))) {
     return("For unequal-SD Welch planning, give raw means and the two SDs, or a mean difference standardised by their root mean square. Point-biserial/published-test conversions and the safeguard need equal-SD assumptions and cannot establish this population.")
   }
-  if (is.null(spec$population$sd_ratio) || brunner_munzel_test(spec) ||
+  if (is.null(spec$population$sd_ratio) || brunner_munzel_test(spec) || (yuen_test(spec) && identical(spec$template, "independent_t")) ||
       (identical(spec$template, "independent_t") && (identical(spec$target_test$method, "welch_t") ||
         (identical(spec$target_test$method, "student_t") && isTRUE(all.equal(spec$population$sd_ratio, 1)))))) {
     return(character())
   }
-  "'population > sd_ratio' is only used by the Brunner-Munzel or Welch test; choose one of those methods, or remove it."
+  "'population > sd_ratio' is only used by the Brunner-Munzel, Yuen or Welch test; choose one of those methods, or remove it."
 }
 
 # The Cochran-Armitage test of a trend in proportions (stats::prop.trend.test()).
@@ -790,7 +828,8 @@ check_welch_sds <- function(spec) {
   character()
 }
 
-# The shape of the scores is only an input to the rank tests: the t-tests
+# The shape of the scores is only an input to the rank tests and Yuen's
+# trimmed-means tests: the t-tests
 # and ANOVA powerkit computes assume normal scores.
 check_score_shape_allowed <- function(spec) {
   # MANOVA and PERMANOVA: check_manova() says so.
@@ -799,7 +838,7 @@ check_score_shape_allowed <- function(spec) {
   }
   paste0(
     "'population > score_shape' is only used by the rank tests (Wilcoxon, ",
-    "Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Jonckheere-Terpstra, Friedman, the aligned rank transform) and the rank correlations (Spearman, ",
+    "Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Jonckheere-Terpstra, Friedman, the aligned rank transform), Yuen's trimmed-means tests and the rank correlations (Spearman, ",
     "Kendall); the t-tests, ANOVA and Pearson's r assume normal scores. Remove it, ",
     "or choose a rank test in 'target_test > method'."
   )
@@ -950,7 +989,7 @@ check_direction_allowed <- function(spec) {
   alternative <- spec$target_test$alternative %||% "two_sided"
   one_sided <- c("one_proportion", "mcnemar", "independent_t", "two_proportions", "two_correlations",
                  dependent_correlation_templates(), "single_predictor", if (identical(spec$design, "logistic_regression")) "interaction", "growth_curve",
-                 "single_predictor_count", "one_variance", "two_variances",
+                 "single_predictor_count", "one_variance", "two_variances", "repeated_measures_correlation",
                  "cluster_randomised", "multisite", "group_treatment", "t", "z")
   if (alternative == "two_sided" || !spec$template %in% one_sided) {
     return(character())
@@ -984,6 +1023,8 @@ check_direction_allowed <- function(spec) {
     # value, or the first group's against the second.
     one_variance = pop$var - pop$var0,
     two_variances = pop$var1 - pop$var2,
+    # "greater" means the two scores rise together within people.
+    repeated_measures_correlation = pop$r,
     # "greater" means the second condition's mean is higher.
     cluster_randomised = ,
     multisite = ,
@@ -2818,7 +2859,7 @@ check_goal <- function(spec, check_effect = TRUE) {
   needs_effect <- goal$type == "sample_size" || !(
     identical(spec$design, "basic_test") &&
       spec$template %in% c(
-        "one_sample_t", "independent_t", "paired_t", "correlation",
+        "one_sample_t", "independent_t", "paired_t", "correlation", "repeated_measures_correlation",
         "two_proportions", "chi_square_independence"
       )
   ) && !identical(spec$design, "generic_test") && !identical(spec$design, "cluster_trial") &&
@@ -2909,6 +2950,10 @@ minimum_n <- function(spec) {
       # people per group for the F test of two.
       one_variance = 2,
       two_variances = 4,
+      # The repeated-measures correlation's effective sample size,
+      # N(k - 1) + 1, must exceed 3 for pwrss's exact distribution of r,
+      # and the analysis needs two people.
+      repeated_measures_correlation = max(2, ceiling(3 / (as.integer(spec$population$measurements %||% 2) - 1)) + 1),
       # Pillai's trace needs more people than outcomes in the residual
       # degrees of freedom: at least p + 2 people in each group.
       manova = manova_groups(spec) * (length(manova_outcomes(spec)) + 2),
@@ -3208,7 +3253,8 @@ target_effect_is_zero <- function(spec) {
       paired_t = pop$dz,
       one_proportion = pop$p - pop$p0,
       mcnemar = pop$p_second_only - pop$p_first_only,
-      correlation = pop$r,
+      correlation = ,
+      repeated_measures_correlation = pop$r,
       two_proportions = pop$p1 - pop$p2,
       two_correlations = pop$r1 - pop$r2,
       overlapping_correlations = ,
@@ -3353,7 +3399,9 @@ target_effect_is_zero <- function(spec) {
     reliability = switch(spec$template,
       icc = pop$icc - pop$icc_null,
       cronbach_alpha = pop$reliability - pop$reliability_null,
-      kappa = pop$kappa - pop$kappa_null
+      kappa = pop$kappa - pop$kappa_null,
+      # The room between the limits of agreement and the margin.
+      bland_altman = pop$margin - abs(pop$bias) - stats::qnorm(1 - (1 - (spec$target_test$agree_level %||% 0.95)) / 2) * pop$sd_difference
     ),
     survival = if (identical(spec$template, "log_rank")) {
       p <- as.numeric(unlist(pop$p_event))

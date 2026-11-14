@@ -453,7 +453,20 @@ sim_rank_code <- function(spec, n) {
   body <- switch(
     spec$template,
     one_sample_t = sprintf("simulated <- data.frame(%s = %s + draw(%d))", y, r_code(pop$d), n),
-    paired_t = {
+    paired_t = if (yuen_test(spec)) {
+      # Yuen's paired test: each measurement the person's level plus a
+      # deviation of the chosen shape, correlated r (yuen_paired_scores()).
+      levels <- sim_levels(spec, "X")
+      r <- pop$r
+      c(
+        sprintf("level <- sqrt(%s) * stats::rnorm(%d) # each person's own level", r_code(r), n),
+        "simulated <- data.frame(",
+        sprintf("  %s = level + sqrt(%s) * draw(%d),", csv_name(paste(y, levels[1])), r_code(1 - r), n),
+        sprintf("  %s = %s + level + sqrt(%s) * draw(%d)", csv_name(paste(y, levels[2])),
+          r_code(pop$dz * sqrt(2 * (1 - r))), r_code(1 - r), n),
+        ")"
+      )
+    } else {
       levels <- sim_levels(spec, "X")
       c(
         sprintf("first <- stats::rnorm(%d)", n),
@@ -468,7 +481,7 @@ sim_rank_code <- function(spec, n) {
       c(
         "simulated <- data.frame(",
         sprintf("  %s = rep(%s, %s),", sim_label(spec, "X"), r_code(sim_levels(spec, "X")), r_code(groups)),
-        if (brunner_munzel_test(spec)) {
+        if (brunner_munzel_test(spec) || yuen_test(spec)) {
           # Group 2's SD sd_ratio times group 1's, scaled so the pooled SD is 1
           # (brunner_munzel_scores()).
           sd1 <- sqrt(2 / (1 + (pop$sd_ratio %||% 1)^2))

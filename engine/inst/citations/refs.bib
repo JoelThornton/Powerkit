@@ -55,6 +55,7 @@
 %   semPower_method          semPower's method paper (below)
 %   bfpwr_method             bfpwr's method paper (below)
 %   presize_method           presize's paper (below)
+%   SimplyAgree_method       SimplyAgree's paper (below)
 % Each package's own citation() is exported as well, from the installed
 % package, so it needs no entry here.
 
@@ -736,4 +737,66 @@
   pages = {72--93},
   doi = {10.1111/bmsp.12006},
   note = {Verified 2026-11-13 against the Crossref record, https://api.crossref.org/works/10.1111/bmsp.12006 (title, authors, journal, volume, issue and pages; Crossref gives the online date, 2013; the printed issue is 2014). Cited for the power of Welch's F by Levy's (1978) noncentral F approximation (equation 4; R code in Appendices C and D), which the paper finds within .01 of simulation and recommends for sample size planning},
+}
+
+@article{Bakdash2017_rmcorr,
+  author = {Jonathan Z. Bakdash and Laura R. Marusich},
+  title = {Repeated Measures Correlation},
+  journal = {Frontiers in Psychology},
+  year = {2017},
+  volume = {8},
+  pages = {456},
+  doi = {10.3389/fpsyg.2017.00456},
+  note = {Verified 2026-11-13 at https://api.crossref.org/works/10.3389/fpsyg.2017.00456 (the paper the rmcorr package's DESCRIPTION cites)}
+}
+
+% From citation("SimplyAgree"), SimplyAgree 0.3.0 (its only entry).
+@Article{SimplyAgree_method,
+  title = {SimplyAgree: An R package and jamovi Module for Simplifying Agreement and Reliability Analyses},
+  author = {Aaron R Caldwell},
+  journal = {Journal of Open Source Software},
+  volume = {7},
+  number = {71},
+  pages = {4148},
+  year = {2022},
+  doi = {10.21105/joss.04148},
+}
+
+% The Bland-Altman limits of agreement (backend-agreement.R): Bland and
+% Altman's confidence intervals for the limits, the MOVER intervals
+% SimplyAgree's agreement_limit() uses by default (its help cites Zou,
+% 2013), and Lu et al.'s approximation, SimplyAgree's blandPowerCurve().
+@article{Bland1999_agreement,
+  author = {J. M. Bland and D. G. Altman},
+  title = {Measuring Agreement in Method Comparison Studies},
+  journal = {Statistical Methods in Medical Research},
+  year = {1999},
+  volume = {8},
+  number = {2},
+  pages = {135--160},
+  doi = {10.1177/096228029900800204},
+  note = {Verified 2026-11-14 at https://pubmed.ncbi.nlm.nih.gov/10501650/}
+}
+
+@article{Zou2013_loa_mover,
+  author = {G. Y. Zou},
+  title = {Confidence Interval Estimation for the Bland-Altman Limits of Agreement with Multiple Observations per Individual},
+  journal = {Statistical Methods in Medical Research},
+  year = {2013},
+  volume = {22},
+  number = {6},
+  pages = {630--642},
+  doi = {10.1177/0962280211402548},
+  note = {Verified 2026-11-14 at https://pubmed.ncbi.nlm.nih.gov/21705434/}
+}
+
+@article{Lu2016_bland_altman_n,
+  author = {Meng-Jie Lu and Wei-Hua Zhong and Yu-Xiu Liu and Hua-Zhang Miao and Yong-Chang Li and Mu-Huo Ji},
+  title = {Sample Size for Assessing Agreement between Two Methods of Measurement by Bland-Altman Method},
+  journal = {The International Journal of Biostatistics},
+  year = {2016},
+  volume = {12},
+  number = {2},
+  doi = {10.1515/ijb-2015-0039},
+  note = {Verified 2026-11-14 at https://pubmed.ncbi.nlm.nih.gov/27838682/}
 }

@@ -239,6 +239,7 @@ zero_effect_cases <- list(
   independent_t = function(s) within(s, population$d <- 0),
   paired_t = function(s) within(s, population$dz <- 0),
   correlation = function(s) within(s, population$r <- 0),
+  repeated_measures_correlation = function(s) within(s, population$r <- 0),
   two_proportions = function(s) within(s, population$p2 <- population$p1),
   two_proportions_corrected = function(s) within(s, population$p2 <- population$p1),
   chi_square_independence_corrected = function(s) within(s, population$probabilities <- list(list(.25, .25), list(.25, .25))),
@@ -266,6 +267,11 @@ zero_effect_cases <- list(
   reliability_icc = function(s) within(s, population$icc <- 0.6),
   reliability_cronbach_alpha = function(s) within(s, population$reliability <- 0.7),
   reliability_kappa = function(s) within(s, population$kappa <- 0.4),
+  # The 95% limits of agreement themselves at the margin: no room to show agreement.
+  reliability_bland_altman = function(s) within(s, {
+    population$bias <- 0
+    population$sd_difference <- population$margin / stats::qnorm(0.975)
+  }),
   meta_subgroups = function(s) within(s, population$effects <- list(0.3, 0.3)),
   meta_dependent_effects = function(s) within(s, population$effect <- 0),
   meta_regression = function(s) within(s, population$slope <- 0),

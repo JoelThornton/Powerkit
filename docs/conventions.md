@@ -116,6 +116,13 @@ power while matching G\*Power) is folded there instead
 | G*Power | Two independent r's: "z test: Correlation - inequality of two independent Pearson r's". H0 is N(0, 1) and H1 is N(q/s, 1) with s = sqrt(1/(N1 - 3) + 1/(N2 - 3)) [GP-man, 27, 27.5, pp. 65-66]. Generic t: "t test: Generic case", the central t(df) against the noncentral t(df, delta); it has **no a priori analysis**, "the reason being that there is no definite association between N and df" [GP-man, 25, 25.5, p. 63]. The manual has no section for the generic F, chi-square or z test | Two independent r's: q = z1 - z2, the difference of the Fisher-transformed correlations, with Cohen's (1969) small .1, medium .3, large .5; an effect-size drawer converts between q and the pair of correlations [GP-man, 27.1]. Generic t: the noncentrality delta itself [GP-man, 25.1] | Both "have no options" [GP-man, 25.2, 27.2]. Two independent r's takes the two sample sizes separately, or an allocation ratio N2/N1 for an a priori analysis. One-sided generic t: the critical value takes the sign of delta. Validated against Cohen (1969, chap. 4) and GPower 2.0 respectively [GP-man, 25.6, 27.6] |
 | pwrss | Two independent r's: `power.z.twocors()`, Fisher's z test. Generic tests: `power.t.test()`, `power.f.test()`, `power.chisq.test()`, `power.z.test()`, each taking a noncentrality and degrees of freedom | The two correlations themselves, not q; a noncentrality for the generic tests | **`n.ratio` is n1 / n2**, the inverse of powerkit's `allocation_ratio` (n2 / n1), and the adapter inverts it [powerkit, `backend-pwrss.R`] |
 | **powerkit** | pwrss's `power.z.twocors()` and the four generic functions, by formula; no simulation option (two correlations: engine and app, E49; generic tests: E50, from "I know my analysis" only) [powerkit] | `r1` and `r2`; `ncp` with `df` (or `df1` and `df2`) | `allocation_ratio` is n2 / n1 and `goal.n` is the total, so a published pair of group sizes is entered as their sum with their ratio. A generic test has no sample size: the curve has one row with `n` `NA`. Both reproduce the manual's worked examples: power 0.7263517 against 0.726352 and a required 168 against 84 per group (27.3), and 0.2245240 against 0.224525 (25.3), the last agreeing to five decimals and differing in the sixth |
+### Repeated-measures (within-person) correlation (from 13 November 2026)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| rmcorr | `rmcorr()`: the analysis of covariance with a separate intercept for each person and one common slope; its t test has N(k - 1) - 1 degrees of freedom for N people measured k times (Bakdash and Marusich, 2017, `Bakdash2017_rmcorr`). Its documentation plans power by giving G\*Power or pwr's `pwr.r.test()` the "effective sample size" N(k - 1) + 1, the Pearson sample size with the same degrees of freedom; its own example uses `pwr.r.test()` (Fisher's z) | r_rm, the within-person correlation | — |
+| G\*Power | No repeated-measures correlation; used as rmcorr's documentation says, its exact correlation test at n = N(k - 1) + 1 [GP-man, 3] | ρ | tails; alpha |
+| **powerkit** | The exact distribution of r at the effective sample size, by pwrss's `power.exact.onecor()`, as the correlation card (E4) does; template `repeated_measures_correlation`, card E76 [powerkit] | `r` and `measurements` (k, at least 2); the sample size is the number of people | One-sided tests run in the direction of r. **Not a departure**: G\*Power's exact test at rmcorr's effective n. pwr's Fisher's z, in rmcorr's example, differs by about 0.0002 in power (rmcorr's 0.8157 against 0.8159 at N = 100, k = 3, r = .2; `test-backend-rmcorr.R`). Assumes one slope shared by everyone; a slope that varies between people needs a multilevel model with random slopes (the card says so) |
 ### Small telescopes for replications (from 8 November 2026, 0.47.0)
 
 - **What it is:** Simonsohn's (2015, `Simonsohn2015_telescopes`) plan for
@@ -1713,6 +1720,50 @@ decision of 1 November 2026.
   levels (`app/routing/forms.yaml`, `departures`, key "26"), and in the
   methods paragraph, which also names the correction.
 
+### 27. Bland-Altman limits of agreement: the analysis simulated with MOVER intervals by default, not Lu et al.'s formula
+
+Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
+"Bland-Altman limits of agreement on E69").
+
+- **Established convention:** the published sample-size method for the
+  Bland-Altman limits of agreement is Lu et al.'s (2016) formula, which
+  SimplyAgree provides as `blandPowerCurve()` (SimplyAgree 0.3.0): power
+  1 - beta1 - beta2 from two noncentral t probabilities, for Bland and
+  Altman's (1999) analysis, in which agreement is shown when the outer
+  ends of the two-sided 95% confidence intervals of both limits lie within
+  plus and minus the largest acceptable difference.
+- **powerkit:** simulates the analysis the researcher will run. Spower
+  draws each study's differences from a normal distribution with the
+  bias and SD given, and SimplyAgree's `agreement_limit()` analyses it,
+  with MOVER confidence intervals for the limits (Zou, 2013; its default,
+  `loa_calc = "mover"`) unless the user chooses Bland and Altman's
+  intervals (`"blandaltman"`). Lu et al.'s formula stays as a labelled
+  quick option. `agreement_limit()`'s `alpha` is one-sided, so it is given
+  alpha / 2, which makes its outer bounds those of two-sided 1 - alpha
+  intervals, as Bland and Altman and Lu et al. report them. Two reasons:
+  the formula approximates the analysis it plans for, and Bland and
+  Altman's intervals are too narrow in small samples. With one population
+  limit exactly at the margin, the analysis should show agreement 2.5% of
+  the time; in 40,000 simulated studies, Bland and Altman's intervals did
+  so 5.0% of the time at 30 subjects and 3.8% at 100, the MOVER intervals
+  2.9% and 2.7%.
+- **Size:** bias 0.5, SD of the differences 2.5, margin 8, 95% limits,
+  alpha 0.05. The formula gives 80% power at 26 subjects (82.0%); the
+  MOVER analysis has about 69% there (40,000 simulated studies) and needs
+  33 subjects (powerkit, 1,000 studies per sample size). Against the
+  analysis it describes, Bland and Altman's, the formula is off in both
+  directions: 88.3% against 85.2% at 30 subjects for the example, and
+  52.9% against 61.4% with no bias, an SD of 3.3, a margin of 8 and 100
+  subjects.
+- **Test:** `test-validation-agreement.R`, "the size of the difference
+  between Lu et al.'s approximation and the analysis" (the departure's
+  size) and "with one limit at the margin, agreement is shown about
+  alpha / 2 of the time" (the MOVER intervals' error rate).
+- **Shown to users:** on E69's result screen when the limits of agreement
+  are simulated (`app/routing/forms.yaml`, `departures`, key "27"), in the
+  choice notes for the calculation method, and in the methods paragraph,
+  which names the intervals.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -2226,6 +2277,27 @@ Wired into the app on 18 October 2026 (E25, E26).*
   t approximation, not the permuted test). Tests:
   `test-backend-brunner-munzel.R`; `test-validation-brunner-munzel.R`
   [powerkit, `docs/decisions.md`].
+- **Yuen's trimmed-means tests (E2's and E3's test version): WRS2's
+  tests and default trimming.** G\*Power has no trimmed-means test, so
+  nothing is departed from. powerkit follows WRS2 (Mair and Wilcox, 2020):
+  20% trimmed from each end unless the user changes it (`yuen(tr = 0.2)`),
+  Yuen's statistic with its Welch-type df for two groups and h - 1 df for
+  paired measurements (h the number left after trimming). The effect is
+  entered as for the t-test (Cohen's d or d_z, on means), and the scores
+  are simulated in the chosen shape with that shift, as for the rank
+  tests; for two groups the SD ratio is asked for, with d over
+  sqrt((SD1^2 + SD2^2) / 2) as for the Brunner-Munzel test. With a
+  symmetric shape the trimmed means differ by the same amount as the
+  means; with skewed scores and unequal spreads they also differ when the
+  means are equal, so the test's power then includes that difference.
+  Yuen's paired test trims each measurement separately, so its power
+  depends on the correlation between them, which the form asks for (no
+  default: there is no neutral value); the paired t-test needs d_z alone.
+  WRS2 gives two-sided p-values; a one-sided test uses Yuen's t in the
+  t distribution with the same df. With no trimming the tests are Welch's
+  t-test and the paired t-test (`test-validation-yuen.R` checks the paired
+  case against pwr's exact power). Tests: `test-backend-yuen.R`;
+  `test-validation-yuen.R` [powerkit, `docs/decisions.md`].
 - **Negative binomial regression (E28's model choice): MASS's Wald test.**
   G\*Power has no negative binomial regression, so nothing is departed
   from. The counts are negative binomial with variance mu + k mu^2 (k is

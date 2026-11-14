@@ -272,7 +272,7 @@ start_questions:
       replicate: {label: "Replicate a published finding", help: "A few questions about the original study's design find its analysis, and you plan the replication there. For a t-test or correlation, the replication planner adds the sample size for each goal a replication can have."}
       meta: {label: "Combine studies others have done (a meta-analysis)", help: "For a systematic review you are planning, before the studies are found.", next: E61}
       estimate: {label: "Estimate how big something is", help: "Plan the sample size for a confidence interval of a chosen width, or see its width at a given sample size. The next screen lets you choose what to estimate.", next: E46}
-      reliability: {label: "Show that a measure is reliable, or that raters agree", help: "For example, that two raters' scores agree (an ICC), that a scale's items hang together (Cronbach's alpha), or that raters choose the same category (kappa).", next: E69}
+      reliability: {label: "Show that a measure is reliable, that raters agree, or that two methods of measurement agree", help: "For example, that two raters' scores agree (an ICC), that a scale's items hang together (Cronbach's alpha), that raters choose the same category (kappa), or that a new device agrees with the standard one (Bland-Altman limits of agreement).", next: E69}
       equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set.", sets: {goal: equivalence}}
 
 routes:
@@ -689,7 +689,17 @@ nodes:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
     branch_on: times
-    routes: {once: r1, twice: E41, many_conditions: E41}
+    routes: {once: r1, twice: r_within, many_conditions: r_within}
+  # The same people measured more than once: two scores measured together
+  # on every occasion is the repeated-measures correlation (E76); anything
+  # else within people needs a multilevel model (E41).
+  r_within:
+    doc_id: R2
+    text: "What is the other variable like?"
+    options:
+      - {label: "A score measured on the same occasions, and the question is whether the two go together within people", next: E76,
+         help: "e.g. on days when people sleep longer than usual, is their mood better than usual? Each person is measured on both scores several times."}
+      - {label: "Something else: several predictors, a score measured once per person, or a relationship that depends on something", next: E41}
   r1:
     doc_id: R1
     text: "What is the other variable like?"
@@ -867,7 +877,7 @@ closing_questions:
   # unreliable scores (maintainer decisions, 16 and 29 October 2026;
   # docs/decisions.md).
   - {doc_id: Q-rel, text: "Do you know how reliable your measures are? (optional)", applies_to: [E9, E31, E15]}
-  - {doc_id: Q-dir, text: "Which directions will your statistical decision test?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E5, E25, E26, E27, E28, E32, E34, E35, E49, E50, E51, E52, E53, E57, E61, E64, E66, E74]}
+  - {doc_id: Q-dir, text: "Which directions will your statistical decision test?", setting: one_sided_tests, applies_to: [E1, E2, E3, E4, E76, E5, E25, E26, E27, E28, E32, E34, E35, E49, E50, E51, E52, E53, E57, E61, E64, E66, E74]}
   - doc_id: Q-test
     text: "Which version of the test?"
     applies_to: [E2, E5, E7, E8, E18, E20, E21, E54, E55, E56]
@@ -994,17 +1004,17 @@ endpoints:
     doc_name: "Independent-samples t-test (Welch's by default; Student's as an option)"
     technical_name: "Independent-samples t-test"
     plain_name: "Compare two separate groups on a score"
-    search_words: "two sample t test unpaired welch student between-subjects between subjects independent groups cohen's d effect size mann-whitney wilcoxon rank-sum rank sum sequential bayes factor optional stopping"
+    search_words: "two sample t test unpaired welch student between-subjects between subjects independent groups cohen's d effect size mann-whitney wilcoxon rank-sum rank sum yuen trimmed means robust t test outliers heavy tails wrs2 sequential bayes factor optional stopping"
     card_points:
       - "Planning to stop collecting data once the evidence is clear? Choose the Bayes factor t-test: its result offers a sequential plan (check as you go, with a maximum sample size)."
     template: "basic_test / independent_t"
-    backend: "pwrss / pwr: power.t.welch() for Welch's test without between-study variation; pwr with the documented adjustment when variation is included (Welch requires equal group sizes and SDs for this route); pwr's pwr.t.test() or pwr.t2n.test() for Student's test (pooled SD); Spower simulation if chosen; Spower's p_wilcox.test() for the Mann-Whitney test; Spower with brunnermunzel's brunnermunzel.test() for the Brunner-Munzel test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() for the effect minus the margin for the minimum-effect test (a t-test against the margin, as TOSTER's)"
+    backend: "pwrss / pwr: power.t.welch() for Welch's test without between-study variation; pwr with the documented adjustment when variation is included (Welch requires equal group sizes and SDs for this route); pwr's pwr.t.test() or pwr.t2n.test() for Student's test (pooled SD); Spower simulation if chosen; Spower's p_wilcox.test() for the Mann-Whitney test; Spower with brunnermunzel's brunnermunzel.test() for the Brunner-Munzel test; Spower with WRS2's yuen() for Yuen's trimmed-means test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() for the effect minus the margin for the minimum-effect test (a t-test against the margin, as TOSTER's)"
     method: "Formula (no simulation)"
-    inputs: ["Names of the two groups and the outcome", "The effect: a standardised mean difference, raw means and SDs, or a point-biserial correlation", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's t-test, the Mann-Whitney or Brunner-Munzel test, a Bayes factor t-test or a minimum-effect test"]
+    inputs: ["Names of the two groups and the outcome", "The effect: a standardised mean difference, raw means and SDs, or a point-biserial correlation", "The size of group 2 relative to group 1 (1 = equal)", "Student's or Welch's t-test, the Mann-Whitney or Brunner-Munzel test, Yuen's trimmed-means test, a Bayes factor t-test or a minimum-effect test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
-    alternatives: ["Student's or Welch's t-test", "the Mann-Whitney test", "the Brunner-Munzel test, if the groups may differ in spread", "a permutation test"]
+    alternatives: ["Student's or Welch's t-test", "the Mann-Whitney test", "the Brunner-Munzel test, if the groups may differ in spread", "Yuen's trimmed-means test, if a few extreme scores are likely", "a permutation test"]
   E3:
     rank_test: "the Wilcoxon signed-rank test"
     rank_test_simulated: true
@@ -1012,18 +1022,18 @@ endpoints:
     doc_name: "Paired-samples t-test"
     technical_name: "Paired-samples t-test"
     plain_name: "Compare the same people in two conditions (or before and after)"
-    search_words: "dependent t test within subjects within-subjects before after pre post repeated measures cohen's d_z effect size crossover cross-over ab/ba counterbalanced counterbalancing sequential bayes factor optional stopping"
+    search_words: "dependent t test within subjects within-subjects before after pre post repeated measures cohen's d_z effect size crossover cross-over ab/ba counterbalanced counterbalancing yuen trimmed means robust paired t test outliers heavy tails wrs2 sequential bayes factor optional stopping"
     card_points:
       - "For a crossover (AB/BA), use this card only if the planned analysis is an ordinary paired comparison with no period, sequence or carry-over terms. It does not plan an adjusted crossover analysis or establish that ignoring those effects is reasonable. A dedicated crossover model remains planned."
       - "Planning to stop collecting data once the evidence is clear? Choose the Bayes factor t-test: its result offers a sequential plan (check as you go, with a maximum sample size)."
     template: "basic_test / paired_t"
-    backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it); Spower's p_wilcox.test(type = 'paired') for the Wilcoxon signed-rank test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() for the effect minus the margin for the minimum-effect test (a t-test against the margin, as TOSTER's)"
+    backend: "pwr: pwr.t.test(type = 'paired') (Spower simulation if you choose it); Spower's p_wilcox.test(type = 'paired') for the Wilcoxon signed-rank test; Spower with WRS2's yuend() for Yuen's trimmed-means test; bfpwr's powertbf01() for the Bayes factor t-test; pwrss's power.t.student() for the effect minus the margin for the minimum-effect test (a t-test against the margin, as TOSTER's)"
     method: "Formula (no simulation); simulation for the Wilcoxon signed-rank test"
-    inputs: ["Names of the two conditions and the outcome", "The effect: d_z, or the means and SD in your measure's own units", "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"]
+    inputs: ["Names of the two conditions and the outcome", "The effect: d_z, or the means and SD in your measure's own units", "The t-test, the Wilcoxon signed-rank test, Yuen's trimmed-means test, a Bayes factor t-test or a minimum-effect test"]
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. A check against a published example is still to come."}
     tier: MVP
-    alternatives: ["the Wilcoxon signed-rank test", "the sign test"]
+    alternatives: ["the Wilcoxon signed-rank test", "Yuen's paired trimmed-means test, if a few extreme scores are likely", "the sign test"]
   E4:
     rank_test: "Spearman's or Kendall's rank correlation"
     rank_test_simulated: true
@@ -1046,7 +1056,7 @@ endpoints:
     doc_name: "Test of two proportions (z test; Fisher's exact test as an option)"
     technical_name: "Two independent proportions"
     plain_name: "Compare two groups on a yes/no outcome"
-    search_words: "two proportions fisher exact continuity corrected yates"
+    search_words: "two proportions fisher exact continuity corrected yates a/b test ab test"
     template: "basic_test / two_proportions"
     backend: "base R's power.prop.test() for equal groups and pwrss for unequal groups, by the z test as in G*Power with no continuity correction (pwr's Cohen's h or Spower simulation if you choose them); Fisher's exact test if you choose it: pwrss's power.exact.fisher(); the Bayes factor test if you choose it: BayesFactor's contingencyTableBF() (JASP's default contingency table Bayes factor), summed exactly over every possible table"
     refs: "Departures 5, 9, 11 and 15, Known difference 13 (docs/conventions.md)"
@@ -1065,7 +1075,7 @@ endpoints:
     doc_name: "Chi-square test of independence"
     technical_name: "Chi-square test of independence"
     plain_name: "Test whether two sets of categories are related"
-    search_words: "crosstab contingency table continuity corrected yates chi2 chi squared chi-square test of independence"
+    search_words: "crosstab contingency table continuity corrected yates chi2 chi squared chi-square test of independence contingency tables"
     template: "basic_test / chi_square_independence"
     backend: "pwr: pwr.chisq.test() (Spower simulation if you choose it); BayesFactor's contingencyTableBF() for the Bayes factor, simulated with Spower"
     method: "Formula (no simulation); simulation for the Bayes factor"
@@ -1405,6 +1415,7 @@ endpoints:
   E25:
     doc_name: "One proportion against a fixed value"
     technical_name: "One-sample proportion test"
+    search_words: "binomial test bayesian binomial test"
     plain_name: "Compare one group's proportion with a fixed value"
     template: "basic_test / one_proportion"
     backend: "pwrss: power.exact.oneprop() (the exact binomial test); bfpwr: pbinbf01() (the Bayes factor test)"
@@ -1558,7 +1569,7 @@ endpoints:
     doc_name: "Crossed participants and stimuli"
     technical_name: "Crossed random-effects model"
     plain_name: "Each person responds to many items or stimuli"
-    search_words: "mixed model mixed effects random effects stimuli items"
+    search_words: "mixed model mixed effects random effects stimuli items linear mixed model lmm lme4 lmer crossed random effects"
     template: "mixed_model / crossed_two_condition"
     backend: "simr: powerSim() on a model built by makeLmer(), with lmerTest's Satterthwaite t test (simulation)"
     method: Simulation
@@ -1595,7 +1606,7 @@ endpoints:
     doc_name: "Longitudinal: three or more occasions (growth curves, cross-lagged panels, experience sampling)"
     technical_name: "Longitudinal models"
     plain_name: "The same people measured three or more times"
-    search_words: "repeated measures longitudinal growth curve panel mixed model slope trajectory rate of change waves"
+    search_words: "repeated measures longitudinal growth curve panel mixed model slope trajectory rate of change waves latent growth curve model lgcm lgm linear mixed model lmm lme4"
     template: "mixed_model / growth_curve"
     backend: "longpower: diggle.linear.power() (Diggle, Heagerty, Liang and Zeger's formula for a difference in slopes, by formula); hu.mackey.thomas.linear.power() (Hu, Mackey and Thomas's formula) with drop-out or unequal groups"
     method: "Formula (no simulation)"
@@ -1633,7 +1644,7 @@ endpoints:
     doc_name: "CFA, SEM model fit, measurement invariance, factor correlations and latent paths"
     technical_name: "Structural equation modelling (SEM)"
     plain_name: "Models with latent variables: model fit, measurement invariance, factor correlations and paths"
-    search_words: "structural equation modelling sem cfa confirmatory factor analysis"
+    search_words: "structural equation modelling sem cfa confirmatory factor analysis mimic multiple indicators multiple causes latent regression lavaan"
     template: "sem / model_fit, invariance, factor_correlation, latent_regression"
     backend: "semPower: semPower.postHoc() with an RMSEA for model fit (the chi-square test of exact fit, with semPower.getDf() for a CFA's degrees of freedom); semPower.powerMI() for measurement invariance across groups and semPower.powerLI() over occasions, semPower.powerCFA() for a factor correlation and semPower.powerRegression() for a latent slope (the chi-square difference test, by formula); WebPower's wp.sem.rmsea() for the tests of close and not-close fit"
     method: "Formula (no simulation)"
@@ -1699,12 +1710,33 @@ endpoints:
     technical_name: "Within-person correlation, moderation and mediation"
     plain_name: "Relationships measured within people, or in nested data"
     search_words: "mixed model multilevel hlm repeated measures"
+    card_points:
+      - "Relationships measured within people, or in nested data: whether one score predicts another within people when the relationship depends on something else, or runs through a third variable (within-person moderation and mediation), or a person-level score's link with something measured many times."
+      - "powerkit doesn't calculate these yet. For whether two scores simply go together within people, measured together several times, use the repeated-measures correlation card, which does."
     status: not_in_powerkit
     inputs: ["Depends on the model"]
     packages:
       - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models (moderation, cross-level effects). No tool found for within-person mediation."}
       - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4."}
     tier: later
+  E76:
+    doc_name: "Repeated-measures correlation (two scores measured together on several occasions)"
+    technical_name: "Repeated-measures correlation (rmcorr)"
+    plain_name: "Do two scores go together within people, when each person is measured several times?"
+    search_words: "repeated measures correlation rmcorr within-person correlation within person diary experience sampling esm daily ambulatory repeated observations"
+    template: "basic_test / repeated_measures_correlation"
+    backend: "pwrss: power.exact.onecor() at the effective sample size N(k - 1) + 1, the repeated-measures correlation's degrees of freedom (Bakdash and Marusich, 2017; the rmcorr package)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-rmcorr.R, note: "Matches pwrss called directly, agrees with simulated studies analysed by the repeated-measures correlation's own model (an intercept for each person and one common slope) and keeps the Type I error at alpha, in the engine's tests. Not yet checked against a published example."}
+    card_points:
+      - "Each person is measured on two scores at the same time, several times: for example, sleep and next-day mood on each of seven days. The question is whether the two go together within people: on days when someone sleeps more than usual, is their mood better than usual?"
+      - "This is the repeated-measures correlation (Bakdash and Marusich, 2017; the R package rmcorr, and JASP's repeated-measures correlation). It removes each person's average, so differences between people don't count, and every measurement after the first adds to the power."
+      - "You give the correlation you expect within people and how many times each person is measured; powerkit finds the number of people. By formula, with no simulation."
+      - "It assumes the association is the same for everyone. If it differs between people, a multilevel model with a random slope for each person is the analysis to plan for, and this card would overstate the power."
+    inputs: ["Names of the two scores", "The expected correlation within people, and how many times each person is measured"]
+    tier: v2
+    alternatives: ["a multilevel model with a random slope for each person, if the association differs between people", "the correlation of each person's averages, if the question is about differences between people rather than within them (the correlation card)"]
   E75:
     doc_name: "Repeated measures with a yes/no, count or ordinal outcome (generalised mixed model)"
     technical_name: "Generalised linear mixed models: repeated measures"
@@ -1723,6 +1755,7 @@ endpoints:
   E62:
     doc_name: "Multilevel model: a person-level and a group-level predictor, and their cross-level interaction"
     technical_name: "Multilevel regression"
+    search_words: "multilevel model hlm hierarchical linear model linear mixed model lmm lme4 lmer random slopes cross-level interaction"
     plain_name: "People in groups: how something measured on each person, or on each group, relates to the outcome"
     template: "mixed_model / two_level"
     backend: "simr: powerSim() on y ~ X + W + X:W + (1 + X | group), each effect tested with lmerTest's Satterthwaite t test (simulation)"
@@ -1743,7 +1776,7 @@ endpoints:
     doc_name: "Crossed participants and stimuli, three or more conditions"
     technical_name: "Crossed random-effects model: multiple conditions"
     plain_name: "Each person responds to many items or stimuli in three or more conditions"
-    search_words: "mixed model mixed effects random effects stimuli items three conditions pairwise"
+    search_words: "mixed model mixed effects random effects stimuli items three conditions pairwise linear mixed model lmm lme4 lmer crossed random effects"
     template: "mixed_model / crossed_conditions"
     backend: "simr: powerSim() on y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item), with lmerTest's Satterthwaite F test or a pair's Satterthwaite t test adjusted for all the pairs (simulation)"
     method: "Simulation"
@@ -1762,7 +1795,7 @@ endpoints:
     doc_name: "Crossed participants and stimuli: a predictor measured on each item"
     technical_name: "Crossed random-effects model: item-level predictor"
     plain_name: "Each person responds to many items that differ on a score (such as word frequency)"
-    search_words: "mixed model random effects items stimuli item predictor word frequency continuous predictor trials"
+    search_words: "mixed model random effects items stimuli item predictor word frequency continuous predictor trials linear mixed model lmm lme4 lmer generalised linear mixed model generalized glmm glmer logistic mixed model"
     template: "mixed_model / item_predictor"
     backend: "simr: powerSim() on y ~ x + (1 + x | participant) + (1 | item), testing x with lmerTest's Satterthwaite t test, or glmer's tests for a yes/no outcome (simulation)"
     method: "Simulation"
@@ -1780,7 +1813,7 @@ endpoints:
     doc_name: "Three-level design: people in groups in larger groups, with conditions assigned at any level"
     technical_name: "Three-level mixed-effects model"
     plain_name: "People in groups within larger groups (pupils in classes in schools)"
-    search_words: "three level multilevel nested cluster randomised schools classes hierarchical"
+    search_words: "three level multilevel nested cluster randomised schools classes hierarchical linear mixed model lmm lme4 lmer hlm generalised linear mixed model generalized glmm glmer"
     template: "mixed_model / three_level"
     backend: "simr: powerSim() on y ~ cond + (1 | site) + (1 | site:group), with random effects of the condition where it varies, tested with lmerTest's Satterthwaite t test (simulation)"
     method: "Simulation"
@@ -1914,23 +1947,24 @@ endpoints:
     alternatives: ["a Cox regression of the group with other predictors", "a comparison of restricted mean survival times", "a parametric survival model, such as a Weibull model"]
     inputs: ["What you want to test", "Two groups: who has had the event by a given time, and how long people are followed", "A measured score: its hazard ratio, and how many people have the event"]
   E69:
-    doc_name: "Reliability and agreement: the ICC, Cronbach's alpha and kappa"
+    doc_name: "Reliability and agreement: the ICC, Cronbach's alpha, kappa and Bland-Altman limits of agreement"
     technical_name: "Reliability and agreement"
     plain_name: "How reliable a measure is, or how well raters agree"
-    search_words: "reliability agreement interrater inter-rater icc intraclass correlation cronbach alpha internal consistency kappa cohen fleiss raters test-retest"
-    template: "reliability / icc, cronbach_alpha, kappa"
-    backend: "ICC.Sample.Size: calculateIccPower() for the ICC; statpsych: size.test.cronbach() for Cronbach's alpha (Bonett and Wright's test); kappaSize: PowerBinary(), Power3Cats(), Power4Cats(), Power5Cats() for kappa"
-    method: "Formula (no simulation)"
+    search_words: "reliability agreement interrater inter-rater icc intraclass correlation cronbach alpha internal consistency kappa cohen fleiss raters test-retest bland altman limits of agreement method comparison two methods of measurement device interchangeable bias"
+    template: "reliability / icc, cronbach_alpha, kappa, bland_altman"
+    backend: "ICC.Sample.Size: calculateIccPower() for the ICC; statpsych: size.test.cronbach() for Cronbach's alpha (Bonett and Wright's test); kappaSize: PowerBinary(), Power3Cats(), Power4Cats(), Power5Cats() for kappa; SimplyAgree: agreement_limit() on each simulated study (Spower) for the Bland-Altman limits of agreement, or blandPowerCurve() for Lu et al.'s approximation"
+    method: "Formula (no simulation); simulation for the Bland-Altman limits of agreement"
     status: runs_validation_in_progress
-    validation: {file: test-validation-reliability.R, note: "Matches ICC.Sample.Size, statpsych and kappaSize called directly, including their help examples, in the engine's tests, and agrees with simulated studies tested by the F test, Bonett and Wright's test and Donner and Eliasziw's goodness-of-fit test (within 0.03, the allowance for these large-sample formulas). Not yet checked against published worked examples."}
+    validation: {file: test-validation-reliability.R, note: "Matches ICC.Sample.Size, statpsych and kappaSize called directly, including their help examples, in the engine's tests, and agrees with simulated studies tested by the F test, Bonett and Wright's test and Donner and Eliasziw's goodness-of-fit test (within 0.03, the allowance for these large-sample formulas). The Bland-Altman limits of agreement agree with studies simulated and analysed without SimplyAgree, and the MOVER analysis shows agreement close to alpha / 2 of the time when a limit is at the margin. Not yet checked against published worked examples."}
     card_points:
-      - "Three questions about a measure: whether raters, or the same people on two occasions, give similar scores (the intraclass correlation, ICC); whether a scale's items are consistent (Cronbach's alpha); and whether raters choose the same category (kappa)."
-      - "Each tests the value against one you name, such as an ICC above 0.6 or an alpha above 0.7, not against zero: showing only that agreement beats chance is rarely the question."
+      - "Four questions about a measure: whether raters, or the same people on two occasions, give similar scores (the intraclass correlation, ICC); whether a scale's items are consistent (Cronbach's alpha); whether raters choose the same category (kappa); and whether two methods of measurement agree closely enough to be used in place of each other (Bland-Altman limits of agreement)."
+      - "Each tests the value against one you name, such as an ICC above 0.6 or an alpha above 0.7, not against zero: showing only that agreement beats chance is rarely the question. For two methods, you name the largest difference that wouldn't matter, and agreement is shown when both limits of agreement, at the outer ends of their confidence intervals, lie within it."
+      - "The limits of agreement are simulated: powerkit analyses each simulated study with SimplyAgree's agreement_limit(), with MOVER confidence intervals by default or Bland and Altman's. Power at a fixed sample size runs here; a sample size comes as an R script (about 5 minutes). Lu et al.'s formula is offered as an instant approximation."
       - "The ICC is for a one-way random-effects model, with the same number of ratings for every person. Cronbach's alpha uses Bonett and Wright's test. Kappa takes 2 to 6 raters and 2 to 5 categories, and is two-sided."
       - "To plan for a precise estimate of an ICC rather than a test, use the precision card. Not calculated here yet: McDonald's omega, Krippendorff's alpha, and ICCs for two-way models."
     tier: v2
     alternatives: ["a confidence interval for the reliability, planned for its width", "McDonald's omega instead of Cronbach's alpha", "Krippendorff's alpha instead of kappa"]
-    inputs: ["What you want to show", "The ICC: the value you expect, the value to beat, and the number of ratings", "Cronbach's alpha: the value you expect, the value to beat, and the number of items", "Kappa: the categories, the raters, and the kappa you expect"]
+    inputs: ["What you want to show", "The ICC: the value you expect, the value to beat, and the number of ratings", "Cronbach's alpha: the value you expect, the value to beat, and the number of items", "Kappa: the categories, the raters, and the kappa you expect", "Bland-Altman: the bias, the SD of the differences, and the largest acceptable difference"]
   E44:
     doc_name: "Dyadic data: actor and partner effects (the actor-partner interdependence model)"
     technical_name: "Actor–partner interdependence model (APIM)"
@@ -2167,7 +2201,7 @@ endpoints:
     doc_name: "A planned meta-analysis: the test of the average effect"
     technical_name: "Meta-analysis"
     plain_name: "Will a meta-analysis of the studies I expect to find detect the average effect?"
-    search_words: "meta analysis random effects moderator subgroup"
+    search_words: "meta analysis random effects moderator subgroup classical meta-analysis cochrane meta-analyses cochrans q heterogeneity i squared tau metafor"
     template: "meta_analysis / mean_effect, subgroups, dependent_effects, meta_regression or heterogeneity"
     backend: "Under the random-effects model, the Hartung-Knapp test simulated with Spower and metafor's rma(test = \"knha\") (the default), or metapower's mpower() z test by Jackson and Turner's (2017) method; under the fixed-effect model, mpower()'s z test"
     method: "Simulation (Hartung-Knapp) or formula (z test)"
@@ -2505,7 +2539,7 @@ known_shortcuts: [E2, E3, E4, E18, E8, E24, E27, E10]
 analysis_families:
   - {id: means, technical_label: "t-tests", label: "Comparing averages (t-tests)", endpoints: [E1, E2, E3]}
   - {id: anova, technical_label: "ANOVA and ANCOVA", label: "ANOVA and ANCOVA", endpoints: [E18, E54, E7, E8, E22, E21, E20, E55, E56, E19, E23, E64]}
-  - {id: correlation, technical_label: "Correlations", label: "Correlations", endpoints: [E4, E49, E51]}
+  - {id: correlation, technical_label: "Correlations", label: "Correlations", endpoints: [E4, E76, E49, E51]}
   - {id: categories, technical_label: "Categorical data", label: "Yes/no, categories and ordered categories", short: "Categories", endpoints: [E25, E5, E26, E6, E48, E70, E29, E66]}
   - {id: regression, technical_label: "Regression", label: "Regression (scores, yes/no and counts)", short: "Regression", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, technical_label: "Moderation", label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}

@@ -1,3 +1,156 @@
+# powerkit 0.66.1
+
+* The Bland-Altman limits of agreement are a new template,
+  `reliability / bland_altman` (`population > metric` `"bland_altman"`,
+  with `bias`, `sd_difference` and `margin`; `target_test > effect`
+  `"limits_of_agreement"`, `method` `"mover"` (default),
+  `"bland_altman"` or `"lu_formula"`, and `agree_level`, default 0.95).
+  The simulated methods run powerkit's experiment `p_bland_altman()` in
+  Spower, analysing each study with SimplyAgree's `agreement_limit()`
+  (its `alpha` given alpha / 2, so the outer bounds are those of
+  two-sided 1 - alpha intervals); `"lu_formula"` is SimplyAgree's
+  `blandPowerCurve()`, clipped at 0. New backend file
+  `backend-agreement.R` (backend name "SimplyAgree"). SimplyAgree joins
+  Suggests and `renv.lock` (with patchwork). Planning for the simulated
+  MOVER analysis rather than Lu et al.'s formula is Departure 27. Spec
+  checks refuse limits that already reach the margin, and a calculation
+  method that doesn't fit the chosen test version. The check run
+  recovers the bias, the SD of the differences and the upper limit. The
+  R script reproduces both routes. `refs.bib` gains SimplyAgree's paper
+  (`SimplyAgree_method`), Bland and Altman (1999), Zou (2013) and Lu et
+  al. (2016), the last cited for the formula route. Validation:
+  `test-validation-agreement.R` (chunk `agreement`).
+* In the app, `simulations > method_routes` accepts a list of test
+  versions (E69's two simulated ones).
+
+# powerkit 0.66.0
+
+* `write_study_plan()` takes an optional `replication` list, the app's
+  record of a replication plan (the pre-replication notes', the
+  planner's fields and the original's card), kept as given;
+  `read_study_plan()` returns it as `replication` (`NULL` when absent).
+  Absent, it is not written.
+* App: replication plans (queue item 23). A replication plan is a study
+  plan with a `replication` record, started from the Study plans page,
+  Labs or the input screen's signpost. Its page holds the
+  pre-replication notes and the replication planner's sections, which
+  leave Labs (`R/study-plan-replication.R`, `replication_notes_ui()`,
+  `replication_planner_sections()`). The original's design is found
+  with the design finder's questions and planned on its card, whose
+  effect fields are labelled as the original's and whose result joins
+  the plan. The write-up adds the original's analysis as its card
+  planned it, and Download everything adds the write-up. With no
+  analysis yet, the plan is saved as the Labs planner's file with the
+  record beside it, so the previous version opens it; files the Labs
+  planner saved open as new replication plans. No calculation changes.
+
+# powerkit 0.65.5
+
+* Yuen's trimmed-means tests are a test version of the two-group and
+  paired t-tests (`target_test > method` `"yuen"` on templates
+  `independent_t` and `paired_t`), simulated with Spower by powerkit's
+  experiments `p_yuen()` and `p_yuend()`, which call WRS2's `yuen()` and
+  `yuend()` (WRS2 joins Suggests). New spec fields: `target_test > trim`
+  (default 0.2, WRS2's default) and, for the paired version,
+  `population > r`, the correlation between the two measurements, which
+  it needs because it trims each measurement separately. The two-group
+  version takes `score_shape` and `sd_ratio` as the Brunner-Munzel test
+  does. The check run recovers d (or d_z), the SD ratio and the
+  correlation, the last with a standard error from r's influence
+  function so that heavy-tailed scores don't fail it. The R script and
+  the simulated data set cover both versions. Validation:
+  `test-validation-yuen.R` (chunk `yuen`).
+
+# powerkit 0.65.4
+
+* App: cards and input screens tidied (queue item 13, layout part). An
+  in-progress card says "Validation in progress" once, in its facts, with
+  the note below headed "Checks so far" (it said it three times); the
+  input screen shows the label as one line with how far the checks got
+  behind its info button. With explanations off, a group's info button
+  sits beside its heading instead of repeating the heading as a link, and
+  a choice's note is labelled "About this choice". The in-progress label
+  is amber everywhere (it was blue on the input screen and the analysis
+  list, amber on the card), a card's points use the same bullets as
+  "What you'll need", and glossary terms read "term: meaning" without a
+  space before the colon. Styling and labels only; no calculation changes.
+
+# powerkit 0.65.3
+
+* `write_study_plan()` takes an optional `guided` list, the app's record
+  of a guided whole-study plan, kept as given; `read_study_plan()` returns
+  it as `guided` (`NULL` when absent). Absent, it is not written.
+* App: "Plan my whole study" joins a study plan. When the guided route
+  first reaches its list of analyses it fills the plan whose "Add an
+  analysis" was pressed, or makes "Whole-study plan, <date>"; the guided
+  record (now with the last whole-study run's summary) is kept in the
+  plan and updated as the guided plan changes, and each analysis
+  calculated from it joins the plan with the guided plan's role. The
+  plan's page shows the guided plan, its last whole-study result and
+  "Open the guided plan". "Save this plan" and its link on the guided
+  screens save the study plan. A plan with a guided plan but no
+  calculated analysis is saved as a guided-plan file carrying the plan's
+  id, name and description, so the previous version still opens it; an
+  older guided-plan file opens as a new whole-study plan.
+
+# powerkit 0.65.2
+
+* App: each study plan has an overview (its analyses counted by role) and
+  "Download everything (.zip)" (`R/plan-bundle.R`): the plan file, written
+  first and checked for in the finished zip; a study-wide planning document
+  as Markdown and Word (the plan's name and description, a table of
+  analyses with role, N, unit, target and backend, the largest comparable
+  N or why there is none, joint power when it was calculated for the plan
+  as it stands, each card's methods paragraph, and the references merged
+  from the results' own citations); `references.txt`; and each analysis's
+  own "Download everything" under `analyses/`, made from its saved spec
+  and result without recalculating. Opening the zip opens the plan file at
+  its top. `planning_methods_text()` gives a card's full methods paragraph
+  on its own, and the Word documents now keep Markdown tables.
+
+# powerkit 0.65.1
+
+* New template `basic_test/repeated_measures_correlation` (card E76): the
+  repeated-measures (within-person) correlation of Bakdash and Marusich
+  (2017), for two scores measured together on several occasions. Power is
+  a Pearson correlation's at the effective sample size N(k - 1) + 1, the
+  method rmcorr's documentation gives, computed by the exact distribution
+  of r (`pwrss::power.exact.onecor()`), as for the correlation card (new
+  `backend-rmcorr.R`). Sample size (number of people), power and the
+  smallest detectable correlation; the exported script reproduces each.
+  Checked against `pwrss` directly, rmcorr's documented example (0.8159
+  against its Fisher's z 0.8157), and simulated studies analysed by
+  `lm(y ~ person + x)`, with the Type I error (new validation chunk
+  `rmcorr`). New reference `Bakdash2017_rmcorr`.
+
+# powerkit 0.65.0
+
+* `write_study_plan()` takes optional `id`, `name` and `description`, and
+  keeps each analysis's `plan_role` (`"primary"`, `"secondary"` or
+  `"check"`) and `plan_note`; `read_study_plan()` returns them (`roles`
+  and `notes` have one element per analysis, `NA` where absent). Absent
+  fields are not written and the format version is unchanged, so a file
+  saved now opens in the previous version, which ignores them.
+* App: several named study plans (`R/study-plans.R`). A Study plans page
+  (`?page=plans`, a tab hidden from the tab row) opens from the top bar
+  and lists every plan kept in the browser; each plan has a page with its
+  name, description, largest comparable N, joint power where offered, and
+  each analysis with a role, a note, Open and Remove. Opening an analysis
+  restores its card, answers and saved result as a project file does; a
+  changed result offers "Update it in the plan" or "Add it as a new
+  analysis". The browser keeps one key per plan
+  (`powerkit-study-plan:<id>`) and an index (`powerkit-study-plans`)
+  within a 3 MB budget; the old single plan becomes "My study plan", and
+  its key is removed only after the new one is written. Opening a plan
+  file never overwrites a plan: a different version with the same id is
+  kept beside it. Each plan shows whether it has been saved to a file,
+  the top bar marks unsaved plans, and the app asks the browser for
+  persistent storage (`navigator.storage.persist()`).
+
+# powerkit 0.64.0
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.63.0
 
 * Mediation and moderated mediation (power4mome): the Monte Carlo interval

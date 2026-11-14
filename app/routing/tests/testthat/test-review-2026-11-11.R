@@ -114,28 +114,30 @@ test_that("a reused result carries the new words and a spec hash that matches th
   expect_no_error(powerkit::export_script(again$spec, again$result))
 })
 
-test_that("the study plan survives a round trip through the browser's copy", {
+test_that("a study plan survives a round trip through the browser's copy", {
   fields <- form_fields(form_groups(forms, "E2"))
   values <- form_examples[["E2"]]
   calc <- run_calculation(build_spec(forms, "E2", fields, values), seed = forms$default_seed)
-  entries <- list(plan_entry(tree, "E2", calc, list(endpoint = "E2", form_values = values)))
-  text <- study_plan_for_browser(entries)
-  expect_true(nzchar(text))
-  back <- study_plan_from_browser(tree, text)
-  expect_length(back, 1)
-  expect_equal(back[[1]]$n, entries[[1]]$n)
-  expect_identical(back[[1]]$endpoint, "E2")
-  expect_identical(study_plan_for_browser(list()), "")
-  expect_null(study_plan_from_browser(tree, "not a plan"))
-  expect_null(study_plan_from_browser(tree, ""))
+  plan <- plan_with(list(plan_entry(tree, "E2", calc, list(endpoint = "E2", form_values = values))))
+  record <- plan_browser_record(plan)
+  expect_true(nzchar(record))
+  back <- plans_from_browser(tree, list(index = list(current = plan$id, ids = list(plan$id)), records = setNames(list(record), plan$id)))
+  expect_length(back$plans, 1)
+  expect_equal(back$plans[[1]]$entries[[1]]$n, plan$entries[[1]]$n)
+  expect_identical(back$plans[[1]]$entries[[1]]$endpoint, "E2")
+  expect_length(plans_from_browser(tree, list(records = list(abc = "not a plan")))$plans, 0)
 })
 
-test_that("the study plan button shows only when the plan holds an analysis, and discarding asks first", {
-  expect_null(study_plan_chip_ui(0))
-  expect_match(as.character(study_plan_chip_ui(2)), "Your study plan (2)", fixed = TRUE)
-  html <- as.character(study_plan_ui(list(list(endpoint = "E2", label = "A t-test", goal = "sample_size", n = 128L))))
-  expect_match(html, "confirm(&#39;Start a new plan?", fixed = TRUE)
+test_that("Study plans is in the top bar on every screen, and removing or deleting asks first", {
+  expect_match(as.character(study_plans_chip_ui(0)), ">Study plans<", fixed = TRUE)
+  expect_match(as.character(study_plans_chip_ui(2)), "Study plans (2)", fixed = TRUE)
+  expect_no_match(as.character(study_plans_chip_ui(2)), "plan-unsaved-dot", fixed = TRUE)
+  marked <- as.character(study_plans_chip_ui(2, unsaved = TRUE))
+  expect_match(marked, "plan-unsaved-dot", fixed = TRUE)
+  expect_match(marked, "some not saved to a file", fixed = TRUE)
+  html <- page_html(list(list(endpoint = "E2", label = "A t-test", goal = "sample_size", n = 128L)))
   expect_match(html, "confirm(&#39;Remove this analysis", fixed = TRUE)
+  expect_match(html, "confirm(&quot;Delete \u201cTest plan\u201d from this browser?", fixed = TRUE)
 })
 
 test_that("run_calculation() stands alone, as the background process runs it", {

@@ -13,6 +13,8 @@ if (FALSE) {
   library(ARTool)
   library(BayesRepDesign)
   library(brunnermunzel)
+  library(WRS2)
+  library(SimplyAgree)
   library(boot)
   library(GPArotation)
   library(gsl)

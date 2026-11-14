@@ -1098,6 +1098,35 @@
         "Built": "R 4.5.0; ; 2026-10-06 04:07:54 UTC; unix"
       }
     },
+    "SimplyAgree": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "SimplyAgree",
+        "Type": "Package",
+        "Title": "Flexible and Robust Agreement and Reliability Analyses",
+        "Version": "0.3.0",
+        "Authors@R": "person(\"Aaron\", \"Caldwell\", email = \"arcaldwell49@gmail.com\",\n                  role = c(\"aut\", \"cre\"))",
+        "Maintainer": "Aaron Caldwell <arcaldwell49@gmail.com>",
+        "Description": "Reliability and agreement analyses often have limited software support. Therefore, this package was created to make agreement and reliability analyses easier for the average researcher. The functions within this package include simple tests of agreement, agreement analysis for nested and replicate data, and provide robust analyses of reliability. In addition, this package contains a set of functions to help when planning studies looking to assess measurement agreement. ",
+        "URL": "https://aaroncaldwell.us/SimplyAgree/",
+        "BugReports": "https://github.com/arcaldwell49/SimplyAgree/issues",
+        "License": "GPL (>= 3)",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "RoxygenNote": "7.3.2",
+        "Imports": "ggplot2, emmeans, lme4, boot, stats, dplyr, magrittr,\ntidyselect, tidyr, stringr, jmvcore, quantreg, patchwork,\ninsight, nlme, purrr, Matrix, MASS, lifecycle, scales",
+        "Suggests": "knitr, rmarkdown, testthat, readr, covr, mgcv, ggeffects,\ndeming, pbkrtest",
+        "VignetteBuilder": "knitr",
+        "Depends": "R (>= 3.6)",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-01-21 19:41:05 UTC; CaldwellAaron",
+        "Author": "Aaron Caldwell [aut, cre]",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-01-21 20:10:20 UTC",
+        "Built": "R 4.5.0; ; 2026-04-24 02:52:41 UTC; unix"
+      }
+    },
     "SparseM": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -1290,6 +1319,36 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-10-26 16:50:02 UTC",
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-10-27 04:00:31 UTC; unix"
+      }
+    },
+    "WRS2": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "WRS2",
+        "Type": "Package",
+        "Title": "A Collection of Robust Statistical Methods",
+        "Version": "1.1-7",
+        "Date": "2025-05-21",
+        "Authors@R": "c(person(given=\"Patrick\", family=\"Mair\", email=\"mair@fas.harvard.edu\", role=c(\"cre\",\"aut\")),\n             person(given=\"Rand\", family=\"Wilcox\", email=\"rwilcox@usc.edu\", role=c(\"aut\")),\n             person(given=\"Indrajeet\", family=\"Patil\", email=\"patilindrajeet.science@gmail.com\", role=c(\"ctb\")))",
+        "Description": "A collection of robust statistical methods based on Wilcox' WRS functions. It implements robust t-tests (independent and dependent samples), robust ANOVA (including between-within subject designs), quantile ANOVA, robust correlation, robust mediation, and nonparametric ANCOVA models based on robust location measures.",
+        "License": "GPL-3",
+        "URL": "https://r-forge.r-project.org/projects/psychor/",
+        "Imports": "MASS, reshape, plyr, stats, graphics, grDevices, utils",
+        "Depends": "R (>= 4.0.0)",
+        "Suggests": "knitr, car, ggplot2, colorspace, mediation, GGally, codetools",
+        "VignetteBuilder": "knitr",
+        "LazyData": "yes",
+        "LazyLoad": "yes",
+        "ByteCompile": "yes",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-05-21 20:19:15 UTC; patrick",
+        "Author": "Patrick Mair [cre, aut],\n  Rand Wilcox [aut],\n  Indrajeet Patil [ctb]",
+        "Maintainer": "Patrick Mair <mair@fas.harvard.edu>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-05-22 05:25:05 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-04-23 21:06:40 UTC; unix"
       }
     },
     "WebPower": {
@@ -5720,6 +5779,34 @@
         "Built": "R 4.5.0; ; 2026-10-16 04:02:55 UTC; unix"
       }
     },
+    "patchwork": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "patchwork",
+        "Type": "Package",
+        "Title": "The Composer of Plots",
+        "Version": "1.3.2",
+        "Authors@R": "\n    person(given = \"Thomas Lin\",\n           family = \"Pedersen\",\n           role = c(\"cre\", \"aut\"),\n           email = \"thomasp85@gmail.com\",\n           comment = c(ORCID = \"0000-0002-5147-4711\"))",
+        "Maintainer": "Thomas Lin Pedersen <thomasp85@gmail.com>",
+        "Description": "The 'ggplot2' package provides a strong API for sequentially \n    building up a plot, but does not concern itself with composition of multiple\n    plots. 'patchwork' is a package that expands the API to allow for \n    arbitrarily complex composition of plots by, among others, providing \n    mathematical operators for combining multiple plots. Other packages that try \n    to address this need (but with a different approach) are 'gridExtra' and \n    'cowplot'.",
+        "License": "MIT + file LICENSE",
+        "Encoding": "UTF-8",
+        "Imports": "ggplot2 (>= 3.0.0), gtable (>= 0.3.6), grid, stats, grDevices,\nutils, graphics, rlang (>= 1.0.0), cli, farver",
+        "RoxygenNote": "7.3.2",
+        "URL": "https://patchwork.data-imaginist.com,\nhttps://github.com/thomasp85/patchwork",
+        "BugReports": "https://github.com/thomasp85/patchwork/issues",
+        "Suggests": "knitr, rmarkdown, gridGraphics, gridExtra, ragg, testthat (>=\n2.1.0), vdiffr, covr, png, gt (>= 0.11.0)",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "gifski",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-08-25 08:14:43 UTC; thomas",
+        "Author": "Thomas Lin Pedersen [cre, aut] (ORCID:\n    <https://orcid.org/0000-0002-5147-4711>)",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-08-25 10:00:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-24 02:10:16 UTC; unix"
+      }
+    },
     "pbapply": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6239,7 +6326,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.63.0",
+        "Version": "0.66.1",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6249,7 +6336,7 @@
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
         "Imports": "afex, BayesFactor, bayestestR, bfpwr, car, digest, effectsize,\nHmisc, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nlme4, lmerTest, manymome, parallel, nlme, psych, power4mome,\npwr, powertools, pwrss, simr, SimDesign, Spower (>= 0.7),\nstats, SuppDists, Superpower, utils",
-        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, boot, GPArotation,\ngsl, hypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha,\nkappaSize, lavaan, longpower, lmhelprs (>= 0.4.2), MASS,\nMatrix, MBESS, mclust, metafor, metapower, mirt, nnet,\npbkrtest, PITS, PMCMRplus, POMADE, powerSurvEpi, powRICLPM,\npresize, pscl, PUMP, quantreg, semPower, simsem, statpsych,\nsurvival, testthat (>= 3.0.0), TOSTER, vegan, WebPower, withr",
+        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, boot, GPArotation,\ngsl, hypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha,\nkappaSize, lavaan, longpower, lmhelprs (>= 0.4.2), MASS,\nMatrix, MBESS, mclust, metafor, metapower, mirt, nnet,\npbkrtest, PITS, PMCMRplus, POMADE, powerSurvEpi, powRICLPM,\npresize, pscl, PUMP, quantreg, semPower, simsem, SimplyAgree,\nstatpsych, survival, testthat (>= 3.0.0), TOSTER, vegan,\nWebPower, withr, WRS2",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
         "Config/testthat/start-first": "export-script, whole-study,\nbackend-modmed-parallel, backend-mixed-model",
@@ -6258,19 +6345,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "6ec25e9e4b1de4d77f4b939dd6b3410c1c483085",
-        "RemoteSha": "6ec25e9e4b1de4d77f4b939dd6b3410c1c483085",
+        "RemoteRef": "ece337a1ed0f389f9102ab0cc1f2486b7f9c6d0c",
+        "RemoteSha": "ece337a1ed0f389f9102ab0cc1f2486b7f9c6d0c",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "6ec25e9e4b1de4d77f4b939dd6b3410c1c483085",
-        "GithubSHA1": "6ec25e9e4b1de4d77f4b939dd6b3410c1c483085",
+        "GithubRef": "ece337a1ed0f389f9102ab0cc1f2486b7f9c6d0c",
+        "GithubSHA1": "ece337a1ed0f389f9102ab0cc1f2486b7f9c6d0c",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-13 19:24:18 UTC; runner",
+        "Packaged": "2026-11-14 11:39:53 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-13 19:25:02 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-14 11:40:38 UTC; unix"
       }
     },
     "powertools": {
@@ -6971,6 +7058,30 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-02-02 06:30:25 UTC",
         "Built": "R 4.5.0; ; 2026-08-12 19:47:02 UTC; unix"
+      }
+    },
+    "reshape": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "reshape",
+        "Version": "0.8.10",
+        "Title": "Flexibly Reshape Data",
+        "Description": "Flexibly restructure and aggregate data using \n  just two functions: melt and cast.",
+        "Authors@R": "\n    person(\"Hadley\", \"Wickham\", , \"hadley@rstudio.com\", c(\"aut\", \"cre\"))",
+        "URL": "http://had.co.nz/reshape",
+        "Depends": "R (>= 2.6.1)",
+        "Imports": "plyr",
+        "License": "MIT + file LICENSE",
+        "LazyData": "true",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-06-19 14:50:44 UTC; hadleywickham",
+        "Author": "Hadley Wickham [aut, cre]",
+        "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-06-19 15:40:06 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-12 19:44:03 UTC; unix"
       }
     },
     "reshape2": {
@@ -8560,22 +8671,22 @@
   },
   "files": {
     "app.R": {
-      "checksum": "d036289656fc575cf907195e3ed9232a"
+      "checksum": "658810a4e99b55204dfbee8b09de3104"
     },
     "forms.yaml": {
-      "checksum": "8d077f9b2b24ce5f65bad42b0cbbd739"
+      "checksum": "8e57f47992d13babf46c8f21c9864609"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
     },
     "methods-map.yaml": {
-      "checksum": "e95765e8bacf8100041e04cde606e8d5"
+      "checksum": "70d20d0a36846c26c10690c032b49d42"
     },
     "optional-packages.R": {
-      "checksum": "b87673bc767f55f9817b7d4300430027"
+      "checksum": "6c1a979e2f68a3a534608d8704f53356"
     },
     "R/about.R": {
-      "checksum": "0a8e6dfaac182a5d0c315c4faca3a454"
+      "checksum": "473ccb639ae0c02a1967570378315f67"
     },
     "R/bayes-mode.R": {
       "checksum": "e10b19e450619c20302ad452b0e63ba1"
@@ -8587,52 +8698,55 @@
       "checksum": "961cdd15544a058c897ea02e3bb6faf6"
     },
     "R/connection.R": {
-      "checksum": "704fdaf66de7159c3eeb66445b010f23"
+      "checksum": "bd1289fc05b527c776e9988bd8d5ea77"
     },
     "R/count-test-notes.R": {
       "checksum": "0bfb0dc26db69c058b309ee7f9cc7d89"
     },
     "R/documents.R": {
-      "checksum": "15a987bda916506359a8934c8f24e331"
+      "checksum": "9add2489945c9fa4a949051cb2857083"
     },
     "R/drafts.R": {
-      "checksum": "3bf0b9ef2eb12e351ab974830de4a46c"
+      "checksum": "8af72c83421a02b41b932264f49ca013"
     },
     "R/feedback.R": {
       "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
     },
     "R/forms_ui.R": {
-      "checksum": "d099dfbb05f5b834df436c5f38acf280"
+      "checksum": "25c600ea67e6fbe9510225af5e569935"
     },
     "R/forms.R": {
-      "checksum": "bd444e590b3e1e5f5f097b4cbb0ed82c"
+      "checksum": "5063cf2d4ff01d9effc3ac9d6c812170"
     },
     "R/input-support.R": {
       "checksum": "6cf35ca8f05a2d4a91b08507fc478730"
     },
     "R/keep-result.R": {
-      "checksum": "a18fa82fc78f624b3658a057e2281c50"
+      "checksum": "215a1384b18af7b0ecf4a0e2fb7270cc"
     },
     "R/labs.R": {
-      "checksum": "4b66ba8b817cef28ff0f2110389cc2d0"
+      "checksum": "e885748eae17ed410afede92b83ded77"
     },
     "R/map.R": {
       "checksum": "a606e91a440ff249228881df2521fa04"
+    },
+    "R/plan-bundle.R": {
+      "checksum": "42d073e2a3aa0846a41666f6374d78e8"
     },
     "R/planning-safeguards.R": {
       "checksum": "f0d8038823dbbaf95f2fa0b19336eda7"
     },
     "R/planning.R": {
-      "checksum": "19408f532c518c5b2c863044c717a756"
+      "checksum": "a892240b66160c3cdaf32dcf5213f6a4"
     },
     "R/project.R": {
       "checksum": "f8073aa709e9478782817e0e48168b9f"
     },
     "R/replication.R": {
-      "checksum": "2762fa9c6db795684b494c7fc2193aa8"
+      "checksum": "9fbe339ba6b2849d772f0da5a2415474"
     },
     "R/results.R": {
-      "checksum": "13033c166b305d340e153539c00131b9"
+      "checksum": "f2d69289dfc6c3d63271b7f029c07954"
     },
     "R/route-fit.R": {
       "checksum": "763727cf1f8850d8c1747dfa9428c333"
@@ -8647,13 +8761,19 @@
       "checksum": "c665930923df9dddb8a104ec4fccfc12"
     },
     "R/share-link.R": {
-      "checksum": "5c922019d2228d6026ef1a5373de9290"
+      "checksum": "9554d48deed7a9018f791f3b16fb263d"
     },
     "R/simulations.R": {
-      "checksum": "18424c663c3af6623daf4a51131e2322"
+      "checksum": "d31804e250901e75bbdfadf845b40db1"
+    },
+    "R/study-plan-replication.R": {
+      "checksum": "5c4a40a5dbebcba06099b2ebcaec15fa"
     },
     "R/study-plan.R": {
-      "checksum": "f90b48df4f1d1c8ec197de4bc59220d2"
+      "checksum": "6600ff283ce8e67b8ba6c70b9901f178"
+    },
+    "R/study-plans.R": {
+      "checksum": "2d3106201916a071b3982c444600bfb8"
     },
     "R/study-variation.R": {
       "checksum": "6a14c13df303825e8d6afafd84888024"
@@ -8665,22 +8785,22 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "ae95de489052e172169f07a7e3deac9a"
+      "checksum": "471b15203e6da5941b6a77e53cd7ee16"
     },
     "R/whole-study.R": {
-      "checksum": "993cd29f64d9d6a6fa33bf3a48d03ac0"
+      "checksum": "0f5c1d4efb94c2107c262727623ec1e9"
     },
     "README.md": {
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "9c5d6636d10dcf4bd4566e1698921b83"
+      "checksum": "bb964c63e24bffc8d91f12f25f8eb02e"
     },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
     },
     "whats-new.yaml": {
-      "checksum": "eb42b999bf7669916cd6401c9dff796a"
+      "checksum": "0d994d62a410b1b0f34259ad7ff73cc8"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

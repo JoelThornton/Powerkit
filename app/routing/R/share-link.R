@@ -129,6 +129,8 @@ share_link_js <- sprintf("
     if (input) { input.value = link; holder.hidden = false; }
     pkCopyText(link, status, 'Couldn\\'t copy automatically. Select the link in the box and copy it.');
     $(document).trigger('pk:share-link', [btn.getAttribute('data-kind')]);
+    // Only now is the link made: a study plan counts as kept from here.
+    Shiny.setInputValue('share_link_made', {kind: btn.getAttribute('data-kind'), at: Date.now()}, {priority: 'event'});
   });
   // Opening a link: read the fragment once the app is connected, take it
   // out of the address bar, and hand the text to the server.

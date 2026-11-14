@@ -61,11 +61,7 @@ planning_document <- function(tree, forms, calc) {
     paste0("- ", writeup_field_label(f), ": ", value)
   }
   units <- sample_description(spec)
-  text <- if (identical(spec$design, "precision")) precision_writeup(forms$forms[[id]], spec, result, fields, values, departures_for(forms, id, spec)) else
-    writeup_text(forms$forms[[id]], spec, result, fields, values,
-      departures = departures_for(forms, id, spec),
-      known_methods = vapply(known_difference_keys(forms, id, spec), function(k) forms$known_differences_methods[[k]], ""),
-      known = known_differences_for(forms, id, spec))
+  text <- planning_writeup(forms, id, spec, result, fields, values)
   alternatives <- named_alternative_lines(values, fields)
   c("# Study planning decision document", "",
     sprintf("Planning draft for review, made with %s. This file does not register a preregistration or guarantee the assumptions are correct.", powerkit_cited(result$provenance$packages[["powerkit"]])), "",
@@ -84,6 +80,27 @@ planning_document <- function(tree, forms, calc) {
     "## Validation evidence", evidence_reader_lines(result$provenance$evidence), "",
     "## Reproducibility record", provenance_lines(result), "",
     "Keep the matching project file for the complete structured specification, raw-to-derived conversions and machine-readable result. Review these assumptions and the selected decision rule before using the plan.")
+}
+
+# The card's write-up (short and full methods paragraphs) from the
+# calculation's captured answers.
+planning_writeup <- function(forms, id, spec, result, fields, values) {
+  if (identical(spec$design, "precision")) return(precision_writeup(forms$forms[[id]], spec, result, fields, values, departures_for(forms, id, spec)))
+  writeup_text(forms$forms[[id]], spec, result, fields, values,
+    departures = departures_for(forms, id, spec),
+    known_methods = vapply(known_difference_keys(forms, id, spec), function(k) forms$known_differences_methods[[k]], ""),
+    known = known_differences_for(forms, id, spec))
+}
+
+# The full methods paragraph alone, as the planning document's "Result and
+# methods" has it: for a study plan's document, one per analysis.
+planning_methods_text <- function(tree, forms, calc) {
+  route <- calc$route
+  id <- route$endpoint
+  values <- route$form_values
+  if (is.null(id) || is.null(values)) stop("This result has no captured form answers.")
+  fields <- form_fields(form_groups(forms, id, k = route$form_k %||% 2L))
+  unname(planning_writeup(forms, id, calc$spec, calc$result, fields, values)["full"])
 }
 
 planning_recruitment_lines <- function(result, units) {
@@ -166,6 +183,24 @@ additional_input_guide <- function(f) {
     "c = 0 represents the unbiased-observer scenario; it is not evidence that your participants have no bias.", "A matched signal-detection fit or justified bias scenario, using criterion c rather than an unconverted alternative bias index."))
   if (f$id %in% c("trials_signal", "trials_noise")) return(make("The number of that kind of trial each person completes in each condition; this is not the number of participants.",
     "40 signal and 60 noise trials means 100 trials per condition per person, rather than N = 100 people.", "Your task protocol and feasible testing duration, with enough trials to estimate individual performance."))
+  if (identical(f$id, "measurements") && identical(f$path, "population.measurements")) return(make("How many times each person is measured on both scores, the same number for everyone. The repeated-measures correlation uses each person's ups and downs around their own average, so every extra occasion adds information.",
+    "Measured on 3 days, each person gives 3 pairs of scores; 100 people then give the test 199 degrees of freedom, N(k - 1) - 1.", "Your study protocol: the number of diary days, sessions or sampling prompts everyone completes.",
+    "If some people will miss occasions, run the plan with the number you expect most people to complete and with a smaller number, and report both."))
+  if (identical(f$id, "trim") && identical(f$path, "target_test.trim")) return(make("The share of each sample's scores set aside from each end before the means are compared: 0.2 drops the lowest 20% and the highest 20%.",
+    "With 50 people in a group and 0.2, the 10 lowest and 10 highest scores are trimmed and the mean of the middle 30 is compared.", "The analysis plan or preregistration: use the trimming you will analyse with. 0.2 is WRS2's default.",
+    "If no trimming is fixed yet, keep 0.2; 0.1 trims less and stays closer to the t-test when scores are well behaved."))
+  if (identical(f$id, "ba_bias")) return(make("The average difference you expect between the two methods' measurements of the same subject (method 1 minus method 2), in the measure's own units: the bias.",
+    "A wrist monitor expected to read 0.5 mmHg higher than the reference cuff, on average, has a bias of 0.5.", "A pilot or published comparison of the same two methods in a similar sample; 0 if the methods are calibrated to agree on average.",
+    "If you have no estimate, plan with 0 and with a plausible non-zero bias, and report both: a bias moves the limits towards the margin and costs power."))
+  if (identical(f$id, "ba_sd")) return(make("How much the differences between the two methods vary from subject to subject, as an SD in the measure's own units. It is the SD of the differences, not of either method's measurements.",
+    "With a bias of 0.5 and an SD of the differences of 2.5, 95% of differences are expected between about -4.4 and 5.4 (0.5 plus and minus 1.96 times 2.5).", "A pilot or published method-comparison study: its SD of the differences, or its limits of agreement (the distance between them divided by 3.92 for 95% limits).",
+    "If the estimate is uncertain, plan with a larger SD as well: the limits widen with it."))
+  if (identical(f$id, "ba_margin")) return(make("The largest difference between the two methods that would not matter in practice. Agreement is shown when both limits of agreement, at the outer ends of their confidence intervals, lie within plus and minus this value.",
+    "If a difference of up to 8 mmHg in blood pressure would not change a clinical decision, the margin is 8.", "Clinical or practical grounds, set before the data are collected: a guideline, a standard for the device, or what changes a decision. Not the limits you hope to see.",
+    "If no standard exists, say how the margin was chosen in the write-up; the plan is only as convincing as the margin."))
+  if (identical(f$id, "agree_level") && identical(f$path, "target_test.agree_level")) return(make("The share of subjects' differences the limits of agreement should contain: 0.95 gives the usual 95% limits, the bias plus and minus 1.96 SDs of the differences.",
+    "0.95 means the limits are expected to contain 95 of every 100 subjects' differences.", "The analysis plan: use the level you will report. 0.95 is Bland and Altman's usual choice and SimplyAgree's default.",
+    "Keep 0.95 unless your field reports other limits."))
   if (identical(f$id, "sd_dprime")) return(make("Between-person spread of true sensitivity, separate from estimation noise caused by finite trial counts.",
     "An observed SD of estimated d-prime from a short task cannot simply be treated as a noise-free SD of true sensitivity.", "A comparable model that separates individual variation from trial noise, or explicitly labelled assumptions when that information is unavailable."))
   if (identical(f$id, "guess")) return(make("Your optional guess for the teaching comparison; it does not enter the power calculation.",

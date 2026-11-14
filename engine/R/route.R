@@ -154,6 +154,7 @@ route_backend <- function(spec, seed = NULL) {
     } else {
       spower_backend(spec, seed)
     },
+    "basic_test/repeated_measures_correlation" = rmcorr_backend(spec, seed),
     "basic_test/correlation" = if (bayes_factor_test(spec)) {
       bfcor_backend(spec, seed)
     } else if (pwrss_covers(spec)) {
@@ -216,6 +217,7 @@ route_backend <- function(spec, seed = NULL) {
     "reliability/icc" = ,
     "reliability/cronbach_alpha" = ,
     "reliability/kappa" = reliability_backend(spec, seed),
+    "reliability/bland_altman" = bland_altman_backend(spec, seed),
     # Differential item functioning in a 2PL model, by irtpwr's analytical
     # method.
     "irt/dif" = irt_backend(spec, seed),

@@ -122,6 +122,20 @@ docx_body <- function(markdown) {
           }))
         },
         block_quote = blocks(k, "Quote"),
+        # A table (a study plan's list of analyses), with light borders and
+        # its header row in bold.
+        table = {
+          border <- '<w:%s w:val="single" w:sz="4" w:space="0" w:color="A0A0A0"/>'
+          borders <- paste(sprintf(border, c("top", "left", "bottom", "right", "insideH", "insideV")), collapse = "")
+          rows <- vapply(xml2::xml_children(k), function(r) {
+            header <- identical(xml2::xml_name(r), "table_header")
+            cells <- vapply(xml2::xml_children(r), function(cell)
+              sprintf("<w:tc>%s</w:tc>", para(inlines(cell, list(bold = header)))), "")
+            sprintf("<w:tr>%s</w:tr>", paste(cells, collapse = ""))
+          }, "")
+          sprintf('<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders>%s</w:tblBorders></w:tblPr>%s</w:tbl><w:p/>',
+            borders, paste(rows, collapse = ""))
+        },
         # One paragraph, its lines kept apart by line breaks.
         code_block = , html_block = para(paste(vapply(strsplit(sub("\n$", "", xml2::xml_text(k)), "\n", fixed = TRUE)[[1]],
           run, "", list(code = TRUE)), collapse = "<w:r><w:br/></w:r>"), style),
@@ -228,7 +242,7 @@ document_menu <- function(pdf, docx, md, label, name, class = "btn btn-outline-p
 # The download ids inside the menus, which the server keeps ready while the
 # menu is closed (outputOptions(suspendWhenHidden = FALSE) in app.R).
 document_menu_downloads <- c("download_planning_docx", "download_planning_document",
-  "ws_download_planning_docx", "ws_download_planning_md", "labs_docx", "labs_download", "rep_docx", "rep_markdown")
+  "ws_download_planning_docx", "ws_download_planning_md", "rep_docx", "rep_markdown")
 
 # Sends a built document to the browser, which prints it from a hidden
 # frame; or a plain-English reason if it can't be built.

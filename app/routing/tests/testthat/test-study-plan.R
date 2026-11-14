@@ -19,30 +19,36 @@ fake_entry <- function(label, n, comparable = TRUE, headline = paste("You need",
 }
 
 test_that("the plan keeps different sample structures separate", {
-  html <- as.character(study_plan_ui(list(fake_entry("A t-test", 128), fake_entry("A correlation", 194), fake_entry("A cluster trial", 900, comparable = FALSE))))
+  html <- page_html((list(fake_entry("A t-test", 128), fake_entry("A correlation", 194), fake_entry("A cluster trial", 900, comparable = FALSE))))
   expect_no_match(html, "result-hero plan-hero", fixed = TRUE)
   expect_match(html, "no single study-wide sample size", fixed = TRUE)
   expect_no_match(html, "groups needed", fixed = TRUE)
   expect_match(html, "participants needed", fixed = TRUE)
   expect_match(html, "powerkit doesn't calculate it for these designs yet", fixed = TRUE)
-  expect_match(html, "Add another analysis", fixed = TRUE)
-  expect_match(html, "Save study plan", fixed = TRUE)
+  expect_match(html, "Add an analysis", fixed = TRUE)
+  expect_match(html, "Save plan", fixed = TRUE)
 })
 
 test_that("one analysis has no joint-power note, and an empty plan says how to add one", {
-  one <- as.character(study_plan_ui(list(fake_entry("A t-test", 128))))
+  one <- page_html((list(fake_entry("A t-test", 128))))
   expect_no_match(one, "powerkit doesn't calculate it", fixed = TRUE)
-  empty <- as.character(study_plan_ui(list()))
-  expect_match(empty, "Your plan is empty", fixed = TRUE)
+  empty <- page_html((list()))
+  expect_match(empty, "This plan has no analyses yet.", fixed = TRUE)
   expect_no_match(empty, "download_study_plan", fixed = TRUE)
 })
 
 test_that("the bar under a result adds the analysis once and links to the plan", {
-  expect_match(as.character(study_plan_bar_ui(list(), FALSE)), "Add this to my study plan", fixed = TRUE)
-  added <- as.character(study_plan_bar_ui(list(fake_entry("A t-test", 128)), TRUE))
-  expect_match(added, "Added to your study plan.", fixed = TRUE)
-  expect_match(added, "See your study plan (1 analysis)", fixed = TRUE)
+  expect_match(as.character(study_plan_bar_ui(list(), NULL, "h1")), "Add this to my study plan", fixed = TRUE)
+  expect_no_match(as.character(study_plan_bar_ui(list(), NULL, "h1")), "plan_target", fixed = TRUE)
+  e <- fake_entry("A t-test", 128); e$result <- list(provenance = list(spec_hash = "h1"))
+  plan <- plan_with(list(e), name = "Thesis")
+  plans <- setNames(list(plan), plan$id)
+  added <- as.character(study_plan_bar_ui(plans, plan$id, "h1", just_added = list(plan = plan$id, hash = "h1")))
+  expect_match(added, "Added to \u201cThesis\u201d.", fixed = TRUE)
+  expect_match(added, "only in this browser until you save it", fixed = TRUE)
+  expect_match(added, "See the study plan", fixed = TRUE)
   expect_no_match(added, "Add this to my study plan", fixed = TRUE)
+  expect_match(as.character(study_plan_bar_ui(plans, plan$id, "h1")), "Already in \u201cThesis\u201d.", fixed = TRUE)
 })
 
 test_that("results from two cards save as one plan file and open again", {
@@ -63,7 +69,7 @@ test_that("results from two cards save as one plan file and open again", {
   reopened <- lapply(read_plan(path)$analyses, function(p) plan_entry_from_project(tree, p))
   expect_identical(vapply(reopened, `[[`, "", "endpoint"), c("E2", "E3"))
   expect_identical(vapply(reopened, function(e) e$n, numeric(1)), vapply(entries, function(e) e$n, numeric(1)))
-  expect_match(as.character(study_plan_ui(reopened)), "Sample size from the saved result", fixed = TRUE)
+  expect_match(page_html((reopened)), "Sample size from the saved result", fixed = TRUE)
 })
 
 test_that("joint power is offered only for one randomised comparison on several outcomes", {
@@ -72,16 +78,16 @@ test_that("joint power is offered only for one randomised comparison on several 
   expect_true(joint_power_offered(list(t_entry(), t_entry())))
   expect_false(joint_power_offered(list(t_entry())))
   expect_false(joint_power_offered(list(t_entry(), r_entry)))
-  offered <- as.character(study_plan_ui(list(t_entry(), t_entry())))
+  offered <- page_html((list(t_entry(), t_entry())))
   expect_match(offered, "Calculate joint power", fixed = TRUE)
   expect_no_match(offered, "doesn't calculate it for these designs yet", fixed = TRUE)
-  expect_match(as.character(study_plan_ui(list(t_entry(), r_entry))), "doesn't calculate it for these designs yet", fixed = TRUE)
+  expect_match(page_html((list(t_entry(), r_entry))), "doesn't calculate it for these designs yet", fixed = TRUE)
   # Welch's test (the card's default): joint power needs Student's, and the
   # plan says so.
   welch <- t_entry()
   welch$spec$target_test <- list(method = "welch_t")
   expect_false(joint_power_offered(list(welch, t_entry())))
-  expect_match(as.character(study_plan_ui(list(welch, t_entry()))), "choose Student's test on each card", fixed = TRUE)
+  expect_match(page_html((list(welch, t_entry()))), "choose Student's test on each card", fixed = TRUE)
 })
 
 test_that("the joint power from the engine is stated with each outcome's power and its source", {
@@ -122,14 +128,14 @@ test_that("joint power for a multisite trial is offered and says how PUMP's powe
 test_that("the plan names each analysis in plain words, puts the largest N first, and each can be removed", {
   expect_identical(plan_label(tree, "E2"), tree$endpoints$E2$plain_name)
   expect_false(identical(plan_label(tree, "E2"), "E2"))
-  html <- as.character(study_plan_ui(list(fake_entry("A t-test", 128), fake_entry("A correlation", 194))))
+  html <- page_html((list(fake_entry("A t-test", 128), fake_entry("A correlation", 194))))
   expect_match(html, "result-hero plan-hero", fixed = TRUE)
   expect_match(html, "the largest of your 2 analyses", fixed = TRUE)
   expect_match(html, "Largest comparable requirement", fixed = TRUE)
   expect_match(html, "maximum alone does not establish", fixed = TRUE)
-  expect_match(html, "plan_remove&#39;, 2,", fixed = TRUE)
+  expect_match(html, "Shiny\\.setInputValue\\(&#39;plan_remove&#39;, &quot;[0-9a-f]{12}&quot;")
   expect_match(html, "Remove A correlation from the plan", fixed = TRUE)
-  expect_match(as.character(study_plan_ui(list())), "Add this to my study plan", fixed = TRUE)
+  expect_match(page_html((list())), "Add this to my study plan", fixed = TRUE)
 })
 
 test_that("a precision result shows its sample size first and can join the plan", {
@@ -155,14 +161,14 @@ test_that("a precision result shows its sample size first and can join the plan"
 })
 
 test_that("an analysis calculated from the whole-study plan joins the study plan once, replacing its earlier result", {
-  entries <- list(list(label = "From a card", n = 100))
-  entries <- plan_upsert(entries, list(label = "Total effect", n = 200, plan_id = "total"))
-  entries <- plan_upsert(entries, list(label = "Total effect", n = 250, plan_id = "total"))
-  entries <- plan_upsert(entries, list(label = "Indirect effect", n = 300, plan_id = "indirect"))
-  expect_length(entries, 3)
-  expect_identical(entries[[2]]$n, 250)
-  html <- as.character(study_plan_bar_ui(entries, in_plan = TRUE, from_guided = TRUE))
+  plan <- plan_with(list(list(label = "From a card", n = 100)))
+  plan <- plan_upsert(plan, list(label = "Total effect", n = 200, plan_id = "total"))
+  plan <- plan_upsert(plan, list(label = "Total effect", n = 250, plan_id = "total", result = list(provenance = list(spec_hash = "t2"))))
+  plan <- plan_upsert(plan, list(label = "Indirect effect", n = 300, plan_id = "indirect"))
+  expect_length(plan$entries, 3)
+  expect_identical(plan$entries[[2]]$n, 250)
+  html <- as.character(study_plan_bar_ui(setNames(list(plan), plan$id), plan$id, "t2", from_guided = TRUE))
   expect_match(html, "with the other analyses of your whole-study plan", fixed = TRUE)
   expect_no_match(html, "plan_add", fixed = TRUE)
-  expect_match(as.character(guided_plan_save_ui(3)), "See your study plan (3 analyses)", fixed = TRUE)
+  expect_match(as.character(guided_plan_save_ui(3, "Whole-study plan, 13 Nov 2026")), "See the study plan “Whole-study plan, 13 Nov 2026” (3 analyses)", fixed = TRUE)
 })

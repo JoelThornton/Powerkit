@@ -3144,3 +3144,109 @@ it and the confirmation screen.
   required checks already make it catch up, so the extra step is small.
   This replaces the 7 November entry's trade-off, under which results
   computed between closes recorded the previous number.
+
+## 2026-11-13 · Several named study plans
+
+- **Why:** the study plan was one unnamed list shown inside "Plan a power
+  analysis". A researcher with several studies could keep only one plan,
+  an analysis opened from a saved plan could not be opened again, and the
+  plan read as part of the start page.
+- **Decided by the maintainer (13 November 2026):** several named plans,
+  kept in the browser and each saved as its own file or link (accounts
+  stay rejected: powerkit stores nothing); a Study plans page of its own,
+  reached from the top bar and `?page=plans`; every analysis opens again;
+  "Download everything" for a plan and "Plan my whole study" starting a
+  plan follow in later pull requests. Because the browser's copy can be
+  cleared without warning, the app keeps asking for a saved file: each
+  plan shows its save status, adding work says the plan is only in this
+  browser, and the top bar marks unsaved plans.
+- **Calls made in building it:** the page is a tab hidden from the tab
+  row, so the tabs still fit one row on a phone; opening a plan file adds
+  it, keeping a different version with the same id beside the existing
+  one rather than replacing it; roles (primary, secondary, check) label
+  analyses and change no number; plan files keep format version 1 with
+  optional new fields, so the previous version still opens them.
+- **Design:** `docs/saving-projects.md`, "Study plans".
+
+### Repeated-measures correlation by its effective sample size, 13 November 2026
+
+A within-person correlation (two scores measured together on several
+occasions, as in diary, experience-sampling and physiology studies) is
+planned on a new card, E76, by the method rmcorr's authors document
+(Bakdash and Marusich, 2017): the repeated-measures correlation is a
+partial correlation controlling for N - 1 person indicators, so its test
+has the distribution of a Pearson correlation's at the effective sample
+size N(k - 1) + 1. powerkit computes that by the exact distribution of r
+(pwrss's `power.exact.onecor()`), as the correlation card does, rather
+than by Fisher's z as in rmcorr's own example; the two differ by about
+0.0002 in power. No new maths is written: the backend changes only the
+sample size passed to pwrss. Simulated studies analysed by the
+repeated-measures correlation's own regression (`lm(y ~ person + x)`)
+agree within Monte Carlo error at three settings, and the Type I error
+holds (`test-validation-rmcorr.R`). E41, relationships within people,
+keeps within-person moderation and mediation (`next.md` item 2) and
+points to E76 for the correlation; a new design-finder question (R2)
+separates the two after "measured twice" or "many conditions".
+
+### Yuen's trimmed-means t-tests on E2 and E3, 14 November 2026
+
+Yuen's tests of trimmed means, offered by JASP as robust t-tests, are a
+test version on the two-group and paired cards. WRS2's `yuen()` and
+`yuend()` (Mair and Wilcox, 2020) test each simulated study, run by
+Spower as powerkit's experiments `p_yuen()` and `p_yuend()`, since no
+package gives the power of a trimmed-means test in closed form and its
+power depends on the scores' shape. Trimming defaults to WRS2's 20%. The
+two-group version takes the score shape and the SD ratio as the
+Brunner-Munzel version does; the paired version asks for the correlation
+between the two measurements (with no default), because it trims each
+measurement separately and so its power depends on that correlation as
+well as on d_z. Validation: simulated studies tested by Yuen's statistics
+written out from their definitions agree within Monte Carlo error; the
+Type I error holds with heavy tails, unequal spreads and unequal groups;
+with no trimming the paired version matches pwr's exact power
+(`test-validation-yuen.R`). Conventions: `docs/conventions.md`, "Yuen's
+trimmed-means tests".
+### Replication plans: a kind of study plan, 14 November 2026
+
+The replication layer moves out of Labs into the study plans (queue item
+23; `saving-projects.md`, "Replication plans"):
+
+- A replication plan is a study plan with a `replication` record (the
+  pre-replication notes' and the planner's fields, and the original's
+  card). It is kept, saved, shared and downloaded as any study plan, and
+  its analysis is the original's, planned on its own card. Labs keeps no
+  replication tools; a note there starts a replication plan.
+- On the card, each effect field is labelled ", as the original study
+  reported it". The test is not preset: the card's note asks the
+  researcher to choose the test the original used, because the
+  original's test is known only from what they entered under "The
+  original study" as free text, and a guessed preset would be silent.
+- A plan with no analysis yet is saved as the Labs replication planner's
+  file with the record and the plan's name beside it, so the previous
+  version still opens it; files the Labs planner saved open as new
+  replication plans.
+
+### Bland-Altman limits of agreement on E69, 14 November 2026
+
+The Bland-Altman limits of agreement, which JASP offers, are a fourth
+question on the reliability card: whether two methods of measurement
+agree closely enough to be used in place of each other. The researcher
+gives the expected bias, the SD of the differences and the largest
+difference that would not matter, and agreement is shown when both
+limits, at the outer ends of their two-sided 1 - alpha confidence
+intervals, lie within plus and minus it. powerkit simulates the analysis
+(Spower, with SimplyAgree's `agreement_limit()` on each study), with MOVER
+intervals by default and Bland and Altman's as an option; Lu et al.'s
+(2016) formula, SimplyAgree's `blandPowerCurve()`, is a labelled quick
+option. The formula approximates the analysis it plans for (several points
+off, in either direction) and Bland and Altman's intervals are too narrow
+in small samples, so planning for the simulated MOVER analysis is
+Departure 27 (`docs/conventions.md`). In the app, power at a fixed sample
+size runs on the card and a required sample size comes as an R script
+(about 5 minutes on one core), the route other slow simulations take
+(`forms.yaml`, `simulations > method_routes`, which now accepts several
+test versions). Validation: `test-validation-agreement.R`.
+
+The same review recorded, from de Winter (2026, *Quality & Quantity*), a
+queue item for a permutation test on Welch's t as a test version on E2
+(`next.md` item 28); Welch's t-test stays the default (Departure 21).

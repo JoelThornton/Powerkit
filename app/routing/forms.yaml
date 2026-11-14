@@ -139,7 +139,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E45, E1, E2, E3, E4, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73]
+calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -280,6 +280,11 @@ simulations:
     E54: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
     E20: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
     E8: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
+    # The Bland-Altman limits of agreement, simulated (about 0.035 s per
+    # simulated study with SimplyAgree's agreement_limit(); a required N
+    # took about 4 minutes on one core, measured 14 November 2026). Lu et
+    # al.'s approximation is a formula and calculates here.
+    E69: {method: [mover, bland_altman], full_run: [power], preview: {power: 5}, full: {power: 40}, script: {power: "under a minute on one core", sample_size: "about 5 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
     E55: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
 # Whole-study simulation (experimental; R/whole-study.R, docs/conventions.md
 # Departure 13): the choices of how many simulated studies, and the usual
@@ -306,6 +311,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "27": "Bland-Altman limits of agreement: powerkit simulates the analysis you will run, SimplyAgree's agreement_limit() with MOVER confidence intervals, unless you choose Lu et al.'s (2016) formula, the one SimplyAgree's blandPowerCurve() gives. The formula approximates Bland and Altman's analysis and can be several points off in either direction, and Bland and Altman's intervals are too narrow in small samples (at 30 subjects about 5% of studies wrongly show agreement where 2.5% should), which the MOVER intervals avoid. With a bias of 0.5, an SD of the differences of 2.5 and a margin of 8, the formula gives 80% power at 26 subjects; the MOVER analysis has about 69% there and needs 33."
   "26": "Repeated measures with SDs or correlations that differ: powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. The corrected power is itself an approximation: simulated studies gave 71.5%."
   "25": "Precision planning: for d, a standardised mean and a regression coefficient, powerkit plans for a chance (assurance) that the interval is no wider than your target, unless you choose MBESS's default of the expected width. An expected width is an average, so planned only for it, about half of studies get an interval wider than planned; MBESS's assurance sets that chance instead. For a regression coefficient with a width of 0.2, 349 people give that width on average; 373 give it with 80% assurance and 386 with 90%. For d = 0.5 and a width of 0.4, 199 per group against 201 and 202."
   "24": "Correlations that vary between studies (optional): an entered SD on Fisher's z makes the correlation an average across studies, following McShane and Bockenholt (2014). This averages significance across differing true correlations; it is not power at the average correlation and can raise or lower the answer. It does not guarantee power in your particular setting. New plans start without variation; empty or 0 gives the usual calculation. As an illustration, r = .1 with variation SD 0.025 and 80% power needs 904 people against 782 without; r = .3 needs 86 against 85."
@@ -504,26 +510,30 @@ forms:
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwr.t.test() (pwr 1.3-0) and Spower's default (p_t.test(n2_n1 = 1), Spower 0.7)"}
-      - input: "Student's or Welch's t-test, the Mann-Whitney or Brunner-Munzel test, a Bayes factor t-test or a minimum-effect test"
+      - input: "Student's or Welch's t-test, the Mann-Whitney or Brunner-Munzel test, Yuen's trimmed-means test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {welch_t: "Welch's t-test", student_t: "Student's t-test", mann_whitney: "Mann-Whitney U test", brunner_munzel: "Brunner-Munzel test", bayes_factor: "Bayes factor t-test", minimum_effect: "Minimum-effect test"},
+             choices: {welch_t: "Welch's t-test", student_t: "Student's t-test", mann_whitney: "Mann-Whitney U test", brunner_munzel: "Brunner-Munzel test", yuen: "Yuen's trimmed-means test (robust t-test)", bayes_factor: "Bayes factor t-test", minimum_effect: "Minimum-effect test"},
              default: welch_t, default_source: "Welch's t-test, as Delacre, Lakens and Leys (2017) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses almost nothing when they don't. R's t.test() runs it unless told otherwise; G*Power and pwr plan for Student's",
-             choice_notes: {bayes_factor: "Uses the default JZS analysis prior and equal groups; the evidence threshold and prior settings below describe the planned Bayesian analysis.", mann_whitney: "Rank-based analysis, simulated; power depends on the score shape you choose.", brunner_munzel: "Rank-based analysis that allows unequal spreads, simulated with your chosen score shape.", minimum_effect: "Tests whether the effect exceeds your smallest effect of interest, rather than whether it differs from zero.", welch_t: "Plans for normal scores. If the two groups' spreads differ, say so under \u201cMy groups' spreads differ\u201d below, or give raw means and SDs.", student_t: "Choose Student's test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or a comparison that is one part of a larger regression or ANOVA assuming equal spreads (unless that model uses robust standard errors). Reporting Welch's test beside it is good practice. With similar spreads and equal group sizes, their planned sample sizes are often close. Unequal spreads can change the answer even when group sizes are equal."}}
+             choice_notes: {bayes_factor: "Uses the default JZS analysis prior and equal groups; the evidence threshold and prior settings below describe the planned Bayesian analysis.", mann_whitney: "Rank-based analysis, simulated; power depends on the score shape you choose.", brunner_munzel: "Rank-based analysis that allows unequal spreads, simulated with your chosen score shape.", yuen: "Compares trimmed means (20% trimmed from each end by default, as in WRS2's yuen()), so a few extreme scores have little pull; allows unequal spreads. Simulated with your chosen score shape.", minimum_effect: "Tests whether the effect exceeds your smallest effect of interest, rather than whether it differs from zero.", welch_t: "Plans for normal scores. If the two groups' spreads differ, say so under \u201cMy groups' spreads differ\u201d below, or give raw means and SDs.", student_t: "Choose Student's test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or a comparison that is one part of a larger regression or ANOVA assuming equal spreads (unless that model uses robust standard errors). Reporting Welch's test beside it is good practice. With similar spreads and equal group sizes, their planned sample sizes are often close. Unequal spreads can change the answer even when group sizes are equal."}}
           - {id: welch_sd_ratio, label: "SD of group 2 divided by SD of group 1", type: number, path: population.sd_ratio, required: true, min_exclusive: 0,
              shown_if: [{field: method, is: welch_t}, {field: effect_units, is_not: raw}],
              default: 1, default_source: "equal spreads",
              fold: "My groups' spreads differ (optional)",
              help: "For example, SDs 10 and 15 give 1.5; 1 means equal spreads. With unequal SDs the effect is the mean difference divided by sqrt((SD1 squared + SD2 squared) / 2), not an allocation-weighted pooled SD. Converting a point-biserial correlation or a published test, and safeguard power, need equal SDs: give raw means and SDs for unequal spreads. This is an assumption about the population, not something choosing Welch's test supplies."}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
-             shown_if: {field: method, is_one_of: [mann_whitney, brunner_munzel]},
+             shown_if: {field: method, is_one_of: [mann_whitney, brunner_munzel, yuen]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_wilcox.test(), Spower 0.7)",
-             help: "Every group has the same shape; the groups differ only by a shift (their means). A rank test's power depends on this shape; the parametric test's figure assumes normal scores."}
+             help: "Every group has the same shape; the groups differ only by a shift (their means). A rank or trimmed-means test's power depends on this shape; the t-test's figure assumes normal scores. Heavy tails are where trimming gains most."}
           - {id: sd_ratio, label: "SD of group 2 divided by SD of group 1 (1 = equal spread)", type: number, path: population.sd_ratio, required: true, min_exclusive: 0,
-             shown_if: {field: method, is: brunner_munzel},
-             default: 1, default_source: "equal spread, the assumption of the Mann-Whitney test that the Brunner-Munzel test relaxes",
-             help: "The Brunner-Munzel test stays valid when the groups differ in spread as well as level. Your effect size is the mean difference divided by the average of the two SDs, sqrt((SD1^2 + SD2^2) / 2)."}
+             shown_if: {field: method, is_one_of: [brunner_munzel, yuen]},
+             default: 1, default_source: "equal spread, the assumption of the Mann-Whitney test and Student's t-test that the Brunner-Munzel and Yuen's tests relax",
+             help: "The Brunner-Munzel test and Yuen's test stay valid when the groups differ in spread as well as level. Your effect size is the mean difference divided by the average of the two SDs, sqrt((SD1^2 + SD2^2) / 2)."}
+          - {id: trim, label: "Share trimmed from each end of each group (0.2 = 20%)", type: number, path: target_test.trim, required: true, min: 0, max_exclusive: 0.5,
+             shown_if: {field: method, is: yuen},
+             default: 0.2, default_source: "20% from each end, WRS2's default (yuen(tr = 0.2), WRS2 1.1-7)",
+             help: "Use the trimming you will analyse with. 0.2 is the usual choice; 0 is no trimming (Welch's t-test), and more trimming moves towards comparing medians."}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
@@ -594,11 +604,24 @@ forms:
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
           - {id: raw_r, help: "Use the correlation of the two measurements on the same people, from comparable data. It changes the SD of change scores and hence the answer. If you know the SD of changes, choose that SD option instead: no correlation is then needed. Otherwise compare justified correlation scenarios or save a draft; zero is an assumption, not an unknown value.", label: "Correlation between the two measurements", type: number, path: population.raw.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true, writeup_label: "correlation between the measurements",
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
-      - input: "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"
+      - input: "The t-test, the Wilcoxon signed-rank test, Yuen's trimmed-means test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test"},
-             default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(type = 'paired'), pwr 1.3-0)"}
+             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", yuen: "Yuen's paired trimmed-means test (robust t-test), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test"},
+             default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(type = 'paired'), pwr 1.3-0)",
+             choice_notes: {yuen: "Compares the two measurements' trimmed means (20% trimmed from each end by default, as in WRS2's yuend()), so a few extreme scores have little pull. It trims each measurement separately, so it needs the correlation between them as well as d_z."}}
+          - {id: yuen_score_shape, label: "The shape of each measurement's scores", type: select, path: population.score_shape, required: true,
+             shown_if: {field: method, is: yuen},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, Spower's default (p_wilcox.test(), Spower 0.7)",
+             help: "Both measurements have this shape; the second is shifted by your d_z. Heavy tails are where trimming gains most over the t-test."}
+          - {id: yuen_r, label: "Correlation between the two measurements", type: number, path: population.r, required: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: method, is: yuen},
+             help: "Use the correlation of the two measurements on the same people, from comparable data. Yuen's test trims each measurement separately, so its power depends on this correlation as well as on d_z. Compare justified values if you are unsure; there is no neutral default."}
+          - {id: trim, label: "Share trimmed from each end of each measurement (0.2 = 20%)", type: number, path: target_test.trim, required: true, min: 0, max_exclusive: 0.5,
+             shown_if: {field: method, is: yuen},
+             default: 0.2, default_source: "20% from each end, WRS2's default (yuend(tr = 0.2), WRS2 1.1-7)",
+             help: "Use the trimming you will analyse with. 0.2 is the usual choice; 0 is no trimming (the paired t-test)."}
           - {id: score_shape, label: "The shape of the changes (second minus first)", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: wilcoxon_signed_rank},
              choices: {normal: "Roughly normal (bell-shaped)", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
@@ -674,6 +697,28 @@ forms:
          shown_if: [{field: calc_method, is: exact}, {field: method, is: pearson}],
          choices: {exact: "Exact, as in G*Power (the exact distribution of r; pwrss)", fisher_z: "Fisher's z, an approximation (pwr)"},
          default: exact, default_source: "the exact method, G*Power's default for this test (pwrss's power.exact.onecor(), pwrss 1.3.3)"}
+
+  # The repeated-measures correlation (Bakdash and Marusich, 2017): pwrss's
+  # exact distribution of r at the effective sample size N(k - 1) + 1.
+  E76:
+    methods_name: "a repeated-measures correlation"
+    tool: pwrss
+    sensitivity: true
+    directional: true
+    base: {spec_version: "0.1", design: basic_test, template: repeated_measures_correlation,
+           variables: {X: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
+           target_test: {effect: correlation, method: rmcorr}}
+    groups:
+      - input: "Names of the two scores"
+        fields:
+          - {id: X_label, label: "First score", type: text, path: variables.X.label, required: true}
+          - {id: Y_label, label: "Second score", type: text, path: variables.Y.label, required: true}
+      - input: "The expected correlation within people, and how many times each person is measured"
+        fields:
+          - {id: r, writeup_label: "repeated-measures correlation", label: "Correlation within people (r_rm)", type: number, path: population.r, effect: true, min: -1, max: 1,
+             help: "How strongly the two scores go together within people, once each person's own average is removed. rmcorr and JASP report it as r_rm. It is often smaller than the correlation between people's averages."}
+          - {id: measurements, label: "Times each person is measured on both scores", type: number, path: population.measurements, required: true, min: 2, integer: true,
+             help: "For example, 7 for a week of daily diaries. Count only the occasions on which both scores are measured."}
 
   E5:
     methods_name: "a test of two proportions (z test)"
@@ -1498,8 +1543,9 @@ forms:
              default: 0, default_source: "0: no other predictors related to the score (the value powerEpiCont.default()'s help gives for a randomised comparison, rho2 = 0, powerSurvEpi 0.1.5)",
              help: "How well the other predictors in the model predict the score. The more they overlap with it, the less the score adds."}
   E69:
-    methods_name: "a test of reliability or agreement (the ICC, Cronbach's alpha or kappa)"
+    methods_name: "a test of reliability or agreement (the ICC, Cronbach's alpha, kappa or the Bland-Altman limits of agreement)"
     tool: kappaSize
+    departures: ["27"]
     directional: false
     base: {spec_version: "0.1", design: reliability, variables: {"Y": {type: continuous}}, population: {}, target_test: {}}
     groups:
@@ -1508,14 +1554,16 @@ forms:
           - {id: question, label: "What you want to show", type: select, path: template, required: true,
              choices: {icc: "That raters (or occasions) agree on a score: the intraclass correlation (ICC)",
                        cronbach_alpha: "That a scale's items are consistent: Cronbach's alpha",
-                       kappa: "That raters agree on a category: kappa"},
+                       kappa: "That raters agree on a category: kappa",
+                       bland_altman: "That two methods of measurement agree closely enough to be used in place of each other: Bland-Altman limits of agreement"},
              sets: {icc: [{path: population.metric, value: icc}, {path: target_test.effect, value: icc}, {path: target_test.method, value: icc_test}],
                     cronbach_alpha: [{path: population.metric, value: cronbach_alpha}, {path: target_test.effect, value: cronbach_alpha}, {path: target_test.method, value: bonett_wright}],
-                    kappa: [{path: variables.Y.type, value: categorical}, {path: population.metric, value: kappa}, {path: target_test.effect, value: kappa}, {path: target_test.method, value: kappa_chi_square}]}}
+                    kappa: [{path: variables.Y.type, value: categorical}, {path: population.metric, value: kappa}, {path: target_test.effect, value: kappa}, {path: target_test.method, value: kappa_chi_square}],
+                    bland_altman: [{path: population.metric, value: bland_altman}, {path: target_test.effect, value: limits_of_agreement}]}}
           - {id: Y_label, label: "What is rated or measured (for example, therapist competence, or a study anxiety scale)", type: text, path: variables.Y.label, required: true}
           - {id: rel_alternative, label: "Which test", type: select, path: target_test.alternative, required: true,
              choices: {greater: "One-sided: show it is above the value you name (the usual aim)", two_sided: "Two-sided: show it differs from that value, in either direction"},
-             shown_if: {field: question, is_not: kappa},
+             shown_if: [{field: question, is_not: kappa}, {field: question, is_not: bland_altman}],
              default_source: "Not filled in for you (for reference: ICC.Sample.Size's calculateIccPower() is two-sided by default, tails = 2, version 1.1; statpsych's size.test.cronbach() is two-sided, version 2.0.0)",
              help: "A reliability study usually aims to show the value is above a minimum, such as 0.7, which is a one-sided test."}
       - input: "The ICC: the value you expect, the value to beat, and the number of ratings"
@@ -1551,6 +1599,29 @@ forms:
           - {id: kappa_null, in_effect_text: true, writeup_label: "kappa under the null hypothesis", label: "The kappa to test against (for example, 0.4)", type: number, path: population.kappa_null, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: kappa},
              help: "kappaSize tests whether kappa equals this value, in either direction; it takes values above 0."}
+      - input: "Bland-Altman: the bias, the SD of the differences, and the largest acceptable difference"
+        shown_if: {field: question, is: bland_altman}
+        note: "Each subject is measured by both methods. The analysis is of the differences between them: their mean (the bias) and the limits of agreement, the bias plus and minus 1.96 SDs of the differences for 95% limits. Agreement is shown when both limits, at the outer ends of their confidence intervals, lie within plus and minus the largest difference that would not matter in practice."
+        fields:
+          - {id: ba_bias, writeup_label: "expected bias (method 1 minus method 2)", label: "The mean difference you expect between the methods (method 1 minus method 2, in the measure's units)", type: number, path: population.bias, effect: true,
+             shown_if: {field: question, is: bland_altman}}
+          - {id: ba_sd, writeup_label: "expected SD of the differences", label: "The SD of the differences you expect (in the measure's units)", type: number, path: population.sd_difference, effect: true, min_exclusive: 0,
+             shown_if: {field: question, is: bland_altman}}
+          - {id: ba_margin, in_effect_text: true, writeup_label: "largest acceptable difference", label: "The largest difference between the methods that wouldn't matter in practice (both limits must lie within plus and minus this)", type: number, path: population.margin, required: true, min_exclusive: 0,
+             shown_if: {field: question, is: bland_altman},
+             help: "Set it from clinical or practical grounds before the data are collected, not from the limits you hope to see."}
+          - {id: agree_level, in_effect_text: true, writeup_label: "share of differences the limits cover", label: "The share of differences the limits of agreement cover", type: number, path: target_test.agree_level, required: true, min_exclusive: 0.5, max_exclusive: 1,
+             default: 0.95, default_source: "95% limits of agreement, Bland and Altman's usual choice (SimplyAgree's agreement_limit(agree.level = 0.95), version 0.3.0)",
+             shown_if: {field: question, is: bland_altman}}
+          - {id: ba_method, label: "How to work it out", type: select, path: target_test.method, required: true,
+             shown_if: {field: question, is: bland_altman},
+             choices: {mover: "Simulate the analysis, with MOVER confidence intervals for the limits (recommended)",
+                       bland_altman: "Simulate the analysis, with Bland and Altman's confidence intervals for the limits",
+                       lu_formula: "Quick approximation: Lu et al.'s (2016) formula (instant, less accurate)"},
+             default: mover, default_source: "the MOVER intervals, SimplyAgree's default (agreement_limit(loa_calc = 'mover'), version 0.3.0), whose error rates are close to the level you set",
+             choice_notes: {mover: "powerkit simulates studies like yours and analyses each with SimplyAgree's agreement_limit(), as you would analyse your data. The MOVER intervals (Zou, 2013) keep the chance of wrongly showing agreement close to the level you set. Power at a fixed sample size runs here in under a minute; a sample size comes as an R script that takes about 5 minutes.",
+                            bland_altman: "The same simulation with Bland and Altman's (1999) approximate intervals. Choose it if that is the analysis you will report. Its intervals are a little too narrow in small samples, so it shows agreement more often than it should: about twice the level you set at 30 subjects.",
+                            lu_formula: "The published formula for this analysis (Lu et al., 2016), SimplyAgree's blandPowerCurve(). It is instant, but it approximates the analysis it plans for: for a bias of 0.5, an SD of the differences of 2.5 and a margin of 8, it gives 80% power at 26 subjects, where the MOVER analysis has about 69% and needs 33. Use it to explore, and the simulation for the number you report."}}
   E44:
     methods_name: "an actor-partner interdependence model"
     tool: power4mome

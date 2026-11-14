@@ -17,14 +17,6 @@ labs_tools <- list(
        text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page.",
        purpose = "For finding your way among designs: what each analysis is and what it is next to.",
        sure = "Drawn from powerkit's design finder. It shows where each question leads, not which analysis is right for your study."),
-  list(id = "prereplication", title = "Pre-replication notes",
-       text = "Before replicating a finding: three questions to think through whether, why and how to replicate it, and the smallest effect the original study could detect.",
-       purpose = "For researchers deciding whether, why and how to replicate a finding.",
-       sure = "The questions are Karhulahti, Martončik and Adamkovič's (2025); the one number, the smallest detectable effect, comes from the same engine as the main cards. Nothing you write is scored, checked or sent anywhere. Your notes stay in this browser tab, so reloading the page keeps them; closing the tab or pressing “Clear notes” removes them."),
-  list(id = "replication", title = "Replication planner",
-       text = "Plan a replication of a published finding: the original study, the sample size for each goal a replication can have (from a significant result to agreement with the original, small telescopes and Bayes factors), how the replication differs, and a write-up with an R script. In sections you can come back to.",
-       purpose = "For planning a replication once you have decided to run one.",
-       sure = "Every number comes from powerkit's engine: the R package BayesRepDesign (Pawel, Consonni and Held), and pwr and pwrss for small telescopes, as on the cards. Not yet part of powerkit's validation."),
   list(id = "picture", title = "Power visualiser",
        text = "For seven common tests (t-tests, ANOVA, two proportions, a correlation, chi-square and a regression's R-squared): move the sample size and the effect, choose alpha, and see the two distributions behind power, with power, its complement and the smallest effect that would be significant.",
        purpose = "For learning what power means, not for planning a study.",
@@ -53,7 +45,7 @@ labs_tool_head <- function(id) {
     h2(class = "h3 labs-tool-title", tool$title),
     div(class = "labs-notice", role = "note", tags$strong("Experimental. "), tool$purpose, " ", tool$sure))
 }
-labs_tool_sections <- list("Research tools" = c("map", "prereplication", "replication", "bayes", "published"),
+labs_tool_sections <- list("Research tools" = c("map", "bayes", "published"),
   "Educational tools" = c("picture", "variation"))
 labs_ref_key <- "Karhulahti2025_prereplication"
 
@@ -336,8 +328,6 @@ labs_menu_section <- function(section) {
 }
 
 labs_ui <- function(tree) {
-  test_choices <- c("Choose one" = "", stats::setNames(labs_tests,
-    vapply(labs_tests, function(e) tree$endpoints[[e]]$plain_name, character(1))))
   div(id = "labs-notes", class = "labs",
     # First screen: the list of tools. A tool's own page starts with its
     # name, not the whole Labs header again.
@@ -353,10 +343,20 @@ labs_ui <- function(tree) {
     study_variation_ui(),
     bayes_ui(),
     published_ui(),
-    replication_ui(),
-    conditionalPanel("input.labs_tool == 'prereplication'",
-    labs_tool_head("prereplication"),
-    p("Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like. The questions are from Karhulahti, Martončik and Adamkovič (2025)."),
+    # Replication planning moved to replication plans (Study plans page).
+    p(class = "small labs-moved", "Looking for the pre-replication notes or the replication planner? They are now part of a replication plan, on the Study plans page: ",
+      actionLink("rep_plan_new_labs", "Start a replication plan"), ".")
+  )
+}
+
+# The pre-replication notes (Karhulahti, Martončik & Adamkovič, 2025), the
+# first section of a replication plan (R/study-plan-replication.R; in Labs
+# until 14 November 2026). Their boxes are kept in the plan.
+replication_notes_ui <- function(tree) {
+  test_choices <- c("Choose one" = "", stats::setNames(labs_tests,
+    vapply(labs_tests, function(e) tree$endpoints[[e]]$plain_name, character(1))))
+  tagList(
+    p("Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025)."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The finding"),
       p(class = "group-note", "Name the finding you want to test again, not only the study it came from. A replication can test the same finding with a better design."),
       labs_boxes("finding")),
@@ -386,17 +386,8 @@ labs_ui <- function(tree) {
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. Where you landed"),
       p(class = "group-note", "All three are good outcomes. Deciding that a finding isn't worth replicating, before spending time and participants on it, is a useful result."),
       radioButtons("labs_outcome", NULL, choices = stats::setNames(names(labs_outcomes), unname(labs_outcomes)), selected = character(0), width = "100%")),
-    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "6. Your notes"),
-      uiOutput("labs_next"),
-      div(class = "nav-buttons",
-        document_menu("labs_document", "labs_docx", "labs_download", "Save as PDF or print", "the notes", class = "btn btn-primary"),
-        actionButton("labs_copy", "Copy the notes", class = "btn btn-outline-primary"),
-        tags$button(type = "button", id = "labs_clear", class = "btn btn-link", onclick = "pkLabsClear()", "Clear notes")),
-      div(id = "labs-copy-status", class = "visually-hidden", `aria-live` = "polite"),
-      uiOutput("labs_copy_text")),
-    p(class = "small text-muted", "Reference: ", labs_citation())
-    )
-  )
+    uiOutput("labs_next"),
+    p(class = "small text-muted", "Reference: ", labs_citation()))
 }
 
 # Planning the replication from the notes (22 October 2026): the user's own
@@ -421,34 +412,19 @@ labs_return_ui <- function(on_form = FALSE, carried = FALSE) {
     if (on_form && carried) p(class = "small mb-0 mt-1", "Your notes' finding and smallest effect that would matter are copied into \u201cWhy this effect size?\u201d below; edit them as you like."))
 }
 
-# Asked before planning from the notes replaces a plan in progress.
-labs_replace_modal <- function() {
-  modalDialog(
-    title = "Replace the plan in progress?",
-    p("You have a plan in progress on \u201cPlan a power analysis\u201d. Planning the replication starts a new one there, and the plan in progress will be lost unless you save it first (\u201cSave this project\u201d on its result) or copy your answers."),
-    p("Your pre-replication notes are kept either way."),
-    footer = tagList(
-      modalButton("Keep my plan"),
-      actionButton("labs_plan_confirm", "Start the replication's plan", class = "btn btn-primary")),
-    easyClose = TRUE)
-}
 
-# What step 6 offers depends on where the user landed.
-labs_next_ui <- function(outcome, has_test) {
-  plan_label <- if (has_test) "the same test" else "the start screen"
+# What comes after the notes depends on where the user landed.
+labs_next_ui <- function(outcome, has_test = FALSE) {
+  next_step <- tags$button(type = "button", class = "btn btn-primary",
+    onclick = "var r = document.querySelector('input[name=rep_section][value=original]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }",
+    "Next: the original study")
   switch(outcome %||% "",
-    go = tagList(p(labs_notes_heading("go")),
-      tags$button(type = "button", class = "btn btn-primary", onclick = "pkLabsOpen('replication')", "Open the replication planner"),
-      p(class = "small", "Sample sizes for each goal a replication can have, how it differs from the original, and a write-up. Your notes go into it."),
-      actionButton("labs_plan", "Or plan it as one test in the main app", class = "btn btn-outline-primary"),
-      p(class = "small", sprintf("Opens the main app on %s.", plan_label))),
-    change = tagList(p(labs_notes_heading("change")),
-      tags$button(type = "button", class = "btn btn-primary", onclick = "pkLabsOpen('replication')", "Open the replication planner"),
-      p(class = "small", "For a redesigned replication of a t-test or correlation finding."),
-      actionButton("labs_plan", "Or plan the sample size for the new design in the main app", class = "btn btn-outline-primary"),
-      p(class = "small", "Opens the main app on the start screen, so you can choose the new design's analysis.")),
-    not_worth = p(labs_notes_heading("not_worth")),
-    p(class = "small", "Choose where you landed (step 5) to see what comes next. You can download or copy the notes at any time.")
+    go = tagList(p(labs_notes_heading("go")), next_step),
+    change = tagList(p(labs_notes_heading("change")), next_step,
+      p(class = "small", "For a redesigned replication, find the new design's analysis under The original study, and say what changes under How the replication differs.")),
+    not_worth = tagList(p(labs_notes_heading("not_worth")),
+      p(class = "small", "The write-up gives your notes as a negative pre-replication report. Save the plan to keep them.")),
+    p(class = "small", "Choose where you landed to see what comes next. The write-up includes these notes at any stage.")
   )
 }
 
@@ -458,8 +434,8 @@ labs_next_ui <- function(outcome, has_test) {
 labs_signpost_ui <- function() {
   conditionalPanel("input.f_just_type == 'prior_study'",
     div(class = "labs-signpost",
-      "Planning a replication? ", actionLink("go_labs", "Pre-replication notes"), " and the ",
-      actionLink("go_labs_replication", "replication planner"), " in Labs can help (optional). ",
+      "Planning a replication? A ", actionLink("rep_plan_new_signpost", "replication plan"),
+      " keeps the pre-replication notes, the goals a replication can have and a write-up with this analysis (optional). ",
       tags$button(type = "button", class = "btn btn-link btn-sm labs-hide", onclick = "pkLabsHideHint()", "Hide this")))
 }
 
@@ -473,9 +449,6 @@ labs_js <- "
     var fields = function() { return document.querySelectorAll('#labs-notes textarea, #labs-notes input[type=text], #labs-notes select'); };
     var save = function(el) { var s = store(); if (!s || !el.id) return; try { s.setItem(key + el.id, el.value); } catch (e) {} };
     $(document).on('input change', '#labs-notes textarea, #labs-notes input[type=text], #labs-notes select', function() { save(this); });
-    $(document).on('change', '#labs-notes input[name=labs_outcome]', function() {
-      var s = store(); if (s) { try { s.setItem(key + 'labs_outcome', this.value); } catch (e) {} }
-    });
     $(document).on('shiny:connected', function() {
       var s = store();
       if (s) { try { if (s.getItem('powerkit-labs-hint-hidden')) document.body.classList.add('labs-hint-hidden'); } catch (e) {} }
@@ -484,24 +457,8 @@ labs_js <- "
         var v = null; try { v = s.getItem(key + el.id); } catch (e) {}
         if (v !== null) { el.value = v; $(el).trigger('change'); }
       });
-      var o = null; try { o = s.getItem(key + 'labs_outcome'); } catch (e) {}
-      if (o) { var r = document.querySelector('#labs-notes input[name=labs_outcome][value=' + o + ']'); if (r) { r.checked = true; $(r).trigger('change'); } }
     });
-    window.pkLabsClear = function() {
-      if (!window.confirm('Clear all your pre-replication notes from this tab?')) return;
-      var s = store();
-      fields().forEach(function(el) {
-        // The replication planner's fields are kept: they are cleared there.
-        if (el.id && el.id.indexOf('rep_') === 0) return;
-        if (s) { try { s.removeItem(key + el.id); } catch (e) {} }
-        el.value = (el.id === 'labs_power') ? '0.8' : (el.id === 'labs_alpha') ? '0.05' : '';
-        $(el).trigger('change');
-      });
-      if (s) { try { s.removeItem(key + 'labs_outcome'); } catch (e) {} }
-      document.querySelectorAll('#labs-notes input[name=labs_outcome]').forEach(function(r) { r.checked = false; });
-      Shiny.setInputValue('labs_outcome', null);
-    };
-    // Which Labs tool is open, kept for the tab like the notes.
+    // Which Labs tool is open, kept for the tab like its fields.
     window.pkLabsOpen = function(tool) {
       var known = Array.from(document.querySelectorAll('[data-labs-tool]')).map(function(el) { return el.getAttribute('data-labs-tool'); });
       tool = known.indexOf(tool) >= 0 ? tool : '';

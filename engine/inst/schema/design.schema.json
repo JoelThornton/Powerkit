@@ -586,6 +586,18 @@
             "less"
           ]
         },
+        "trim": {
+          "description": "Yuen's trimmed-means test only: the proportion of scores trimmed from each end of each group (or each measurement) before the means are compared. Default 0.2, WRS2's default (yuen(tr = 0.2)); 0 gives Welch's t-test (two groups) or the paired t-test.",
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMaximum": 0.5
+        },
+        "agree_level": {
+          "description": "Bland-Altman limits of agreement only (design reliability, template bland_altman): the share of differences the limits cover. Default 0.95, the usual 95% limits (bias plus and minus 1.96 SD).",
+          "type": "number",
+          "exclusiveMinimum": 0.5,
+          "exclusiveMaximum": 1
+        },
         "evidence_threshold": {
           "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion, the correlation, two proportions and the one-way ANOVA): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
           "type": "number",
@@ -1114,6 +1126,7 @@
               "independent_t",
               "paired_t",
               "correlation",
+              "repeated_measures_correlation",
               "two_proportions",
               "chi_square_independence",
               "one_proportion",
@@ -1195,6 +1208,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_correlation"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "repeated_measures_correlation"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_repeated_measures_correlation"
             }
           },
           {
@@ -1636,7 +1664,7 @@
               }
             },
             "score_shape": {
-              "description": "Rank tests only: the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "description": "Rank tests and Yuen's trimmed-means test only: the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
               "enum": [
                 "normal",
                 "skewed",
@@ -1731,6 +1759,7 @@
                 "welch_t",
                 "mann_whitney",
                 "brunner_munzel",
+                "yuen",
                 "bayes_factor",
                 "minimum_effect"
               ]
@@ -1845,11 +1874,18 @@
               ]
             },
             "score_shape": {
-              "description": "Rank tests only: the shape of the scores powerkit simulates, in SD units, with the effect a shift of that shape. For the signed-rank test it is the shape of the scores (one sample) or of the within-person differences (paired), which the test assumes are symmetric, so 'skewed' isn't offered. 'normal' (the default); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "description": "Rank tests and Yuen's trimmed-means test only: the shape of the scores powerkit simulates, in SD units, with the effect a shift of that shape. For the signed-rank test it is the shape of the within-person differences, which the test assumes are symmetric, so 'skewed' is refused for it; for Yuen's paired test it is the shape of each measurement, and any of the three may be chosen. 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1; 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
               "enum": [
                 "normal",
+                "skewed",
                 "heavy_tailed"
               ]
+            },
+            "r": {
+              "description": "Yuen's paired test only: the correlation between the two measurements in the population. yuend() trims each measurement separately, so its power depends on this correlation as well as on d_z. The two measurements are simulated with SD 1 and this correlation, the second shifted by d_z times the SD of the differences, sqrt(2 * (1 - r)).",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
             },
             "effect_sd": {
               "description": "Bayes factor t-tests only: how uncertain the expected effect is, as the SD of a normal design prior centred on the effect (dz) in the same SD units. 0 (the default) plans for exactly that effect, as power analysis usually does.",
@@ -1904,6 +1940,7 @@
               "enum": [
                 "t_test",
                 "wilcoxon_signed_rank",
+                "yuen",
                 "bayes_factor",
                 "minimum_effect"
               ]
@@ -1977,6 +2014,60 @@
                 "bayes_factor"
               ],
               "description": "'pearson' (the default): Pearson's r, by formula (pwr). 'spearman' or 'kendall': Spearman's rho or Kendall's tau, simulated with Spower's p_r(method = ...) on bivariate normal scores whose Pearson correlation is population > r. 'bayes_factor': the Bayes factor test of Pearson's correlation (BayesFactor's correlationBF(), the same Bayes factor as JASP's Bayesian correlation), by exact calculation from the distribution of r."
+            }
+          }
+        }
+      }
+    },
+    "template_repeated_measures_correlation": {
+      "description": "The same people measured on two scores on several occasions: the within-person association of the two (the repeated-measures correlation, Bakdash and Marusich, 2017), tested against 0. One within-person slope common to everyone; people may differ in their averages.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r",
+            "measurements"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r": {
+              "description": "The repeated-measures correlation r_rm: the association of the two scores within people, after removing each person's average.",
+              "$ref": "#/definitions/correlation"
+            },
+            "measurements": {
+              "description": "How many times each person is measured on both scores (k). The test has N(k - 1) - 1 degrees of freedom for N people.",
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10000
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "correlation"
+            },
+            "method": {
+              "const": "rmcorr",
+              "description": "'rmcorr': the t test of the repeated-measures correlation (rmcorr's rmcorr()), with power from the exact distribution of r at the effective sample size N(k - 1) + 1 (pwrss's power.exact.onecor()), as rmcorr's documentation describes."
             }
           }
         }
@@ -11305,14 +11396,16 @@
             "enum": [
               "icc",
               "cronbach_alpha",
-              "kappa"
+              "kappa",
+              "bland_altman"
             ]
           },
           "options": {
             "properties": {
               "method": {
                 "enum": [
-                  "exact"
+                  "exact",
+                  "simulation"
                 ]
               },
               "proportions_formula": false,
@@ -11373,6 +11466,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_kappa"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "bland_altman"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_bland_altman"
             }
           }
         ]
@@ -11599,6 +11707,79 @@
                 },
                 "method": {
                   "const": "kappa_chi_square"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_bland_altman": {
+      "description": "Bland-Altman limits of agreement between two methods of measuring the same quantity on the same subjects: the study shows agreement when both limits of agreement (bias plus and minus z times the SD of the differences, z set by target_test > agree_level) lie inside plus and minus the largest acceptable difference (population > margin), judged by the outer ends of their confidence intervals (two-sided 1 - alpha, so each outer end is a one-sided 1 - alpha / 2 bound). 'mover' (the default) and 'bland_altman' simulate the analysis with Spower, each study analysed by SimplyAgree::agreement_limit() with MOVER or Bland and Altman's confidence intervals for the limits; 'lu_formula' is Lu et al.'s (2016) approximation, SimplyAgree::blandPowerCurve(). The differences are assumed normal. goal > n is the number of subjects measured by both methods.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "bias",
+            "sd_difference",
+            "margin"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "bland_altman"
+            },
+            "bias": {
+              "description": "The expected mean difference between the two methods (method 1 minus method 2), in the measure's own units: the bias.",
+              "type": "number"
+            },
+            "sd_difference": {
+              "description": "The expected SD of the differences between the two methods, in the measure's own units.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "margin": {
+              "description": "The largest difference between the two methods that would still count as agreement (the clinical or practical agreement limit), in the measure's own units. Agreement is shown when both limits of agreement, with their confidence intervals, lie within plus and minus this value.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "properties": {
+                "alternative": false
+              }
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "limits_of_agreement"
+                },
+                "method": {
+                  "enum": [
+                    "mover",
+                    "bland_altman",
+                    "lu_formula"
+                  ]
+                },
+                "agree_level": {
+                  "description": "The share of differences the limits of agreement cover: 0.95 (the default) for the usual 95% limits, bias plus and minus 1.96 SD.",
+                  "type": "number",
+                  "exclusiveMinimum": 0.5,
+                  "exclusiveMaximum": 1
                 }
               }
             }

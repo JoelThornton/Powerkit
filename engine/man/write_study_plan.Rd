@@ -4,13 +4,36 @@
 \alias{write_study_plan}
 \title{Save several power analyses as one study plan file}
 \usage{
-write_study_plan(analyses, file = NULL)
+write_study_plan(
+  analyses,
+  file = NULL,
+  id = NULL,
+  name = NULL,
+  description = NULL,
+  guided = NULL,
+  replication = NULL
+)
 }
 \arguments{
 \item{analyses}{A list of analyses, each a list with \code{spec}, and
-optionally \code{result} and \code{route}, as for \code{\link[=write_project]{write_project()}}.}
+optionally \code{result} and \code{route}, as for \code{\link[=write_project]{write_project()}}. An analysis
+may also carry \code{plan_role} (\code{"primary"}, \code{"secondary"} or \code{"check"})
+and \code{plan_note} (free text), kept with it in the file.}
 
 \item{file}{Path to write to. If \code{NULL}, the JSON text is returned.}
+
+\item{id, name, description}{Optional single strings: the plan's
+identifier, its name and a description of the study. Fields left
+\code{NULL} are not written, and older versions of powerkit ignore them.}
+
+\item{guided}{Optional list: the app's record of a guided whole-study
+plan ("Plan my whole study") that the study plan holds. It is kept as
+given; \code{NULL} is not written.}
+
+\item{replication}{Optional list: the app's record of a replication plan
+(the pre-replication notes, the original study, the goals and how the
+replication differs) that the study plan holds. Kept as given; \code{NULL}
+is not written.}
 }
 \value{
 The JSON text, invisibly when written to \code{file}.

@@ -203,8 +203,219 @@ test('a link to a card opens that card, and the address names the open card', as
 });
 
 test('a link straight to a Labs tool opens it, not the starting screen', async ({ page }) => {
-  await page.goto('?page=labs&tool=prereplication');
+  await page.goto('?page=labs&tool=picture');
   await expect(page.locator('#pk-starting')).toHaveCount(0);
+  await expect(page.locator('input[name=picture_alpha]').first()).toBeVisible();
+});
+
+test('a replication plan keeps its notes and planner fields, in the browser and in its file', async ({ page }, info) => {
+  await page.goto('?page=plans');
+  await expect(page.locator('#pk-starting')).toHaveCount(0, { timeout: 30000 });
+  await page.locator('#plans_new_replication').click();
+  await expect(page.locator('.replication-workspace')).toContainText('Planning the replication');
   await page.locator('#labs_study').fill('Smith (2019)');
+  await page.locator('input[name=rep_section][value=original]').click();
+  await page.locator('#rep_effect').fill('0.45');
+  // Kept in the browser across a reload (saved shortly after typing).
+  await page.waitForTimeout(1500);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.locator('.study-plan-chip').click();
+  await page.locator('.plans-row-name', { hasText: 'Replication plan' }).click();
   await expect(page.locator('#labs_study')).toHaveValue('Smith (2019)');
+  await page.locator('input[name=rep_section][value=original]').click();
+  await expect(page.locator('#rep_effect')).toHaveValue('0.45');
+  await expect(page.locator('#rep_find_design')).toBeVisible();
+  // Saved to a file that holds the record.
+  const pending = page.waitForEvent('download');
+  await page.locator('#download_study_plan').click();
+  const file = info.outputPath('replication.powerkit.json');
+  await (await pending).saveAs(file);
+  const saved = JSON.parse(await fs.readFile(file, 'utf8'));
+  expect(saved.replication.fields.labs_study).toBe('Smith (2019)');
+  expect(saved.replication.fields.rep_effect).toBe('0.45');
+});
+
+test('named study plans: add, rename, keep after a reload, save, reopen and update', async ({ page }, info) => {
+  await tPlan(page);
+  await calculate(page);
+  await page.locator('#plan_add').click();
+  await expect(page.locator('#study_plan_bar')).toContainText('Added to “Study plan,');
+  await expect(page.locator('#study_plan_bar')).toContainText('only in this browser until you save it');
+  await expect(page.locator('.study-plan-chip')).toContainText('Study plans (1)');
+  await expect(page.locator('.study-plan-chip .plan-unsaved-dot')).toHaveCount(1);
+
+  // The Study plans page, from the top bar; then the plan's own page.
+  await page.locator('.study-plan-chip').click();
+  await expect(page.locator('#plans_page h2')).toHaveText('Study plans');
+  await page.locator('.plans-row-name').first().click();
+  await page.locator('.plan-rename summary').click();
+  await page.locator('#plan_name').fill('Thesis study 2');
+  await page.locator('#plan_name_save').click();
+  await expect(page.locator('#plans_page h2.plan-title')).toHaveText('Thesis study 2');
+  await expect(page.locator('#plans_page')).toContainText('Only in this browser');
+
+  // Kept in the browser across a reload.
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.study-plan-chip')).toContainText('Study plans (1)');
+  await page.locator('.study-plan-chip').click();
+  await expect(page.locator('.plans-row-name')).toHaveText('Thesis study 2');
+  await page.locator('.plans-row-name').click();
+
+  // Saving to a file.
+  const file = info.outputPath('thesis.powerkit.json');
+  await expect(page.locator('#download_study_plan')).toHaveAttribute('href', /\/download\//);
+  const pending = page.waitForEvent('download');
+  await page.locator('#download_study_plan').click();
+  const saved = await pending;
+  expect(saved.suggestedFilename()).toBe('powerkit-thesis-study-2.powerkit.json');
+  await saved.saveAs(file);
+  await expect(page.locator('#plans_page')).toContainText('Saved to a file');
+  const text = await fs.readFile(file, 'utf8');
+  expect(JSON.parse(text).name).toBe('Thesis study 2');
+
+  // Opening the analysis again, changing it and updating it in the plan.
+  await page.locator('.plan-item-controls button', { hasText: 'Open' }).click();
+  await expect(page.locator('#form_result .result-panel')).toBeVisible();
+  await expect(page.locator('#study_plan_bar')).toContainText('From your plan “Thesis study 2”');
+  await setValue(page, 'd', '0.5');
+  await calculate(page);
+  await expect(page.locator('#study_plan_bar')).toContainText('changed it');
+  await page.locator('#plan_entry_update').click();
+  await expect(page.locator('#study_plan_bar')).toContainText('Updated in “Thesis study 2”');
+  await page.locator('.study-plan-chip').click();
+  await page.locator('.plans-row-name').click();
+  await expect(page.locator('.plan-item')).toHaveCount(1);
+  await expect(page.locator('#plans_page')).toContainText('Only in this browser');
+
+  // The saved file opened again: a different version, so both are kept.
+  await page.locator('#plans_back').click();
+  await page.locator('#plans_open_file').setInputFiles(file);
+  await expect(page.locator('.shiny-notification', { hasText: 'both are kept' })).toBeVisible();
+  await expect(page.locator('#plans_page h2.plan-title')).toContainText('Thesis study 2 (opened');
+  await page.locator('#plans_back').click();
+  await expect(page.locator('.plans-row-name')).toHaveCount(2);
+});
+
+async function planWithOneAnalysis(page) {
+  await tPlan(page);
+  await calculate(page);
+  await page.locator('#plan_add').click();
+  await expect(page.locator('#study_plan_bar')).toContainText('Added to');
+  await page.locator('.study-plan-chip').click();
+  await page.locator('.plans-row-name').first().click();
+  await expect(page.locator('#plans_page h2.plan-title')).toBeVisible();
+}
+const planKeys = page => page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('powerkit-study-plan') && k !== 'powerkit-study-plans'));
+const storedKeys = page => page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('powerkit-study-plan')));
+
+test('a plan that no longer fits in the browser keeps its last copy and says so', async ({ page }) => {
+  await planWithOneAnalysis(page);
+  await expect.poll(async () => (await planKeys(page)).length).toBe(1);
+  const [key] = await planKeys(page);
+  const before = await page.evaluate(k => localStorage.getItem(k), key);
+  // Another plan's copy fills the shared budget, so the next write can't fit.
+  await page.evaluate(() => localStorage.setItem('powerkit-study-plan:00000000000000ff', 'x'.repeat(2999000)));
+  await page.locator('.plan-rename summary').click();
+  await page.locator('#plan_name').fill('Renamed while full');
+  await page.locator('#plan_name_save').click();
+  await expect(page.locator('#plans_page')).toContainText('too large to keep in this browser');
+  expect(await page.evaluate(k => localStorage.getItem(k), key)).toBe(before);
+  await page.evaluate(() => localStorage.removeItem('powerkit-study-plan:00000000000000ff'));
+});
+
+test('copying a link to a plan shows the link and only then counts the plan as kept', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await planWithOneAnalysis(page);
+  await expect(page.locator('#plan_status')).toContainText('Only in this browser');
+  await page.locator('#share_study_plan').click();
+  await expect(page.locator('#share_study_plan_box')).toHaveValue(/#shared=1\./);
+  await expect(page.locator('#plan_status')).toContainText('Copied as a link');
+  await expect(page.locator('#share_study_plan_box')).toBeVisible();
+});
+
+test('a file that is not a plan, opened on the plans page, says so there', async ({ page }, info) => {
+  await page.locator('.study-plan-chip').click();
+  const bad = info.outputPath('not-a-plan.powerkit.json');
+  await fs.writeFile(bad, '{"format": "something else"}');
+  await page.locator('#plans_open_file').setInputFiles(bad);
+  await expect(page.locator('#plans_open_message .alert')).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Plan a power analysis' })).not.toHaveAttribute('aria-selected', 'true');
+});
+
+test('removing every plan clears this browser, the old single plan too', async ({ page }) => {
+  await planWithOneAnalysis(page);
+  await page.evaluate(() => localStorage.setItem('powerkit-study-plan', 'an old plan this version could not read'));
+  await page.locator('#plans_back').click();
+  page.once('dialog', d => d.accept());
+  await page.locator('#plans_forget_link').click();
+  await expect(page.locator('#plans_page')).toContainText('You have no study plans yet.');
+  await expect.poll(() => storedKeys(page)).toEqual([]);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.study-plan-chip')).toHaveText('Study plans');
+});
+
+test('a plan has an overview, downloads everything as a zip, and the zip opens as the plan in another browser', async ({ page, browser }, info) => {
+  await planWithOneAnalysis(page);
+  await expect(page.locator('.plan-overview')).toContainText('1 analysis: 1 primary');
+  await expect(page.locator('#download_plan_bundle')).toHaveAttribute('href', /\/download\//);
+  const pending = page.waitForEvent('download');
+  await page.locator('#download_plan_bundle').click();
+  const saved = await pending;
+  expect(saved.suggestedFilename()).toMatch(/^powerkit-study-plan-.*-everything\.zip$/);
+  const file = info.outputPath('plan.zip');
+  await saved.saveAs(file);
+  await expect(page.locator('#plans_page')).toContainText('Saved to a file');
+  // Another browser, with nothing stored: the zip opens as the plan.
+  const other = await browser.newPage();
+  await other.goto('/?page=plans', { waitUntil: 'domcontentloaded' });
+  await expect(other.locator('#plans_page')).toContainText('You have no study plans yet.');
+  await other.locator('#plans_open_file').setInputFiles(file);
+  await expect(other.locator('#plans_page h2.plan-title')).toContainText('Study plan,');
+  await expect(other.locator('.plan-item')).toHaveCount(1);
+  await other.close();
+});
+
+test('Plan my whole study keeps its plan in a study plan, which saves it and opens it again', async ({ page }, info) => {
+  const pick = async text => {
+    const target = page.locator('#screen button .choice-label').filter({ hasText: new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) });
+    await target.first().click();
+  };
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.locator('#screen button', { hasText: 'Plan my whole study' }).first().click();
+  await page.locator('#screen button', { hasText: 'Test a prediction' }).first().click();
+  for (const a of ['Yes/no, or one of several categories', 'Independent people', 'Once']) await pick(a);
+  await expect(page.locator('input[name="g_x"]').first()).toBeVisible();
+  // Turning back before the list of analyses leaves no plan behind.
+  await expect(page.locator('.study-plan-chip')).toHaveText('Study plans');
+  const vars = { x: 'cond2', outcome: 'yesno', mediators: 'none', moderator: 'none', covariate: 'none' };
+  for (const [k, v] of Object.entries(vars)) await page.check(`input[name="g_${k}"][value="${v}"]`);
+  await page.locator('#screen button', { hasText: 'Next: choose the analyses' }).click();
+  await expect(page.locator('#screen h2')).toContainText('your analyses');
+  await expect(page.locator('.study-plan-chip')).toHaveText(/Study plans \(1\)/);
+  await page.locator('#screen button', { hasText: 'Show my plan' }).click();
+  await expect(page.locator('#screen .plan-item').first()).toBeVisible();
+  await expect(page.locator('.plan-save')).toContainText('See the study plan “Whole-study plan,');
+  // Save this plan saves the study plan holding the guided plan.
+  await expect(page.locator('#download_guided_plan')).toHaveAttribute('href', /\/download\//);
+  const pending = page.waitForEvent('download');
+  await page.locator('#download_guided_plan').click();
+  const saved = await pending;
+  expect(saved.suggestedFilename()).toMatch(/^powerkit-whole-study-plan-.*\.powerkit\.json$/);
+  const file = info.outputPath('whole.powerkit.json');
+  await saved.saveAs(file);
+  const record = JSON.parse(await fs.readFile(file, 'utf8'));
+  expect(record.format).toBe('powerkit-guided-plan');
+  expect(record.study_plan.name).toMatch(/^Whole-study plan, /);
+  expect(record.plan.primary).toBeTruthy();
+  // The plan's page shows the guided plan and opens it again.
+  await page.locator('#plan_view').click();
+  await expect(page.locator('.plan-guided')).toContainText('Whole-study plan');
+  await expect(page.locator('#plans_page')).toContainText('Saved to a file');
+  await page.locator('#plan_open_guided').click();
+  await expect(page.locator('#screen .plan-item').first()).toBeVisible();
+  await expect(page.locator('.study-plan-chip')).toHaveText(/Study plans \(1\)/);
+  // Opening it changed nothing, so it is still saved.
+  await page.locator('.study-plan-chip').click();
+  await page.locator('.plans-row-name').click();
+  await expect(page.locator('#plans_page')).toContainText('Saved to a file');
 });

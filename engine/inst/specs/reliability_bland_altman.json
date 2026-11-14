@@ -1,0 +1,21 @@
+{
+  "spec_version": "0.1",
+  "design": "reliability",
+  "template": "bland_altman",
+  "variables": {
+    "Y": {"type": "continuous", "label": "Systolic blood pressure (mmHg)"}
+  },
+  "population": {
+    "metric": "bland_altman",
+    "bias": 0.5,
+    "sd_difference": 2.5,
+    "margin": 8
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a wrist monitor expected to read 0.5 mmHg high with an SD of differences of 2.5 mmHg, against an acceptable difference of 8 mmHg."
+  },
+  "target_test": {"effect": "limits_of_agreement", "method": "mover", "agree_level": 0.95, "alpha": 0.05},
+  "goal": {"type": "sample_size", "power": 0.8},
+  "options": {"seed": 46, "nrep": 1000}
+}

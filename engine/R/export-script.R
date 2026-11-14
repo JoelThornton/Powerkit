@@ -64,7 +64,9 @@ export_script <- function(spec, result, file = NULL) {
     } else {
       pwr_script(spec, result)
     },
-    pwrss = if (mediation_joint_test(spec)) {
+    pwrss = if (rmcorr_test(spec)) {
+      rmcorr_script(spec, result)
+    } else if (mediation_joint_test(spec)) {
       mediation_joint_script(spec, result)
     } else if (spec$design == "generic_test") {
       generic_script(spec, result)
@@ -98,6 +100,7 @@ export_script <- function(spec, result, file = NULL) {
     ICC.Sample.Size = ,
     statpsych = ,
     kappaSize = reliability_script(spec, result),
+    SimplyAgree = bland_altman_script(spec, result),
     longpower = growth_script(spec, result),
     irtpwr = irt_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result), three_level = three_level_script(spec, result),
@@ -243,6 +246,9 @@ design_description <- function(spec) {
   if (identical(spec$design, "survival")) {
     return(survival_design_description(spec, label))
   }
+  if (bland_altman_test(spec)) {
+    return(bland_altman_design_description(spec, label))
+  }
   if (identical(spec$design, "reliability")) {
     return(reliability_design_description(spec, label))
   }
@@ -313,6 +319,10 @@ design_description <- function(spec) {
       "planned comparison of %s across the %d groups of %s (%s), with weights %s; t test of the contrast",
       label("Y"), length(unlist(v$A$levels)), label("A"), levels("A"),
       paste(format_number(as.numeric(unlist(spec$target_test$weights))), collapse = ", ")
+    ),
+    "basic_test/repeated_measures_correlation" = sprintf(
+      "repeated-measures correlation: do %s and %s go together within people, each measured %s times?",
+      label("X"), label("Y"), spec$population$measurements
     ),
     "basic_test/one_variance" = sprintf(
       "chi-square test of one variance: is the variance of %s different from a fixed value?",
@@ -693,10 +703,20 @@ rank_design_description <- function(spec, label, levels) {
   test <- switch(
     spec$template,
     one_sample_t = sprintf("one-sample Wilcoxon signed-rank test of %s", label("Y")),
-    paired_t = sprintf(
-      "Wilcoxon signed-rank test of %s between the conditions of %s (%s)", label("Y"), label("X"), levels("X")
-    ),
-    independent_t = if (brunner_munzel_test(spec)) {
+    paired_t = if (yuen_test(spec)) {
+      sprintf(
+        "Yuen's paired test of %s trimmed means of %s between the conditions of %s (%s), the two measurements correlated %s",
+        trim_words(spec), label("Y"), label("X"), levels("X"), format_number(spec$population$r)
+      )
+    } else {
+      sprintf("Wilcoxon signed-rank test of %s between the conditions of %s (%s)", label("Y"), label("X"), levels("X"))
+    },
+    independent_t = if (yuen_test(spec)) {
+      sprintf(
+        "Yuen's test of %s trimmed means of %s between the groups of %s (%s), group 2's SD %s times group 1's",
+        trim_words(spec), label("Y"), label("X"), levels("X"), format_number(spec$population$sd_ratio %||% 1)
+      )
+    } else if (brunner_munzel_test(spec)) {
       sprintf(
         "Brunner-Munzel test of %s between the groups of %s (%s), group 2's SD %s times group 1's",
         label("Y"), label("X"), levels("X"), format_number(spec$population$sd_ratio %||% 1)
@@ -717,6 +737,9 @@ rank_design_description <- function(spec, label, levels) {
   )
   sprintf("%s, simulated with %s", test, score_shape_words(spec$population$score_shape))
 }
+
+# The trimming of Yuen's test in words: "20%".
+trim_words <- function(spec) sprintf("%g%%", 100 * yuen_trim(spec))
 
 anova_effect_name <- function(spec) {
   v <- spec$variables
@@ -807,7 +830,7 @@ goal_inputs <- function(spec, result) {
         sprintf("replications <- %s # simulated data sets per sample size", r_code(p$nrep)),
         sprintf("seed <- %s # powerkit's seed for this run", r_code(p$seed))
       )
-    } else if (p$backend %in% c("pwr", "stats", "pwrss", "TOSTER", "powertools", "semPower", "Hmisc", "powerSurvEpi", "ICC.Sample.Size", "statpsych", "kappaSize") || p$method == "analytic") {
+    } else if (p$backend %in% c("pwr", "stats", "pwrss", "TOSTER", "powertools", "semPower", "Hmisc", "powerSurvEpi", "ICC.Sample.Size", "statpsych", "kappaSize", "SimplyAgree") || p$method == "analytic") {
       sprintf(
         "# powerkit recorded seed %s for this run; %s's formulas draw no random numbers, so it isn't used.",
         p$seed, p$backend
@@ -1105,6 +1128,56 @@ variance_script <- function(spec, result) {
     "}",
     "",
     pwr_goal_section(spec, result),
+    comparison_section()
+  )
+}
+
+# The repeated-measures correlation (backend-rmcorr.R): pwrss's exact
+# distribution of r at the effective sample size N(k - 1) + 1.
+rmcorr_script <- function(spec, result) {
+  inputs <- rmcorr_inputs(spec)
+  goal <- spec$goal
+  v <- spec$variables
+  alternative <- if (inputs$alternative == "two_sided") "two.sided" else "one.sided"
+  goal_lines <- switch(
+    goal$type,
+    sensitivity = c(
+      "# Smallest detectable correlation ----",
+      "# pwrss has no solver for r, so it is searched with power_at(), as powerkit does.",
+      sprintf("direction <- %s # the sign of the correlation the test looks for", r_code(sign(result$sensitivity$effect))),
+      "r_found <- uniroot(function(r) power_at(n_total, direction * r) - target_power,",
+      "  lower = 1e-9, upper = 1 - 1e-9, tol = 1e-10)$root * direction",
+      "power <- power_at(n_total, r_found)",
+      "cat(sprintf(\"Smallest detectable r_rm with n = %s: %.4f\\n\", n_total, r_found))",
+      "",
+      "reproduced <- list(effect = r_found, power = power)",
+      sprintf("powerkit_result <- list(effect = %s, power = %s)", r_code(result$sensitivity$effect), r_code(result$sensitivity$power)),
+      ""
+    ),
+    pwr_goal_section(spec, result)
+  )
+  c(
+    script_header(spec, result, "pwrss", inputs$description),
+    "library(pwrss)",
+    "",
+    "# Inputs ----",
+    sprintf("r_rm <- %s # repeated-measures correlation of %s and %s within people", r_code(inputs$r), comment_text(v$X$label), comment_text(v$Y$label)),
+    sprintf("measurements <- %s # times each person is measured on both scores (k)", r_code(inputs$k)),
+    goal_inputs(spec, result),
+    "",
+    "# The repeated-measures correlation (Bakdash and Marusich, 2017; the rmcorr",
+    "# package) is tested with N(k - 1) - 1 degrees of freedom for N people, so",
+    "# its power is a Pearson correlation's at the effective sample size",
+    "# N(k - 1) + 1, here from the exact distribution of r.",
+    "power_at <- function(n_people, r = r_rm) {",
+    "  power.exact.onecor(",
+    "    rho = if (r == 0) .Machine$double.eps else r, null.rho = 0,",
+    "    n = n_people * (measurements - 1) + 1, alpha = alpha,",
+    sprintf("    alternative = %s, verbose = 0", r_code(alternative)),
+    "  )$power",
+    "}",
+    "",
+    goal_lines,
     comparison_section()
   )
 }
@@ -2707,9 +2780,12 @@ rank_script_inputs <- function(spec) {
     one_sample_t = sprintf(
       "d <- %s # Cohen's d: (expected mean of %s minus the fixed value) / SD", r_code(pop$d), comment_text(v$Y$label)
     ),
-    paired_t = sprintf(
-      "dz <- %s # d_z: mean of the differences (%s minus %s) / SD of the differences",
-      r_code(pop$dz), lv("X", 2), lv("X", 1)
+    paired_t = c(
+      sprintf(
+        "dz <- %s # d_z: mean of the differences (%s minus %s) / SD of the differences",
+        r_code(pop$dz), lv("X", 2), lv("X", 1)
+      ),
+      if (yuen_test(spec)) sprintf("r <- %s # correlation between the two measurements", r_code(pop$r))
     ),
     independent_t = c(
       sprintf("d <- %s # Cohen's d: (mean of %s minus mean of %s) / SD", r_code(pop$d), lv("X", 2), lv("X", 1)),
@@ -2717,7 +2793,7 @@ rank_script_inputs <- function(spec) {
         "allocation_ratio <- %s # size of group 2 (%s) relative to group 1 (%s)",
         r_code(allocation_ratio(spec)), lv("X", 2), lv("X", 1)
       ),
-      if (brunner_munzel_test(spec)) sprintf("sd_ratio <- %s # SD of group 2 over SD of group 1", r_code(pop$sd_ratio %||% 1))
+      if (brunner_munzel_test(spec) || yuen_test(spec)) sprintf("sd_ratio <- %s # SD of group 2 over SD of group 1", r_code(pop$sd_ratio %||% 1))
     ),
     oneway_between = c(
       sprintf(
@@ -2736,7 +2812,11 @@ rank_script_inputs <- function(spec) {
       sprintf("r <- %s # correlation between any two conditions, within a participant", r_code(pop$r))
     )
   )
-  c(effect, shape)
+  c(
+    effect,
+    if (yuen_test(spec)) sprintf("trim <- %s # the share trimmed from each end of each sample (%s)", r_code(yuen_trim(spec)), trim_words(spec)),
+    shape
+  )
 }
 
 # The score generators powerkit uses (score_shape_sampler(), and the
@@ -2831,7 +2911,23 @@ rank_derived_lines <- function(spec) {
     one_sample_t = c(
       "shifted <- function(n, d) d + draw_scores(n) # scores shifted by d"
     ),
-    paired_t = c(
+    paired_t = if (yuen_test(spec)) c(
+      "# The experiment, as powerkit runs it: each measurement is the person's",
+      "# own level (normal, variance r) plus a deviation in the chosen shape",
+      "# (variance 1 - r), so both have SD 1 and correlate r; the second is",
+      "# shifted by d_z times the SD of the differences, sqrt(2 * (1 - r)). The",
+      "# levels are drawn first, then the first measurement's deviations, then",
+      "# the second's. Then the p-value of WRS2's yuend(), Yuen's test of the",
+      "# trimmed means of paired measurements. yuend()'s t is first minus",
+      "# second, so \"less\" is the alternative in which the second is higher.",
+      "p_yuend <- function(n, dz, r, trim, alternative = \"two.sided\") {",
+      "  person <- sqrt(r) * rnorm(n)",
+      "  first <- person + sqrt(1 - r) * draw_scores(n)",
+      "  second <- dz * sqrt(2 * (1 - r)) + person + sqrt(1 - r) * draw_scores(n)",
+      "  yuen_p(WRS2::yuend(first, second, tr = trim), alternative)",
+      "}",
+      yuen_p_lines()
+    ) else c(
       "# The signed-rank test ranks the within-person differences, so the",
       "# differences are drawn directly: first minus second condition, shifted",
       "# by -d_z, against a second sample of 0.",
@@ -2839,7 +2935,22 @@ rank_derived_lines <- function(spec) {
       "zero <- function(n, d) rep(0, n)",
       "d_spower <- -dz"
     ),
-    independent_t = if (brunner_munzel_test(spec)) c(
+    independent_t = if (yuen_test(spec)) c(
+      "# The experiment, as powerkit runs it: group 1's scores and group 2's,",
+      "# in the chosen shape, group 2's SD sd_ratio times group 1's (the two",
+      "# scaled so that sqrt((SD1^2 + SD2^2) / 2) is 1) and its mean d higher;",
+      "# then the p-value of WRS2's yuen(), Yuen's test of trimmed means.",
+      "# yuen()'s difference is group 1 minus group 2, so \"less\" is the",
+      "# alternative in which group 2 is higher.",
+      "p_yuen <- function(n, n2_n1, d, sd_ratio, trim, alternative = \"two.sided\") {",
+      "  sd1 <- sqrt(2 / (1 + sd_ratio^2))",
+      "  first <- sd1 * draw_scores(n)",
+      "  second <- d + sd_ratio * sd1 * draw_scores(round(n * n2_n1))",
+      "  data <- data.frame(y = c(first, second), group = factor(rep(1:2, c(length(first), length(second)))))",
+      "  yuen_p(WRS2::yuen(y ~ group, data = data, tr = trim), alternative)",
+      "}",
+      yuen_p_lines()
+    ) else if (brunner_munzel_test(spec)) c(
       "# The experiment, as powerkit runs it: group 1's scores and group 2's,",
       "# in the chosen shape, group 2's SD sd_ratio times group 1's (the two",
       "# scaled so that sqrt((SD1^2 + SD2^2) / 2) is 1) and its mean d higher;",
@@ -2891,6 +3002,19 @@ rank_derived_lines <- function(spec) {
   c(draw, "", rest)
 }
 
+# The one-sided p-value of Yuen's test, as yuen_p_value() computes it.
+yuen_p_lines <- function() {
+  c(
+    "# WRS2 reports a two-sided p-value; a one-sided one comes from t, given",
+    "# the sign of the difference (yuen() reports |t|).",
+    "yuen_p <- function(fit, alternative) {",
+    "  if (alternative == \"two.sided\") return(fit$p.value)",
+    "  t <- sign(fit$diff) * abs(fit$test)",
+    "  pt(t, fit$df, lower.tail = alternative == \"less\")",
+    "}"
+  )
+}
+
 rank_experiment_lines <- function(spec, inputs, one_sided) {
   if (art_within(spec)) {
     within_both <- identical(spec$template, "factorial_within")
@@ -2924,18 +3048,24 @@ rank_experiment_lines <- function(spec, inputs, one_sided) {
       "type = \"one.sample\",",
       "parent1 = shifted"
     ),
-    paired_t = c(
+    paired_t = if (yuen_test(spec)) c(
+      "n = batch_n, # number of participants (pairs)",
+      "dz = dz, # d_z (second minus first)",
+      "r = r, # correlation between the measurements",
+      "trim = trim"
+    ) else c(
       "n = batch_n, # number of participants (pairs)",
       "d = d_spower, # -d_z (see above)",
       "type = \"paired\",",
       "parent1 = shifted,",
       "parent2 = zero"
     ),
-    independent_t = if (brunner_munzel_test(spec)) c(
+    independent_t = if (brunner_munzel_test(spec) || yuen_test(spec)) c(
       "n = n_group1, # size of group 1",
       "n2_n1 = allocation_ratio, # size of group 2 relative to group 1",
       "d = d, # Cohen's d (group 2 minus group 1)",
-      "sd_ratio = sd_ratio"
+      "sd_ratio = sd_ratio",
+      if (yuen_test(spec)) "trim = trim"
     ) else c(
       "n = n_group1, # size of group 1",
       "d = d_spower, # -d (see above)",

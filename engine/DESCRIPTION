@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Common Research Designs
-Version: 0.63.0
+Version: 0.66.1
 Authors@R:
     person("Joel", "Thornton", , "joelthornton53@gmail.com",
            role = c("aut", "cre"))
@@ -91,13 +91,15 @@ Suggests:
     quantreg,
     semPower,
     simsem,
+    SimplyAgree,
     statpsych,
     survival,
     testthat (>= 3.0.0),
     TOSTER,
     vegan,
     WebPower,
-    withr
+    withr,
+    WRS2
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 Config/testthat/start-first: export-script, whole-study, backend-modmed-parallel, backend-mixed-model

@@ -92,6 +92,12 @@ refs_path <- function() system.file("citations", "refs.bib", package = "powerkit
 # refs.bib key is cited as the method paper in place of stats_method.
 formula_reference_key <- function(provenance) {
   fun <- provenance$backend_function %||% ""
+  # The repeated-measures correlation: pwrss's exact r at rmcorr's
+  # effective sample size (backend-rmcorr.R).
+  if (identical(provenance$backend, "pwrss") && grepl("effective sample size N(k - 1) + 1", fun, fixed = TRUE)) return("Bakdash2017_rmcorr")
+  # The Bland-Altman limits of agreement by Lu et al.'s approximation
+  # (SimplyAgree's blandPowerCurve(), backend-agreement.R).
+  if (identical(provenance$backend, "SimplyAgree") && grepl("Lu et al.", fun, fixed = TRUE)) return("Lu2016_bland_altman_n")
   if (!identical(provenance$backend, "stats")) return(NULL)
   if (grepl("Pillai's V", fun, fixed = TRUE)) "Faul2007_gpower" else if (grepl("Levy's noncentral F", fun, fixed = TRUE)) "Jan2014_welch_anova"
 }
@@ -128,6 +134,9 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       if ("brunnermunzel" %in% used) {
         list(s("brunnermunzel", "whose brunnermunzel.test() is the Brunner-Munzel test powerkit's experiment runs"))
       },
+      if ("WRS2" %in% used) {
+        list(s("WRS2", "whose yuen() and yuend() are Yuen's trimmed-means tests powerkit's experiment runs"))
+      },
       if ("ARTool" %in% used) {
         c(
           list(s("ARTool", "whose art() and artlm() are the aligned rank transform powerkit's experiment runs")),
@@ -157,6 +166,12 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
         list(s("quantreg", "whose rq() and summary.rq() are the quantile regression powerkit's experiment runs"))
       }
     ),
+    SimplyAgree = if ("Spower" %in% used) {
+      list(
+        s("Spower", "which runs the simulated studies whose limits of agreement SimplyAgree computes"),
+        s("SimDesign", "which runs Spower's simulations")
+      )
+    },
     Superpower = list(
       s("afex", "which fits Superpower's ANOVAs (aov_car())"),
       s("MASS", "which Superpower uses to generate data (mvrnorm())")
