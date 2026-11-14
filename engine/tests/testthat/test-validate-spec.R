@@ -21,6 +21,8 @@ test_that("every bundled mediation example asks only for what power4mome's route
   for (name in example_spec_names()) {
     spec <- validate_spec(example_spec(name))
     if (!spec$design %in% c("mediation", "moderated_mediation")) next
+    # Mediation with X in three or more groups runs in Spower, not power4mome.
+    if (identical(spec$template, "multicategorical")) next
     result <- tryCatch({
       check_power4mome_supported(spec)
       "offered"
@@ -34,7 +36,7 @@ test_that("there is an example for every template", {
   expect_setequal(unique(templates), c(
     "one_sample_t", "independent_t", "paired_t", "correlation", "repeated_measures_correlation",
     "two_proportions", "chi_square_independence", "2x2_between", "2x2_mixed", "dprime", "lpa", "efa", "its", "riclpm",
-    "two_way", "three_way", "group_moderator", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "crossed_conditions", "repeated_glmm", "item_predictor", "three_level", "growth_curve", "apim", "log_rank", "cox_predictor", "icc", "cronbach_alpha", "kappa", "bland_altman", "dif", "mean_effect", "subgroups", "dependent_effects", "meta_regression", "heterogeneity", "process_4", "process_6", "process_7", "process_14", "process_8", "process_58", "process_59",
+    "two_way", "three_way", "group_moderator", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "crossed_conditions", "repeated_glmm", "item_predictor", "three_level", "growth_curve", "apim", "log_rank", "cox_predictor", "icc", "cronbach_alpha", "kappa", "bland_altman", "dif", "mean_effect", "subgroups", "dependent_effects", "meta_regression", "heterogeneity", "process_4", "process_6", "multicategorical", "process_7", "process_14", "process_8", "process_58", "process_59",
     # Wave 2 (engine only).
     "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase", "single_coefficient",
     # One-way repeated measures.
@@ -110,7 +112,7 @@ test_that("unknown designs and templates list the choices and suggest a fix", {
 
   spec <- example_spec("mediation_simple")
   spec$template <- "process_5"
-  expect_spec_problem(spec, "'template' must be one of 'process_4' or 'process_6'; you wrote 'process_5'.")
+  expect_spec_problem(spec, "'template' must be one of 'process_4', 'process_6' or 'multicategorical'; you wrote 'process_5'.")
 })
 
 test_that("misspelt fields are named, with a suggestion", {

@@ -36,6 +36,8 @@ form_examples <- list(
                items = "40", item_design = "between"), closing_ok),
   E16 = c(list(X_label = "Condition", X_levels = "Control, Self-affirmation", x_prob = "0.5", M_label = "Defensiveness", Y_label = "Intention to change",
                x_effects = "paths", p_X_M = "-0.25", p_M_Y = "-0.3", p_X_Y = "0.1"), closing_ok),
+  E42 = c(list(X_label = "Message", X_levels = "No message, Gain framed, Loss framed", M_label = "Perceived risk", Y_label = "Intention to be screened",
+               mcx_m_differences = "0.4, 0.6", mcx_b = "0.3", mcx_direct = "0, 0.1", mcx_group = ""), closing_ok),
   E11 = c(list(x_type = "score", n_mediators = "2", X_label = "Workload", M1_label = "Exhaustion", M2_label = "Cynicism", Y_label = "Turnover intention",
                p_X_M1 = "0.4", p_M1_Y = "0.3", p_X_M2 = "0.3", p_M2_Y = "0.2", p_X_Y = "0.05", rc_M1_M2 = "0.3",
                target_path = "X->M2->Y"), closing_ok),

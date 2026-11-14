@@ -658,9 +658,8 @@ Not sure? Example: *workload measured with a questionnaire.*
 
 **Three or more conditions or groups** *(picture: three boxes)*
 Not sure? Example: *two self-affirmation tasks and a control task.*
-→ Card: not covered by the five tools; no ready-made tool. The options are
-a custom simulation in R (for example with Spower) or advice from a
-statistician (decision tree E42).
+→ Card E42: mediation with X in three or more groups, each group's
+relative indirect effect against the first, simulated with Spower.
 
 The first two lead to ME2. (The spec allows X to be binary or continuous.)
 

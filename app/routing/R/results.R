@@ -2498,7 +2498,9 @@ departures_for <- function(forms, ep_id, spec) {
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
   # Departure 3 is about Superpower's exact dataset, which the
   # Kruskal-Wallis test and Welch's F (a formula, or Spower) don't use.
-  if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec)) keys <- setdiff(keys, "3")
+  # Nor does a simulated ANOVA (Superpower's ANOVA_power()).
+  if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec) ||
+      identical(spec$options$method, "simulation")) keys <- setdiff(keys, "3")
   # Departure 16 (Satterthwaite's tests) is for a score on each trial; a
   # yes/no outcome is tested by glmer's Wald or likelihood-ratio test.
   if (identical(spec$variables$Y$type, "binary") && identical(spec$design, "mixed_model")) keys <- setdiff(keys, "16")
@@ -2511,6 +2513,10 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 27 (the Bland-Altman analysis simulated, not Lu et al.'s
   # formula) applies when the limits of agreement are simulated.
   if (!identical(spec$template, "bland_altman") || identical(spec$target_test$method, "lu_formula")) keys <- setdiff(keys, "27")
+  # Departure 28 (such a corrected test simulated by default) applies when
+  # it is simulated; the exact data set, chosen or used for the smallest
+  # detectable effect, carries a warning above the answer instead.
+  if (!corrected_nonspherical_test(spec) || gg_exact_route(spec)) keys <- setdiff(keys, "28")
   # Departure 17 is about adjusting pairwise comparisons, when they are
   # adjusted.
   if (!is_pairwise(spec) || identical(spec$target_test$p_adjust %||% "holm", "none")) keys <- setdiff(keys, "17")

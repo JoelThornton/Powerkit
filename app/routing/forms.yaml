@@ -211,6 +211,11 @@ simulations:
       preview: {power: 20}
       full: {power: 230}
       script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E42:
+      full_run: [power]
+      preview: {power: 15}
+      full: {power: 150}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E33:
       full_run: [power]
       preview: {power: 35}
@@ -316,8 +321,9 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "26": "Repeated measures with SDs or correlations that differ: powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. That corrected figure comes from Superpower's exact dataset, an approximation; simulated studies of the corrected test, powerkit's default here (Departure 28), gave 71.5%."
   "27": "Bland-Altman limits of agreement: powerkit simulates the analysis you will run, SimplyAgree's agreement_limit() with MOVER confidence intervals, unless you choose Lu et al.'s (2016) formula, the one SimplyAgree's blandPowerCurve() gives. The formula approximates Bland and Altman's analysis and can be several points off in either direction, and Bland and Altman's intervals are too narrow in small samples (at 30 subjects about 5% of studies wrongly show agreement where 2.5% should), which the MOVER intervals avoid. With a bias of 0.5, an SD of the differences of 2.5 and a margin of 8, the formula gives 80% power at 26 subjects; the MOVER analysis has about 69% there and needs 33."
-  "26": "Repeated measures with SDs or correlations that differ: powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. The corrected power is itself an approximation: simulated studies gave 71.5%."
+  "28": "Repeated measures with a sphericity correction and SDs or correlations that differ: powerkit simulates the corrected F test by default (Superpower's ANOVA_power()), where Superpower's ANOVA_exact() and G*Power scale the test's noncentrality and degrees of freedom by epsilon. That scaling is an approximation that can miss the corrected test's power by a few points either way: with means 600, 620 and 650, SD 100, correlations .8, .5 and .2 and 40 people, 68.4% from the exact dataset against 71.5% in 40,000 simulated studies; in a mixed design with 20 people per group, 23.1% against 21.7%. The exact dataset stays available, as an approximation, and finds the smallest detectable effect."
   "25": "Precision planning: for d, a standardised mean and a regression coefficient, powerkit plans for a chance (assurance) that the interval is no wider than your target, unless you choose MBESS's default of the expected width. An expected width is an average, so planned only for it, about half of studies get an interval wider than planned; MBESS's assurance sets that chance instead. For a regression coefficient with a width of 0.2, 349 people give that width on average; 373 give it with 80% assurance and 386 with 90%. For d = 0.5 and a width of 0.4, 199 per group against 201 and 202."
   "24": "Correlations that vary between studies (optional): an entered SD on Fisher's z makes the correlation an average across studies, following McShane and Bockenholt (2014). This averages significance across differing true correlations; it is not power at the average correlation and can raise or lower the answer. It does not guarantee power in your particular setting. New plans start without variation; empty or 0 gives the usual calculation. As an illustration, r = .1 with variation SD 0.025 and 80% power needs 904 people against 782 without; r = .3 needs 86 against 85."
   "23": "Effects that vary between studies (optional): an entered SD makes the effect an average across studies, following Kenny and Judd (2019). This averages significance across differing true effects; it is not power at the average effect and can raise or lower the answer. It does not guarantee power in your particular setting. New plans start without variation; empty or 0 gives the usual calculation. As an illustration, d = 0.3 with variation SD 0.05 and 80% power needs 376 people in total against 352 without."
@@ -1255,6 +1261,36 @@ forms:
       - title: "Monte Carlo draws"
         fields:
           - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, power4mome's default for q_power_mediation())", type: number, path: options.ci_draws, optional: true, empty_text: "1,000 (power4mome's default)", min: 100, max: 100000, integer: true}
+
+  # Mediation with X in three or more groups (E42): dummy-coded relative
+  # indirect effects (Hayes & Preacher, 2014), simulated with Spower,
+  # fitted with lavaan, each tested by manymome's Monte Carlo interval.
+  E42:
+    methods_name: "a mediation model with a multicategorical X (dummy-coded relative indirect effects)"
+    tool: Spower
+    departures: ["6"]
+    known_differences: ["14"]
+    directional: false
+    base: {spec_version: "0.1", design: mediation, template: multicategorical,
+           variables: {X: {type: categorical}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: indirect_effect, path: "X->M->Y", method: monte_carlo_ci}}
+    names: [X, M, "Y"]
+    groups:
+      - input: "X's groups or conditions, the first the reference group"
+        fields:
+          - {id: X_levels, label: "X's groups or conditions, separated by commas (first the reference group, such as a control condition, that each other group is compared with)", type: levels, path: variables.X.levels, required: true,
+             help: "Each group after the first gets a dummy variable, as PROCESS codes a multicategorical X by default, and its own relative indirect effect: its difference from the first group carried through M. The groups are equal in size."}
+      - input: "Each group's difference from the first on M, the path M -> Y, and the direct effects"
+        fields:
+          - {id: mcx_m_differences, writeup_label: "Cohen's d of each group against the first on M", label: "Cohen's d of each group after the first against the first on M, in the same order, separated by commas", type: numbers, per_later_levels: X_levels, path: population.m_differences, effect: true}
+          - {id: mcx_b, writeup_label: "the path M -> Y within groups", label: "Path M -> Y within groups (standardised: the correlation of M and Y within a group)", type: number, path: population.b, effect: true, min_exclusive: -1, max_exclusive: 1}
+          - {id: mcx_direct, writeup_label: "each group's direct effect on Y", label: "Each group's difference from the first on Y holding M (the direct effects), in Y's within-group SDs, separated by commas (optional; empty = 0 for every group)", type: numbers, per_later_levels: X_levels, path: population.direct_differences, optional: true, empty_text: "0 for every group"}
+          - {id: mcx_group, label: "Which group's relative indirect effect must be significant (optional; empty = every group's, all of them)", type: text, path: target_test.group, optional: true, empty_text: "every group's (all must be significant)",
+             help: "Give the name of one group after the first to plan for its comparison alone. With every group, a study succeeds only when every relative indirect effect is significant, which needs more people."}
+      # An expert setting: in Settings, not in the card's list of what you need.
+      - title: "Monte Carlo draws"
+        fields:
+          - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, as for the other mediation cards)", type: number, path: options.ci_draws, optional: true, empty_text: "1,000", min: 100, max: 100000, integer: true}
 
   E33:
     methods_name: "a linear mixed model with participants and items as random factors (Satterthwaite t test)"
@@ -2198,7 +2234,7 @@ forms:
     sides: false
     methods_name: "a one-way repeated-measures ANOVA"
     tool: Superpower
-    departures: ["3", "17", "26"]
+    departures: ["3", "17", "26", "28"]
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_within,
            variables: {A: {type: within_factor}, "Y": {type: continuous}},
@@ -2268,9 +2304,20 @@ forms:
              default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
-         shown_if: {field: test_version, is: anova_f},
+         shown_if: [{field: test_version, is: anova_f}, {any: [{field: spread, is_not: differ}, {field: correction, is: none}]}],
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
+      # A corrected F test whose SDs or correlations differ: simulated by
+      # default, because Superpower's exact data set scales the test by
+      # epsilon, an approximation (Departure 28, 14 November 2026). Hidden
+      # for the smallest detectable effect, which the engine finds with the
+      # exact data set (sensitivity_method).
+      - {id: gg_method, label: "How power is worked out", type: select, path: options.method, required: true,
+         shown_if: [{field: test_version, is: anova_f}, {field: spread, is: differ}, {field: correction, is_not: none}, {field: goal, is_not: sensitivity}, {field: goal, is_not: sensitivity_curve}],
+         choices: {simulation: "Repeated simulation of the corrected test (recommended)", exact: "Exact dataset, with the correction applied to its degrees of freedom: an approximation"},
+         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 28): the exact dataset scales the test by epsilon, which missed simulated power by up to about 3 points in either direction",
+         help: "With a sphericity correction and SDs or correlations that differ, only simulated studies give the corrected test's power itself. The exact dataset is instant but approximate.",
+         choice_notes: {exact: "This approximation can be a few points too high or too low. Check the sample size by simulation before relying on it."}}
 
   # Mixed ANOVA beyond 2 x 2 (28 October 2026): one between factor by one
   # within factor, at least one with three or more levels; one SD and one
@@ -2280,7 +2327,7 @@ forms:
     sensitivity: true
     sides: false
     methods_name: "a mixed ANOVA (between- by within-participants factor)"
-    departures: ["3", "26"]
+    departures: ["3", "26", "28"]
     tool: Superpower
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: mixed,
@@ -2362,7 +2409,18 @@ forms:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)",
-         shown_if: [{field: group_sizes, is_not: unequal}, {field: test_version, is: anova_f}]}
+         shown_if: [{field: group_sizes, is_not: unequal}, {field: test_version, is: anova_f}, {any: [{field: spread, is_not: differ}, {field: correction, is: none}]}]}
+      # A corrected F test whose SDs or correlations differ: simulated by
+      # default, because Superpower's exact data set scales the test by
+      # epsilon, an approximation (Departure 28, 14 November 2026). Hidden
+      # for the smallest detectable effect, which the engine finds with the
+      # exact data set (sensitivity_method).
+      - {id: gg_method, label: "How power is worked out", type: select, path: options.method, required: true,
+         shown_if: [{field: group_sizes, is_not: unequal}, {field: test_version, is: anova_f}, {field: spread, is: differ}, {field: correction, is_not: none}, {field: goal, is_not: sensitivity}, {field: goal, is_not: sensitivity_curve}],
+         choices: {simulation: "Repeated simulation of the corrected test (recommended)", exact: "Exact dataset, with the correction applied to its degrees of freedom: an approximation"},
+         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 28): the exact dataset scales the test by epsilon, which missed simulated power by up to about 3 points in either direction",
+         help: "With a sphericity correction and SDs or correlations that differ, only simulated studies give the corrected test's power itself. The exact dataset is instant but approximate.",
+         choice_notes: {exact: "This approximation can be a few points too high or too low. Check the sample size by simulation before relying on it."}}
 
 
   # Three-factor ANOVA (28 October 2026): three crossed factors, any mix of
@@ -2438,7 +2496,7 @@ forms:
     sensitivity: true
     sides: false
     methods_name: "a two-factor within-participants ANOVA"
-    departures: ["3", "26"]
+    departures: ["3", "26", "28"]
     tool: Superpower
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: factorial_within,
@@ -2509,7 +2567,18 @@ forms:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)",
-         shown_if: {field: test_version, is: anova_f}}
+         shown_if: [{field: test_version, is: anova_f}, {any: [{field: spread, is_not: differ}, {field: correction, is: none}]}]}
+      # A corrected F test whose SDs or correlations differ: simulated by
+      # default, because Superpower's exact data set scales the test by
+      # epsilon, an approximation (Departure 28, 14 November 2026). Hidden
+      # for the smallest detectable effect, which the engine finds with the
+      # exact data set (sensitivity_method).
+      - {id: gg_method, label: "How power is worked out", type: select, path: options.method, required: true,
+         shown_if: [{field: test_version, is: anova_f}, {field: spread, is: differ}, {field: correction, is_not: none}, {field: goal, is_not: sensitivity}, {field: goal, is_not: sensitivity_curve}],
+         choices: {simulation: "Repeated simulation of the corrected test (recommended)", exact: "Exact dataset, with the correction applied to its degrees of freedom: an approximation"},
+         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 28): the exact dataset scales the test by epsilon, which missed simulated power by up to about 3 points in either direction",
+         help: "With a sphericity correction and SDs or correlations that differ, only simulated studies give the corrected test's power itself. The exact dataset is instant but approximate.",
+         choice_notes: {exact: "This approximation can be a few points too high or too low. Check the sample size by simulation before relying on it."}}
 
   # Two-factor ANOVA, both factors between participants, beyond 2 x 2
   # (28 October 2026): equal cells, one SD. No smallest detectable effect

@@ -1,3 +1,55 @@
+# powerkit 0.66.4
+
+* Mediation with X in three or more groups is a new template,
+  `mediation / multicategorical` (E42): X categorical with at least three
+  levels, dummy-coded against the first; `population > metric`
+  `"standardised"` with `m_differences` (each later group's Cohen's d on
+  M, its path a_j), `b` (the within-group path M -> Y, between -1 and 1)
+  and optional `direct_differences`; `target_test > path` `"X->M->Y"`,
+  `method` `"monte_carlo_ci"` and `group` (`"all"`, the default, or one
+  later group). Each study is drawn in equal groups and fitted by
+  `lavaan::sem()`, and each tested relative indirect effect a_j * b gets a
+  Monte Carlo percentile interval from `manymome::do_mc()`'s draws, in
+  Spower running powerkit's experiment `p_mediation_mcx()`, since
+  power4mome's `x_fun` can't draw the dummies of one factor. With `group`
+  `"all"` a study counts only when every interval excludes 0. New backend
+  file `backend-mediation-mcx.R`, with a check run recovering every path,
+  an R script that reproduces the run exactly (the data are drawn before
+  the fit, so lazy evaluation inside lavaan can't reorder the random
+  numbers), simulated-data code and spec checks (fewer than three groups,
+  mismatched lengths, an unknown group, reliability). The group split
+  rule asks for a multiple of the number of groups. Citations name lavaan
+  and manymome when a Spower run uses them; Hayes and Preacher (2014)
+  joins refs.bib. New validation chunk `mediation_mcx`
+  (`test-validation-mediation-mcx.R`): agreement with an independent OLS
+  simulation for one group and every group, and Type I error.
+
+# powerkit 0.66.3
+
+* A Greenhouse-Geisser or Huynh-Feldt corrected F test whose effect is
+  not spherical (Greenhouse-Geisser epsilon below 1) is simulated by
+  default with `Superpower::ANOVA_power()` (Departure 28). Superpower's
+  `ANOVA_exact()` multiplies the noncentrality and degrees of freedom by
+  epsilon. That is an approximation, which missed the corrected test's
+  simulated power by -3.2 to +3.3 points (`docs/validation-log.md`,
+  14 November 2026). It stays available with `options > method =
+  "exact"`, and it still finds the smallest detectable effect: the
+  backend's new `sensitivity_method`. The backend reads the population
+  epsilon from afex's sphericity corrections on the exact dataset
+  (`superpower_gg_epsilon()`). The MANOVA approach is still reported
+  beside the simulated test, from the exact dataset. Spherical designs
+  and uncorrected tests are unchanged.
+* App: the one-way repeated-measures, mixed and two-factor within cards
+  start "How power is worked out" at simulation once the SDs or
+  correlations differ and a correction is chosen (`gg_method`). The
+  exact dataset, chosen or used for the smallest detectable effect,
+  puts a warning above the answer; Departure 28 is listed when the test
+  is simulated. Departure 3 is no longer listed for a simulated ANOVA.
+* The nightly mixed-design GG failure is explained by the approximation
+  above. The binary-X moderated-mediation null failure comes from its
+  fixed seed: the true rate is 5.38% in 20,000 studies.
+  `docs/upstream/superpower-gg-grid.R` is the independent check.
+
 # powerkit 0.66.2
 
 * The same people measured more than once with a count, yes/no or

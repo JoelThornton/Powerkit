@@ -1535,3 +1535,85 @@ independent reference used 10,000 replications.
 Packages: powerkit 0.62.0; Spower 0.7; Superpower 0.2.4.1;
 InteractionPoweR 0.2.4; power4mome 0.2.1; manymome 0.3.7; lavaan 0.7.3;
 testthat 3.3.2.
+
+## 2026-11-14 · The two recurring nightly failures explained; GG chunk after Departure 28 (local)
+
+R 4.5.3 on Linux x86_64; Superpower 0.2.4.1, afex 1.5.1, power4mome
+0.2.1. Engine at main 43b2c05 (0.66.0) plus this change (Departure 28).
+
+**Mixed-design Greenhouse-Geisser (ANOVA chunk).** The reference .2313
+is `ANOVA_exact()`'s calculation: noncentrality and both degrees of
+freedom multiplied by the population epsilon. It is an approximation,
+not the corrected test's power.
+[`docs/upstream/superpower-gg-grid.R`](upstream/superpower-gg-grid.R)
+works in base R and does not call Superpower. It computes that
+calculation and the corrected test's power in 400,000 studies drawn from
+their sufficient statistics, with each study's F and epsilon estimated
+from them (`superpower-gg.R` matches afex's p-values on identical data
+to 1.9e-15). The result is the exact dataset minus true power, in points:
+
+- the nightly mixed case (20 per group, epsilon .758): .2313 against
+  .2169, +1.4;
+- the same covariance at 10 to 160 per group: +1.0, +0.9, -2.1, -1.9;
+- larger or differently aligned effects: -1.4 to +1.5;
+- epsilon .926: +0.9 and +1.1;
+- epsilon .595: +2.2 and +3.3;
+- the one-way chunk case (n 30, epsilon .737): .4758 against .4658,
+  +1.0;
+- Departure 26's example (n 40, epsilon .676): .6835 against .7159,
+  -3.2.
+
+The MCSE of each true value is at most .0008. The sign depends on the
+sample size and on how the effect lines up with the covariance, so no
+correction of the approximation is available. Decision: such tests are
+simulated by default (`decisions.md`, 14 November 2026;
+`conventions.md`, Departure 28).
+
+`test-validation-anova-within-covariance.R` at full validation (10,000
+replications), after the change, took 36 minutes: **5 PASS, 1 FAIL, 1
+published-reference TODO SKIP**. Command:
+`POWERKIT_FULL_VALIDATION=true Rscript -e
+'testthat::test_local(filter = "validation-anova-within-covariance")'`
+from `engine/`. The mixed GG comparison passes. The two-factor HF
+comparison and the three Type I error checks pass too. The one-way GG
+comparison fails: .4525 against .4706 (MCSE .0050, interval .4541 to
+.4871).
+
+Since Departure 28, the "exact data set" call in these comparisons uses
+the default route and is simulated (seed 702). The test therefore
+compares two simulations but counts only one's Monte Carlo error.
+Against the independent .4658, seed 702 is 2.7 MCSE low and seed 703 is
++1.0. Four further seeds of 5,000 each averaged .4650 (pooled MCSE
+.0035), so the simulation is unbiased; seed 702 is a chance draw that
+the fixed seed repeats every night. The expected values and seeds are
+the maintainer's and are unchanged.
+
+With the maintainer's approval, the three corrected-test comparisons now
+compare the default (simulated) route with these independent references:
+.4658 for the one-way case, .2169 for the mixed case and .0971 for the
+two-factor HF case (n 20, population GG epsilon .948; computed in
+`docs/upstream/superpower-gg-grid.R`, `hf_case()`, 400,000 studies each).
+The check counts both Monte Carlo errors. Each also bounds the exact
+dataset's approximation within 4 points of the reference. The seeds are
+unchanged.
+
+Rerun of the chunk after that change, same command: **all comparisons
+and Type I error checks PASS, 1 published-reference TODO SKIP**, in 26
+minutes.
+
+**Moderated mediation with a yes/no X (binary-X chunk).** A local run of
+the chunk reproduces the nightly .0750 (limit .0707). In 20,000 studies
+from power4mome's own generator (PROCESS model 7, n 250, X:W -> M = 0),
+the rejection rates were:
+
+| Test | Rejection rate | 99.9% interval |
+|---|---|---|
+| lavaan Monte Carlo interval (powerkit's route) | 5.38% (MCSE .16) | 4.87 to 5.92 |
+| lavaan Wald test | 5.20% | |
+| OLS t-test | 4.87% | |
+| OLS Monte Carlo interval | 5.17% | |
+
+All are consistent with 5%. At a true 5.38%, a 1,000-study rate above
+.0707 has a 1.2% chance, and the test's fixed seed draws the same 1,000
+studies every night. No engine fault. Re-seeding or more replications is
+the maintainer's call (`next.md` item 5).

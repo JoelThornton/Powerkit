@@ -607,6 +607,23 @@ significant.
 | power4mome | `x_fun` with `rbinary_rs()`: a yes/no variable rescaled to mean 0 and SD 1 [power4mome help] | Standardised paths | — |
 | **powerkit** | power4mome with `rbinary_rs()` for X, W or both (E17, from 1 November 2026); with a yes/no W, the difference between the two groups' conditional indirect effects, the index times the distance between W's two rescaled values (manymome treats a two-valued W as categorical) [powerkit] | Standardised paths, per SD of a yes/no variable | A yes/no X or W uncorrelated with the other predictor. Departures 6 and 8 apply as for models 7 and 14 |
 
+## Mediation with X in three or more groups (E42)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No mediation | — | — |
+| PROCESS | Model 4 with `mcx = 1` (indicator, that is dummy, coding against the first group by default): each relative indirect effect `a_j * b` with a percentile bootstrap interval (Hayes and Preacher, 2014, HayesPreacher2014_multicategorical in refs.bib) | Unstandardised coefficients | 5,000 bootstrap resamples by default |
+| power4mome | Not offered: `x_fun` draws each exogenous variable separately, so it can't draw the mutually exclusive dummies of one factor [power4mome help] | — | — |
+| **powerkit** | Spower running `p_mediation_mcx()`: equal groups, `M ~ D2 + ... + Dk` and `Y ~ M + D2 + ... + Dk` fitted by `lavaan::sem()` (`fixed.x = TRUE`), each tested relative indirect effect `a_j * b` with a 95% Monte Carlo percentile interval from `manymome::do_mc()` (E42, from 14 November 2026) [powerkit] | Each later group's Cohen's d against the first on M (its path a_j), the within-group correlation of M and Y (the standardised path b), and each group's direct effect on Y holding M, in Y's within-group SD | The interval of one named group, or of every group (a study counts only when every interval excludes 0). A fit that fails or doesn't converge, or whose draws fail, counts as not significant. Departure 6 (lavaan, not OLS) applies, and Known difference 14 (a Monte Carlo interval, where PROCESS reports a percentile bootstrap) |
+
+Within each group M has SD 1 and Y's residual SD is `sqrt(1 - b^2)`, so
+b is the within-group correlation of M and Y when the direct effects are
+0, and every effect is in within-group SDs, as Cohen's d is. The
+relative indirect effect of a group is its d on M times b. powerkit
+draws the data before fitting each study, so the exported R script
+reproduces the run exactly. Power for "every group" is the chance that
+all the tested intervals exclude 0, which is lower than any one of them.
+
 ## Meta-analysis with several effects per study (E61, POMADE)
 
 | Tool | Test | Effect size | Settings |
@@ -1751,7 +1768,8 @@ decision of 1 November 2026.
   so the corrected figure from `ANOVA_exact()` is an approximation, here
   about 3 points low. In the mixed-design check of
   `docs/validation-log.md` (7 to 10 November 2026) it was about 1.5 points
-  high. The result screen says so and offers the simulation.
+  high. Since 14 November 2026 such a corrected test is simulated by
+  default (Departure 28).
 - **Test:** `test-backend-anova-within-covariance.R`, "departure: the size
   of the Greenhouse-Geisser correction".
 - **Shown to users:** on the three cards' result screens when the
@@ -1802,6 +1820,47 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   are simulated (`app/routing/forms.yaml`, `departures`, key "27"), in the
   choice notes for the calculation method, and in the methods paragraph,
   which names the intervals.
+
+### 28. Repeated measures with a sphericity correction and no sphericity: simulated by default, not Superpower's exact dataset
+
+Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
+"Corrected repeated-measures tests simulated by default").
+
+- **Established convention:** Superpower's `ANOVA_exact()` applies a
+  Greenhouse-Geisser or Huynh-Feldt correction by multiplying the test's
+  noncentrality and both degrees of freedom by epsilon (Superpower
+  0.2.4.1); G\*Power's repeated-measures analysis does the same with the
+  epsilon the user enters. Both are approximations to the corrected test's
+  power: they ignore how the effect lines up with the covariance and that
+  epsilon is estimated from the data.
+- **powerkit:** when a corrected F test's effect has a Greenhouse-Geisser
+  epsilon below 1 (read from afex's sphericity corrections on
+  `ANOVA_exact()`'s data set, which reproduces the population covariance),
+  power and sample size are simulated by default with Superpower's
+  `ANOVA_power()`, which analyses each simulated study with the corrected
+  test. The exact dataset stays available on request
+  (`options > method = "exact"`), labelled as an approximation, with a
+  warning above the answer; the smallest detectable effect is still found
+  with it (the engine's `sensitivity_method`), with the same warning. A
+  spherical design, or an uncorrected test, keeps the exact dataset.
+- **Size:** in Departure 26's example (three conditions, means 600, 620
+  and 650, SD 100, correlations .8, .5 and .2, 40 people), 68.4% from the
+  exact dataset against 71.5% in 40,000 simulated studies (MCSE .0023). In
+  the mixed design of the nightly validation (two groups by three
+  occasions, 20 per group, epsilon .758), 23.1% against 21.7% in 400,000
+  studies simulated from sufficient statistics. Across fifteen designs
+  (thirteen mixed, two one-way; `docs/upstream/superpower-gg-grid.R`,
+  400,000 studies each, which put Departure 26's example at 71.6%), the
+  exact dataset minus the simulated power ranged from -3.2 to +3.3
+  points (`docs/validation-log.md`,
+  14 November 2026).
+- **Test:** `test-backend-anova-within-covariance.R`, "departure: a
+  corrected test without sphericity is simulated by default (Departure 28)".
+- **Shown to users:** on the three cards' result screens when the
+  corrected test is simulated (`app/routing/forms.yaml`, `departures`, key
+  "28"), and in the methods paragraph. The form's "How power is worked out"
+  starts at simulation once the SDs or correlations differ and a
+  correction is chosen.
 
 ## Known differences
 

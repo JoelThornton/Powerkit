@@ -113,7 +113,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # and meta-analytic effect sizes (7 November 2026), and G*Power 3's paper
   # for MANOVA power from Pillai's V (12 November 2026), and SimplyAgree's
   # paper and three sources on the Bland-Altman limits of agreement, from
-  # their PubMed records (14 November 2026).
+  # their PubMed records (14 November 2026), and Hayes and Preacher's paper
+  # on mediation with a multicategorical X, from its PubMed record (the same day).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -148,7 +149,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Jan2014_welch_anova = "verified",
       Bakdash2017_rmcorr = "verified",
       SimplyAgree_method = "citation", Bland1999_agreement = "verified", Zou2013_loa_mover = "verified",
-      Lu2016_bland_altman_n = "verified"
+      Lu2016_bland_altman_n = "verified", HayesPreacher2014_multicategorical = "verified"
     )
   )
 })
