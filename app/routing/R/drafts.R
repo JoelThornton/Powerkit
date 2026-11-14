@@ -101,15 +101,21 @@ draft_offer_ui <- function(name, saved_at, with_result = FALSE) {
 # and a calculation is run again from the same values and seed (8 November
 # 2026). The whole-study spec of the last run is kept for its R script.
 guided_plan_fields <- c("route", "start", "ctx", "answers", "ticked", "primary", "asks", "rule",
-  "plan_values", "plan_shared", "plan_results", "ws_values", "ws_names", "ws_spec")
+  "plan_values", "plan_shared", "plan_results", "ws_values", "ws_names", "ws_spec", "ws_result")
 
-write_guided_plan <- function(state, file) {
+# The record itself: what "Save this plan" wrote before study plans held
+# it, and what a study plan now keeps as its `guided` field.
+guided_plan_record <- function(state, now = Sys.time()) {
   plan <- state[guided_plan_fields]
   names(plan) <- guided_plan_fields
   plan$history <- lapply(state$history, function(h) list(node = h$node, answer = h$answer, ctx = h$ctx))
-  record <- list(format = "powerkit-guided-plan", version = 1L,
-    saved_at = format(Sys.time(), "%Y-%m-%d %H:%M:%S UTC", tz = "UTC"),
+  list(format = "powerkit-guided-plan", version = 1L,
+    saved_at = format(now, "%Y-%m-%d %H:%M:%S UTC", tz = "UTC"),
     powerkit_version = powerkit_version(), plan = plan)
+}
+
+write_guided_plan <- function(state, file) {
+  record <- guided_plan_record(state)
   jsonlite::write_json(record, file, auto_unbox = TRUE, pretty = TRUE, null = "null", digits = NA)
   invisible(record)
 }
@@ -151,6 +157,7 @@ restore_guided_plan <- function(record, tree) {
     plan_values = lapply(values_of(p$plan_values), legacy_claim_values), plan_shared = p$plan_shared %||% list(),
     plan_results = p$plan_results %||% list(), ws_values = lapply(p$ws_values %||% list(), function(y) if (is.list(y)) lapply(y, chars) else y),
     ws_names = lapply(p$ws_names %||% list(), chars), ws_spec = p$ws_spec,
+    ws_result = if (is.list(p$ws_result)) p$ws_result,
     plan_id = NULL, endpoint = NULL, came_from = NULL, calc = NULL, long_spec = NULL, ws_calc = NULL
   )
 }
@@ -163,14 +170,18 @@ guided_plan_opened_ui <- function(record) {
       if (is.character(record$powerkit_version)) sprintf(" with powerkit %s.", record$powerkit_version) else "."))
 }
 
-guided_plan_save_ui <- function(k = 0) {
+# Under the guided plan: saving it. The guided plan is kept inside a study
+# plan (`name`, holding `k` analyses), so saving saves that study plan.
+guided_plan_save_ui <- function(k = 0, name = NULL) {
   div(class = "plan-save mt-3",
     div(class = "nav-buttons",
       download_button("download_guided_plan", "Save this plan", class = "btn btn-outline-primary"),
       share_link_ui("guided_plan"),
-      if (k > 0) actionLink("plan_view", sprintf("See your study plan (%d %s)", k, if (k == 1) "analysis" else "analyses"))),
-    if (k > 0) p(class = "small mt-1", "Each analysis you calculate from this plan is also in your study plan, which collects analyses from any card and saves their results in one file."),
-    p(class = "text-muted small mt-1", "A file on your computer: open it later on the start screen, under “Open a saved or shared project”, to carry on where you left off. Copy a link puts the same inside a link that opens it on any computer; powerkit stores nothing, so anyone with the link can open it."))
+      if (!is.null(name)) actionLink("plan_view", sprintf("See the study plan “%s” (%s)", name,
+        if (k == 1) "1 analysis" else sprintf("%d analyses", k)))),
+    if (!is.null(name)) p(class = "small mt-1", sprintf(
+      "This plan is kept in your study plan “%s”, with each analysis you calculate from it. Save this plan saves the whole study plan as one file.", name)),
+    p(class = "text-muted small mt-1", "A file on your computer: open it later on the Study plans page, or on the start screen under “Open a saved or shared project”, to carry on where you left off. Copy a link puts the same inside a link that opens it on any computer; powerkit stores nothing, so anyone with the link can open it."))
 }
 
 # A whole-study specification downloaded from the simulation's result is

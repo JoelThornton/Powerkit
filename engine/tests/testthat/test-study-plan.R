@@ -72,3 +72,18 @@ test_that("a plan without the new fields still reads, and its analyses read as p
   top <- names(jsonlite::parse_json(write_study_plan(list(list(spec = spec)))))
   expect_false(any(c("id", "name", "description") %in% top))
 })
+
+test_that("a study plan keeps the guided plan's record as it was given", {
+  spec <- plan_spec("independent_t", list(type = "power", n = 128))
+  guided <- list(format = "powerkit-guided-plan", version = 1L, saved_at = "2026-11-13 10:00:00 UTC",
+    plan = list(ticked = list("a1", "a2"), primary = list("a1"), rule = "all", ws_values = list(n = 120)))
+  plan <- read_study_plan(write_study_plan(list(list(spec = spec)), guided = guided))
+  expect_identical(plan$guided$plan$primary, list("a1"))
+  expect_identical(plan$guided$plan$ws_values$n, 120L)
+  expect_identical(plan$guided$format, "powerkit-guided-plan")
+  # Absent: not written, and read as NULL.
+  plain <- write_study_plan(list(list(spec = spec)))
+  expect_false("guided" %in% names(jsonlite::parse_json(plain)))
+  expect_null(read_study_plan(plain)$guided)
+  expect_error(write_study_plan(list(list(spec = spec)), guided = "not a record"), "guided")
+})

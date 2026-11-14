@@ -14,6 +14,9 @@
 #' @param id,name,description Optional single strings: the plan's
 #'   identifier, its name and a description of the study. Fields left
 #'   `NULL` are not written, and older versions of powerkit ignore them.
+#' @param guided Optional list: the app's record of a guided whole-study
+#'   plan ("Plan my whole study") that the study plan holds. It is kept as
+#'   given; `NULL` is not written.
 #'
 #' @return The JSON text, invisibly when written to `file`.
 #' @seealso [read_study_plan()], [write_project()]
@@ -25,7 +28,10 @@
 #' write_study_plan(list(list(spec = spec, result = run_spec(spec))), file = path)
 #' plan <- read_study_plan(path)
 #' unlink(path)
-write_study_plan <- function(analyses, file = NULL, id = NULL, name = NULL, description = NULL) {
+write_study_plan <- function(analyses, file = NULL, id = NULL, name = NULL, description = NULL, guided = NULL) {
+  if (!is.null(guided) && !is.list(guided)) {
+    abort_project("A study plan's guided plan should be a list (the app's guided-plan record).")
+  }
   if (!is.list(analyses) || length(analyses) == 0) {
     abort_project("A study plan needs at least one analysis.")
   }
@@ -61,10 +67,11 @@ write_study_plan <- function(analyses, file = NULL, id = NULL, name = NULL, desc
     id = plan_text_field(id),
     name = plan_text_field(name),
     description = plan_text_field(description),
-    analyses = entries
+    analyses = entries,
+    guided = guided
   )
   # Optional fields: written only when given.
-  for (field in c("id", "name", "description")) if (is.null(plan[[field]])) plan[[field]] <- NULL
+  for (field in c("id", "name", "description", "guided")) if (is.null(plan[[field]])) plan[[field]] <- NULL
   text <- as.character(jsonlite::toJSON(
     plan,
     auto_unbox = TRUE, digits = NA, null = "null", na = "null", pretty = TRUE
@@ -86,9 +93,9 @@ write_study_plan <- function(analyses, file = NULL, id = NULL, name = NULL, desc
 #'
 #' @return A `powerkit_study_plan`: a list with `analyses` (a list of
 #'   `powerkit_project`s), `saved`, `powerkit_version`, `id`, `name` and
-#'   `description` (each `NULL` when the file has none), and `roles` and
-#'   `notes`, character vectors with one element per analysis (`NA` where
-#'   the file has none).
+#'   `description` (each `NULL` when the file has none), `guided` (the
+#'   guided-plan record, or `NULL`), and `roles` and `notes`, character
+#'   vectors with one element per analysis (`NA` where the file has none).
 #' @seealso [write_study_plan()], [read_project()]
 #' @export
 #' @examples
@@ -125,6 +132,7 @@ read_study_plan <- function(x) {
     list(analyses = analyses, saved = raw$saved, powerkit_version = raw$powerkit_version,
       id = plan_text_field(raw$id), name = plan_text_field(raw$name),
       description = plan_text_field(raw$description),
+      guided = if (is.list(raw$guided)) raw$guided,
       roles = per_analysis("plan_role"), notes = per_analysis("plan_note")),
     class = "powerkit_study_plan"
   )

@@ -55,7 +55,10 @@ plan_entry_from_project <- function(tree, project) {
     goal = goal,
     n = plan_n(result),
     sample = plan_sample(project$spec),
-    project = project
+    project = project,
+    # An analysis calculated from the guided plan, so that calculating it
+    # again there updates it rather than adding another.
+    plan_id = if (is.character(project$route$guided_analysis) && length(project$route$guided_analysis) == 1) project$route$guided_analysis
   )
 }
 
@@ -211,7 +214,7 @@ plan_status_ui <- function(plan) {
   if (isTRUE(plan$too_large)) {
     return(span(class = "plan-status plan-status-unsaved", "This plan is too large to keep in this browser: save it to your computer."))
   }
-  if (!length(plan$entries)) return(span(class = "plan-status", "No analyses yet."))
+  if (!plan_has_content(plan)) return(span(class = "plan-status", "No analyses yet."))
   if (plan_unsaved(plan)) {
     return(span(class = "plan-status plan-status-unsaved", "Only in this browser: save it to your computer."))
   }
@@ -267,6 +270,21 @@ plan_item_ui <- function(e, sets = FALSE) {
 
 # A plan's page on the Study plans page: its name and description, the
 # largest comparable sample size, its analyses, and saving.
+# On a plan's page: the guided whole-study plan it holds ("Plan my whole
+# study"), the last whole-study simulation's result, and the way back to
+# the guided screens.
+plan_guided_ui <- function(record) {
+  summary <- record$plan$ws_result
+  ticked <- length(unlist(record$plan$ticked))
+  div(class = "plan-guided result-card",
+    h3(class = "h5", "Whole-study plan"),
+    p(sprintf("Made with “Plan my whole study”: %s chosen, with the values you entered for each.",
+      if (ticked == 1) "1 analysis" else sprintf("%d analyses", ticked))),
+    if (is.list(summary)) p(class = "plan-guided-result", tags$strong("Last whole-study simulation: "), whole_study_summary_text(summary))
+    else p(class = "small", "No whole-study simulation has been run for it yet."),
+    actionButton("plan_open_guided", "Open the guided plan", class = "btn btn-outline-primary"))
+}
+
 # The plan page's and the study-wide document's wording on sample sizes.
 plan_common_recruitment_caveat <- "The recorded sample units and design structures match. A common recruitment plan also needs the same population, eligibility, allocation and measurement schedule; the maximum alone does not establish those."
 plan_incomparable_note <- "These analyses have different or incomplete sample requirements. Their counts are kept separate; there is no single study-wide sample size here. Participants, pairs, items and studies cannot be compared just by taking the largest number. Matching units also need compatible allocation and measurement schedules."
@@ -276,7 +294,8 @@ plan_page_ui <- function(plan, plans_n = 1L) {
   k <- length(entries)
   largest <- plan_largest_entry(entries)
   esc <- function(x) htmltools::htmlEscape(x)
-  unsaved <- k > 0 && plan_unsaved(plan)
+  unsaved <- plan_has_content(plan) && plan_unsaved(plan)
+  saveable <- plan_has_content(plan)
   tagList(
     actionLink("plans_back", "‹ All study plans", class = "plans-back"),
     h2(class = "plan-title", plan$name),
@@ -291,7 +310,8 @@ plan_page_ui <- function(plan, plans_n = 1L) {
     # Its own output (filled by the server), so that saving or copying a
     # link doesn't redraw the page under the share button.
     p(class = "plan-status-line", uiOutput("plan_status", inline = TRUE)),
-    if (k == 0) div(class = "plan-empty result-card",
+    if (is.list(plan$guided)) plan_guided_ui(plan$guided),
+    if (k == 0 && !is.list(plan$guided)) div(class = "plan-empty result-card",
       p(tags$strong("This plan has no analyses yet.")),
       tags$ol(
         tags$li("Press “Add an analysis” to find one with “Help me choose”, or use “I know my analysis”, and calculate its sample size."),
@@ -317,9 +337,9 @@ plan_page_ui <- function(plan, plans_n = 1L) {
     else if (k >= 2) p(class = "study-plan-joint plan-note",
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
     div(class = "nav-buttons",
-      if (k) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
+      if (saveable) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
       actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
-      if (k) share_link_ui("study_plan"),
+      if (saveable) share_link_ui("study_plan"),
       if (k) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
     p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it. Download everything adds a planning document for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
     p(class = "small plan-delete",
