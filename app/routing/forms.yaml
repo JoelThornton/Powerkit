@@ -526,7 +526,7 @@ forms:
              help: "The Brunner-Munzel test and Yuen's test stay valid when the groups differ in spread as well as level. Your effect size is the mean difference divided by the average of the two SDs, sqrt((SD1^2 + SD2^2) / 2)."}
           - {id: trim, label: "Share trimmed from each end of each group (0.2 = 20%)", type: number, path: target_test.trim, required: true, min: 0, max_exclusive: 0.5,
              shown_if: {field: method, is: yuen},
-             default: 0.2, default_source: "20% from each end, WRS2's default (yuen(tr = 0.2), WRS2 1.1.7)",
+             default: 0.2, default_source: "20% from each end, WRS2's default (yuen(tr = 0.2), WRS2 1.1-7)",
              help: "Use the trimming you will analyse with. 0.2 is the usual choice; 0 is no trimming (Welch's t-test), and more trimming moves towards comparing medians."}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
@@ -614,7 +614,7 @@ forms:
              help: "Use the correlation of the two measurements on the same people, from comparable data. Yuen's test trims each measurement separately, so its power depends on this correlation as well as on d_z. Compare justified values if you are unsure; there is no neutral default."}
           - {id: trim, label: "Share trimmed from each end of each measurement (0.2 = 20%)", type: number, path: target_test.trim, required: true, min: 0, max_exclusive: 0.5,
              shown_if: {field: method, is: yuen},
-             default: 0.2, default_source: "20% from each end, WRS2's default (yuend(tr = 0.2), WRS2 1.1.7)",
+             default: 0.2, default_source: "20% from each end, WRS2's default (yuend(tr = 0.2), WRS2 1.1-7)",
              help: "Use the trimming you will analyse with. 0.2 is the usual choice; 0 is no trimming (the paired t-test)."}
           - {id: score_shape, label: "The shape of the changes (second minus first)", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: wilcoxon_signed_rank},

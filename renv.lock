@@ -3775,7 +3775,7 @@
     },
     "WRS2": {
       "Package": "WRS2",
-      "Version": "1.1.7",
+      "Version": "1.1-7",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
