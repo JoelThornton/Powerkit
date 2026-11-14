@@ -2087,7 +2087,7 @@ test_that("moderation of a count outcome (E32) builds a Poisson or negative bino
   expect_identical(calc$result$provenance$backend, "Spower")
   expect_true(all(calc$result$check_run$ok))
   w <- writeup_text(forms$forms[["E32"]], calc$spec, calc$result, fields, values)
-  expect_match(w[["short"]], "regression with an interaction", fixed = TRUE)
+  expect_match(w[["short"]], "a negative binomial regression with an interaction (the Wald z test of the X x W coefficient, overdispersion k = 0.5)", fixed = TRUE)
 })
 
 test_that("PERMANOVA (E59's test version) takes the shape of the scores, reaches vegan and drops MANOVA's known difference", {
