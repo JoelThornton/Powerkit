@@ -136,8 +136,8 @@ app_css <- "
   .standard-name { color: #444; }
   .status { border-radius: 0.4rem; padding: 0.6rem 0.9rem; margin: 0.5rem 0 1rem 0; }
   .status-runs { background: #ddf2e3; border: 1px solid #2e7d4f; }
-  .status-in-progress { background: #e8f0fb; border: 1px solid #3b6fb6; }
-  .badge-progress { display: inline-block; background: #3b6fb6; color: #fff; border-radius: 1rem; padding: 0.05rem 0.6rem;
+  .status-in-progress { background: #fbf8f1; border: 1px solid var(--pk-line); border-left: 4px solid var(--pk-amber); font-size: 0.92rem; }
+  .badge-progress { display: inline-block; background: #fdf1d8; color: #6b4500; border: 1px solid #e3c27a; border-radius: 1rem; padding: 0.05rem 0.6rem;
                     font-size: 0.75rem; font-weight: 600; margin-right: 0.5rem; vertical-align: 1px; }
   .status-soon { background: #fff0d1; border: 1px solid #b97a00; }
   .badge-soon { display: inline-block; background: #7a4f00; color: #fff; border-radius: 1rem; padding: 0.05rem 0.6rem;
@@ -152,7 +152,10 @@ app_css <- "
   .choice-safety { border-style: dashed; }
   .hint { font-size: 0.85rem; color: #4a4a4a; margin: 0.1rem 0 0.25rem 0; }
   .hint dfn { font-style: normal; font-weight: 600; }
-  .card-points { margin-bottom: 1rem; }
+  /* The card's points use the same bullets as What you'll need, without its dividers. */
+  .card-points { margin-bottom: 1rem; padding-left: 0; list-style: none; }
+  .card-points > li { position: relative; padding: 0.15rem 0 0.15rem 1.6rem; }
+  .card-points > li::before { content: ''; position: absolute; left: 0.35rem; top: 0.7rem; width: 0.45rem; height: 0.45rem; background: #8a97a8; border-radius: 50%; }
   .form-group-box { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem 0.25rem 1rem; margin-bottom: 1rem; }
   .progress-steps ol { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; list-style: none; padding: 0; margin: 0 0 1rem 0; font-size: 0.9rem; }
   .progress-steps li { display: flex; align-items: center; gap: 0.4rem; color: #545b62; }
@@ -199,6 +202,27 @@ app_css <- "
   .terms-mode .form-field.has-field-more label.control-label { display: inline; min-height: 0; padding-right: 0; }
   .terms-mode .form-field .explanation-help.field-more > summary { min-width: 32px; min-height: 32px; border: 0; background: none; padding: 0; font-size: 1rem; }
   .form-field .explanation-help.field-more > summary::after { content: none; }
+  /* Info buttons look the same everywhere (14 November 2026): a round i
+     beside the label, heading or badge it explains. A group's sits beside
+     its heading (the legend floats so the button can follow it). */
+  fieldset.form-group-box > legend.h6 { float: left; width: auto; margin: 0 0.35rem 0.5rem 0; padding: 0; line-height: 32px; }
+  fieldset.form-group-box > legend.h6 ~ * { clear: both; }
+  fieldset.form-group-box > legend.h6 ~ .group-more { clear: none; }
+  .explanation-help.group-more, .explanation-help.inline-more { display: block; margin: 0 0 0.5rem; }
+  .explanation-help.group-more > .explanation-content, .explanation-help.inline-more > .explanation-content { clear: left; }
+  .explanation-help.group-more > summary, .explanation-help.inline-more > summary { display: none; }
+  .terms-mode .explanation-help.group-more > summary, .terms-mode .explanation-help.inline-more > summary,
+  .terms-mode .explanation-help.group-more > summary, .terms-mode .explanation-help.inline-more > summary {
+    display: inline-flex; min-width: 32px; min-height: 32px; border: 0; background: none; padding: 0; font-size: 1rem; vertical-align: middle; }
+  .terms-mode .explanation-help.group-more > summary::after, .terms-mode .explanation-help.inline-more > summary::after { content: none; }
+  .terms-mode .explanation-help.group-more > summary:hover, .terms-mode .explanation-help.inline-more > summary:hover { background: #eef4fb; border-radius: 50%; }
+  .terms-mode .explanation-help.group-more[open] > .explanation-content, .terms-mode .explanation-help.inline-more[open] > .explanation-content {
+    margin: 0.3rem 0 0.5rem; padding: 0.6rem 0.8rem; background: #f6f8fb; border-radius: 0.5rem; }
+  .validation-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.25rem; margin: 0.25rem 0 0.75rem; }
+  .validation-line .badge-progress { margin-right: 0; }
+  .validation-line > .inline-more { margin: 0; flex: 1 1 auto; }
+  .validation-line > .inline-more > .explanation-content { flex-basis: 100%; font-size: 0.9rem; color: #3d4652; margin-top: 0.25rem; }
+  .terms-mode .validation-line > .inline-more:not([open]) { flex: 0 0 auto; }
   .field-lead-copy { display: none; }
   .terms-mode .field-lead { display: none; }
   .terms-mode .field-lead-copy { display: block; }
@@ -700,7 +724,7 @@ app_css <- "
   .known-choice-not { background: #f7f8fa; }
   .known-choice-not .choice-label { color: #3d4852; }
   .known-badge { display: inline-block; margin-top: 0.45rem; border-radius: 999px; padding: 0.05rem 0.55rem; font-size: 0.74rem; font-weight: 600; }
-  .known-badge-progress { background: #e8f0fb; color: #2c5a99; }
+  .known-badge-progress { background: #fdf1d8; color: #6b4500; }
   .known-badge-soon { background: #fff0d1; color: #7a4f00; }
   .known-badge-not { background: #e9ecef; color: #3d4852; }
   /* The input screen (1 November 2026): each group's title sits inside its

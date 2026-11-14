@@ -841,10 +841,11 @@ status_ui <- function(tree, ep) {
     # October 2026); its validation note is under "More about this
     # analysis" (validated_line_ui()).
     runs_validated = NULL,
+    # The facts above already say "Validation in progress" (14 November
+    # 2026: the card said it three times); this note says how far it got.
     runs_validation_in_progress = div(
       class = "status status-in-progress",
-      tags$span(class = "badge-progress", "Validation in progress"),
-      tags$strong("Runs, validation in progress."), " ", ep$validation$note, " ", validation_links(),
+      tags$strong("Checks so far: "), ep$validation$note, " ", validation_links(),
       # A card that runs one test but not a related one (E26: Cochran's Q).
       if (is.character(ep$no_ready_made_tool)) p(class = "mb-0", tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text)
     ),
@@ -940,7 +941,7 @@ prepare_ui <- function(tree, history = list()) {
 # out terms already explained higher up the same card.
 hints_ui <- function(tree, text, exclude = character()) {
   found <- Filter(function(g) !(g$term %in% exclude), glossary_for(tree, text))
-  lapply(found, function(g) div(class = "hint", tags$dfn(g$term), ": ", g$hint))
+  lapply(found, function(g) div(class = "hint", tags$dfn(g$term, .noWS = "after"), ": ", g$hint))
 }
 
 # At a glance on a card: how it calculates, which package does it, and
