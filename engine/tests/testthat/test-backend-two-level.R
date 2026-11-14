@@ -142,3 +142,24 @@ test_that("the exported script reproduces a joint-power result with simr alone",
   expect_script_reproduces_power(spec, result)
   expect_true(any(grepl("test_all <- function(fit)", two_level_script(validate_spec(spec), result), fixed = TRUE)))
 })
+
+test_that("n can count observations (occasions within people) for a two-level model only (E41)", {
+  spec <- example_spec("mixed_two_level")
+  spec$goal$unit <- "observations"
+  expect_s3_class(validate_quietly(spec), "powerkit_spec")
+  three <- example_spec("mixed_three_level")
+  three$goal$unit <- "observations"
+  expect_spec_problem(three, "'goal > unit' \"observations\" is for a two-level model")
+  other <- example_spec("independent_t")
+  other$goal$unit <- "observations"
+  expect_spec_problem(other, "'goal > unit' \"observations\" is for a two-level model")
+  other$goal$unit <- "items"
+  expect_spec_problem(other, "'goal > unit' \"items\" is for participants and items")
+})
+
+test_that("the R script describes occasions within people when n counts observations", {
+  spec <- example_spec("mixed_two_level")
+  spec$goal$unit <- "observations"
+  expect_match(design_description(validate_quietly(spec)), "occasions within people, each person measured on", fixed = TRUE)
+  expect_no_match(design_description(validate_quietly(example_spec("mixed_two_level"))), "occasions within people", fixed = TRUE)
+})

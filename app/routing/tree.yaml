@@ -1719,18 +1719,26 @@ endpoints:
     alternatives: ["conditional indirect effects at chosen values of W", "one mediator at a time, if the mediators are unrelated"]
   E41:
     doc_name: "Within-person, repeated-measures or multilevel correlation, moderation or mediation"
-    technical_name: "Within-person correlation, moderation and mediation"
+    technical_name: "Within-person moderation (two-level mixed model of occasions within people)"
     plain_name: "Relationships measured within people, or in nested data"
-    search_words: "mixed model multilevel hlm repeated measures"
+    search_words: "mixed model multilevel hlm repeated measures within-person moderation cross-level interaction diary study experience sampling esm ecological momentary assessment ema daily diary intensive longitudinal random slope"
+    template: "mixed_model / two_level"
+    backend: "simr: powerSim() on y ~ X + W + X:W + (1 + X | person), X centred within each person, each effect tested with lmerTest's Satterthwaite t test, or for yes/no glmer's Wald or likelihood-ratio test (simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    no_ready_made_tool: "Within-person mediation (an occasion-level X affecting an occasion-level mediator and outcome)"
+    validation: {file: test-validation-two-level.R, note: "The same two-level model as the card for people in groups, with occasions in place of people and people in place of groups: agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for each effect, recovers every effect and SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
-      - "Relationships measured within people, or in nested data: whether one score predicts another within people when the relationship depends on something else, or runs through a third variable (within-person moderation and mediation), or a person-level score's link with something measured many times."
-      - "powerkit doesn't calculate these yet. For whether two scores simply go together within people, measured together several times, use the repeated-measures correlation card, which does."
-    status: not_in_powerkit
-    inputs: ["Depends on the model"]
+      - "Each person is measured on many occasions, as in a diary or experience-sampling study. Something measured on each occasion (X, such as the day's stress) predicts the outcome on that occasion (such as evening mood), and something measured once per person (W, such as neuroticism) may change how strongly: within-person moderation, the cross-level interaction."
+      - "You give X's effect within people, W's effect between people and the moderation, how much people differ in their average and in X's effect, the occasion-to-occasion SD and the number of occasions per person. The outcome can be a score or yes or no (a logistic mixed model)."
+      - "Analysed with a two-level mixed model with a random intercept and a random slope of X for each person, X centred within each person (the model of the card for people in groups); simulated with simr, so the answer carries a little random error. The sample size counts observations, and the result gives the number of people and occasions."
+      - "For whether two scores simply go together within people, use the repeated-measures correlation card. Within-person mediation is not yet calculated here."
+    inputs: ["The outcome, what is measured on each occasion, and what is measured once per person", "Each effect, how much people differ, and the occasion-to-occasion SD", "The number of occasions, and the effect to test"]
     packages:
-      - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models (moderation, cross-level effects). No tool found for within-person mediation."}
-      - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4."}
-    tier: later
+      - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4: powerkit's route."}
+      - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models from variance explained (moderation, cross-level effects). No tool found for within-person mediation."}
+    tier: v2
+    alternatives: ["the repeated-measures correlation card, for whether two scores go together within people", "the card for people in groups, for pupils in classes or employees in teams"]
   E76:
     doc_name: "Repeated-measures correlation (two scores measured together on several occasions)"
     technical_name: "Repeated-measures correlation (rmcorr)"

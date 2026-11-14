@@ -14,7 +14,7 @@ test_that("only cards that don't calculate say 'No numbers are calculated'", {
   for (id in c(unlist(forms$calculates), names(forms$simulations$endpoints))) {
     expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
-  for (id in c("E41", "E65")) {
+  for (id in c("E65")) {
     expect_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
 })
@@ -83,8 +83,8 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
   # No whole card has no tool at present (E39, the last, calculates since
   # 14 November 2026), so a card that doesn't calculate is marked as one.
   t2 <- tree
-  t2$endpoints$E41$no_ready_made_tool <- TRUE
-  html <- as.character(card_ui(t2, "E41"))
+  t2$endpoints$E65$no_ready_made_tool <- TRUE
+  html <- as.character(card_ui(t2, "E65"))
   expect_match(html, "No ready-made tool.", fixed = TRUE)
   expect_match(html, text, fixed = TRUE)
   # E32 calculates moderation and mediation of a yes/no or count outcome;

@@ -794,10 +794,11 @@
           "exclusiveMaximum": 1
         },
         "unit": {
-          "description": "Participants and items in two conditions only (mixed_model / crossed_two_condition): what 'n' counts. 'participants' (the default) or 'items': the number of items (stimuli), with population > participants fixed.",
+          "description": "What 'n' counts. 'participants' (the default). 'items' (mixed_model / crossed_two_condition only): the number of items (stimuli), with population > participants fixed. 'observations' (mixed_model / two_level with two levels only, for repeated measurements within people, E41): n counts every observation, the groups being people and population > cluster_size the occasions each is measured on, so the number of people is n / cluster_size; the analysis is unchanged.",
           "enum": [
             "participants",
-            "items"
+            "items",
+            "observations"
           ]
         }
       },

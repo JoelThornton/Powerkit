@@ -1358,7 +1358,7 @@ build_spec <- function(forms, ep_id, fields, values) {
   # The range of sample sizes is several engine runs (sensitivity_curve());
   # the spec kept for the exports is the largest N at 80% power.
   if (identical(values$goal, "sensitivity_curve")) {
-    spec$goal <- list(type = "sensitivity", n = as.integer(parse_number(values$n_max)), power = 0.8)
+    spec$goal <- c(list(type = "sensitivity", n = as.integer(parse_number(values$n_max)), power = 0.8), spec$goal["unit"][!vapply(spec$goal["unit"], is.null, logical(1))])
   }
   spec
 }

@@ -842,6 +842,19 @@ intercepts and X slopes, `y ~ x + w + z + x:w + x:z + (1 + x | site) +
 Departure 16, or for a yes/no outcome glmer's Wald z test or the
 likelihood ratio).
 
+With occasions within people (E41, within-person moderation, from 14
+November 2026) the same model is fitted with occasions at level 1 and
+people at level 2: `y ~ x + w + x:w + (1 + x | person)`, X measured on each
+occasion and centred within each person, W measured once per person, the
+cross-level interaction the default effect. The tests are those above. The
+one difference is what the sample size counts: `goal.unit` is
+`"observations"`, so `goal.n` is people times occasions, a whole number of
+people, and the result and the methods paragraph give both ("1,120
+observations (80 people measured on 14 occasions each)"). That follows
+mlmpower, which plans the number of level-2 units and the number of
+observations in each together; it isn't a departure, since no tool
+researchers use plans within-person moderation in a different unit.
+
 ## Effect-size conversion (a published t, F, r, d, odds ratio or risk ratio)
 
 | Tool | t or F into d or d_z | Two groups of different sizes | Other conversions |
@@ -1468,7 +1481,7 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
-- **Shown to users:** on E33's, E62's, E63's, E68's and E67's result screens
+- **Shown to users:** on E33's, E41's, E62's, E63's, E68's and E67's result screens
   (`app/routing/forms.yaml`, `departures`, key "16"), and in the methods
   paragraph's full version. For E62, `test-backend-two-level.R`
   ("Satterthwaite's test is never more liberal than simr's z test")

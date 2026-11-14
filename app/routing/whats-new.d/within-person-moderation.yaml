@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-14"
+    title: "Within-person moderation, as in a diary study"
+    text: "The card for relationships measured within people now calculates within-person moderation: people measured on many occasions, something measured on each occasion (such as the day's stress) predicting the outcome on that occasion (such as evening mood), and something measured once per person (such as neuroticism) changing how strongly. powerkit simulates the power of the two-level mixed model and reports the number of people and occasions. Within-person mediation is not calculated yet."

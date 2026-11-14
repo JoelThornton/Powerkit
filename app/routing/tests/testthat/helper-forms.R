@@ -211,6 +211,12 @@ form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", 
                             b_X = "0.3", b_W = "0.2", b_XW = "0.1", sd_group = "0.4", sd_group_slope = "0.15",
                             sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
 
+# E41: a diary study; whether the day's stress affects evening mood more
+# for people higher in neuroticism.
+form_examples$E41 <- c(list(Y_label = "Evening mood", X_label = "The day's stress", W_label = "Neuroticism", two_outcome = "continuous",
+                            b_X = "-0.3", b_W = "-0.2", b_XW = "-0.1", sd_group = "0.7", sd_group_slope = "0.15",
+                            sd_residual = "1", cluster_size = "14", two_level_effect = "cross_level_interaction"), closing_ok)
+
 # E63: three face expressions; the pair Neutral-Happy, Holm-adjusted.
 form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Happy, Angry", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous",
                             means = "600, 580, 590", sd_participant = "60", sd_participant_condition = "15", sd_item = "30",
