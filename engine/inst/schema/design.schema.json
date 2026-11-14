@@ -586,6 +586,12 @@
             "less"
           ]
         },
+        "trim": {
+          "description": "Yuen's trimmed-means test only: the proportion of scores trimmed from each end of each group (or each measurement) before the means are compared. Default 0.2, WRS2's default (yuen(tr = 0.2)); 0 gives Welch's t-test (two groups) or the paired t-test.",
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMaximum": 0.5
+        },
         "evidence_threshold": {
           "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion, the correlation, two proportions and the one-way ANOVA): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
           "type": "number",
@@ -1652,7 +1658,7 @@
               }
             },
             "score_shape": {
-              "description": "Rank tests only: the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "description": "Rank tests and Yuen's trimmed-means test only: the shape of the scores in every group, in SD units; groups differ only by a shift of that shape (their means). 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1 (as in Spower's p_wilcox.test() examples); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
               "enum": [
                 "normal",
                 "skewed",
@@ -1747,6 +1753,7 @@
                 "welch_t",
                 "mann_whitney",
                 "brunner_munzel",
+                "yuen",
                 "bayes_factor",
                 "minimum_effect"
               ]
@@ -1861,11 +1868,18 @@
               ]
             },
             "score_shape": {
-              "description": "Rank tests only: the shape of the scores powerkit simulates, in SD units, with the effect a shift of that shape. For the signed-rank test it is the shape of the scores (one sample) or of the within-person differences (paired), which the test assumes are symmetric, so 'skewed' isn't offered. 'normal' (the default); 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
+              "description": "Rank tests and Yuen's trimmed-means test only: the shape of the scores powerkit simulates, in SD units, with the effect a shift of that shape. For the signed-rank test it is the shape of the within-person differences, which the test assumes are symmetric, so 'skewed' is refused for it; for Yuen's paired test it is the shape of each measurement, and any of the three may be chosen. 'normal' (the default); 'skewed': a chi-square distribution with 10 df, standardised to mean 0 and SD 1; 'heavy_tailed': a t distribution with 3 df, rescaled to SD 1, so extreme scores are more common than under a normal distribution.",
               "enum": [
                 "normal",
+                "skewed",
                 "heavy_tailed"
               ]
+            },
+            "r": {
+              "description": "Yuen's paired test only: the correlation between the two measurements in the population. yuend() trims each measurement separately, so its power depends on this correlation as well as on d_z. The two measurements are simulated with SD 1 and this correlation, the second shifted by d_z times the SD of the differences, sqrt(2 * (1 - r)).",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
             },
             "effect_sd": {
               "description": "Bayes factor t-tests only: how uncertain the expected effect is, as the SD of a normal design prior centred on the effect (dz) in the same SD units. 0 (the default) plans for exactly that effect, as power analysis usually does.",
@@ -1920,6 +1934,7 @@
               "enum": [
                 "t_test",
                 "wilcoxon_signed_rank",
+                "yuen",
                 "bayes_factor",
                 "minimum_effect"
               ]

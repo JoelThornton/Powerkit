@@ -57,7 +57,7 @@ test_that("the groups have the spec's d and SD ratio, and one-sided tests point 
 test_that("unequal SDs need a method that supports them", {
   spec <- bm_spec()
   spec$target_test$method <- "mann_whitney"
-  expect_spec_problem(spec, "'population > sd_ratio' is only used by the Brunner-Munzel or Welch test")
+  expect_spec_problem(spec, "'population > sd_ratio' is only used by the Brunner-Munzel, Yuen or Welch test")
   spec <- bm_spec()
   spec$options$method <- "exact"
   expect_spec_problem(spec, "'options > method' 'exact' isn't available for this test")

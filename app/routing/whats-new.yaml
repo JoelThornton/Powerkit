@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-14"
+    title: "Robust t-tests on trimmed means"
+    text: "The cards for comparing two groups and for comparing the same people twice now offer Yuen's trimmed-means test as a test version, the robust t-test that compares means after trimming 20% of the scores from each end, so a few extreme scores have little pull. powerkit simulates it with the score shape you choose, so you can see how much it gains over the t-test when scores are heavy-tailed. For the paired version, enter the correlation between the two measurements: the trimmed test's power depends on it."
+  - date: "2026-11-14"
     title: "Tidier analysis cards and input screens"
     text: "An analysis whose checks are still in progress now says so once on its card, with what has been checked so far underneath, and in one line on the input screen, with the details behind its info button. With explanations off, each section's info button sits beside its heading instead of repeating the heading as a link. The \"Validation in progress\" label is the same colour everywhere."
   - date: "2026-11-13"

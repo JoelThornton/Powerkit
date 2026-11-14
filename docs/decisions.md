@@ -3187,3 +3187,22 @@ holds (`test-validation-rmcorr.R`). E41, relationships within people,
 keeps within-person moderation and mediation (`next.md` item 2) and
 points to E76 for the correlation; a new design-finder question (R2)
 separates the two after "measured twice" or "many conditions".
+
+### Yuen's trimmed-means t-tests on E2 and E3, 14 November 2026
+
+Yuen's tests of trimmed means, offered by JASP as robust t-tests, are a
+test version on the two-group and paired cards. WRS2's `yuen()` and
+`yuend()` (Mair and Wilcox, 2020) test each simulated study, run by
+Spower as powerkit's experiments `p_yuen()` and `p_yuend()`, since no
+package gives the power of a trimmed-means test in closed form and its
+power depends on the scores' shape. Trimming defaults to WRS2's 20%. The
+two-group version takes the score shape and the SD ratio as the
+Brunner-Munzel version does; the paired version asks for the correlation
+between the two measurements (with no default), because it trims each
+measurement separately and so its power depends on that correlation as
+well as on d_z. Validation: simulated studies tested by Yuen's statistics
+written out from their definitions agree within Monte Carlo error; the
+Type I error holds with heavy tails, unequal spreads and unequal groups;
+with no trimming the paired version matches pwr's exact power
+(`test-validation-yuen.R`). Conventions: `docs/conventions.md`, "Yuen's
+trimmed-means tests".

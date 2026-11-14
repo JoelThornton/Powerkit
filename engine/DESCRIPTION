@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Common Research Designs
-Version: 0.65.4
+Version: 0.65.5
 Authors@R:
     person("Joel", "Thornton", , "joelthornton53@gmail.com",
            role = c("aut", "cre"))
@@ -97,7 +97,8 @@ Suggests:
     TOSTER,
     vegan,
     WebPower,
-    withr
+    withr,
+    WRS2
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 Config/testthat/start-first: export-script, whole-study, backend-modmed-parallel, backend-mixed-model

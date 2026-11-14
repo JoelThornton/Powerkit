@@ -3082,6 +3082,17 @@
       ],
       "Hash": "41b847654f567341725473431dd0d5ab"
     },
+    "reshape": {
+      "Package": "reshape",
+      "Version": "0.8.10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "plyr"
+      ],
+      "Hash": "09a62fc9e02dcf5dd1d938a2118f910d"
+    },
     "reshape2": {
       "Package": "reshape2",
       "Version": "1.4.5",
@@ -3761,6 +3772,19 @@
         "graphics"
       ],
       "Hash": "d979712ec72df779bc2d30bcc5d0d541"
+    },
+    "WRS2": {
+      "Package": "WRS2",
+      "Version": "1.1-7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "MASS",
+        "R",
+        "plyr",
+        "reshape"
+      ],
+      "Hash": "1d177507707fe17e94d96df70cf5e9d7"
     },
     "xfun": {
       "Package": "xfun",

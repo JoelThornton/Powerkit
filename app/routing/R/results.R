@@ -2238,9 +2238,11 @@ pairwise_test_name <- function(spec) {
 
 # The rank tests (Wilcoxon signed-rank, Mann-Whitney, Brunner-Munzel,
 # Kruskal-Wallis, Friedman): a test version on E1, E2, E3, E18 and E54,
-# simulated by the engine with Spower.
+# simulated by the engine with Spower. Yuen's trimmed-means tests (E2, E3)
+# aren't rank tests but take the same route: simulated, with a score
+# shape, and no formula to compare with.
 is_rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "kruskal_wallis", "friedman", "aligned_rank_transform"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "kruskal_wallis", "friedman", "aligned_rank_transform"))
 }
 
 # The trend tests across groups in order: Jonckheere-Terpstra (E64) and
@@ -2289,6 +2291,16 @@ rank_test_name <- function(spec) {
     return(sprintf("an aligned rank transform ANOVA of %s (%s), simulated assuming %s%s", effect, design,
       if (within) sub("scores", "deviations from each person's own level", shape) else shape,
       if (within) sprintf(" and a correlation of %s between a person's scores", paste(format(unique(unlist(spec$population$r))), collapse = " and ")) else ""))
+  }
+  if (identical(spec$target_test$method, "yuen")) {
+    trim <- sprintf("%g%%", 100 * (spec$target_test$trim %||% 0.2))
+    shape <- score_shape_text(spec$population$score_shape)
+    if (identical(spec$template, "paired_t")) {
+      return(sprintf("Yuen's paired test of %s trimmed means, simulated assuming %s and a correlation of %s between the two measurements",
+        trim, shape, format(spec$population$r)))
+    }
+    return(sprintf("Yuen's test of %s trimmed means, simulated assuming %s, with group 2's SD %s times group 1's",
+      trim, shape, format(spec$population$sd_ratio %||% 1)))
   }
   if (identical(spec$target_test$method, "brunner_munzel")) {
     ratio <- spec$population$sd_ratio %||% 1

@@ -504,26 +504,30 @@ forms:
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
              default: 1, default_source: "equal groups, as in pwr.t.test() (pwr 1.3-0) and Spower's default (p_t.test(n2_n1 = 1), Spower 0.7)"}
-      - input: "Student's or Welch's t-test, the Mann-Whitney or Brunner-Munzel test, a Bayes factor t-test or a minimum-effect test"
+      - input: "Student's or Welch's t-test, the Mann-Whitney or Brunner-Munzel test, Yuen's trimmed-means test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {welch_t: "Welch's t-test", student_t: "Student's t-test", mann_whitney: "Mann-Whitney U test", brunner_munzel: "Brunner-Munzel test", bayes_factor: "Bayes factor t-test", minimum_effect: "Minimum-effect test"},
+             choices: {welch_t: "Welch's t-test", student_t: "Student's t-test", mann_whitney: "Mann-Whitney U test", brunner_munzel: "Brunner-Munzel test", yuen: "Yuen's trimmed-means test (robust t-test)", bayes_factor: "Bayes factor t-test", minimum_effect: "Minimum-effect test"},
              default: welch_t, default_source: "Welch's t-test, as Delacre, Lakens and Leys (2017) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses almost nothing when they don't. R's t.test() runs it unless told otherwise; G*Power and pwr plan for Student's",
-             choice_notes: {bayes_factor: "Uses the default JZS analysis prior and equal groups; the evidence threshold and prior settings below describe the planned Bayesian analysis.", mann_whitney: "Rank-based analysis, simulated; power depends on the score shape you choose.", brunner_munzel: "Rank-based analysis that allows unequal spreads, simulated with your chosen score shape.", minimum_effect: "Tests whether the effect exceeds your smallest effect of interest, rather than whether it differs from zero.", welch_t: "Plans for normal scores. If the two groups' spreads differ, say so under \u201cMy groups' spreads differ\u201d below, or give raw means and SDs.", student_t: "Choose Student's test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or a comparison that is one part of a larger regression or ANOVA assuming equal spreads (unless that model uses robust standard errors). Reporting Welch's test beside it is good practice. With similar spreads and equal group sizes, their planned sample sizes are often close. Unequal spreads can change the answer even when group sizes are equal."}}
+             choice_notes: {bayes_factor: "Uses the default JZS analysis prior and equal groups; the evidence threshold and prior settings below describe the planned Bayesian analysis.", mann_whitney: "Rank-based analysis, simulated; power depends on the score shape you choose.", brunner_munzel: "Rank-based analysis that allows unequal spreads, simulated with your chosen score shape.", yuen: "Compares trimmed means (20% trimmed from each end by default, as in WRS2's yuen()), so a few extreme scores have little pull; allows unequal spreads. Simulated with your chosen score shape.", minimum_effect: "Tests whether the effect exceeds your smallest effect of interest, rather than whether it differs from zero.", welch_t: "Plans for normal scores. If the two groups' spreads differ, say so under \u201cMy groups' spreads differ\u201d below, or give raw means and SDs.", student_t: "Choose Student's test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or a comparison that is one part of a larger regression or ANOVA assuming equal spreads (unless that model uses robust standard errors). Reporting Welch's test beside it is good practice. With similar spreads and equal group sizes, their planned sample sizes are often close. Unequal spreads can change the answer even when group sizes are equal."}}
           - {id: welch_sd_ratio, label: "SD of group 2 divided by SD of group 1", type: number, path: population.sd_ratio, required: true, min_exclusive: 0,
              shown_if: [{field: method, is: welch_t}, {field: effect_units, is_not: raw}],
              default: 1, default_source: "equal spreads",
              fold: "My groups' spreads differ (optional)",
              help: "For example, SDs 10 and 15 give 1.5; 1 means equal spreads. With unequal SDs the effect is the mean difference divided by sqrt((SD1 squared + SD2 squared) / 2), not an allocation-weighted pooled SD. Converting a point-biserial correlation or a published test, and safeguard power, need equal SDs: give raw means and SDs for unequal spreads. This is an assumption about the population, not something choosing Welch's test supplies."}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
-             shown_if: {field: method, is_one_of: [mann_whitney, brunner_munzel]},
+             shown_if: {field: method, is_one_of: [mann_whitney, brunner_munzel, yuen]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_wilcox.test(), Spower 0.7)",
-             help: "Every group has the same shape; the groups differ only by a shift (their means). A rank test's power depends on this shape; the parametric test's figure assumes normal scores."}
+             help: "Every group has the same shape; the groups differ only by a shift (their means). A rank or trimmed-means test's power depends on this shape; the t-test's figure assumes normal scores. Heavy tails are where trimming gains most."}
           - {id: sd_ratio, label: "SD of group 2 divided by SD of group 1 (1 = equal spread)", type: number, path: population.sd_ratio, required: true, min_exclusive: 0,
-             shown_if: {field: method, is: brunner_munzel},
-             default: 1, default_source: "equal spread, the assumption of the Mann-Whitney test that the Brunner-Munzel test relaxes",
-             help: "The Brunner-Munzel test stays valid when the groups differ in spread as well as level. Your effect size is the mean difference divided by the average of the two SDs, sqrt((SD1^2 + SD2^2) / 2)."}
+             shown_if: {field: method, is_one_of: [brunner_munzel, yuen]},
+             default: 1, default_source: "equal spread, the assumption of the Mann-Whitney test and Student's t-test that the Brunner-Munzel and Yuen's tests relax",
+             help: "The Brunner-Munzel test and Yuen's test stay valid when the groups differ in spread as well as level. Your effect size is the mean difference divided by the average of the two SDs, sqrt((SD1^2 + SD2^2) / 2)."}
+          - {id: trim, label: "Share trimmed from each end of each group (0.2 = 20%)", type: number, path: target_test.trim, required: true, min: 0, max_exclusive: 0.5,
+             shown_if: {field: method, is: yuen},
+             default: 0.2, default_source: "20% from each end, WRS2's default (yuen(tr = 0.2), WRS2 1.1-7)",
+             help: "Use the trimming you will analyse with. 0.2 is the usual choice; 0 is no trimming (Welch's t-test), and more trimming moves towards comparing medians."}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), bfpwr's default (powertbf01(k = 1/10), its threshold on BF01, which its help calls Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
@@ -594,11 +598,24 @@ forms:
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
           - {id: raw_r, help: "Use the correlation of the two measurements on the same people, from comparable data. It changes the SD of change scores and hence the answer. If you know the SD of changes, choose that SD option instead: no correlation is then needed. Otherwise compare justified correlation scenarios or save a draft; zero is an assumption, not an unknown value.", label: "Correlation between the two measurements", type: number, path: population.raw.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true, writeup_label: "correlation between the measurements",
              shown_if: [{field: effect_units, is: raw}, {field: raw_sd_kind, is_not: difference}]}
-      - input: "The t-test, the Wilcoxon signed-rank test, a Bayes factor t-test or a minimum-effect test"
+      - input: "The t-test, the Wilcoxon signed-rank test, Yuen's trimmed-means test, a Bayes factor t-test or a minimum-effect test"
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test"},
-             default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(type = 'paired'), pwr 1.3-0)"}
+             choices: {t_test: "Paired-samples t-test", wilcoxon_signed_rank: "Wilcoxon signed-rank test (rank-based), simulated", yuen: "Yuen's paired trimmed-means test (robust t-test), simulated", bayes_factor: "Bayes factor t-test (default JZS prior), instead of a p-value", minimum_effect: "Minimum-effect test"},
+             default: t_test, default_source: "the t-test pwr's formula covers (pwr.t.test(type = 'paired'), pwr 1.3-0)",
+             choice_notes: {yuen: "Compares the two measurements' trimmed means (20% trimmed from each end by default, as in WRS2's yuend()), so a few extreme scores have little pull. It trims each measurement separately, so it needs the correlation between them as well as d_z."}}
+          - {id: yuen_score_shape, label: "The shape of each measurement's scores", type: select, path: population.score_shape, required: true,
+             shown_if: {field: method, is: yuen},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, Spower's default (p_wilcox.test(), Spower 0.7)",
+             help: "Both measurements have this shape; the second is shifted by your d_z. Heavy tails are where trimming gains most over the t-test."}
+          - {id: yuen_r, label: "Correlation between the two measurements", type: number, path: population.r, required: true, min_exclusive: -1, max_exclusive: 1,
+             shown_if: {field: method, is: yuen},
+             help: "Use the correlation of the two measurements on the same people, from comparable data. Yuen's test trims each measurement separately, so its power depends on this correlation as well as on d_z. Compare justified values if you are unsure; there is no neutral default."}
+          - {id: trim, label: "Share trimmed from each end of each measurement (0.2 = 20%)", type: number, path: target_test.trim, required: true, min: 0, max_exclusive: 0.5,
+             shown_if: {field: method, is: yuen},
+             default: 0.2, default_source: "20% from each end, WRS2's default (yuend(tr = 0.2), WRS2 1.1-7)",
+             help: "Use the trimming you will analyse with. 0.2 is the usual choice; 0 is no trimming (the paired t-test)."}
           - {id: score_shape, label: "The shape of the changes (second minus first)", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is: wilcoxon_signed_rank},
              choices: {normal: "Roughly normal (bell-shaped)", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
