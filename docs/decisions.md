@@ -3299,6 +3299,30 @@ separately written simulation and the Type I error with both groups
 changing by the same ratio. Conventions: `docs/conventions.md`, "The
 same people measured more than once".
 
+### Moderation of a count outcome on E32, 14 November 2026
+
+E32's moderation now takes a count outcome (0, 1, 2, ...) beside a yes/no
+one. The analysis is the count model researchers fit: a Poisson regression
+with the X x W product, or a negative binomial regression when the counts
+vary more than their mean, tested by the Wald z test of the product's
+coefficient, as `summary()` of `glm()` or `MASS::glm.nb()` reports it.
+G\*Power and pwrss have no count interaction test, so Spower simulates
+studies of powerkit's experiment `p_count_interaction()` (its own backend
+file, `backend-count-interaction.R`). The researcher gives the mean count
+at the starting point, the rate ratios for X and W and the interaction as
+a ratio of rate ratios, and for negative binomial counts the overdispersion
+k (variance mu + k mu^2), as on E28. X and W are each a score or a yes/no
+group, as for the yes/no outcome. The default is Poisson, as on E28; the
+field's help says to choose negative binomial for counts of behaviour,
+since a Poisson model overstates power when the counts are overdispersed.
+Recommendation for the maintainer: keep Poisson as the default for
+consistency with E28 and G\*Power's count test, and revisit both together
+if negative binomial is made the default for counts. Power and a required
+sample size both run on the card. A categorical outcome and mediation with
+an outcome that isn't a score stay in `next.md` item 1. Validation:
+`test-validation-count-interaction.R`. Conventions: `docs/conventions.md`,
+"Moderation of a count outcome (E32)".
+
 ### Mediation with a yes/no mediator on E39, 14 November 2026
 
 E39, mediation where the mediator is yes or no, now calculates. PROCESS

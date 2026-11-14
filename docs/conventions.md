@@ -2472,6 +2472,23 @@ Wired into the app on 18 October 2026 (E25, E26).*
   the product's coefficient, as `summary()` reports it. Tests:
   `test-backend-logistic-interaction.R`;
   `test-validation-logistic-interaction.R` [powerkit, `docs/decisions.md`].
+- **Moderation of a count outcome (E32): the Wald z test of the product
+  in a Poisson or negative binomial regression.** G\*Power has no count
+  interaction test, so nothing is departed from. X and W are drawn as for
+  the yes/no outcome; the log of the mean count is linear in X, W and
+  X x W, with the mean count at the starting point and the rate ratios
+  given, so X's rate ratio is for W at its mean (or first group) and the
+  interaction is a ratio of rate ratios. The counts are Poisson, or
+  negative binomial with variance mu + k mu^2 when the researcher chooses
+  negative binomial and gives k. Each simulated study is fitted by
+  `glm(family = poisson())` or `MASS::glm.nb()` (the model that generated
+  the counts) and the test is the Wald z test of the product's
+  coefficient, as `summary()` reports it. The default is Poisson, the
+  usual first model for counts and the one the single-predictor count
+  card (E28) starts from; the field's help
+  says that a Poisson model overstates power when counts are
+  overdispersed. Tests: `test-backend-count-interaction.R`;
+  `test-validation-count-interaction.R` [powerkit, `docs/decisions.md`].
 - **The Bayes factor of an effect in a two-factor between-participants
   ANOVA (E7, E21, E22), and since 5 November 2026 in the repeated-measures
   ANOVAs (E8, E54, E55, E20, participants a random factor with JASP's r

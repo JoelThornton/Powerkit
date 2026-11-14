@@ -4843,23 +4843,9 @@
         "properties": {
           "template": {
             "enum": [
-              "single_predictor_count"
+              "single_predictor_count",
+              "interaction"
             ]
-          },
-          "variables": {
-            "required": [
-              "X",
-              "Y"
-            ],
-            "additionalProperties": false,
-            "properties": {
-              "X": {
-                "$ref": "#/definitions/variable_continuous_or_binary"
-              },
-              "Y": {
-                "$ref": "#/definitions/variable_count"
-              }
-            }
           },
           "target_test": {
             "properties": {
@@ -4890,6 +4876,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_single_predictor_count"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "interaction"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_count_interaction"
             }
           }
         ]
@@ -6314,6 +6315,21 @@
     "template_single_predictor_count": {
       "description": "Poisson regression of a count outcome Y on one predictor X (a score or a yes/no group), optionally adjusted for other predictors: the Wald z test of X's coefficient. Also negative binomial regression and zero-inflated Poisson and negative binomial regression, simulated.",
       "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_count"
+            }
+          }
+        },
         "population": {
           "required": [
             "metric",
@@ -12977,6 +12993,99 @@
             },
             "method": {
               "const": "delta_method"
+            }
+          }
+        }
+      }
+    },
+    "template_count_interaction": {
+      "description": "Moderation of a count outcome: Poisson (or, with method negative_binomial, negative binomial) regression of Y on X, W and their product X x W (each a score, taken as standardised, or a yes/no group coded 0 and 1), and the Wald z test of the product's coefficient, simulated with Spower (stats::glm(family = poisson()) or MASS::glm.nb()).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "W",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "W": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_count"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "base_rate",
+            "rate_ratio_x",
+            "rate_ratio_w",
+            "rate_ratio_xw"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "rate_ratio"
+            },
+            "base_rate": {
+              "description": "Mean count when X and W are at their means (scores) or in their first groups (yes/no).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rate_ratio_x": {
+              "description": "Rate ratio for X when W is at its mean (a score) or in its first group: per SD of X (a score) or X's second group against its first.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rate_ratio_w": {
+              "description": "Rate ratio for W when X is at its mean or in its first group, per SD of W or W's second group against its first.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rate_ratio_xw": {
+              "description": "The interaction, as a ratio of rate ratios: how many times X's rate ratio is multiplied per SD of W (a score) or in W's second group (yes/no). 1 is no interaction, allowed to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "dispersion": {
+              "description": "Negative binomial counts ('target_test > method' \"negative_binomial\") only: the overdispersion k in variance = mean + k mean^2 (MASS's theta is 1 / k).",
+              "type": "number",
+              "minimum": 0
+            },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion in X's second group. 0.5 if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "w_prob": {
+              "description": "Yes/no W only: the proportion in W's second group. 0.5 if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "r_xw": {
+              "description": "Two scores only: the correlation between X and W. 0 if omitted.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": false,
+            "effect": {
+              "const": "interaction"
+            },
+            "method": {
+              "enum": [
+                "wald_z",
+                "negative_binomial"
+              ],
+              "description": "'wald_z': Poisson regression and the Wald z test of the X x W coefficient. 'negative_binomial': negative binomial regression (MASS's glm.nb()), for counts more spread out than a Poisson distribution allows; needs population > dispersion. The same Wald z test."
             }
           }
         }

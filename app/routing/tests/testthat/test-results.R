@@ -2058,7 +2058,36 @@ test_that("moderation of a yes/no outcome (E32) builds a logistic interaction sp
   expect_identical(calc$result$provenance$backend, "Spower")
   expect_true(all(calc$result$check_run$ok))
   w <- writeup_text(forms$forms[["E32"]], calc$spec, calc$result, fields, values)
-  expect_match(w[["short"]], "logistic regression with an interaction", fixed = TRUE)
+  expect_match(w[["short"]], "a regression with an interaction (logistic", fixed = TRUE)
+})
+
+test_that("moderation of a count outcome (E32) builds a Poisson or negative binomial interaction spec and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E32"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  counts <- list(Y_kind = "count", count_model = "negative_binomial")
+  expect_false(field_applies(by_id("base_prob"), counts))
+  expect_true(field_applies(by_id("dispersion"), counts))
+  expect_false(field_applies(by_id("dispersion"), list(Y_kind = "count", count_model = "wald_z")))
+  values <- modifyList(form_examples$E32, list(Y_kind = "count", count_model = "negative_binomial", Y_label = "Drinking days in a month",
+    X_type = "binary", X_level1 = "Usual care", X_level2 = "Brief intervention", x_prob = "0.5", r_xw = NULL,
+    base_prob = NULL, odds_ratio_x = NULL, odds_ratio_w = NULL, odds_ratio_xw = NULL,
+    base_rate = "6", rate_ratio_x = "0.8", rate_ratio_w = "1.2", rate_ratio_xw = "0.85", dispersion = "0.5", goal = "power", n = "400"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E32", fields, values)
+  expect_identical(spec$design, "poisson_regression")
+  expect_identical(spec$template, "interaction")
+  expect_identical(spec$variables$Y$type, "count")
+  expect_null(spec$variables$Y$levels)
+  expect_identical(spec$population$metric, "rate_ratio")
+  expect_identical(spec$target_test$method, "negative_binomial")
+  expect_null(spec$population$odds_ratio_xw)
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E32"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "regression with an interaction", fixed = TRUE)
 })
 
 test_that("PERMANOVA (E59's test version) takes the shape of the scores, reaches vegan and drops MANOVA's known difference", {

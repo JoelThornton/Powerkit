@@ -164,7 +164,7 @@ simulated_data_code <- function(spec, n, seed) {
     ordinal_regression = sim_ordinal_code(spec, n),
     dyadic = sim_apim_code(spec, n),
     mixed_model = sim_mixed_code(spec, n),
-    poisson_regression = sim_glm_code(spec, n),
+    poisson_regression = if (identical(spec$template, "interaction")) sim_count_interaction_code(spec, n) else sim_glm_code(spec, n),
     cluster_trial = sim_cluster_code(spec, n),
     factorial_anova = if (welch_anova(spec)) {
       sim_basic_code(spec, n)

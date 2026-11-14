@@ -87,9 +87,9 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
   html <- as.character(card_ui(t2, "E41"))
   expect_match(html, "No ready-made tool.", fixed = TRUE)
   expect_match(html, text, fixed = TRUE)
-  # E32 calculates moderation of a yes/no outcome; the rest has no tool.
+  # E32 calculates moderation of a yes/no or count outcome; the rest has no tool.
   e32 <- as.character(card_ui(tree, "E32"))
-  expect_match(e32, htmltools::htmlEscape("A count or categorical outcome, and mediation with an outcome that isn't a score:"), fixed = TRUE)
+  expect_match(e32, htmltools::htmlEscape("A categorical outcome, and mediation with an outcome that isn't a score:"), fixed = TRUE)
   expect_match(e32, text, fixed = TRUE)
   e26 <- as.character(card_ui(tree, "E26"))
   expect_match(e26, htmltools::htmlEscape("Cochran's Q:"), fixed = TRUE)

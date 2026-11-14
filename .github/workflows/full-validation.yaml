@@ -97,6 +97,7 @@ on:
           - multinomial
           - zero_inflated
           - logistic_interaction
+          - count_interaction
           - group_moderator
           - growth
           - signal_detection

@@ -21,7 +21,9 @@ population_problems <- function(spec) {
         three_level = check_three_level(spec), item_predictor = check_item_predictor(spec),
         c(check_crossed_two_condition(spec), check_crossed_outcome(spec, conditions = FALSE)))
     },
-    poisson_regression = check_single_predictor_x,
+    poisson_regression = function(spec) {
+      if (identical(spec$template, "interaction")) check_count_interaction(spec) else check_single_predictor_x(spec)
+    },
     cluster_trial = check_cluster_trial,
     sem = check_sem,
     regression_interaction = check_regression_interaction,
@@ -359,7 +361,7 @@ check_dispersion <- function(spec) {
 # zero part, belong to them too. The joint test of both parts has no
 # direction.
 check_zero_inflation <- function(spec) {
-  if (!identical(spec$design, "poisson_regression")) {
+  if (!identical(spec$design, "poisson_regression") || identical(spec$template, "interaction")) {
     return(character())
   }
   pop <- spec$population
@@ -3053,7 +3055,9 @@ minimum_n <- function(spec) {
     ),
     # The zero-inflated models: thirty, so that most simulated data sets
     # have enough zeros and counts to fit both parts.
-    poisson_regression = if (zero_inflated_test(spec)) 30 else 3,
+    # Moderation of a count: ten for each of the four coefficients, as for
+    # moderation of a yes/no outcome.
+    poisson_regression = if (identical(spec$template, "interaction")) 40 else if (zero_inflated_test(spec)) 30 else 3,
     # powertools::propodds() needs at least 2 in group 1; 2 in each group.
     ordinal_regression = 4,
     # Enough participants to estimate a random intercept and slope.
@@ -3396,6 +3400,7 @@ target_effect_is_zero <- function(spec) {
       pop$difference
     },
     poisson_regression = switch(spec$target_test$effect %||% "rate_ratio",
+      interaction = log(pop$rate_ratio_xw),
       zero_odds_ratio = log(pop$zero_odds_ratio %||% 1),
       rate_and_zero = max(abs(log(c(pop$rate_ratio, pop$zero_odds_ratio %||% 1)))),
       log(pop$rate_ratio)

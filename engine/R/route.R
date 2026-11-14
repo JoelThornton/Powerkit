@@ -121,6 +121,7 @@ route_backend <- function(spec, seed = NULL) {
     } else {
       pwrss_backend(spec, seed)
     },
+    "poisson_regression/interaction" = count_interaction_backend(spec, seed),
     "multiple_regression/r2_zero" = ,
     "multiple_regression/r2_increase" = ,
     "logistic_regression/single_predictor" = ,
