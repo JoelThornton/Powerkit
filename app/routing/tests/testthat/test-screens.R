@@ -14,7 +14,7 @@ test_that("only cards that don't calculate say 'No numbers are calculated'", {
   for (id in c(unlist(forms$calculates), names(forms$simulations$endpoints))) {
     expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
-  for (id in c("E39", "E65")) {
+  for (id in c("E41", "E65")) {
     expect_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
 })
@@ -80,11 +80,13 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
   text <- htmltools::htmlEscape(tree$no_ready_made_tool_text)
   expect_match(text, "custom simulation in R", fixed = TRUE)
   expect_match(text, "statistician", fixed = TRUE)
-  for (id in "E39") {
-    html <- as.character(card_ui(tree, id))
-    expect_match(html, "No ready-made tool.", fixed = TRUE, label = id)
-    expect_match(html, text, fixed = TRUE, label = id)
-  }
+  # No whole card has no tool at present (E39, the last, calculates since
+  # 14 November 2026), so a card that doesn't calculate is marked as one.
+  t2 <- tree
+  t2$endpoints$E41$no_ready_made_tool <- TRUE
+  html <- as.character(card_ui(t2, "E41"))
+  expect_match(html, "No ready-made tool.", fixed = TRUE)
+  expect_match(html, text, fixed = TRUE)
   # E32 calculates moderation of a yes/no outcome; the rest has no tool.
   e32 <- as.character(card_ui(tree, "E32"))
   expect_match(e32, htmltools::htmlEscape("A count or categorical outcome, and mediation with an outcome that isn't a score:"), fixed = TRUE)
@@ -193,7 +195,7 @@ test_that("cards show undecided settings as compact labelled placeholders, in th
   html <- as.character(card_ui(tree, "E7"))
   expect_match(html, "Undecided, for the maintainer", fixed = TRUE)
   expect_match(html, "Judgement call 3.1", fixed = TRUE)
-  html_not <- as.character(card_ui(tree, "E39"))
+  html_not <- as.character(card_ui(tree, "E41"))
   expect_match(html_not, "Open question 6", fixed = TRUE)
 })
 
@@ -305,11 +307,11 @@ test_that("the plan's combined sample size is the largest N among the main analy
   html <- plan(list(compare = list(endpoint = "E2", goal = "sample_size", n = 50)))
   expect_false(grepl("N = 50", html, fixed = TRUE))
   # A main analysis powerkit can't calculate is named as one to work out elsewhere.
-  # (A yes/no mediator, E39: a yes/no X with a score mediator calculates
-  # since 29 October 2026.)
-  med <- list(x = "cond2", outcome = "score", mediators = "notscore", moderator = "none", covariate = "none", times = "once")
+  # (Mediation within people, E41.)
+  med <- list(x = "within2", outcome = "score", mediators = "one", moderator = "none", covariate = "none", times = "once")
+  med_compare <- resolve_analysis(tree, analysis_by_id(tree, "compare"), med)$endpoint
   html <- as.character(guided_plan_ui(tree, med, c("compare", "mediation"), c("compare", "mediation"), list(), "each", forms = forms,
-    results = list(compare = list(endpoint = "E2", goal = "sample_size", n = 128))))
+    results = list(compare = list(endpoint = med_compare, goal = "sample_size", n = 128))))
   expect_match(html, "work out their sample size elsewhere", fixed = TRUE)
   expect_match(html, "Largest so far", fixed = TRUE)
   # The calculations are kept from the input screen and restored with Back.
@@ -373,7 +375,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
     "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result", "spec_hash", "study_variation", "sample_structure", "analysis_requirements", "all_tests_target", "analysis_evidence", "simulation_margin"))
   # Calculations run only for the end points listed in forms.yaml.
-  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15", "E59", "E60", "E61", "E64", "E66", "E46", "E44", "E43", "E69", "E70", "E32", "E30", "E35", "E71", "E72", "E58", "E73", "E45", "E76"))
+  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15", "E59", "E60", "E61", "E64", "E66", "E46", "E44", "E43", "E69", "E70", "E32", "E30", "E35", "E71", "E72", "E58", "E73", "E45", "E76", "E39"))
 })
 
 test_that("each card lists only the closing questions that apply to it", {
@@ -427,7 +429,7 @@ test_that("the note on other defensible analyses is off until the maintainer tur
     expect_match(html, "Other defensible analyses exist for this design (e.g.", fixed = TRUE, label = id)
     expect_match(html, "Power the analysis you plan to run.", fixed = TRUE, label = id)
   }
-  expect_no_match(as.character(card_ui(t2, "E39")), "Other defensible analyses exist", fixed = TRUE)
+  expect_no_match(as.character(card_ui(t2, "E65")), "Other defensible analyses exist", fixed = TRUE)
 })
 
 test_that("the safety-net card says what to write down for a statistician, using the screening answers", {
@@ -674,7 +676,7 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   expect_no_match(record, "Checked against published values", fixed = TRUE)
   expect_match(record, "not automatically to every test version", fixed = TRUE)
   # Cards that don't calculate have no facts strip.
-  expect_no_match(as.character(card_ui(tree, "E39")), "card-facts", fixed = TRUE)
+  expect_no_match(as.character(card_ui(tree, "E65")), "card-facts", fixed = TRUE)
   # Reached by answering questions, it says so.
   expect_match(as.character(card_ui(tree, "E2", history = list(list(node = "s1", answer = "A score", ctx = list())))),
     "The analysis that fits your answers", fixed = TRUE)

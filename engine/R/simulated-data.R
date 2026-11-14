@@ -176,7 +176,8 @@ simulated_data_code <- function(spec, n, seed) {
       sim_ancova_code(spec, n)
     },
     regression_interaction = switch(spec$template, two_way = sim_interaction_code(spec, n), group_moderator = sim_group_moderator_code(spec, n), NULL),
-    mediation = if (identical(spec$template, "multicategorical")) sim_mcx_code(spec, n) else sim_power4mome_code(spec, n, seed),
+    mediation = if (identical(spec$template, "multicategorical")) sim_mcx_code(spec, n) else
+      if (identical(spec$template, "binary_mediator")) sim_binm_code(spec, n) else sim_power4mome_code(spec, n, seed),
     moderated_mediation = sim_power4mome_code(spec, n, seed),
     NULL
   )
@@ -1659,6 +1660,29 @@ sim_mcx_code <- function(spec, n) {
     sprintf("  %s = factor(groups[group], levels = groups),", sim_label(spec, "X")),
     sprintf("  %s = M,", sim_label(spec, "M")),
     sprintf("  %s = Y", sim_label(spec, "Y")),
+    ")"
+  )
+}
+
+# Mediation with a yes/no mediator (E39): the same data as the simulation
+# (binm_data()), with X, M and Y under their labels and levels.
+sim_binm_code <- function(spec, n) {
+  inputs <- binm_inputs(spec)
+  lev <- function(v) unlist(spec$variables[[v]]$levels) %||% c("No", "Yes")
+  c(
+    if (inputs$x_binary) sprintf("X <- as.numeric(seq_len(%d) > %s) # two equal groups", n, r_code(n / 2)) else
+      sprintf("X <- stats::rnorm(%d) # SD 1", n),
+    sprintf("M <- stats::rbinom(%d, 1, stats::plogis(%s + %s * X))", n, r_code(stats::qlogis(inputs$m_baseline)), r_code(inputs$a)),
+    if (inputs$y_binary) {
+      sprintf("Y <- stats::rbinom(%d, 1, stats::plogis(%s + %s * M + %s * X))", n, r_code(stats::qlogis(inputs$y_baseline)),
+        r_code(inputs$b), r_code(inputs$direct))
+    } else {
+      sprintf("Y <- %s * M + %s * X + stats::rnorm(%d)", r_code(inputs$b), r_code(inputs$direct), n)
+    },
+    "simulated <- data.frame(",
+    sprintf("  %s = %s,", sim_label(spec, "X"), if (inputs$x_binary) sprintf("factor(%s[X + 1], levels = %s)", r_code(lev("X")), r_code(lev("X"))) else "X"),
+    sprintf("  %s = factor(%s[M + 1], levels = %s),", sim_label(spec, "M"), r_code(lev("M")), r_code(lev("M"))),
+    sprintf("  %s = %s", sim_label(spec, "Y"), if (inputs$y_binary) sprintf("factor(%s[Y + 1], levels = %s)", r_code(lev("Y")), r_code(lev("Y"))) else "Y"),
     ")"
   )
 }

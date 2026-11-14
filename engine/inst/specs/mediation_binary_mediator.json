@@ -1,0 +1,52 @@
+{
+  "spec_version": "0.1",
+  "design": "mediation",
+  "template": "binary_mediator",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Condition",
+      "levels": [
+        "Usual information",
+        "Reminder letter"
+      ]
+    },
+    "M": {
+      "type": "binary",
+      "label": "Booked an appointment",
+      "levels": [
+        "No",
+        "Yes"
+      ]
+    },
+    "Y": {
+      "type": "continuous",
+      "label": "Health knowledge"
+    }
+  },
+  "population": {
+    "metric": "odds_ratio",
+    "m_baseline": 0.3,
+    "m_odds_ratio": 2.5,
+    "b": 0.5,
+    "direct": 0.1
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: smallest effects the team would consider practically meaningful."
+  },
+  "target_test": {
+    "effect": "indirect_effect",
+    "path": "X->M->Y",
+    "method": "delta_method",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 300
+  },
+  "options": {
+    "nrep": 200,
+    "seed": 39
+  }
+}

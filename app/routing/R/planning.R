@@ -186,6 +186,35 @@ additional_input_guide <- function(f) {
   if (identical(f$id, "measurements") && identical(f$path, "population.measurements")) return(make("How many times each person is measured on both scores, the same number for everyone. The repeated-measures correlation uses each person's ups and downs around their own average, so every extra occasion adds information.",
     "Measured on 3 days, each person gives 3 pairs of scores; 100 people then give the test 199 degrees of freedom, N(k - 1) - 1.", "Your study protocol: the number of diary days, sessions or sampling prompts everyone completes.",
     "If some people will miss occasions, run the plan with the number you expect most people to complete and with a smaller number, and report both."))
+  # Mediation with a yes/no mediator (E39).
+  if (identical(f$id, "binm_m_baseline")) return(make("How often the mediator is 'yes' without X: in the first (comparison) group, or at X's average if X is a score.",
+    "0.3 means 30% of people given the usual information book an appointment.",
+    "The rate in the comparison condition of a similar study, or routine records such as booking or uptake rates.",
+    "Power is usually highest when this chance is near a half; if unsure, check the plan with a rate further from it."))
+  if (identical(f$id, "binm_m_or")) return(make("How much X changes the odds that the mediator is 'yes' (path a): the second group's odds against the first's, or the change per SD of a score. 1 means no change.",
+    "2.5 with a comparison rate of 0.3 means about 52% book an appointment after a reminder letter, against 30% without one.",
+    "The odds ratio for the mediator in a trial of a similar intervention, or the two groups' rates converted to an odds ratio.",
+    "Run the plan with the smallest change in the mediator you would care about."))
+  if (identical(f$id, "binm_b")) return(make("How much higher (or lower) the outcome is for people whose mediator is 'yes' than for those whose is 'no', at the same X, in the outcome's SD: path b, like Cohen's d.",
+    "0.5 means people who booked an appointment score half an SD higher on health knowledge than those who didn't, in the same condition.",
+    "The outcome's means for people with and without the mediator in a comparable study, adjusted for the condition if possible.",
+    "If you know only that the mediator matters, run the plan with the smallest difference you would care about."))
+  if (identical(f$id, "binm_direct")) return(make("X's effect on the outcome that doesn't run through the mediator, in the outcome's SD (c'). The test of the indirect effect depends little on it.",
+    "0.1 means the reminder letter raises health knowledge by 0.1 SD even among people who didn't book.",
+    "The direct effect in a published mediation model, or 0 if you expect the mediator to carry the whole effect.",
+    "Leave it empty for 0."))
+  if (identical(f$id, "binm_y_baseline")) return(make("How often the outcome is 'yes' for people in the first group (or at X's average) whose mediator is 'no'.",
+    "0.2 means 20% of people who got the usual information and didn't book are screened anyway.",
+    "The outcome's rate among people without the mediator in a similar study or routine records.",
+    "Check the plan with a rate further from a half, where power is usually lower."))
+  if (identical(f$id, "binm_b_or")) return(make("How much a 'yes' on the mediator changes the odds that the outcome is 'yes', at the same X (path b, as an odds ratio).",
+    "3 means people who booked have three times the odds of being screened as those who didn't, in the same condition.",
+    "The adjusted odds ratio for the mediator in a comparable study.",
+    "Run the plan with the smallest odds ratio you would care about."))
+  if (identical(f$id, "binm_direct_or")) return(make("How much X changes the odds of the outcome without going through the mediator (as an odds ratio; 1 means no direct effect).",
+    "1.2 means the letter raises the odds of screening by a fifth even among people who didn't book.",
+    "The direct effect in a published model, or 1 if you expect the mediator to carry the whole effect.",
+    "Leave it empty for 1."))
   # Mediation with X in three or more groups (E42).
   if (identical(f$id, "mcx_m_differences")) return(make("How far each group's mean on the mediator M lies from the first group's, in M's standard deviation within a group (Cohen's d), one number for each group after the first. Each is that group's path a to M under dummy coding.",
     "With no message, a gain-framed and a loss-framed message, 0.4, 0.6 means the gain-framed group scores 0.4 SD and the loss-framed group 0.6 SD higher than the no-message group on perceived risk.",

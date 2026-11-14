@@ -140,6 +140,16 @@
       ],
       "Hash": "a41d0fc833ea756a1136b60a437efe26"
     },
+    "assertthat": {
+      "Package": "assertthat",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "tools"
+      ],
+      "Hash": "50c838a310445e954bc13f26f26a6ecf"
+    },
     "dcurver": {
       "Package": "dcurver",
       "Version": "0.9.3",
@@ -554,6 +564,35 @@
         "utils"
       ],
       "Hash": "e59d02e4f0a175caeacfe98c21378a39"
+    },
+    "regmedint": {
+      "Package": "regmedint",
+      "Version": "1.0.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "Deriv",
+        "MASS",
+        "Matrix",
+        "R",
+        "assertthat",
+        "sandwich",
+        "survival"
+      ],
+      "Hash": "e0d54889c1a2919331664cdba72c6d17"
+    },
+    "sandwich": {
+      "Package": "sandwich",
+      "Version": "3.1-3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "stats",
+        "utils",
+        "zoo"
+      ],
+      "Hash": "b371412dbbf43cf39d0302556a0b7c39"
     },
     "semPower": {
       "Package": "semPower",

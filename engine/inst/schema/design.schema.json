@@ -3765,7 +3765,8 @@
             "enum": [
               "process_4",
               "process_6",
-              "multicategorical"
+              "multicategorical",
+              "binary_mediator"
             ]
           },
           "target_test": {
@@ -3786,9 +3787,10 @@
                       "monte_carlo_ci",
                       "percentile_bootstrap",
                       "ols_percentile_bootstrap",
-                      "joint_significance"
+                      "joint_significance",
+                      "delta_method"
                     ],
-                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate"
+                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate. delta_method (a yes/no mediator, template binary_mediator, only): the natural indirect effect's delta-method test in regression-based causal mediation analysis (regmedint), simulated"
                   }
                 }
               }
@@ -3839,6 +3841,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_mediation_multicategorical"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "binary_mediator"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mediation_binary_mediator"
             }
           }
         ]
@@ -12877,6 +12894,89 @@
             "group": {
               "description": "The group (a level of X after the first) whose relative indirect effect against the first group is tested; 'all' (the default) for every relative indirect effect significant in the same study.",
               "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "template_mediation_binary_mediator": {
+      "description": "Mediation with a yes/no mediator (E39): logistic regression of M on X, and linear (Y a score) or logistic (Y yes/no) regression of Y on M and X, without an X-by-M interaction; the natural indirect effect of X (0 to 1: the second group against the first, or one SD of X) through M tested by its delta-method standard error, as regmedint's regression-based causal mediation analysis computes it (Valeri and VanderWeele, 2013), in a Spower simulation. With X in two groups, the groups are of equal size; goal > n is the total.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "M",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "M": {
+              "description": "The yes/no mediator: its second level is 'yes'.",
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "m_baseline",
+            "m_odds_ratio"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "odds_ratio"
+            },
+            "m_baseline": {
+              "description": "The chance that M is yes for the first group of X (or at X's mean, for a score).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "m_odds_ratio": {
+              "description": "The odds ratio of M = yes for X: the second group against the first, or per SD of a score (path a, exp(a)).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "b": {
+              "description": "Y a score only: the difference in Y between M yes and M no, holding X, in Y's residual SD (path b).",
+              "type": "number"
+            },
+            "direct": {
+              "description": "Y a score only: X's effect on Y holding M (the second group against the first, or per SD), in Y's residual SD (c'). 0 if omitted.",
+              "type": "number"
+            },
+            "y_baseline": {
+              "description": "Y yes/no only: the chance that Y is yes for the first group of X (or at X's mean) when M is no.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "b_odds_ratio": {
+              "description": "Y yes/no only: the odds ratio of Y = yes for M yes against no, holding X (path b, exp(b)).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "direct_odds_ratio": {
+              "description": "Y yes/no only: the odds ratio of Y = yes for X, holding M (exp(c')). 1 if omitted.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": {
+              "const": "X->M->Y"
+            },
+            "method": {
+              "const": "delta_method"
             }
           }
         }

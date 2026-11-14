@@ -169,9 +169,11 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
   })
   # Mediation with X in three or more groups (E42) is planned for the
   # Monte Carlo interval only, so it keeps its own draws setting and offers
-  # no choice of method.
+  # no choice of method; mediation with a yes/no mediator (E39) uses the
+  # delta-method test of regression-based causal mediation analysis, which
+  # draws nothing.
   if (isTRUE(form$base$design %in% c("mediation", "moderated_mediation")) &&
-      !identical(form$base$template, "multicategorical")) {
+      !isTRUE(form$base$template %in% c("multicategorical", "binary_mediator"))) {
     groups <- lapply(groups, function(g) {
       g$fields <- lapply(g$fields, function(f) {
         if (identical(f$id, "ci_draws")) {

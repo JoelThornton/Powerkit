@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-14"
+    title: "Mediation when the mediator is yes or no"
+    text: "powerkit now plans mediation where the mediator is a yes or no answer, such as whether someone booked an appointment, with X two conditions or a score and an outcome that is a score or yes or no. It uses regression-based causal mediation analysis: give the chance of the mediator in the comparison group, how much X changes its odds, and how much the mediator changes the outcome, and powerkit finds the power or sample size for the natural indirect effect."

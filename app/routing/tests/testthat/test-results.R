@@ -57,9 +57,10 @@ test_that("calculating designs calculate; simulated designs preview first, then 
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
   }
-  # E9, E15, the MANOVAs and latent profiles (E58) run in the background
+  # E9, E15, the MANOVAs, latent profiles (E58) and mediation with a yes/no
+  # mediator (E39) run in the background
   # with no preview, with their usual run times.
-  expect_identical(names(forms$background), c("E9", "E15", "E59", "E58", "E73", "E60"))
+  expect_identical(names(forms$background), c("E9", "E15", "E59", "E58", "E73", "E39", "E60"))
   # Cards whose default version simulates say so, and their bars estimate.
   expect_setequal(names(forms$simulated_times), c("E44", "E22", "E61", "E47", "E64", "E70", "E30", "E32", "E45", "E72",
     "E66", "E18", "E57"))
