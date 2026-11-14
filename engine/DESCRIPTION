@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Common Research Designs
-Version: 0.66.5
+Version: 0.66.6
 Authors@R:
     person("Joel", "Thornton", , "joelthornton53@gmail.com",
            role = c("aut", "cre"))
@@ -90,6 +90,7 @@ Suggests:
     pscl,
     PUMP,
     quantreg,
+    regmedint,
     semPower,
     simsem,
     SimplyAgree,

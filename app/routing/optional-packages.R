@@ -45,6 +45,7 @@ if (FALSE) {
   library(pscl)
   library(PUMP)
   library(quantreg)
+  library(regmedint)
   library(semPower)
   library(simsem)
   library(statpsych)

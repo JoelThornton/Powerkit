@@ -446,14 +446,14 @@ flowchart TD
   ME2B -->|Two or more, side by side<br/>(X: two groups on the screen)| E11
   ME2B -->|Two to four, in a chain<br/>(X: two groups on the screen)| E12
   ME1 -->|A measured score| ME4{"ME4 Are your<br/>mediators scores?"}
-  ME4 -->|No| E39["E39 Yes/no or<br/>categorical mediator"]
+  ME4 -->|No| E39["E39 Mediation with a<br/>yes/no mediator"]
   ME4 -->|Yes| ME2{"ME2 How many mediators?<br/>ME3 How do they connect?"}
   ME2 -->|One| E10["E10 Simple mediation<br/>(PROCESS model 4)"]
   ME2 -->|Two or more,<br/>side by side| E11["E11 Parallel mediation<br/>(PROCESS model 4)"]
   ME2 -->|Two to four,<br/>in a chain| E12["E12 Serial mediation<br/>(PROCESS model 6)"]
   class Q2,Q3,ME1,ME2,ME4,ME2B,ME4B q
-  class E10,E11,E12,E16,E42 avail
-  class E32,E39,E41 later
+  class E10,E11,E12,E16,E42,E39 avail
+  class E32,E41 later
   classDef q fill:#E8F0FB,stroke:#3B6FB6,color:#14284B,stroke-width:1.5px
   classDef avail fill:#DDF2E3,stroke:#2E7D4F,color:#123D24,stroke-width:1.5px
   classDef spec fill:#FFF0D1,stroke:#B97A00,color:#4A3200,stroke-width:1.5px
@@ -653,6 +653,7 @@ the two in step.
 | E15 | ✓ | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E16 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E42 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| E39 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E17 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E38 | — | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | E18 | — | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -766,7 +767,7 @@ taken from coverage.md, where they are proposals.
 | E36 | Equivalence test (TOST) | `equivalence_test / tost_independent, tost_paired, tost_one_sample, tost_correlation, tost_two_proportions, noninf_independent, noninf_paired, noninf_one_sample, noninf_two_proportions` | `TOSTER::power_t_TOST()` (the two one-sided tests for two independent groups, paired data or one sample; exact formula); `TOSTER::power_z_cor()` (a correlation, z tests on Fisher's z) and `TOSTER::power_twoprop()` (two proportions, z tests, equal groups). Non-inferiority: `pwrss::power.t.student()` and `pwrss::power.z.twoprops()` with `margin` and `alternative = "one.sided"`. Minimum-effect tests are a test version on the t-test cards (E1-E3: `pwrss::power.t.student()` with the margin on the effect's side) | Formula (no simulation) | The equivalence bound and the expected difference (Cohen's d, d_z or the measure's own units), correlation, or proportions; group sizes for two groups | No: matches TOSTER called directly, a large-sample approximation and Type I error in the engine's tests; published examples to come | v2 | Runs |
 | E37 | CFA, SEM model fit, measurement invariance, factor correlations and latent paths | `sem / model_fit, invariance, factor_correlation, latent_regression` | Model fit: `semPower::semPower.postHoc()` with `effect.measure = "RMSEA"`, the chi-square test of exact fit (noncentrality (N − 1) × RMSEA² × df), with `semPower::semPower.getDf()` counting a CFA's df through lavaan. Measurement invariance of one factor across two groups (metric against configural, scalar against metric): `semPower::semPower.powerMI()`; the correlation between two factors against 0: `semPower::semPower.powerCFA()`; one latent slope against 0: `semPower::semPower.powerRegression()`; each the chi-square difference test, power at each n through the model's F0 and `semPower.postHoc()`. Not yet: longitudinal invariance, invariance of several factors or groups, the test of close fit | Formula (no simulation) | Model fit: items and factors (a CFA) or the df, and the RMSEA. Invariance: items, loading, how many items differ and by how much, the group ratio. Factor correlation: items and loading per factor, the correlation. Latent regression: slopes, the predictors' correlation, items and loading | No: matches semPower called directly, power and required N, in `test-backend-sempower.R` (published values TODO in `test-validation-sem-model-fit.R` and `test-validation-sem-latent.R`) | v2 | Runs |
 | E38 | Moderated mediation with W on both links or the direct link (PROCESS models 8, 58, 59) | `moderated_mediation / process_8`, `process_58`, `process_59`, `target_test > effect` "conditional_indirect_difference", `w_values` | `power4test()` with powerkit's `test_cond_indirect_diff()` (manymome's `cond_indirect_effects()` and `cond_indirect_diff()`); for models 58 and 59 the fitted model given without `M ~~ W` | Simulation | Standardised paths; the two values of W (default -1 and 1 SD); CI draws | No: agrees with an independent simulation and holds alpha in `test-validation-modmed-difference.R` (published value TODO) | v2 (build guide) | Runs |
-| E39 | Mediation with a yes/no or categorical mediator | — | No ready-made tool: custom simulation in R (e.g. with Spower) or advice from a statistician | — | — | No | later | Not in spec |
+| E39 | Mediation with a yes/no or categorical mediator | Spower (regmedint) | Simulation of regression-based causal mediation analysis: the natural indirect effect with its delta-method test | The chance of the mediator in the first group, X's odds ratio on it, and the mediator's effect on the outcome (a difference in SD, or an odds ratio for a yes/no outcome) | Natural indirect effect | No: agrees with an independent simulation of the published formulas and holds alpha in `test-validation-mediation-binm.R` (published value TODO) | v2 | Runs |
 | E40 | Moderated mediation with two or more mediators | `moderated_mediation / process_7, process_14` (parallel mediators M1, M2) | `power4mome::power4test()` with `test_index_of_mome()` for the chosen mediator; residual correlations between the mediators are passed as correlations (power4mome reads them so in a model with a product term). Reached from MM3 and the guided route when there are several mediators | Simulation | Which link W changes, and whether X and W are scores or yes/no (with each yes/no variable's share in its second group); standardised paths for each mediator, including the interactions; the mediators' residual correlation; the mediator whose index is tested | No: recovers the population in its check run and its script reproduces the result in `test-backend-modmed-parallel.R` (not yet in the full validation run; published value TODO) | later | Runs |
 | E41 | Within-person, repeated-measures or multilevel correlation, moderation or mediation | — | Moderation: mlmpower; simr. Mediation: none found (within-person mediation has no ready-made tool; [coverage](coverage.md)) | — | Model-specific | No | later | Not in spec |
 | E76 | Repeated-measures correlation (two scores measured together on several occasions) | `basic_test / repeated_measures_correlation` | `pwrss::power.exact.onecor()` at the effective sample size N(k − 1) + 1 (Bakdash and Marusich, 2017). Reached from Q3 and R2 when the same people are measured more than once | Formula (no simulation) | The repeated-measures correlation r_rm, and the measurements per person | Not yet: `test-validation-rmcorr.R` (direct pwrss call, simulated studies and Type I error pass; published value TODO) | v2 | Runs |
@@ -813,7 +814,7 @@ should name them is open question 18. E-unsure is the safety net.
 **For "not in spec" end points the card says so plainly.** It names the
 analysis, the tool from [coverage.md](coverage.md) that covers it, and
 whether the R script export can help. Where no tool offers the analysis
-(E30, E32, E39, and Cochran's Q in E26), the card says plainly: no
+(E30, E32, and Cochran's Q in E26), the card says plainly: no
 ready-made tool; the options are a custom simulation in R (for example
 with Spower) or advice from a statistician. A proposed wording: *"powerkit
 doesn't cover [analysis name] yet. [Tool] does: see [link]. powerkit
@@ -1604,7 +1605,7 @@ tools do, in [`judgement-calls.md`](judgement-calls.md).
    stand-in test. This rule generalises decision N2 beyond 2x2 main
    effects.
 7. **R script export for uncovered designs.** The export (phase 4) writes
-   code for designs powerkit runs. For uncovered designs (E30, E32, E39,
+   code for designs powerkit runs. For uncovered designs (E30, E32,
    E40), should the full-model builder generate a power4mome or Spower
    script the user runs themselves, without powerkit's validation? This
    is not planned anywhere yet.

@@ -1681,12 +1681,21 @@ endpoints:
     doc_name: "Mediation with a yes/no or categorical mediator"
     technical_name: "Mediation: categorical mediator"
     plain_name: "Mediation when a mediator isn't a score"
-    status: not_in_powerkit
-    no_ready_made_tool: true
-    inputs: ["Depends on the model you write"]
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
-    tier: later
+    search_words: "mediation binary dichotomous yes/no mediator logistic natural indirect effect causal mediation counterfactual vanderweele valeri regmedint"
+    template: "mediation / binary_mediator (a yes/no mediator; X two groups or a score; Y a score or yes/no)"
+    backend: "Spower: powerkit's experiment around regmedint::regmedint() (regression-based causal mediation analysis: the natural indirect effect and its delta-method test), simulated"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-mediation-binm.R, note: "Agrees with a simulation written separately (the published formulas for the natural indirect effect, with their own delta-method standard errors) for each kind of X and outcome, recovers every path in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "One mediator that is yes or no, such as whether someone booked an appointment, between X (two conditions or a score) and an outcome that is a score or yes or no."
+      - "The analysis is regression-based causal mediation analysis (Valeri and VanderWeele): a logistic regression for the mediator, a linear or logistic regression for the outcome, and the natural indirect effect, the part of X's effect that runs through the mediator."
+      - "You give the chance of the mediator in the first group, the odds ratio by which X changes it, and how much the mediator changes the outcome; the test is the natural indirect effect's delta-method test, as regmedint, the R version of the authors' macro, reports it."
+      - "PROCESS fits a linear regression to the mediator even when it is yes or no; this card models the mediator as yes or no, as Valeri and VanderWeele's method does. An interaction between X and the mediator isn't covered yet."
+      - "Simulated with Spower, in under a minute for power."
+    inputs: ["What X, the mediator and the outcome are", "How X changes the chance of the mediator, and how the mediator changes the outcome"]
+    tier: v2
+    alternatives: ["a bootstrap confidence interval of the natural indirect effect, which the authors' macro also offers", "with a mediator in ordered categories, a model for ordered categories (not yet in powerkit)"]
   E40:
     doc_name: "Moderated mediation with two or more mediators"
     technical_name: "Multiple-mediator moderated mediation"

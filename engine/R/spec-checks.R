@@ -27,6 +27,7 @@ population_problems <- function(spec) {
     regression_interaction = check_regression_interaction,
     mediation = function(spec) {
       if (identical(spec$template, "multicategorical")) return(check_mediation_mcx(spec))
+      if (identical(spec$template, "binary_mediator")) return(check_mediation_binm(spec))
       c(check_path_model(spec), check_single_predictor_x(spec))
     },
     moderated_mediation = check_path_model,
@@ -3122,6 +3123,10 @@ minimum_n <- function(spec) {
     mediation = if (identical(spec$template, "multicategorical")) {
       k <- length(spec$variables$X$levels)
       max(2 * k, k + 3)
+    } else if (identical(spec$template, "binary_mediator")) {
+      # Y's regression has three coefficients; two people per group of X
+      # at least.
+      6
     } else max(lengths(path_model(spec)$equations)) + 3,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
@@ -3179,6 +3184,9 @@ group_split <- function(spec) {
     g <- length(spec$variables$W$levels)
     return(list(rule = sprintf("split into %d equal groups, one per group of %s", g, spec$variables$W$label %||% "W"),
       valid = function(n) n %% g == 0))
+  }
+  if (identical(spec$template, "binary_mediator") && identical(spec$variables$X$type, "binary")) {
+    return(list(rule = "split into 2 equal groups, one per group of X", valid = function(n) n %% 2 == 0))
   }
   if (identical(spec$template, "multicategorical")) {
     k <- length(spec$variables$X$levels)
@@ -3403,7 +3411,8 @@ target_effect_is_zero <- function(spec) {
       latent_regression = pop$slopes[[pop$tested %||% 1L]]
     ),
     regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else if (identical(spec$template, "group_moderator")) diff(range(as.numeric(unlist(pop$r_xy)))) else if (identical(pop$metric, "r2_change")) pop$r2_change else pop$r_XW_Y,
-    mediation = if (identical(spec$template, "multicategorical")) mcx_tested_effect(spec) else {
+    mediation = if (identical(spec$template, "multicategorical")) mcx_tested_effect(spec) else
+      if (identical(spec$template, "binary_mediator")) binm_tested_effect(spec) else {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
       prod(vapply(seq_len(length(nodes) - 1), function(i) {
         as.numeric(paths[[paste0(nodes[i], "->", nodes[i + 1])]])
