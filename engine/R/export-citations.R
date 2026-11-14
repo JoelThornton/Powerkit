@@ -137,6 +137,11 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
       if ("WRS2" %in% used) {
         list(s("WRS2", "whose yuen() and yuend() are Yuen's trimmed-means tests powerkit's experiment runs"))
       },
+      # Mediation with X in three or more groups (backend-mediation-mcx.R).
+      if ("manymome" %in% used) {
+        list(s("lavaan", "which fits the mediation model to each simulated data set"),
+          s("manymome", "whose Monte Carlo draws give each relative indirect effect's confidence interval"))
+      },
       if ("ARTool" %in% used) {
         c(
           list(s("ARTool", "whose art() and artlm() are the aligned rank transform powerkit's experiment runs")),

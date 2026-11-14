@@ -84,7 +84,8 @@ export_script <- function(spec, result, file = NULL) {
     Spower = if (identical(spec$template, "repeated_glmm")) repeated_glmm_script(spec, result) else
       if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
       if (meta_regression(spec) || meta_heterogeneity(spec)) meta_more_script(spec, result) else
-      if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
+      if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else
+      if (identical(spec$template, "multicategorical")) mediation_mcx_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
     power4mome = if (identical(spec$design, "dyadic")) apim_script(spec, result) else power4mome_script(spec, result),
@@ -655,6 +656,11 @@ design_description <- function(spec) {
     "mediation/process_4" = sprintf(
       "%s mediation (PROCESS model 4); indirect effect tested: %s",
       if (length(path_model(spec)$mediators) > 1) "parallel" else "simple", spec$target_test$path
+    ),
+    "mediation/multicategorical" = sprintf(
+      "mediation with X in %d groups (%s, the first the reference), dummy-coded; relative indirect effect tested: %s",
+      length(spec$variables$X$levels), levels("X"),
+      if (identical(spec$target_test$group %||% "all", "all")) "all of them" else spec$target_test$group
     ),
     "mediation/process_6" = sprintf(
       "serial mediation (PROCESS model 6); indirect effect tested: %s", spec$target_test$path

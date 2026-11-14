@@ -268,6 +268,7 @@ route_backend <- function(spec, seed = NULL) {
     "regression_interaction/group_moderator" = spower_backend(spec, seed),
     # Simple mediation's quick estimate: the joint-significance test by
     # pwrss's formula (backend-mediation-joint.R).
+    "mediation/multicategorical" = mcx_backend(spec, seed),
     "mediation/process_4" = if (mediation_joint_test(spec)) mediation_joint_backend(spec, seed) else power4mome_backend(spec, seed),
     "mediation/process_6" = ,
     "moderated_mediation/process_7" = ,

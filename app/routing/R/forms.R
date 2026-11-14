@@ -167,7 +167,11 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     }
     with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })
-  if (isTRUE(form$base$design %in% c("mediation", "moderated_mediation"))) {
+  # Mediation with X in three or more groups (E42) is planned for the
+  # Monte Carlo interval only, so it keeps its own draws setting and offers
+  # no choice of method.
+  if (isTRUE(form$base$design %in% c("mediation", "moderated_mediation")) &&
+      !identical(form$base$template, "multicategorical")) {
     groups <- lapply(groups, function(g) {
       g$fields <- lapply(g$fields, function(f) {
         if (identical(f$id, "ci_draws")) {
@@ -1201,6 +1205,10 @@ form_problems <- function(fields, values) {
         add(sprintf("%s: every entry should be a number written with a decimal point, such as 10.5, separated by commas.", quote_label(f)))
       } else if (!is.null(f$per_levels) && length(xs) != length(parse_levels(values[[f$per_levels]]))) {
         add(sprintf("%s should have %d numbers, one for each name you gave, in the same order.", quote_label(f), length(parse_levels(values[[f$per_levels]]))))
+      } else if (!is.null(f$per_later_levels) && length(xs) != length(parse_levels(values[[f$per_later_levels]])) - 1) {
+        # One number for each group after the first (the reference group).
+        add(sprintf("%s should have %d numbers, one for each group after the first, in the same order.", quote_label(f),
+          length(parse_levels(values[[f$per_later_levels]])) - 1))
       }
     }
     if (identical(f$type, "table")) {

@@ -198,7 +198,7 @@ Rows the maintainer listed (ML). "Unknown" where it isn't clear.
 | B10 | Serial mediation | ML; BG | E12 | Wired (historical checks for a subset; selected-variant evidence required) | As B8 | power4mome `q_power_mediation_serial()` | Wire | — |
 | B11 | 3+ mediators | ML | E11, E12 (the spec takes up to M9 parallel, M4 serial) | Partly working (serial forms allow up to four; parallel choices remain restricted; do not infer validation from schema limits) | As B8 | As B9, B10 | Audit generated form counts and targets against engine and evidence | [B9][] |
 | B12 | Binary X | ML; BG | E16 (one mediator); E11, E12 (two or more) | Wired (29 October 2026; simulated, the group split an input; published value to transcribe) | Now: AP, PN, S | **Engine: power4mome `x_fun` with `rbinary_rs(p1 = )`**; Spower `p_mediation(dichotomous.X = TRUE)` (Sobel/Wald test) | Transcribe a published example | [E4][] |
-| B13 | Multi-category X | ML | E42 | No ready-made tool | — | none found (coverage.md) | — | — |
+| B13 | Multi-category X | ML | E42 | Wired (14 November 2026; validation in progress): Spower simulation of lavaan + manymome, relative indirect effects with a Monte Carlo CI | — | Spower, lavaan, manymome | — | — |
 | B14 | Binary or count outcome | ML; Audit | E32 | No ready-made tool | — | none found among the five: `x_fun` on an endogenous variable sets its error term, so a binary Y isn't covered (build guide, phase 3b a). **Candidate, not checked:** powerMediation's Vittinghoff, Sen and McCulloch (2009) logistic and Poisson mediation functions (coverage.md) | Check the candidate against its own help files | — |
 | B15 | With covariates | ML | none: reaches E10–E12, which have no covariates | Foundation tool can do it, not planned | Could: AP, PN, S | power4mome `power4test(model = )`: any lavaan model, so covariates can be added as predictors | Add covariates to the spec | [D7][] |
 | B16 | Latent-variable mediation | ML; Audit | E37; entered as mediation, E10 | Foundation tool can do it, not planned | Could: AP, PN, S | power4mome `power4test()` with `number_of_indicators`, `reliability` (vignette "power4test_latent_mediation") | — | [C16][] |
@@ -489,11 +489,11 @@ Recounted from the reconciled rows on 10 November 2026. These are catalogue row 
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 0 | 0 | 4 | 4 |
-| Wired (validation not finished) | 40 | 40 | 0 | 80 |
+| Wired (validation not finished) | 40 | 41 | 0 | 81 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 2 | 0 | 3 |
 | Foundation tool can do it, not planned | 4 | 7 | 0 | 11 |
-| No ready-made tool | 0 | 4 | 0 | 4 |
+| No ready-made tool | 0 | 3 | 0 | 3 |
 | Partly working | 0 | 11 | 8 | 19 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
 | Unknown | 1 | 6 | 0 | 7 |

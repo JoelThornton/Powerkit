@@ -14,7 +14,7 @@ test_that("only cards that don't calculate say 'No numbers are calculated'", {
   for (id in c(unlist(forms$calculates), names(forms$simulations$endpoints))) {
     expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
-  for (id in c("E42", "E65")) {
+  for (id in c("E39", "E65")) {
     expect_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
 })
@@ -80,7 +80,7 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
   text <- htmltools::htmlEscape(tree$no_ready_made_tool_text)
   expect_match(text, "custom simulation in R", fixed = TRUE)
   expect_match(text, "statistician", fixed = TRUE)
-  for (id in c("E39", "E42")) {
+  for (id in "E39") {
     html <- as.character(card_ui(tree, id))
     expect_match(html, "No ready-made tool.", fixed = TRUE, label = id)
     expect_match(html, text, fixed = TRUE, label = id)
@@ -99,7 +99,6 @@ test_that("end points outside the five tools say so", {
     if (!identical(tree$endpoints[[id]]$five_tools, "not covered")) next
     expect_match(as.character(card_ui(tree, id)), "Not covered by the five tools", fixed = TRUE, label = id)
   }
-  expect_match(as.character(card_ui(tree, "E42")), "Not covered by the five tools", fixed = TRUE)
 })
 
 test_that("every question screen renders with a back button", {
@@ -194,7 +193,7 @@ test_that("cards show undecided settings as compact labelled placeholders, in th
   html <- as.character(card_ui(tree, "E7"))
   expect_match(html, "Undecided, for the maintainer", fixed = TRUE)
   expect_match(html, "Judgement call 3.1", fixed = TRUE)
-  html_not <- as.character(card_ui(tree, "E42"))
+  html_not <- as.character(card_ui(tree, "E39"))
   expect_match(html_not, "Open question 6", fixed = TRUE)
 })
 
@@ -428,7 +427,7 @@ test_that("the note on other defensible analyses is off until the maintainer tur
     expect_match(html, "Other defensible analyses exist for this design (e.g.", fixed = TRUE, label = id)
     expect_match(html, "Power the analysis you plan to run.", fixed = TRUE, label = id)
   }
-  expect_no_match(as.character(card_ui(t2, "E42")), "Other defensible analyses exist", fixed = TRUE)
+  expect_no_match(as.character(card_ui(t2, "E39")), "Other defensible analyses exist", fixed = TRUE)
 })
 
 test_that("the safety-net card says what to write down for a statistician, using the screening answers", {
@@ -675,7 +674,7 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   expect_no_match(record, "Checked against published values", fixed = TRUE)
   expect_match(record, "not automatically to every test version", fixed = TRUE)
   # Cards that don't calculate have no facts strip.
-  expect_no_match(as.character(card_ui(tree, "E42")), "card-facts", fixed = TRUE)
+  expect_no_match(as.character(card_ui(tree, "E39")), "card-facts", fixed = TRUE)
   # Reached by answering questions, it says so.
   expect_match(as.character(card_ui(tree, "E2", history = list(list(node = "s1", answer = "A score", ctx = list())))),
     "The analysis that fits your answers", fixed = TRUE)

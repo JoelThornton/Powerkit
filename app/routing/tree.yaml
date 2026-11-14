@@ -1837,13 +1837,21 @@ endpoints:
     doc_name: "Mediation with a condition of three or more groups (multi-category X)"
     technical_name: "Mediation: multicategorical predictor"
     plain_name: "Mediation where X has three or more conditions or groups"
-    status: not_in_powerkit
-    five_tools: not covered
-    no_ready_made_tool: true
-    inputs: ["Depends on the model you write (relative indirect effects for each comparison with a reference group)"]
-    packages:
-      - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For a custom simulation: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
-    tier: later
+    search_words: "mediation multicategorical multi-category categorical x three groups conditions relative indirect effect dummy coding indicator coding process model 4 hayes preacher"
+    template: "mediation / multicategorical (X in 3 or more groups, dummy-coded against the first)"
+    backend: "Spower: powerkit's experiment around lavaan::sem() and manymome::do_mc() (the Monte Carlo CI of the relative indirect effects), simulated"
+    method: Simulation
+    status: runs_validation_in_progress
+    validation: {file: test-validation-mediation-mcx.R, note: "Agrees with a simulation written separately (each equation fitted by OLS, with its own Monte Carlo interval of each relative indirect effect), with one group or every group tested, recovers every path in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    card_points:
+      - "X is three or more conditions or groups, such as no message, a gain-framed and a loss-framed message, and it affects Y through one mediator (M)."
+      - "Each group after the first is compared with the first, as PROCESS does with its default dummy coding, and has its own relative indirect effect (Hayes and Preacher's term): its difference from the first group on M times the path from M to Y."
+      - "You give each group's Cohen's d against the first on M, the path M -> Y within groups, and, if you expect them, the direct effects on Y; the groups are equal in size."
+      - "You choose whether one comparison or every comparison must be significant; each is tested with a Monte Carlo confidence interval, as on the other mediation cards."
+      - "Simulated with Spower: a quick preview in the app, and the full run or the sample size from an R script."
+    inputs: ["X's groups or conditions, the first the reference group", "Each group's difference from the first on M, the path M -> Y, and the direct effects"]
+    tier: v2
+    alternatives: ["a bootstrap confidence interval, which PROCESS reports by default", "a comparison coding other than dummy coding (sequential, Helmert or effect coding)"]
   E58:
     doc_name: "Latent profile or latent class analysis (how many types of people, and who belongs to which)"
     technical_name: "Latent profile and latent class analysis"
