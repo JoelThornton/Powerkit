@@ -3188,16 +3188,12 @@ group_split <- function(spec) {
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
   }
-<<<<<<< HEAD
   if (identical(spec$template, "repeated_glmm") && !is.null(spec$variables$W)) {
     g <- length(spec$variables$W$levels)
     return(list(rule = sprintf("split into %d equal groups, one per group of %s", g, spec$variables$W$label %||% "W"),
       valid = function(n) n %% g == 0))
   }
-  if (identical(spec$template, "binary_mediator") && identical(spec$variables$X$type, "binary")) {
-=======
   if (spec$template %in% c("binary_mediator", "binary_or_count_outcome") && identical(spec$variables$X$type, "binary")) {
->>>>>>> 6b47aab1 (Plan mediation with a yes/no or count outcome on E32)
     return(list(rule = "split into 2 equal groups, one per group of X", valid = function(n) n %% 2 == 0))
   }
   if (identical(spec$template, "multicategorical")) {
