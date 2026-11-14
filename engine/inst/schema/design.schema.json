@@ -1114,6 +1114,7 @@
               "independent_t",
               "paired_t",
               "correlation",
+              "repeated_measures_correlation",
               "two_proportions",
               "chi_square_independence",
               "one_proportion",
@@ -1195,6 +1196,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_correlation"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "repeated_measures_correlation"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_repeated_measures_correlation"
             }
           },
           {
@@ -1977,6 +1993,60 @@
                 "bayes_factor"
               ],
               "description": "'pearson' (the default): Pearson's r, by formula (pwr). 'spearman' or 'kendall': Spearman's rho or Kendall's tau, simulated with Spower's p_r(method = ...) on bivariate normal scores whose Pearson correlation is population > r. 'bayes_factor': the Bayes factor test of Pearson's correlation (BayesFactor's correlationBF(), the same Bayes factor as JASP's Bayesian correlation), by exact calculation from the distribution of r."
+            }
+          }
+        }
+      }
+    },
+    "template_repeated_measures_correlation": {
+      "description": "The same people measured on two scores on several occasions: the within-person association of the two (the repeated-measures correlation, Bakdash and Marusich, 2017), tested against 0. One within-person slope common to everyone; people may differ in their averages.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "r",
+            "measurements"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "correlation"
+            },
+            "r": {
+              "description": "The repeated-measures correlation r_rm: the association of the two scores within people, after removing each person's average.",
+              "$ref": "#/definitions/correlation"
+            },
+            "measurements": {
+              "description": "How many times each person is measured on both scores (k). The test has N(k - 1) - 1 degrees of freedom for N people.",
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10000
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "effect": {
+              "const": "correlation"
+            },
+            "method": {
+              "const": "rmcorr",
+              "description": "'rmcorr': the t test of the repeated-measures correlation (rmcorr's rmcorr()), with power from the exact distribution of r at the effective sample size N(k - 1) + 1 (pwrss's power.exact.onecor()), as rmcorr's documentation describes."
             }
           }
         }
