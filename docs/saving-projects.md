@@ -291,8 +291,24 @@ the same. The zip reader (`zip_project_file()`) opens the one
 `.powerkit.json` at the top of a zip when there are others in folders.
 The Word document now keeps Markdown tables.
 
-Part 3 (Plan my whole study joins a plan) is still to build, as described
-below.
+Part 3 (Plan my whole study joins a plan) is built as well. When the
+guided route first reaches its list of analyses it fills the plan whose
+"Add an analysis" was pressed (unless that plan already holds a guided
+plan) or makes "Whole-study plan, <date>" (`state$guided_plan`). The
+guided record (`guided_plan_record()`, what "Save this plan" wrote, now
+with `ws_result`, the last whole-study run summarised by
+`whole_study_summary()`) is kept in the plan's `guided` field and updated
+as the guided plan changes (`plan_set_guided()`), which also gives each
+analysis calculated from it the role the guided plan gives it. An
+analysis's route records `guided_analysis`, so after reopening the plan,
+calculating it again updates it. The plan's page shows the guided plan,
+its last whole-study result and "Open the guided plan"; "Save this plan"
+and its link on the guided screens save the study plan. A plan holding a
+guided plan but no calculated analysis is saved as the guided-plan file
+with `study_plan` (id, name, description) beside it, because a plan file
+needs an analysis: the previous version opens it as a guided plan, and
+this one as the study plan. An older guided-plan file opens as a new
+whole-study plan, and its guided screens, as before.
 
 ### Why
 
@@ -607,6 +623,13 @@ the first), and updates this section.
   group analyses and order the document; the overview's largest N is
   over every analysis, as now, and joint power is offered on the same
   terms as now.
+
+- **A guided plan with nothing calculated is saved as a guided-plan
+  file** (decided while building part 3). The engine's plan file needs
+  at least one analysis; writing the guided-plan format, with the study
+  plan's id, name and description added, keeps such a file opening in
+  the version before this one, which a plan file with no analyses would
+  not.
 
 ### Left to the builder
 

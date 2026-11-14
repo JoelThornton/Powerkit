@@ -136,8 +136,8 @@ app_css <- "
   .standard-name { color: #444; }
   .status { border-radius: 0.4rem; padding: 0.6rem 0.9rem; margin: 0.5rem 0 1rem 0; }
   .status-runs { background: #ddf2e3; border: 1px solid #2e7d4f; }
-  .status-in-progress { background: #e8f0fb; border: 1px solid #3b6fb6; }
-  .badge-progress { display: inline-block; background: #3b6fb6; color: #fff; border-radius: 1rem; padding: 0.05rem 0.6rem;
+  .status-in-progress { background: #fbf8f1; border: 1px solid var(--pk-line); border-left: 4px solid var(--pk-amber); font-size: 0.92rem; }
+  .badge-progress { display: inline-block; background: #fdf1d8; color: #6b4500; border: 1px solid #e3c27a; border-radius: 1rem; padding: 0.05rem 0.6rem;
                     font-size: 0.75rem; font-weight: 600; margin-right: 0.5rem; vertical-align: 1px; }
   .status-soon { background: #fff0d1; border: 1px solid #b97a00; }
   .badge-soon { display: inline-block; background: #7a4f00; color: #fff; border-radius: 1rem; padding: 0.05rem 0.6rem;
@@ -152,7 +152,10 @@ app_css <- "
   .choice-safety { border-style: dashed; }
   .hint { font-size: 0.85rem; color: #4a4a4a; margin: 0.1rem 0 0.25rem 0; }
   .hint dfn { font-style: normal; font-weight: 600; }
-  .card-points { margin-bottom: 1rem; }
+  /* The card's points use the same bullets as What you'll need, without its dividers. */
+  .card-points { margin-bottom: 1rem; padding-left: 0; list-style: none; }
+  .card-points > li { position: relative; padding: 0.15rem 0 0.15rem 1.6rem; }
+  .card-points > li::before { content: ''; position: absolute; left: 0.35rem; top: 0.7rem; width: 0.45rem; height: 0.45rem; background: #8a97a8; border-radius: 50%; }
   .form-group-box { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem 0.25rem 1rem; margin-bottom: 1rem; }
   .progress-steps ol { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; list-style: none; padding: 0; margin: 0 0 1rem 0; font-size: 0.9rem; }
   .progress-steps li { display: flex; align-items: center; gap: 0.4rem; color: #545b62; }
@@ -199,6 +202,27 @@ app_css <- "
   .terms-mode .form-field.has-field-more label.control-label { display: inline; min-height: 0; padding-right: 0; }
   .terms-mode .form-field .explanation-help.field-more > summary { min-width: 32px; min-height: 32px; border: 0; background: none; padding: 0; font-size: 1rem; }
   .form-field .explanation-help.field-more > summary::after { content: none; }
+  /* Info buttons look the same everywhere (14 November 2026): a round i
+     beside the label, heading or badge it explains. A group's sits beside
+     its heading (the legend floats so the button can follow it). */
+  fieldset.form-group-box > legend.h6 { float: left; width: auto; margin: 0 0.35rem 0.5rem 0; padding: 0; line-height: 32px; }
+  fieldset.form-group-box > legend.h6 ~ * { clear: both; }
+  fieldset.form-group-box > legend.h6 ~ .group-more { clear: none; }
+  .explanation-help.group-more, .explanation-help.inline-more { display: block; margin: 0 0 0.5rem; }
+  .explanation-help.group-more > .explanation-content, .explanation-help.inline-more > .explanation-content { clear: left; }
+  .explanation-help.group-more > summary, .explanation-help.inline-more > summary { display: none; }
+  .terms-mode .explanation-help.group-more > summary, .terms-mode .explanation-help.inline-more > summary,
+  .terms-mode .explanation-help.group-more > summary, .terms-mode .explanation-help.inline-more > summary {
+    display: inline-flex; min-width: 32px; min-height: 32px; border: 0; background: none; padding: 0; font-size: 1rem; vertical-align: middle; }
+  .terms-mode .explanation-help.group-more > summary::after, .terms-mode .explanation-help.inline-more > summary::after { content: none; }
+  .terms-mode .explanation-help.group-more > summary:hover, .terms-mode .explanation-help.inline-more > summary:hover { background: #eef4fb; border-radius: 50%; }
+  .terms-mode .explanation-help.group-more[open] > .explanation-content, .terms-mode .explanation-help.inline-more[open] > .explanation-content {
+    margin: 0.3rem 0 0.5rem; padding: 0.6rem 0.8rem; background: #f6f8fb; border-radius: 0.5rem; }
+  .validation-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.25rem; margin: 0.25rem 0 0.75rem; }
+  .validation-line .badge-progress { margin-right: 0; }
+  .validation-line > .inline-more { margin: 0; flex: 1 1 auto; }
+  .validation-line > .inline-more > .explanation-content { flex-basis: 100%; font-size: 0.9rem; color: #3d4652; margin-top: 0.25rem; }
+  .terms-mode .validation-line > .inline-more:not([open]) { flex: 0 0 auto; }
   .field-lead-copy { display: none; }
   .terms-mode .field-lead { display: none; }
   .terms-mode .field-lead-copy { display: block; }
@@ -700,7 +724,7 @@ app_css <- "
   .known-choice-not { background: #f7f8fa; }
   .known-choice-not .choice-label { color: #3d4852; }
   .known-badge { display: inline-block; margin-top: 0.45rem; border-radius: 999px; padding: 0.05rem 0.55rem; font-size: 0.74rem; font-weight: 600; }
-  .known-badge-progress { background: #e8f0fb; color: #2c5a99; }
+  .known-badge-progress { background: #fdf1d8; color: #6b4500; }
   .known-badge-soon { background: #fff0d1; color: #7a4f00; }
   .known-badge-not { background: #e9ecef; color: #3d4852; }
   /* The input screen (1 November 2026): each group's title sits inside its
@@ -1021,7 +1045,10 @@ server <- function(input, output, session) {
     current_plan = NULL,     # the plan results are added to
     plans_view = NULL,       # the plan open on the Study plans page (NULL: the list)
     plan_origin = NULL,      # the plan analysis the open result was opened from
-    plan_just_added = NULL   # the result just added or updated, for the bar's message
+    plan_just_added = NULL,  # the result just added or updated, for the bar's message
+    guided_plan = NULL,      # the study plan the guided route ("Plan my whole study") fills
+    plan_more_target = NULL, # the plan whose "Add an analysis" was pressed last
+    ws_result = NULL         # whole-study simulation: the last finished run, summarised for its study plan
   )
   # A link to a card (?card=E8; card_from_query(), R/ui.R) opens it as the
   # list of every analysis does, so Back goes to that list.
@@ -1209,6 +1236,8 @@ server <- function(input, output, session) {
     } else if (kind == "route") {
       state$start <- list()
       state$route <- value; state$history <- list(); state$ctx <- list()
+      # A new start: a guided route from here fills a plan of its own.
+      state$guided_plan <- NULL
       state$skip_screening <- FALSE
       if (identical(value, "known")) {
         # "I know my analysis" goes straight to the grouped, searchable
@@ -1343,8 +1372,11 @@ server <- function(input, output, session) {
       keep_plan_values(calc$route$form_values %||% isolate(current_form_values()))
       # The same result joins the study plan, in place of this analysis's
       # earlier one, so the two plans are one.
-      plan <- plan_for_adding()
-      plans_put(plan_upsert(plan, c(plan_entry(tree, state$endpoint, calc, calc$route), list(plan_id = state$plan_id))))
+      # The route records which guided analysis it is, so the plan file
+      # remembers it and calculating it again updates it.
+      plan <- plan_get(state$guided_plan) %||% plan_for_adding()
+      route <- utils::modifyList(calc$route %||% list(), list(guided_analysis = state$plan_id))
+      plans_put(plan_upsert(plan, c(plan_entry(tree, state$endpoint, calc, route), list(plan_id = state$plan_id))))
       state$current_plan <- plan$id
     }
   }, ignoreNULL = TRUE)
@@ -1670,6 +1702,11 @@ server <- function(input, output, session) {
       output$form_result <- renderUI(preview_panel_ui(forms, shown$ep_id, calc, state$long_spec, range))
     } else if (identical(job$kind, "whole_study")) {
       state$ws_calc <- calc
+      if (identical(calc$status, "ok")) {
+        state$ws_result <- whole_study_summary(calc)
+        held <- plan_get(state$guided_plan)
+        if (!is.null(held)) showNotification(sprintf("The result is kept in your study plan “%s”. It is only in this browser until you save the plan.", held$name), duration = 8)
+      }
       script <- if (identical(calc$status, "ok")) {
         spec <- state$ws_spec
         whole_study_script_ui(forms, isolate(whole_study_screen())$plan, spec$goal$n, spec$claim,
@@ -1951,7 +1988,64 @@ server <- function(input, output, session) {
   })
   # The top bar, and every "See the study plan" link.
   observeEvent(input$plans_open_page, open_plans_page(NULL))
-  observeEvent(input$plan_view, open_plans_page(isolate(state$current_plan)))
+  observeEvent(input$plan_view, {
+    on_guided <- isolate(state$screen) %in% c("g_plan", "g_sim") && !is.null(plan_get(isolate(state$guided_plan)))
+    open_plans_page(if (on_guided) isolate(state$guided_plan) else isolate(state$current_plan))
+  })
+  # "Plan my whole study" joins a study plan (docs/saving-projects.md):
+  # the plan "Add an analysis" was pressed on, unless it already holds a
+  # guided plan, or a new whole-study plan. Made when the guided route
+  # first reaches its list of analyses, so starting it and turning back
+  # leaves no empty plan behind.
+  observeEvent(state$screen, {
+    if (!state$screen %in% c("g_analyses", "g_plan", "g_sim") || !is.null(plan_get(state$guided_plan))) return()
+    target <- if (identical(state$plan_more_target, state$current_plan)) plan_get(state$plan_more_target)
+    plan <- if (!is.null(target) && !is.list(target$guided)) target else new_plan(plan_default_name(Sys.Date(), "Whole-study plan"))
+    plan$guided <- guided_normalise(guided_plan_record(reactiveValuesToList(state)))
+    plans_put(plan)
+    state$guided_plan <- plan$id
+    state$current_plan <- plan$id
+    state$plan_more_target <- NULL
+  })
+  # The guided plan as it stands, in its study plan.
+  guided_plan_now <- function() {
+    held <- plan_get(isolate(state$guided_plan))
+    if (is.null(held)) return(NULL)
+    values <- isolate(reactiveValuesToList(state))
+    plan_set_guided(held, guided_plan_record(values), values$primary)
+  }
+  # Kept up to date as the guided plan changes; the record's own save time
+  # alone doesn't count as a change.
+  observe({
+    req(state$guided_plan)
+    for (f in c(guided_plan_fields, "history")) state[[f]]
+    held <- isolate(plan_get(state$guided_plan))
+    if (is.null(held)) return()
+    updated <- isolate(guided_plan_now())
+    if (!identical(plan_content(updated), plan_content(held))) plans_put(updated)
+  })
+  # "Open the guided plan" on a plan's page: back to the guided screens,
+  # as opening its file does.
+  observeEvent(input$plan_open_guided, {
+    plan <- plan_get(isolate(state$plans_view))
+    if (is.null(plan) || !is.list(plan$guided)) return()
+    record_opened <- plan$guided
+    restored <- restore_guided_plan(plan$guided, tree)
+    if (is.character(restored)) {
+      showNotification(restored, type = "error")
+      return()
+    }
+    cancel_job()
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+    state$from_labs <- FALSE; state$labs_seed <- NULL
+    for (name in names(restored)) state[[name]] <- restored[[name]]
+    # The record as the screens now hold it, without counting as a change.
+    plan$guided <- guided_normalise(guided_plan_record(isolate(reactiveValuesToList(state))))
+    plans_put(plan)
+    state$guided_plan <- plan$id
+    state$current_plan <- plan$id
+    state$plan_opened <- record_opened
+  })
   observeEvent(input$plans_view_plan, {
     id <- input$plans_view_plan
     if (!is.null(plan_get(id))) {
@@ -2121,7 +2215,10 @@ server <- function(input, output, session) {
   observeEvent(input$plan_more, {
     # The next analysis, found by "Help me choose" from the start, added
     # to this plan.
-    if (!is.null(plan_get(isolate(state$plans_view)))) state$current_plan <- isolate(state$plans_view)
+    if (!is.null(plan_get(isolate(state$plans_view)))) {
+      state$current_plan <- isolate(state$plans_view)
+      state$plan_more_target <- isolate(state$plans_view)
+    }
     updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
     state$start <- list(); state$route <- "choose"; state$history <- list(); state$ctx <- list()
     state$skip_screening <- FALSE; state$calc <- NULL
@@ -2209,11 +2306,20 @@ server <- function(input, output, session) {
     }
   )
   # "Save this plan": the guided plan and the whole-study inputs, as a file.
+  # It saves the whole study plan holding the guided plan.
   output$download_guided_plan <- downloadHandler(
-    filename = function() sprintf("powerkit-plan-%s.powerkit.json", format(Sys.Date())),
+    filename = function() {
+      held <- plan_get(isolate(state$guided_plan))
+      if (!is.null(held)) plan_file_name(held) else sprintf("powerkit-plan-%s.powerkit.json", format(Sys.Date()))
+    },
     content = function(file) {
       if (identical(state$screen, "g_sim")) save_whole_study_values()
-      write_guided_plan(reactiveValuesToList(state), file)
+      held <- guided_plan_now()
+      if (is.null(held)) return(write_guided_plan(reactiveValuesToList(state), file))
+      text <- plan_to_text(held)
+      if (!nzchar(text)) stop("The plan couldn't be saved.")
+      writeLines(text, file, useBytes = TRUE)
+      plans_put(plan_mark_saved(held, "file"))
     },
     contentType = "application/json")
 
@@ -2237,6 +2343,20 @@ server <- function(input, output, session) {
       state$from_labs <- FALSE; state$labs_seed <- NULL
       for (name in names(restored)) state[[name]] <- restored[[name]]
       state$plan_opened <- plan_record
+      # It is also a study plan: the one it was saved from, or, for a file
+      # saved before study plans held guided plans, a new whole-study plan.
+      text <- paste(readLines(path, encoding = "UTF-8", warn = FALSE), collapse = "\n")
+      held <- plan_from_text(tree, text)
+      if (!is.null(held)) {
+        # The record as the screens now hold it, so the plan isn't marked
+        # changed only because it was opened.
+        held$guided <- guided_normalise(guided_plan_record(isolate(reactiveValuesToList(state))))
+        out <- plans_open(isolate(state$plans), held)
+        state$plans <- out$plans
+        state$guided_plan <- out$id
+        state$current_plan <- out$id
+        if (!is.null(out$message)) showNotification(out$message, duration = 15, type = "message")
+      }
       report(NULL)
       return()
     }
@@ -2322,10 +2442,15 @@ server <- function(input, output, session) {
         if (nzchar(text) && nchar(text) <= 4e6) list(text = text) else if (nzchar(text)) list(problem = "This plan is too large for a link. Save it to your computer instead.")
         else list(problem = "Add an analysis to the plan first.")
       },
-      guided_plan = share_text_from_file(function(file) {
+      guided_plan = {
         if (identical(state$screen, "g_sim")) save_whole_study_values()
-        write_guided_plan(reactiveValuesToList(state), file)
-      }),
+        held <- guided_plan_now()
+        if (is.null(held)) share_text_from_file(function(file) write_guided_plan(reactiveValuesToList(state), file)) else {
+          text <- plan_to_text(held)
+          if (nzchar(text) && nchar(text) <= 4e6) list(text = text) else if (nzchar(text)) list(problem = "This plan is too large for a link. Save it to your computer instead.")
+          else list(problem = "The link couldn't be made. Save the file instead.")
+        }
+      },
       draft = share_text_from_file(function(file) write_draft(project_route(reactiveValuesToList(state), isolate(current_form_values())), file)),
       list(problem = "The link couldn't be made. Save the file instead."))
     session$sendCustomMessage("pk_share_link", out)
@@ -2770,7 +2895,10 @@ server <- function(input, output, session) {
         guided_plan_ui(tree, routed_answers(), state$ticked, state$primary, state$asks, state$rule,
           history = state$history, route_label = route_by_id(tree, state$route)$label, raw_answers = state$answers, forms = forms,
           results = state$plan_results, shared = state$plan_shared),
-        guided_plan_save_ui(length(state$plans[[state$current_plan %||% ""]]$entries))),
+        {
+          held <- state$plans[[state$guided_plan %||% ""]]
+          guided_plan_save_ui(length(held$entries), held$name)
+        }),
       g_sim = tagList(whole_study_bayes_note(isolate(state$bayes_mode)), {
         ws <- whole_study_screen()
         if (!isTRUE(ws$plan$ok) || is.null(ws$params)) {

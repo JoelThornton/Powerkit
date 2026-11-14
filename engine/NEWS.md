@@ -1,19 +1,34 @@
+# powerkit 0.65.4
+
+* App: cards and input screens tidied (queue item 13, layout part). An
+  in-progress card says "Validation in progress" once, in its facts, with
+  the note below headed "Checks so far" (it said it three times); the
+  input screen shows the label as one line with how far the checks got
+  behind its info button. With explanations off, a group's info button
+  sits beside its heading instead of repeating the heading as a link, and
+  a choice's note is labelled "About this choice". The in-progress label
+  is amber everywhere (it was blue on the input screen and the analysis
+  list, amber on the card), a card's points use the same bullets as
+  "What you'll need", and glossary terms read "term: meaning" without a
+  space before the colon. Styling and labels only; no calculation changes.
+
 # powerkit 0.65.3
 
-* Yuen's trimmed-means tests are a test version of the two-group and
-  paired t-tests (`target_test > method` `"yuen"` on templates
-  `independent_t` and `paired_t`), simulated with Spower by powerkit's
-  experiments `p_yuen()` and `p_yuend()`, which call WRS2's `yuen()` and
-  `yuend()` (WRS2 joins Suggests). New spec fields: `target_test > trim`
-  (default 0.2, WRS2's default) and, for the paired version,
-  `population > r`, the correlation between the two measurements, which
-  it needs because it trims each measurement separately. The two-group
-  version takes `score_shape` and `sd_ratio` as the Brunner-Munzel test
-  does. The check run recovers d (or d_z), the SD ratio and the
-  correlation, the last with a standard error from r's influence
-  function so that heavy-tailed scores don't fail it. The R script and
-  the simulated data set cover both versions. Validation:
-  `test-validation-yuen.R` (chunk `yuen`).
+* `write_study_plan()` takes an optional `guided` list, the app's record
+  of a guided whole-study plan, kept as given; `read_study_plan()` returns
+  it as `guided` (`NULL` when absent). Absent, it is not written.
+* App: "Plan my whole study" joins a study plan. When the guided route
+  first reaches its list of analyses it fills the plan whose "Add an
+  analysis" was pressed, or makes "Whole-study plan, <date>"; the guided
+  record (now with the last whole-study run's summary) is kept in the
+  plan and updated as the guided plan changes, and each analysis
+  calculated from it joins the plan with the guided plan's role. The
+  plan's page shows the guided plan, its last whole-study result and
+  "Open the guided plan". "Save this plan" and its link on the guided
+  screens save the study plan. A plan with a guided plan but no
+  calculated analysis is saved as a guided-plan file carrying the plan's
+  id, name and description, so the previous version still opens it; an
+  older guided-plan file opens as a new whole-study plan.
 
 # powerkit 0.65.2
 

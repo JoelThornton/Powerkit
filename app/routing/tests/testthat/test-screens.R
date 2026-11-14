@@ -32,7 +32,7 @@ test_that("every end-point card renders, with its status and inputs", {
     }
     if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, if (runs) "What you('|&#39;)ll need" else "What you would enter", label = id)
     expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
-      runs_validated = "Checks for this analysis in general: ", runs_validation_in_progress = "Runs, validation in progress.",
+      runs_validated = "Checks for this analysis in general: ", runs_validation_in_progress = "Checks so far: ",
       coming_soon = "Coming soon.",
       not_in_powerkit = if (isTRUE(tree$endpoints[[id]]$no_ready_made_tool)) "Not in powerkit yet." else tree$endpoints[[id]]$not_in_powerkit_heading %||% "Not in powerkit yet: use")
     expect_match(html, expected, fixed = TRUE, label = id)
@@ -53,6 +53,27 @@ test_that("in-progress cards are labelled differently from validated ones", {
   expect_match(in_progress, "Validation in progress", fixed = TRUE)
   expect_no_match(in_progress, "status-runs\"", fixed = TRUE)
   expect_no_match(as.character(card_ui(tree, "E7")), "status-in-progress", fixed = TRUE)
+})
+
+test_that("an in-progress card says so once, and its input screen in one line", {
+  staged <- tree
+  staged$endpoints$E9$status <- "runs_validation_in_progress"
+  card <- as.character(card_ui(staged, "E9"))
+  # The facts say "Validation in progress"; the note below says how far.
+  expect_identical(lengths(regmatches(card, gregexpr("Validation in progress", card, fixed = TRUE))), 1L)
+  expect_match(card, "Checks so far: ", fixed = TRUE)
+  form <- as.character(form_ui(staged, forms, "E9", form_groups(forms, "E9")))
+  expect_match(form, "class=\"validation-line\"", fixed = TRUE)
+  expect_match(form, "explanation-help inline-more", fixed = TRUE)
+})
+
+test_that("a group's info button follows its heading instead of repeating it as a link", {
+  html <- as.character(form_ui(tree, forms, "E16", form_groups(forms, "E16")))
+  expect_match(html, "</legend>\\s*<details id=\"group-[0-9]+-info\" class=\"explanation-help group-more\"")
+  # A choice's note is labelled as such, not with the field's label again.
+  expect_match(html, "data-label=\"About this choice\"", fixed = TRUE)
+  # A glossary term reads "term: meaning", with no space before the colon.
+  expect_no_match(as.character(card_ui(tree, "E41")), "</dfn> :", fixed = TRUE)
 })
 
 test_that("end points with no ready-made tool say so plainly, with the two options", {

@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 13 November 2026 (a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 14 November 2026 (tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -87,7 +87,7 @@ researchers use, such as Cohen's f or mixed ANOVA. On the form, the
 goal and the test's direction are rows of buttons, the bar names the
 answers still needed, and the effect section uses the same white cards
 as the rest; each field shows one line of help, with the rest behind an
-info button beside its label. The result says the answer once, with the sample size at
+info button beside its label; a group's info button sits beside its heading, and a card whose checks are in progress says so once (14 November 2026). The result says the answer once, with the sample size at
 other powers and significance levels in a small table, and keeps the
 records for checking it under one "Technical records" fold
 (`decisions.md`, 12 November 2026).
@@ -350,7 +350,10 @@ and automated accessibility checks passed locally for the exercised routes.
   has an overview (its analyses by role) and "Download everything": one
   zip with the plan file, a study-wide planning document (Markdown and
   Word), the merged references and each analysis's own files; the zip
-  opens again as the plan. "Plan my whole study" starting a plan is next
+  opens again as the plan. "Plan my whole study" makes or fills a study
+  plan that keeps the guided plan, its analyses (with the roles the
+  guided plan gives them) and the last whole-study result, and reopens
+  the guided screens from the plan's page
   ([`saving-projects.md`](saving-projects.md), "Study plans").
 
 - **Experimental: whole-study planning.** The guided plan simulates
