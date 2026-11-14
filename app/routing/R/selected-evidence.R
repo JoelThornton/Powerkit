@@ -1,9 +1,12 @@
 # Warning identity is available before numerical inputs are complete. Only
 # declared analysis/type selectors are applied; no population value is imputed.
+# The method, the factors' levels and the SDs and correlations entered are
+# applied too, because whether a corrected repeated-measures test is
+# approximated (Departure 28) depends on them.
 selected_warning_spec <- function(form, fields, values) {
   spec <- form$base
   identity_path <- function(path) !is.null(path) && grepl(
-    "^(design|template|variables[.][^.]+[.]type|target_test[.](method|correction))$", path)
+    "^(design|template|variables[.][^.]+[.](type|levels)|target_test[.](method|correction)|options[.]method|population[.](sd|r))$", path)
   for (f in fields) {
     value <- values[[f$id]]
     if (blank(value) || !field_applies(f, values)) next

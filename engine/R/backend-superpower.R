@@ -6,7 +6,8 @@
 # By default power is computed exactly with Superpower::ANOVA_exact(), which
 # is exact for the specified population and matches G*Power and the
 # published values. Simulation with Superpower::ANOVA_power() is available
-# on request (options > method = "simulation"). ANOVA_exact2() is not used:
+# on request (options > method = "simulation"), and is the default for a
+# corrected F test whose covariance isn't spherical (Departure 28). ANOVA_exact2() is not used:
 # for mixed designs it gives a different answer from G*Power, ANOVA_exact()
 # and simulation (see docs/decisions.md).
 
@@ -53,11 +54,23 @@ superpower_backend <- function(spec, seed = NULL) {
   # ("unequal n" is for between-participants designs only), so powerkit
   # simulates with Spower and afex (p_mixed_anova()).
   mixed_unequal <- !is.null(inputs$group_ratio)
+  # A corrected F test of an effect whose covariance isn't spherical
+  # (Greenhouse-Geisser epsilon below 1): ANOVA_exact() scales the
+  # noncentrality and the degrees of freedom by epsilon, an approximation
+  # that can miss the power of the corrected test by a few points in either
+  # direction (-3.2 to +3.3 in docs/validation-log.md, 14 November 2026),
+  # so such an effect is simulated by default (Departure 28). The exact
+  # route stays available on request, and the smallest detectable effect is
+  # still found with it (sensitivity_method), stated as an approximation.
+  corrected_nonspherical <- !simulated_only && !identical(inputs$correction %||% "none", "none") &&
+    isTRUE(exact_at(exact_min_n)$gg_epsilon < 1 - 1e-6)
   list(
     name = "Superpower",
     packages = c("Superpower", "afex", if (mixed_unequal) "Spower"),
     methods = if (simulated_only) "simulation" else c("exact", "simulation"),
-    default_method = if (simulated_only) "simulation" else "exact",
+    default_method = if (simulated_only || corrected_nonspherical) "simulation" else "exact",
+    sensitivity_method = if (corrected_nonspherical) "exact",
+    corrected_nonspherical = corrected_nonspherical,
     functions = c(exact = "Superpower::ANOVA_exact", simulation = if (mixed_unequal) {
       "Spower::Spower(p_mixed_anova()) (afex::aov_car(), Type III, on data from Superpower::ANOVA_design()'s means and covariances)"
     } else if (is.null(inputs$pairwise_row)) {
@@ -316,8 +329,21 @@ superpower_exact <- function(design, inputs, seed = NULL) {
   manova_power <- if (!is.null(manova) && inputs$effect %in% rownames(manova)) manova[inputs$effect, "power"] / 100 else NA_real_
   list(
     power = row$power / 100, cohen_f = row$cohen_f, manova_power = manova_power,
+    gg_epsilon = superpower_gg_epsilon(result, inputs),
     details = superpower_details(result, inputs, row)
   )
+}
+
+# The Greenhouse-Geisser epsilon of the tested effect, read from afex's
+# sphericity corrections on ANOVA_exact()'s data set. That data set
+# reproduces the population's covariance exactly, so this is the
+# population's epsilon. 1 for an effect with nothing to correct (a
+# between-participants effect, or a within factor with two levels).
+superpower_gg_epsilon <- function(result, inputs) {
+  adjust <- tryCatch(suppressWarnings(summary(result$aov_result))$pval.adjustments, error = function(e) NULL)
+  if (is.null(adjust) || !inputs$effect %in% rownames(adjust)) return(1)
+  eps <- adjust[inputs$effect, "GG eps"]
+  if (is.na(eps)) 1 else unname(eps)
 }
 
 # The F test's details from ANOVA_exact()'s output: its degrees of freedom
@@ -380,7 +406,11 @@ manova_applies <- function(spec) {
 #'   MANOVA approach's power at `n`) and `n`.
 #' @keywords internal
 manova_summary <- function(spec, backend, method, n) {
-  if (!identical(method, "exact") || is.null(backend$manova_power) || !manova_applies(spec) || is.null(n) || is.na(n)) {
+  # A corrected test without sphericity is simulated by default
+  # (Departure 28); the MANOVA approach beside it is still the exact
+  # dataset's, the comparison the form's help points to.
+  exact_beside <- identical(method, "exact") || (identical(method, "simulation") && isTRUE(backend$corrected_nonspherical))
+  if (!exact_beside || is.null(backend$manova_power) || !manova_applies(spec) || is.null(n) || is.na(n)) {
     return(NULL)
   }
   power <- backend$manova_power(n)

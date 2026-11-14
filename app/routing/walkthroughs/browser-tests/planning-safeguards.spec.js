@@ -39,17 +39,20 @@ test('interaction sensitivity carries the proposed effect into its simulation fo
  await expect(page.locator('#form_result')).toContainText('not been confirmed by simulation yet');
 });
 
-test('corrected mixed ANOVA warns before calculation and offers a matched check',async({page})=>{
+test('corrected mixed ANOVA simulates by default, and the exact dataset warns and offers a matched check',async({page})=>{
  await open(page,'E55');
- for(const [id,value] of Object.entries({goal:'power',n:'60',alpha:'0.05',test_version:'anova_f',method:'exact',
+ for(const [id,value] of Object.entries({goal:'power',n:'60',alpha:'0.05',test_version:'anova_f',
  A_levels:'Therapy, Waiting list',B_levels:'Before, After, Follow-up',metric:'raw',means:'20, 16, 15\n20, 19, 18.5',
  spread:'differ',sds:'6, 6, 6\n6, 6, 6',rs:'0.5, 0.3, 0.4',correction:'GG',effect:'interaction',
  just_type:'smallest_effect_of_interest',just_source:'Synthetic browser scenario'})) await put(page,id,value);
- await expect(page.locator('.selected-method-warning')).toContainText('reason is unresolved');
+ // Departure 28: a corrected test without sphericity starts at simulation.
+ await expect(page.locator('#f_gg_method')).toHaveValue('simulation');
+ await put(page,'gg_method','exact');
+ await expect(page.locator('.selected-method-warning')).toContainText('applies the sphericity correction approximately');
  await page.locator('#form_check').click();
  await expect(page.locator('#verify_corrected_anova')).toBeVisible();
  await page.locator('#verify_corrected_anova').click();
- await expect(page.locator('#f_method')).toHaveValue('simulation');
+ await expect(page.locator('#f_gg_method')).toHaveValue('simulation');
  await expect(page.locator('#f_goal')).toHaveValue('power');
  await expect(page.locator('#f_n')).toHaveValue('60');
  await expect(page.locator('#f_correction')).toHaveValue('GG');

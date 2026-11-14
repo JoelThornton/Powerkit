@@ -1738,7 +1738,8 @@ decision of 1 November 2026.
   so the corrected figure from `ANOVA_exact()` is an approximation, here
   about 3 points low. In the mixed-design check of
   `docs/validation-log.md` (7 to 10 November 2026) it was about 1.5 points
-  high. The result screen says so and offers the simulation.
+  high. Since 14 November 2026 such a corrected test is simulated by
+  default (Departure 28).
 - **Test:** `test-backend-anova-within-covariance.R`, "departure: the size
   of the Greenhouse-Geisser correction".
 - **Shown to users:** on the three cards' result screens when the
@@ -1789,6 +1790,47 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   are simulated (`app/routing/forms.yaml`, `departures`, key "27"), in the
   choice notes for the calculation method, and in the methods paragraph,
   which names the intervals.
+
+### 28. Repeated measures with a sphericity correction and no sphericity: simulated by default, not Superpower's exact dataset
+
+Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
+"Corrected repeated-measures tests simulated by default").
+
+- **Established convention:** Superpower's `ANOVA_exact()` applies a
+  Greenhouse-Geisser or Huynh-Feldt correction by multiplying the test's
+  noncentrality and both degrees of freedom by epsilon (Superpower
+  0.2.4.1); G\*Power's repeated-measures analysis does the same with the
+  epsilon the user enters. Both are approximations to the corrected test's
+  power: they ignore how the effect lines up with the covariance and that
+  epsilon is estimated from the data.
+- **powerkit:** when a corrected F test's effect has a Greenhouse-Geisser
+  epsilon below 1 (read from afex's sphericity corrections on
+  `ANOVA_exact()`'s data set, which reproduces the population covariance),
+  power and sample size are simulated by default with Superpower's
+  `ANOVA_power()`, which analyses each simulated study with the corrected
+  test. The exact dataset stays available on request
+  (`options > method = "exact"`), labelled as an approximation, with a
+  warning above the answer; the smallest detectable effect is still found
+  with it (the engine's `sensitivity_method`), with the same warning. A
+  spherical design, or an uncorrected test, keeps the exact dataset.
+- **Size:** in Departure 26's example (three conditions, means 600, 620
+  and 650, SD 100, correlations .8, .5 and .2, 40 people), 68.4% from the
+  exact dataset against 71.5% in 40,000 simulated studies (MCSE .0023). In
+  the mixed design of the nightly validation (two groups by three
+  occasions, 20 per group, epsilon .758), 23.1% against 21.7% in 400,000
+  studies simulated from sufficient statistics. Across fifteen designs
+  (thirteen mixed, two one-way; `docs/upstream/superpower-gg-grid.R`,
+  400,000 studies each, which put Departure 26's example at 71.6%), the
+  exact dataset minus the simulated power ranged from -3.2 to +3.3
+  points (`docs/validation-log.md`,
+  14 November 2026).
+- **Test:** `test-backend-anova-within-covariance.R`, "departure: a
+  corrected test without sphericity is simulated by default (Departure 28)".
+- **Shown to users:** on the three cards' result screens when the
+  corrected test is simulated (`app/routing/forms.yaml`, `departures`, key
+  "28"), and in the methods paragraph. The form's "How power is worked out"
+  starts at simulation once the SDs or correlations differ and a
+  correction is chosen.
 
 ## Known differences
 
