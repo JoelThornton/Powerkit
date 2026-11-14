@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-14"
+    title: "Mediation when the mediator is yes or no"
+    text: "powerkit now plans mediation where the mediator is a yes or no answer, such as whether someone booked an appointment, with X two conditions or a score and an outcome that is a score or yes or no. It uses regression-based causal mediation analysis: give the chance of the mediator in the comparison group, how much X changes its odds, and how much the mediator changes the outcome, and powerkit finds the power or sample size for the natural indirect effect."
+  - date: "2026-11-14"
     title: "Groups measured more than once: counts, yes/no answers and ratings"
     text: "The card for counts, yes/no answers and ratings measured more than once now also plans studies that compare two or more groups over time, such as a programme group and a control group each measured before and after. Give the expected count (or chance of 'yes', or odds of a higher rating) in each group at each occasion, and powerkit tests whether the groups change differently, the group-by-time interaction in a mixed model with a random intercept for each person."
   - date: "2026-11-14"
