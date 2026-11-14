@@ -81,7 +81,8 @@ export_script <- function(spec, result, file = NULL) {
     } else {
       pwr_script(spec, result)
     },
-    Spower = if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
+    Spower = if (identical(spec$template, "repeated_glmm")) repeated_glmm_script(spec, result) else
+      if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
       if (meta_regression(spec) || meta_heterogeneity(spec)) meta_more_script(spec, result) else
       if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
@@ -105,7 +106,8 @@ export_script <- function(spec, result, file = NULL) {
     irtpwr = irt_script(spec, result),
     simr = switch(spec$template, two_level = two_level_script(spec, result), three_level = three_level_script(spec, result),
       item_predictor = item_predictor_script(spec, result),
-      crossed_conditions = crossed_conditions_script(spec, result), simr_script(spec, result)),
+      crossed_conditions = crossed_conditions_script(spec, result), repeated_glmm = repeated_glmm_script(spec, result),
+      simr_script(spec, result)),
     abort_export(sprintf(
       "Script export isn't available for results from %s.", result$provenance$backend
     ))
@@ -593,6 +595,18 @@ design_description <- function(spec) {
     "factorial_anova/2x2_mixed" = sprintf(
       "2 x 2 mixed ANOVA of %s: %s (%s, between participants) by %s (%s, within); effect tested: %s",
       label("Y"), label("A"), levels("A"), label("B"), levels("B"), anova_effect_name(spec)
+    ),
+    "mixed_model/repeated_glmm" = sprintf(
+      "%s of %s, measured %s in %d conditions of %s (%s, %s people); %s mixed model with a random intercept for each person; test: %s",
+      if (identical(spec$variables$Y$type, "count")) "counts" else
+        if (identical(spec$variables$Y$type, "categorical")) "ordered categories" else "yes/no answers", label("Y"),
+      if ((spec$population$measurements %||% 1) == 1) "once" else sprintf("%s times", format_number(spec$population$measurements)),
+      length(spec$variables$X$levels), label("X"), levels("X"),
+      if (identical(spec$variables$X$type, "between_factor")) "between" else "within",
+      if (identical(spec$variables$Y$type, "binary")) "a logistic" else
+        if (identical(spec$variables$Y$type, "categorical")) "a cumulative link (proportional odds)" else
+        if ((spec$population$dispersion %||% 0) > 0) "a negative binomial" else "a Poisson",
+      if (identical(spec$target_test$method, "likelihood_ratio")) "likelihood ratio" else "Wald chi-square"
     ),
     "mixed_model/crossed_conditions" = sprintf(
       "participants responding to %s items in %d conditions of %s (%s, %s participants); effect tested: %s",

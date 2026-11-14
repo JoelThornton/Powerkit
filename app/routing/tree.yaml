@@ -633,8 +633,7 @@ nodes:
 
   # A count outcome: Poisson regression (E28) when each person is measured
   # once; a difference in counts measured more than once on the same people
-  # needs a generalised mixed model, which powerkit doesn't calculate yet
-  # (E75, which names the tools that do).
+  # needs a generalised mixed model (E75, 14 November 2026).
   q3_count:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -644,7 +643,7 @@ nodes:
   # An outcome in ordered categories, analysed as ordinal: two groups of
   # different people, each measured once (E29, whose card says it compares
   # two groups only); repeated ordinal measurements need a cumulative link
-  # mixed model, which powerkit doesn't calculate yet (E75).
+  # mixed model (E75, 14 November 2026).
   q3_ord:
     doc_id: Q3
     text: "Who gives the data? (answered by S3)"
@@ -1741,17 +1740,24 @@ endpoints:
     doc_name: "Repeated measures with a yes/no, count or ordinal outcome (generalised mixed model)"
     technical_name: "Generalised linear mixed models: repeated measures"
     plain_name: "The same people measured more than once, with a count, ordered categories or yes/no"
-    search_words: "repeated counts paired counts before after count poisson mixed model negative binomial mixed model glmm generalised linear mixed model generalized cumulative link mixed model clmm ordinal repeated measures logistic mixed model gee"
-    status: not_in_powerkit
+    search_words: "repeated counts paired counts before after count poisson mixed model negative binomial mixed model glmm generalised linear mixed model generalized glmer glmer.nb random intercept overdispersion cumulative link mixed model clmm ordinal repeated measures logistic mixed model gee"
+    template: "mixed_model / repeated_glmm"
+    backend: "simr: powerSim() on glmer's y ~ cond + (1 | person), Poisson or logistic; Spower with lme4's glmer.nb() for a negative binomial count, or with ordinal's clmm() for ordered categories; the likelihood-ratio or Wald test of the conditions (simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-glmm.R, note: "Agrees with a simulation written separately (each person's level drawn directly, the counts or answers drawn and fitted with lme4, or ordinal's clmm() for ordered categories, without simr, car or Spower) for Poisson, negative binomial, yes/no and ordered outcomes, recovers each effect, the person SD, the overdispersion and the thresholds in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
-      - "The same people give a count, or a rating in ordered categories, more than once: for example, the number of cigarettes smoked in the week before and the week after a programme, or the errors each person makes in two conditions. Two groups measured more than once on a yes/no outcome belong here too."
-      - "Such data are usually analysed with a generalised linear mixed model, with a random intercept for each person: Poisson or negative binomial for a count, logistic for yes/no, and a cumulative link mixed model for ordered categories."
-      - "For ordered categories, powerkit hasn't found a ready-made power tool: the model can be fitted with the R package ordinal's clmm(), and power simulated with Spower, writing the simulation yourself."
-    inputs: ["Depends on the model"]
+      - "The same people give a count, a yes/no answer or an answer in ordered categories more than once: for example, the number of cigarettes smoked in the week before and the week after a programme, how often each pupil disrupts a lesson in two kinds of classroom, or a mood rating from 1 to 5 on several days under two conditions. Each person can be in every condition, or in one of them and measured several times."
+      - "You give the expected count (or chance of 'yes', or the share of answers in each category and each condition's odds ratio) for a typical person, how much people differ in their typical level, and how many times each person is measured in each condition."
+      - "Analysed with a generalised linear mixed model with a random intercept for each person: Poisson for a count, or negative binomial when counts vary more than a Poisson distribution allows, logistic for yes/no, and a cumulative link (proportional odds) mixed model for ordered categories. The test is the likelihood-ratio test of the conditions, or the Wald test if you choose."
+      - "Simulated with simr (lme4's glmer), or with Spower and lme4's glmer.nb() for a negative binomial count or the R package ordinal's clmm() for ordered categories, so the answer carries a little random error. Power at a given number of people runs here; the number you need comes as an R script."
+      - "Not yet here: two groups measured more than once (a group-by-time interaction), and trials with many stimuli whose own variation matters (for a score or yes/no, the cards for many stimuli per person)."
+    inputs: ["The conditions, the outcome, and how often each person is measured", "The expected count, chance of 'yes' or answers in each condition, and how much people differ", "The test"]
     packages:
       - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4, including generalised mixed models for yes/no and count outcomes built with makeGlmer()."}
       - {name: mixpower, url: "https://cran.r-project.org/package=mixpower", what: "Design-first simulation power for mixed models with a score, yes/no or count (Poisson or negative binomial) outcome."}
-    tier: later
+    tier: v2
+    alternatives: ["a Poisson or negative binomial regression, if each person is measured once", "McNemar's test or Cochran's Q, for a yes/no answer given once in each condition", "the proportional-odds card for two groups, if each person answers once in one group"]
   E62:
     doc_name: "Multilevel model: a person-level and a group-level predictor, and their cross-level interaction"
     technical_name: "Multilevel regression"

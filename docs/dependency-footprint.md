@@ -2,7 +2,7 @@
 
 Written by `scripts/dependency-footprint.R` from `renv.lock` and `engine/DESCRIPTION`; a test checks the counts are current.
 
-The engine declares 28 direct Imports and 43 Suggests; `renv.lock` pins 309 packages, which the online app's manifest is written from when it is published. The lock includes development and validation tools as well as runtime dependencies.
+The engine declares 28 direct Imports and 44 Suggests; `renv.lock` pins 309 packages, which the online app's manifest is written from when it is published. The lock includes development and validation tools as well as runtime dependencies.
 
 | Scope | Locked packages in dependency closure |
 |---|---:|

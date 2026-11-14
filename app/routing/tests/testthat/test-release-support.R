@@ -20,7 +20,7 @@ test_that("the release discovery inventory matches the current expanded forms", 
   expect_setequal(names(cards), names(tree$endpoints))
   runnable <- names(Filter(function(x) !identical(x$access, "guidance"), cards))
   expect_setequal(runnable, tree$calculates)
-  expect_identical(cards$E75$access, "guidance")
+  expect_identical(cards$E75$access, "full")
   method <- Filter(function(f) identical(f$id, "method"), cards$E2$selectors)[[1]]
   expect_true(all(c("welch_t", "student_t", "mann_whitney") %in% unlist(method$choices)))
   expect_identical(cards$E58$base_template, "lpa")

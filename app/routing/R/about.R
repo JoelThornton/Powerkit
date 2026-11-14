@@ -30,6 +30,7 @@ about_supporting_tools <- list(
   list(package = "brunnermunzel", role = "which runs the Brunner-Munzel rank test"),
   list(package = "WRS2", role = "which runs Yuen's trimmed-means tests"),
   list(package = "SimplyAgree", role = "which computes the Bland-Altman limits of agreement and their confidence intervals"),
+  list(package = "ordinal", role = "which fits cumulative link mixed models for ordered categories measured more than once"),
   list(package = "quantreg", role = "which fits quantile regression models"),
   list(package = "SimDesign", role = "which runs Spower's simulations"),
   list(package = "afex", role = "which fits Superpower's ANOVAs"),

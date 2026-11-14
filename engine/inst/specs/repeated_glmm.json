@@ -1,0 +1,26 @@
+{
+  "spec_version": "0.1",
+  "design": "mixed_model",
+  "template": "repeated_glmm",
+  "variables": {
+    "X": {"type": "within_factor", "label": "Classroom", "levels": ["Usual", "With the programme"]},
+    "Y": {"type": "count", "label": "Disruptive acts per lesson"}
+  },
+  "population": {
+    "metric": "rate",
+    "rates": [2, 1.6],
+    "sd_person": 0.5,
+    "measurements": 3
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a 20% fall in disruptive acts per lesson (rate ratio 0.8) is the smallest change of interest."
+  },
+  "target_test": {
+    "effect": "condition",
+    "method": "wald",
+    "alpha": 0.05
+  },
+  "goal": {"type": "power", "n": 40},
+  "options": {"nrep": 200, "seed": 75}
+}

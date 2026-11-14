@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-14"
+    title: "Counts, yes/no answers and ratings measured more than once"
+    text: "powerkit now plans studies in which the same people give a count, a yes/no answer or an answer in ordered categories more than once: the cigarettes each person smokes before and after a programme, how often each pupil disrupts a lesson in two kinds of classroom, or a daily mood rating under two conditions. Give the expected count (or chance of 'yes', or how answers spread over the categories and the odds ratio of a higher answer) in each condition, how much people differ, and how many times each person is measured; for counts that vary more than usual, choose the negative binomial model. powerkit simulates studies analysed with a mixed model with a random intercept for each person. Power at a fixed number of people runs here; the number you need comes as an R script."

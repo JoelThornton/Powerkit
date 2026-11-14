@@ -3308,3 +3308,19 @@ test_that("the cross-lagged panel asks about measurement error, and says power i
   expect_equal(known$population$reliability, 0.8)
   expect_false(any(grepl("no measurement error", planning_warning_notes(known), fixed = TRUE)))
 })
+
+test_that("repeated counts, yes/no and ordered categories (E75) build valid specs", {
+  fields <- form_fields(form_groups(forms, "E75"))
+  count <- build_spec(forms, "E75", fields, form_examples$E75)
+  expect_identical(count$variables$Y$type, "count")
+  expect_identical(count$population$metric, "rate")
+  expect_silent(powerkit::validate_spec(count))
+  ordered <- build_spec(forms, "E75", fields, modifyList(form_examples$E75, list(Y_label = "Mood rating",
+    glmm_outcome = "categorical", Y_levels = "Low, Middle, High, Very high", glmm_rates = NULL, glmm_distribution = NULL,
+    glmm_categories = "0.2, 0.3, 0.3, 0.2", glmm_odds_ratios = "1, 1.8", glmm_measurements = "2")))
+  expect_identical(ordered$variables$Y$type, "categorical")
+  expect_identical(ordered$population$metric, "proportion")
+  expect_equal(unlist(ordered$population$odds_ratios), c(1, 1.8))
+  expect_null(ordered$population$rates)
+  expect_silent(powerkit::validate_spec(ordered))
+})

@@ -8433,7 +8433,8 @@
               "crossed_conditions",
               "three_level",
               "item_predictor",
-              "growth_curve"
+              "growth_curve",
+              "repeated_glmm"
             ]
           }
         },
@@ -8526,6 +8527,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_growth_curve"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "repeated_glmm"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_repeated_glmm"
             }
           }
         ]
@@ -9687,6 +9703,143 @@
                   "enum": [
                     "satterthwaite_f",
                     "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_repeated_glmm": {
+      "description": "The same people measured more than once with a count, yes/no or ordered-categories outcome: each person gives 'measurements' observations in each condition of X (a within factor: every person in every condition, such as before and after a programme) or in their own condition (a between factor: the people split equally, each measured several times). A generalised linear mixed model with a random intercept for each person, y ~ cond + (1 | person), cond a factor in treatment coding. A count (Y count) is Poisson (population > dispersion absent or 0), built by simr's makeGlmer() and simulated with powerSim(), or negative binomial (dispersion above 0), fitted with lme4's glmer.nb() in a Spower simulation; a yes/no outcome (Y binary) is logistic, built by makeGlmer(); ordered categories (Y categorical, its levels in order, lowest first) are a cumulative link mixed model with the logit link and proportional odds, fitted with the ordinal package's clmm() in a Spower simulation. The test that the conditions differ: target_test > method 'wald' (car's Wald chi-square test of cond, simr's 'chisq'; with two conditions the same p-value as glmer's Wald z) or 'likelihood_ratio' (the model against one without cond). goal > n is the number of people.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "within_factor",
+                    "between_factor"
+                  ]
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "Y": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_count"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                },
+                {
+                  "$ref": "#/definitions/variable_categorical"
+                }
+              ]
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "sd_person"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "description": "'rate' for a count outcome (Y count); 'probability' for a yes/no outcome (Y binary); 'proportion' for ordered categories (Y categorical).",
+              "enum": [
+                "rate",
+                "probability",
+                "proportion"
+              ]
+            },
+            "rates": {
+              "description": "Count outcome only: each condition's expected count per measurement for a typical person (random intercept 0), in the order of X's levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "probabilities": {
+              "description": "Yes/no outcome only: each condition's chance of 'yes' for a typical person (random intercept 0), in the order of X's levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
+            },
+            "category_probabilities": {
+              "description": "Ordered categories only: the share of a typical person's answers (random intercept 0) in each category of Y in the first condition of X, in the order of Y's levels, lowest first; they must add up to 1. They set the thresholds of the cumulative logits.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
+            },
+            "odds_ratios": {
+              "description": "Ordered categories only: each condition's odds of a higher category compared with the first condition, the same at every threshold (proportional odds), in the order of X's levels; the first is 1. Above 1: higher categories.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "sd_person": {
+              "description": "SD of the people's random intercepts, on the log scale (count) or the log-odds scale (yes/no, ordered categories): how much people's typical counts or chances differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "dispersion": {
+              "description": "Count outcome only: the overdispersion k of a negative binomial outcome, so that a count with expected value mu (given the person) has variance mu + k mu^2 (lme4's and MASS's theta is 1 / k). Absent or 0: Poisson.",
+              "type": "number",
+              "minimum": 0
+            },
+            "measurements": {
+              "description": "The number of times each person is measured in each condition (within) or in their own condition (between). 1 if omitted; at least 2 with X a between factor, or with a yes/no outcome.",
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "weights": false,
+                "comparison": false,
+                "p_adjust": false,
+                "effect": {
+                  "enum": [
+                    "condition"
+                  ]
+                },
+                "method": {
+                  "description": "'likelihood_ratio' (the default): the model against one without cond (simr's 'lr'), simr's default for a factor. 'wald': car's Wald chi-square test of cond (simr's 'chisq'; with two conditions the same p-value as glmer's Wald z).",
+                  "enum": [
                     "wald",
                     "likelihood_ratio"
                   ]

@@ -79,6 +79,7 @@ Suggests:
     metapower,
     mirt,
     nnet,
+    ordinal,
     pbkrtest,
     PITS,
     PMCMRplus,
