@@ -25,7 +25,10 @@ population_problems <- function(spec) {
     cluster_trial = check_cluster_trial,
     sem = check_sem,
     regression_interaction = check_regression_interaction,
-    mediation = function(spec) c(check_path_model(spec), check_single_predictor_x(spec)),
+    mediation = function(spec) {
+      if (identical(spec$template, "multicategorical")) return(check_mediation_mcx(spec))
+      c(check_path_model(spec), check_single_predictor_x(spec))
+    },
     moderated_mediation = check_path_model,
     generic_test = function(spec) character(),
     equivalence_test = check_equivalence_test,
@@ -3113,6 +3116,12 @@ minimum_n <- function(spec) {
     # More people than observed scores (two at each wave), so that the
     # sample covariance matrix can be positive definite.
     panel = 2 * spec$population$waves + 1,
+    # Mediation with k groups: Y's regression has k + 1 coefficients; two
+    # people in each group at least.
+    mediation = if (identical(spec$template, "multicategorical")) {
+      k <- length(spec$variables$X$levels)
+      max(2 * k, k + 3)
+    } else max(lengths(path_model(spec)$equations)) + 3,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
   )
@@ -3164,6 +3173,10 @@ group_split <- function(spec) {
   }
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
+  }
+  if (identical(spec$template, "multicategorical")) {
+    k <- length(spec$variables$X$levels)
+    return(list(rule = sprintf("split into %d equal groups, one per group of X", k), valid = function(n) n %% k == 0))
   }
   if (spec$template %in% c("crossed_conditions", "repeated_glmm") && identical(spec$variables$X$type, "between_factor")) {
     k <- length(spec$variables$X$levels)
@@ -3379,7 +3392,7 @@ target_effect_is_zero <- function(spec) {
       latent_regression = pop$slopes[[pop$tested %||% 1L]]
     ),
     regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else if (identical(spec$template, "group_moderator")) diff(range(as.numeric(unlist(pop$r_xy)))) else if (identical(pop$metric, "r2_change")) pop$r2_change else pop$r_XW_Y,
-    mediation = {
+    mediation = if (identical(spec$template, "multicategorical")) mcx_tested_effect(spec) else {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
       prod(vapply(seq_len(length(nodes) - 1), function(i) {
         as.numeric(paths[[paste0(nodes[i], "->", nodes[i + 1])]])
