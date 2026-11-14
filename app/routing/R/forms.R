@@ -263,7 +263,7 @@ simulation_accuracy_group <- function(forms, ep_id) {
   choices <- unlist(lapply(form_fields(form$groups), function(f) names(f$choices)))
   offered <- ep_id %in% c(names(forms$background), names(forms$simulations$endpoints)) ||
     isTRUE(form$basic_method) || identical(form$base$design, "factorial_anova") ||
-    any(choices %in% c("simulation", "hartung_knapp", "brunner_munzel", "yuen", "permanova")) ||
+    any(choices %in% c("simulation", "hartung_knapp", "brunner_munzel", "yuen", "permanova", "mover")) ||
     identical(form$base$template, "paired_variances")
   if (!offered) return(NULL)
   when <- NULL
@@ -272,6 +272,11 @@ simulation_accuracy_group <- function(forms, ep_id) {
     list(list(field = "method", is = "welch_t"), list(field = "welch_method", is_not = "exact")),
     list(list(field = "calc_method", is = "simulation"), list(field = "method", is_not = "welch_t"),
       list(field = "method", is_not = "bayes_factor"), list(field = "method", is_not = "minimum_effect"), list(field = "method", is_not = "fisher_exact"))))
+  # The Bland-Altman limits of agreement are simulated unless Lu et al.'s
+  # approximation is chosen.
+  if (identical(form$base$design, "reliability")) {
+    when <- list(any = list(list(list(field = "question", is = "bland_altman"), list(field = "ba_method", is_not = "lu_formula"))))
+  }
   if (identical(form$base$design, "meta_analysis")) {
     test <- Filter(function(f) identical(f$path, "target_test.test"), form_fields(form$groups))
     if (length(test)) when <- list(field = test[[1]]$id, is = "hartung_knapp")

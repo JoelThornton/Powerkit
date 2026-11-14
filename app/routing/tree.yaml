@@ -272,7 +272,7 @@ start_questions:
       replicate: {label: "Replicate a published finding", help: "A few questions about the original study's design find its analysis, and you plan the replication there. For a t-test or correlation, the replication planner adds the sample size for each goal a replication can have."}
       meta: {label: "Combine studies others have done (a meta-analysis)", help: "For a systematic review you are planning, before the studies are found.", next: E61}
       estimate: {label: "Estimate how big something is", help: "Plan the sample size for a confidence interval of a chosen width, or see its width at a given sample size. The next screen lets you choose what to estimate.", next: E46}
-      reliability: {label: "Show that a measure is reliable, or that raters agree", help: "For example, that two raters' scores agree (an ICC), that a scale's items hang together (Cronbach's alpha), or that raters choose the same category (kappa).", next: E69}
+      reliability: {label: "Show that a measure is reliable, that raters agree, or that two methods of measurement agree", help: "For example, that two raters' scores agree (an ICC), that a scale's items hang together (Cronbach's alpha), that raters choose the same category (kappa), or that a new device agrees with the standard one (Bland-Altman limits of agreement).", next: E69}
       equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set.", sets: {goal: equivalence}}
 
 routes:
@@ -1947,23 +1947,24 @@ endpoints:
     alternatives: ["a Cox regression of the group with other predictors", "a comparison of restricted mean survival times", "a parametric survival model, such as a Weibull model"]
     inputs: ["What you want to test", "Two groups: who has had the event by a given time, and how long people are followed", "A measured score: its hazard ratio, and how many people have the event"]
   E69:
-    doc_name: "Reliability and agreement: the ICC, Cronbach's alpha and kappa"
+    doc_name: "Reliability and agreement: the ICC, Cronbach's alpha, kappa and Bland-Altman limits of agreement"
     technical_name: "Reliability and agreement"
     plain_name: "How reliable a measure is, or how well raters agree"
-    search_words: "reliability agreement interrater inter-rater icc intraclass correlation cronbach alpha internal consistency kappa cohen fleiss raters test-retest"
-    template: "reliability / icc, cronbach_alpha, kappa"
-    backend: "ICC.Sample.Size: calculateIccPower() for the ICC; statpsych: size.test.cronbach() for Cronbach's alpha (Bonett and Wright's test); kappaSize: PowerBinary(), Power3Cats(), Power4Cats(), Power5Cats() for kappa"
-    method: "Formula (no simulation)"
+    search_words: "reliability agreement interrater inter-rater icc intraclass correlation cronbach alpha internal consistency kappa cohen fleiss raters test-retest bland altman limits of agreement method comparison two methods of measurement device interchangeable bias"
+    template: "reliability / icc, cronbach_alpha, kappa, bland_altman"
+    backend: "ICC.Sample.Size: calculateIccPower() for the ICC; statpsych: size.test.cronbach() for Cronbach's alpha (Bonett and Wright's test); kappaSize: PowerBinary(), Power3Cats(), Power4Cats(), Power5Cats() for kappa; SimplyAgree: agreement_limit() on each simulated study (Spower) for the Bland-Altman limits of agreement, or blandPowerCurve() for Lu et al.'s approximation"
+    method: "Formula (no simulation); simulation for the Bland-Altman limits of agreement"
     status: runs_validation_in_progress
-    validation: {file: test-validation-reliability.R, note: "Matches ICC.Sample.Size, statpsych and kappaSize called directly, including their help examples, in the engine's tests, and agrees with simulated studies tested by the F test, Bonett and Wright's test and Donner and Eliasziw's goodness-of-fit test (within 0.03, the allowance for these large-sample formulas). Not yet checked against published worked examples."}
+    validation: {file: test-validation-reliability.R, note: "Matches ICC.Sample.Size, statpsych and kappaSize called directly, including their help examples, in the engine's tests, and agrees with simulated studies tested by the F test, Bonett and Wright's test and Donner and Eliasziw's goodness-of-fit test (within 0.03, the allowance for these large-sample formulas). The Bland-Altman limits of agreement agree with studies simulated and analysed without SimplyAgree, and the MOVER analysis shows agreement close to alpha / 2 of the time when a limit is at the margin. Not yet checked against published worked examples."}
     card_points:
-      - "Three questions about a measure: whether raters, or the same people on two occasions, give similar scores (the intraclass correlation, ICC); whether a scale's items are consistent (Cronbach's alpha); and whether raters choose the same category (kappa)."
-      - "Each tests the value against one you name, such as an ICC above 0.6 or an alpha above 0.7, not against zero: showing only that agreement beats chance is rarely the question."
+      - "Four questions about a measure: whether raters, or the same people on two occasions, give similar scores (the intraclass correlation, ICC); whether a scale's items are consistent (Cronbach's alpha); whether raters choose the same category (kappa); and whether two methods of measurement agree closely enough to be used in place of each other (Bland-Altman limits of agreement)."
+      - "Each tests the value against one you name, such as an ICC above 0.6 or an alpha above 0.7, not against zero: showing only that agreement beats chance is rarely the question. For two methods, you name the largest difference that wouldn't matter, and agreement is shown when both limits of agreement, at the outer ends of their confidence intervals, lie within it."
+      - "The limits of agreement are simulated: powerkit analyses each simulated study with SimplyAgree's agreement_limit(), with MOVER confidence intervals by default or Bland and Altman's. Power at a fixed sample size runs here; a sample size comes as an R script (about 5 minutes). Lu et al.'s formula is offered as an instant approximation."
       - "The ICC is for a one-way random-effects model, with the same number of ratings for every person. Cronbach's alpha uses Bonett and Wright's test. Kappa takes 2 to 6 raters and 2 to 5 categories, and is two-sided."
       - "To plan for a precise estimate of an ICC rather than a test, use the precision card. Not calculated here yet: McDonald's omega, Krippendorff's alpha, and ICCs for two-way models."
     tier: v2
     alternatives: ["a confidence interval for the reliability, planned for its width", "McDonald's omega instead of Cronbach's alpha", "Krippendorff's alpha instead of kappa"]
-    inputs: ["What you want to show", "The ICC: the value you expect, the value to beat, and the number of ratings", "Cronbach's alpha: the value you expect, the value to beat, and the number of items", "Kappa: the categories, the raters, and the kappa you expect"]
+    inputs: ["What you want to show", "The ICC: the value you expect, the value to beat, and the number of ratings", "Cronbach's alpha: the value you expect, the value to beat, and the number of items", "Kappa: the categories, the raters, and the kappa you expect", "Bland-Altman: the bias, the SD of the differences, and the largest acceptable difference"]
   E44:
     doc_name: "Dyadic data: actor and partner effects (the actor-partner interdependence model)"
     technical_name: "Actor–partner interdependence model (APIM)"

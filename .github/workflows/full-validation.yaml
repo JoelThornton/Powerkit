@@ -76,6 +76,7 @@ on:
           - variances
           - rmcorr
           - yuen
+          - agreement
           - manova
           - rank
           - bayes

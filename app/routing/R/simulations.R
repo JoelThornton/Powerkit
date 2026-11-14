@@ -21,13 +21,14 @@
 
 # A card can also take this route for one test version only (forms.yaml,
 # simulations > method_routes: the Bayes factor of a repeated-measures
-# ANOVA effect, about 0.8 s per simulated study).
+# ANOVA effect, about 0.8 s per simulated study; the simulated Bland-Altman
+# limits of agreement, either interval). `method` may list several.
 runs_long <- function(forms, ep_id, spec = NULL) {
   # Simple mediation's quick estimate is a formula (12 November 2026).
   if (mediation_estimate(spec)) return(FALSE)
   if (ep_id %in% names(forms$simulations$endpoints)) return(TRUE)
   route <- forms$simulations$method_routes[[ep_id]]
-  !is.null(route) && !is.null(spec) && identical(spec$target_test$method, route$method)
+  !is.null(route) && !is.null(spec) && isTRUE(spec$target_test$method %in% unlist(route$method))
 }
 
 mediation_estimate <- function(spec) {

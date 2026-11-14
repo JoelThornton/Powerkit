@@ -592,6 +592,12 @@
           "minimum": 0,
           "exclusiveMaximum": 0.5
         },
+        "agree_level": {
+          "description": "Bland-Altman limits of agreement only (design reliability, template bland_altman): the share of differences the limits cover. Default 0.95, the usual 95% limits (bias plus and minus 1.96 SD).",
+          "type": "number",
+          "exclusiveMinimum": 0.5,
+          "exclusiveMaximum": 1
+        },
         "evidence_threshold": {
           "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion, the correlation, two proportions and the one-way ANOVA): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
           "type": "number",
@@ -11390,14 +11396,16 @@
             "enum": [
               "icc",
               "cronbach_alpha",
-              "kappa"
+              "kappa",
+              "bland_altman"
             ]
           },
           "options": {
             "properties": {
               "method": {
                 "enum": [
-                  "exact"
+                  "exact",
+                  "simulation"
                 ]
               },
               "proportions_formula": false,
@@ -11458,6 +11466,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_kappa"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "bland_altman"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_bland_altman"
             }
           }
         ]
@@ -11684,6 +11707,79 @@
                 },
                 "method": {
                   "const": "kappa_chi_square"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_bland_altman": {
+      "description": "Bland-Altman limits of agreement between two methods of measuring the same quantity on the same subjects: the study shows agreement when both limits of agreement (bias plus and minus z times the SD of the differences, z set by target_test > agree_level) lie inside plus and minus the largest acceptable difference (population > margin), judged by the outer ends of their confidence intervals (two-sided 1 - alpha, so each outer end is a one-sided 1 - alpha / 2 bound). 'mover' (the default) and 'bland_altman' simulate the analysis with Spower, each study analysed by SimplyAgree::agreement_limit() with MOVER or Bland and Altman's confidence intervals for the limits; 'lu_formula' is Lu et al.'s (2016) approximation, SimplyAgree::blandPowerCurve(). The differences are assumed normal. goal > n is the number of subjects measured by both methods.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "bias",
+            "sd_difference",
+            "margin"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "bland_altman"
+            },
+            "bias": {
+              "description": "The expected mean difference between the two methods (method 1 minus method 2), in the measure's own units: the bias.",
+              "type": "number"
+            },
+            "sd_difference": {
+              "description": "The expected SD of the differences between the two methods, in the measure's own units.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "margin": {
+              "description": "The largest difference between the two methods that would still count as agreement (the clinical or practical agreement limit), in the measure's own units. Agreement is shown when both limits of agreement, with their confidence intervals, lie within plus and minus this value.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "properties": {
+                "alternative": false
+              }
+            },
+            {
+              "properties": {
+                "effect": {
+                  "const": "limits_of_agreement"
+                },
+                "method": {
+                  "enum": [
+                    "mover",
+                    "bland_altman",
+                    "lu_formula"
+                  ]
+                },
+                "agree_level": {
+                  "description": "The share of differences the limits of agreement cover: 0.95 (the default) for the usual 95% limits, bias plus and minus 1.96 SD.",
+                  "type": "number",
+                  "exclusiveMinimum": 0.5,
+                  "exclusiveMaximum": 1
                 }
               }
             }
