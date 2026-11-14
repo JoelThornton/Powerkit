@@ -2241,7 +2241,7 @@ test_that("repeated measures with an SD per condition, a correlation per pair an
   expect_false(field_applies(by_id("sds"), list(spread = "same")))
   expect_true(field_applies(by_id("correction"), list(spread = "differ")))
   values <- modifyList(form_examples$E54, list(spread = "differ", sd = NULL, r = NULL, sds = "100, 120, 150",
-    rs = "0.8, 0.5, 0.6", correction = "GG", goal = "power", n = "30"))
+    rs = "0.8, 0.5, 0.6", correction = "GG", gg_method = "exact", goal = "power", n = "30"))
   expect_equal(form_problems(fields, values), character())
   spec <- build_spec(forms, "E54", fields, values)
   expect_equal(as.numeric(unlist(spec$population$sd)), c(100, 120, 150))
@@ -2263,9 +2263,9 @@ test_that("repeated measures with an SD per condition, a correlation per pair an
 test_that("mixed and two-factor within designs take an SD per cell, correlations per pair and a correction (E8, E55, E20)", {
   cases <- list(
     E8 = list(spread = "differ", sd = NULL, r = NULL, metric = "raw", s11 = "1", s12 = "1.2", s21 = "1", s22 = "1.5", r1 = "0.6", r2 = "0.4"),
-    E55 = list(spread = "differ", sd = NULL, r = NULL, sds = "6, 7, 8\n6, 8, 10", rs = "0.6, 0.4, 0.6", correction = "GG"),
+    E55 = list(spread = "differ", sd = NULL, r = NULL, sds = "6, 7, 8\n6, 8, 10", rs = "0.6, 0.4, 0.6", correction = "GG", gg_method = "exact"),
     E20 = list(spread = "differ", sd = NULL, r = NULL, sds = "80, 90, 100\n80, 90, 100",
-               rs = paste(rep("0.5", 15), collapse = ", "), correction = "HF")
+               rs = paste(rep("0.5", 15), collapse = ", "), correction = "HF", gg_method = "exact")
   )
   for (ep in names(cases)) {
     fields <- form_fields(form_groups(forms, ep))

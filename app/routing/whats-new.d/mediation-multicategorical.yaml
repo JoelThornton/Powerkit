@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-14"
+    title: "Mediation with three or more conditions or groups"
+    text: "powerkit now plans mediation where the cause is three or more conditions or groups, such as no message, a gain-framed and a loss-framed message, acting through one mediator. Each group is compared with the first, as PROCESS does by default, and has its own indirect effect: give each group's difference from the first on the mediator, the mediator's link with the outcome, and choose whether one comparison or all of them must be significant. powerkit simulates studies like yours and tests each indirect effect with a Monte Carlo confidence interval. Power at a fixed sample size runs here; the sample size you need comes as an R script."

@@ -12,13 +12,13 @@ test_that("input evidence uses complete selected settings and preserves unknown 
 test_that("corrected ANOVA offers a matched fixed-N check and records the warning", {
   fields <- form_fields(form_groups(forms, "E55"))
   v <- modifyList(form_examples$E55, list(goal="power", n="60", spread="differ",
-    sds="1, 1, 1\n1, 1, 1", rs="0.5, 0.3, 0.4", correction="GG", method="exact"))
+    sds="1, 1, 1\n1, 1, 1", rs="0.5, 0.3, 0.4", correction="GG", gg_method="exact"))
   spec <- build_spec(forms, "E55", fields, v)
-  expect_match(gg_planning_note(spec), "unresolved", fixed=TRUE)
+  expect_match(gg_planning_note(spec), "approximately", fixed=TRUE)
   calc <- list(status="ok", spec=spec, result=list(goal_type="power",
     curve=data.frame(n=60,power=.8), provenance=list(method="exact")))
   new <- corrected_anova_verification_values(calc,v)
-  expect_identical(new$method, "simulation")
+  expect_identical(new$gg_method, "simulation")
   expect_identical(new$n, "60")
   expect_identical(new$correction, "GG")
   calc$result$provenance$method <- "simulation"

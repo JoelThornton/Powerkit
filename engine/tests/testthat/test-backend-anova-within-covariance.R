@@ -9,6 +9,9 @@ covariance_spec <- function(correction = NULL, n = 30, sd = c(100, 120, 150), r 
   spec$population$r <- r
   spec$target_test$correction <- correction
   spec$goal <- list(type = "power", n = n)
+  # The exact data set, compared with ANOVA_exact() directly; a corrected
+  # test without sphericity is simulated by default (Departure 28).
+  spec$options$method <- "exact"
   spec
 }
 
@@ -53,6 +56,47 @@ test_that("departure: the size of the Greenhouse-Geisser correction, the app's d
   target <- list(type = "sample_size", power = 0.8)
   expect_equal(run_quietly(spec("none", target))$n_required$n, 40)
   expect_equal(run_quietly(spec("GG", target))$n_required$n, 52)
+})
+
+test_that("departure: a corrected test without sphericity is simulated by default (Departure 28)", {
+  # docs/conventions.md, Departure 28. ANOVA_exact() scales the
+  # noncentrality and the degrees of freedom of a corrected test by
+  # epsilon, an approximation; simulated studies give the corrected test's
+  # power itself. Departure 26's example: 68.4% from the exact data set,
+  # 71.5% in 40,000 studies simulated in base R (docs/validation-log.md,
+  # 14 November 2026).
+  spec <- covariance_spec("GG", n = 40, sd = c(100, 100, 100), r = c(0.8, 0.5, 0.2))
+  spec$population$means <- list(600, 620, 650)
+  spec$options$method <- NULL
+  backend <- superpower_backend(validate_quietly(spec), 1)
+  expect_identical(backend$default_method, "simulation")
+  expect_identical(backend$sensitivity_method, "exact")
+  # Nothing to correct, or no correction: the exact data set, as before.
+  spherical <- covariance_spec("GG", sd = 100, r = 0.6)
+  spherical$options$method <- NULL
+  expect_identical(superpower_backend(validate_quietly(spherical), 1)$default_method, "exact")
+  uncorrected <- spec
+  uncorrected$target_test$correction <- "none"
+  expect_identical(superpower_backend(validate_quietly(uncorrected), 1)$default_method, "exact")
+
+  exact <- spec
+  exact$options$method <- "exact"
+  exact_power <- run_quietly(exact)$curve$power
+  expect_equal(exact_power, 0.684, tolerance = 0.001)
+  simulated <- spec
+  simulated$options <- list(nrep = 1000, seed = 27)
+  result <- run_quietly(simulated)
+  expect_identical(result$provenance$method, "simulation")
+  # The MANOVA approach is still shown beside it, from the exact dataset.
+  expect_equal(result$manova$power, run_quietly(exact)$manova$power)
+  # Within three Monte Carlo SEs of the 40,000-study figure, and above the
+  # exact data set's approximation.
+  expect_lt(abs(result$curve$power - 0.715), 3 * result$curve$mcse)
+  expect_gt(result$curve$power, exact_power)
+  # The smallest detectable effect still comes from the exact data set.
+  sensitivity <- spec
+  sensitivity$goal <- list(type = "sensitivity", n = 40, power = 0.8)
+  expect_identical(run_quietly(sensitivity)$provenance$method, "exact")
 })
 
 test_that("impossible or mismatched SDs and correlations are refused in plain words", {

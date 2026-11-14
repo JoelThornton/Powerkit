@@ -1147,8 +1147,9 @@ server <- function(input, output, session) {
     updateSelectInput(session, "f_goal", selected = "power")
     updateTextInput(session, "f_n", value = values$n)
     updateSelectInput(session, "f_method", selected = "simulation")
+    updateSelectInput(session, "f_gg_method", selected = "simulation")
     output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
-      "The proposed sample size and corrected analysis are ready for simulation. Press Calculate to run it. The earlier exact-data result has not been confirmed by simulation yet."))
+      "The proposed sample size and corrected analysis are ready for simulation. Press Calculate to run it. The earlier exact-data result is an approximation until simulation confirms it."))
   })
   observeEvent(input$verify_interaction, {
     req(calculation_matches_values(state$calc, current_form_values()))
