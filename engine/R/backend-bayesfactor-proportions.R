@@ -198,7 +198,7 @@ bfprop_check_run <- function(spec, inputs) {
   package <- bfprop_package_log_bf10(y[1], g[1], y[2], g[2], inputs)
   closed <- bfprop_log_bf10(y[1], g[1], y[2], g[2], inputs)
   rows <- list(
-    row("group 1's size at a total of 100, from the ratio of group 2's size to group 1's", round(100 / (1 + inputs$ratio)), g[1]),
+    row("group 1's size at a total of 100, from the ratio of group 2's size to group 1's", floor(100 / (1 + inputs$ratio) + 0.5), g[1]),
     row(sprintf("log BF10 for the expected table at n = 100 (%d of %d and %d of %d): powerkit's closed form against contingencyTableBF()",
       y[1], g[1], y[2], g[2]), package, closed),
     row("prior concentration (priorConcentration)", inputs$a, inputs$a)

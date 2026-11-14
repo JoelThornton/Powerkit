@@ -176,7 +176,7 @@ simulated_data_code <- function(spec, n, seed) {
       sim_ancova_code(spec, n)
     },
     regression_interaction = switch(spec$template, two_way = sim_interaction_code(spec, n), group_moderator = sim_group_moderator_code(spec, n), NULL),
-    mediation = ,
+    mediation = if (identical(spec$template, "multicategorical")) sim_mcx_code(spec, n) else sim_power4mome_code(spec, n, seed),
     moderated_mediation = sim_power4mome_code(spec, n, seed),
     NULL
   )
@@ -1628,6 +1628,25 @@ sim_apim_code <- function(spec, n) {
     sprintf("  %s = pooled$X1, %s = pooled$X2,", name("X", 1), name("X", 2)),
     if (isTRUE(inputs$moderator)) sprintf("  %s = pooled$W,", csv_name(spec$variables$W$label %||% "W")) else NULL,
     sprintf("  %s = pooled$Y1, %s = pooled$Y2", name("Y", 1), name("Y", 2)),
+    ")"
+  )
+}
+
+# Mediation with X in three or more groups (E42): the same data as the
+# simulation (mcx_data()), with X as its group names as well as its dummies.
+sim_mcx_code <- function(spec, n) {
+  inputs <- mcx_inputs(spec)
+  k <- length(inputs$levels)
+  c(
+    sprintf("groups <- %s", r_code(inputs$levels)),
+    sprintf("group <- ceiling(seq_len(%d) / %s) # equal groups, in order", n, r_code(n / k)),
+    sprintf("M <- %s[group] + stats::rnorm(%d) # SD 1 within groups", r_code(c(0, inputs$a)), n),
+    sprintf("Y <- %s * M + %s[group] + stats::rnorm(%d, sd = %s)", r_code(inputs$b), r_code(c(0, inputs$direct)), n,
+      r_code(sqrt(1 - inputs$b^2))),
+    "simulated <- data.frame(",
+    sprintf("  %s = factor(groups[group], levels = groups),", sim_label(spec, "X")),
+    sprintf("  %s = M,", sim_label(spec, "M")),
+    sprintf("  %s = Y", sim_label(spec, "Y")),
     ")"
   )
 }

@@ -551,6 +551,10 @@
             "type": "string"
           }
         },
+        "group": {
+          "description": "Mediation with X in three or more groups (template multicategorical) only: the group whose relative indirect effect against the first group is tested, or 'all' (the default).",
+          "type": "string"
+        },
         "category": {
           "description": "Multinomial logistic regression with the Wald z test only (method 'wald_z'): the category of Y, by name, whose odds against Y's first category (the reference) are tested. Not used by the likelihood-ratio test, which tests every category together.",
           "type": "string",
@@ -3760,7 +3764,8 @@
           "template": {
             "enum": [
               "process_4",
-              "process_6"
+              "process_6",
+              "multicategorical"
             ]
           },
           "target_test": {
@@ -3819,6 +3824,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_process_6"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "multicategorical"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mediation_multicategorical"
             }
           }
         ]
@@ -12721,6 +12741,91 @@
             },
             "alternative": {
               "const": "two_sided"
+            }
+          }
+        }
+      }
+    },
+    "template_mediation_multicategorical": {
+      "description": "Mediation with X in three or more groups (E42): X dummy-coded against its first group (indicator coding, as PROCESS's mcx = 1), M ~ D2 + ... + Dk and Y ~ M + D2 + ... + Dk, each group's relative indirect effect a_j b tested by its Monte Carlo confidence interval (lavaan fit, manymome's draws) in a Spower simulation. Groups of equal size; goal > n is the total. The population is standardised within groups: M and Y have SD 1 in every group and correlate b.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "M",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "description": "The groups, in order: the first is the reference.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/variable_categorical"
+                },
+                {
+                  "properties": {
+                    "levels": {
+                      "minItems": 3
+                    }
+                  }
+                }
+              ]
+            },
+            "M": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "m_differences",
+            "b"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "m_differences": {
+              "description": "Each group after the first: its Cohen's d against the first group on M (M's within-group SD is 1), in the order of X's levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "b": {
+              "description": "M -> Y within groups: the correlation of M and Y within each group, the standardised path b.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "direct_differences": {
+              "description": "Each group after the first: its difference from the first in Y holding M constant (the relative direct effect c'_j), in Y's within-group SD. All 0 if omitted.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": {
+              "const": "X->M->Y"
+            },
+            "method": {
+              "const": "monte_carlo_ci"
+            },
+            "group": {
+              "description": "The group (a level of X after the first) whose relative indirect effect against the first group is tested; 'all' (the default) for every relative indirect effect significant in the same study.",
+              "type": "string"
             }
           }
         }

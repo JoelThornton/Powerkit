@@ -186,6 +186,19 @@ additional_input_guide <- function(f) {
   if (identical(f$id, "measurements") && identical(f$path, "population.measurements")) return(make("How many times each person is measured on both scores, the same number for everyone. The repeated-measures correlation uses each person's ups and downs around their own average, so every extra occasion adds information.",
     "Measured on 3 days, each person gives 3 pairs of scores; 100 people then give the test 199 degrees of freedom, N(k - 1) - 1.", "Your study protocol: the number of diary days, sessions or sampling prompts everyone completes.",
     "If some people will miss occasions, run the plan with the number you expect most people to complete and with a smaller number, and report both."))
+  # Mediation with X in three or more groups (E42).
+  if (identical(f$id, "mcx_m_differences")) return(make("How far each group's mean on the mediator M lies from the first group's, in M's standard deviation within a group (Cohen's d), one number for each group after the first. Each is that group's path a to M under dummy coding.",
+    "With no message, a gain-framed and a loss-framed message, 0.4, 0.6 means the gain-framed group scores 0.4 SD and the loss-framed group 0.6 SD higher than the no-message group on perceived risk.",
+    "The group means and SDs on the mediator in a comparable study or pilot, or a manipulation check with the same measure.",
+    "If you know only that the groups differ, run the plan with the smallest differences you would care about."))
+  if (identical(f$id, "mcx_b")) return(make("How strongly the mediator M predicts Y within a group, holding the groups fixed: the correlation of M and Y within a group, which is the standardised path b. Each group's relative indirect effect is its d on M times this path.",
+    "0.3 means that within a group, people 1 SD higher on perceived risk are 0.3 SD higher on intention, on average.",
+    "The correlation of the mediator and outcome in a comparable sample, ideally within one condition, or the standardised b path of a published mediation model.",
+    "Correlations between measures of attitudes and intentions are often between 0.2 and 0.5; run the plan at the lower end of what is plausible for your measures."))
+  if (identical(f$id, "mcx_direct")) return(make("Each group's difference from the first group on Y that does not run through M, in Y's within-group SD, one number for each group after the first. The test of the relative indirect effects does not depend much on these.",
+    "0, 0.1 means the gain-framed group differs from no message on intention only through perceived risk, while the loss-framed group is 0.1 SD higher besides.",
+    "The direct effects (c' paths) of a published mediation model with the same groups, or 0 if you expect M to carry the whole effect.",
+    "Leave it empty for 0 in every group, and check the plan with small direct effects too."))
   if (identical(f$id, "trim") && identical(f$path, "target_test.trim")) return(make("The share of each sample's scores set aside from each end before the means are compared: 0.2 drops the lowest 20% and the highest 20%.",
     "With 50 people in a group and 0.2, the 10 lowest and 10 highest scores are trimmed and the mean of the middle 30 is compared.", "The analysis plan or preregistration: use the trimming you will analyse with. 0.2 is WRS2's default.",
     "If no trimming is fixed yet, keep 0.2; 0.1 trims less and stays closer to the t-test when scores are well behaved."))
