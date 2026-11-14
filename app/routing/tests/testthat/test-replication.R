@@ -73,13 +73,12 @@ test_that("the write-up can be downloaded at any stage, with what's missing mark
 test_that("the planner's file keeps its own fields and nothing else", {
   path <- tempfile(fileext = ".json")
   jsonlite::write_json(replication_file(c(filled, list(other = "x")), "0.0.0"), path, auto_unbox = TRUE)
-  back <- replication_read_file(path)
-  expect_setequal(names(back), names(filled))
+  back <- plan_from_replication_text(paste(readLines(path), collapse = "\n"))$replication$fields
+  expect_true(all(names(back) %in% names(filled)))
+  expect_false("other" %in% names(back))
   expect_identical(back$rep_effect, "0.7")
-  jsonlite::write_json(list(app = "something-else", fields = filled), path, auto_unbox = TRUE)
-  expect_null(replication_read_file(path))
-  writeLines("not json", path)
-  expect_null(replication_read_file(path))
+  expect_null(plan_from_replication_text(jsonlite::toJSON(list(app = "something-else", fields = filled), auto_unbox = TRUE)))
+  expect_null(plan_from_replication_text("not json"))
 })
 
 test_that("replicating from the finder asks the original's design, and its card says how to plan it", {
@@ -93,31 +92,38 @@ test_that("replicating from the finder asks the original's design, and its card 
   for (ep in c("E1", "E2", "E3")) expect_false(is.null(replication_card_design(forms, ep)))
   expect_identical(replication_card_design(forms, "E2"), "two_groups")
   two_groups <- as.character(replication_card_note(forms, "E2"))
-  expect_match(two_groups, "rep_open_planner", fixed = TRUE)
+  expect_match(two_groups, "the plan's Goals give the sample size for each goal", fixed = TRUE)
+  expect_match(two_groups, "choose the test it used: the replication uses the same", fixed = TRUE)
+  # Opened from a replication plan, the note names it and links back.
+  kept <- as.character(replication_card_note(forms, "E2", new_replication_plan("Smith replication")))
+  expect_match(kept, "Smith replication", fixed = TRUE)
+  expect_match(kept, "rep_view_plan", fixed = TRUE)
+  expect_no_match(two_groups, "rep_view_plan", fixed = TRUE)
   expect_true("two_groups" %in% replication_designs_ui)
   # Any other design plans the replication on its own card.
   other <- setdiff(names(forms$forms), names(Filter(function(f) isTRUE(f$base$template %in% names(replication_card_templates)), forms$forms)))[1]
   expect_null(replication_card_design(forms, other))
   note <- as.character(replication_card_note(forms, other))
-  expect_no_match(note, "rep_open_planner", fixed = TRUE)
+  expect_no_match(note, "the plan's Goals give", fixed = TRUE)
   expect_match(note, "a significant result again", fixed = TRUE)
   # The effect's source starts as an earlier study, unless already chosen.
   expect_identical(replication_form_values(list())$just_type, "prior_study")
   expect_identical(replication_form_values(list(just_type = "pilot_study"))$just_type, "pilot_study")
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(code, "if (replicating(state$start)) replication_card_note(forms, state$endpoint)", fixed = TRUE)
-  expect_match(code, "observeEvent(input$rep_open_planner", fixed = TRUE)
+  expect_match(code, "if (replicating(state$start)) replication_card_note(forms, state$endpoint, plan_get(state$rep_plan))", fixed = TRUE)
+  expect_match(code, "observeEvent(input$rep_view_plan", fixed = TRUE)
 })
 
-test_that("the planner opens from the notes and the main route's signpost", {
+test_that("the notes lead on to the original study, and the main route's signpost starts a replication plan", {
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "replication_server(input, output, session", fixed = TRUE)
-  expect_match(as.character(labs_next_ui("go", FALSE)), "pkLabsOpen(&#39;replication&#39;)", fixed = TRUE)
-  expect_match(as.character(labs_next_ui("change", FALSE)), "pkLabsOpen(&#39;replication&#39;)", fixed = TRUE)
-  expect_no_match(as.character(labs_next_ui("not_worth", FALSE)), "replication planner", fixed = TRUE)
-  expect_match(as.character(labs_signpost_ui()), "go_labs_replication", fixed = TRUE)
-  # Clearing the notes leaves the planner's fields alone.
-  expect_match(labs_js, "indexOf('rep_') === 0", fixed = TRUE)
+  expect_match(as.character(labs_next_ui("go", FALSE)), "Next: the original study", fixed = TRUE)
+  expect_match(as.character(labs_next_ui("change", FALSE)), "Next: the original study", fixed = TRUE)
+  expect_no_match(as.character(labs_next_ui("not_worth", FALSE)), "Next: the original study", fixed = TRUE)
+  expect_match(as.character(labs_signpost_ui()), "rep_plan_new_signpost", fixed = TRUE)
+  expect_match(code, "observeEvent(input$rep_plan_new_signpost", fixed = TRUE)
+  # The notes are kept in the plan, not in the browser tab as in Labs.
+  expect_no_match(labs_js, "pkLabsClear", fixed = TRUE)
 })
 
 test_that("the server plans from the fields, and says what is missing first", {
@@ -141,6 +147,6 @@ test_that("the simple answer comes first, from the table's own first row (C-14)"
   expect_lt(regexpr("result-headline", as.character(replication_result_ui(plan)))[1],
     regexpr("rep-table", as.character(replication_result_ui(plan)))[1])
   # Section 1 has its own button, so no goals or beliefs come before a number.
-  ui <- as.character(replication_ui())
-  expect_lt(regexpr("rep_run_quick", ui)[1], regexpr(">2. Goals and sample size</legend>", ui, fixed = TRUE)[1])
+  ui <- as.character(replication_planner_sections())
+  expect_lt(regexpr("rep_run_quick", ui)[1], regexpr(">Goals and sample size</legend>", ui, fixed = TRUE)[1])
 })

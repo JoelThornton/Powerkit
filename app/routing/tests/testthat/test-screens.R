@@ -573,7 +573,7 @@ test_that("the top bar's share button copies a working link to the page", {
   expect_match(code, "share_page_ui())", fixed = TRUE)
   # Each shared page name is one the app opens.
   for (p in c("about", "updates", "labs")) expect_false(is.null(page_from_query(paste0("?page=", p))))
-  expect_true("prereplication" %in% vapply(labs_tools, `[[`, "", "id"))
+  expect_true("picture" %in% vapply(labs_tools, `[[`, "", "id"))
   expect_match(labs_js, "get('tool')", fixed = TRUE)
 })
 

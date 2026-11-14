@@ -16,10 +16,11 @@
 # file" keeps them for another day.
 
 replication_sections <- c(
-  "1. The original study" = "original",
-  "2. Goals and sample size" = "goals",
-  "3. How the replication differs" = "differences",
-  "4. Write-up" = "writeup"
+  "Whether to replicate" = "whether",
+  "The original study" = "original",
+  "Goals and sample size" = "goals",
+  "How the replication differs" = "differences",
+  "Write-up" = "writeup"
 )
 
 replication_designs_ui <- c(
@@ -43,18 +44,17 @@ replication_card_design <- function(forms, ep_id) {
   if (template %in% names(replication_card_templates)) unname(replication_card_templates[[template]]) else NULL
 }
 
-replication_card_note <- function(forms, ep_id) {
+replication_card_note <- function(forms, ep_id, plan = NULL) {
   planner <- !is.null(replication_card_design(forms, ep_id))
   div(class = "labs-return replication-card-note", role = "note",
     p(tags$strong("Planning a replication. "),
-      "Enter the original study's effect on the next screen; its source starts as an earlier study. ",
+      "Enter the original study's effect and choose the test it used: the replication uses the same. The effect's source starts as an earlier study. ",
       "A published effect is often larger than the true one, because larger effects are more likely to be published, so consider planning for a smaller effect as well, such as the smallest that would matter."),
-    if (planner) {
-      p(class = "mb-0", "For this design, the replication planner gives the sample size for each goal a replication can have (a significant result again, a pooled estimate, agreement with the original, Bayes factors) and a write-up. ",
-        actionLink("rep_open_planner", "Open the replication planner"), " (in Labs, experimental), or carry on here for a significant result again.")
-    } else {
-      p(class = "mb-0", "This card plans the replication for a significant result again. The replication planner's other goals cover t-tests and correlations only for now.")
-    })
+    p(class = "mb-0",
+      if (!is.null(plan)) tagList(sprintf("This is kept in the replication plan \u201c%s\u201d, with its notes, goals and write-up. ", plan$name),
+        actionLink("rep_view_plan", "Open the replication plan"), ". ") else NULL,
+      if (planner) "For this design, the plan's Goals give the sample size for each goal a replication can have (a significant result again, a pooled estimate, agreement with the original, Bayes factors)."
+      else "This card plans the replication for a significant result again; the plan's other goals cover t-tests and correlations only for now."))
 }
 
 # The input screen's starting values when replicating: the effect comes
@@ -108,27 +108,19 @@ replication_prior_notes <- c(
 
 replication_ref_keys <- c("Pawel2026_replication", "Anderson2016_replication", "Simonsohn2015_telescopes", "Kenny2019_heterogeneity")
 
-replication_ui <- function() {
+# The replication planner's sections, inside a replication plan's
+# workspace (replication_workspace_ui(), R/study-plan-replication.R; a Labs tool
+# until 14 November 2026). Their fields are kept in the plan.
+replication_planner_sections <- function() {
   field <- function(id, label, value = "", help = NULL) {
     div(class = "form-field", textInput(id, label, value = value, width = "100%"),
       if (!is.null(help)) p(class = "small text-muted", help))
   }
   box <- function(id, label, rows = 3) div(class = "form-field", textAreaInput(id, label, rows = rows, width = "100%"))
   section <- function(id, ...) conditionalPanel(sprintf("input.rep_section == '%s'", id), ...)
-  conditionalPanel("input.labs_tool == 'replication'",
-    labs_tool_head("replication"),
-    p("Plan a replication of a published finding. The sections can be filled in any order, and you can come back to them: what you enter stays in this browser tab, and “Save to a file” keeps it for another day."),
-    p(class = "small", "Still deciding whether the finding is worth replicating? ",
-      tags$a(href = "#", onclick = "pkLabsOpen('prereplication'); return false;", "Pre-replication notes"),
-      " come first. The planner uses their study and smallest effect, and the write-up includes them."),
-    div(class = "rep-file",
-      download_button("rep_save", "Save to a file", class = "btn btn-outline-primary btn-sm"),
-      fileInput("rep_open", "Or open a saved planner file", accept = c(".json", "application/json"), width = "100%")),
-    uiOutput("rep_open_status"),
-    radioButtons("rep_section", NULL, choices = replication_sections, selected = "original", inline = TRUE, width = "100%"),
-
+  tagList(
     section("original",
-      tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The original study"),
+      tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The original study"),
         uiOutput("rep_from_notes_study"),
         field("rep_study", "The original study (authors, year, title or link)"),
         selectInput("rep_design", "Its design", choices = replication_designs_ui, selectize = FALSE, width = "100%"),
@@ -145,10 +137,11 @@ replication_ui <- function() {
         # with the usual settings, before the goals and beliefs.
         div(class = "rep-quick",
           actionButton("rep_run_quick", "Show the sample size to replicate it", class = "btn btn-primary"),
-          p(class = "small text-muted mt-1", "The sample size for a significant result again, with the significance level and chance of success in section 2 (.05 and 80% to start, which you can change there). Section 2 also shows what other goals of a replication need.")))),
+          p(class = "small text-muted mt-1", "The sample size for a significant result again, with the significance level and chance of success under Goals (.05 and 80% to start, which you can change there). Goals also shows what other goals of a replication need."))),
+      uiOutput("rep_card_status")),
 
     section("goals",
-      tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "2. Goals and sample size"),
+      tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "Goals and sample size"),
         p(class = "group-note", "A replication can aim for more than a significant result (Anderson & Maxwell, 2016). The table gives the sample size each goal needs, under three beliefs about the true effect. Choose the goal that answers your question, and the belief you can defend."),
         uiOutput("rep_from_notes_smallest"),
         field("rep_smallest", "The smallest effect that would matter (d, d_z or r, positive)",
@@ -164,8 +157,8 @@ replication_ui <- function() {
         uiOutput("rep_choice"))),
 
     section("differences",
-      tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "3. How the replication differs"),
-        p(class = "group-note", "No replication repeats a study exactly. Writing down what changes, and why, says how the result should be read: whether a different result would count against the finding, or point to a condition it depends on. If much changes, allow for more variation between studies in section 2."),
+      tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "How the replication differs"),
+        p(class = "group-note", "No replication repeats a study exactly. Writing down what changes, and why, says how the result should be read: whether a different result would count against the finding, or point to a condition it depends on. If much changes, allow for more variation between studies under Goals."),
         box("rep_diff_people", "The people: who takes part, where and when, and how they differ from the original sample"),
         box("rep_diff_materials", "The materials and measures: what is translated, updated or replaced"),
         box("rep_diff_procedure", "The procedure and setting: for example online instead of in the lab"),
@@ -173,8 +166,8 @@ replication_ui <- function() {
         box("rep_diff_expect", "Would the original authors expect the same effect under these conditions? If not, why replicate this way?"))),
 
     section("writeup",
-      tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Write-up"),
-        p(class = "group-note", "A plan built from what you have entered, for a preregistration or a registered report. Sections not filled in yet are marked, so it can be downloaded at any stage."),
+      tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "Write-up"),
+        p(class = "group-note", "One plan built from everything here, the notes, the original study, the goals, how the replication differs and the original's analysis on its card, for a preregistration or a registered report. Sections not filled in yet are marked, so it can be downloaded at any stage."),
         div(class = "nav-buttons",
           document_menu("rep_document", "rep_docx", "rep_markdown", "Save as PDF or print", "the replication plan", class = "btn btn-primary"),
           download_button("rep_script", "Download the R script", class = "btn btn-outline-primary")),
@@ -376,13 +369,17 @@ replication_methods_paragraph <- function(plan, goal, prior) {
 }
 
 # The write-up, as Markdown lines: every section, marked where empty.
-replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome = NULL, version = NULL, date = Sys.Date()) {
+# `analyses`: Markdown lines for the original's analysis as its card
+# planned it (replication_analysis_lines()), or NULL; `title`, the plan's
+# name.
+replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome = NULL, version = NULL, date = Sys.Date(),
+                               analyses = NULL, title = NULL) {
   v <- function(id) trimws(as.character(values[[id]] %||% ""))
   or_blank <- function(x) if (nzchar(x)) x else "_(not filled in yet)_"
   design_label <- names(replication_designs_ui)[replication_designs_ui == (if (nzchar(v("rep_design"))) v("rep_design") else "two_groups")]
   two <- identical(v("rep_design"), "two_groups") || !nzchar(v("rep_design"))
-  lines <- c("# Replication plan", "",
-    sprintf("Written with powerkit's replication planner (Labs, experimental)%s, %s.", if (!is.null(version)) paste0(", version ", version) else "", format(date)), "",
+  lines <- c(if (is.null(title)) "# Replication plan" else paste("# Replication plan:", title), "",
+    sprintf("Written with powerkit's replication plan%s, %s.", if (!is.null(version)) paste0(", version ", version) else "", format(date)), "",
     "## The original study", "",
     sprintf("- Study: %s", or_blank(v("rep_study"))),
     sprintf("- Design: %s", design_label),
@@ -391,7 +388,7 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
     sprintf("- Significance level: %s", or_blank(v("rep_original_alpha"))), "",
     "## Goals and sample size", "")
   if (is.null(plan)) {
-    lines <- c(lines, "_(Not calculated yet: press “Show the sample sizes” in section 2.)_", "")
+    lines <- c(lines, "_(Not calculated yet: press “Show the sample sizes” under Goals and sample size.)_", "")
   } else {
     goal <- if (nzchar(v("rep_goal"))) v("rep_goal") else "significance"
     prior <- if (nzchar(v("rep_prior"))) v("rep_prior") else "uncertain"
@@ -411,7 +408,9 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
         format(plan$inputs$alpha), replication_pct(plan$inputs$power), format(plan$inputs$tau),
         if (is.null(plan$inputs$smallest_effect)) "not given" else format(plan$inputs$smallest_effect), format(plan$inputs$threshold)), "")
   }
-  lines <- c(lines, "## How the replication differs", "",
+  lines <- c(lines, "## The original's analysis, planned on its card", "",
+    if (length(analyses)) analyses else c("_(Not planned yet: under The original study, find the original's design and plan it on its card.)_", ""),
+    "## How the replication differs", "",
     sprintf("- The people: %s", or_blank(v("rep_diff_people"))),
     sprintf("- The materials and measures: %s", or_blank(v("rep_diff_materials"))),
     sprintf("- The procedure and setting: %s", or_blank(v("rep_diff_procedure"))),
@@ -432,15 +431,10 @@ replication_file <- function(values, version = NULL) {
     fields = values[intersect(names(values), replication_field_ids)])
 }
 
-# Reading a file back: only the planner's own fields, as text.
-replication_read_file <- function(path) {
-  data <- tryCatch(jsonlite::read_json(path), error = function(e) NULL)
-  if (!is.list(data) || !identical(data$app, "powerkit-replication-planner") || !is.list(data$fields)) return(NULL)
-  fields <- data$fields[intersect(names(data$fields), replication_field_ids)]
-  lapply(fields, function(x) paste(as.character(unlist(x)), collapse = "\n"))
-}
-
-replication_server <- function(input, output, session, notes = function() list(), notes_outcome = function() NULL) {
+# `analyses()`: the original's analysis lines for the write-up; `title()`,
+# the plan's name; `script_extra()`, R code for the card's analysis.
+replication_server <- function(input, output, session, notes = function() list(), notes_outcome = function() NULL,
+                               analyses = function() NULL, title = function() NULL) {
   values <- function() stats::setNames(lapply(replication_field_ids, function(id) input[[id]] %||% ""), replication_field_ids)
   plan <- reactiveVal(NULL)
   problem <- reactiveVal(NULL)
@@ -449,7 +443,7 @@ replication_server <- function(input, output, session, notes = function() list()
     plan(NULL); problem(NULL)
     missing <- replication_missing(values())
     if (length(missing)) {
-      problem(sprintf("Section 1 needs %s first.", paste(missing, collapse = " and ")))
+      problem(sprintf("The original study needs %s first.", paste(missing, collapse = " and ")))
       return()
     }
     result <- tryCatch(do.call(engine_function("replication_planning"), replication_args(values())),
@@ -486,7 +480,8 @@ replication_server <- function(input, output, session, notes = function() list()
     p(class = "small labs-signpost", sprintf("Your pre-replication notes say the smallest effect that would matter is: “%s”. Enter it below as a number on the effect's scale.", smallest))
   })
 
-  report <- function() replication_report(values(), plan(), notes(), notes_outcome(), powerkit_version())
+  report <- function() replication_report(values(), plan(), notes(), notes_outcome(), powerkit_version(),
+    analyses = analyses(), title = title())
   stem <- function() sprintf("replication-plan-%s", format(Sys.Date()))
   output$rep_markdown <- downloadHandler(filename = function() paste0(stem(), ".md"),
     content = function(file) writeLines(report(), file, useBytes = TRUE))
@@ -496,35 +491,18 @@ replication_server <- function(input, output, session, notes = function() list()
   output$rep_script <- downloadHandler(filename = function() paste0(stem(), ".R"),
     content = function(file) {
       p <- plan() %||% tryCatch(do.call(engine_function("replication_planning"), replication_args(values())), error = function(e) NULL)
-      text <- if (is.null(p)) "# Fill in section 1 (the original study) first: the script needs its effect and sample size." else
+      text <- if (is.null(p)) "# Fill in The original study first: the script needs its effect and sample size." else
         engine_function("replication_planning_script")(p)
       writeLines(text, file, useBytes = TRUE)
     })
   output$rep_writeup_note <- renderUI({
     missing <- replication_missing(values())
-    todo <- c(if (length(missing)) "section 1", if (is.null(plan())) "the sample sizes in section 2")
+    todo <- c(if (length(missing)) "The original study", if (is.null(plan())) "the sample sizes under Goals")
     if (!length(todo)) return(p(class = "small", "Everything the plan needs is in. Sections you left blank are marked in the document."))
     p(class = "small", sprintf("Still to do: %s. The document can be downloaded now; those parts are marked.", paste(todo, collapse = " and ")))
   })
 
-  # Saving and opening the planner's file.
-  output$rep_save <- downloadHandler(filename = function() sprintf("replication-planner-%s.json", format(Sys.Date())),
-    content = function(file) jsonlite::write_json(replication_file(values(), powerkit_version()), file, auto_unbox = TRUE, pretty = TRUE))
-  observeEvent(input$rep_open, {
-    fields <- replication_read_file(input$rep_open$datapath)
-    if (is.null(fields)) {
-      output$rep_open_status <- renderUI(div(class = "form-problems", role = "alert",
-        "That file isn't a replication planner file from powerkit. Choose a file saved with “Save to a file”."))
-      return()
-    }
-    for (id in names(fields)) {
-      if (id %in% c("rep_design", "rep_tau", "rep_goal", "rep_prior")) updateSelectInput(session, id, selected = fields[[id]])
-      else if (identical(id, "rep_threshold")) updateRadioButtons(session, id, selected = fields[[id]])
-      else updateTextAreaInput(session, id, value = fields[[id]])
-    }
-    plan(NULL); problem(NULL)
-    output$rep_open_status <- renderUI(div(class = "small", role = "status",
-      "Opened. Press “Show the sample sizes” in section 2 to recalculate."))
-  })
-  invisible(NULL)
+  # Called when another plan opens: its own table is calculated afresh.
+  reset <- function() { plan(NULL); problem(NULL) }
+  invisible(list(reset = reset))
 }

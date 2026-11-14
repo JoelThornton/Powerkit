@@ -349,7 +349,8 @@ study plan's shape is also the replication plan's starting point.
   never computes power).
 - Unfinished drafts as plan entries. A plan holds calculated analyses;
   a draft stays a draft file.
-- The replication plan (queue item 21). It is built on this later.
+- The replication plan (queue item 23). It is built on this later:
+  "Replication plans" below.
 
 ### Anti-goals (a failure even if it works)
 
@@ -638,3 +639,53 @@ the first), and updates this section.
   a menu), keeping it keyboard- and screen-reader-usable
   (`walkthroughs/accessibility.js`).
 - How the plans page reuses the About and Updates tab layout.
+
+## Replication plans (design, 14 November 2026)
+
+A replication plan is a study plan that also holds a replication's
+planning (queue item 23; `decisions.md`, 12 and 14 November 2026).
+
+### What the user sees
+
+- "New replication plan" on the Study plans page starts one, named
+  "Replication plan, <date>". Labs, and the input screen's signpost
+  when the effect comes from an earlier study, start one too.
+- Its page has the plan's name, description, saving and Download
+  everything, and a workspace with five sections, filled in any order:
+  whether to replicate (the pre-replication notes; Karhulahti,
+  Martončik & Adamkovič, 2025), the original study, goals and sample
+  size, how the replication differs, and the write-up.
+- Under "The original study", "Find the original's design" asks the
+  design finder's questions. The card that answers them plans the
+  replication: each effect field is labelled ", as the original study
+  reported it", the note on the card names the plan and links back, and
+  the reasoning box starts from the notes' own words. "Add to plan" keeps
+  the result as the plan's analysis.
+- The write-up (PDF, Word, Markdown) holds the notes, the goals table,
+  the differences and the original's analysis as its card planned it.
+  Download everything adds it to the zip as `replication-plan.md` and
+  `.docx`.
+
+### Storage
+
+- The plan's `replication` field: `format` "powerkit-replication-plan",
+  `version` 1, `fields` (each a string; blanks and starting values left
+  out, so opening a plan does not mark it changed) and `endpoint` (the
+  original's card). The engine's `write_study_plan(replication = )` and
+  `read_study_plan()` carry it in the study-plan file.
+- With no analysis yet, the plan is saved as the Labs planner's file
+  (`app` "powerkit-replication-planner", `fields`) with `replication`
+  and `study_plan` (id, name, description) beside it, as the guided plan
+  is. The previous version opens it in the Labs planner; this one opens
+  it as the same plan. A file the Labs planner saved opens as a new
+  replication plan.
+- The workspace is drawn once and filled from the plan when it opens.
+  Nothing is written back until the fields hold that plan's values, so
+  one plan's fields never go into another; after that, changes are kept
+  in the plan 0.6 seconds after typing stops.
+
+### Code
+
+`app/routing/R/study-plan-replication.R` (the record, files, workspace
+and write-up), `R/replication.R` (the planner's sections and server),
+`R/labs.R` (the notes' sections, `replication_notes_ui()`).

@@ -38,14 +38,15 @@ test_that("text a user typed can't add markup or scripts to the document", {
   expect_no_match(code, "&amp;lt;", fixed = TRUE)
 })
 
-test_that("the notes and the planning document both print as documents, not as the app", {
-  labs <- as.character(labs_ui(tree))
-  expect_match(labs, "pkPrintDocument(&#39;labs_document&#39;)", fixed = TRUE)
+test_that("the replication plan's write-up (with the notes) and the planning document both print as documents, not as the app", {
+  labs <- as.character(replication_workspace_ui(tree))
+  expect_match(labs, "pkPrintDocument(&#39;rep_document&#39;)", fixed = TRUE)
   expect_no_match(labs, "window.print()", fixed = TRUE)
   results <- paste(readLines(file.path(routing_dir, "R", "results.R")), collapse = "\n")
   expect_match(results, 'document_menu("planning_document", "download_planning_docx", "download_planning_document",\n        "Planning document (PDF)"', fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(app, "observeEvent(input$labs_document, send_document(", fixed = TRUE)
+  rep <- paste(readLines(file.path(routing_dir, "R", "replication.R")), collapse = "\n")
+  expect_match(rep, "observeEvent(input$rep_document, send_document(", fixed = TRUE)
   expect_match(app, "observeEvent(input$planning_document, send_document(", fixed = TRUE)
   expect_match(app, "tags$script(HTML(documents_js))", fixed = TRUE)
   # Printed from a hidden frame, so only the document is printed.
@@ -168,15 +169,16 @@ test_that("a document's formats are one button with a menu", {
   ids <- gsub('"', "", ids[-seq(1, length(ids), by = 3)])
   expect_setequal(ids, document_menu_downloads)
   expect_match(sources, "for (id in document_menu_downloads) outputOptions(output, id, suspendWhenHidden = FALSE)", fixed = TRUE)
+  # Each is an output the server defines: outputOptions() stops the app for any other.
 })
 
-test_that("Word downloads are offered for the notes and the planning document", {
-  labs <- as.character(labs_ui(tree))
-  expect_match(labs, 'id="labs_docx"', fixed = TRUE)
+test_that("Word downloads are offered for the replication plan's write-up and the planning document", {
+  labs <- as.character(replication_workspace_ui(tree))
+  expect_match(labs, 'id="rep_docx"', fixed = TRUE)
   results <- paste(readLines(file.path(routing_dir, "R", "results.R")), collapse = "\n")
   expect_match(results, 'document_menu("planning_document", "download_planning_docx", "download_planning_document"', fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(app, "output$labs_docx <- downloadHandler(", fixed = TRUE)
+  expect_match(paste(readLines(file.path(routing_dir, "R", "replication.R")), collapse = "\n"), "output$rep_docx <- downloadHandler(", fixed = TRUE)
   expect_match(app, "output$download_planning_docx <- downloadHandler(", fixed = TRUE)
   expect_match(nav_js, "#download_planning_docx", fixed = TRUE)
 })

@@ -13,7 +13,8 @@ read_study_plan(x)
 A \code{powerkit_study_plan}: a list with \code{analyses} (a list of
 \code{powerkit_project}s), \code{saved}, \code{powerkit_version}, \code{id}, \code{name} and
 \code{description} (each \code{NULL} when the file has none), \code{guided} (the
-guided-plan record, or \code{NULL}), and \code{roles} and \code{notes}, character
+guided-plan record, or \code{NULL}), \code{replication} (the replication-plan
+record, or \code{NULL}), and \code{roles} and \code{notes}, character
 vectors with one element per analysis (\code{NA} where the file has none).
 }
 \description{

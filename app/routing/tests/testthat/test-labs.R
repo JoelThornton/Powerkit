@@ -1,7 +1,7 @@
 # Labs (experimental): pre-replication notes (R/labs.R).
 
 test_that("the three questions appear word for word from Karhulahti et al. (2025)", {
-  html <- as.character(labs_ui(tree))
+  html <- as.character(replication_notes_ui(tree))
   for (q in labs_questions) expect_match(html, q, fixed = TRUE)
   expect_equal(labs_questions$goals, "What are the epistemic goals in replication and how is the original study related to them?")
   expect_equal(labs_questions$quality, "Is the chosen finding or study sufficiently high in methodological quality for replication?")
@@ -9,13 +9,12 @@ test_that("the three questions appear word for word from Karhulahti et al. (2025
 })
 
 test_that("nothing is required, scored or marked complete", {
-  html <- as.character(labs_ui(tree))
+  html <- as.character(replication_workspace_ui(tree))
   expect_no_match(html, "aria-required|required=|\\(required\\)", perl = TRUE)
   expect_no_match(html, "score[ds]? (out of|of )|complete[d]?\\b|incomplete|badge", ignore.case = TRUE, perl = TRUE)
   # The outcome starts unchosen, and all three outcomes are offered. (The
-  # picture of power's alpha starts at .05 and its test two-sided, and the Bayesian planning tool's
-  # hypothesis, design and thresholds at their defaults, and the replication
-  # planner's section and Bayes factor threshold.)
+  # workspace's section and the planner's Bayes factor threshold start
+  # at their defaults.)
   checked <- regmatches(html, gregexpr("<input[^>]*checked=\"checked\"[^>]*>", html))[[1]]
   expect_true(all(grepl("name=\"(picture_alpha|picture_sides|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design|rep_section|rep_threshold)\"", checked)))
   for (o in labs_outcomes) expect_match(html, o, fixed = TRUE)
@@ -77,22 +76,22 @@ test_that("the notes follow where the user landed", {
   not_worth <- labs_markdown(answers, "not_worth", citation = "CITATION")
   expect_match(not_worth, "negative pre-replication report", fixed = TRUE)
   expect_match(not_worth, labs_outcomes[["not_worth"]], fixed = TRUE)
-  # Only "go ahead" and "change the plan" offer the sample-size button.
-  expect_match(as.character(labs_next_ui("go", TRUE)), "labs_plan", fixed = TRUE)
-  expect_match(as.character(labs_next_ui("change", FALSE)), "labs_plan", fixed = TRUE)
-  expect_no_match(as.character(labs_next_ui("not_worth", TRUE)), "labs_plan", fixed = TRUE)
-  expect_no_match(as.character(labs_next_ui(NULL, TRUE)), "labs_plan", fixed = TRUE)
+  # Only "go ahead" and "change the plan" lead on to the original study.
+  expect_match(as.character(labs_next_ui("go", TRUE)), "Next: the original study", fixed = TRUE)
+  expect_match(as.character(labs_next_ui("change", FALSE)), "Next: the original study", fixed = TRUE)
+  expect_no_match(as.character(labs_next_ui("not_worth", TRUE)), "Next: the original study", fixed = TRUE)
+  expect_no_match(as.character(labs_next_ui(NULL, TRUE)), "Next: the original study", fixed = TRUE)
   # The panel's number goes into the notes when it was calculated.
   with_sde <- labs_markdown(answers, "go", sde = list(sentence = "SDE LINE.", provenance = "PROV."), citation = "C")
   expect_match(with_sde, "SDE LINE. PROV.", fixed = TRUE)
 })
 
-test_that("the main route's only link into Labs is shown for a previous study", {
+test_that("the main route's only link to a replication plan is shown for a previous study", {
   fields <- unlist(lapply(form_groups(forms, "E2", 2L, list()), `[[`, "fields"), recursive = FALSE)
   just_type <- Filter(function(f) identical(f$id, "just_type"), fields)[[1]]
   html <- as.character(field_ui(just_type, ""))
   expect_match(html, "input.f_just_type == &#39;prior_study&#39;|input.f_just_type == 'prior_study'", perl = TRUE)
-  expect_match(html, "go_labs", fixed = TRUE)
+  expect_match(html, "rep_plan_new_signpost", fixed = TRUE)
   expect_match(html, "Hide this", fixed = TRUE)
 })
 
@@ -114,15 +113,17 @@ test_that("the tabs that are the same for everyone are built once, not per visit
 
 # A Labs menu, and planning from the notes without losing work (22 October 2026)
 
-test_that("Labs opens on a list of tools; the notes appear once their tool is chosen", {
+test_that("Labs opens on a list of tools, and the replication tools have moved to replication plans", {
   html <- as.character(labs_ui(tree))
-  menu_at <- regexpr("labs-menu", html); tool_at <- regexpr("labs_finding", html)
-  expect_gt(menu_at, 0); expect_gt(tool_at, menu_at)
+  expect_match(html, "labs-menu", fixed = TRUE)
   expect_match(html, 'data-display-if="!input.labs_tool"', fixed = TRUE)
-  expect_match(html, "data-display-if=\"input.labs_tool == &#39;prereplication&#39;\"|data-display-if=\"input.labs_tool == 'prereplication'\"")
-  expect_match(html, "Open Pre-replication notes", fixed = TRUE)
   expect_match(html, "All Labs tools", fixed = TRUE)
-  expect_length(labs_tools, 7)
+  expect_false(any(c("prereplication", "replication") %in% vapply(labs_tools, `[[`, "", "id")))
+  expect_length(labs_tools, 5)
+  # The notes are on a replication plan's page, and Labs says where.
+  expect_no_match(html, "labs_finding", fixed = TRUE)
+  expect_match(html, "rep_plan_new_labs", fixed = TRUE)
+  expect_match(as.character(replication_workspace_ui(tree)), "labs_finding", fixed = TRUE)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
 
@@ -134,9 +135,8 @@ test_that("planning from the notes carries the user's own words, never a number 
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   # Only the reasoning box is filled.
   expect_match(code, "list(just_source = state$labs_seed)", fixed = TRUE)
-  # A plan in progress is replaced only after asking.
-  expect_match(code, "if (plan_in_progress()) showModal(labs_replace_modal()) else labs_start_plan()", fixed = TRUE)
-  expect_match(as.character(labs_replace_modal()), "Your pre-replication notes are kept either way.", fixed = TRUE)
+  # On a replication plan's card, the seed comes from the plan's notes.
+  expect_match(code, "labs_seed_reasoning(replication_values(rep$replication))", fixed = TRUE)
   expect_match(as.character(labs_return_ui(TRUE, TRUE)), "Back to the notes", fixed = TRUE)
 })
 

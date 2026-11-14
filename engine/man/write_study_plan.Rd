@@ -10,7 +10,8 @@ write_study_plan(
   id = NULL,
   name = NULL,
   description = NULL,
-  guided = NULL
+  guided = NULL,
+  replication = NULL
 )
 }
 \arguments{
@@ -28,6 +29,11 @@ identifier, its name and a description of the study. Fields left
 \item{guided}{Optional list: the app's record of a guided whole-study
 plan ("Plan my whole study") that the study plan holds. It is kept as
 given; \code{NULL} is not written.}
+
+\item{replication}{Optional list: the app's record of a replication plan
+(the pre-replication notes, the original study, the goals and how the
+replication differs) that the study plan holds. Kept as given; \code{NULL}
+is not written.}
 }
 \value{
 The JSON text, invisibly when written to \code{file}.

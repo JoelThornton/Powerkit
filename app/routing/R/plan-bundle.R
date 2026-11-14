@@ -126,6 +126,7 @@ plan_bundle_readme <- function(plan, plan_file, docs, analyses, skipped) {
     if ("md" %in% docs) "study-plan.md\n  The study-wide planning document as Markdown, to paste into a preregistration or edit.",
     if ("docx" %in% docs) "study-plan.docx\n  The study-wide planning document as an editable Word document.",
     if ("refs" %in% docs) "references.txt\n  Every analysis's references, each once.",
+    if ("replication" %in% docs) "replication-plan.md and replication-plan.docx\n  The replication plan's write-up: the pre-replication notes, the original study, the goals, how the replication differs and the original's analysis.",
     if (length(analyses)) "analyses/\n  One folder per analysis, with its own \"Download everything\": project file, planning document, R script, citations and, where offered, SIMULATED (not real) data.")
   c(sprintf("powerkit: everything for the study plan \"%s\", saved %s", plan$name, format(Sys.time(), "%d %B %Y at %H:%M UTC", tz = "UTC")), "",
     about, "",
@@ -147,12 +148,22 @@ write_plan_bundle <- function(plan, file, tree, forms, joint = NULL, engine = en
   if (!nzchar(text)) stop("The plan file couldn't be written.")
   writeLines(text, file.path(dir, plan_file), useBytes = TRUE)
   docs <- character(); skipped <- character()
-  doc <- tryCatch(plan_planning_document(plan, tree, forms, joint = joint, engine = engine), error = function(e) NULL)
-  if (!is.null(doc)) {
+  # A replication plan with no analysis yet has only its own write-up.
+  doc <- if (length(plan$entries)) tryCatch(plan_planning_document(plan, tree, forms, joint = joint, engine = engine), error = function(e) NULL)
+  if (!length(plan$entries)) {
+  } else if (!is.null(doc)) {
     if (!inherits(try(writeLines(doc, file.path(dir, "study-plan.md"), useBytes = TRUE), silent = TRUE), "try-error")) docs <- c(docs, "md")
     if (!inherits(try(docx_document(doc, file.path(dir, "study-plan.docx"), powerkit_version()), silent = TRUE), "try-error") &&
       file.exists(file.path(dir, "study-plan.docx"))) docs <- c(docs, "docx")
   } else skipped <- c(skipped, "the study-wide planning document")
+  if (plan_is_replication(plan)) {
+    rep_doc <- tryCatch(replication_plan_report(plan, tree, forms, engine = engine), error = function(e) NULL)
+    if (!is.null(rep_doc)) {
+      writeLines(rep_doc, file.path(dir, "replication-plan.md"), useBytes = TRUE)
+      try(docx_document(rep_doc, file.path(dir, "replication-plan.docx"), powerkit_version()), silent = TRUE)
+      docs <- c(docs, "replication")
+    } else skipped <- c(skipped, "the replication plan's write-up")
+  }
   refs <- plan_merge_citations(plan_citation_texts(plan$entries, engine))
   if (length(refs)) {
     writeLines(c(sprintf("References for the study plan \"%s\"", plan$name), "", paste0(refs, "\n")), file.path(dir, "references.txt"), useBytes = TRUE)
@@ -174,7 +185,8 @@ write_plan_bundle <- function(plan, file, tree, forms, joint = NULL, engine = en
     unlink(inner)
   }
   writeLines(plan_bundle_readme(plan, plan_file, docs, analyses, skipped), file.path(dir, "README.txt"))
-  top <- c("README.txt", plan_file, c(md = "study-plan.md", docx = "study-plan.docx", refs = "references.txt")[docs])
+  top <- c("README.txt", plan_file, unlist(list(md = "study-plan.md", docx = "study-plan.docx", refs = "references.txt",
+    replication = c("replication-plan.md", if (file.exists(file.path(dir, "replication-plan.docx"))) "replication-plan.docx"))[docs]))
   inside <- c(top, if (length(analyses)) "analyses")
   zip::zip(file, files = unname(inside), root = dir, mode = "mirror")
   if (!plan_file %in% zip::zip_list(file)$filename) stop("The zip is missing the plan file.")

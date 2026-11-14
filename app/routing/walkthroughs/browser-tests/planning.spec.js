@@ -203,10 +203,36 @@ test('a link to a card opens that card, and the address names the open card', as
 });
 
 test('a link straight to a Labs tool opens it, not the starting screen', async ({ page }) => {
-  await page.goto('?page=labs&tool=prereplication');
+  await page.goto('?page=labs&tool=picture');
   await expect(page.locator('#pk-starting')).toHaveCount(0);
+  await expect(page.locator('input[name=picture_alpha]').first()).toBeVisible();
+});
+
+test('a replication plan keeps its notes and planner fields, in the browser and in its file', async ({ page }, info) => {
+  await page.goto('?page=plans');
+  await expect(page.locator('#pk-starting')).toHaveCount(0, { timeout: 30000 });
+  await page.locator('#plans_new_replication').click();
+  await expect(page.locator('.replication-workspace')).toContainText('Planning the replication');
   await page.locator('#labs_study').fill('Smith (2019)');
+  await page.locator('input[name=rep_section][value=original]').click();
+  await page.locator('#rep_effect').fill('0.45');
+  // Kept in the browser across a reload (saved shortly after typing).
+  await page.waitForTimeout(1500);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.locator('.study-plan-chip').click();
+  await page.locator('.plans-row-name', { hasText: 'Replication plan' }).click();
   await expect(page.locator('#labs_study')).toHaveValue('Smith (2019)');
+  await page.locator('input[name=rep_section][value=original]').click();
+  await expect(page.locator('#rep_effect')).toHaveValue('0.45');
+  await expect(page.locator('#rep_find_design')).toBeVisible();
+  // Saved to a file that holds the record.
+  const pending = page.waitForEvent('download');
+  await page.locator('#download_study_plan').click();
+  const file = info.outputPath('replication.powerkit.json');
+  await (await pending).saveAs(file);
+  const saved = JSON.parse(await fs.readFile(file, 'utf8'));
+  expect(saved.replication.fields.labs_study).toBe('Smith (2019)');
+  expect(saved.replication.fields.rep_effect).toBe('0.45');
 });
 
 test('named study plans: add, rename, keep after a reload, save, reopen and update', async ({ page }, info) => {
