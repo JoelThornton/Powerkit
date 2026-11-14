@@ -171,7 +171,7 @@ field_ui <- function(f, value, described_by = character()) {
   # claim's choices).
   if (!is.null(f$choice_notes)) field <- tagList(field, lapply(names(f$choice_notes), function(k) {
     conditionalPanel(sprintf("input.%s == '%s'", id, k),
-      explanation_ui(paste0(id, "_choice_", k), f$label, p(class = "group-note choice-note", f$choice_notes[[k]])))
+      explanation_ui(paste0(id, "_choice_", k), "About this choice", p(class = "group-note choice-note", f$choice_notes[[k]])))
   }))
   # Labs' one way in: a line under the effect size's source, for people
   # basing it on a previous study (R/labs.R).
@@ -291,13 +291,15 @@ group_ui_build <- function(tree, g, values, index) {
       else if (any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) name_swap(legend, "Effect size")
       else if (any(vapply(g$fields, function(f) identical(f$id, "just_type"), logical(1)))) name_swap(legend, "Effect-size source")
       else if (identical(legend, "Your hypothesis")) name_swap(legend, "Hypothesis") else legend),
+    # The group's info button sits beside its heading, as a field's does
+    # beside its label, rather than repeating the heading as a link.
+    if (!is.null(g$note) || !is.null(g$note_more)) explanation_ui(sprintf("group-%d-info", index), legend, class = "group-more",
+      if (!is.null(g$note)) p(class = "group-note", g$note),
+      if (!is.null(g$note_more)) p(class = "group-note", g$note_more)),
     # Routine notes follow explanation mode; required-input prompts and
     # scientific warnings are rendered separately and remain visible.
     if (length(hints)) tags$details(class = "form-terms", tags$summary("What these terms mean"),
-      div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term), ": ", h$hint)))),
-    if (!is.null(g$note) || !is.null(g$note_more)) explanation_ui(sprintf("group-%d-info", index), legend,
-      if (!is.null(g$note)) p(class = "group-note", g$note),
-      if (!is.null(g$note_more)) p(class = "group-note", g$note_more)),
+      div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term, .noWS = "after"), ": ", h$hint)))),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
   # Names that are all optional fold away (1 November 2026): they only
@@ -341,9 +343,11 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(name_swap(paste0("Your values: ", ep$plain_name), technical_name(ep))),
     p(class = "lead", "Fields marked optional can be left empty."),
-    if (identical(ep$status, "runs_validation_in_progress")) div(class = "status status-in-progress",
+    # One line: the label, with how far the checks got behind its info
+    # button (inline with explanations on).
+    if (identical(ep$status, "runs_validation_in_progress")) div(class = "validation-line",
       tags$span(class = "badge-progress", "Validation in progress"),
-      explanation_ui("form-validation-info", "Validation status", ep$validation$note)),
+      explanation_ui("form-validation-info", "How far the checks have got", class = "inline-more", ep$validation$note)),
     carried,
     uiOutput("selected_evidence"),
     if (!is.null(forms$forms[[ep_id]]$scope_note)) p(class = "analysis-scope-note", forms$forms[[ep_id]]$scope_note),
