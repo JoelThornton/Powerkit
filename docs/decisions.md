@@ -3406,3 +3406,19 @@ split and could need up to about four people more.
 - The backends are unchanged: at each total the engine runs the backend
   for that total's exact whole-group ratio.
 
+### The binary-X null check's seed changed to 1500, 14 November 2026
+
+The model-7 yes/no-X Type I error check in
+`test-validation-modmed-binary.R` simulates 1,000 null studies and fails
+above .0707 (alpha plus three binomial standard errors). Its seed, 1703,
+drew a set of studies rejected 7.5% of the time, so the nightly run
+failed on the same draw every night. In 20,000 studies the rate is 5.38%
+(99.9% interval 4.87% to 5.92%; `validation-log.md`, 14 November 2026),
+consistent with 5%, so the failure was that draw, not the test.
+
+The maintainer chose seed 1500 before it was run; the replications and
+the limit are unchanged. With it the rejection rate is .051 (limit
+.0707), and the rest of the file passes. The test remains one 1,000-study draw: at the
+true rate of about 5.4%, roughly one seed in 80 would exceed the limit.
+More replications would remove that chance and remain an option if the
+check fails again.
