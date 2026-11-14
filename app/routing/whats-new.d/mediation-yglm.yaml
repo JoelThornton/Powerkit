@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-14"
-    title: "Mediation when the outcome is yes or no, or a count"
-    text: "The card for moderation or mediation with an outcome that isn't a score now plans mediation too: X affecting a yes or no outcome, or a count such as drinking days in a month, through a mediator that is a score. It uses regression-based causal mediation analysis: give X's effect on the mediator and the mediator's effect on the outcome, and powerkit finds the power or sample size for the natural indirect effect."

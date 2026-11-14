@@ -8,6 +8,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-14"
+    title: "Moderation when the outcome is a count"
+    text: "Moderation with an outcome that isn't a score now takes a count, such as drinking days in a month, as well as a yes or no answer. Give the mean count at the starting point, how much X and W each change it, and how much W changes X's effect, and powerkit finds the power or sample size for the interaction in a Poisson or negative binomial regression."
+  - date: "2026-11-14"
+    title: "Mediation when the outcome is yes or no, or a count"
+    text: "The card for moderation or mediation with an outcome that isn't a score now plans mediation too: X affecting a yes or no outcome, or a count such as drinking days in a month, through a mediator that is a score. It uses regression-based causal mediation analysis: give X's effect on the mediator and the mediator's effect on the outcome, and powerkit finds the power or sample size for the natural indirect effect."
+  - date: "2026-11-14"
     title: "Mediation when the mediator is yes or no"
     text: "powerkit now plans mediation where the mediator is a yes or no answer, such as whether someone booked an appointment, with X two conditions or a score and an outcome that is a score or yes or no. It uses regression-based causal mediation analysis: give the chance of the mediator in the comparison group, how much X changes its odds, and how much the mediator changes the outcome, and powerkit finds the power or sample size for the natural indirect effect."
   - date: "2026-11-14"

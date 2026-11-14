@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-14"
-    title: "Moderation when the outcome is a count"
-    text: "Moderation with an outcome that isn't a score now takes a count, such as drinking days in a month, as well as a yes or no answer. Give the mean count at the starting point, how much X and W each change it, and how much W changes X's effect, and powerkit finds the power or sample size for the interaction in a Poisson or negative binomial regression."
