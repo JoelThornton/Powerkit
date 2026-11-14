@@ -90,6 +90,7 @@ Suggests:
     pscl,
     PUMP,
     quantreg,
+    regmedint,
     semPower,
     simsem,
     SimplyAgree,

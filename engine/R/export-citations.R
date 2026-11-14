@@ -142,6 +142,10 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
         list(s("lavaan", "which fits the mediation model to each simulated data set"),
           s("manymome", "whose Monte Carlo draws give each relative indirect effect's confidence interval"))
       },
+      # Mediation with a yes/no mediator (backend-mediation-binm.R).
+      if ("regmedint" %in% used) {
+        list(s("regmedint", "whose regmedint() is the regression-based causal mediation analysis powerkit's experiment runs"))
+      },
       if ("ARTool" %in% used) {
         c(
           list(s("ARTool", "whose art() and artlm() are the aligned rank transform powerkit's experiment runs")),

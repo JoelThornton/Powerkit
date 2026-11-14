@@ -139,7 +139,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73]
+calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73, E39]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -151,6 +151,8 @@ background:
   E59: {power: 4, sample_size: 30}
   E58: {power: 25, sample_size: 120}
   E73: {power: 35, sample_size: 320}
+  # Mediation with a yes/no mediator (regmedint), measured 14 November 2026.
+  E39: {power: 25, sample_size: 200}
   E60: {power: 4, sample_size: 30}
 # Cards whose default test version is simulated (runs_simulation()), so it
 # runs in the background like those above, while a formula version of the
@@ -1291,6 +1293,45 @@ forms:
       - title: "Monte Carlo draws"
         fields:
           - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, as for the other mediation cards)", type: number, path: options.ci_draws, optional: true, empty_text: "1,000", min: 100, max: 100000, integer: true}
+
+  # Mediation with a yes/no mediator (E39): regression-based causal
+  # mediation analysis (Valeri & VanderWeele, 2013) by regmedint, simulated
+  # with Spower; the natural indirect effect tested by the delta method.
+  E39:
+    methods_name: "regression-based causal mediation analysis with a yes/no mediator (the natural indirect effect)"
+    tool: Spower
+    directional: false
+    base: {spec_version: "0.1", design: mediation, template: binary_mediator,
+           variables: {M: {type: binary}}, population: {metric: odds_ratio},
+           target_test: {effect: indirect_effect, path: "X->M->Y", method: delta_method}}
+    names: [X, M, "Y"]
+    groups:
+      - input: "What X, the mediator and the outcome are"
+        fields:
+          - {id: binm_x, label: "X is", type: select, path: variables.X.type, required: true,
+             choices: {binary: "Two conditions or groups (for example, a reminder or none)", continuous: "A score"},
+             default: binary, default_source: "two conditions, the usual design for mediation of an intervention"}
+          - {id: X_levels, label: "The two conditions or groups, separated by commas (first the comparison group; the people are split equally between them)", type: levels, path: variables.X.levels, required: true,
+             shown_if: {field: binm_x, is: binary}}
+          - {id: M_levels, label: "The mediator's two answers, separated by commas (the 'no' first, then the 'yes')", type: levels, path: variables.M.levels, required: true,
+             help: "For example: No, Yes, or Did not book, Booked. The paths below are about the second answer."}
+          - {id: binm_y, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score", binary: "Yes or no"},
+             default: continuous, default_source: "a score, the usual outcome"}
+      - input: "How X changes the chance of the mediator, and how the mediator changes the outcome"
+        fields:
+          - {id: binm_m_baseline, writeup_label: "the chance of the mediator in the comparison group", label: "Chance that the mediator is 'yes' in the first group (or at X's average, for a score), from 0 to 1", type: number, path: population.m_baseline, required: true, min_exclusive: 0, max_exclusive: 1, baseline: true}
+          - {id: binm_m_or, writeup_label: "the odds ratio of the mediator for X", label: "Odds ratio of the mediator being 'yes' for X (the second group against the first, or per SD of a score: path a)", type: number, path: population.m_odds_ratio, effect: true, min_exclusive: 0}
+          - {id: binm_b, writeup_label: "the difference in the outcome for the mediator", label: "Difference in the outcome between 'yes' and 'no' on the mediator, at the same X, in the outcome's SD (path b, like Cohen's d)", type: number, path: population.b, effect: true,
+             shown_if: {field: binm_y, is: continuous}}
+          - {id: binm_direct, writeup_label: "the direct effect of X", label: "X's direct effect on the outcome, holding the mediator, in the outcome's SD (optional; empty = 0)", type: number, path: population.direct, optional: true, empty_text: "0",
+             shown_if: {field: binm_y, is: continuous}}
+          - {id: binm_y_baseline, writeup_label: "the chance of the outcome in the comparison group", label: "Chance that the outcome is 'yes' in the first group (or at X's average) when the mediator is 'no', from 0 to 1", type: number, path: population.y_baseline, required: true, min_exclusive: 0, max_exclusive: 1, baseline: true,
+             shown_if: {field: binm_y, is: binary}}
+          - {id: binm_b_or, writeup_label: "the odds ratio of the outcome for the mediator", label: "Odds ratio of the outcome being 'yes' for 'yes' against 'no' on the mediator, at the same X (path b)", type: number, path: population.b_odds_ratio, effect: true, min_exclusive: 0,
+             shown_if: {field: binm_y, is: binary}}
+          - {id: binm_direct_or, writeup_label: "the direct odds ratio of X", label: "Odds ratio of the outcome for X, holding the mediator (optional; empty = 1, no direct effect)", type: number, path: population.direct_odds_ratio, optional: true, empty_text: "1", min_exclusive: 0,
+             shown_if: {field: binm_y, is: binary}}
 
   E33:
     methods_name: "a linear mixed model with participants and items as random factors (Satterthwaite t test)"

@@ -635,6 +635,28 @@ draws the data before fitting each study, so the exported R script
 reproduces the run exactly. Power for "every group" is the chance that
 all the tested intervals exclude 0, which is lower than any one of them.
 
+## Mediation with a yes/no mediator (E39)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No mediation | — | — |
+| PROCESS | Not offered for a yes/no mediator: PROCESS estimates every mediator's equation by OLS, so a 0/1 mediator is treated as a score | — | — |
+| Valeri and VanderWeele's macro (SAS, SPSS), and regmedint, its R version | Regression-based causal mediation analysis: logistic regression for a yes/no M, linear or logistic regression for Y, with or without an X-by-M interaction; the natural indirect effect with a delta-method standard error, or a bootstrap interval (Valeri and VanderWeele, 2013, ValeriVanderWeele2013_mediation in refs.bib) | The natural indirect effect: a difference for a score Y, an odds ratio for a yes/no Y | regmedint's `summary()` reports the delta-method test |
+| power4mome | Not offered: `x_fun` on an endogenous variable sets its error term, so a yes/no M isn't drawn [power4mome help] | — | — |
+| **powerkit** | Spower running `p_mediation_binm()`: X two equal groups (0, 1) or a standard normal score, M drawn from its logistic model, Y from its linear or logistic model, analysed by `regmedint::regmedint(mreg = "logistic", yreg = "linear" or "logistic", interaction = FALSE)` with `a0 = 0`, `a1 = 1`; significant when the natural indirect effect's ("pnie") two-sided delta-method p value is below alpha (E39, from 14 November 2026) [powerkit] | The chance that M is yes in the first group (or at X's mean), X's odds ratio on M (path a), and M's effect on Y holding X: a difference in Y's residual SD for a score Y, an odds ratio for a yes/no Y, with X's direct effect on the same scale | Without an X-by-M interaction the pure and total natural indirect effects are equal. A study whose models can't be fitted counts as not significant |
+
+powerkit follows the authors' tool here: the delta-method test is what
+regmedint reports, and no departure is recorded. It differs from powerkit's
+other mediation cards, which test the indirect effect with a Monte Carlo
+interval (Known difference 14); for a product of coefficients a
+delta-method (Sobel-type) test is known to be somewhat conservative in
+small samples, so this card's power may be a little lower than an
+interval-based test of the same model would give. For a yes/no Y the
+effect is the natural indirect effect on the odds-ratio scale, which
+approximates a risk ratio only when the outcome is rare; the test of
+whether it is 0 doesn't depend on that approximation. An X-by-M
+interaction, covariates and a bootstrap interval are not offered yet.
+
 ## Meta-analysis with several effects per study (E61, POMADE)
 
 | Tool | Test | Effect size | Settings |

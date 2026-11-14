@@ -3299,6 +3299,29 @@ separately written simulation and the Type I error with both groups
 changing by the same ratio. Conventions: `docs/conventions.md`, "The
 same people measured more than once".
 
+### Mediation with a yes/no mediator on E39, 14 November 2026
+
+E39, mediation where the mediator is yes or no, now calculates. PROCESS
+can't model a yes/no mediator (it fits every mediator's equation by OLS),
+and power4mome can't draw one, so the card runs the analysis designed for
+it: regression-based causal mediation analysis (Valeri and VanderWeele,
+2013), a logistic regression for the mediator and a linear or logistic
+regression for the outcome, with the natural indirect effect tested by its
+delta-method standard error, as regmedint, the R version of the authors'
+macro, computes it. Spower simulates studies of powerkit's experiment
+`p_mediation_binm()`; X is two equal groups or a score, the outcome a score
+or yes/no. regmedint joins Suggests (with sandwich and assertthat in
+renv.lock); the run checks it is installed before it starts. Power and a
+required sample size both run on the card (about 25 seconds for power).
+An X-by-M interaction, covariates and a bootstrap interval are not offered
+yet. Recommendation for the maintainer: keep the delta-method test as the
+default, since it is what the authors' tool reports; a Monte Carlo
+interval of the natural indirect effect, as on the other mediation cards,
+would need either regmedint's internal formulas or new code, and is a
+candidate option rather than the default. Validation:
+`test-validation-mediation-binm.R`. Conventions: `docs/conventions.md`,
+"Mediation with a yes/no mediator".
+
 ### Mediation with X in three or more groups on E42, 14 November 2026
 
 E42, mediation where X is three or more conditions or groups, now

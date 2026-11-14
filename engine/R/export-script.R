@@ -85,7 +85,8 @@ export_script <- function(spec, result, file = NULL) {
       if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
       if (meta_regression(spec) || meta_heterogeneity(spec)) meta_more_script(spec, result) else
       if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else
-      if (identical(spec$template, "multicategorical")) mediation_mcx_script(spec, result) else spower_script(spec, result),
+      if (identical(spec$template, "multicategorical")) mediation_mcx_script(spec, result) else
+      if (identical(spec$template, "binary_mediator")) mediation_binm_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
     power4mome = if (identical(spec$design, "dyadic")) apim_script(spec, result) else power4mome_script(spec, result),
@@ -662,6 +663,12 @@ design_description <- function(spec) {
       "mediation with X in %d groups (%s, the first the reference), dummy-coded; relative indirect effect tested: %s",
       length(spec$variables$X$levels), levels("X"),
       if (identical(spec$target_test$group %||% "all", "all")) "all of them" else spec$target_test$group
+    ),
+    "mediation/binary_mediator" = sprintf(
+      "mediation with a yes/no mediator (%s), X %s and Y %s; natural indirect effect tested by regression-based causal mediation analysis",
+      spec$variables$M$label %||% "M",
+      if (identical(spec$variables$X$type, "binary")) sprintf("in two groups (%s)", levels("X")) else "a score",
+      if (identical(spec$variables$Y$type, "binary")) "yes/no" else "a score"
     ),
     "mediation/process_6" = sprintf(
       "serial mediation (PROCESS model 6); indirect effect tested: %s", spec$target_test$path
