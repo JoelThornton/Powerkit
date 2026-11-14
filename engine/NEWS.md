@@ -1,19 +1,17 @@
 # powerkit 0.65.2
 
-* Yuen's trimmed-means tests are a test version of the two-group and
-  paired t-tests (`target_test > method` `"yuen"` on templates
-  `independent_t` and `paired_t`), simulated with Spower by powerkit's
-  experiments `p_yuen()` and `p_yuend()`, which call WRS2's `yuen()` and
-  `yuend()` (WRS2 joins Suggests). New spec fields: `target_test > trim`
-  (default 0.2, WRS2's default) and, for the paired version,
-  `population > r`, the correlation between the two measurements, which
-  it needs because it trims each measurement separately. The two-group
-  version takes `score_shape` and `sd_ratio` as the Brunner-Munzel test
-  does. The check run recovers d (or d_z), the SD ratio and the
-  correlation, the last with a standard error from r's influence
-  function so that heavy-tailed scores don't fail it. The R script and
-  the simulated data set cover both versions. Validation:
-  `test-validation-yuen.R` (chunk `yuen`).
+* App: each study plan has an overview (its analyses counted by role) and
+  "Download everything (.zip)" (`R/plan-bundle.R`): the plan file, written
+  first and checked for in the finished zip; a study-wide planning document
+  as Markdown and Word (the plan's name and description, a table of
+  analyses with role, N, unit, target and backend, the largest comparable
+  N or why there is none, joint power when it was calculated for the plan
+  as it stands, each card's methods paragraph, and the references merged
+  from the results' own citations); `references.txt`; and each analysis's
+  own "Download everything" under `analyses/`, made from its saved spec
+  and result without recalculating. Opening the zip opens the plan file at
+  its top. `planning_methods_text()` gives a card's full methods paragraph
+  on its own, and the Word documents now keep Markdown tables.
 
 # powerkit 0.65.1
 

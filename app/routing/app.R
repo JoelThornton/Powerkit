@@ -38,6 +38,7 @@ source(file.path("R", "project.R"), local = TRUE)
 source(file.path("R", "drafts.R"), local = TRUE)
 source(file.path("R", "study-plan.R"), local = TRUE)
 source(file.path("R", "study-plans.R"), local = TRUE)
+source(file.path("R", "plan-bundle.R"), local = TRUE)
 source(file.path("R", "about.R"), local = TRUE)
 source(file.path("R", "capabilities.R"), local = TRUE)
 source(file.path("R", "selected-evidence.R"), local = TRUE)
@@ -2094,6 +2095,7 @@ server <- function(input, output, session) {
     showNotification(sprintf("Your study plans from your last visit are back (%d %s). Open them with “Study plans” at the top of the page.",
       k, if (k == 1) "plan" else "plans"), duration = 12, type = "message")
   }, once = TRUE)
+  joint_kept <- list()
   observeEvent(input$plan_joint, {
     plan <- plan_get(isolate(state$plans_view))
     entries <- plan$entries %||% list()
@@ -2108,6 +2110,9 @@ server <- function(input, output, session) {
         if (inherits(e, "powerkit_error")) conditionMessage(e) else "Joint power couldn't be calculated for this plan."
       })
     }
+    # Kept for this plan's "Download everything" while its analyses stay
+    # the same.
+    if (!is.character(out) && !is.null(plan)) joint_kept[[plan$id]] <<- list(analyses = plan_analysis_hashes(plan), calc = out)
     output$plan_joint_result <- renderUI(if (is.character(out)) div(class = "form-problems", role = "alert", out) else {
       words <- joint_power_sentence(out, entries)
       div(class = "result-panel mt-2", role = "status", p(tags$strong(words[["headline"]])), p(class = "small", words[["detail"]]))
@@ -2132,6 +2137,21 @@ server <- function(input, output, session) {
       plans_put(plan_mark_saved(plan, "file"))
     },
     contentType = "application/json"
+  )
+  # "Download everything" for the plan: the plan file, the study-wide
+  # document, the references and each analysis's own files. It holds the
+  # plan file, so it counts as saving the plan to a file.
+  output$download_plan_bundle <- downloadHandler(
+    filename = function() plan_bundle_file_name(plan_get(isolate(state$plans_view))),
+    content = function(file) {
+      plan <- plan_get(isolate(state$plans_view))
+      if (is.null(plan) || !length(plan$entries)) stop("The plan has no analyses to download.")
+      kept <- joint_kept[[plan$id]]
+      joint <- if (!is.null(kept) && identical(kept$analyses, plan_analysis_hashes(plan))) kept$calc
+      write_plan_bundle(plan, file, tree, forms, joint = joint)
+      plans_put(plan_mark_saved(plan, "file"))
+    },
+    contentType = "application/zip"
   )
   # Project files: the engine writes and reads them (write_project(),
   # read_project()); the app passes the route and puts the screen back.
