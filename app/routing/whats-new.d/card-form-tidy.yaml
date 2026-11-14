@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-14"
-    title: "Tidier analysis cards and input screens"
-    text: "An analysis whose checks are still in progress now says so once on its card, with what has been checked so far underneath, and in one line on the input screen, with the details behind its info button. With explanations off, each section's info button sits beside its heading instead of repeating the heading as a link. The \"Validation in progress\" label is the same colour everywhere."

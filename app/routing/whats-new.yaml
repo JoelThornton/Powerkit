@@ -7,6 +7,9 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-14"
+    title: "Tidier analysis cards and input screens"
+    text: "An analysis whose checks are still in progress now says so once on its card, with what has been checked so far underneath, and in one line on the input screen, with the details behind its info button. With explanations off, each section's info button sits beside its heading instead of repeating the heading as a link. The \"Validation in progress\" label is the same colour everywhere."
   - date: "2026-11-13"
     title: "Plan my whole study keeps its plan in a study plan"
     text: "\"Plan my whole study\" now keeps your plan in a study plan of its own, called \"Whole-study plan\" with the date until you rename it (or in the plan you were adding to). Each analysis you calculate from it goes in with its role, primary or secondary, and the plan's page shows the last whole-study simulation and \"Open the guided plan\" to carry on. \"Save this plan\" saves the whole study plan. Plans saved from \"Plan my whole study\" before this change still open, as a new study plan."
