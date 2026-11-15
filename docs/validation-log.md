@@ -1617,3 +1617,10 @@ All are consistent with 5%. At a true 5.38%, a 1,000-study rate above
 .0707 has a 1.2% chance, and the test's fixed seed draws the same 1,000
 studies every night. No engine fault. Re-seeding or more replications is
 the maintainer's call (`next.md` item 5).
+
+The maintainer chose seed 1500 for this check before it was run
+(`decisions.md`, 14 November 2026). With it, the same chunk run locally
+(`test-validation-modmed-binary.R`, POWERKIT_FULL_VALIDATION=true, engine
+0.66.3) passes: the null rejection rate is .051 against the .0707 limit,
+and the power comparisons pass; the published-value test is skipped
+(`TODO_PUBLISHED_VALUE`).
