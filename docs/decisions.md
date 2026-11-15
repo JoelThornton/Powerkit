@@ -3494,6 +3494,23 @@ against a simulation that fits all 19 models with `lmBF()` and averages
 the inclusion Bayes factor by hand. Conventions: `docs/conventions.md`,
 "Bayes factor of a three-factor ANOVA effect (E56)".
 
+### The ICC planned by its F test's exact power, 15 November 2026
+
+The reliability card's ICC (E69) was planned with ICC.Sample.Size's
+`calculateIccPower()`, Walter, Eliasziw and Donner's normal
+approximation to the power of the one-way random-effects F test. The F
+test's power has an exact form: under that model MSB/MSW is an F(n − 1,
+n(k − 1)) variable scaled by (1 + (k − 1)ρ)/(1 − ρ) (Donner and Eliasziw,
+1987), so power is one F tail (two when two-sided). The approximation
+asks for slightly more subjects than needed (27 rather than 26 for an
+ICC of 0.8 against 0.6 with 3 raters, one-sided, 80% power) and powerkit
+already plans a correlation by its exact distribution rather than
+Fisher's z (Departure 21). The exact power is now the default
+(`icc_exact_power()` in `backend-reliability.R`), under CLAUDE.md's rule
+for a closed-form result from a published source; it agrees with 4,000
+simulated studies, and the reliability validation chunk passes with it.
+The approximation stays as "How power is worked out" on the card, for
+comparison with ICC.Sample.Size. Recorded as Departure 29.
 ### The Bayes factor ANCOVA on E23, 15 November 2026
 
 The second design of `next.md` item 2: E23 (one-way and two-way ANCOVA)

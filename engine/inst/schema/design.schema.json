@@ -11854,7 +11854,11 @@
                   "const": "icc"
                 },
                 "method": {
-                  "const": "icc_test"
+                  "description": "icc_test: the F test's exact power (Donner and Eliasziw, 1987), the default; icc_walter: ICC.Sample.Size's calculateIccPower(), Walter, Eliasziw and Donner's normal approximation.",
+                  "enum": [
+                    "icc_test",
+                    "icc_walter"
+                  ]
                 }
               }
             }

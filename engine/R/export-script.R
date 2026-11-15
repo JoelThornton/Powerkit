@@ -59,6 +59,8 @@ export_script <- function(spec, result, file = NULL) {
       pillai_script(spec, result)
     } else if (welch_levy_test(spec)) {
       welch_levy_script(spec, result)
+    } else if (icc_exact_test(spec)) {
+      reliability_script(spec, result)
     } else if (hotelling_formula_test(spec)) {
       hotelling_script(spec, result)
     } else {

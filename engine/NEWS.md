@@ -1,18 +1,20 @@
 # powerkit 0.67.5
 
-* Bayes factor three-factor ANOVA (E56): `factorial_anova /
-  factorial_three` takes `target_test > method` `"bayes_factor"`, with
-  `evidence_threshold`, `prior_scale` (default 0.5) and `inclusion`, JASP's
-  Bayesian ANOVA defaults. New file `backend-bayesfactor-three.R`: Spower
-  runs `p_bayes_three()`, which draws equal groups across the between
-  factors, each person scored in every within cell with their own level
-  (correlation `r`), and scores each study with BayesFactor's
-  `anovaBF(whichModels = "withmain")` (participants a random factor with
-  a within factor) and bayestestR's `bayesfactor_inclusion()`; the
-  no-effect side removes the effect from the cell means by the
-  equal-weight decomposition. Check run, spec checks (no `eta_squared`
-  metric, no sphericity correction), R script and design description. New
-  validation chunk `bayes_three`.
+* The ICC on the reliability card (E69) is planned by the F test's exact
+  power by default (Donner & Eliasziw, 1987): under the one-way
+  random-effects model MSB/MSW is F(n - 1, n(k - 1)) scaled by
+  (1 + (k - 1) rho) / (1 - rho), so power is a `stats::pf()` tail at the
+  critical value scaled by the ratio of that factor under the null and the
+  alternative (both tails when two-sided). New method `icc_test` (default,
+  backend `stats`, function `icc_exact_power()`); `icc_walter` keeps
+  ICC.Sample.Size's `calculateIccPower()` (Walter, Eliasziw and Donner's
+  normal approximation). For an ICC of 0.8 against 0.6 with 3 raters,
+  one-sided, the exact power needs 26 subjects where the approximation
+  asks for 27. Departure 29; the schema's ICC method is now an enum. The
+  exported R script for the exact route uses base R only. Tests in
+  `test-backend-reliability.R` check the formula, the two-sided tails,
+  agreement with 4,000 simulated studies and the script; reference
+  `Donner1987_icc` added to `refs.bib` (specialist maths review, M-16).
 
 # powerkit 0.67.4
 
