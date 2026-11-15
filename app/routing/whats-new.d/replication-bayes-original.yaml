@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-15"
-    title: "Replication plans: originals analysed with Bayes factors"
-    text: "A replication plan now asks how the original study was analysed. If it reported a Bayes factor for a t-test, give the Bayes factor and its prior's scale, and powerkit works out the effect from it. If it reported a posterior from a vague or default prior, give its mean with its SD or credible interval. The goals then leave out small telescopes and the original's significance level, and add the original's own Bayes factor test repeated and strong evidence for no effect, if there is none. A button takes the plan to Labs' Bayesian planning tool as a sequential design, which collects data until the evidence is strong either way."
