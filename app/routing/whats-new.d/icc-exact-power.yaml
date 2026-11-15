@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-15"
-    title: "The ICC uses its test's exact power"
-    text: "Planning an intraclass correlation now works out the power of the F test you will run from its exact distribution, rather than the approximation ICC.Sample.Size uses, which can ask for a person or two more than needed. Both are instant, and the approximation stays as a choice on the screen for comparing with that package."
