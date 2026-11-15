@@ -742,6 +742,21 @@ reports a coefficient's evidence as a model-averaged inclusion Bayes
 factor, which also depends on how the predictors correlate: which of the
 two to plan for is open (`next.md` item 2).
 
+## Bayes factor of an ANCOVA effect (E23)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian ANCOVA; analysis only, no planning) | The effect's inclusion Bayes factor over the models that respect marginality, fitted with BayesFactor's linear-model Bayes factors; the covariates are model terms like the factors (not nuisance terms, which would stay in every model, unless the user marks them so: `inst/qml/AncovaBayesian.qml`) | — | "r scale fixed effects" 0.5 and "r scale covariates" 0.354 (jaspAnova, `inst/qml/common/bayesian/AdditionalOptions.qml`); Effects table across all models, uniform model prior (`DefaultOptions.qml`) |
+| BayesFactor | `generalTestBF(whichModels = "withmain")`: every model that respects marginality, with Cauchy priors of scale `rscaleFixed` on the factors' effects and `rscaleCont` on the covariates' slopes (Rouder, Morey, Speckman and Province, 2012) | — | "medium" scales by default: 0.5 and sqrt(2)/4 (0.354) [BayesFactor help] |
+| **powerkit** | The effect's inclusion Bayes factor from `generalTestBF()` and bayestestR's `bayesfactor_inclusion()`, across all models by default (matched models as an option), simulated with Spower: equal cells, the covariates independent standard normal scores (random, as in Shieh's method for the F test, and unrelated to the groups, as randomisation makes them), with equal slopes that together explain the given R-squared within cells (E23, from 15 November 2026) [powerkit] | Adjusted group or cell means, the SD before adjusting, the covariates' R-squared and their number | JASP's r scales 0.5 and 0.354 by default. Not a departure: the analysis is JASP's default one |
+
+How the covariates' R-squared is shared out among several covariates
+does not change the F test's power, but it can change the Bayes factor a
+little, because the models with and without each covariate enter the
+average; powerkit gives each the same share. A covariate that is always
+in the model (JASP's "Add to null model") is not offered yet.
+
 ## Sequential Bayes factor designs (Labs)
 
 | Tool | Test | Effect size | Settings |
