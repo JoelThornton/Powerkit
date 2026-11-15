@@ -428,6 +428,7 @@ replication_effects:
   E3: {exact: paired}
   E4: {exact: correlation}
   E76: {effect: "repeated-measures correlation (r)", scale: fisher_z}
+  E41: {effect: "the cross-level interaction (how much the within-person slope changes with the moderator)", scale: none}
   E5: {effect: "odds ratio between the two groups", scale: log}
   E6: {multi_df: "for a 2 x 2 table, the odds ratio (card E5 or E27); for a larger table, the one comparison the hypothesis is about"}
   E7: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
