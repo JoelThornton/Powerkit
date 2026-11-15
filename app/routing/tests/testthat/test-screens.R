@@ -473,10 +473,12 @@ test_that("answer chips are at least 44 px tall and wide (touch targets)", {
 })
 
 test_that("hints also explain terms in standard names and backend lines, once per card", {
+  # The standard name is the one the card shows ("One-way between-subjects
+  # ANOVA"), so its hint is ANOVA's; "omnibus", in the longer doc_name the
+  # card doesn't show, isn't explained there.
   e18 <- as.character(card_ui(tree, "E18"))
-  expect_match(e18, "<dfn>omnibus test</dfn>", fixed = TRUE)
-  e36 <- as.character(card_ui(tree, "E36"))
-  expect_match(e36, "<dfn>equivalence test (TOST)</dfn>", fixed = TRUE)
+  expect_match(e18, "<dfn>ANOVA</dfn>", fixed = TRUE)
+  expect_no_match(e18, "<dfn>omnibus test</dfn>", fixed = TRUE)
   e5 <- as.character(card_ui(tree, "E5"))
   expect_match(e5, "<dfn>continuity correction</dfn>", fixed = TRUE)
   # A term in both the standard name and the backend line is explained once.
@@ -742,4 +744,25 @@ test_that("the Bayes factor page lists every design with a Bayes factor version,
   # The app opens the screen with it chosen.
   app <- paste(readLines(test_path("..", "..", "app.R")), collapse = "\n")
   expect_match(app, 'kind == "bayesform"', fixed = TRUE)
+})
+
+test_that("a card's hints under its name explain words the card shows", {
+  # E75's displayed name is "Generalised linear mixed models: repeated
+  # measures"; its longer doc_name also says "ordinal", which the card's
+  # name doesn't, so "ordinal outcome" isn't explained there.
+  e75 <- as.character(card_ui(tree, "E75"))
+  top <- sub("card-more.*", "", e75)
+  expect_match(top, "<dfn>repeated measurements</dfn>", fixed = TRUE)
+  expect_no_match(top, "<dfn>ordinal outcome</dfn>", fixed = TRUE)
+})
+
+test_that("no card's text names another card by its internal code", {
+  for (id in names(tree$endpoints)) {
+    ep <- tree$endpoints[[id]]
+    for (key in setdiff(names(ep), c("template", "validation", "backend"))) {
+      text <- unlist(ep[[key]])
+      if (!is.character(text)) next
+      expect_false(any(grepl("\\bE[0-9]{1,3}\\b", text, perl = TRUE)), label = paste(id, key))
+    }
+  }
 })

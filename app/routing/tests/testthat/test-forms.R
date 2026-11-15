@@ -1123,3 +1123,15 @@ test_that("the Bayes factor threshold starts empty with 10 one click away, a rea
   # With no reason given, the paragraph states the value alone.
   expect_length(writeup_choices(fields, list(evidence_threshold = "10", method = "bayes_factor", alpha = "0.05")), 0)
 })
+
+test_that("a missing backend's install advice is replaced on the online app", {
+  msg <- "This analysis needs the R package 'WRS2', which isn't installed. Install it with install.packages(\"WRS2\"), then run it again."
+  online <- plain_engine_message(msg, list(), local = FALSE)
+  expect_match(online, "isn't available on the online app right now", fixed = TRUE)
+  expect_match(online, "'WRS2'", fixed = TRUE)
+  expect_no_match(online, "install.packages", fixed = TRUE)
+  expect_identical(plain_engine_message(msg, list(), local = TRUE), msg)
+  two <- "This analysis needs the R packages 'a' and 'b', which aren't installed. Install them with install.packages(c(\"a\", \"b\")), then run it again."
+  expect_match(online_package_message(two, local = FALSE), "packages it needs ('a' and 'b') aren't installed there", fixed = TRUE)
+  expect_identical(online_package_message("Some other problem.", local = FALSE), "Some other problem.")
+})
