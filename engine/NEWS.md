@@ -1,25 +1,20 @@
-# powerkit 0.68.0
+# powerkit 0.67.5
 
-* Replication plans and study plans, from the colleague-testing review of
-  15 November 2026 (app only, apart from one message): the replication
-  planner's Bayes factor goals say "Evidence, at your threshold" instead
-  of "Strong evidence", and the threshold is labelled "Evidence
-  threshold" with 10 as "a common threshold", as on the cards. Variation
-  between studies starts at Small (tau 0.05) rather than none, a
-  departure from BayesRepDesign's default recorded in
-  docs/conventions.md and shown on the result; the engine's default stays
-  0. The replication's alpha and power start empty with one-click
-  buttons, and the planner asks for them before calculating. The
-  pre-replication notes show one box per part in plain words, the
-  second question folded and Karhulahti et al.'s questions in the help.
-  The references are listed once, folded, with links. The result's
-  headline names the belief the write-up starts on, and the table's
-  caption is above it. `replication_planning()`'s threshold error is
-  worded the same way.
-* Study plans: each plan on the Study plans list has its own Delete
-  (with the plan page's confirmation), the description saves when its box
-  is left, an empty plan no longer says so twice, and a line tells a
-  project file (one analysis) from a study plan (several).
+* The ICC on the reliability card (E69) is planned by the F test's exact
+  power by default (Donner & Eliasziw, 1987): under the one-way
+  random-effects model MSB/MSW is F(n - 1, n(k - 1)) scaled by
+  (1 + (k - 1) rho) / (1 - rho), so power is a `stats::pf()` tail at the
+  critical value scaled by the ratio of that factor under the null and the
+  alternative (both tails when two-sided). New method `icc_test` (default,
+  backend `stats`, function `icc_exact_power()`); `icc_walter` keeps
+  ICC.Sample.Size's `calculateIccPower()` (Walter, Eliasziw and Donner's
+  normal approximation). For an ICC of 0.8 against 0.6 with 3 raters,
+  one-sided, the exact power needs 26 subjects where the approximation
+  asks for 27. Departure 29; the schema's ICC method is now an enum. The
+  exported R script for the exact route uses base R only. Tests in
+  `test-backend-reliability.R` check the formula, the two-sided tails,
+  agreement with 4,000 simulated studies and the script; reference
+  `Donner1987_icc` added to `refs.bib` (specialist maths review, M-16).
 
 # powerkit 0.67.4
 

@@ -3203,6 +3203,27 @@ test_that("reliability: the ICC, Cronbach's alpha and kappa build valid specs an
   expect_match(html, "ICC", fixed = TRUE)
 })
 
+test_that("the ICC is planned by the F test's exact power by default and says so (Departure 29)", {
+  fields <- form_fields(form_groups(forms, "E69"))
+  spec <- build_spec(forms, "E69", fields, form_examples$E69)
+  expect_identical(spec$target_test$method, "icc_test")
+  expect_true("29" %in% names(departures_for(forms, "E69", spec)))
+  walter <- build_spec(forms, "E69", fields, modifyList(form_examples$E69, list(icc_method = "icc_walter")))
+  expect_identical(walter$target_test$method, "icc_walter")
+  expect_false("29" %in% names(departures_for(forms, "E69", walter)))
+  alpha <- build_spec(forms, "E69", fields, modifyList(form_examples$E69, list(question = "cronbach_alpha", icc = NULL, icc_null = NULL, icc_raters = NULL,
+    reliability = "0.85", reliability_null = "0.7", items = "10")))
+  expect_false("29" %in% names(departures_for(forms, "E69", alpha)))
+  skip_without_run()
+  exact <- run_calculation(spec, run, seed = forms$default_seed)
+  approx <- run_calculation(walter, run, seed = forms$default_seed)
+  expect_identical(exact$status, "ok")
+  expect_identical(exact$result$provenance$backend, "stats")
+  expect_identical(approx$result$provenance$backend, "ICC.Sample.Size")
+  # Size of the difference: the approximation asks for one more subject here.
+  expect_equal(approx$result$n_required$n - exact$result$n_required$n, 1)
+})
+
 test_that("Bland-Altman limits of agreement: simulated by default on the preview and R script route, Lu et al.'s formula calculates here", {
   fields <- form_fields(form_groups(forms, "E69"))
   values <- modifyList(form_examples$E69, list(question = "bland_altman", rel_alternative = NULL, icc = NULL, icc_null = NULL, icc_raters = NULL,

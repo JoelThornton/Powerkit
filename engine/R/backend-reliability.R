@@ -8,7 +8,18 @@
 #                   approximation to the F test, power
 #                   Phi(sqrt((k - 1)(N - 1) / (2k)) log(F1 / F0) - z), with
 #                   F = (1 + (k - 1) rho) / (1 - rho) (its source, version
-#                   1.1). One- or two-sided (`tails`).
+#                   1.1). One- or two-sided (`tails`). That is the
+#                   approximation, kept on request (target_test > method
+#                   "icc_walter"). By default (method "icc_test") powerkit
+#                   uses the F test's exact power, as Donner and Eliasziw
+#                   (1987) give it: under the one-way random-effects model
+#                   MSB / MSW is F1 times a central F with n - 1 and
+#                   n (k - 1) df, so the test that rejects when
+#                   MSB / MSW > F0 x F_crit has power
+#                   P(F > (F0 / F1) F_crit) in base R's stats::pf()
+#                   (two-sided: both tails). Checked against simulated
+#                   one-way ANOVAs (test-validation-reliability.R) and
+#                   Departure 29.
 #
 #   cronbach_alpha  reliability/cronbach_alpha: a test that Cronbach's alpha
 #                   exceeds a null value h, over r items. Bonett and
@@ -40,7 +51,7 @@
 reliability_backend <- function(spec, seed = NULL) {
   inputs <- reliability_inputs(spec)
   step <- valid_n_step(spec)
-  package <- reliability_package(inputs$template)
+  package <- reliability_package(inputs$template, inputs$method)
   power_at <- function(n) call_backend(package, reliability_power(inputs, n))
   list(
     name = package,
@@ -58,13 +69,21 @@ reliability_backend <- function(spec, seed = NULL) {
   )
 }
 
-reliability_package <- function(template) {
+reliability_package <- function(template, method = NULL) {
+  if (identical(template, "icc") && !identical(method, "icc_walter")) return("stats")
   switch(template, icc = "ICC.Sample.Size", cronbach_alpha = "statpsych", kappa = "kappaSize")
+}
+
+# The ICC by the F test's exact power (the default; see the header).
+icc_exact_test <- function(spec) {
+  identical(spec$design, "reliability") && identical(spec$template, "icc") &&
+    !identical(spec$target_test$method, "icc_walter")
 }
 
 reliability_function <- function(inputs) {
   switch(inputs$template,
-    icc = "ICC.Sample.Size::calculateIccPower",
+    icc = if (identical(inputs$method, "icc_walter")) "ICC.Sample.Size::calculateIccPower" else
+      "stats::pf() (the F test's exact power, Donner & Eliasziw, 1987)",
     cronbach_alpha = "statpsych::size.test.cronbach",
     kappa = paste0("kappaSize::", kappa_function_name(length(inputs$proportions)))
   )
@@ -78,7 +97,7 @@ reliability_inputs <- function(spec) {
   pop <- spec$population
   tt <- spec$target_test
   one_sided <- identical(tt$alternative, "greater")
-  base <- list(template = spec$template, alpha = tt$alpha, one_sided = one_sided)
+  base <- list(template = spec$template, alpha = tt$alpha, one_sided = one_sided, method = tt$method)
   switch(spec$template,
     icc = c(base, list(value = pop$icc, null = pop$icc_null, raters = pop$raters)),
     cronbach_alpha = c(base, list(value = pop$reliability, null = pop$reliability_null, items = pop$items)),
@@ -89,13 +108,33 @@ reliability_inputs <- function(spec) {
 
 reliability_power <- function(inputs, n) {
   switch(inputs$template,
-    icc = ICC.Sample.Size::calculateIccPower(
-      p = inputs$value, p0 = inputs$null, k = inputs$raters, alpha = inputs$alpha,
-      tails = if (inputs$one_sided) 1 else 2, N = n
-    )[[1]]$power,
+    icc = if (identical(inputs$method, "icc_walter")) {
+      ICC.Sample.Size::calculateIccPower(
+        p = inputs$value, p0 = inputs$null, k = inputs$raters, alpha = inputs$alpha,
+        tails = if (inputs$one_sided) 1 else 2, N = n
+      )[[1]]$power
+    } else {
+      icc_exact_power(inputs, n)
+    },
     cronbach_alpha = cronbach_power(inputs, n),
     kappa = kappa_power(inputs, n)
   )
+}
+
+# The F test of the ICC's exact power (Donner and Eliasziw, 1987): MSB /
+# MSW is F1 times a central F(n - 1, n (k - 1)); the test rejects when it
+# exceeds F0 times the central F's critical value (two-sided: or is below
+# F0 times its lower critical value).
+icc_exact_power <- function(inputs, n) {
+  ratio <- function(rho) (1 + (inputs$raters - 1) * rho) / (1 - rho)
+  scale <- ratio(inputs$null) / ratio(inputs$value)
+  df1 <- n - 1
+  df2 <- n * (inputs$raters - 1)
+  if (inputs$one_sided) {
+    return(stats::pf(scale * stats::qf(1 - inputs$alpha, df1, df2), df1, df2, lower.tail = FALSE))
+  }
+  stats::pf(scale * stats::qf(1 - inputs$alpha / 2, df1, df2), df1, df2, lower.tail = FALSE) +
+    stats::pf(scale * stats::qf(inputs$alpha / 2, df1, df2), df1, df2)
 }
 
 # Bonett and Wright's test, solved for power (see the header).
@@ -256,9 +295,27 @@ reliability_design_description <- function(spec, label) {
 # The R script: the same package call at each size powerkit computed.
 reliability_script <- function(spec, result) {
   inputs <- reliability_inputs(spec)
-  package <- reliability_package(inputs$template)
+  package <- reliability_package(inputs$template, inputs$method)
   body <- switch(inputs$template,
-    icc = c(
+    icc = if (identical(package, "stats")) c(
+      sprintf("icc <- %s # the ICC expected", r_code(inputs$value)),
+      sprintf("icc_null <- %s # the ICC the study aims to show it exceeds", r_code(inputs$null)),
+      sprintf("raters <- %s # ratings of each subject", r_code(inputs$raters)),
+      sprintf("one_sided <- %s", r_code(inputs$one_sided)),
+      "",
+      "# The F test's exact power (Donner and Eliasziw, 1987): in the one-way",
+      "# random-effects model MSB / MSW is F1 times a central F with n - 1 and",
+      "# n (raters - 1) df, where F = (1 + (raters - 1) ICC) / (1 - ICC); the",
+      "# test rejects when MSB / MSW exceeds F0 times the critical value.",
+      "power_at <- function(n_total) {",
+      "  ratio <- function(rho) (1 + (raters - 1) * rho) / (1 - rho)",
+      "  scale <- ratio(icc_null) / ratio(icc)",
+      "  df1 <- n_total - 1",
+      "  df2 <- n_total * (raters - 1)",
+      "  if (one_sided) return(pf(scale * qf(1 - alpha, df1, df2), df1, df2, lower.tail = FALSE))",
+      "  pf(scale * qf(1 - alpha / 2, df1, df2), df1, df2, lower.tail = FALSE) + pf(scale * qf(alpha / 2, df1, df2), df1, df2)",
+      "}"
+    ) else c(
       sprintf("icc <- %s # the ICC expected", r_code(inputs$value)),
       sprintf("icc_null <- %s # the ICC the study aims to show it exceeds", r_code(inputs$null)),
       sprintf("raters <- %s # ratings of each subject", r_code(inputs$raters)),
@@ -304,8 +361,7 @@ reliability_script <- function(spec, result) {
   )
   c(
     script_header(spec, result, package, reliability_function(inputs)),
-    sprintf("library(%s)", package),
-    "",
+    if (!identical(package, "stats")) c(sprintf("library(%s)", package), ""),
     "# Inputs ----",
     goal_inputs(spec, result),
     body,
