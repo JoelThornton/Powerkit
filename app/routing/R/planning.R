@@ -1,7 +1,7 @@
 planning_decision_ui <- function(form) {
   design <- form$base$design
   current <- if (isTRUE(form$criteria))
-    "This screen finds the minimum sample size for developing a prediction model, by criteria that limit overfitting and make its key quantities precise. There is no hypothesis test, so no power or significance level." else
+    "This screen finds the minimum sample size for developing a prediction model (by criteria that limit overfitting and make its key quantities precise) or for validating an existing one (by criteria that make its calibration and discrimination precise). There is no hypothesis test, so no power or significance level." else
     if (isTRUE(form$precision))
     "This screen plans the width of an interval, rather than the chance of rejecting a null hypothesis. Expected width is an average; assurance, where offered, specifies a chance of meeting the width target." else
     if (identical(design, "equivalence_test"))
@@ -30,6 +30,9 @@ planning_decision_ui <- function(form) {
 }
 
 decision_rule_text <- function(spec) {
+  if (identical(spec$design, "prediction_model") && identical(spec$template, "validation")) return(sprintf(
+    "Minimum sample size for validating an existing prediction model, not a significance decision: the criteria of Riley and colleagues, with 95%% intervals no wider than %s (O/E ratio), %s (calibration slope) and %s (C-statistic).",
+    format(spec$goal$oe_ci_width %||% 0.2), format(spec$goal$cslope_ci_width %||% 0.2), format(spec$goal$cstat_ci_width %||% 0.1)))
   if (identical(spec$design, "prediction_model")) return(sprintf(
     "Minimum sample size for developing a prediction model, not a significance decision: the criteria of Riley and colleagues, with a shrinkage target of %s.",
     format(spec$goal$shrinkage %||% 0.9)))
@@ -205,6 +208,59 @@ additional_input_guide <- function(f) {
     "2 with a rate per year means the model predicts the risk of the event within 2 years.",
     "The prediction horizon your model is for: the time over which its users need a person's risk.",
     "Choose the horizon the model will be used for; it must lie within the follow-up you expect."))
+  # Validating an existing prediction model (E77, pmvalsampsize).
+  if (identical(f$id, "lp_mean") && identical(f$path, "population.lp_mean")) return(make("The average of the existing model's linear predictor (its predicted log-odds) in the population where it will be validated.",
+    "-1.4 corresponds to a typical predicted risk of about 20%; -3 to about 5%.",
+    "The development paper's distribution of the linear predictor, or the model applied to a sample of the new population.",
+    "Check that it agrees with the outcome proportion you entered: the average predicted risk should be close to it."))
+  if (identical(f$id, "lp_sd") && identical(f$path, "population.lp_sd")) return(make("How widely the existing model's linear predictor varies between people: the SD of the predicted log-odds.",
+    "An SD of 1.2 means most people's predicted log-odds lie within about 2.4 of the mean.",
+    "The development paper's distribution of the linear predictor, or the model applied to a sample of the new population.",
+    "A model that discriminates well spreads people widely; if unsure, check the plan with a smaller SD as well."))
+  if (identical(f$id, "beta_a") && identical(f$path, "population.beta_a")) return(make("The first shape parameter of a beta distribution describing the existing model's predicted risks.",
+    "Shape parameters 1 and 4 describe predicted risks averaging 20%, most of them low.",
+    "A beta distribution fitted to the model's predicted risks in the development paper or a sample of the new population.",
+    "Its mean, a / (a + b), should be close to the outcome proportion you entered."))
+  if (identical(f$id, "beta_b") && identical(f$path, "population.beta_b")) return(make("The second shape parameter of a beta distribution describing the existing model's predicted risks.",
+    "With a first shape parameter of 1, a second of 4 gives a mean predicted risk of 20%.",
+    "A beta distribution fitted to the model's predicted risks in the development paper or a sample of the new population.",
+    "Its mean, a / (a + b), should be close to the outcome proportion you entered."))
+  if (identical(f$id, "oe") && identical(f$path, "population.oe")) return(make("The ratio of the number of people who will have the outcome to the number the model predicts: 1 when it is calibrated in the large.",
+    "0.9 means the model is expected to predict about 10% more outcomes than occur.",
+    "A previous validation of the model, or 1 when you have no reason to expect miscalibration.",
+    "Leave it at 1 unless a previous validation suggests otherwise."))
+  if (identical(f$id, "calibration_slope") && identical(f$path, "population.calibration_slope")) return(make("The calibration slope you expect: 1 when the model's predictions are neither too extreme nor too modest.",
+    "0.9 means the predictions are a little too extreme, as after mild overfitting.",
+    "A previous validation of the model, or 1 when you have no reason to expect otherwise.",
+    "Leave it at 1 unless a previous validation suggests otherwise."))
+  if (identical(f$id, "threshold") && identical(f$path, "population.threshold")) return(make("A predicted risk above which people would be treated or referred, to plan a precise standardised net benefit at it as well.",
+    "0.1 means everyone with a predicted risk above 10% would be referred.",
+    "The decision the model supports: a clinical guideline or the risk at which the harms and benefits of acting balance.",
+    "Leave it empty if the model will not be used with a fixed threshold."))
+  if (identical(f$id, "sensitivity") && identical(f$path, "population.sensitivity")) return(make("The share of people with the outcome whose predicted risk is above the threshold.",
+    "0.8 means 80% of those who have the outcome would be flagged.",
+    "A previous validation reporting sensitivity at the same threshold.",
+    "Leave it and specificity empty to let pmvalsampsize estimate both from the model's predictions."))
+  if (identical(f$id, "specificity") && identical(f$path, "population.specificity")) return(make("The share of people without the outcome whose predicted risk is below the threshold.",
+    "0.75 means 75% of those without the outcome would not be flagged.",
+    "A previous validation reporting specificity at the same threshold.",
+    "Leave it and sensitivity empty to let pmvalsampsize estimate both from the model's predictions."))
+  if (identical(f$id, "oe_ci_width") && identical(f$path, "goal.oe_ci_width")) return(make("How narrow the 95% confidence interval for the observed/expected ratio should be.",
+    "0.2 means an interval about as wide as 0.9 to 1.1.",
+    "Riley et al. (2021) suggest 0.2, pmvalsampsize's default; a wider target can suit a rare outcome.",
+    "Keep 0.2 unless the outcome is rare enough that it would need an impractical sample, and report the target you chose."))
+  if (identical(f$id, "cslope_ci_width") && identical(f$path, "goal.cslope_ci_width")) return(make("How narrow the 95% confidence interval for the calibration slope should be.",
+    "0.2 means an interval about as wide as 0.9 to 1.1.",
+    "Riley et al. (2021) suggest 0.2, pmvalsampsize's default.",
+    "Keep 0.2 unless you have a reason to accept less precision, and report the target you chose."))
+  if (identical(f$id, "cstat_ci_width") && identical(f$path, "goal.cstat_ci_width")) return(make("How narrow the 95% confidence interval for the C-statistic should be.",
+    "0.1 means an interval about as wide as 0.75 to 0.85.",
+    "Riley et al. (2021) suggest 0.1, pmvalsampsize's default.",
+    "Keep 0.1 unless you have a reason to accept less precision, and report the target you chose."))
+  if (identical(f$id, "nb_ci_width") && identical(f$path, "goal.nb_ci_width")) return(make("How narrow the 95% confidence interval for the standardised net benefit at the threshold should be.",
+    "0.2 means an interval about as wide as 0.5 to 0.7.",
+    "pmvalsampsize's default of 0.2.",
+    "Used only with a risk threshold; leave it empty for the default."))
   # Mediation with a yes/no mediator (E39).
   if (identical(f$id, "binm_m_baseline")) return(make("How often the mediator is 'yes' without X: in the first (comparison) group, or at X's average if X is a score.",
     "0.3 means 30% of people given the usual information book an appointment.",

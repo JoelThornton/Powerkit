@@ -38,6 +38,7 @@ if (FALSE) {
   library(pbkrtest)
   library(PITS)
   library(pmsampsize)
+  library(pmvalsampsize)
   library(PMCMRplus)
   library(POMADE)
   library(powerSurvEpi)

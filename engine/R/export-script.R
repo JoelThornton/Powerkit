@@ -835,6 +835,9 @@ goal_description <- function(spec) {
       sprintf("the width of the %s confidence interval expected with a total sample size of %s", level, goal$n)
     })
   }
+  if (prediction_goal(spec) && prediction_validation(spec)) {
+    return("the smallest total sample size meeting every criterion of Riley and colleagues' method for validating a model (target interval widths for the O/E ratio, the calibration slope and the C-statistic)")
+  }
   if (prediction_goal(spec)) {
     return(sprintf("the smallest total sample size meeting every criterion of Riley and colleagues' method (expected shrinkage of at least %s)",
       format(goal$shrinkage %||% prediction_defaults$shrinkage)))

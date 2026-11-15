@@ -1,6 +1,7 @@
-# Prediction model development (E77): the minimum sample size by the
-# criteria of Riley and colleagues, as pmsampsize's pmsampsize() computes
-# them. There is no power: the result screen shows each criterion's sample
+# Prediction models (E77): the minimum sample size for developing a model,
+# by the criteria of Riley and colleagues as pmsampsize's pmsampsize()
+# computes them, or for validating an existing model of a yes/no outcome,
+# as pmvalsampsize's pmvalsampsize() computes them. There is no power: the result screen shows each criterion's sample
 # size and the one that sets the answer. All numbers come from the engine
 # (result$prediction); nothing here calculates.
 
@@ -21,7 +22,31 @@ prediction_performance_text <- function(spec) {
 
 prediction_people <- function(n) sprintf("%s participants", whole(n))
 
+is_prediction_validation <- function(spec) is_prediction(spec) && identical(spec$template, "validation")
+
+prediction_validation_assumes <- function(spec) {
+  pop <- spec$population
+  c(sprintf("A C-statistic of %s in the new population", format(pop$c_statistic)),
+    sprintf("%s%% with the outcome", format(100 * pop$prevalence)),
+    if (identical(pop$lp_distribution, "normal")) sprintf("A linear predictor with mean %s and SD %s", format(pop$lp_mean), format(pop$lp_sd))
+    else sprintf("Predicted risks from a beta(%s, %s) distribution", format(pop$beta_a), format(pop$beta_b)),
+    if (!is.null(pop$threshold)) sprintf("A risk threshold of %s", format(pop$threshold)))
+}
+
+prediction_validation_sentences <- function(spec, result) {
+  pr <- result$prediction
+  label <- spec$variables$Y$label %||% "the outcome"
+  headline <- sprintf("To validate the existing model of %s in new data, at least %s are needed.", label, prediction_people(pr$n))
+  events <- if (!is.na(pr$events)) sprintf(" That is about %s people with the outcome.", whole(ceiling(pr$events))) else ""
+  reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is: %s.", tolower_first(pr$binding)), events,
+    " It is a minimum for estimating the model's calibration and discrimination precisely, not a power calculation.")
+  how <- sprintf("Calculated with pmvalsampsize (pmvalsampsize()), which powerkit called with your answers, assuming a C-statistic of %s and %s%% with the outcome.",
+    format(spec$population$c_statistic), format(100 * spec$population$prevalence))
+  c(headline = headline, reading = reading, detail = how)
+}
+
 prediction_sentences <- function(spec, result) {
+  if (is_prediction_validation(spec)) return(prediction_validation_sentences(spec, result))
   pr <- result$prediction
   label <- spec$variables$Y$label %||% "the outcome"
   headline <- sprintf("To develop a model predicting %s from %s candidate predictor parameters, at least %s are needed.",
@@ -54,7 +79,7 @@ prediction_criteria_ui <- function(result) {
 
 prediction_hero_ui <- function(spec, result) {
   pr <- result$prediction
-  assumes <- c(
+  assumes <- if (is_prediction_validation(spec)) prediction_validation_assumes(spec) else c(
     sprintf("%s, %s", paste0(toupper(substr(prediction_outcome_words(pr$outcome), 1, 1)), substr(prediction_outcome_words(pr$outcome), 2, 100)),
       prediction_performance_text(spec)),
     sprintf("%s candidate predictor parameters", whole(pr$parameters)),
@@ -76,6 +101,7 @@ prediction_writeup <- function(form, spec, result, fields, values, departures = 
     values$just_source <- no_reason_token
     return(without_reason(prediction_writeup(form, spec, result, fields, values, departures)))
   }
+  if (is_prediction_validation(spec)) return(prediction_validation_writeup(spec, result, values, departures))
   pr <- result$prediction
   p <- result$provenance
   label <- spec$variables$Y$label %||% "the outcome"
@@ -105,6 +131,40 @@ prediction_writeup <- function(form, spec, result, fields, values, departures = 
     basis,
     sprintf("The calculation was made with %s and the R package pmsampsize (version %s) and can be reproduced from the saved plan.",
       powerkit_cited(p$packages[["powerkit"]]), p$packages[["pmsampsize"]])
+  ), collapse = " ")
+  c(short = short, full = full, ethics = ethics)
+}
+
+prediction_validation_writeup <- function(spec, result, values, departures) {
+  pr <- result$prediction
+  p <- result$provenance
+  pop <- spec$population
+  goal <- spec$goal
+  label <- spec$variables$Y$label %||% "the outcome"
+  widths <- c(goal$oe_ci_width %||% 0.2, goal$cslope_ci_width %||% 0.2, goal$cstat_ci_width %||% 0.1)
+  aim <- sprintf(paste("We calculated the minimum sample size for validating an existing prediction model of %s (a yes/no outcome) in new data,",
+    "by the criteria of Riley et al.: 95%% confidence intervals no wider than %s for the observed/expected ratio, %s for the calibration slope and %s for the C-statistic%s.",
+    "This requires at least %s%s; the criterion that sets it is %s."),
+    label, format(widths[1]), format(widths[2]), format(widths[3]),
+    if (!is.null(pop$threshold)) sprintf(", and %s for the standardised net benefit at a risk threshold of %s", format(goal$nb_ci_width %||% 0.2), format(pop$threshold)) else "",
+    prediction_people(pr$n), if (!is.na(pr$events)) sprintf(" (about %s with the outcome)", whole(ceiling(pr$events))) else "", tolower_first(pr$binding))
+  basis <- sprintf("We assumed a C-statistic of %s and %s%% with the outcome in the new population, based on %s: %s.",
+    format(pop$c_statistic), format(100 * pop$prevalence), writeup_source[[values$just_type %||% "prior_study"]] %||% "our reasoning", writeup_quote(values$just_source))
+  recruit <- result$recruitment
+  recruit_line <- if (is.list(recruit)) sprintf("Allowing for %s attrition, we will recruit %s.", percent_attrition(recruit$attrition), whole(recruit$n_recruit))
+  software <- sprintf("The calculation used the R package pmvalsampsize (version %s; pmvalsampsize(), with its default seed for simulating the linear predictor), set up by %s in %s.",
+    p$packages[["pmvalsampsize"]], powerkit_cited(p$packages[["powerkit"]]), p$r_version)
+  short <- paste(c(aim, basis, recruit_line, software), collapse = " ")
+  full <- paste(c(short,
+    if (length(departures)) paste("Departures from the established tools' defaults:", paste(unname(departures), collapse = " ")),
+    sprintf("Spec hash: %s.", p$spec_hash)), collapse = "\n\n")
+  ethics <- paste(c(
+    sprintf("We plan to include %s.", prediction_people(pr$n)), recruit_line,
+    "This number is the minimum needed to judge reliably how well the existing model predicts in this population, not the result of a power analysis.",
+    "With fewer people, the estimates of the model's calibration and discrimination would be too imprecise to tell whether it is safe to use.",
+    basis,
+    sprintf("The calculation was made with %s and the R package pmvalsampsize (version %s) and can be reproduced from the saved plan.",
+      powerkit_cited(p$packages[["powerkit"]]), p$packages[["pmvalsampsize"]])
   ), collapse = " ")
   c(short = short, full = full, ethics = ethics)
 }

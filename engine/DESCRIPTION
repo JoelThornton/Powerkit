@@ -83,6 +83,7 @@ Suggests:
     pbkrtest,
     PITS,
     pmsampsize,
+    pmvalsampsize,
     PMCMRplus,
     POMADE,
     powerSurvEpi,

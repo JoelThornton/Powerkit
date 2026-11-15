@@ -823,6 +823,26 @@
             "items",
             "observations"
           ]
+        },
+        "oe_ci_width": {
+          "description": "Prediction model validation only: the target width of the 95% confidence interval for the observed/expected (O/E) ratio (pmvalsampsize's oeciwidth). Default 0.2, pmvalsampsize's default; Riley et al. (2021) note that a wider target can suit a rare outcome.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "cslope_ci_width": {
+          "description": "Prediction model validation only: the target width of the 95% confidence interval for the calibration slope (pmvalsampsize's csciwidth). Default 0.2.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "cstat_ci_width": {
+          "description": "Prediction model validation only: the target width of the 95% confidence interval for the C-statistic (pmvalsampsize's cstatciwidth). Default 0.1.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "nb_ci_width": {
+          "description": "Prediction model validation with a risk threshold only: the target width of the 95% confidence interval for the standardised net benefit (pmvalsampsize's nbciwidth). Default 0.2.",
+          "type": "number",
+          "exclusiveMinimum": 0
         }
       },
       "allOf": [
@@ -12799,7 +12819,8 @@
         "properties": {
           "template": {
             "enum": [
-              "development"
+              "development",
+              "validation"
             ]
           },
           "goal": {
@@ -12847,6 +12868,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_prediction_development"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "validation"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_prediction_validation"
             }
           }
         ]
@@ -13444,6 +13480,110 @@
             },
             "method": {
               "const": "delta_method"
+            }
+          }
+        }
+      }
+    },
+    "template_prediction_validation": {
+      "description": "The minimum sample size for validating an existing prediction model of a yes/no outcome in new data (external validation), by the criteria of Riley et al. (2021) as pmvalsampsize's pmvalsampsize() computes them: precise estimates of the observed/expected ratio, the calibration slope and the C-statistic, and optionally of the standardised net benefit at a risk threshold. The answer is the largest of the criteria's sample sizes; there is no power.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "description": "The yes/no outcome the existing model predicts.",
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "binary"
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "prevalence",
+            "c_statistic",
+            "lp_distribution"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "prevalence": {
+              "description": "The proportion with the outcome expected in the validation data.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "c_statistic": {
+              "description": "The C-statistic the model is anticipated to have in the validation data, ideally the optimism-adjusted value from its development study.",
+              "type": "number",
+              "exclusiveMinimum": 0.5,
+              "exclusiveMaximum": 1
+            },
+            "oe": {
+              "description": "The anticipated observed/expected ratio in the validation data (pmvalsampsize's oe). Default 1, perfect calibration-in-the-large.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "calibration_slope": {
+              "description": "The anticipated calibration slope in the validation data (pmvalsampsize's cslope). Default 1.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "lp_distribution": {
+              "description": "The distribution of the model's linear predictor (log-odds) in the validation data, simulated by pmvalsampsize for the calibration-slope criterion: 'normal' with lp_mean and lp_sd (pmvalsampsize's lpnormal), or 'beta', the predicted probabilities' beta distribution with shape parameters beta_a and beta_b (lpbeta).",
+              "enum": [
+                "normal",
+                "beta"
+              ]
+            },
+            "lp_mean": {
+              "description": "For lp_distribution 'normal': the mean of the linear predictor (log-odds).",
+              "type": "number"
+            },
+            "lp_sd": {
+              "description": "For lp_distribution 'normal': the SD of the linear predictor.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "beta_a": {
+              "description": "For lp_distribution 'beta': the first shape parameter of the predicted probabilities' beta distribution.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "beta_b": {
+              "description": "For lp_distribution 'beta': the second shape parameter.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "threshold": {
+              "description": "Optional: the risk threshold at which the model's net benefit is estimated (pmvalsampsize's threshold). Without it there is no net benefit criterion.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "sensitivity": {
+              "description": "Optional, with threshold: the anticipated sensitivity at the threshold. Without it (and specificity), pmvalsampsize estimates both from the simulated linear predictor.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "specificity": {
+              "description": "Optional, with threshold and sensitivity: the anticipated specificity at the threshold.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             }
           }
         }

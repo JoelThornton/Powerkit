@@ -516,20 +516,35 @@ precision_goal_fields <- function(tool) {
 # The goal is the criteria of Riley and colleagues, whose targets are
 # pmsampsize's defaults; the shrinkage target may be raised.
 prediction_goal_fields <- function(tool) {
+  develop <- list(field = "purpose", is = "development")
+  validate <- list(field = "purpose", is = "validation")
+  width <- function(id, label, help) {
+    list(id = id, writeup_label = tolower(label), label = label, help = help, type = "number", path = paste0("goal.", id),
+         required = TRUE, min_exclusive = 0, default = tool[[id]], default_source = tool[[paste0(id, "_source")]], shown_if = validate)
+  }
   list(
     list(id = "goal", label = "What do you want to find out?", type = "select", required = TRUE,
-         choices = list(criteria = "The minimum sample size for developing the model"),
+         choices = list(criteria = "The minimum sample size the model's criteria need"),
          buttons = TRUE, button_labels = list(criteria = "Minimum sample size"),
-         default = "criteria", default_source = "the only goal for developing a prediction model: there is no power to find"),
+         default = "criteria", default_source = "the only goal for developing or validating a prediction model: there is no power to find"),
     list(id = "shrinkage", writeup_label = "shrinkage target", label = "Target shrinkage of the predictor effects (criterion 1)",
          help = "How little the model may overfit: 0.9 means the predictor effects are expected to be overestimated by no more than about 10%. A higher target (0.95) asks for less overfitting and a larger sample.",
          type = "number", path = "goal.shrinkage", required = TRUE, min_exclusive = 0, max_exclusive = 1,
-         default = tool[["shrinkage"]], default_source = tool[["shrinkage_source"]]),
+         default = tool[["shrinkage"]], default_source = tool[["shrinkage_source"]], shown_if = develop),
     list(id = "intercept_margin", writeup_label = "margin for the mean outcome", label = "How precisely to estimate the mean outcome: within this factor of the true mean",
          help = "For example 1.1: the estimated mean outcome (the model's intercept) should be within 10% of the true mean.",
          type = "number", path = "goal.intercept_margin", required = TRUE, min_exclusive = 1,
          default = tool[["intercept_margin"]], default_source = tool[["intercept_margin_source"]],
-         shown_if = list(field = "outcome", is = "continuous"))
+         shown_if = list(develop, list(field = "outcome", is = "continuous"))),
+    width("oe_ci_width", "Width of the 95% interval for the observed/expected ratio (criterion 1)",
+      "How precisely to estimate calibration-in-the-large: 0.2 means an interval such as 0.9 to 1.1 around an O/E of 1. A narrower interval needs more people."),
+    width("cslope_ci_width", "Width of the 95% interval for the calibration slope (criterion 2)",
+      "How precisely to estimate whether the model's predictions are too extreme or too modest: 0.2 means an interval such as 0.9 to 1.1."),
+    width("cstat_ci_width", "Width of the 95% interval for the C-statistic (criterion 3)",
+      "How precisely to estimate the model's discrimination: 0.1 means an interval such as 0.75 to 0.85."),
+    list(id = "nb_ci_width", writeup_label = "width of the interval for the net benefit", label = "Width of the 95% interval for the standardised net benefit (criterion 4; optional, 0.2 if left empty)",
+         help = "Used only with a risk threshold.", type = "number", path = "goal.nb_ci_width", optional = TRUE, min_exclusive = 0,
+         shown_if = validate)
   )
 }
 

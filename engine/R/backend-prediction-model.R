@@ -59,11 +59,19 @@ check_prediction_model <- function(spec) {
   if (prediction_goal(spec) && !identical(spec$design, "prediction_model")) {
     return("'goal > type' \"criteria\" is only for prediction model development ('design' \"prediction_model\"): choose 'sample_size', 'power' or 'sensitivity' here.")
   }
+  validation_goals <- c("oe_ci_width", "cslope_ci_width", "cstat_ci_width", "nb_ci_width")
   if (!identical(spec$design, "prediction_model")) {
     if (!is.null(goal$shrinkage) || !is.null(goal$intercept_margin)) {
       return("'goal > shrinkage' and 'goal > intercept_margin' are only for prediction model development ('design' \"prediction_model\"); remove them.")
     }
+    if (any(validation_goals %in% names(goal))) {
+      return("The target interval widths in 'goal' (oe_ci_width and the others) are only for validating a prediction model ('design' \"prediction_model\", 'template' \"validation\"); remove them.")
+    }
     return(character())
+  }
+  if (prediction_validation(spec)) return(check_prediction_validation(spec))
+  if (any(validation_goals %in% names(goal))) {
+    return("The target interval widths in 'goal' (oe_ci_width and the others) are for validating an existing model ('template' \"validation\"); remove them.")
   }
   pop <- spec$population
   outcome <- prediction_outcome(spec)
@@ -141,6 +149,7 @@ prediction_criteria <- function(out, outcome) {
 }
 
 run_prediction_model <- function(spec, seed) {
+  if (prediction_validation(spec)) return(run_prediction_validation(spec, seed))
   started <- Sys.time()
   args <- prediction_args(spec)
   out <- call_backend("pmsampsize", prediction_call(args))
@@ -205,6 +214,7 @@ run_prediction_model <- function(spec, seed) {
 # The R script: the same pmsampsize() call, and a check that it reproduces
 # powerkit's answer.
 prediction_script <- function(spec, result) {
+  if (prediction_validation(spec)) return(prediction_validation_script(spec, result))
   args <- prediction_args(spec)
   call <- paste0("pmsampsize(", paste(sprintf("%s = %s", names(args), vapply(args, r_code, character(1))), collapse = ", "), ")")
   c(
@@ -225,6 +235,7 @@ prediction_script <- function(spec, result) {
 }
 
 prediction_design_description <- function(spec, label, levels) {
+  if (prediction_validation(spec)) return(prediction_validation_description(spec, label))
   pr <- prediction_args(spec)
   outcome <- prediction_outcome(spec)
   pop <- spec$population

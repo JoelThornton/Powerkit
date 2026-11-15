@@ -3571,3 +3571,38 @@ test_that("developing a prediction model (E77) shows each criterion's sample siz
   expect_identical(out$calc$spec$population$metric, "r2")
   expect_identical(nrow(out$calc$result$prediction$criteria), 4L)
 })
+
+test_that("validating an existing prediction model (E77) shows pmvalsampsize's criteria, without power", {
+  skip_without_run()
+  skip_if_not_installed("pmvalsampsize")
+  v <- list(purpose = "validation", Y_label = "Relapse within a year", c_statistic = "0.75", prevalence = "0.2",
+    lp_distribution = "normal", lp_mean = "-1.6", lp_sd = "1.2", goal = "criteria",
+    oe_ci_width = "0.2", cslope_ci_width = "0.2", cstat_ci_width = "0.1",
+    just_type = "prior_study", just_source = "Example only")
+  fields <- form_fields(form_groups(forms, "E77"))
+  expect_length(form_problems(fields, v), 0)
+  # The development questions are not asked.
+  shown <- vapply(Filter(function(f) field_applies(f, v), fields), `[[`, character(1), "id")
+  expect_false(any(c("outcome", "parameters", "shrinkage", "bin_metric") %in% shown))
+  expect_true(all(c("lp_mean", "lp_sd", "oe_ci_width", "threshold") %in% shown))
+  spec <- build_spec(forms, "E77", fields, v)
+  expect_identical(spec$template, "validation")
+  expect_identical(spec$variables$Y$type, "binary")
+  expect_null(spec$population$parameters)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$backend, "pmvalsampsize")
+  direct <- suppressMessages(pmvalsampsize::pmvalsampsize(type = "b", prevalence = 0.2, cstatistic = 0.75, lpnormal = c(-1.6, 1.2)))
+  expect_identical(calc$result$prediction$n, as.numeric(direct$sample_size))
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], sprintf("To validate the existing model of Relapse within a year in new data, at least %s participants are needed.",
+    whole(direct$sample_size)), fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E77", fields, v, calc))
+  expect_match(html, "A precise estimate of the calibration slope", fixed = TRUE)
+  expect_match(html, "Sets the answer", fixed = TRUE)
+  expect_match(html, "pmvalsampsize", fixed = TRUE)
+  w <- planning_writeup(forms, "E77", calc$spec, calc$result, fields, v)
+  expect_match(w[["short"]], "validating an existing prediction model", fixed = TRUE)
+  expect_match(w[["short"]], "pmvalsampsize (version", fixed = TRUE)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
+})

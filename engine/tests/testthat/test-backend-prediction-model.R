@@ -82,3 +82,61 @@ test_that("the R script reproduces the sample size with pmsampsize alone", {
   expect_true(any(grepl("pmsampsize(", run$script, fixed = TRUE)))
   expect_equal(run$reproduced, run$powerkit)
 })
+
+# Validating an existing model (template "validation"): pmvalsampsize's
+# pmvalsampsize().
+
+validation_spec <- function(...) {
+  spec <- example_spec("prediction_validation")
+  spec$population <- utils::modifyList(spec$population, list(...))
+  spec
+}
+
+test_that("a validation spec becomes pmvalsampsize()'s arguments", {
+  args <- prediction_validation_args(validate_quietly(validation_spec()))
+  expect_identical(args, list(type = "b", prevalence = 0.2, cstatistic = 0.75, oe = 1, cslope = 1, oeciwidth = 0.2,
+    csciwidth = 0.2, cstatciwidth = 0.1, lpnormal = c(-1.6, 1.2), seed = 123456L, simobs = 1e6))
+  spec <- validation_spec(lp_distribution = "beta", lp_mean = NULL, lp_sd = NULL, beta_a = 1, beta_b = 4, threshold = 0.1, oe = 0.9)
+  spec$goal$nb_ci_width <- 0.3
+  args <- prediction_validation_args(validate_quietly(spec))
+  expect_equal(args[c("oe", "lpbeta", "threshold", "nbciwidth")], list(oe = 0.9, lpbeta = c(1, 4), threshold = 0.1, nbciwidth = 0.3))
+  expect_null(args$lpnormal)
+  expect_null(args$sensitivity)
+})
+
+test_that("the validation answer is pmvalsampsize()'s, with every criterion and the one that sets it", {
+  skip_if_not_installed("pmvalsampsize")
+  for (spec in list(validation_spec(), validation_spec(threshold = 0.1))) {
+    result <- run_quietly(spec)
+    direct <- suppressMessages(do.call(pmvalsampsize::pmvalsampsize, prediction_validation_args(validate_quietly(spec))))
+    expect_identical(result$goal_type, "criteria")
+    expect_true(result$prediction$validation)
+    expect_identical(result$prediction$n, as.numeric(direct$sample_size))
+    expect_identical(nrow(result$prediction$criteria), if (is.null(spec$population$threshold)) 3L else 4L)
+    expect_identical(max(result$prediction$criteria$n), result$prediction$n)
+    expect_identical(result$prediction$binding, "A precise estimate of the calibration slope")
+    expect_true(all(result$check_run$ok))
+    expect_identical(result$provenance$backend, "pmvalsampsize")
+    expect_identical(result$provenance$seed, 123456L)
+  }
+})
+
+test_that("validation problems are named in plain words", {
+  expect_spec_problem(validation_spec(lp_sd = NULL), "A normal linear predictor needs 'population > lp_sd'")
+  expect_spec_problem(validation_spec(beta_a = 2), "'population > beta_a' isn't used with a normal linear predictor")
+  expect_spec_problem(validation_spec(sensitivity = 0.8, specificity = 0.7), "are for the net benefit at a risk threshold")
+  expect_spec_problem(validation_spec(threshold = 0.1, sensitivity = 0.8), "Give both 'population > sensitivity' and 'population > specificity'")
+  spec <- validation_spec()
+  spec$goal$shrinkage <- 0.9
+  expect_spec_problem(spec, "are for developing a model")
+})
+
+test_that("the validation R script reproduces the sample size with pmvalsampsize alone", {
+  skip_unless_scripts_can_run()
+  skip_if_not_installed("pmvalsampsize")
+  spec <- validation_spec()
+  run <- run_exported_script(spec, run_quietly(spec))
+  expect_false(any(grepl("powerkit::|library\\(powerkit\\)", run$script)))
+  expect_true(any(grepl("pmvalsampsize(", run$script, fixed = TRUE)))
+  expect_equal(run$reproduced, run$powerkit)
+})
