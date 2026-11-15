@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-15"
+    title: "Clearer messages and card hints"
+    text: "On the online app, an analysis whose R package is missing there now says it isn't available right now and asks you to tell us through Feedback, instead of telling you to install the package yourself. The card for moderation or mediation when the outcome isn't a score now names the card for a yes/no mediator in words. The short explanations under a card's name now explain only words that appear in that name."
