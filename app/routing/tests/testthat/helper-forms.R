@@ -56,7 +56,7 @@ form_examples <- list(
   E55 = c(list(test_version = "anova_f", group_sizes = "equal", A_label = "Group", A_levels = "Therapy, Waiting list", B_label = "Time", B_levels = "Before, After, Follow-up",
                Y_label = "Anxiety score", metric = "raw", means = "20, 16, 15\n20, 19, 18.5", spread = "same", sd = "6", r = "0.5",
                effect = "interaction", method = "exact"), closing_ok),
-  E56 = c(list(A_label = "Group", A_levels = "Control, Training", B_label = "Time", B_levels = "Before, After",
+  E56 = c(list(test_version = "anova_f", A_label = "Group", A_levels = "Control, Training", B_label = "Time", B_levels = "Before, After",
                C_label = "Task difficulty", C_levels = "Easy, Hard", Y_label = "Accuracy", within = "BC", metric = "raw",
                means = "80, 60\n81, 61\n80, 60\n84, 70", sd = "12", r = "0.5", effect = "interaction_ABC", method = "exact"), closing_ok),
   E20 = c(list(test_version = "anova_f", A_label = "Cue", A_levels = "Valid, Invalid", B_label = "Delay", B_levels = "Short, Medium, Long",

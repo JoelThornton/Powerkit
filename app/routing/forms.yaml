@@ -309,6 +309,11 @@ simulations:
     E34: {method: glmer_simulation, full_run: [power], preview: {power: 15}, full: {power: 120}, script: {power: "about 2 minutes on one core", sample_size: "about 15 to 30 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
     E69: {method: [mover, bland_altman], full_run: [power], preview: {power: 5}, full: {power: 40}, script: {power: "under a minute on one core", sample_size: "about 5 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
     E55: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
+    # The three-factor ANOVA's Bayes factor: about 1 s per simulated study
+    # between participants and 5 s with repeated measures (anovaBF() fits
+    # 18 models), so the preview, which simulates the no-effect side too,
+    # takes about 7 to 30 minutes.
+    E56: {method: bayes_factor, full_run: [], preview: {power: 1600}, script: {power: "about 20 minutes to 2 hours on one core (an estimate)", sample_size: "several hours on one core, longer with a factor everyone is measured in (an estimate; 5 to 8 sample sizes are simulated)"}}
 # Whole-study simulation (experimental; R/whole-study.R, docs/conventions.md
 # Departure 13): the choices of how many simulated studies, and the usual
 # run time on one core, from seconds per simulated study for each analysis
@@ -2686,8 +2691,29 @@ forms:
                        main_effect_A: "The first factor, averaged over the others",
                        main_effect_B: "The second factor, averaged over the others",
                        main_effect_C: "The third factor, averaged over the others"}}
+      # The Bayes factor (15 November 2026): JASP's Bayesian ANOVA, the
+      # effect's inclusion Bayes factor, simulated; the participants are a
+      # random factor when a factor is within participants.
+      - input: "The F test or a Bayes factor"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {anova_f: "ANOVA (F test)", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANOVA), instead of a p-value, simulated"},
+             default: anova_f, default_source: "the F test Superpower computes (Superpower 0.2.4.1), as G*Power does",
+             choice_notes: {bayes_factor: "Power becomes the chance that the effect's inclusion Bayes factor reaches the threshold you choose below. Simulated from the cell means, with equal groups; with a factor everyone is measured in, the full analysis is an R script you run yourself."}}
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's r scale for fixed effects, 0.5 (jaspAnova's AdditionalOptions.qml)"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't. With three factors, only one of the 18 models has the three-way interaction, so JASP's default across all models and the comparison across matched models can differ more than with two factors."}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
+         shown_if: {field: test_version, is: anova_f},
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
 

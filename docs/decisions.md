@@ -3475,6 +3475,25 @@ true rate of about 5.4%, roughly one seed in 80 would exceed the limit.
 More replications would remove that chance and remain an option if the
 check fails again.
 
+### The Bayes factor three-factor ANOVA on E56, 15 November 2026
+
+The third design of `next.md` item 2: E56 (three crossed factors, any mix
+of between and within participants) takes a Bayes factor test version,
+JASP's inclusion Bayes factor of the effect, from BayesFactor's
+`anovaBF()` over the models that respect marginality (participants a
+random factor with a within factor) and bayestestR's
+`bayesfactor_inclusion()`, with JASP's r scales (0.5 fixed, 1 random),
+as the two-factor ANOVAs' version does. No package plans it, so it is
+simulated with Spower in a backend of its own
+(`backend-bayesfactor-three.R`): equal groups, one SD, and one
+correlation between a person's scores. A study takes about 1 s between
+participants and 5 s with repeated measures, so the app gives a preview
+and the R script, as for the repeated-measures ANOVAs' Bayes factor.
+Validation: `test-validation-bayes-three.R` (chunk `bayes_three`),
+against a simulation that fits all 19 models with `lmBF()` and averages
+the inclusion Bayes factor by hand. Conventions: `docs/conventions.md`,
+"Bayes factor of a three-factor ANOVA effect (E56)".
+
 ### The ICC planned by its F test's exact power, 15 November 2026
 
 The reliability card's ICC (E69) was planned with ICC.Sample.Size's

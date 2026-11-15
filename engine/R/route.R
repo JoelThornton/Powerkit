@@ -107,7 +107,13 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     } else {
       superpower_backend(spec, seed)
     },
-    "factorial_anova/factorial_three" = superpower_backend(spec, seed),
+    "factorial_anova/factorial_three" = if (bfthree_test(spec)) {
+      # The Bayes factor of a three-factor ANOVA effect, simulated
+      # (backend-bayesfactor-three.R).
+      bfthree_backend(spec, seed)
+    } else {
+      superpower_backend(spec, seed)
+    },
     "factorial_anova/oneway_ancova" = ,
     "factorial_anova/factorial_ancova" = if (bfancova_test(spec)) {
       # The Bayes factor of an ANCOVA effect, simulated

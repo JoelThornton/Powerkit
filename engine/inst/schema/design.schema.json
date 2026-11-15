@@ -3460,7 +3460,11 @@
               ]
             },
             "method": {
-              "const": "anova_f"
+              "description": "'anova_f': the ANOVA's F test (Superpower). 'bayes_factor': the effect's inclusion Bayes factor, as JASP's Bayesian ANOVA reports it (BayesFactor's anovaBF() over the models that respect marginality, with the participants a random factor when a factor is within participants; bayestestR's bayesfactor_inclusion()), simulated with Spower; it takes cell means, not 'eta_squared'.",
+              "enum": [
+                "anova_f",
+                "bayes_factor"
+              ]
             }
           }
         }

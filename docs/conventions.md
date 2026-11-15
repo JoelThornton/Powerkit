@@ -757,6 +757,20 @@ little, because the models with and without each covariate enter the
 average; powerkit gives each the same share. A covariate that is always
 in the model (JASP's "Add to null model") is not offered yet.
 
+## Bayes factor of a three-factor ANOVA effect (E56)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian ANOVA and repeated-measures ANOVA; analysis only, no planning) | The effect's inclusion Bayes factor over the models that respect marginality (with three factors, 18 models besides the null, only one of them with the three-way interaction); with repeated measures, the participants a random factor in every model | — | "r scale fixed effects" 0.5, "r scale random effects" 1 (jaspAnova, `inst/qml/common/bayesian/AdditionalOptions.qml`); Effects table across all models, uniform model prior (`DefaultOptions.qml`) |
+| BayesFactor | `anovaBF(whichModels = "withmain")`, with `whichRandom` for the participants (Rouder, Morey, Speckman and Province, 2012) | — | "medium" fixed scale 0.5, "nuisance" random scale 1 [BayesFactor help] |
+| **powerkit** | The effect's inclusion Bayes factor from `anovaBF()` and bayestestR's `bayesfactor_inclusion()`, across all models by default (matched models as an option), simulated with Spower: equal groups, one SD, and with a within factor one correlation between any two of a person's scores (a level for each person, the random intercept JASP fits) (E56, from 15 November 2026) [powerkit] | Cell means and the SD (not partial eta-squared) | JASP's r scales 0.5 and 1 by default. Not a departure: the analysis is JASP's default one |
+
+Because only one model has the three-way interaction, its prior inclusion
+probability across all models is 1/19, so the inclusion Bayes factor for
+it and the one across matched models can differ more than with two
+factors; both are offered.
+
 ## Sequential Bayes factor designs (Labs)
 
 | Tool | Test | Effect size | Settings |
