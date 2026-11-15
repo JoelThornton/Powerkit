@@ -362,6 +362,9 @@ run_spec <- function(spec) {
   }
 
   n_analysed <- if (identical(goal$type, "sample_size")) outcome$n_required$n else goal$n
+  # The records below describe the whole groups planned at that total.
+  planned <- spec
+  spec <- spec_at_total(spec, n_analysed)
   critical <- if (!identical(goal$type, "justified_alpha") && !small_telescopes_test(spec) && !heterogeneity_test(spec)) critical_effect(spec, n_analysed)
 
   structure(
@@ -374,7 +377,7 @@ run_spec <- function(spec) {
       effect_from_units = units,
       safeguard = safeguard_record(spec),
       small_telescopes = small_telescopes_record(spec, n_analysed, backend),
-      heterogeneity = heterogeneity_record(spec, n_analysed),
+      heterogeneity = heterogeneity_record(planned, n_analysed),
       mediation_analysis = mediation_analysis_record(spec),
       effect_conversion = conversion_record(spec),
       group_d = group_d_record(spec),
@@ -387,12 +390,12 @@ run_spec <- function(spec) {
       details = test_details(backend, goal$type, simulating, n_analysed) %||%
         if (identical(goal$type, "power") || identical(goal$type, "sample_size")) critical_effect_details(critical, exact = correlation_exact(spec)),
       critical_effect = critical,
-      allocation = planned_allocation(spec),
+      allocation = planned_allocation(planned, n_analysed),
       # The step between totals that split into whole groups, for curves drawn around this result.
       n_step = backend$n_step %||% 1,
       check_run = check,
       provenance = list(
-        evidence = analysis_evidence(spec, computation_method = method),
+        evidence = analysis_evidence(planned, computation_method = method),
         spec_hash = spec_hash(hashed),
         method = method,
         seed = seed,

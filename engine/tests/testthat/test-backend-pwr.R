@@ -282,21 +282,26 @@ test_that("two proportions: pwrss at 1:1, 1:2 and 1:3, both directions", {
   )
 })
 
-test_that("departure: unequal groups keep the exact ratio, so N can differ from G*Power's by a few (Departure 11)", {
+test_that("departure: unequal groups are rounded at each total, so N can differ from G*Power's by one (Departure 11)", {
   # For 95% power at N2/N1 = 2 (p1 = .10, p2 = .25), G*Power gives 123 +
   # 247 = 370, actual power 0.9498668, just under the target. powerkit
-  # keeps the groups in the exact ratio and needs power >= .95: 124 + 248
-  # = 372 (123 + 246 gives 0.9496). Cohen's h, the earlier default, gave
-  # 360, 10 fewer than G*Power.
+  # rounds the groups at each total, as G*Power does, but needs power >=
+  # .95: 124 + 247 = 371. Keeping the exact ratio (powerkit until 14
+  # November 2026) needed 124 + 248 = 372. Cohen's h, the earlier
+  # default, gives 359, 11 fewer than G*Power.
   spec <- pwr_spec(
     "two_proportions", list(type = "sample_size", power = 0.95),
     options = list(seed = 7, allocation_ratio = 2)
   )
   spec$population$p1 <- 0.10
   spec$population$p2 <- 0.25
-  expect_identical(as.integer(run_spec(spec)$n_required$n), 372L)
+  result <- run_spec(spec)
+  expect_identical(as.integer(result$n_required$n), 371L)
+  expect_equal(c(result$allocation$group1, result$allocation$group2), c(124, 247))
+  expect_equal(round(result$curve$power[result$curve$n == 370], 7), 0.9498668)
+  expect_gte(result$curve$power[result$curve$n == 371], 0.95)
   spec$options$proportions_formula <- "arcsine"
-  expect_identical(as.integer(run_spec(spec)$n_required$n), 360L)
+  expect_identical(as.integer(run_spec(spec)$n_required$n), 359L)
   # For 80% power at N2/N1 = 3, G*Power gives 70 + 210 = 280, actual
   # power 0.8003695 (maintainer's screenshot); powerkit agrees.
   spec$options <- list(seed = 7, allocation_ratio = 3)

@@ -75,7 +75,7 @@ toster_inputs <- function(spec) {
     if (!identical(type, "two.sample")) {
       return(n)
     }
-    n1 <- round(n / (1 + ratio))
+    n1 <- floor(n / (1 + ratio) + 0.5)
     if (n1 == n - n1) n1 else c(n1, n - n1)
   }
   list(
@@ -163,7 +163,7 @@ toster_script <- function(spec, result) {
   n_lines <- switch(
     inputs$type,
     two.sample = c(
-      sprintf("  n1 <- round(n_total / (1 + %s)) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
+      sprintf("  n1 <- floor(n_total / (1 + %s) + 0.5) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
       "  n2 <- n_total - n1",
       "  n <- if (n1 == n2) n1 else c(n1, n2) # TOSTER takes the size of each group"
     ),

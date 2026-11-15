@@ -55,7 +55,7 @@ bfprop_inputs <- function(spec) {
 
 # Group sizes at total n, as the z test splits them (pwr_inputs()).
 bfprop_groups <- function(inputs, n) {
-  n1 <- round(n / (1 + inputs$ratio))
+  n1 <- floor(n / (1 + inputs$ratio) + 0.5)
   c(n1, n - n1)
 }
 
@@ -198,7 +198,7 @@ bfprop_check_run <- function(spec, inputs) {
   package <- bfprop_package_log_bf10(y[1], g[1], y[2], g[2], inputs)
   closed <- bfprop_log_bf10(y[1], g[1], y[2], g[2], inputs)
   rows <- list(
-    row("group 1's size at a total of 100, from the ratio of group 2's size to group 1's", round(100 / (1 + inputs$ratio)), g[1]),
+    row("group 1's size at a total of 100, from the ratio of group 2's size to group 1's", floor(100 / (1 + inputs$ratio) + 0.5), g[1]),
     row(sprintf("log BF10 for the expected table at n = 100 (%d of %d and %d of %d): powerkit's closed form against contingencyTableBF()",
       y[1], g[1], y[2], g[2]), package, closed),
     row("prior concentration (priorConcentration)", inputs$a, inputs$a)
@@ -270,7 +270,7 @@ bfprop_script <- function(spec, result) {
     "# The chance of a table whose BF10 reaches the threshold, summed over",
     "# every table with a non-negligible chance.",
     "power_at <- function(n) {",
-    "  n1 <- round(n / (1 + ratio)); n2 <- n - n1",
+    "  n1 <- floor(n / (1 + ratio) + 0.5); n2 <- n - n1",
     "  probs1 <- count_probs(n1, p1); probs2 <- count_probs(n2, p2)",
     "  y2s <- which(probs2 > 1e-15) - 1",
     "  total <- 0",

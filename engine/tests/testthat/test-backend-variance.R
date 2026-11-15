@@ -42,13 +42,15 @@ test_that("one and two variances are computed by formula by default, with the ma
   expect_equal(power$details$df, c(192, 192))
 })
 
-test_that("unequal groups work by formula, keeping the ratio exact", {
+test_that("unequal groups work by formula, rounded at each total as G*Power rounds them", {
   # Section 15.3 with N2/N1 = 2: G*Power gives 148 and 295 (N = 443), the
-  # 1.5 variance in the larger group. powerkit keeps the ratio exact
-  # (148 and 296), so it needs one more person.
+  # 1.5 variance in the larger group. powerkit rounds the groups at each
+  # total too, and agrees (it needed 444, 148 and 296, while it kept the
+  # ratio exact).
   r <- run_spec(variance_test_spec("two_variances", list(var1 = 1, var2 = 1.5), list(type = "sample_size", power = 0.8),
     options = list(seed = 1L, allocation_ratio = 2)))
-  expect_equal(r$n_required$n, 444)
+  expect_equal(r$n_required$n, 443)
+  expect_equal(c(r$allocation$group1, r$allocation$group2), c(148, 295))
   # The simulation still draws equal groups only, and says so.
   expect_error(
     validate_spec(variance_test_spec("two_variances", list(var1 = 1, var2 = 1.5), list(type = "power", n = 90L),

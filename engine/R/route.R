@@ -3,7 +3,8 @@
 #   name, packages      for the provenance record;
 #   methods, default_method  "exact" and/or "simulation";
 #   functions           the backend function used by each method;
-#   n_step              valid sample sizes are multiples of this;
+#   n_step              valid sample sizes are multiples of this (1 when
+#                       two groups are rounded at each total);
 #   exact_min_n         smallest n exact_power() (or bracket_power()) accepts;
 #   exact_power(n)      exact power at n (only if "exact" is a method);
 #   bracket_power(n)    fast power at n, used only to bracket the required n
@@ -31,7 +32,12 @@ route_spec <- function(spec, seed = NULL) {
   )
 }
 
-route_backend <- function(spec, seed = NULL) {
+route_backend <- function(spec, seed = NULL, rounded = TRUE) {
+  # Two groups in a ratio other than 1: the groups are rounded at each
+  # total, and each total is worked out at its own whole groups.
+  if (rounded && !is.null(rounded_ratio(spec))) {
+    return(rounded_ratio_backend(spec, function(s) route_backend(s, seed, rounded = FALSE)))
+  }
   key <- paste(spec$design, spec$template, sep = "/")
   # A between-participants ANOVA given by its partial eta-squared (as
   # G*Power takes it), not by group means: pwrss's F test.
@@ -367,7 +373,7 @@ valid_n_step <- function(spec) {
     return(1)
   }
   allocation <- sample_allocation(spec)
-  step <- if (identical(allocation$kind, "weights")) integer_allocation_step(allocation$weights) else allocation$step
+  step <- allocation_step(allocation)
   if (is.null(step) || !is.finite(step) || step < 1 || !isTRUE(groups$valid(step))) {
     abort_run("This allocation cannot be represented as whole groups reliably. Use simple relative group sizes, such as 1 : 2 or 2 : 3.")
   }

@@ -312,7 +312,7 @@ sim_basic_code <- function(spec, n) {
 # total n and the allocation ratio n2 / n1.
 sim_two_groups <- function(spec, n) {
   ratio <- allocation_ratio(spec)
-  n1 <- round(n / (1 + ratio))
+  n1 <- floor(n / (1 + ratio) + 0.5)
   c(n1, n - n1)
 }
 

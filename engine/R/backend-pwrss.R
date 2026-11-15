@@ -337,7 +337,7 @@ pwrss_inputs <- function(spec) {
       list(
         fun = "power.t.welch",
         args = function(n) {
-          n1 <- round(n / (1 + ratio))
+          n1 <- floor(n / (1 + ratio) + 0.5)
           n2 <- n - n1
           # pwrss uses n1/n2, SD1^2/SD2^2 and a weighted pooled-SD effect.
           list(
@@ -353,7 +353,7 @@ pwrss_inputs <- function(spec) {
       list(
         fun = "power.exact.fisher",
         args = function(n) {
-          n1 <- round(n / (1 + ratio))
+          n1 <- floor(n / (1 + ratio) + 0.5)
           n2 <- n - n1
           # pwrss's n.ratio is n1 / n2.
           list(
@@ -369,7 +369,7 @@ pwrss_inputs <- function(spec) {
       list(
         fun = "power.z.twocors",
         args = function(n) {
-          n1 <- round(n / (1 + ratio))
+          n1 <- floor(n / (1 + ratio) + 0.5)
           n2 <- n - n1
           list(
             rho1 = pop$r1, rho2 = pop$r2, n.ratio = n1 / n2, n2 = n2,

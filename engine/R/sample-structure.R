@@ -22,7 +22,7 @@ sample_structure <- function(spec) {
   unknown <- identical(spec$design, "generic_test")
   if (unknown) unit <- "analysis units"
   allocation <- sample_allocation(spec)
-  step <- if (identical(allocation$kind, "weights")) integer_allocation_step(allocation$weights) else allocation$step %||% 1
+  step <- allocation_step(allocation)
   # The outcome, and the test run on it, may differ across analyses of the
   # same people: a score and a yes/no outcome compared between the same
   # two groups share one sample (8 November 2026). Group and occasion
