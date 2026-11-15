@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-15"
-    title: "A Bayes factor for the three-factor ANOVA"
-    text: "The three-factor ANOVA card plans a Bayes factor for any of its effects, as JASP's Bayesian ANOVA reports it: choose it as the test version, and powerkit simulates the chance that the effect's Bayes factor reaches your threshold, with JASP's default priors. It takes a while, so powerkit gives a quick preview and an R script for the full analysis."
