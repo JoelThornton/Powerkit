@@ -116,7 +116,8 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # their PubMed records (14 November 2026), and Hayes and Preacher's paper
   # on mediation with a multicategorical X, from its PubMed record (the same day),
   # and Valeri and VanderWeele's paper on regression-based causal mediation
-  # analysis, from its PubMed record (the same day).
+  # analysis, from its PubMed record (the same day), and four sources on
+  # Bayes factors for replications, from the full-text PDFs (15 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -152,7 +153,9 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Bakdash2017_rmcorr = "verified",
       SimplyAgree_method = "citation", Bland1999_agreement = "verified", Zou2013_loa_mover = "verified",
       Lu2016_bland_altman_n = "verified", HayesPreacher2014_multicategorical = "verified",
-      ValeriVanderWeele2013_mediation = "verified"
+      ValeriVanderWeele2013_mediation = "verified",
+      VerhagenWagenmakers2014_replication = "verified", Ly2019_replication_bf = "verified",
+      Ly2018_summary_reanalysis = "verified", McLatchie2020_bayes_factors = "verified"
     )
   )
 })

@@ -68,7 +68,7 @@ form_examples <- list(
   E19 = c(list(A_label = "Training dose", A_levels = "None, One session, Four sessions, Eight sessions", Y_label = "Reading score",
                metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3"), closing_ok),
   E23 = c(list(factors = "oneway_ancova", A_label = "Intervention", A_levels = "Control, Brief, Full", Y_label = "Anxiety after",
-               metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1"), closing_ok),
+               metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1", test_version = "ancova_f"), closing_ok),
   E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2_full = "0.15", r2_reduced = "0.1",
                predictors_total = "5", predictors_tested = "2"), closing_ok),
   E25 = c(list(Y_label = "Correct guess", p = "0.65", p0 = "0.5", alternative = "two_sided", method = "exact_binomial"), closing_ok),
@@ -210,6 +210,12 @@ form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_question = "me
 form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", W_label = "Teacher experience", two_outcome = "continuous", in_sites = "no",
                             b_X = "0.3", b_W = "0.2", b_XW = "0.1", sd_group = "0.4", sd_group_slope = "0.15",
                             sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
+
+# E41: a diary study; whether the day's stress affects evening mood more
+# for people higher in neuroticism.
+form_examples$E41 <- c(list(Y_label = "Evening mood", X_label = "The day's stress", W_label = "Neuroticism", two_outcome = "continuous",
+                            b_X = "-0.3", b_W = "-0.2", b_XW = "-0.1", sd_group = "0.7", sd_group_slope = "0.15",
+                            sd_residual = "1", cluster_size = "14", two_level_effect = "cross_level_interaction"), closing_ok)
 
 # E63: three face expressions; the pair Neutral-Happy, Holm-adjusted.
 form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Happy, Angry", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous",

@@ -109,7 +109,13 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     },
     "factorial_anova/factorial_three" = superpower_backend(spec, seed),
     "factorial_anova/oneway_ancova" = ,
-    "factorial_anova/factorial_ancova" = ,
+    "factorial_anova/factorial_ancova" = if (bfancova_test(spec)) {
+      # The Bayes factor of an ANCOVA effect, simulated
+      # (backend-bayesfactor-ancova.R).
+      bfancova_backend(spec, seed)
+    } else {
+      pwrss_backend(spec, seed)
+    },
     "factorial_anova/oneway_contrast" = ,
     "basic_test/one_proportion" = if (bayes_factor_test(spec)) {
       bfbin_backend(spec, seed)
@@ -128,7 +134,12 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
       pwrss_backend(spec, seed)
     },
     "poisson_regression/interaction" = count_interaction_backend(spec, seed),
-    "multiple_regression/r2_zero" = ,
+    "multiple_regression/r2_zero" = if (bfreg_test(spec)) {
+      # The Bayes factor for R-squared, by BayesFactor's linearReg.R2stat().
+      bfreg_backend(spec, seed)
+    } else {
+      pwrss_backend(spec, seed)
+    },
     "multiple_regression/r2_increase" = ,
     "logistic_regression/single_predictor" = ,
     "poisson_regression/single_predictor_count" = if (simulated_count_test(spec)) {

@@ -461,6 +461,21 @@ offers_bayes_factor <- function(form) {
   if (length(hit)) hit[[1]]$id
 }
 
+# The condition under which a form's significance level applies: the test
+# version isn't the Bayes factor, or the test-version field is itself
+# hidden (E24 offers the Bayes factor for R-squared against 0 only, so a
+# Bayes factor chosen there doesn't hide alpha once another question is
+# chosen). NULL when the form offers no Bayes factor.
+no_bayes_condition <- function(form, bayes_field) {
+  if (is.null(bayes_field)) return(NULL)
+  own <- list(field = bayes_field, is_not = "bayes_factor")
+  f <- Filter(function(x) identical(x$id, bayes_field), form_fields(form$groups))[[1]]
+  hidden <- lapply(Filter(function(cond) !is.null(cond[["is"]]), shown_if_conditions(f)),
+    function(cond) list(field = cond$field, is_not = cond[["is"]]))
+  if (length(hidden) == 0) return(own)
+  list(any = c(list(own), hidden))
+}
+
 # Precision planning (E46): the interval's width instead of power. Both
 # goals are the engine's goal type "precision" (build_spec()): with a
 # width it finds the sample size, with a sample size the width.
@@ -531,7 +546,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
   bayes_field <- offers_bayes_factor(form)
-  no_bayes <- if (!is.null(bayes_field)) list(field = bayes_field, is_not = "bayes_factor")
+  no_bayes <- no_bayes_condition(form, bayes_field)
   # So a justified significance level is offered only with a test that
   # has one (`choices_shown_if`: the choice is hidden otherwise).
   if (!is.null(no_bayes) && !is.null(goals$justified_alpha)) goal$choices_shown_if <- list(justified_alpha = list(no_bayes))
@@ -1358,7 +1373,7 @@ build_spec <- function(forms, ep_id, fields, values) {
   # The range of sample sizes is several engine runs (sensitivity_curve());
   # the spec kept for the exports is the largest N at 80% power.
   if (identical(values$goal, "sensitivity_curve")) {
-    spec$goal <- list(type = "sensitivity", n = as.integer(parse_number(values$n_max)), power = 0.8)
+    spec$goal <- c(list(type = "sensitivity", n = as.integer(parse_number(values$n_max)), power = 0.8), spec$goal["unit"][!vapply(spec$goal["unit"], is.null, logical(1))])
   }
   spec
 }

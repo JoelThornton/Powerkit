@@ -17,7 +17,9 @@ replication_notes_ids <- c(vapply(labs_fields, `[[`, "", "id"), "labs_outcome",
 replication_plan_field_ids <- c(replication_notes_ids, replication_field_ids)
 
 # The planner's starting values, as its screen had them.
-replication_field_defaults <- list(rep_design = "two_groups", rep_original_alpha = "0.05", rep_tau = "0",
+replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "test", rep_original_prior = "default",
+  rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
+  rep_original_alpha = "0.05", rep_tau = "0",
   rep_alpha = "0.05", rep_power = "0.8", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05")
 
 # Fields as the record keeps them: known ids only, each one string, blanks
@@ -122,9 +124,27 @@ replication_workspace_ui <- function(tree) {
     replication_planner_sections())
 }
 
+# The planner's fields when the original's card is chosen: its design and,
+# for another design, the card's effect and scale (forms.yaml's
+# replication_effects), until an original effect has been entered.
+replication_fields_for_card <- function(fields, forms, ep) {
+  fields <- fields %||% list()
+  e <- replication_card_effect(forms, ep)
+  if (is.null(e) || nzchar(trimws(as.character(fields$rep_effect %||% ""))) ||
+      nzchar(trimws(as.character(fields$rep_bf %||% "")))) return(fields)
+  if (!is.null(e$exact)) {
+    fields$rep_design <- e$exact
+  } else if (!is.null(e$effect) || !is.null(e$multi_df)) {
+    fields$rep_design <- "generic"
+    fields$rep_effect_name <- e$effect %||% ""
+    fields$rep_scale <- e$scale %||% "none"
+  }
+  fields
+}
+
 # Under "The original study": the original's analysis on its own card,
 # which plans the replication for its design (12 November 2026).
-replication_card_status_ui <- function(tree, plan) {
+replication_card_status_ui <- function(tree, plan, forms = NULL) {
   ep <- plan$replication$endpoint
   entry <- if (length(plan$entries)) plan$entries[[1]]
   div(class = "rep-card-status form-group-box",
@@ -135,6 +155,10 @@ replication_card_status_ui <- function(tree, plan) {
     else tagList(
       p(HTML(sprintf("The original's design: <strong>%s</strong>%s.", htmltools::htmlEscape(tree$endpoints[[ep]]$plain_name %||% ep),
         if (!is.null(entry)) sprintf(" (planned: %s)", htmltools::htmlEscape(plan_item_summary(entry))) else ""))),
+      if (!is.null(forms)) {
+        note <- replication_card_effect_note(forms, ep)
+        if (!is.null(note)) p(class = "small", note)
+      },
       div(class = "nav-buttons",
         actionButton("rep_open_card", if (is.null(entry)) "Plan it on its card" else "Open its card again", class = "btn btn-primary"),
         actionButton("rep_find_design", "Choose a different design", class = "btn btn-outline-secondary"))))

@@ -687,6 +687,9 @@ check_bayes_factor <- function(spec) {
   if (bffactorial_test(spec)) {
     return(check_bayes_factorial(spec))
   }
+  if (bfancova_test(spec)) {
+    return(check_bayes_ancova(spec))
+  }
   if (!bfprop_test(spec) && !is.null(spec$target_test$prior_concentration)) {
     return("'target_test > prior_concentration' belongs to the Bayes factor tests of proportions and tables; remove it.")
   }
@@ -701,6 +704,9 @@ check_bayes_factor <- function(spec) {
   }
   if (bfanova_test(spec)) {
     return(check_bayes_anova(spec))
+  }
+  if (bfreg_test(spec)) {
+    return(check_bayes_regression(spec))
   }
   if (!is.null(spec$target_test$prior_width)) {
     return("'target_test > prior_width' belongs to the Bayes factor test of a correlation; a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'.")
@@ -2864,6 +2870,15 @@ check_goal <- function(spec, check_effect = TRUE) {
   }
   if (!is.null(goal$n)) {
     problems <- c(problems, check_n(spec, goal$n))
+  }
+  # What n counts: items for crossed participants and items in two
+  # conditions; observations (occasions within people) for a two-level
+  # model (E41).
+  if (identical(goal$unit, "items") && !identical(spec$template, "crossed_two_condition")) {
+    problems <- c(problems, "'goal > unit' \"items\" is for participants and items in two conditions (mixed_model / crossed_two_condition) only.")
+  }
+  if (identical(goal$unit, "observations") && !(identical(spec$template, "two_level") && is.null(spec$population$groups_per_site))) {
+    problems <- c(problems, "'goal > unit' \"observations\" is for a two-level model (mixed_model / two_level, without population > groups_per_site) only: people measured on several occasions.")
   }
   # For the basic tests, the smallest detectable effect needs no effect
   # size: pwr solves for it directly (for two proportions, a search keeps

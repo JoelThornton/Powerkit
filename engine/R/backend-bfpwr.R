@@ -148,6 +148,15 @@ bayes_summary <- function(spec, n, backend = NULL, nrep = NULL, seed = NULL) {
       backend$null_side(n, nrep, seed %||% 1L)
     ))
   }
+  if (bfancova_test(spec)) {
+    inputs <- bfancova_inputs(spec)
+    return(c(
+      list(evidence_threshold = inputs$threshold, prior_scale = inputs$prior_scale,
+        prior_scale_covariates = inputs$prior_scale_covariates, inclusion = inputs$inclusion,
+        effect_sd = 0, n = n, hypotheses = bfancova_hypotheses_words(inputs)),
+      backend$null_side(n, nrep, seed %||% 1L)
+    ))
+  }
   if (bftable_test(spec)) {
     # Simulated: the no-association side with as many studies as the
     # power, under the run's seed.
@@ -180,6 +189,14 @@ bayes_summary <- function(spec, n, backend = NULL, nrep = NULL, seed = NULL) {
       list(evidence_threshold = inputs$threshold, prior_scale = inputs$prior_scale,
         effect_sd = 0, n = n, hypotheses = bfanova_hypotheses_words(inputs)),
       bfanova_null_side(inputs, n)
+    ))
+  }
+  if (bfreg_test(spec)) {
+    inputs <- bfreg_inputs(spec)
+    return(c(
+      list(evidence_threshold = inputs$threshold, prior_scale = inputs$prior_scale,
+        effect_sd = 0, n = n, hypotheses = bfreg_hypotheses_words(inputs)),
+      bfreg_null_side(inputs, n)
     ))
   }
   if (bfprop_test(spec)) {
@@ -243,8 +260,14 @@ bfpwr_script <- function(spec, result) {
   if (bfanova_test(spec)) {
     return(bfanova_script(spec, result))
   }
+  if (bfreg_test(spec)) {
+    return(bfreg_script(spec, result))
+  }
   if (bffactorial_test(spec)) {
     return(bffactorial_script(spec, result))
+  }
+  if (bfancova_test(spec)) {
+    return(bfancova_script(spec, result))
   }
   inputs <- bfpwr_inputs(spec)
   effect_name <- if (identical(inputs$type, "paired")) "d_z" else "d"
@@ -310,8 +333,14 @@ bayes_design_description <- function(spec, label, levels) {
   if (bfanova_test(spec)) {
     return(bfanova_design_description(spec, label, levels))
   }
+  if (bfreg_test(spec)) {
+    return(bfreg_design_description(spec, label))
+  }
   if (bffactorial_test(spec)) {
     return(bffactorial_design_description(spec, label, levels))
+  }
+  if (bfancova_test(spec)) {
+    return(bfancova_design_description(spec, label, levels))
   }
   inputs <- bfpwr_inputs(spec)
   test <- switch(

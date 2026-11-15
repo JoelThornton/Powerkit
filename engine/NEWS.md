@@ -1,20 +1,83 @@
-# powerkit 0.66.10
+# powerkit 0.67.4
 
-* The ICC on the reliability card (E69) is planned by the F test's exact
-  power by default (Donner & Eliasziw, 1987): under the one-way
-  random-effects model MSB/MSW is F(n - 1, n(k - 1)) scaled by
-  (1 + (k - 1) rho) / (1 - rho), so power is a `stats::pf()` tail at the
-  critical value scaled by the ratio of that factor under the null and the
-  alternative (both tails when two-sided). New method `icc_test` (default,
-  backend `stats`, function `icc_exact_power()`); `icc_walter` keeps
-  ICC.Sample.Size's `calculateIccPower()` (Walter, Eliasziw and Donner's
-  normal approximation). For an ICC of 0.8 against 0.6 with 3 raters,
-  one-sided, the exact power needs 26 subjects where the approximation
-  asks for 27. Departure 29; the schema's ICC method is now an enum. The
-  exported R script for the exact route uses base R only. Tests in
-  `test-backend-reliability.R` check the formula, the two-sided tails,
-  agreement with 4,000 simulated studies and the script; reference
-  `Donner1987_icc` added to `refs.bib` (specialist maths review, M-16).
+* Bayes factor ANCOVA (E23): `factorial_anova / oneway_ancova` and
+  `factorial_ancova` take `target_test > method` `"bayes_factor"`, with
+  `evidence_threshold`, `prior_scale` (default 0.5), the new
+  `prior_scale_covariates` (default 0.354) and `inclusion`, JASP's
+  Bayesian ANCOVA defaults. New file `backend-bayesfactor-ancova.R`:
+  Spower runs `p_bayes_ancova()`, which draws equal cells and independent
+  standard normal covariates explaining `r2_covariates` within cells, and
+  scores each study with BayesFactor's `generalTestBF(whichModels =
+  "withmain")` and bayestestR's `bayesfactor_inclusion()`; the no-effect
+  side with the effect removed from the cell means. Check run, spec
+  checks (no `eta_squared` metric), R script and design description.
+  Validation: `test-validation-bayes-ancova.R`, new chunk `bayes_ancova`,
+  against every model fitted with `lmBF()` and the inclusion Bayes factor
+  averaged by hand.
+
+# powerkit 0.67.3
+
+* Bayes factor for R-squared (E24): `multiple_regression / r2_zero` takes
+  `target_test > method` `"bayes_factor"`, with `evidence_threshold` and
+  `prior_scale` (default 0.354, JASP's Bayesian linear regression and
+  BayesFactor's "medium"). New file `backend-bayesfactor-regression.R`:
+  BayesFactor's `linearReg.R2stat()` rises with the regression's F, so the
+  chance of strong evidence is the noncentral F (noncentrality f^2 n)
+  beyond the F at which BF10 reaches the threshold, found by root-finding;
+  the no-effect side from the central F. Check run against `lmBF()` on a
+  data set with exactly the spec's R-squared; R script; spec checks. The
+  schema now restricts `single_coefficient`'s methods to the four it
+  supports. Validation: `test-validation-bayes-regression.R` in chunk
+  `bayes`.
+
+# powerkit 0.67.2
+
+* `goal > unit` takes `"observations"` (E41, within-person moderation):
+  for `mixed_model / two_level` without `groups_per_site`, `goal.n` then
+  counts observations (people times occasions, a whole number of people)
+  instead of participants. `sample_structure()` reports the unit and a
+  note; `check_goal()` refuses `"observations"` on any other template and,
+  newly, `"items"` on any template but `crossed_two_condition`. The R
+  script's design description and sample-size comment describe occasions
+  within people when the unit is observations.
+
+# powerkit 0.67.1
+
+* `replication_planning()` gains `original_analysis` (`"test"`,
+  `"bayes_factor"`, `"posterior"`), `original_bf`, `original_prior_scale`
+  and `original_prior`. A t-test's Bayes factor is read back to its t
+  statistic and effect (BayesFactor's `ttest.tstat()` inverted); a
+  posterior from a vague or default prior stands in for the estimate and
+  standard error, and an informative prior is refused. Either Bayesian
+  route leaves out small telescopes and, for a t-test, adds `bf_repeat`
+  (the original's Bayes factor test repeated, under each belief) and
+  `bf_null` (evidence for no effect), with bfpwr's `ntbf01()`. The result
+  gains `sequential`, each belief as a design prior for
+  `bayes_sequential()`, and the R script reproduces the new goals.
+* refs.bib: Verhagen and Wagenmakers (2014), Ly et al. (2018, 2019) and
+  McLatchie, Warmelink and Tkacheva (2020), from the published articles.
+* Tests: the Bayes factor round trip; bfpwr's Bayes factor against
+  BayesFactor's; the Bayesian goals against bfpwr; the script; and an
+  absolute tolerance for the generic correlation gap, which a `scale`
+  argument testthat 3e ignores had made unable to fail.
+
+# powerkit 0.67.0
+
+* `replication_planning()` gains `design = "generic"`: the goals table for
+  any effect that is one number, from the original's estimate and its
+  standard error (`original_se`), confidence interval (`original_ci`,
+  `original_ci_level`) or test statistic (`original_statistic`), on the
+  scale given by `scale` (`"none"`, `"log"` for ratios, `"fisher_z"` for
+  correlations). The replication's standard error is the original's
+  scaled by the square root of the sample-size ratio (BayesRepDesign's
+  `se = unitSD / sqrt(n)`); small telescopes is not offered on this route.
+  The exported R script reproduces the table. Tests show it equals the
+  one-sample and paired routes exactly and give the size of the gap for
+  two groups and a correlation, which keep their exact routes.
+* forms.yaml: `replication_effects` lists every card's focal effect and
+  scale for the replication goals (exact route, one effect, multi-df test
+  pointed to its focal contrast, or none); the replication plan's card
+  status and fields follow it.
 
 # powerkit 0.66.9
 

@@ -250,6 +250,11 @@ simulations:
       preview: {power: 30}
       full: {power: 300}
       script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E41:
+      full_run: [power]
+      preview: {power: 30}
+      full: {power: 300}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E74:
       full_run: [power]
       preview: {power: 15}
@@ -405,6 +410,95 @@ known_differences_methods:
   "16": "The number of groups was calculated with powertools' formula, which multiplies the variance of the log odds ratio by 1.2, a factor its documentation does not source; simulating the mixed-model analysis suggests about a sixth fewer groups would give the target power."
   "17": "Power was calculated with InteractionPoweR's fixed-model formula for the R-squared change; simulating studies with newly sampled predictors gave lower power in a checked example (about 76% where the formula gave 80%, needing about 10% more participants)."
   "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
+
+# How a replication plan takes each card's original effect (queue item 21;
+# decisions.md, 12 November 2026). Every card has one entry:
+#   exact      one of the four designs whose goals table has its own rule
+#              (two_groups, one_sample, paired, correlation)
+#   effect     the focal effect, one number: what it is, and its scale
+#              (none: as reported; log: a ratio, planned on the log scale;
+#              fisher_z: a correlation)
+#   multi_df   a test of several degrees of freedom, with no one-number
+#              effect; the text names the focal contrast to plan instead
+#   none       why a replication's goals table doesn't fit the card
+# A replication plan opened on the card starts with it; the researcher can
+# change it on the plan's page.
+replication_effects:
+  E1: {exact: one_sample}
+  E2: {exact: two_groups}
+  E3: {exact: paired}
+  E4: {exact: correlation}
+  E76: {effect: "repeated-measures correlation (r)", scale: fisher_z}
+  E41: {effect: "the cross-level interaction (how much the within-person slope changes with the moderator)", scale: none}
+  E5: {effect: "odds ratio between the two groups", scale: log}
+  E6: {multi_df: "for a 2 x 2 table, the odds ratio (card E5 or E27); for a larger table, the one comparison the hypothesis is about"}
+  E7: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
+  E22: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
+  E8: {effect: "the group by condition interaction (the difference in change between the groups)", scale: none}
+  E9: {effect: "the interaction coefficient (b for X times W)", scale: none}
+  E15: {effect: "the interaction coefficient (b for X times W)", scale: none}
+  E31: {effect: "the three-way interaction coefficient", scale: none}
+  E10: {effect: "the indirect effect (ab)", scale: none}
+  E16: {effect: "the indirect effect (ab)", scale: none}
+  E42: {effect: "the one relative indirect effect the hypothesis is about", scale: none}
+  E39: {effect: "the natural indirect effect", scale: none}
+  E33: {effect: "the condition effect (the fixed effect of condition)", scale: none}
+  E63: {multi_df: "the difference between the two conditions the hypothesis is about (card E33)"}
+  E75: {effect: "the effect of interest as a rate ratio or odds ratio", scale: log}
+  E67: {effect: "the item predictor's coefficient", scale: none}
+  E68: {effect: "the coefficient of interest (a fixed effect)", scale: none}
+  E43: {effect: "hazard ratio", scale: log}
+  E69: {none: "A study of reliability or agreement estimates how consistent a measure is rather than testing an effect, so a replication is planned for the precision of that estimate on this card."}
+  E44: {effect: "the actor or partner effect the hypothesis is about", scale: none}
+  E62: {effect: "the coefficient of interest (a fixed effect)", scale: none}
+  E11: {effect: "the one indirect effect the hypothesis is about", scale: none}
+  E12: {effect: "the serial indirect effect", scale: none}
+  E13: {effect: "the index of moderated mediation", scale: none}
+  E14: {effect: "the index of moderated mediation", scale: none}
+  E17: {effect: "the index of moderated mediation", scale: none}
+  E38: {effect: "the index of moderated mediation", scale: none}
+  E40: {effect: "the index of moderated mediation for the mediator the hypothesis is about", scale: none}
+  E18: {multi_df: "the difference between the two groups the hypothesis is about (card E19, a specific comparison)"}
+  E54: {multi_df: "the difference between the two conditions the hypothesis is about (card E3 for two conditions)"}
+  E55: {multi_df: "the one contrast the hypothesis is about, such as the difference in change between two groups (card E8)"}
+  E56: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design"}
+  E20: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design"}
+  E21: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design (card E7)"}
+  E23: {effect: "the adjusted difference between the two groups (with three or more groups, the one comparison the hypothesis is about)", scale: none}
+  E24: {effect: "the coefficient of the predictor the hypothesis is about", scale: none}
+  E25: {effect: "the difference between the proportion and the fixed value", scale: none}
+  E26: {effect: "the odds ratio from the pairs that changed", scale: log}
+  E36: {none: "An equivalence study aims to show an effect is too small to matter; a replication of it is planned on this card, with the same equivalence bounds."}
+  E48: {multi_df: "the one proportion the hypothesis is about, against its expected value (card E25)"}
+  E29: {effect: "the odds ratio from the ordinal (proportional odds) model", scale: log}
+  E47: {effect: "the odds ratio for the effect the hypothesis is about (in a 2 x 2 design, the interaction)", scale: log}
+  E49: {effect: "the difference between the two correlations, on Fisher's z scale", scale: none}
+  E52: {effect: "the ratio of the group's variance to the fixed value", scale: log}
+  E53: {effect: "the ratio of the two groups' variances", scale: log}
+  E57: {effect: "the ratio of the variances after and before", scale: log}
+  E59: {multi_df: "the one outcome and comparison the hypothesis is about (card E2 for two groups on one outcome)"}
+  E60: {multi_df: "the one outcome the hypothesis is about, against its fixed value (card E1)"}
+  E61: {none: "A meta-analysis's average effect is checked by the studies that follow, not by one replication, so no replication goals are planned for it."}
+  E27: {effect: "the odds ratio of the predictor the hypothesis is about", scale: log}
+  E70: {effect: "the odds ratio, for the one category the hypothesis is about", scale: log}
+  E71: {none: "Differential item functioning is checked item by item in a new sample on this card; it has no single effect to replicate."}
+  E35: {effect: "the difference between the groups' slopes (the group by time coefficient)", scale: none}
+  E73: {none: "An exploratory factor analysis has no single effect to replicate; plan the new sample's recovery of the factors on this card."}
+  E45: {effect: "the change in level (or in slope) at the known point", scale: none}
+  E74: {effect: "the cross-lagged path the hypothesis is about", scale: none}
+  E58: {none: "Finding profiles or classes has no single effect to replicate; plan the new sample on this card."}
+  E72: {effect: "the difference in d' between the conditions or groups", scale: none}
+  E30: {multi_df: "the one comparison the hypothesis is about, such as how the effect differs between two of the groups (card E15)"}
+  E32: {effect: "the interaction coefficient, as an odds ratio or rate ratio", scale: log}
+  E28: {effect: "the rate ratio of the predictor the hypothesis is about", scale: log}
+  E34: {effect: "the coefficient of interest (a fixed effect)", scale: none}
+  E37: {effect: "the path or factor correlation the hypothesis is about (standardised)", scale: none}
+  E19: {effect: "the contrast's estimate", scale: none}
+  E51: {effect: "the difference between the two correlations", scale: none}
+  E50: {none: "This card starts from a noncentrality parameter rather than an effect, so a replication's goals are planned on the card for the design it came from."}
+  E46: {none: "Planning for a confidence interval's width estimates an effect rather than testing it; a replication is planned for the same precision on this card."}
+  E64: {multi_df: "the difference between the two groups the hypothesis is about (card E29 or a rank test on card E2)"}
+  E66: {effect: "the odds ratio per step of the ordered groups (the trend's slope)", scale: log}
 
 forms:
   E1:
@@ -1881,6 +1975,58 @@ forms:
 
   # People nested in groups (simr): a person-level X, a group-level W and
   # their cross-level interaction (31 October 2026).
+  # Within-person moderation (E41): occasions within people, a predictor
+  # measured on each occasion (X, centred within each person) and one
+  # measured once per person (W); the cross-level interaction in E62's
+  # two-level model, with n counting observations (goal > unit
+  # "observations"), so the result names people and occasions.
+  E41:
+    methods_name: "a two-level mixed model of occasions within people, with an occasion-level and a person-level predictor"
+    tool: simr
+    departures: ["16"]
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: two_level,
+           variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {method: satterthwaite_t}, goal: {unit: observations}}
+    groups:
+      - input: "The outcome, what is measured on each occasion, and what is measured once per person"
+        fields:
+          - {id: Y_label, label: "Outcome, measured on each occasion (for example, evening mood)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "Measured on each occasion (X; for example, the day's stress)", type: text, path: variables.X.label, required: true}
+          - {id: W_label, label: "Measured once per person (W, the moderator; for example, neuroticism)", type: text, path: variables.W.label, required: true}
+          - {id: two_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a mood rating)", binary: "Yes or no (for example, drank alcohol that day)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer), and every effect and SD below is on the log-odds scale."}
+          - {id: two_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: two_outcome, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect)"},
+             default: wald, default_source: "the test glmer's summary reports, simr's default for a numeric predictor"}
+      - input: "Each effect, how much people differ, and the occasion-to-occasion SD"
+        fields:
+          - {id: two_probability, writeup_label: "chance of yes for a typical person", label: "The chance of 'yes' for a typical person on a typical occasion, at the average X and W (0 to 1)", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: two_outcome, is: binary}}
+          - {id: b_X, writeup_label: "X's effect within people", label: "X's effect within people: the change in the outcome (or its log odds, for yes/no) on an occasion when X is one SD above the person's own average", type: number, path: population.b_X, effect: true}
+          - {id: b_W, writeup_label: "W's effect between people", label: "W's effect between people: the change in a person's average outcome for one SD more of W", type: number, path: population.b_W, effect: true}
+          - {id: b_XW, writeup_label: "cross-level interaction", label: "The moderation (cross-level interaction): how much X's within-person effect changes for one SD more of W", type: number, path: population.b_XW, effect: true}
+          - {id: sd_group, writeup_label: "SD of people's averages", label: "SD of people's average outcome beyond W (random intercepts)", type: number, path: population.sd_group, effect: true, min: 0,
+             help: "In the outcome's units. With an occasion-to-occasion SD of 1, an SD of 0.7 means about a third of the variance lies between people (an intraclass correlation of 0.33), common in diary studies."}
+          - {id: sd_group_slope, writeup_label: "SD of X's effect across people", label: "SD of X's within-person effect across people beyond W (random slopes)", type: number, path: population.sd_group_slope, effect: true, min: 0}
+          - {id: r_group, label: "Correlation of people's averages and their X effects (optional; empty = 0)", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
+          - {id: sd_residual, writeup_label: "occasion-to-occasion SD", label: "Occasion-to-occasion SD: how much a person's outcome varies around their own line", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+             shown_if: {field: two_outcome, is: continuous}}
+      - input: "The number of occasions, and the effect to test"
+        fields:
+          - {id: cluster_size, label: "Occasions per person (the same for everyone; for example, 14 diary days)", type: number, path: population.cluster_size, required: true, min: 2, integer: true,
+             help: "The sample size below counts every observation: people times occasions. The result gives the number of people too."}
+          - {id: two_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {cross_level_interaction: "The moderation: does X's within-person effect depend on W?", within_effect: "X's effect within people", between_effect: "W's effect between people",
+                       within_and_interaction: "Both X's effect and the moderation significant in the same study (joint power)",
+                       all_effects: "All three effects significant in the same study (joint power)"},
+             help: "Joint power is the chance that every effect named is significant in the same study, when the claim needs all of them. It is lower than each effect's own power.",
+             default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
+
   E62:
     methods_name: "a two-level mixed model with a person-level and a group-level predictor"
     tool: simr
@@ -2699,6 +2845,7 @@ forms:
     methods_name: "an ANCOVA (Shieh's method)"
     tool: pwrss
     known_differences: ["15"]
+    known_differences_if_method: {"15": ancova_f}
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_ancova,
            variables: {A: {type: between_factor}, "Y": {type: continuous}},
@@ -2740,6 +2887,29 @@ forms:
           - {id: r2_covariates, writeup_label: "R-squared of the covariates", label: "R-squared: the share of the outcome's variance the covariates explain (for one covariate, its correlation with the outcome, squared)", type: number, path: population.r2_covariates, effect: true, min: 0, max_exclusive: 1}
           - {id: covariates, label: "Number of covariates", type: number, path: population.covariates, required: true, min: 1, integer: true,
              default: 1, default_source: "one covariate, such as the before score"}
+      # The Bayes factor ANCOVA (15 November 2026): the effect's inclusion
+      # Bayes factor, as JASP's Bayesian ANCOVA gives it, simulated with
+      # BayesFactor's generalTestBF().
+      - input: "The ANCOVA's F test or a Bayes factor"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {ancova_f: "ANCOVA (F test, Shieh's method)", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANCOVA), instead of a p-value, simulated"},
+             default: ancova_f, default_source: "the F test pwrss's power.f.ancova.shieh() computes, the test G*Power's ANCOVA calculates (with fixed covariates)",
+             choice_notes: {bayes_factor: "Power becomes the chance that the effect's inclusion Bayes factor reaches the threshold you choose below, adjusting for the covariates. Simulated, with equal groups."}}
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the group effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's Bayesian ANCOVA, 'r scale fixed effects' 0.5 (jaspAnova's AdditionalOptions.qml)"}
+          - {id: prior_scale_covariates, label: "Scale of the analysis prior on the covariates' slopes (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale_covariates, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.354, default_source: "JASP's Bayesian ANCOVA, 'r scale covariates' 0.354 (jaspAnova's AdditionalOptions.qml), BayesFactor's 'medium' scale for continuous predictors (sqrt(2)/4)"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't, including the models with and without each covariate. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
 
   E24:
     sides: false
@@ -2765,6 +2935,23 @@ forms:
                     single_coefficient: [{path: target_test.effect, value: coefficient}, {path: variables.X.type, value: continuous}]}}
           - {id: X_label, label: "The predictor you are testing", type: text, path: variables.X.label, required: true,
              shown_if: {field: question, is: single_coefficient}}
+          # The Bayes factor for R-squared (14 November 2026): BayesFactor's
+          # linearReg.R2stat(), the JZS Bayes factor of JASP's Bayesian
+          # linear regression, exact from the noncentral F.
+          - {id: r2_test, label: "Test version", type: select, path: target_test.method, required: true,
+             shown_if: {field: question, is: r2_zero},
+             choices: {f_test: "The F test of R-squared (G*Power's R-squared deviation from zero)",
+                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
+             default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
+             choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model with none, reaches the threshold you choose below. Worked out exactly, with no simulation."}}
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the predictors explain some of the outcome than if they explain none. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_scale, label: "Scale of the analysis prior on the standardised coefficients (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             default: 0.354, default_source: "JASP's Bayesian linear regression (JZS prior, 'r scale' 0.354), the same as BayesFactor's 'medium' scale for continuous predictors (regressionBF(rscaleCont = 'medium'), sqrt(2)/4; BayesFactor 0.9.12-4.8)",
+             help: "The prior you will use when you analyse the data. 0.354 is JASP's default; use the same value as in your analysis plan."}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
         fields:
           # Cohen's f-squared, G*Power's input (12 November 2026): the engine

@@ -726,6 +726,37 @@ interaction, covariates and a bootstrap interval are not offered yet.
 | BayesFactor | `anovaBF()` on the data; `oneWayAOV.Fstat()` from the F statistic of a balanced one-way design, the same Bayes factor | — | `rscaleFixed` "medium", 1/2, by default [BayesFactor help] |
 | **powerkit** | BayesFactor's `oneWayAOV.Fstat()`, which rises with F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (k - 1 and n - k df, noncentrality f^2 n, as for the F test), with no simulation (E18, from 2 November 2026) [powerkit] | The group means and one SD (Cohen's f) | r scale 0.5 by default, JASP's and BayesFactor's; equal groups. `oneWayAOV.Fstat()` equals `anovaBF()` on the data (tested, and in every run's check run). Not a departure |
 
+## Bayes factor for R-squared in a linear regression (E24)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian linear regression; analysis only, no planning) | BAS's `bas.lm()`: the Bayes factor of each model against the null model; with every predictor, the model with all of them against the intercept-only model | — | Prior "JZS" with "r scale" 0.354 by default (jaspRegression, `inst/qml/RegressionLinearBayesian.qml`); model prior uniform over model size |
+| BayesFactor | `regressionBF()` and `lmBF()` on the data (Liang, Paulo, Molina, Clyde and Berger, 2008; Rouder and Morey, "Bayesian testing in regression", the references in `regressionBF()`'s help); `linearReg.R2stat()` from R-squared, the same Bayes factor | — | `rscaleCont` "medium", sqrt(2)/4 (0.354), by default [BayesFactor help] |
+| **powerkit** | BayesFactor's `linearReg.R2stat()`, which rises with R-squared and so with the regression's F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (p and n - p - 1 df, noncentrality f^2 n, as for the F test), with no simulation (E24, from 14 November 2026) [powerkit] | R-squared of the model with all the predictors, and their number | r scale 0.354 by default, JASP's and BayesFactor's. `linearReg.R2stat()` equals `lmBF()` on the data (tested, and in every run's check run); on one simulated data set (n = 80, three predictors) BAS's JZS Bayes factor, JASP's engine, was 15.73 where `linearReg.R2stat()` gave 15.75. Not a departure |
+
+The R-squared increase and one coefficient have no Bayes factor version
+yet. Their Bayes factor (the full model against the model without the
+tested predictors) depends on two R-squared values, not one, and JASP
+reports a coefficient's evidence as a model-averaged inclusion Bayes
+factor, which also depends on how the predictors correlate: which of the
+two to plan for is open (`next.md` item 2).
+
+## Bayes factor of an ANCOVA effect (E23)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian ANCOVA; analysis only, no planning) | The effect's inclusion Bayes factor over the models that respect marginality, fitted with BayesFactor's linear-model Bayes factors; the covariates are model terms like the factors (not nuisance terms, which would stay in every model, unless the user marks them so: `inst/qml/AncovaBayesian.qml`) | — | "r scale fixed effects" 0.5 and "r scale covariates" 0.354 (jaspAnova, `inst/qml/common/bayesian/AdditionalOptions.qml`); Effects table across all models, uniform model prior (`DefaultOptions.qml`) |
+| BayesFactor | `generalTestBF(whichModels = "withmain")`: every model that respects marginality, with Cauchy priors of scale `rscaleFixed` on the factors' effects and `rscaleCont` on the covariates' slopes (Rouder, Morey, Speckman and Province, 2012) | — | "medium" scales by default: 0.5 and sqrt(2)/4 (0.354) [BayesFactor help] |
+| **powerkit** | The effect's inclusion Bayes factor from `generalTestBF()` and bayestestR's `bayesfactor_inclusion()`, across all models by default (matched models as an option), simulated with Spower: equal cells, the covariates independent standard normal scores (random, as in Shieh's method for the F test, and unrelated to the groups, as randomisation makes them), with equal slopes that together explain the given R-squared within cells (E23, from 15 November 2026) [powerkit] | Adjusted group or cell means, the SD before adjusting, the covariates' R-squared and their number | JASP's r scales 0.5 and 0.354 by default. Not a departure: the analysis is JASP's default one |
+
+How the covariates' R-squared is shared out among several covariates
+does not change the F test's power, but it can change the Bayes factor a
+little, because the models with and without each covariate enter the
+average; powerkit gives each the same share. A covariate that is always
+in the model (JASP's "Add to null model") is not offered yet.
+
 ## Sequential Bayes factor designs (Labs)
 
 | Tool | Test | Effect size | Settings |
@@ -841,6 +872,19 @@ intercepts and X slopes, `y ~ x + w + z + x:w + x:z + (1 + x | site) +
 (1 + x | site:group)`, tested as at two levels (Satterthwaite's t test,
 Departure 16, or for a yes/no outcome glmer's Wald z test or the
 likelihood ratio).
+
+With occasions within people (E41, within-person moderation, from 14
+November 2026) the same model is fitted with occasions at level 1 and
+people at level 2: `y ~ x + w + x:w + (1 + x | person)`, X measured on each
+occasion and centred within each person, W measured once per person, the
+cross-level interaction the default effect. The tests are those above. The
+one difference is what the sample size counts: `goal.unit` is
+`"observations"`, so `goal.n` is people times occasions, a whole number of
+people, and the result and the methods paragraph give both ("1,120
+observations (80 people measured on 14 occasions each)"). That follows
+mlmpower, which plans the number of level-2 units and the number of
+observations in each together; it isn't a departure, since no tool
+researchers use plans within-person moderation in a different unit.
 
 ## Effect-size conversion (a published t, F, r, d, odds ratio or risk ratio)
 
@@ -1468,7 +1512,7 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
-- **Shown to users:** on E33's, E62's, E63's, E68's and E67's result screens
+- **Shown to users:** on E33's, E41's, E62's, E63's, E68's and E67's result screens
   (`app/routing/forms.yaml`, `departures`, key "16"), and in the methods
   paragraph's full version. For E62, `test-backend-two-level.R`
   ("Satterthwaite's test is never more liberal than simr's z test")

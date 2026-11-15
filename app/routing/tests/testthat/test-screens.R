@@ -14,7 +14,7 @@ test_that("only cards that don't calculate say 'No numbers are calculated'", {
   for (id in c(unlist(forms$calculates), names(forms$simulations$endpoints))) {
     expect_no_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
-  for (id in c("E41", "E65")) {
+  for (id in c("E65")) {
     expect_match(as.character(card_ui(tree, id)), "No numbers are calculated", fixed = TRUE, label = id)
   }
 })
@@ -83,8 +83,11 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
   # No whole card has no tool at present (E39, the last, calculates since
   # 14 November 2026), so a card that doesn't calculate is marked as one.
   t2 <- tree
-  t2$endpoints$E41$no_ready_made_tool <- TRUE
-  html <- as.character(card_ui(t2, "E41"))
+  t2$endpoints$E65$no_ready_made_tool <- TRUE
+  t2$endpoints$E65$card_text <- NULL
+  t2$endpoints$E65$established_tools <- NULL
+  t2$endpoints$E65$generic <- NULL
+  html <- as.character(card_ui(t2, "E65"))
   expect_match(html, "No ready-made tool.", fixed = TRUE)
   expect_match(html, text, fixed = TRUE)
   # E32 calculates moderation and mediation of a yes/no or count outcome;
@@ -196,7 +199,11 @@ test_that("cards show undecided settings as compact labelled placeholders, in th
   html <- as.character(card_ui(tree, "E7"))
   expect_match(html, "Undecided, for the maintainer", fixed = TRUE)
   expect_match(html, "Judgement call 3.1", fixed = TRUE)
-  html_not <- as.character(card_ui(tree, "E41"))
+  # No card outside powerkit is non-generic now (E41 calculates since 14
+  # November 2026), so E65 stands in as one.
+  t3 <- tree
+  t3$endpoints$E65$generic <- NULL
+  html_not <- as.character(card_ui(t3, "E65"))
   expect_match(html_not, "Open question 6", fixed = TRUE)
 })
 

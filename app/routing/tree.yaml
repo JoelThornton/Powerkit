@@ -1382,30 +1382,32 @@ endpoints:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
     technical_name: "ANCOVA"
     plain_name: "Compare groups adjusting for a covariate (e.g. the before score)"
-    search_words: "ancova analysis of covariance baseline adjusted pre post randomised trial"
+    search_words: "ancova analysis of covariance baseline adjusted pre post randomised trial bayesian ancova bayes factor"
     template: "factorial_anova / oneway_ancova, factorial_ancova"
-    backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula)"
-    method: "Formula (no simulation)"
+    backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula); BayesFactor's generalTestBF() with bayestestR's bayesfactor_inclusion() for the Bayes factor of the effect (simulated with Spower)"
+    method: "Formula (no simulation); the Bayes factor version is simulated"
     status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() (one factor) and ANCOVA_analytic() (two factors) in the engine's tests. Not yet checked against G*Power or a published example."}
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() (one factor) and ANCOVA_analytic() (two factors) in the engine's tests. The Bayes factor version agrees with an independently written simulation of the same Bayes factor, for strong evidence for an effect and for none. Not yet checked against G*Power or a published example."}
     card_points:
       - "powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
       - "It uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses; Superpower names Keppel's approach as the approximate one."
-    inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome"]
+      - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANCOVA? Choose it as the test version: powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors."
+    inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome", "The ANCOVA's F test or a Bayes factor"]
     tier: v2
     alternatives: ["a t-test or ANOVA on change scores", "the mixed (group by time) interaction", "a regression with the covariate as a predictor"]
   E24:
     doc_name: "Multiple regression (R² or one coefficient)"
     technical_name: "Multiple regression"
     plain_name: "Several predictors at once, or one predictor controlling for others"
-    search_words: "linear regression ols coefficient r squared robust standard errors hc3 hc4 heteroscedasticity quantile median regression partial correlation covariates moderated treatment effect multiple regression hierarchical regression r squared change f squared f2 f² cohen's f squared"
+    search_words: "linear regression ols coefficient r squared bayesian linear regression bayes factor regression jzs robust standard errors hc3 hc4 heteroscedasticity quantile median regression partial correlation covariates moderated treatment effect multiple regression hierarchical regression r squared change f squared f2 f² cohen's f squared"
     template: "multiple_regression / r2_zero, r2_increase, single_coefficient"
-    backend: "pwrss: power.f.regression() (the F test, by formula); Spower with car (HC3 and HC4 standard errors) or quantreg (quantile regression) for one coefficient tested those ways (simulated)"
+    backend: "pwrss: power.f.regression() (the F test, by formula); Spower with car (HC3 and HC4 standard errors) or quantreg (quantile regression) for one coefficient tested those ways (simulated); BayesFactor's linearReg.R2stat() for the Bayes factor for R-squared (exact)"
     method: "Formula (no simulation); simulation for robust standard errors and quantile regression"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. Not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. The Bayes factor for R-squared agrees with lmBF() on data simulated with fixed predictors, for the chance of strong evidence for an effect, for none and of misleading evidence. Not yet checked against a published example."}
     card_points:
       - "One predictor's coefficient, controlling for the others, is tested with its partial R-squared (G*Power's single regression coefficient)."
+      - "Will you analyse whether the predictors together explain anything with a Bayes factor, as in JASP's Bayesian linear regression? Choose it as the test version for R-squared against 0: powerkit gives the chance of strong evidence, with JASP's default prior, exactly."
       - "A treatment effect that depends on a measured moderator, with the outcome measured before and after: choose \"Whether some predictors add to the others\", with 4 predictors in the full model (the treatment, the moderator, the before score and the treatment x moderator product) and 1 tested (the product). The R-squared increase is how much the product adds once the other three are in the model."
       - "If the outcome spreads out more at some values of the predictor than others, choose robust (HC3 or HC4) standard errors; to test the median or another quantile instead of the mean, quantile regression. powerkit simulates both for the spread and error shape you give. With skewed errors whose spread changes, quantile regression's usual test rejects too often, so its power is optimistic there."
     inputs: ["Your outcome's name and what you want to test", "R-squared, the R-squared change, or the predictor's partial R-squared", "Number of predictors", "How the predictor's coefficient is tested, and the spread and shape of the errors"]
@@ -1719,18 +1721,29 @@ endpoints:
     alternatives: ["conditional indirect effects at chosen values of W", "one mediator at a time, if the mediators are unrelated"]
   E41:
     doc_name: "Within-person, repeated-measures or multilevel correlation, moderation or mediation"
-    technical_name: "Within-person correlation, moderation and mediation"
+    technical_name: "Within-person moderation (two-level mixed model of occasions within people)"
     plain_name: "Relationships measured within people, or in nested data"
-    search_words: "mixed model multilevel hlm repeated measures"
+    search_words: "mixed model multilevel hlm repeated measures within-person moderation cross-level interaction diary study experience sampling esm ecological momentary assessment ema daily diary intensive longitudinal random slope"
+    template: "mixed_model / two_level"
+    backend: "simr: powerSim() on y ~ X + W + X:W + (1 + X | person), X centred within each person, each effect tested with lmerTest's Satterthwaite t test, or for yes/no glmer's Wald or likelihood-ratio test (simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    no_ready_made_tool: "Within-person mediation (an occasion-level X affecting an occasion-level mediator and outcome)"
+    # The study plan's analyses that reach this card but that its form
+    # doesn't calculate (R/ui.R, the combined sample size).
+    not_calculated_for: [mediation, modmed]
+    validation: {file: test-validation-two-level.R, note: "The same two-level model as the card for people in groups, with occasions in place of people and people in place of groups: agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for each effect, recovers every effect and SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
-      - "Relationships measured within people, or in nested data: whether one score predicts another within people when the relationship depends on something else, or runs through a third variable (within-person moderation and mediation), or a person-level score's link with something measured many times."
-      - "powerkit doesn't calculate these yet. For whether two scores simply go together within people, measured together several times, use the repeated-measures correlation card, which does."
-    status: not_in_powerkit
-    inputs: ["Depends on the model"]
+      - "Each person is measured on many occasions, as in a diary or experience-sampling study. Something measured on each occasion (X, such as the day's stress) predicts the outcome on that occasion (such as evening mood), and something measured once per person (W, such as neuroticism) may change how strongly: within-person moderation, the cross-level interaction."
+      - "You give X's effect within people, W's effect between people and the moderation, how much people differ in their average and in X's effect, the occasion-to-occasion SD and the number of occasions per person. The outcome can be a score or yes or no (a logistic mixed model)."
+      - "Analysed with a two-level mixed model with a random intercept and a random slope of X for each person, X centred within each person (the model of the card for people in groups); simulated with simr, so the answer carries a little random error. The sample size counts observations, and the result gives the number of people and occasions."
+      - "For whether two scores simply go together within people, use the repeated-measures correlation card. Within-person mediation is not yet calculated here."
+    inputs: ["The outcome, what is measured on each occasion, and what is measured once per person", "Each effect, how much people differ, and the occasion-to-occasion SD", "The number of occasions, and the effect to test"]
     packages:
-      - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models (moderation, cross-level effects). No tool found for within-person mediation."}
-      - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4."}
-    tier: later
+      - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4: powerkit's route."}
+      - {name: mlmpower, url: "https://cran.r-project.org/package=mlmpower", what: "Power for multilevel models from variance explained (moderation, cross-level effects). No tool found for within-person mediation."}
+    tier: v2
+    alternatives: ["the repeated-measures correlation card, for whether two scores go together within people", "the card for people in groups, for pupils in classes or employees in teams"]
   E76:
     doc_name: "Repeated-measures correlation (two scores measured together on several occasions)"
     technical_name: "Repeated-measures correlation (rmcorr)"

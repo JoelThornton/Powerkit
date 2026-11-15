@@ -2913,6 +2913,49 @@ test_that("2 x 2 ANOVA (E7): the Bayes factor of the effect, as JASP's inclusion
   expect_identical(calc$result$bayes$inclusion, "matched_models")
 })
 
+test_that("ANCOVA (E23): the Bayes factor of the effect, as JASP's Bayesian ANCOVA gives it, simulated and written up", {
+  fields <- form_fields(form_groups(forms, "E23"))
+  values <- modifyList(form_examples$E23, list(test_version = "bayes_factor", evidence_threshold = "10", prior_scale = "0.5",
+    prior_scale_covariates = "0.354", inclusion = "all_models", goal = "power", n = "120"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E23", fields, values)
+  expect_identical(spec$target_test$method, "bayes_factor")
+  expect_equal(spec$target_test$prior_scale, 0.5)
+  expect_equal(spec$target_test$prior_scale_covariates, 0.354)
+  expect_identical(spec$target_test$inclusion, "all_models")
+  expect_null(spec$target_test$alpha)
+  # Shieh's method against G*Power (Known difference 15) is about the F test.
+  expect_false("15" %in% known_difference_keys(forms, "E23", spec))
+  expect_true("15" %in% known_difference_keys(forms, "E23", build_spec(forms, "E23", fields, form_examples$E23)))
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$bayes$prior_scale_covariates, 0.354)
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "with a Bayes factor ANCOVA (strong evidence: an inclusion Bayes factor of at least 10, across all models", fixed = TRUE)
+  expect_match(words[["headline"]], "on the covariates' slopes, r scale 0.354, as in JASP", fixed = TRUE)
+  w <- writeup_text(forms$forms$E23, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "was conducted for a Bayes factor ANCOVA (default Bayes factors with a Cauchy analysis prior of r scale 0.5", fixed = TRUE)
+  expect_match(w[["short"]], "If there were no effect, the probability of strong evidence for its absence", fixed = TRUE)
+  expect_no_match(w[["short"]], "association", fixed = TRUE)
+})
+
+test_that("the factorial ANOVAs' Bayes factor names its test in the write-up, and the no-effect side says effect, not association", {
+  fields <- form_fields(form_groups(forms, "E7"))
+  values <- modifyList(form_examples$E7, list(test_version = "bayes_factor", evidence_threshold = "10", prior_scale = "0.5",
+    inclusion = "all_models", goal = "power", n = "200"))
+  spec <- build_spec(forms, "E7", fields, values)
+  expect_match(test_text(spec), "^a Bayes factor between-participants ANOVA \\(strong evidence: an inclusion Bayes factor of at least 10")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  w <- writeup_text(forms$forms$E7, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "was conducted for a Bayes factor between-participants ANOVA (target effect: interaction) (default Bayes factors", fixed = TRUE)
+  expect_match(w[["short"]], "(from 100 simulated studies with no effect)", fixed = TRUE)
+  expect_match(bayes_sentence(calc$spec, calc$result)[[1]], "If there were no effect, a study of 200", fixed = TRUE)
+})
+
 test_that("dyadic data with a pair-level moderator: the screen builds W, its paths and the joint test", {
   fields <- form_fields(form_groups(forms, "E44"))
   values <- modifyList(form_examples$E44, list(goal = "power", n = "200", apim_moderator = "yes", W_label = "Relationship length",
@@ -3425,4 +3468,42 @@ test_that("repeated counts, yes/no and ordered categories (E75) build valid spec
   expect_identical(grouped$target_test$effect, "interaction")
   expect_equal(unlist(grouped$population$rates), c(2, 2, 2, 1.4))
   expect_silent(powerkit::validate_spec(grouped))
+})
+
+test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and words the result as evidence", {
+  fields <- form_fields(form_groups(forms, "E24"))
+  values <- list(Y_label = "Wellbeing score", question = "r2_zero", r2_test = "bayes_factor", evidence_threshold = "10", prior_scale = "0.354",
+    r2 = "0.1", predictors = "3", goal = "power", n = "150", just_type = "smallest_effect_of_interest", just_source = "Example only")
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("alpha" %in% vapply(applies, function(f) f$id, ""))
+  expect_equal(form_problems(applies, values), character())
+  spec <- build_spec(forms, "E24", fields, values)
+  expect_identical(spec$target_test$method, "bayes_factor")
+  expect_null(spec$target_test$alpha)
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "BayesFactor")
+  text <- paste(result_sentences(calc$spec, calc$result), collapse = " ")
+  expect_match(text, "chance of strong evidence", fixed = TRUE)
+  w <- writeup_text(forms$forms[["E24"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "a Bayes factor test of R-squared in a linear regression", fixed = TRUE)
+  expect_match(w[["short"]], "as in JASP", fixed = TRUE)
+})
+
+test_that("within-person moderation (E41) counts observations, and the result names people and occasions", {
+  fields <- form_fields(form_groups(forms, "E41"))
+  values <- modifyList(form_examples$E41, list(goal = "power", n = "1120"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E41", fields, values)
+  expect_identical(spec$template, "two_level")
+  expect_identical(spec$goal$unit, "observations")
+  expect_identical(spec$target_test$effect, "cross_level_interaction")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "simr")
+  text <- paste(result_sentences(calc$spec, calc$result), collapse = " ")
+  expect_match(text, "1,120 observations (80 people measured on 14 occasions each)", fixed = TRUE)
+  w <- writeup_text(forms$forms[["E41"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "80 people measured on 14 occasions each", fixed = TRUE)
 })

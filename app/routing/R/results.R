@@ -375,6 +375,7 @@ group_sizes <- function(spec, n) {
 }
 
 group_text <- function(spec, n) {
+  if (identical(spec$goal$unit, "observations")) return(sprintf(" (%s)", people_occasions(n, spec)))
   if (identical(spec$template, "cluster_randomised")) {
     m <- spec$population$cluster_size
     return(sprintf(" (%s groups of %s, %s groups in each condition)", whole(n / m), whole(m), whole(n / m / 2)))
@@ -432,7 +433,7 @@ test_text <- function(spec) {
     return(sprintf("%s at alpha = %s", name, alpha_text(spec$target_test$alpha)))
   }
   alt <- spec$target_test$alternative %||% "two_sided"
-  if (is_bayes_anova(spec) || is_bayes_table(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
+  if (is_bayes_anova(spec) || is_bayes_table(spec) || is_bayes_regression(spec) || is_bayes_factorial(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
   if (is_bayes_test(spec)) {
     side <- switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
     return(sprintf("%s (%s; %s)", bayes_test_name(spec), side, bayes_settings_text(spec)))
@@ -513,7 +514,30 @@ is_dyadic <- function(spec) identical(spec$design, "dyadic")
 # pairs (dyadic data).
 n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else
   if (identical(spec$template, "its")) "time points after the intervention" else
-  if (identical(spec$goal$unit, "items")) "items" else NULL
+  if (identical(spec$goal$unit, "items")) "items" else
+  if (identical(spec$goal$unit, "observations")) "observations" else NULL
+
+# Occasions within people (E41: goal > unit "observations"): n counts every
+# observation, so each count is followed by the people and occasions it
+# stands for.
+people_occasions <- function(n, spec) {
+  k <- spec$population$cluster_size
+  sprintf("%s people measured on %s occasions each", whole(n / k), whole(k))
+}
+
+observation_units <- function(text, spec) {
+  pattern <- "([0-9][0-9,]*) (participants in total|participants|observations)( \\([^)]*\\))?"
+  vapply(text, function(t) {
+    m <- gregexpr(pattern, t, perl = TRUE)
+    hits <- regmatches(t, m)[[1]]
+    if (!length(hits)) return(t)
+    regmatches(t, m) <- list(vapply(hits, function(h) {
+      n <- as.numeric(gsub(",", "", sub(" .*", "", h)))
+      sprintf("%s observations (%s)", whole(n), people_occasions(n, spec))
+    }, character(1)))
+    t
+  }, character(1), USE.NAMES = FALSE)
+}
 
 # Interrupted time series: how often the test finds a change that isn't
 # there in a series of the planned length (the engine's `type1`), shown
@@ -791,6 +815,7 @@ result_sentences <- function(spec, result) {
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   # Dyadic data: n counts pairs.
   if (is_dyadic(spec)) out[] <- gsub(" participants in total", " pairs", out, fixed = TRUE)
+  if (identical(spec$goal$unit, "observations")) out[] <- observation_units(out, spec)
   # Interrupted time series: n counts the points after the intervention.
   if (identical(spec$template, "its")) {
     out[] <- gsub(" participants in total", sprintf(" time points after the intervention (and %s before)", whole(spec$population$n_pre)), out, fixed = TRUE)
@@ -2351,13 +2376,40 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.5, 3)),
       if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else ""))
   }
+  if (is_bayes_factorial(spec)) {
+    jasp <- isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5)) && (!is_bayes_ancova(spec) || isTRUE(all.equal(tt$prior_scale_covariates %||% 0.354, 0.354)))
+    return(sprintf("strong evidence: an inclusion Bayes factor of at least %s, %s; Cauchy prior on the effects, r scale %s%s%s",
+      format(tt$evidence_threshold %||% 10),
+      if (identical(tt$inclusion, "matched_models")) "across matched models" else "across all models",
+      format(signif(tt$prior_scale %||% 0.5, 3)),
+      if (is_bayes_ancova(spec)) sprintf(", and on the covariates' slopes, r scale %s", format(signif(tt$prior_scale_covariates %||% 0.354, 3))) else "",
+      if (jasp) ", as in JASP" else ""))
+  }
+  if (is_bayes_regression(spec)) {
+    return(sprintf("strong evidence: BF10 of at least %s; Cauchy prior on the standardised coefficients, r scale %s%s",
+      format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.354, 3)),
+      if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else ""))
+  }
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
 
+# The inclusion Bayes factor of an effect in a factorial or repeated-measures
+# ANOVA (BayesFactor's anovaBF()) or an ANCOVA (generalTestBF()), simulated:
+# no direction, JASP's r scales by default.
+is_bayes_factorial <- function(spec) {
+  is_bayes_test(spec) && isTRUE(spec$template %in% c("2x2_between", "factorial_between", "oneway_within", "factorial_within",
+    "2x2_mixed", "mixed", "oneway_ancova", "factorial_ancova"))
+}
+is_bayes_ancova <- function(spec) is_bayes_test(spec) && isTRUE(spec$template %in% c("oneway_ancova", "factorial_ancova"))
+
 # The Bayes factor one-way ANOVA (BayesFactor's oneWayAOV.Fstat()): no
 # direction, and JASP's r scale of 0.5 by default.
 is_bayes_anova <- function(spec) is_bayes_test(spec) && identical(spec$template, "oneway_between")
+
+# The Bayes factor for R-squared (BayesFactor's linearReg.R2stat()): no
+# direction, and JASP's r scale of 0.354 by default.
+is_bayes_regression <- function(spec) is_bayes_test(spec) && identical(spec$template, "r2_zero")
 
 # The Bayes factor test of a table (BayesFactor's contingencyTableBF(),
 # simulated): no direction, JASP's sampling plan by default.
@@ -2386,6 +2438,15 @@ bayes_test_name <- function(spec) {
     paired_t = "a paired-samples Bayes factor t-test",
     independent_t = "an independent-samples Bayes factor t-test",
     oneway_between = "a Bayes factor one-way ANOVA",
+    r2_zero = "a Bayes factor test of R-squared in a linear regression",
+    oneway_ancova = ,
+    factorial_ancova = "a Bayes factor ANCOVA",
+    "2x2_between" = ,
+    factorial_between = "a Bayes factor between-participants ANOVA",
+    oneway_within = ,
+    factorial_within = "a Bayes factor repeated-measures ANOVA",
+    "2x2_mixed" = ,
+    mixed = "a Bayes factor mixed ANOVA",
     chi_square_independence = "a Bayes factor test of association")
 }
 
@@ -2413,8 +2474,8 @@ bayes_sentence <- function(spec, result) {
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
       "(O'Hagan, Stevens and Campbell, 2005, call this assurance)."), format(b$effect_sd)),
     if (!is.null(b$null_nrep)) sprintf(
-      "If there were no association, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an association %s of the time (from %s simulated studies with no association).",
-      whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence), whole(b$null_nrep)
+      "If there were no %s, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for %s %s of the time (from %s simulated studies with no %s).",
+      bayes_null_what(spec), whole(b$n), k, percent(b$evidence_for_null), bayes_null_article(spec), percent(b$misleading_evidence), whole(b$null_nrep), bayes_null_what(spec)
     ) else if (b$evidence_for_null > 0) sprintf(
       "If there were no effect, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an effect %s of the time.",
       whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence)
@@ -2443,16 +2504,21 @@ bayes_design_prior_sentence <- function(spec, result) {
   }
 }
 
+# What "no effect" is for the no-effect side: an association for a table,
+# an effect otherwise.
+bayes_null_what <- function(spec) if (is_bayes_table(spec)) "association" else "effect"
+bayes_null_article <- function(spec) paste("an", bayes_null_what(spec))
+
 bayes_null_writeup <- function(spec, result) {
   b <- result$bayes
   if (is.null(b)) return(NULL)
   k <- format(b$evidence_threshold)
-  what <- if (!is.null(b$null_nrep)) "association" else "effect"
+  what <- bayes_null_what(spec)
   if (b$evidence_for_null > 0) {
     sprintf(paste("If there were no %s, the probability of strong evidence for its absence (BF01 of at least %s) would be %s,",
       "and of misleading strong evidence for an %s (BF10 of at least %s) %s%s."),
       what, k, percent(b$evidence_for_null), what, k, percent(b$misleading_evidence),
-      if (!is.null(b$null_nrep)) sprintf(" (from %s simulated studies with no association)", whole(b$null_nrep)) else "")
+      if (!is.null(b$null_nrep)) sprintf(" (from %s simulated studies with no %s)", whole(b$null_nrep), what) else "")
   } else {
     sprintf(paste("If there were no %s, a study of %s could not reach strong evidence for its absence (BF01 of at least %s) whatever the data,",
       "and the probability of misleading strong evidence for an %s (BF10 of at least %s) would be %s."),
@@ -3345,6 +3411,18 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy analysis prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       format(signif(tt$prior_scale %||% 0.5, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else "",
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_factorial(spec)) {
+    tt <- spec$target_test
+    jasp <- isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5)) && (!is_bayes_ancova(spec) || isTRUE(all.equal(tt$prior_scale_covariates %||% 0.354, 0.354)))
+    test <- sprintf("%s (default Bayes factors with a Cauchy analysis prior of r scale %s on the effects%s%s, testing %s, computed with BayesFactor and simulated with Spower; strong evidence defined as an inclusion Bayes factor of at least %s)",
+      name, format(signif(tt$prior_scale %||% 0.5, 3)),
+      if (is_bayes_ancova(spec)) sprintf(" and %s on the covariates' standardised slopes", format(signif(tt$prior_scale_covariates %||% 0.354, 3))) else "",
+      if (jasp) ", as in JASP" else "", result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_regression(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("a Bayes factor test of R-squared in a linear regression (the JZS Bayes factor of the model with all the predictors against the intercept-only model, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+      format(signif(tt$prior_scale %||% 0.354, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else "",
+      result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy analysis prior of scale %s on the effect size, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
@@ -3490,6 +3568,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_dyadic(spec)) main <- dyad_units(main)
   if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
+  if (identical(spec$goal$unit, "observations")) main <- observation_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, welch_population_note(spec), allocation_note(result), whole_groups_note(spec, result), mediation_analysis_sentence(result), count_test_sentence(spec),
     if (identical(spec$template, "paired_t")) "The paired analysis models within-person differences without period, sequence or carry-over terms.")
@@ -3630,6 +3709,7 @@ ethics_text <- function(spec, result, fields, values) {
   if (is_dyadic(spec)) body <- dyad_units(body)
   if (identical(spec$template, "its")) body <- its_units(body, spec)
   if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
+  if (identical(spec$goal$unit, "observations")) body <- observation_units(body, spec)
   p <- result$provenance
   paste(c(body, planning_warning_notes(spec, result), sprintf("The calculation was made with %s and the R package %s (version %s) and can be reproduced from the saved plan.", powerkit_cited(p$packages[["powerkit"]]),
     p$backend, p$packages[[p$backend]])), collapse = " ")

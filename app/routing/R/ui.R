@@ -1271,7 +1271,10 @@ combined_n_ui <- function(tree, ticked, primary, asks, answers, forms, results) 
     r <- if (!is.null(res$endpoint)) plan_result(results, id, res$endpoint)
     if (!is.null(r) && identical(r$goal, "sample_size")) {
       n[[id]] <- r$n
-    } else if (!is.null(res$endpoint) && !is.null(forms) && has_form(forms, res$endpoint)) {
+    } else if (!is.null(res$endpoint) && !is.null(forms) && has_form(forms, res$endpoint) &&
+      !id %in% unlist(tree$endpoints[[res$endpoint]]$not_calculated_for)) {
+      # A card can calculate some analyses that lead to it but not others
+      # (E41: within-person moderation, not mediation).
       to_do <- c(to_do, id)
     } else {
       elsewhere <- c(elsewhere, id)
@@ -1339,7 +1342,7 @@ settings_table_ui <- function(tree) {
 bayes_form_designs <- function(tree, forms) {
   field_of <- function(form) {
     fields <- c(unlist(lapply(form$groups, `[[`, "fields"), recursive = FALSE), form$extra)
-    for (f in fields) if (identical(f$type, "select") && "bayes_factor" %in% names(f$choices)) return(f$id)
+    for (f in fields) if (identical(f$type, "select") && "bayes_factor" %in% names(f$choices)) return(f)
     NULL
   }
   out <- list()
@@ -1349,7 +1352,10 @@ bayes_form_designs <- function(tree, forms) {
     form <- forms$forms[[id]]
     if (is.null(form)) next
     field <- field_of(form)
-    if (!is.null(field)) out[[id]] <- list(id = id, field = field)
+    # `requires`: the choices that show the test-version field (E24's
+    # question), set with it in Bayes mode.
+    if (!is.null(field)) out[[id]] <- list(id = id, field = field$id,
+      requires = Filter(function(cond) !is.null(cond[["is"]]), shown_if_conditions(field)))
   }
   out
 }

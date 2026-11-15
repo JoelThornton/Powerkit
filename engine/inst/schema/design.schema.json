@@ -603,7 +603,7 @@
           "exclusiveMaximum": 1
         },
         "evidence_threshold": {
-          "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion, the correlation, two proportions and the one-way ANOVA): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
+          "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion, the correlation, two proportions, the ANOVAs, the ANCOVA and R-squared in a regression): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
           "type": "number",
           "exclusiveMinimum": 1
         },
@@ -614,7 +614,7 @@
           "maximum": 0.999
         },
         "prior_scale": {
-          "description": "Bayes factor t-tests and the Bayes factor one-way ANOVA only: the scale of the Cauchy analysis prior on the standardised effect under the alternative (the Jeffreys-Zellner-Siow Bayes factor). Default for the t-tests 1/sqrt(2) (about 0.707), bfpwr's default (powertbf01(pscale = 1/sqrt(2))); for the ANOVA 0.5, JASP's 'r scale fixed effects' (BayesFactor's oneWayAOV.Fstat(rscale = 0.5)).",
+          "description": "Bayes factor t-tests, the Bayes factor ANOVAs and ANCOVA and the Bayes factor for R-squared only: the scale of the Cauchy analysis prior on the standardised effect under the alternative (the Jeffreys-Zellner-Siow Bayes factor). Default for the t-tests 1/sqrt(2) (about 0.707), bfpwr's default (powertbf01(pscale = 1/sqrt(2))); for the ANOVAs and the ANCOVA 0.5, JASP's 'r scale fixed effects' (BayesFactor's oneWayAOV.Fstat(rscale = 0.5)); for R-squared 0.354, JASP's Bayesian linear regression 'r scale' (BayesFactor's 'medium', sqrt(2)/4, in linearReg.R2stat() and regressionBF()).",
           "type": "number",
           "exclusiveMinimum": 0
         },
@@ -694,7 +694,12 @@
             "all_models",
             "matched_models"
           ],
-          "description": "Bayes factor of an effect in a factorial ANOVA only: its inclusion Bayes factor across all models (the default, JASP's) or across matched models."
+          "description": "Bayes factor of an effect in a factorial ANOVA or an ANCOVA only: its inclusion Bayes factor across all models (the default, JASP's) or across matched models."
+        },
+        "prior_scale_covariates": {
+          "description": "Bayes factor ANCOVA only: the scale of the Cauchy analysis prior on the covariates' standardised slopes. Default 0.354, JASP's Bayesian ANCOVA 'r scale covariates' (BayesFactor's generalTestBF(rscaleCont = 'medium'), sqrt(2)/4).",
+          "type": "number",
+          "exclusiveMinimum": 0
         }
       },
       "allOf": [
@@ -726,6 +731,7 @@
               "evidence_threshold": false,
               "congruence": false,
               "prior_scale": false,
+              "prior_scale_covariates": false,
               "prior_a": false,
               "prior_b": false,
               "prior_width": false,
@@ -794,10 +800,11 @@
           "exclusiveMaximum": 1
         },
         "unit": {
-          "description": "Participants and items in two conditions only (mixed_model / crossed_two_condition): what 'n' counts. 'participants' (the default) or 'items': the number of items (stimuli), with population > participants fixed.",
+          "description": "What 'n' counts. 'participants' (the default). 'items' (mixed_model / crossed_two_condition only): the number of items (stimuli), with population > participants fixed. 'observations' (mixed_model / two_level with two levels only, for repeated measurements within people, E41): n counts every observation, the groups being people and population > cluster_size the occasions each is measured on, so the number of people is n / cluster_size; the analysis is unchanged.",
           "enum": [
             "participants",
-            "items"
+            "items",
+            "observations"
           ]
         }
       },
@@ -4669,9 +4676,10 @@
                       "f_test",
                       "ols_hc3",
                       "ols_hc4",
-                      "quantile_regression"
+                      "quantile_regression",
+                      "bayes_factor"
                     ],
-                    "description": "'f_test': the usual F test (for one coefficient, the square of its t test), by pwrss's formula; the only test for templates r2_zero and r2_increase. Template single_coefficient also allows tests simulated with Spower: 'ols_hc3' and 'ols_hc4', the coefficient's test with heteroscedasticity-consistent standard errors (car's hccm(), types HC3 and HC4, through car's linearHypothesis()), and 'quantile_regression', the test of the coefficient in quantile regression (quantreg's rq() and summary.rq(se = \"nid\"))."
+                    "description": "'f_test': the usual F test (for one coefficient, the square of its t test), by pwrss's formula; the only test for templates r2_zero and r2_increase. Template single_coefficient also allows tests simulated with Spower: 'ols_hc3' and 'ols_hc4', the coefficient's test with heteroscedasticity-consistent standard errors (car's hccm(), types HC3 and HC4, through car's linearHypothesis()), and 'quantile_regression', the test of the coefficient in quantile regression (quantreg's rq() and summary.rq(se = \"nid\")). Template r2_zero also allows 'bayes_factor': the Bayes factor for R-squared (BayesFactor's linearReg.R2stat(), the JZS Bayes factor of regressionBF() and lmBF(), JASP's default Bayesian linear regression), exact."
                   }
                 }
               }
@@ -4945,7 +4953,10 @@
               "const": "r_squared"
             },
             "method": {
-              "const": "f_test"
+              "enum": [
+                "f_test",
+                "bayes_factor"
+              ]
             }
           }
         }
@@ -5051,6 +5062,14 @@
           "properties": {
             "effect": {
               "const": "coefficient"
+            },
+            "method": {
+              "enum": [
+                "f_test",
+                "ols_hc3",
+                "ols_hc4",
+                "quantile_regression"
+              ]
             }
           }
         }
@@ -6144,7 +6163,11 @@
               "const": "main_effect_A"
             },
             "method": {
-              "const": "ancova_f"
+              "enum": [
+                "ancova_f",
+                "bayes_factor"
+              ],
+              "description": "'ancova_f': the ANCOVA's F test (Shieh's method). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
             }
           }
         }
@@ -6278,7 +6301,11 @@
               ]
             },
             "method": {
-              "const": "ancova_f"
+              "enum": [
+                "ancova_f",
+                "bayes_factor"
+              ],
+              "description": "'ancova_f': the ANCOVA's F test (Shieh's method). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
             }
           }
         }

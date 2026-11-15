@@ -18,7 +18,8 @@ sample_structure <- function(spec) {
   }
   unit <- if (identical(spec$design, "meta_analysis")) "studies" else
     if (identical(spec$design, "dyadic")) "pairs" else
-      if (identical(spec$goal$unit, "items")) "items" else "participants"
+      if (identical(spec$goal$unit, "items")) "items" else
+        if (identical(spec$goal$unit, "observations")) "observations" else "participants"
   unknown <- identical(spec$design, "generic_test")
   if (unknown) unit <- "analysis units"
   allocation <- sample_allocation(spec)
@@ -41,6 +42,9 @@ sample_structure <- function(spec) {
     "Each participant is counted once.")
   if (allocation$kind %in% c("clusters", "partially_grouped")) {
     note <- sprintf("N counts participants, with %s people per cluster; whole cluster and site allocations are retained.", format_number(allocation$size))
+  }
+  if (identical(unit, "observations")) {
+    note <- sprintf("N counts observations, with each person measured on %s occasions; whole people are retained.", format_number(spec$population$cluster_size))
   }
   if (unknown) note <- "The sample unit is not identified by this generic test; its count is kept separate."
   list(unit = unit, note = note, n_step = step,

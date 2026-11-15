@@ -3492,3 +3492,153 @@ for a closed-form result from a published source; it agrees with 4,000
 simulated studies, and the reliability validation chunk passes with it.
 The approximation stays as "How power is worked out" on the card, for
 comparison with ICC.Sample.Size. Recorded as Departure 29.
+### The Bayes factor ANCOVA on E23, 15 November 2026
+
+The second design of `next.md` item 2: E23 (one-way and two-way ANCOVA)
+takes a Bayes factor test version. The Bayes factor is the one JASP's
+Bayesian ANCOVA reports: the effect's inclusion Bayes factor across all
+models that respect marginality, with the covariates entered as ordinary
+model terms (JASP's default; `AncovaBayesian.qml`) and JASP's r scales,
+0.5 on the effects and 0.354 on the covariates' slopes
+(`AdditionalOptions.qml`), computed with BayesFactor's `generalTestBF()`
+and bayestestR's `bayesfactor_inclusion()`, as the factorial ANOVAs'
+version does with `anovaBF()`. No package plans it, so it is simulated
+with Spower; each study has equal cells and independent standard normal
+covariates with equal slopes explaining the covariates' R-squared within
+cells. About 0.08 s per simulated study for one factor and one covariate,
+so it runs in the app in the background like E7's Bayes factor.
+Validation: `test-validation-bayes-ancova.R` (chunk `bayes_ancova`),
+against a simulation that fits every model with `lmBF()` and averages
+the inclusion Bayes factor by hand. While adding it, the factorial and
+repeated-measures ANOVAs' Bayes factor write-ups were found to omit the
+sentence naming the test and to call the effect an "association"; both
+are fixed for every inclusion Bayes factor. Recommendation for the
+maintainer: keep JASP's default of covariates as model terms rather than
+nuisance terms; the nuisance option ("Add to null model") can be added if
+researchers ask for it. Conventions: `docs/conventions.md`, "Bayes
+factor of an ANCOVA effect (E23)".
+
+### The Bayes factor for R-squared on E24, 14 November 2026
+
+The first design of `next.md` item 2: E24's question "whether the
+predictors together explain anything" takes a Bayes factor test version.
+The Bayes factor is BayesFactor's linear-regression (JZS) Bayes factor of
+the model with all the predictors against the intercept-only model, with
+an r scale of 0.354, JASP's default for its Bayesian linear regression and
+BayesFactor's "medium". It depends on the data only through R-squared, so
+BayesFactor's `linearReg.R2stat()` gives it from the F statistic, and the
+chance of strong evidence is exact: the noncentral F beyond the F at which
+BF10 reaches the threshold, as for the Bayes factor ANOVA (E18). JASP
+computes the Bayes factor with BAS rather than BayesFactor; on one
+simulated data set BAS's JZS Bayes factor was 15.73 and
+`linearReg.R2stat()`'s 15.75, which is within the numerical integration
+of the two packages. Validation: `test-validation-bayes-regression.R`
+(chunk `bayes`), against `lmBF()` on data simulated with fixed predictors.
+The R-squared increase and one coefficient are not offered yet: their
+Bayes factor depends on two R-squared values, and JASP reports a
+coefficient's evidence as a model-averaged inclusion Bayes factor.
+Recommendation for the maintainer: plan the Bayes factor of the full model
+against the model without the tested predictors (what
+`regressionBF(whichModels = "top")` reports, and the direct analogue of
+the F test), simulated from the three independent sums of squares;
+JASP's inclusion Bayes factor depends on the predictors' correlations,
+which researchers rarely know when planning. Conventions:
+`docs/conventions.md`, "Bayes factor for R-squared in a linear regression
+(E24)".
+
+### Within-person moderation on E41, 14 November 2026
+
+E41 now calculates within-person moderation, the design `next.md` item 1
+named for it: people measured on many occasions (a diary or
+experience-sampling study), an occasion-level predictor X centred within
+each person, a person-level moderator W, and their cross-level
+interaction. No new model was needed: it is E62's two-level model
+(`mixed_model / two_level`, simr with lmerTest's Satterthwaite test, or
+glmer's Wald or likelihood-ratio test for a yes/no outcome) with occasions
+at level 1 and people at level 2. What differs is the unit: the spec's
+`goal > unit` is `"observations"`, so the sample size counts people times
+occasions, and the result, the methods paragraph and the R script give
+both ("80 people measured on 14 occasions each"). mlmpower, the other
+package for this design, plans level-2 units and observations per unit
+together; it was not used as the route because E62's simulation already
+covers the model, a yes/no outcome included.
+Recommendation for the maintainer: keep simr as the route for both cards,
+so that one validated model serves them. Within-person mediation (1-1-1
+mediation) stays not calculated: no package plans it, and a simulation of
+a multilevel mediation model is a separate piece of work. Validation:
+`test-validation-two-level.R`. Conventions: `docs/conventions.md`, "People
+within groups, predictors at both levels".
+
+
+### Replication goals for any one-number effect, 15 November 2026
+
+A replication plan's goals table (queue item 21) now covers every card
+whose focal effect is one number, not only an original t-test or
+correlation:
+
+- The four designs with exact routes (two groups, one sample, paired,
+  a correlation) keep them. For any other card the table is planned on
+  the effect's own scale from the original's estimate, its standard
+  error and its sample size. The standard error can be given directly,
+  from a confidence interval (`(upper − lower) / (2 z)`) or from a test
+  statistic (`|estimate / statistic|`). The replication's standard error
+  is the original's scaled by √(original n / replication n), which is
+  BayesRepDesign's relation `se = unitSD / √n` (Pawel, Consonni & Held,
+  2026) with the unit SD read from the original.
+- Ratios (odds, risk, hazard and rate ratios) are planned on the log
+  scale and correlations on Fisher's z, so the normal approximation the
+  goals rest on holds. Each card's effect and scale are listed in
+  `forms.yaml` under `replication_effects`; a multi-df test is told to
+  plan the focal contrast on the card named there, and a card with no
+  single focal effect (a meta-analysis's average, an agreement study)
+  says the goals table does not apply.
+- Small telescopes is not offered on the generic route: d33 needs the
+  design's own power function, which the design's card already has.
+- A test shows the generic route reproduces the exact one-sample and
+  paired tables. For two groups and a correlation it shows the size of
+  the gap: about (1 + d²/8) times as many people for two groups (138
+  against 130 at d = 0.7 for the shrunk prior), and n_o / (n_o − 3) ×
+  (exact − 3) for a correlation (89 against 85), because the generic
+  route reads the unit SD at the original's estimate. This is why the
+  four keep their exact routes.
+
+### Replication plans for an original analysed with Bayes factors, 15 November 2026
+
+A replication plan now asks how the original was analysed (queue item
+21): a significance test, a Bayes factor or a posterior distribution.
+
+- **A Bayes factor.** For a t-test (two groups, one group or pairs), the
+  original's BF10, its sample size and its Cauchy prior's scale (0.707 by
+  default) give its t statistic, by inverting BayesFactor's
+  `ttest.tstat()`, which grows with |t|; the t gives the standardised
+  effect. This is the reverse of the summary-statistics reanalysis of
+  Ly et al. (2018). A test checks the round trip at three t values and
+  three prior scales for each design. The effect is read as positive:
+  the goals are symmetric in its sign. Other designs are told to give a
+  posterior or the estimate with its standard error, because no package
+  gives their Bayes factor from summary statistics alone.
+- **A posterior.** Its mean and SD (or credible interval) stand in for
+  the estimate and its standard error, only when its prior was vague or
+  a default one. An informative prior's posterior is refused with a
+  plain message: it mixes the prior's beliefs into the original's
+  evidence (McLatchie, Warmelink & Tkacheva, 2020, pp. 75–76). A
+  correlation's posterior SD is moved to Fisher's z by the delta method,
+  SD / (1 − r²).
+- **Goals.** Either route leaves out small telescopes and the original's
+  significance level, which rest on a significance test. For a t-test it
+  adds the original's Bayes factor test repeated on the replication's
+  data under the three beliefs, and evidence for no effect (BF01 at the
+  threshold, planned for a true effect of zero), both with bfpwr's
+  `ntbf01()` (Pawel & Held, 2025), whose Bayes factor equals
+  BayesFactor's (tested). The replication and sceptical Bayes factors
+  stay. The queue item named BayesRepDesign's `ssdBF01()` for evidence
+  for no effect; its help says success is BF01 below the level, which is
+  evidence for an effect, so bfpwr's `ntbf01(lower.tail = FALSE)` is used
+  instead.
+- **Sequential.** `bayes_sequential()` takes a normal design prior
+  (`effect`, `effect_sd`), so the results offer to plan the replication
+  as a sequential Bayes factor design in Labs, filled from the chosen
+  belief, the original's prior scale and the threshold.
+- The references (Verhagen & Wagenmakers, 2014; Ly et al., 2018, 2019;
+  McLatchie et al., 2020) were added to `refs.bib` from the published
+  articles.
