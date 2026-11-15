@@ -4234,6 +4234,16 @@
       ],
       "Hash": "61bfe0ff9c9c90f6cb8b7d43eeeba3e8"
     },
+    "pmsampsize": {
+      "Package": "pmsampsize",
+      "Version": "1.1.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "93131ecb91e1cb89a1323bc3ac6b7e67"
+    },
     "PMCMRplus": {
       "Package": "PMCMRplus",
       "Version": "1.9.12",

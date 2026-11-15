@@ -272,6 +272,11 @@ form_examples$E46 <- list(estimate = "proportion", Y_label = "Reports burnout", 
   goal = "precision_n", width = "0.1", conf_level = "0.95",
   just_type = "smallest_effect_of_interest", just_source = "Example only")
 
+# E77: developing a prediction model of a yes/no outcome (pmsampsize).
+form_examples$E77 <- list(outcome = "binary", Y_label = "Relapse within a year", parameters = "20", bin_metric = "c_statistic",
+  c_statistic = "0.8", prevalence = "0.2", goal = "criteria", shrinkage = "0.9",
+  just_type = "prior_study", just_source = "Example only", just_adjustment = "Example only: the reported C-statistic, lowered a little")
+
 # The mediation analysis selector starts at the existing ML/MC method.
 for (ep in c("E10", "E16", "E11", "E12", "E13", "E14", "E17", "E38", "E40")) {
   form_examples[[ep]]$method <- "monte_carlo_ci"

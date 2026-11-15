@@ -60,7 +60,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
     }
     # E24's, E34's, E36's, E37's, E43's, E69's, E51's, E62's and E68's effect sizes appear once their first question is chosen.
     start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E43 = list(question = "log_rank"), E69 = list(question = "icc"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
-                    E46 = list(estimate = "proportion"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"),
+                    E46 = list(estimate = "proportion"), E77 = list(outcome = "binary", bin_metric = "c_statistic"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"),
                     E62 = list(two_outcome = "continuous", in_sites = "no"), E41 = list(two_outcome = "continuous"), E68 = list(three_outcome = "continuous"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
@@ -83,7 +83,13 @@ test_that("other settings start at the wrapped tool's default or, for alpha, its
   # Latent profiles (E58) have no significance test, so no alpha.
   expect_length(Filter(function(f) f$id == "alpha", fields_for("E58")), 0)
   expect_match(Filter(function(f) f$id == "power", fields_for("E58"))[[1]]$label, "right number of profiles", fixed = TRUE)
-  for (ep in setdiff(form_ids, c("E46", "E58", "E73"))) {
+  # Developing a prediction model (E77) has no test: its shrinkage target
+  # starts at pmsampsize's default.
+  expect_length(Filter(function(f) f$id == "alpha", fields_for("E77")), 0)
+  shrinkage <- Filter(function(f) f$id == "shrinkage", fields_for("E77"))[[1]]
+  expect_equal(shrinkage[["default"]], 0.9)
+  expect_match(shrinkage$default_source, "pmsampsize", fixed = TRUE)
+  for (ep in setdiff(form_ids, c("E46", "E58", "E73", "E77"))) {
     # Empty on every card (8 November 2026), with the usual level one
     # click away and an optional reason.
     f <- alpha(ep)
@@ -148,7 +154,8 @@ test_that("the example values build the spec the engine expects", {
     expect_length(form_problems(fields, v), 0)
     spec <- build_spec(forms, ep, fields, v)
     # The generic tests (E50) have no sample size to find.
-    goal <- if (ep == "E50") list(type = "power") else if (ep == "E46") list(width = 0.1, type = "precision") else list(type = "sample_size", power = 0.8)
+    goal <- if (ep == "E50") list(type = "power") else if (ep == "E46") list(width = 0.1, type = "precision") else
+      if (ep == "E77") list(shrinkage = 0.9, type = "criteria") else list(type = "sample_size", power = 0.8)
     got <- spec$goal
     # Within-person moderation (E41) counts observations.
     if (ep == "E41") {
@@ -327,6 +334,7 @@ test_that("the start screen asks only how to start; the aim follows on its own s
 
 test_that("estimation goes to its card; equivalence sets the goal and goes on to the design finder, as does testing a prediction", {
   expect_equal(start_exit(tree, list(aim = "estimate")), "E46")
+  expect_equal(start_exit(tree, list(aim = "prediction_model")), "E77")
   expect_null(start_exit(tree, list(aim = "equivalence")))
   expect_equal(aim_context(tree, list(aim = "equivalence")), list(goal = "equivalence"))
   expect_null(start_exit(tree, list(aim = "predict")))

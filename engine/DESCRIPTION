@@ -82,6 +82,7 @@ Suggests:
     ordinal,
     pbkrtest,
     PITS,
+    pmsampsize,
     PMCMRplus,
     POMADE,
     powerSurvEpi,

@@ -155,7 +155,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Lu2016_bland_altman_n = "verified", HayesPreacher2014_multicategorical = "verified",
       ValeriVanderWeele2013_mediation = "verified",
       VerhagenWagenmakers2014_replication = "verified", Ly2019_replication_bf = "verified",
-      Ly2018_summary_reanalysis = "verified", McLatchie2020_bayes_factors = "verified"
+      Ly2018_summary_reanalysis = "verified", McLatchie2020_bayes_factors = "verified", pmsampsize_method = "verified"
     )
   )
 })

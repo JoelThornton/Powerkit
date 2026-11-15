@@ -37,6 +37,7 @@ if (FALSE) {
   library(ordinal)
   library(pbkrtest)
   library(PITS)
+  library(pmsampsize)
   library(PMCMRplus)
   library(POMADE)
   library(powerSurvEpi)

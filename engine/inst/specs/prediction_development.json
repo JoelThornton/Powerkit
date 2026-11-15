@@ -1,0 +1,33 @@
+{
+  "spec_version": "0.1",
+  "design": "prediction_model",
+  "template": "development",
+  "variables": {
+    "Y": {
+      "type": "binary",
+      "label": "Relapse within a year"
+    }
+  },
+  "population": {
+    "metric": "c_statistic",
+    "c_statistic": 0.8,
+    "parameters": 20,
+    "prevalence": 0.2
+  },
+  "effect_justification": {
+    "type": "convention",
+    "source": "Example only: an existing model's C-statistic of about 0.8, and about one in five relapsing."
+  },
+  "target_test": {
+    "effect": "development_criteria",
+    "method": "riley_criteria"
+  },
+  "goal": {
+    "type": "criteria",
+    "shrinkage": 0.9
+  },
+  "options": {
+    "method": "exact",
+    "seed": 20261115
+  }
+}

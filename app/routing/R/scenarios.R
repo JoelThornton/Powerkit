@@ -74,7 +74,7 @@ compare_named_alternatives <- function(forms, ep_id, fields, values) {
   run <- engine_function("run_spec")
   do.call(rbind, lapply(prepared, function(a) {
     r <- suppressWarnings(run(a$spec))
-    value <- if (identical(r$goal_type, "sample_size")) r$n_required$n else if (identical(r$goal_type, "precision")) r$precision$width else r$curve$power[1]
+    value <- if (r$goal_type %in% c("sample_size", "criteria")) r$n_required$n else if (identical(r$goal_type, "precision")) r$precision$width else r$curve$power[1]
     unit <- sample_description(a$spec)$unit
     data.frame(alternative = a$name,
       goal = if (identical(r$goal_type, "power")) sprintf("Power at N = %s %s", a$spec$goal$n, unit) else sprintf("Sample size for %s%% power", 100 * a$spec$goal$power),

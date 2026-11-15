@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-15"
+    title: "Plan a study that develops a prediction model"
+    text: "A new card finds the minimum sample size for developing a model that predicts an outcome for each person, such as a risk score or a prognostic model, for a yes/no, continuous or time-to-event outcome. It uses the criteria of Riley and colleagues, calculated by the R package pmsampsize: you give the number of candidate predictors, how well a similar model performs and how common the outcome is, and the result shows the sample size each criterion needs and which one sets the answer. Choose \"Develop a model that predicts an outcome\" on the start screen."

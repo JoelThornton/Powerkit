@@ -1,6 +1,8 @@
 planning_decision_ui <- function(form) {
   design <- form$base$design
-  current <- if (isTRUE(form$precision))
+  current <- if (isTRUE(form$criteria))
+    "This screen finds the minimum sample size for developing a prediction model, by criteria that limit overfitting and make its key quantities precise. There is no hypothesis test, so no power or significance level." else
+    if (isTRUE(form$precision))
     "This screen plans the width of an interval, rather than the chance of rejecting a null hypothesis. Expected width is an average; assurance, where offered, specifies a chance of meeting the width target." else
     if (identical(design, "equivalence_test"))
       "This screen plans evidence relative to your equivalence or non-inferiority bounds. A non-significant ordinary test is not evidence of equivalence." else
@@ -28,6 +30,9 @@ planning_decision_ui <- function(form) {
 }
 
 decision_rule_text <- function(spec) {
+  if (identical(spec$design, "prediction_model")) return(sprintf(
+    "Minimum sample size for developing a prediction model, not a significance decision: the criteria of Riley and colleagues, with a shrinkage target of %s.",
+    format(spec$goal$shrinkage %||% 0.9)))
   if (identical(spec$design, "precision")) return(paste(
     "Precision planning, not a significance decision.",
     if (is.null(spec$goal$assurance)) "Target: expected (average) interval width; no probability guarantee of meeting that width is specified." else
@@ -85,6 +90,7 @@ planning_document <- function(tree, forms, calc) {
 # The card's write-up (short and full methods paragraphs) from the
 # calculation's captured answers.
 planning_writeup <- function(forms, id, spec, result, fields, values) {
+  if (identical(spec$design, "prediction_model")) return(prediction_writeup(forms$forms[[id]], spec, result, fields, values, departures_for(forms, id, spec)))
   if (identical(spec$design, "precision")) return(precision_writeup(forms$forms[[id]], spec, result, fields, values, departures_for(forms, id, spec)))
   writeup_text(forms$forms[[id]], spec, result, fields, values,
     departures = departures_for(forms, id, spec),
@@ -186,6 +192,19 @@ additional_input_guide <- function(f) {
   if (identical(f$id, "measurements") && identical(f$path, "population.measurements")) return(make("How many times each person is measured on both scores, the same number for everyone. The repeated-measures correlation uses each person's ups and downs around their own average, so every extra occasion adds information.",
     "Measured on 3 days, each person gives 3 pairs of scores; 100 people then give the test 199 degrees of freedom, N(k - 1) - 1.", "Your study protocol: the number of diary days, sessions or sampling prompts everyone completes.",
     "If some people will miss occasions, run the plan with the number you expect most people to complete and with a smaller number, and report both."))
+  # Developing a prediction model (E77).
+  if (identical(f$id, "shrinkage") && identical(f$path, "goal.shrinkage")) return(make("How much the model's predictor effects may be overestimated through overfitting: the expected uniform shrinkage factor, which Riley et al.'s first criterion keeps at or above this value.",
+    "0.9 means the effects estimated in the development data are expected to be at most about 10% too large; 0.95 asks for less overfitting and needs a larger sample.",
+    "Riley et al. (2019) propose 0.9, pmsampsize's default; a higher value suits a model whose predictions will be used without later recalibration.",
+    "Keep 0.9 unless you have a reason to ask for less overfitting."))
+  if (identical(f$id, "rate") && identical(f$path, "population.rate")) return(make("The overall event rate: the number of events divided by the total person-time of follow-up, in the time unit you use for the time point.",
+    "120 events over 2,000 person-years of follow-up is a rate of 0.06 a year.",
+    "A cohort or registry study of the same population and outcome, reporting events and person-time (or the rate itself).",
+    "Run the plan at a lower and a higher plausible rate, and report both."))
+  if (identical(f$id, "timepoint") && identical(f$path, "population.timepoint")) return(make("The time at which the model will predict each person's risk, in the same unit as the event rate and the mean follow-up.",
+    "2 with a rate per year means the model predicts the risk of the event within 2 years.",
+    "The prediction horizon your model is for: the time over which its users need a person's risk.",
+    "Choose the horizon the model will be used for; it must lie within the follow-up you expect."))
   # Mediation with a yes/no mediator (E39).
   if (identical(f$id, "binm_m_baseline")) return(make("How often the mediator is 'yes' without X: in the first (comparison) group, or at X's average if X is a score.",
     "0.3 means 30% of people given the usual information book an appointment.",

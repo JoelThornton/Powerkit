@@ -29,6 +29,8 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   if (ep == "E47" && !is.null(goal$n)) goal$n <- 60L
   # Precision planning has no power: the width expected at n instead.
   if (ep == "E46") goal <- list(type = "precision", n = goal$n %||% 48L)
+  # A prediction model's criteria have no power or n to set.
+  if (ep == "E77") return(spec)
   spec$goal <- goal
   if (!ep %in% c("E7", "E8", "E36", "E46")) spec$options$nrep <- 100L
   spec
@@ -3531,4 +3533,41 @@ test_that("within-person moderation (E41) counts observations, and the result na
   expect_match(text, "1,120 observations (80 people measured on 14 occasions each)", fixed = TRUE)
   w <- writeup_text(forms$forms[["E41"]], calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "80 people measured on 14 occasions each", fixed = TRUE)
+})
+
+test_that("developing a prediction model (E77) shows each criterion's sample size and the one that sets it, without power", {
+  skip_without_run()
+  skip_if_not_installed("pmsampsize")
+  calc_of <- function(v) {
+    fields <- form_fields(form_groups(forms, "E77"))
+    expect_length(form_problems(fields, v), 0)
+    spec <- build_spec(forms, "E77", fields, v)
+    list(calc = run_calculation(spec, run, seed = 1L), fields = fields, values = v)
+  }
+  out <- calc_of(form_examples$E77)
+  calc <- out$calc
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$spec$goal, list(shrinkage = 0.9, type = "criteria"))
+  expect_identical(calc$result$provenance$backend, "pmsampsize")
+  direct <- pmsampsize::pmsampsize(type = "b", cstatistic = 0.8, parameters = 20, prevalence = 0.2)
+  expect_identical(calc$result$prediction$n, as.numeric(direct$sample_size))
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], sprintf("at least %s participants are needed", whole(direct$sample_size)), fixed = TRUE)
+  expect_match(words[["reading"]], "not a power calculation", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E77", out$fields, out$values, calc))
+  expect_match(html, "The sample size each criterion needs", fixed = TRUE)
+  expect_match(html, "Sets the answer", fixed = TRUE)
+  expect_match(html, "pmsampsize", fixed = TRUE)
+  w <- planning_writeup(forms, "E77", calc$spec, calc$result, out$fields, out$values)
+  expect_match(w[["short"]], "by the criteria of Riley et al.", fixed = TRUE)
+  expect_match(w[["short"]], "pmsampsize (version", fixed = TRUE)
+  expect_match(w[["ethics"]], "not the result of a power analysis", fixed = TRUE)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
+  # A continuous outcome asks for the margin for the mean outcome.
+  v <- modifyList(form_examples$E77, list(outcome = "continuous", bin_metric = NULL, c_statistic = NULL, prevalence = NULL,
+    r2 = "0.2", mean = "1.9", sd = "0.6", intercept_margin = "1.1"))
+  out <- calc_of(v)
+  expect_identical(out$calc$status, "ok")
+  expect_identical(out$calc$spec$population$metric, "r2")
+  expect_identical(nrow(out$calc$result$prediction$criteria), 4L)
 })

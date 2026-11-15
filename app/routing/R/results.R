@@ -809,6 +809,7 @@ result_sentences <- function(spec, result) {
   if (identical(spec$template, "lpa")) return(lpa_sentences(spec, result))
   if (identical(spec$template, "efa")) return(efa_sentences(spec, result))
   if (is_precision(spec)) return(precision_sentences(spec, result))
+  if (is_prediction(spec)) return(prediction_sentences(spec, result))
   if (identical(spec$design, "generic_test")) return(generic_sentences(spec, result))
   if (identical(spec$design, "meta_analysis")) return(meta_sentences(spec, result))
   if (!is.null(result$small_telescopes)) return(telescope_sentences(spec, result))
@@ -2985,6 +2986,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       h3(class = "h5", "The calculation didn't finish"), p(plain_engine_message(calc$message %||% "", fields))))
   }
   if (is_precision(calc$spec)) return(precision_panel_ui(tree, forms, ep_id, fields, values, calc))
+  if (is_prediction(calc$spec)) return(prediction_panel_ui(tree, forms, ep_id, fields, values, calc))
   ep <- tree$endpoints[[ep_id]]
   spec <- calc$spec
   result <- calc$result

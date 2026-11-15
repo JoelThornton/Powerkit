@@ -1,7 +1,7 @@
 # Shared presentation metadata. All scientific counts/allocation come from
 # the engine; these helpers never calculate power or recruitment.
 result_sample_n <- function(result, required_only = FALSE) {
-  required <- identical(result$goal_type, "sample_size") ||
+  required <- result$goal_type %in% c("sample_size", "criteria") ||
     (identical(result$goal_type, "precision") && !is.na(result$precision$target_width %||% NA))
   if (required && is.list(result$n_required)) return(result$n_required$n)
   if (isTRUE(required_only)) return(NULL)

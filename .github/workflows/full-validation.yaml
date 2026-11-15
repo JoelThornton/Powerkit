@@ -137,6 +137,7 @@ on:
           - trend
           - anova_mixed_unequal
           - precision
+          - prediction
           - whole_study
           - cluster
           - multisite

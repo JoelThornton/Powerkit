@@ -38,6 +38,7 @@ population_problems <- function(spec) {
     equivalence_test = check_equivalence_test,
     meta_analysis = check_meta_analysis,
     precision = function(spec) character(),
+    prediction_model = function(spec) character(),
     dyadic = check_apim,
     survival = check_survival,
     reliability = check_reliability,
@@ -51,6 +52,10 @@ population_problems <- function(spec) {
   # Precision planning has no test to check, only its interval and goal.
   if (identical(spec$design, "precision")) {
     return(c(check_labels(spec), check_precision(spec)))
+  }
+  # Prediction model development has criteria, not a test.
+  if (identical(spec$design, "prediction_model")) {
+    return(c(check_labels(spec), check_prediction_model(spec)))
   }
   design_problems <- design_check(spec)
   c(
@@ -68,6 +73,7 @@ population_problems <- function(spec) {
     heterogeneity_problems(spec),
     check_justified_alpha(spec),
     check_precision(spec),
+    check_prediction_model(spec),
     check_proportions_formula_allowed(spec),
     check_correlation_formula_allowed(spec),
     continuity_problems(spec),
