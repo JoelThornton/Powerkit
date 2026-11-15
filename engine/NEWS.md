@@ -1,18 +1,25 @@
-# powerkit 0.68.1
+# powerkit 0.69.0
 
-* Bayes factor three-factor ANOVA (E56): `factorial_anova /
-  factorial_three` takes `target_test > method` `"bayes_factor"`, with
-  `evidence_threshold`, `prior_scale` (default 0.5) and `inclusion`, JASP's
-  Bayesian ANOVA defaults. New file `backend-bayesfactor-three.R`: Spower
-  runs `p_bayes_three()`, which draws equal groups across the between
-  factors, each person scored in every within cell with their own level
-  (correlation `r`), and scores each study with BayesFactor's
-  `anovaBF(whichModels = "withmain")` (participants a random factor with
-  a within factor) and bayestestR's `bayesfactor_inclusion()`; the
-  no-effect side removes the effect from the cell means by the
-  equal-weight decomposition. Check run, spec checks (no `eta_squared`
-  metric, no sphericity correction), R script and design description. New
-  validation chunk `bayes_three`.
+* Replication plans and study plans, from the colleague-testing review of
+  15 November 2026 (app only, apart from one message): the replication
+  planner's Bayes factor goals say "Evidence, at your threshold" instead
+  of "Strong evidence", and the threshold is labelled "Evidence
+  threshold" with 10 as "a common threshold", as on the cards. Variation
+  between studies starts at Small (tau 0.05) rather than none, a
+  departure from BayesRepDesign's default recorded in
+  docs/conventions.md and shown on the result; the engine's default stays
+  0. The replication's alpha and power start empty with one-click
+  buttons, and the planner asks for them before calculating. The
+  pre-replication notes show one box per part in plain words, the
+  second question folded and Karhulahti et al.'s questions in the help.
+  The references are listed once, folded, with links. The result's
+  headline names the belief the write-up starts on, and the table's
+  caption is above it. `replication_planning()`'s threshold error is
+  worded the same way.
+* Study plans: each plan on the Study plans list has its own Delete
+  (with the plan page's confirmation), the description saves when its box
+  is left, an empty plan no longer says so twice, and a line tells a
+  project file (one analysis) from a study plan (several).
 
 # powerkit 0.68.0
 

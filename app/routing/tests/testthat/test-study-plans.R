@@ -292,3 +292,46 @@ test_that("every browser message handler takes its message, as Shiny requires", 
   text <- unlist(lapply(files, readLines, warn = FALSE))
   expect_identical(grep("addCustomMessageHandler\\([^,]+,\\s*(async\\s+)?function\\s*\\(\\s*\\)", text, value = TRUE), character())
 })
+
+test_that("each plan on the Study plans list has its own Delete, warning when it isn't saved", {
+  a <- plan_add_entry(new_plan("Unsaved study", now = t0), entry_with_hash("A", 128, "h1"), now = t0)
+  b <- plan_mark_saved(plan_add_entry(new_plan("Saved study", now = t0), entry_with_hash("B", 90, "h2"), now = t0), "file", now = t0 + 1)
+  html <- as.character(plans_list_ui(setNames(list(a, b), c(a$id, b$id))))
+  expect_match(html, sprintf("Shiny.setInputValue(&quot;plans_delete_plan&quot;, &quot;%s&quot;", a$id), fixed = TRUE)
+  expect_match(html, sprintf("Shiny.setInputValue(&quot;plans_delete_plan&quot;, &quot;%s&quot;", b$id), fixed = TRUE)
+  expect_match(html, "Delete “Unsaved study” from this browser? It has not been saved to a file, so it will be gone.", fixed = TRUE)
+  expect_match(html, "Delete “Saved study” from this browser?&quot;", fixed = TRUE)
+  expect_match(html, 'aria-label="Delete the plan Saved study"', fixed = TRUE)
+  expect_identical(lengths(regmatches(html, gregexpr("plans-row-delete", html, fixed = TRUE))), 2L)
+})
+
+test_that("a plan can be deleted from the list or its page, and an analysis removed from any plan", {
+  shiny::testServer(routing_dir, {
+    a <- plan_add_entry(new_plan("First", now = t0), entry_with_hash("A", 128, "h1"), now = t0)
+    a <- plan_add_entry(a, entry_with_hash("A2", 64, "h3"), now = t0)
+    b <- plan_add_entry(new_plan("Second", now = t0), entry_with_hash("B", 90, "h2"), now = t0)
+    r <- plan_add_entry(new_replication_plan(now = t0), entry_with_hash("R", 200, "h4"), now = t0)
+    state$plans <- setNames(list(a, b, r), c(a$id, b$id, r$id))
+    state$current_plan <- b$id
+    # From the list: only that plan goes, and the current plan is let go.
+    session$setInputs(plans_delete_plan = b$id)
+    expect_setequal(names(state$plans), c(a$id, r$id))
+    expect_null(state$current_plan)
+    # An unknown id changes nothing.
+    session$setInputs(plans_delete_plan = "nosuchplan")
+    expect_setequal(names(state$plans), c(a$id, r$id))
+    # On a plan's page: Remove takes out one analysis, and the others stay.
+    state$plans_view <- a$id
+    session$setInputs(plan_remove = a$entries[[1]]$key)
+    expect_identical(vapply(state$plans[[a$id]]$entries, `[[`, "", "label"), "A2")
+    # A replication plan's analysis is removed the same way.
+    state$plans_view <- r$id
+    session$setInputs(plan_remove = r$entries[[1]]$key)
+    expect_length(state$plans[[r$id]]$entries, 0)
+    expect_true(plan_is_replication(state$plans[[r$id]]))
+    # Delete this plan, on its page, goes back to the list.
+    session$setInputs(plan_delete = r$id)
+    expect_identical(names(state$plans), a$id)
+    expect_null(state$plans_view)
+  })
+})

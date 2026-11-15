@@ -213,7 +213,7 @@ test('a replication plan keeps its notes and planner fields, in the browser and 
   await expect(page.locator('#pk-starting')).toHaveCount(0, { timeout: 30000 });
   await page.locator('#plans_new_replication').click();
   await expect(page.locator('.replication-workspace')).toContainText('Planning the replication');
-  await page.locator('#labs_study').fill('Smith (2019)');
+  await page.locator('#labs_finding').fill('Practice helps recall.');
   await page.locator('input[name=rep_section][value=original]').click();
   await page.locator('#rep_effect').fill('0.45');
   // Kept in the browser across a reload (saved shortly after typing).
@@ -221,7 +221,7 @@ test('a replication plan keeps its notes and planner fields, in the browser and 
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.locator('.study-plan-chip').click();
   await page.locator('.plans-row-name', { hasText: 'Replication plan' }).click();
-  await expect(page.locator('#labs_study')).toHaveValue('Smith (2019)');
+  await expect(page.locator('#labs_finding')).toHaveValue('Practice helps recall.');
   await page.locator('input[name=rep_section][value=original]').click();
   await expect(page.locator('#rep_effect')).toHaveValue('0.45');
   await expect(page.locator('#rep_find_design')).toBeVisible();
@@ -231,7 +231,7 @@ test('a replication plan keeps its notes and planner fields, in the browser and 
   const file = info.outputPath('replication.powerkit.json');
   await (await pending).saveAs(file);
   const saved = JSON.parse(await fs.readFile(file, 'utf8'));
-  expect(saved.replication.fields.labs_study).toBe('Smith (2019)');
+  expect(saved.replication.fields.labs_finding).toBe('Practice helps recall.');
   expect(saved.replication.fields.rep_effect).toBe('0.45');
 });
 

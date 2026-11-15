@@ -61,7 +61,7 @@ r, positive; for \code{"generic"}, on the reported scale, a ratio above 1
 for a ratio), for the agreement and too-small-to-matter goals; \code{NULL}
 leaves those goals out.}
 
-\item{threshold}{The Bayes factor counted as strong evidence.}
+\item{threshold}{The evidence threshold: the Bayes factor the replication should reach.}
 
 \item{n}{A replication sample size (in total, people or pairs) at which
 to give the chance of each goal, or \code{NULL}.}

@@ -374,7 +374,7 @@ app_css <- "
   .labs-sde summary { font-weight: 600; color: #0a5a8c; cursor: pointer; }
   .observed-power-warning { font-size: 0.9rem; border-left: 4px solid #a12a2a; background: #fbeaea; border-radius: 0.4rem; padding: 0.4rem 0.75rem; margin: -0.25rem 0 0.75rem 0; }
   .labs-tool-card { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.9rem 1rem; margin-bottom: 0.75rem; }
-  .labs-back { padding-left: 0; margin-bottom: 0.5rem; }
+  .labs-back, .plans-back { padding-left: 0; margin-bottom: 0.5rem; text-decoration: none; }
   .labs-return { font-size: 0.9rem; background: #eef3fa; border-left: 4px solid #0a5a8c; border-radius: 0.4rem; padding: 0.5rem 0.75rem; margin-bottom: 1rem; }
   .labs-signpost { font-size: 0.9rem; background: #eef3fa; border-radius: 0.4rem; padding: 0.4rem 0.75rem; margin: -0.25rem 0 0.75rem 0; }
   .labs-hint-hidden .labs-signpost { display: none; }
@@ -592,6 +592,9 @@ app_css <- "
   .result-compare { margin: 0.75rem 0 1rem; }
   .result-compare-tables { display: flex; flex-wrap: wrap; gap: 0.75rem 2rem; }
   .result-compare-table { border-collapse: collapse; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+  .replication-workspace .result-table caption { caption-side: top; font-weight: 600; color: #2b3a52; }
+  .labs-more-question { margin: 0 0 0.75rem 0; }
+  .plans-row-delete { margin-left: auto; }
   .result-compare-table caption { caption-side: top; padding: 0 0 0.25rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: #5a6b85; }
   .result-compare-table th, .result-compare-table td { padding: 0.3rem 0.85rem 0.3rem 0; text-align: left; vertical-align: top; border-bottom: 1px solid var(--pk-line); }
   .result-compare-table thead th { font-weight: 600; color: #4a5568; }
@@ -2085,7 +2088,10 @@ server <- function(input, output, session) {
   observe({
     # A replication plan's fields are typed in its workspace, which is not
     # part of this page: changing them doesn't redraw it.
-    strip <- function(p) { p$saved_at <- NULL; p$saved_how <- NULL; p$too_large <- NULL
+    # Nor does the description, kept as its box is left: the box already
+    # shows it (`changed` drives only the status line, which has its own
+    # output).
+    strip <- function(p) { p$saved_at <- NULL; p$saved_how <- NULL; p$too_large <- NULL; p$description <- NULL; p$changed <- NULL
       if (plan_is_replication(p)) { p$replication$fields <- NULL; p$changed <- NULL }; p }
     view <- state$plans_view %||% ""
     shown <- if (!is.null(state$plans[[view]])) list(view = view, plan = strip(state$plans[[view]]), n = length(state$plans))
@@ -2113,18 +2119,27 @@ server <- function(input, output, session) {
     if (!is.null(plan)) plans_put(f(plan))
   }
   observeEvent(input$plan_name_save, edit_viewed(function(p) plan_edit(p, name = input$plan_name)))
-  observeEvent(input$plan_description_save, edit_viewed(function(p) plan_edit(p, description = input$plan_description)))
+  observeEvent(input$plan_description_edit, {
+    edit <- input$plan_description_edit
+    plan <- if (is.character(edit$id) && length(edit$id) == 1L) plan_get(edit$id)
+    if (is.null(plan)) return()
+    text <- plan_clean_text(edit$text %||% "", plan_description_max)
+    if (!identical(text, plan$description %||% "")) plans_put(plan_edit(plan, description = text))
+  })
   observeEvent(input$plan_entry_role, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_role$key, role = input$plan_entry_role$role)))
   observeEvent(input$plan_entry_note, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_note$key, note = input$plan_entry_note$note)))
   observeEvent(input$plan_remove, edit_viewed(function(p) plan_remove_entry(p, input$plan_remove)))
-  observeEvent(input$plan_delete, {
-    id <- isolate(state$plans_view)
+  # Deleting one plan, from its page or from its row on the list.
+  delete_plan <- function(id) {
     plans <- isolate(state$plans)
+    if (!is.character(id) || length(id) != 1L || is.null(plans[[id]])) return()
     plans[[id]] <- NULL
     state$plans <- plans
-    if (identical(state$current_plan, id)) state$current_plan <- NULL
-    state$plans_view <- NULL
-  })
+    if (identical(isolate(state$current_plan), id)) state$current_plan <- NULL
+    if (identical(isolate(state$plans_view), id)) state$plans_view <- NULL
+  }
+  observeEvent(input$plan_delete, delete_plan(input$plan_delete))
+  observeEvent(input$plans_delete_plan, delete_plan(input$plans_delete_plan))
   observeEvent(input$plans_forget_all, {
     session$sendCustomMessage("pk_plans_forget_all", list())
     plans_sent$stamp <- list()

@@ -22,7 +22,11 @@ test_that("the record keeps known fields only, as text, and blanks are left out"
   expect_null(replication_record(endpoint = "not an id")$endpoint)
   # The screen gets every field, with the planner's starting values.
   v <- replication_values(r)
-  expect_identical(v$rep_alpha, "0.05")
+  # Alpha and power start empty, with buttons, as on the cards; variation
+  # between studies starts at Small (P-04, 15 November 2026).
+  expect_identical(v$rep_alpha, "")
+  expect_identical(v$rep_power, "")
+  expect_identical(v$rep_tau, "0.05")
   expect_identical(v$labs_goals, "")
   expect_setequal(names(v), replication_plan_field_ids)
 })
