@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-15"
+    title: "A Bayes factor for ANCOVA"
+    text: "The ANCOVA card plans a Bayes factor for the group effect, or either effect or the interaction with two factors, as JASP's Bayesian ANCOVA reports it: choose it as the test version, and powerkit simulates the chance that the effect's Bayes factor reaches your threshold, adjusting for the covariates, with JASP's default priors. The two-factor and repeated-measures ANOVAs' Bayes factor write-ups now name the test they plan for."
+  - date: "2026-11-15"
     title: "A Bayes factor for multiple regression"
     text: "The multiple regression card plans a Bayes factor for whether the predictors together explain anything, as JASP's Bayesian linear regression reports it: choose it as the test version for R-squared against 0, and powerkit gives the chance that the Bayes factor reaches your threshold, with JASP's default prior, with no simulation."
   - date: "2026-11-15"
