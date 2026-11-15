@@ -29,7 +29,7 @@ plan_counts_compatible <- function(entries) {
 plan_entry <- function(tree, endpoint, calc, route) {
   result <- calc$result
   goal <- result$goal_type
-  words <- if (is_precision(calc$spec)) precision_sentences(calc$spec, result) else result_sentences(calc$spec, result)
+  words <- result_sentences(calc$spec, result)
   list(
     endpoint = endpoint,
     label = plan_label(tree, endpoint),

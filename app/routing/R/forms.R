@@ -512,6 +512,42 @@ precision_goal_fields <- function(tool) {
   )
 }
 
+# Prediction model development (E77): no power or significance level.
+# The goal is the criteria of Riley and colleagues, whose targets are
+# pmsampsize's defaults; the shrinkage target may be raised.
+prediction_goal_fields <- function(tool) {
+  develop <- list(field = "purpose", is = "development")
+  validate <- list(field = "purpose", is = "validation")
+  width <- function(id, label, help) {
+    list(id = id, writeup_label = tolower(label), label = label, help = help, type = "number", path = paste0("goal.", id),
+         required = TRUE, min_exclusive = 0, default = tool[[id]], default_source = tool[[paste0(id, "_source")]], shown_if = validate)
+  }
+  list(
+    list(id = "goal", label = "What do you want to find out?", type = "select", required = TRUE,
+         choices = list(criteria = "The minimum sample size the model's criteria need"),
+         buttons = TRUE, button_labels = list(criteria = "Minimum sample size"),
+         default = "criteria", default_source = "the only goal for developing or validating a prediction model: there is no power to find"),
+    list(id = "shrinkage", writeup_label = "shrinkage target", label = "Target shrinkage of the predictor effects (criterion 1)",
+         help = "How little the model may overfit: 0.9 means the predictor effects are expected to be overestimated by no more than about 10%. A higher target (0.95) asks for less overfitting and a larger sample.",
+         type = "number", path = "goal.shrinkage", required = TRUE, min_exclusive = 0, max_exclusive = 1,
+         default = tool[["shrinkage"]], default_source = tool[["shrinkage_source"]], shown_if = develop),
+    list(id = "intercept_margin", writeup_label = "margin for the mean outcome", label = "How precisely to estimate the mean outcome: within this factor of the true mean",
+         help = "For example 1.1: the estimated mean outcome (the model's intercept) should be within 10% of the true mean.",
+         type = "number", path = "goal.intercept_margin", required = TRUE, min_exclusive = 1,
+         default = tool[["intercept_margin"]], default_source = tool[["intercept_margin_source"]],
+         shown_if = list(develop, list(field = "outcome", is = "continuous"))),
+    width("oe_ci_width", "Width of the 95% interval for the observed/expected ratio (criterion 1)",
+      "How precisely to estimate calibration-in-the-large: 0.2 means an interval such as 0.9 to 1.1 around an O/E of 1. A narrower interval needs more people."),
+    width("cslope_ci_width", "Width of the 95% interval for the calibration slope (criterion 2)",
+      "How precisely to estimate whether the model's predictions are too extreme or too modest: 0.2 means an interval such as 0.9 to 1.1."),
+    width("cstat_ci_width", "Width of the 95% interval for the C-statistic (criterion 3)",
+      "How precisely to estimate the model's discrimination: 0.1 means an interval such as 0.75 to 0.85."),
+    list(id = "nb_ci_width", writeup_label = "width of the interval for the net benefit", label = "Width of the 95% interval for the standardised net benefit (criterion 4; optional, 0.2 if left empty)",
+         help = "Used only with a risk threshold.", type = "number", path = "goal.nb_ci_width", optional = TRUE, min_exclusive = 0,
+         shown_if = validate)
+  )
+}
+
 # Short titles for the goal buttons (R/choice-buttons.R); each goal's full
 # wording is the line under its title.
 goal_button_labels <- function(form) {
@@ -627,6 +663,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     }
   }
   if (isTRUE(form$precision)) test <- precision_goal_fields(tool)
+  if (isTRUE(form$criteria)) test <- prediction_goal_fields(tool)
   if (meta) {
     test <- Filter(function(f) !f$id %in% c("n_max", "situation"), test)
     at <- which(vapply(test, function(f) identical(f$id, "n"), logical(1)))
@@ -641,7 +678,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(list(input = NULL, title = "Scientific question (optional)", fields = list(
       list(id = "research_question", label = "What scientific question will this study address?", type = "text", optional = TRUE,
         help = "For example, whether training improves recall enough to change practice. This labels the planning document; it does not choose a statistical test for you.")))),
-    if (!isTRUE(form$precision)) claim_groups(start$claim, start$n_tests, isTRUE(start$claim_from_plan)),
+    if (!isTRUE(form$precision) && !isTRUE(form$criteria)) claim_groups(start$claim, start$n_tests, isTRUE(start$claim_from_plan)),
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = c(list(
       list(id = "just_type", label = "Source of the effect size", type = "select", path = "effect_justification.type", required = TRUE,
@@ -1363,6 +1400,12 @@ build_spec <- function(forms, ep_id, fields, values) {
     # MBESS's d, d_z and standardised mean use the noncentral t; the other
     # estimates set their own interval (forms.yaml, E46's `sets`).
     if (spec$template %in% c("two_groups", "paired", "one_group")) spec$target_test$method <- "noncentral_t"
+    return(spec)
+  }
+  # Prediction model development (E77): the criteria are the goal; there
+  # is no significance level or power.
+  if (isTRUE(form$criteria)) {
+    spec$goal$type <- "criteria"
     return(spec)
   }
   # The level is what a justified alpha finds, so it isn't asked for; the

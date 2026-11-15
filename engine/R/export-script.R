@@ -48,6 +48,8 @@ export_script <- function(spec, result, file = NULL) {
   spec <- spec_for_export(spec, result)
   lines <- if (justified_alpha_goal(spec)) justified_alpha_script(spec, result) else if (precision_goal(spec)) {
     precision_script(spec, result)
+  } else if (prediction_goal(spec)) {
+    prediction_script(spec, result)
   } else switch(
     result$provenance$backend,
     pwr = ,
@@ -232,6 +234,9 @@ design_description <- function(spec) {
   levels <- function(role) paste(comment_text(unlist(v[[role]]$levels)), collapse = ", ")
   if (rank_test(spec)) {
     return(rank_design_description(spec, label, levels))
+  }
+  if (identical(spec$design, "prediction_model")) {
+    return(prediction_design_description(spec, label, levels))
   }
   if (bayes_factor_test(spec)) {
     return(bayes_design_description(spec, label, levels))
@@ -829,6 +834,13 @@ goal_description <- function(spec) {
     } else {
       sprintf("the width of the %s confidence interval expected with a total sample size of %s", level, goal$n)
     })
+  }
+  if (prediction_goal(spec) && prediction_validation(spec)) {
+    return("the smallest total sample size meeting every criterion of Riley and colleagues' method for validating a model (target interval widths for the O/E ratio, the calibration slope and the C-statistic)")
+  }
+  if (prediction_goal(spec)) {
+    return(sprintf("the smallest total sample size meeting every criterion of Riley and colleagues' method (expected shrinkage of at least %s)",
+      format(goal$shrinkage %||% prediction_defaults$shrinkage)))
   }
   if (spec$design == "generic_test") {
     return(switch(

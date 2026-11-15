@@ -48,7 +48,8 @@
         "mixture",
         "factor_analysis",
         "panel",
-        "time_series"
+        "time_series",
+        "prediction_model"
       ]
     },
     "template": {
@@ -193,6 +194,9 @@
     },
     {
       "$ref": "#/definitions/design_time_series"
+    },
+    {
+      "$ref": "#/definitions/design_prediction_model"
     }
   ],
   "definitions": {
@@ -713,7 +717,8 @@
                 "enum": [
                   "bayes_factor",
                   "bic",
-                  "congruence"
+                  "congruence",
+                  "riley_criteria"
                 ]
               }
             }
@@ -757,7 +762,8 @@
             "power",
             "sensitivity",
             "justified_alpha",
-            "precision"
+            "precision",
+            "criteria"
           ]
         },
         "power": {
@@ -799,6 +805,17 @@
           "exclusiveMinimum": 0.5,
           "exclusiveMaximum": 1
         },
+        "shrinkage": {
+          "description": "Prediction model development only (goal > type 'criteria'): the expected shrinkage of the predictor effects the sample size must give (criterion 1 of Riley and colleagues' method, pmsampsize's shrinkage): 0.9, the default and pmsampsize's recommendation, means the effects would need to be shrunk by 10% to correct for overfitting.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "intercept_margin": {
+          "description": "Prediction model development with a continuous outcome only: the multiplicative margin of error allowed for the estimate of the mean outcome (pmsampsize's mmoe; the criterion for a precise intercept). Default 1.1 (within 10%), pmsampsize's default.",
+          "type": "number",
+          "exclusiveMinimum": 1
+        },
         "unit": {
           "description": "What 'n' counts. 'participants' (the default). 'items' (mixed_model / crossed_two_condition only): the number of items (stimuli), with population > participants fixed. 'observations' (mixed_model / two_level with two levels only, for repeated measurements within people, E41): n counts every observation, the groups being people and population > cluster_size the occasions each is measured on, so the number of people is n / cluster_size; the analysis is unchanged.",
           "enum": [
@@ -806,6 +823,26 @@
             "items",
             "observations"
           ]
+        },
+        "oe_ci_width": {
+          "description": "Prediction model validation only: the target width of the 95% confidence interval for the observed/expected (O/E) ratio (pmvalsampsize's oeciwidth). Default 0.2, pmvalsampsize's default; Riley et al. (2021) note that a wider target can suit a rare outcome.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "cslope_ci_width": {
+          "description": "Prediction model validation only: the target width of the 95% confidence interval for the calibration slope (pmvalsampsize's csciwidth). Default 0.2.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "cstat_ci_width": {
+          "description": "Prediction model validation only: the target width of the 95% confidence interval for the C-statistic (pmvalsampsize's cstatciwidth). Default 0.1.",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "nb_ci_width": {
+          "description": "Prediction model validation with a risk threshold only: the target width of the 95% confidence interval for the standardised net benefit (pmvalsampsize's nbciwidth). Default 0.2.",
+          "type": "number",
+          "exclusiveMinimum": 0
         }
       },
       "allOf": [
@@ -12767,6 +12804,199 @@
         }
       }
     },
+    "design_prediction_model": {
+      "if": {
+        "required": [
+          "design"
+        ],
+        "properties": {
+          "design": {
+            "const": "prediction_model"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "template": {
+            "enum": [
+              "development",
+              "validation"
+            ]
+          },
+          "goal": {
+            "properties": {
+              "type": {
+                "const": "criteria"
+              },
+              "n": false,
+              "power": false
+            }
+          },
+          "options": {
+            "properties": {
+              "method": {
+                "const": "exact"
+              },
+              "nrep": false,
+              "allocation_ratio": false,
+              "ci_draws": false
+            }
+          },
+          "target_test": {
+            "properties": {
+              "effect": {
+                "const": "development_criteria"
+              },
+              "method": {
+                "const": "riley_criteria"
+              },
+              "path": false
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "development"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_prediction_development"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "validation"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_prediction_validation"
+            }
+          }
+        ]
+      }
+    },
+    "template_prediction_development": {
+      "description": "The minimum sample size for developing a multivariable prediction model, by the criteria of Riley and colleagues as pmsampsize's pmsampsize() computes them: little overfitting (an expected shrinkage of the predictor effects of at least goal > shrinkage), a small difference (0.05) between the model's apparent and adjusted R-squared, and a precise estimate of the overall outcome risk (binary and survival outcomes, within 0.05) or of the residual SD and the mean outcome (continuous outcomes). The answer is the largest of the criteria's sample sizes; there is no power.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "description": "The outcome the model predicts: yes/no (binary), a score (continuous), or the time to an event (survival).",
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "enum": [
+                    "binary",
+                    "continuous",
+                    "time_to_event"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "parameters"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "description": "How the model's anticipated performance is given: 'c_statistic' (binary outcomes; converted to a Cox-Snell R-squared with the outcome proportion, by pmsampsize's simulation-based approximation), 'cox_snell_r2' or 'nagelkerke_r2' (binary and survival outcomes), or 'r2' (continuous outcomes: the adjusted R-squared of a previous model, or the apparent R-squared at external validation).",
+              "enum": [
+                "c_statistic",
+                "cox_snell_r2",
+                "nagelkerke_r2",
+                "r2"
+              ]
+            },
+            "c_statistic": {
+              "description": "The anticipated C-statistic (area under the ROC curve), ideally optimism-adjusted.",
+              "type": "number",
+              "exclusiveMinimum": 0.5,
+              "exclusiveMaximum": 1
+            },
+            "cox_snell_r2": {
+              "description": "The anticipated Cox-Snell R-squared.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "nagelkerke_r2": {
+              "description": "The anticipated Nagelkerke R-squared (the Cox-Snell R-squared scaled to lie between 0 and 1).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "r2": {
+              "description": "The anticipated R-squared of a model of a continuous outcome.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "parameters": {
+              "description": "The number of candidate predictor parameters: every parameter that could be estimated, so a categorical predictor with k categories counts k - 1 and a non-linear term counts each of its parameters.",
+              "type": "integer",
+              "minimum": 1
+            },
+            "prevalence": {
+              "description": "Binary outcomes: the proportion with the outcome expected in the development data.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "mean": {
+              "description": "Continuous outcomes: the mean outcome in the population.",
+              "type": "number"
+            },
+            "sd": {
+              "description": "Continuous outcomes: the SD of the outcome in the population.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rate": {
+              "description": "Survival outcomes: the overall event rate, events per person per time unit (the unit of timepoint and mean_follow_up).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "timepoint": {
+              "description": "Survival outcomes: the time at which predictions are made, in the same unit as mean_follow_up.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "mean_follow_up": {
+              "description": "Survival outcomes: the mean follow-up time expected in the development data.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        }
+      }
+    },
     "design_time_series": {
       "if": {
         "required": [
@@ -13250,6 +13480,110 @@
             },
             "method": {
               "const": "delta_method"
+            }
+          }
+        }
+      }
+    },
+    "template_prediction_validation": {
+      "description": "The minimum sample size for validating an existing prediction model of a yes/no outcome in new data (external validation), by the criteria of Riley et al. (2021) as pmvalsampsize's pmvalsampsize() computes them: precise estimates of the observed/expected ratio, the calibration slope and the C-statistic, and optionally of the standardised net benefit at a risk threshold. The answer is the largest of the criteria's sample sizes; there is no power.",
+      "properties": {
+        "variables": {
+          "required": [
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "Y": {
+              "description": "The yes/no outcome the existing model predicts.",
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "binary"
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "prevalence",
+            "c_statistic",
+            "lp_distribution"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "prevalence": {
+              "description": "The proportion with the outcome expected in the validation data.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "c_statistic": {
+              "description": "The C-statistic the model is anticipated to have in the validation data, ideally the optimism-adjusted value from its development study.",
+              "type": "number",
+              "exclusiveMinimum": 0.5,
+              "exclusiveMaximum": 1
+            },
+            "oe": {
+              "description": "The anticipated observed/expected ratio in the validation data (pmvalsampsize's oe). Default 1, perfect calibration-in-the-large.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "calibration_slope": {
+              "description": "The anticipated calibration slope in the validation data (pmvalsampsize's cslope). Default 1.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "lp_distribution": {
+              "description": "The distribution of the model's linear predictor (log-odds) in the validation data, simulated by pmvalsampsize for the calibration-slope criterion: 'normal' with lp_mean and lp_sd (pmvalsampsize's lpnormal), or 'beta', the predicted probabilities' beta distribution with shape parameters beta_a and beta_b (lpbeta).",
+              "enum": [
+                "normal",
+                "beta"
+              ]
+            },
+            "lp_mean": {
+              "description": "For lp_distribution 'normal': the mean of the linear predictor (log-odds).",
+              "type": "number"
+            },
+            "lp_sd": {
+              "description": "For lp_distribution 'normal': the SD of the linear predictor.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "beta_a": {
+              "description": "For lp_distribution 'beta': the first shape parameter of the predicted probabilities' beta distribution.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "beta_b": {
+              "description": "For lp_distribution 'beta': the second shape parameter.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "threshold": {
+              "description": "Optional: the risk threshold at which the model's net benefit is estimated (pmvalsampsize's threshold). Without it there is no net benefit criterion.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "sensitivity": {
+              "description": "Optional, with threshold: the anticipated sensitivity at the threshold. Without it (and specificity), pmvalsampsize estimates both from the simulated linear predictor.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "specificity": {
+              "description": "Optional, with threshold and sensitivity: the anticipated specificity at the threshold.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
             }
           }
         }

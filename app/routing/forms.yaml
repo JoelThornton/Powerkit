@@ -90,6 +90,19 @@ tool_defaults:
     alpha: 0.05
     alpha_source: "the usual 5% level; semPower has no default (semPower.postHoc(alpha) must be given, semPower 2.2.0)"
     power_source: "semPower has no default target power (semPower.aPriori(power = NULL)); enter one"
+  pmsampsize:
+    shrinkage: 0.9
+    shrinkage_source: "pmsampsize's default (pmsampsize(shrinkage = 0.9), pmsampsize 1.1.3), the target Riley et al. (2019) propose"
+    intercept_margin: 1.1
+    intercept_margin_source: "pmsampsize's default (pmsampsize(mmoe = 1.1), pmsampsize 1.1.3)"
+    oe_ci_width: 0.2
+    oe_ci_width_source: "pmvalsampsize's default (pmvalsampsize(oeciwidth = 0.2), pmvalsampsize 0.1.0)"
+    cslope_ci_width: 0.2
+    cslope_ci_width_source: "pmvalsampsize's default (pmvalsampsize(csciwidth = 0.2), pmvalsampsize 0.1.0)"
+    cstat_ci_width: 0.1
+    cstat_ci_width_source: "pmvalsampsize's default (pmvalsampsize(cstatciwidth = 0.1), pmvalsampsize 0.1.0)"
+    nb_ci_width: 0.2
+    nb_ci_width_source: "pmvalsampsize's default (pmvalsampsize(nbciwidth = 0.2), pmvalsampsize 0.1.0)"
   precision:
     conf_level: 0.95
     conf_level_source: "the default of MBESS (ss.aipe.smd(conf.level = .95), MBESS 5.0.1) and presize (prec_cor(conf.level = 0.95), presize 0.3.11)"
@@ -139,7 +152,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73, E39]
+calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E77, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73, E39]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -458,6 +471,7 @@ replication_effects:
   E68: {effect: "the coefficient of interest (a fixed effect)", scale: none}
   E43: {effect: "hazard ratio", scale: log}
   E69: {none: "A study of reliability or agreement estimates how consistent a measure is rather than testing an effect, so a replication is planned for the precision of that estimate on this card."}
+  E77: {none: "A prediction model's study estimates how well the model predicts rather than testing an effect; checking it in new people is planned on this card, as validating an existing model."}
   E44: {effect: "the actor or partner effect the hypothesis is about", scale: none}
   E62: {effect: "the coefficient of interest (a fixed effect)", scale: none}
   E11: {effect: "the one indirect effect the hypothesis is about", scale: none}
@@ -4574,6 +4588,106 @@ forms:
              choices: {indip_smooth: "Independence-smoothed logit (presize's default)", gart: "Gart's adjusted logit", woolf: "Woolf's logit"},
              default: indip_smooth, default_source: "presize's default (prec_or(), presize 0.3.11)"}
 
+  # Prediction model development (15 November 2026): the minimum sample
+  # size for developing a multivariable prediction model, by the criteria of
+  # Riley and colleagues, from pmsampsize's pmsampsize(). No power: the
+  # answer is the largest of the criteria's sample sizes. The engine's
+  # design "prediction_model", goal type "criteria".
+  E77:
+    methods_name: "the minimum sample size for developing or validating a prediction model (the criteria of Riley and colleagues)"
+    tool: pmsampsize
+    criteria: true
+    base: {spec_version: "0.1", design: prediction_model, template: development, variables: {},
+           target_test: {effect: development_criteria, method: riley_criteria}, options: {method: exact}}
+    groups:
+      - input: "The outcome the model predicts"
+        fields:
+          - {id: purpose, label: "Are you developing a new model, or validating an existing one?", type: select, path: template, required: true,
+             choices: {development: "Developing a new model: estimating its predictor effects from this study's data",
+                       validation: "Validating an existing model: testing how well a published or already developed model predicts in new people"},
+             default: development, default_source: "powerkit's first choice; pick what your study will do",
+             sets: {validation: [{path: variables.Y.type, value: binary}]},
+             help: "Validating an existing model (external validation) is planned for a yes/no outcome, with pmvalsampsize; developing a new one, for any of the three kinds of outcome, with pmsampsize."}
+          - {id: outcome, label: "What kind of outcome does the model predict?", type: select, path: variables.Y.type, required: true,
+             choices: {binary: "Yes or no (for example, whether someone relapses within a year): a logistic model",
+                       continuous: "A score (for example, a depression score): a linear model",
+                       time_to_event: "The time until an event (for example, time to relapse, with some people not followed up to it): a Cox model"},
+             default: binary, default_source: "powerkit's first choice; pick the kind of outcome your model predicts",
+             shown_if: {field: purpose, is: development},
+             sets: {continuous: [{path: population.metric, value: r2}]}}
+          - {id: Y_label, label: "The outcome (for example, relapse within a year)", type: text, path: variables.Y.label, required: true}
+          - {id: parameters, writeup_label: "candidate predictor parameters", label: "Number of candidate predictor parameters", type: number, path: population.parameters, required: true, min: 1, integer: true,
+             shown_if: {field: purpose, is: development},
+             help: "Every parameter the model could estimate, counted before any selection: a predictor with k categories counts k - 1, and a curve (a spline or a squared term) counts each of its terms. Count all the candidates, not only the ones you expect to keep."}
+      - input: "How well you expect the model to perform"
+        fields:
+          - {id: bin_metric, label: "How you know how well a model like this performs", type: select, path: population.metric, required: true,
+             shown_if: [{field: purpose, is: development}, {field: outcome, is: binary}],
+             choices: {c_statistic: "A C-statistic (area under the ROC curve) reported for a similar model",
+                       cox_snell_r2: "A Cox-Snell R-squared reported for a similar model",
+                       nagelkerke_r2: "A Nagelkerke R-squared reported for a similar model"},
+             default: c_statistic, default_source: "the measure papers most often report for a model of a yes/no outcome",
+             help: "pmsampsize needs the model's Cox-Snell R-squared; a C-statistic or a Nagelkerke R-squared is converted to it with the outcome's proportion."}
+          - {id: surv_metric, label: "How you know how well a model like this performs", type: select, path: population.metric, required: true,
+             shown_if: [{field: purpose, is: development}, {field: outcome, is: time_to_event}],
+             choices: {cox_snell_r2: "A Cox-Snell R-squared reported for a similar model", nagelkerke_r2: "A Nagelkerke R-squared reported for a similar model"},
+             default: cox_snell_r2, default_source: "the measure pmsampsize works with for a time-to-event outcome"}
+          - {id: c_statistic, writeup_label: "anticipated C-statistic", label: "The C-statistic you expect (0.5 to 1)", type: number, path: population.c_statistic, effect: true, min_exclusive: 0.5, max_exclusive: 1,
+             shown_if: [{any: [[{field: purpose, is: development}, {field: outcome, is: binary}, {field: bin_metric, is: c_statistic}], [{field: purpose, is: validation}]]}],
+             help: "For a new model, ideally one corrected for optimism, from a previous model of the same outcome in a similar population; for an existing model, the C-statistic you expect it to reach in the new population. A lower value is the cautious choice: it gives a larger sample size."}
+          - {id: cox_snell_r2, writeup_label: "anticipated Cox-Snell R-squared", label: "The Cox-Snell R-squared you expect (0 to 1)", type: number, path: population.cox_snell_r2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: purpose, is: development}, {any: [[{field: outcome, is: binary}, {field: bin_metric, is: cox_snell_r2}], [{field: outcome, is: time_to_event}, {field: surv_metric, is: cox_snell_r2}]]}],
+             help: "Ideally the adjusted (optimism-corrected) value from a previous model. A smaller value is the cautious choice."}
+          - {id: nagelkerke_r2, writeup_label: "anticipated Nagelkerke R-squared", label: "The Nagelkerke R-squared you expect (0 to 1)", type: number, path: population.nagelkerke_r2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: purpose, is: development}, {any: [[{field: outcome, is: binary}, {field: bin_metric, is: nagelkerke_r2}], [{field: outcome, is: time_to_event}, {field: surv_metric, is: nagelkerke_r2}]]}]}
+          - {id: r2, writeup_label: "anticipated R-squared", label: "The R-squared you expect (0 to 1)", type: number, path: population.r2, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: purpose, is: development}, {field: outcome, is: continuous}],
+             help: "The adjusted R-squared of a previous model of the same outcome, or the R-squared it reached when tested in new data. A smaller value is the cautious choice."}
+      - input: "The outcome in the population"
+        fields:
+          - {id: prevalence, writeup_label: "proportion with the outcome", label: "The proportion you expect to have the outcome (for example 0.2 for 20%)", type: number, path: population.prevalence, required: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{any: [[{field: purpose, is: development}, {field: outcome, is: binary}], [{field: purpose, is: validation}]]}]}
+          - {id: mean, writeup_label: "mean outcome", label: "The outcome's mean in the population", type: number, path: population.mean, required: true,
+             shown_if: [{field: purpose, is: development}, {field: outcome, is: continuous}]}
+          - {id: sd, writeup_label: "outcome SD", label: "The outcome's SD in the population", type: number, path: population.sd, required: true, min_exclusive: 0,
+             shown_if: [{field: purpose, is: development}, {field: outcome, is: continuous}]}
+          - {id: rate, writeup_label: "event rate", label: "The overall event rate (events per person per unit of time, for example 0.065 a year)", type: number, path: population.rate, required: true, min_exclusive: 0,
+             shown_if: [{field: purpose, is: development}, {field: outcome, is: time_to_event}]}
+          - {id: timepoint, writeup_label: "time point", label: "The time point the model predicts for (in the same unit, for example 2 years)", type: number, path: population.timepoint, required: true, min_exclusive: 0,
+             shown_if: [{field: purpose, is: development}, {field: outcome, is: time_to_event}]}
+          - {id: mean_follow_up, writeup_label: "mean follow-up", label: "The mean follow-up you expect (in the same unit)", type: number, path: population.mean_follow_up, required: true, min_exclusive: 0,
+             shown_if: [{field: purpose, is: development}, {field: outcome, is: time_to_event}]}
+
+      - input: "The existing model's predictions in the new population"
+        shown_if: {field: purpose, is: validation}
+        fields:
+          - {id: lp_distribution, label: "How you know the spread of the model's predictions", type: select, path: population.lp_distribution, required: true,
+             shown_if: {field: purpose, is: validation},
+             choices: {normal: "The mean and SD of its linear predictor (the predicted log-odds), for example from the development paper",
+                       beta: "A beta distribution of its predicted risks, given by its two shape parameters"},
+             default: normal, default_source: "the form Riley et al. (2021) use in their example; pick the one you can fill in",
+             help: "pmvalsampsize simulates the model's predictions from this to work out how precisely the calibration slope will be estimated."}
+          - {id: lp_mean, writeup_label: "mean of the linear predictor", label: "Mean of the linear predictor (log-odds)", type: number, path: population.lp_mean, required: true,
+             shown_if: [{field: purpose, is: validation}, {field: lp_distribution, is: normal}],
+             help: "Negative when the outcome is uncommon: a mean of -1.4 is a typical predicted risk of about 20%."}
+          - {id: lp_sd, writeup_label: "SD of the linear predictor", label: "SD of the linear predictor", type: number, path: population.lp_sd, required: true, min_exclusive: 0,
+             shown_if: [{field: purpose, is: validation}, {field: lp_distribution, is: normal}]}
+          - {id: beta_a, writeup_label: "first shape parameter", label: "First shape parameter of the predicted risks' beta distribution", type: number, path: population.beta_a, required: true, min_exclusive: 0,
+             shown_if: [{field: purpose, is: validation}, {field: lp_distribution, is: beta}]}
+          - {id: beta_b, writeup_label: "second shape parameter", label: "Second shape parameter of the predicted risks' beta distribution", type: number, path: population.beta_b, required: true, min_exclusive: 0,
+             shown_if: [{field: purpose, is: validation}, {field: lp_distribution, is: beta}]}
+          - {id: oe, writeup_label: "anticipated O/E ratio", label: "The observed/expected ratio you expect (optional; 1 if left empty: the model is well calibrated in the large)", type: number, path: population.oe, optional: true, min_exclusive: 0,
+             shown_if: {field: purpose, is: validation}}
+          - {id: calibration_slope, writeup_label: "anticipated calibration slope", label: "The calibration slope you expect (optional; 1 if left empty)", type: number, path: population.calibration_slope, optional: true, min_exclusive: 0,
+             shown_if: {field: purpose, is: validation}}
+          - {id: threshold, writeup_label: "risk threshold", label: "A risk threshold for decisions, to plan a precise net benefit too (optional, for example 0.1)", type: number, path: population.threshold, optional: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: purpose, is: validation},
+             help: "The predicted risk above which people would be treated or referred. Leave it empty to plan for calibration and discrimination only."}
+          - {id: sensitivity, writeup_label: "sensitivity at the threshold", label: "The sensitivity you expect at that threshold (optional)", type: number, path: population.sensitivity, optional: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: purpose, is: validation},
+             help: "Give both sensitivity and specificity, or neither: pmvalsampsize then estimates them from the model's predictions."}
+          - {id: specificity, writeup_label: "specificity at the threshold", label: "The specificity you expect at that threshold (optional)", type: number, path: population.specificity, optional: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: purpose, is: validation}}
   # Trend tests (1 November 2026), simulated with Spower by powerkit's own
   # experiments: the Jonckheere-Terpstra test of a trend in scores across
   # groups in order (PMCMRplus's jonckheereTest()), on the one-way

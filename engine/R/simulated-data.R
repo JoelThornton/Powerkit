@@ -1403,6 +1403,8 @@ simulated_data_n <- function(spec, result) {
     result$n_required$n
   } else if (identical(spec$goal$type, "precision")) {
     result$precision$n
+  } else if (identical(spec$goal$type, "criteria")) {
+    result$prediction$n
   } else {
     spec$goal$n
   }

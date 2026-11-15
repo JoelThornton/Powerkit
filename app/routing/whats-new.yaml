@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-15"
+    title: "Plan a study that develops or validates a prediction model"
+    text: "A new card finds the minimum sample size for developing a model that predicts an outcome for each person, such as a risk score or a prognostic model, for a yes/no, continuous or time-to-event outcome. It uses the criteria of Riley and colleagues, calculated by the R package pmsampsize: you give the number of candidate predictors, how well a similar model performs and how common the outcome is, and the result shows the sample size each criterion needs and which one sets the answer. The same card plans a study that checks an existing model of a yes/no outcome in new people (external validation), with the R package pmvalsampsize: it finds the sample size that estimates the model's calibration and C-statistic precisely. Choose \"Develop a model that predicts an outcome\" on the start screen."
+  - date: "2026-11-15"
     title: "Clearer messages and card hints"
     text: "On the online app, an analysis whose R package is missing there now says it isn't available right now and asks you to tell us through Feedback, instead of telling you to install the package yourself. The card for moderation or mediation when the outcome isn't a score now names the card for a yes/no mediator in words. The short explanations under a card's name now explain only words that appear in that name."
   - date: "2026-11-15"

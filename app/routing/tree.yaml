@@ -272,6 +272,7 @@ start_questions:
       replicate: {label: "Replicate a published finding", help: "A few questions about the original study's design find its analysis, and you plan the replication there. For a t-test or correlation, the replication planner adds the sample size for each goal a replication can have."}
       meta: {label: "Combine studies others have done (a meta-analysis)", help: "For a systematic review you are planning, before the studies are found.", next: E61}
       estimate: {label: "Estimate how big something is", help: "Plan the sample size for a confidence interval of a chosen width, or see its width at a given sample size. The next screen lets you choose what to estimate.", next: E46}
+      prediction_model: {label: "Develop a model that predicts an outcome for each person (a risk score or prognostic model)", help: "For example, a model that predicts who will relapse from their age, symptoms and history. The sample size comes from criteria that keep the model from overfitting, not from power.", next: E77}
       reliability: {label: "Show that a measure is reliable, that raters agree, or that two methods of measurement agree", help: "For example, that two raters' scores agree (an ICC), that a scale's items hang together (Cronbach's alpha), that raters choose the same category (kappa), or that a new device agrees with the standard one (Bland-Altman limits of agreement).", next: E69}
       equivalence: {label: "Show there's no meaningful effect", help: "Equivalence testing: the effect is smaller than a bound you set.", sets: {goal: equivalence}}
 
@@ -884,15 +885,15 @@ closing_questions:
   - doc_id: Q-goal
     text: "What do you want to find out: the sample size you need, the power at a given N (for an effect size you plan for), or the smallest effect you could detect at a given N?"
     note: "The smallest detectable effect isn't available for this design yet. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."
-    card_notes: {E46: "The sample size for a confidence-interval width, or the width at a given sample size; no power.", E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning.", E8: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."}
+    card_notes: {E46: "The sample size for a confidence-interval width, or the width at a given sample size; no power.", E77: "The minimum sample size for developing the model; no power, and no smallest detectable effect.", E50: "The power for a noncentrality, or the noncentrality needed for a target power; there is no sample size, because the noncentrality already reflects it.", E7: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning.", E8: "All three are available for this design. Observed power (from a finished study's own result) can be calculated as power at a given N, with a warning."}
     setting: [analysis_types, observed_power]
     applies_to: all
-  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all, not_for: [E46, E58, E73]}
-  - {doc_id: Q-power, text: "What power do you want?", applies_to: all, not_for: [E46]}
+  - {doc_id: Q-alpha, text: "Which significance level (alpha)?", setting: alpha_power_defaults, applies_to: all, not_for: [E46, E77, E58, E73]}
+  - {doc_id: Q-power, text: "What power do you want?", applies_to: all, not_for: [E46, E77]}
   - {doc_id: Q-effect, text: "What effect do you expect, and where does that number come from?", setting: effect_size_benchmarks, applies_to: all}
   - {doc_id: Q-attr, text: "How many participants do you expect to lose?", applies_to: all, not_for: [E50, E61, E45]}
-  - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all, not_for: [E46]}
-  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all, not_for: [E46, E58, E73]}
+  - {doc_id: Q-multi, text: "Does your study test more than one hypothesis that this power analysis should cover?", setting: several_hypotheses, applies_to: all, not_for: [E46, E77]}
+  - {doc_id: Q-bayes, text: "Will you test your hypothesis with p-values or with Bayes factors?", setting: bayes_entry, applies_to: all, not_for: [E46, E77, E58, E73]}
 
 # Added by the app to every question, in every route (and to the end-point
 # list): leads to a card saying powerkit can't advise on the design yet.
@@ -2074,6 +2075,28 @@ endpoints:
     inputs: ["What you want to estimate", "Names", "The value you expect", "The kind of interval"]
     tier: v2
     alternatives: ["a power analysis on the card for your test, if you want to show an effect exists rather than estimate its size"]
+  E77:
+    tools:
+      - {name: pmsampsize, url: "https://cran.r-project.org/package=pmsampsize", what: "the minimum sample size for developing a prediction model, by the criteria of Riley and colleagues."}
+      - {name: pmvalsampsize, url: "https://cran.r-project.org/package=pmvalsampsize", what: "the minimum sample size for validating an existing prediction model of a yes/no outcome, by the criteria of Riley and colleagues."}
+    doc_name: "Developing or validating a prediction model (minimum sample size)"
+    technical_name: "Sample size for prediction model development and external validation (Riley et al. criteria)"
+    plain_name: "Develop or check a model that predicts an outcome for each person"
+    search_words: "prediction model risk score prognostic model diagnostic model clinical prediction model development events per variable epv events per predictor overfitting shrinkage pmsampsize pmvalsampsize external validation calibration slope calibration-in-the-large net benefit c-statistic auc roc riley tripod"
+    template: "prediction_model / development or validation"
+    backend: "pmsampsize: pmsampsize(), the criteria of Riley et al. for developing a model of a yes/no, continuous or time-to-event outcome (by formula); pmvalsampsize: pmvalsampsize(), their criteria for validating a model of a yes/no outcome (by formula, with the linear predictor simulated at the package's fixed seed)"
+    method: "Formula (no simulation)"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-prediction-model.R, note: "Development matches pmsampsize called directly for every kind of outcome and measure of performance, and for a yes/no outcome each criterion matches the closed forms of Riley et al. (2019) worked out without pmsampsize. Validation matches pmvalsampsize called directly, and its O/E and C-statistic criteria match the closed forms of Riley et al. (2021). Not yet checked against the papers' published examples."}
+    card_points:
+      - "The minimum sample size for developing a model that predicts an outcome for each person: a risk score, a diagnostic model or a prognostic model."
+      - "For a yes/no outcome (logistic regression), a score (linear regression) or the time until an event (Cox regression)."
+      - "Uses the criteria of Riley and colleagues, the current standard: little overfitting, a small gap between the model's apparent and true performance, and precise estimates of the overall risk or mean. The answer is the largest of their sample sizes, often far from 10 events per predictor."
+      - "You give the number of candidate predictor parameters, how well a similar model performs (a C-statistic or an R-squared) and the outcome's proportion, mean or event rate. There is no power: the model isn't tested against a null hypothesis."
+      - "Also for checking an existing model of a yes/no outcome in new people (external validation): the sample size that estimates its calibration (the observed/expected ratio and the calibration slope), its C-statistic and, at a risk threshold, its net benefit precisely."
+    inputs: ["The outcome the model predicts", "How well you expect the model to perform", "The outcome in the population", "The existing model's predictions in the new population"]
+    tier: later
+    alternatives: ["a power analysis for one predictor's coefficient in a regression, if you want to test a predictor rather than build a model that predicts"]
   E47:
     doc_name: "Yes/no outcome with two or more crossed factors (factorial logistic regression)"
     technical_name: "Factorial logistic regression"
@@ -2592,7 +2615,7 @@ analysis_families:
   - {id: spread, technical_label: "Variance tests", label: "Spread of scores (variances)", short: "Spread of scores", endpoints: [E52, E53, E57]}
   - {id: equivalence, technical_label: "Equivalence and non-inferiority", label: "Showing there's no meaningful effect (equivalence, non-inferiority)", short: "Equivalence", endpoints: [E36]}
   - {id: meta, technical_label: "Meta-analysis", label: "Meta-analysis", endpoints: [E61]}
-  - {id: other, technical_label: "Other analyses", label: "Other: time-to-event, signal detection, reliability, precision, Bayes factors and generic tests", short: "Other", endpoints: [E43, E72, E69, E46, E-bayes, E50]}
+  - {id: other, technical_label: "Other analyses", label: "Other: time-to-event, signal detection, reliability, precision, prediction models, Bayes factors and generic tests", short: "Other", endpoints: [E43, E72, E69, E46, E77, E-bayes, E50]}
 
 glossary:
   - {term: "Cohen's d", pattern: "Cohen's d", hint: "A difference between two averages, measured in standard deviations: 0.5 means the averages are half a standard deviation apart."}

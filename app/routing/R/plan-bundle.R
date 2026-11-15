@@ -37,6 +37,7 @@ plan_analysis_hashes <- function(plan) {
 # What the analysis aimed for, in the words its card uses.
 plan_entry_target <- function(spec) {
   goal <- spec$goal %||% list()
+  if (identical(spec$design, "prediction_model")) return(paste0("the criteria for developing a prediction model, shrinkage ", format(goal$shrinkage %||% 0.9)))
   if (identical(spec$design, "precision")) return(paste0("interval width ", format(goal$width),
     if (!is.null(goal$assurance)) paste0(", assurance ", format(goal$assurance))))
   if (!is.null(goal$power)) return(paste("power", format(goal$power)))

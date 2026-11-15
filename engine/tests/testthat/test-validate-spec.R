@@ -55,6 +55,8 @@ test_that("there is an example for every template", {
     "model_fit", "invariance", "factor_correlation", "latent_regression",
     # Planned comparisons (engine only).
     "oneway_contrast",
+    # Prediction model development and validation (pmsampsize, pmvalsampsize).
+    "development", "validation",
     # Precision planning (a confidence-interval width).
     "two_groups", "proportion", "mean_difference", "odds_ratio", "icc", "regression_coefficient",
     # Variance tests, simulated (engine only).

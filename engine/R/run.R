@@ -275,6 +275,9 @@ run_spec <- function(spec) {
   if (spec$design == "precision") {
     return(run_precision(spec, seed))
   }
+  if (spec$design == "prediction_model") {
+    return(run_prediction_model(spec, seed))
+  }
   backend <- route_spec(spec, seed)
   need_packages(c(backend$packages, if (justified_alpha_goal(spec)) "JustifyAlpha"))
   method <- run_method(spec, backend)

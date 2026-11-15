@@ -298,7 +298,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | # | Design | Source | powerkit end point | Status | Analysis types | Candidate backend and function | Next step | Blocking decision |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | B63 | Diagnostic accuracy (sensitivity/specificity, ROC/AUC) | ML | none: not reachable | Unknown (decide scope; tools exist) | — | pROC `power.roc.test()`; MKpower `power.diagnostic.test()`; presize `prec_sens()`, `prec_auc()` | Decide | [G1][] |
-| B64 | Prediction model development | ML | none: not reachable | Unknown (decide scope; a tool exists) | — | pmsampsize `pmsampsize()` | Decide | — |
+| B64 | Prediction model development and external validation | ML | E77 | Wired (validation not finished): 15 November 2026, the criteria of Riley et al. (2019) for developing a model of a yes/no, continuous or time-to-event outcome, and of Riley et al. (2021) for validating a model of a yes/no outcome; matches pmsampsize and pmvalsampsize called directly and Riley et al.'s closed forms; published values to transcribe | — | **Engine: pmsampsize `pmsampsize()`; pmvalsampsize `pmvalsampsize()`** | Transcribe the published examples; validating a model of a continuous or time-to-event outcome (pmvalsampsize 0.1.0 has the binary case only) | — |
 | B65 | Single-case (N-of-1) designs | ML | none: reaches E45 or E35 (S2's "Independent people" covers one person) | Unknown (decide scope; a tool exists) | — | scan `power_test()` ("Empirical power analysis for single-case data") | Decide | — |
 | B66 | Prevalence estimation | ML | E46 (one proportion precision) | Partly working (simple proportion precision; complex-sample prevalence not generic support) | — | presize `prec_prop()` | Audit interval/denominator/sampling assumptions before extension | — |
 | B67 | Time-to-event | ML; Audit | E43 | Wired (validation not finished): 2 November 2026, two groups by the log-rank test (Hmisc `cpower()`, exponential times, recruitment and follow-up) and a measured score in a Cox regression (powerSurvEpi `powerEpiCont.default()`, Hsieh and Lavori's formula); checked against simulated log-rank tests and Cox models | Now: AP, PN | Hmisc `cpower()`, `spower()`; powerSurvEpi `ssizeCT()`; npsurvSS `size_two_arm()`; gsDesign `gsSurvPower()` | Transcribe published examples (validation placeholders) | [A1][] |
@@ -458,7 +458,7 @@ link mixed model, in a Spower simulation).
 | Bayesian linear regression | BayesFactor `regressionBF()`, `lmBF()`, JASP's default priors, simulated | M | 2 |
 | Bayesian A/B test | abtest `ab_test()` (Gronau and colleagues), simulated, on E5 | S | 2 |
 | Bayesian multinomial, informed multinomial and multi-binomial | multibridge (Sarafoglou and colleagues), simulated, on E48; needs MPFR | M | 2 |
-| Prediction model performance | pmsampsize, pmvalsampsize (Riley and colleagues), closed form; also regularised regression | M | 3 |
+| Prediction model performance | pmsampsize (development) and pmvalsampsize (validation of a yes/no model), both on E77, Riley and colleagues, closed form; also regularised regression | M | 3 |
 | Network analysis | powerly (Constantin and colleagues), simulated; needs libjpeg | M | 3 |
 | PCA | psych `principal()` as an option on E73 | S | 3 |
 | Log-linear models | Poisson GLM likelihood-ratio test, simulated with Spower | S | 3 |
@@ -489,14 +489,14 @@ Recounted from the reconciled rows on 10 November 2026. These are catalogue row 
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 0 | 0 | 4 | 4 |
-| Wired (validation not finished) | 40 | 41 | 0 | 81 |
+| Wired (validation not finished) | 40 | 42 | 0 | 82 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 2 | 0 | 3 |
 | Foundation tool can do it, not planned | 4 | 7 | 0 | 11 |
 | No ready-made tool | 0 | 3 | 0 | 3 |
 | Partly working | 0 | 11 | 8 | 19 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
-| Unknown | 1 | 6 | 0 | 7 |
+| Unknown | 1 | 5 | 0 | 6 |
 | Out of scope | 0 | 0 | 0 | 0 |
 
 (Part D's four rows are out of scope by definition and aren't counted.)
