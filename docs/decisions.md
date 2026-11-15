@@ -3474,3 +3474,35 @@ the limit are unchanged. With it the rejection rate is .051 (limit
 true rate of about 5.4%, roughly one seed in 80 would exceed the limit.
 More replications would remove that chance and remain an option if the
 check fails again.
+
+### Replication goals for any one-number effect, 15 November 2026
+
+A replication plan's goals table (queue item 21) now covers every card
+whose focal effect is one number, not only an original t-test or
+correlation:
+
+- The four designs with exact routes (two groups, one sample, paired,
+  a correlation) keep them. For any other card the table is planned on
+  the effect's own scale from the original's estimate, its standard
+  error and its sample size. The standard error can be given directly,
+  from a confidence interval (`(upper − lower) / (2 z)`) or from a test
+  statistic (`|estimate / statistic|`). The replication's standard error
+  is the original's scaled by √(original n / replication n), which is
+  BayesRepDesign's relation `se = unitSD / √n` (Pawel, Consonni & Held,
+  2026) with the unit SD read from the original.
+- Ratios (odds, risk, hazard and rate ratios) are planned on the log
+  scale and correlations on Fisher's z, so the normal approximation the
+  goals rest on holds. Each card's effect and scale are listed in
+  `forms.yaml` under `replication_effects`; a multi-df test is told to
+  plan the focal contrast on the card named there, and a card with no
+  single focal effect (a meta-analysis's average, an agreement study)
+  says the goals table does not apply.
+- Small telescopes is not offered on the generic route: d33 needs the
+  design's own power function, which the design's card already has.
+- A test shows the generic route reproduces the exact one-sample and
+  paired tables. For two groups and a correlation it shows the size of
+  the gap: about (1 + d²/8) times as many people for two groups (138
+  against 130 at d = 0.7 for the shrunk prior), and n_o / (n_o − 3) ×
+  (exact − 3) for a correlation (89 against 85), because the generic
+  route reads the unit SD at the original's estimate. This is why the
+  four keep their exact routes.
