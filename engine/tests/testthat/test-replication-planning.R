@@ -195,8 +195,8 @@ test_that("for two groups and a correlation the generic route differs from the e
   exact_r <- replication_planning("correlation", 0.3, original_n = 40)
   generic_r <- replication_planning("generic", 0.3, original_n = 40, original_se = 1 / sqrt(37), scale = "fisher_z")
   for (prior in c("as_reported", "uncertain", "shrunk")) {
-    expect_equal(goal_n(generic_r, "significance", prior), 40 / 37 * (goal_n(exact_r, "significance", prior) - 3),
-      tolerance = 1.5, scale = 1)
+    # Within a person and a half: each is rounded up to a whole person.
+    expect_lte(abs(goal_n(generic_r, "significance", prior) - 40 / 37 * (goal_n(exact_r, "significance", prior) - 3)), 1.5)
   }
   expect_equal(goal_n(generic_r, "significance", "as_reported") - goal_n(exact_r, "significance", "as_reported"), 4)
 })
