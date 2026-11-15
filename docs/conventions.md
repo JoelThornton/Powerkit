@@ -788,6 +788,20 @@ its size. An independent simulation of Student's t-tests, with true effects
 drawn from the uncertain prior, agrees with the planner's chance to within
 3 percentage points at 60 per group (same file).
 
+**Variation between studies in replication plans** (15 November 2026).
+BayesRepDesign's `designPrior()` takes `tau = 0` by default, and the
+engine's `replication_planning()` keeps that default. A replication plan's
+screen starts at tau = 0.05 (in d; Fisher's z for r), the smallest of
+Kenny and Judd's (2019) example values, because they argue zero should
+not be the default and the help beside the box already said so. It
+applies to the uncertain and shrunk beliefs only. The result says so,
+with "Choose None under Goals" to see the numbers without it, and the
+methods paragraph states the standard deviation used. For an original
+d = 0.7 with 20 per group, the significance goal asks for 106 in total with
+no variation and 110 with 0.05 (uncertain), and 200 against 210 (shrunk);
+`engine/tests/testthat/test-replication-planning.R` ("the app's starting
+variation") shows it.
+
 ## Effects that vary between studies (t-test cards)
 
 | Tool | Test | Effect size | Settings |
