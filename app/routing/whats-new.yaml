@@ -7,7 +7,7 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
-  - date: "2026-11-14"
+  - date: "2026-11-15"
     title: "A Bayes factor for multiple regression"
     text: "The multiple regression card plans a Bayes factor for whether the predictors together explain anything, as JASP's Bayesian linear regression reports it: choose it as the test version for R-squared against 0, and powerkit gives the chance that the Bayes factor reaches your threshold, with JASP's default prior, with no simulation."
   - date: "2026-11-15"
