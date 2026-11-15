@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 15 November 2026 (within-person moderation, card E41; a count or yes/no outcome in moderation and mediation, card E32; the binary-X null check uses seed 1500; two groups in a ratio rounded at every total; mediation with a yes/no mediator, card E39; two or more groups measured more than once with a count, yes/no or ordered categories, card E75; mediation with X in three or more groups, card E42; corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 15 November 2026 (within-person moderation, card E41; replication goals for any one-number effect; a count or yes/no outcome in moderation and mediation, card E32; the binary-X null check uses seed 1500; two groups in a ratio rounded at every total; mediation with a yes/no mediator, card E39; two or more groups measured more than once with a count, yes/no or ordered categories, card E75; mediation with X in three or more groups, card E42; corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -82,7 +82,7 @@ Validation in progress: the chunk `two_level` passes; within-person
 mediation is not yet calculated. Next in the queue: the rest of those
 cards (`next.md` item 1). A tool showing which uncertain input a plan depends on most
 (one-at-a-time ranges and a tornado chart) is queued after the cards
-that can't yet calculate (`next.md` item 26).
+that can't yet calculate (`next.md` item 25).
 
 The cross-lagged panel card runs with a reliability below 1 (13
 November 2026): its check run compares the specified lagged effects with
@@ -438,9 +438,12 @@ and automated accessibility checks passed locally for the exercised routes.
   The original's design is found with the design finder's questions; its
   card, with each effect field labelled as the original's, plans the
   replication and keeps the result in the plan. The plan saves, shares
-  and downloads like any study plan. Goals for designs beyond the four
-  and an original analysed with Bayes factors are `next.md` items 22 and
-  23.
+  and downloads like any study plan. Since 15 November 2026 the goals
+  table covers any card whose focal effect is one number: the original's
+  estimate with its standard error, interval or test statistic, ratios on
+  the log scale and correlations on Fisher's z (each card's effect is in
+  `forms.yaml`, `replication_effects`); the four keep their exact routes.
+  An original analysed with Bayes factors is `next.md` item 21.
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning
