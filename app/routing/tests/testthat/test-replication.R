@@ -130,7 +130,11 @@ test_that("the server plans from the fields, and says what is missing first", {
   testServer(function(input, output, session) replication_server(input, output, session), {
     session$setInputs(rep_design = "two_groups", rep_effect = "0.7", rep_n1 = "", rep_n2 = "", rep_run = 1)
     expect_match(as.character(output$rep_result$html), "two group sizes", fixed = TRUE)
+    # The replication's own significance level and chance start empty
+    # (P-04): choosing them is asked for before anything is calculated.
     session$setInputs(rep_n1 = "20", rep_n2 = "20", rep_smallest = "0.2", rep_run = 2)
+    expect_match(as.character(output$rep_result$html), "Choose the significance level and the chance of success to aim for under Goals first", fixed = TRUE)
+    session$setInputs(rep_alpha = "0.05", rep_power = "0.8", rep_run = 4)
     expect_match(as.character(output$rep_result$html), "rep-table", fixed = TRUE)
     session$setInputs(rep_effect = "0", rep_run = 3)
     expect_match(as.character(output$rep_result$html), "not 0", fixed = TRUE)
@@ -319,4 +323,40 @@ test_that("a posterior original is planned, refused for an informative prior", {
     expect_match(ui, sprintf("id=\"%s\"", id), fixed = TRUE)
     expect_true(id %in% replication_field_ids)
   }
+})
+
+test_that("the planner's wording matches the cards' (P-04, P-07, P-08, P-09)", {
+  html <- as.character(replication_workspace_ui(tree))
+  # The evidence threshold as the cards word it, 10 labelled.
+  expect_match(html, "Evidence threshold for the Bayes factor goals", fixed = TRUE)
+  expect_match(html, "10 (a common threshold)", fixed = TRUE)
+  expect_no_match(html, "Strong evidence", fixed = TRUE)
+  expect_false(any(grepl("Strong evidence", replication_goal_labels, fixed = TRUE)))
+  # Variation starts at Small, with the cards' help.
+  expect_match(html, '<option value="0.05" selected>Small (0.05)</option>', fixed = TRUE)
+  expect_match(html, "a quarter of Cohen's 0.2, 0.5 and 0.8", fixed = TRUE)
+  expect_match(html, "Laboratories, samples", fixed = TRUE)
+  # Alpha and power empty, with one-click buttons.
+  expect_match(html, 'id="rep_alpha" type="text" class="shiny-input-text form-control" value=""', fixed = TRUE)
+  expect_match(html, 'id="rep_alpha_usual"', fixed = TRUE)
+  expect_match(html, "Use 0.05, the usual level", fixed = TRUE)
+  expect_match(html, 'id="rep_power_usual_3"[^>]*>95%', perl = TRUE)
+  # One sentence over the two routes; the references once, folded, linked.
+  expect_match(html, "Two ways to the sample size", fixed = TRUE)
+  expect_identical(lengths(regmatches(html, gregexpr("rep-references", html, fixed = TRUE))), 1L)
+  expect_no_match(html, "References: ", fixed = TRUE)
+  expect_match(html, "<summary>References \\([0-9]+\\)</summary>")
+  expect_match(html, '<a href="https://doi.org/', fixed = TRUE)
+  expect_no_match(html, "&lt;https://", fixed = TRUE)
+  expect_identical(replication_a_pct(0.8), "an 80%")
+  expect_identical(replication_a_pct(0.9), "a 90%")
+})
+
+test_that("the result names the belief the write-up starts on, without stray spaces", {
+  plan <- engine_function("replication_planning")("two_groups", 0.7, original_n1 = 20, original_n2 = 20, tau = 0.05)
+  html <- as.character(replication_result_ui(plan))
+  expect_match(html, "allowing for the uncertainty in the original's estimate (the belief the plan you write up starts on, below)", fixed = TRUE)
+  expect_match(html, "for an 80% chance of each goal", fixed = TRUE)
+  expect_no_match(html, "[[:alnum:])] [.](\\s|<|$)", perl = TRUE)
+  expect_match(html, "vary between studies with an SD of 0.05", fixed = TRUE)
 })

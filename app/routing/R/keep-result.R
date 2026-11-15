@@ -35,7 +35,7 @@ keep_result_ui <- function(can_export, plan = TRUE, kept = FALSE) {
       download_button("download_project", "Save project file", class = "btn btn-primary"),
       share_link_ui("project"),
       if (plan) uiOutput("study_plan_bar", inline = TRUE)),
-    p(class = "small mb-0", "Opens again in powerkit with your answers and result. The documents further down are for reading, running and citing; they don't reopen here."))
+    p(class = "small mb-0", "Opens again in powerkit with your answers and result. A project file holds this one analysis; a study plan keeps several analyses of one study together. The documents further down are for reading, running and citing; they don't reopen here."))
 }
 
 # The documents, in "Write it up and save it".

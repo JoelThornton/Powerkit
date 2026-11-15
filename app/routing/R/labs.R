@@ -56,16 +56,23 @@ labs_questions <- list(
   value = "Why has replication been chosen to reach the desired epistemic goals?"
 )
 
-# Every free-text box, in the order of the screen and the notes.
+# Every free-text box, in the order of the screen and the notes. `label`
+# is the notes document's wording (the paper's own questions); `ask` is
+# the screen's plain wording, with the paper's question in its help, and
+# `fold` puts a part's second box behind a fold (colleague review P-06,
+# 15 November 2026: one box per part in view).
 labs_fields <- list(
-  list(id = "labs_study", step = "finding", label = "The original study (authors, year, title or link)"),
   list(id = "labs_finding", step = "finding", label = "The finding you want to replicate, in a sentence"),
-  list(id = "labs_goals", step = "goals", label = labs_questions$goals),
-  list(id = "labs_smallest", step = "goals", label = "What is the smallest effect that would matter, for theory or in practice? (for example, the smallest benefit worth having for the people involved)"),
-  list(id = "labs_quality", step = "quality", label = labs_questions$quality),
-  list(id = "labs_improve", step = "quality", label = "What weaknesses in the original design will the replication improve?"),
-  list(id = "labs_value", step = "value", label = labs_questions$value),
-  list(id = "labs_alternatives", step = "value", label = "What else could serve the same goal (for example, a new study of an unexplored part of the theory), and why is a replication better?")
+  list(id = "labs_study", step = "finding", label = "The original study (authors, year, title or link)", fold = "The study it comes from"),
+  list(id = "labs_goals", step = "goals", label = labs_questions$goals, ask = "What do you want this replication to tell you?"),
+  list(id = "labs_smallest", step = "goals", label = "What is the smallest effect that would matter, for theory or in practice? (for example, the smallest benefit worth having for the people involved)",
+    fold = "Another question to consider: the smallest effect that would matter"),
+  list(id = "labs_quality", step = "quality", label = labs_questions$quality, ask = "Is the original study good enough to be worth replicating?"),
+  list(id = "labs_improve", step = "quality", label = "What weaknesses in the original design will the replication improve?",
+    fold = "Another question to consider: what the replication will do better"),
+  list(id = "labs_value", step = "value", label = labs_questions$value, ask = "Why a replication, rather than another way of learning the same thing?"),
+  list(id = "labs_alternatives", step = "value", label = "What else could serve the same goal (for example, a new study of an unexplored part of the theory), and why is a replication better?",
+    fold = "Another question to consider: what else could serve the same goal")
 )
 
 labs_outcomes <- c(
@@ -311,8 +318,10 @@ labs_markdown <- function(answers, outcome = NULL, sde = NULL, citation = labs_c
 
 # --- The screen -----------------------------------------------------------------
 
-labs_box <- function(f, rows = 4) {
-  div(class = "form-field", textAreaInput(f$id, f$label, rows = rows, width = "100%"))
+labs_box <- function(f, rows = 3) {
+  box <- div(class = "form-field", textAreaInput(f$id, f$ask %||% f$label, rows = rows, width = "100%"),
+    if (!is.null(f$ask)) p(class = "small text-muted", sprintf("In Karhulahti, Martončik and Adamkovič's (2025) words: “%s”", f$label)))
+  if (is.null(f$fold)) box else tags$details(class = "labs-more-question", tags$summary(class = "small", f$fold), box)
 }
 labs_boxes <- function(step) lapply(Filter(function(f) identical(f$step, step), labs_fields), labs_box)
 
@@ -345,7 +354,7 @@ labs_ui <- function(tree) {
     published_ui(),
     # Replication planning moved to replication plans (Study plans page).
     p(class = "small labs-moved", "Looking for the pre-replication notes or the replication planner? They are now part of a replication plan, on the Study plans page: ",
-      actionLink("rep_plan_new_labs", "Start a replication plan"), ".")
+      actionLink("rep_plan_new_labs", "Start a replication plan."))
   )
 }
 
@@ -356,7 +365,7 @@ replication_notes_ui <- function(tree) {
   test_choices <- c("Choose one" = "", stats::setNames(labs_tests,
     vapply(labs_tests, function(e) tree$endpoints[[e]]$plain_name, character(1))))
   tagList(
-    p("Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025)."),
+    p("Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025): each part's help gives their own words, and the reference is at the foot of the plan."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The finding"),
       p(class = "group-note", "Name the finding you want to test again, not only the study it came from. A replication can test the same finding with a better design."),
       labs_boxes("finding")),
@@ -386,8 +395,7 @@ replication_notes_ui <- function(tree) {
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. Where you landed"),
       p(class = "group-note", "All three are good outcomes. Deciding that a finding isn't worth replicating, before spending time and participants on it, is a useful result."),
       radioButtons("labs_outcome", NULL, choices = stats::setNames(names(labs_outcomes), unname(labs_outcomes)), selected = character(0), width = "100%")),
-    uiOutput("labs_next"),
-    p(class = "small text-muted", "Reference: ", labs_citation()))
+    uiOutput("labs_next"))
 }
 
 # Planning the replication from the notes (22 October 2026): the user's own

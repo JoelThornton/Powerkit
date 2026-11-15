@@ -3475,6 +3475,25 @@ true rate of about 5.4%, roughly one seed in 80 would exceed the limit.
 More replications would remove that chance and remain an option if the
 check fails again.
 
+### The Bayes factor three-factor ANOVA on E56, 15 November 2026
+
+The third design of `next.md` item 2: E56 (three crossed factors, any mix
+of between and within participants) takes a Bayes factor test version,
+JASP's inclusion Bayes factor of the effect, from BayesFactor's
+`anovaBF()` over the models that respect marginality (participants a
+random factor with a within factor) and bayestestR's
+`bayesfactor_inclusion()`, with JASP's r scales (0.5 fixed, 1 random),
+as the two-factor ANOVAs' version does. No package plans it, so it is
+simulated with Spower in a backend of its own
+(`backend-bayesfactor-three.R`): equal groups, one SD, and one
+correlation between a person's scores. A study takes about 1 s between
+participants and 5 s with repeated measures, so the app gives a preview
+and the R script, as for the repeated-measures ANOVAs' Bayes factor.
+Validation: `test-validation-bayes-three.R` (chunk `bayes_three`),
+against a simulation that fits all 19 models with `lmBF()` and averages
+the inclusion Bayes factor by hand. Conventions: `docs/conventions.md`,
+"Bayes factor of a three-factor ANOVA effect (E56)".
+
 ### The ICC planned by its F test's exact power, 15 November 2026
 
 The reliability card's ICC (E69) was planned with ICC.Sample.Size's
@@ -3642,3 +3661,40 @@ A replication plan now asks how the original was analysed (queue item
 - The references (Verhagen & Wagenmakers, 2014; Ly et al., 2018, 2019;
   McLatchie et al., 2020) were added to `refs.bib` from the published
   articles.
+
+### Clustered yes/no outcomes: formula by default, simulation offered, 15 November 2026
+
+For the cluster-randomised and multisite cards with a yes/no outcome
+(E34), powertools' `crt.parallel.bin()` and `multisite.bin()` stay the
+default, with the variance factor of 1.2 they apply (no published
+source) shown as Known difference 16 with its size. A `glmer()`
+simulation of the same trial is offered as the alternative method
+(`glmer_simulation`, `engine/R/backend-cluster-glmer.R`, run through
+Spower), so a researcher whose groups are expensive can plan without the
+factor. The formula stays the default because it is instant, it errs
+towards more groups rather than fewer, and it matches the package
+researchers cite; the simulation is the check. The simulated model is
+the one researchers fit: a random intercept for each group in a
+cluster-randomised trial, and a random effect of condition across groups
+in a multisite trial (the model `multisite.bin()` describes), each with
+the Wald z test of the condition's coefficient. With the example's
+values the simulation agrees with the formula without the factor (24
+groups: 84.5% in 200 simulated studies for a cluster-randomised trial;
+22 groups: 86.3% in 1,000 for a multisite trial, against 86.9% from the
+formula without the factor).
+
+## 2026-11-15 · Replication plans: starting values and wording (colleague-testing review)
+
+- **Variation between studies starts at Small (tau 0.05).** The
+  replication plan's help already cited Kenny and Judd (2019) arguing
+  zero should not be the default, while the box started at "None". It now
+  starts at their smallest example value, as the maintainer chose. The
+  engine's `replication_planning()` keeps BayesRepDesign's default of 0;
+  the departure is recorded in docs/conventions.md ("Variation between
+  studies in replication plans"), shown on the result and tested.
+- **Alpha and power start empty**, with the cards' one-click buttons
+  (the 8 and 12 November decisions for the input screens), and the
+  planner asks for them before calculating.
+- **"Evidence threshold"**, with 10 labelled "a common threshold", and
+  "Evidence, at your threshold" in the Bayes factor goals, as on the cards
+  since 11 November; 10 stays selected, labelled.

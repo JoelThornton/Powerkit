@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 15 November 2026 (review fixes on this round's cards: the online app's missing-package message, a card code in E32's text and the hints under a card's name; the ICC planned by its F test's exact power; the Bayes factor ANCOVA, card E23, and the factorial ANOVAs' Bayes factor write-up; the Bayes factor for R-squared, card E24; within-person moderation, card E41; replication plans for an original analysed with Bayes factors; replication goals for any one-number effect; a count or yes/no outcome in moderation and mediation, card E32; the binary-X null check uses seed 1500; two groups in a ratio rounded at every total; mediation with a yes/no mediator, card E39; two or more groups measured more than once with a count, yes/no or ordered categories, card E75; mediation with X in three or more groups, card E42; corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 15 November 2026 (review fixes on this round's cards: the online app's missing-package message, a card code in E32's text and the hints under a card's name; the Bayes factor three-factor ANOVA, card E56; replication and study plan fixes from the colleague-testing review; clustered yes/no outcomes can be simulated with glmer(); the ICC planned by its F test's exact power; the Bayes factor ANCOVA, card E23, and the factorial ANOVAs' Bayes factor write-up; the Bayes factor for R-squared, card E24; within-person moderation, card E41; replication plans for an original analysed with Bayes factors; replication goals for any one-number effect; a count or yes/no outcome in moderation and mediation, card E32; the binary-X null check uses seed 1500; two groups in a ratio rounded at every total; mediation with a yes/no mediator, card E39; two or more groups measured more than once with a count, yes/no or ordered categories, card E75; mediation with X in three or more groups, card E42; corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -27,7 +27,11 @@ scale of 0.354, exactly from the noncentral F; validation in progress
 (15 November 2026): JASP's inclusion Bayes factor from BayesFactor's
 `generalTestBF()`, with the covariates as model terms and JASP's r scales
 (0.5 for the effects, 0.354 for the covariates), simulated; validation in
-progress (the `bayes_ancova` chunk). The factorial and repeated-measures
+progress (the `bayes_ancova` chunk). E56 plans the Bayes factor of a
+three-factor ANOVA effect (15 November 2026), any mix of between and
+within factors, with `anovaBF()` as for the two-factor ANOVAs, simulated
+(a preview and the R script in the app); validation in progress (the
+`bayes_three` chunk). The factorial and repeated-measures
 ANOVAs' Bayes factor write-ups now name their test and say "effect"
 rather than "association". The R-squared increase and one coefficient
 wait on a decision about which Bayes factor to plan for (`next.md`
@@ -94,7 +98,7 @@ Validation in progress: the chunk `two_level` passes; within-person
 mediation is not yet calculated. Next in the queue: the rest of those
 cards (`next.md` item 1). A tool showing which uncertain input a plan depends on most
 (one-at-a-time ranges and a tornado chart) is queued after the cards
-that can't yet calculate (`next.md` item 24).
+that can't yet calculate (`next.md` item 23).
 
 The cross-lagged panel card runs with a reliability below 1 (13
 November 2026): its check run compares the specified lagged effects with
@@ -124,7 +128,9 @@ option on the card (`decisions.md`, 13 November 2026).
 The second specialist mathematics review (13 November 2026) is finished
 and its fixes, apart from the cross-lagged panel check run (merged in PR #395),
 are in: clustered yes/no outcomes show powertools' unsourced factor 1.2
-as Known difference 16, the three-way interaction's fixed-model formula
+as Known difference 16, and can be planned instead by a `glmer()`
+simulation of the trial without the factor (the formula stays the
+default; `decisions.md`, 15 November 2026), the three-way interaction's fixed-model formula
 shows its gap from simulated studies as Known difference 17, the SEM
 test of fit has no preselected test (not-close fit listed first), the
 cross-lagged panel card asks whether to enter the reliability or assume no measurement error (then the result says power is optimistic), and a simulated
@@ -463,6 +469,12 @@ and automated accessibility checks passed locally for the exercised routes.
   default prior; small telescopes is left out, and the goals add the
   original's Bayes factor test repeated and evidence for no effect
   (bfpwr), with a way on to a sequential Bayes factor design in Labs.
+  After the colleague-testing review (15 November 2026) the notes show
+  one box per part, the references are listed once at the foot, the
+  Bayes factor goals use the cards' "Evidence threshold" wording,
+  variation between studies starts at Small (0.05; docs/conventions.md),
+  and the replication's alpha and power start empty with buttons. Each
+  study plan can be deleted from its row on the Study plans list.
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning

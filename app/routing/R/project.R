@@ -133,12 +133,16 @@ project_file_name <- function(endpoint) {
   sprintf("powerkit-%s-project.powerkit.json", endpoint)
 }
 
+# Where both words appear (colleague review P-11, 15 November 2026).
+project_or_plan_note <- "A project file holds one analysis and its result; a study plan holds several analyses of one study. Both open here."
+
 # On the start screen: open a file saved earlier.
 open_project_ui <- function() {
   div(
     class = "open-project mt-4",
     fileInput("open_project", "Open a saved project, plan or unfinished draft", accept = c(".json", "application/json", ".zip", "application/zip"),
       buttonLabel = "Choose file…", placeholder = "a .powerkit.json file, or the zip"),
+    p(class = "small text-muted", project_or_plan_note),
     uiOutput("open_project_message")
   )
 }

@@ -214,7 +214,8 @@ plan_status_ui <- function(plan) {
   if (isTRUE(plan$too_large)) {
     return(span(class = "plan-status plan-status-unsaved", "This plan is too large to keep in this browser: save it to your computer."))
   }
-  if (!plan_has_content(plan)) return(span(class = "plan-status", "No analyses yet."))
+  # An empty plan's page says so in its own box; the status adds nothing.
+  if (!plan_has_content(plan)) return(NULL)
   if (plan_unsaved(plan)) {
     return(span(class = "plan-status plan-status-unsaved", "Only in this browser: save it to your computer."))
   }
@@ -294,20 +295,23 @@ plan_page_ui <- function(plan, plans_n = 1L) {
   k <- length(entries)
   largest <- plan_largest_entry(entries)
   esc <- function(x) htmltools::htmlEscape(x)
-  unsaved <- plan_has_content(plan) && plan_unsaved(plan)
   saveable <- plan_has_content(plan)
   tagList(
-    actionLink("plans_back", "‹ All study plans", class = "plans-back"),
+    actionLink("plans_back", "← All study plans", class = "btn btn-link plans-back"),
     if (plan_is_replication(plan)) p(class = "card-eyebrow", "Replication plan"),
     h2(class = "plan-title", plan$name),
     tags$details(class = "plan-rename",
       tags$summary(class = "small", "Rename"),
       textInput("plan_name", "Name of this plan", value = plan$name, width = "100%"),
       actionButton("plan_name_save", "Save name", class = "btn btn-sm btn-outline-secondary")),
-    div(class = "plan-description",
-      textAreaInput("plan_description", "About this study (optional)", value = plan$description %||% "", rows = 2, width = "100%",
-        placeholder = "For example the question, the population and the design."),
-      actionButton("plan_description_save", "Save description", class = "btn btn-sm btn-outline-secondary")),
+    # Kept as soon as the box is left, like every other box (P-10); the
+    # plan's id goes with the text, so it can only reach this plan.
+    div(class = "plan-description form-field",
+      tags$label(class = "form-label", `for` = "plan_description", "About this study (optional)"),
+      tags$textarea(id = "plan_description", class = "form-control", rows = 2, maxlength = plan_description_max,
+        placeholder = "For example the question, the population and the design.",
+        onchange = sprintf("Shiny.setInputValue('plan_description_edit', {id: %s, text: this.value}, {priority: 'event'})", js_string(plan$id)),
+        plan$description %||% "")),
     # Its own output (filled by the server), so that saving or copying a
     # link doesn't redraw the page under the share button.
     p(class = "plan-status-line", uiOutput("plan_status", inline = TRUE)),
@@ -345,12 +349,8 @@ plan_page_ui <- function(plan, plans_n = 1L) {
       if (!plan_is_replication(plan)) actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
       if (saveable) share_link_ui("study_plan"),
       if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
-    p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it. Download everything adds a planning document for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
+    if (saveable) p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it. Download everything adds a planning document for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
     p(class = "small plan-delete",
-      tags$a(href = "#", role = "button", id = "plan_delete_link",
-        onclick = sprintf("if (confirm(%s)) Shiny.setInputValue('plan_delete', Date.now(), {priority: 'event'}); return false;",
-          js_string(paste0("Delete “", plan$name, "” from this browser?",
-            if (unsaved) " It has not been saved to a file, so it will be gone." else ""))),
-        "Delete this plan"))
+      plan_delete_button(plan, input = "plan_delete", class = "btn btn-link btn-sm p-0", label = "Delete this plan"))
   )
 }

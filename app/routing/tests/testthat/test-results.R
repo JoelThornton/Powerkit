@@ -332,10 +332,12 @@ test_that("departure 1 shows only for the interaction; the mixed design shows de
 })
 
 test_that("clustered yes/no outcomes show Known difference 16 (powertools' factor 1.2), scores and group treatment don't", {
-  spec <- function(template, metric) list(template = template, population = list(metric = metric))
+  spec <- function(template, metric, method = "logistic_mixed") list(template = template, population = list(metric = metric), target_test = list(method = method))
   for (tpl in c("cluster_randomised", "multisite")) {
     expect_match(known_differences_for(forms, "E34", spec(tpl, "proportion")), "multiplies the variance of the log odds ratio by 1.2", fixed = TRUE)
     expect_length(known_differences_for(forms, "E34", spec(tpl, "standardised")), 0)
+    # The glmer() simulation has no such factor.
+    expect_length(known_differences_for(forms, "E34", spec(tpl, "proportion", "glmer_simulation")), 0)
   }
   expect_length(known_differences_for(forms, "E34", spec("group_treatment", "proportion")), 0)
   expect_true(nzchar(forms$known_differences_methods[["16"]]))
@@ -1406,6 +1408,29 @@ test_that("a yes/no outcome in groups runs on powertools' .bin() functions from 
   spec_ms <- build_spec(forms, "E34", fields, values_ms)
   expect_identical(spec_ms$population$sigma_u, 0.3)
   expect_identical(run_calculation(spec_ms, run, seed = 1L)$result$provenance$backend_function, "powertools::multisite.bin")
+})
+
+test_that("a clustered yes/no outcome can be simulated with glmer() instead of powertools' formula", {
+  fields <- form_fields(form_groups(forms, "E34"))
+  values <- modifyList(form_examples$E34, list(outcome_type = "proportion", p1 = "0.3", p2 = "0.45", sigma_u_groups = "0.3",
+    cluster_bin_method = "glmer_simulation", goal = "power", n = "480"))
+  values$d <- NULL; values$icc <- NULL
+  spec <- build_spec(forms, "E34", fields, values)
+  expect_identical(spec$target_test$method, "glmer_simulation")
+  # It takes the simulation route: a preview, then the full run in the app.
+  expect_true(runs_long(forms, "E34", spec))
+  expect_true(full_run_in_app(forms, "E34", "power", spec))
+  expect_false(runs_long(forms, "E34", build_spec(forms, "E34", fields, modifyList(values, list(cluster_bin_method = "logistic_mixed")))))
+  # The method question isn't asked for a score, or for a group treatment trial.
+  expect_identical(build_spec(forms, "E34", fields, modifyList(form_examples$E34, list(cluster_bin_method = "glmer_simulation")))$target_test$method, "cluster_t")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$status, "ok")
+  expect_match(calc$result$provenance$backend_function, "glmer", fixed = TRUE)
+  expect_length(known_differences_for(forms, "E34", calc$spec), 0)
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["detail"]], "SD of 0.3 on the log-odds scale", fixed = TRUE)
 })
 
 test_that("a multisite trial runs on powertools from the same screen, with the effect's variation asked for", {
