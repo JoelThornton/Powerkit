@@ -95,7 +95,7 @@ form_examples <- list(
                dif_items = "1", b_shift = "0.4", free_parameters = "both", irt_stat = "likelihood_ratio"), closing_ok),
   E30 = c(list(Y_label = "Sleep quality", X_label = "Daily screen time", A_label = "Age group", A_levels = "12 to 14, 15 to 17, 18 to 20",
                r_xy = "-0.1, -0.2, -0.35", group_sizes = "equal"), closing_ok),
-  E32 = c(list(Y_label = "Sought counselling", X_label = "Perceived stress", X_type = "continuous", W_label = "Social support", W_type = "continuous",
+  E32 = c(list(analysis = "moderation", Y_kind = "binary", Y_label = "Sought counselling", X_label = "Perceived stress", X_type = "continuous", W_label = "Social support", W_type = "continuous",
                base_prob = "0.25", odds_ratio_x = "1.4", odds_ratio_w = "1.1", odds_ratio_xw = "1.25", r_xw = "-0.2", alternative = "two_sided"), closing_ok),
   E70 = c(list(Y_label = "Where help was first sought", Y_levels = "General practitioner, Online search, Friends or family",
                X_label = "Health anxiety", X_type = "continuous", probabilities = "0.5, 0.3, 0.2", effect_as = "shares",

@@ -2485,6 +2485,41 @@ Wired into the app on 18 October 2026 (E25, E26).*
   the product's coefficient, as `summary()` reports it. Tests:
   `test-backend-logistic-interaction.R`;
   `test-validation-logistic-interaction.R` [powerkit, `docs/decisions.md`].
+- **Moderation of a count outcome (E32): the Wald z test of the product
+  in a Poisson or negative binomial regression.** G\*Power has no count
+  interaction test, so nothing is departed from. X and W are drawn as for
+  the yes/no outcome; the log of the mean count is linear in X, W and
+  X x W, with the mean count at the starting point and the rate ratios
+  given, so X's rate ratio is for W at its mean (or first group) and the
+  interaction is a ratio of rate ratios. The counts are Poisson, or
+  negative binomial with variance mu + k mu^2 when the researcher chooses
+  negative binomial and gives k. Each simulated study is fitted by
+  `glm(family = poisson())` or `MASS::glm.nb()` (the model that generated
+  the counts) and the test is the Wald z test of the product's
+  coefficient, as `summary()` reports it. The default is Poisson, the
+  usual first model for counts and the one the single-predictor count
+  card (E28) starts from; the field's help
+  says that a Poisson model overstates power when counts are
+  overdispersed. Tests: `test-backend-count-interaction.R`;
+  `test-validation-count-interaction.R` [powerkit, `docs/decisions.md`].
+- **Mediation with a yes/no or count outcome (E32): regression-based
+  causal mediation analysis.** G\*Power has no mediation test, and
+  PROCESS fits a logistic model for a yes/no outcome but reports no test
+  for a count; nothing is departed from. The mediator is a score: a
+  linear regression on X (X's effect in the mediator's residual SD). The
+  outcome is logistic (yes/no), Poisson or negative binomial (a count,
+  variance mu + k mu^2) in M and X, without an X-by-M interaction. Each
+  simulated study is analysed by `regmedint::regmedint()` (Valeri and
+  VanderWeele, 2013) with `mreg = "linear"` and `yreg = "logistic"`,
+  `"poisson"` or `"negbin"`, and the test is the natural indirect
+  effect's delta-method test as regmedint reports it: a * b on the log
+  odds-ratio or log rate-ratio scale, with standard error
+  sqrt(b^2 var(a) + a^2 var(b)). For a yes/no outcome the authors give
+  the odds-ratio scale as an approximation of the risk ratio when the
+  outcome is rare; the test of a zero indirect effect doesn't depend on
+  that. X is two equal groups or a score. Tests:
+  `test-backend-mediation-yglm.R`; `test-validation-mediation-yglm.R`
+  [powerkit, `docs/decisions.md`].
 - **The Bayes factor of an effect in a two-factor between-participants
   ANOVA (E7, E21, E22), and since 5 November 2026 in the repeated-measures
   ANOVAs (E8, E54, E55, E20, participants a random factor with JASP's r
