@@ -471,7 +471,7 @@ in steps of the whole split and could need up to about four people more
 | --- | --- | --- | --- |
 | G\*Power | No test for clustered designs | — | — |
 | powertools | `crt.parallel.bin()` and `multisite.bin()`: a z test of the log odds ratio between conditions, its variance from the binomial variance in each condition plus the between-group variance `sigma.u`² (for a cluster-randomised trial, the SD of the groups' random intercepts; for a multisite trial, the SD of the effect across groups), both on the log-odds scale, and multiplied by 1.2. The help pages do not give a source for the factor 1.2 (`upstream-questions.md`). Two-sided power is `pnorm(gamma / sqrt(var) - z)`, ignoring the far tail (powertools 1.0.0 help and source, R/crt.parallel.bin.R and R/multisite.bin.R, opened 28 October 2026) | `pc` and `pt`, the proportions in the two conditions | `m`, `m.sd` (cluster-randomised only), `J`, the total number of groups, `alloc.ratio` (multisite only), `sigma.u`, `alpha = 0.05`, `sides = 2` |
-| **powerkit** | powertools' `crt.parallel.bin()` and `multisite.bin()`, by formula; no simulation option (E34, from 28 October 2026) [powerkit] | `p1` and `p2`, the proportion of "yes" in each condition, and `sigma_u` on the log-odds scale; there is no ICC for this outcome | The same number of groups in each condition, or half of each group in each condition (`alloc.ratio = 1`). Groups of the same size only: `cluster_size_sd` is refused, because the relative-efficiency adjustment for varying sizes (`re.clustsize.bin()`) appears to contain a typo (`upstream-questions.md`). No smallest detectable effect, since the functions cannot solve for the proportions. The exported script prints powertools' `crt.varexplore()` or `ms.varexplore()` table, to help judge `sigma_u`. Not a departure: powertools' own method, including its factor 1.2, and no established psychology tool computes this design for comparison. The factor's size is Known difference 16 |
+| **powerkit** | powertools' `crt.parallel.bin()` and `multisite.bin()`, by formula, by default (E34, from 28 October 2026); on request, Spower's simulation of the trial analysed with lme4's `glmer()` (a random intercept for each group, or for a multisite trial a random effect of condition, and the Wald z test of the condition's coefficient), without the factor 1.2 (from 15 November 2026) [powerkit] | `p1` and `p2`, the proportion of "yes" in each condition, and `sigma_u` on the log-odds scale; there is no ICC for this outcome | The same number of groups in each condition, or half of each group in each condition (`alloc.ratio = 1`). Groups of the same size only: `cluster_size_sd` is refused, because the relative-efficiency adjustment for varying sizes (`re.clustsize.bin()`) appears to contain a typo (`upstream-questions.md`). No smallest detectable effect, since the functions cannot solve for the proportions. The exported script prints powertools' `crt.varexplore()` or `ms.varexplore()` table, to help judge `sigma_u`. Not a departure: powertools' own method, including its factor 1.2, and no established psychology tool computes this design for comparison. The factor's size is Known difference 16 |
 
 ## Group treatment trials (only one condition delivered in groups)
 
@@ -2242,14 +2242,22 @@ Wired into the app on 18 October 2026 (E25, E26).*
   trial with an effect SD of 0.3 needs 22 groups with the factor and 19
   without it (simulation 87.6% at 22). The test is in `engine/tests/testthat/test-backend-powertools.R`,
   "the factor 1.2 in powertools' yes/no formulas".
-- **Why not a departure (yet):** the factor is powertools' own method,
-  and removing it is a method choice that waits on the maintainer and on
-  its source (`next.md`). Groups are the costliest unit in these trials,
-  so the size is shown rather than left in this file.
+- **Why not a departure:** the formula, with its factor, stays the
+  default because it is powertools' published method, it is instant, and
+  it is what plans for this design usually cite; the factor errs towards
+  more groups, not fewer (decisions.md, 15 November 2026). Groups are the
+  costliest unit in these trials, so the size is shown, and the
+  simulation is offered as the alternative method on the same card
+  (`engine/R/backend-cluster-glmer.R`). Its agreement with the formula
+  without the factor is tested in
+  `engine/tests/testthat/test-backend-cluster-glmer.R` (full validation
+  only).
 - **Shown to users:** on E34 results with a yes/no outcome when whole
-  groups, or people within groups, are randomised (`app/routing/forms.yaml`,
-  `known_differences`, key "16"). Not for the group treatment trial,
-  whose `irgtt.bin()` has no such factor.
+  groups, or people within groups, are randomised and the formula is used
+  (`app/routing/forms.yaml`, `known_differences`, key "16"), and in the
+  method's description on the input screen. Not for the simulation, which
+  has no factor, and not for the group treatment trial, whose
+  `irgtt.bin()` has none either.
 - **Methods paragraph:** `known_differences_methods`, key "16".
 
 ### 17. Three-way regression interactions: the fixed-model formula gives more power than simulated studies
