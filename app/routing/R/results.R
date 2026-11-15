@@ -2399,7 +2399,7 @@ bayes_settings_text <- function(spec) {
 # no direction, JASP's r scales by default.
 is_bayes_factorial <- function(spec) {
   is_bayes_test(spec) && isTRUE(spec$template %in% c("2x2_between", "factorial_between", "oneway_within", "factorial_within",
-    "2x2_mixed", "mixed", "oneway_ancova", "factorial_ancova"))
+    "2x2_mixed", "mixed", "oneway_ancova", "factorial_ancova", "factorial_three"))
 }
 is_bayes_ancova <- function(spec) is_bayes_test(spec) && isTRUE(spec$template %in% c("oneway_ancova", "factorial_ancova"))
 
@@ -2445,6 +2445,7 @@ bayes_test_name <- function(spec) {
     factorial_between = "a Bayes factor between-participants ANOVA",
     oneway_within = ,
     factorial_within = "a Bayes factor repeated-measures ANOVA",
+    factorial_three = "a Bayes factor three-factor ANOVA",
     "2x2_mixed" = ,
     mixed = "a Bayes factor mixed ANOVA",
     chi_square_independence = "a Bayes factor test of association")
