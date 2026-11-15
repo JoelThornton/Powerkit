@@ -661,6 +661,12 @@ planning (queue item 23; `decisions.md`, 12 and 14 November 2026).
   reported it", the note on the card names the plan and links back, and
   the reasoning box starts from the notes' own words. "Add to plan" keeps
   the result as the plan's analysis.
+- Choosing the card also sets the goals table's route (15 November
+  2026): the four exact designs keep their own fields; any other card
+  with one focal effect asks for that effect (named from `forms.yaml`'s
+  `replication_effects`), its standard error, interval or test statistic
+  and its scale, and the card's status line says which applies. A
+  multi-df test is pointed to the card for its focal contrast.
 - The write-up (PDF, Word, Markdown) holds the notes, the goals table,
   the differences and the original's analysis as its card planned it.
   Download everything adds it to the zip as `replication-plan.md` and

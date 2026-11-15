@@ -27,8 +27,23 @@ replication_designs_ui <- c(
   "Two separate groups compared on a score (Cohen's d)" = "two_groups",
   "The same people measured twice (d_z)" = "paired",
   "One group against a fixed value (Cohen's d)" = "one_sample",
-  "Two scores and how they are related (r)" = "correlation"
+  "Two scores and how they are related (r)" = "correlation",
+  "Another design: its effect as one number (an estimate with its standard error, interval or test statistic)" = "generic"
 )
+
+# For another design: the estimate's scale, and where its uncertainty
+# comes from (queue item 21).
+replication_scales_ui <- c(
+  "As reported: a difference, a coefficient or another estimate" = "none",
+  "A ratio (odds, risk, hazard, rate or variance ratio), planned on the log scale" = "log",
+  "A correlation, planned on Fisher's z scale" = "fisher_z"
+)
+replication_se_from_ui <- c("Its standard error" = "se", "Its confidence interval" = "ci",
+  "Its test statistic (z or t)" = "statistic")
+
+# The card's entry in forms.yaml's replication_effects: how a replication
+# plan takes its original effect.
+replication_card_effect <- function(forms, ep_id) forms$replication_effects[[ep_id %||% ""]]
 
 # Replicating a published finding from the design finder (12 November
 # 2026): the aim asks the original's design like any other, and the card
@@ -44,6 +59,18 @@ replication_card_design <- function(forms, ep_id) {
   if (template %in% names(replication_card_templates)) unname(replication_card_templates[[template]]) else NULL
 }
 
+# The plan's goals for the card, in one sentence: what the goals table
+# takes from it, or why it has none.
+replication_card_effect_note <- function(forms, ep_id) {
+  e <- replication_card_effect(forms, ep_id)
+  if (is.null(e) || !is.null(e$exact)) return(NULL)
+  if (!is.null(e$multi_df)) {
+    return(sprintf("This card's test has several degrees of freedom, so it has no one number for the plan's goals; plan them for the focal contrast instead: %s.", e$multi_df))
+  }
+  if (!is.null(e$none)) return(e$none)
+  sprintf("For the plan's goals, enter the original's %s with its standard error, interval or test statistic, under \u201cAnother design\u201d.", e$effect)
+}
+
 replication_card_note <- function(forms, ep_id, plan = NULL) {
   planner <- !is.null(replication_card_design(forms, ep_id))
   div(class = "labs-return replication-card-note", role = "note",
@@ -54,7 +81,7 @@ replication_card_note <- function(forms, ep_id, plan = NULL) {
       if (!is.null(plan)) tagList(sprintf("This is kept in the replication plan \u201c%s\u201d, with its notes, goals and write-up. ", plan$name),
         actionLink("rep_view_plan", "Open the replication plan"), ". ") else NULL,
       if (planner) "For this design, the plan's Goals give the sample size for each goal a replication can have (a significant result again, a pooled estimate, agreement with the original, Bayes factors)."
-      else "This card plans the replication for a significant result again; the plan's other goals cover t-tests and correlations only for now."))
+      else tagList("This card plans the replication for a significant result again. ", replication_card_effect_note(forms, ep_id))))
 }
 
 # The input screen's starting values when replicating: the effect comes
@@ -124,13 +151,29 @@ replication_planner_sections <- function() {
         uiOutput("rep_from_notes_study"),
         field("rep_study", "The original study (authors, year, title or link)"),
         selectInput("rep_design", "Its design", choices = replication_designs_ui, selectize = FALSE, width = "100%"),
-        field("rep_effect", "The effect it reported (d, d_z or r, with its sign)",
-          help = "As the paper reported it. If it gave a t or F instead, the Effect size converter in Labs turns it into d or r."),
+        conditionalPanel("input.rep_design == 'generic'",
+          field("rep_effect_name", "What the effect is",
+            help = "For example \u201cthe interaction coefficient\u201d or \u201codds ratio\u201d. The original's card suggests one."),
+          selectInput("rep_scale", "Its scale", choices = replication_scales_ui, selectize = FALSE, width = "100%")),
+        field("rep_effect", "The effect it reported, with its sign",
+          help = "As the paper reported it: d, d_z or r for the first four designs (if it gave a t or F instead, the Effect size converter in Labs turns it into d or r); for another design, on its own scale, a ratio as the ratio."),
+        conditionalPanel("input.rep_design == 'generic'",
+          radioButtons("rep_se_from", "How sure the original was of it", choices = replication_se_from_ui, selected = "se", inline = TRUE, width = "100%"),
+          conditionalPanel("input.rep_se_from == 'se'",
+            field("rep_se", "Its standard error", help = "For a ratio, the standard error of its log (as a logistic or Poisson regression reports it beside b); for a correlation, of Fisher's z.")),
+          conditionalPanel("input.rep_se_from == 'ci'",
+            field("rep_ci_lower", "The interval's lower end (on the reported scale)"),
+            field("rep_ci_upper", "The interval's upper end"),
+            field("rep_ci_level", "The interval's level (%)", value = "95")),
+          conditionalPanel("input.rep_se_from == 'statistic'",
+            field("rep_statistic", "Its z or t statistic", help = "The estimate divided by its standard error, as the paper reported it."))),
         conditionalPanel("input.rep_design == 'two_groups'",
           field("rep_n1", "People in its first group"),
           field("rep_n2", "People in its second group")),
         conditionalPanel("input.rep_design != 'two_groups'",
-          field("rep_n", "People (or pairs) it analysed")),
+          field("rep_n", "People (or pairs) it analysed, in total")),
+        conditionalPanel("input.rep_design == 'generic'",
+          p(class = "small text-muted", "The replication is taken to copy the original's design, so its standard error shrinks with the square root of its sample size. Small telescopes needs the original's own test, so it is planned on the design's card.")),
         field("rep_original_alpha", "Its significance level (two-sided)", value = "0.05"),
         # The simple answer first (colleague review C-14, 12 November
         # 2026): the sample size to find the effect significant again,
@@ -144,7 +187,7 @@ replication_planner_sections <- function() {
       tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "Goals and sample size"),
         p(class = "group-note", "A replication can aim for more than a significant result (Anderson & Maxwell, 2016). The table gives the sample size each goal needs, under three beliefs about the true effect. Choose the goal that answers your question, and the belief you can defend."),
         uiOutput("rep_from_notes_smallest"),
-        field("rep_smallest", "The smallest effect that would matter (d, d_z or r, positive)",
+        field("rep_smallest", "The smallest effect that would matter (positive: d, d_z or r, or another design's effect on its own scale, a ratio above 1)",
           help = "Needed for the goals of agreement and of an effect too small to matter. Leave blank to skip those two."),
         selectInput("rep_tau", "How much the true effect may vary between studies", choices = replication_taus, selected = "0", selectize = FALSE, width = "100%"),
         p(class = "small text-muted", "Labs, samples and procedures differ, so the true effect can differ too. Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 (in d) as small, medium and large, and argue zero should not be the default. It applies to the uncertain and shrunk beliefs. For a correlation it is on Fisher's z scale, close to r for small values."),
@@ -182,7 +225,8 @@ replication_citations <- function(path = labs_refs_path(), keys = replication_re
 }
 
 # Every field the planner keeps, for the file and the write-up.
-replication_field_ids <- c("rep_study", "rep_design", "rep_effect", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha",
+replication_field_ids <- c("rep_study", "rep_design", "rep_effect_name", "rep_scale", "rep_effect", "rep_se_from", "rep_se",
+  "rep_ci_lower", "rep_ci_upper", "rep_ci_level", "rep_statistic", "rep_n1", "rep_n2", "rep_n", "rep_original_alpha",
   "rep_smallest", "rep_tau", "rep_alpha", "rep_power", "rep_threshold", "rep_n_at", "rep_goal", "rep_prior",
   "rep_diff_people", "rep_diff_materials", "rep_diff_procedure", "rep_diff_analysis", "rep_diff_expect")
 
@@ -206,15 +250,34 @@ replication_args <- function(values) {
   } else {
     args$original_n <- num("rep_n", NA_real_)
   }
+  if (identical(design, "generic")) {
+    args$scale <- if (v("rep_scale") %in% c("none", "log", "fisher_z")) v("rep_scale") else "none"
+    args$effect_name <- if (nzchar(v("rep_effect_name"))) v("rep_effect_name") else NULL
+    from <- if (nzchar(v("rep_se_from"))) v("rep_se_from") else "se"
+    if (identical(from, "ci")) {
+      args$original_ci <- c(num("rep_ci_lower", NA_real_), num("rep_ci_upper", NA_real_))
+      level <- num("rep_ci_level", 95)
+      args$original_ci_level <- if (!is.na(level) && level > 1) level / 100 else level
+    } else if (identical(from, "statistic")) {
+      args$original_statistic <- num("rep_statistic", NA_real_)
+    } else {
+      args$original_se <- num("rep_se", NA_real_)
+    }
+  }
   args
 }
 
 # What is missing before the engine can plan, in the field's words.
 replication_missing <- function(values) {
   v <- function(id) nzchar(trimws(as.character(values[[id]] %||% "")))
-  two <- identical(values$rep_design %||% "two_groups", "two_groups")
+  two <- identical(values$rep_design %||% "two_groups", "two_groups") || !v("rep_design")
+  generic <- identical(values$rep_design, "generic")
+  from <- if (v("rep_se_from")) values$rep_se_from else "se"
   missing <- c(
     if (!v("rep_effect")) "the effect the original study reported",
+    if (generic && identical(from, "se") && !v("rep_se")) "its standard error",
+    if (generic && identical(from, "ci") && (!v("rep_ci_lower") || !v("rep_ci_upper"))) "its confidence interval",
+    if (generic && identical(from, "statistic") && !v("rep_statistic")) "its test statistic",
     if (two && (!v("rep_n1") || !v("rep_n2"))) "the original study's two group sizes",
     if (!two && !v("rep_n")) "the number of people (or pairs) the original study analysed"
   )
@@ -291,18 +354,21 @@ replication_result_ui <- function(plan) {
       replication_headline_ui(plan),
       p(sprintf("The original estimate is %s with a standard error of %s%s (two-sided p = %s, by the normal approximation). %s",
         format(signif(o$estimate, 3)), format(signif(o$se, 3)),
-        if (identical(plan$inputs$design, "correlation")) " on Fisher's z scale" else "",
+        if (identical(plan$inputs$design, "correlation") || identical(plan$inputs$scale, "fisher_z")) " on Fisher's z scale"
+        else if (identical(plan$inputs$scale, "log")) " on the log scale" else "",
         format(signif(o$p, 2)),
         if (o$p > plan$inputs$original_alpha) "It was not significant at its own level, so most goals here, which ask the replication to confirm it, may not fit; showing the effect is too small to matter may." else "")),
       replication_table_ui(plan),
       tags$dl(class = "small", lapply(names(replication_prior_labels), function(p) tagList(
         tags$dt(replication_prior_labels[[p]]), tags$dd(replication_prior_notes[[p]])))),
-      p(class = "small", sprintf("Small telescopes' yardstick is %s = %s, the effect the original study had a one-in-three chance of detecting.",
-        plan$telescope$effect_name, format(signif(plan$telescope$effect, 3)))),
+      if (!is.null(plan$telescope)) p(class = "small", sprintf("Small telescopes' yardstick is %s = %s, the effect the original study had a one-in-three chance of detecting.",
+        plan$telescope$effect_name, format(signif(plan$telescope$effect, 3))))
+      else p(class = "small", sprintf("The replication's standard error is the original's scaled by the square root of the ratio of sample sizes, which assumes it copies the original's design. Small telescopes is planned on the design's card.")),
       replication_chances_ui(plan),
       p(class = "small text-muted", "Calculated by powerkit's engine with ",
         paste(vapply(plan$packages, function(p) sprintf("%s %s", p$name, p$version), ""), collapse = ", "),
-        ". Every goal judged against the original's effect uses a normal approximation (Pawel, Consonni & Held, 2026), which for a t-test asks for a few people fewer than the t-test cards; small telescopes is the cards' own calculation.")))
+        if (identical(plan$inputs$design, "generic")) ". Every goal uses a normal approximation to the original's estimate (Pawel, Consonni & Held, 2026)."
+        else ". Every goal judged against the original's effect uses a normal approximation (Pawel, Consonni & Held, 2026), which for a t-test asks for a few people fewer than the t-test cards; small telescopes is the cards' own calculation.")))
 }
 
 # The simple answer above the table (C-14): the sample size for a
@@ -345,6 +411,8 @@ replication_methods_paragraph <- function(plan, goal, prior) {
   original <- switch(i$design,
     two_groups = sprintf("%s and %s per group", i$original_n1, i$original_n2),
     paired = sprintf("%s pairs", i$original_n), sprintf("%s people", i$original_n))
+  scaled <- if (identical(i$design, "generic")) sprintf("; the replication's standard error was the original's (%s%s) scaled by the square root of the ratio of sample sizes, assuming the replication copies the original's design",
+    format(signif(plan$original$se, 3)), switch(i$scale %||% "none", log = ", on the log scale", fisher_z = ", on Fisher's z scale", "")) else ""
   belief <- switch(prior,
     as_reported = "assuming the true effect equals the original estimate",
     uncertain = "with a design prior that carries the original estimate's uncertainty (a flat initial prior updated by the original study)",
@@ -361,8 +429,8 @@ replication_methods_paragraph <- function(plan, goal, prior) {
     sprintf("an equivalence test (two one-sided tests at %s) with bounds of ±%s, planned for a true effect of zero, calculated with BayesRepDesign (Pawel, Consonni & Held, 2026)",
       format(i$alpha), format(i$smallest_effect))
   } else {
-    sprintf("%s, %s%s, with the original estimate (%s = %s, %s) and the normal-normal hierarchical model of Pawel, Consonni and Held (2026), calculated with BayesRepDesign",
-      tolower(replication_goal_labels[[goal]]), belief, varies, plan$effect_name, format(i$original_effect), original)
+    sprintf("%s, %s%s, with the original estimate (%s = %s, %s) and the normal-normal hierarchical model of Pawel, Consonni and Held (2026), calculated with BayesRepDesign%s",
+      tolower(replication_goal_labels[[goal]]), belief, varies, plan$effect_name, format(i$original_effect), original, scaled)
   }
   sprintf("We planned the replication's sample size for a %s chance of %s. This gives %s.",
     replication_pct(i$power), calc, replication_n_words(plan, m$row$n))
@@ -383,7 +451,16 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
     "## The original study", "",
     sprintf("- Study: %s", or_blank(v("rep_study"))),
     sprintf("- Design: %s", design_label),
-    sprintf("- Reported effect: %s", or_blank(v("rep_effect"))),
+    if (identical(v("rep_design"), "generic")) c(
+      sprintf("- The effect: %s (%s)", or_blank(v("rep_effect_name")),
+        names(replication_scales_ui)[replication_scales_ui == (if (nzchar(v("rep_scale"))) v("rep_scale") else "none")]),
+      sprintf("- Reported effect: %s", or_blank(v("rep_effect"))),
+      sprintf("- Its uncertainty: %s", switch(if (nzchar(v("rep_se_from"))) v("rep_se_from") else "se",
+        ci = sprintf("a %s%% confidence interval from %s to %s", if (nzchar(v("rep_ci_level"))) v("rep_ci_level") else "95",
+          or_blank(v("rep_ci_lower")), or_blank(v("rep_ci_upper"))),
+        statistic = sprintf("a test statistic of %s", or_blank(v("rep_statistic"))),
+        sprintf("a standard error of %s", or_blank(v("rep_se"))))))
+    else sprintf("- Reported effect: %s", or_blank(v("rep_effect"))),
     if (two) sprintf("- Group sizes: %s and %s", or_blank(v("rep_n1")), or_blank(v("rep_n2"))) else sprintf("- Sample size: %s", or_blank(v("rep_n"))),
     sprintf("- Significance level: %s", or_blank(v("rep_original_alpha"))), "",
     "## Goals and sample size", "")

@@ -160,3 +160,87 @@ test_that("the R script gives the planner's numbers with the packages alone", {
     }
   }
 })
+
+# Any design whose focal effect is one number (queue item 21): the
+# original's standard error scaled by sqrt(n_original / n).
+generic_goals <- function(plan) {
+  g <- plan$goals[plan$goals$goal != "small_telescopes", c("goal", "prior", "n", "reason")]
+  rownames(g) <- NULL
+  g
+}
+
+test_that("the generic route gives one sample's and pairs' exact tables", {
+  for (design in c("one_sample", "paired")) {
+    exact <- replication_planning(design, 0.45, original_n = 36, smallest_effect = 0.2, tau = 0.1, n = 70)
+    generic <- replication_planning("generic", 0.45, original_n = 36, original_se = 1 / sqrt(36),
+      smallest_effect = 0.2, tau = 0.1, n = 70)
+    expect_equal(generic_goals(generic), generic_goals(exact))
+    keep <- exact$at_n$goal != "small_telescopes"
+    expect_equal(generic$at_n$chance, exact$at_n$chance[keep])
+    expect_false("small_telescopes" %in% generic$goals$goal)
+  }
+})
+
+test_that("for two groups and a correlation the generic route differs from the exact entry by a known amount", {
+  # Two equal groups: the original's standard error (eq. 9) carries
+  # d^2 / (2N), so scaling it asks for (1 + d^2 / 8) times as many people
+  # as the exact entry (about 6% more at d = 0.7), which is why the exact
+  # entries stay.
+  exact <- replication_planning("two_groups", 0.7, original_n1 = 30, original_n2 = 30)
+  generic <- replication_planning("generic", 0.7, original_n = 60, original_se = exact$original$se)
+  ratio <- goal_n(generic, "significance", "shrunk") / goal_n(exact, "significance", "shrunk")
+  expect_equal(ratio, 1 + 0.7^2 / 8, tolerance = 0.01)
+  # A correlation: plain scaling gives n_original / (n_original - 3) times
+  # the exact rule's n - 3, a few people more at this size (89 against 85).
+  exact_r <- replication_planning("correlation", 0.3, original_n = 40)
+  generic_r <- replication_planning("generic", 0.3, original_n = 40, original_se = 1 / sqrt(37), scale = "fisher_z")
+  for (prior in c("as_reported", "uncertain", "shrunk")) {
+    # Within a person and a half: each is rounded up to a whole person.
+    expect_lte(abs(goal_n(generic_r, "significance", prior) - 40 / 37 * (goal_n(exact_r, "significance", prior) - 3)), 1.5)
+  }
+  expect_equal(goal_n(generic_r, "significance", "as_reported") - goal_n(exact_r, "significance", "as_reported"), 4)
+})
+
+test_that("a confidence interval or a test statistic gives the same standard error", {
+  se <- 0.2
+  by_se <- replication_planning("generic", exp(0.6), original_n = 120, original_se = se, scale = "log")
+  ci <- exp(0.6 + c(-1, 1) * qnorm(0.975) * se)
+  by_ci <- replication_planning("generic", exp(0.6), original_n = 120, original_ci = ci, scale = "log")
+  by_z <- replication_planning("generic", exp(0.6), original_n = 120, original_statistic = 0.6 / se, scale = "log")
+  expect_equal(by_ci$original$se, se)
+  expect_equal(by_z$original$se, se)
+  expect_equal(by_ci$goals, by_se$goals)
+  # A 90% interval is narrower for the same standard error.
+  ci90 <- exp(0.6 + c(-1, 1) * qnorm(0.95) * se)
+  expect_equal(replication_planning("generic", exp(0.6), original_n = 120, original_ci = ci90,
+    original_ci_level = 0.9, scale = "log")$original$se, se)
+  # A ratio below 1 is planned like its inverse.
+  inverse <- replication_planning("generic", exp(-0.6), original_n = 120, original_se = se, scale = "log")
+  expect_equal(inverse$goals$n, by_se$goals$n)
+})
+
+test_that("the generic script redoes the planner's numbers", {
+  plan <- replication_planning("generic", 2.1, original_n = 150, original_ci = c(1.2, 3.7), scale = "log",
+    effect_name = "odds ratio")
+  lines <- strsplit(replication_planning_script(plan), "\n")[[1]]
+  expect_false(any(grepl("pwr", lines)))
+  env <- new.env()
+  table <- suppressWarnings(eval(parse(text = lines[!grepl("^library", lines)]), env))
+  for (prior in c("as_reported", "uncertain", "shrunk")) {
+    expect_equal(unname(table["significance", prior]), goal_n(plan, "significance", prior))
+    expect_equal(unname(table["bf_replication", prior]), goal_n(plan, "bf_replication", prior))
+  }
+  expect_setequal(vapply(plan$packages, `[[`, "", "name"), "BayesRepDesign")
+})
+
+test_that("a generic original that can't be planned gets plain words", {
+  expect_error(replication_planning("generic", 2, original_n = 100, scale = "log"), "Give one of")
+  expect_error(replication_planning("generic", 2, original_n = 100, original_se = 0.2, original_statistic = 3), "Give one of")
+  expect_error(replication_planning("generic", 1, original_n = 100, original_se = 0.2, scale = "log"), "not 1")
+  expect_error(replication_planning("generic", 2, original_n = 100, original_ci = c(2.5, 4), scale = "log"), "inside")
+  expect_error(replication_planning("generic", 2, original_n = 100, original_ci = c(-1, 4), scale = "log"), "above 0")
+  expect_error(replication_planning("generic", 0.3, original_n = 1, original_se = 0.1), "whole number")
+  expect_error(replication_planning("generic", 2, original_n = 100, original_se = 0.2, scale = "log",
+    smallest_effect = 0.8), "ratio above 1")
+  expect_error(replication_planning("generic", 0.3, original_n = 100, original_se = 0.1, scale = "probit"), "scale")
+})

@@ -405,6 +405,94 @@ known_differences_methods:
   "17": "Power was calculated with InteractionPoweR's fixed-model formula for the R-squared change; simulating studies with newly sampled predictors gave lower power in a checked example (about 76% where the formula gave 80%, needing about 10% more participants)."
   "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
 
+# How a replication plan takes each card's original effect (queue item 21;
+# decisions.md, 12 November 2026). Every card has one entry:
+#   exact      one of the four designs whose goals table has its own rule
+#              (two_groups, one_sample, paired, correlation)
+#   effect     the focal effect, one number: what it is, and its scale
+#              (none: as reported; log: a ratio, planned on the log scale;
+#              fisher_z: a correlation)
+#   multi_df   a test of several degrees of freedom, with no one-number
+#              effect; the text names the focal contrast to plan instead
+#   none       why a replication's goals table doesn't fit the card
+# A replication plan opened on the card starts with it; the researcher can
+# change it on the plan's page.
+replication_effects:
+  E1: {exact: one_sample}
+  E2: {exact: two_groups}
+  E3: {exact: paired}
+  E4: {exact: correlation}
+  E76: {effect: "repeated-measures correlation (r)", scale: fisher_z}
+  E5: {effect: "odds ratio between the two groups", scale: log}
+  E6: {multi_df: "for a 2 x 2 table, the odds ratio (card E5 or E27); for a larger table, the one comparison the hypothesis is about"}
+  E7: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
+  E22: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
+  E8: {effect: "the group by condition interaction (the difference in change between the groups)", scale: none}
+  E9: {effect: "the interaction coefficient (b for X times W)", scale: none}
+  E15: {effect: "the interaction coefficient (b for X times W)", scale: none}
+  E31: {effect: "the three-way interaction coefficient", scale: none}
+  E10: {effect: "the indirect effect (ab)", scale: none}
+  E16: {effect: "the indirect effect (ab)", scale: none}
+  E42: {effect: "the one relative indirect effect the hypothesis is about", scale: none}
+  E39: {effect: "the natural indirect effect", scale: none}
+  E33: {effect: "the condition effect (the fixed effect of condition)", scale: none}
+  E63: {multi_df: "the difference between the two conditions the hypothesis is about (card E33)"}
+  E75: {effect: "the effect of interest as a rate ratio or odds ratio", scale: log}
+  E67: {effect: "the item predictor's coefficient", scale: none}
+  E68: {effect: "the coefficient of interest (a fixed effect)", scale: none}
+  E43: {effect: "hazard ratio", scale: log}
+  E69: {none: "A study of reliability or agreement estimates how consistent a measure is rather than testing an effect, so a replication is planned for the precision of that estimate on this card."}
+  E44: {effect: "the actor or partner effect the hypothesis is about", scale: none}
+  E62: {effect: "the coefficient of interest (a fixed effect)", scale: none}
+  E11: {effect: "the one indirect effect the hypothesis is about", scale: none}
+  E12: {effect: "the serial indirect effect", scale: none}
+  E13: {effect: "the index of moderated mediation", scale: none}
+  E14: {effect: "the index of moderated mediation", scale: none}
+  E17: {effect: "the index of moderated mediation", scale: none}
+  E38: {effect: "the index of moderated mediation", scale: none}
+  E40: {effect: "the index of moderated mediation for the mediator the hypothesis is about", scale: none}
+  E18: {multi_df: "the difference between the two groups the hypothesis is about (card E19, a specific comparison)"}
+  E54: {multi_df: "the difference between the two conditions the hypothesis is about (card E3 for two conditions)"}
+  E55: {multi_df: "the one contrast the hypothesis is about, such as the difference in change between two groups (card E8)"}
+  E56: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design"}
+  E20: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design"}
+  E21: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design (card E7)"}
+  E23: {effect: "the adjusted difference between the two groups (with three or more groups, the one comparison the hypothesis is about)", scale: none}
+  E24: {effect: "the coefficient of the predictor the hypothesis is about", scale: none}
+  E25: {effect: "the difference between the proportion and the fixed value", scale: none}
+  E26: {effect: "the odds ratio from the pairs that changed", scale: log}
+  E36: {none: "An equivalence study aims to show an effect is too small to matter; a replication of it is planned on this card, with the same equivalence bounds."}
+  E48: {multi_df: "the one proportion the hypothesis is about, against its expected value (card E25)"}
+  E29: {effect: "the odds ratio from the ordinal (proportional odds) model", scale: log}
+  E47: {effect: "the odds ratio for the effect the hypothesis is about (in a 2 x 2 design, the interaction)", scale: log}
+  E49: {effect: "the difference between the two correlations, on Fisher's z scale", scale: none}
+  E52: {effect: "the ratio of the group's variance to the fixed value", scale: log}
+  E53: {effect: "the ratio of the two groups' variances", scale: log}
+  E57: {effect: "the ratio of the variances after and before", scale: log}
+  E59: {multi_df: "the one outcome and comparison the hypothesis is about (card E2 for two groups on one outcome)"}
+  E60: {multi_df: "the one outcome the hypothesis is about, against its fixed value (card E1)"}
+  E61: {none: "A meta-analysis's average effect is checked by the studies that follow, not by one replication, so no replication goals are planned for it."}
+  E27: {effect: "the odds ratio of the predictor the hypothesis is about", scale: log}
+  E70: {effect: "the odds ratio, for the one category the hypothesis is about", scale: log}
+  E71: {none: "Differential item functioning is checked item by item in a new sample on this card; it has no single effect to replicate."}
+  E35: {effect: "the difference between the groups' slopes (the group by time coefficient)", scale: none}
+  E73: {none: "An exploratory factor analysis has no single effect to replicate; plan the new sample's recovery of the factors on this card."}
+  E45: {effect: "the change in level (or in slope) at the known point", scale: none}
+  E74: {effect: "the cross-lagged path the hypothesis is about", scale: none}
+  E58: {none: "Finding profiles or classes has no single effect to replicate; plan the new sample on this card."}
+  E72: {effect: "the difference in d' between the conditions or groups", scale: none}
+  E30: {multi_df: "the one comparison the hypothesis is about, such as how the effect differs between two of the groups (card E15)"}
+  E32: {effect: "the interaction coefficient, as an odds ratio or rate ratio", scale: log}
+  E28: {effect: "the rate ratio of the predictor the hypothesis is about", scale: log}
+  E34: {effect: "the coefficient of interest (a fixed effect)", scale: none}
+  E37: {effect: "the path or factor correlation the hypothesis is about (standardised)", scale: none}
+  E19: {effect: "the contrast's estimate", scale: none}
+  E51: {effect: "the difference between the two correlations", scale: none}
+  E50: {none: "This card starts from a noncentrality parameter rather than an effect, so a replication's goals are planned on the card for the design it came from."}
+  E46: {none: "Planning for a confidence interval's width estimates an effect rather than testing it; a replication is planned for the same precision on this card."}
+  E64: {multi_df: "the difference between the two groups the hypothesis is about (card E29 or a rank test on card E2)"}
+  E66: {effect: "the odds ratio per step of the ordered groups (the trend's slope)", scale: log}
+
 forms:
   E1:
     methods_name: "a one-sample t-test"
