@@ -1454,7 +1454,8 @@ routing_root <- function() getOption("powerkit.routing_dir", getwd())
 
 # Put the user's field labels in place of spec paths in the engine's
 # messages (e.g. 'target_test > alpha' becomes "Significance level (alpha)").
-plain_engine_message <- function(message, fields) {
+plain_engine_message <- function(message, fields, local = isTRUE(getOption("powerkit.local"))) {
+  message <- online_package_message(message, local)
   ids <- vapply(fields, function(f) f$id %||% "", "")
   # The number of simulated studies is chosen by "How precise should the
   # simulation be?"; its custom field is hidden until asked for.
@@ -1472,6 +1473,21 @@ plain_engine_message <- function(message, fields) {
   hidden <- grepl("'options > ", sentences, fixed = TRUE)
   if (any(hidden) && !all(hidden)) message <- paste(sentences[!hidden], collapse = " ")
   message
+}
+
+# The engine's message for a backend that isn't installed tells the person
+# to install it, which is right on their own computer (run_powerkit.R sets
+# options(powerkit.local = TRUE)) but not on the online app, where nobody
+# visiting can install anything. There it says the analysis isn't
+# available right now and asks for a note through Feedback, so the missing
+# package is found and added.
+online_package_message <- function(message, local = isTRUE(getOption("powerkit.local"))) {
+  pattern <- "^This analysis needs the R (packages?) (.+), which (isn't|aren't) installed\\. Install .*$"
+  if (local || !grepl(pattern, message)) return(message)
+  noun <- sub(pattern, "\\1", message)
+  names <- sub(pattern, "\\2", message)
+  sprintf("This analysis isn't available on the online app right now: the R %s it needs (%s) %s installed there. Please let us know with \u201cFeedback on this screen\u201d. It runs in powerkit installed on your own computer.",
+    noun, names, if (noun == "package") "isn't" else "aren't")
 }
 
 # Check a spec with validate_spec(). Returns status "ok", "problems" or

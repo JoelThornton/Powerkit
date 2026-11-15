@@ -1002,7 +1002,9 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
       (if (compact) h3 else h2)(class = "card-title h3", name_swap(ep$plain_name, technical_name(ep))),
       p(class = "standard-name", "Standard name: ", tags$strong(technical_name(ep)), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
       if (!is.null(standard_name(ep$doc_name)$also)) p(class = "also-called small text-muted", standard_name(ep$doc_name)$also),
-      hints_ui(tree, standard_name(ep$doc_name)$name),
+      # Hints for the terms in the name the card shows (not the longer
+      # doc_name, which a card with a technical_name never displays).
+      hints_ui(tree, technical_name(ep)),
       if (!compact) card_facts_ui(tree, ep_id, ep),
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) tagList(prepare_ui(tree, history), safety_net_ways_ui()),
@@ -1031,7 +1033,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
         validated_line_ui(tree, ep),
         if (runs) tagList(
           p(class = "backend", tags$strong("Backend: "), ep$backend, " · ", tags$strong("Default method: "), ep$method),
-          hints_ui(tree, paste(ep$backend, ep$method), exclude = vapply(glossary_for(tree, ep$doc_name), `[[`, "", "term"))
+          hints_ui(tree, paste(ep$backend, ep$method), exclude = vapply(glossary_for(tree, technical_name(ep)), `[[`, "", "term"))
         ),
         if (!compact && runs) tagList(
           section_heading("What you'd be asked next"),
