@@ -330,6 +330,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "29": "The ICC: powerkit works out the F test's power from its exact distribution (Donner and Eliasziw, 1987), unless you choose ICC.Sample.Size's approximation (Walter, Eliasziw and Donner), which asks for a few more people than needed: for an ICC of 0.8 against 0.6 with 3 raters, one-sided, 80% power needs 26 subjects by the exact power and 27 by the approximation."
   "26": "Repeated measures with SDs or correlations that differ: powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. That corrected figure comes from Superpower's exact dataset, an approximation; simulated studies of the corrected test, powerkit's default here (Departure 28), gave 71.5%."
   "27": "Bland-Altman limits of agreement: powerkit simulates the analysis you will run, SimplyAgree's agreement_limit() with MOVER confidence intervals, unless you choose Lu et al.'s (2016) formula, the one SimplyAgree's blandPowerCurve() gives. The formula approximates Bland and Altman's analysis and can be several points off in either direction, and Bland and Altman's intervals are too narrow in small samples (at 30 subjects about 5% of studies wrongly show agreement where 2.5% should), which the MOVER intervals avoid. With a bias of 0.5, an SD of the differences of 2.5 and a margin of 8, the formula gives 80% power at 26 subjects; the MOVER analysis has about 69% there and needs 33."
   "28": "Repeated measures with a sphericity correction and SDs or correlations that differ: powerkit simulates the corrected F test by default (Superpower's ANOVA_power()), where Superpower's ANOVA_exact() and G*Power scale the test's noncentrality and degrees of freedom by epsilon. That scaling is an approximation that can miss the corrected test's power by a few points either way: with means 600, 620 and 650, SD 100, correlations .8, .5 and .2 and 40 people, 68.4% from the exact dataset against 71.5% in 40,000 simulated studies; in a mixed design with 20 people per group, 23.1% against 21.7%. The exact dataset stays available, as an approximation, and finds the smallest detectable effect."
@@ -1801,7 +1802,7 @@ forms:
   E69:
     methods_name: "a test of reliability or agreement (the ICC, Cronbach's alpha, kappa or the Bland-Altman limits of agreement)"
     tool: kappaSize
-    departures: ["27"]
+    departures: ["27", "29"]
     directional: false
     base: {spec_version: "0.1", design: reliability, variables: {"Y": {type: continuous}}, population: {}, target_test: {}}
     groups:
@@ -1812,7 +1813,7 @@ forms:
                        cronbach_alpha: "That a scale's items are consistent: Cronbach's alpha",
                        kappa: "That raters agree on a category: kappa",
                        bland_altman: "That two methods of measurement agree closely enough to be used in place of each other: Bland-Altman limits of agreement"},
-             sets: {icc: [{path: population.metric, value: icc}, {path: target_test.effect, value: icc}, {path: target_test.method, value: icc_test}],
+             sets: {icc: [{path: population.metric, value: icc}, {path: target_test.effect, value: icc}],
                     cronbach_alpha: [{path: population.metric, value: cronbach_alpha}, {path: target_test.effect, value: cronbach_alpha}, {path: target_test.method, value: bonett_wright}],
                     kappa: [{path: variables.Y.type, value: categorical}, {path: population.metric, value: kappa}, {path: target_test.effect, value: kappa}, {path: target_test.method, value: kappa_chi_square}],
                     bland_altman: [{path: population.metric, value: bland_altman}, {path: target_test.effect, value: limits_of_agreement}]}}
@@ -1832,6 +1833,15 @@ forms:
              help: "0 tests only that the ratings agree more than by chance, which is rarely the question."}
           - {id: icc_raters, in_effect_text: true, writeup_label: "ratings of each person", label: "Ratings of each person (raters, or occasions)", type: number, path: population.raters, required: true, min: 2, integer: true,
              shown_if: {field: question, is: icc}}
+          # The F test's exact power by default, Walter, Eliasziw and
+          # Donner's approximation on request (Departure 29, 15 November
+          # 2026).
+          - {id: icc_method, label: "How power is worked out", type: select, path: target_test.method, required: true,
+             shown_if: {field: question, is: icc},
+             choices: {icc_test: "The F test's exact power (Donner and Eliasziw, 1987)", icc_walter: "Walter, Eliasziw and Donner's approximation (ICC.Sample.Size)"},
+             default: icc_test, default_source: "the F test's exact power, from the F distribution the one-way random-effects model gives (Donner and Eliasziw, 1987); ICC.Sample.Size's calculateIccPower() uses Walter, Eliasziw and Donner's normal approximation to it (version 1.1)",
+             choice_notes: {icc_test: "The power of the F test you will run, from its exact distribution. Both are instant.",
+                            icc_walter: "The normal approximation ICC.Sample.Size uses. It asks for a few more people than needed: for an ICC of 0.8 against 0.6 with 3 raters, one-sided, 27 rather than 26."}}
       - input: "Cronbach's alpha: the value you expect, the value to beat, and the number of items"
         shown_if: {field: question, is: cronbach_alpha}
         fields:
@@ -2835,6 +2845,7 @@ forms:
     methods_name: "an ANCOVA (Shieh's method)"
     tool: pwrss
     known_differences: ["15"]
+    known_differences_if_method: {"15": ancova_f}
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_ancova,
            variables: {A: {type: between_factor}, "Y": {type: continuous}},
@@ -2876,6 +2887,29 @@ forms:
           - {id: r2_covariates, writeup_label: "R-squared of the covariates", label: "R-squared: the share of the outcome's variance the covariates explain (for one covariate, its correlation with the outcome, squared)", type: number, path: population.r2_covariates, effect: true, min: 0, max_exclusive: 1}
           - {id: covariates, label: "Number of covariates", type: number, path: population.covariates, required: true, min: 1, integer: true,
              default: 1, default_source: "one covariate, such as the before score"}
+      # The Bayes factor ANCOVA (15 November 2026): the effect's inclusion
+      # Bayes factor, as JASP's Bayesian ANCOVA gives it, simulated with
+      # BayesFactor's generalTestBF().
+      - input: "The ANCOVA's F test or a Bayes factor"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {ancova_f: "ANCOVA (F test, Shieh's method)", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANCOVA), instead of a p-value, simulated"},
+             default: ancova_f, default_source: "the F test pwrss's power.f.ancova.shieh() computes, the test G*Power's ANCOVA calculates (with fixed covariates)",
+             choice_notes: {bayes_factor: "Power becomes the chance that the effect's inclusion Bayes factor reaches the threshold you choose below, adjusting for the covariates. Simulated, with equal groups."}}
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the group effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's Bayesian ANCOVA, 'r scale fixed effects' 0.5 (jaspAnova's AdditionalOptions.qml)"}
+          - {id: prior_scale_covariates, label: "Scale of the analysis prior on the covariates' slopes (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale_covariates, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.354, default_source: "JASP's Bayesian ANCOVA, 'r scale covariates' 0.354 (jaspAnova's AdditionalOptions.qml), BayesFactor's 'medium' scale for continuous predictors (sqrt(2)/4)"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't, including the models with and without each covariate. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
 
   E24:
     sides: false

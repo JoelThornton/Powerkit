@@ -433,7 +433,7 @@ test_text <- function(spec) {
     return(sprintf("%s at alpha = %s", name, alpha_text(spec$target_test$alpha)))
   }
   alt <- spec$target_test$alternative %||% "two_sided"
-  if (is_bayes_anova(spec) || is_bayes_table(spec) || is_bayes_regression(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
+  if (is_bayes_anova(spec) || is_bayes_table(spec) || is_bayes_regression(spec) || is_bayes_factorial(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
   if (is_bayes_test(spec)) {
     side <- switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
     return(sprintf("%s (%s; %s)", bayes_test_name(spec), side, bayes_settings_text(spec)))
@@ -2376,6 +2376,15 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.5, 3)),
       if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else ""))
   }
+  if (is_bayes_factorial(spec)) {
+    jasp <- isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5)) && (!is_bayes_ancova(spec) || isTRUE(all.equal(tt$prior_scale_covariates %||% 0.354, 0.354)))
+    return(sprintf("strong evidence: an inclusion Bayes factor of at least %s, %s; Cauchy prior on the effects, r scale %s%s%s",
+      format(tt$evidence_threshold %||% 10),
+      if (identical(tt$inclusion, "matched_models")) "across matched models" else "across all models",
+      format(signif(tt$prior_scale %||% 0.5, 3)),
+      if (is_bayes_ancova(spec)) sprintf(", and on the covariates' slopes, r scale %s", format(signif(tt$prior_scale_covariates %||% 0.354, 3))) else "",
+      if (jasp) ", as in JASP" else ""))
+  }
   if (is_bayes_regression(spec)) {
     return(sprintf("strong evidence: BF10 of at least %s; Cauchy prior on the standardised coefficients, r scale %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.354, 3)),
@@ -2384,6 +2393,15 @@ bayes_settings_text <- function(spec) {
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
+
+# The inclusion Bayes factor of an effect in a factorial or repeated-measures
+# ANOVA (BayesFactor's anovaBF()) or an ANCOVA (generalTestBF()), simulated:
+# no direction, JASP's r scales by default.
+is_bayes_factorial <- function(spec) {
+  is_bayes_test(spec) && isTRUE(spec$template %in% c("2x2_between", "factorial_between", "oneway_within", "factorial_within",
+    "2x2_mixed", "mixed", "oneway_ancova", "factorial_ancova"))
+}
+is_bayes_ancova <- function(spec) is_bayes_test(spec) && isTRUE(spec$template %in% c("oneway_ancova", "factorial_ancova"))
 
 # The Bayes factor one-way ANOVA (BayesFactor's oneWayAOV.Fstat()): no
 # direction, and JASP's r scale of 0.5 by default.
@@ -2421,6 +2439,14 @@ bayes_test_name <- function(spec) {
     independent_t = "an independent-samples Bayes factor t-test",
     oneway_between = "a Bayes factor one-way ANOVA",
     r2_zero = "a Bayes factor test of R-squared in a linear regression",
+    oneway_ancova = ,
+    factorial_ancova = "a Bayes factor ANCOVA",
+    "2x2_between" = ,
+    factorial_between = "a Bayes factor between-participants ANOVA",
+    oneway_within = ,
+    factorial_within = "a Bayes factor repeated-measures ANOVA",
+    "2x2_mixed" = ,
+    mixed = "a Bayes factor mixed ANOVA",
     chi_square_independence = "a Bayes factor test of association")
 }
 
@@ -2448,8 +2474,8 @@ bayes_sentence <- function(spec, result) {
       "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
       "(O'Hagan, Stevens and Campbell, 2005, call this assurance)."), format(b$effect_sd)),
     if (!is.null(b$null_nrep)) sprintf(
-      "If there were no association, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an association %s of the time (from %s simulated studies with no association).",
-      whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence), whole(b$null_nrep)
+      "If there were no %s, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for %s %s of the time (from %s simulated studies with no %s).",
+      bayes_null_what(spec), whole(b$n), k, percent(b$evidence_for_null), bayes_null_article(spec), percent(b$misleading_evidence), whole(b$null_nrep), bayes_null_what(spec)
     ) else if (b$evidence_for_null > 0) sprintf(
       "If there were no effect, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an effect %s of the time.",
       whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence)
@@ -2478,16 +2504,21 @@ bayes_design_prior_sentence <- function(spec, result) {
   }
 }
 
+# What "no effect" is for the no-effect side: an association for a table,
+# an effect otherwise.
+bayes_null_what <- function(spec) if (is_bayes_table(spec)) "association" else "effect"
+bayes_null_article <- function(spec) paste("an", bayes_null_what(spec))
+
 bayes_null_writeup <- function(spec, result) {
   b <- result$bayes
   if (is.null(b)) return(NULL)
   k <- format(b$evidence_threshold)
-  what <- if (!is.null(b$null_nrep)) "association" else "effect"
+  what <- bayes_null_what(spec)
   if (b$evidence_for_null > 0) {
     sprintf(paste("If there were no %s, the probability of strong evidence for its absence (BF01 of at least %s) would be %s,",
       "and of misleading strong evidence for an %s (BF10 of at least %s) %s%s."),
       what, k, percent(b$evidence_for_null), what, k, percent(b$misleading_evidence),
-      if (!is.null(b$null_nrep)) sprintf(" (from %s simulated studies with no association)", whole(b$null_nrep)) else "")
+      if (!is.null(b$null_nrep)) sprintf(" (from %s simulated studies with no %s)", whole(b$null_nrep), what) else "")
   } else {
     sprintf(paste("If there were no %s, a study of %s could not reach strong evidence for its absence (BF01 of at least %s) whatever the data,",
       "and the probability of misleading strong evidence for an %s (BF10 of at least %s) would be %s."),
@@ -2548,6 +2579,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 27 (the Bland-Altman analysis simulated, not Lu et al.'s
   # formula) applies when the limits of agreement are simulated.
   if (!identical(spec$template, "bland_altman") || identical(spec$target_test$method, "lu_formula")) keys <- setdiff(keys, "27")
+  # Departure 29 (the ICC's exact F power, not ICC.Sample.Size's
+  # approximation) applies when the exact power is used.
+  if (!identical(spec$template, "icc") || !identical(spec$design, "reliability") || identical(spec$target_test$method, "icc_walter")) keys <- setdiff(keys, "29")
   # Departure 28 (such a corrected test simulated by default) applies when
   # it is simulated; the exact data set, chosen or used for the smallest
   # detectable effect, carries a warning above the answer instead.
@@ -3377,6 +3411,13 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy analysis prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       format(signif(tt$prior_scale %||% 0.5, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else "",
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_factorial(spec)) {
+    tt <- spec$target_test
+    jasp <- isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5)) && (!is_bayes_ancova(spec) || isTRUE(all.equal(tt$prior_scale_covariates %||% 0.354, 0.354)))
+    test <- sprintf("%s (default Bayes factors with a Cauchy analysis prior of r scale %s on the effects%s%s, testing %s, computed with BayesFactor and simulated with Spower; strong evidence defined as an inclusion Bayes factor of at least %s)",
+      name, format(signif(tt$prior_scale %||% 0.5, 3)),
+      if (is_bayes_ancova(spec)) sprintf(" and %s on the covariates' standardised slopes", format(signif(tt$prior_scale_covariates %||% 0.354, 3))) else "",
+      if (jasp) ", as in JASP" else "", result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_regression(spec)) {
     tt <- spec$target_test
     test <- sprintf("a Bayes factor test of R-squared in a linear regression (the JZS Bayes factor of the model with all the predictors against the intercept-only model, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",

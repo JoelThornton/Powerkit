@@ -85,6 +85,7 @@ on:
           - rank
           - bayes
           - bayes_factorial
+          - bayes_ancova
           - meta
           - dyadic
           - survival
