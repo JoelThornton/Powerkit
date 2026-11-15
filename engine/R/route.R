@@ -127,6 +127,7 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     } else {
       pwrss_backend(spec, seed)
     },
+    "poisson_regression/interaction" = count_interaction_backend(spec, seed),
     "multiple_regression/r2_zero" = ,
     "multiple_regression/r2_increase" = ,
     "logistic_regression/single_predictor" = ,
@@ -276,6 +277,7 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     # pwrss's formula (backend-mediation-joint.R).
     "mediation/multicategorical" = mcx_backend(spec, seed),
     "mediation/binary_mediator" = binm_backend(spec, seed),
+    "mediation/binary_or_count_outcome" = yglm_backend(spec, seed),
     "mediation/process_4" = if (mediation_joint_test(spec)) mediation_joint_backend(spec, seed) else power4mome_backend(spec, seed),
     "mediation/process_6" = ,
     "moderated_mediation/process_7" = ,

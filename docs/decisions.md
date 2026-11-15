@@ -3299,6 +3299,58 @@ separately written simulation and the Type I error with both groups
 changing by the same ratio. Conventions: `docs/conventions.md`, "The
 same people measured more than once".
 
+### Mediation with a yes/no or count outcome on E32, 14 November 2026
+
+E32's mediation now calculates for a yes/no or count outcome with a
+mediator that is a score. As on E39, the analysis is regression-based
+causal mediation analysis (Valeri and VanderWeele, 2013) by regmedint, the
+R version of the authors' macro: a linear regression for the mediator and
+a logistic, Poisson or negative binomial regression for the outcome,
+without an X-by-M interaction, with the natural indirect effect tested by
+its delta-method standard error. PROCESS fits a logistic outcome model but
+offers nothing for counts, and power4mome draws only scores, so Spower
+simulates studies of powerkit's experiment `p_mediation_yglm()` (its own
+backend file). X is two equal groups or a score; the researcher gives X's
+effect on the mediator in the mediator's SD, the outcome's chance of 'yes'
+or mean count in the first group, and the odds or rate ratio per SD of
+the mediator (with the overdispersion for a negative binomial count). The
+card's form gains a choice between moderation and mediation. Power and a
+required sample size both run on the card. Recommendation for the
+maintainer: keep the delta-method test, as on E39, since it is what the
+authors' tool reports; a Monte Carlo interval of the indirect effect, as
+on the score-mediator cards, is a candidate option for both cards
+together. A categorical outcome (three or more unordered answers) stays
+in `next.md` item 1. Validation: `test-validation-mediation-yglm.R`
+(independent simulations for a yes/no, Poisson and negative binomial
+outcome, and the Type I error). A normal-approximation power formula
+isn't used as a reference, since the delta-method statistic's power
+differs from it by several points at planned sample sizes. Conventions:
+`docs/conventions.md`, "Mediation with a yes/no or count outcome (E32)".
+
+### Moderation of a count outcome on E32, 14 November 2026
+
+E32's moderation now takes a count outcome (0, 1, 2, ...) beside a yes/no
+one. The analysis is the count model researchers fit: a Poisson regression
+with the X x W product, or a negative binomial regression when the counts
+vary more than their mean, tested by the Wald z test of the product's
+coefficient, as `summary()` of `glm()` or `MASS::glm.nb()` reports it.
+G\*Power and pwrss have no count interaction test, so Spower simulates
+studies of powerkit's experiment `p_count_interaction()` (its own backend
+file, `backend-count-interaction.R`). The researcher gives the mean count
+at the starting point, the rate ratios for X and W and the interaction as
+a ratio of rate ratios, and for negative binomial counts the overdispersion
+k (variance mu + k mu^2), as on E28. X and W are each a score or a yes/no
+group, as for the yes/no outcome. The default is Poisson, as on E28; the
+field's help says to choose negative binomial for counts of behaviour,
+since a Poisson model overstates power when the counts are overdispersed.
+Recommendation for the maintainer: keep Poisson as the default for
+consistency with E28 and G\*Power's count test, and revisit both together
+if negative binomial is made the default for counts. Power and a required
+sample size both run on the card. A categorical outcome stays in `next.md`
+item 1. Validation:
+`test-validation-count-interaction.R`. Conventions: `docs/conventions.md`,
+"Moderation of a count outcome (E32)".
+
 ### Mediation with a yes/no mediator on E39, 14 November 2026
 
 E39, mediation where the mediator is yes or no, now calculates. PROCESS

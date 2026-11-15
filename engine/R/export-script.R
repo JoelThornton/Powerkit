@@ -82,11 +82,13 @@ export_script <- function(spec, result, file = NULL) {
       pwr_script(spec, result)
     },
     Spower = if (identical(spec$template, "repeated_glmm")) repeated_glmm_script(spec, result) else
+      if (identical(spec$design, "poisson_regression") && identical(spec$template, "interaction")) count_interaction_script(spec, result) else
       if (meta_subgroups(spec)) meta_subgroups_script(spec, result) else
       if (meta_regression(spec) || meta_heterogeneity(spec)) meta_more_script(spec, result) else
       if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else
       if (identical(spec$template, "multicategorical")) mediation_mcx_script(spec, result) else
-      if (identical(spec$template, "binary_mediator")) mediation_binm_script(spec, result) else spower_script(spec, result),
+      if (identical(spec$template, "binary_mediator")) mediation_binm_script(spec, result) else
+      if (identical(spec$template, "binary_or_count_outcome")) mediation_yglm_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
     power4mome = if (identical(spec$design, "dyadic")) apim_script(spec, result) else power4mome_script(spec, result),
@@ -449,6 +451,12 @@ design_description <- function(spec) {
       },
       if (isTRUE((spec$population$r2_other_predictors %||% 0) > 0)) ", adjusting for other predictors" else ""
     ),
+    "poisson_regression/interaction" = sprintf(
+      "%s regression of %s (a count) on %s%s, %s%s and their product: the Wald z test of the X x W coefficient",
+      if ((spec$population$dispersion %||% 0) > 0) "negative binomial" else "Poisson", label("Y"),
+      label("X"), if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
+      label("W"), if (identical(v$W$type, "binary")) sprintf(" (%s)", levels("W")) else ""
+    ),
     "poisson_regression/single_predictor_count" = if (zero_inflated_test(spec)) sprintf(
       "zero-inflated %s regression of %s (a count) on %s%s, with %s%% extra zeros: %s%s",
       if (negative_binomial_counts(spec)) "negative binomial" else "Poisson", label("Y"), label("X"),
@@ -669,6 +677,13 @@ design_description <- function(spec) {
       spec$variables$M$label %||% "M",
       if (identical(spec$variables$X$type, "binary")) sprintf("in two groups (%s)", levels("X")) else "a score",
       if (identical(spec$variables$Y$type, "binary")) "yes/no" else "a score"
+    ),
+    "mediation/binary_or_count_outcome" = sprintf(
+      "mediation with %s outcome (%s), X %s and the mediator (%s) a score; natural indirect effect tested by regression-based causal mediation analysis",
+      switch(yglm_outcome(spec), binary = "a yes/no", poisson = "a count (Poisson)", negbin = "a count (negative binomial)"),
+      spec$variables$Y$label %||% "Y",
+      if (identical(spec$variables$X$type, "binary")) sprintf("in two groups (%s)", levels("X")) else "a score",
+      spec$variables$M$label %||% "M"
     ),
     "mediation/process_6" = sprintf(
       "serial mediation (PROCESS model 6); indirect effect tested: %s", spec$target_test$path

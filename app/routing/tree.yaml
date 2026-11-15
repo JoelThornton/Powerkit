@@ -1547,21 +1547,25 @@ endpoints:
     doc_name: "Moderation or mediation with a yes/no, count or categorical outcome"
     technical_name: "Mediation and moderation: non-continuous outcomes"
     plain_name: "Moderation or mediation when the outcome isn't a score"
-    search_words: "logistic moderation interaction binary outcome yes no odds ratio product term"
-    template: "logistic_regression / interaction"
-    no_ready_made_tool: "A count or categorical outcome, and mediation with an outcome that isn't a score"
-    backend: "Spower: powerkit's experiment around stats::glm(family = binomial()), the Wald z test of the X x W coefficient (simulation)"
+    search_words: "logistic moderation interaction binary outcome yes no odds ratio product term count poisson negative binomial rate ratio mediation natural indirect effect causal mediation regmedint"
+    template: "logistic_regression or poisson_regression / interaction; mediation / binary_or_count_outcome"
+    no_ready_made_tool: "A categorical outcome (three or more unordered answers), in moderation or mediation"
+    backend: "Spower: powerkit's experiment around stats::glm(family = binomial()) or, for a count, stats::glm(family = poisson()) or MASS::glm.nb(); the Wald z test of the X x W coefficient. Mediation: powerkit's experiment around regmedint::regmedint() (regression-based causal mediation analysis: the natural indirect effect and its delta-method test) (simulation)"
     method: Simulation
     status: runs_validation_in_progress
-    validation: {file: test-validation-logistic-interaction.R, note: "Recovers every coefficient in its check run and matches Spower called directly in the engine's tests; agrees with the Wald test's large-sample power from the logistic model's expected information (within 0.02) and with a separately written simulation, and keeps the Type I error at alpha with both main effects present. Not yet checked against a published example."}
+    validation: {file: test-validation-logistic-interaction.R, note: "A yes/no outcome: Recovers every coefficient in its check run and matches Spower called directly in the engine's tests; agrees with the Wald test's large-sample power from the logistic model's expected information (within 0.02) and with a separately written simulation, and keeps the Type I error at alpha with both main effects present. Not yet checked against a published example. A count outcome: agrees with the Wald test's large-sample power from the Poisson and negative binomial models' expected information and with a separately written simulation, and keeps the Type I error at alpha; not yet checked against a published example. Mediation: agrees with a simulation written separately (the natural indirect effect a x b with its own delta-method standard error) for a yes/no, Poisson and negative binomial outcome, and keeps the Type I error at alpha when X doesn't change the mediator; not yet checked against a published example."}
     card_points:
       - "Moderation of a yes/no outcome: whether X's effect on the odds of 'yes' depends on W, tested by the X x W product in a logistic regression. X and W can each be a score or a yes/no group."
       - "You give the proportion of 'yes' with X and W at their averages (or in their first groups), the odds ratios for X and W, and the interaction as a ratio of odds ratios: how many times X's odds ratio is multiplied for each SD (or group) of W."
-      - "Simulated, so the answer carries a little random error. On the log-odds scale an interaction can differ from one on the proportions themselves."
-      - "Not calculated here yet: a count or categorical outcome, and mediation with an outcome that isn't a score."
+      - "Moderation of a count (0, 1, 2, ...): the same model as a Poisson or negative binomial regression. You give the mean count at the starting point, the rate ratios for X and W, and the interaction as a ratio of rate ratios; choose negative binomial when the counts vary more than their mean, as counts of behaviour usually do, and give how much more (the overdispersion)."
+      - "Mediation of a yes/no or count outcome through a mediator that is a score: regression-based causal mediation analysis (Valeri and VanderWeele), a linear regression for the mediator and a logistic, Poisson or negative binomial regression for the outcome, with the natural indirect effect tested by its delta-method standard error, as the regmedint package computes it. X is two equal groups or a score."
+      - "For mediation you give X's effect on the mediator in the mediator's SD, the chance of 'yes' or the mean count in the first group, and the odds or rate ratio per SD of the mediator. For a yes/no outcome the indirect effect is on the log odds-ratio scale, which approximates the risk ratio scale when 'yes' is rare."
+      - "Simulated, so the answer carries a little random error. On the log-odds or log-count scale an interaction can differ from one on the proportions or counts themselves."
+      - "Not calculated here yet: a categorical outcome (three or more unordered answers), in moderation or mediation. Mediation with a yes/no mediator is E39."
     packages:
+      - {name: regmedint, url: "https://cran.r-project.org/package=regmedint", what: "Regression-based causal mediation analysis (Valeri and VanderWeele), the analysis powerkit simulates for mediation of a yes/no or count outcome."}
       - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For the designs not calculated here yet: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
-    inputs: ["Your outcome, X and W, and what kind of variable each is", "The proportion of 'yes' at the starting point and the odds ratios", "How X and W relate"]
+    inputs: ["Your outcome, X and W, and what kind of variable each is", "The starting point and the effects: odds ratios for a yes/no outcome, rate ratios for a count", "How X and W relate"]
     tier: v2
     alternatives: ["the 2 x 2 factorial logistic regression, for two yes/no factors", "moderation of a score outcome, if the outcome is a score"]
   E33:

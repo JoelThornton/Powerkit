@@ -168,7 +168,9 @@ simulated_times:
   E64: {power: 5, sample_size: 40}
   E70: {power: 5, sample_size: 40}
   E30: {power: 4, sample_size: 35}
-  E32: {power: 4, sample_size: 30}
+  # E32: moderation takes about 4 seconds for power; mediation with a
+  # negative binomial count (regmedint) about 30, the slower case shown.
+  E32: {power: 30, sample_size: 200}
   E45: {power: 2, sample_size: 10}
   E72: {power: 2, sample_size: 10}
   # Measured 12 November 2026 the same way: Welch's ANOVA (the one-way
@@ -3824,47 +3826,106 @@ forms:
           - {id: group_ratio, writeup_label: "relative group sizes", label: "Relative group sizes: one whole number for each group, in the same order", type: numbers, per_levels: A_levels, path: options.group_ratio, required: true, min: 1, integer: true,
              shown_if: {field: group_sizes, is: unequal}}
 
-  # Moderation with a yes/no outcome (Spower simulation of powerkit's
-  # experiment around glm()): X and W each a score (standardised) or a
-  # yes/no group coded 0 and 1; the interaction as a ratio of odds ratios.
+  # Moderation with a yes/no or count outcome (Spower simulation of
+  # powerkit's experiment around glm() or MASS::glm.nb()): X and W each a
+  # score (standardised) or a yes/no group coded 0 and 1; the interaction as
+  # a ratio of odds ratios or of rate ratios.
   E32:
-    methods_name: "a logistic regression with an interaction (the Wald z test of the X x W coefficient), simulated"
+    methods_name: "a regression with an interaction (logistic for a yes/no outcome, Poisson or negative binomial for a count; the Wald z test of the X x W coefficient), simulated"
     tool: Spower
     directional: true
+    direction_shown_if: [{field: analysis, is_not: mediation}]
     base: {spec_version: "0.1", design: logistic_regression, template: interaction,
            variables: {X: {}, W: {}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: odds_ratio},
            target_test: {effect: interaction, method: wald_z}}
     groups:
       - input: "Your outcome, X and W, and what kind of variable each is"
         fields:
-          - {id: Y_label, label: "Yes/no outcome (for example, sought counselling)", type: text, path: variables.Y.label, required: true}
+          - {id: analysis, label: "Which question", type: select, required: true,
+             choices: {moderation: "Moderation: does X's effect on the outcome depend on another variable (W)?", mediation: "Mediation: does X affect the outcome through a mediator, a score (M)?"},
+             sets: {mediation: [{path: design, value: mediation}, {path: template, value: binary_or_count_outcome},
+                                {path: target_test.effect, value: indirect_effect}, {path: target_test.method, value: delta_method},
+                                {path: target_test.path, value: "X->M->Y"}, {path: variables.W, value: null},
+                                {path: variables.M.type, value: continuous}]},
+             default: moderation, default_source: "moderation, this card's first design"}
+          - {id: Y_kind, label: "The outcome is", type: select, required: true,
+             choices: {binary: "Yes or no (for example, sought counselling)", count: "A count (0, 1, 2, ..., for example drinking days in a month)"},
+             sets: {count: [{path: design, value: poisson_regression, shown_if: {field: analysis, is_not: mediation}}, {path: population.metric, value: rate_ratio},
+                            {path: variables.Y.type, value: count}, {path: variables.Y.levels, value: null}]},
+             default: binary, default_source: "a yes/no outcome, this card's first design"}
+          - {id: Y_label, label: "Outcome (for example, sought counselling, or drinking days in a month)", type: text, path: variables.Y.label, required: true}
+          - {id: count_model, label: "How spread out the counts are", type: select, path: target_test.method, required: true,
+             choices: {wald_z: "As a Poisson distribution allows (the variance equals the mean)", negative_binomial: "More spread out than that (negative binomial)"},
+             default: wald_z, default_source: "Poisson regression, the usual first model for counts",
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
+             help: "Counts of behaviour usually vary more than their mean (some people have many, many have none). If they do, choose negative binomial: a Poisson model then gives too much power."}
+          - {id: med_count_model, label: "How spread out the counts are", type: select, path: population.count_model, required: true,
+             choices: {poisson: "As a Poisson distribution allows (the variance equals the mean)", negative_binomial: "More spread out than that (negative binomial)"},
+             default: poisson, default_source: "Poisson regression, the usual first model for counts",
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is: mediation}],
+             help: "Counts of behaviour usually vary more than their mean (some people have many, many have none). If they do, choose negative binomial: a Poisson model then gives too much power."}
           - {id: X_label, label: "Main predictor (X)", type: text, path: variables.X.label, required: true}
           - {id: X_type, label: "What kind of variable X is", type: select, path: variables.X.type, required: true,
              choices: {continuous: "A score", binary: "A yes/no group (for example, treatment or control)"}}
           - {id: X_level1, label: "First group of X (the comparison group)", type: text, path: variables.X.levels.1, required: true, shown_if: {field: X_type, is: binary}}
           - {id: X_level2, label: "Second group of X", type: text, path: variables.X.levels.2, required: true, shown_if: {field: X_type, is: binary}}
-          - {id: W_label, label: "Moderator (W)", type: text, path: variables.W.label, required: true}
+          - {id: M_label, label: "Mediator (M), a score", type: text, path: variables.M.label, required: true, shown_if: {field: analysis, is: mediation}}
+          - {id: W_label, label: "Moderator (W)", type: text, path: variables.W.label, required: true, shown_if: {field: analysis, is_not: mediation}}
           - {id: W_type, label: "What kind of variable W is", type: select, path: variables.W.type, required: true,
-             choices: {continuous: "A score", binary: "A yes/no group"}}
-          - {id: W_level1, label: "First group of W", type: text, path: variables.W.levels.1, required: true, shown_if: {field: W_type, is: binary}}
-          - {id: W_level2, label: "Second group of W", type: text, path: variables.W.levels.2, required: true, shown_if: {field: W_type, is: binary}}
-      - input: "The proportion of 'yes' at the starting point and the odds ratios"
+             choices: {continuous: "A score", binary: "A yes/no group"}, shown_if: {field: analysis, is_not: mediation}}
+          - {id: W_level1, label: "First group of W", type: text, path: variables.W.levels.1, required: true, shown_if: [{field: W_type, is: binary}, {field: analysis, is_not: mediation}]}
+          - {id: W_level2, label: "Second group of W", type: text, path: variables.W.levels.2, required: true, shown_if: [{field: W_type, is: binary}, {field: analysis, is_not: mediation}]}
+      - input: "The starting point and the effects: odds ratios for a yes/no outcome, rate ratios for a count"
         fields:
-          - {id: base_prob, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' with X and W at their averages, or in their first groups (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1}
+          - {id: base_prob, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' with X and W at their averages, or in their first groups (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}]}
           - {id: odds_ratio_x, writeup_label: "odds ratio for X", label: "Odds ratio for X, with W at its average or in its first group", type: number, path: population.odds_ratio_x, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}],
              help: "Per SD of X for a score, or X's second group against its first."}
-          - {id: odds_ratio_w, writeup_label: "odds ratio for W", label: "Odds ratio for W, with X at its average or in its first group", type: number, path: population.odds_ratio_w, effect: true, min_exclusive: 0}
+          - {id: odds_ratio_w, writeup_label: "odds ratio for W", label: "Odds ratio for W, with X at its average or in its first group", type: number, path: population.odds_ratio_w, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}]}
           - {id: odds_ratio_xw, writeup_label: "interaction (ratio of odds ratios)", label: "The interaction: how many times X's odds ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.odds_ratio_xw, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}],
              help: "1 means no moderation. For example 1.25: X's odds ratio is a quarter larger for each SD of W. It is the exponent of the X x W coefficient a logistic regression reports."}
+          - {id: base_rate, writeup_label: "mean count at the starting point", label: "Mean count with X and W at their averages, or in their first groups", type: number, path: population.base_rate, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}]}
+          - {id: rate_ratio_x, writeup_label: "rate ratio for X", label: "Rate ratio for X, with W at its average or in its first group", type: number, path: population.rate_ratio_x, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
+             help: "How many times the mean count is multiplied per SD of X for a score, or in X's second group against its first: 0.8 is a fifth fewer."}
+          - {id: rate_ratio_w, writeup_label: "rate ratio for W", label: "Rate ratio for W, with X at its average or in its first group", type: number, path: population.rate_ratio_w, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}]}
+          - {id: rate_ratio_xw, writeup_label: "interaction (ratio of rate ratios)", label: "The interaction: how many times X's rate ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.rate_ratio_xw, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
+             help: "1 means no moderation. For example 0.85: X's rate ratio is 15% smaller for each SD of W. It is the exponent of the X x W coefficient a Poisson or negative binomial regression reports."}
+          - {id: dispersion, writeup_label: "the counts' overdispersion", label: "Overdispersion k: a count's variance is its mean plus k times its mean squared", type: number, path: population.dispersion, required: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: count_model, is: negative_binomial}, {field: analysis, is_not: mediation}],
+             help: "0.5 is common for counts of behaviour. From a pilot or a published count model: k = (variance - mean) / mean^2, or 1 / theta from R's glm.nb()."}
+          - {id: med_a, writeup_label: "X's effect on the mediator", label: "X's effect on the mediator, in the mediator's SD (the second group against the first, or per SD of a score: path a, like Cohen's d)", type: number, path: population.a, effect: true,
+             shown_if: {field: analysis, is: mediation}}
+          - {id: med_y_baseline, writeup_label: "the chance of the outcome in the comparison group", label: "Chance that the outcome is 'yes' in the first group (or at X's average) with the mediator at that group's average, from 0 to 1", type: number, path: population.y_baseline, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is: mediation}]}
+          - {id: med_b_or, writeup_label: "the odds ratio of the outcome for the mediator", label: "Odds ratio of the outcome being 'yes' per SD of the mediator, at the same X (path b)", type: number, path: population.b_odds_ratio, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is: mediation}]}
+          - {id: med_direct_or, writeup_label: "the direct odds ratio of X", label: "Odds ratio of the outcome for X, holding the mediator (optional; empty = 1, no direct effect)", type: number, path: population.direct_odds_ratio, optional: true, empty_text: "1", min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is: mediation}]}
+          - {id: med_base_rate, writeup_label: "the mean count in the comparison group", label: "Mean count in the first group (or at X's average) with the mediator at that group's average", type: number, path: population.base_rate, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is: mediation}]}
+          - {id: med_b_rr, writeup_label: "the rate ratio of the outcome for the mediator", label: "Rate ratio of the count per SD of the mediator, at the same X (path b): 0.8 is a fifth fewer", type: number, path: population.b_rate_ratio, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is: mediation}]}
+          - {id: med_direct_rr, writeup_label: "the direct rate ratio of X", label: "Rate ratio of the count for X, holding the mediator (optional; empty = 1, no direct effect)", type: number, path: population.direct_rate_ratio, optional: true, empty_text: "1", min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is: mediation}]}
+          - {id: med_dispersion, writeup_label: "the counts' overdispersion", label: "Overdispersion k: a count's variance is its mean plus k times its mean squared", type: number, path: population.dispersion, required: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: med_count_model, is: negative_binomial}, {field: analysis, is: mediation}],
+             help: "0.5 is common for counts of behaviour. From a pilot or a published count model: k = (variance - mean) / mean^2, or 1 / theta from R's glm.nb()."}
       - input: "How X and W relate"
         fields:
           - {id: x_prob, label: "Proportion of people in X's second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
-             default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)", shown_if: {field: X_type, is: binary}}
+             default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)", shown_if: [{field: X_type, is: binary}, {field: analysis, is_not: mediation}]}
           - {id: w_prob, label: "Proportion of people in W's second group (0 to 1)", type: number, path: population.w_prob, required: true, min_exclusive: 0, max_exclusive: 1,
-             default: 0.5, default_source: "equal groups, powerkit's default (population > w_prob)", shown_if: {field: W_type, is: binary}}
+             default: 0.5, default_source: "equal groups, powerkit's default (population > w_prob)", shown_if: [{field: W_type, is: binary}, {field: analysis, is_not: mediation}]}
           - {id: r_xw, label: "Correlation between X and W (two scores only)", type: number, path: population.r_xw, required: true, min_exclusive: -1, max_exclusive: 1,
              default: 0, default_source: "uncorrelated, powerkit's default (population > r_xw)",
-             shown_if: [{field: X_type, is: continuous}, {field: W_type, is: continuous}]}
+             shown_if: [{field: X_type, is: continuous}, {field: W_type, is: continuous}, {field: analysis, is_not: mediation}]}
 
   # Poisson regression, one predictor (pwrss's Wald z test): a score X is
   # taken as standardised, so its rate ratio is per SD; a yes/no X compares

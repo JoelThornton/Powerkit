@@ -3269,6 +3269,18 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       "the t test of one regression coefficient (as an F test)"
     )
   }
+  # Moderation of a count and mediation with a yes/no or count outcome
+  # (E32): the model the outcome takes.
+  if (identical(spec$design, "poisson_regression") && identical(spec$template, "interaction")) {
+    name <- if (identical(spec$target_test$method, "negative_binomial")) {
+      sprintf("a negative binomial regression with an interaction (the Wald z test of the X x W coefficient, overdispersion k = %s), simulated", format(spec$population$dispersion))
+    } else "a Poisson regression with an interaction (the Wald z test of the X x W coefficient), simulated"
+  }
+  if (identical(spec$template, "binary_or_count_outcome")) {
+    name <- sprintf("regression-based causal mediation analysis with %s outcome (the natural indirect effect, delta method), simulated",
+      if (identical(spec$variables$Y$type, "binary")) "a yes/no (logistic)" else if (identical(spec$population$count_model, "negative_binomial"))
+        sprintf("a count (negative binomial, overdispersion k = %s)", format(spec$population$dispersion)) else "a count (Poisson)")
+  }
   if (is_rank_test(spec)) name <- rank_test_name(spec)
   if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)
   if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"

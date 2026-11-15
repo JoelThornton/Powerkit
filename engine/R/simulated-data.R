@@ -164,7 +164,7 @@ simulated_data_code <- function(spec, n, seed) {
     ordinal_regression = sim_ordinal_code(spec, n),
     dyadic = sim_apim_code(spec, n),
     mixed_model = sim_mixed_code(spec, n),
-    poisson_regression = sim_glm_code(spec, n),
+    poisson_regression = if (identical(spec$template, "interaction")) sim_count_interaction_code(spec, n) else sim_glm_code(spec, n),
     cluster_trial = sim_cluster_code(spec, n),
     factorial_anova = if (welch_anova(spec)) {
       sim_basic_code(spec, n)
@@ -177,7 +177,8 @@ simulated_data_code <- function(spec, n, seed) {
     },
     regression_interaction = switch(spec$template, two_way = sim_interaction_code(spec, n), group_moderator = sim_group_moderator_code(spec, n), NULL),
     mediation = if (identical(spec$template, "multicategorical")) sim_mcx_code(spec, n) else
-      if (identical(spec$template, "binary_mediator")) sim_binm_code(spec, n) else sim_power4mome_code(spec, n, seed),
+      if (identical(spec$template, "binary_mediator")) sim_binm_code(spec, n) else
+      if (identical(spec$template, "binary_or_count_outcome")) sim_yglm_code(spec, n) else sim_power4mome_code(spec, n, seed),
     moderated_mediation = sim_power4mome_code(spec, n, seed),
     NULL
   )
@@ -1683,6 +1684,29 @@ sim_binm_code <- function(spec, n) {
     sprintf("  %s = %s,", sim_label(spec, "X"), if (inputs$x_binary) sprintf("factor(%s[X + 1], levels = %s)", r_code(lev("X")), r_code(lev("X"))) else "X"),
     sprintf("  %s = factor(%s[M + 1], levels = %s),", sim_label(spec, "M"), r_code(lev("M")), r_code(lev("M"))),
     sprintf("  %s = %s", sim_label(spec, "Y"), if (inputs$y_binary) sprintf("factor(%s[Y + 1], levels = %s)", r_code(lev("Y")), r_code(lev("Y"))) else "Y"),
+    ")"
+  )
+}
+
+# Mediation with a yes/no or count outcome (E32): drawn as the experiment
+# draws it (yglm_data()), with X, M and Y under their labels and levels.
+sim_yglm_code <- function(spec, n) {
+  inputs <- yglm_inputs(spec)
+  lev <- function(v) unlist(spec$variables[[v]]$levels) %||% c("No", "Yes")
+  eta <- sprintf("%s + %s * M + %s * X", r_code(inputs$y0), r_code(inputs$b), r_code(inputs$direct))
+  c(
+    if (inputs$x_binary) sprintf("X <- as.numeric(seq_len(%d) > %s) # two equal groups", n, r_code(n / 2)) else
+      sprintf("X <- stats::rnorm(%d) # SD 1", n),
+    sprintf("M <- %s * X + stats::rnorm(%d)", r_code(inputs$a), n),
+    switch(inputs$outcome,
+      binary = sprintf("Y <- stats::rbinom(%d, 1, stats::plogis(%s))", n, eta),
+      poisson = sprintf("Y <- stats::rpois(%d, exp(%s))", n, eta),
+      negbin = sprintf("Y <- stats::rnbinom(%d, size = %s, mu = exp(%s))", n, r_code(1 / inputs$dispersion), eta)
+    ),
+    "simulated <- data.frame(",
+    sprintf("  %s = %s,", sim_label(spec, "X"), if (inputs$x_binary) sprintf("factor(%s[X + 1], levels = %s)", r_code(lev("X")), r_code(lev("X"))) else "X"),
+    sprintf("  %s = M,", sim_label(spec, "M")),
+    sprintf("  %s = %s", sim_label(spec, "Y"), if (identical(inputs$outcome, "binary")) sprintf("factor(%s[Y + 1], levels = %s)", r_code(lev("Y")), r_code(lev("Y"))) else "Y"),
     ")"
   )
 }

@@ -1,0 +1,48 @@
+{
+  "spec_version": "0.1",
+  "design": "poisson_regression",
+  "template": "interaction",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Condition",
+      "levels": [
+        "Usual care",
+        "Brief intervention"
+      ]
+    },
+    "W": {
+      "type": "continuous",
+      "label": "Baseline craving"
+    },
+    "Y": {
+      "type": "count",
+      "label": "Drinking days in a month"
+    }
+  },
+  "population": {
+    "metric": "rate_ratio",
+    "base_rate": 6,
+    "rate_ratio_x": 0.8,
+    "rate_ratio_w": 1.2,
+    "rate_ratio_xw": 0.85,
+    "dispersion": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: the intervention's rate ratio 15% smaller for each SD of craving is the smallest moderation of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "negative_binomial",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 400
+  },
+  "options": {
+    "nrep": 200,
+    "seed": 32
+  }
+}

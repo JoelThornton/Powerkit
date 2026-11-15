@@ -23,7 +23,7 @@ test_that("every bundled mediation example asks only for what power4mome's route
     if (!spec$design %in% c("mediation", "moderated_mediation")) next
     # Mediation with X in three or more groups, or with a yes/no mediator,
     # runs in Spower, not power4mome.
-    if (spec$template %in% c("multicategorical", "binary_mediator")) next
+    if (spec$template %in% c("multicategorical", "binary_mediator", "binary_or_count_outcome")) next
     result <- tryCatch({
       check_power4mome_supported(spec)
       "offered"
@@ -37,7 +37,7 @@ test_that("there is an example for every template", {
   expect_setequal(unique(templates), c(
     "one_sample_t", "independent_t", "paired_t", "correlation", "repeated_measures_correlation",
     "two_proportions", "chi_square_independence", "2x2_between", "2x2_mixed", "dprime", "lpa", "efa", "its", "riclpm",
-    "two_way", "three_way", "group_moderator", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "crossed_conditions", "repeated_glmm", "item_predictor", "three_level", "growth_curve", "apim", "log_rank", "cox_predictor", "icc", "cronbach_alpha", "kappa", "bland_altman", "dif", "mean_effect", "subgroups", "dependent_effects", "meta_regression", "heterogeneity", "process_4", "process_6", "multicategorical", "binary_mediator", "process_7", "process_14", "process_8", "process_58", "process_59",
+    "two_way", "three_way", "group_moderator", "ordinal_two_groups", "factorial", "crossed_two_condition", "two_level", "crossed_conditions", "repeated_glmm", "item_predictor", "three_level", "growth_curve", "apim", "log_rank", "cox_predictor", "icc", "cronbach_alpha", "kappa", "bland_altman", "dif", "mean_effect", "subgroups", "dependent_effects", "meta_regression", "heterogeneity", "process_4", "process_6", "multicategorical", "binary_mediator", "binary_or_count_outcome", "process_7", "process_14", "process_8", "process_58", "process_59",
     # Wave 2 (engine only).
     "oneway_between", "one_proportion", "mcnemar", "r2_zero", "r2_increase", "single_coefficient",
     # One-way repeated measures.
@@ -113,7 +113,7 @@ test_that("unknown designs and templates list the choices and suggest a fix", {
 
   spec <- example_spec("mediation_simple")
   spec$template <- "process_5"
-  expect_spec_problem(spec, "'template' must be one of 'process_4', 'process_6', 'multicategorical' or 'binary_mediator'; you wrote 'process_5'.")
+  expect_spec_problem(spec, "'template' must be one of 'process_4', 'process_6', 'multicategorical', 'binary_mediator' or 'binary_or_count_outcome'; you wrote 'process_5'.")
 })
 
 test_that("misspelt fields are named, with a suggestion", {
