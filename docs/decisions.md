@@ -3698,3 +3698,34 @@ formula without the factor).
 - **"Evidence threshold"**, with 10 labelled "a common threshold", and
   "Evidence, at your threshold" in the Bayes factor goals, as on the cards
   since 11 November; 10 stays selected, labelled.
+
+## 2026-11-15 · Three Bayes factor methods, before they are built
+
+Three Bayes factor versions in the queue (`next.md` item 2) each needed a
+method chosen first. All follow JASP's default priors.
+
+- **The R-squared increase and one regression coefficient: the full
+  model against the model without the tested predictors.** This is the
+  comparison BayesFactor's `regressionBF(whichModels = "top")` reports,
+  and it depends only on the two R-squared values. JASP's model-averaged
+  inclusion Bayes factor was the alternative; it also depends on how the
+  predictors correlate with each other, which researchers rarely know
+  when planning. Power is simulated from the three independent sums of
+  squares.
+- **The multinomial test (E48): JASP's closed form, in the engine.** JASP
+  computes this Bayes factor in closed form, a Dirichlet prior against
+  fixed proportions (jaspFrequencies' `.multBayesBfEquality()`). The one
+  package with it, multibridge, covers only equal proportions and needs
+  the MPFR system library to compile, so the closed form is written in
+  the engine, as `CLAUDE.md` allows where no package does it. It is cited
+  to Sarafoglou et al. (2021, Psychological Methods, doi
+  10.1037/met0000411) once that article is checked at the source and
+  added to `refs.bib`, and checked against an independent simulation and
+  JASP's function.
+- **JASP's A/B test prior on E5: simulated.** abtest's `ab_test()`
+  computes each Bayes factor by importance sampling, so power cannot be
+  summed exactly over every table as E5's contingency-table Bayes factor
+  is. Each simulated study's Bayes factor comes from `ab_test()` with
+  JASP's default normal priors on the log odds ratio and the grand mean,
+  and JASP's default two-sided hypothesis.
+
