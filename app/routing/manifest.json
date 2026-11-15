@@ -6350,7 +6350,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.67.5",
+        "Version": "0.68.0",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6369,19 +6369,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "c477bcf4594fc96c4eb17c98548d59b6976ce86b",
-        "RemoteSha": "c477bcf4594fc96c4eb17c98548d59b6976ce86b",
+        "RemoteRef": "f9048db7d295619c38ad8e34c0025efdceca89fe",
+        "RemoteSha": "f9048db7d295619c38ad8e34c0025efdceca89fe",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "c477bcf4594fc96c4eb17c98548d59b6976ce86b",
-        "GithubSHA1": "c477bcf4594fc96c4eb17c98548d59b6976ce86b",
+        "GithubRef": "f9048db7d295619c38ad8e34c0025efdceca89fe",
+        "GithubSHA1": "f9048db7d295619c38ad8e34c0025efdceca89fe",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-15 14:36:00 UTC; runner",
+        "Packaged": "2026-11-15 15:15:15 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-15 14:36:33 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-15 15:15:52 UTC; unix"
       }
     },
     "powertools": {
@@ -8752,7 +8752,7 @@
       "checksum": "2bbe797820e088293206fa1e48fb74bf"
     },
     "forms.yaml": {
-      "checksum": "b51485250e1fa9e415ef0986dbd2c775"
+      "checksum": "5c37cdddf5a47bf4d7eddc5cf8f424cb"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
@@ -8872,13 +8872,13 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "46d8fa8c10a5cf3e8934d289501e2d61"
+      "checksum": "33f7eae41c793e9266cbbf9207b11682"
     },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
     },
     "whats-new.yaml": {
-      "checksum": "c7a1ec52cb5ff95d0f22866f2b373283"
+      "checksum": "31784797931e8b92aa8560c09a86733d"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"
