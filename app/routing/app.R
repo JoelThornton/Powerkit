@@ -2713,7 +2713,7 @@ server <- function(input, output, session) {
     for (id in names(values)) {
       v <- values[[id]]
       if (id %in% c("rep_design", "rep_tau", "rep_scale", "labs_test")) updateSelectInput(session, id, selected = v)
-      else if (id %in% c("rep_threshold", "rep_se_from")) updateRadioButtons(session, id, selected = v)
+      else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from")) updateRadioButtons(session, id, selected = v)
       else if (identical(id, "labs_outcome")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
       else if (!id %in% c("rep_goal", "rep_prior")) updateTextInput(session, id, value = v)
     }

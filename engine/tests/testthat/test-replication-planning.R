@@ -244,3 +244,108 @@ test_that("a generic original that can't be planned gets plain words", {
     smallest_effect = 0.8), "ratio above 1")
   expect_error(replication_planning("generic", 0.3, original_n = 100, original_se = 0.1, scale = "probit"), "scale")
 })
+
+test_that("an original Bayes factor gives back its t statistic", {
+  skip_if_not_installed("BayesFactor")
+  for (case in list(list("two_groups", n1 = 30, n2 = 24, n = NULL), list("one_sample", n = 40),
+                    list("paired", n = 18))) {
+    for (t in c(1.2, 2.5, 4.8)) {
+      for (rscale in c(0.5, 1 / sqrt(2), 1)) {
+        bf <- exp(BayesFactor::ttest.tstat(t, case$n1 %||% case$n, case$n2 %||% 0, rscale = rscale)$bf)
+        back <- replication_bf_to_t(bf, case[[1]], case$n, case$n1, case$n2, rscale)
+        expect_equal(back$t, t, tolerance = 1e-6)
+        expect_equal(back$d, if (identical(case[[1]], "two_groups")) t * sqrt(1 / case$n1 + 1 / case$n2) else t / sqrt(case$n),
+          tolerance = 1e-6)
+      }
+    }
+  }
+  # bfpwr's Bayes factor, which repeats the test, is BayesFactor's.
+  expect_equal(1 / bfpwr::tbf01(t = 2.5, n1 = 30, n2 = 24, type = "two.sample"),
+    exp(BayesFactor::ttest.tstat(2.5, 30, 24)$bf), tolerance = 1e-4)
+})
+
+test_that("a Bayes factor original is planned at its effect, with the Bayes factor goals", {
+  skip_if_not_installed("BayesFactor")
+  skip_if_not_installed("bfpwr")
+  bf <- exp(BayesFactor::ttest.tstat(2.5, 30, 30)$bf)
+  plan <- replication_planning("two_groups", original_n1 = 30, original_n2 = 30,
+    original_analysis = "bayes_factor", original_bf = bf, n = 120)
+  d <- 2.5 * sqrt(2 / 30)
+  as_test <- replication_planning("two_groups", d, original_n1 = 30, original_n2 = 30)
+  shared <- c("significance", "pooled", "bf_replication", "bf_sceptical")
+  expect_equal(plan$goals[plan$goals$goal %in% shared, "n"], as_test$goals[as_test$goals$goal %in% shared, "n"])
+  expect_false("small_telescopes" %in% plan$goals$goal)
+  expect_null(plan$telescope)
+  # The repeated test and evidence for no effect are bfpwr's, in total.
+  dp <- plan$priors[plan$priors$prior == "uncertain", ]
+  expect_equal(goal_n(plan, "bf_repeat", "uncertain"),
+    2 * bfpwr::ntbf01(k = 1 / 10, power = 0.8, type = "two.sample", dpm = dp$mean, dpsd = dp$sd))
+  expect_equal(plan$goals$n[plan$goals$goal == "bf_null"],
+    2 * bfpwr::ntbf01(k = 10, power = 0.8, type = "two.sample", dpm = 0, dpsd = 0, lower.tail = FALSE))
+  expect_true(all(c("bf_repeat", "bf_null") %in% plan$at_n$goal))
+  expect_equal(plan$sequential$effect, plan$priors$mean)
+  expect_setequal(vapply(plan$packages, `[[`, "", "name"), c("BayesRepDesign", "bfpwr", "BayesFactor"))
+  # Evidence for no effect needs more people than evidence for an effect
+  # (McLatchie, Warmelink & Tkacheva, 2020).
+  expect_gt(plan$goals$n[plan$goals$goal == "bf_null"], goal_n(plan, "bf_repeat", "as_reported"))
+})
+
+test_that("a posterior from a vague or default prior stands in for the estimate", {
+  plan <- replication_planning("one_sample", 0.4, original_n = 50, original_analysis = "posterior",
+    original_prior = "default", original_se = 0.14)
+  expect_equal(plan$original$se, 0.14)
+  expect_false("small_telescopes" %in% plan$goals$goal)
+  expect_true("bf_repeat" %in% plan$goals$goal)
+  r <- replication_planning("correlation", 0.3, original_n = 80, original_analysis = "posterior",
+    original_prior = "vague", original_se = 0.1)
+  expect_equal(r$original$se, 0.1 / (1 - 0.3^2))
+  expect_false(any(c("bf_repeat", "small_telescopes") %in% r$goals$goal))
+  by_ci <- replication_planning("correlation", 0.3, original_n = 80, original_analysis = "posterior",
+    original_prior = "vague", original_ci = c(0.09, 0.49))
+  expect_equal(by_ci$original$se, (atanh(0.49) - atanh(0.09)) / (2 * qnorm(0.975)))
+})
+
+test_that("the script redoes a Bayesian original's numbers", {
+  skip_if_not_installed("BayesFactor")
+  skip_if_not_installed("bfpwr")
+  plans <- list(
+    replication_planning("paired", original_n = 25, original_analysis = "bayes_factor", original_bf = 8,
+      original_prior_scale = 0.5),
+    replication_planning("correlation", 0.3, original_n = 80, original_analysis = "posterior",
+      original_prior = "vague", original_se = 0.1))
+  for (plan in plans) {
+    lines <- strsplit(replication_planning_script(plan), "\n")[[1]]
+    expect_false(any(grepl("pwrss|telescope", lines)))
+    env <- new.env()
+    code <- lines[!grepl("^library", lines)]
+    table_end <- max(grep("^\\)\\)$", code))
+    table <- suppressWarnings(eval(parse(text = c("library(BayesRepDesign)", code[seq_len(table_end)])), env))
+    for (prior in c("as_reported", "uncertain", "shrunk")) {
+      expect_equal(unname(table["significance", prior]), goal_n(plan, "significance", prior))
+    }
+    if ("bf_repeat" %in% plan$goals$goal) {
+      rest <- code[-seq_len(table_end)]
+      repeated <- eval(parse(text = rest[grepl("^bf_size <-|^sapply", rest)]), env)
+      expect_equal(unname(repeated[["as_reported"]]), goal_n(plan, "bf_repeat", "as_reported"))
+      expect_equal(eval(parse(text = rest[grepl("^bf_size\\(k", rest)]), env),
+        plan$goals$n[plan$goals$goal == "bf_null"])
+    }
+  }
+})
+
+test_that("a Bayesian original that can't be planned gets plain words", {
+  expect_error(replication_planning("correlation", 0.3, original_n = 80, original_analysis = "bayes_factor",
+    original_bf = 5), "only for a t-test")
+  expect_error(replication_planning("one_sample", original_n = 50, original_analysis = "bayes_factor",
+    original_bf = 0.05), "BF01")
+  expect_error(replication_planning("one_sample", original_n = 50, original_analysis = "bayes_factor",
+    original_bf = -1), "above 0")
+  expect_error(replication_planning("one_sample", 0.4, original_n = 50, original_analysis = "posterior",
+    original_prior = "informative", original_se = 0.1), "vague or a default")
+  expect_error(replication_planning("one_sample", 0.4, original_n = 50, original_analysis = "posterior",
+    original_prior = "vague"), "posterior's standard deviation")
+  expect_error(replication_planning("one_sample", original_n = 50, original_analysis = "bayes_factor",
+    original_bf = 5, original_prior_scale = 0), "scale")
+  expect_error(replication_planning("one_sample", 0.4, original_n = 50, original_analysis = "bayesian"),
+    "original_analysis")
+})
