@@ -84,3 +84,18 @@ test_that("in Bayes mode the t-tests wait for how unsure you are about the effec
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "bayes_mode_groups(form_groups(forms, state$endpoint", fixed = TRUE)
 })
+
+test_that("E24's Bayes factor for R-squared opens on R-squared against 0, and alpha returns for the other questions", {
+  d <- tree$bayes_designs$E24
+  expect_identical(d$field, "r2_test")
+  values <- bayes_mode_form_values(tree, "E24", list(), TRUE)
+  expect_identical(values$question, "r2_zero")
+  expect_identical(values$r2_test, "bayes_factor")
+  # A question already chosen is kept.
+  expect_identical(bayes_mode_form_values(tree, "E24", list(question = "single_coefficient"), TRUE)$question, "single_coefficient")
+  fields <- form_fields(form_groups(forms, "E24"))
+  alpha <- Filter(function(f) identical(f$id, "alpha"), fields)[[1]]
+  expect_false(field_applies(alpha, list(question = "r2_zero", r2_test = "bayes_factor", goal = "power")))
+  expect_true(field_applies(alpha, list(question = "single_coefficient", r2_test = "bayes_factor", goal = "power")))
+  expect_true(field_applies(alpha, list(question = "r2_zero", r2_test = "f_test", goal = "power")))
+})

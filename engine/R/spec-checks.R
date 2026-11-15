@@ -17,15 +17,22 @@ population_problems <- function(spec) {
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
       switch(spec$template, two_level = check_two_level(spec), crossed_conditions = check_crossed_conditions(spec),
-        growth_curve = check_growth_curve(spec),
+        growth_curve = check_growth_curve(spec), repeated_glmm = check_repeated_glmm(spec),
         three_level = check_three_level(spec), item_predictor = check_item_predictor(spec),
         c(check_crossed_two_condition(spec), check_crossed_outcome(spec, conditions = FALSE)))
     },
-    poisson_regression = check_single_predictor_x,
+    poisson_regression = function(spec) {
+      if (identical(spec$template, "interaction")) check_count_interaction(spec) else check_single_predictor_x(spec)
+    },
     cluster_trial = check_cluster_trial,
     sem = check_sem,
     regression_interaction = check_regression_interaction,
-    mediation = function(spec) c(check_path_model(spec), check_single_predictor_x(spec)),
+    mediation = function(spec) {
+      if (identical(spec$template, "multicategorical")) return(check_mediation_mcx(spec))
+      if (identical(spec$template, "binary_mediator")) return(check_mediation_binm(spec))
+      if (identical(spec$template, "binary_or_count_outcome")) return(check_mediation_yglm(spec))
+      c(check_path_model(spec), check_single_predictor_x(spec))
+    },
     moderated_mediation = check_path_model,
     generic_test = function(spec) character(),
     equivalence_test = check_equivalence_test,
@@ -329,6 +336,12 @@ negative_binomial_counts <- function(spec) {
 # The overdispersion is an input to the negative binomial models only, and
 # they need one.
 check_dispersion <- function(spec) {
+  # Repeated counts (E75): dispersion chooses the negative binomial model
+  # itself (check_repeated_glmm()).
+  if (identical(spec$template, "repeated_glmm")) return(character())
+  # Mediation with a count outcome (E32): population > count_model chooses
+  # it (check_mediation_yglm()).
+  if (identical(spec$template, "binary_or_count_outcome")) return(character())
   given <- !is.null(spec$population$dispersion)
   if (negative_binomial_counts(spec) && !given) {
     return(paste0(
@@ -352,7 +365,7 @@ check_dispersion <- function(spec) {
 # zero part, belong to them too. The joint test of both parts has no
 # direction.
 check_zero_inflation <- function(spec) {
-  if (!identical(spec$design, "poisson_regression")) {
+  if (!identical(spec$design, "poisson_regression") || identical(spec$template, "interaction")) {
     return(character())
   }
   pop <- spec$population
@@ -688,6 +701,9 @@ check_bayes_factor <- function(spec) {
   }
   if (bfanova_test(spec)) {
     return(check_bayes_anova(spec))
+  }
+  if (bfreg_test(spec)) {
+    return(check_bayes_regression(spec))
   }
   if (!is.null(spec$target_test$prior_width)) {
     return("'target_test > prior_width' belongs to the Bayes factor test of a correlation; a Bayes factor t-test has a Cauchy prior, set by 'prior_scale'.")
@@ -2852,6 +2868,15 @@ check_goal <- function(spec, check_effect = TRUE) {
   if (!is.null(goal$n)) {
     problems <- c(problems, check_n(spec, goal$n))
   }
+  # What n counts: items for crossed participants and items in two
+  # conditions; observations (occasions within people) for a two-level
+  # model (E41).
+  if (identical(goal$unit, "items") && !identical(spec$template, "crossed_two_condition")) {
+    problems <- c(problems, "'goal > unit' \"items\" is for participants and items in two conditions (mixed_model / crossed_two_condition) only.")
+  }
+  if (identical(goal$unit, "observations") && !(identical(spec$template, "two_level") && is.null(spec$population$groups_per_site))) {
+    problems <- c(problems, "'goal > unit' \"observations\" is for a two-level model (mixed_model / two_level, without population > groups_per_site) only: people measured on several occasions.")
+  }
   # For the basic tests, the smallest detectable effect needs no effect
   # size: pwr solves for it directly (for two proportions, a search keeps
   # group 1's proportion), so a zero effect (no effect size given) is
@@ -2909,6 +2934,22 @@ check_n <- function(spec, n) {
 }
 
 minimum_n <- function(spec) {
+  # Two groups rounded at each total (rounded_ratio()): each group needs
+  # what one of two equal groups needs, and the smallest total is the
+  # first whose smaller rounded group has that many.
+  ratio <- rounded_ratio(spec)
+  if (!is.null(ratio)) {
+    equal <- spec
+    equal$options$allocation_ratio <- 1
+    per_group <- ceiling(minimum_n_design(equal) / 2)
+    n <- 2 * per_group
+    while (min(rounded_groups(n, ratio)) < per_group) n <- n + 1
+    return(n)
+  }
+  minimum_n_design(spec)
+}
+
+minimum_n_design <- function(spec) {
   # A whole study (experimental): the smallest n its schema allows.
   if (identical(spec$kind, "whole_study")) {
     if (whole_study_is_experiment(spec)) return(whole_study_experiment_min_n(whole_study_experiment_inputs(spec)))
@@ -3046,7 +3087,9 @@ minimum_n <- function(spec) {
     ),
     # The zero-inflated models: thirty, so that most simulated data sets
     # have enough zeros and counts to fit both parts.
-    poisson_regression = if (zero_inflated_test(spec)) 30 else 3,
+    # Moderation of a count: ten for each of the four coefficients, as for
+    # moderation of a yes/no outcome.
+    poisson_regression = if (identical(spec$template, "interaction")) 40 else if (zero_inflated_test(spec)) 30 else 3,
     # powertools::propodds() needs at least 2 in group 1; 2 in each group.
     ordinal_regression = 4,
     # Enough participants to estimate a random intercept and slope.
@@ -3056,7 +3099,13 @@ minimum_n <- function(spec) {
       if (is.null(pop2$groups_per_site)) 10 * pop2$cluster_size else 6 * pop2$cluster_size * pop2$groups_per_site
     } else
       if (identical(spec$template, "three_level")) 6 * spec$population$group_size * spec$population$groups_per_site else
-      if (identical(spec$template, "growth_curve")) 4 else 6,
+      if (identical(spec$template, "growth_curve")) 4 else
+      # Repeated counts or yes/no: two people in each condition between
+      # people, and enough for the person SD within.
+      if (identical(spec$template, "repeated_glmm")) {
+        if (!is.null(spec$variables$W)) max(6, 2 * length(spec$variables$W$levels)) else
+        if (identical(spec$variables$X$type, "between_factor")) 2 * length(spec$variables$X$levels) else 6
+      } else 6,
     # A meta-analysis: n is the number of studies; metapower needs at
     # least two.
     # Subgroups: two studies of each kind, so the within-kind variance has
@@ -3105,6 +3154,16 @@ minimum_n <- function(spec) {
     # More people than observed scores (two at each wave), so that the
     # sample covariance matrix can be positive definite.
     panel = 2 * spec$population$waves + 1,
+    # Mediation with k groups: Y's regression has k + 1 coefficients; two
+    # people in each group at least.
+    mediation = if (identical(spec$template, "multicategorical")) {
+      k <- length(spec$variables$X$levels)
+      max(2 * k, k + 3)
+    } else if (spec$template %in% c("binary_mediator", "binary_or_count_outcome")) {
+      # Y's regression has three coefficients; two people per group of X
+      # at least.
+      6
+    } else max(lengths(path_model(spec)$equations)) + 3,
     # Enough for the largest regression in the model plus two residual df.
     max(lengths(path_model(spec)$equations)) + 3
   )
@@ -3112,6 +3171,8 @@ minimum_n <- function(spec) {
 
 group_split <- function(spec) {
   whole <- function(x) abs(x - round(x)) < 1e-9
+  # Two groups in a ratio other than 1 are rounded at every total.
+  if (!is.null(rounded_ratio(spec))) return(NULL)
   if (identical(spec$design, "meta_analysis") && identical(spec$template, "subgroups")) {
     g <- length(unlist(spec$population$effects))
     return(list(rule = sprintf("split equally between the %d kinds of study", g), valid = function(n) n %% g == 0))
@@ -3157,7 +3218,19 @@ group_split <- function(spec) {
   if (identical(spec$template, "crossed_two_condition") && identical(spec$variables$X$type, "between_factor")) {
     return(list(rule = "split into 2 equal groups, one per condition", valid = function(n) n %% 2 == 0))
   }
-  if (identical(spec$template, "crossed_conditions") && identical(spec$variables$X$type, "between_factor")) {
+  if (identical(spec$template, "repeated_glmm") && !is.null(spec$variables$W)) {
+    g <- length(spec$variables$W$levels)
+    return(list(rule = sprintf("split into %d equal groups, one per group of %s", g, spec$variables$W$label %||% "W"),
+      valid = function(n) n %% g == 0))
+  }
+  if (spec$template %in% c("binary_mediator", "binary_or_count_outcome") && identical(spec$variables$X$type, "binary")) {
+    return(list(rule = "split into 2 equal groups, one per group of X", valid = function(n) n %% 2 == 0))
+  }
+  if (identical(spec$template, "multicategorical")) {
+    k <- length(spec$variables$X$levels)
+    return(list(rule = sprintf("split into %d equal groups, one per group of X", k), valid = function(n) n %% k == 0))
+  }
+  if (spec$template %in% c("crossed_conditions", "repeated_glmm") && identical(spec$variables$X$type, "between_factor")) {
     k <- length(spec$variables$X$levels)
     return(list(rule = sprintf("split into %d equal groups, one per condition", k), valid = function(n) n %% k == 0))
   }
@@ -3334,6 +3407,18 @@ target_effect_is_zero <- function(spec) {
       if (identical(spec$variables$Y$type, "binary")) diff(as.numeric(unlist(pop$probabilities))) else pop$d
     } else if (identical(spec$template, "item_predictor")) {
       pop$slope
+    } else if (identical(spec$template, "repeated_glmm") && !is.null(spec$variables$W)) {
+      # The group-by-condition interaction: no effect when every group
+      # changes alike (every interaction coefficient 0).
+      inputs <- tryCatch(repeated_glmm_inputs(spec), error = function(e) NULL)
+      if (is.null(inputs)) 1 else max(abs(inputs$fixef[grepl(":", inputs$fixef_names, fixed = TRUE)]), 0)
+    } else if (identical(spec$template, "repeated_glmm")) {
+      # The conditions' log rates (or log odds): no difference when all are
+      # equal.
+      centre <- if (identical(spec$variables$Y$type, "count")) log(as.numeric(unlist(pop$rates))) else
+        if (identical(spec$variables$Y$type, "categorical")) log(as.numeric(unlist(pop$odds_ratios))) else
+        stats::qlogis(as.numeric(unlist(pop$probabilities)))
+      if (length(centre)) max(abs(centre - mean(centre))) else 1
     } else if (identical(spec$template, "crossed_conditions")) {
       means <- as.numeric(unlist(pop$means %||% pop$probabilities))
       pair <- match(unlist(spec$target_test$comparison), unlist(spec$variables$X$levels))
@@ -3349,6 +3434,7 @@ target_effect_is_zero <- function(spec) {
       pop$difference
     },
     poisson_regression = switch(spec$target_test$effect %||% "rate_ratio",
+      interaction = log(pop$rate_ratio_xw),
       zero_odds_ratio = log(pop$zero_odds_ratio %||% 1),
       rate_and_zero = max(abs(log(c(pop$rate_ratio, pop$zero_odds_ratio %||% 1)))),
       log(pop$rate_ratio)
@@ -3364,7 +3450,9 @@ target_effect_is_zero <- function(spec) {
       latent_regression = pop$slopes[[pop$tested %||% 1L]]
     ),
     regression_interaction = if (identical(spec$template, "three_way")) pop$b_XWZ else if (identical(spec$template, "group_moderator")) diff(range(as.numeric(unlist(pop$r_xy)))) else if (identical(pop$metric, "r2_change")) pop$r2_change else pop$r_XW_Y,
-    mediation = {
+    mediation = if (identical(spec$template, "multicategorical")) mcx_tested_effect(spec) else
+      if (identical(spec$template, "binary_mediator")) binm_tested_effect(spec) else
+      if (identical(spec$template, "binary_or_count_outcome")) yglm_tested_effect(spec) else {
       nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
       prod(vapply(seq_len(length(nodes) - 1), function(i) {
         as.numeric(paths[[paste0(nodes[i], "->", nodes[i + 1])]])

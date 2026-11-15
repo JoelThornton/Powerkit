@@ -36,6 +36,11 @@ form_examples <- list(
                items = "40", item_design = "between"), closing_ok),
   E16 = c(list(X_label = "Condition", X_levels = "Control, Self-affirmation", x_prob = "0.5", M_label = "Defensiveness", Y_label = "Intention to change",
                x_effects = "paths", p_X_M = "-0.25", p_M_Y = "-0.3", p_X_Y = "0.1"), closing_ok),
+  E39 = c(list(binm_x = "binary", X_label = "Condition", X_levels = "Usual information, Reminder letter", M_label = "Booked an appointment",
+               M_levels = "No, Yes", Y_label = "Health knowledge", binm_y = "continuous", binm_m_baseline = "0.3", binm_m_or = "2.5",
+               binm_b = "0.5", binm_direct = "0.1"), closing_ok),
+  E42 = c(list(X_label = "Message", X_levels = "No message, Gain framed, Loss framed", M_label = "Perceived risk", Y_label = "Intention to be screened",
+               mcx_m_differences = "0.4, 0.6", mcx_b = "0.3", mcx_direct = "0, 0.1", mcx_group = ""), closing_ok),
   E11 = c(list(x_type = "score", n_mediators = "2", X_label = "Workload", M1_label = "Exhaustion", M2_label = "Cynicism", Y_label = "Turnover intention",
                p_X_M1 = "0.4", p_M1_Y = "0.3", p_X_M2 = "0.3", p_M2_Y = "0.2", p_X_Y = "0.05", rc_M1_M2 = "0.3",
                target_path = "X->M2->Y"), closing_ok),
@@ -90,7 +95,7 @@ form_examples <- list(
                dif_items = "1", b_shift = "0.4", free_parameters = "both", irt_stat = "likelihood_ratio"), closing_ok),
   E30 = c(list(Y_label = "Sleep quality", X_label = "Daily screen time", A_label = "Age group", A_levels = "12 to 14, 15 to 17, 18 to 20",
                r_xy = "-0.1, -0.2, -0.35", group_sizes = "equal"), closing_ok),
-  E32 = c(list(Y_label = "Sought counselling", X_label = "Perceived stress", X_type = "continuous", W_label = "Social support", W_type = "continuous",
+  E32 = c(list(analysis = "moderation", Y_kind = "binary", Y_label = "Sought counselling", X_label = "Perceived stress", X_type = "continuous", W_label = "Social support", W_type = "continuous",
                base_prob = "0.25", odds_ratio_x = "1.4", odds_ratio_w = "1.1", odds_ratio_xw = "1.25", r_xw = "-0.2", alternative = "two_sided"), closing_ok),
   E70 = c(list(Y_label = "Where help was first sought", Y_levels = "General practitioner, Online search, Friends or family",
                X_label = "Health anxiety", X_type = "continuous", probabilities = "0.5, 0.3, 0.2", effect_as = "shares",
@@ -206,11 +211,24 @@ form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", 
                             b_X = "0.3", b_W = "0.2", b_XW = "0.1", sd_group = "0.4", sd_group_slope = "0.15",
                             sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
 
+# E41: a diary study; whether the day's stress affects evening mood more
+# for people higher in neuroticism.
+form_examples$E41 <- c(list(Y_label = "Evening mood", X_label = "The day's stress", W_label = "Neuroticism", two_outcome = "continuous",
+                            b_X = "-0.3", b_W = "-0.2", b_XW = "-0.1", sd_group = "0.7", sd_group_slope = "0.15",
+                            sd_residual = "1", cluster_size = "14", two_level_effect = "cross_level_interaction"), closing_ok)
+
 # E63: three face expressions; the pair Neutral-Happy, Holm-adjusted.
 form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Happy, Angry", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous",
                             means = "600, 580, 590", sd_participant = "60", sd_participant_condition = "15", sd_item = "30",
                             sd_residual = "120", items = "60", item_design = "between", conditions_test = "pairwise",
                             comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
+
+# E75: disruptive acts per lesson, three lessons in each kind of
+# classroom, a Poisson count.
+form_examples$E75 <- c(list(glmm_groups = "none", X_label = "Classroom", X_levels = "Usual, With the programme", glmm_people = "within_factor",
+                            Y_label = "Disruptive acts per lesson", glmm_outcome = "count", glmm_measurements = "3",
+                            glmm_rates = "2, 1.6", glmm_sd_person = "0.5", glmm_distribution = "poisson",
+                            glmm_test = "likelihood_ratio"), closing_ok)
 
 # E68: pupils in classes in schools, whole schools assigned.
 form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score", three_outcome = "continuous",

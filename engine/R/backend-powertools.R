@@ -644,7 +644,7 @@ propodds_inputs <- function(spec) {
 }
 
 propodds_power <- function(inputs, n) {
-  n1 <- round(n / (1 + inputs$ratio))
+  n1 <- floor(n / (1 + inputs$ratio) + 0.5)
   call_backend("powertools", quietly(powertools::propodds(
     pC = inputs$pC, OR = inputs$OR, n1 = n1, n.ratio = (n - n1) / n1, alpha = inputs$alpha
   )))
@@ -695,7 +695,7 @@ propodds_script <- function(spec, result) {
     "# Power of the proportional-odds comparison (Whitehead's method, two-sided)",
     "# at a total sample size.",
     "power_at <- function(n_total) {",
-    "  n1 <- round(n_total / (1 + ratio))",
+    "  n1 <- floor(n_total / (1 + ratio) + 0.5)",
     "  propodds(pC = pC, OR = OR, n1 = n1, n.ratio = (n_total - n1) / n1, alpha = alpha)",
     "}",
     "",

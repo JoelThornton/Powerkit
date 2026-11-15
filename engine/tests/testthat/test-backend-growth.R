@@ -45,11 +45,11 @@ test_that("one-sided tests point the right way, and the refusals are in plain En
   spec <- growth_spec()
   spec$population$times <- list(0, 2, 1)
   expect_spec_problem(spec, "increasing order")
-  # Unequal groups are allowed (Hu, Mackey and Thomas's formula); n must
-  # split into whole groups.
+  # Unequal groups are allowed (Hu, Mackey and Thomas's formula), rounded
+  # to whole people at any total.
   spec <- growth_spec()
   spec$options$allocation_ratio <- 2
-  expect_spec_problem(spec, "in the ratio 1 : 2")
+  expect_no_error(validate_quietly(spec))
 })
 
 test_that("the R script reproduces the run, and the simulated data are in long format", {

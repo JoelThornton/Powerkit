@@ -80,7 +80,7 @@ for (case in list(list("process_7", model_7_paths, TRUE, FALSE), list("process_1
 test_that("model 7 with a yes/no X: the Monte Carlo interval keeps the Type I error at most alpha", {
   skip_unless_full_validation()
   null <- modifyList(model_7_paths, list("XW->M" = 0))
-  estimate <- engine_power(binary_modmed_validation_spec("process_7", null, TRUE, FALSE, seed = 1703, n = 250, nrep = 1000L))
+  estimate <- engine_power(binary_modmed_validation_spec("process_7", null, TRUE, FALSE, seed = 1500, n = 250, nrep = 1000L))
   expect_lte(estimate$power, 0.05 + 3 * sqrt(0.05 * 0.95 / 1000))
 })
 

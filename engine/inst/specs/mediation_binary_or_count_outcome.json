@@ -1,0 +1,50 @@
+{
+  "spec_version": "0.1",
+  "design": "mediation",
+  "template": "binary_or_count_outcome",
+  "variables": {
+    "X": {
+      "type": "binary",
+      "label": "Condition",
+      "levels": [
+        "Waiting list",
+        "Online programme"
+      ]
+    },
+    "M": {
+      "type": "continuous",
+      "label": "Coping self-efficacy"
+    },
+    "Y": {
+      "type": "count",
+      "label": "Heavy drinking days in a month"
+    }
+  },
+  "population": {
+    "metric": "rate_ratio",
+    "a": 0.4,
+    "base_rate": 5,
+    "b_rate_ratio": 0.8,
+    "direct_rate_ratio": 0.95,
+    "count_model": "negative_binomial",
+    "dispersion": 0.5
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: smallest effects the team would consider practically meaningful."
+  },
+  "target_test": {
+    "effect": "indirect_effect",
+    "path": "X->M->Y",
+    "method": "delta_method",
+    "alpha": 0.05
+  },
+  "goal": {
+    "type": "power",
+    "n": 400
+  },
+  "options": {
+    "nrep": 200,
+    "seed": 32
+  }
+}

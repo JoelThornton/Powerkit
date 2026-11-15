@@ -30,6 +30,10 @@
 #                         test took 44 minutes on 30 October 2026)
 #   process_4_binary      about 2 hours (4 tests: independent, direct and
 #                         Type I checks of a yes/no X)
+#   mediation_mcx         about 1.5 hours (3 simulations of 10,000 studies,
+#                         about 0.1 s each, plus their OLS references)
+#   mediation_binm        about 30 minutes (5 simulations of 10,000 studies,
+#                         about 0.03 s each, plus their references)
 #   process_6             about 1 hour (3 simulations, about 0.4 s each)
 #   mediation_crosscheck  about 1.5 hours (4 tests at a time, one core
 #                         each; the longest is a powerkit simulation of
@@ -93,6 +97,7 @@ on:
           - multinomial
           - zero_inflated
           - logistic_interaction
+          - count_interaction
           - group_moderator
           - growth
           - signal_detection
@@ -103,6 +108,9 @@ on:
           - irt
           - process_4
           - process_4_binary
+          - mediation_mcx
+          - mediation_binm
+          - mediation_yglm
           - process_6
           - process_7
           - process_14
@@ -132,6 +140,7 @@ on:
           - multisite
           - sem_fit
           - sem_latent
+          - glmm
           - mixed_model
 
 permissions:

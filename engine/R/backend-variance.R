@@ -67,7 +67,7 @@ variance_inputs <- function(spec) {
       function(n) n - 1
     } else {
       function(n) {
-        n1 <- round(n / (1 + ratio))
+        n1 <- floor(n / (1 + ratio) + 0.5)
         c(n1 - 1, n - n1 - 1)
       }
     },

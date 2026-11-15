@@ -36,12 +36,14 @@ test_that("with equal SDs and equal groups, Welch's test needs the same N as Stu
 
 test_that("with unequal groups, Welch's test needs a few more people than Student's", {
   goal <- list(type = "sample_size", power = 0.8)
-  # Group 2 twice the size of group 1, d = 0.5: 144 for Student's (pwr), 147
-  # for Welch's (pwrss); with three times the size, 172 against 176.
-  expect_equal(run_spec(welch_default_spec("student_t", 0.5, 2, goal))$n_required$n, 144)
-  expect_equal(run_spec(welch_default_spec("welch_t", 0.5, 2, goal))$n_required$n, 147)
-  expect_equal(run_spec(welch_default_spec("student_t", 0.5, 3, goal))$n_required$n, 172)
-  expect_equal(run_spec(welch_default_spec("welch_t", 0.5, 3, goal))$n_required$n, 176)
+  # Group 2 twice the size of group 1, d = 0.5, the groups rounded at each
+  # total: 143 for Student's (pwr), 145 for Welch's (pwrss); with three
+  # times the size, 170 against 173. (144, 147, 172 and 176 while the
+  # total moved in whole steps of the ratio.)
+  expect_equal(run_spec(welch_default_spec("student_t", 0.5, 2, goal))$n_required$n, 143)
+  expect_equal(run_spec(welch_default_spec("welch_t", 0.5, 2, goal))$n_required$n, 145)
+  expect_equal(run_spec(welch_default_spec("student_t", 0.5, 3, goal))$n_required$n, 170)
+  expect_equal(run_spec(welch_default_spec("welch_t", 0.5, 3, goal))$n_required$n, 173)
 })
 
 test_that("Welch's smallest detectable effect is the d at which pwrss's power reaches the target", {

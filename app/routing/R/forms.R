@@ -167,7 +167,13 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
     }
     with_prior_prompt(with_threshold_reason(with_conversion(with_eta_squared(g, form$base$template), form$base$template)))
   })
-  if (isTRUE(form$base$design %in% c("mediation", "moderated_mediation"))) {
+  # Mediation with X in three or more groups (E42) is planned for the
+  # Monte Carlo interval only, so it keeps its own draws setting and offers
+  # no choice of method; mediation with a yes/no mediator (E39) uses the
+  # delta-method test of regression-based causal mediation analysis, which
+  # draws nothing.
+  if (isTRUE(form$base$design %in% c("mediation", "moderated_mediation")) &&
+      !isTRUE(form$base$template %in% c("multicategorical", "binary_mediator"))) {
     groups <- lapply(groups, function(g) {
       g$fields <- lapply(g$fields, function(f) {
         if (identical(f$id, "ci_draws")) {
@@ -455,6 +461,21 @@ offers_bayes_factor <- function(form) {
   if (length(hit)) hit[[1]]$id
 }
 
+# The condition under which a form's significance level applies: the test
+# version isn't the Bayes factor, or the test-version field is itself
+# hidden (E24 offers the Bayes factor for R-squared against 0 only, so a
+# Bayes factor chosen there doesn't hide alpha once another question is
+# chosen). NULL when the form offers no Bayes factor.
+no_bayes_condition <- function(form, bayes_field) {
+  if (is.null(bayes_field)) return(NULL)
+  own <- list(field = bayes_field, is_not = "bayes_factor")
+  f <- Filter(function(x) identical(x$id, bayes_field), form_fields(form$groups))[[1]]
+  hidden <- lapply(Filter(function(cond) !is.null(cond[["is"]]), shown_if_conditions(f)),
+    function(cond) list(field = cond$field, is_not = cond[["is"]]))
+  if (length(hidden) == 0) return(own)
+  list(any = c(list(own), hidden))
+}
+
 # Precision planning (E46): the interval's width instead of power. Both
 # goals are the engine's goal type "precision" (build_spec()): with a
 # width it finds the sample size, with a sample size the width.
@@ -525,7 +546,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # A form offering a Bayes factor t-test (E1-E3) has no significance
   # level for that version: "power" is the chance of strong evidence.
   bayes_field <- offers_bayes_factor(form)
-  no_bayes <- if (!is.null(bayes_field)) list(field = bayes_field, is_not = "bayes_factor")
+  no_bayes <- no_bayes_condition(form, bayes_field)
   # So a justified significance level is offered only with a test that
   # has one (`choices_shown_if`: the choice is hidden otherwise).
   if (!is.null(no_bayes) && !is.null(goals$justified_alpha)) goal$choices_shown_if <- list(justified_alpha = list(no_bayes))
@@ -1201,6 +1222,10 @@ form_problems <- function(fields, values) {
         add(sprintf("%s: every entry should be a number written with a decimal point, such as 10.5, separated by commas.", quote_label(f)))
       } else if (!is.null(f$per_levels) && length(xs) != length(parse_levels(values[[f$per_levels]]))) {
         add(sprintf("%s should have %d numbers, one for each name you gave, in the same order.", quote_label(f), length(parse_levels(values[[f$per_levels]]))))
+      } else if (!is.null(f$per_later_levels) && length(xs) != length(parse_levels(values[[f$per_later_levels]])) - 1) {
+        # One number for each group after the first (the reference group).
+        add(sprintf("%s should have %d numbers, one for each group after the first, in the same order.", quote_label(f),
+          length(parse_levels(values[[f$per_later_levels]])) - 1))
       }
     }
     if (identical(f$type, "table")) {
@@ -1348,7 +1373,7 @@ build_spec <- function(forms, ep_id, fields, values) {
   # The range of sample sizes is several engine runs (sensitivity_curve());
   # the spec kept for the exports is the largest N at 80% power.
   if (identical(values$goal, "sensitivity_curve")) {
-    spec$goal <- list(type = "sensitivity", n = as.integer(parse_number(values$n_max)), power = 0.8)
+    spec$goal <- c(list(type = "sensitivity", n = as.integer(parse_number(values$n_max)), power = 0.8), spec$goal["unit"][!vapply(spec$goal["unit"], is.null, logical(1))])
   }
   spec
 }

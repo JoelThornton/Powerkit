@@ -164,7 +164,7 @@ simulated_data_code <- function(spec, n, seed) {
     ordinal_regression = sim_ordinal_code(spec, n),
     dyadic = sim_apim_code(spec, n),
     mixed_model = sim_mixed_code(spec, n),
-    poisson_regression = sim_glm_code(spec, n),
+    poisson_regression = if (identical(spec$template, "interaction")) sim_count_interaction_code(spec, n) else sim_glm_code(spec, n),
     cluster_trial = sim_cluster_code(spec, n),
     factorial_anova = if (welch_anova(spec)) {
       sim_basic_code(spec, n)
@@ -176,7 +176,9 @@ simulated_data_code <- function(spec, n, seed) {
       sim_ancova_code(spec, n)
     },
     regression_interaction = switch(spec$template, two_way = sim_interaction_code(spec, n), group_moderator = sim_group_moderator_code(spec, n), NULL),
-    mediation = ,
+    mediation = if (identical(spec$template, "multicategorical")) sim_mcx_code(spec, n) else
+      if (identical(spec$template, "binary_mediator")) sim_binm_code(spec, n) else
+      if (identical(spec$template, "binary_or_count_outcome")) sim_yglm_code(spec, n) else sim_power4mome_code(spec, n, seed),
     moderated_mediation = sim_power4mome_code(spec, n, seed),
     NULL
   )
@@ -310,7 +312,7 @@ sim_basic_code <- function(spec, n) {
 # total n and the allocation ratio n2 / n1.
 sim_two_groups <- function(spec, n) {
   ratio <- allocation_ratio(spec)
-  n1 <- round(n / (1 + ratio))
+  n1 <- floor(n / (1 + ratio) + 0.5)
   c(n1, n - n1)
 }
 
@@ -1181,6 +1183,7 @@ sim_mixed_code <- function(spec, n) {
   if (identical(spec$template, "growth_curve")) return(sim_growth_code(spec, n))
   if (identical(spec$template, "two_level")) return(sim_two_level_code(spec, n))
   if (identical(spec$template, "crossed_conditions")) return(sim_crossed_conditions_code(spec, n))
+  if (identical(spec$template, "repeated_glmm")) return(sim_repeated_glmm_code(spec, n))
   if (identical(spec$template, "three_level")) return(sim_three_level_code(spec, n))
   if (identical(spec$template, "item_predictor")) return(sim_item_predictor_code(spec, n))
   inputs <- simr_inputs(spec)
@@ -1497,6 +1500,69 @@ sim_crossed_conditions_code <- function(spec, n) {
   )
 }
 
+# The same people measured more than once, a count, yes/no or ordered
+# categories (E75): the
+# same design and model as the simulation (repeated_glmm_design(),
+# repeated_glmm_inputs()), one row per measurement.
+sim_repeated_glmm_code <- function(spec, n) {
+  inputs <- repeated_glmm_inputs(spec)
+  cell <- if (inputs$interaction) "(as.integer(design$group) - 1) * length(conditions) + as.integer(design$cond)" else
+    "as.integer(design$cond)"
+  c(
+    sprintf("conditions <- %s", r_code(inputs$levels)),
+    if (inputs$interaction) {
+      c(
+        sprintf("groups <- %s", r_code(inputs$groups)),
+        sprintf("design <- expand.grid(measurement = seq_len(%d), cond = conditions, person = seq_len(%d), stringsAsFactors = FALSE)",
+          inputs$measurements, n),
+        sprintf("design$group <- factor(groups[ceiling(design$person / %s)], levels = groups) # the people split equally between the groups",
+          r_code(n / length(inputs$groups)))
+      )
+    } else if (inputs$between) {
+      c(
+        sprintf("design <- expand.grid(measurement = seq_len(%d), person = seq_len(%d))", inputs$measurements, n),
+        sprintf("design$cond <- conditions[ceiling(design$person / %s)] # the people split equally, one group per condition",
+          r_code(n / length(inputs$levels)))
+      )
+    } else {
+      sprintf("design <- expand.grid(measurement = seq_len(%d), cond = conditions, person = seq_len(%d), stringsAsFactors = FALSE)",
+        inputs$measurements, n)
+    },
+    "design$person <- factor(design$person)",
+    "design$cond <- factor(design$cond, levels = conditions)",
+    if (inputs$ordinal) {
+      c(
+        sprintf("intercepts <- stats::rnorm(%d, 0, %s) # each person's level, on the log-odds scale", n, r_code(inputs$sd_person)),
+        sprintf("eta <- %s[%s] + intercepts[as.integer(design$person)]", r_code(inputs$centre), cell),
+        sprintf("below <- stats::plogis(outer(-eta, %s, \"+\")) # P(Y <= each category but the last)", r_code(inputs$thresholds)),
+        sprintf("y <- factor(%s[1L + rowSums(stats::runif(nrow(design)) > below)], levels = %s, ordered = TRUE)",
+          r_code(sim_levels(spec, "Y")), r_code(sim_levels(spec, "Y")))
+      )
+    } else if (inputs$nb) {
+      c(
+        sprintf("intercepts <- stats::rnorm(%d, 0, %s) # each person's level, on the log scale", n, r_code(inputs$sd_person)),
+        sprintf("mu <- exp(%s[%s] + intercepts[as.integer(design$person)])", r_code(inputs$centre), cell),
+        sprintf("y <- stats::rnbinom(nrow(design), size = %s, mu = mu) # negative binomial, variance mu + %s mu^2",
+          r_code(1 / inputs$dispersion), r_code(inputs$dispersion))
+      )
+    } else {
+      c(
+        sprintf("model <- simr::makeGlmer(%s, family = \"%s\", fixef = %s, VarCorr = list(person = %s), data = design)",
+          if (inputs$interaction) "y ~ group * cond + (1 | person)" else "y ~ cond + (1 | person)",
+          inputs$family, r_code(inputs$fixef), r_code(inputs$sd_person^2)),
+        "y <- stats::simulate(model)[[1]]"
+      )
+    },
+    "simulated <- data.frame(",
+    "  person = design$person,",
+    if (inputs$interaction) sprintf("  %s = design$group,", sim_label(spec, "W")),
+    sprintf("  %s = design$cond,", sim_label(spec, "X")),
+    "  measurement = design$measurement,",
+    sprintf("  %s = y", sim_label(spec, "Y")),
+    ")"
+  )
+}
+
 # Three levels (E68): the same design and model as the simulation
 # (three_level_design(), three_level_inputs()), one row per person.
 sim_three_level_code <- function(spec, n) {
@@ -1576,6 +1642,71 @@ sim_apim_code <- function(spec, n) {
     sprintf("  %s = pooled$X1, %s = pooled$X2,", name("X", 1), name("X", 2)),
     if (isTRUE(inputs$moderator)) sprintf("  %s = pooled$W,", csv_name(spec$variables$W$label %||% "W")) else NULL,
     sprintf("  %s = pooled$Y1, %s = pooled$Y2", name("Y", 1), name("Y", 2)),
+    ")"
+  )
+}
+
+# Mediation with X in three or more groups (E42): the same data as the
+# simulation (mcx_data()), with X as its group names as well as its dummies.
+sim_mcx_code <- function(spec, n) {
+  inputs <- mcx_inputs(spec)
+  k <- length(inputs$levels)
+  c(
+    sprintf("groups <- %s", r_code(inputs$levels)),
+    sprintf("group <- ceiling(seq_len(%d) / %s) # equal groups, in order", n, r_code(n / k)),
+    sprintf("M <- %s[group] + stats::rnorm(%d) # SD 1 within groups", r_code(c(0, inputs$a)), n),
+    sprintf("Y <- %s * M + %s[group] + stats::rnorm(%d, sd = %s)", r_code(inputs$b), r_code(c(0, inputs$direct)), n,
+      r_code(sqrt(1 - inputs$b^2))),
+    "simulated <- data.frame(",
+    sprintf("  %s = factor(groups[group], levels = groups),", sim_label(spec, "X")),
+    sprintf("  %s = M,", sim_label(spec, "M")),
+    sprintf("  %s = Y", sim_label(spec, "Y")),
+    ")"
+  )
+}
+
+# Mediation with a yes/no mediator (E39): the same data as the simulation
+# (binm_data()), with X, M and Y under their labels and levels.
+sim_binm_code <- function(spec, n) {
+  inputs <- binm_inputs(spec)
+  lev <- function(v) unlist(spec$variables[[v]]$levels) %||% c("No", "Yes")
+  c(
+    if (inputs$x_binary) sprintf("X <- as.numeric(seq_len(%d) > %s) # two equal groups", n, r_code(n / 2)) else
+      sprintf("X <- stats::rnorm(%d) # SD 1", n),
+    sprintf("M <- stats::rbinom(%d, 1, stats::plogis(%s + %s * X))", n, r_code(stats::qlogis(inputs$m_baseline)), r_code(inputs$a)),
+    if (inputs$y_binary) {
+      sprintf("Y <- stats::rbinom(%d, 1, stats::plogis(%s + %s * M + %s * X))", n, r_code(stats::qlogis(inputs$y_baseline)),
+        r_code(inputs$b), r_code(inputs$direct))
+    } else {
+      sprintf("Y <- %s * M + %s * X + stats::rnorm(%d)", r_code(inputs$b), r_code(inputs$direct), n)
+    },
+    "simulated <- data.frame(",
+    sprintf("  %s = %s,", sim_label(spec, "X"), if (inputs$x_binary) sprintf("factor(%s[X + 1], levels = %s)", r_code(lev("X")), r_code(lev("X"))) else "X"),
+    sprintf("  %s = factor(%s[M + 1], levels = %s),", sim_label(spec, "M"), r_code(lev("M")), r_code(lev("M"))),
+    sprintf("  %s = %s", sim_label(spec, "Y"), if (inputs$y_binary) sprintf("factor(%s[Y + 1], levels = %s)", r_code(lev("Y")), r_code(lev("Y"))) else "Y"),
+    ")"
+  )
+}
+
+# Mediation with a yes/no or count outcome (E32): drawn as the experiment
+# draws it (yglm_data()), with X, M and Y under their labels and levels.
+sim_yglm_code <- function(spec, n) {
+  inputs <- yglm_inputs(spec)
+  lev <- function(v) unlist(spec$variables[[v]]$levels) %||% c("No", "Yes")
+  eta <- sprintf("%s + %s * M + %s * X", r_code(inputs$y0), r_code(inputs$b), r_code(inputs$direct))
+  c(
+    if (inputs$x_binary) sprintf("X <- as.numeric(seq_len(%d) > %s) # two equal groups", n, r_code(n / 2)) else
+      sprintf("X <- stats::rnorm(%d) # SD 1", n),
+    sprintf("M <- %s * X + stats::rnorm(%d)", r_code(inputs$a), n),
+    switch(inputs$outcome,
+      binary = sprintf("Y <- stats::rbinom(%d, 1, stats::plogis(%s))", n, eta),
+      poisson = sprintf("Y <- stats::rpois(%d, exp(%s))", n, eta),
+      negbin = sprintf("Y <- stats::rnbinom(%d, size = %s, mu = exp(%s))", n, r_code(1 / inputs$dispersion), eta)
+    ),
+    "simulated <- data.frame(",
+    sprintf("  %s = %s,", sim_label(spec, "X"), if (inputs$x_binary) sprintf("factor(%s[X + 1], levels = %s)", r_code(lev("X")), r_code(lev("X"))) else "X"),
+    sprintf("  %s = M,", sim_label(spec, "M")),
+    sprintf("  %s = %s", sim_label(spec, "Y"), if (identical(inputs$outcome, "binary")) sprintf("factor(%s[Y + 1], levels = %s)", r_code(lev("Y")), r_code(lev("Y"))) else "Y"),
     ")"
   )
 }

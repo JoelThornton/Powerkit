@@ -348,7 +348,7 @@ group_sizes <- function(spec, n) {
     two_proportions = ,
     two_correlations = {
       ratio <- spec$options$allocation_ratio %||% 1
-      n1 <- round(n / (1 + ratio))
+      n1 <- floor(n / (1 + ratio) + 0.5)
       c(n1, n - n1)
     },
     "2x2_between" = rep(n / 4, 4),
@@ -375,6 +375,7 @@ group_sizes <- function(spec, n) {
 }
 
 group_text <- function(spec, n) {
+  if (identical(spec$goal$unit, "observations")) return(sprintf(" (%s)", people_occasions(n, spec)))
   if (identical(spec$template, "cluster_randomised")) {
     m <- spec$population$cluster_size
     return(sprintf(" (%s groups of %s, %s groups in each condition)", whole(n / m), whole(m), whole(n / m / 2)))
@@ -432,7 +433,7 @@ test_text <- function(spec) {
     return(sprintf("%s at alpha = %s", name, alpha_text(spec$target_test$alpha)))
   }
   alt <- spec$target_test$alternative %||% "two_sided"
-  if (is_bayes_anova(spec) || is_bayes_table(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
+  if (is_bayes_anova(spec) || is_bayes_table(spec) || is_bayes_regression(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
   if (is_bayes_test(spec)) {
     side <- switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
     return(sprintf("%s (%s; %s)", bayes_test_name(spec), side, bayes_settings_text(spec)))
@@ -513,7 +514,30 @@ is_dyadic <- function(spec) identical(spec$design, "dyadic")
 # pairs (dyadic data).
 n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else
   if (identical(spec$template, "its")) "time points after the intervention" else
-  if (identical(spec$goal$unit, "items")) "items" else NULL
+  if (identical(spec$goal$unit, "items")) "items" else
+  if (identical(spec$goal$unit, "observations")) "observations" else NULL
+
+# Occasions within people (E41: goal > unit "observations"): n counts every
+# observation, so each count is followed by the people and occasions it
+# stands for.
+people_occasions <- function(n, spec) {
+  k <- spec$population$cluster_size
+  sprintf("%s people measured on %s occasions each", whole(n / k), whole(k))
+}
+
+observation_units <- function(text, spec) {
+  pattern <- "([0-9][0-9,]*) (participants in total|participants|observations)( \\([^)]*\\))?"
+  vapply(text, function(t) {
+    m <- gregexpr(pattern, t, perl = TRUE)
+    hits <- regmatches(t, m)[[1]]
+    if (!length(hits)) return(t)
+    regmatches(t, m) <- list(vapply(hits, function(h) {
+      n <- as.numeric(gsub(",", "", sub(" .*", "", h)))
+      sprintf("%s observations (%s)", whole(n), people_occasions(n, spec))
+    }, character(1)))
+    t
+  }, character(1), USE.NAMES = FALSE)
+}
 
 # Interrupted time series: how often the test finds a change that isn't
 # there in a series of the planned length (the engine's `type1`), shown
@@ -791,6 +815,7 @@ result_sentences <- function(spec, result) {
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   # Dyadic data: n counts pairs.
   if (is_dyadic(spec)) out[] <- gsub(" participants in total", " pairs", out, fixed = TRUE)
+  if (identical(spec$goal$unit, "observations")) out[] <- observation_units(out, spec)
   # Interrupted time series: n counts the points after the intervention.
   if (identical(spec$template, "its")) {
     out[] <- gsub(" participants in total", sprintf(" time points after the intervention (and %s before)", whole(spec$population$n_pre)), out, fixed = TRUE)
@@ -2351,6 +2376,11 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.5, 3)),
       if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else ""))
   }
+  if (is_bayes_regression(spec)) {
+    return(sprintf("strong evidence: BF10 of at least %s; Cauchy prior on the standardised coefficients, r scale %s%s",
+      format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.354, 3)),
+      if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else ""))
+  }
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
@@ -2358,6 +2388,10 @@ bayes_settings_text <- function(spec) {
 # The Bayes factor one-way ANOVA (BayesFactor's oneWayAOV.Fstat()): no
 # direction, and JASP's r scale of 0.5 by default.
 is_bayes_anova <- function(spec) is_bayes_test(spec) && identical(spec$template, "oneway_between")
+
+# The Bayes factor for R-squared (BayesFactor's linearReg.R2stat()): no
+# direction, and JASP's r scale of 0.354 by default.
+is_bayes_regression <- function(spec) is_bayes_test(spec) && identical(spec$template, "r2_zero")
 
 # The Bayes factor test of a table (BayesFactor's contingencyTableBF(),
 # simulated): no direction, JASP's sampling plan by default.
@@ -2386,6 +2420,7 @@ bayes_test_name <- function(spec) {
     paired_t = "a paired-samples Bayes factor t-test",
     independent_t = "an independent-samples Bayes factor t-test",
     oneway_between = "a Bayes factor one-way ANOVA",
+    r2_zero = "a Bayes factor test of R-squared in a linear regression",
     chi_square_independence = "a Bayes factor test of association")
 }
 
@@ -2498,7 +2533,9 @@ departures_for <- function(forms, ep_id, spec) {
   if (!is_bayes_test(spec) || !isTRUE(bayes_design_sd(spec) == 0)) keys <- setdiff(keys, "15")
   # Departure 3 is about Superpower's exact dataset, which the
   # Kruskal-Wallis test and Welch's F (a formula, or Spower) don't use.
-  if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec)) keys <- setdiff(keys, "3")
+  # Nor does a simulated ANOVA (Superpower's ANOVA_power()).
+  if (is_rank_test(spec) || identical(spec$target_test$method, "welch_f") || is_pairwise(spec) ||
+      identical(spec$options$method, "simulation")) keys <- setdiff(keys, "3")
   # Departure 16 (Satterthwaite's tests) is for a score on each trial; a
   # yes/no outcome is tested by glmer's Wald or likelihood-ratio test.
   if (identical(spec$variables$Y$type, "binary") && identical(spec$design, "mixed_model")) keys <- setdiff(keys, "16")
@@ -2511,6 +2548,10 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 27 (the Bland-Altman analysis simulated, not Lu et al.'s
   # formula) applies when the limits of agreement are simulated.
   if (!identical(spec$template, "bland_altman") || identical(spec$target_test$method, "lu_formula")) keys <- setdiff(keys, "27")
+  # Departure 28 (such a corrected test simulated by default) applies when
+  # it is simulated; the exact data set, chosen or used for the smallest
+  # detectable effect, carries a warning above the answer instead.
+  if (!corrected_nonspherical_test(spec) || gg_exact_route(spec)) keys <- setdiff(keys, "28")
   # Departure 17 is about adjusting pairwise comparisons, when they are
   # adjusted.
   if (!is_pairwise(spec) || identical(spec$target_test$p_adjust %||% "holm", "none")) keys <- setdiff(keys, "17")
@@ -2590,9 +2631,6 @@ provenance_lines <- function(result) {
   )
 }
 
-# A group-size ratio typed as a rounded decimal (0.67) is planned as the
-# simplest whole split that rounds to it (2 : 3); the engine's result
-# says when it did that (planned_allocation()).
 # Factorial and one-way designs with equal groups (M-10): the total is
 # rounded up to whole groups, where G*Power reports the total its formula
 # gives, so the two can differ by a few people.
@@ -2606,11 +2644,14 @@ whole_groups_note <- function(spec, result) {
     whole(step), whole(n / step))
 }
 
+# Two groups in a ratio other than 1 are rounded to whole people at the
+# total (the engine's planned_allocation()): the result says which groups,
+# and their ratio, when it is not the one entered.
 allocation_note <- function(result) {
   a <- result$allocation
-  if (is.null(a)) return(NULL)
-  sprintf("The group sizes were planned as %s : %s (group 1 : group 2), the simplest whole split that rounds to the ratio you entered (%s). Taken exactly, %s could only be met by much larger steps in the total sample size.",
-    format(a$group1), format(a$group2), format(a$entered), format(a$entered))
+  if (is.null(a) || isTRUE(a$exact)) return(NULL)
+  sprintf("Power is worked out for groups of %s and %s (group 1 and group 2): the total split as nearly as whole people allow in the ratio you entered, 1 : %s. Their ratio is 1 : %s.",
+    format(a$group1), format(a$group2), format(a$entered), format(round(a$ratio, 3)))
 }
 
 # Two proportions by the z test: the normal approximation is unreliable
@@ -3263,6 +3304,18 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       "the t test of one regression coefficient (as an F test)"
     )
   }
+  # Moderation of a count and mediation with a yes/no or count outcome
+  # (E32): the model the outcome takes.
+  if (identical(spec$design, "poisson_regression") && identical(spec$template, "interaction")) {
+    name <- if (identical(spec$target_test$method, "negative_binomial")) {
+      sprintf("a negative binomial regression with an interaction (the Wald z test of the X x W coefficient, overdispersion k = %s), simulated", format(spec$population$dispersion))
+    } else "a Poisson regression with an interaction (the Wald z test of the X x W coefficient), simulated"
+  }
+  if (identical(spec$template, "binary_or_count_outcome")) {
+    name <- sprintf("regression-based causal mediation analysis with %s outcome (the natural indirect effect, delta method), simulated",
+      if (identical(spec$variables$Y$type, "binary")) "a yes/no (logistic)" else if (identical(spec$population$count_model, "negative_binomial"))
+        sprintf("a count (negative binomial, overdispersion k = %s)", format(spec$population$dispersion)) else "a count (Poisson)")
+  }
   if (is_rank_test(spec)) name <- rank_test_name(spec)
   if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)
   if (identical(spec$target_test$method, "welch_f")) name <- "Welch's one-way ANOVA (F test not assuming equal variances)"
@@ -3323,6 +3376,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     tt <- spec$target_test
     test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy analysis prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       format(signif(tt$prior_scale %||% 0.5, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else "",
+      result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_regression(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("a Bayes factor test of R-squared in a linear regression (the JZS Bayes factor of the model with all the predictors against the intercept-only model, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+      format(signif(tt$prior_scale %||% 0.354, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else "",
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
@@ -3469,6 +3527,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_dyadic(spec)) main <- dyad_units(main)
   if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
+  if (identical(spec$goal$unit, "observations")) main <- observation_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, welch_population_note(spec), allocation_note(result), whole_groups_note(spec, result), mediation_analysis_sentence(result), count_test_sentence(spec),
     if (identical(spec$template, "paired_t")) "The paired analysis models within-person differences without period, sequence or carry-over terms.")
@@ -3609,6 +3668,7 @@ ethics_text <- function(spec, result, fields, values) {
   if (is_dyadic(spec)) body <- dyad_units(body)
   if (identical(spec$template, "its")) body <- its_units(body, spec)
   if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
+  if (identical(spec$goal$unit, "observations")) body <- observation_units(body, spec)
   p <- result$provenance
   paste(c(body, planning_warning_notes(spec, result), sprintf("The calculation was made with %s and the R package %s (version %s) and can be reproduced from the saved plan.", powerkit_cited(p$packages[["powerkit"]]),
     p$backend, p$packages[[p$backend]])), collapse = " ")

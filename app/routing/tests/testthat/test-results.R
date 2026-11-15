@@ -57,9 +57,10 @@ test_that("calculating designs calculate; simulated designs preview first, then 
     expect_false(form_calculates(forms, ep), label = ep)
     expect_true(runs_long(forms, ep), label = ep)
   }
-  # E9, E15, the MANOVAs and latent profiles (E58) run in the background
+  # E9, E15, the MANOVAs, latent profiles (E58) and mediation with a yes/no
+  # mediator (E39) run in the background
   # with no preview, with their usual run times.
-  expect_identical(names(forms$background), c("E9", "E15", "E59", "E58", "E73", "E60"))
+  expect_identical(names(forms$background), c("E9", "E15", "E59", "E58", "E73", "E39", "E60"))
   # Cards whose default version simulates say so, and their bars estimate.
   expect_setequal(names(forms$simulated_times), c("E44", "E22", "E61", "E47", "E64", "E70", "E30", "E32", "E45", "E72",
     "E66", "E18", "E57"))
@@ -1477,13 +1478,15 @@ test_that("E37's other questions run on semPower's own functions, each with its 
     expect_match(w[["short"]], expected[[name]][2], fixed = TRUE, label = name)
     expect_match(w[["short"]], expected[[name]][3], fixed = TRUE, label = name)
   }
-  # Unequal groups for invariance: whole groups in the ratio given.
+  # Unequal groups for invariance: the total split into whole groups as
+  # nearly in the ratio given as whole people allow.
   spec <- build_spec(forms, "E37", fields, sem_examples$scalar)
   expect_equal(spec$options$allocation_ratio, 1.5)
   calc <- run_calculation(spec, run, seed = 1L)
   n <- calc$result$n_required$n
-  expect_equal(n %% 5, 0)
-  expect_match(result_sentences(calc$spec, calc$result)[["headline"]], sprintf("(%s in group 1 and %s in group 2)", n * 2 / 5, n * 3 / 5), fixed = TRUE)
+  n1 <- floor(n / 2.5 + 0.5)
+  expect_equal(c(calc$result$allocation$group1, calc$result$allocation$group2), c(n1, n - n1))
+  expect_match(result_sentences(calc$spec, calc$result)[["headline"]], sprintf("(%s in group 1 and %s in group 2)", n1, n - n1), fixed = TRUE)
 })
 
 test_that("logistic regression runs on pwrss, with Known difference 3 only when other predictors overlap", {
@@ -2057,7 +2060,76 @@ test_that("moderation of a yes/no outcome (E32) builds a logistic interaction sp
   expect_identical(calc$result$provenance$backend, "Spower")
   expect_true(all(calc$result$check_run$ok))
   w <- writeup_text(forms$forms[["E32"]], calc$spec, calc$result, fields, values)
-  expect_match(w[["short"]], "logistic regression with an interaction", fixed = TRUE)
+  expect_match(w[["short"]], "a regression with an interaction (logistic", fixed = TRUE)
+})
+
+test_that("moderation of a count outcome (E32) builds a Poisson or negative binomial interaction spec and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E32"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  counts <- list(Y_kind = "count", count_model = "negative_binomial")
+  expect_false(field_applies(by_id("base_prob"), counts))
+  expect_true(field_applies(by_id("dispersion"), counts))
+  expect_false(field_applies(by_id("dispersion"), list(Y_kind = "count", count_model = "wald_z")))
+  values <- modifyList(form_examples$E32, list(Y_kind = "count", count_model = "negative_binomial", Y_label = "Drinking days in a month",
+    X_type = "binary", X_level1 = "Usual care", X_level2 = "Brief intervention", x_prob = "0.5", r_xw = NULL,
+    base_prob = NULL, odds_ratio_x = NULL, odds_ratio_w = NULL, odds_ratio_xw = NULL,
+    base_rate = "6", rate_ratio_x = "0.8", rate_ratio_w = "1.2", rate_ratio_xw = "0.85", dispersion = "0.5", goal = "power", n = "400"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E32", fields, values)
+  expect_identical(spec$design, "poisson_regression")
+  expect_identical(spec$template, "interaction")
+  expect_identical(spec$variables$Y$type, "count")
+  expect_null(spec$variables$Y$levels)
+  expect_identical(spec$population$metric, "rate_ratio")
+  expect_identical(spec$target_test$method, "negative_binomial")
+  expect_null(spec$population$odds_ratio_xw)
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E32"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "a negative binomial regression with an interaction (the Wald z test of the X x W coefficient, overdispersion k = 0.5)", fixed = TRUE)
+})
+
+test_that("mediation with a yes/no or count outcome (E32) builds a regmedint spec and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E32"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  med <- list(analysis = "mediation", Y_kind = "count", med_count_model = "negative_binomial", X_type = "binary")
+  expect_false(field_applies(by_id("W_label"), med))
+  expect_false(field_applies(by_id("x_prob"), med))
+  expect_false(field_applies(by_id("count_model"), med))
+  expect_true(field_applies(by_id("med_dispersion"), med))
+  expect_true(field_applies(by_id("M_label"), med))
+  base <- list(analysis = "mediation", Y_label = "Heavy drinking days in a month", X_label = "Condition", X_type = "binary",
+    X_level1 = "Waiting list", X_level2 = "Online programme", M_label = "Coping self-efficacy", med_a = "0.4",
+    W_label = NULL, W_type = NULL, r_xw = NULL, base_prob = NULL, odds_ratio_x = NULL, odds_ratio_w = NULL, odds_ratio_xw = NULL,
+    alternative = NULL, goal = "power", n = "400")
+  values <- modifyList(form_examples$E32, c(base, list(Y_kind = "count", med_count_model = "negative_binomial",
+    med_base_rate = "5", med_b_rr = "0.8", med_direct_rr = "0.95", med_dispersion = "0.5")))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E32", fields, values)
+  expect_identical(spec$design, "mediation")
+  expect_identical(spec$template, "binary_or_count_outcome")
+  expect_null(spec$variables$W)
+  expect_null(spec$variables$Y$levels)
+  expect_identical(spec$variables$M$type, "continuous")
+  expect_identical(spec$population$count_model, "negative_binomial")
+  expect_identical(spec$target_test$method, "delta_method")
+  expect_null(spec$target_test$alternative)
+  # A yes/no outcome.
+  yn <- modifyList(form_examples$E32, c(base, list(Y_kind = "binary", med_y_baseline = "0.3", med_b_or = "0.7")))
+  expect_equal(form_problems(fields, yn), character())
+  spec_yn <- build_spec(forms, "E32", fields, yn)
+  expect_identical(spec_yn$variables$Y$type, "binary")
+  expect_identical(spec_yn$population$metric, "odds_ratio")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E32"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "regression-based causal mediation analysis with a count (negative binomial, overdispersion k = 0.5)", fixed = TRUE)
 })
 
 test_that("PERMANOVA (E59's test version) takes the shape of the scores, reaches vegan and drops MANOVA's known difference", {
@@ -2241,7 +2313,7 @@ test_that("repeated measures with an SD per condition, a correlation per pair an
   expect_false(field_applies(by_id("sds"), list(spread = "same")))
   expect_true(field_applies(by_id("correction"), list(spread = "differ")))
   values <- modifyList(form_examples$E54, list(spread = "differ", sd = NULL, r = NULL, sds = "100, 120, 150",
-    rs = "0.8, 0.5, 0.6", correction = "GG", goal = "power", n = "30"))
+    rs = "0.8, 0.5, 0.6", correction = "GG", gg_method = "exact", goal = "power", n = "30"))
   expect_equal(form_problems(fields, values), character())
   spec <- build_spec(forms, "E54", fields, values)
   expect_equal(as.numeric(unlist(spec$population$sd)), c(100, 120, 150))
@@ -2263,9 +2335,9 @@ test_that("repeated measures with an SD per condition, a correlation per pair an
 test_that("mixed and two-factor within designs take an SD per cell, correlations per pair and a correction (E8, E55, E20)", {
   cases <- list(
     E8 = list(spread = "differ", sd = NULL, r = NULL, metric = "raw", s11 = "1", s12 = "1.2", s21 = "1", s22 = "1.5", r1 = "0.6", r2 = "0.4"),
-    E55 = list(spread = "differ", sd = NULL, r = NULL, sds = "6, 7, 8\n6, 8, 10", rs = "0.6, 0.4, 0.6", correction = "GG"),
+    E55 = list(spread = "differ", sd = NULL, r = NULL, sds = "6, 7, 8\n6, 8, 10", rs = "0.6, 0.4, 0.6", correction = "GG", gg_method = "exact"),
     E20 = list(spread = "differ", sd = NULL, r = NULL, sds = "80, 90, 100\n80, 90, 100",
-               rs = paste(rep("0.5", 15), collapse = ", "), correction = "HF")
+               rs = paste(rep("0.5", 15), collapse = ", "), correction = "HF", gg_method = "exact")
   )
   for (ep in names(cases)) {
     fields <- form_fields(form_groups(forms, ep))
@@ -3307,4 +3379,67 @@ test_that("the cross-lagged panel asks about measurement error, and says power i
   known <- build_spec(forms, "E74", fields, modifyList(form_examples$E74, list(reliability_known = "known", reliability = "0.8")))
   expect_equal(known$population$reliability, 0.8)
   expect_false(any(grepl("no measurement error", planning_warning_notes(known), fixed = TRUE)))
+})
+
+test_that("repeated counts, yes/no and ordered categories (E75) build valid specs", {
+  fields <- form_fields(form_groups(forms, "E75"))
+  count <- build_spec(forms, "E75", fields, form_examples$E75)
+  expect_identical(count$variables$Y$type, "count")
+  expect_identical(count$population$metric, "rate")
+  expect_silent(powerkit::validate_spec(count))
+  ordered <- build_spec(forms, "E75", fields, modifyList(form_examples$E75, list(Y_label = "Mood rating",
+    glmm_outcome = "categorical", Y_levels = "Low, Middle, High, Very high", glmm_rates = NULL, glmm_distribution = NULL,
+    glmm_categories = "0.2, 0.3, 0.3, 0.2", glmm_odds_ratios = "1, 1.8", glmm_measurements = "2")))
+  expect_identical(ordered$variables$Y$type, "categorical")
+  expect_identical(ordered$population$metric, "proportion")
+  expect_equal(unlist(ordered$population$odds_ratios), c(1, 1.8))
+  expect_null(ordered$population$rates)
+  expect_silent(powerkit::validate_spec(ordered))
+  # Two groups measured before and after: the group-by-occasion interaction.
+  grouped <- build_spec(forms, "E75", fields, modifyList(form_examples$E75, list(glmm_groups = "groups",
+    W_label = "Group", W_levels = "Usual teaching, Programme", X_label = "Occasion", X_levels = "Before, After",
+    glmm_people = NULL, glmm_rates = NULL, glmm_rates_groups = "2, 2\n2, 1.4", glmm_measurements = "2")))
+  expect_identical(grouped$variables$W$type, "between_factor")
+  expect_identical(grouped$variables$X$type, "within_factor")
+  expect_identical(grouped$target_test$effect, "interaction")
+  expect_equal(unlist(grouped$population$rates), c(2, 2, 2, 1.4))
+  expect_silent(powerkit::validate_spec(grouped))
+})
+
+test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and words the result as evidence", {
+  fields <- form_fields(form_groups(forms, "E24"))
+  values <- list(Y_label = "Wellbeing score", question = "r2_zero", r2_test = "bayes_factor", evidence_threshold = "10", prior_scale = "0.354",
+    r2 = "0.1", predictors = "3", goal = "power", n = "150", just_type = "smallest_effect_of_interest", just_source = "Example only")
+  applies <- Filter(function(f) field_applies(f, values), fields)
+  expect_false("alpha" %in% vapply(applies, function(f) f$id, ""))
+  expect_equal(form_problems(applies, values), character())
+  spec <- build_spec(forms, "E24", fields, values)
+  expect_identical(spec$target_test$method, "bayes_factor")
+  expect_null(spec$target_test$alpha)
+  skip_without_run()
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "BayesFactor")
+  text <- paste(result_sentences(calc$spec, calc$result), collapse = " ")
+  expect_match(text, "chance of strong evidence", fixed = TRUE)
+  w <- writeup_text(forms$forms[["E24"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "a Bayes factor test of R-squared in a linear regression", fixed = TRUE)
+  expect_match(w[["short"]], "as in JASP", fixed = TRUE)
+})
+
+test_that("within-person moderation (E41) counts observations, and the result names people and occasions", {
+  fields <- form_fields(form_groups(forms, "E41"))
+  values <- modifyList(form_examples$E41, list(goal = "power", n = "1120"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E41", fields, values)
+  expect_identical(spec$template, "two_level")
+  expect_identical(spec$goal$unit, "observations")
+  expect_identical(spec$target_test$effect, "cross_level_interaction")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "simr")
+  text <- paste(result_sentences(calc$spec, calc$result), collapse = " ")
+  expect_match(text, "1,120 observations (80 people measured on 14 occasions each)", fixed = TRUE)
+  w <- writeup_text(forms$forms[["E41"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "80 people measured on 14 occasions each", fixed = TRUE)
 })

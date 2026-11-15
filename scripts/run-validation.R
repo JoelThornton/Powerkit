@@ -66,7 +66,11 @@
 # Chunks: basic, anova, anova_mixed_unequal (mixed designs with unequal
 # groups, simulated with Spower and afex), interactions, process_4 (simple and parallel
 # mediation), process_4_binary (simple mediation with a yes/no X; its own
-# chunk so each stays within GitHub's six-hour job), mediation_joint (simple mediation's quick
+# chunk so each stays within GitHub's six-hour job), mediation_mcx
+# (mediation with X in three or more groups: relative indirect effects
+# against an independent OLS simulation, and Type I error), mediation_binm
+# (mediation with a yes/no mediator: the natural indirect effect against an
+# independent simulation of the published formulas, and Type I error), mediation_joint (simple mediation's quick
 # estimate by formula), process_6 (serial mediation), process_7, process_14,
 # mediation_crosscheck (simple mediation against pwrss and simsem, two
 # tools written independently of power4mome; both are in Suggests and
@@ -107,7 +111,7 @@ validation_chunks <- function() {
     bayes_factorial = c("test-validation-bayes-factorial.R", "test-validation-bayes-repeated.R"),
     bayes = c("test-validation-bayes-factor.R", "test-validation-bayes-sequential.R", "test-validation-bayes-binomial.R",
       "test-validation-bayes-correlation.R", "test-validation-bayes-proportions.R",
-      "test-validation-bayes-anova.R",
+      "test-validation-bayes-anova.R", "test-validation-bayes-regression.R",
       "test-validation-bayes-table.R", "test-validation-bayes-companion.R"),
     meta = c("test-validation-meta-analysis.R", "test-validation-meta-subgroups.R", "test-validation-meta-dependent.R", "test-validation-meta-more.R"),
     dyadic = c("test-validation-apim.R", "test-validation-apim-moderation.R"),
@@ -121,6 +125,7 @@ validation_chunks <- function() {
     multinomial = "test-validation-multinomial.R",
     zero_inflated = "test-validation-zero-inflated.R",
     logistic_interaction = "test-validation-logistic-interaction.R",
+    count_interaction = "test-validation-count-interaction.R",
     group_moderator = "test-validation-group-moderator.R",
     signal_detection = "test-validation-signal-detection.R",
     lpa = "test-validation-lpa.R",
@@ -141,6 +146,9 @@ validation_chunks <- function() {
     three_way = "test-validation-three-way.R",
     process_4 = c("test-validation-mediation-simple.R", "test-validation-mediation-parallel.R"),
     process_4_binary = "test-validation-mediation-binary.R",
+    mediation_mcx = "test-validation-mediation-mcx.R",
+    mediation_binm = "test-validation-mediation-binm.R",
+    mediation_yglm = "test-validation-mediation-yglm.R",
     mediation_joint = "test-validation-mediation-joint.R",
     process_6 = "test-validation-mediation-serial.R",
     process_7 = "test-validation-modmed-process7.R",
@@ -168,6 +176,7 @@ validation_chunks <- function() {
     multisite = "test-validation-multisite.R",
     sem_fit = "test-validation-sem-model-fit.R",
     sem_latent = "test-validation-sem-latent.R",
+    glmm = "test-validation-glmm.R",
     mixed_model = c("test-validation-mixed-model.R", "test-validation-two-level.R", "test-validation-crossed-conditions.R", "test-validation-crossed-binary.R", "test-validation-three-level.R", "test-validation-item-predictor.R")
   )
 }
@@ -176,13 +185,13 @@ validation_chunks <- function() {
 # estimate (which is then corrected by how fast tests actually run).
 # Direct-call tests run two simulations, so count double.
 validation_minutes <- function() {
-  c(corrected_counts = 2, basic = 0.3, welch_spreads = 3, variances = 2, rmcorr = 2, yuen = 3, agreement = 8, manova = 3, rank = 3, bayes = 2, bayes_factorial = 90, meta = 12, dyadic = 25, survival = 4, reliability = 2, aligned_rank = 6, aligned_rank_within = 8, permanova = 10, negative_binomial = 4, robust_regression = 8, multinomial = 6, zero_inflated = 6, logistic_interaction = 4, group_moderator = 3, growth = 12, signal_detection = 4, lpa = 20, efa = 15, its = 6, riclpm = 15, irt = 12, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60, mediation_joint = 1,
+  c(corrected_counts = 2, basic = 0.3, welch_spreads = 3, variances = 2, rmcorr = 2, yuen = 3, agreement = 8, manova = 3, rank = 3, bayes = 2, bayes_factorial = 90, meta = 12, dyadic = 25, survival = 4, reliability = 2, aligned_rank = 6, aligned_rank_within = 8, permanova = 10, negative_binomial = 4, robust_regression = 8, multinomial = 6, zero_inflated = 6, logistic_interaction = 4, count_interaction = 6, group_moderator = 3, growth = 12, signal_detection = 4, lpa = 20, efa = 15, its = 6, riclpm = 15, irt = 12, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60, mediation_mcx = 25, mediation_binm = 10, mediation_yglm = 10, mediation_joint = 1,
     process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120, modmed_binary = 120, modmed_difference = 120,
     process_bootstrap = 60, mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,
     contrast = 0.3, ancova = 0.3, two_correlations = 0.3, generic = 0.3, equivalence = 0.3, trend = 2, precision = 1,
     whole_study = 175, cluster = 0.3, multisite = 0.3, sem_fit = 0.3,
-    sem_latent = 0.3, mixed_model = 420)
+    sem_latent = 0.3, glmm = 10, mixed_model = 420)
 }
 
 run_validation <- function(only = NULL, cores = 2, retry_failed = FALSE,

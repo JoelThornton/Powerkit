@@ -1147,8 +1147,9 @@ server <- function(input, output, session) {
     updateSelectInput(session, "f_goal", selected = "power")
     updateTextInput(session, "f_n", value = values$n)
     updateSelectInput(session, "f_method", selected = "simulation")
+    updateSelectInput(session, "f_gg_method", selected = "simulation")
     output$form_result <- renderUI(div(class = "alert alert-info", role = "status",
-      "The proposed sample size and corrected analysis are ready for simulation. Press Calculate to run it. The earlier exact-data result has not been confirmed by simulation yet."))
+      "The proposed sample size and corrected analysis are ready for simulation. Press Calculate to run it. The earlier exact-data result is an approximation until simulation confirms it."))
   })
   observeEvent(input$verify_interaction, {
     req(calculation_matches_values(state$calc, current_form_values()))
@@ -2711,8 +2712,8 @@ server <- function(input, output, session) {
     values <- replication_values(plan$replication)
     for (id in names(values)) {
       v <- values[[id]]
-      if (id %in% c("rep_design", "rep_tau", "labs_test")) updateSelectInput(session, id, selected = v)
-      else if (identical(id, "rep_threshold")) updateRadioButtons(session, id, selected = v)
+      if (id %in% c("rep_design", "rep_tau", "rep_scale", "labs_test")) updateSelectInput(session, id, selected = v)
+      else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from")) updateRadioButtons(session, id, selected = v)
       else if (identical(id, "labs_outcome")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
       else if (!id %in% c("rep_goal", "rep_prior")) updateTextInput(session, id, value = v)
     }
@@ -2747,11 +2748,12 @@ server <- function(input, output, session) {
   })
   output$rep_card_status <- renderUI({
     plan <- viewed_plan()
-    if (plan_is_replication(plan)) replication_card_status_ui(tree, plan)
+    if (plan_is_replication(plan)) replication_card_status_ui(tree, plan, forms)
   })
   new_replication <- function(endpoint = NULL) {
     plan <- new_replication_plan()
-    if (!is.null(endpoint)) plan <- plan_set_replication(plan, endpoint = endpoint)
+    if (!is.null(endpoint)) plan <- plan_set_replication(plan, fields = replication_fields_for_card(plan$replication$fields, forms, endpoint),
+      endpoint = endpoint)
     plans_put(plan)
     plan
   }
@@ -2795,8 +2797,14 @@ server <- function(input, output, session) {
     req(!is.null(tree$endpoints[[ep %||% ""]]))
     plan <- plan_get(isolate(state$rep_plan))
     if (!plan_is_replication(plan)) plan <- new_replication_plan()
-    updated <- plan_set_replication(plan, endpoint = ep)
-    if (!identical(updated, isolate(state$plans)[[updated$id]])) plans_put(updated)
+    # The planner starts on the card's design and effect (forms.yaml's
+    # replication_effects), until an original effect is entered.
+    fields <- if (!identical(plan$replication$endpoint, ep)) replication_fields_for_card(plan$replication$fields, forms, ep)
+    updated <- plan_set_replication(plan, fields = fields, endpoint = ep)
+    if (!identical(updated, isolate(state$plans)[[updated$id]])) {
+      plans_put(updated)
+      if (identical(isolate(rep_loaded())$id, updated$id)) rep_fill(updated)
+    }
     state$rep_plan <- updated$id; state$current_plan <- updated$id
   }, ignoreInit = TRUE)
   # The Feedback tab: from the header link, or from "Something doesn't fit?"

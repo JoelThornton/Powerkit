@@ -64,7 +64,7 @@ noninf_inputs <- function(spec) {
   alpha <- spec$target_test$alpha
   ratio <- allocation_ratio(spec)
   sizes <- function(n) {
-    n1 <- round(n / (1 + ratio))
+    n1 <- floor(n / (1 + ratio) + 0.5)
     c(n1, n - n1)
   }
   margin <- -pop$margin
@@ -126,7 +126,7 @@ noninf_script <- function(spec, result) {
     ratio <- allocation_ratio(spec)
     first <- identical(inputs$fun, "power.t.student") || noninf_sign(spec) < 0
     c(
-      sprintf("  n1 <- round(n_total / (1 + %s)) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
+      sprintf("  n1 <- floor(n_total / (1 + %s) + 0.5) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
       "  n2 <- n_total - n1",
       if (first) "  sizes <- list(n2 = n2, n.ratio = n1 / n2) # pwrss's n2 is its second group" else
         "  sizes <- list(n2 = n1, n.ratio = n2 / n1) # the new group is pwrss's first, group 1 its second"
@@ -215,7 +215,7 @@ met_inputs <- function(spec) {
   design <- switch(spec$template, independent_t = "independent", paired_t = "paired", one_sample_t = "one.sample")
   sizes <- function(n) {
     if (!identical(design, "independent")) return(list(n2 = n))
-    n1 <- round(n / (1 + ratio))
+    n1 <- floor(n / (1 + ratio) + 0.5)
     list(n2 = n - n1, n.ratio = n1 / (n - n1))
   }
   # The side the effect is tested on: the test's side, or for a two-sided
@@ -367,7 +367,7 @@ met_script <- function(spec, result) {
   sizes <- if (independent) {
     ratio <- allocation_ratio(spec)
     c(
-      sprintf("  n1 <- round(n_total / (1 + %s)) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
+      sprintf("  n1 <- floor(n_total / (1 + %s) + 0.5) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
       "  n2 <- n_total - n1"
     )
   } else {

@@ -168,7 +168,7 @@ power while matching G\*Power) is folded there instead
 | G*Power | One group: the chi-square test. (N - 1)s^2/sigma0^2 is central chi-square with N - 1 df under H0, and the same distribution scaled by sigma^2/sigma0^2 under H1 (section 26.5) [GP-man]. Two groups: the F test. s1^2/s0^2 is central F with N1 - 1 and N0 - 1 df under H0, scaled by sigma1^2/sigma0^2 under H1 (section 15.5) [GP-man] | The variance ratio var1/var0; the effect-size drawer works it out from two variances. Ratios in [0.999, 1.001] are refused (sections 26.1, 15.1) [GP-man] | Tails (one or two); allocation ratio N2/N1 (two groups, section 15.3) [GP-man] |
 | Spower | `p_var.test()`: one variance plus `sigma2` goes to `EnvStats::varTest()` (the chi-square test); two variances go to `stats::var.test()` (the F test), whatever `test` says, unless `test = "Fligner"`. `test` (Levene, Bartlett, Fligner) is for three groups or more [Spower-src] | `vars` (one variance, or one per group), `sigma2` (the value tested against) [Spower-src] | `alternative`, or `two.tailed`; `two.tailed = FALSE` means `"greater"` whichever way the variances point, so a test of a **smaller** variance needs `alternative = "less"` (`docs/upstream-questions.md`). `n` is one group's size and `n.ratios` the group sizes' ratios, but unequal ratios fail in `gen_var.test()` (`docs/upstream-questions.md`) [Spower-src] |
 | pwr, pwrss, Superpower, InteractionPoweR, power4mome | Not covered: none of them exports a power function for a variance (their exported functions, checked 25 October 2026) | | |
-| **powerkit** | Since 31 October 2026, the exact distributions above, as G\*Power computes them, with base R's `stats::pchisq()` and `stats::pf()` (`backend-variance.R`; CLAUDE.md allows a published closed-form result where no package has one). Spower's `p_var.test()` simulates the same tests with `options > method` "simulation". Known difference 4 is retired [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), `goal.n` is the total. The formula takes an allocation ratio for the two-group test, keeping the ratio exact (G\*Power's own example with N2/N1 = 2 gives 148 and 295, N = 443; powerkit 148 and 296, N = 444); the simulation is refused one while Spower can't draw unequal groups |
+| **powerkit** | Since 31 October 2026, the exact distributions above, as G\*Power computes them, with base R's `stats::pchisq()` and `stats::pf()` (`backend-variance.R`; CLAUDE.md allows a published closed-form result where no package has one). Spower's `p_var.test()` simulates the same tests with `options > method` "simulation". Known difference 4 is retired [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), `goal.n` is the total. The formula takes an allocation ratio for the two-group test, rounding the groups at each total (G\*Power's own example with N2/N1 = 2 gives 148 and 295, N = 443, and so does powerkit; it gave 148 and 296, N = 444, while it kept the ratio exact); the simulation is refused one while Spower can't draw unequal groups |
 
 ## Factorial ANOVA
 
@@ -426,17 +426,28 @@ a two-sided test adds both tails at alpha / 2, the far tail (a
 significant result beyond the margin on the wrong side) from pwr's
 one-sided t-test, which pwrss's one-sided test cannot give.
 
-**Group sizes given as a ratio (from 11 November 2026).** powerkit plans
-whole groups in the ratio entered, so the total moves in steps (2 for
-equal groups, 3 for 1 : 2). A ratio typed as a rounded decimal is exact
-only in very large steps (0.67 is 67 : 100, a step of 167), which made the
-sample size search overshoot (167 where about 133 are needed). When the
-exact split needs a step above 50, powerkit plans the simplest
-whole-number split that rounds to the ratio as entered (2 : 3 for 0.67,
-1 : 3 for 0.33, 19 : 26 for 1.37) and says so on the result and in the
-methods paragraph. G\*Power instead searches every total and rounds each
-group; powerkit's answer can be a few people higher because the total
-still moves in steps of the simplified split.
+**Group sizes given as a ratio (from 14 November 2026).** Two groups in a
+ratio other than 1 are rounded to whole people at every total, as a
+researcher would recruit them: group 1 is N / (1 + ratio) rounded to the
+nearest person (a half rounds up) and group 2 is the rest. Power at each
+total is worked out for those groups, so the sample size search looks at
+every total, and the required N is the smallest total whose rounded groups
+reach the target power. The result and the methods paragraph give the two
+group sizes and the ratio they achieve when it differs from the one
+entered. This follows G\*Power, which also rounds each group of a total,
+with one difference: G\*Power can report a total whose rounded groups fall
+just short of the target (95% power for two proportions, .10 and .25, with
+group 2 twice group 1: G\*Power 123 + 247 = 370 at 0.9498668; powerkit
+124 + 247 = 371 at 0.9509375). Where G\*Power's groups reach the target,
+the two agree (its variance-test example, 148 + 295 = 443; its two
+proportions at a ratio of 3, 70 + 210 = 280). Equal groups (a ratio of 1)
+still move in steps of 2. From 11 to 14 November 2026 powerkit planned a
+rounded decimal as the simplest whole split that rounds to it (2 : 3 for
+0.67), and before that kept the entered ratio exact; both moved the total
+in steps of the whole split and could need up to about four people more
+(372 rather than 371 in the example above). Test:
+`test-sample-allocation.R`, and the G\*Power comparisons in
+`test-backend-pwr.R` and `test-backend-variance.R`.
 
 ## Cluster-randomised trials (whole groups assigned to two conditions)
 
@@ -552,6 +563,45 @@ log-odds scale in place of the shares of variance. The test is glmer's
 Wald z test, simr's default for a two-condition predictor, or the
 likelihood ratio; not a departure.
 
+## The same people measured more than once: counts, yes/no and ordered categories (E75)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No test for generalised mixed models | — | — |
+| simr | `powerSim()` on a model built with `makeGlmer()` (any glmer family); `fixed(xname, method)`, `"lr"` by default for a factor, `"chisq"` its Wald chi-square through car [simr help] | The model's own parameters | — |
+| ordinal | `clmm()`: a cumulative link mixed model, logit link and flexible thresholds by default, `logit P(Y <= j) = theta_j - X beta - u` [ordinal help] | The model's own parameters: thresholds and log odds ratios | — |
+| **powerkit** | Poisson and yes/no: simr's `powerSim()` on `makeGlmer()` with `fixed("cond", "lr")` (default) or `fixed("cond", "chisq")`; with groups (W), `fixed("group:cond", ...)` on `y ~ group * cond + (1 \| person)`. Negative binomial: Spower running `p_repeated_nb()`, lme4's `glmer.nb()` (theta estimated), with the same two tests. Ordered categories: Spower running `p_repeated_ordinal()`, ordinal's `clmm()` with the logit link, the likelihood-ratio test or the Wald chi-square test of cond's coefficients (E75, from 14 November 2026) [powerkit] | Each condition's expected count (or chance of 'yes') for a typical person, the SD of the person intercepts on the log (log-odds) scale, and for a negative binomial count the overdispersion k (variance mu + k mu^2; lme4's theta is 1 / k). For ordered categories, a typical person's share of answers in each category in the first condition (setting the thresholds) and each condition's odds ratio of a higher category (proportional odds) | `y ~ cond + (1 \| person)`, cond a factor in treatment coding; every person in every condition, or the people split equally between the conditions; `measurements` per person in each condition. A data set whose fit fails counts as not significant, as simr counts it |
+
+simr cannot build or refit a negative binomial mixed model (its families
+are glmer's), so the negative binomial version draws each person's
+intercept and then each count with `stats::rnbinom()` and fits
+`glmer.nb()` in a Spower simulation. With two conditions the Wald
+chi-square test has the same p-value as glmer's Wald z test. The
+likelihood-ratio test is the default, as on the many-conditions card for
+yes/no trials (E63), for the reason lme4's help on p-values gives; not a
+departure, since G\*Power has no such test.
+
+Two or more groups measured more than once (W a between factor, X within
+people, from 14 November 2026) use the same families and tests on
+`y ~ group * cond + (1 | person)`: the test is of the group-by-condition
+interaction, the likelihood-ratio test against `y ~ group + cond +
+(1 | person)` by default or the Wald chi-square test of `group:cond`
+(simr's `fixed("group:cond", ...)`, car's `Anova()` row, or the
+interaction coefficients of `clmm()`). The cells are given one row per
+group, and powerkit solves for the treatment-coded fixed effects that
+reproduce them exactly; the people are split equally between the groups.
+The likelihood-ratio test of the interaction is not a departure: G\*Power
+has no test for these models, and simr's default for a term is the
+likelihood ratio.
+
+Ordered categories are planned on the scale `clmm()` reports: an odds
+ratio above 1 means higher categories (ordinal's sign convention, the
+coefficient entering as `theta_j - X beta`), the same direction as the
+proportional-odds card for two groups (E29). Each simulated answer is
+drawn from the cumulative logits given the person's intercept; a data set
+with every answer in one category, or whose fit fails, counts as not
+significant.
+
 ## Moderated mediation with W on both links or the direct path (E38)
 
 | Tool | Test | Effect size | Settings |
@@ -567,6 +617,45 @@ likelihood ratio; not a departure.
 | PROCESS | The index of moderated mediation with a 0/1 variable as it is coded | Unstandardised coefficients | — |
 | power4mome | `x_fun` with `rbinary_rs()`: a yes/no variable rescaled to mean 0 and SD 1 [power4mome help] | Standardised paths | — |
 | **powerkit** | power4mome with `rbinary_rs()` for X, W or both (E17, from 1 November 2026); with a yes/no W, the difference between the two groups' conditional indirect effects, the index times the distance between W's two rescaled values (manymome treats a two-valued W as categorical) [powerkit] | Standardised paths, per SD of a yes/no variable | A yes/no X or W uncorrelated with the other predictor. Departures 6 and 8 apply as for models 7 and 14 |
+
+## Mediation with X in three or more groups (E42)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No mediation | — | — |
+| PROCESS | Model 4 with `mcx = 1` (indicator, that is dummy, coding against the first group by default): each relative indirect effect `a_j * b` with a percentile bootstrap interval (Hayes and Preacher, 2014, HayesPreacher2014_multicategorical in refs.bib) | Unstandardised coefficients | 5,000 bootstrap resamples by default |
+| power4mome | Not offered: `x_fun` draws each exogenous variable separately, so it can't draw the mutually exclusive dummies of one factor [power4mome help] | — | — |
+| **powerkit** | Spower running `p_mediation_mcx()`: equal groups, `M ~ D2 + ... + Dk` and `Y ~ M + D2 + ... + Dk` fitted by `lavaan::sem()` (`fixed.x = TRUE`), each tested relative indirect effect `a_j * b` with a 95% Monte Carlo percentile interval from `manymome::do_mc()` (E42, from 14 November 2026) [powerkit] | Each later group's Cohen's d against the first on M (its path a_j), the within-group correlation of M and Y (the standardised path b), and each group's direct effect on Y holding M, in Y's within-group SD | The interval of one named group, or of every group (a study counts only when every interval excludes 0). A fit that fails or doesn't converge, or whose draws fail, counts as not significant. Departure 6 (lavaan, not OLS) applies, and Known difference 14 (a Monte Carlo interval, where PROCESS reports a percentile bootstrap) |
+
+Within each group M has SD 1 and Y's residual SD is `sqrt(1 - b^2)`, so
+b is the within-group correlation of M and Y when the direct effects are
+0, and every effect is in within-group SDs, as Cohen's d is. The
+relative indirect effect of a group is its d on M times b. powerkit
+draws the data before fitting each study, so the exported R script
+reproduces the run exactly. Power for "every group" is the chance that
+all the tested intervals exclude 0, which is lower than any one of them.
+
+## Mediation with a yes/no mediator (E39)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No mediation | — | — |
+| PROCESS | Not offered for a yes/no mediator: PROCESS estimates every mediator's equation by OLS, so a 0/1 mediator is treated as a score | — | — |
+| Valeri and VanderWeele's macro (SAS, SPSS), and regmedint, its R version | Regression-based causal mediation analysis: logistic regression for a yes/no M, linear or logistic regression for Y, with or without an X-by-M interaction; the natural indirect effect with a delta-method standard error, or a bootstrap interval (Valeri and VanderWeele, 2013, ValeriVanderWeele2013_mediation in refs.bib) | The natural indirect effect: a difference for a score Y, an odds ratio for a yes/no Y | regmedint's `summary()` reports the delta-method test |
+| power4mome | Not offered: `x_fun` on an endogenous variable sets its error term, so a yes/no M isn't drawn [power4mome help] | — | — |
+| **powerkit** | Spower running `p_mediation_binm()`: X two equal groups (0, 1) or a standard normal score, M drawn from its logistic model, Y from its linear or logistic model, analysed by `regmedint::regmedint(mreg = "logistic", yreg = "linear" or "logistic", interaction = FALSE)` with `a0 = 0`, `a1 = 1`; significant when the natural indirect effect's ("pnie") two-sided delta-method p value is below alpha (E39, from 14 November 2026) [powerkit] | The chance that M is yes in the first group (or at X's mean), X's odds ratio on M (path a), and M's effect on Y holding X: a difference in Y's residual SD for a score Y, an odds ratio for a yes/no Y, with X's direct effect on the same scale | Without an X-by-M interaction the pure and total natural indirect effects are equal. A study whose models can't be fitted counts as not significant |
+
+powerkit follows the authors' tool here: the delta-method test is what
+regmedint reports, and no departure is recorded. It differs from powerkit's
+other mediation cards, which test the indirect effect with a Monte Carlo
+interval (Known difference 14); for a product of coefficients a
+delta-method (Sobel-type) test is known to be somewhat conservative in
+small samples, so this card's power may be a little lower than an
+interval-based test of the same model would give. For a yes/no Y the
+effect is the natural indirect effect on the odds-ratio scale, which
+approximates a risk ratio only when the outcome is rare; the test of
+whether it is 0 doesn't depend on that approximation. An X-by-M
+interaction, covariates and a bootstrap interval are not offered yet.
 
 ## Meta-analysis with several effects per study (E61, POMADE)
 
@@ -636,6 +725,22 @@ likelihood ratio; not a departure.
 | JASP (Bayesian ANOVA; analysis only, no planning) | BayesFactor's `anovaBF()`: the model with the factor against the null model; a Cauchy prior on the standardised group effects (Rouder, Morey, Speckman and Province, 2012, the reference in `anovaBF()`'s help) | — | "r scale fixed effects" 0.5 by default (jaspAnova, `inst/qml/common/bayesian/AdditionalOptions.qml`) |
 | BayesFactor | `anovaBF()` on the data; `oneWayAOV.Fstat()` from the F statistic of a balanced one-way design, the same Bayes factor | — | `rscaleFixed` "medium", 1/2, by default [BayesFactor help] |
 | **powerkit** | BayesFactor's `oneWayAOV.Fstat()`, which rises with F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (k - 1 and n - k df, noncentrality f^2 n, as for the F test), with no simulation (E18, from 2 November 2026) [powerkit] | The group means and one SD (Cohen's f) | r scale 0.5 by default, JASP's and BayesFactor's; equal groups. `oneWayAOV.Fstat()` equals `anovaBF()` on the data (tested, and in every run's check run). Not a departure |
+
+## Bayes factor for R-squared in a linear regression (E24)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian linear regression; analysis only, no planning) | BAS's `bas.lm()`: the Bayes factor of each model against the null model; with every predictor, the model with all of them against the intercept-only model | — | Prior "JZS" with "r scale" 0.354 by default (jaspRegression, `inst/qml/RegressionLinearBayesian.qml`); model prior uniform over model size |
+| BayesFactor | `regressionBF()` and `lmBF()` on the data (Liang, Paulo, Molina, Clyde and Berger, 2008; Rouder and Morey, "Bayesian testing in regression", the references in `regressionBF()`'s help); `linearReg.R2stat()` from R-squared, the same Bayes factor | — | `rscaleCont` "medium", sqrt(2)/4 (0.354), by default [BayesFactor help] |
+| **powerkit** | BayesFactor's `linearReg.R2stat()`, which rises with R-squared and so with the regression's F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (p and n - p - 1 df, noncentrality f^2 n, as for the F test), with no simulation (E24, from 14 November 2026) [powerkit] | R-squared of the model with all the predictors, and their number | r scale 0.354 by default, JASP's and BayesFactor's. `linearReg.R2stat()` equals `lmBF()` on the data (tested, and in every run's check run); on one simulated data set (n = 80, three predictors) BAS's JZS Bayes factor, JASP's engine, was 15.73 where `linearReg.R2stat()` gave 15.75. Not a departure |
+
+The R-squared increase and one coefficient have no Bayes factor version
+yet. Their Bayes factor (the full model against the model without the
+tested predictors) depends on two R-squared values, not one, and JASP
+reports a coefficient's evidence as a model-averaged inclusion Bayes
+factor, which also depends on how the predictors correlate: which of the
+two to plan for is open (`next.md` item 2).
 
 ## Sequential Bayes factor designs (Labs)
 
@@ -752,6 +857,19 @@ intercepts and X slopes, `y ~ x + w + z + x:w + x:z + (1 + x | site) +
 (1 + x | site:group)`, tested as at two levels (Satterthwaite's t test,
 Departure 16, or for a yes/no outcome glmer's Wald z test or the
 likelihood ratio).
+
+With occasions within people (E41, within-person moderation, from 14
+November 2026) the same model is fitted with occasions at level 1 and
+people at level 2: `y ~ x + w + x:w + (1 + x | person)`, X measured on each
+occasion and centred within each person, W measured once per person, the
+cross-level interaction the default effect. The tests are those above. The
+one difference is what the sample size counts: `goal.unit` is
+`"observations"`, so `goal.n` is people times occasions, a whole number of
+people, and the result and the methods paragraph give both ("1,120
+observations (80 people measured on 14 occasions each)"). That follows
+mlmpower, which plans the number of level-2 units and the number of
+observations in each together; it isn't a departure, since no tool
+researchers use plans within-person moderation in a different unit.
 
 ## Effect-size conversion (a published t, F, r, d, odds ratio or risk ratio)
 
@@ -1095,9 +1213,10 @@ entry as it stood:
   groups (maintainer's decisions, 17 October 2026; `docs/decisions.md`).
   When the user chooses it (`options > proportions_formula = "arcsine"`),
   pwr's `pwr.2p2n.test()` with Cohen's h, powerkit's earlier default.
-  Group sizes keep the exact ratio the user gives (as for every
-  two-group design), and the required N is the smallest such N whose
-  power reaches the target.
+  Unequal groups are rounded to whole people at each total (as for every
+  two-group design: "Group sizes given as a ratio" above), and the
+  required N is the smallest total whose groups' power reaches the
+  target.
 - **Size:**
   - Against G\*Power, equal groups: none to seven decimals (p1 = .10,
     p2 = .25, two-sided, alpha .05: power 0.2344921 at 20 per group; 164
@@ -1112,9 +1231,10 @@ entry as it stood:
     group sizes (0.9498668 at 123 and 247, p1 = .10, p2 = .25). The
     required N can differ by a few: for 95% power at N2/N1 = 2, G\*Power
     gives 123 + 247 = 370, whose power (0.9498668) is just under the
-    target and whose groups aren't exactly 1 : 2; powerkit gives 124 + 248
-    = 372 (123 + 246 gives 0.9496). Cohen's h, the earlier choice for
-    unequal groups, gave 360, 10 fewer than G\*Power. pwrss's values at
+    target; powerkit gives the next total, 124 + 247 = 371 (0.9509375).
+    Until 14 November 2026 powerkit kept the exact ratio and gave
+    124 + 248 = 372 (123 + 246 gives 0.9496). Cohen's h, the earlier choice for
+    unequal groups, gave 360, 10 fewer than G\*Power (359 with the groups rounded at each total). pwrss's values at
     1 : 1, 1 : 2 and 1 : 3 in both directions are in the tests; G\*Power's
     for those inputs are to confirm from the maintainer's screenshots.
   - One-sided tests: `power.prop.test()` and pwrss use |p1 − p2|, so for a
@@ -1126,8 +1246,8 @@ entry as it stood:
   TRUE), and the size of the change from the arcsine (Departure 11)",
   "two proportions in unequal groups use pwrss's z test, as G\*Power
   (Departure 11)", "two proportions: pwrss at 1:1, 1:2 and 1:3, both
-  directions", "departure: unequal groups keep the exact ratio, so N can
-  differ from G\*Power's by a few (Departure 11)", and the two one-sided
+  directions", "departure: unequal groups are rounded at each total, so N
+  can differ from G\*Power's by one (Departure 11)", and the two one-sided
   direction tests.
 - **Shown to users / in the methods paragraph:** on E5's card (backend
   line) and on the result screen when the formula was used
@@ -1377,7 +1497,7 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
-- **Shown to users:** on E33's, E62's, E63's, E68's and E67's result screens
+- **Shown to users:** on E33's, E41's, E62's, E63's, E68's and E67's result screens
   (`app/routing/forms.yaml`, `departures`, key "16"), and in the methods
   paragraph's full version. For E62, `test-backend-two-level.R`
   ("Satterthwaite's test is never more liberal than simr's z test")
@@ -1537,8 +1657,8 @@ Departure 19 is shown on the affected result and in the methods text.
 - **Size:** with equal spreads and equal groups the two tests need the same
   N (788, 128 and 52 for d = 0.2, 0.5 and 0.8 at 80% power: pwrss's Welch
   df are then n - 2, as Student's). With unequal groups Welch's needs a few
-  more: 147 rather than 144 for d = 0.5 when group 2 is twice the size of
-  group 1, and 176 rather than 172 when it is three times the size.
+  more: 145 rather than 143 for d = 0.5 when group 2 is twice the size of
+  group 1, and 173 rather than 170 when it is three times the size.
 - **Test:** `engine/tests/testthat/test-welch-default.R`.
 - **Shown to users:** on the E2 result whenever Welch's test is planned
   for (`app/routing/R/results.R`, `departures_for()`), and in the methods
@@ -1712,7 +1832,8 @@ decision of 1 November 2026.
   so the corrected figure from `ANOVA_exact()` is an approximation, here
   about 3 points low. In the mixed-design check of
   `docs/validation-log.md` (7 to 10 November 2026) it was about 1.5 points
-  high. The result screen says so and offers the simulation.
+  high. Since 14 November 2026 such a corrected test is simulated by
+  default (Departure 28).
 - **Test:** `test-backend-anova-within-covariance.R`, "departure: the size
   of the Greenhouse-Geisser correction".
 - **Shown to users:** on the three cards' result screens when the
@@ -1763,6 +1884,47 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   are simulated (`app/routing/forms.yaml`, `departures`, key "27"), in the
   choice notes for the calculation method, and in the methods paragraph,
   which names the intervals.
+
+### 28. Repeated measures with a sphericity correction and no sphericity: simulated by default, not Superpower's exact dataset
+
+Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
+"Corrected repeated-measures tests simulated by default").
+
+- **Established convention:** Superpower's `ANOVA_exact()` applies a
+  Greenhouse-Geisser or Huynh-Feldt correction by multiplying the test's
+  noncentrality and both degrees of freedom by epsilon (Superpower
+  0.2.4.1); G\*Power's repeated-measures analysis does the same with the
+  epsilon the user enters. Both are approximations to the corrected test's
+  power: they ignore how the effect lines up with the covariance and that
+  epsilon is estimated from the data.
+- **powerkit:** when a corrected F test's effect has a Greenhouse-Geisser
+  epsilon below 1 (read from afex's sphericity corrections on
+  `ANOVA_exact()`'s data set, which reproduces the population covariance),
+  power and sample size are simulated by default with Superpower's
+  `ANOVA_power()`, which analyses each simulated study with the corrected
+  test. The exact dataset stays available on request
+  (`options > method = "exact"`), labelled as an approximation, with a
+  warning above the answer; the smallest detectable effect is still found
+  with it (the engine's `sensitivity_method`), with the same warning. A
+  spherical design, or an uncorrected test, keeps the exact dataset.
+- **Size:** in Departure 26's example (three conditions, means 600, 620
+  and 650, SD 100, correlations .8, .5 and .2, 40 people), 68.4% from the
+  exact dataset against 71.5% in 40,000 simulated studies (MCSE .0023). In
+  the mixed design of the nightly validation (two groups by three
+  occasions, 20 per group, epsilon .758), 23.1% against 21.7% in 400,000
+  studies simulated from sufficient statistics. Across fifteen designs
+  (thirteen mixed, two one-way; `docs/upstream/superpower-gg-grid.R`,
+  400,000 studies each, which put Departure 26's example at 71.6%), the
+  exact dataset minus the simulated power ranged from -3.2 to +3.3
+  points (`docs/validation-log.md`,
+  14 November 2026).
+- **Test:** `test-backend-anova-within-covariance.R`, "departure: a
+  corrected test without sphericity is simulated by default (Departure 28)".
+- **Shown to users:** on the three cards' result screens when the
+  corrected test is simulated (`app/routing/forms.yaml`, `departures`, key
+  "28"), and in the methods paragraph. The form's "How power is worked out"
+  starts at simulation once the SDs or correlations differ and a
+  correction is chosen.
 
 ## Known differences
 
@@ -2352,6 +2514,41 @@ Wired into the app on 18 October 2026 (E25, E26).*
   the product's coefficient, as `summary()` reports it. Tests:
   `test-backend-logistic-interaction.R`;
   `test-validation-logistic-interaction.R` [powerkit, `docs/decisions.md`].
+- **Moderation of a count outcome (E32): the Wald z test of the product
+  in a Poisson or negative binomial regression.** G\*Power has no count
+  interaction test, so nothing is departed from. X and W are drawn as for
+  the yes/no outcome; the log of the mean count is linear in X, W and
+  X x W, with the mean count at the starting point and the rate ratios
+  given, so X's rate ratio is for W at its mean (or first group) and the
+  interaction is a ratio of rate ratios. The counts are Poisson, or
+  negative binomial with variance mu + k mu^2 when the researcher chooses
+  negative binomial and gives k. Each simulated study is fitted by
+  `glm(family = poisson())` or `MASS::glm.nb()` (the model that generated
+  the counts) and the test is the Wald z test of the product's
+  coefficient, as `summary()` reports it. The default is Poisson, the
+  usual first model for counts and the one the single-predictor count
+  card (E28) starts from; the field's help
+  says that a Poisson model overstates power when counts are
+  overdispersed. Tests: `test-backend-count-interaction.R`;
+  `test-validation-count-interaction.R` [powerkit, `docs/decisions.md`].
+- **Mediation with a yes/no or count outcome (E32): regression-based
+  causal mediation analysis.** G\*Power has no mediation test, and
+  PROCESS fits a logistic model for a yes/no outcome but reports no test
+  for a count; nothing is departed from. The mediator is a score: a
+  linear regression on X (X's effect in the mediator's residual SD). The
+  outcome is logistic (yes/no), Poisson or negative binomial (a count,
+  variance mu + k mu^2) in M and X, without an X-by-M interaction. Each
+  simulated study is analysed by `regmedint::regmedint()` (Valeri and
+  VanderWeele, 2013) with `mreg = "linear"` and `yreg = "logistic"`,
+  `"poisson"` or `"negbin"`, and the test is the natural indirect
+  effect's delta-method test as regmedint reports it: a * b on the log
+  odds-ratio or log rate-ratio scale, with standard error
+  sqrt(b^2 var(a) + a^2 var(b)). For a yes/no outcome the authors give
+  the odds-ratio scale as an approximation of the risk ratio when the
+  outcome is rare; the test of a zero indirect effect doesn't depend on
+  that. X is two equal groups or a score. Tests:
+  `test-backend-mediation-yglm.R`; `test-validation-mediation-yglm.R`
+  [powerkit, `docs/decisions.md`].
 - **The Bayes factor of an effect in a two-factor between-participants
   ANOVA (E7, E21, E22), and since 5 November 2026 in the repeated-measures
   ANOVAs (E8, E54, E55, E20, participants a random factor with JASP's r

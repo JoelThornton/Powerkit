@@ -142,9 +142,11 @@ simr_design <- function(inputs, n) {
 
 simr_model <- function(inputs, n) {
   data <- (inputs$design %||% simr_design)(inputs, n)
-  if (isTRUE(inputs$binary)) {
+  # A generalised model: yes/no (binomial), or the family the inputs name
+  # (Poisson counts, E75).
+  if (isTRUE(inputs$binary) || !is.null(inputs$family)) {
     return(call_backend("simr", quietly(simr::makeGlmer(
-      inputs$formula, family = "binomial", fixef = inputs$fixef, VarCorr = inputs$VarCorr, data = data
+      inputs$formula, family = inputs$family %||% "binomial", fixef = inputs$fixef, VarCorr = inputs$VarCorr, data = data
     ))))
   }
   call_backend("simr", quietly(simr::makeLmer(

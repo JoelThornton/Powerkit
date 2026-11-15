@@ -92,5 +92,8 @@ bayes_mode_form_values <- function(tree, ep_id, values = list(), on = FALSE) {
   d <- tree$bayes_designs[[ep_id]]
   if (!isTRUE(on) || is.null(d) || !is.null(values[[d$field]])) return(values)
   values[[d$field]] <- "bayes_factor"
+  # A test-version field shown for one choice only (E24: R-squared against
+  # 0) opens with that choice, so the Bayes factor version is visible.
+  for (cond in d$requires) if (blank(values[[cond$field]])) values[[cond$field]] <- cond[["is"]]
   values
 }

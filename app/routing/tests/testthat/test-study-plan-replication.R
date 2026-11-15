@@ -129,3 +129,26 @@ test_that("a replication plan's write-up comes from its record, and Download eve
   expect_true(any(grepl("replication-plan\\.md$", files)))
   expect_true(any(grepl("\\.powerkit\\.json$", files)))
 })
+
+test_that("choosing the original's card starts the planner on its design and effect", {
+  fields <- replication_fields_for_card(list(), forms, "E27")
+  expect_identical(fields$rep_design, "generic")
+  expect_identical(fields$rep_scale, "log")
+  expect_match(fields$rep_effect_name, "odds ratio", fixed = TRUE)
+  expect_identical(replication_fields_for_card(list(), forms, "E3")$rep_design, "paired")
+  # A test of several degrees of freedom: another design, its effect to be named.
+  multi <- replication_fields_for_card(list(), forms, "E18")
+  expect_identical(multi$rep_design, "generic")
+  expect_identical(multi$rep_effect_name, "")
+  # A card with no replication goals leaves the fields alone.
+  expect_identical(replication_fields_for_card(list(rep_study = "x"), forms, "E61"), list(rep_study = "x"))
+  # Once an original effect is entered, the researcher's choices stay.
+  kept <- list(rep_design = "two_groups", rep_effect = "0.5")
+  expect_identical(replication_fields_for_card(kept, forms, "E27"), kept)
+  # The plan's page says what the card gives the goals.
+  plan <- plan_set_replication(new_replication_plan("Logistic replication"), endpoint = "E27")
+  expect_match(as.character(replication_card_status_ui(tree, plan, forms)), "odds ratio of the predictor", fixed = TRUE)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "replication_fields_for_card(plan$replication$fields, forms, ep)", fixed = TRUE)
+  expect_match(code, "replication_card_status_ui(tree, plan, forms)", fixed = TRUE)
+})

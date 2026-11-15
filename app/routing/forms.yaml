@@ -139,7 +139,7 @@ engine_only: {}  # none waiting at the moment
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73]
+calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73, E39]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -151,6 +151,8 @@ background:
   E59: {power: 4, sample_size: 30}
   E58: {power: 25, sample_size: 120}
   E73: {power: 35, sample_size: 320}
+  # Mediation with a yes/no mediator (regmedint), measured 14 November 2026.
+  E39: {power: 25, sample_size: 200}
   E60: {power: 4, sample_size: 30}
 # Cards whose default test version is simulated (runs_simulation()), so it
 # runs in the background like those above, while a formula version of the
@@ -166,7 +168,9 @@ simulated_times:
   E64: {power: 5, sample_size: 40}
   E70: {power: 5, sample_size: 40}
   E30: {power: 4, sample_size: 35}
-  E32: {power: 4, sample_size: 30}
+  # E32: moderation takes about 4 seconds for power; mediation with a
+  # negative binomial count (regmedint) about 30, the slower case shown.
+  E32: {power: 30, sample_size: 200}
   E45: {power: 2, sample_size: 10}
   E72: {power: 2, sample_size: 10}
   # Measured 12 November 2026 the same way: Welch's ANOVA (the one-way
@@ -211,6 +215,11 @@ simulations:
       preview: {power: 20}
       full: {power: 230}
       script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E42:
+      full_run: [power]
+      preview: {power: 15}
+      full: {power: 150}
+      script: {sample_size: "about 15 to 45 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E33:
       full_run: [power]
       preview: {power: 35}
@@ -221,6 +230,11 @@ simulations:
       preview: {power: 40}
       full: {power: 400}
       script: {sample_size: "about 30 minutes to 3 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E75:
+      full_run: [power]
+      preview: {power: 20}
+      full: {power: 200}
+      script: {sample_size: "about 20 minutes to 2 hours on one core, longer with a negative binomial count or ordered categories (an estimate; 5 to 8 sample sizes are simulated)"}
     E67:
       full_run: [power]
       preview: {power: 35}
@@ -232,6 +246,11 @@ simulations:
       full: {power: 300}
       script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E62:
+      full_run: [power]
+      preview: {power: 30}
+      full: {power: 300}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E41:
       full_run: [power]
       preview: {power: 30}
       full: {power: 300}
@@ -311,20 +330,21 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "26": "Repeated measures with SDs or correlations that differ: powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. That corrected figure comes from Superpower's exact dataset, an approximation; simulated studies of the corrected test, powerkit's default here (Departure 28), gave 71.5%."
   "27": "Bland-Altman limits of agreement: powerkit simulates the analysis you will run, SimplyAgree's agreement_limit() with MOVER confidence intervals, unless you choose Lu et al.'s (2016) formula, the one SimplyAgree's blandPowerCurve() gives. The formula approximates Bland and Altman's analysis and can be several points off in either direction, and Bland and Altman's intervals are too narrow in small samples (at 30 subjects about 5% of studies wrongly show agreement where 2.5% should), which the MOVER intervals avoid. With a bias of 0.5, an SD of the differences of 2.5 and a margin of 8, the formula gives 80% power at 26 subjects; the MOVER analysis has about 69% there and needs 33."
-  "26": "Repeated measures with SDs or correlations that differ: powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. The corrected power is itself an approximation: simulated studies gave 71.5%."
+  "28": "Repeated measures with a sphericity correction and SDs or correlations that differ: powerkit simulates the corrected F test by default (Superpower's ANOVA_power()), where Superpower's ANOVA_exact() and G*Power scale the test's noncentrality and degrees of freedom by epsilon. That scaling is an approximation that can miss the corrected test's power by a few points either way: with means 600, 620 and 650, SD 100, correlations .8, .5 and .2 and 40 people, 68.4% from the exact dataset against 71.5% in 40,000 simulated studies; in a mixed design with 20 people per group, 23.1% against 21.7%. The exact dataset stays available, as an approximation, and finds the smallest detectable effect."
   "25": "Precision planning: for d, a standardised mean and a regression coefficient, powerkit plans for a chance (assurance) that the interval is no wider than your target, unless you choose MBESS's default of the expected width. An expected width is an average, so planned only for it, about half of studies get an interval wider than planned; MBESS's assurance sets that chance instead. For a regression coefficient with a width of 0.2, 349 people give that width on average; 373 give it with 80% assurance and 386 with 90%. For d = 0.5 and a width of 0.4, 199 per group against 201 and 202."
   "24": "Correlations that vary between studies (optional): an entered SD on Fisher's z makes the correlation an average across studies, following McShane and Bockenholt (2014). This averages significance across differing true correlations; it is not power at the average correlation and can raise or lower the answer. It does not guarantee power in your particular setting. New plans start without variation; empty or 0 gives the usual calculation. As an illustration, r = .1 with variation SD 0.025 and 80% power needs 904 people against 782 without; r = .3 needs 86 against 85."
   "23": "Effects that vary between studies (optional): an entered SD makes the effect an average across studies, following Kenny and Judd (2019). This averages significance across differing true effects; it is not power at the average effect and can raise or lower the answer. It does not guarantee power in your particular setting. New plans start without variation; empty or 0 gives the usual calculation. As an illustration, d = 0.3 with variation SD 0.05 and 80% power needs 376 people in total against 352 without."
   "22": "One-way ANOVA: powerkit plans for Welch's F unless you choose the classical F test, as Delacre, Leys, Mora and Lakens (2019) recommend, because Welch's F keeps the chance of a false positive at alpha when the groups' SDs differ and loses little power when they don't; G*Power and Superpower plan for the classical F test. With one SD of 6 and means 10, 11 and 13, 80% power needs about 231 people with Welch's F against 228 with the F test."
-  "21": "Two groups: powerkit plans for Welch's t-test unless you choose Student's, as Delacre, Lakens and Leys (2017) recommend, because Welch's test keeps the chance of a false positive at alpha when the groups' spreads differ; G*Power and pwr plan for Student's. With equal spreads and equal groups the two need the same number of people; with unequal groups Welch's needs a few more: 147 rather than 144 for d = 0.5 and 80% power when group 2 is twice the size of group 1."
+  "21": "Two groups: powerkit plans for Welch's t-test unless you choose Student's, as Delacre, Lakens and Leys (2017) recommend, because Welch's test keeps the chance of a false positive at alpha when the groups' spreads differ; G*Power and pwr plan for Student's. With equal spreads and equal groups the two need the same number of people; with unequal groups Welch's needs a few more: 145 rather than 143 for d = 0.5 and 80% power when group 2 is twice the size of group 1."
   "19": "Moderation of both mediation links: powerkit calculates residual variances from the full product moments and supplies them directly to power4mome. Its default standardisation can use the mediator's old values in the later product and generate the wrong outcome variance. Impossible combinations of paths are rejected before running."
   "20": "Differential item functioning: the test frees both of each DIF item's parameters (discrimination and difficulty) between the groups, whichever you expect to differ, because that is the test usually run (the omnibus test in mirt's DIF() help) and a power analysis should be for the test you will run. irtpwr's DIF preset tests only the parameters that differ, which is more powerful when only the difficulty changes: for the 8-item example with one item 0.4 harder, 53.6% against 64.1% at 600 people. That test is a choice on the input screen."
   "1": "Required N for a 2 x 2 interaction: powerkit gives the smallest N at which the exact F test reaches the target power. Sommet et al.'s (2023) z approximation gives slightly smaller numbers: 4 participants fewer (one per cell) in their two published examples."
   "2": "Mixed design: powerkit uses Superpower's ANOVA_exact(), which reproduces the G*Power values Superpower's vignette reports, not ANOVA_exact2(). The two differ slightly (91.2% vs 90.5% in the vignette's example)."
   "3": "Superpower's exact dataset is built under this run's seed, so the result is identical each time with the same seed. The size of this difference is about 1e-15 in power, with no practical effect."
   "10": "Correlation: you chose pwr's formula, which uses Fisher's z, an approximation. powerkit's default, like G*Power's, is the exact distribution of r. For r = .3 to .5 and N = 20 to 100 the two differ by at most 0.004 in power and 1 participant (85 rather than 84 for r = .3 and 80% power); for a large correlation in a small sample the gap is wider (r = .9 and N = 6: 77.2% by Fisher's z, 81.6% exactly)."
-  "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power; powerkit keeps the groups in the exact ratio you give, so its required N can be a few higher (for 95% power with group 2 twice the size of group 1, 372 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
+  "11": "Two proportions: the z test as G*Power runs it (pooled variance under the null, no continuity correction, both tails counted), by base R's power.prop.test() with strict = TRUE; it matches G*Power to seven decimals. Its own default, strict = FALSE, counts one tail only: power .2340 rather than .2345 with proportions .10 and .25 and 20 per group. Unequal groups use pwrss's z test, which matches G*Power's power. Both round the groups to whole people at each total, but powerkit's total always reaches the target, so it can be one higher (for 95% power with group 2 twice the size of group 1, 371 rather than G*Power's 370, whose groups of 123 and 247 fall just short of 95%)."
   "12": "Two dependent correlations: Steiger's z test as G*Power computes it, with the null hypothesis's correlation in the formula for how the two correlations vary together; pwrss, the package behind it, uses the average of the two correlations by default. powerkit reproduces the G*Power manual's two examples (144 and 886 people); pwrss's default would give 139 and 875, about 1 to 4% fewer."
   "13": "Whole-study simulation (experimental): separate power calculations do not establish the chance that several tests all succeed. Here one population model generates each study and the supported analyses use the same data, so their joint success is counted directly. Comparisons with separate calculations cover the recorded cases only; omitted model terms can change what an individual analysis estimates. This is not validation of every study plan."
   "14": "Smallest detectable effect when only one condition is in groups: powerkit finds the d at which powertools' power formula (irgtt.cont(), a t test) reaches the target power, as it finds sample sizes. powertools' own answer for d uses a normal approximation and falls short: at 20 groups of 8 and 160 people treated individually, it gives d = 0.340, which has 77% power rather than 80%; powerkit gives 0.352."
@@ -389,6 +409,95 @@ known_differences_methods:
   "16": "The number of groups was calculated with powertools' formula, which multiplies the variance of the log odds ratio by 1.2, a factor its documentation does not source; simulating the mixed-model analysis suggests about a sixth fewer groups would give the target power."
   "17": "Power was calculated with InteractionPoweR's fixed-model formula for the R-squared change; simulating studies with newly sampled predictors gave lower power in a checked example (about 76% where the formula gave 80%, needing about 10% more participants)."
   "13": "The one-sided Bayes factor multiplied the two-sided one by the posterior probability of the expected direction over its prior probability, as JASP does, with that probability calculated exactly where JASP estimates it from posterior draws."
+
+# How a replication plan takes each card's original effect (queue item 21;
+# decisions.md, 12 November 2026). Every card has one entry:
+#   exact      one of the four designs whose goals table has its own rule
+#              (two_groups, one_sample, paired, correlation)
+#   effect     the focal effect, one number: what it is, and its scale
+#              (none: as reported; log: a ratio, planned on the log scale;
+#              fisher_z: a correlation)
+#   multi_df   a test of several degrees of freedom, with no one-number
+#              effect; the text names the focal contrast to plan instead
+#   none       why a replication's goals table doesn't fit the card
+# A replication plan opened on the card starts with it; the researcher can
+# change it on the plan's page.
+replication_effects:
+  E1: {exact: one_sample}
+  E2: {exact: two_groups}
+  E3: {exact: paired}
+  E4: {exact: correlation}
+  E76: {effect: "repeated-measures correlation (r)", scale: fisher_z}
+  E41: {effect: "the cross-level interaction (how much the within-person slope changes with the moderator)", scale: none}
+  E5: {effect: "odds ratio between the two groups", scale: log}
+  E6: {multi_df: "for a 2 x 2 table, the odds ratio (card E5 or E27); for a larger table, the one comparison the hypothesis is about"}
+  E7: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
+  E22: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
+  E8: {effect: "the group by condition interaction (the difference in change between the groups)", scale: none}
+  E9: {effect: "the interaction coefficient (b for X times W)", scale: none}
+  E15: {effect: "the interaction coefficient (b for X times W)", scale: none}
+  E31: {effect: "the three-way interaction coefficient", scale: none}
+  E10: {effect: "the indirect effect (ab)", scale: none}
+  E16: {effect: "the indirect effect (ab)", scale: none}
+  E42: {effect: "the one relative indirect effect the hypothesis is about", scale: none}
+  E39: {effect: "the natural indirect effect", scale: none}
+  E33: {effect: "the condition effect (the fixed effect of condition)", scale: none}
+  E63: {multi_df: "the difference between the two conditions the hypothesis is about (card E33)"}
+  E75: {effect: "the effect of interest as a rate ratio or odds ratio", scale: log}
+  E67: {effect: "the item predictor's coefficient", scale: none}
+  E68: {effect: "the coefficient of interest (a fixed effect)", scale: none}
+  E43: {effect: "hazard ratio", scale: log}
+  E69: {none: "A study of reliability or agreement estimates how consistent a measure is rather than testing an effect, so a replication is planned for the precision of that estimate on this card."}
+  E44: {effect: "the actor or partner effect the hypothesis is about", scale: none}
+  E62: {effect: "the coefficient of interest (a fixed effect)", scale: none}
+  E11: {effect: "the one indirect effect the hypothesis is about", scale: none}
+  E12: {effect: "the serial indirect effect", scale: none}
+  E13: {effect: "the index of moderated mediation", scale: none}
+  E14: {effect: "the index of moderated mediation", scale: none}
+  E17: {effect: "the index of moderated mediation", scale: none}
+  E38: {effect: "the index of moderated mediation", scale: none}
+  E40: {effect: "the index of moderated mediation for the mediator the hypothesis is about", scale: none}
+  E18: {multi_df: "the difference between the two groups the hypothesis is about (card E19, a specific comparison)"}
+  E54: {multi_df: "the difference between the two conditions the hypothesis is about (card E3 for two conditions)"}
+  E55: {multi_df: "the one contrast the hypothesis is about, such as the difference in change between two groups (card E8)"}
+  E56: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design"}
+  E20: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design"}
+  E21: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design (card E7)"}
+  E23: {effect: "the adjusted difference between the two groups (with three or more groups, the one comparison the hypothesis is about)", scale: none}
+  E24: {effect: "the coefficient of the predictor the hypothesis is about", scale: none}
+  E25: {effect: "the difference between the proportion and the fixed value", scale: none}
+  E26: {effect: "the odds ratio from the pairs that changed", scale: log}
+  E36: {none: "An equivalence study aims to show an effect is too small to matter; a replication of it is planned on this card, with the same equivalence bounds."}
+  E48: {multi_df: "the one proportion the hypothesis is about, against its expected value (card E25)"}
+  E29: {effect: "the odds ratio from the ordinal (proportional odds) model", scale: log}
+  E47: {effect: "the odds ratio for the effect the hypothesis is about (in a 2 x 2 design, the interaction)", scale: log}
+  E49: {effect: "the difference between the two correlations, on Fisher's z scale", scale: none}
+  E52: {effect: "the ratio of the group's variance to the fixed value", scale: log}
+  E53: {effect: "the ratio of the two groups' variances", scale: log}
+  E57: {effect: "the ratio of the variances after and before", scale: log}
+  E59: {multi_df: "the one outcome and comparison the hypothesis is about (card E2 for two groups on one outcome)"}
+  E60: {multi_df: "the one outcome the hypothesis is about, against its fixed value (card E1)"}
+  E61: {none: "A meta-analysis's average effect is checked by the studies that follow, not by one replication, so no replication goals are planned for it."}
+  E27: {effect: "the odds ratio of the predictor the hypothesis is about", scale: log}
+  E70: {effect: "the odds ratio, for the one category the hypothesis is about", scale: log}
+  E71: {none: "Differential item functioning is checked item by item in a new sample on this card; it has no single effect to replicate."}
+  E35: {effect: "the difference between the groups' slopes (the group by time coefficient)", scale: none}
+  E73: {none: "An exploratory factor analysis has no single effect to replicate; plan the new sample's recovery of the factors on this card."}
+  E45: {effect: "the change in level (or in slope) at the known point", scale: none}
+  E74: {effect: "the cross-lagged path the hypothesis is about", scale: none}
+  E58: {none: "Finding profiles or classes has no single effect to replicate; plan the new sample on this card."}
+  E72: {effect: "the difference in d' between the conditions or groups", scale: none}
+  E30: {multi_df: "the one comparison the hypothesis is about, such as how the effect differs between two of the groups (card E15)"}
+  E32: {effect: "the interaction coefficient, as an odds ratio or rate ratio", scale: log}
+  E28: {effect: "the rate ratio of the predictor the hypothesis is about", scale: log}
+  E34: {effect: "the coefficient of interest (a fixed effect)", scale: none}
+  E37: {effect: "the path or factor correlation the hypothesis is about (standardised)", scale: none}
+  E19: {effect: "the contrast's estimate", scale: none}
+  E51: {effect: "the difference between the two correlations", scale: none}
+  E50: {none: "This card starts from a noncentrality parameter rather than an effect, so a replication's goals are planned on the card for the design it came from."}
+  E46: {none: "Planning for a confidence interval's width estimates an effect rather than testing it; a replication is planned for the same precision on this card."}
+  E64: {multi_df: "the difference between the two groups the hypothesis is about (card E29 or a rank test on card E2)"}
+  E66: {effect: "the odds ratio per step of the ordered groups (the trend's slope)", scale: log}
 
 forms:
   E1:
@@ -1251,6 +1360,75 @@ forms:
         fields:
           - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, power4mome's default for q_power_mediation())", type: number, path: options.ci_draws, optional: true, empty_text: "1,000 (power4mome's default)", min: 100, max: 100000, integer: true}
 
+  # Mediation with X in three or more groups (E42): dummy-coded relative
+  # indirect effects (Hayes & Preacher, 2014), simulated with Spower,
+  # fitted with lavaan, each tested by manymome's Monte Carlo interval.
+  E42:
+    methods_name: "a mediation model with a multicategorical X (dummy-coded relative indirect effects)"
+    tool: Spower
+    departures: ["6"]
+    known_differences: ["14"]
+    directional: false
+    base: {spec_version: "0.1", design: mediation, template: multicategorical,
+           variables: {X: {type: categorical}, M: {type: continuous}, "Y": {type: continuous}}, population: {metric: standardised},
+           target_test: {effect: indirect_effect, path: "X->M->Y", method: monte_carlo_ci}}
+    names: [X, M, "Y"]
+    groups:
+      - input: "X's groups or conditions, the first the reference group"
+        fields:
+          - {id: X_levels, label: "X's groups or conditions, separated by commas (first the reference group, such as a control condition, that each other group is compared with)", type: levels, path: variables.X.levels, required: true,
+             help: "Each group after the first gets a dummy variable, as PROCESS codes a multicategorical X by default, and its own relative indirect effect: its difference from the first group carried through M. The groups are equal in size."}
+      - input: "Each group's difference from the first on M, the path M -> Y, and the direct effects"
+        fields:
+          - {id: mcx_m_differences, writeup_label: "Cohen's d of each group against the first on M", label: "Cohen's d of each group after the first against the first on M, in the same order, separated by commas", type: numbers, per_later_levels: X_levels, path: population.m_differences, effect: true}
+          - {id: mcx_b, writeup_label: "the path M -> Y within groups", label: "Path M -> Y within groups (standardised: the correlation of M and Y within a group)", type: number, path: population.b, effect: true, min_exclusive: -1, max_exclusive: 1}
+          - {id: mcx_direct, writeup_label: "each group's direct effect on Y", label: "Each group's difference from the first on Y holding M (the direct effects), in Y's within-group SDs, separated by commas (optional; empty = 0 for every group)", type: numbers, per_later_levels: X_levels, path: population.direct_differences, optional: true, empty_text: "0 for every group"}
+          - {id: mcx_group, label: "Which group's relative indirect effect must be significant (optional; empty = every group's, all of them)", type: text, path: target_test.group, optional: true, empty_text: "every group's (all must be significant)",
+             help: "Give the name of one group after the first to plan for its comparison alone. With every group, a study succeeds only when every relative indirect effect is significant, which needs more people."}
+      # An expert setting: in Settings, not in the card's list of what you need.
+      - title: "Monte Carlo draws"
+        fields:
+          - {id: ci_draws, label: "Monte Carlo draws per CI (optional; empty = 1,000, as for the other mediation cards)", type: number, path: options.ci_draws, optional: true, empty_text: "1,000", min: 100, max: 100000, integer: true}
+
+  # Mediation with a yes/no mediator (E39): regression-based causal
+  # mediation analysis (Valeri & VanderWeele, 2013) by regmedint, simulated
+  # with Spower; the natural indirect effect tested by the delta method.
+  E39:
+    methods_name: "regression-based causal mediation analysis with a yes/no mediator (the natural indirect effect)"
+    tool: Spower
+    directional: false
+    base: {spec_version: "0.1", design: mediation, template: binary_mediator,
+           variables: {M: {type: binary}}, population: {metric: odds_ratio},
+           target_test: {effect: indirect_effect, path: "X->M->Y", method: delta_method}}
+    names: [X, M, "Y"]
+    groups:
+      - input: "What X, the mediator and the outcome are"
+        fields:
+          - {id: binm_x, label: "X is", type: select, path: variables.X.type, required: true,
+             choices: {binary: "Two conditions or groups (for example, a reminder or none)", continuous: "A score"},
+             default: binary, default_source: "two conditions, the usual design for mediation of an intervention"}
+          - {id: X_levels, label: "The two conditions or groups, separated by commas (first the comparison group; the people are split equally between them)", type: levels, path: variables.X.levels, required: true,
+             shown_if: {field: binm_x, is: binary}}
+          - {id: M_levels, label: "The mediator's two answers, separated by commas (the 'no' first, then the 'yes')", type: levels, path: variables.M.levels, required: true,
+             help: "For example: No, Yes, or Did not book, Booked. The paths below are about the second answer."}
+          - {id: binm_y, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score", binary: "Yes or no"},
+             default: continuous, default_source: "a score, the usual outcome"}
+      - input: "How X changes the chance of the mediator, and how the mediator changes the outcome"
+        fields:
+          - {id: binm_m_baseline, writeup_label: "the chance of the mediator in the comparison group", label: "Chance that the mediator is 'yes' in the first group (or at X's average, for a score), from 0 to 1", type: number, path: population.m_baseline, required: true, min_exclusive: 0, max_exclusive: 1, baseline: true}
+          - {id: binm_m_or, writeup_label: "the odds ratio of the mediator for X", label: "Odds ratio of the mediator being 'yes' for X (the second group against the first, or per SD of a score: path a)", type: number, path: population.m_odds_ratio, effect: true, min_exclusive: 0}
+          - {id: binm_b, writeup_label: "the difference in the outcome for the mediator", label: "Difference in the outcome between 'yes' and 'no' on the mediator, at the same X, in the outcome's SD (path b, like Cohen's d)", type: number, path: population.b, effect: true,
+             shown_if: {field: binm_y, is: continuous}}
+          - {id: binm_direct, writeup_label: "the direct effect of X", label: "X's direct effect on the outcome, holding the mediator, in the outcome's SD (optional; empty = 0)", type: number, path: population.direct, optional: true, empty_text: "0",
+             shown_if: {field: binm_y, is: continuous}}
+          - {id: binm_y_baseline, writeup_label: "the chance of the outcome in the comparison group", label: "Chance that the outcome is 'yes' in the first group (or at X's average) when the mediator is 'no', from 0 to 1", type: number, path: population.y_baseline, required: true, min_exclusive: 0, max_exclusive: 1, baseline: true,
+             shown_if: {field: binm_y, is: binary}}
+          - {id: binm_b_or, writeup_label: "the odds ratio of the outcome for the mediator", label: "Odds ratio of the outcome being 'yes' for 'yes' against 'no' on the mediator, at the same X (path b)", type: number, path: population.b_odds_ratio, effect: true, min_exclusive: 0,
+             shown_if: {field: binm_y, is: binary}}
+          - {id: binm_direct_or, writeup_label: "the direct odds ratio of X", label: "Odds ratio of the outcome for X, holding the mediator (optional; empty = 1, no direct effect)", type: number, path: population.direct_odds_ratio, optional: true, empty_text: "1", min_exclusive: 0,
+             shown_if: {field: binm_y, is: binary}}
+
   E33:
     methods_name: "a linear mixed model with participants and items as random factors (Satterthwaite t test)"
     tool: simr
@@ -1384,6 +1562,84 @@ forms:
              shown_if: {field: conditions_test, is: pairwise},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
              default: holm, default_source: "Holm's method, as on the one-way ANOVA cards (Departure 17)"}
+
+  # The same people measured more than once with a count or yes/no outcome
+  # (simr; Spower with glmer.nb() for a negative binomial count), 14
+  # November 2026.
+  E75:
+    methods_name: "a generalised linear mixed model with a random intercept for each person"
+    tool: simr
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: repeated_glmm,
+           variables: {X: {type: within_factor}, "Y": {type: count}}, population: {metric: rate},
+           target_test: {effect: condition}}
+    groups:
+      - input: "The conditions, the outcome, and how often each person is measured"
+        fields:
+          - {id: glmm_groups, label: "Do you compare two or more groups of people, each measured in every condition?", type: select, required: true,
+             choices: {none: "No: one group of people", groups: "Yes: does the change over the conditions differ between the groups? (a group-by-time interaction)"},
+             sets: {groups: [{path: variables.W.type, value: between_factor}, {path: target_test.effect, value: interaction}]},
+             default: none, default_source: "one group of people, this card's first design",
+             help: "For example, a programme group and a control group, each measured before and after: the test is whether the programme group changes more than the control group, the interaction of group and occasion in the mixed model y ~ group * occasion + (1 | person)."}
+          - {id: W_label, label: "What the groups are (for example, programme or control)", type: text, path: variables.W.label, required: true,
+             shown_if: {field: glmm_groups, is: groups}}
+          - {id: W_levels, label: "The groups, separated by commas (first the comparison group; the people are split equally between them)", type: levels, path: variables.W.levels, required: true,
+             shown_if: {field: glmm_groups, is: groups}}
+          - {id: X_label, label: "What the conditions or occasions are (for example, before and after the programme)", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The conditions or occasions, separated by commas (two or more)", type: levels, path: variables.X.levels, required: true}
+          - {id: glmm_people, label: "Each person is measured in", type: select, path: variables.X.type, required: true,
+             shown_if: {field: glmm_groups, is_not: groups},
+             choices: {within_factor: "Every condition (for example, before and after)", between_factor: "One condition, several times (the people split equally between the conditions)"},
+             default: within_factor, default_source: "the same people measured more than once, this card's usual design"}
+          - {id: Y_label, label: "Outcome (for example, cigarettes smoked per day)", type: text, path: variables.Y.label, required: true}
+          - {id: glmm_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {count: "A count (0, 1, 2, ...)", binary: "Yes or no", categorical: "Ordered categories (for example, a rating from 1 to 5)"},
+             sets: {binary: [{path: population.metric, value: probability}], categorical: [{path: population.metric, value: proportion}]},
+             default: count, default_source: "a count, the commoner outcome on this card",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer); with ordered categories, a cumulative link mixed model with proportional odds (the R package ordinal's clmm()). The SD below is then on the log-odds scale."}
+          - {id: Y_levels, label: "The categories, lowest first, separated by commas (three or more)", type: levels, path: variables.Y.levels, required: true,
+             shown_if: {field: glmm_outcome, is: categorical}}
+          - {id: glmm_measurements, writeup_label: "measurements per person in each condition", label: "How many times each person is measured in each condition (1 if once)", type: number, path: population.measurements, required: true, min: 1, integer: true,
+             default: 1, default_source: "one measurement per condition, as in a before-and-after study",
+             help: "With each person in one condition, or a yes/no outcome, at least 2: the person's own average can't be told apart from their measurement otherwise."}
+      - input: "The expected count, chance of 'yes' or answers in each condition, and how much people differ"
+        fields:
+          - {id: glmm_rates, writeup_label: "expected count in each condition", label: "The expected count per measurement in each condition, for a typical person, in the same order, separated by commas (for example, 10, 8)", type: numbers, per_levels: X_levels, path: population.rates, effect: true,
+             shown_if: [{field: glmm_outcome, is: count}, {field: glmm_groups, is_not: groups}],
+             help: "A typical person is one whose own level is average (random intercept 0). The ratio of two of these is the rate ratio the test looks for."}
+          - {id: glmm_probabilities, writeup_label: "chance of yes in each condition", label: "The chance of 'yes' in each condition for a typical person, as proportions in the same order, separated by commas (for example, 0.30, 0.20)", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true,
+             shown_if: [{field: glmm_outcome, is: binary}, {field: glmm_groups, is_not: groups}]}
+          - {id: glmm_categories, writeup_label: "share of answers in each category in the first condition", label: "In the first condition, the share of a typical person's answers in each category, lowest first, separated by commas (they add up to 1; for example, 0.2, 0.3, 0.3, 0.2)", type: numbers, per_levels: Y_levels, path: population.category_probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: glmm_outcome, is: categorical}}
+          - {id: glmm_odds_ratios, writeup_label: "odds ratio of a higher category in each condition", label: "Each condition's odds of a higher category compared with the first condition, in the same order, the first 1 (for example, 1, 1.8)", type: numbers, per_levels: X_levels, path: population.odds_ratios, effect: true, min_exclusive: 0,
+             shown_if: [{field: glmm_outcome, is: categorical}, {field: glmm_groups, is_not: groups}],
+             help: "Proportional odds: the same odds ratio at every split of the categories into lower and higher. Above 1 means answers higher on the scale; 1.8 turns the 20% answering in the top category in the first condition into about 31%."}
+          - {id: glmm_rates_groups, writeup_label: "expected count in each group and condition", label: "The expected count per measurement for a typical person: one line per group, with one number per condition, separated by commas", type: table, path: population.rates, effect: true,
+             rows_from: W_levels, cols_from: X_levels, rows_name: "group", cols_name: "condition",
+             shown_if: [{field: glmm_outcome, is: count}, {field: glmm_groups, is: groups}],
+             help: "The test looks for groups whose counts change by different ratios: 2 and 2 for the control group with 2 and 1.4 for the programme group is a 30% fall in the programme group only."}
+          - {id: glmm_probabilities_groups, writeup_label: "chance of yes in each group and condition", label: "The chance of 'yes' for a typical person: one line per group, with one number per condition, separated by commas", type: table, path: population.probabilities, effect: true,
+             rows_from: W_levels, cols_from: X_levels, rows_name: "group", cols_name: "condition",
+             shown_if: [{field: glmm_outcome, is: binary}, {field: glmm_groups, is: groups}]}
+          - {id: glmm_odds_ratios_groups, writeup_label: "odds ratio of a higher category in each group and condition", label: "Each group's odds of a higher category in each condition, compared with the first group in the first condition: one line per group, with one number per condition, the very first 1", type: table, path: population.odds_ratios, effect: true,
+             rows_from: W_levels, cols_from: X_levels, rows_name: "group", cols_name: "condition",
+             shown_if: [{field: glmm_outcome, is: categorical}, {field: glmm_groups, is: groups}],
+             help: "1, 1 for the comparison group and 1, 2 for the other: the second group's odds of a higher answer double between the conditions while the first group's stay the same."}
+          - {id: glmm_sd_person, writeup_label: "SD of people's levels", label: "How much people differ in their typical level: the SD of the person intercepts, on the log scale for a count (log-odds for yes/no or ordered categories)", type: number, path: population.sd_person, effect: true, min: 0,
+             help: "For a count, 0.5 means that a person one SD above average has a typical count about 1.65 times (exp(0.5)) the average person's."}
+          - {id: glmm_distribution, label: "Counts are", type: select, required: true,
+             shown_if: {field: glmm_outcome, is: count},
+             choices: {poisson: "Poisson: given the person and condition, the variance equals the mean", negative_binomial: "More spread out than Poisson (negative binomial)"},
+             default: poisson, default_source: "the Poisson mixed model, simr's model for counts; the person intercepts already allow people to differ",
+             help: "Counts of behaviour often vary more from one measurement to the next than a Poisson distribution allows. If yours do, choose the negative binomial model: it is slower to simulate (lme4's glmer.nb()), and gives less power for the same counts."}
+          - {id: glmm_dispersion, writeup_label: "overdispersion k", label: "Overdispersion k: a count with expected value mu varies with variance mu + k mu squared (for example, 0.5)", type: number, path: population.dispersion, effect: true, min_exclusive: 0,
+             shown_if: [{field: glmm_outcome, is: count}, {field: glmm_distribution, is: negative_binomial}]}
+      - input: "The test"
+        fields:
+          - {id: glmm_test, label: "Test (that the conditions differ, or with groups that the groups change differently)", type: select, path: target_test.method, required: true,
+             choices: {likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences)", wald: "Wald test (the Wald chi-square; with two conditions, the p-value the model's summary reports)"},
+             default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor, as on the many-conditions card (E63)",
+             help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison."}
 
   # A predictor measured on each item (simr), 1 November 2026.
   E67:
@@ -1709,6 +1965,58 @@ forms:
 
   # People nested in groups (simr): a person-level X, a group-level W and
   # their cross-level interaction (31 October 2026).
+  # Within-person moderation (E41): occasions within people, a predictor
+  # measured on each occasion (X, centred within each person) and one
+  # measured once per person (W); the cross-level interaction in E62's
+  # two-level model, with n counting observations (goal > unit
+  # "observations"), so the result names people and occasions.
+  E41:
+    methods_name: "a two-level mixed model of occasions within people, with an occasion-level and a person-level predictor"
+    tool: simr
+    departures: ["16"]
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: two_level,
+           variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {method: satterthwaite_t}, goal: {unit: observations}}
+    groups:
+      - input: "The outcome, what is measured on each occasion, and what is measured once per person"
+        fields:
+          - {id: Y_label, label: "Outcome, measured on each occasion (for example, evening mood)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "Measured on each occasion (X; for example, the day's stress)", type: text, path: variables.X.label, required: true}
+          - {id: W_label, label: "Measured once per person (W, the moderator; for example, neuroticism)", type: text, path: variables.W.label, required: true}
+          - {id: two_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a mood rating)", binary: "Yes or no (for example, drank alcohol that day)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer), and every effect and SD below is on the log-odds scale."}
+          - {id: two_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: two_outcome, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect)"},
+             default: wald, default_source: "the test glmer's summary reports, simr's default for a numeric predictor"}
+      - input: "Each effect, how much people differ, and the occasion-to-occasion SD"
+        fields:
+          - {id: two_probability, writeup_label: "chance of yes for a typical person", label: "The chance of 'yes' for a typical person on a typical occasion, at the average X and W (0 to 1)", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: two_outcome, is: binary}}
+          - {id: b_X, writeup_label: "X's effect within people", label: "X's effect within people: the change in the outcome (or its log odds, for yes/no) on an occasion when X is one SD above the person's own average", type: number, path: population.b_X, effect: true}
+          - {id: b_W, writeup_label: "W's effect between people", label: "W's effect between people: the change in a person's average outcome for one SD more of W", type: number, path: population.b_W, effect: true}
+          - {id: b_XW, writeup_label: "cross-level interaction", label: "The moderation (cross-level interaction): how much X's within-person effect changes for one SD more of W", type: number, path: population.b_XW, effect: true}
+          - {id: sd_group, writeup_label: "SD of people's averages", label: "SD of people's average outcome beyond W (random intercepts)", type: number, path: population.sd_group, effect: true, min: 0,
+             help: "In the outcome's units. With an occasion-to-occasion SD of 1, an SD of 0.7 means about a third of the variance lies between people (an intraclass correlation of 0.33), common in diary studies."}
+          - {id: sd_group_slope, writeup_label: "SD of X's effect across people", label: "SD of X's within-person effect across people beyond W (random slopes)", type: number, path: population.sd_group_slope, effect: true, min: 0}
+          - {id: r_group, label: "Correlation of people's averages and their X effects (optional; empty = 0)", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
+          - {id: sd_residual, writeup_label: "occasion-to-occasion SD", label: "Occasion-to-occasion SD: how much a person's outcome varies around their own line", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+             shown_if: {field: two_outcome, is: continuous}}
+      - input: "The number of occasions, and the effect to test"
+        fields:
+          - {id: cluster_size, label: "Occasions per person (the same for everyone; for example, 14 diary days)", type: number, path: population.cluster_size, required: true, min: 2, integer: true,
+             help: "The sample size below counts every observation: people times occasions. The result gives the number of people too."}
+          - {id: two_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {cross_level_interaction: "The moderation: does X's within-person effect depend on W?", within_effect: "X's effect within people", between_effect: "W's effect between people",
+                       within_and_interaction: "Both X's effect and the moderation significant in the same study (joint power)",
+                       all_effects: "All three effects significant in the same study (joint power)"},
+             help: "Joint power is the chance that every effect named is significant in the same study, when the claim needs all of them. It is lower than each effect's own power.",
+             default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
+
   E62:
     methods_name: "a two-level mixed model with a person-level and a group-level predictor"
     tool: simr
@@ -2115,7 +2423,7 @@ forms:
     sides: false
     methods_name: "a one-way repeated-measures ANOVA"
     tool: Superpower
-    departures: ["3", "17", "26"]
+    departures: ["3", "17", "26", "28"]
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_within,
            variables: {A: {type: within_factor}, "Y": {type: continuous}},
@@ -2185,9 +2493,20 @@ forms:
              default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
     extra:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
-         shown_if: {field: test_version, is: anova_f},
+         shown_if: [{field: test_version, is: anova_f}, {any: [{field: spread, is_not: differ}, {field: correction, is: none}]}],
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)"}
+      # A corrected F test whose SDs or correlations differ: simulated by
+      # default, because Superpower's exact data set scales the test by
+      # epsilon, an approximation (Departure 28, 14 November 2026). Hidden
+      # for the smallest detectable effect, which the engine finds with the
+      # exact data set (sensitivity_method).
+      - {id: gg_method, label: "How power is worked out", type: select, path: options.method, required: true,
+         shown_if: [{field: test_version, is: anova_f}, {field: spread, is: differ}, {field: correction, is_not: none}, {field: goal, is_not: sensitivity}, {field: goal, is_not: sensitivity_curve}],
+         choices: {simulation: "Repeated simulation of the corrected test (recommended)", exact: "Exact dataset, with the correction applied to its degrees of freedom: an approximation"},
+         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 28): the exact dataset scales the test by epsilon, which missed simulated power by up to about 3 points in either direction",
+         help: "With a sphericity correction and SDs or correlations that differ, only simulated studies give the corrected test's power itself. The exact dataset is instant but approximate.",
+         choice_notes: {exact: "This approximation can be a few points too high or too low. Check the sample size by simulation before relying on it."}}
 
   # Mixed ANOVA beyond 2 x 2 (28 October 2026): one between factor by one
   # within factor, at least one with three or more levels; one SD and one
@@ -2197,7 +2516,7 @@ forms:
     sensitivity: true
     sides: false
     methods_name: "a mixed ANOVA (between- by within-participants factor)"
-    departures: ["3", "26"]
+    departures: ["3", "26", "28"]
     tool: Superpower
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: mixed,
@@ -2279,7 +2598,18 @@ forms:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)",
-         shown_if: [{field: group_sizes, is_not: unequal}, {field: test_version, is: anova_f}]}
+         shown_if: [{field: group_sizes, is_not: unequal}, {field: test_version, is: anova_f}, {any: [{field: spread, is_not: differ}, {field: correction, is: none}]}]}
+      # A corrected F test whose SDs or correlations differ: simulated by
+      # default, because Superpower's exact data set scales the test by
+      # epsilon, an approximation (Departure 28, 14 November 2026). Hidden
+      # for the smallest detectable effect, which the engine finds with the
+      # exact data set (sensitivity_method).
+      - {id: gg_method, label: "How power is worked out", type: select, path: options.method, required: true,
+         shown_if: [{field: group_sizes, is_not: unequal}, {field: test_version, is: anova_f}, {field: spread, is: differ}, {field: correction, is_not: none}, {field: goal, is_not: sensitivity}, {field: goal, is_not: sensitivity_curve}],
+         choices: {simulation: "Repeated simulation of the corrected test (recommended)", exact: "Exact dataset, with the correction applied to its degrees of freedom: an approximation"},
+         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 28): the exact dataset scales the test by epsilon, which missed simulated power by up to about 3 points in either direction",
+         help: "With a sphericity correction and SDs or correlations that differ, only simulated studies give the corrected test's power itself. The exact dataset is instant but approximate.",
+         choice_notes: {exact: "This approximation can be a few points too high or too low. Check the sample size by simulation before relying on it."}}
 
 
   # Three-factor ANOVA (28 October 2026): three crossed factors, any mix of
@@ -2355,7 +2685,7 @@ forms:
     sensitivity: true
     sides: false
     methods_name: "a two-factor within-participants ANOVA"
-    departures: ["3", "26"]
+    departures: ["3", "26", "28"]
     tool: Superpower
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: factorial_within,
@@ -2426,7 +2756,18 @@ forms:
       - {id: method, label: "Method", type: select, path: options.method, required: true,
          choices: {exact: "Exact dataset (no repeated simulation)", simulation: "Repeated simulation"},
          default: exact, default_source: "powerkit's default for Superpower's designs (design spec, options > method)",
-         shown_if: {field: test_version, is: anova_f}}
+         shown_if: [{field: test_version, is: anova_f}, {any: [{field: spread, is_not: differ}, {field: correction, is: none}]}]}
+      # A corrected F test whose SDs or correlations differ: simulated by
+      # default, because Superpower's exact data set scales the test by
+      # epsilon, an approximation (Departure 28, 14 November 2026). Hidden
+      # for the smallest detectable effect, which the engine finds with the
+      # exact data set (sensitivity_method).
+      - {id: gg_method, label: "How power is worked out", type: select, path: options.method, required: true,
+         shown_if: [{field: test_version, is: anova_f}, {field: spread, is: differ}, {field: correction, is_not: none}, {field: goal, is_not: sensitivity}, {field: goal, is_not: sensitivity_curve}],
+         choices: {simulation: "Repeated simulation of the corrected test (recommended)", exact: "Exact dataset, with the correction applied to its degrees of freedom: an approximation"},
+         default: simulation, default_source: "powerkit's choice for a corrected test without sphericity (Departure 28): the exact dataset scales the test by epsilon, which missed simulated power by up to about 3 points in either direction",
+         help: "With a sphericity correction and SDs or correlations that differ, only simulated studies give the corrected test's power itself. The exact dataset is instant but approximate.",
+         choice_notes: {exact: "This approximation can be a few points too high or too low. Check the sample size by simulation before relying on it."}}
 
   # Two-factor ANOVA, both factors between participants, beyond 2 x 2
   # (28 October 2026): equal cells, one SD. No smallest detectable effect
@@ -2560,6 +2901,23 @@ forms:
                     single_coefficient: [{path: target_test.effect, value: coefficient}, {path: variables.X.type, value: continuous}]}}
           - {id: X_label, label: "The predictor you are testing", type: text, path: variables.X.label, required: true,
              shown_if: {field: question, is: single_coefficient}}
+          # The Bayes factor for R-squared (14 November 2026): BayesFactor's
+          # linearReg.R2stat(), the JZS Bayes factor of JASP's Bayesian
+          # linear regression, exact from the noncentral F.
+          - {id: r2_test, label: "Test version", type: select, path: target_test.method, required: true,
+             shown_if: {field: question, is: r2_zero},
+             choices: {f_test: "The F test of R-squared (G*Power's R-squared deviation from zero)",
+                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
+             default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
+             choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model with none, reaches the threshold you choose below. Worked out exactly, with no simulation."}}
+          - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)",
+             help: "BF10 is how many times more likely the data are if the predictors explain some of the outcome than if they explain none. Power here is the chance that BF10 reaches this number."}
+          - {id: prior_scale, label: "Scale of the analysis prior on the standardised coefficients (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             default: 0.354, default_source: "JASP's Bayesian linear regression (JZS prior, 'r scale' 0.354), the same as BayesFactor's 'medium' scale for continuous predictors (regressionBF(rscaleCont = 'medium'), sqrt(2)/4; BayesFactor 0.9.12-4.8)",
+             help: "The prior you will use when you analyse the data. 0.354 is JASP's default; use the same value as in your analysis plan."}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
         fields:
           # Cohen's f-squared, G*Power's input (12 November 2026): the engine
@@ -3543,47 +3901,106 @@ forms:
           - {id: group_ratio, writeup_label: "relative group sizes", label: "Relative group sizes: one whole number for each group, in the same order", type: numbers, per_levels: A_levels, path: options.group_ratio, required: true, min: 1, integer: true,
              shown_if: {field: group_sizes, is: unequal}}
 
-  # Moderation with a yes/no outcome (Spower simulation of powerkit's
-  # experiment around glm()): X and W each a score (standardised) or a
-  # yes/no group coded 0 and 1; the interaction as a ratio of odds ratios.
+  # Moderation with a yes/no or count outcome (Spower simulation of
+  # powerkit's experiment around glm() or MASS::glm.nb()): X and W each a
+  # score (standardised) or a yes/no group coded 0 and 1; the interaction as
+  # a ratio of odds ratios or of rate ratios.
   E32:
-    methods_name: "a logistic regression with an interaction (the Wald z test of the X x W coefficient), simulated"
+    methods_name: "a regression with an interaction (logistic for a yes/no outcome, Poisson or negative binomial for a count; the Wald z test of the X x W coefficient), simulated"
     tool: Spower
     directional: true
+    direction_shown_if: [{field: analysis, is_not: mediation}]
     base: {spec_version: "0.1", design: logistic_regression, template: interaction,
            variables: {X: {}, W: {}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: odds_ratio},
            target_test: {effect: interaction, method: wald_z}}
     groups:
       - input: "Your outcome, X and W, and what kind of variable each is"
         fields:
-          - {id: Y_label, label: "Yes/no outcome (for example, sought counselling)", type: text, path: variables.Y.label, required: true}
+          - {id: analysis, label: "Which question", type: select, required: true,
+             choices: {moderation: "Moderation: does X's effect on the outcome depend on another variable (W)?", mediation: "Mediation: does X affect the outcome through a mediator, a score (M)?"},
+             sets: {mediation: [{path: design, value: mediation}, {path: template, value: binary_or_count_outcome},
+                                {path: target_test.effect, value: indirect_effect}, {path: target_test.method, value: delta_method},
+                                {path: target_test.path, value: "X->M->Y"}, {path: variables.W, value: null},
+                                {path: variables.M.type, value: continuous}]},
+             default: moderation, default_source: "moderation, this card's first design"}
+          - {id: Y_kind, label: "The outcome is", type: select, required: true,
+             choices: {binary: "Yes or no (for example, sought counselling)", count: "A count (0, 1, 2, ..., for example drinking days in a month)"},
+             sets: {count: [{path: design, value: poisson_regression, shown_if: {field: analysis, is_not: mediation}}, {path: population.metric, value: rate_ratio},
+                            {path: variables.Y.type, value: count}, {path: variables.Y.levels, value: null}]},
+             default: binary, default_source: "a yes/no outcome, this card's first design"}
+          - {id: Y_label, label: "Outcome (for example, sought counselling, or drinking days in a month)", type: text, path: variables.Y.label, required: true}
+          - {id: count_model, label: "How spread out the counts are", type: select, path: target_test.method, required: true,
+             choices: {wald_z: "As a Poisson distribution allows (the variance equals the mean)", negative_binomial: "More spread out than that (negative binomial)"},
+             default: wald_z, default_source: "Poisson regression, the usual first model for counts",
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
+             help: "Counts of behaviour usually vary more than their mean (some people have many, many have none). If they do, choose negative binomial: a Poisson model then gives too much power."}
+          - {id: med_count_model, label: "How spread out the counts are", type: select, path: population.count_model, required: true,
+             choices: {poisson: "As a Poisson distribution allows (the variance equals the mean)", negative_binomial: "More spread out than that (negative binomial)"},
+             default: poisson, default_source: "Poisson regression, the usual first model for counts",
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is: mediation}],
+             help: "Counts of behaviour usually vary more than their mean (some people have many, many have none). If they do, choose negative binomial: a Poisson model then gives too much power."}
           - {id: X_label, label: "Main predictor (X)", type: text, path: variables.X.label, required: true}
           - {id: X_type, label: "What kind of variable X is", type: select, path: variables.X.type, required: true,
              choices: {continuous: "A score", binary: "A yes/no group (for example, treatment or control)"}}
           - {id: X_level1, label: "First group of X (the comparison group)", type: text, path: variables.X.levels.1, required: true, shown_if: {field: X_type, is: binary}}
           - {id: X_level2, label: "Second group of X", type: text, path: variables.X.levels.2, required: true, shown_if: {field: X_type, is: binary}}
-          - {id: W_label, label: "Moderator (W)", type: text, path: variables.W.label, required: true}
+          - {id: M_label, label: "Mediator (M), a score", type: text, path: variables.M.label, required: true, shown_if: {field: analysis, is: mediation}}
+          - {id: W_label, label: "Moderator (W)", type: text, path: variables.W.label, required: true, shown_if: {field: analysis, is_not: mediation}}
           - {id: W_type, label: "What kind of variable W is", type: select, path: variables.W.type, required: true,
-             choices: {continuous: "A score", binary: "A yes/no group"}}
-          - {id: W_level1, label: "First group of W", type: text, path: variables.W.levels.1, required: true, shown_if: {field: W_type, is: binary}}
-          - {id: W_level2, label: "Second group of W", type: text, path: variables.W.levels.2, required: true, shown_if: {field: W_type, is: binary}}
-      - input: "The proportion of 'yes' at the starting point and the odds ratios"
+             choices: {continuous: "A score", binary: "A yes/no group"}, shown_if: {field: analysis, is_not: mediation}}
+          - {id: W_level1, label: "First group of W", type: text, path: variables.W.levels.1, required: true, shown_if: [{field: W_type, is: binary}, {field: analysis, is_not: mediation}]}
+          - {id: W_level2, label: "Second group of W", type: text, path: variables.W.levels.2, required: true, shown_if: [{field: W_type, is: binary}, {field: analysis, is_not: mediation}]}
+      - input: "The starting point and the effects: odds ratios for a yes/no outcome, rate ratios for a count"
         fields:
-          - {id: base_prob, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' with X and W at their averages, or in their first groups (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1}
+          - {id: base_prob, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' with X and W at their averages, or in their first groups (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}]}
           - {id: odds_ratio_x, writeup_label: "odds ratio for X", label: "Odds ratio for X, with W at its average or in its first group", type: number, path: population.odds_ratio_x, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}],
              help: "Per SD of X for a score, or X's second group against its first."}
-          - {id: odds_ratio_w, writeup_label: "odds ratio for W", label: "Odds ratio for W, with X at its average or in its first group", type: number, path: population.odds_ratio_w, effect: true, min_exclusive: 0}
+          - {id: odds_ratio_w, writeup_label: "odds ratio for W", label: "Odds ratio for W, with X at its average or in its first group", type: number, path: population.odds_ratio_w, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}]}
           - {id: odds_ratio_xw, writeup_label: "interaction (ratio of odds ratios)", label: "The interaction: how many times X's odds ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.odds_ratio_xw, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}],
              help: "1 means no moderation. For example 1.25: X's odds ratio is a quarter larger for each SD of W. It is the exponent of the X x W coefficient a logistic regression reports."}
+          - {id: base_rate, writeup_label: "mean count at the starting point", label: "Mean count with X and W at their averages, or in their first groups", type: number, path: population.base_rate, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}]}
+          - {id: rate_ratio_x, writeup_label: "rate ratio for X", label: "Rate ratio for X, with W at its average or in its first group", type: number, path: population.rate_ratio_x, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
+             help: "How many times the mean count is multiplied per SD of X for a score, or in X's second group against its first: 0.8 is a fifth fewer."}
+          - {id: rate_ratio_w, writeup_label: "rate ratio for W", label: "Rate ratio for W, with X at its average or in its first group", type: number, path: population.rate_ratio_w, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}]}
+          - {id: rate_ratio_xw, writeup_label: "interaction (ratio of rate ratios)", label: "The interaction: how many times X's rate ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.rate_ratio_xw, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
+             help: "1 means no moderation. For example 0.85: X's rate ratio is 15% smaller for each SD of W. It is the exponent of the X x W coefficient a Poisson or negative binomial regression reports."}
+          - {id: dispersion, writeup_label: "the counts' overdispersion", label: "Overdispersion k: a count's variance is its mean plus k times its mean squared", type: number, path: population.dispersion, required: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: count_model, is: negative_binomial}, {field: analysis, is_not: mediation}],
+             help: "0.5 is common for counts of behaviour. From a pilot or a published count model: k = (variance - mean) / mean^2, or 1 / theta from R's glm.nb()."}
+          - {id: med_a, writeup_label: "X's effect on the mediator", label: "X's effect on the mediator, in the mediator's SD (the second group against the first, or per SD of a score: path a, like Cohen's d)", type: number, path: population.a, effect: true,
+             shown_if: {field: analysis, is: mediation}}
+          - {id: med_y_baseline, writeup_label: "the chance of the outcome in the comparison group", label: "Chance that the outcome is 'yes' in the first group (or at X's average) with the mediator at that group's average, from 0 to 1", type: number, path: population.y_baseline, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is: mediation}]}
+          - {id: med_b_or, writeup_label: "the odds ratio of the outcome for the mediator", label: "Odds ratio of the outcome being 'yes' per SD of the mediator, at the same X (path b)", type: number, path: population.b_odds_ratio, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is: mediation}]}
+          - {id: med_direct_or, writeup_label: "the direct odds ratio of X", label: "Odds ratio of the outcome for X, holding the mediator (optional; empty = 1, no direct effect)", type: number, path: population.direct_odds_ratio, optional: true, empty_text: "1", min_exclusive: 0,
+             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is: mediation}]}
+          - {id: med_base_rate, writeup_label: "the mean count in the comparison group", label: "Mean count in the first group (or at X's average) with the mediator at that group's average", type: number, path: population.base_rate, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is: mediation}]}
+          - {id: med_b_rr, writeup_label: "the rate ratio of the outcome for the mediator", label: "Rate ratio of the count per SD of the mediator, at the same X (path b): 0.8 is a fifth fewer", type: number, path: population.b_rate_ratio, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is: mediation}]}
+          - {id: med_direct_rr, writeup_label: "the direct rate ratio of X", label: "Rate ratio of the count for X, holding the mediator (optional; empty = 1, no direct effect)", type: number, path: population.direct_rate_ratio, optional: true, empty_text: "1", min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: analysis, is: mediation}]}
+          - {id: med_dispersion, writeup_label: "the counts' overdispersion", label: "Overdispersion k: a count's variance is its mean plus k times its mean squared", type: number, path: population.dispersion, required: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: count}, {field: med_count_model, is: negative_binomial}, {field: analysis, is: mediation}],
+             help: "0.5 is common for counts of behaviour. From a pilot or a published count model: k = (variance - mean) / mean^2, or 1 / theta from R's glm.nb()."}
       - input: "How X and W relate"
         fields:
           - {id: x_prob, label: "Proportion of people in X's second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
-             default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)", shown_if: {field: X_type, is: binary}}
+             default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)", shown_if: [{field: X_type, is: binary}, {field: analysis, is_not: mediation}]}
           - {id: w_prob, label: "Proportion of people in W's second group (0 to 1)", type: number, path: population.w_prob, required: true, min_exclusive: 0, max_exclusive: 1,
-             default: 0.5, default_source: "equal groups, powerkit's default (population > w_prob)", shown_if: {field: W_type, is: binary}}
+             default: 0.5, default_source: "equal groups, powerkit's default (population > w_prob)", shown_if: [{field: W_type, is: binary}, {field: analysis, is_not: mediation}]}
           - {id: r_xw, label: "Correlation between X and W (two scores only)", type: number, path: population.r_xw, required: true, min_exclusive: -1, max_exclusive: 1,
              default: 0, default_source: "uncorrelated, powerkit's default (population > r_xw)",
-             shown_if: [{field: X_type, is: continuous}, {field: W_type, is: continuous}]}
+             shown_if: [{field: X_type, is: continuous}, {field: W_type, is: continuous}, {field: analysis, is_not: mediation}]}
 
   # Poisson regression, one predictor (pwrss's Wald z test): a score X is
   # taken as standardised, so its rate ratio is per SD; a yes/no X compares

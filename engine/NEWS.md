@@ -1,3 +1,255 @@
+# powerkit 0.67.3
+
+* Bayes factor for R-squared (E24): `multiple_regression / r2_zero` takes
+  `target_test > method` `"bayes_factor"`, with `evidence_threshold` and
+  `prior_scale` (default 0.354, JASP's Bayesian linear regression and
+  BayesFactor's "medium"). New file `backend-bayesfactor-regression.R`:
+  BayesFactor's `linearReg.R2stat()` rises with the regression's F, so the
+  chance of strong evidence is the noncentral F (noncentrality f^2 n)
+  beyond the F at which BF10 reaches the threshold, found by root-finding;
+  the no-effect side from the central F. Check run against `lmBF()` on a
+  data set with exactly the spec's R-squared; R script; spec checks. The
+  schema now restricts `single_coefficient`'s methods to the four it
+  supports. Validation: `test-validation-bayes-regression.R` in chunk
+  `bayes`.
+
+# powerkit 0.67.2
+
+* `goal > unit` takes `"observations"` (E41, within-person moderation):
+  for `mixed_model / two_level` without `groups_per_site`, `goal.n` then
+  counts observations (people times occasions, a whole number of people)
+  instead of participants. `sample_structure()` reports the unit and a
+  note; `check_goal()` refuses `"observations"` on any other template and,
+  newly, `"items"` on any template but `crossed_two_condition`. The R
+  script's design description and sample-size comment describe occasions
+  within people when the unit is observations.
+
+# powerkit 0.67.1
+
+* `replication_planning()` gains `original_analysis` (`"test"`,
+  `"bayes_factor"`, `"posterior"`), `original_bf`, `original_prior_scale`
+  and `original_prior`. A t-test's Bayes factor is read back to its t
+  statistic and effect (BayesFactor's `ttest.tstat()` inverted); a
+  posterior from a vague or default prior stands in for the estimate and
+  standard error, and an informative prior is refused. Either Bayesian
+  route leaves out small telescopes and, for a t-test, adds `bf_repeat`
+  (the original's Bayes factor test repeated, under each belief) and
+  `bf_null` (evidence for no effect), with bfpwr's `ntbf01()`. The result
+  gains `sequential`, each belief as a design prior for
+  `bayes_sequential()`, and the R script reproduces the new goals.
+* refs.bib: Verhagen and Wagenmakers (2014), Ly et al. (2018, 2019) and
+  McLatchie, Warmelink and Tkacheva (2020), from the published articles.
+* Tests: the Bayes factor round trip; bfpwr's Bayes factor against
+  BayesFactor's; the Bayesian goals against bfpwr; the script; and an
+  absolute tolerance for the generic correlation gap, which a `scale`
+  argument testthat 3e ignores had made unable to fail.
+
+# powerkit 0.67.0
+
+* `replication_planning()` gains `design = "generic"`: the goals table for
+  any effect that is one number, from the original's estimate and its
+  standard error (`original_se`), confidence interval (`original_ci`,
+  `original_ci_level`) or test statistic (`original_statistic`), on the
+  scale given by `scale` (`"none"`, `"log"` for ratios, `"fisher_z"` for
+  correlations). The replication's standard error is the original's
+  scaled by the square root of the sample-size ratio (BayesRepDesign's
+  `se = unitSD / sqrt(n)`); small telescopes is not offered on this route.
+  The exported R script reproduces the table. Tests show it equals the
+  one-sample and paired routes exactly and give the size of the gap for
+  two groups and a correlation, which keep their exact routes.
+* forms.yaml: `replication_effects` lists every card's focal effect and
+  scale for the replication goals (exact route, one effect, multi-df test
+  pointed to its focal contrast, or none); the replication plan's card
+  status and fields follow it.
+
+# powerkit 0.66.9
+
+* New template `poisson_regression / interaction` (E32): moderation of a
+  count outcome, X and W each a score or a yes/no group. Spower runs
+  `p_count_interaction()` (new file `backend-count-interaction.R`), which
+  draws Poisson or negative binomial counts (variance mu + k mu^2) whose
+  log mean is linear in X, W and X x W, fits `glm(family = poisson())` or
+  `MASS::glm.nb()`, and tests the product by its Wald z test. Population
+  fields `base_rate`, `rate_ratio_x`, `rate_ratio_w`, `rate_ratio_xw`,
+  `dispersion` (negative binomial only), `x_prob`, `w_prob` and `r_xw`;
+  methods `wald_z` (Poisson) and `negative_binomial`. The poisson design's
+  `variables` block moves into `template_single_predictor_count`. Check
+  run, spec checks, zero-effect check, simulated-data code, R script and
+  example spec `poisson_interaction.json`. New validation chunk
+  `count_interaction`: agreement with the Wald test's large-sample power
+  from each model's expected information, an independent simulation, Type
+  I error, and a published-example placeholder.
+
+* New template `mediation / binary_or_count_outcome` (E32): mediation with
+  a yes/no or count outcome and a mediator that is a score, X two equal
+  groups or a score. Spower runs `p_mediation_yglm()` (new file
+  `backend-mediation-yglm.R`), which draws M from a linear model and Y from
+  a logistic, Poisson or negative binomial one, and analyses each study
+  with `regmedint::regmedint(mreg = "linear")` (regression-based causal
+  mediation analysis, Valeri and VanderWeele 2013): significant when the
+  natural indirect effect's delta-method p value is below alpha. Population
+  fields `a`, then `y_baseline`, `b_odds_ratio` and `direct_odds_ratio`
+  (yes/no Y) or `base_rate`, `b_rate_ratio`, `direct_rate_ratio`,
+  `count_model` and `dispersion` (count Y); method `delta_method`. Check
+  run, spec checks, zero-effect check, group split rule, simulated-data
+  code, R script and example spec `mediation_binary_or_count_outcome.json`.
+  New validation chunk `mediation_yglm`: agreement with an independent
+  simulation for a yes/no, Poisson and negative binomial outcome, Type I
+  error, and a published-example placeholder.
+
+# powerkit 0.66.8
+
+* The model-7 yes/no-X Type I error check in
+  `test-validation-modmed-binary.R` uses seed 1500 (chosen by the
+  maintainer before it was run) instead of 1703, whose 1,000 null studies
+  were rejected 7.5% of the time and failed the nightly run on the same
+  draw every night. The rate is 5.38% in 20,000 studies; with seed 1500
+  the check gives .051 against its .0707 limit.
+
+# powerkit 0.66.7
+
+* Two groups in a ratio other than 1 (`options > allocation_ratio`) are
+  rounded to whole people at every total, as a researcher would recruit
+  them: group 1 is n / (1 + ratio) rounded to the nearest person (a half
+  rounds up), group 2 the rest (`rounded_groups()`). The sample size
+  search now looks at every total, and the required n is the smallest
+  total whose rounded groups reach the target. `route_backend()` wraps the
+  backend (`rounded_ratio_backend()`): each calculation at a total runs
+  the backend for that total's exact whole-group ratio (`spec_at_total()`),
+  so no backend changed its maths. This replaces the 11 November 2026
+  rule (a rounded decimal planned as the simplest whole split that rounds
+  to it), which still moved the total in steps and could need up to about
+  four people more. Against G*Power: its variance-test example at
+  N2/N1 = 2 now agrees (148 + 295 = 443, was 444); for two proportions at
+  N2/N1 = 2 and 95% power powerkit gives 371 (124 + 247) where G*Power
+  gives 370, whose groups fall just short of the target (was 372). The
+  result's `allocation` gives the groups at the total and the ratio they
+  achieve; `n_step` is 1. `minimum_n()` asks each rounded group for what
+  one of two equal groups needs. Spower's two-group generators get group
+  2's size from the total (nudged by a relative 1e-12 so that a truncated
+  product can't drop a person), and the R scripts round the same way
+  (`floor(n / (1 + ratio) + 0.5)` throughout).
+
+# powerkit 0.66.6
+
+* New template `mediation / binary_mediator` (E39): mediation with a yes/no
+  mediator, X two equal groups or a score, Y a score or yes/no. Spower runs
+  `p_mediation_binm()`, which draws M from a logistic model and Y from a
+  linear or logistic one and analyses each study with
+  `regmedint::regmedint()` (regression-based causal mediation analysis,
+  Valeri and VanderWeele 2013, now in refs.bib): significant when the
+  natural indirect effect's delta-method p value is below alpha. Population
+  fields `m_baseline`, `m_odds_ratio`, then `b` and `direct` (score Y) or
+  `y_baseline`, `b_odds_ratio` and `direct_odds_ratio` (yes/no Y); method
+  `delta_method`. Check run, spec checks, zero-effect check, group split
+  rule, simulated-data code, R script and example spec
+  `mediation_binary_mediator.json`. regmedint joins Suggests (sandwich and
+  assertthat join renv.lock). New validation chunk `mediation_binm`:
+  agreement with an independent simulation of the published formulas for
+  each kind of X and Y, Type I error, and a published-example placeholder.
+
+# powerkit 0.66.5
+
+* `mixed_model / repeated_glmm` (E75) takes two or more groups measured
+  more than once: `variables > W`, a between factor, with X within
+  people, `target_test > effect` `"interaction"`, and `rates`,
+  `probabilities` or `odds_ratios` given one row per group of W (one
+  value per condition of X; for ordered categories the first group's
+  first condition is 1). The model is `y ~ group * cond + (1 | person)`,
+  the people split equally between the groups, and the test is of
+  `group:cond`: simr's `fixed("group:cond", "lr" or "chisq")` for
+  Poisson and yes/no, and for negative binomial counts and ordered
+  categories the likelihood-ratio test against `y ~ group + cond +
+  (1 | person)` or the Wald chi-square test of the interaction terms, in
+  `p_repeated_nb()` and `p_repeated_ordinal()` (new argument `groups`).
+  `repeated_glmm_fixef()` solves for the treatment-coded fixed effects
+  that reproduce every cell; the check run, the exported script and the
+  simulated-data code follow the interaction model. Spec checks refuse
+  rows of the wrong length, W not between people, X not within people,
+  an interaction without W and, for a sample size, groups that change
+  alike. New example spec `repeated_glmm_interaction.json`; the `glmm`
+  validation chunk adds four interaction cases against a separately
+  written simulation and a Type I check.
+
+# powerkit 0.66.4
+
+* Mediation with X in three or more groups is a new template,
+  `mediation / multicategorical` (E42): X categorical with at least three
+  levels, dummy-coded against the first; `population > metric`
+  `"standardised"` with `m_differences` (each later group's Cohen's d on
+  M, its path a_j), `b` (the within-group path M -> Y, between -1 and 1)
+  and optional `direct_differences`; `target_test > path` `"X->M->Y"`,
+  `method` `"monte_carlo_ci"` and `group` (`"all"`, the default, or one
+  later group). Each study is drawn in equal groups and fitted by
+  `lavaan::sem()`, and each tested relative indirect effect a_j * b gets a
+  Monte Carlo percentile interval from `manymome::do_mc()`'s draws, in
+  Spower running powerkit's experiment `p_mediation_mcx()`, since
+  power4mome's `x_fun` can't draw the dummies of one factor. With `group`
+  `"all"` a study counts only when every interval excludes 0. New backend
+  file `backend-mediation-mcx.R`, with a check run recovering every path,
+  an R script that reproduces the run exactly (the data are drawn before
+  the fit, so lazy evaluation inside lavaan can't reorder the random
+  numbers), simulated-data code and spec checks (fewer than three groups,
+  mismatched lengths, an unknown group, reliability). The group split
+  rule asks for a multiple of the number of groups. Citations name lavaan
+  and manymome when a Spower run uses them; Hayes and Preacher (2014)
+  joins refs.bib. New validation chunk `mediation_mcx`
+  (`test-validation-mediation-mcx.R`): agreement with an independent OLS
+  simulation for one group and every group, and Type I error.
+
+# powerkit 0.66.3
+
+* A Greenhouse-Geisser or Huynh-Feldt corrected F test whose effect is
+  not spherical (Greenhouse-Geisser epsilon below 1) is simulated by
+  default with `Superpower::ANOVA_power()` (Departure 28). Superpower's
+  `ANOVA_exact()` multiplies the noncentrality and degrees of freedom by
+  epsilon. That is an approximation, which missed the corrected test's
+  simulated power by -3.2 to +3.3 points (`docs/validation-log.md`,
+  14 November 2026). It stays available with `options > method =
+  "exact"`, and it still finds the smallest detectable effect: the
+  backend's new `sensitivity_method`. The backend reads the population
+  epsilon from afex's sphericity corrections on the exact dataset
+  (`superpower_gg_epsilon()`). The MANOVA approach is still reported
+  beside the simulated test, from the exact dataset. Spherical designs
+  and uncorrected tests are unchanged.
+* App: the one-way repeated-measures, mixed and two-factor within cards
+  start "How power is worked out" at simulation once the SDs or
+  correlations differ and a correction is chosen (`gg_method`). The
+  exact dataset, chosen or used for the smallest detectable effect,
+  puts a warning above the answer; Departure 28 is listed when the test
+  is simulated. Departure 3 is no longer listed for a simulated ANOVA.
+* The nightly mixed-design GG failure is explained by the approximation
+  above. The binary-X moderated-mediation null failure comes from its
+  fixed seed: the true rate is 5.38% in 20,000 studies.
+  `docs/upstream/superpower-gg-grid.R` is the independent check.
+
+# powerkit 0.66.2
+
+* The same people measured more than once with a count, yes/no or
+  ordered-categories outcome are a new template, `mixed_model /
+  repeated_glmm` (E75): `population > metric` `"rate"` (with `rates`),
+  `"probability"` (with `probabilities`) or `"proportion"` (Y
+  categorical, with `category_probabilities` for the first condition and
+  `odds_ratios`, the first 1), `sd_person`, `measurements` (default 1) and, for a
+  negative binomial count, `dispersion` (variance mu + k mu^2); X a
+  within or between factor with two or more levels; `target_test >
+  effect` `"condition"`, `method` `"likelihood_ratio"` (default) or
+  `"wald"`. The model is `y ~ cond + (1 | person)`: Poisson and logistic
+  through simr's `makeGlmer()` and `powerSim()` (`fixed("cond", "lr")` or
+  `"chisq"`); negative binomial through Spower running powerkit's
+  experiment `p_repeated_nb()`, lme4's `glmer.nb()`, since simr has no
+  negative binomial family; ordered categories through Spower running
+  `p_repeated_ordinal()`, ordinal's `clmm()` (logit link, proportional
+  odds), with the likelihood-ratio or Wald chi-square test of cond.
+  ordinal joins Suggests. New backend file `backend-glmm.R`;
+  `simr_model()` accepts a family. Spec checks refuse one measurement per
+  person between people, and one yes/no answer per condition (McNemar's
+  test or Cochran's Q), and category shares that don't add up to 1. The
+  check run recovers each log rate (or odds) ratio, the person SD, the
+  overdispersion and the thresholds. The R script and the simulated data
+  set cover all four models. Validation:
+  `test-validation-glmm.R` (chunk `glmm`).
+
 # powerkit 0.66.1
 
 * The Bland-Altman limits of agreement are a new template,

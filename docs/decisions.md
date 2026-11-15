@@ -3250,3 +3250,352 @@ test versions). Validation: `test-validation-agreement.R`.
 The same review recorded, from de Winter (2026, *Quality & Quantity*), a
 queue item for a permutation test on Welch's t as a test version on E2
 (`next.md` item 28); Welch's t-test stays the default (Departure 21).
+
+### Repeated counts, yes/no answers and ordered categories on E75, 14 November 2026
+
+E75, the same people measured more than once with a count, a yes/no
+answer or an answer in ordered categories, now calculates, by the method `next.md` named for it: a
+generalised linear mixed model with a random intercept for each person,
+`y ~ cond + (1 | person)`, simulated with simr as E33 does for yes/no
+trials. People can be in every condition (before and after a programme)
+or in one of them, measured several times; a count is Poisson or, when
+counts vary more than a Poisson distribution allows, negative binomial
+(the overdispersion k as on E28). simr cannot build or refit a negative
+binomial mixed model, so that version is a Spower simulation of
+powerkit's experiment `p_repeated_nb()`, fitted with lme4's `glmer.nb()`.
+The test is the likelihood-ratio test of the conditions by default, as on
+E63's yes/no version, with car's Wald chi-square test as the option.
+Poisson stays the count default, since the person intercepts already let
+people differ; the input screen says when to choose the negative binomial
+model. Ordered categories are a cumulative link mixed model with the
+logit link and proportional odds, ordinal's `clmm()`, in a Spower
+simulation of `p_repeated_ordinal()`: the researcher gives a typical
+person's share of answers in each category in the first condition and
+each condition's odds ratio of a higher category, as on the
+proportional-odds card for two groups (E29). Power at a fixed number of
+people runs on the card; a required number comes as an R script. Two
+groups measured more than once (a group-by-time interaction) and count
+trials with stimulus variation stay in `next.md` item 1. Validation: `test-validation-glmm.R`. Conventions:
+`docs/conventions.md`, "The same people measured more than once".
+
+### Two or more groups measured more than once on E75, 14 November 2026
+
+E75 now plans the group-by-time interaction for a count, yes/no or
+ordered-categories outcome, the follow-up `next.md` named for it: two or
+more groups of people (W, a between factor), each person measured in
+every condition or on every occasion of X, analysed with
+`y ~ group * cond + (1 | person)` and tested for the interaction of group
+and condition (do the groups change differently?). The families, the
+simulation routes (simr for Poisson and yes/no, Spower with
+`glmer.nb()` or `clmm()` for negative binomial counts and ordered
+categories) and the two tests are those of the one-group design; the
+likelihood-ratio test against the additive model stays the default. The
+researcher gives the expected count, chance of 'yes' or odds ratio of a
+higher category in each group and condition, one row per group, and
+powerkit solves for the fixed effects that reproduce them exactly. The
+people are split equally between the groups. Validation:
+`test-validation-glmm.R`, with four interaction cases against a
+separately written simulation and the Type I error with both groups
+changing by the same ratio. Conventions: `docs/conventions.md`, "The
+same people measured more than once".
+
+### Mediation with a yes/no or count outcome on E32, 14 November 2026
+
+E32's mediation now calculates for a yes/no or count outcome with a
+mediator that is a score. As on E39, the analysis is regression-based
+causal mediation analysis (Valeri and VanderWeele, 2013) by regmedint, the
+R version of the authors' macro: a linear regression for the mediator and
+a logistic, Poisson or negative binomial regression for the outcome,
+without an X-by-M interaction, with the natural indirect effect tested by
+its delta-method standard error. PROCESS fits a logistic outcome model but
+offers nothing for counts, and power4mome draws only scores, so Spower
+simulates studies of powerkit's experiment `p_mediation_yglm()` (its own
+backend file). X is two equal groups or a score; the researcher gives X's
+effect on the mediator in the mediator's SD, the outcome's chance of 'yes'
+or mean count in the first group, and the odds or rate ratio per SD of
+the mediator (with the overdispersion for a negative binomial count). The
+card's form gains a choice between moderation and mediation. Power and a
+required sample size both run on the card. Recommendation for the
+maintainer: keep the delta-method test, as on E39, since it is what the
+authors' tool reports; a Monte Carlo interval of the indirect effect, as
+on the score-mediator cards, is a candidate option for both cards
+together. A categorical outcome (three or more unordered answers) stays
+in `next.md` item 1. Validation: `test-validation-mediation-yglm.R`
+(independent simulations for a yes/no, Poisson and negative binomial
+outcome, and the Type I error). A normal-approximation power formula
+isn't used as a reference, since the delta-method statistic's power
+differs from it by several points at planned sample sizes. Conventions:
+`docs/conventions.md`, "Mediation with a yes/no or count outcome (E32)".
+
+### Moderation of a count outcome on E32, 14 November 2026
+
+E32's moderation now takes a count outcome (0, 1, 2, ...) beside a yes/no
+one. The analysis is the count model researchers fit: a Poisson regression
+with the X x W product, or a negative binomial regression when the counts
+vary more than their mean, tested by the Wald z test of the product's
+coefficient, as `summary()` of `glm()` or `MASS::glm.nb()` reports it.
+G\*Power and pwrss have no count interaction test, so Spower simulates
+studies of powerkit's experiment `p_count_interaction()` (its own backend
+file, `backend-count-interaction.R`). The researcher gives the mean count
+at the starting point, the rate ratios for X and W and the interaction as
+a ratio of rate ratios, and for negative binomial counts the overdispersion
+k (variance mu + k mu^2), as on E28. X and W are each a score or a yes/no
+group, as for the yes/no outcome. The default is Poisson, as on E28; the
+field's help says to choose negative binomial for counts of behaviour,
+since a Poisson model overstates power when the counts are overdispersed.
+Recommendation for the maintainer: keep Poisson as the default for
+consistency with E28 and G\*Power's count test, and revisit both together
+if negative binomial is made the default for counts. Power and a required
+sample size both run on the card. A categorical outcome stays in `next.md`
+item 1. Validation:
+`test-validation-count-interaction.R`. Conventions: `docs/conventions.md`,
+"Moderation of a count outcome (E32)".
+
+### Mediation with a yes/no mediator on E39, 14 November 2026
+
+E39, mediation where the mediator is yes or no, now calculates. PROCESS
+can't model a yes/no mediator (it fits every mediator's equation by OLS),
+and power4mome can't draw one, so the card runs the analysis designed for
+it: regression-based causal mediation analysis (Valeri and VanderWeele,
+2013), a logistic regression for the mediator and a linear or logistic
+regression for the outcome, with the natural indirect effect tested by its
+delta-method standard error, as regmedint, the R version of the authors'
+macro, computes it. Spower simulates studies of powerkit's experiment
+`p_mediation_binm()`; X is two equal groups or a score, the outcome a score
+or yes/no. regmedint joins Suggests (with sandwich and assertthat in
+renv.lock); the run checks it is installed before it starts. Power and a
+required sample size both run on the card (about 25 seconds for power).
+An X-by-M interaction, covariates and a bootstrap interval are not offered
+yet. Recommendation for the maintainer: keep the delta-method test as the
+default, since it is what the authors' tool reports; a Monte Carlo
+interval of the natural indirect effect, as on the other mediation cards,
+would need either regmedint's internal formulas or new code, and is a
+candidate option rather than the default. Validation:
+`test-validation-mediation-binm.R`. Conventions: `docs/conventions.md`,
+"Mediation with a yes/no mediator".
+
+### Mediation with X in three or more groups on E42, 14 November 2026
+
+E42, mediation where X is three or more conditions or groups, now
+calculates. The analysis is the one PROCESS runs for a multicategorical X
+by default (Hayes and Preacher, 2014): X dummy-coded against its first
+group, and one relative indirect effect per later group, its path to M
+times M's path to Y. power4mome can't draw the dummies of one factor
+(`x_fun` draws each variable separately), so the design is a Spower
+simulation of powerkit's experiment `p_mediation_mcx()`: equal groups,
+the model fitted by lavaan, and each tested relative indirect effect's
+Monte Carlo percentile interval computed from `manymome::do_mc()`'s
+draws, the interval and estimator of the other mediation cards
+(Departure 6, Known difference 14). The researcher gives each later
+group's Cohen's d on M, the within-group path from M to Y and,
+optionally, the direct effects, and chooses one comparison or every
+comparison; with every comparison a study succeeds only when all the
+intervals exclude 0. Power at a fixed sample size runs on the card; a
+required sample size comes as an R script. The bootstrap intervals PROCESS
+reports, and codings other than dummy coding, are not offered yet; the
+Monte Carlo interval is the recommendation, as for every other mediation
+card. Validation: `test-validation-mediation-mcx.R`. Conventions:
+`docs/conventions.md`, "Mediation with X in three or more groups".
+
+### Corrected repeated-measures tests simulated by default, 14 November 2026
+
+A Greenhouse-Geisser or Huynh-Feldt corrected F test whose effect is not
+spherical (epsilon below 1) is now simulated by default with Superpower's
+`ANOVA_power()`. It is no longer worked out from `ANOVA_exact()`'s exact
+dataset (`conventions.md`, Departure 28). The exact dataset multiplies
+the noncentrality and both degrees of freedom by epsilon. That is an
+approximation, not the corrected test's power. In independent
+simulations it was between 3.2 points too low and 3.3 points too high
+(`validation-log.md`, 14 November 2026). It is also the reason the
+nightly mixed-design comparison failed (.231 against .218).
+
+Recommendation accepted: simulate by default, because only simulated
+studies analysed with the corrected test give that test's power, and an
+error of a few points matters near a target.
+
+- The exact dataset stays available, labelled as an approximation, with
+  a warning above the answer.
+- The smallest detectable effect is still found with the exact dataset,
+  because the engine has no simulated search for it, and carries the
+  same warning.
+- Spherical designs and uncorrected tests keep the exact dataset, which
+  is exact for them.
+- The engine decides from the population's epsilon, which afex reads on
+  the exact dataset.
+- The cards' "How power is worked out" starts at simulation once the SDs
+  or correlations differ and a correction is chosen.
+- With the maintainer's approval, the three corrected-test comparisons in
+  `test-validation-anova-within-covariance.R` were rewritten. After the
+  change, each compared two simulations while counting only one's Monte
+  Carlo error, so a fixed seed could fail every night. Each now compares
+  the simulated default with an independent reference: .4658 (one-way),
+  .2169 (mixed) and .0971 (two-factor, Huynh-Feldt). The references come
+  from 400,000 studies drawn from sufficient statistics in base R
+  (`docs/upstream/superpower-gg-grid.R`). Each test also checks that the
+  exact dataset is within 4 points of its reference. Each simulated call
+  keeps the seed of the original test's simulated call.
+
+### Two groups in a ratio rounded at every total, 14 November 2026
+
+Two groups in a ratio other than 1 are planned at every total with the
+groups rounded to whole people, as a researcher would recruit them: group
+1 is N / (1 + ratio) rounded to the nearest person (a half rounds up), and
+group 2 is the rest. The required N is the smallest total whose rounded
+groups reach the target power, and the result states the groups and the
+ratio they achieve. This replaces the rule of 11 November 2026 (a rounded
+decimal planned as the simplest whole split that rounds to it), as
+`next.md` item 20 set out, because the total still moved in steps of that
+split and could need up to about four people more.
+
+- G\*Power also rounds each group of a total. The two agree wherever
+  G\*Power's groups reach the target (its variance-test example, 443; two
+  proportions at a ratio of 3, 280). Where G\*Power's rounded groups fall
+  just short (two proportions at a ratio of 2: 370 at 0.9498668),
+  powerkit gives the next total (371), because a plan has to reach the
+  target. Recorded under "Group sizes given as a ratio" in
+  `conventions.md` and in Departure 11.
+- Equal groups keep their step of 2.
+- The backends are unchanged: at each total the engine runs the backend
+  for that total's exact whole-group ratio.
+
+### The binary-X null check's seed changed to 1500, 14 November 2026
+
+The model-7 yes/no-X Type I error check in
+`test-validation-modmed-binary.R` simulates 1,000 null studies and fails
+above .0707 (alpha plus three binomial standard errors). Its seed, 1703,
+drew a set of studies rejected 7.5% of the time, so the nightly run
+failed on the same draw every night. In 20,000 studies the rate is 5.38%
+(99.9% interval 4.87% to 5.92%; `validation-log.md`, 14 November 2026),
+consistent with 5%, so the failure was that draw, not the test.
+
+The maintainer chose seed 1500 before it was run; the replications and
+the limit are unchanged. With it the rejection rate is .051 (limit
+.0707), and the rest of the file passes. The test remains one 1,000-study draw: at the
+true rate of about 5.4%, roughly one seed in 80 would exceed the limit.
+More replications would remove that chance and remain an option if the
+check fails again.
+
+### The Bayes factor for R-squared on E24, 14 November 2026
+
+The first design of `next.md` item 2: E24's question "whether the
+predictors together explain anything" takes a Bayes factor test version.
+The Bayes factor is BayesFactor's linear-regression (JZS) Bayes factor of
+the model with all the predictors against the intercept-only model, with
+an r scale of 0.354, JASP's default for its Bayesian linear regression and
+BayesFactor's "medium". It depends on the data only through R-squared, so
+BayesFactor's `linearReg.R2stat()` gives it from the F statistic, and the
+chance of strong evidence is exact: the noncentral F beyond the F at which
+BF10 reaches the threshold, as for the Bayes factor ANOVA (E18). JASP
+computes the Bayes factor with BAS rather than BayesFactor; on one
+simulated data set BAS's JZS Bayes factor was 15.73 and
+`linearReg.R2stat()`'s 15.75, which is within the numerical integration
+of the two packages. Validation: `test-validation-bayes-regression.R`
+(chunk `bayes`), against `lmBF()` on data simulated with fixed predictors.
+The R-squared increase and one coefficient are not offered yet: their
+Bayes factor depends on two R-squared values, and JASP reports a
+coefficient's evidence as a model-averaged inclusion Bayes factor.
+Recommendation for the maintainer: plan the Bayes factor of the full model
+against the model without the tested predictors (what
+`regressionBF(whichModels = "top")` reports, and the direct analogue of
+the F test), simulated from the three independent sums of squares;
+JASP's inclusion Bayes factor depends on the predictors' correlations,
+which researchers rarely know when planning. Conventions:
+`docs/conventions.md`, "Bayes factor for R-squared in a linear regression
+(E24)".
+
+### Within-person moderation on E41, 14 November 2026
+
+E41 now calculates within-person moderation, the design `next.md` item 1
+named for it: people measured on many occasions (a diary or
+experience-sampling study), an occasion-level predictor X centred within
+each person, a person-level moderator W, and their cross-level
+interaction. No new model was needed: it is E62's two-level model
+(`mixed_model / two_level`, simr with lmerTest's Satterthwaite test, or
+glmer's Wald or likelihood-ratio test for a yes/no outcome) with occasions
+at level 1 and people at level 2. What differs is the unit: the spec's
+`goal > unit` is `"observations"`, so the sample size counts people times
+occasions, and the result, the methods paragraph and the R script give
+both ("80 people measured on 14 occasions each"). mlmpower, the other
+package for this design, plans level-2 units and observations per unit
+together; it was not used as the route because E62's simulation already
+covers the model, a yes/no outcome included.
+Recommendation for the maintainer: keep simr as the route for both cards,
+so that one validated model serves them. Within-person mediation (1-1-1
+mediation) stays not calculated: no package plans it, and a simulation of
+a multilevel mediation model is a separate piece of work. Validation:
+`test-validation-two-level.R`. Conventions: `docs/conventions.md`, "People
+within groups, predictors at both levels".
+
+
+### Replication goals for any one-number effect, 15 November 2026
+
+A replication plan's goals table (queue item 21) now covers every card
+whose focal effect is one number, not only an original t-test or
+correlation:
+
+- The four designs with exact routes (two groups, one sample, paired,
+  a correlation) keep them. For any other card the table is planned on
+  the effect's own scale from the original's estimate, its standard
+  error and its sample size. The standard error can be given directly,
+  from a confidence interval (`(upper − lower) / (2 z)`) or from a test
+  statistic (`|estimate / statistic|`). The replication's standard error
+  is the original's scaled by √(original n / replication n), which is
+  BayesRepDesign's relation `se = unitSD / √n` (Pawel, Consonni & Held,
+  2026) with the unit SD read from the original.
+- Ratios (odds, risk, hazard and rate ratios) are planned on the log
+  scale and correlations on Fisher's z, so the normal approximation the
+  goals rest on holds. Each card's effect and scale are listed in
+  `forms.yaml` under `replication_effects`; a multi-df test is told to
+  plan the focal contrast on the card named there, and a card with no
+  single focal effect (a meta-analysis's average, an agreement study)
+  says the goals table does not apply.
+- Small telescopes is not offered on the generic route: d33 needs the
+  design's own power function, which the design's card already has.
+- A test shows the generic route reproduces the exact one-sample and
+  paired tables. For two groups and a correlation it shows the size of
+  the gap: about (1 + d²/8) times as many people for two groups (138
+  against 130 at d = 0.7 for the shrunk prior), and n_o / (n_o − 3) ×
+  (exact − 3) for a correlation (89 against 85), because the generic
+  route reads the unit SD at the original's estimate. This is why the
+  four keep their exact routes.
+
+### Replication plans for an original analysed with Bayes factors, 15 November 2026
+
+A replication plan now asks how the original was analysed (queue item
+21): a significance test, a Bayes factor or a posterior distribution.
+
+- **A Bayes factor.** For a t-test (two groups, one group or pairs), the
+  original's BF10, its sample size and its Cauchy prior's scale (0.707 by
+  default) give its t statistic, by inverting BayesFactor's
+  `ttest.tstat()`, which grows with |t|; the t gives the standardised
+  effect. This is the reverse of the summary-statistics reanalysis of
+  Ly et al. (2018). A test checks the round trip at three t values and
+  three prior scales for each design. The effect is read as positive:
+  the goals are symmetric in its sign. Other designs are told to give a
+  posterior or the estimate with its standard error, because no package
+  gives their Bayes factor from summary statistics alone.
+- **A posterior.** Its mean and SD (or credible interval) stand in for
+  the estimate and its standard error, only when its prior was vague or
+  a default one. An informative prior's posterior is refused with a
+  plain message: it mixes the prior's beliefs into the original's
+  evidence (McLatchie, Warmelink & Tkacheva, 2020, pp. 75–76). A
+  correlation's posterior SD is moved to Fisher's z by the delta method,
+  SD / (1 − r²).
+- **Goals.** Either route leaves out small telescopes and the original's
+  significance level, which rest on a significance test. For a t-test it
+  adds the original's Bayes factor test repeated on the replication's
+  data under the three beliefs, and evidence for no effect (BF01 at the
+  threshold, planned for a true effect of zero), both with bfpwr's
+  `ntbf01()` (Pawel & Held, 2025), whose Bayes factor equals
+  BayesFactor's (tested). The replication and sceptical Bayes factors
+  stay. The queue item named BayesRepDesign's `ssdBF01()` for evidence
+  for no effect; its help says success is BF01 below the level, which is
+  evidence for an effect, so bfpwr's `ntbf01(lower.tail = FALSE)` is used
+  instead.
+- **Sequential.** `bayes_sequential()` takes a normal design prior
+  (`effect`, `effect_sd`), so the results offer to plan the replication
+  as a sequential Bayes factor design in Labs, filled from the chosen
+  belief, the original's prior scale and the threshold.
+- The references (Verhagen & Wagenmakers, 2014; Ly et al., 2018, 2019;
+  McLatchie et al., 2020) were added to `refs.bib` from the published
+  articles.

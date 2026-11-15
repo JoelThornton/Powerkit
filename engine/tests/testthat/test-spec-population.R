@@ -209,12 +209,10 @@ test_that("n must split into whole groups, with the nearest valid n suggested", 
   spec$goal$n <- 121
   expect_spec_problem(spec, "split into 2 equal groups")
 
+  # Two groups in a ratio are rounded to whole people at any total.
   spec <- example_spec("independent_t")
   spec$options$allocation_ratio <- 2
   spec$goal <- list(type = "power", n = 100)
-  expect_spec_problem(spec, "in the ratio 1 : 2; 100 doesn't. The nearest that do: 99 and 102.")
-
-  spec$goal$n <- 99
   expect_valid_spec(spec)
 })
 
@@ -256,6 +254,8 @@ zero_effect_cases <- list(
   crossed_two_condition = function(s) within(s, population$difference <- 0),
   mixed_two_level = function(s) within(s, population$b_XW <- 0),
   crossed_conditions = function(s) within(s, population$means <- list(600, 600, 590)),
+  repeated_glmm = function(s) within(s, population$rates <- list(2, 2)),
+  repeated_glmm_interaction = function(s) within(s, population$rates <- list(list(2, 1.4), list(2, 1.4))),
   item_predictor = function(s) within(s, population$slope <- 0),
   # Small schools (two classes of four), so that the fixed-n check's 240
   # people are a whole number of them (30), above the minimum of six.
@@ -277,6 +277,9 @@ zero_effect_cases <- list(
   meta_regression = function(s) within(s, population$slope <- 0),
   meta_heterogeneity = function(s) within(s, population$i2 <- 0),
   mediation_simple = function(s) within(s, population$paths[["X->M"]] <- 0),
+  mediation_multicategorical = function(s) within(s, population$m_differences[[1]] <- 0),
+  mediation_binary_mediator = function(s) within(s, population$m_odds_ratio <- 1),
+  mediation_binary_or_count_outcome = function(s) within(s, population$a <- 0),
   mediation_ols_bootstrap = function(s) within(s, population$paths[["X->M"]] <- 0),
   mediation_parallel = function(s) within(s, population$paths[["M2->Y"]] <- 0),
   mediation_serial = function(s) within(s, population$paths[["M1->M2"]] <- 0),
@@ -324,6 +327,7 @@ zero_effect_cases <- list(
   regression_coefficient = function(s) within(s, population$partial_r2 <- 0),
   multinomial_regression = function(s) within(s, population$probabilities_second <- population$probabilities),
   logistic_interaction = function(s) within(s, population$odds_ratio_xw <- 1),
+  poisson_interaction = function(s) within(s, population$rate_ratio_xw <- 1),
   group_moderator = function(s) within(s, population$r_xy <- list(-0.2, -0.2, -0.2)),
   growth_curve = function(s) within(s, population$slope_difference <- 0),
   irt_dif = function(s) within(s, population$b_shift <- list(0)),

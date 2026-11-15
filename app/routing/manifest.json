@@ -1507,6 +1507,30 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-08-12 19:43:19 UTC; unix"
       }
     },
+    "assertthat": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "assertthat",
+        "Title": "Easy Pre and Post Assertions",
+        "Version": "0.2.1",
+        "Authors@R": "\n  person(\"Hadley\", \"Wickham\", , \"hadley@rstudio.com\", c(\"aut\", \"cre\"))",
+        "Description": "An extension to stopifnot() that makes it easy to declare \n    the pre and post conditions that you code should satisfy, while also \n    producing friendly error messages so that your users know what's gone\n    wrong.",
+        "License": "GPL-3",
+        "Imports": "tools",
+        "Suggests": "testthat, covr",
+        "RoxygenNote": "6.0.1",
+        "Collate": "'assert-that.r' 'on-failure.r' 'assertions-file.r'\n'assertions-scalar.R' 'assertions.r' 'base.r'\n'base-comparison.r' 'base-is.r' 'base-logical.r' 'base-misc.r'\n'utils.r' 'validate-that.R'",
+        "NeedsCompilation": "no",
+        "Packaged": "2019-03-21 13:11:01 UTC; hadley",
+        "Author": "Hadley Wickham [aut, cre]",
+        "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2019-03-21 14:53:46 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-12 19:40:31 UTC; unix"
+      }
+    },
     "audio": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6326,7 +6350,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.66.1",
+        "Version": "0.67.3",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6336,7 +6360,7 @@
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
         "Imports": "afex, BayesFactor, bayestestR, bfpwr, car, digest, effectsize,\nHmisc, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nlme4, lmerTest, manymome, parallel, nlme, psych, power4mome,\npwr, powertools, pwrss, simr, SimDesign, Spower (>= 0.7),\nstats, SuppDists, Superpower, utils",
-        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, boot, GPArotation,\ngsl, hypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha,\nkappaSize, lavaan, longpower, lmhelprs (>= 0.4.2), MASS,\nMatrix, MBESS, mclust, metafor, metapower, mirt, nnet,\npbkrtest, PITS, PMCMRplus, POMADE, powerSurvEpi, powRICLPM,\npresize, pscl, PUMP, quantreg, semPower, simsem, SimplyAgree,\nstatpsych, survival, testthat (>= 3.0.0), TOSTER, vegan,\nWebPower, withr, WRS2",
+        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, boot, GPArotation,\ngsl, hypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha,\nkappaSize, lavaan, longpower, lmhelprs (>= 0.4.2), MASS,\nMatrix, MBESS, mclust, metafor, metapower, mirt, nnet, ordinal,\npbkrtest, PITS, PMCMRplus, POMADE, powerSurvEpi, powRICLPM,\npresize, pscl, PUMP, quantreg, regmedint, semPower, simsem,\nSimplyAgree, statpsych, survival, testthat (>= 3.0.0), TOSTER,\nvegan, WebPower, withr, WRS2",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
         "Config/testthat/start-first": "export-script, whole-study,\nbackend-modmed-parallel, backend-mixed-model",
@@ -6345,19 +6369,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "ece337a1ed0f389f9102ab0cc1f2486b7f9c6d0c",
-        "RemoteSha": "ece337a1ed0f389f9102ab0cc1f2486b7f9c6d0c",
+        "RemoteRef": "8bcc40be6003542119c7e79cb73d32d2ceb1e34d",
+        "RemoteSha": "8bcc40be6003542119c7e79cb73d32d2ceb1e34d",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "ece337a1ed0f389f9102ab0cc1f2486b7f9c6d0c",
-        "GithubSHA1": "ece337a1ed0f389f9102ab0cc1f2486b7f9c6d0c",
+        "GithubRef": "8bcc40be6003542119c7e79cb73d32d2ceb1e34d",
+        "GithubSHA1": "8bcc40be6003542119c7e79cb73d32d2ceb1e34d",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-14 11:39:53 UTC; runner",
+        "Packaged": "2026-11-15 12:06:12 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-14 11:40:38 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-15 12:06:53 UTC; unix"
       }
     },
     "powertools": {
@@ -7060,6 +7084,34 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:47:02 UTC; unix"
       }
     },
+    "regmedint": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "regmedint",
+        "Title": "Regression-Based Causal Mediation Analysis with Interaction and\nEffect Modification Terms",
+        "Version": "1.0.2",
+        "Authors@R": "c(  \n    person(\"Kazuki\", \"Yoshida\",\n    email = \"kazukiyoshida@mail.harvard.edu\",\n    role = c(\"ctb\",\"aut\"),\n    comment = c(ORCID = \"0000-0002-2030-3549\")),\n    person(\"Yi\", \"Li\",\n    email = \"yi.li10@mail.mcgill.ca\",\n    role = c(\"cre\",\"aut\"),\n    comment = c(ORCID = \"0000-0002-9359-210X\")),\n    person(\"Maya\", \"Mathur\",\n    role = c(\"ctb\"),\n    comment = c(ORCID = \"0000-0001-6698-2607\"))\n    )",
+        "Description": "This is an extension of the regression-based causal mediation analysis first proposed by Valeri and VanderWeele (2013) <doi:10.1037/a0031034> and Valeri and VanderWeele (2015) <doi:10.1097/EDE.0000000000000253>). It supports including effect measure modification by covariates(treatment-covariate and mediator-covariate product terms in mediator and outcome regression models) as proposed by Li et al (2023) <doi:10.1097/EDE.0000000000001643>. It also accommodates the original 'SAS' macro and 'PROC CAUSALMED' procedure in 'SAS' when there is no effect measure modification. Linear and logistic models are supported for the mediator model. Linear, logistic, loglinear, Poisson, negative binomial, Cox, and accelerated failure time (exponential and Weibull) models are supported for the outcome model.",
+        "License": "GPL-2",
+        "Encoding": "UTF-8",
+        "LazyData": "true",
+        "Imports": "Deriv, MASS, Matrix, assertthat, sandwich, survival",
+        "Suggests": "boot, furrr, future, geepack, knitr, mice, mitools, modelr,\npurrr, rlang, rmarkdown, stringr, testthat, tidyverse, magic,\nformattable, kableExtra",
+        "RoxygenNote": "7.3.3",
+        "VignetteBuilder": "knitr",
+        "URL": "https://kaz-yos.github.io/regmedint/",
+        "BugReports": "https://github.com/kaz-yos/regmedint/issues",
+        "Depends": "R (>= 2.10)",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-03-06 05:49:11 UTC; yili",
+        "Author": "Kazuki Yoshida [ctb, aut] (ORCID:\n    <https://orcid.org/0000-0002-2030-3549>),\n  Yi Li [cre, aut] (ORCID: <https://orcid.org/0000-0002-9359-210X>),\n  Maya Mathur [ctb] (ORCID: <https://orcid.org/0000-0001-6698-2607>)",
+        "Maintainer": "Yi Li <yi.li10@mail.mcgill.ca>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-03-06 08:00:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-23 21:59:46 UTC; unix"
+      }
+    },
     "reshape": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -7321,6 +7373,32 @@
         "Repository": "RSPM",
         "Date/Publication": "2026-06-11 23:10:02 UTC",
         "Built": "R 4.5.0; ; 2026-08-12 19:41:15 UTC; unix"
+      }
+    },
+    "sandwich": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "sandwich",
+        "Version": "3.1-3",
+        "Date": "2026-08-02",
+        "Title": "Robust Covariance Matrix Estimators",
+        "Authors@R": "c(person(given = \"Achim\", family = \"Zeileis\", role = c(\"aut\", \"cre\"), email = \"Achim.Zeileis@R-project.org\", comment = c(ORCID = \"0000-0003-0918-3766\")),\n             person(given = \"Thomas\", family = \"Lumley\", role = \"aut\", email = \"t.lumley@auckland.ac.nz\", comment = c(ORCID = \"0000-0003-4255-5437\")),\n\t     person(given = \"Nathaniel\", family = \"Graham\", role = \"ctb\", email = \"npgraham1@gmail.com\", comment = c(ORCID = \"0009-0002-1215-5256\")),\n\t     person(given = \"Susanne\", family = \"Koell\", role = \"ctb\"))",
+        "Description": "Object-oriented software for model-robust covariance matrix estimators. Starting out from the basic \n             robust Eicker-Huber-White sandwich covariance methods include: heteroscedasticity-consistent (HC)\n\t     covariances for cross-section data; heteroscedasticity- and autocorrelation-consistent (HAC)\n\t     covariances for time series data (such as Andrews' kernel HAC, Newey-West, and WEAVE estimators);\n\t     clustered covariances (one-way and multi-way); panel and panel-corrected covariances;\n\t     outer-product-of-gradients covariances; and (clustered) bootstrap covariances. All methods are\n\t     applicable to (generalized) linear model objects fitted by lm() and glm() but can also be adapted\n\t     to other classes through S3 methods. Details can be found in Zeileis et al. (2020) <doi:10.18637/jss.v095.i01>,\n\t     Zeileis (2004) <doi:10.18637/jss.v011.i10> and Zeileis (2006) <doi:10.18637/jss.v016.i09>.",
+        "Depends": "R (>= 3.0.0)",
+        "Imports": "stats, utils, zoo",
+        "Suggests": "AER, car, geepack, lattice, lme4, lmtest, MASS, multiwayvcov,\nparallel, pcse, plm, pscl, scatterplot3d, stats4, strucchange,\nsurvival",
+        "License": "GPL-2 | GPL-3",
+        "URL": "https://zeileis.codeberg.page/sandwich/",
+        "BugReports": "https://codeberg.org/zeileis/sandwich/issues",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-08-02 20:03:19 UTC; zeileis",
+        "Author": "Achim Zeileis [aut, cre] (ORCID:\n    <https://orcid.org/0000-0003-0918-3766>),\n  Thomas Lumley [aut] (ORCID: <https://orcid.org/0000-0003-4255-5437>),\n  Nathaniel Graham [ctb] (ORCID: <https://orcid.org/0009-0002-1215-5256>),\n  Susanne Koell [ctb]",
+        "Maintainer": "Achim Zeileis <Achim.Zeileis@R-project.org>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-08-03 10:40:02 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.5.0; ; 2026-08-04 04:53:13 UTC; unix"
       }
     },
     "sass": {
@@ -8671,10 +8749,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "658810a4e99b55204dfbee8b09de3104"
+      "checksum": "2bbe797820e088293206fa1e48fb74bf"
     },
     "forms.yaml": {
-      "checksum": "8e57f47992d13babf46c8f21c9864609"
+      "checksum": "50565a30366ea5b2274f84cbc42eef0a"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
@@ -8683,13 +8761,13 @@
       "checksum": "70d20d0a36846c26c10690c032b49d42"
     },
     "optional-packages.R": {
-      "checksum": "6c1a979e2f68a3a534608d8704f53356"
+      "checksum": "b814115da174b26f237a5c9850a62a75"
     },
     "R/about.R": {
-      "checksum": "473ccb639ae0c02a1967570378315f67"
+      "checksum": "a172ecb968eb9154f2398e46197f6101"
     },
     "R/bayes-mode.R": {
-      "checksum": "e10b19e450619c20302ad452b0e63ba1"
+      "checksum": "68841d063bae6464432273a9f1e62180"
     },
     "R/capabilities.R": {
       "checksum": "d48d7a91fe06c19660f2e47ec20df39a"
@@ -8716,7 +8794,7 @@
       "checksum": "25c600ea67e6fbe9510225af5e569935"
     },
     "R/forms.R": {
-      "checksum": "5063cf2d4ff01d9effc3ac9d6c812170"
+      "checksum": "49b2a8822ff395e09be7b7fcb17c898f"
     },
     "R/input-support.R": {
       "checksum": "6cf35ca8f05a2d4a91b08507fc478730"
@@ -8734,19 +8812,19 @@
       "checksum": "42d073e2a3aa0846a41666f6374d78e8"
     },
     "R/planning-safeguards.R": {
-      "checksum": "f0d8038823dbbaf95f2fa0b19336eda7"
+      "checksum": "134b25139179974fc5ed150a76d0c826"
     },
     "R/planning.R": {
-      "checksum": "a892240b66160c3cdaf32dcf5213f6a4"
+      "checksum": "d01eeb841fbadfba3ef68e4c965c363b"
     },
     "R/project.R": {
       "checksum": "f8073aa709e9478782817e0e48168b9f"
     },
     "R/replication.R": {
-      "checksum": "9fbe339ba6b2849d772f0da5a2415474"
+      "checksum": "a3fce536ece691c9cd3b25a8ad8dd43a"
     },
     "R/results.R": {
-      "checksum": "f2d69289dfc6c3d63271b7f029c07954"
+      "checksum": "c19e7ff0d447d7f42d6529499a487098"
     },
     "R/route-fit.R": {
       "checksum": "763727cf1f8850d8c1747dfa9428c333"
@@ -8758,7 +8836,7 @@
       "checksum": "4c637bbcf8efa95600840ed24a6ca478"
     },
     "R/selected-evidence.R": {
-      "checksum": "c665930923df9dddb8a104ec4fccfc12"
+      "checksum": "e30fdccb2e5d1c95fd1b7e5d78711244"
     },
     "R/share-link.R": {
       "checksum": "9554d48deed7a9018f791f3b16fb263d"
@@ -8767,7 +8845,7 @@
       "checksum": "d31804e250901e75bbdfadf845b40db1"
     },
     "R/study-plan-replication.R": {
-      "checksum": "5c4a40a5dbebcba06099b2ebcaec15fa"
+      "checksum": "cccccdda47446dd3a72a7f6b8ab03e5c"
     },
     "R/study-plan.R": {
       "checksum": "6600ff283ce8e67b8ba6c70b9901f178"
@@ -8785,7 +8863,7 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "471b15203e6da5941b6a77e53cd7ee16"
+      "checksum": "12c6400abddfa2ac851ca0b2462f1210"
     },
     "R/whole-study.R": {
       "checksum": "0f5c1d4efb94c2107c262727623ec1e9"
@@ -8794,13 +8872,13 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "bb964c63e24bffc8d91f12f25f8eb02e"
+      "checksum": "704a72f8c9cc1c5bf0f774761e9976d9"
     },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
     },
     "whats-new.yaml": {
-      "checksum": "0d994d62a410b1b0f34259ad7ff73cc8"
+      "checksum": "6cfd7a31b2f643604bb5931acfc0b04e"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

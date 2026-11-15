@@ -3,7 +3,8 @@
 #   name, packages      for the provenance record;
 #   methods, default_method  "exact" and/or "simulation";
 #   functions           the backend function used by each method;
-#   n_step              valid sample sizes are multiples of this;
+#   n_step              valid sample sizes are multiples of this (1 when
+#                       two groups are rounded at each total);
 #   exact_min_n         smallest n exact_power() (or bracket_power()) accepts;
 #   exact_power(n)      exact power at n (only if "exact" is a method);
 #   bracket_power(n)    fast power at n, used only to bracket the required n
@@ -31,7 +32,12 @@ route_spec <- function(spec, seed = NULL) {
   )
 }
 
-route_backend <- function(spec, seed = NULL) {
+route_backend <- function(spec, seed = NULL, rounded = TRUE) {
+  # Two groups in a ratio other than 1: the groups are rounded at each
+  # total, and each total is worked out at its own whole groups.
+  if (rounded && !is.null(rounded_ratio(spec))) {
+    return(rounded_ratio_backend(spec, function(s) route_backend(s, seed, rounded = FALSE)))
+  }
   key <- paste(spec$design, spec$template, sep = "/")
   # A between-participants ANOVA given by its partial eta-squared (as
   # G*Power takes it), not by group means: pwrss's F test.
@@ -121,7 +127,13 @@ route_backend <- function(spec, seed = NULL) {
     } else {
       pwrss_backend(spec, seed)
     },
-    "multiple_regression/r2_zero" = ,
+    "poisson_regression/interaction" = count_interaction_backend(spec, seed),
+    "multiple_regression/r2_zero" = if (bfreg_test(spec)) {
+      # The Bayes factor for R-squared, by BayesFactor's linearReg.R2stat().
+      bfreg_backend(spec, seed)
+    } else {
+      pwrss_backend(spec, seed)
+    },
     "multiple_regression/r2_increase" = ,
     "logistic_regression/single_predictor" = ,
     "poisson_regression/single_predictor_count" = if (simulated_count_test(spec)) {
@@ -245,6 +257,9 @@ route_backend <- function(spec, seed = NULL) {
     "mixed_model/crossed_conditions" = simr_backend(spec, seed),
     "mixed_model/three_level" = simr_backend(spec, seed),
     "mixed_model/item_predictor" = simr_backend(spec, seed),
+    # Repeated counts or yes/no: simr (Poisson, logistic) or Spower with
+    # glmer.nb() (negative binomial).
+    "mixed_model/repeated_glmm" = repeated_glmm_backend(spec, seed),
     # Growth curves, by Diggle and colleagues' formula (longpower).
     "mixed_model/growth_curve" = growth_backend(spec, seed),
     "logistic_regression/factorial" = ,
@@ -265,6 +280,9 @@ route_backend <- function(spec, seed = NULL) {
     "regression_interaction/group_moderator" = spower_backend(spec, seed),
     # Simple mediation's quick estimate: the joint-significance test by
     # pwrss's formula (backend-mediation-joint.R).
+    "mediation/multicategorical" = mcx_backend(spec, seed),
+    "mediation/binary_mediator" = binm_backend(spec, seed),
+    "mediation/binary_or_count_outcome" = yglm_backend(spec, seed),
     "mediation/process_4" = if (mediation_joint_test(spec)) mediation_joint_backend(spec, seed) else power4mome_backend(spec, seed),
     "mediation/process_6" = ,
     "moderated_mediation/process_7" = ,
@@ -360,7 +378,7 @@ valid_n_step <- function(spec) {
     return(1)
   }
   allocation <- sample_allocation(spec)
-  step <- if (identical(allocation$kind, "weights")) integer_allocation_step(allocation$weights) else allocation$step
+  step <- allocation_step(allocation)
   if (is.null(step) || !is.finite(step) || step < 1 || !isTRUE(groups$valid(step))) {
     abort_run("This allocation cannot be represented as whole groups reliably. Use simple relative group sizes, such as 1 : 2 or 2 : 3.")
   }

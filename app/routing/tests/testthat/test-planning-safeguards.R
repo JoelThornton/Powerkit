@@ -16,14 +16,48 @@ test_that("new all-test plans do not assume independent significance decisions",
   expect_false(calculation_matches_values(calc, list(claim = "all", n_tests = "2", all_dependence = "unknown")))
 })
 
-test_that("the known corrected-ANOVA discrepancy is explicit without a universal bound", {
-  spec <- list(design = "factorial_anova", template = "mixed", target_test = list(method = "anova_f", correction = "GG"))
-  expect_match(gg_planning_note(spec), ".231 versus .218", fixed = TRUE)
-  expect_match(gg_planning_note(spec), "not a general error bound", fixed = TRUE)
+test_that("a corrected test without sphericity warns only on the exact data set's approximation (Departure 28)", {
+  spec <- list(design = "factorial_anova", template = "mixed",
+    variables = list(A = list(type = "between_factor", levels = list("a", "b")),
+      B = list(type = "within_factor", levels = list("x", "y", "z")), Y = list(type = "continuous")),
+    population = list(sd = list(6, 7, 8), r = list(0.6, 0.4, 0.6)),
+    target_test = list(method = "anova_f", correction = "GG"), goal = list(type = "power", n = 40),
+    options = list(method = "simulation"))
+  # Simulated, the default: no warning, and Departure 28 applies.
+  expect_true(corrected_nonspherical_test(spec))
+  expect_null(gg_planning_note(spec))
+  # The exact data set, chosen: an approximation, said so above the answer.
+  spec$options$method <- "exact"
+  expect_match(gg_planning_note(spec), "applies the sphericity correction approximately", fixed = TRUE)
+  expect_match(gg_planning_note(spec), "Check the power at this sample size by simulation", fixed = TRUE)
+  # The smallest detectable effect comes from the exact data set too.
+  spec$options$method <- NULL
+  spec$goal <- list(type = "sensitivity", n = 40, power = 0.8)
+  expect_match(gg_planning_note(spec), "The smallest detectable effect is found with Superpower's exact dataset", fixed = TRUE)
   spec$target_test$correction <- "HF"
-  expect_match(gg_planning_note(spec), "not been verified as a remedy", fixed = TRUE)
+  expect_match(gg_planning_note(spec), "approximately", fixed = TRUE)
+  # No correction, or sphericity assumed: nothing to say.
   spec$target_test$correction <- "none"
   expect_null(gg_planning_note(spec))
+  spec$target_test$correction <- "GG"
+  spec$population <- list(sd = 6, r = 0.5)
+  expect_null(gg_planning_note(spec))
+})
+
+test_that("Departure 28 is shown for a simulated corrected test, and Departure 3 only for the exact data set", {
+  fields <- form_fields(form_groups(forms, "E54"))
+  v <- modifyList(form_examples$E54, list(goal = "power", n = "40", spread = "differ",
+    sds = "100, 100, 100", rs = "0.8, 0.5, 0.2", correction = "GG", gg_method = "simulation"))
+  spec <- build_spec(forms, "E54", fields, v)
+  expect_identical(spec$options$method, "simulation")
+  keys <- names(departures_for(forms, "E54", spec))
+  expect_true("28" %in% keys)
+  expect_false("3" %in% keys)
+  spec <- build_spec(forms, "E54", fields, modifyList(v, list(gg_method = "exact")))
+  expect_identical(spec$options$method, "exact")
+  keys <- names(departures_for(forms, "E54", spec))
+  expect_false("28" %in% keys)
+  expect_true("3" %in% keys)
 })
 
 test_that("interaction verification retains assumptions and only offers the supported route", {

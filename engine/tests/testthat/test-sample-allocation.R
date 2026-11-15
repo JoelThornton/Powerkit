@@ -1,44 +1,67 @@
-test_that("a ratio typed as a rounded decimal is planned as the simplest whole split that rounds to it", {
-  # 1.333 is exactly 1000 : 1333, which only multiples of 2333 can split
-  # into whole groups; the plan uses 3 : 4.
+test_that("two groups in a ratio other than 1 are rounded to whole people at every total", {
+  # Group 1 is n / (1 + ratio) rounded to the nearest person, a half up;
+  # group 2 is the rest. Every total is valid.
   spec <- example_spec("independent_t")
   spec$options$allocation_ratio <- 1.333
-  expect_equal(integer_allocation_step(c(1, 1.333)), 2333)
-  expect_equal(allocation_ratio(spec), 4 / 3)
-  expect_equal(valid_n_step(spec), 7)
-  expect_true(group_split(spec)$valid(valid_n_step(spec)))
+  expect_equal(rounded_ratio(spec), 1.333)
+  expect_equal(valid_n_step(spec), 1)
+  expect_null(group_split(spec))
   expect_equal(analysed_groups(spec, 70), c(30, 40))
-  expect_length(check_n(spec, 70), 0)
-  expect_match(check_n(spec, 71), "70")
-  expect_equal(planned_allocation(spec)[c("entered", "group1", "group2")], list(entered = 1.333, group1 = 3, group2 = 4))
-  # 0.67, 0.33 and 1.37 as typed; the simplified ratio always rounds to the entry.
-  for (case in list(c(0.67, 3, 2), c(0.33, 3, 1), c(1.37, 19, 26), c(0.6667, 3, 2))) {
-    found <- simplified_allocation(case[1])
-    expect_equal(found$parts, case[2:3], info = case[1])
-    expect_equal(round(found$ratio, nchar(sub("^[^.]*\\.", "", format(case[1])))), case[1], info = case[1])
-  }
-  # Ratios whose exact split is already manageable are used as given.
-  for (ratio in c(1, 2, 0.5, 1.5, 0.3, 0.35, 0.25, 3)) {
-    expect_false(simplified_allocation(ratio)$simplified, info = ratio)
-    expect_equal(simplified_allocation(ratio)$ratio, ratio)
-  }
+  expect_equal(analysed_groups(spec, 71), c(30, 41))
+  expect_length(check_n(spec, 71), 0)
+  expect_equal(planned_allocation(spec, 71)[c("entered", "group1", "group2", "exact")],
+    list(entered = 1.333, group1 = 30, group2 = 41, exact = FALSE))
+  # At a total, the plan uses that total's whole groups exactly.
+  at <- spec_at_total(spec, 71)
+  expect_equal(as.numeric(at$options$allocation_ratio), 41 / 30)
+  expect_true(attr(at$options$allocation_ratio, "exact"))
+  expect_null(rounded_ratio(at))
+  expect_equal(valid_n_step(at), 71)
+  # A half rounds up for group 1; a ratio met exactly says so.
+  expect_equal(rounded_groups(10, 3), c(3, 7))
   spec$options$allocation_ratio <- 2
-  expect_null(planned_allocation(spec))
+  expect_true(planned_allocation(spec, 300)$exact)
+  # Equal groups keep their step of 2 and need no note.
+  spec$options$allocation_ratio <- 1
+  expect_null(rounded_ratio(spec))
+  expect_null(planned_allocation(spec, 100))
+  expect_equal(valid_n_step(spec), 2)
+  # Neither group shrinks as the total grows, so power still rises with n.
+  for (ratio in c(0.2, 0.67, 1.333, 1.5, 2, 3, 4.7)) {
+    groups <- vapply(2:400, rounded_groups, numeric(2), ratio = ratio)
+    expect_true(all(diff(groups[1, ]) >= 0) && all(diff(groups[2, ]) >= 0), info = ratio)
+    expect_true(all(abs(groups[1, ] - (2:400) / (1 + ratio)) <= 0.5), info = ratio)
+  }
 })
 
-test_that("a decimal ratio no longer inflates the two-group sample size", {
-  # d = 0.5, 80% power, Student's test: about 133 with groups near 0.67 : 1;
-  # the exact 67 : 100 split allowed only multiples of 167.
+test_that("the required total is the smallest whose rounded groups reach the target", {
+  # d = 0.5, 80% power, Student's test, group 2 0.67 times group 1: power
+  # from pwr::pwr.t2n.test() at every total's rounded groups, checked here
+  # independently of the engine's search.
   spec <- example_spec("independent_t")
   spec$population$d <- 0.5
   spec$target_test$method <- "student_t"
   spec$goal <- list(type = "sample_size", power = 0.8)
   spec$options <- list(seed = 1, allocation_ratio = 0.67)
   result <- run_spec(spec)
-  expect_equal(result$n_required$n, 135)
-  expect_equal(result$allocation$group1, 3)
-  expect_gte(pwr::pwr.t2n.test(n1 = 81, n2 = 54, d = 0.5)$power, 0.8)
-  expect_lt(pwr::pwr.t2n.test(n1 = 78, n2 = 52, d = 0.5)$power, 0.8)
+  power_at <- function(n) {
+    n1 <- floor(n / 1.67 + 0.5)
+    pwr::pwr.t2n.test(n1 = n1, n2 = n - n1, d = 0.5)$power
+  }
+  brute <- (10:300)[vapply(10:300, power_at, numeric(1)) >= 0.8][1]
+  expect_equal(result$n_required$n, brute)
+  expect_equal(result$n_step, 1)
+  expect_equal(c(result$allocation$group1, result$allocation$group2), c(floor(brute / 1.67 + 0.5), brute - floor(brute / 1.67 + 0.5)))
+  expect_equal(result$curve$power[result$curve$n == brute], power_at(brute), tolerance = 1e-10)
+  # The groups are recruited at that total.
+  recruited <- spec_at_total(spec, brute)
+  recruited$options$attrition <- 0.2
+  expect_equal(recruitment_target(recruited, brute)$groups_analysed,
+    c(result$allocation$group1, result$allocation$group2))
+  expect_equal(analysed_groups(spec, brute), c(result$allocation$group1, result$allocation$group2))
+  # Power at a total that the exact ratio could never split: 100 people.
+  spec$goal <- list(type = "power", n = 100)
+  expect_equal(run_spec(spec)$curve$power, power_at(100), tolerance = 1e-10)
 })
 
 test_that("integer allocation steps recover simple ratios", {
@@ -97,8 +120,7 @@ test_that("portable recruitment code and the shared allocation agree for all exa
     if (is.null(spec) || !is.null(spec$kind)) next
     # Valid whole allocations, without running a power backend.
     layout <- sample_allocation(spec)
-    step <- if (layout$kind == "weights") integer_allocation_step(layout$weights) else layout$step %||% 1
-    n <- 4 * step
+    n <- 4 * allocation_step(layout)
     env <- new.env(parent = baseenv())
     env$n_analysed <- n
     env$group_ratio <- group_ratio_vector(spec)
@@ -110,7 +132,18 @@ test_that("portable recruitment code and the shared allocation agree for all exa
 
 test_that("a standalone script rejects an edited sample size that breaks allocation", {
   spec <- example_spec("noninf_independent")
+  spec$options$allocation_ratio <- NULL
   env <- new.env(parent = baseenv())
   env$n_analysed <- 11
   expect_error(eval(parse(text = analysed_groups_code(spec)), env), "whole group allocation")
+})
+
+test_that("a standalone script splits any total when the groups are rounded", {
+  spec <- example_spec("noninf_independent")
+  spec$options$allocation_ratio <- 0.67
+  env <- new.env(parent = baseenv())
+  env$n_analysed <- 101
+  eval(parse(text = analysed_groups_code(spec)), env)
+  expect_equal(env$groups_analysed, analysed_groups(spec, 101))
+  expect_equal(env$groups_analysed, c(60, 41))
 })

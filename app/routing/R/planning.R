@@ -186,9 +186,60 @@ additional_input_guide <- function(f) {
   if (identical(f$id, "measurements") && identical(f$path, "population.measurements")) return(make("How many times each person is measured on both scores, the same number for everyone. The repeated-measures correlation uses each person's ups and downs around their own average, so every extra occasion adds information.",
     "Measured on 3 days, each person gives 3 pairs of scores; 100 people then give the test 199 degrees of freedom, N(k - 1) - 1.", "Your study protocol: the number of diary days, sessions or sampling prompts everyone completes.",
     "If some people will miss occasions, run the plan with the number you expect most people to complete and with a smaller number, and report both."))
+  # Mediation with a yes/no mediator (E39).
+  if (identical(f$id, "binm_m_baseline")) return(make("How often the mediator is 'yes' without X: in the first (comparison) group, or at X's average if X is a score.",
+    "0.3 means 30% of people given the usual information book an appointment.",
+    "The rate in the comparison condition of a similar study, or routine records such as booking or uptake rates.",
+    "Power is usually highest when this chance is near a half; if unsure, check the plan with a rate further from it."))
+  if (identical(f$id, "binm_m_or")) return(make("How much X changes the odds that the mediator is 'yes' (path a): the second group's odds against the first's, or the change per SD of a score. 1 means no change.",
+    "2.5 with a comparison rate of 0.3 means about 52% book an appointment after a reminder letter, against 30% without one.",
+    "The odds ratio for the mediator in a trial of a similar intervention, or the two groups' rates converted to an odds ratio.",
+    "Run the plan with the smallest change in the mediator you would care about."))
+  if (identical(f$id, "binm_b")) return(make("How much higher (or lower) the outcome is for people whose mediator is 'yes' than for those whose is 'no', at the same X, in the outcome's SD: path b, like Cohen's d.",
+    "0.5 means people who booked an appointment score half an SD higher on health knowledge than those who didn't, in the same condition.",
+    "The outcome's means for people with and without the mediator in a comparable study, adjusted for the condition if possible.",
+    "If you know only that the mediator matters, run the plan with the smallest difference you would care about."))
+  if (identical(f$id, "binm_direct")) return(make("X's effect on the outcome that doesn't run through the mediator, in the outcome's SD (c'). The test of the indirect effect depends little on it.",
+    "0.1 means the reminder letter raises health knowledge by 0.1 SD even among people who didn't book.",
+    "The direct effect in a published mediation model, or 0 if you expect the mediator to carry the whole effect.",
+    "Leave it empty for 0."))
+  if (identical(f$id, "binm_y_baseline")) return(make("How often the outcome is 'yes' for people in the first group (or at X's average) whose mediator is 'no'.",
+    "0.2 means 20% of people who got the usual information and didn't book are screened anyway.",
+    "The outcome's rate among people without the mediator in a similar study or routine records.",
+    "Check the plan with a rate further from a half, where power is usually lower."))
+  if (identical(f$id, "binm_b_or")) return(make("How much a 'yes' on the mediator changes the odds that the outcome is 'yes', at the same X (path b, as an odds ratio).",
+    "3 means people who booked have three times the odds of being screened as those who didn't, in the same condition.",
+    "The adjusted odds ratio for the mediator in a comparable study.",
+    "Run the plan with the smallest odds ratio you would care about."))
+  if (identical(f$id, "binm_direct_or")) return(make("How much X changes the odds of the outcome without going through the mediator (as an odds ratio; 1 means no direct effect).",
+    "1.2 means the letter raises the odds of screening by a fifth even among people who didn't book.",
+    "The direct effect in a published model, or 1 if you expect the mediator to carry the whole effect.",
+    "Leave it empty for 1."))
+  # Mediation with X in three or more groups (E42).
+  if (identical(f$id, "mcx_m_differences")) return(make("How far each group's mean on the mediator M lies from the first group's, in M's standard deviation within a group (Cohen's d), one number for each group after the first. Each is that group's path a to M under dummy coding.",
+    "With no message, a gain-framed and a loss-framed message, 0.4, 0.6 means the gain-framed group scores 0.4 SD and the loss-framed group 0.6 SD higher than the no-message group on perceived risk.",
+    "The group means and SDs on the mediator in a comparable study or pilot, or a manipulation check with the same measure.",
+    "If you know only that the groups differ, run the plan with the smallest differences you would care about."))
+  if (identical(f$id, "mcx_b")) return(make("How strongly the mediator M predicts Y within a group, holding the groups fixed: the correlation of M and Y within a group, which is the standardised path b. Each group's relative indirect effect is its d on M times this path.",
+    "0.3 means that within a group, people 1 SD higher on perceived risk are 0.3 SD higher on intention, on average.",
+    "The correlation of the mediator and outcome in a comparable sample, ideally within one condition, or the standardised b path of a published mediation model.",
+    "Correlations between measures of attitudes and intentions are often between 0.2 and 0.5; run the plan at the lower end of what is plausible for your measures."))
+  if (identical(f$id, "mcx_direct")) return(make("Each group's difference from the first group on Y that does not run through M, in Y's within-group SD, one number for each group after the first. The test of the relative indirect effects does not depend much on these.",
+    "0, 0.1 means the gain-framed group differs from no message on intention only through perceived risk, while the loss-framed group is 0.1 SD higher besides.",
+    "The direct effects (c' paths) of a published mediation model with the same groups, or 0 if you expect M to carry the whole effect.",
+    "Leave it empty for 0 in every group, and check the plan with small direct effects too."))
   if (identical(f$id, "trim") && identical(f$path, "target_test.trim")) return(make("The share of each sample's scores set aside from each end before the means are compared: 0.2 drops the lowest 20% and the highest 20%.",
     "With 50 people in a group and 0.2, the 10 lowest and 10 highest scores are trimmed and the mean of the middle 30 is compared.", "The analysis plan or preregistration: use the trimming you will analyse with. 0.2 is WRS2's default.",
     "If no trimming is fixed yet, keep 0.2; 0.1 trims less and stays closer to the t-test when scores are well behaved."))
+  if (identical(f$id, "glmm_rates")) return(make("The count you expect from one measurement of a typical person in each condition, in the order the conditions are listed: a typical person is one whose own level is average (a person intercept of zero). The model compares these on the log scale, as rate ratios.",
+    "If a typical pupil shows 2 disruptive acts per lesson as usual and 1.6 with the programme, enter 2, 1.6: a rate ratio of 0.8.", "A pilot, routine records or a published study of the same count over the same observation length; the effect you want to detect sets the gap between the values.",
+    "If unsure, plan with the smallest difference that would matter in practice, and check it with a second, smaller ratio."))
+  if (identical(f$id, "glmm_categories")) return(make("How a typical person's answers spread over the categories in the first condition, lowest category first: the shares add up to 1. A typical person is one whose own level is average (a person intercept of zero). These set where the scale's cut-points lie; the odds ratios then shift the answers in the other conditions.",
+    "On a five-point mood rating, 0.1, 0.2, 0.4, 0.2, 0.1 means a typical person answers 3 on 40% of days in the usual condition.", "A pilot or published study using the same scale with similar people, in the comparison condition.",
+    "If unsure, take the shares observed across everyone in a similar study; they spread a little wider than a typical person's, which plans slightly conservatively."))
+  if (identical(f$id, "glmm_odds_ratios")) return(make("For each condition, the odds of answering in a higher category rather than a lower one, compared with the first condition, the same at every cut-point of the scale (proportional odds). The first condition's is 1; above 1 means higher answers.",
+    "1, 1.8: in the second condition the odds of a higher answer are 1.8 times those in the first; if 20% of a typical person's answers are in the top category in the first condition, about 31% are in the second.", "A published ordinal analysis of a similar comparison (its odds ratio), or the shift in the answers you would want to detect, converted to an odds ratio.",
+    "If unsure, plan with the smallest shift that would matter in practice, and check a second, smaller odds ratio."))
   if (identical(f$id, "ba_bias")) return(make("The average difference you expect between the two methods' measurements of the same subject (method 1 minus method 2), in the measure's own units: the bias.",
     "A wrist monitor expected to read 0.5 mmHg higher than the reference cuff, on average, has a bias of 0.5.", "A pilot or published comparison of the same two methods in a similar sample; 0 if the methods are calibrated to agree on average.",
     "If you have no estimate, plan with 0 and with a plausible non-zero bias, and report both: a bias moves the limits towards the margin and costs power."))

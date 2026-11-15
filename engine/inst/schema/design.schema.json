@@ -551,6 +551,10 @@
             "type": "string"
           }
         },
+        "group": {
+          "description": "Mediation with X in three or more groups (template multicategorical) only: the group whose relative indirect effect against the first group is tested, or 'all' (the default).",
+          "type": "string"
+        },
         "category": {
           "description": "Multinomial logistic regression with the Wald z test only (method 'wald_z'): the category of Y, by name, whose odds against Y's first category (the reference) are tested. Not used by the likelihood-ratio test, which tests every category together.",
           "type": "string",
@@ -599,7 +603,7 @@
           "exclusiveMaximum": 1
         },
         "evidence_threshold": {
-          "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion, the correlation, two proportions and the one-way ANOVA): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
+          "description": "Bayes factor tests only (method 'bayes_factor': the t-tests, one proportion, the correlation, two proportions, the one-way ANOVA and R-squared in a regression): the Bayes factor that counts as strong evidence, as BF10 (for an effect over no effect); power is the probability that BF10 reaches it. Default 10, bfpwr's default (powertbf01(k = 1/10), its BF01 threshold, which its help calls Jeffreys' threshold for strong evidence).",
           "type": "number",
           "exclusiveMinimum": 1
         },
@@ -610,7 +614,7 @@
           "maximum": 0.999
         },
         "prior_scale": {
-          "description": "Bayes factor t-tests and the Bayes factor one-way ANOVA only: the scale of the Cauchy analysis prior on the standardised effect under the alternative (the Jeffreys-Zellner-Siow Bayes factor). Default for the t-tests 1/sqrt(2) (about 0.707), bfpwr's default (powertbf01(pscale = 1/sqrt(2))); for the ANOVA 0.5, JASP's 'r scale fixed effects' (BayesFactor's oneWayAOV.Fstat(rscale = 0.5)).",
+          "description": "Bayes factor t-tests, the Bayes factor one-way ANOVA and the Bayes factor for R-squared only: the scale of the Cauchy analysis prior on the standardised effect under the alternative (the Jeffreys-Zellner-Siow Bayes factor). Default for the t-tests 1/sqrt(2) (about 0.707), bfpwr's default (powertbf01(pscale = 1/sqrt(2))); for the ANOVA 0.5, JASP's 'r scale fixed effects' (BayesFactor's oneWayAOV.Fstat(rscale = 0.5)); for R-squared 0.354, JASP's Bayesian linear regression 'r scale' (BayesFactor's 'medium', sqrt(2)/4, in linearReg.R2stat() and regressionBF()).",
           "type": "number",
           "exclusiveMinimum": 0
         },
@@ -790,10 +794,11 @@
           "exclusiveMaximum": 1
         },
         "unit": {
-          "description": "Participants and items in two conditions only (mixed_model / crossed_two_condition): what 'n' counts. 'participants' (the default) or 'items': the number of items (stimuli), with population > participants fixed.",
+          "description": "What 'n' counts. 'participants' (the default). 'items' (mixed_model / crossed_two_condition only): the number of items (stimuli), with population > participants fixed. 'observations' (mixed_model / two_level with two levels only, for repeated measurements within people, E41): n counts every observation, the groups being people and population > cluster_size the occasions each is measured on, so the number of people is n / cluster_size; the analysis is unchanged.",
           "enum": [
             "participants",
-            "items"
+            "items",
+            "observations"
           ]
         }
       },
@@ -3760,7 +3765,10 @@
           "template": {
             "enum": [
               "process_4",
-              "process_6"
+              "process_6",
+              "multicategorical",
+              "binary_mediator",
+              "binary_or_count_outcome"
             ]
           },
           "target_test": {
@@ -3781,9 +3789,10 @@
                       "monte_carlo_ci",
                       "percentile_bootstrap",
                       "ols_percentile_bootstrap",
-                      "joint_significance"
+                      "joint_significance",
+                      "delta_method"
                     ],
-                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate"
+                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate. delta_method (templates binary_mediator and binary_or_count_outcome only): the natural indirect effect's delta-method test in regression-based causal mediation analysis (regmedint), simulated"
                   }
                 }
               }
@@ -3819,6 +3828,51 @@
             },
             "then": {
               "$ref": "#/definitions/template_process_6"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "multicategorical"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mediation_multicategorical"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "binary_mediator"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mediation_binary_mediator"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "binary_or_count_outcome"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mediation_binary_or_count_outcome"
             }
           }
         ]
@@ -4616,9 +4670,10 @@
                       "f_test",
                       "ols_hc3",
                       "ols_hc4",
-                      "quantile_regression"
+                      "quantile_regression",
+                      "bayes_factor"
                     ],
-                    "description": "'f_test': the usual F test (for one coefficient, the square of its t test), by pwrss's formula; the only test for templates r2_zero and r2_increase. Template single_coefficient also allows tests simulated with Spower: 'ols_hc3' and 'ols_hc4', the coefficient's test with heteroscedasticity-consistent standard errors (car's hccm(), types HC3 and HC4, through car's linearHypothesis()), and 'quantile_regression', the test of the coefficient in quantile regression (quantreg's rq() and summary.rq(se = \"nid\"))."
+                    "description": "'f_test': the usual F test (for one coefficient, the square of its t test), by pwrss's formula; the only test for templates r2_zero and r2_increase. Template single_coefficient also allows tests simulated with Spower: 'ols_hc3' and 'ols_hc4', the coefficient's test with heteroscedasticity-consistent standard errors (car's hccm(), types HC3 and HC4, through car's linearHypothesis()), and 'quantile_regression', the test of the coefficient in quantile regression (quantreg's rq() and summary.rq(se = \"nid\")). Template r2_zero also allows 'bayes_factor': the Bayes factor for R-squared (BayesFactor's linearReg.R2stat(), the JZS Bayes factor of regressionBF() and lmBF(), JASP's default Bayesian linear regression), exact."
                   }
                 }
               }
@@ -4806,23 +4861,9 @@
         "properties": {
           "template": {
             "enum": [
-              "single_predictor_count"
+              "single_predictor_count",
+              "interaction"
             ]
-          },
-          "variables": {
-            "required": [
-              "X",
-              "Y"
-            ],
-            "additionalProperties": false,
-            "properties": {
-              "X": {
-                "$ref": "#/definitions/variable_continuous_or_binary"
-              },
-              "Y": {
-                "$ref": "#/definitions/variable_count"
-              }
-            }
           },
           "target_test": {
             "properties": {
@@ -4853,6 +4894,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_single_predictor_count"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "interaction"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_count_interaction"
             }
           }
         ]
@@ -4891,7 +4947,10 @@
               "const": "r_squared"
             },
             "method": {
-              "const": "f_test"
+              "enum": [
+                "f_test",
+                "bayes_factor"
+              ]
             }
           }
         }
@@ -4997,6 +5056,14 @@
           "properties": {
             "effect": {
               "const": "coefficient"
+            },
+            "method": {
+              "enum": [
+                "f_test",
+                "ols_hc3",
+                "ols_hc4",
+                "quantile_regression"
+              ]
             }
           }
         }
@@ -6277,6 +6344,21 @@
     "template_single_predictor_count": {
       "description": "Poisson regression of a count outcome Y on one predictor X (a score or a yes/no group), optionally adjusted for other predictors: the Wald z test of X's coefficient. Also negative binomial regression and zero-inflated Poisson and negative binomial regression, simulated.",
       "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_count"
+            }
+          }
+        },
         "population": {
           "required": [
             "metric",
@@ -8433,7 +8515,8 @@
               "crossed_conditions",
               "three_level",
               "item_predictor",
-              "growth_curve"
+              "growth_curve",
+              "repeated_glmm"
             ]
           }
         },
@@ -8526,6 +8609,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_growth_curve"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "repeated_glmm"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_repeated_glmm"
             }
           }
         ]
@@ -9687,6 +9785,194 @@
                   "enum": [
                     "satterthwaite_f",
                     "satterthwaite_t",
+                    "wald",
+                    "likelihood_ratio"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "template_repeated_glmm": {
+      "description": "The same people measured more than once with a count, yes/no or ordered-categories outcome: each person gives 'measurements' observations in each condition of X (a within factor: every person in every condition, such as before and after a programme) or in their own condition (a between factor: the people split equally, each measured several times). A generalised linear mixed model with a random intercept for each person, y ~ cond + (1 | person), cond a factor in treatment coding. A count (Y count) is Poisson (population > dispersion absent or 0), built by simr's makeGlmer() and simulated with powerSim(), or negative binomial (dispersion above 0), fitted with lme4's glmer.nb() in a Spower simulation; a yes/no outcome (Y binary) is logistic, built by makeGlmer(); ordered categories (Y categorical, its levels in order, lowest first) are a cumulative link mixed model with the logit link and proportional odds, fitted with the ordinal package's clmm() in a Spower simulation. The test that the conditions differ: target_test > method 'wald' (car's Wald chi-square test of cond, simr's 'chisq'; with two conditions the same p-value as glmer's Wald z) or 'likelihood_ratio' (the model against one without cond). goal > n is the number of people. With groups (W, a between factor) and X within people, the model is y ~ group * cond + (1 | person) and the test is of the group-by-condition interaction (target_test > effect 'interaction'): the likelihood-ratio test against y ~ group + cond + (1 | person) or the Wald chi-square test of group:cond.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "within_factor",
+                    "between_factor"
+                  ]
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            },
+            "Y": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_count"
+                },
+                {
+                  "$ref": "#/definitions/variable_binary"
+                },
+                {
+                  "$ref": "#/definitions/variable_categorical"
+                }
+              ]
+            },
+            "W": {
+              "description": "Optional: the groups the people are in, each person in one (a between factor of two or more levels), for the group-by-condition interaction. X is then within people (the occasions or conditions each person is measured under), and the rates, probabilities or odds ratios are given one row per group of W, one value per condition of X.",
+              "properties": {
+                "type": {
+                  "enum": [
+                    "between_factor"
+                  ]
+                },
+                "levels": {
+                  "minItems": 2
+                }
+              }
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "sd_person"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "description": "'rate' for a count outcome (Y count); 'probability' for a yes/no outcome (Y binary); 'proportion' for ordered categories (Y categorical).",
+              "enum": [
+                "rate",
+                "probability",
+                "proportion"
+              ]
+            },
+            "rates": {
+              "description": "Count outcome only: each condition's expected count per measurement for a typical person (random intercept 0), in the order of X's levels. With groups (W): one row per group, in the order of W's levels, each with one value per condition of X.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                ]
+              }
+            },
+            "probabilities": {
+              "description": "Yes/no outcome only: each condition's chance of 'yes' for a typical person (random intercept 0), in the order of X's levels. With groups (W): one row per group, in the order of W's levels, each with one value per condition of X.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "exclusiveMaximum": 1
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0,
+                      "exclusiveMaximum": 1
+                    }
+                  }
+                ]
+              }
+            },
+            "category_probabilities": {
+              "description": "Ordered categories only: the share of a typical person's answers (random intercept 0) in each category of Y in the first condition of X, in the order of Y's levels, lowest first; they must add up to 1. They set the thresholds of the cumulative logits.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
+            },
+            "odds_ratios": {
+              "description": "Ordered categories only: each condition's odds of a higher category compared with the first condition, the same at every threshold (proportional odds), in the order of X's levels; the first is 1. Above 1: higher categories. With groups (W): one row per group, in the order of W's levels, each with one value per condition of X.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  }
+                ]
+              }
+            },
+            "sd_person": {
+              "description": "SD of the people's random intercepts, on the log scale (count) or the log-odds scale (yes/no, ordered categories): how much people's typical counts or chances differ.",
+              "type": "number",
+              "minimum": 0
+            },
+            "dispersion": {
+              "description": "Count outcome only: the overdispersion k of a negative binomial outcome, so that a count with expected value mu (given the person) has variance mu + k mu^2 (lme4's and MASS's theta is 1 / k). Absent or 0: Poisson.",
+              "type": "number",
+              "minimum": 0
+            },
+            "measurements": {
+              "description": "The number of times each person is measured in each condition (within) or in their own condition (between). 1 if omitted; at least 2 with X a between factor, or with a yes/no outcome.",
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "target_test": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/two_sided_only"
+            },
+            {
+              "properties": {
+                "path": false,
+                "weights": false,
+                "comparison": false,
+                "p_adjust": false,
+                "effect": {
+                  "enum": [
+                    "condition",
+                    "interaction"
+                  ]
+                },
+                "method": {
+                  "description": "'likelihood_ratio' (the default): the model against one without cond (simr's 'lr'), simr's default for a factor. 'wald': car's Wald chi-square test of cond (simr's 'chisq'; with two conditions the same p-value as glmer's Wald z).",
+                  "enum": [
                     "wald",
                     "likelihood_ratio"
                   ]
@@ -12568,6 +12854,372 @@
             },
             "alternative": {
               "const": "two_sided"
+            }
+          }
+        }
+      }
+    },
+    "template_mediation_multicategorical": {
+      "description": "Mediation with X in three or more groups (E42): X dummy-coded against its first group (indicator coding, as PROCESS's mcx = 1), M ~ D2 + ... + Dk and Y ~ M + D2 + ... + Dk, each group's relative indirect effect a_j b tested by its Monte Carlo confidence interval (lavaan fit, manymome's draws) in a Spower simulation. Groups of equal size; goal > n is the total. The population is standardised within groups: M and Y have SD 1 in every group and correlate b.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "M",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "description": "The groups, in order: the first is the reference.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/variable_categorical"
+                },
+                {
+                  "properties": {
+                    "levels": {
+                      "minItems": 3
+                    }
+                  }
+                }
+              ]
+            },
+            "M": {
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "m_differences",
+            "b"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "standardised"
+            },
+            "m_differences": {
+              "description": "Each group after the first: its Cohen's d against the first group on M (M's within-group SD is 1), in the order of X's levels.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "b": {
+              "description": "M -> Y within groups: the correlation of M and Y within each group, the standardised path b.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            },
+            "direct_differences": {
+              "description": "Each group after the first: its difference from the first in Y holding M constant (the relative direct effect c'_j), in Y's within-group SD. All 0 if omitted.",
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": {
+              "const": "X->M->Y"
+            },
+            "method": {
+              "const": "monte_carlo_ci"
+            },
+            "group": {
+              "description": "The group (a level of X after the first) whose relative indirect effect against the first group is tested; 'all' (the default) for every relative indirect effect significant in the same study.",
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "template_mediation_binary_mediator": {
+      "description": "Mediation with a yes/no mediator (E39): logistic regression of M on X, and linear (Y a score) or logistic (Y yes/no) regression of Y on M and X, without an X-by-M interaction; the natural indirect effect of X (0 to 1: the second group against the first, or one SD of X) through M tested by its delta-method standard error, as regmedint's regression-based causal mediation analysis computes it (Valeri and VanderWeele, 2013), in a Spower simulation. With X in two groups, the groups are of equal size; goal > n is the total.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "M",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "M": {
+              "description": "The yes/no mediator: its second level is 'yes'.",
+              "$ref": "#/definitions/variable_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "m_baseline",
+            "m_odds_ratio"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "odds_ratio"
+            },
+            "m_baseline": {
+              "description": "The chance that M is yes for the first group of X (or at X's mean, for a score).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "m_odds_ratio": {
+              "description": "The odds ratio of M = yes for X: the second group against the first, or per SD of a score (path a, exp(a)).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "b": {
+              "description": "Y a score only: the difference in Y between M yes and M no, holding X, in Y's residual SD (path b).",
+              "type": "number"
+            },
+            "direct": {
+              "description": "Y a score only: X's effect on Y holding M (the second group against the first, or per SD), in Y's residual SD (c'). 0 if omitted.",
+              "type": "number"
+            },
+            "y_baseline": {
+              "description": "Y yes/no only: the chance that Y is yes for the first group of X (or at X's mean) when M is no.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "b_odds_ratio": {
+              "description": "Y yes/no only: the odds ratio of Y = yes for M yes against no, holding X (path b, exp(b)).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "direct_odds_ratio": {
+              "description": "Y yes/no only: the odds ratio of Y = yes for X, holding M (exp(c')). 1 if omitted.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": {
+              "const": "X->M->Y"
+            },
+            "method": {
+              "const": "delta_method"
+            }
+          }
+        }
+      }
+    },
+    "template_count_interaction": {
+      "description": "Moderation of a count outcome: Poisson (or, with method negative_binomial, negative binomial) regression of Y on X, W and their product X x W (each a score, taken as standardised, or a yes/no group coded 0 and 1), and the Wald z test of the product's coefficient, simulated with Spower (stats::glm(family = poisson()) or MASS::glm.nb()).",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "W",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "W": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_count"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "base_rate",
+            "rate_ratio_x",
+            "rate_ratio_w",
+            "rate_ratio_xw"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "rate_ratio"
+            },
+            "base_rate": {
+              "description": "Mean count when X and W are at their means (scores) or in their first groups (yes/no).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rate_ratio_x": {
+              "description": "Rate ratio for X when W is at its mean (a score) or in its first group: per SD of X (a score) or X's second group against its first.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rate_ratio_w": {
+              "description": "Rate ratio for W when X is at its mean or in its first group, per SD of W or W's second group against its first.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rate_ratio_xw": {
+              "description": "The interaction, as a ratio of rate ratios: how many times X's rate ratio is multiplied per SD of W (a score) or in W's second group (yes/no). 1 is no interaction, allowed to check the Type I error rate at a fixed n.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "dispersion": {
+              "description": "Negative binomial counts ('target_test > method' \"negative_binomial\") only: the overdispersion k in variance = mean + k mean^2 (MASS's theta is 1 / k).",
+              "type": "number",
+              "minimum": 0
+            },
+            "x_prob": {
+              "description": "Yes/no X only: the proportion in X's second group. 0.5 if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "w_prob": {
+              "description": "Yes/no W only: the proportion in W's second group. 0.5 if omitted.",
+              "$ref": "#/definitions/proportion"
+            },
+            "r_xw": {
+              "description": "Two scores only: the correlation between X and W. 0 if omitted.",
+              "type": "number",
+              "exclusiveMinimum": -1,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": false,
+            "effect": {
+              "const": "interaction"
+            },
+            "method": {
+              "enum": [
+                "wald_z",
+                "negative_binomial"
+              ],
+              "description": "'wald_z': Poisson regression and the Wald z test of the X x W coefficient. 'negative_binomial': negative binomial regression (MASS's glm.nb()), for counts more spread out than a Poisson distribution allows; needs population > dispersion. The same Wald z test."
+            }
+          }
+        }
+      }
+    },
+    "template_mediation_binary_or_count_outcome": {
+      "description": "Mediation with a yes/no or count outcome (E32): linear regression of a score mediator M on X, and logistic (Y yes/no), Poisson or negative binomial (Y a count) regression of Y on M and X, without an X-by-M interaction; the natural indirect effect of X (0 to 1: the second group against the first, or one SD of X) through M tested by its delta-method standard error, as regmedint's regression-based causal mediation analysis computes it (Valeri and VanderWeele, 2013), in a Spower simulation. With X in two groups, the groups are of equal size; goal > n is the total.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "M",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "M": {
+              "description": "The mediator, a score.",
+              "$ref": "#/definitions/variable_continuous"
+            },
+            "Y": {
+              "description": "The outcome: yes/no (its second level is 'yes') or a count.",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/variable_binary"
+                },
+                {
+                  "$ref": "#/definitions/variable_count"
+                }
+              ]
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "a"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "enum": [
+                "odds_ratio",
+                "rate_ratio"
+              ]
+            },
+            "a": {
+              "description": "X's effect on M (the second group against the first, or per SD of a score), in M's residual SD (path a).",
+              "type": "number"
+            },
+            "y_baseline": {
+              "description": "Y yes/no only: the chance that Y is yes for the first group of X (or at X's mean) with M at 0, its mean in that group.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "b_odds_ratio": {
+              "description": "Y yes/no only: the odds ratio of Y = yes per residual SD of M, holding X (path b, exp(b)).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "direct_odds_ratio": {
+              "description": "Y yes/no only: the odds ratio of Y = yes for X, holding M (exp(c')). 1 if omitted.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "base_rate": {
+              "description": "Y a count only: the mean count for the first group of X (or at X's mean) with M at 0.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "b_rate_ratio": {
+              "description": "Y a count only: the rate ratio per residual SD of M, holding X (path b, exp(b)).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "direct_rate_ratio": {
+              "description": "Y a count only: the rate ratio for X, holding M (exp(c')). 1 if omitted.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "count_model": {
+              "description": "Y a count only: poisson (the default) or negative_binomial, the model the counts follow and are analysed by.",
+              "enum": [
+                "poisson",
+                "negative_binomial"
+              ]
+            },
+            "dispersion": {
+              "description": "Y a negative binomial count only: k, so that a count's variance is mu + k mu^2.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": {
+              "const": "X->M->Y"
+            },
+            "method": {
+              "const": "delta_method"
             }
           }
         }

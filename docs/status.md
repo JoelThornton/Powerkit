@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 14 November 2026 (Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 15 November 2026 (the Bayes factor for R-squared, card E24; within-person moderation, card E41; replication plans for an original analysed with Bayes factors; replication goals for any one-number effect; a count or yes/no outcome in moderation and mediation, card E32; the binary-X null check uses seed 1500; two groups in a ratio rounded at every total; mediation with a yes/no mediator, card E39; two or more groups measured more than once with a count, yes/no or ordered categories, card E75; mediation with X in three or more groups, card E42; corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -20,6 +20,11 @@ now found by those names in "I know my analysis". The rest lead the
 queue in the maintainer's order: three small designs, then every card
 that says powerkit can't calculate it yet, then a Bayes factor version
 of every design that can have one, then the remaining JASP analyses.
+The Bayes factor queue has started (14 November 2026): E24 plans R-squared
+against 0 with BayesFactor's linear-regression Bayes factor and JASP's r
+scale of 0.354, exactly from the noncentral F; validation in progress
+(the `bayes` chunk). The R-squared increase and one coefficient wait on
+a decision about which Bayes factor to plan for (`next.md` item 2).
 
 A repeated-measures (within-person) correlation is planned on a new card,
 E76 (13 November 2026): rmcorr's documented method, a Pearson
@@ -38,10 +43,51 @@ MOVER intervals by default (Departure 27), Bland and Altman's as an
 option, Lu et al.'s formula as an instant approximation; power at a
 fixed sample size runs on the card, a sample size comes as an R script.
 Validation in progress: the simulation chunk `agreement` passes; the
-published example awaits transcription. Next in the queue: the cards
-that say powerkit can't calculate yet (`next.md` item 1). A tool showing which uncertain input a plan depends on most
+published example awaits transcription. The first of the cards that
+said powerkit couldn't calculate now does: E75, the same people measured
+more than once with a count, a yes/no answer or an answer in ordered
+categories (14 November 2026), a generalised linear mixed model with a
+random intercept for each person (simr's `makeGlmer()` for Poisson and
+logistic models, Spower with lme4's `glmer.nb()` for negative binomial
+counts and ordinal's `clmm()` for ordered categories), the likelihood-ratio test by
+default; power at a fixed number of people runs on the card, a number of
+people comes as an R script. Two or more groups measured more than once
+(the group-by-time interaction, `y ~ group * cond + (1 | person)`) run
+on the same card for all four outcomes. Validation in progress: the chunk `glmm`
+passes; the published example awaits transcription. E42, mediation with
+X in three or more groups, calculates too (14 November 2026): each
+group's relative indirect effect against the first (dummy coding, as
+PROCESS does), a Spower simulation of the model fitted by lavaan with
+manymome's Monte Carlo interval, for one group or every group; power at
+a fixed sample size runs on the card, a sample size comes as an R
+script. Validation in progress: the chunk `mediation_mcx` passes; the
+published example awaits transcription. E39, mediation with a yes/no
+mediator, calculates as well (14 November 2026): regression-based causal
+mediation analysis (Valeri and VanderWeele) by regmedint, a logistic model
+for the mediator and a linear or logistic one for the outcome, the natural
+indirect effect tested by its delta-method standard error, simulated with
+Spower; power and a sample size both run on the card. Validation in
+progress: the chunk `mediation_binm` passes; the published example awaits
+transcription. E32's moderation takes a count outcome too (14 November
+2026): a Poisson or negative binomial regression with the X x W product,
+its Wald z test simulated with Spower; power and a sample size both run
+on the card. Its mediation takes a yes/no or count outcome with a score
+mediator (14 November 2026): regression-based causal mediation analysis
+by regmedint (a linear model for the mediator; logistic, Poisson or
+negative binomial for the outcome), the natural indirect effect's
+delta-method test simulated with Spower; power and a sample size both
+run on the card. Validation in progress: the chunks `count_interaction`
+and `mediation_yglm` pass; the published examples await transcription.
+E41 plans within-person moderation (14 November 2026): occasions within
+people, an occasion-level predictor centred within each person and a
+person-level moderator, in E62's two-level model simulated with simr; the
+sample size counts observations, and the result gives people and
+occasions. Power runs on the card, a sample size comes as an R script.
+Validation in progress: the chunk `two_level` passes; within-person
+mediation is not yet calculated. Next in the queue: the rest of those
+cards (`next.md` item 1). A tool showing which uncertain input a plan depends on most
 (one-at-a-time ranges and a tornado chart) is queued after the cards
-that can't yet calculate (`next.md` item 27).
+that can't yet calculate (`next.md` item 24).
 
 The cross-lagged panel card runs with a reliability below 1 (13
 November 2026): its check run compares the specified lagged effects with
@@ -108,8 +154,9 @@ t-test included when groups are equal, and the ANCOVA result shows how
 Shieh's method differs from G*Power's (Known difference 15).
 
 A pre-tester review on 11 November corrected three calculations: decimal
-group-size ratios are planned as the simplest matching whole split
-(`docs/conventions.md`, "Group sizes given as a ratio"), non-inferiority
+group-size ratios no longer force large steps in the total (since 14
+November two groups in a ratio are rounded to whole people at every
+total, `docs/conventions.md`, "Group sizes given as a ratio"), non-inferiority
 t-tests use the one-sided t-test against the margin, and a search whose
 power cannot rise says so. Precision planning for one group and paired
 data accepts assurance. In the app, exports no longer wait for a written
@@ -120,8 +167,11 @@ the browser; a result is reused when only free-text answers change; a
 conventional effect size can be recorded as one. The non-inferiority and allocation unit tests and the
 non-inferiority validation chunk were run; no full validation run is
 claimed. Minimum-effect tests now use the same shifted t-test (12
-November; the equivalence validation chunk was run). The rounded-group-size
-search is queued.
+November; the equivalence validation chunk was run). Two groups in a
+ratio are now planned at every total with the groups rounded as a
+researcher would recruit them (14 November): G*Power's variance-test
+example now agrees (443), and two proportions at a ratio of 2 need 371,
+one more than G*Power's 370, whose groups fall just short of the target.
 
 Simple mediation (E10, E16) starts on a quick estimate by formula (the
 joint-significance test, pwrss), marked as an estimate on the result, with
@@ -140,7 +190,12 @@ November; Departure 10 retired), with Fisher's z as a choice.
 
 Repeated measures with SDs or correlations that differ now default to the
 Greenhouse-Geisser corrected F test (12 November, Departure 26); the
-uncorrected test stays as a choice with a warning.
+uncorrected test stays as a choice with a warning. Since 14 November such
+a corrected test is simulated by default (Departure 28): Superpower's
+exact dataset scales the test by epsilon, which missed the corrected
+test's power by up to about 3 points either way. It stays available as
+an approximation and still finds the smallest detectable effect, with a
+warning.
 
 The input screens were shortened (11 November): the two-group t-test
 screen shows about 670 words at first sight, from about 1,200, with the
@@ -388,9 +443,17 @@ and automated accessibility checks passed locally for the exercised routes.
   The original's design is found with the design finder's questions; its
   card, with each effect field labelled as the original's, plans the
   replication and keeps the result in the plan. The plan saves, shares
-  and downloads like any study plan. Goals for designs beyond the four
-  and an original analysed with Bayes factors are `next.md` items 22 and
-  23.
+  and downloads like any study plan. Since 15 November 2026 the goals
+  table covers any card whose focal effect is one number: the original's
+  estimate with its standard error, interval or test statistic, ratios on
+  the log scale and correlations on Fisher's z (each card's effect is in
+  `forms.yaml`, `replication_effects`); the four keep their exact routes.
+  An original analysed with Bayes factors (15 November 2026) is read
+  from its Bayes factor (a t-test, inverted with BayesFactor's
+  `ttest.tstat()`; Ly et al., 2018) or from a posterior with a vague or
+  default prior; small telescopes is left out, and the goals add the
+  original's Bayes factor test repeated and evidence for no effect
+  (bfpwr), with a way on to a sequential Bayes factor design in Labs.
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning
@@ -449,18 +512,19 @@ minutes (389 pass, 2 fail, 110 skipped; skips include partitioning and
 published placeholders). An earlier inspected nightly,
 [9 November run 42570428222](https://github.com/JoelThornton/Powerkit/actions/runs/42570428222),
 also failed the ANOVA and binary-X checks (the latter .077 in 1,000).
-The [10 November run 42772650889](https://github.com/JoelThornton/Powerkit/actions/runs/42772650889)
-also completed with failures in the ANOVA and binary-X chunks; this does not
-resolve either scientific issue. The latest completed nightly inspected,
+The latest completed nightly inspected,
 [11 November run 42968983200](https://github.com/JoelThornton/Powerkit/actions/runs/42968983200),
-at fbbd237 (0.61.1), again failed only these two partitions: GG .2130
-versus .2313 and binary-X ML/Monte-Carlo null .0750 versus the unchanged
-.0707 limit. The two recurring failures concern the
-mixed-design Greenhouse-Geisser check: a new independent 20,000-study
-reference gives .21805 (MCSE .00292), with same-data p-values matching afex
-to 1.9e-15. Fixing epsilon gives .2196, so that alone does not explain
-Superpower's .2313. Investigation and specialist review remain open, and moderated mediation's Type I error with a
-yes/no X (7.5% of 1,000 studies), a question for power4mome's author.
+at fbbd237 (0.61.1), failed only the two recurring partitions: GG .2130
+versus .2313, and binary-X ML/Monte-Carlo null .0750 versus a .0707 limit.
+Both are explained (14 November, `validation-log.md`). The GG reference
+.2313 is Superpower's epsilon-scaled approximation; the corrected test's
+power is .217. Such tests are now simulated by default (Departure 28).
+With the maintainer's approval, the chunk's three corrected-test checks
+now compare the simulated default with independent references (.4658,
+.2169 and .0971), and bound the exact dataset's approximation at 4 points. The binary-X null rate is 5.38% in
+20,000 studies, consistent with 5%; seed 1703 drew a 1-in-80 sample every
+night. The maintainer chose seed 1500 for that check (`decisions.md`, 14
+November 2026), which gives .051.
 
 ## Known gaps on cards that run
 
