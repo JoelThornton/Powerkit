@@ -61,7 +61,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
     # E24's, E34's, E36's, E37's, E43's, E69's, E51's, E62's and E68's effect sizes appear once their first question is chosen.
     start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E43 = list(question = "log_rank"), E69 = list(question = "icc"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
                     E46 = list(estimate = "proportion"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"),
-                    E62 = list(two_outcome = "continuous", in_sites = "no"), E68 = list(three_outcome = "continuous"), list())
+                    E62 = list(two_outcome = "continuous", in_sites = "no"), E41 = list(two_outcome = "continuous"), E68 = list(three_outcome = "continuous"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
     # in their own test.
@@ -149,7 +149,13 @@ test_that("the example values build the spec the engine expects", {
     spec <- build_spec(forms, ep, fields, v)
     # The generic tests (E50) have no sample size to find.
     goal <- if (ep == "E50") list(type = "power") else if (ep == "E46") list(width = 0.1, type = "precision") else list(type = "sample_size", power = 0.8)
-    expect_identical(spec$goal, goal, label = ep)
+    got <- spec$goal
+    # Within-person moderation (E41) counts observations.
+    if (ep == "E41") {
+      expect_identical(got$unit, "observations")
+      got$unit <- NULL
+    }
+    expect_identical(got, goal, label = ep)
     expect_null(spec$goal$n)
   }
   spec <- build_spec(forms, "E7", fields_for("E7"), values_for("E7"))

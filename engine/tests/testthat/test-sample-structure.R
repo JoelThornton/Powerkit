@@ -9,6 +9,11 @@ test_that("sample counts distinguish people, dyads, items and studies", {
   cluster <- sample_structure(example_spec("cluster_randomised"))
   expect_identical(cluster$unit, "participants")
   expect_match(cluster$note, "N counts participants", fixed = TRUE)
+  occasions <- example_spec("mixed_two_level")
+  occasions$goal$unit <- "observations"
+  diary <- sample_structure(occasions)
+  expect_identical(diary$unit, "observations")
+  expect_match(diary$note, "N counts observations, with each person measured on", fixed = TRUE)
 })
 
 test_that("study counts retain participant and measurement structure within studies", {

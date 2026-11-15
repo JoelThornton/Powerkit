@@ -250,6 +250,11 @@ simulations:
       preview: {power: 30}
       full: {power: 300}
       script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
+    E41:
+      full_run: [power]
+      preview: {power: 30}
+      full: {power: 300}
+      script: {sample_size: "about 30 minutes to 2 hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}
     E74:
       full_run: [power]
       preview: {power: 15}
@@ -423,6 +428,7 @@ replication_effects:
   E3: {exact: paired}
   E4: {exact: correlation}
   E76: {effect: "repeated-measures correlation (r)", scale: fisher_z}
+  E41: {effect: "the cross-level interaction (how much the within-person slope changes with the moderator)", scale: none}
   E5: {effect: "odds ratio between the two groups", scale: log}
   E6: {multi_df: "for a 2 x 2 table, the odds ratio (card E5 or E27); for a larger table, the one comparison the hypothesis is about"}
   E7: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
@@ -1959,6 +1965,58 @@ forms:
 
   # People nested in groups (simr): a person-level X, a group-level W and
   # their cross-level interaction (31 October 2026).
+  # Within-person moderation (E41): occasions within people, a predictor
+  # measured on each occasion (X, centred within each person) and one
+  # measured once per person (W); the cross-level interaction in E62's
+  # two-level model, with n counting observations (goal > unit
+  # "observations"), so the result names people and occasions.
+  E41:
+    methods_name: "a two-level mixed model of occasions within people, with an occasion-level and a person-level predictor"
+    tool: simr
+    departures: ["16"]
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: two_level,
+           variables: {X: {type: continuous}, W: {type: continuous}, "Y": {type: continuous}}, population: {metric: raw},
+           target_test: {method: satterthwaite_t}, goal: {unit: observations}}
+    groups:
+      - input: "The outcome, what is measured on each occasion, and what is measured once per person"
+        fields:
+          - {id: Y_label, label: "Outcome, measured on each occasion (for example, evening mood)", type: text, path: variables.Y.label, required: true}
+          - {id: X_label, label: "Measured on each occasion (X; for example, the day's stress)", type: text, path: variables.X.label, required: true}
+          - {id: W_label, label: "Measured once per person (W, the moderator; for example, neuroticism)", type: text, path: variables.W.label, required: true}
+          - {id: two_outcome, label: "The outcome is", type: select, path: variables.Y.type, required: true,
+             choices: {continuous: "A score (for example, a mood rating)", binary: "Yes or no (for example, drank alcohol that day)"},
+             sets: {binary: [{path: population.metric, value: probability}]},
+             default: continuous, default_source: "a score, the commoner outcome",
+             help: "With yes or no, powerkit fits a logistic mixed model (lme4's glmer), and every effect and SD below is on the log-odds scale."}
+          - {id: two_test, label: "Test (yes/no outcome)", type: select, path: target_test.method, required: true,
+             shown_if: {field: two_outcome, is: binary},
+             choices: {wald: "Wald test (the p-value glmer's summary reports)", likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the effect)"},
+             default: wald, default_source: "the test glmer's summary reports, simr's default for a numeric predictor"}
+      - input: "Each effect, how much people differ, and the occasion-to-occasion SD"
+        fields:
+          - {id: two_probability, writeup_label: "chance of yes for a typical person", label: "The chance of 'yes' for a typical person on a typical occasion, at the average X and W (0 to 1)", type: number, path: population.probability, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: {field: two_outcome, is: binary}}
+          - {id: b_X, writeup_label: "X's effect within people", label: "X's effect within people: the change in the outcome (or its log odds, for yes/no) on an occasion when X is one SD above the person's own average", type: number, path: population.b_X, effect: true}
+          - {id: b_W, writeup_label: "W's effect between people", label: "W's effect between people: the change in a person's average outcome for one SD more of W", type: number, path: population.b_W, effect: true}
+          - {id: b_XW, writeup_label: "cross-level interaction", label: "The moderation (cross-level interaction): how much X's within-person effect changes for one SD more of W", type: number, path: population.b_XW, effect: true}
+          - {id: sd_group, writeup_label: "SD of people's averages", label: "SD of people's average outcome beyond W (random intercepts)", type: number, path: population.sd_group, effect: true, min: 0,
+             help: "In the outcome's units. With an occasion-to-occasion SD of 1, an SD of 0.7 means about a third of the variance lies between people (an intraclass correlation of 0.33), common in diary studies."}
+          - {id: sd_group_slope, writeup_label: "SD of X's effect across people", label: "SD of X's within-person effect across people beyond W (random slopes)", type: number, path: population.sd_group_slope, effect: true, min: 0}
+          - {id: r_group, label: "Correlation of people's averages and their X effects (optional; empty = 0)", type: number, path: population.r_group, optional: true, empty_text: "0", min: -1, max: 1}
+          - {id: sd_residual, writeup_label: "occasion-to-occasion SD", label: "Occasion-to-occasion SD: how much a person's outcome varies around their own line", type: number, path: population.sd_residual, effect: true, min_exclusive: 0,
+             shown_if: {field: two_outcome, is: continuous}}
+      - input: "The number of occasions, and the effect to test"
+        fields:
+          - {id: cluster_size, label: "Occasions per person (the same for everyone; for example, 14 diary days)", type: number, path: population.cluster_size, required: true, min: 2, integer: true,
+             help: "The sample size below counts every observation: people times occasions. The result gives the number of people too."}
+          - {id: two_level_effect, label: "Which effect", type: select, path: target_test.effect, required: true,
+             choices: {cross_level_interaction: "The moderation: does X's within-person effect depend on W?", within_effect: "X's effect within people", between_effect: "W's effect between people",
+                       within_and_interaction: "Both X's effect and the moderation significant in the same study (joint power)",
+                       all_effects: "All three effects significant in the same study (joint power)"},
+             help: "Joint power is the chance that every effect named is significant in the same study, when the claim needs all of them. It is lower than each effect's own power.",
+             default: cross_level_interaction, default_source: "the cross-level interaction, the effect this design is usually planned for"}
+
   E62:
     methods_name: "a two-level mixed model with a person-level and a group-level predictor"
     tool: simr

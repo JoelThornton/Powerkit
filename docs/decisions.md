@@ -3475,6 +3475,30 @@ true rate of about 5.4%, roughly one seed in 80 would exceed the limit.
 More replications would remove that chance and remain an option if the
 check fails again.
 
+### Within-person moderation on E41, 14 November 2026
+
+E41 now calculates within-person moderation, the design `next.md` item 1
+named for it: people measured on many occasions (a diary or
+experience-sampling study), an occasion-level predictor X centred within
+each person, a person-level moderator W, and their cross-level
+interaction. No new model was needed: it is E62's two-level model
+(`mixed_model / two_level`, simr with lmerTest's Satterthwaite test, or
+glmer's Wald or likelihood-ratio test for a yes/no outcome) with occasions
+at level 1 and people at level 2. What differs is the unit: the spec's
+`goal > unit` is `"observations"`, so the sample size counts people times
+occasions, and the result, the methods paragraph and the R script give
+both ("80 people measured on 14 occasions each"). mlmpower, the other
+package for this design, plans level-2 units and observations per unit
+together; it was not used as the route because E62's simulation already
+covers the model, a yes/no outcome included.
+Recommendation for the maintainer: keep simr as the route for both cards,
+so that one validated model serves them. Within-person mediation (1-1-1
+mediation) stays not calculated: no package plans it, and a simulation of
+a multilevel mediation model is a separate piece of work. Validation:
+`test-validation-two-level.R`. Conventions: `docs/conventions.md`, "People
+within groups, predictors at both levels".
+
+
 ### Replication goals for any one-number effect, 15 November 2026
 
 A replication plan's goals table (queue item 21) now covers every card
