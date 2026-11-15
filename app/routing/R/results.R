@@ -2513,6 +2513,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 27 (the Bland-Altman analysis simulated, not Lu et al.'s
   # formula) applies when the limits of agreement are simulated.
   if (!identical(spec$template, "bland_altman") || identical(spec$target_test$method, "lu_formula")) keys <- setdiff(keys, "27")
+  # Departure 29 (the ICC's exact F power, not ICC.Sample.Size's
+  # approximation) applies when the exact power is used.
+  if (!identical(spec$template, "icc") || !identical(spec$design, "reliability") || identical(spec$target_test$method, "icc_walter")) keys <- setdiff(keys, "29")
   # Departure 28 (such a corrected test simulated by default) applies when
   # it is simulated; the exact data set, chosen or used for the smallest
   # detectable effect, carries a warning above the answer instead.
