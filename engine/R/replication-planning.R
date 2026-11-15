@@ -141,7 +141,7 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   r, positive; for `"generic"`, on the reported scale, a ratio above 1
 #'   for a ratio), for the agreement and too-small-to-matter goals; `NULL`
 #'   leaves those goals out.
-#' @param threshold The Bayes factor counted as strong evidence.
+#' @param threshold The evidence threshold: the Bayes factor the replication should reach.
 #' @param n A replication sample size (in total, people or pairs) at which
 #'   to give the chance of each goal, or `NULL`.
 #' @param max_n The largest sample size searched.
@@ -262,7 +262,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     abort_run("The smallest effect that would matter should be more than 0 (and below 1 for a correlation).")
   }
   if (!one_number(threshold) || threshold <= 1 || threshold > 1000) {
-    abort_run("The Bayes factor counted as strong evidence should be above 1, and at most 1,000.")
+    abort_run("The evidence threshold (the Bayes factor the replication should reach) should be above 1, and at most 1,000.")
   }
   if (!is.null(n) && !whole(n, if (correlation) 4 else 2)) {
     abort_run("The replication's sample size should be a whole number of people.")

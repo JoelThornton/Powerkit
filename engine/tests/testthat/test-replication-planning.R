@@ -349,3 +349,16 @@ test_that("a Bayesian original that can't be planned gets plain words", {
   expect_error(replication_planning("one_sample", 0.4, original_n = 50, original_analysis = "bayesian"),
     "original_analysis")
 })
+
+test_that("the app's starting variation (tau 0.05) against BayesRepDesign's default of none", {
+  # The size of the departure recorded in docs/conventions.md ("Variation
+  # between studies in replication plans"): for an original d = 0.7 with
+  # 20 per group, the significance goal asks for 106 with no variation and
+  # 110 with tau 0.05 under the uncertain belief, 200 and 210 shrunk; the
+  # as-reported belief has no variation either way (66).
+  none <- two_groups(tau = 0)
+  small <- two_groups(tau = 0.05)
+  expect_equal(goal_n(none, "significance", "as_reported"), goal_n(small, "significance", "as_reported"))
+  expect_equal(c(goal_n(none, "significance", "uncertain"), goal_n(small, "significance", "uncertain")), c(106, 110))
+  expect_equal(c(goal_n(none, "significance", "shrunk"), goal_n(small, "significance", "shrunk")), c(200, 210))
+})

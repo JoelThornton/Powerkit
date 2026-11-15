@@ -3663,3 +3663,19 @@ values the simulation agrees with the formula without the factor (24
 groups: 84.5% in 200 simulated studies for a cluster-randomised trial;
 22 groups: 86.3% in 1,000 for a multisite trial, against 86.9% from the
 formula without the factor).
+
+## 2026-11-15 · Replication plans: starting values and wording (colleague-testing review)
+
+- **Variation between studies starts at Small (tau 0.05).** The
+  replication plan's help already cited Kenny and Judd (2019) arguing
+  zero should not be the default, while the box started at "None". It now
+  starts at their smallest example value, as the maintainer chose. The
+  engine's `replication_planning()` keeps BayesRepDesign's default of 0;
+  the departure is recorded in docs/conventions.md ("Variation between
+  studies in replication plans"), shown on the result and tested.
+- **Alpha and power start empty**, with the cards' one-click buttons
+  (the 8 and 12 November decisions for the input screens), and the
+  planner asks for them before calculating.
+- **"Evidence threshold"**, with 10 labelled "a common threshold", and
+  "Evidence, at your threshold" in the Bayes factor goals, as on the cards
+  since 11 November; 10 stays selected, labelled.
