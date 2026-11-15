@@ -1,18 +1,17 @@
-# powerkit 0.67.6
+# powerkit 0.68.0
 
-* Bayes factor three-factor ANOVA (E56): `factorial_anova /
-  factorial_three` takes `target_test > method` `"bayes_factor"`, with
-  `evidence_threshold`, `prior_scale` (default 0.5) and `inclusion`, JASP's
-  Bayesian ANOVA defaults. New file `backend-bayesfactor-three.R`: Spower
-  runs `p_bayes_three()`, which draws equal groups across the between
-  factors, each person scored in every within cell with their own level
-  (correlation `r`), and scores each study with BayesFactor's
-  `anovaBF(whichModels = "withmain")` (participants a random factor with
-  a within factor) and bayestestR's `bayesfactor_inclusion()`; the
-  no-effect side removes the effect from the cell means by the
-  equal-weight decomposition. Check run, spec checks (no `eta_squared`
-  metric, no sphericity correction), R script and design description. New
-  validation chunk `bayes_three`.
+* A clustered trial with a yes/no outcome (E34's cluster-randomised and
+  multisite templates) can be planned by simulation as well as by
+  powertools' `crt.parallel.bin()` and `multisite.bin()`: method
+  `glmer_simulation` (`backend-cluster-glmer.R`) runs a Spower experiment
+  that draws each group's log odds (cluster-randomised: a random
+  intercept; multisite: a random effect of condition, coded +-1/2), fits
+  `lme4::glmer()` and tests the condition with the Wald z test, one- or
+  two-sided. It has no factor 1.2, so Known difference 16 is shown only
+  for the formula, which stays the default (decisions.md, 15 November
+  2026). Check runs at 400 groups recover the log odds ratio and the
+  random-effect SD; the exported script reproduces the run; with full
+  validation, the simulation agrees with the formula without the factor.
 
 # powerkit 0.67.5
 

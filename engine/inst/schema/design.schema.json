@@ -7051,7 +7051,8 @@
             "method": {
               "enum": [
                 "cluster_t",
-                "logistic_mixed"
+                "logistic_mixed",
+                "glmer_simulation"
               ]
             }
           }
@@ -7116,7 +7117,10 @@
                     "const": "odds_ratio"
                   },
                   "method": {
-                    "const": "logistic_mixed"
+                    "enum": [
+                      "logistic_mixed",
+                      "glmer_simulation"
+                    ]
                   }
                 }
               }
@@ -7268,7 +7272,8 @@
             "method": {
               "enum": [
                 "multisite_t",
-                "logistic_mixed"
+                "logistic_mixed",
+                "glmer_simulation"
               ]
             }
           }
@@ -7333,7 +7338,10 @@
                     "const": "odds_ratio"
                   },
                   "method": {
-                    "const": "logistic_mixed"
+                    "enum": [
+                      "logistic_mixed",
+                      "glmer_simulation"
+                    ]
                   }
                 }
               }

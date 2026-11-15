@@ -302,8 +302,10 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     "moderated_mediation/process_8" = ,
     "moderated_mediation/process_58" = ,
     "moderated_mediation/process_59" = power4mome_backend(spec, seed),
+    # A yes/no outcome may be simulated with glmer() instead of the
+    # package's formula (backend-cluster-glmer.R).
     "cluster_trial/cluster_randomised" = ,
-    "cluster_trial/multisite" = ,
+    "cluster_trial/multisite" = if (cluster_glmer_test(spec)) cluster_glmer_backend(spec, seed) else powertools_backend(spec, seed),
     "cluster_trial/group_treatment" = powertools_backend(spec, seed),
     "sem/model_fit" = ,
     "sem/invariance" = ,

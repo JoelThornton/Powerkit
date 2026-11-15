@@ -303,6 +303,10 @@ simulations:
     # simulated study with SimplyAgree's agreement_limit(); a required N
     # took about 4 minutes on one core, measured 14 November 2026). Lu et
     # al.'s approximation is a formula and calculates here.
+    # Clustered yes/no outcomes simulated with glmer() (about 0.1 s per
+    # simulated study, measured 15 November 2026); powertools' formula
+    # calculates here.
+    E34: {method: glmer_simulation, full_run: [power], preview: {power: 15}, full: {power: 120}, script: {power: "about 2 minutes on one core", sample_size: "about 15 to 30 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
     E69: {method: [mover, bland_altman], full_run: [power], preview: {power: 5}, full: {power: 40}, script: {power: "under a minute on one core", sample_size: "about 5 minutes on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
     E55: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
     # The three-factor ANOVA's Bayes factor: about 1 s per simulated study
@@ -390,7 +394,7 @@ known_differences:
   "12": "Bayes factor test of a correlation: powerkit's default prior width is JASP's, 1 (every correlation equally likely beforehand). BayesFactor, the R package that computes the Bayes factor, defaults to a narrower 1/3, which needs fewer people for a moderate correlation: 146 against 162 for r = .3, BF10 of at least 10 and 80%. Set the prior width to 1/3 (0.333) to match BayesFactor; at the same width the two give the same Bayes factor as JASP."
   "14": "Mediation: powerkit plans for the Monte Carlo confidence interval of the indirect effect, as power4mome does, while PROCESS, the usual software for the analysis, reports a percentile bootstrap interval by default. The two are different tests, so their power can differ a little (powerkit's validation compares them for simple mediation); say in your write-up which interval you will report."
   "15": "ANCOVA: powerkit uses Shieh's (2020) method (pwrss), which treats the covariate as random, as it is when people come with their own before scores. G*Power treats the covariate as fixed, which gives a little more power and so a slightly smaller sample size: in a three-group example, 87 in G*Power against 90 here."
-  "16": "Yes/no outcomes in groups: powertools' formula multiplies the variance of the log odds ratio by 1.2, a safety margin its help pages give no source for, so it asks for more groups than a simulation of the usual mixed-model analysis (glmer() with a random intercept for groups) needs. In a checked example (proportions .30 and .45, groups of 20, SD of the groups' log odds 0.3) it asked for 28 groups where 24 reached 80% in simulation; for people randomised within groups it asked for 22, where the formula without the factor gives 19 and simulation gave 87.6% power at 22. Your answer is on the safe side by about this much."
+  "16": "Yes/no outcomes in groups: powertools' formula multiplies the variance of the log odds ratio by 1.2, a safety margin its help pages give no source for, so it asks for more groups than a simulation of the usual mixed-model analysis (glmer() with a random intercept for groups) needs. In a checked example (proportions .30 and .45, groups of 20, SD of the groups' log odds 0.3) it asked for 28 groups where 24 reached 80% in simulation; for people randomised within groups it asked for 22, where the formula without the factor gives 19 and simulation gave 87.6% power at 22. Your answer is on the safe side by about this much. To plan without the factor, choose the simulation under \u201cHow power is worked out\u201d."
   "17": "Three-way interactions: InteractionPoweR's formula treats the predictors as fixed, as G*Power does. Studies with newly sampled predictors have less power, more so than for two-way interactions: in a checked example the formula's 853 people gave about 76% power in simulation rather than 80%, and about 940 were needed. Consider adding about 10% to this sample size."
   "13": "One-sided Bayes factor test of two proportions: JASP estimates the chance that one group's proportion is the higher from 10,000 random draws, so its one-sided Bayes factor varies slightly from run to run (about 0.1% for 20 of 50 against 30 of 50). powerkit calculates that chance exactly. The two-sided Bayes factor is the same in both."
 
@@ -4141,6 +4145,7 @@ forms:
     known_differences: ["16"]
     known_differences_if_metric: {"16": proportion}
     known_differences_if_template: {"16": [cluster_randomised, multisite]}
+    known_differences_if_method: {"16": logistic_mixed}
     sensitivity: true
     sensitivity_without_effect: true
     directional: true
@@ -4218,6 +4223,18 @@ forms:
           - {id: icc_grouped, writeup_label: "intraclass correlation", label: "Intraclass correlation in condition 2's groups (ICC, 0 to 1)", type: number, path: population.icc, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: outcome_type, is: proportion}, {field: assignment, is: group_treatment}],
              help: "The share of the outcome's variation within condition 2 that lies between its groups. 0 means people in the same group are no more alike than strangers. Take it from earlier studies with similar groups, and try a higher value too."}
+      # powertools' formula by default; a glmer() simulation of the same
+      # trial, without the formula's factor 1.2, on request (Known
+      # difference 16; decisions.md, 15 November 2026).
+      - input: "Yes/no outcome: how power is worked out"
+        shown_if: [{field: outcome_type, is: proportion}, {field: assignment, is_not: group_treatment}]
+        fields:
+          - {id: cluster_bin_method, label: "How power is worked out", type: select, path: target_test.method, required: true,
+             shown_if: [{field: outcome_type, is: proportion}, {field: assignment, is_not: group_treatment}],
+             choices: {logistic_mixed: "powertools' formula (crt.parallel.bin() or multisite.bin())", glmer_simulation: "Simulated studies analysed with glmer(), the mixed-effects logistic regression"},
+             default: logistic_mixed, default_source: "powertools' formula, the published method for this design (crt.parallel.bin() and multisite.bin(), powertools 1.0.0); it is instant, and it is what other researchers' plans for this design usually cite",
+             choice_notes: {logistic_mixed: "Instant. The formula multiplies its variance by 1.2, a factor its help pages give no source for, so it asks for about a sixth more groups than the simulation: for the example, 28 groups rather than 24.",
+                            glmer_simulation: "Simulates the trial and fits the model you will run (lme4's glmer(), Wald z test), without the formula's factor. Slower: power at one size takes about two minutes here, and a sample size runs in the R script. Use it when groups are expensive and you want to check the formula's answer."}}
       - input: "How many people in each group (the cluster size), and how much that varies"
         fields:
           - {id: cluster_size, writeup_label: "participants per group", label: "People analysed in each group, both conditions together (the average, if sizes vary)", type: number, path: population.cluster_size, required: true, min: 2,
