@@ -2117,14 +2117,17 @@ server <- function(input, output, session) {
   observeEvent(input$plan_entry_role, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_role$key, role = input$plan_entry_role$role)))
   observeEvent(input$plan_entry_note, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_note$key, note = input$plan_entry_note$note)))
   observeEvent(input$plan_remove, edit_viewed(function(p) plan_remove_entry(p, input$plan_remove)))
-  observeEvent(input$plan_delete, {
-    id <- isolate(state$plans_view)
+  # Deleting one plan, from its page or from its row on the list.
+  delete_plan <- function(id) {
     plans <- isolate(state$plans)
+    if (!is.character(id) || length(id) != 1L || is.null(plans[[id]])) return()
     plans[[id]] <- NULL
     state$plans <- plans
-    if (identical(state$current_plan, id)) state$current_plan <- NULL
-    state$plans_view <- NULL
-  })
+    if (identical(isolate(state$current_plan), id)) state$current_plan <- NULL
+    if (identical(isolate(state$plans_view), id)) state$plans_view <- NULL
+  }
+  observeEvent(input$plan_delete, delete_plan(input$plan_delete))
+  observeEvent(input$plans_delete_plan, delete_plan(input$plans_delete_plan))
   observeEvent(input$plans_forget_all, {
     session$sendCustomMessage("pk_plans_forget_all", list())
     plans_sent$stamp <- list()

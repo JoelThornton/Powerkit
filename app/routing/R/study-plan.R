@@ -294,7 +294,6 @@ plan_page_ui <- function(plan, plans_n = 1L) {
   k <- length(entries)
   largest <- plan_largest_entry(entries)
   esc <- function(x) htmltools::htmlEscape(x)
-  unsaved <- plan_has_content(plan) && plan_unsaved(plan)
   saveable <- plan_has_content(plan)
   tagList(
     actionLink("plans_back", "‹ All study plans", class = "plans-back"),
@@ -347,10 +346,6 @@ plan_page_ui <- function(plan, plans_n = 1L) {
       if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
     p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it. Download everything adds a planning document for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
     p(class = "small plan-delete",
-      tags$a(href = "#", role = "button", id = "plan_delete_link",
-        onclick = sprintf("if (confirm(%s)) Shiny.setInputValue('plan_delete', Date.now(), {priority: 'event'}); return false;",
-          js_string(paste0("Delete “", plan$name, "” from this browser?",
-            if (unsaved) " It has not been saved to a file, so it will be gone." else ""))),
-        "Delete this plan"))
+      plan_delete_button(plan, input = "plan_delete", class = "btn btn-link btn-sm p-0", label = "Delete this plan"))
   )
 }
