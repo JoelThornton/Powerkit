@@ -3642,3 +3642,24 @@ A replication plan now asks how the original was analysed (queue item
 - The references (Verhagen & Wagenmakers, 2014; Ly et al., 2018, 2019;
   McLatchie et al., 2020) were added to `refs.bib` from the published
   articles.
+
+### Clustered yes/no outcomes: formula by default, simulation offered, 15 November 2026
+
+For the cluster-randomised and multisite cards with a yes/no outcome
+(E34), powertools' `crt.parallel.bin()` and `multisite.bin()` stay the
+default, with the variance factor of 1.2 they apply (no published
+source) shown as Known difference 16 with its size. A `glmer()`
+simulation of the same trial is offered as the alternative method
+(`glmer_simulation`, `engine/R/backend-cluster-glmer.R`, run through
+Spower), so a researcher whose groups are expensive can plan without the
+factor. The formula stays the default because it is instant, it errs
+towards more groups rather than fewer, and it matches the package
+researchers cite; the simulation is the check. The simulated model is
+the one researchers fit: a random intercept for each group in a
+cluster-randomised trial, and a random effect of condition across groups
+in a multisite trial (the model `multisite.bin()` describes), each with
+the Wald z test of the condition's coefficient. With the example's
+values the simulation agrees with the formula without the factor (24
+groups: 84.5% in 200 simulated studies for a cluster-randomised trial;
+22 groups: 86.3% in 1,000 for a multisite trial, against 86.9% from the
+formula without the factor).

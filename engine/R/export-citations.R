@@ -156,6 +156,10 @@ supporting_software <- function(backend, used = character(), psych_roles = chara
           )
         )
       },
+      # Clustered yes/no outcomes simulated with glmer() (backend-cluster-glmer.R).
+      if ("lme4" %in% used && !"ARTool" %in% used) {
+        list(s("lme4", "which fits the mixed-effects model in each simulated study"))
+      },
       if ("MASS" %in% used) {
         list(s("MASS", "whose glm.nb() fits the negative binomial regression powerkit's experiment runs"))
       },
