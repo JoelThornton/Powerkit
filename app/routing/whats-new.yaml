@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-15"
+    title: "A Bayes factor for multiple regression"
+    text: "The multiple regression card plans a Bayes factor for whether the predictors together explain anything, as JASP's Bayesian linear regression reports it: choose it as the test version for R-squared against 0, and powerkit gives the chance that the Bayes factor reaches your threshold, with JASP's default prior, with no simulation."
+  - date: "2026-11-15"
     title: "Within-person moderation, as in a diary study"
     text: "The card for relationships measured within people now calculates within-person moderation: people measured on many occasions, something measured on each occasion (such as the day's stress) predicting the outcome on that occasion (such as evening mood), and something measured once per person (such as neuroticism) changing how strongly. powerkit simulates the power of the two-level mixed model and reports the number of people and occasions. Within-person mediation is not calculated yet."
   - date: "2026-11-15"

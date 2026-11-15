@@ -3475,6 +3475,34 @@ true rate of about 5.4%, roughly one seed in 80 would exceed the limit.
 More replications would remove that chance and remain an option if the
 check fails again.
 
+### The Bayes factor for R-squared on E24, 14 November 2026
+
+The first design of `next.md` item 2: E24's question "whether the
+predictors together explain anything" takes a Bayes factor test version.
+The Bayes factor is BayesFactor's linear-regression (JZS) Bayes factor of
+the model with all the predictors against the intercept-only model, with
+an r scale of 0.354, JASP's default for its Bayesian linear regression and
+BayesFactor's "medium". It depends on the data only through R-squared, so
+BayesFactor's `linearReg.R2stat()` gives it from the F statistic, and the
+chance of strong evidence is exact: the noncentral F beyond the F at which
+BF10 reaches the threshold, as for the Bayes factor ANOVA (E18). JASP
+computes the Bayes factor with BAS rather than BayesFactor; on one
+simulated data set BAS's JZS Bayes factor was 15.73 and
+`linearReg.R2stat()`'s 15.75, which is within the numerical integration
+of the two packages. Validation: `test-validation-bayes-regression.R`
+(chunk `bayes`), against `lmBF()` on data simulated with fixed predictors.
+The R-squared increase and one coefficient are not offered yet: their
+Bayes factor depends on two R-squared values, and JASP reports a
+coefficient's evidence as a model-averaged inclusion Bayes factor.
+Recommendation for the maintainer: plan the Bayes factor of the full model
+against the model without the tested predictors (what
+`regressionBF(whichModels = "top")` reports, and the direct analogue of
+the F test), simulated from the three independent sums of squares;
+JASP's inclusion Bayes factor depends on the predictors' correlations,
+which researchers rarely know when planning. Conventions:
+`docs/conventions.md`, "Bayes factor for R-squared in a linear regression
+(E24)".
+
 ### Within-person moderation on E41, 14 November 2026
 
 E41 now calculates within-person moderation, the design `next.md` item 1

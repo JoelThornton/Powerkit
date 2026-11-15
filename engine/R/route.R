@@ -128,7 +128,12 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
       pwrss_backend(spec, seed)
     },
     "poisson_regression/interaction" = count_interaction_backend(spec, seed),
-    "multiple_regression/r2_zero" = ,
+    "multiple_regression/r2_zero" = if (bfreg_test(spec)) {
+      # The Bayes factor for R-squared, by BayesFactor's linearReg.R2stat().
+      bfreg_backend(spec, seed)
+    } else {
+      pwrss_backend(spec, seed)
+    },
     "multiple_regression/r2_increase" = ,
     "logistic_regression/single_predictor" = ,
     "poisson_regression/single_predictor_count" = if (simulated_count_test(spec)) {

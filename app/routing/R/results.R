@@ -433,7 +433,7 @@ test_text <- function(spec) {
     return(sprintf("%s at alpha = %s", name, alpha_text(spec$target_test$alpha)))
   }
   alt <- spec$target_test$alternative %||% "two_sided"
-  if (is_bayes_anova(spec) || is_bayes_table(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
+  if (is_bayes_anova(spec) || is_bayes_table(spec) || is_bayes_regression(spec)) return(sprintf("%s (%s)", bayes_test_name(spec), bayes_settings_text(spec)))
   if (is_bayes_test(spec)) {
     side <- switch(alt, two_sided = "two-sided", greater = "one-sided, effect positive", less = "one-sided, effect negative")
     return(sprintf("%s (%s; %s)", bayes_test_name(spec), side, bayes_settings_text(spec)))
@@ -2376,6 +2376,11 @@ bayes_settings_text <- function(spec) {
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.5, 3)),
       if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else ""))
   }
+  if (is_bayes_regression(spec)) {
+    return(sprintf("strong evidence: BF10 of at least %s; Cauchy prior on the standardised coefficients, r scale %s%s",
+      format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.354, 3)),
+      if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else ""))
+  }
   sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
@@ -2383,6 +2388,10 @@ bayes_settings_text <- function(spec) {
 # The Bayes factor one-way ANOVA (BayesFactor's oneWayAOV.Fstat()): no
 # direction, and JASP's r scale of 0.5 by default.
 is_bayes_anova <- function(spec) is_bayes_test(spec) && identical(spec$template, "oneway_between")
+
+# The Bayes factor for R-squared (BayesFactor's linearReg.R2stat()): no
+# direction, and JASP's r scale of 0.354 by default.
+is_bayes_regression <- function(spec) is_bayes_test(spec) && identical(spec$template, "r2_zero")
 
 # The Bayes factor test of a table (BayesFactor's contingencyTableBF(),
 # simulated): no direction, JASP's sampling plan by default.
@@ -2411,6 +2420,7 @@ bayes_test_name <- function(spec) {
     paired_t = "a paired-samples Bayes factor t-test",
     independent_t = "an independent-samples Bayes factor t-test",
     oneway_between = "a Bayes factor one-way ANOVA",
+    r2_zero = "a Bayes factor test of R-squared in a linear regression",
     chi_square_independence = "a Bayes factor test of association")
 }
 
@@ -3366,6 +3376,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     tt <- spec$target_test
     test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy analysis prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
       format(signif(tt$prior_scale %||% 0.5, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else "",
+      result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+  } else if (is_bayes_regression(spec)) {
+    tt <- spec$target_test
+    test <- sprintf("a Bayes factor test of R-squared in a linear regression (the JZS Bayes factor of the model with all the predictors against the intercept-only model, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+      format(signif(tt$prior_scale %||% 0.354, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else "",
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test

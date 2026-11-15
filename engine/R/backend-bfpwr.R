@@ -182,6 +182,14 @@ bayes_summary <- function(spec, n, backend = NULL, nrep = NULL, seed = NULL) {
       bfanova_null_side(inputs, n)
     ))
   }
+  if (bfreg_test(spec)) {
+    inputs <- bfreg_inputs(spec)
+    return(c(
+      list(evidence_threshold = inputs$threshold, prior_scale = inputs$prior_scale,
+        effect_sd = 0, n = n, hypotheses = bfreg_hypotheses_words(inputs)),
+      bfreg_null_side(inputs, n)
+    ))
+  }
   if (bfprop_test(spec)) {
     inputs <- bfprop_inputs(spec)
     return(c(
@@ -242,6 +250,9 @@ bfpwr_script <- function(spec, result) {
   }
   if (bfanova_test(spec)) {
     return(bfanova_script(spec, result))
+  }
+  if (bfreg_test(spec)) {
+    return(bfreg_script(spec, result))
   }
   if (bffactorial_test(spec)) {
     return(bffactorial_script(spec, result))
@@ -309,6 +320,9 @@ bayes_design_description <- function(spec, label, levels) {
   }
   if (bfanova_test(spec)) {
     return(bfanova_design_description(spec, label, levels))
+  }
+  if (bfreg_test(spec)) {
+    return(bfreg_design_description(spec, label))
   }
   if (bffactorial_test(spec)) {
     return(bffactorial_design_description(spec, label, levels))
