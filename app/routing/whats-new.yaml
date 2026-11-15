@@ -7,6 +7,9 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-15"
+    title: "The ICC uses its test's exact power"
+    text: "Planning an intraclass correlation now works out the power of the F test you will run from its exact distribution, rather than the approximation ICC.Sample.Size uses, which can ask for a person or two more than needed. Both are instant, and the approximation stays as a choice on the screen for comparing with that package."
   - date: "2026-11-14"
     title: "Moderation when the outcome is a count"
     text: "Moderation with an outcome that isn't a score now takes a count, such as drinking days in a month, as well as a yes or no answer. Give the mean count at the starting point, how much X and W each change it, and how much W changes X's effect, and powerkit finds the power or sample size for the interaction in a Poisson or negative binomial regression."
