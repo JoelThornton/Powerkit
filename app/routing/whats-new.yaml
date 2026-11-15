@@ -8,8 +8,8 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-15"
-    title: "Tidier replication plans and study plans"
-    text: "Each study plan on the Study plans page can now be deleted from its own row, and its description saves as you leave the box. In a replication plan, the pre-replication notes show one question per part (the paper's own questions are in the help), the references are listed once at the foot, and the Bayes factor goals use the same evidence threshold wording as the cards. The replication's significance level and chance of success now start empty, with buttons for the usual values, and variation between studies starts at Small, since assuming none makes a replication look easier than it is."
+    title: "Clustered yes/no outcomes can be simulated"
+    text: "For a cluster-randomised or multisite trial with a yes/no outcome, you can now choose a simulation of the trial analysed with a mixed-effects logistic regression (glmer()) instead of powertools' formula. The formula stays the default and is instant, but it adds an unexplained safety margin that asks for about a sixth more groups; the simulation plans without it, and takes about two minutes for power at one size."
   - date: "2026-11-15"
     title: "The ICC uses its test's exact power"
     text: "Planning an intraclass correlation now works out the power of the F test you will run from its exact distribution, rather than the approximation ICC.Sample.Size uses, which can ask for a person or two more than needed. Both are instant, and the approximation stays as a choice on the screen for comparing with that package."
