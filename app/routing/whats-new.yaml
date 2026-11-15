@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-15"
+    title: "Tidier replication plans and study plans"
+    text: "Each study plan on the Study plans page can now be deleted from its own row, and its description saves as you leave the box. In a replication plan, the pre-replication notes show one question per part (the paper's own questions are in the help), the references are listed once at the foot, and the Bayes factor goals use the same evidence threshold wording as the cards. The replication's significance level and chance of success now start empty, with buttons for the usual values, and variation between studies starts at Small, since assuming none makes a replication look easier than it is."
+  - date: "2026-11-15"
     title: "A Bayes factor for ANCOVA"
     text: "The ANCOVA card plans a Bayes factor for the group effect, or either effect or the interaction with two factors, as JASP's Bayesian ANCOVA reports it: choose it as the test version, and powerkit simulates the chance that the effect's Bayes factor reaches your threshold, adjusting for the covariates, with JASP's default priors. The two-factor and repeated-measures ANOVAs' Bayes factor write-ups now name the test they plan for."
   - date: "2026-11-15"
