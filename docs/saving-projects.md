@@ -667,6 +667,13 @@ planning (queue item 23; `decisions.md`, 12 and 14 November 2026).
   `replication_effects`), its standard error, interval or test statistic
   and its scale, and the card's status line says which applies. A
   multi-df test is pointed to the card for its focal contrast.
+- "How it was analysed" (15 November 2026): a significance test, a
+  Bayes factor (BF10 and the Cauchy prior's scale, for a t-test) or a
+  posterior (its mean with its SD or credible interval, refused for an
+  informative prior). Either Bayesian route hides the original's
+  significance level and small telescopes, and the results offer "Plan
+  it as a sequential Bayes factor study", which fills Labs' Bayesian
+  planning tool from the chosen belief.
 - The write-up (PDF, Word, Markdown) holds the notes, the goals table,
   the differences and the original's analysis as its card planned it.
   Download everything adds it to the zip as `replication-plan.md` and

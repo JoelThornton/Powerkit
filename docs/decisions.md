@@ -3506,3 +3506,44 @@ correlation:
   (exact − 3) for a correlation (89 against 85), because the generic
   route reads the unit SD at the original's estimate. This is why the
   four keep their exact routes.
+
+### Replication plans for an original analysed with Bayes factors, 15 November 2026
+
+A replication plan now asks how the original was analysed (queue item
+21): a significance test, a Bayes factor or a posterior distribution.
+
+- **A Bayes factor.** For a t-test (two groups, one group or pairs), the
+  original's BF10, its sample size and its Cauchy prior's scale (0.707 by
+  default) give its t statistic, by inverting BayesFactor's
+  `ttest.tstat()`, which grows with |t|; the t gives the standardised
+  effect. This is the reverse of the summary-statistics reanalysis of
+  Ly et al. (2018). A test checks the round trip at three t values and
+  three prior scales for each design. The effect is read as positive:
+  the goals are symmetric in its sign. Other designs are told to give a
+  posterior or the estimate with its standard error, because no package
+  gives their Bayes factor from summary statistics alone.
+- **A posterior.** Its mean and SD (or credible interval) stand in for
+  the estimate and its standard error, only when its prior was vague or
+  a default one. An informative prior's posterior is refused with a
+  plain message: it mixes the prior's beliefs into the original's
+  evidence (McLatchie, Warmelink & Tkacheva, 2020, pp. 75–76). A
+  correlation's posterior SD is moved to Fisher's z by the delta method,
+  SD / (1 − r²).
+- **Goals.** Either route leaves out small telescopes and the original's
+  significance level, which rest on a significance test. For a t-test it
+  adds the original's Bayes factor test repeated on the replication's
+  data under the three beliefs, and evidence for no effect (BF01 at the
+  threshold, planned for a true effect of zero), both with bfpwr's
+  `ntbf01()` (Pawel & Held, 2025), whose Bayes factor equals
+  BayesFactor's (tested). The replication and sceptical Bayes factors
+  stay. The queue item named BayesRepDesign's `ssdBF01()` for evidence
+  for no effect; its help says success is BF01 below the level, which is
+  evidence for an effect, so bfpwr's `ntbf01(lower.tail = FALSE)` is used
+  instead.
+- **Sequential.** `bayes_sequential()` takes a normal design prior
+  (`effect`, `effect_sd`), so the results offer to plan the replication
+  as a sequential Bayes factor design in Labs, filled from the chosen
+  belief, the original's prior scale and the threshold.
+- The references (Verhagen & Wagenmakers, 2014; Ly et al., 2018, 2019;
+  McLatchie et al., 2020) were added to `refs.bib` from the published
+  articles.
