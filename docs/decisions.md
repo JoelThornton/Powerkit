@@ -3382,3 +3382,27 @@ error of a few points matters near a target.
   (`docs/upstream/superpower-gg-grid.R`). Each test also checks that the
   exact dataset is within 4 points of its reference. Each simulated call
   keeps the seed of the original test's simulated call.
+
+### Two groups in a ratio rounded at every total, 14 November 2026
+
+Two groups in a ratio other than 1 are planned at every total with the
+groups rounded to whole people, as a researcher would recruit them: group
+1 is N / (1 + ratio) rounded to the nearest person (a half rounds up), and
+group 2 is the rest. The required N is the smallest total whose rounded
+groups reach the target power, and the result states the groups and the
+ratio they achieve. This replaces the rule of 11 November 2026 (a rounded
+decimal planned as the simplest whole split that rounds to it), as
+`next.md` item 20 set out, because the total still moved in steps of that
+split and could need up to about four people more.
+
+- G\*Power also rounds each group of a total. The two agree wherever
+  G\*Power's groups reach the target (its variance-test example, 443; two
+  proportions at a ratio of 3, 280). Where G\*Power's rounded groups fall
+  just short (two proportions at a ratio of 2: 370 at 0.9498668),
+  powerkit gives the next total (371), because a plan has to reach the
+  target. Recorded under "Group sizes given as a ratio" in
+  `conventions.md` and in Departure 11.
+- Equal groups keep their step of 2.
+- The backends are unchanged: at each total the engine runs the backend
+  for that total's exact whole-group ratio.
+

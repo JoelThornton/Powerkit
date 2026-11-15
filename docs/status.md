@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 14 November 2026 (mediation with a yes/no mediator, card E39; two or more groups measured more than once with a count, yes/no or ordered categories, card E75; mediation with X in three or more groups, card E42; corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 14 November 2026 (two groups in a ratio rounded at every total; mediation with a yes/no mediator, card E39; two or more groups measured more than once with a count, yes/no or ordered categories, card E75; mediation with X in three or more groups, card E42; corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -67,7 +67,7 @@ transcription. Next in the queue: the rest of
 those cards (`next.md` item 1), E75's two groups measured more than once
 (a group-by-time interaction) among them. A tool showing which uncertain input a plan depends on most
 (one-at-a-time ranges and a tornado chart) is queued after the cards
-that can't yet calculate (`next.md` item 27).
+that can't yet calculate (`next.md` item 26).
 
 The cross-lagged panel card runs with a reliability below 1 (13
 November 2026): its check run compares the specified lagged effects with
@@ -134,8 +134,9 @@ t-test included when groups are equal, and the ANCOVA result shows how
 Shieh's method differs from G*Power's (Known difference 15).
 
 A pre-tester review on 11 November corrected three calculations: decimal
-group-size ratios are planned as the simplest matching whole split
-(`docs/conventions.md`, "Group sizes given as a ratio"), non-inferiority
+group-size ratios no longer force large steps in the total (since 14
+November two groups in a ratio are rounded to whole people at every
+total, `docs/conventions.md`, "Group sizes given as a ratio"), non-inferiority
 t-tests use the one-sided t-test against the margin, and a search whose
 power cannot rise says so. Precision planning for one group and paired
 data accepts assurance. In the app, exports no longer wait for a written
@@ -146,8 +147,11 @@ the browser; a result is reused when only free-text answers change; a
 conventional effect size can be recorded as one. The non-inferiority and allocation unit tests and the
 non-inferiority validation chunk were run; no full validation run is
 claimed. Minimum-effect tests now use the same shifted t-test (12
-November; the equivalence validation chunk was run). The rounded-group-size
-search is queued.
+November; the equivalence validation chunk was run). Two groups in a
+ratio are now planned at every total with the groups rounded as a
+researcher would recruit them (14 November): G*Power's variance-test
+example now agrees (443), and two proportions at a ratio of 2 need 371,
+one more than G*Power's 370, whose groups fall just short of the target.
 
 Simple mediation (E10, E16) starts on a quick estimate by formula (the
 joint-significance test, pwrss), marked as an estimate on the result, with

@@ -71,7 +71,7 @@ critical_effect_welch <- function(spec) {
 critical_effect_groups <- function(spec, n) {
   ratio <- allocation_ratio(spec)
   if (isTRUE(all.equal(ratio, 1))) return(c(n / 2, n / 2))
-  n1 <- round(n / (1 + ratio))
+  n1 <- floor(n / (1 + ratio) + 0.5)
   c(n1, n - n1)
 }
 

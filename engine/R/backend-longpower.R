@@ -105,7 +105,7 @@ growth_backend <- function(spec, seed = NULL) {
 # normal), the second group's average rate of change slope_difference
 # higher, and the residuals. Long format: id, group (0, 1), time, y.
 growth_data <- function(n, inputs) {
-  n1 <- round(n / (1 + (inputs$ratio %||% 1)))
+  n1 <- floor(n / (1 + (inputs$ratio %||% 1)) + 0.5)
   people <- n
   sigma <- matrix(c(inputs$s_i^2, inputs$cov_is, inputs$cov_is, inputs$s_s^2), 2)
   effects <- if (inputs$s_i == 0 && inputs$s_s == 0) matrix(0, people, 2) else SimDesign::rmvnorm(people, c(0, 0), sigma)

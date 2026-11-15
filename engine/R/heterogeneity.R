@@ -92,7 +92,7 @@ heterogeneity_problems <- function(spec) {
 heterogeneity_se0 <- function(spec, n) {
   if (identical(spec$template, "independent_t")) {
     ratio <- allocation_ratio(spec)
-    n1 <- round(n / (1 + ratio))
+    n1 <- floor(n / (1 + ratio) + 0.5)
     return(list(se = sqrt(1 / n1 + 1 / (n - n1)), df = n - 2))
   }
   list(se = sqrt(1 / n), df = n - 1)
@@ -241,7 +241,8 @@ heterogeneity_range <- function(spec, n) {
   rows <- lapply(names(levels), function(name) {
     s <- spec
     s$population$tau <- levels[[name]]
-    backend <- heterogeneity_backend(s)
+    # Two groups in a ratio are rounded at each total (rounded_ratio_backend()).
+    backend <- if (is.null(rounded_ratio(s))) heterogeneity_backend(s) else rounded_ratio_backend(s, heterogeneity_backend)
     value <- tryCatch(switch(goal$type,
       power = backend$exact_power(n),
       sample_size = search_n_exact(s, backend, goal$power)$n_required$n,
@@ -253,6 +254,7 @@ heterogeneity_range <- function(spec, n) {
 }
 
 heterogeneity_record_at <- function(spec, n) {
+  spec <- spec_at_total(spec, n)
   a <- heterogeneity_adjustment(spec, n)
   usual <- spec
   usual$population$tau <- NULL
@@ -279,7 +281,7 @@ heterogeneity_script <- function(spec, result) {
   call <- if (two && isTRUE(all.equal(ratio, 1))) {
     sprintf("pwr::pwr.t.test(n = n / 2, d = q * mu, sig.level = effective_alpha, type = \"two.sample\", alternative = \"%s\")$power", alternative)
   } else if (two) {
-    sprintf("pwr::pwr.t2n.test(n1 = round(n / (1 + %s)), n2 = n - round(n / (1 + %s)), d = q * mu, sig.level = effective_alpha, alternative = \"%s\")$power",
+    sprintf("pwr::pwr.t2n.test(n1 = floor(n / (1 + %s) + 0.5), n2 = n - floor(n / (1 + %s) + 0.5), d = q * mu, sig.level = effective_alpha, alternative = \"%s\")$power",
       format(ratio), format(ratio), alternative)
   } else {
     sprintf("pwr::pwr.t.test(n = n, d = q * mu, sig.level = effective_alpha, type = \"%s\", alternative = \"%s\")$power",
@@ -292,7 +294,7 @@ heterogeneity_script <- function(spec, result) {
     sprintf("tau <- %s    # its SD between studies", format(spec$population$tau)),
     sprintf("alpha <- %s", format(spec$target_test$alpha %||% 0.05)),
     sprintf("n <- %s      # in total", format(n)),
-    if (two) sprintf("se0 <- sqrt(1 / round(n / (1 + %s)) + 1 / (n - round(n / (1 + %s)))); df <- n - 2", format(ratio), format(ratio))
+    if (two) sprintf("se0 <- sqrt(1 / floor(n / (1 + %s) + 0.5) + 1 / (n - floor(n / (1 + %s) + 0.5))); df <- n - 2", format(ratio), format(ratio))
     else "se0 <- sqrt(1 / n); df <- n - 1",
     "q <- se0 / sqrt(se0^2 + tau^2)",
     sprintf("effective_alpha <- %s * pt(q * qt(1 - alpha / %s, df), df, lower.tail = FALSE)", tails, tails),

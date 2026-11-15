@@ -33,11 +33,12 @@ test_that("a percentage typed for a proportion says what to type", {
   expect_true(any(grepl("for 5%, type 0.05", form_problems(fields, values), fixed = TRUE)))
 })
 
-test_that("a simplified group ratio is stated on the result and in the write-up", {
+test_that("rounded groups and their ratio are stated on the result and in the write-up", {
   expect_null(allocation_note(list()))
-  note <- allocation_note(list(allocation = list(entered = 0.67, ratio = 2 / 3, group1 = 3, group2 = 2)))
-  expect_match(note, "3 : 2 (group 1 : group 2)", fixed = TRUE)
-  expect_match(note, "0.67", fixed = TRUE)
+  expect_null(allocation_note(list(allocation = list(entered = 2, ratio = 2, group1 = 70, group2 = 140, exact = TRUE))))
+  note <- allocation_note(list(allocation = list(entered = 0.67, ratio = 83 / 124, group1 = 124, group2 = 83, exact = FALSE)))
+  expect_match(note, "groups of 124 and 83 (group 1 and group 2)", fixed = TRUE)
+  expect_match(note, "1 : 0.67. Their ratio is 1 : 0.669.", fixed = TRUE)
 })
 
 test_that("the main button says what it does, and feedback is one click from every screen", {

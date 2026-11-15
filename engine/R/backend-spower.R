@@ -107,9 +107,17 @@ spower_inputs <- function(spec) {
   pop <- spec$population
   ratio <- allocation_ratio(spec)
   # Group 1's size, from the total n and the allocation ratio n2 / n1.
-  first_group <- function(n) round(n / (1 + ratio))
+  first_group <- function(n) floor(n / (1 + ratio) + 0.5)
+  # Group 2's size relative to group 1's at a total n, for generators that
+  # draw n * n2_n1 people: the rest of the total, nudged up by a relative
+  # 1e-12 so that rounding error in the product can't drop a person when
+  # the generator truncates it to a whole number.
+  second_ratio <- function(n) {
+    n1 <- first_group(n)
+    (n - n1) / n1 * (1 + 1e-12)
+  }
   template <- spec$template
-  test <- if (rank_test(spec)) rank_test_inputs(spec, first_group) else switch(
+  test <- if (rank_test(spec)) rank_test_inputs(spec, first_group, second_ratio) else switch(
     template,
     one_sample_t = list(
       experiment = "p_t.test", generator = "gen_t.test",
@@ -119,7 +127,7 @@ spower_inputs <- function(spec) {
       experiment = "p_t.test", generator = "gen_t.test",
       args = function(n) {
         c(list(
-          n = first_group(n), d = -pop$d, type = "two.sample", n2_n1 = ratio,
+          n = first_group(n), d = -pop$d, type = "two.sample", n2_n1 = second_ratio(n),
           var.equal = spec$target_test$method == "student_t"
         ), if (unequal_welch(spec)) list(sds = welch_population_sds(spec)))
       }
@@ -189,7 +197,7 @@ spower_inputs <- function(spec) {
       experiment = "p_prop.test", generator = "gen_prop.test",
       args = function(n) {
         list(
-          n = first_group(n), prop = c(pop$p1, pop$p2), n.ratios = c(1, ratio),
+          n = first_group(n), prop = c(pop$p1, pop$p2), n.ratios = c(1, second_ratio(n)),
           correct = continuity_corrected(spec)
         )
       }
@@ -521,7 +529,7 @@ spower_inputs <- function(spec) {
 # test the differences themselves are drawn (the second sample is 0), so
 # that their shape is the one chosen: the signed-rank test ranks the
 # differences, and assumes they are symmetric.
-rank_test_inputs <- function(spec, first_group) {
+rank_test_inputs <- function(spec, first_group, second_ratio) {
   pop <- spec$population
   ratio <- allocation_ratio(spec)
   draw <- score_shape_sampler(pop$score_shape)
@@ -608,7 +616,7 @@ rank_test_inputs <- function(spec, first_group) {
     sd_ratio <- pop$sd_ratio %||% 1
     return(list(
       experiment = "p_yuen", own = TRUE, rank = "yuen", draw = draw,
-      args = function(n) list(n = first_group(n), n2_n1 = ratio, d = pop$d, sd_ratio = sd_ratio, shape = shape, trim = trim)
+      args = function(n) list(n = first_group(n), n2_n1 = second_ratio(n), d = pop$d, sd_ratio = sd_ratio, shape = shape, trim = trim)
     ))
   }
   # The Brunner-Munzel test: powerkit's own experiment, p_brunner_munzel(),
@@ -619,7 +627,7 @@ rank_test_inputs <- function(spec, first_group) {
     sd_ratio <- pop$sd_ratio %||% 1
     return(list(
       experiment = "p_brunner_munzel", own = TRUE, rank = "brunner_munzel", draw = draw,
-      args = function(n) list(n = first_group(n), n2_n1 = ratio, d = pop$d, sd_ratio = sd_ratio, shape = shape)
+      args = function(n) list(n = first_group(n), n2_n1 = second_ratio(n), d = pop$d, sd_ratio = sd_ratio, shape = shape)
     ))
   }
   wilcox <- function(args) {
@@ -634,7 +642,7 @@ rank_test_inputs <- function(spec, first_group) {
     one_sample_t = function(n) wilcox(list(n = n, d = pop$d, type = "one.sample")),
     paired_t = function(n) wilcox(list(n = n, d = -pop$dz, type = "paired")),
     independent_t = function(n) {
-      wilcox(list(n = first_group(n), d = -pop$d, type = "two.sample", n2_n1 = ratio))
+      wilcox(list(n = first_group(n), d = -pop$d, type = "two.sample", n2_n1 = second_ratio(n)))
     }
   )
   list(experiment = "p_wilcox.test", rank = "wilcox", draw = draw, args = args)
@@ -1899,7 +1907,8 @@ spower_check_run <- function(spec, inputs, n, seed) {
   group_sizes <- function(n1, n2) {
     data.frame(
       parameter = "group size ratio (group 2 / group 1)",
-      specified = ratio, recovered = n2 / n1, ok = isTRUE(all.equal(n2 / n1, ratio))
+      # Whole groups: the ratio as nearly as whole people allow.
+      specified = ratio, recovered = n2 / n1, ok = isTRUE(all(c(n1, n2) == rounded_groups(n1 + n2, ratio)))
     )
   }
   switch(

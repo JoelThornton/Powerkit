@@ -348,7 +348,7 @@ group_sizes <- function(spec, n) {
     two_proportions = ,
     two_correlations = {
       ratio <- spec$options$allocation_ratio %||% 1
-      n1 <- round(n / (1 + ratio))
+      n1 <- floor(n / (1 + ratio) + 0.5)
       c(n1, n - n1)
     },
     "2x2_between" = rep(n / 4, 4),
@@ -2596,9 +2596,6 @@ provenance_lines <- function(result) {
   )
 }
 
-# A group-size ratio typed as a rounded decimal (0.67) is planned as the
-# simplest whole split that rounds to it (2 : 3); the engine's result
-# says when it did that (planned_allocation()).
 # Factorial and one-way designs with equal groups (M-10): the total is
 # rounded up to whole groups, where G*Power reports the total its formula
 # gives, so the two can differ by a few people.
@@ -2612,11 +2609,14 @@ whole_groups_note <- function(spec, result) {
     whole(step), whole(n / step))
 }
 
+# Two groups in a ratio other than 1 are rounded to whole people at the
+# total (the engine's planned_allocation()): the result says which groups,
+# and their ratio, when it is not the one entered.
 allocation_note <- function(result) {
   a <- result$allocation
-  if (is.null(a)) return(NULL)
-  sprintf("The group sizes were planned as %s : %s (group 1 : group 2), the simplest whole split that rounds to the ratio you entered (%s). Taken exactly, %s could only be met by much larger steps in the total sample size.",
-    format(a$group1), format(a$group2), format(a$entered), format(a$entered))
+  if (is.null(a) || isTRUE(a$exact)) return(NULL)
+  sprintf("Power is worked out for groups of %s and %s (group 1 and group 2): the total split as nearly as whole people allow in the ratio you entered, 1 : %s. Their ratio is 1 : %s.",
+    format(a$group1), format(a$group2), format(a$entered), format(round(a$ratio, 3)))
 }
 
 # Two proportions by the z test: the normal approximation is unreliable

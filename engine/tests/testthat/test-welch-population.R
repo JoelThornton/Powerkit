@@ -52,15 +52,15 @@ test_that("Welch example data recover the group spreads and effect", {
   expect_match(simulated_data_note(spec), "root-mean-square", fixed = TRUE)
 })
 
-test_that("Welch searches keep the same population and whole allocation", {
+test_that("Welch searches keep the same population, with whole groups at every total", {
   spec <- welch_spread_spec()
   spec$goal <- list(type = "sample_size", power = 0.8)
   result <- run_spec(spec)
   n <- result$n_required$n
-  expect_equal(n %% 3, 0)
-  power_at <- pwrss_backend(spec)$exact_power
+  # pwrss at each total's own whole groups.
+  power_at <- function(n) pwrss_backend(spec_at_total(spec, n))$exact_power(n)
   expect_gte(power_at(n), 0.8)
-  expect_lt(power_at(n - 3), 0.8)
+  expect_lt(power_at(n - 1), 0.8)
 })
 
 test_that("both Welch reproduction scripts retain unequal spreads", {

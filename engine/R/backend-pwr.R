@@ -77,7 +77,7 @@ pwr_inputs <- function(spec) {
   ratio <- allocation_ratio(spec)
   alternative <- pwr_alternative(spec$target_test$alternative %||% "two_sided")
   groups <- function(n) {
-    n1 <- round(n / (1 + ratio))
+    n1 <- floor(n / (1 + ratio) + 0.5)
     c(n1, n - n1)
   }
   equal <- isTRUE(all.equal(ratio, 1))
@@ -359,7 +359,7 @@ pwr_sensitivity <- function(spec, n, target) {
       d <- if (equal) {
         solve("pwr.t.test", list(n = n / 2, d = NULL, type = "two.sample", alternative = alternative), "d")
       } else {
-        n1 <- round(n / (1 + ratio))
+        n1 <- floor(n / (1 + ratio) + 0.5)
         solve("pwr.t2n.test", list(n1 = n1, n2 = n - n1, d = NULL, alternative = alternative), "d")
       }
       list(effect = signed(d, pop$d), effect_name = "d", effect_description = "Cohen's d (group 2 minus group 1, in SDs)")

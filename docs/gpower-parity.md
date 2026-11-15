@@ -195,7 +195,7 @@ to the seven decimals G\*Power shows. Two-sided, α = .05, p1 = .10, p2 =
 | --- | --- | --- | --- | --- |
 | Post hoc, 20 per group | 0.2344921 | 0.2344921 | 0.2339595 | 0.2477934 |
 | A priori, power .95, equal groups | 164 + 164, actual power 0.9502464 | 164 per group; 0.9502464 at 164 | | 160 per group |
-| A priori, power .95, N2/N1 = 2 | 123 + 247 = 370, actual power 0.9498668 | Equal groups only; pwrss (powerkit's choice for unequal groups) gives 0.9498668 at 123 and 247, and powerkit's required N is 372 (124 + 248) | | 120 + 240 = 360 |
+| A priori, power .95, N2/N1 = 2 | 123 + 247 = 370, actual power 0.9498668 | Equal groups only; pwrss (powerkit's choice for unequal groups) gives 0.9498668 at 123 and 247, and powerkit's required N is 371 (124 + 247, 0.9509375), the first total whose rounded groups reach .95 (372 before 14 November 2026) | | 120 + 240 = 360 |
 
 - G\*Power counts rejections in both tails, as `strict = TRUE` does.
 - With unequal groups, the same z test (pooled variance under the null,
@@ -224,8 +224,8 @@ are tests in `engine/tests/testthat/test-backend-pwr.R`.
 | Post hoc, one tail, equal groups (50 + 50), p1 .5, p2 .6 | 0.2600887 | 0.2600887 (`power.prop.test(strict = TRUE)`) |
 
 Every value agrees to the seven decimals G\*Power shows. The only
-difference found is the a-priori rounding at 1 : 2 above (372 against
-370; Departure 11).
+difference found is the a-priori rounding at 1 : 2 above (371 against
+370, whose groups fall just short of .95; Departure 11).
 
 Outputs: G\*Power shows critical z and power (post hoc) or the two group
 sizes, total sample size and actual power (a priori) (screenshot).

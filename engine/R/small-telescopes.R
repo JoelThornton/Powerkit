@@ -136,7 +136,7 @@ telescope_backend <- function(spec, seed = NULL) {
       return(list(rho = truth * margin, null.rho = margin, n = n, alpha = alpha, alternative = "one.sided", verbose = 0))
     }
     sizes <- if (identical(rule$design, "independent")) {
-      n1 <- round(n / (1 + ratio))
+      n1 <- floor(n / (1 + ratio) + 0.5)
       list(n2 = n - n1, n.ratio = n1 / (n - n1))
     } else {
       list(n2 = n)
@@ -210,7 +210,7 @@ telescope_script <- function(spec, result) {
   sizes <- if (identical(rule$design, "independent")) {
     ratio <- allocation_ratio(spec)
     c(
-      sprintf("  n1 <- round(n_total / (1 + %s)) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
+      sprintf("  n1 <- floor(n_total / (1 + %s) + 0.5) # group 1 (allocation 1 : %s)", r_code(ratio), format_number(ratio)),
       "  n2 <- n_total - n1"
     )
   }

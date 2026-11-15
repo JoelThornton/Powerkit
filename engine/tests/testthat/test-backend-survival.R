@@ -34,8 +34,10 @@ test_that("the log-rank test's required n and unequal groups match cpower()", {
   spec$options$allocation_ratio <- 2
   direct <- Hmisc::cpower(12, mc = 0.4, r = 37.5, accrual = 6, tmin = 12, alpha = 0.05, nc = 100, ni = 200, pr = FALSE)
   expect_equal(run_spec(spec)$curve$power, unname(direct), tolerance = 1e-12)
+  # Any total: the groups are rounded to whole people (100 and 201).
   spec$goal$n <- 301
-  expect_spec_problem(spec, "ratio 1 : 2")
+  direct <- Hmisc::cpower(12, mc = 0.4, r = 37.5, accrual = 6, tmin = 12, alpha = 0.05, nc = 100, ni = 201, pr = FALSE)
+  expect_equal(run_spec(spec)$curve$power, unname(direct), tolerance = 1e-12)
 })
 
 test_that("the log-rank test is close to Freedman's formula (powerSurvEpi), a second package", {

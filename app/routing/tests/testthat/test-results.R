@@ -1478,13 +1478,15 @@ test_that("E37's other questions run on semPower's own functions, each with its 
     expect_match(w[["short"]], expected[[name]][2], fixed = TRUE, label = name)
     expect_match(w[["short"]], expected[[name]][3], fixed = TRUE, label = name)
   }
-  # Unequal groups for invariance: whole groups in the ratio given.
+  # Unequal groups for invariance: the total split into whole groups as
+  # nearly in the ratio given as whole people allow.
   spec <- build_spec(forms, "E37", fields, sem_examples$scalar)
   expect_equal(spec$options$allocation_ratio, 1.5)
   calc <- run_calculation(spec, run, seed = 1L)
   n <- calc$result$n_required$n
-  expect_equal(n %% 5, 0)
-  expect_match(result_sentences(calc$spec, calc$result)[["headline"]], sprintf("(%s in group 1 and %s in group 2)", n * 2 / 5, n * 3 / 5), fixed = TRUE)
+  n1 <- floor(n / 2.5 + 0.5)
+  expect_equal(c(calc$result$allocation$group1, calc$result$allocation$group2), c(n1, n - n1))
+  expect_match(result_sentences(calc$spec, calc$result)[["headline"]], sprintf("(%s in group 1 and %s in group 2)", n1, n - n1), fixed = TRUE)
 })
 
 test_that("logistic regression runs on pwrss, with Known difference 3 only when other predictors overlap", {
