@@ -8,6 +8,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-15"
+    title: "Within-person moderation, as in a diary study"
+    text: "The card for relationships measured within people now calculates within-person moderation: people measured on many occasions, something measured on each occasion (such as the day's stress) predicting the outcome on that occasion (such as evening mood), and something measured once per person (such as neuroticism) changing how strongly. powerkit simulates the power of the two-level mixed model and reports the number of people and occasions. Within-person mediation is not calculated yet."
+  - date: "2026-11-15"
+    title: "Replication plans: originals analysed with Bayes factors"
+    text: "A replication plan now asks how the original study was analysed. If it reported a Bayes factor for a t-test, give the Bayes factor and its prior's scale, and powerkit works out the effect from it. If it reported a posterior from a vague or default prior, give its mean with its SD or credible interval. The goals then leave out small telescopes and the original's significance level, and add the original's own Bayes factor test repeated and strong evidence for no effect, if there is none. A button takes the plan to Labs' Bayesian planning tool as a sequential design, which collects data until the evidence is strong either way."
+  - date: "2026-11-15"
     title: "Replication plans: goals for many more kinds of study"
     text: "A replication plan's goals table, which shows the sample size for each goal under three beliefs about the true effect, now works for any original study whose key result is one number: a regression coefficient, an odds ratio, a difference in proportions, a hazard ratio and many more. Give the original's estimate with its standard error, its confidence interval or its test statistic, and its sample size; ratios are planned on the log scale and correlations on Fisher's z. Two-group, one-sample and paired t-tests and correlations keep their own exact calculations. For a test with several degrees of freedom, such as an F-test across three groups, the plan suggests planning the one comparison the hypothesis is about."
   - date: "2026-11-14"

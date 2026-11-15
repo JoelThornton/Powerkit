@@ -3425,3 +3425,21 @@ test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and wo
   expect_match(w[["short"]], "a Bayes factor test of R-squared in a linear regression", fixed = TRUE)
   expect_match(w[["short"]], "as in JASP", fixed = TRUE)
 })
+
+test_that("within-person moderation (E41) counts observations, and the result names people and occasions", {
+  fields <- form_fields(form_groups(forms, "E41"))
+  values <- modifyList(form_examples$E41, list(goal = "power", n = "1120"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E41", fields, values)
+  expect_identical(spec$template, "two_level")
+  expect_identical(spec$goal$unit, "observations")
+  expect_identical(spec$target_test$effect, "cross_level_interaction")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "simr")
+  text <- paste(result_sentences(calc$spec, calc$result), collapse = " ")
+  expect_match(text, "1,120 observations (80 people measured on 14 occasions each)", fixed = TRUE)
+  w <- writeup_text(forms$forms[["E41"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "80 people measured on 14 occasions each", fixed = TRUE)
+})

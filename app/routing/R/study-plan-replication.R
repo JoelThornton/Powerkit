@@ -17,7 +17,8 @@ replication_notes_ids <- c(vapply(labs_fields, `[[`, "", "id"), "labs_outcome",
 replication_plan_field_ids <- c(replication_notes_ids, replication_field_ids)
 
 # The planner's starting values, as its screen had them.
-replication_field_defaults <- list(rep_design = "two_groups", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
+replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "test", rep_original_prior = "default",
+  rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
   rep_original_alpha = "0.05", rep_tau = "0",
   rep_alpha = "0.05", rep_power = "0.8", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05")
 
@@ -129,7 +130,8 @@ replication_workspace_ui <- function(tree) {
 replication_fields_for_card <- function(fields, forms, ep) {
   fields <- fields %||% list()
   e <- replication_card_effect(forms, ep)
-  if (is.null(e) || nzchar(trimws(as.character(fields$rep_effect %||% "")))) return(fields)
+  if (is.null(e) || nzchar(trimws(as.character(fields$rep_effect %||% ""))) ||
+      nzchar(trimws(as.character(fields$rep_bf %||% "")))) return(fields)
   if (!is.null(e$exact)) {
     fields$rep_design <- e$exact
   } else if (!is.null(e$effect) || !is.null(e$multi_df)) {

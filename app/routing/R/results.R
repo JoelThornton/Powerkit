@@ -375,6 +375,7 @@ group_sizes <- function(spec, n) {
 }
 
 group_text <- function(spec, n) {
+  if (identical(spec$goal$unit, "observations")) return(sprintf(" (%s)", people_occasions(n, spec)))
   if (identical(spec$template, "cluster_randomised")) {
     m <- spec$population$cluster_size
     return(sprintf(" (%s groups of %s, %s groups in each condition)", whole(n / m), whole(m), whole(n / m / 2)))
@@ -513,7 +514,30 @@ is_dyadic <- function(spec) identical(spec$design, "dyadic")
 # pairs (dyadic data).
 n_unit <- function(spec) if (is_meta(spec)) "studies" else if (is_dyadic(spec)) "pairs" else
   if (identical(spec$template, "its")) "time points after the intervention" else
-  if (identical(spec$goal$unit, "items")) "items" else NULL
+  if (identical(spec$goal$unit, "items")) "items" else
+  if (identical(spec$goal$unit, "observations")) "observations" else NULL
+
+# Occasions within people (E41: goal > unit "observations"): n counts every
+# observation, so each count is followed by the people and occasions it
+# stands for.
+people_occasions <- function(n, spec) {
+  k <- spec$population$cluster_size
+  sprintf("%s people measured on %s occasions each", whole(n / k), whole(k))
+}
+
+observation_units <- function(text, spec) {
+  pattern <- "([0-9][0-9,]*) (participants in total|participants|observations)( \\([^)]*\\))?"
+  vapply(text, function(t) {
+    m <- gregexpr(pattern, t, perl = TRUE)
+    hits <- regmatches(t, m)[[1]]
+    if (!length(hits)) return(t)
+    regmatches(t, m) <- list(vapply(hits, function(h) {
+      n <- as.numeric(gsub(",", "", sub(" .*", "", h)))
+      sprintf("%s observations (%s)", whole(n), people_occasions(n, spec))
+    }, character(1)))
+    t
+  }, character(1), USE.NAMES = FALSE)
+}
 
 # Interrupted time series: how often the test finds a change that isn't
 # there in a series of the planned length (the engine's `type1`), shown
@@ -791,6 +815,7 @@ result_sentences <- function(spec, result) {
   out <- if (identical(spec$design, "equivalence_test")) equivalence_sentences(spec, result) else goal_sentences(spec, result)
   # Dyadic data: n counts pairs.
   if (is_dyadic(spec)) out[] <- gsub(" participants in total", " pairs", out, fixed = TRUE)
+  if (identical(spec$goal$unit, "observations")) out[] <- observation_units(out, spec)
   # Interrupted time series: n counts the points after the intervention.
   if (identical(spec$template, "its")) {
     out[] <- gsub(" participants in total", sprintf(" time points after the intervention (and %s before)", whole(spec$population$n_pre)), out, fixed = TRUE)
@@ -3502,6 +3527,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_dyadic(spec)) main <- dyad_units(main)
   if (identical(spec$template, "its")) main <- its_units(main, spec)
   if (identical(spec$goal$unit, "items")) main <- items_units(main, spec)
+  if (identical(spec$goal$unit, "observations")) main <- observation_units(main, spec)
   main <- append(main, writeup_choices(fields, values), after = 1)
   main <- c(main, welch_population_note(spec), allocation_note(result), whole_groups_note(spec, result), mediation_analysis_sentence(result), count_test_sentence(spec),
     if (identical(spec$template, "paired_t")) "The paired analysis models within-person differences without period, sequence or carry-over terms.")
@@ -3642,6 +3668,7 @@ ethics_text <- function(spec, result, fields, values) {
   if (is_dyadic(spec)) body <- dyad_units(body)
   if (identical(spec$template, "its")) body <- its_units(body, spec)
   if (identical(spec$goal$unit, "items")) body <- items_units(body, spec)
+  if (identical(spec$goal$unit, "observations")) body <- observation_units(body, spec)
   p <- result$provenance
   paste(c(body, planning_warning_notes(spec, result), sprintf("The calculation was made with %s and the R package %s (version %s) and can be reproduced from the saved plan.", powerkit_cited(p$packages[["powerkit"]]),
     p$backend, p$packages[[p$backend]])), collapse = " ")

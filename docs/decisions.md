@@ -3503,6 +3503,29 @@ which researchers rarely know when planning. Conventions:
 `docs/conventions.md`, "Bayes factor for R-squared in a linear regression
 (E24)".
 
+### Within-person moderation on E41, 14 November 2026
+
+E41 now calculates within-person moderation, the design `next.md` item 1
+named for it: people measured on many occasions (a diary or
+experience-sampling study), an occasion-level predictor X centred within
+each person, a person-level moderator W, and their cross-level
+interaction. No new model was needed: it is E62's two-level model
+(`mixed_model / two_level`, simr with lmerTest's Satterthwaite test, or
+glmer's Wald or likelihood-ratio test for a yes/no outcome) with occasions
+at level 1 and people at level 2. What differs is the unit: the spec's
+`goal > unit` is `"observations"`, so the sample size counts people times
+occasions, and the result, the methods paragraph and the R script give
+both ("80 people measured on 14 occasions each"). mlmpower, the other
+package for this design, plans level-2 units and observations per unit
+together; it was not used as the route because E62's simulation already
+covers the model, a yes/no outcome included.
+Recommendation for the maintainer: keep simr as the route for both cards,
+so that one validated model serves them. Within-person mediation (1-1-1
+mediation) stays not calculated: no package plans it, and a simulation of
+a multilevel mediation model is a separate piece of work. Validation:
+`test-validation-two-level.R`. Conventions: `docs/conventions.md`, "People
+within groups, predictors at both levels".
+
 
 ### Replication goals for any one-number effect, 15 November 2026
 
@@ -3535,3 +3558,44 @@ correlation:
   (exact − 3) for a correlation (89 against 85), because the generic
   route reads the unit SD at the original's estimate. This is why the
   four keep their exact routes.
+
+### Replication plans for an original analysed with Bayes factors, 15 November 2026
+
+A replication plan now asks how the original was analysed (queue item
+21): a significance test, a Bayes factor or a posterior distribution.
+
+- **A Bayes factor.** For a t-test (two groups, one group or pairs), the
+  original's BF10, its sample size and its Cauchy prior's scale (0.707 by
+  default) give its t statistic, by inverting BayesFactor's
+  `ttest.tstat()`, which grows with |t|; the t gives the standardised
+  effect. This is the reverse of the summary-statistics reanalysis of
+  Ly et al. (2018). A test checks the round trip at three t values and
+  three prior scales for each design. The effect is read as positive:
+  the goals are symmetric in its sign. Other designs are told to give a
+  posterior or the estimate with its standard error, because no package
+  gives their Bayes factor from summary statistics alone.
+- **A posterior.** Its mean and SD (or credible interval) stand in for
+  the estimate and its standard error, only when its prior was vague or
+  a default one. An informative prior's posterior is refused with a
+  plain message: it mixes the prior's beliefs into the original's
+  evidence (McLatchie, Warmelink & Tkacheva, 2020, pp. 75–76). A
+  correlation's posterior SD is moved to Fisher's z by the delta method,
+  SD / (1 − r²).
+- **Goals.** Either route leaves out small telescopes and the original's
+  significance level, which rest on a significance test. For a t-test it
+  adds the original's Bayes factor test repeated on the replication's
+  data under the three beliefs, and evidence for no effect (BF01 at the
+  threshold, planned for a true effect of zero), both with bfpwr's
+  `ntbf01()` (Pawel & Held, 2025), whose Bayes factor equals
+  BayesFactor's (tested). The replication and sceptical Bayes factors
+  stay. The queue item named BayesRepDesign's `ssdBF01()` for evidence
+  for no effect; its help says success is BF01 below the level, which is
+  evidence for an effect, so bfpwr's `ntbf01(lower.tail = FALSE)` is used
+  instead.
+- **Sequential.** `bayes_sequential()` takes a normal design prior
+  (`effect`, `effect_sd`), so the results offer to plan the replication
+  as a sequential Bayes factor design in Labs, filled from the chosen
+  belief, the original's prior scale and the threshold.
+- The references (Verhagen & Wagenmakers, 2014; Ly et al., 2018, 2019;
+  McLatchie et al., 2020) were added to `refs.bib` from the published
+  articles.

@@ -23,7 +23,11 @@ replication_planning(
   original_ci_level = 0.95,
   original_statistic = NULL,
   scale = "none",
-  effect_name = NULL
+  effect_name = NULL,
+  original_analysis = "test",
+  original_bf = NULL,
+  original_prior_scale = 1/sqrt(2),
+  original_prior = NULL
 )
 }
 \arguments{
@@ -75,6 +79,26 @@ ratio, planned on the log scale) or \code{"fisher_z"} (a correlation).}
 
 \item{effect_name}{For \code{"generic"}, what the estimate is, in words (for
 the result and the script).}
+
+\item{original_analysis}{How the original was analysed: \code{"test"} (a
+significance test, the default), \code{"bayes_factor"} (a default-prior
+Bayes factor t-test, for \code{"two_groups"}, \code{"one_sample"} and
+\code{"paired"}: its effect is read from \code{original_bf} and the sample size)
+or \code{"posterior"} (a posterior from a vague or default prior, whose mean
+is \code{original_effect} and whose SD is \code{original_se}, or whose credible
+interval is \code{original_ci}). Either Bayesian route leaves out small
+telescopes and, for a t-test, adds the original's Bayes factor test
+repeated (\code{bf_repeat}, bfpwr) and evidence for no effect (\code{bf_null}).}
+
+\item{original_bf}{The original's Bayes factor, as BF10 (evidence for an
+effect over none).}
+
+\item{original_prior_scale}{The scale of the original's Cauchy prior on
+the standardised effect (0.707 is the usual default), for reading its
+Bayes factor and for repeating its test.}
+
+\item{original_prior}{For \code{"posterior"}: \code{"vague"} or \code{"default"}; an
+informative prior's posterior is refused.}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the
@@ -84,7 +108,10 @@ planned for no effect), \code{n} (the total sample size needed, \code{NA} when
 not reachable), \code{per_group}, \code{ratio} (n over the original's), \code{limit}
 (the highest chance reachable, when the goal cannot reach \code{power}) and
 \code{reason}; \code{at_n} (the chance of each goal at \code{n}); \code{telescope} (d33
-and its calculation); \code{functions_used}; and \code{packages}.
+and its calculation, \code{NULL} for a generic design or a Bayesian
+original); \code{sequential} (for a Bayesian t-test original, each belief as
+a design prior for \code{\link[=bayes_sequential]{bayes_sequential()}}); \code{functions_used}; and
+\code{packages}.
 }
 \description{
 What the Labs replication planner shows: for an original study's effect

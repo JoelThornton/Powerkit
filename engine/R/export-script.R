@@ -642,7 +642,15 @@ design_description <- function(spec) {
       label("Y"), if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else ""
     ),
     "mixed_model/growth_curve" = growth_design_description(spec, label, levels),
-    "mixed_model/two_level" = sprintf(
+    "mixed_model/two_level" = if (identical(spec$goal$unit, "observations")) sprintf(
+      "occasions within people, each person measured on %s occasions (the sample size counts observations): %s (measured on each occasion, centred within people), %s (measured once per person) predicting %s%s; effect tested: %s",
+      format_number(spec$population$cluster_size), label("X"), label("W"), label("Y"),
+      if (identical(spec$variables$Y$type, "binary")) " (yes/no, a logistic mixed model)" else "",
+      switch(spec$target_test$effect, within_effect = sprintf("%s within people", label("X")),
+        between_effect = sprintf("%s between people", label("W")), cross_level_interaction = "the cross-level interaction (moderation by the person-level predictor)",
+        within_and_interaction = sprintf("%s within people and the cross-level interaction, both significant in the same study (joint power)", label("X")),
+        all_effects = "every effect in the model, all significant in the same study (joint power)")
+    ) else sprintf(
       "people in groups of %s%s: %s (measured on each person, centred within groups), %s (measured on each group)%s predicting %s%s; effect tested: %s",
       format_number(spec$population$cluster_size),
       if (!is.null(spec$population$groups_per_site)) sprintf(", %s groups in each site", format_number(spec$population$groups_per_site)) else "",
@@ -863,7 +871,8 @@ goal_inputs <- function(spec, result) {
       sprintf("alpha <- %s # significance level", r_code(spec$target_test$alpha))
     },
     if (goal$type != "sample_size") {
-      sprintf("n_total <- %s # total sample size (every participant analysed)", r_code(goal$n))
+      sprintf("n_total <- %s # total sample size (%s)", r_code(goal$n),
+        if (identical(goal$unit, "observations")) sprintf("every observation: %s people measured on %s occasions each", format_number(goal$n / spec$population$cluster_size), format_number(spec$population$cluster_size)) else "every participant analysed")
     },
     if (goal$type != "power") {
       sprintf("target_power <- %s", r_code(goal$power))
