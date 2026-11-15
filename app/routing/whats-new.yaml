@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-15"
+    title: "A Bayes factor for the three-factor ANOVA"
+    text: "The three-factor ANOVA card plans a Bayes factor for any of its effects, as JASP's Bayesian ANOVA reports it: choose it as the test version, and powerkit simulates the chance that the effect's Bayes factor reaches your threshold, with JASP's default priors. It takes a while, so powerkit gives a quick preview and an R script for the full analysis."
+  - date: "2026-11-15"
     title: "Clustered yes/no outcomes can be simulated"
     text: "For a cluster-randomised or multisite trial with a yes/no outcome, you can now choose a simulation of the trial analysed with a mixed-effects logistic regression (glmer()) instead of powertools' formula. The formula stays the default and is instant, but it adds an unexplained safety margin that asks for about a sixth more groups; the simulation plans without it, and takes about two minutes for power at one size."
   - date: "2026-11-15"
