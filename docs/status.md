@@ -37,17 +37,19 @@ rather than "association". The R-squared increase and one coefficient
 wait on a decision about which Bayes factor to plan for (`next.md`
 item 2).
 
-Developing a prediction model has a card of its own, E77 (15 November
-2026), reached from the start screen's aims: the minimum sample size by
-the criteria of Riley et al. (2019), computed by pmsampsize's
-`pmsampsize()` for a yes/no, continuous or time-to-event outcome, from
-the number of candidate predictor parameters and a similar model's
-C-statistic or R-squared. There is no power; the result screen lists
-each criterion's sample size and the one that sets the answer.
-Validation in progress: the chunk `prediction` passes (pmsampsize called
-directly, and Riley et al.'s closed forms worked out without it); the
-paper's examples await transcription. Checking an existing model in new
-data (pmvalsampsize) is next in `next.md` item 3.
+Developing or validating a prediction model has a card of its own, E77
+(15 November 2026), reached from the start screen's aims. Developing: the
+minimum sample size by the criteria of Riley et al. (2019), computed by
+pmsampsize's `pmsampsize()` for a yes/no, continuous or time-to-event
+outcome, from the number of candidate predictor parameters and a similar
+model's C-statistic or R-squared. Validating an existing model of a yes/no
+outcome: the criteria of Riley et al. (2021), computed by pmvalsampsize's
+`pmvalsampsize()`, from the anticipated C-statistic, the outcome
+proportion and the model's linear predictor. There is no power; the
+result screen lists each criterion's sample size and the one that sets
+the answer. Validation in progress: the chunk `prediction` passes (both
+packages called directly, and Riley et al.'s closed forms worked out
+without them); the papers' examples await transcription.
 
 A repeated-measures (within-person) correlation is planned on a new card,
 E76 (13 November 2026): rmcorr's documented method, a Pearson

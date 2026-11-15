@@ -2078,22 +2078,23 @@ endpoints:
   E77:
     tools:
       - {name: pmsampsize, url: "https://cran.r-project.org/package=pmsampsize", what: "the minimum sample size for developing a prediction model, by the criteria of Riley and colleagues."}
-    doc_name: "Developing a prediction model (minimum sample size)"
-    technical_name: "Sample size for prediction model development (Riley et al. criteria)"
-    plain_name: "Develop a model that predicts an outcome for each person"
-    search_words: "prediction model risk score prognostic model diagnostic model clinical prediction model development events per variable epv events per predictor overfitting shrinkage pmsampsize c-statistic auc roc riley tripod"
-    template: "prediction_model / development"
-    backend: "pmsampsize: pmsampsize(), the criteria of Riley et al. for a yes/no, continuous or time-to-event outcome (by formula)"
+      - {name: pmvalsampsize, url: "https://cran.r-project.org/package=pmvalsampsize", what: "the minimum sample size for validating an existing prediction model of a yes/no outcome, by the criteria of Riley and colleagues."}
+    doc_name: "Developing or validating a prediction model (minimum sample size)"
+    technical_name: "Sample size for prediction model development and external validation (Riley et al. criteria)"
+    plain_name: "Develop or check a model that predicts an outcome for each person"
+    search_words: "prediction model risk score prognostic model diagnostic model clinical prediction model development events per variable epv events per predictor overfitting shrinkage pmsampsize pmvalsampsize external validation calibration slope calibration-in-the-large net benefit c-statistic auc roc riley tripod"
+    template: "prediction_model / development or validation"
+    backend: "pmsampsize: pmsampsize(), the criteria of Riley et al. for developing a model of a yes/no, continuous or time-to-event outcome (by formula); pmvalsampsize: pmvalsampsize(), their criteria for validating a model of a yes/no outcome (by formula, with the linear predictor simulated at the package's fixed seed)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
-    validation: {file: test-validation-prediction-model.R, note: "Matches pmsampsize called directly for every kind of outcome and measure of performance, and for a yes/no outcome each criterion matches the closed forms of Riley et al. (2019) worked out without pmsampsize. Not yet checked against the paper's published examples."}
+    validation: {file: test-validation-prediction-model.R, note: "Development matches pmsampsize called directly for every kind of outcome and measure of performance, and for a yes/no outcome each criterion matches the closed forms of Riley et al. (2019) worked out without pmsampsize. Validation matches pmvalsampsize called directly, and its O/E and C-statistic criteria match the closed forms of Riley et al. (2021). Not yet checked against the papers' published examples."}
     card_points:
       - "The minimum sample size for developing a model that predicts an outcome for each person: a risk score, a diagnostic model or a prognostic model."
       - "For a yes/no outcome (logistic regression), a score (linear regression) or the time until an event (Cox regression)."
       - "Uses the criteria of Riley and colleagues, the current standard: little overfitting, a small gap between the model's apparent and true performance, and precise estimates of the overall risk or mean. The answer is the largest of their sample sizes, often far from 10 events per predictor."
       - "You give the number of candidate predictor parameters, how well a similar model performs (a C-statistic or an R-squared) and the outcome's proportion, mean or event rate. There is no power: the model isn't tested against a null hypothesis."
-      - "For developing a new model only: checking an existing model in new data (external validation) needs a different calculation, which powerkit doesn't offer yet."
-    inputs: ["The outcome the model predicts", "How well you expect the model to perform", "The outcome in the population"]
+      - "Also for checking an existing model of a yes/no outcome in new people (external validation): the sample size that estimates its calibration (the observed/expected ratio and the calibration slope), its C-statistic and, at a risk threshold, its net benefit precisely."
+    inputs: ["The outcome the model predicts", "How well you expect the model to perform", "The outcome in the population", "The existing model's predictions in the new population"]
     tier: later
     alternatives: ["a power analysis for one predictor's coefficient in a regression, if you want to test a predictor rather than build a model that predicts"]
   E47:

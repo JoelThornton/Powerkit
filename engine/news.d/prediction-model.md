@@ -15,3 +15,20 @@
   `pmsampsize_method`. New validation chunk `prediction`: agreement with
   pmsampsize called directly, and the binary criteria from their closed
   forms.
+* Prediction model validation (E77): template `prediction_model /
+  validation`, the minimum sample size for validating an existing model of
+  a binary outcome by the criteria of Riley et al. (2021), computed by
+  pmvalsampsize's `pmvalsampsize()` (Suggests): precise O/E ratio,
+  calibration slope, C-statistic and, given `population > threshold`,
+  standardised net benefit. Population: `prevalence`, `c_statistic`,
+  `lp_distribution` (`normal` with `lp_mean` and `lp_sd`, or `beta` with
+  `beta_a` and `beta_b`), and optionally `oe`, `calibration_slope`,
+  `threshold`, `sensitivity` and `specificity`; goal: `oe_ci_width`,
+  `cslope_ci_width`, `cstat_ci_width` and `nb_ci_width` (pmvalsampsize's
+  defaults). The linear predictor is simulated with pmvalsampsize's
+  default seed and draws, recorded in the provenance. New file
+  `backend-prediction-validation.R`; Riley et al. (2021) is in refs.bib as
+  `pmvalsampsize_method`. The `prediction` chunk adds agreement with
+  pmvalsampsize and the O/E and C-statistic criteria from their closed
+  forms; pmvalsampsize's grid search for the O/E standard error is noted
+  in docs/upstream-questions.md.

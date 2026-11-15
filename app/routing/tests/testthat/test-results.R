@@ -3578,7 +3578,7 @@ test_that("validating an existing prediction model (E77) shows pmvalsampsize's c
   v <- list(purpose = "validation", Y_label = "Relapse within a year", c_statistic = "0.75", prevalence = "0.2",
     lp_distribution = "normal", lp_mean = "-1.6", lp_sd = "1.2", goal = "criteria",
     oe_ci_width = "0.2", cslope_ci_width = "0.2", cstat_ci_width = "0.1",
-    just_type = "prior_study", just_source = "Example only")
+    just_type = "prior_study", just_source = "Example only", just_adjustment = "Example only: the reported C-statistic, lowered a little")
   fields <- form_fields(form_groups(forms, "E77"))
   expect_length(form_problems(fields, v), 0)
   # The development questions are not asked.
