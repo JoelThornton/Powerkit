@@ -471,6 +471,7 @@ replication_effects:
   E68: {effect: "the coefficient of interest (a fixed effect)", scale: none}
   E43: {effect: "hazard ratio", scale: log}
   E69: {none: "A study of reliability or agreement estimates how consistent a measure is rather than testing an effect, so a replication is planned for the precision of that estimate on this card."}
+  E77: {none: "A prediction model's study estimates how well the model predicts rather than testing an effect; checking it in new people is planned on this card, as validating an existing model."}
   E44: {effect: "the actor or partner effect the hypothesis is about", scale: none}
   E62: {effect: "the coefficient of interest (a fixed effect)", scale: none}
   E11: {effect: "the one indirect effect the hypothesis is about", scale: none}
