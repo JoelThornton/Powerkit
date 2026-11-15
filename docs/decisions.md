@@ -3475,6 +3475,32 @@ true rate of about 5.4%, roughly one seed in 80 would exceed the limit.
 More replications would remove that chance and remain an option if the
 check fails again.
 
+### The Bayes factor ANCOVA on E23, 15 November 2026
+
+The second design of `next.md` item 2: E23 (one-way and two-way ANCOVA)
+takes a Bayes factor test version. The Bayes factor is the one JASP's
+Bayesian ANCOVA reports: the effect's inclusion Bayes factor across all
+models that respect marginality, with the covariates entered as ordinary
+model terms (JASP's default; `AncovaBayesian.qml`) and JASP's r scales,
+0.5 on the effects and 0.354 on the covariates' slopes
+(`AdditionalOptions.qml`), computed with BayesFactor's `generalTestBF()`
+and bayestestR's `bayesfactor_inclusion()`, as the factorial ANOVAs'
+version does with `anovaBF()`. No package plans it, so it is simulated
+with Spower; each study has equal cells and independent standard normal
+covariates with equal slopes explaining the covariates' R-squared within
+cells. About 0.08 s per simulated study for one factor and one covariate,
+so it runs in the app in the background like E7's Bayes factor.
+Validation: `test-validation-bayes-ancova.R` (chunk `bayes_ancova`),
+against a simulation that fits every model with `lmBF()` and averages
+the inclusion Bayes factor by hand. While adding it, the factorial and
+repeated-measures ANOVAs' Bayes factor write-ups were found to omit the
+sentence naming the test and to call the effect an "association"; both
+are fixed for every inclusion Bayes factor. Recommendation for the
+maintainer: keep JASP's default of covariates as model terms rather than
+nuisance terms; the nuisance option ("Add to null model") can be added if
+researchers ask for it. Conventions: `docs/conventions.md`, "Bayes
+factor of an ANCOVA effect (E23)".
+
 ### The Bayes factor for R-squared on E24, 14 November 2026
 
 The first design of `next.md` item 2: E24's question "whether the

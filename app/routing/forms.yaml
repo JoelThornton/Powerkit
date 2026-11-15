@@ -2835,6 +2835,7 @@ forms:
     methods_name: "an ANCOVA (Shieh's method)"
     tool: pwrss
     known_differences: ["15"]
+    known_differences_if_method: {"15": ancova_f}
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_ancova,
            variables: {A: {type: between_factor}, "Y": {type: continuous}},
@@ -2876,6 +2877,29 @@ forms:
           - {id: r2_covariates, writeup_label: "R-squared of the covariates", label: "R-squared: the share of the outcome's variance the covariates explain (for one covariate, its correlation with the outcome, squared)", type: number, path: population.r2_covariates, effect: true, min: 0, max_exclusive: 1}
           - {id: covariates, label: "Number of covariates", type: number, path: population.covariates, required: true, min: 1, integer: true,
              default: 1, default_source: "one covariate, such as the before score"}
+      # The Bayes factor ANCOVA (15 November 2026): the effect's inclusion
+      # Bayes factor, as JASP's Bayesian ANCOVA gives it, simulated with
+      # BayesFactor's generalTestBF().
+      - input: "The ANCOVA's F test or a Bayes factor"
+        fields:
+          - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {ancova_f: "ANCOVA (F test, Shieh's method)", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANCOVA), instead of a p-value, simulated"},
+             default: ancova_f, default_source: "the F test pwrss's power.f.ancova.shieh() computes, the test G*Power's ANCOVA calculates (with fixed covariates)",
+             choice_notes: {bayes_factor: "Power becomes the chance that the effect's inclusion Bayes factor reaches the threshold you choose below, adjusting for the covariates. Simulated, with equal groups."}}
+          - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
+             shown_if: {field: test_version, is: bayes_factor},
+             usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for strong evidence; bfpwr 0.1.6)"}
+          - {id: prior_scale, label: "Scale of the analysis prior on the group effects (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.5, default_source: "JASP's Bayesian ANCOVA, 'r scale fixed effects' 0.5 (jaspAnova's AdditionalOptions.qml)"}
+          - {id: prior_scale_covariates, label: "Scale of the analysis prior on the covariates' slopes (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale_covariates, required: true, min_exclusive: 0,
+             shown_if: {field: test_version, is: bayes_factor},
+             default: 0.354, default_source: "JASP's Bayesian ANCOVA, 'r scale covariates' 0.354 (jaspAnova's AdditionalOptions.qml), BayesFactor's 'medium' scale for continuous predictors (sqrt(2)/4)"}
+          - {id: inclusion, label: "How the effect's Bayes factor is averaged over the models", type: select, path: target_test.inclusion, required: true,
+             shown_if: {field: test_version, is: bayes_factor},
+             choices: {all_models: "Across all models (JASP's default)", matched_models: "Across matched models (only models with and without the effect that otherwise match)"},
+             default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
+             help: "The inclusion Bayes factor compares the models that include the effect with those that don't, including the models with and without each covariate. JASP gives it across all models by default; across matched models is the comparison some researchers prefer for interactions."}
 
   E24:
     sides: false

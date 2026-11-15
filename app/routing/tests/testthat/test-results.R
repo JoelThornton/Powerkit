@@ -2913,6 +2913,49 @@ test_that("2 x 2 ANOVA (E7): the Bayes factor of the effect, as JASP's inclusion
   expect_identical(calc$result$bayes$inclusion, "matched_models")
 })
 
+test_that("ANCOVA (E23): the Bayes factor of the effect, as JASP's Bayesian ANCOVA gives it, simulated and written up", {
+  fields <- form_fields(form_groups(forms, "E23"))
+  values <- modifyList(form_examples$E23, list(test_version = "bayes_factor", evidence_threshold = "10", prior_scale = "0.5",
+    prior_scale_covariates = "0.354", inclusion = "all_models", goal = "power", n = "120"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E23", fields, values)
+  expect_identical(spec$target_test$method, "bayes_factor")
+  expect_equal(spec$target_test$prior_scale, 0.5)
+  expect_equal(spec$target_test$prior_scale_covariates, 0.354)
+  expect_identical(spec$target_test$inclusion, "all_models")
+  expect_null(spec$target_test$alpha)
+  # Shieh's method against G*Power (Known difference 15) is about the F test.
+  expect_false("15" %in% known_difference_keys(forms, "E23", spec))
+  expect_true("15" %in% known_difference_keys(forms, "E23", build_spec(forms, "E23", fields, form_examples$E23)))
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$bayes$prior_scale_covariates, 0.354)
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], "with a Bayes factor ANCOVA (strong evidence: an inclusion Bayes factor of at least 10, across all models", fixed = TRUE)
+  expect_match(words[["headline"]], "on the covariates' slopes, r scale 0.354, as in JASP", fixed = TRUE)
+  w <- writeup_text(forms$forms$E23, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "was conducted for a Bayes factor ANCOVA (default Bayes factors with a Cauchy analysis prior of r scale 0.5", fixed = TRUE)
+  expect_match(w[["short"]], "If there were no effect, the probability of strong evidence for its absence", fixed = TRUE)
+  expect_no_match(w[["short"]], "association", fixed = TRUE)
+})
+
+test_that("the factorial ANOVAs' Bayes factor names its test in the write-up, and the no-effect side says effect, not association", {
+  fields <- form_fields(form_groups(forms, "E7"))
+  values <- modifyList(form_examples$E7, list(test_version = "bayes_factor", evidence_threshold = "10", prior_scale = "0.5",
+    inclusion = "all_models", goal = "power", n = "200"))
+  spec <- build_spec(forms, "E7", fields, values)
+  expect_match(test_text(spec), "^a Bayes factor between-participants ANOVA \\(strong evidence: an inclusion Bayes factor of at least 10")
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = forms$default_seed)
+  w <- writeup_text(forms$forms$E7, calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "was conducted for a Bayes factor between-participants ANOVA (target effect: interaction) (default Bayes factors", fixed = TRUE)
+  expect_match(w[["short"]], "(from 100 simulated studies with no effect)", fixed = TRUE)
+  expect_match(bayes_sentence(calc$spec, calc$result)[[1]], "If there were no effect, a study of 200", fixed = TRUE)
+})
+
 test_that("dyadic data with a pair-level moderator: the screen builds W, its paths and the joint test", {
   fields <- form_fields(form_groups(forms, "E44"))
   values <- modifyList(form_examples$E44, list(goal = "power", n = "200", apim_moderator = "yes", W_label = "Relationship length",
