@@ -1941,6 +1941,29 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   starts at simulation once the SDs or correlations differ and a
   correction is chosen.
 
+### 29. The ICC: the F test's exact power by default, not ICC.Sample.Size's approximation
+
+- **Established convention:** ICC.Sample.Size's `calculateIccPower()`
+  (version 1.1), Walter, Eliasziw and Donner's normal approximation to
+  the power of the one-way random-effects F test of the ICC.
+- **powerkit:** the F test's exact power (`target_test > method
+  "icc_test"`, the default), as Donner and Eliasziw (1987,
+  `Donner1987_icc`) give it: MSB / MSW is F1 = (1 + (k - 1) rho) / (1 -
+  rho) times a central F with n - 1 and n (k - 1) df, so the test that
+  rejects above F0 times the critical value has power
+  `pf((F0 / F1) * qf(1 - alpha, n - 1, n (k - 1)), ..., lower.tail =
+  FALSE)` (two-sided: both tails). The approximation stays available
+  (`"icc_walter"`).
+- **Why:** the exact power is the F test's own and is one line of base
+  R; the approximation errs on the safe side but asks for more people
+  than the test needs.
+- **Size:** ICC 0.8 against 0.6, 3 ratings, one-sided, 80% power: 26
+  subjects (80.5%) by the exact power, 27 by the approximation; a
+  simulation of the F test at 26 agrees (`test-backend-reliability.R`).
+- **Shown to users:** on the E69 result whenever the ICC's exact power is
+  used (`app/routing/R/results.R`, `departures_for()`), and in the methods
+  paragraph.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -2420,10 +2443,10 @@ Wired into the app on 18 October 2026 (E25, E26).*
   tested. Tests: `test-backend-survival.R`; `test-validation-survival.R`
   [powerkit, `docs/decisions.md`].
 - **Reliability and agreement (E69): each package's conventions,
-  unchanged.** G\*Power has no reliability tests. The ICC is
+  unchanged, except the ICC.** G\*Power has no reliability tests. The ICC
+  is the F test's exact power by default (Departure 29), with
   ICC.Sample.Size's `calculateIccPower()`, Walter, Eliasziw and Donner's
-  normal approximation to the F test of a one-way random-effects ICC, as
-  the package computes it (one- or two-sided). Cronbach's alpha is Bonett
+  normal approximation, on request (one- or two-sided). Cronbach's alpha is Bonett
   and Wright's test of ln(1 - alpha), the test whose sample size
   statpsych's `size.test.cronbach()` gives; statpsych gives no power at a
   given n, so powerkit solves the same formula for power, and its
