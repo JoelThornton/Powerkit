@@ -7,6 +7,9 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-15"
+    title: "Replication plans: goals for many more kinds of study"
+    text: "A replication plan's goals table, which shows the sample size for each goal under three beliefs about the true effect, now works for any original study whose key result is one number: a regression coefficient, an odds ratio, a difference in proportions, a hazard ratio and many more. Give the original's estimate with its standard error, its confidence interval or its test statistic, and its sample size; ratios are planned on the log scale and correlations on Fisher's z. Two-group, one-sample and paired t-tests and correlations keep their own exact calculations. For a test with several degrees of freedom, such as an F-test across three groups, the plan suggests planning the one comparison the hypothesis is about."
   - date: "2026-11-14"
     title: "Unequal groups: every total is now considered"
     text: "When one group is bigger than the other, powerkit now splits each possible total into whole groups as close to your ratio as whole people allow, and finds the smallest total whose groups reach the power you want. Before, the total moved in steps of a whole split of your ratio, which could ask for up to about four more people than needed. The result says which two group sizes the power is for. With equal groups nothing changes."

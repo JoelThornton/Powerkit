@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-15"
-    title: "Replication plans: goals for many more kinds of study"
-    text: "A replication plan's goals table, which shows the sample size for each goal under three beliefs about the true effect, now works for any original study whose key result is one number: a regression coefficient, an odds ratio, a difference in proportions, a hazard ratio and many more. Give the original's estimate with its standard error, its confidence interval or its test statistic, and its sample size; ratios are planned on the log scale and correlations on Fisher's z. Two-group, one-sample and paired t-tests and correlations keep their own exact calculations. For a test with several degrees of freedom, such as an F-test across three groups, the plan suggests planning the one comparison the hypothesis is about."
