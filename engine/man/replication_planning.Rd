@@ -17,18 +17,26 @@ replication_planning(
   smallest_effect = NULL,
   threshold = 10,
   n = NULL,
-  max_n = 1e+05
+  max_n = 1e+05,
+  original_se = NULL,
+  original_ci = NULL,
+  original_ci_level = 0.95,
+  original_statistic = NULL,
+  scale = "none",
+  effect_name = NULL
 )
 }
 \arguments{
-\item{design}{\code{"two_groups"}, \code{"one_sample"}, \code{"paired"} or
-\code{"correlation"}.}
+\item{design}{\code{"two_groups"}, \code{"one_sample"}, \code{"paired"},
+\code{"correlation"}, or \code{"generic"} for any other design whose focal
+effect is one number.}
 
 \item{original_effect}{The original study's effect as reported: d, d_z
-or r. Not zero.}
+or r; for \code{"generic"}, the estimate on its reported scale (a ratio as
+the ratio, a correlation as r). Not zero (not 1 for a ratio).}
 
 \item{original_n}{The original study's number of people (or pairs),
-for one sample, pairs and a correlation.}
+for one sample, pairs, a correlation and \code{"generic"}.}
 
 \item{original_n1, original_n2}{The original study's group sizes, for
 two groups.}
@@ -45,7 +53,8 @@ deviation on the effect's scale; Fisher's z for a correlation), for
 the uncertain and shrunk beliefs.}
 
 \item{smallest_effect}{The smallest effect that would matter (d, d_z or
-r, positive), for the agreement and too-small-to-matter goals; \code{NULL}
+r, positive; for \code{"generic"}, on the reported scale, a ratio above 1
+for a ratio), for the agreement and too-small-to-matter goals; \code{NULL}
 leaves those goals out.}
 
 \item{threshold}{The Bayes factor counted as strong evidence.}
@@ -54,6 +63,18 @@ leaves those goals out.}
 to give the chance of each goal, or \code{NULL}.}
 
 \item{max_n}{The largest sample size searched.}
+
+\item{original_se, original_ci, original_ci_level, original_statistic}{For \code{"generic"}, one of: the estimate's standard error on the
+analysis scale (the log of a ratio, Fisher's z of a correlation); its
+confidence interval as two numbers on the reported scale, with the
+interval's level (0.95 for a 95\% interval); or its z or t statistic.}
+
+\item{scale}{For \code{"generic"}: \code{"none"} (the estimate is planned as
+reported), \code{"log"} (a ratio: odds, risk, hazard, rate or variance
+ratio, planned on the log scale) or \code{"fisher_z"} (a correlation).}
+
+\item{effect_name}{For \code{"generic"}, what the estimate is, in words (for
+the result and the script).}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the
@@ -81,5 +102,8 @@ if (requireNamespace("BayesRepDesign", quietly = TRUE)) {
   plan <- replication_planning("two_groups", 0.7, original_n1 = 20, original_n2 = 20,
     smallest_effect = 0.2)
   plan$goals
+  # An odds ratio of 2.1 (95\% CI 1.2 to 3.7) from a logistic regression of 150 people
+  replication_planning("generic", 2.1, original_n = 150, original_ci = c(1.2, 3.7),
+    scale = "log", effect_name = "odds ratio")$goals
 }
 }
