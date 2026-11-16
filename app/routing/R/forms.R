@@ -700,7 +700,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
       list(id = "just_adjustment", label = "How you adjusted it", help = "An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. If you leave it empty, the write-up says no adjustment was recorded.",
            type = "text", path = "effect_justification.adjustment", optional = TRUE,
            # The engine asks one study's effect to say how it was adjusted.
-           name_default = "none recorded",
+           empty_value = "none recorded",
            shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
              list(field = "sg_use", is_not = "telescopes")))
     ), safeguard_fields(form$base$template), heterogeneity_fields(form$base$template))),
@@ -1371,6 +1371,9 @@ build_spec <- function(forms, ep_id, fields, values) {
     # baseline score's R-squared between groups starts as the one within).
     if (blank(v) && !is.null(f$copy_if_empty)) v <- values[[f$copy_if_empty]]
     if (blank(v) && !is.null(f$name_default)) v <- f$name_default
+    # A reasoning box left empty that the engine still needs a value for
+    # (how one study's effect was adjusted).
+    if (blank(v) && !is.null(f$empty_value)) v <- f$empty_value
     if (blank(v)) next
     if (!is.null(f$path)) spec <- set_path(spec, split_path(f$path), field_value(f, v, values))
     # `sets`: further spec values that follow from a choice (E24's
