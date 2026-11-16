@@ -246,7 +246,7 @@ workaround when updating power4mome; no upstream resolution is assumed.
    Update, 14 November 2026: in 20,000 studies drawn by power4mome's own
    generator and tested by the same lavaan Monte Carlo interval, the
    rejection rate was 5.38% (MCSE .16%; 99.9% interval 4.87% to 5.92%).
-   That is consistent with 5%. The OLS t-test gave 4.87% and the OLS
+   That is inside a 99.9% interval around 5% but about 2.4 MCSEs above it, so a slight excess is likely. The OLS t-test gave 4.87% and the OLS
    Monte Carlo interval 5.17% on the same studies. The nightly 7.5%
    comes from its fixed seed: a 1,000-study rate above the test's .0707
    limit has about a 1.2% chance at a true rate of 5.38%, and the same
