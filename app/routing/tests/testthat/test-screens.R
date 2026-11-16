@@ -538,9 +538,9 @@ test_that("app.R parses (the other tests read it as text)", {
 test_that("each tab has its own address, so a page can be shared by link", {
   expect_identical(page_from_query("?page=labs"), labs_tab_title)
   expect_identical(page_from_query("?page=About"), "About")
-  expect_identical(page_from_query("?page=updates"), "Updates")
+  expect_identical(page_from_query("?page=updates"), "About")
   # Links from when the tab was called "What's new" still open it.
-  expect_identical(page_from_query("?page=whats-new"), "Updates")
+  expect_identical(page_from_query("?page=whats-new"), "About")
   expect_null(page_from_query(""))
   expect_null(page_from_query("?page=nowhere"))
   # The maintainer's tab only opens in the maintainer's view.

@@ -1536,7 +1536,7 @@ online_package_message <- function(message, local = isTRUE(getOption("powerkit.l
   if (local || !grepl(pattern, message)) return(message)
   noun <- sub(pattern, "\\1", message)
   names <- sub(pattern, "\\2", message)
-  sprintf("This analysis isn't available on the online app right now: the R %s it needs (%s) %s installed there. Please let us know with \u201cFeedback on this screen\u201d. It runs in powerkit installed on your own computer.",
+  sprintf("This analysis isn't available on the online app right now: the R %s it needs (%s) %s installed there. Please let us know with the \u201cFeedback\u201d button at the top. It runs in powerkit installed on your own computer.",
     noun, names, if (noun == "package") "isn't" else "aren't")
 }
 

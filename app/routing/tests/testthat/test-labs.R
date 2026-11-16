@@ -115,16 +115,18 @@ test_that("the tabs that are the same for everyone are built once, not per visit
 
 # A Labs menu, and planning from the notes without losing work (22 October 2026)
 
-test_that("Labs opens on a list of tools, and the replication tools have moved to replication plans", {
+test_that("Tools opens on a list of tools, without the old replication notice or an experimental label", {
   html <- as.character(labs_ui(tree))
   expect_match(html, "labs-menu", fixed = TRUE)
   expect_match(html, 'data-display-if="!input.labs_tool"', fixed = TRUE)
-  expect_match(html, "All Labs tools", fixed = TRUE)
+  expect_match(html, "All tools", fixed = TRUE)
+  expect_no_match(html, "experimental", fixed = TRUE)
+  expect_no_match(html, "may change or disappear", fixed = TRUE)
   expect_false(any(c("prereplication", "replication") %in% vapply(labs_tools, `[[`, "", "id")))
   expect_length(labs_tools, 5)
-  # The notes are on a replication plan's page, and Labs says where.
+  # The notes are on a replication plan's page.
   expect_no_match(html, "labs_finding", fixed = TRUE)
-  expect_match(html, "rep_plan_new_labs", fixed = TRUE)
+  expect_no_match(html, "rep_plan_new_labs", fixed = TRUE)
   expect_match(as.character(replication_workspace_ui(tree)), "labs_finding", fixed = TRUE)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
@@ -479,12 +481,14 @@ test_that("every Labs tool opens with one header: its name and a notice saying w
     expect_true(nzchar(tool$purpose %||% "") && nzchar(tool$sure %||% ""), info = tool$id)
     html <- as.character(labs_tool_head(tool$id))
     expect_match(html, tool$title, fixed = TRUE)
-    expect_match(html, "Experimental. ", fixed = TRUE)
+    # No "Experimental." prefix: the whole app carries the Prototype badge
+    # (layout review, 16 November 2026).
+    expect_no_match(html, "Experimental. ", fixed = TRUE)
     expect_match(html, "labs-back", fixed = TRUE)
   }
   html <- as.character(labs_ui(tree))
   # The Labs heading and its lead belong to the menu, not to each tool.
-  expect_gt(regexpr("Labs (experimental)</h2>", html, fixed = TRUE), regexpr('data-display-if="!input.labs_tool"', html, fixed = TRUE))
+  expect_gt(regexpr("Tools</h2>", html, fixed = TRUE), regexpr('data-display-if="!input.labs_tool"', html, fixed = TRUE))
   expect_no_match(html, "Educational simulation|Experimental and not validated")
   # The menu's description of the visualiser names all its tests.
   picture <- Filter(function(t) t$id == "picture", labs_tools)[[1]]

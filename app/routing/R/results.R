@@ -2970,7 +2970,7 @@ labs_learn_ui <- function(spec, result) {
   # punctuation.
   link <- function(id, words) as.character(actionLink(id, words))
   div(class = "result-learn small", HTML(paste0(
-    "<strong>Learning aids in Labs:</strong> ",
+    "<strong>Learning aids under Tools:</strong> ",
     link("learn_picture", "see what this power means"), " (the power visualiser, at this sample size and effect)",
     if (!is.null(variation)) paste0("; ", link("learn_variation", "see why significant results overestimate effects"),
       " (this study repeated 1,000 times)"),

@@ -289,29 +289,6 @@ app_css <- "
   .about-steps li span { color: #44505e; font-size: 0.95rem; }
   .about-note, .about-small { color: #44505e; font-size: 0.92rem; }
   .about-start { min-height: 44px; }
-  .about-key { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin: 0.5rem 0 1rem; font-size: 0.88rem; color: #44505e; }
-  .about-key-item::before { content: ''; display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; margin-right: 0.35rem; vertical-align: -1px; }
-  .how-now.about-key-item::before { background: #1f8a5b; } .how-background.about-key-item::before { background: var(--pk-blue); }
-  .how-full.about-key-item::before { background: #7b4fb3; } .how-script.about-key-item::before { background: var(--pk-amber); }
-  .about-families { columns: 3 17rem; column-gap: 0.75rem; }
-  .about-family { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.8rem 0.9rem; break-inside: avoid; display: inline-block; width: 100%; margin-bottom: 0.75rem; }
-  .about-family-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem; }
-  .about-family-head h4 { margin: 0; font-size: 0.95rem; }
-  summary.about-family-head { list-style: none; cursor: default; }
-  summary.about-family-head::-webkit-details-marker { display: none; }
-  details.about-family:not([open]) > summary.about-family-head { margin-bottom: 0; }
-  @media (max-width: 767px) { summary.about-family-head { cursor: pointer; min-height: 44px; align-items: center; } .about-family-count { margin-left: auto; }
-    summary.about-family-head::after { content: '+'; color: var(--pk-blue); font-weight: 700; margin-left: 0.4rem; }
-    details.about-family[open] > summary.about-family-head::after { content: '\\2212'; } }
-  .about-family-count { color: #6b7684; font-size: 0.8rem; white-space: nowrap; }
-  .about-ep-list { display: flex; flex-direction: column; gap: 0.3rem; }
-  .about-ep { text-align: left; background: var(--pk-bg); border: 1px solid transparent; border-left: 4px solid #1f8a5b; border-radius: 8px; padding: 0.3rem 0.55rem;
-    display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.4rem; color: var(--pk-navy); font-size: 0.88rem; min-height: 40px; line-height: 1.3; }
-  .about-ep:hover, .about-ep:focus { border-color: var(--pk-blue); background: #fff; }
-  .about-ep.how-background { border-left-color: var(--pk-blue); } .about-ep.how-full { border-left-color: #7b4fb3; } .about-ep.how-script { border-left-color: var(--pk-amber); }
-  .about-ep-name { font-weight: 600; flex: 1 1 100%; }
-  .about-ep-doc { color: #5d6875; font-size: 0.82rem; }
-  .about-ep-tag { font-size: 0.75rem; color: #44505e; background: #fff; border: 1px solid var(--pk-line); border-radius: 999px; padding: 0 0.45rem; }
   .about-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
   .about-card { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.1rem; box-shadow: var(--pk-shadow); }
   .about-card p:last-child, .about-card ul:last-child { margin-bottom: 0; }
@@ -635,8 +612,9 @@ app_css <- "
   .plan-item-tag { display: inline-block; margin-left: 0.5rem; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
     color: var(--pk-blue); background: #e8f1f8; border-radius: 999px; padding: 0.1rem 0.55rem; vertical-align: 0.1em; }
   .plan-item-n { display: flex; flex-direction: column; align-items: flex-end; min-width: 5rem; }
-  /* Study plans (R/study-plans.R): a page of its own, opened from the top bar. */
-  .nav-tabs .nav-link[data-value='Study plans'] { display: none; }
+  /* Feedback: a page of its own, opened from the top bar's Feedback button
+     (the layout review of 16 November 2026), not from the tab row. */
+  .nav-tabs .nav-link[data-value='Feedback'] { display: none; }
   .plan-unsaved-dot { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--pk-amber); margin-left: 0.35rem; vertical-align: middle; }
   .plan-status-unsaved { color: #7a4b00; font-weight: 600; }
   .plan-status-saved { color: #2f5a35; }
@@ -967,12 +945,11 @@ ui <- function(req) fluidPage(
         # The study plan, reachable from every screen once it holds an
         # analysis (11 November 2026): it was offered only under a fresh
         # result, so moving on looked like losing it.
-        uiOutput("study_plans_chip", inline = TRUE),
         terms_toggle_ui(),
         # On every screen: the Feedback tab adds the screen and answers the visitor is on.
         tags$button(type = "button", class = "btn btn-sm share-page-btn feedback-here-btn",
-          title = "Opens the Feedback tab with the screen you are on attached",
-          onclick = "Shiny.setInputValue('go_feedback', 'confusing', {priority: 'event'})", "Feedback on this screen"),
+          title = "Feedback on the screen you are on: opens the form with this screen attached",
+          onclick = "Shiny.setInputValue('go_feedback', 'confusing', {priority: 'event'})", "Feedback"),
         share_page_ui()))
   ),
   tags$main(
@@ -982,19 +959,22 @@ ui <- function(req) fluidPage(
       # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
       selected = page_from_query(req$QUERY_STRING),
       tabPanel(tab_title("Power and sample size", "Calculate"), value = "Plan a power analysis", div(class = "pt-3", uiOutput("draft_offer"), uiOutput("progress"), uiOutput("screen"))),
-      tabPanel(tab_title("About", "About"), value = "About", div(class = "pt-3",
-        tags$p(class = "about-loading", tags$span(class = "pk-spinner pk-spinner-small", `aria-hidden` = "true"), "Loading the About page…"),
-        div(id = "about_static"),
-        uiOutput("about_page"))),
-      tabPanel(tab_title(labs_tab_title, "Labs"), value = labs_tab_title, div(class = "pt-3", labs_tab)),
-      tabPanel(tab_title("Updates", "Updates"), value = "Updates", div(class = "pt-3", whats_new_tab)),
-      tabPanel(tab_title("Feedback", "Feedback"), value = "Feedback", div(class = "pt-3", feedback_tab)),
-      # Opened from "Study plans" in the top bar and by ?page=plans, not
-      # from the tab row, so the tabs still fit one row on a phone.
-      tabPanel("Study plans", value = "Study plans", div(class = "pt-3 plans-page", uiOutput("plans_page"),
+      # Study plans: a place to go, so a tab (the layout review of 16
+      # November 2026), with how many there are and a marker when any has
+      # changes not saved to a file (study_plans_tab_label_ui()).
+      tabPanel(uiOutput("study_plans_tab_label", inline = TRUE, container = tags$span), value = "Study plans", div(class = "pt-3 plans-page", uiOutput("plans_page"),
         # A replication plan's workspace (R/study-plan-replication.R): drawn once
         # and shown for a replication plan, so typing never redraws it.
         conditionalPanel("output.plan_is_replication", replication_workspace_ui(tree)))),
+      tabPanel(tab_title(labs_tab_title, "Tools"), value = labs_tab_title, div(class = "pt-3", labs_tab)),
+      # About ends with the Updates (they were a tab of their own until
+      # 16 November 2026; ?page=updates opens them here).
+      tabPanel(tab_title("About", "About"), value = "About", div(class = "pt-3",
+        tags$p(class = "about-loading", tags$span(class = "pk-spinner pk-spinner-small", `aria-hidden` = "true"), "Loading the About page…"),
+        div(id = "about_static"),
+        uiOutput("about_page"),
+        div(id = "about-updates", class = "about-updates", whats_new_tab))),
+      tabPanel(tab_title("Feedback", "Feedback"), value = "Feedback", div(class = "pt-3", feedback_tab)),
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
     tags$footer(class = "small text-muted mt-5", "Powerkit helps plan research studies. ",
@@ -2094,9 +2074,9 @@ server <- function(input, output, session) {
     plan <- plan_get(isolate(state$plans_view))
     if (!is.null(plan)) plans_put(plan_mark_saved(plan, "link"))
   })
-  output$study_plans_chip <- renderUI(study_plans_chip_ui(length(state$plans),
+  output$study_plans_tab_label <- renderUI(study_plans_tab_label_ui(length(state$plans),
     any(vapply(state$plans, function(p) length(p$entries) > 0 && plan_unsaved(p), logical(1)))))
-  outputOptions(output, "study_plans_chip", suspendWhenHidden = FALSE)
+  outputOptions(output, "study_plans_tab_label", suspendWhenHidden = FALSE)
   # The page is drawn again only when what it shows changes, not when a
   # plan is saved or copied as a link (that would replace the share button
   # while it is making the link): the save status has its own output.

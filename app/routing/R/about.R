@@ -96,44 +96,6 @@ about_how_words <- c(
 )
 about_how_tag <- c(now = NA, background = "In the background", full = "Simulated", script = "Preview + R script")
 
-# Every analysis that calculates, by family (tree.yaml's
-# analysis_families), each a button that opens its card.
-about_plans_ui <- function(tree, forms) {
-  how <- about_endpoint_how(forms)
-  families <- tree$analysis_families %||% list()
-  placed <- unlist(lapply(families, `[[`, "endpoints"))
-  rest <- setdiff(names(how), placed)
-  if (length(rest)) families <- c(families, list(list(id = "more", label = "More", endpoints = rest)))
-  chip <- function(id) {
-    ep <- tree$endpoints[[id]]
-    tag <- about_how_tag[[how[[id]]]]
-    tags$button(type = "button", class = paste("about-ep", paste0("how-", how[[id]])), `data-endpoint` = id,
-      title = paste0(about_how_words[[how[[id]]]], ". Click to plan it."),
-      onclick = "pkAboutPlan(this.dataset.endpoint)",
-      tags$span(class = "about-ep-name", ep$plain_name),
-      tags$span(class = "about-ep-doc", ep$doc_name),
-      if (!is.na(tag)) tags$span(class = "about-ep-tag", tag))
-  }
-  groups <- lapply(families, function(f) {
-    ids <- intersect(unlist(f$endpoints), names(how))
-    if (!length(ids)) return(NULL)
-    # Open on a wide screen; on a phone about_js folds them, so the list
-    # of families fits on a screen or two.
-    tags$details(class = "about-family", open = NA,
-      tags$summary(class = "about-family-head", tags$h4(f$label), tags$span(class = "about-family-count",
-        sprintf("%d of %d", length(ids), length(intersect(unlist(f$endpoints), names(tree$endpoints)))))),
-      div(class = "about-ep-list", lapply(ids, chip)))
-  })
-  tagList(
-    div(class = "about-key",
-      tags$span(class = "about-key-item how-now", "Calculates in a second or two"),
-      tags$span(class = "about-key-item how-background", "In the background, with a progress bar"),
-      tags$span(class = "about-key-item how-full", "Simulated: a preview, then the full run here"),
-      tags$span(class = "about-key-item how-script", "A preview, then an R script for your computer")),
-    div(class = "about-families", groups)
-  )
-}
-
 # powerkit's version, from the engine package, so the About page, the
 # exported scripts and every result's provenance all quote the same number
 # (docs/adding-a-test.md, "Version numbers").
@@ -167,8 +129,9 @@ about_ui <- function(tree, forms) {
         tags$a(href = "#about-plans", "What it can plan"),
         tags$a(href = "#about-trust", "Can you trust it?"),
         tags$a(href = "#about-capabilities", "Capabilities and checks"),
-        tags$a(href = "#about-feedback", "Feedback"),
-        tags$a(href = "#about-credits", "Credits"))),
+        tags$a(href = "#about-privacy", "What it keeps and sends"),
+        tags$a(href = "#about-credits", "Credits"),
+        tags$a(href = "#about-updates", "Updates"))),
 
     about_section("about-how", "How it works",
       tags$ol(class = "about-steps",
@@ -186,9 +149,12 @@ about_ui <- function(tree, forms) {
     about_section("about-plans", "What it can plan",
       # Counted as the methods map counts them: the analyses in the
       # families, without the "not sure" card.
-      p(sprintf("%d of the %d analyses calculate in the app. Click one to plan it. ", length(how), length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))),
+      # Two lines and a link: the full list is "I know my analysis", not a
+      # third copy here (the layout review of 16 November 2026).
+      p(sprintf("%d of the %d analyses calculate in the app. ", length(how), length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))),
         "The other cards say which analysis fits a study and point to a tool that does it."),
-      about_plans_ui(tree, forms)),
+      p(tags$a(href = "#", onclick = "pkAboutTab('Plan a power analysis'); Shiny.setInputValue('pick', 'route:known', {priority: 'event'}); return false;",
+        "See every analysis"))),
 
     about_section("about-trust", "Can you trust it?",
       div(class = "about-cards",
@@ -204,7 +170,7 @@ about_ui <- function(tree, forms) {
             sprintf("This is powerkit %s. ", version),
             "Every result and every R script you download says this version, so a number you quote can be traced back to it. ",
             "Version 1.0 will be the first release. ",
-            tags$a(href = "#", onclick = "pkAboutTab('Updates'); return false;", "See the updates."))),
+            tags$a(href = "#about-updates", "See the updates."))),
         div(class = "about-card about-card-wide", id = "about-limits",
           tags$h4("What it doesn't do"),
           tags$ul(
@@ -218,46 +184,32 @@ about_ui <- function(tree, forms) {
 
     about_section("about-capabilities", "Capabilities and checks", capabilities_ui(tree, forms)),
 
-    about_section("about-feedback", "Reporting a problem or giving feedback",
-      div(class = "about-card about-feedback",
-        p(HTML(paste0(
-          "Use the <strong>Feedback</strong> tab for bugs, questions, suggestions and any other comments. ",
-          "It fills in where you are in powerkit for you and shows the whole message before you send it. ",
-          "Every card also has a <strong>Something doesn&#39;t fit?</strong> link at the bottom that leads there."))),
+    # What the app keeps and sends (it was under Feedback, which is now the
+    # top bar's button alone).
+    about_section("about-privacy", "What it keeps and sends",
+      div(class = "about-card",
         p(class = "about-small", "Nothing is sent from this app without you: the only thing it ever sends is a feedback message, ",
-          "when you click Send, including the optional answers and browser information disclosed on the Feedback tab. Calculations use your answers where this app is running: on the host for the online app, or on your computer for a local installation. ",
+          "when you click Send, including the optional answers and browser information shown on the Feedback page. Calculations use your answers where this app is running: on the host for the online app, or on your computer for a local installation. ",
           "This browser keeps the answers on an input screen you haven't finished, your last result, the analyses you opened recently and a few display choices, so that you can carry on next time; they stay in this browser and are not sent anywhere. ",
           "A link made with \u201cCopy a link\u201d holds your answers inside the link itself: powerkit stores nothing, and opening the link sends them to the app as opening a saved file would. Anyone you give the link to can open the plan. ",
-          "On a shared computer, choose \u201cDiscard my draft\u201d when the plan tab offers to continue (it deletes the saved answers), or clear this site's data in your browser's settings to remove everything."),
-        tags$button(type = "button", class = "btn btn-outline-primary", onclick = "pkAboutTab('Feedback')", "Give feedback"))),
+          "On a shared computer, choose \u201cDiscard my draft\u201d when the app offers to continue your unfinished analysis (it deletes the saved answers), or clear this site's data in your browser's settings to remove everything."))),
 
     about_section("about-credits", "Credits",
       p("powerkit is built on these R packages. Please cite the package that calculated your result ",
         "(the result screen's Citations button lists it); each one's own citation is under \"How to cite\"."),
       div(class = "about-credits", lapply(about_foundation_tools, about_credit_ui)),
-      tags$h4(class = "about-subh", "And the software they run on"),
-      div(class = "about-credits about-credits-small", lapply(about_supporting_tools, about_credit_ui))),
+      tags$details(class = "about-subh-fold",
+        tags$summary(class = "about-subh", "And the software they run on"),
+        div(class = "about-credits about-credits-small", lapply(about_supporting_tools, about_credit_ui)))),
 
     tags$script(HTML(about_js))
   )
 }
 
 about_js <- "
-  // On a phone the analysis families start folded.
-  (function() {
-    var fold = function() {
-      if (!window.matchMedia || !window.matchMedia('(max-width: 767px)').matches) return;
-      document.querySelectorAll('details.about-family[open]').forEach(function(d) { d.removeAttribute('open'); });
-    };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fold); else fold();
-  })();
   window.pkAboutTab = function(name) {
     var a = document.querySelector('#tabs a[data-value=\"' + name + '\"]');
     if (a) { a.click(); window.scrollTo(0, 0); }
-  };
-  window.pkAboutPlan = function(id) {
-    if (window.Shiny && Shiny.setInputValue) Shiny.setInputValue('map_plan', id, {priority: 'event'});
-    window.scrollTo(0, 0);
   };
   document.addEventListener('click', function(e) {
     var a = e.target.closest && e.target.closest('.about-toc a');
@@ -316,11 +268,10 @@ whats_new_ui <- function(entries, open_days = 1) {
     `data-latest` = if (length(days)) days[[1]] else "",
     tags$h2("Updates"),
     p(class = "about-lead", "Changes to powerkit you would notice, newest first. ",
-      "Click a change to read more, or show every description with Full details. ",
-      "The online app takes in the approved changes once a day."),
+      "Click a change to read more, or show every description with Full details."),
     div(class = "wn-since", id = "wn-since", hidden = NA),
     div(class = "wn-tools",
-      tags$input(type = "search", id = "wn-search", class = "form-control", placeholder = "Search the changes, e.g. ANOVA or Labs",
+      tags$input(type = "search", id = "wn-search", class = "form-control", placeholder = "Search the changes, e.g. ANOVA or Tools",
         `aria-label` = "Search the changes", oninput = "pkWhatsNewSearch(this.value)"),
       tags$span(class = "wn-count", id = "wn-count", `aria-live` = "polite", sprintf("%d changes", length(entries))),
       div(class = "wn-view btn-group", role = "group", `aria-label` = "How much to show",
@@ -345,7 +296,7 @@ whats_new_js <- "
 (function() {
   var KEY = 'powerkit-whats-new-seen';
   function page() { return document.querySelector('.whats-new-page'); }
-  function tabLink() { return document.querySelector('#tabs a[data-value=\"Updates\"]'); }
+  function tabLink() { return document.querySelector('#tabs a[data-value=\"About\"]'); }
   function stored() { try { return window.localStorage.getItem(KEY); } catch (e) { return null; } }
   function store(v) { try { window.localStorage.setItem(KEY, v); } catch (e) {} }
   function markSeen() {
@@ -373,7 +324,7 @@ whats_new_js <- "
       s.setAttribute('aria-label', n + ' new changes'); a.appendChild(s);
     }
     document.addEventListener('click', function(e) {
-      if (e.target.closest && e.target.closest('#tabs a[data-value=\"Updates\"]')) markSeen();
+      if (e.target.closest && e.target.closest('#tabs a[data-value=\"About\"]')) markSeen();
     });
     if (p.offsetParent !== null) markSeen();
   }

@@ -21,6 +21,11 @@ One noun per thing, so that "plan" only ever means a study plan:
   **study plan report**.
 - The first tab is **Power and sample size**; "Open a saved file" opens
   any of these files on the start screen and on the Study plans page.
+- The top row is **Power and sample size**, **Study plans** (with the
+  number of plans and a dot when some are not saved to a file), **Tools**
+  (called Labs before) and **About**, which now holds the Updates. Feedback
+  has one way in, the top bar's "Feedback" button. Old addresses
+  (?page=labs, ?page=updates, ?page=feedback) still open the same pages.
 
 The sections below keep the names in use when each was written.
 

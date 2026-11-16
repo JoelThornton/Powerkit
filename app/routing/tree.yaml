@@ -281,7 +281,7 @@ routes:
   question: "How do you want to start?"
   title: "Plan the sample size for your study"
   lead: "Describe your design and enter what you know about the effect. Powerkit gives the sample size, power or precision, with a methods paragraph and an R script that reproduces the answer."
-  tester_note: "Powerkit is a prototype. If you are trying it out, plan a study the way you usually would, plan it again here, and use \u201cFeedback on this screen\u201d at the top of any page to say what differed, took longer or was unclear. Most answers take seconds. A few designs are simulated, such as mediation's full simulation and models of participants and items: power at one sample size runs here in a few minutes, and their sample size comes as an R script to run on your own computer."
+  tester_note: "Powerkit is a prototype. If you are trying it out, plan a study the way you usually would, plan it again here, and use \u201cFeedback\u201d at the top of any page to say what differed, took longer or was unclear. Most answers take seconds. A few designs are simulated, such as mediation's full simulation and models of participants and items: power at one sample size runs here in a few minutes, and their sample size comes as an R script to run on your own computer."
   screening_start: s1
   # "I know my analysis" can skip the screening and see every analysis. The
   # questions then become a filter the user can apply afterwards.

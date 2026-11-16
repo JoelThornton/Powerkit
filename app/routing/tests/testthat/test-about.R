@@ -13,45 +13,30 @@ test_that("the About panel says it's a prototype and what it does", {
   expect_no_match(html, "everything else you enter stays on your computer", fixed = TRUE)
 })
 
-test_that("the About panel lists every end point that calculates, and only those", {
+test_that("About says how many analyses calculate and links to the full list instead of repeating it", {
   html <- about_html()
-  calculating <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
-  for (id in calculating) {
-    expect_match(html, sprintf("data-endpoint=\"%s\"", id), fixed = TRUE, label = id)
-    expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$plain_name), fixed = TRUE, label = id)
-  }
-  listed <- regmatches(html, gregexpr("data-endpoint=\"[^\"]+\"", html))[[1]]
-  expect_setequal(sub("data-endpoint=\"([^\"]+)\"", "\\1", listed), calculating)
-  # Users see the analyses' names, not powerkit's internal codes.
-  expect_false(grepl("<strong>E[0-9]+</strong>", html))
-  # Each says how it calculates: E9 runs in the background; E10-E12 run the
-  # full analysis here; E13-E14 give a script.
-  expect_match(html, "class=\"about-ep how-background\" data-endpoint=\"E9\"", fixed = TRUE)
-  expect_match(html, "class=\"about-ep how-full\" data-endpoint=\"E10\"", fixed = TRUE)
-  expect_match(html, "class=\"about-ep how-script\" data-endpoint=\"E13\"", fixed = TRUE)
-  expect_match(html, "an R script to run the full analysis on your computer", fixed = TRUE)
-  # Grouped by family, and each one opens its card.
-  expect_match(html, "Comparing averages (t-tests)", fixed = TRUE)
-  expect_match(html, "pkAboutPlan(this.dataset.endpoint)", fixed = TRUE)
-  expect_match(about_js, "Shiny.setInputValue('map_plan'", fixed = TRUE)
+  # The full list is "I know my analysis" (layout review, 16 November 2026).
+  expect_false(grepl("data-endpoint=", html, fixed = TRUE))
+  expect_match(html, "See every analysis", fixed = TRUE)
+  expect_match(html, "route:known", fixed = TRUE)
 })
 
 test_that("the About page leads with what powerkit does and links to its sections", {
   html <- about_html()
-  for (id in c("about-how", "about-plans", "about-trust", "about-feedback", "about-credits")) {
+  for (id in c("about-how", "about-plans", "about-trust", "about-privacy", "about-credits")) {
     expect_match(html, sprintf("id=\"%s\"", id), fixed = TRUE, label = id)
     expect_match(html, sprintf("href=\"#%s\"", id), fixed = TRUE, label = id)
   }
   expect_match(html, "Start planning", fixed = TRUE)
-  expect_match(html, "pkAboutTab(&#39;Feedback&#39;)", fixed = TRUE)
+  # Feedback has one way in, the top bar's button (layout review, 16 November 2026).
+  expect_no_match(html, "pkAboutTab(&#39;Feedback&#39;)", fixed = TRUE)
+  expect_no_match(html, "about-feedback", fixed = TRUE)
   # Each package's citation is folded away under "How to cite".
   expect_match(html, "<summary>How to cite</summary>", fixed = TRUE)
 })
 
-test_that("the About panel explains how to report problems: the Feedback tab and 'Something doesn't fit?'", {
+test_that("the About panel says what the app keeps and sends", {
   html <- about_html()
-  expect_match(html, "<strong>Feedback</strong> tab", fixed = TRUE)
-  expect_match(html, "Something doesn&#39;t fit?|Something doesn't fit?")
   expect_match(html, "Nothing is sent from this app", fixed = TRUE)
   expect_match(html, "they stay in this browser and are not sent anywhere", fixed = TRUE)
   # The way to delete the saved answers is named as the plan tab names it.
@@ -94,18 +79,11 @@ test_that("the About panel says what powerkit doesn't do and how far along it is
   expect_match(html, "representative cases", fixed = TRUE)
 })
 
-test_that("the analysis families fold, and start folded on a phone", {
-  html <- as.character(about_plans_ui(tree, forms))
-  expect_match(html, '<details class="about-family" open>', fixed = TRUE)
-  expect_match(html, '<summary class="about-family-head">', fixed = TRUE)
-  expect_match(about_js, "(max-width: 767px)", fixed = TRUE)
-})
-
 test_that("About counts the analyses as the methods map does, folds the capability table and puts trust first", {
   html <- as.character(about_ui(tree, forms))
   in_families <- length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))
   expect_match(html, sprintf("of the %d analyses calculate", in_families), fixed = TRUE)
-  expect_match(html, "Every test version and its checks (", fixed = TRUE)
+  expect_match(html, "Every version of every analysis, and how it was checked (", fixed = TRUE)
   expect_lt(regexpr('id="about-trust"', html, fixed = TRUE), regexpr('id="about-capabilities"', html, fixed = TRUE))
   expect_no_match(html, "?:", fixed = TRUE)
 })

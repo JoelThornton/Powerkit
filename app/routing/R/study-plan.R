@@ -146,12 +146,11 @@ plan_upsert <- function(plan, entry, now = Sys.time()) {
 # attribute: any name or text, quotes and all, stays a string.
 js_string <- function(x) as.character(jsonlite::toJSON(x, auto_unbox = TRUE))
 
-# In the top bar on every screen: the plans page, with how many plans
-# there are and a marker when any has changes not saved to a file.
-study_plans_chip_ui <- function(k, unsaved = FALSE) {
-  tags$button(type = "button", class = "btn btn-sm share-page-btn study-plan-chip",
-    title = "Your study plans: the analyses for each of your studies",
-    onclick = "Shiny.setInputValue('plans_open_page', Date.now(), {priority: 'event'})",
+# The Study plans tab's name: how many plans there are, and a marker when
+# any has changes not saved to a file (the only warning that work is
+# kept in this browser alone).
+study_plans_tab_label_ui <- function(k, unsaved = FALSE) {
+  tags$span(class = "study-plans-tab", title = if (isTRUE(unsaved)) "Some study plans are not saved to a file" else "Your study plans: the analyses for each of your studies",
     if (k > 0) sprintf("Study plans (%d)", k) else "Study plans",
     if (isTRUE(unsaved)) tagList(tags$span(class = "plan-unsaved-dot", `aria-hidden` = "true"),
       tags$span(class = "visually-hidden", ", some not saved to a file")))

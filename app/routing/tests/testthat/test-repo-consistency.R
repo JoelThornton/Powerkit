@@ -145,13 +145,12 @@ test_that("optional-packages.R names every optional engine package, so the onlin
   expect_setequal(named, setdiff(suggests, c("testthat", "withr")))
 })
 
-test_that("every analysis the app calculates is listed on the About page", {
-  html <- as.character(about_ui(tree, forms))
+test_that("every analysis the app calculates is listed under \"I know my analysis\"", {
+  html <- as.character(known_ui(tree))
   calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints %||% list()))
   expect_gte(length(calculates), 20)
   for (id in calculates) {
-    expect_match(html, sprintf("data-endpoint=\"%s\"", id), fixed = TRUE, label = id)
-    expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$plain_name), fixed = TRUE, label = id)
+    expect_match(html, sprintf("data-ep=\"%s\"", id), fixed = TRUE, label = id)
   }
 })
 

@@ -8,7 +8,9 @@
 # shown (the original study's smallest detectable effect) comes from the
 # engine's sensitivity, as in the main app.
 
-labs_tab_title <- "Labs (experimental)"
+# Called "Labs (experimental)" until 16 November 2026: most of these are
+# solid, and the whole app already says it is a prototype.
+labs_tab_title <- "Tools"
 
 # The tools on Labs' first screen; each opens on its own (22 October 2026),
 # so that more can be added.
@@ -41,12 +43,12 @@ labs_tools <- list(
 labs_tool_head <- function(id) {
   tool <- Filter(function(t) identical(t$id, id), labs_tools)[[1]]
   tagList(
-    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "← All Labs tools"),
+    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "← All tools"),
     h2(class = "h3 labs-tool-title", tool$title),
-    div(class = "labs-notice", role = "note", tags$strong("Experimental. "), tool$purpose, " ", tool$sure))
+    div(class = "labs-notice", role = "note", tool$purpose, " ", tool$sure))
 }
-labs_tool_sections <- list("Research tools" = c("map", "bayes", "published"),
-  "Educational tools" = c("picture", "variation"))
+labs_tool_sections <- list("For planning" = c("map", "bayes", "published"),
+  "For learning" = c("picture", "variation"))
 labs_ref_key <- "Karhulahti2025_prereplication"
 
 # The paper's three questions, word for word (its "Pre-replication" section).
@@ -312,7 +314,7 @@ labs_markdown <- function(answers, outcome = NULL, sde = NULL, citation = labs_c
     if (!is.null(outcome) && outcome %in% names(labs_outcomes)) labs_outcomes[[outcome]] else "_(not chosen)_", "",
     "---", "",
     sprintf("The questions are from: %s", citation), "",
-    sprintf("Written with powerkit Labs (experimental) on %s. These are the author's own notes; powerkit does not score or judge them.", format(date, "%d %B %Y"))
+    sprintf("Written with Powerkit on %s. These are the author's own notes; powerkit does not score or judge them.", format(date, "%d %B %Y"))
   ) |> paste(collapse = "\n")
 }
 
@@ -341,8 +343,8 @@ labs_ui <- function(tree) {
     # First screen: the list of tools. A tool's own page starts with its
     # name, not the whole Labs header again.
     conditionalPanel("!input.labs_tool",
-      h2("Labs (experimental)"),
-      p(class = "lead", "Tools that may help you think about a study before you plan it. They are not part of the main route, nothing here is required, and they may change or disappear."),
+      h2("Tools"),
+      p(class = "lead", "Tools that help you think about a study before you plan it, or learn how power works. They are not part of the main route, and nothing here is required."),
       lapply(names(labs_tool_sections), labs_menu_section)),
     conditionalPanel("input.labs_tool == 'map'",
       labs_tool_head("map"),
@@ -350,10 +352,7 @@ labs_ui <- function(tree) {
     picture_ui(),
     study_variation_ui(),
     bayes_ui(),
-    published_ui(),
-    # Replication planning moved to replication plans (Study plans page).
-    p(class = "small labs-moved", "Looking for the pre-replication notes or the replication planner? They are now part of a replication plan, on the Study plans page: ",
-      actionLink("rep_plan_new_labs", "Start a replication plan."))
+    published_ui()
   )
 }
 
@@ -414,7 +413,7 @@ labs_seed_reasoning <- function(answers) {
 # On the main route's card and input screens while planning from the notes.
 labs_return_ui <- function(on_form = FALSE, carried = FALSE) {
   div(class = "labs-return", role = "note",
-    "You're planning the replication from your pre-replication notes. Your notes are kept in Labs. ",
+    "You're planning the replication from your pre-replication notes. Your notes are kept in your replication plan. ",
     actionLink("labs_back", "Back to the notes"),
     if (on_form && carried) p(class = "small mb-0 mt-1", "Your notes' finding and smallest effect that would matter are copied into \u201cWhy this effect size?\u201d below; edit them as you like."))
 }

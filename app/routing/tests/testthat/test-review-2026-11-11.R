@@ -45,7 +45,7 @@ test_that("the main button says what it does, and feedback is one click from eve
   code <- paste(readLines(file.path(routing_dir, "R", "forms_ui.R")), collapse = "\n")
   expect_match(code, 'actionButton("form_check", "Calculate"', fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(app, "Feedback on this screen", fixed = TRUE)
+  expect_match(app, "Feedback on the screen you are on", fixed = TRUE)
 })
 
 test_that("a rule of thumb can be named as the source, and is written up as one", {
@@ -129,11 +129,13 @@ test_that("a study plan survives a round trip through the browser's copy", {
   expect_length(plans_from_browser(tree, list(records = list(abc = "not a plan")))$plans, 0)
 })
 
-test_that("Study plans is in the top bar on every screen, and removing or deleting asks first", {
-  expect_match(as.character(study_plans_chip_ui(0)), ">Study plans<", fixed = TRUE)
-  expect_match(as.character(study_plans_chip_ui(2)), "Study plans (2)", fixed = TRUE)
-  expect_no_match(as.character(study_plans_chip_ui(2)), "plan-unsaved-dot", fixed = TRUE)
-  marked <- as.character(study_plans_chip_ui(2, unsaved = TRUE))
+test_that("Study plans is a tab with its count and unsaved marker, and removing or deleting asks first", {
+  expect_match(as.character(study_plans_tab_label_ui(0)), ">Study plans<", fixed = TRUE)
+  app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(app, 'tabPanel(uiOutput("study_plans_tab_label"', fixed = TRUE)
+  expect_match(as.character(study_plans_tab_label_ui(2)), "Study plans (2)", fixed = TRUE)
+  expect_no_match(as.character(study_plans_tab_label_ui(2)), "plan-unsaved-dot", fixed = TRUE)
+  marked <- as.character(study_plans_tab_label_ui(2, unsaved = TRUE))
   expect_match(marked, "plan-unsaved-dot", fixed = TRUE)
   expect_match(marked, "some not saved to a file", fixed = TRUE)
   html <- page_html(list(list(endpoint = "E2", label = "A t-test", goal = "sample_size", n = 128L)))

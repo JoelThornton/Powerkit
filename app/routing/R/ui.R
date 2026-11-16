@@ -164,12 +164,12 @@ nav_key <- function(screen, node, endpoint, n_answers, tab, labs_tool = "", plan
 # Each tab has its own address (?page=labs and so on), so a page can be
 # shared by link. The plan tab is the plain address.
 page_slugs <- function() {
-  c(plan = "Plan a power analysis", about = "About", updates = "Updates",
-    labs = labs_tab_title, feedback = "Feedback", plans = "Study plans", maintainer = "For the maintainer: undecided settings")
+  c(plan = "Plan a power analysis", plans = "Study plans", labs = labs_tab_title, about = "About",
+    feedback = "Feedback", maintainer = "For the maintainer: undecided settings")
 }
 
 # A tab's name: in full, and a short name that phones show so that all
-# five tabs fit on one row.
+# the tabs fit on one row.
 tab_title <- function(full, short) {
   if (identical(full, short)) return(full)
   tagList(tags$span(class = "tab-long", full), tags$span(class = "tab-short", short))
@@ -181,8 +181,11 @@ page_from_query <- function(query = "") {
   slug <- shiny::parseQueryString(query %||% "")$page
   if (is.null(slug)) return(NULL)
   slug <- tolower(slug)
-  # The Updates tab was called "What's new"; old links still open it.
-  if (identical(slug, "whats-new")) slug <- "updates"
+  # The Updates are on About since 16 November 2026 (they were a tab,
+  # called "What's new" before that), and Labs is called Tools: old
+  # links still open them.
+  if (slug %in% c("whats-new", "updates")) slug <- "about"
+  if (identical(slug, "tools")) slug <- "labs"
   if (identical(slug, "maintainer") && !maintainer_view_requested(query)) return(NULL)
   tab <- page_slugs()[slug]
   if (is.na(tab)) NULL else unname(tab)
@@ -1403,7 +1406,7 @@ bayes_guide_ui <- function(tree, ep, package_list) {
     })),
     p(class = "bayes-guide-labs", "To see how the priors and your uncertainty about the effect change a plan, or to plan a sequential design (checking the evidence as the data come in), try ",
       tags$button(type = "button", class = "btn btn-link known-inline-link",
-        onclick = "Shiny.setInputValue('go_labs_bayes', Date.now(), {priority: 'event'})", "Bayesian planning in Labs"), "."),
+        onclick = "Shiny.setInputValue('go_labs_bayes', Date.now(), {priority: 'event'})", "Bayesian planning under Tools"), "."),
     tags$details(class = "card-more",
       tags$summary("Other designs: not in powerkit yet"),
       p(tags$strong("Other designs, not in powerkit yet: "),

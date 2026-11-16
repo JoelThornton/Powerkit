@@ -123,7 +123,7 @@ capabilities_ui <- function(tree, forms) {
   rows <- capability_rows(tree, forms)
   # Folded: the table has over a thousand rows, which pushed the rest of
   # About far down the page.
-  tags$details(class = "capabilities-fold", tags$summary(sprintf("Every test version and its checks (%s)", format(nrow(rows), big.mark = ","))),
+  tags$details(class = "capabilities-fold", tags$summary(sprintf("Every version of every analysis, and how it was checked (%s)", format(nrow(rows), big.mark = ","))),
     p("Generated from the current cards and input forms. Each row is one available choice, not a claim that every combination works. Conditional fields, mathematical limits and population assumptions still apply. Evidence for your complete, selected analysis is captured with its result."),
     tags$label(`for` = "capability_search", "Search analyses, test versions or assumptions"),
     tags$input(id = "capability_search", type = "search", class = "form-control", oninput = "pkFilterCapabilities(this.value)"),
