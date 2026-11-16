@@ -718,6 +718,7 @@ app_css <- "
      column of fourteen full-width bars was a long grey ladder. */
   @media (min-width: 992px) {
     .known-groups { display: grid; grid-template-columns: 1fr 1fr; column-gap: 0.75rem; align-items: start; }
+    .known-groups-column { min-width: 0; }
     .known-groups .known-family-items { grid-template-columns: 1fr; }
   }
   .known-way-out { margin-top: 1.25rem; color: #3d4852; }

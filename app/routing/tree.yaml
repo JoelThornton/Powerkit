@@ -1142,7 +1142,7 @@ endpoints:
     method: Simulation
     inputs: ["Standardised paths X -> M, M -> Y and X -> Y"]
     status: runs_validated
-    validation: {file: test-validation-mediation-simple.R, note: "Full validation run passed on 16 October 2026. A check against a published example is still to come."}
+    validation: {file: test-validation-mediation-simple.R, note: "Full validation run of the simulation (Monte Carlo interval) passed on 16 October 2026. The quick estimate, the method the input screen starts on, has no validation run yet. A check against a published example is still to come."}
     tier: MVP
     alternatives: ["a bootstrap confidence interval", "the Sobel test"]
   E11:

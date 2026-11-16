@@ -1824,7 +1824,7 @@ check_group_ratio_allowed <- function(spec) {
     # Unequal groups in a mixed design are simulated (Spower and afex):
     # Superpower's exact method takes equal groups only.
     if (identical(spec$goal$type, "sensitivity")) {
-      return("The smallest detectable effect isn't available with unequal groups: it uses Superpower's exact method, which takes equal groups only. Use goal type 'power' or 'sample_size'.")
+      return("The smallest detectable effect isn't available with unequal groups: it uses Superpower's exact method, which takes equal groups only. Under \u201cWhat do you want to find out?\u201d, choose the power at a given sample size, or the sample size you need.")
     }
     if (identical(spec$options$method, "exact")) {
       return("'options > method' 'exact' isn't available with unequal groups: Superpower's exact method takes equal groups only, so power is simulated. Remove 'options > method'.")
@@ -2913,8 +2913,8 @@ check_goal <- function(spec, check_effect = TRUE) {
     }
     problems <- c(problems, paste0(
       "The effect you want to detect is zero in this population, so ",
-      consequence, ". Check the population values, or use goal type 'power' ",
-      "to check the Type I error rate."
+      consequence, ". Check the population values, or, to check the false-positive rate, ",
+      "choose the power at a given sample size under \u201cWhat do you want to find out?\u201d."
     ))
   }
   problems

@@ -152,6 +152,14 @@ test_that("'I know my analysis' lists every analysis in closed family groups, wi
   # The groups start closed, and the search box filters them.
   expect_equal(lengths(regmatches(all_of_them, gregexpr("<details class=\"known-family", all_of_them))), length(tree$analysis_families))
   expect_no_match(all_of_them, "<details[^>]* open", perl = TRUE)
+  # Two columns that stand on their own, so opening a group on one side
+  # never pushes the groups on the other side apart: the first half of
+  # the groups on the left, in order.
+  expect_equal(lengths(regmatches(all_of_them, gregexpr("class=\"known-groups-column\"", all_of_them))), 2L)
+  columns <- strsplit(all_of_them, "class=\"known-groups-column\"", fixed = TRUE)[[1]][-1]
+  family_ids <- vapply(tree$analysis_families, `[[`, "", "id")
+  left_ids <- regmatches(columns[1], gregexpr("(?<=data-family=\")[^\"]+", columns[1], perl = TRUE))[[1]]
+  expect_identical(left_ids, family_ids[seq_len(ceiling(length(family_ids) / 2))])
   expect_match(all_of_them, "id=\"known_search\"", fixed = TRUE)
   expect_match(all_of_them, "powerkitFilterAnalyses", fixed = TRUE)
   expect_no_match(all_of_them, "that fit your screening answers", fixed = TRUE)

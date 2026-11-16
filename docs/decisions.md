@@ -3729,3 +3729,22 @@ method chosen first. All follow JASP's default priors.
   JASP's default normal priors on the log odds ratio and the grand mean,
   and JASP's default two-sided hypothesis.
 
+
+## 2026-11-16 · No pre-selected count model, and the mediation estimate's validation label
+
+- **The model for counts is not chosen for the researcher** on the
+  repeated-measures card for counts (E75) and on moderation and
+  mediation with a count outcome (E32). Both screens started on
+  Poisson. Counts of behaviour are usually more spread out than a
+  Poisson distribution allows, and a Poisson model then gives too much
+  power, so a pre-selected Poisson was an optimistic default chosen for
+  the researcher. They now pick Poisson or negative binomial, and the
+  help says what each costs. The count-regression card (E28) keeps
+  Poisson as its starting model, the test G*Power and pwrss compute,
+  with negative binomial and the zero-inflated models one choice away.
+- **Simple mediation's quick estimate (E10) says "Validation in
+  progress".** The card's full validation run (16 October 2026) covers
+  the Monte Carlo simulation; the quick estimate, the method the input
+  screen starts on since 12 November 2026, has no validation run. Its
+  choice note, the result's estimate notice and the card's status line
+  say so; the card stays validated for the simulation.
