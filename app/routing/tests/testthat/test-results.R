@@ -69,6 +69,11 @@ test_that("calculating designs calculate; simulated designs preview first, then 
   expect_equal(usual_seconds(forms, "E44", "sample_size"), 520)
   # Welch's ANOVA, the one-way default, simulates: its bar estimates too.
   expect_equal(usual_seconds(forms, "E18", "sample_size"), 11)
+  # A version that simulates on a card whose default is exact (the
+  # corrected repeated-measures F test, Departure 28) has its time too,
+  # without counting as a simulated card on About.
+  expect_equal(usual_seconds(forms, "E54", "sample_size"), 120)
+  expect_false("E54" %in% names(forms$simulated_times))
   expect_identical(unname(about_endpoint_how(forms)["E44"]), "background")
   for (ep in paste0("E", 1:8)) expect_false(runs_in_background(forms, ep), label = ep)
   expect_equal(usual_seconds(forms, "E9", "power"), 5)

@@ -90,13 +90,14 @@ connection_js <- "
   $(document).on('shiny:idle', function() { if (connected) dropStarting(); });
   var connected = false, beat = null;
   // When the visitor last used the page, and when a calculation last
-  // reported progress (calc_progress, every half second while one runs).
+  // reported progress (calc_progress, every half second while one runs, or
+  // kept_progress, every second while a run kept in a study plan goes on).
   var IDLE_MS = 20 * 60 * 1000, lastActive = Date.now(), lastProgress = 0;
   ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart', 'scroll', 'input'].forEach(function(type) {
     document.addEventListener(type, function() { lastActive = Date.now(); }, {capture: true, passive: true});
   });
   $(document).on('shiny:message', function(e) {
-    if (e.message && e.message.custom && e.message.custom.calc_progress) lastProgress = Date.now();
+    if (e.message && e.message.custom && (e.message.custom.calc_progress || e.message.custom.kept_progress)) lastProgress = Date.now();
   });
   function keepOpen() {
     var now = Date.now();

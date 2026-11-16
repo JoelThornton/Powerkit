@@ -358,7 +358,7 @@ plan_delete_button <- function(plan, input, class, label) {
     label)
 }
 
-plans_list_ui <- function(plans, current = NULL) {
+plans_list_ui <- function(plans, current = NULL, running = character()) {
   unsaved <- Filter(function(p) plan_has_content(p) && plan_unsaved(p), plans)
   row <- function(plan) {
     k <- length(plan$entries)
@@ -370,7 +370,8 @@ plans_list_ui <- function(plans, current = NULL) {
       if (plan_is_replication(plan)) span(class = "plans-row-kind small", "Study plan \u00b7 Replication"),
       span(class = "plans-row-facts small",
         paste(c(if (k == 1) "1 analysis" else sprintf("%d analyses", k),
-          if (!is.null(largest)) sprintf("largest comparable N = %s", whole(largest$n))), collapse = " · ")),
+          if (!is.null(largest)) sprintf("largest comparable N = %s", whole(largest$n)),
+          if (any(running == plan$id)) sprintf("%d still running", sum(running == plan$id))), collapse = " · ")),
       span(class = "small", plan_status_ui(plan)),
       plan_delete_button(plan, input = "plans_delete_plan", class = "btn btn-link btn-sm plans-row-delete", label = "Delete"))
   }
