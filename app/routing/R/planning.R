@@ -16,7 +16,7 @@ planning_decision_ui <- function(form) {
     input_id <- sprintf("input.%s", field_input_id(list(id = bayes_field)))
     current <- tagList(conditionalPanel(sprintf("%s != 'bayes_factor'", input_id), inline = TRUE, current),
       conditionalPanel(sprintf("%s == 'bayes_factor'", input_id), inline = TRUE,
-        "This plans the chance that your study reaches strong evidence (a Bayes factor past your threshold) if the effect you enter is the true one. A Bayes factor test has no significance level."))
+        "This plans the chance that your study reaches evidence at the threshold (a Bayes factor past your threshold) if the effect you enter is the true one. A Bayes factor test has no significance level."))
   }
   explanation_ui("planning-goal-info", "What this planning goal means", class = "planning-decision small",
     tags$details(tags$summary("What this goal plans, and goals for other questions"),

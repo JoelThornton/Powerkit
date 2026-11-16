@@ -38,7 +38,7 @@ prediction_validation_sentences <- function(spec, result) {
   label <- spec$variables$Y$label %||% "the outcome"
   headline <- sprintf("To validate the existing model of %s in new data, at least %s are needed.", label, prediction_people(pr$n))
   events <- if (!is.na(pr$events)) sprintf(" That is about %s people with the outcome.", whole(ceiling(pr$events))) else ""
-  reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is: %s.", tolower_first(pr$binding)), events,
+  reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is %s.", binding_phrase(pr$binding)), events,
     " It is a minimum for estimating the model's calibration and discrimination precisely, not a power calculation.")
   how <- sprintf("Calculated with pmvalsampsize (pmvalsampsize()), which powerkit called with your answers, assuming a C-statistic of %s and %s%% with the outcome.",
     format(spec$population$c_statistic), format(100 * spec$population$prevalence))
@@ -53,7 +53,7 @@ prediction_sentences <- function(spec, result) {
     label, whole(pr$parameters), prediction_people(pr$n))
   events <- if (!is.na(pr$events)) sprintf(" That is about %s %s, or %s per candidate parameter.", whole(ceiling(pr$events)),
     if (identical(pr$outcome, "survival")) "events" else "people with the outcome", format(round(pr$events_per_parameter, 1), nsmall = 1)) else ""
-  reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is: %s.", tolower_first(pr$binding)), events,
+  reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is %s.", binding_phrase(pr$binding)), events,
     " It is a minimum for developing the model, not a power calculation: a smaller sample risks a model that overfits and predicts less well in new people.")
   how <- sprintf("Calculated by formula with pmsampsize (pmsampsize()), which powerkit called with your answers, assuming %s for a model of %s.",
     prediction_performance_text(spec), prediction_outcome_words(pr$outcome))
@@ -218,4 +218,11 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
       tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
   )
+}
+
+# "Little overfitting: expected shrinkage ..." as "little overfitting
+# (expected shrinkage ...)", so the sentence has one colon.
+binding_phrase <- function(binding) {
+  text <- tolower_first(binding)
+  sub("^([^:]+): (.+)$", "\\1 (\\2)", text)
 }

@@ -243,7 +243,7 @@ shown_if_js <- function(item) {
     if (!is.null(cond$any)) return(paste0("(", paste(vapply(cond$any,
       function(x) shown_if_js(list(shown_if = x)), character(1)), collapse = " || "), ")"))
     other <- sprintf("input.%s", field_input_id(list(id = cond$field)))
-    if (!is.null(cond[["is_one_of"]])) return(sprintf("[%s].indexOf(%s) >= 0", paste0("'", cond[["is_one_of"]], "'", collapse = ", "), other))
+    if (!is.null(cond[["is_one_of"]])) return(sprintf("[%s].indexOf(%s || '') >= 0", paste0("'", cond[["is_one_of"]], "'", collapse = ", "), other))
     if (!is.null(cond[["is"]])) sprintf("%s == '%s'", other, cond[["is"]]) else sprintf("%s != '%s'", other, cond[["is_not"]])
   }, character(1))
   paste(condition, collapse = " && ")
@@ -343,11 +343,11 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(name_swap(paste0("Your values: ", ep$plain_name), technical_name(ep))),
     p(class = "lead", "Fields marked optional can be left empty."),
-    # One line: the label, with how far the checks got behind its info
-    # button (inline with explanations on).
+    # The label alone: how far the checks have got is on the card and
+    # under the result's "Checks for this analysis in general" (15
+    # November 2026), not between the person and the form.
     if (identical(ep$status, "runs_validation_in_progress")) div(class = "validation-line",
-      tags$span(class = "badge-progress", "Validation in progress"),
-      explanation_ui("form-validation-info", "How far the checks have got", class = "inline-more", ep$validation$note)),
+      tags$span(class = "badge-progress", "Validation in progress")),
     carried,
     uiOutput("selected_evidence"),
     if (!is.null(forms$forms[[ep_id]]$scope_note)) p(class = "analysis-scope-note", forms$forms[[ep_id]]$scope_note),

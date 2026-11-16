@@ -694,11 +694,13 @@ closing_groups <- function(forms, ep_id, start = list()) {
            type = "text", path = "effect_justification.source", optional = TRUE),
       # A pilot is as much one study's estimate as a published one, and
       # less precise, so it gets the same question.
-      list(id = "just_adjustment", label = "How you adjusted it", help = "An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. If you kept the estimate unchanged, say why.",
-           type = "text", path = "effect_justification.adjustment", needed_if_just = c("prior_study", "pilot_study"),
-           # Said where the problem is listed, since the box appears only
-           # once a pilot or previous study is chosen (C-15).
-           empty_message = "\u201cHow you adjusted it\u201d is empty. An effect from one study (a pilot or a previous study) is uncertain, so powerkit asks how you allowed for that: say in a sentence, in the box under \u201cSource of the effect size\u201d, whether you planned for a smaller value or why you kept the estimate unchanged. Any wording is fine.",
+      # Optional like every other reasoning box (S-02, 15 November 2026):
+      # an honest source shouldn't cost a compulsory sentence. Left empty,
+      # the write-up says no adjustment was recorded.
+      list(id = "just_adjustment", label = "How you adjusted it", help = "An estimate from one study is uncertain, and published estimates are more likely to be ones that came out large. Plan for a value you can defend: the reported estimate with your reason for trusting it, the lower end of its interval (safeguard power), or a smaller value supported by other evidence. If you leave it empty, the write-up says no adjustment was recorded.",
+           type = "text", path = "effect_justification.adjustment", optional = TRUE,
+           # The engine asks one study's effect to say how it was adjusted.
+           empty_value = "none recorded",
            shown_if = list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
              list(field = "sg_use", is_not = "telescopes")))
     ), safeguard_fields(form$base$template), heterogeneity_fields(form$base$template))),
@@ -861,7 +863,8 @@ with_eta_squared <- function(group, template) {
         shown_if = list(field = "metric", is = "eta_squared"),
         help = paste("For one factor, its eta-squared. powerkit treats it as the true effect, as G*Power does. A published value",
                      "is that study's estimate and tends to be too large; omega-squared, if reported, is less biased. Groups are",
-                     "taken as equal in size, and the test is the ANOVA F test (Welch's F and rank tests need the means).")
+                     "taken as equal in size, and the test is the classical ANOVA F test: Welch's F and rank tests need the means, so",
+                     "choosing an effect size sets the test version to the classical ANOVA.")
       )))
     } else {
       fields <- c(fields, list(hide(f)))
@@ -940,7 +943,8 @@ conversion_fields <- function(template, when = list()) {
   if (has_f) labels$f <- "Cohen's f (the effect size G*Power asks for)"
   choices <- c(list(none = if (has_f) "No: I'll enter partial eta-squared" else "No: I'll enter the effect size myself"), labels)
   sets <- stats::setNames(lapply(from, function(x) list(list(path = "effect_justification.conversion.from", value = x))), from)
-  planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size"))),
+  # Shown before a goal is chosen too (W-03: Cohen's f was hard to find).
+  planning <- c(when, list(list(field = "goal", is_one_of = c("power", "sample_size", ""))),
     # A published F from a repeated-measures ANOVA gives its own kind of
     # partial eta-squared, so it is offered only for that kind.
     if (isTRUE(template %in% eta_squared_mixed_templates)) list(list(field = "eta_source", is = "published")))
@@ -1367,6 +1371,9 @@ build_spec <- function(forms, ep_id, fields, values) {
     # baseline score's R-squared between groups starts as the one within).
     if (blank(v) && !is.null(f$copy_if_empty)) v <- values[[f$copy_if_empty]]
     if (blank(v) && !is.null(f$name_default)) v <- f$name_default
+    # A reasoning box left empty that the engine still needs a value for
+    # (how one study's effect was adjusted).
+    if (blank(v) && !is.null(f$empty_value)) v <- f$empty_value
     if (blank(v)) next
     if (!is.null(f$path)) spec <- set_path(spec, split_path(f$path), field_value(f, v, values))
     # `sets`: further spec values that follow from a choice (E24's

@@ -9,7 +9,7 @@ async function put(page,id,value){
  if(await e.evaluate(x=>x.tagName==='SELECT')) await e.selectOption(value); else await e.fill(value);
  await e.blur();
 }
-test('all-test planning starts with unknown dependence and evidence follows complete inputs',async({page})=>{
+test('all-test planning starts with unknown dependence and keeps the input screen free of the checks list',async({page})=>{
  await open(page,'E2');
  await expect(page.locator('#selected_evidence')).not.toContainText('Checks covering my selected settings');
  await put(page,'claim','all'); await put(page,'n_tests','2');
@@ -18,9 +18,10 @@ test('all-test planning starts with unknown dependence and evidence follows comp
  await put(page,'alternative','two_sided'); await put(page,'d','0.4');
  await put(page,'n','120'); await put(page,'alpha','0.05');
  await put(page,'just_type','smallest_effect_of_interest'); await put(page,'just_source','Synthetic browser scenario');
- await expect(page.locator('#selected_evidence')).toContainText('Checks covering my selected settings');
-  await page.locator('#selected_evidence').getByText('Checks covering my selected settings', { exact: true }).click();
- await expect(page.locator('#selected_evidence')).toContainText('not of every value you could enter');
+ // The checks are listed under the card's "More about this analysis", not on
+ // the input screen (15 November 2026 review, P-13).
+ await expect(page.locator('#f_all_dependence')).toHaveValue('unknown');
+ await expect(page.locator('#selected_evidence')).not.toContainText('Checks covering my selected settings');
 });
 test('interaction sensitivity carries the proposed effect into its simulation form',async({page})=>{
  await open(page,'E9');

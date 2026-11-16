@@ -25,10 +25,10 @@ bayes_mode_js <- "
 # researcher sees which they are (`where` = "known" or "guided").
 bayes_mode_toggle_ui <- function(on = FALSE, where = "known", n_designs = NULL) {
   help <- if (identical(where, "known")) {
-    sprintf("Shows only the analyses with a Bayes factor version%s. Each opens with that version chosen, and its result leads with the chances of strong evidence for an effect, strong evidence for none, and misleading evidence. You can switch back to a p-value on any card.",
+    sprintf("Shows only the analyses with a Bayes factor version%s. Each opens with that version chosen, and its result leads with the chances of evidence at the threshold for an effect, evidence at the threshold for none, and misleading evidence. You can switch back to a p-value on any card.",
       if (!is.null(n_designs)) sprintf(" (%d of them)", n_designs) else "")
   } else {
-    "The design your answers lead to opens with its Bayes factor version chosen, if it has one, and says so if it hasn't. Its result leads with the chances of strong evidence for an effect, strong evidence for none, and misleading evidence."
+    "The design your answers lead to opens with its Bayes factor version chosen, if it has one, and says so if it hasn't. Its result leads with the chances of evidence at the threshold for an effect, evidence at the threshold for none, and misleading evidence."
   }
   div(class = "bayes-mode-toggle",
     div(class = "form-check form-switch",

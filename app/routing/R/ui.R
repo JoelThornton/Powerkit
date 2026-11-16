@@ -815,10 +815,32 @@ function powerkitRestoreAnalyses() {
 # The validation note and links for a validated design, inside the card's
 # "More about this analysis".
 validated_line_ui <- function(tree, ep) {
-  if (!identical(ep$status, "runs_validated")) return(NULL)
-  p(class = "validated-line", tags$strong("Checks for this analysis in general: "), ep$validation$note, " ", validation_scope_note, " ",
+  if (!ep$status %in% c("runs_validated", "runs_validation_in_progress")) return(NULL)
+  # A card whose validation is in progress keeps its note here too, folded
+  # with the rest, so the card opens on what the analysis is (15 November
+  # 2026); the facts above already say "Validation in progress".
+  label <- if (identical(ep$status, "runs_validated")) "Checks for this analysis in general: " else "What has been checked so far: "
+  p(class = "validated-line", tags$strong(label), ep$validation$note, " ", validation_scope_note, " ",
     tags$a(href = tree$links$validation_log, target = "_blank", "Validation log"), " \u00b7 ",
     tags$a(href = paste0(tree$links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file)))
+}
+
+# A link followed directly by punctuation ("Open the plan."): htmltools
+# puts a line break, read as a space, between a tag and the text after it.
+no_space_after <- function(tag) {
+  tag$.noWS <- "after"
+  tag
+}
+
+# The card's points, with a related test it can't run (E26: Cochran's Q)
+# as the last of them, said once.
+card_points_ui <- function(tree, ep) {
+  if (!is.null(ep$guide)) return(NULL)
+  related <- if (is.character(ep$no_ready_made_tool) && ep$status %in% c("runs_validated", "runs_validation_in_progress")) {
+    tags$li(tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text)
+  }
+  if (is.null(ep$card_points) && is.null(related)) return(NULL)
+  tags$ul(class = "card-points", lapply(ep$card_points, tags$li), related)
 }
 
 status_ui <- function(tree, ep) {
@@ -842,13 +864,11 @@ status_ui <- function(tree, ep) {
     # analysis" (validated_line_ui()).
     runs_validated = NULL,
     # The facts above already say "Validation in progress" (14 November
-    # 2026: the card said it three times); this note says how far it got.
-    runs_validation_in_progress = div(
-      class = "status status-in-progress",
-      tags$strong("Checks so far: "), ep$validation$note, " ", validation_links(),
-      # A card that runs one test but not a related one (E26: Cochran's Q).
-      if (is.character(ep$no_ready_made_tool)) p(class = "mb-0", tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text)
-    ),
+    # 2026: the card said it three times); how far the checks have got is
+    # under "More about this analysis" (validated_line_ui(), 15 November
+    # 2026), and a related test the card can't run is one of its points
+    # (card_points_ui()).
+    runs_validation_in_progress = NULL,
     coming_soon = div(class = "status status-soon", tags$strong("Coming soon."), " ", ep$coming_soon_note),
     not_in_powerkit = if (isTRUE(ep$generic)) {
       div(
@@ -1008,7 +1028,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
       if (!compact) card_facts_ui(tree, ep_id, ep),
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) tagList(prepare_ui(tree, history), safety_net_ways_ui()),
-      if (!is.null(ep$card_points) && is.null(ep$guide)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
+      card_points_ui(tree, ep),
       other_analyses_ui(tree, ep),
       # What the input screen will ask, shown openly on a card that runs, so
       # you can gather it before starting (1 November 2026).

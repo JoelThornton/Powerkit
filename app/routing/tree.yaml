@@ -281,7 +281,7 @@ routes:
   question: "How do you want to start?"
   title: "Plan the sample size for your study"
   lead: "Describe your design and enter what you know about the effect. Powerkit gives the sample size, power or precision, with a methods paragraph and an R script that reproduces the answer."
-  tester_note: "Powerkit is a prototype. If you are trying it out, plan a study the way you usually would, plan it again here, and use \u201cFeedback on this screen\u201d at the top of any page to say what differed, took longer or was unclear."
+  tester_note: "Powerkit is a prototype. If you are trying it out, plan a study the way you usually would, plan it again here, and use \u201cFeedback on this screen\u201d at the top of any page to say what differed, took longer or was unclear. Most answers take seconds. A few designs are simulated, such as mediation's full simulation and models of participants and items: power at one sample size runs here in a few minutes, and their sample size comes as an R script to run on your own computer."
   screening_start: s1
   # "I know my analysis" can skip the screening and see every analysis. The
   # questions then become a filter the user can apply afterwards.
@@ -932,7 +932,7 @@ rank_test_text: "Planning {rank_test} instead? The figure here is for the parame
 rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, for the shape of scores you expect (normal, skewed or heavy-tailed)."
 # On the cards with a Bayes factor version (`bayes_test: true`: the
 # t-tests, one proportion and the correlation).
-bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor test as the test version on the next screen: powerkit works out the chance that the study finds strong evidence, without repeated simulation (bfpwr uses an approximation for t-tests, which can differ at small samples; BayesFactor supplies the Bayes factor for the correlation and two proportions, with JASP's default priors)."
+bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor test as the test version on the next screen: powerkit works out the chance that the study finds evidence at the threshold, without repeated simulation (bfpwr uses an approximation for t-tests, which can differ at small samples; BayesFactor supplies the Bayes factor for the correlation and two proportions, with JASP's default priors)."
 other_analyses_text: "Other defensible analyses exist for this design (e.g. {alternatives}), and they can need different sample sizes. Power the analysis you plan to run."
 
 no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
@@ -1082,7 +1082,7 @@ endpoints:
     inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w", "The chi-square test or a Bayes factor"]
     card_points:
       - "Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis."
-      - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: powerkit simulates the chance of strong evidence, with JASP's default sampling plan and prior."
+      - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: powerkit simulates the chance of evidence at the threshold, with JASP's default sampling plan and prior."
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
@@ -1263,7 +1263,7 @@ endpoints:
     card_points:
       - "powerkit calculates this for different people in each group, with equal group sizes. The usual F test assumes the same SD in every group."
       - "Expect the groups to vary by different amounts? Welch's F, the test powerkit plans for unless you choose otherwise, allows for it: give each group's SD on the next screen."
-      - "Will you analyse the data with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: powerkit gives the chance of strong evidence, with JASP's default prior."
+      - "Will you analyse the data with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: powerkit gives the chance of evidence at the threshold, with JASP's default prior."
       - "For the same people in every condition, use the one-way repeated-measures ANOVA instead."
       - "Will you analyse the study by comparing pairs of groups rather than the F test? Choose pairwise comparisons as the test version: powerkit gives the power of the pair you name, with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
     inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The ANOVA, Welch's F, the Kruskal-Wallis test, pairwise comparisons or a Bayes factor"]
@@ -1388,7 +1388,7 @@ endpoints:
     backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula); BayesFactor's generalTestBF() with bayestestR's bayesfactor_inclusion() for the Bayes factor of the effect (simulated with Spower)"
     method: "Formula (no simulation); the Bayes factor version is simulated"
     status: runs_validation_in_progress
-    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() (one factor) and ANCOVA_analytic() (two factors) in the engine's tests. The Bayes factor version agrees with an independently written simulation of the same Bayes factor, for strong evidence for an effect and for none. Not yet checked against G*Power or a published example."}
+    validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() (one factor) and ANCOVA_analytic() (two factors) in the engine's tests. The Bayes factor version agrees with an independently written simulation of the same Bayes factor, for evidence at the threshold for an effect and for none. Not yet checked against G*Power or a published example."}
     card_points:
       - "powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
       - "It uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses; Superpower names Keppel's approach as the approximate one."
@@ -1405,10 +1405,10 @@ endpoints:
     backend: "pwrss: power.f.regression() (the F test, by formula); Spower with car (HC3 and HC4 standard errors) or quantreg (quantile regression) for one coefficient tested those ways (simulated); BayesFactor's linearReg.R2stat() for the Bayes factor for R-squared (exact)"
     method: "Formula (no simulation); simulation for robust standard errors and quantile regression"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. The Bayes factor for R-squared agrees with lmBF() on data simulated with fixed predictors, for the chance of strong evidence for an effect, for none and of misleading evidence. Not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. The Bayes factor for R-squared agrees with lmBF() on data simulated with fixed predictors, for the chance of evidence at the threshold for an effect, for none and of misleading evidence. Not yet checked against a published example."}
     card_points:
       - "One predictor's coefficient, controlling for the others, is tested with its partial R-squared (G*Power's single regression coefficient)."
-      - "Will you analyse whether the predictors together explain anything with a Bayes factor, as in JASP's Bayesian linear regression? Choose it as the test version for R-squared against 0: powerkit gives the chance of strong evidence, with JASP's default prior, exactly."
+      - "Will you analyse whether the predictors together explain anything with a Bayes factor, as in JASP's Bayesian linear regression? Choose it as the test version for R-squared against 0: powerkit gives the chance of evidence at the threshold, with JASP's default prior, exactly."
       - "A treatment effect that depends on a measured moderator, with the outcome measured before and after: choose \"Whether some predictors add to the others\", with 4 predictors in the full model (the treatment, the moderator, the before score and the treatment x moderator product) and 1 tested (the product). The R-squared increase is how much the product adds once the other three are in the model."
       - "If the outcome spreads out more at some values of the predictor than others, choose robust (HC3 or HC4) standard errors; to test the median or another quantile instead of the mean, quantile regression. powerkit simulates both for the spread and error shape you give. With skewed errors whose spread changes, quantile regression's usual test rejects too often, so its power is optimistic there."
     inputs: ["Your outcome's name and what you want to test", "R-squared, the R-squared change, or the predictor's partial R-squared", "Number of predictors", "How the predictor's coefficient is tested, and the spread and shape of the errors"]
@@ -2331,7 +2331,7 @@ endpoints:
     backend: "Superpower: ANOVA_design() with three factors (such as \"2b*2w*2w\") and ANOVA_exact() (ANOVA_power() if simulation is chosen); BayesFactor's anovaBF() with bayestestR's bayesfactor_inclusion() for the Bayes factor of the effect (simulated with Spower)"
     method: "Exact dataset (no repeated simulation); the Bayes factor version is simulated"
     status: runs_validation_in_progress
-    validation: {file: test-validation-anova-three.R, note: "Matches Superpower's ANOVA_exact() called directly in the engine's tests, for all three main effects, the two-way interactions and the three-way interaction. The Bayes factor version agrees with an independently written simulation of the same Bayes factor, for strong evidence for an effect and for none. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
+    validation: {file: test-validation-anova-three.R, note: "Matches Superpower's ANOVA_exact() called directly in the engine's tests, for all three main effects, the two-way interactions and the three-way interaction. The Bayes factor version agrees with an independently written simulation of the same Bayes factor, for evidence at the threshold for an effect and for none. Not yet in the full validation run, and not yet checked against G*Power or a published example."}
     card_points:
       - "Three factors crossed, every combination appearing, such as group (training or control) by time (before or after) by task difficulty (easy or hard). Each factor is either different people at each level or measured in everyone."
       - "Power is for one effect: a factor's main effect, a two-way interaction, or the three-way interaction (whether a two-way interaction depends on the third factor)."
@@ -2358,7 +2358,7 @@ endpoints:
     guide: bayes
     search_words: "Bayes Bayesian Bayes factor BF10 JASP prior"
     card_points:
-      - "A Bayes factor says how strongly the data support an effect over no effect, or no effect over an effect. Unlike a p-value, it can give strong evidence that there is no effect. Planning a study for a Bayes factor means finding the sample size that gives a good chance of strong evidence either way."
+      - "A Bayes factor says how strongly the data support an effect over no effect, or no effect over an effect. Unlike a p-value, it can give evidence that there is no effect. Planning a study for a Bayes factor means finding the sample size that gives a good chance of evidence at the threshold either way."
       - "powerkit plans this for every design below, with the default priors JASP uses, which you can change. Open one to start with its Bayes factor test already chosen."
     inputs: ["Prior and expected effect"]
     packages:

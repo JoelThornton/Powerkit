@@ -684,7 +684,7 @@ test_that("the write-up says when no reasoning was recorded, and words the fixed
   values <- modifyList(form_examples[["E4"]], list(just_type = "none", situation = "fixed", claim = "any", n_tests = "2"))
   values$just_source <- ""
   bare <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values)
-  expect_match(bare[["short"]], "No justification for the effect size was recorded.", fixed = TRUE)
+  expect_match(bare[["short"]], "No reason for this choice was recorded.", fixed = TRUE)
   expect_false(any(grepl("no reason recorded]]", bare, fixed = TRUE)))
   values$just_source <- "Our participant pool has 80 students a year."
   w <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values)
@@ -1102,7 +1102,7 @@ test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr,
     calc <- run_calculation(spec, run, seed = 1L)
     expect_identical(calc$result$provenance$backend, "bfpwr", info = ep)
     words <- result_sentences(calc$spec, calc$result)
-    expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE, info = ep)
+    expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE, info = ep)
     expect_match(words[["detail"]], "If there were no effect", fixed = TRUE, info = ep)
     html <- as.character(result_panel_ui(tree, forms, ep, fields, values, calc))
     expect_match(html, "treating the effect estimate as normally distributed", fixed = TRUE, info = ep) # Known difference 6
@@ -1114,7 +1114,7 @@ test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr,
     expect_match(w[["short"]], "BF10 ≥ 10", fixed = TRUE, info = ep)
     expect_no_match(w[["short"]], "α", fixed = TRUE, info = ep)
     expect_no_match(w[["ethics"]], "NA", fixed = TRUE, info = ep)
-    expect_match(w[["ethics"]], "strong evidence", fixed = TRUE, info = ep)
+    expect_match(w[["ethics"]], "evidence at the threshold", fixed = TRUE, info = ep)
   }
   # With uncertainty about the effect, Departure 15 (the default) doesn't apply.
   values <- modifyList(form_examples$E1, list(method = "bayes_factor", evidence_threshold = "10", prior_scale = "0.707", effect_sd = "0.1", alpha = NULL))
@@ -1138,7 +1138,7 @@ test_that("the two-proportion Bayes factor version runs on BayesFactor, with JAS
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E5", fields, values, calc))
   expect_match(html, "plans for exactly the effect you entered", fixed = TRUE)        # Departure 15
   expect_match(html, "10,000 random draws", fixed = TRUE)                             # Known difference 13
@@ -1167,7 +1167,7 @@ test_that("the one-way ANOVA's Bayes factor version runs on BayesFactor, with JA
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE)
   expect_match(words[["detail"]], "If there were no effect", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
   expect_no_match(html, "under the run's seed", fixed = TRUE)
@@ -1195,7 +1195,7 @@ test_that("the chi-square card's Bayes factor version is simulated with JASP's s
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE)
   expect_match(words[["detail"]], "simulated studies with no association", fixed = TRUE)
   known <- vapply(known_difference_keys(forms, "E6", calc$spec), function(k) forms$known_differences_methods[[k]], character(1))
   w <- writeup_text(forms$forms$E6, calc$spec, calc$result, fields, values, known_methods = known)
@@ -1217,7 +1217,7 @@ test_that("the correlation's Bayes factor version runs on BayesFactor, with JASP
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE)
   expect_match(words[["detail"]], "If there were no effect", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
   expect_match(html, "default prior width is JASP", fixed = TRUE)                    # Known difference 12
@@ -1707,7 +1707,7 @@ test_that("the write-up has a plain-words version for an ethics application, for
   # No reasoning: every version says so in place of the reason.
   bare <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(just_source = "")))
   for (version in names(bare)[!is.na(bare)]) {
-    expect_match(bare[[version]], "No justification for the effect size was recorded.", fixed = TRUE, info = version)
+    expect_match(bare[[version]], "No reason for this choice was recorded.", fixed = TRUE, info = version)
     expect_no_match(bare[[version]], "no reason recorded]]", fixed = TRUE, info = version)
   }
   # A reason written for different values still holds the write-up back.
@@ -2960,11 +2960,11 @@ test_that("ANCOVA (E23): the Bayes factor of the effect, as JASP's Bayesian ANCO
   expect_identical(calc$status, "ok")
   expect_identical(calc$result$bayes$prior_scale_covariates, 0.354)
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "with a Bayes factor ANCOVA (strong evidence: an inclusion Bayes factor of at least 10, across all models", fixed = TRUE)
+  expect_match(words[["headline"]], "with a Bayes factor ANCOVA (evidence threshold: an inclusion Bayes factor of at least 10, across all models", fixed = TRUE)
   expect_match(words[["headline"]], "on the covariates' slopes, r scale 0.354, as in JASP", fixed = TRUE)
   w <- writeup_text(forms$forms$E23, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "was conducted for a Bayes factor ANCOVA (default Bayes factors with a Cauchy analysis prior of r scale 0.5", fixed = TRUE)
-  expect_match(w[["short"]], "If there were no effect, the probability of strong evidence for its absence", fixed = TRUE)
+  expect_match(w[["short"]], "If there were no effect, the probability of evidence at the threshold for its absence", fixed = TRUE)
   expect_no_match(w[["short"]], "association", fixed = TRUE)
 })
 
@@ -2973,7 +2973,7 @@ test_that("the factorial ANOVAs' Bayes factor names its test in the write-up, an
   values <- modifyList(form_examples$E7, list(test_version = "bayes_factor", evidence_threshold = "10", prior_scale = "0.5",
     inclusion = "all_models", goal = "power", n = "200"))
   spec <- build_spec(forms, "E7", fields, values)
-  expect_match(test_text(spec), "^a Bayes factor between-participants ANOVA \\(strong evidence: an inclusion Bayes factor of at least 10")
+  expect_match(test_text(spec), "^a Bayes factor between-participants ANOVA \\(evidence threshold: an inclusion Bayes factor of at least 10")
   skip_without_run()
   spec$options$nrep <- 100L
   calc <- run_calculation(spec, run, seed = forms$default_seed)
@@ -3511,7 +3511,7 @@ test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and wo
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   text <- paste(result_sentences(calc$spec, calc$result), collapse = " ")
-  expect_match(text, "chance of strong evidence", fixed = TRUE)
+  expect_match(text, "chance of evidence at the threshold", fixed = TRUE)
   w <- writeup_text(forms$forms[["E24"]], calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "a Bayes factor test of R-squared in a linear regression", fixed = TRUE)
   expect_match(w[["short"]], "as in JASP", fixed = TRUE)

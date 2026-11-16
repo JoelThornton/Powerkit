@@ -26,7 +26,7 @@ labs_tools <- list(
        purpose = "For learning how results vary from study to study, and how looking only at significant results exaggerates effects.",
        sure = "Simulated by powerkit's engine (R's t.test() and effectsize's cohens_d()). Not part of powerkit's validation."),
   list(id = "bayes", title = "Bayesian planning",
-       text = "For a Bayes factor t-test: choose the prior the Bayes factor will use and, separately, what you believe about the effect, and see how often a study of the size you set would give strong evidence for an effect, strong evidence for none, or neither.",
+       text = "For a Bayes factor t-test: choose the prior the Bayes factor will use and, separately, what you believe about the effect, and see how often a study of the size you set would give evidence at the threshold for an effect, evidence at the threshold for none, or neither.",
        purpose = "For seeing a Bayes factor t-test's priors and outcomes in detail. To plan a study, use the Bayes factor version of the t-test cards, which give the same numbers with a write-up and a script.",
        sure = "Every number comes from the R package bfpwr (Pawel and Held) through powerkit's engine, as on the main cards. Not part of powerkit's validation."),
   list(id = "published", title = "Effect size converter",
@@ -343,8 +343,7 @@ labs_ui <- function(tree) {
     conditionalPanel("!input.labs_tool",
       h2("Labs (experimental)"),
       p(class = "lead", "Tools that may help you think about a study before you plan it. They are not part of the main route, nothing here is required, and they may change or disappear."),
-      lapply(names(labs_tool_sections), labs_menu_section),
-      p(class = "small text-muted", "More tools will be added here.")),
+      lapply(names(labs_tool_sections), labs_menu_section)),
     conditionalPanel("input.labs_tool == 'map'",
       labs_tool_head("map"),
       map_ui(tree)),
@@ -385,8 +384,8 @@ replication_notes_ui <- function(tree) {
         conditionalPanel("input.labs_test == 'E6'",
           textInput("labs_rows", "Number of categories in the first variable", width = "100%"),
           textInput("labs_cols", "Number of categories in the second variable", width = "100%")),
-        textInput("labs_power", "Power (the chance of detecting the effect)", value = "0.8", width = "100%"),
-        textInput("labs_alpha", "Significance level", value = "0.05", width = "100%"),
+        textInput("labs_power", "Power: the chance of detecting the effect (0.8 is a common choice, not a rule; try 0.5 and 0.9 too)", value = "0.8", width = "100%"),
+        textInput("labs_alpha", "The significance level the original study used (often 0.05)", value = "0.05", width = "100%"),
         actionButton("labs_sde_run", "Show the smallest detectable effect", class = "btn btn-primary"),
         uiOutput("labs_sde_result"))),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Why a replication"),
@@ -915,7 +914,7 @@ bayes_directions <- c("Either direction (two-sided)" = "two.sided",
 bayes_ui <- function() {
   conditionalPanel("input.labs_tool == 'bayes'",
     labs_tool_head("bayes"),
-    p("A Bayes factor compares how well two hypotheses predict the data: an effect against no effect. A study can end three ways: strong evidence for an effect, strong evidence for no effect, or neither. This tool shows how often each happens, for the study size you set, in two worlds: if the effect is what you believe, and if there is no effect."),
+    p("A Bayes factor compares how well two hypotheses predict the data: an effect against no effect. A study can end three ways: evidence at the threshold for an effect, evidence at the threshold for no effect, or neither. This tool shows how often each happens, for the study size you set, in two worlds: if the effect is what you believe, and if there is no effect."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The study"),
       selectInput("bayes_type", "The design", choices = bayes_types, selectize = FALSE, width = "100%"),
       numericInput("bayes_n", "Sample size (in each group, for two groups)", value = 120, min = 3, max = 10000, step = 1, width = "100%"),
@@ -927,10 +926,10 @@ bayes_ui <- function() {
       p(class = "group-note", "Separate from the analysis prior. This is your honest belief about the true standardised effect (Cohen's d, or d_z for pairs), with your uncertainty about it as an SD. An SD of 0 plans for exactly that effect, as most power analyses do; a larger SD averages over the effects you think plausible, which usually lowers the chances."),
       numericInput("bayes_effect", "The effect you expect", value = 0.5, min = -5, max = 5, step = 0.05, width = "100%"),
       numericInput("bayes_effect_sd", "How unsure you are about the effect, as an SD (0 = exactly this effect)", value = 0.15, min = 0, max = 5, step = 0.05, width = "100%")),
-    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. What counts as strong evidence"),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Your evidence threshold"),
       radioButtons("bayes_threshold", "Evidence threshold: the Bayes factor the study should reach (BF10 for an effect, BF01 for no effect)", choices = bayes_thresholds, selected = "10", inline = TRUE),
       p(class = "group-note", "There is no correct threshold: a higher one asks more of the data, and evidence for no effect needs larger studies than evidence for an effect."),
-      numericInput("bayes_target", "Find the sample size that gives strong evidence for an effect with this chance", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
+      numericInput("bayes_target", "Find the sample size that gives evidence at the threshold for an effect with this chance (0.8 is a common starting point, not a rule: choose the chance your study needs)", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. When you look at the data"),
       radioButtons("bayes_design", NULL, choices = bayes_designs, selected = "fixed", width = "100%"),
       conditionalPanel("input.bayes_design == 'sequential'",
@@ -991,16 +990,16 @@ bayes_numbers <- function(plan) {
     sprintf("If the effect is exactly %s", format(plan$effect))
   target <- paste0(format(100 * plan$target), "%")
   a_target <- paste(if (grepl("^(8|11|18)", target)) "an" else "a", target)
-  needed <- if (is.na(plan$n_needed)) sprintf("More than 10,000 %s would be needed for %s chance of strong evidence for an effect.",
+  needed <- if (is.na(plan$n_needed)) sprintf("More than 10,000 %s would be needed for %s chance of evidence at the threshold for an effect.",
       if (identical(plan$type, "two.sample")) "in each group" else "participants", a_target) else
-    sprintf("For %s chance of strong evidence for an effect, under your belief: %s %s.", a_target, format(plan$n_needed),
+    sprintf("For %s chance of evidence at the threshold for an effect, under your belief: %s %s.", a_target, format(plan$n_needed),
       if (identical(plan$type, "two.sample")) "in each group" else if (identical(plan$type, "paired")) "pairs" else "people")
   tagList(
     h4(class = "h5 mt-3", sprintf("With %s", bayes_size_words(plan))),
     tags$table(class = "table table-sm bayes-outcomes",
-      tags$caption(sprintf("How often the study ends each way (strong evidence: a Bayes factor of at least %s).", k)),
-      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Strong evidence for an effect"),
-        tags$th(scope = "col", "Strong evidence for no effect"), tags$th(scope = "col", "Neither"))),
+      tags$caption(sprintf("How often the study ends each way (evidence threshold: a Bayes factor of at least %s).", k)),
+      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Evidence at the threshold for an effect"),
+        tags$th(scope = "col", "Evidence at the threshold for no effect"), tags$th(scope = "col", "Neither"))),
       tags$tbody(
         tags$tr(tags$th(scope = "row", belief_words), tags$td(pct(belief$for_effect)),
           tags$td(pct(belief$for_null), if (plan$effect != 0) " (misleading)"), tags$td(pct(belief$neither))),
@@ -1009,13 +1008,13 @@ bayes_numbers <- function(plan) {
     tags$ul(class = "bayes-notes",
       tags$li(needed),
       if (plan$effect_sd > 0) tags$li(sprintf(
-        "Averaged over your uncertainty like this, the %s chance of strong evidence for an effect is the average power over your uncertainty: the chance it succeeds given what you believe now, rather than if one guessed effect were exactly right (O'Hagan, Stevens and Campbell, 2005, who call it assurance and define it for clinical trials).",
+        "Averaged over your uncertainty like this, the %s chance of evidence at the threshold for an effect is the average power over your uncertainty: the chance it succeeds given what you believe now, rather than if one guessed effect were exactly right (O'Hagan, Stevens and Campbell, 2005, who call it assurance and define it for clinical trials).",
         pct(belief$for_effect))),
       if (!is.na(plan$largest_bf01)) tags$li(sprintf(
         "The most evidence for no effect this study can give is a Bayes factor of %.1f (when the observed effect is exactly 0)%s.",
         plan$largest_bf01, if (plan$largest_bf01 < plan$threshold) sprintf(", so it can never reach %s in favour of no effect, however true that is", k) else "")),
       tags$li("These chances are not power in the usual sense: they don't depend on a significance level, and a study can end with neither, which is a result, not a failure."),
-      if (bayes_small(plan)) tags$li("With this few participants, bfpwr's calculation (which treats the effect estimate as normally distributed) gives a chance of strong evidence for an effect a few points lower than simulated Bayes factors do.")),
+      if (bayes_small(plan)) tags$li("With this few participants, bfpwr's calculation (which treats the effect estimate as normally distributed) gives a chance of evidence at the threshold for an effect a few points lower than simulated Bayes factors do.")),
     p(class = "small text-muted", sprintf("From %s, bfpwr version %s.", plan$function_used, plan$package$version)),
     p(class = "small text-muted", "Reference: ", bayes_citation()),
     if (plan$effect_sd > 0) p(class = "small text-muted", "Assurance: ", labs_citation(key = "OHagan2005_assurance",
@@ -1046,10 +1045,10 @@ bayes_sequential_numbers <- function(plan) {
   tagList(
     h4(class = "h5 mt-3", sprintf("Looking from %s%s, %s, up to %s%s", format(plan$n_min), unit, looks, format(plan$n_max), unit)),
     tags$table(class = "table table-sm bayes-outcomes",
-      tags$caption(sprintf("How often the study stops each way (strong evidence: a BF10 of at least %s for an effect, a BF01 of at least %s for no effect), and its size when it stops.",
+      tags$caption(sprintf("How often the study stops each way (evidence threshold: a BF10 of at least %s for an effect, a BF01 of at least %s for no effect), and its size when it stops.",
         format(plan$threshold), format(plan$threshold_null))),
-      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Stops with strong evidence for an effect"),
-        tags$th(scope = "col", "Stops with strong evidence for no effect"), tags$th(scope = "col", "Reaches the largest size without either"),
+      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Stops with evidence at the threshold for an effect"),
+        tags$th(scope = "col", "Stops with evidence at the threshold for no effect"), tags$th(scope = "col", "Reaches the largest size without either"),
         tags$th(scope = "col", sprintf("Size when it stops: median%s", unit)))),
       tags$tbody(
         tags$tr(tags$th(scope = "row", belief_words), tags$td(pct(belief$for_effect)),
@@ -1057,7 +1056,7 @@ bayes_sequential_numbers <- function(plan) {
         tags$tr(tags$th(scope = "row", "If there is no effect"), tags$td(pct(null$for_effect), " (misleading)"),
           tags$td(pct(null$for_null)), tags$td(pct(null$at_max)), tags$td(size(null))))),
     tags$ul(class = "bayes-notes",
-      tags$li(sprintf("Testing once at %s%s instead: strong evidence for an effect %s of the time under your belief, and misleading strong evidence for an effect %s of the time if there is none.",
+      tags$li(sprintf("Testing once at %s%s instead: evidence at the threshold for an effect %s of the time under your belief, and misleading evidence at the threshold for an effect %s of the time if there is none.",
         format(plan$n_max), unit, pct(f$for_effect[f$truth == "belief"]), pct(f$for_effect[f$truth == "null"]))),
       if (!is.null(at_max_words(belief, "Under your belief"))) tags$li(at_max_words(belief, "Under your belief"), " ",
         at_max_words(null, "With no effect")),
@@ -1126,7 +1125,7 @@ bayes_curves_plot <- function(plan) {
   chart_start(chart_key_rows(2))
   graphics::plot(cu$n, 100 * cu$for_effect, type = "n", ylim = c(0, 100), axes = FALSE,
     xlab = if (identical(plan$type, "two.sample")) "Sample size in each group" else "Sample size",
-    ylab = "Chance of strong evidence")
+    ylab = "Chance of evidence at the threshold")
   chart_axes(yat = seq(0, 100, 20), ylabels = paste0(seq(0, 100, 20), "%"))
   graphics::lines(cu$n, 100 * cu$for_effect, lwd = 2.5, col = chart_colours$blue)
   graphics::lines(cu$n, 100 * cu$for_null, lwd = 2.5, col = chart_colours$red, lty = 2)

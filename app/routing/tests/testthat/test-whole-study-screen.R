@@ -127,7 +127,8 @@ test_that("the screen asks for every value the engine says the population needs,
   expect_match(html, "value=\"0.3\"", fixed = TRUE)
   expect_match(html, "value=\"-0.2\"", fixed = TRUE)
   expect_match(html, "value=\"180\"", fixed = TRUE)
-  expect_match(html, "Experimental", fixed = TRUE)
+  expect_match(html, "Validation in progress", fixed = TRUE)
+  expect_no_match(html, "statistician", fixed = TRUE)
   expect_match(html, "the claim needs every main result to be significant", fixed = TRUE)
   # A quick look here; the full run is the script's.
   expect_match(html, sprintf("a quick look: %s simulated studies", forms$whole_study$quick_nrep), fixed = TRUE)
@@ -219,7 +220,7 @@ test_that("the planning document gathers the analyses, the claim, the population
   md <- whole_study_planning_document(calc, export(spec), departure = forms$departures[["13"]])
   text <- paste(md, collapse = "\n")
   expect_identical(md[1], "# Whole-study planning document")
-  expect_match(text, "**Experimental.**", fixed = TRUE)
+  expect_match(text, "**Validation in progress.**", fixed = TRUE)
   expect_match(text, "quick look of 100 simulated studies", fixed = TRUE)
   expect_match(text, "needs every main analysis (2) to be significant in the same study", fixed = TRUE)
   for (label in calc$result$analyses$label) expect_match(text, label, fixed = TRUE)

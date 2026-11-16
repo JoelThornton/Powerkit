@@ -308,7 +308,7 @@ bffactorial_script <- function(spec, result) {
     sprintf("sd <- %s # the SD within each cell", r_code(inputs$sd)),
     sprintf("ratios <- matrix(%s, nrow = %d, byrow = TRUE) # each cell's share of the sample", r_code(as.vector(t(inputs$ratios))), nrow(inputs$ratios)),
     sprintf("term <- %s # %s", r_code(inputs$term), bffactorial_effect_words(inputs$term)),
-    sprintf("threshold <- %s # strong evidence: an inclusion BF at least this", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: an inclusion BF at least this", r_code(inputs$threshold)),
     sprintf("r_scale <- %s # Cauchy prior scale on the standardised effects (JASP's default 0.5)", r_code(inputs$prior_scale)),
     sprintf("matched <- %s # FALSE: across all models (JASP's default); TRUE: across matched models", r_code(identical(inputs$inclusion, "matched_models"))),
     switch(goal$type,
@@ -347,7 +347,7 @@ bffactorial_script <- function(spec, result) {
 bffactorial_design_description <- function(spec, label, levels) {
   inputs <- bffactorial_inputs(spec)
   sprintf(
-    "Bayes factor of %s in a %d x %d between-participants ANOVA of %s by %s (%s) and %s (%s): the inclusion Bayes factor %s (BayesFactor's anovaBF(), r scale %s, models respecting marginality); strong evidence is an inclusion BF of at least %s",
+    "Bayes factor of %s in a %d x %d between-participants ANOVA of %s by %s (%s) and %s (%s): the inclusion Bayes factor %s (BayesFactor's anovaBF(), r scale %s, models respecting marginality); evidence at the threshold is an inclusion BF of at least %s",
     sub("of A", paste("of", label("A")), sub("of B", paste("of", label("B")), bffactorial_effect_words(inputs$term))),
     nrow(inputs$means), ncol(inputs$means), label("Y"), label("A"), paste(levels("A"), collapse = ", "), label("B"),
     paste(levels("B"), collapse = ", "),

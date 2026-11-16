@@ -7,7 +7,10 @@
 # shown are undecided (settings result_wording, n_rounding and power_curve
 # in tree.yaml; judgement-calls.md). The wording below is a draft.
 
-form_calculates <- function(forms, ep_id) ep_id %in% unlist(forms$calculates)
+# Whether the app calculates this card's answer itself (no preview, no R
+# script): the cards listed under `calculates`, and simple mediation's
+# quick estimate, a formula on cards that otherwise simulate (E10, E16).
+form_calculates <- function(forms, ep_id, spec = NULL) ep_id %in% unlist(forms$calculates) || mediation_estimate(spec)
 
 # End points whose calculation takes long enough to run in the background,
 # with a progress bar and a Cancel button (forms.yaml, `background`: the
@@ -1345,7 +1348,10 @@ reasoning_line <- function(values) {
                 own_study_result = "the finished study's own result (observed power)", none = "none (you said you can't justify an effect size)")
   label <- types[[values$just_type]] %||% values$just_type
   if (blank(values$just_source)) return(sprintf("Effect size source: %s.", label))
-  sprintf("Effect size source: %s. Your reasoning: \u201c%s\u201d", label, trimws(values$just_source))
+  reason <- trimws(values$just_source)
+  # A full stop closes the reasoning, so the next sentence doesn't run on.
+  if (!grepl("[.!?]$", reason)) reason <- paste0(reason, ".")
+  sprintf("Effect size source: %s. Your reasoning: \u201c%s\u201d", label, reason)
 }
 
 # The effect safeguard power used, in words ("Cohen's d = 0.258, the
@@ -1679,12 +1685,12 @@ alpha_cost_line <- function(spec, result, run = engine_function("run_spec"), see
     if (identical(calc$status, "ok")) as.numeric(calc$result$n_required$n) else NA_real_
   }, numeric(1))
   if (anyNA(n)) return(NULL)
-  text <- sprintf("What the significance level costs, at the same power: .05 needs %s %s; .01 needs %s; .005 needs %s. A lower level means fewer false positives and more people.",
+  text <- sprintf("What the significance level costs, at the same power: .05 needs %s %s; .01 needs %s; .005 needs %s. A stricter significance level (.01 or .005) means fewer false positives and more people.",
     whole(n[[1]]), n_unit(spec) %||% "participants", whole(n[[2]]), whole(n[[3]]))
   structure(text, table = list(title = "Significance level, at the same power", levels = c(".05", ".01", ".005"), n = n,
     groups = vapply(n, function(x) trimws(gsub("[()]", "", group_text(spec, x))), character(1)),
     current = which(vapply(levels, function(a) isTRUE(all.equal(a, spec$target_test$alpha)), logical(1))),
-    note = "A lower level means fewer false positives and more people."))
+    note = "A stricter significance level (.01 or .005) means fewer false positives and more people."))
 }
 
 # The comparison under the answer (design review D-22, 12 November 2026):
@@ -2351,35 +2357,35 @@ is_bayes_test <- function(spec) identical(spec$target_test$method, "bayes_factor
 bayes_settings_text <- function(spec) {
   tt <- spec$target_test
   if (is_bayes_binomial(spec)) {
-    return(sprintf("strong evidence: BF10 of at least %s; Beta(%s, %s) prior%s",
+    return(sprintf("evidence threshold: BF10 of at least %s; Beta(%s, %s) prior%s",
       format(tt$evidence_threshold %||% 10), format(tt$prior_a %||% 1), format(tt$prior_b %||% 1),
       if (identical(tt$alternative %||% "two_sided", "two_sided")) "" else if (identical(tt$one_sided_null, "directional"))
         "; at or below the fixed value against above it" else "; the fixed value against one side, as in JASP"))
   }
   if (is_bayes_correlation(spec)) {
-    return(sprintf("strong evidence: BF10 of at least %s; stretched beta prior of width %s%s",
+    return(sprintf("evidence threshold: BF10 of at least %s; stretched beta prior of width %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_width %||% 1, 3)),
       if (isTRUE(all.equal(tt$prior_width %||% 1, 1))) ", as in JASP" else ""))
   }
   if (is_bayes_proportions(spec)) {
-    return(sprintf("strong evidence: BF10 of at least %s; contingency table Bayes factor, group sizes fixed, prior concentration %s%s",
+    return(sprintf("evidence threshold: BF10 of at least %s; contingency table Bayes factor, group sizes fixed, prior concentration %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_concentration %||% 1, 3)),
       if (isTRUE(all.equal(tt$prior_concentration %||% 1, 1))) ", as in JASP" else ""))
   }
   if (is_bayes_table(spec)) {
     plan <- tt$sampling_plan %||% "rows_fixed"
-    return(sprintf("strong evidence: BF10 of at least %s; contingency table Bayes factor, %s, prior concentration %s%s",
+    return(sprintf("evidence threshold: BF10 of at least %s; contingency table Bayes factor, %s, prior concentration %s%s",
       format(tt$evidence_threshold %||% 10), bayes_plan_words[[plan]], format(signif(tt$prior_concentration %||% 1, 3)),
       if (identical(plan, "rows_fixed") && isTRUE(all.equal(tt$prior_concentration %||% 1, 1))) ", as in JASP" else ""))
   }
   if (is_bayes_anova(spec)) {
-    return(sprintf("strong evidence: BF10 of at least %s; Cauchy prior on the group effects, r scale %s%s",
+    return(sprintf("evidence threshold: BF10 of at least %s; Cauchy prior on the group effects, r scale %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.5, 3)),
       if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else ""))
   }
   if (is_bayes_factorial(spec)) {
     jasp <- isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5)) && (!is_bayes_ancova(spec) || isTRUE(all.equal(tt$prior_scale_covariates %||% 0.354, 0.354)))
-    return(sprintf("strong evidence: an inclusion Bayes factor of at least %s, %s; Cauchy prior on the effects, r scale %s%s%s",
+    return(sprintf("evidence threshold: an inclusion Bayes factor of at least %s, %s; Cauchy prior on the effects, r scale %s%s%s",
       format(tt$evidence_threshold %||% 10),
       if (identical(tt$inclusion, "matched_models")) "across matched models" else "across all models",
       format(signif(tt$prior_scale %||% 0.5, 3)),
@@ -2387,11 +2393,11 @@ bayes_settings_text <- function(spec) {
       if (jasp) ", as in JASP" else ""))
   }
   if (is_bayes_regression(spec)) {
-    return(sprintf("strong evidence: BF10 of at least %s; Cauchy prior on the standardised coefficients, r scale %s%s",
+    return(sprintf("evidence threshold: BF10 of at least %s; Cauchy prior on the standardised coefficients, r scale %s%s",
       format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% 0.354, 3)),
       if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else ""))
   }
-  sprintf("strong evidence: BF10 of at least %s; Cauchy prior scale %s",
+  sprintf("evidence threshold: BF10 of at least %s; Cauchy prior scale %s",
     format(tt$evidence_threshold %||% 10), format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)))
 }
 
@@ -2456,10 +2462,10 @@ bayes_test_name <- function(spec) {
 # the same sample would show if there were no effect (from the engine's
 # bayes summary).
 bayes_wording <- function(text) {
-  text <- gsub("would get a significant result with", "would find strong evidence for the effect with", text, fixed = TRUE)
-  text <- gsub("would get a significant result", "would find strong evidence for the effect", text, fixed = TRUE)
-  text <- gsub("([0-9]+%) power to detect the effect you entered", "a \\1 chance of strong evidence for the effect you entered (its power)", text)
-  text <- gsub("the study has ([0-9]+%) power", "the study has a \\1 chance of strong evidence (its power)", text)
+  text <- gsub("would get a significant result with", "would find evidence at the threshold for the effect with", text, fixed = TRUE)
+  text <- gsub("would get a significant result", "would find evidence at the threshold for the effect", text, fixed = TRUE)
+  text <- gsub("([0-9]+%) power to detect the effect you entered", "a \\1 chance of evidence at the threshold for the effect you entered (its power)", text)
+  text <- gsub("the study has ([0-9]+%) power", "the study has a \\1 chance of evidence at the threshold (its power)", text)
   # "an 80%", "an 11%", "an 18%".
   gsub("\\ba ((8[0-9]?|11|18)%)", "an \\1", text, perl = TRUE)
 }
@@ -2473,16 +2479,16 @@ bayes_sentence <- function(spec, result) {
       if (is_bayes_binomial(spec) || is_bayes_proportions(spec)) "This averages over true proportions spread around yours with an SD of %s (a beta design prior), so it is the average power over your uncertainty:" else
       if (is_bayes_correlation(spec)) "This averages over true correlations spread around yours with an SD of %s (a stretched beta design prior), so it is the average power over your uncertainty:" else
       "This averages over true effects spread around yours with an SD of %s (the design prior), so it is the average power over your uncertainty:",
-      "the chance of strong evidence given what you believe now, rather than if one guessed effect were exactly right",
+      "the chance of evidence at the threshold given what you believe now, rather than if one guessed effect were exactly right",
       "(O'Hagan, Stevens and Campbell, 2005, call this assurance)."), format(b$effect_sd)),
     if (!is.null(b$null_nrep)) sprintf(
-      "If there were no %s, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for %s %s of the time (from %s simulated studies with no %s).",
+      "If there were no %s, a study of %s would give evidence at the threshold that there is none (BF01 of at least %s) %s of the time, and misleading evidence at the threshold for %s %s of the time (from %s simulated studies with no %s).",
       bayes_null_what(spec), whole(b$n), k, percent(b$evidence_for_null), bayes_null_article(spec), percent(b$misleading_evidence), whole(b$null_nrep), bayes_null_what(spec)
     ) else if (b$evidence_for_null > 0) sprintf(
-      "If there were no effect, a study of %s would give strong evidence that there is none (BF01 of at least %s) %s of the time, and misleading strong evidence for an effect %s of the time.",
+      "If there were no effect, a study of %s would give evidence at the threshold that there is none (BF01 of at least %s) %s of the time, and misleading evidence at the threshold for an effect %s of the time.",
       whole(b$n), k, percent(b$evidence_for_null), percent(b$misleading_evidence)
     ) else sprintf(
-      "If there were no effect, a study of %s couldn't give strong evidence that there is none (BF01 of at least %s): it is too small for that, however the data fall. It would give misleading strong evidence for an effect %s of the time.",
+      "If there were no effect, a study of %s couldn't give evidence at the threshold that there is none (BF01 of at least %s): it is too small for that, however the data fall. It would give misleading evidence at the threshold for an effect %s of the time.",
       whole(b$n), k, percent(b$misleading_evidence)
     )
   )
@@ -2517,13 +2523,13 @@ bayes_null_writeup <- function(spec, result) {
   k <- format(b$evidence_threshold)
   what <- bayes_null_what(spec)
   if (b$evidence_for_null > 0) {
-    sprintf(paste("If there were no %s, the probability of strong evidence for its absence (BF01 of at least %s) would be %s,",
-      "and of misleading strong evidence for an %s (BF10 of at least %s) %s%s."),
+    sprintf(paste("If there were no %s, the probability of evidence at the threshold for its absence (BF01 of at least %s) would be %s,",
+      "and of misleading evidence at the threshold for an %s (BF10 of at least %s) %s%s."),
       what, k, percent(b$evidence_for_null), what, k, percent(b$misleading_evidence),
       if (!is.null(b$null_nrep)) sprintf(" (from %s simulated studies with no %s)", whole(b$null_nrep), what) else "")
   } else {
-    sprintf(paste("If there were no %s, a study of %s could not reach strong evidence for its absence (BF01 of at least %s) whatever the data,",
-      "and the probability of misleading strong evidence for an %s (BF10 of at least %s) would be %s."),
+    sprintf(paste("If there were no %s, a study of %s could not reach evidence at the threshold for its absence (BF01 of at least %s) whatever the data,",
+      "and the probability of misleading evidence at the threshold for an %s (BF10 of at least %s) would be %s."),
       what, whole(b$n), k, what, k, percent(b$misleading_evidence))
   }
 }
@@ -3203,7 +3209,7 @@ writeup_choices <- function(fields, values) {
   c(
     if (given("alpha_reason")) sprintf("The significance level of %s was chosen because %s.",
       writeup_alpha(as.numeric(values$alpha)), because(values$alpha_reason)),
-    if (given("evidence_reason")) sprintf("The threshold for strong evidence, BF10 \u2265 %s, was chosen because %s.",
+    if (given("evidence_reason")) sprintf("The evidence threshold, BF10 \u2265 %s, was chosen because %s.",
       format(as.numeric(values$evidence_threshold)), because(values$evidence_reason)),
     if (given("alternative_reason")) sprintf("A one-sided test was used because %s.", because(values$alternative_reason))
   )
@@ -3233,7 +3239,7 @@ writeup_software <- function(result, full = FALSE, bayes = FALSE) {
   }
   fun <- if (grepl("(", p$backend_function, fixed = TRUE)) p$backend_function else paste0(p$backend_function, "()")
   s <- sprintf("%s calculated %s, with the R package %s (version %s; %s), set up by %s in %s.",
-    if (bayes) "The probabilities of strong evidence were" else "Power was", how, p$backend, p$packages[[p$backend]], fun, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
+    if (bayes) "The probabilities of evidence at the threshold were" else "Power was", how, p$backend, p$packages[[p$backend]], fun, powerkit_cited(p$packages[["powerkit"]]), p$r_version)
   if (full) {
     s <- paste(s, sprintf("Seed: %s. Spec hash: %s. Check that the backend reproduces the population entered: %s.",
       p$seed, p$spec_hash, if (all(result$check_run$ok)) "passed" else "failed"))
@@ -3291,7 +3297,7 @@ meta_units <- function(text) {
 # sentence where the reason would be (decided 11 November 2026): the
 # paragraph, the R script and the saved project no longer wait for one.
 no_reason_token <- "[[no reason recorded]]"
-no_reason_sentence <- "No justification for the effect size was recorded."
+no_reason_sentence <- "No reason for this choice was recorded."
 without_reason <- function(text) {
   if (is.null(text)) return(NULL)
   quoted <- writeup_quote(no_reason_token)
@@ -3309,7 +3315,9 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     return(without_reason(writeup_text(form, spec, result, fields, values, departures, known_methods, known)))
   }
   name <- form$methods_name
-  if (identical(spec$target_test$method, "welch_t")) name <- paste0(name, " (Welch's)")
+  # "Welch's independent-samples t-test (two-sided, ...)": one set of
+  # brackets, not two in a row (P-15).
+  if (identical(spec$target_test$method, "welch_t")) name <- paste0("Welch's ", sub("^an? ", "", name))
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
   if (identical(spec$design, "survival")) {
     name <- switch(spec$target_test$method %||% "",
@@ -3394,41 +3402,41 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   test <- if (!is.null(spec$target_test$alpha)) sprintf("%s (%s)", name, paste(c(sides, paste("α =", writeup_alpha(spec$target_test$alpha))), collapse = ", "))
   if (is_bayes_binomial(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a binomial Bayes factor with a Beta(%s, %s) analysis prior on the proportion, testing %s, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("%s (%s; a binomial Bayes factor with a Beta(%s, %s) analysis prior on the proportion, testing %s, computed with bfpwr; the evidence threshold set at BF10 ≥ %s)",
       name, sides, format(tt$prior_a %||% 1), format(tt$prior_b %||% 1), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_correlation(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a Bayes factor with a stretched beta prior of width %s on the correlation as the analysis prior, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("%s (%s; a Bayes factor with a stretched beta prior of width %s on the correlation as the analysis prior, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_width %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_proportions(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and an analysis prior of concentration %s, as in JASP, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("%s (%s; a contingency table Bayes factor for independent multinomial sampling with the group sizes fixed and an analysis prior of concentration %s, as in JASP, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_concentration %||% 1, 3)), result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_table(spec)) {
     tt <- spec$target_test
-    test <- sprintf("a Bayes factor test of association (a contingency table Bayes factor with %s and an analysis prior of concentration %s, testing %s, computed with BayesFactor and simulated with Spower; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("a Bayes factor test of association (a contingency table Bayes factor with %s and an analysis prior of concentration %s, testing %s, computed with BayesFactor and simulated with Spower; the evidence threshold set at BF10 ≥ %s)",
       bayes_plan_words[[tt$sampling_plan %||% "rows_fixed"]], format(signif(tt$prior_concentration %||% 1, 3)),
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_anova(spec)) {
     tt <- spec$target_test
-    test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy analysis prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("a Bayes factor one-way ANOVA (a default Bayes factor with a Cauchy analysis prior of r scale %s on the group effects%s, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
       format(signif(tt$prior_scale %||% 0.5, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5))) ", as in JASP" else "",
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_factorial(spec)) {
     tt <- spec$target_test
     jasp <- isTRUE(all.equal(tt$prior_scale %||% 0.5, 0.5)) && (!is_bayes_ancova(spec) || isTRUE(all.equal(tt$prior_scale_covariates %||% 0.354, 0.354)))
-    test <- sprintf("%s (default Bayes factors with a Cauchy analysis prior of r scale %s on the effects%s%s, testing %s, computed with BayesFactor and simulated with Spower; strong evidence defined as an inclusion Bayes factor of at least %s)",
+    test <- sprintf("%s (default Bayes factors with a Cauchy analysis prior of r scale %s on the effects%s%s, testing %s, computed with BayesFactor and simulated with Spower; evidence at the threshold defined as an inclusion Bayes factor of at least %s)",
       name, format(signif(tt$prior_scale %||% 0.5, 3)),
       if (is_bayes_ancova(spec)) sprintf(" and %s on the covariates' standardised slopes", format(signif(tt$prior_scale_covariates %||% 0.354, 3))) else "",
       if (jasp) ", as in JASP" else "", result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_regression(spec)) {
     tt <- spec$target_test
-    test <- sprintf("a Bayes factor test of R-squared in a linear regression (the JZS Bayes factor of the model with all the predictors against the intercept-only model, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s, computed with BayesFactor; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("a Bayes factor test of R-squared in a linear regression (the JZS Bayes factor of the model with all the predictors against the intercept-only model, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
       format(signif(tt$prior_scale %||% 0.354, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else "",
       result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
-    test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy analysis prior of scale %s on the effect size, computed with bfpwr; strong evidence defined as BF10 ≥ %s)",
+    test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy analysis prior of scale %s on the effect size, computed with bfpwr; the evidence threshold set at BF10 ≥ %s)",
       name, sides, format(signif(tt$prior_scale %||% (1 / sqrt(2)), 3)), format(tt$evidence_threshold %||% 10))
   }
   if (!is.null(telescopes)) test <- sprintf("%s (one-sided, α = %s)", name, writeup_alpha(spec$target_test$alpha))
@@ -3467,7 +3475,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   basis <- if (none) {
     sprintf("No effect size was chosen in advance (no formal justification of an effect size); the reasoning: %s.", reasoning)
   } else if (!is.null(effect)) {
-    adj <- if (!blank(values$just_adjustment) && is.null(result$safeguard)) sprintf(" It was adjusted as follows: %s.", writeup_quote(values$just_adjustment)) else ""
+    adj <- if (!blank(values$just_adjustment) && is.null(result$safeguard)) sprintf(" It was adjusted as follows: %s.", writeup_quote(values$just_adjustment)) else
+      if (isTRUE(values$just_type %in% c("prior_study", "pilot_study")) && is.null(result$safeguard)) " No adjustment for the uncertainty of a single study was recorded." else ""
     if (!is.null(sg <- result$safeguard)) {
       adj <- sprintf(paste0(" Following the safeguard power approach (Perugini, Gallucci & Costantini, 2014), the calculation used ",
         "the lower bound of the %d%% confidence interval around that estimate (%s, computed with the psych package's %s), %s = %s, ",
@@ -3559,8 +3568,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   )
   if (is_bayes_test(spec)) {
     k <- format(spec$target_test$evidence_threshold %||% 10)
-    main <- gsub("Power to detect this effect is", sprintf("The probability of strong evidence for the effect (BF10 of at least %s) is", k), main, fixed = TRUE)
-    main <- gsub("For a target power of", sprintf("For a target probability of strong evidence for the effect (BF10 of at least %s) of", k), main, fixed = TRUE)
+    main <- gsub("Power to detect this effect is", sprintf("The probability of evidence at the threshold for the effect (BF10 of at least %s) is", k), main, fixed = TRUE)
+    main <- gsub("For a target power of", sprintf("For a target probability of evidence at the threshold for the effect (BF10 of at least %s) of", k), main, fixed = TRUE)
     main <- gsub("; power at this sample size is", "; the probability at this sample size is", main, fixed = TRUE)
     main <- gsub("An a priori power analysis was conducted", "An a priori Bayes factor design analysis (Sch\u00f6nbrodt & Wagenmakers, 2018) was conducted", main, fixed = TRUE)
     main <- gsub("A power analysis was conducted", "A Bayes factor design analysis (Sch\u00f6nbrodt & Wagenmakers, 2018) was conducted", main, fixed = TRUE)
@@ -3650,13 +3659,13 @@ ethics_text <- function(spec, result, fields, values) {
     }
     k <- format(spec$target_test$evidence_threshold %||% 10)
     null_line <- if (!is.null(b)) {
-      if (b$evidence_for_null > 0) sprintf("If there is no effect, the chance that the study finds strong evidence that there is none is %s, and the chance that it wrongly finds strong evidence for an effect is %s.",
+      if (b$evidence_for_null > 0) sprintf("If there is no effect, the chance that the study finds evidence at the threshold that there is none is %s, and the chance that it wrongly finds evidence at the threshold for an effect is %s.",
         percent(b$evidence_for_null), percent(b$misleading_evidence))
-      else sprintf("A study of this size could not find strong evidence that there is no effect, however the data fall; the chance that it wrongly finds strong evidence for an effect is %s.", percent(b$misleading_evidence))
+      else sprintf("A study of this size could not find evidence at the threshold that there is no effect, however the data fall; the chance that it wrongly finds evidence at the threshold for an effect is %s.", percent(b$misleading_evidence))
     }
     chance <- function(p) paste(sprintf(
-      if (spread) "Averaged over the effect sizes we think plausible, the chance that a study of this size finds strong evidence for an effect (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s."
-      else "If that effect is real, the chance that a study of this size finds strong evidence for it (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s. If the real effect is smaller, that chance is lower.",
+      if (spread) "Averaged over the effect sizes we think plausible, the chance that a study of this size finds evidence at the threshold for an effect (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s."
+      else "If that effect is real, the chance that a study of this size finds evidence at the threshold for it (a Bayes factor of at least %s in its favour) is %s, and the chance that it doesn't is %s. If the real effect is smaller, that chance is lower.",
       k, percent(p), percent(1 - p)), null_line)
   }
   # Model fit: the aim is to find out whether the model is wrong.
@@ -4224,7 +4233,7 @@ bayes_uncertain_ui <- function(spec, result) {
     h5(class = "h6", "Not sure of the effect?"),
     p(class = "small", sprintf(paste(
       "This plan assumes the effect is exactly %s. If you are unsure, say how unsure as an SD, and powerkit averages over",
-      "true effects spread around it (a normal design prior): the chance of strong evidence given what you believe now",
+      "true effects spread around it (a normal design prior): the chance of evidence at the threshold given what you believe now",
       "(O'Hagan, Stevens and Campbell, 2005, call it assurance). Choose an SD you could defend; powerkit won't suggest one.",
       "Nothing here changes the plan: to plan with it, enter the SD under Settings and check your answers again."), format(effect))),
     div(class = "d-flex flex-wrap align-items-end gap-2",
@@ -4238,11 +4247,11 @@ bayes_uncertain_ui <- function(spec, result) {
 bayes_uncertain_words <- function(spec, sd, at_n, needed) {
   unit <- if (identical(spec$template, "independent_t")) "people in total" else if (identical(spec$template, "paired_t")) "pairs" else "people"
   effect <- if (identical(spec$template, "paired_t")) spec$population$dz else spec$population$d
-  c(sprintf("If the true effect is about %s give or take %s, a study of %s %s has %s chance of strong evidence for it (BF10 of at least %s), averaged over that uncertainty.",
+  c(sprintf("If the true effect is about %s give or take %s, a study of %s %s has %s chance of evidence at the threshold for it (BF10 of at least %s), averaged over that uncertainty.",
       format(effect), format(sd), whole(n_analysed(at_n)), unit, a_percent(at_n$curve$power[1]), format(spec$target_test$evidence_threshold %||% 10)),
     if (!is.null(needed)) {
       n <- needed$n_required$n
-      if (is.null(n) || is.na(n)) sprintf("No sample size up to powerkit's limit reaches %s on average: with this much uncertainty, part of the plausible effects are too small to give strong evidence.", percent(spec$goal$power))
+      if (is.null(n) || is.na(n)) sprintf("No sample size up to powerkit's limit reaches %s on average: with this much uncertainty, part of the plausible effects are too small to give evidence at the threshold.", percent(spec$goal$power))
       else sprintf("For %s on average, you would need %s %s.", percent(spec$goal$power), whole(n), unit)
     })
 }

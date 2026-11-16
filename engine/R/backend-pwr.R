@@ -437,9 +437,12 @@ pwr_sensitivity_p2 <- function(spec, n, target) {
       "proportion as given. Check the direction of the test and the population values."
     ))
   }
+  # The search starts just off p1: pwrss (unequal groups) refuses a
+  # difference of exactly zero, and power there is alpha, below any target.
+  start <- p1 + direction * 1e-6
   p2 <- stats::uniroot(
     function(p) power_at(p) - target,
-    lower = min(p1, limit), upper = max(p1, limit), tol = 1e-10
+    lower = min(start, limit), upper = max(start, limit), tol = 1e-10
   )$root
   list(
     effect = p2, effect_name = "p2",
