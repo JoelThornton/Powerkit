@@ -357,14 +357,14 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     action_bar(
       tags$button(type = "button", id = "form_needed", class = "btn btn-link form-needed", hidden = NA,
         `aria-live` = "polite", onclick = "pkGoToNeeded()"),
-      actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
+      actionButton("form_copy", "Copy answers as text", class = "btn btn-outline-primary"),
       actionButton("form_check", "Calculate", class = "btn btn-primary")
     ),
     # Saving a draft is a secondary action, so it sits after the fields
     # rather than above them.
-    div(class = "form-draft-save mt-3", download_button("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary"),
-      share_link_ui("draft", class = "btn btn-outline-secondary"),
-      p(class = "hint", "Saves your answers so far to a file you can reopen from the start screen, or copies a link that opens them on any computer.")),
+    div(class = "form-draft-save mt-3", download_button("download_draft", "Save answers so far", class = "btn btn-outline-secondary"),
+      share_link_ui("draft"),
+      p(class = "hint", "Saves your answers so far to a file you can reopen from the start screen. Share, at the top, puts them in a link instead.")),
     div(id = "copy-status", class = "visually-hidden", `aria-live` = "polite"),
     uiOutput("form_copy_text"),
     uiOutput("form_result")
@@ -383,7 +383,7 @@ form_result_ui <- function(ep, local_problems, check, spec = NULL) {
     return(div(class = "form-problems", role = "status", tabindex = "-1",
       h3(class = "h5", "The spec is complete, but it couldn't be checked here"),
       p("Checking and calculating need powerkit's engine, which isn't installed where this prototype is running. ",
-        "To install it with everything it needs, start powerkit with run_powerkit.R instead ",
+        "To install it with everything it needs, start Powerkit with run_powerkit.R instead ",
         "(the steps are in docs/run-it-yourself.md), or use the online app.")))
   }
   if (identical(check$status, "problems")) {
@@ -508,7 +508,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     planning_decision_ui(form),
     if (any(section == "study")) div(class = "form-section", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
     if (any(section == "question")) tags$details(class = "form-question", open = if (nzchar(values$research_question %||% "")) NA,
-      tags$summary("Your scientific question, for the planning document (optional)"), part("question")),
+      tags$summary("Your scientific question, for the report (optional)"), part("question")),
     div(class = "form-section form-section-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
       effect_unsure_ui(form),
       effect_waits_ui(form, groups),
@@ -626,13 +626,13 @@ effect_unsure_ui <- function(form) {
   if (isTRUE(form$sensitivity_without_effect)) {
     return(div(class = "effect-unsure",
       explanation_ui("effect-unsure-info", "Unknown effect size",
-        tags$strong("Don't know what effect to expect? "), "That's common. Tell powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough."),
+        tags$strong("Don't know what effect to expect? "), "That's common. Tell Powerkit how many people you can get, and it shows the smallest effect your study could detect; you then judge whether that is small enough."),
       div(tags$button(type = "button", class = "btn btn-outline-primary mt-2", onclick = "pkEffectUnsure(true)", "I don't know my effect size"))))
   }
   if (isTRUE(form$sensitivity)) {
     return(div(class = "effect-unsure",
       explanation_ui("effect-unsure-info", "Unknown effect size",
-        tags$strong("Don't know how big the effect is? "), "If you know its pattern, enter that, and powerkit can scale it up or down to the smallest size your sample could detect."),
+        tags$strong("Don't know how big the effect is? "), "If you know its pattern, enter that, and Powerkit can scale it up or down to the smallest size your sample could detect."),
       div(tags$button(type = "button", class = "btn btn-outline-primary btn-sm mt-2", onclick = "pkEffectUnsure(false)", "Find the smallest effect I could detect"))))
   }
   NULL
@@ -661,17 +661,17 @@ effect_help_ui <- function(form, groups) {
   # The t-tests can take the means and SD and let powerkit's engine work
   # out the standardised effect.
   if ("effect_units" %in% ids) {
-    convert <- paste(convert, "Or choose \u201cIn my measure's own units\u201d and enter the means and SD: powerkit works it out for you and shows the result.")
+    convert <- paste(convert, "Or choose \u201cIn my measure's own units\u201d and enter the means and SD: Powerkit works it out for you and shows the result.")
   }
   # Where the prompt above already offers the smallest detectable effect,
   # it isn't repeated here.
   unsure <- if (!isTRUE(form$sensitivity_without_effect) && !isTRUE(form$sensitivity)) {
     list(tags$dt("You don't know"),
-      tags$dd("This design can't yet work out the smallest effect your sample could detect. Talk to a colleague or a statistician about a value you can defend; powerkit won't suggest one."))
+      tags$dd("This design can't yet work out the smallest effect your sample could detect. Talk to a colleague or a statistician about a value you can defend; Powerkit won't suggest one."))
   }
   tags$details(class = "effect-help",
     tags$summary("Not sure what number to put here?"),
-    p("powerkit won't suggest a number. These are the ways to one you can defend."),
+    p("Powerkit won't suggest a number. These are the ways to one you can defend."),
     tags$dl(
       tags$dt("The smallest effect that would matter"),
       tags$dd("Start in your measure's own units: the smallest difference that would matter for your theory or in practice (for example, 3 points on a questionnaire). ", convert,

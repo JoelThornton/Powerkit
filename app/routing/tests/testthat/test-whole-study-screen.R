@@ -219,7 +219,7 @@ test_that("the planning document gathers the analyses, the claim, the population
   expect_equal(calc$status, "ok")
   md <- whole_study_planning_document(calc, export(spec), departure = forms$departures[["13"]])
   text <- paste(md, collapse = "\n")
-  expect_identical(md[1], "# Whole-study planning document")
+  expect_identical(md[1], "# Whole-study simulation report")
   expect_match(text, "**Validation in progress.**", fixed = TRUE)
   expect_match(text, "quick look of 100 simulated studies", fixed = TRUE)
   expect_match(text, "needs every main analysis (2) to be significant in the same study", fixed = TRUE)

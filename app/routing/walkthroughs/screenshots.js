@@ -53,7 +53,7 @@ const SAFETY = "None of these fit / I'm not sure";
     if (!(await onCard())) await label(s.known.pick === 'safety' ? SAFETY : s.known.pick);
     got.known = await cardId();
     // Plan my whole study
-    await home(); await button('Plan my whole study'); await answer(s.guided.answers);
+    await home(); await button('Plan a whole study'); await answer(s.guided.answers);
     if (await onCard()) {
       got.guided = await cardId();
     } else if (s.guided.continue) {

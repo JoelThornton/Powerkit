@@ -68,7 +68,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
     for (f in Filter(function(f) field_applies(f, start), effect)) {
       expect_true(any(grepl(f$label, problems, fixed = TRUE)), label = paste(ep, f$id))
     }
-    expect_true(any(grepl("powerkit doesn't fill in effect sizes", problems, fixed = TRUE)))
+    expect_true(any(grepl("Powerkit doesn't fill in effect sizes", problems, fixed = TRUE)))
   }
 })
 
@@ -383,7 +383,7 @@ test_that("the t-tests and the correlation need no effect size for the smallest 
   expect_length(form_problems(fields, values), 0)
   expect_equal(build_spec(forms, "E2", fields, values)$population$d, 0)
   values$goal <- "sample_size"
-  expect_match(form_problems(fields, values), "powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
+  expect_match(form_problems(fields, values), "Powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
 })
 
 test_that("two proportions and chi-square need no effect size for the smallest detectable effect", {
@@ -407,7 +407,7 @@ test_that("two proportions and chi-square need no effect size for the smallest d
   expect_equal(lengths(p), rep(cols, rows))
   expect_equal(sum(unlist(p)), 1)
   values$goal <- "sample_size"
-  expect_match(form_problems(fields, values), "powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
+  expect_match(form_problems(fields, values), "Powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
 })
 
 # Screen C: the effect-size source -------------------------------------------

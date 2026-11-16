@@ -1,5 +1,34 @@
 # Saving projects: options
 
+## Names used in the app (16 November 2026)
+
+One noun per thing, so that "plan" only ever means a study plan:
+
+- **analysis**: one calculation on one card. Its file is an **analysis
+  file** (".powerkit.json", saved with "Save analysis"). Files saved as
+  "project files" before 16 November 2026 are the same format and open as
+  before.
+- **answers so far**: an input screen's unfinished answers ("Save answers
+  so far"; the returning visitor is offered "Continue your unfinished
+  analysis?").
+- **study plan**: several analyses of one study, kept together. A
+  **replication plan** is a kind of study plan, labelled "Study plan ·
+  Replication".
+- **Plan a whole study**: the start option that asks for the study's
+  variables and analyses and keeps them, and each analysis calculated
+  from them, in a study plan.
+- **Report (PDF)**: the document for one analysis; a study plan has a
+  **study plan report**.
+- The first tab is **Power and sample size**; "Open a saved file" opens
+  any of these files on the start screen and on the Study plans page.
+- The top row is **Power and sample size**, **Study plans** (with the
+  number of plans and a dot when some are not saved to a file), **Tools**
+  (called Labs before) and **About**, which now holds the Updates. Feedback
+  has one way in, the top bar's "Feedback" button. Old addresses
+  (?page=labs, ?page=updates, ?page=feedback) still open the same pages.
+
+The sections below keep the names in use when each was written.
+
 ## Current draft recovery
 
 The input screen's **Save unfinished draft** downloads a `.powerkit.json`

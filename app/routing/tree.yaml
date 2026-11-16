@@ -94,13 +94,13 @@ settings:
     shown_at: [E6, E48]
   - key: rank_based_tests
     ref: "Judgement call 3.8; open question 5"
-    question: "Rank-based tests (Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, rank correlation) reach the parametric end points. How should powerkit handle them?"
+    question: "Rank-based tests (Mann-Whitney, Wilcoxon, Kruskal-Wallis, Friedman, rank correlation) reach the parametric end points. How should Powerkit handle them?"
     options: {efficiency: "Adjust the t-test calculation by an efficiency factor for an assumed distribution (G*Power's approach), recorded as the convention", simulate: "Simulate the rank test (Spower's p_wilcox.test(), p_kruskal.test()) from an assumed distribution", label: "Give the parametric figure and say plainly that it only approximates the rank-based test", honest: "Honest cards for rank-based tests until one of the above is built"}
     value: label
     shown_at: [E1, E2, E3, E4, E18]
   - key: fisher_exact
     ref: "Judgement call 3.9; open question 5"
-    question: "Fisher's exact test reaches the large-sample tests (E5, E6), which can be quite wrong with small expected counts. What should powerkit do?"
+    question: "Fisher's exact test reaches the large-sample tests (E5, E6), which can be quite wrong with small expected counts. What should Powerkit do?"
     options: {exact: "Offer the exact test (Spower's p_prop.test(exact = TRUE)) as a test version", warn: "Warn that the figure isn't reliable for small expected counts", both: "Both"}
     value: exact
     shown_at: [E5, E6]
@@ -136,14 +136,14 @@ settings:
     shown_at: [pp1, f6_between, f6_mixed]
   - key: not_in_spec_wording
     ref: "Open question 6"
-    question: "Confirm the wording that points users to another tool, and the rule that powerkit never routes to a simpler stand-in test."
+    question: "Confirm the wording that points users to another tool, and the rule that Powerkit never routes to a simpler stand-in test."
     options: {proposed: "Use the proposed wording (below)"}
     value: proposed
-    proposed_text: "powerkit doesn't cover {analysis} yet. {package} does: see the link. powerkit can't check results from other tools."
+    proposed_text: "Powerkit doesn't cover {analysis} yet. {package} does: see the link. Powerkit can't check results from other tools."
     shown_at: [card]
   - key: r_script_for_uncovered
     ref: "Open question 7"
-    question: "For designs powerkit doesn't run, should the full-model builder generate a script (e.g. power4mome or Spower) that the user runs themselves, without powerkit's validation?"
+    question: "For designs Powerkit doesn't run, should the full-model builder generate a script (e.g. power4mome or Spower) that the user runs themselves, without powerkit's validation?"
     options: {"no": "No", "yes": "Yes, clearly labelled as not validated by powerkit"}
     value: null
     shown_at: [card]
@@ -161,7 +161,7 @@ settings:
     shown_at: [me3, E11]
   - key: guided_route
     ref: "Open question 11"
-    question: "Add the guided 'plan my whole study' route? (Its study file would be a schema change.)"
+    question: "Add the guided 'plan a whole study' route? (Its study file would be a schema change.)"
     options: {"yes": "Yes", "no": "No"}
     value: "yes"
     hides_guided_route_when: "no"
@@ -198,7 +198,7 @@ settings:
     shown_at: [t1, E35, E45]
   - key: name_other_tools
     ref: "Open question 18"
-    question: "Should 'not covered' cards name other established tools (e.g. simr, G*Power's logistic and Poisson routines)? Now: generic cards say only 'Established tools exist for this design; powerkit hasn't checked them.' Cards built from coverage.md still list its tools."
+    question: "Should 'not covered' cards name other established tools (e.g. simr, G*Power's logistic and Poisson routines)? Now: generic cards say only 'Established tools exist for this design; Powerkit hasn't checked them.' Cards built from coverage.md still list its tools."
     options: {name: "Name the tools, as coverage.md does", neutral: "Neutral sentence only, on every 'not covered' card"}
     value: name
     shown_at: [E43, E65, E46]
@@ -266,10 +266,10 @@ start_questions:
     question: "What is your study trying to do?"
     options:
       predict: {label: "Test a prediction", help: "For example, that a training improves memory scores."}
-      # The original's design is asked first, so every design reaches its
-      # card (12 November 2026); the four designs the replication planner
-      # covers are offered it from the card (R/replication.R).
-      replicate: {label: "Replicate a published finding", help: "A few questions about the original study's design find its analysis, and you plan the replication there. For a t-test or correlation, the replication planner adds the sample size for each goal a replication can have."}
+      # Starts a replication plan at "The original study" (16 November
+      # 2026), which asks the original's design so every design reaches
+      # its card, kept in the plan (app.R, the "aim" pick).
+      replicate: {label: "Replicate a published finding", help: "Starts a replication plan: notes on whether to replicate, the original study, the goals a replication can have, and the sample size for each."}
       meta: {label: "Combine studies others have done (a meta-analysis)", help: "For a systematic review you are planning, before the studies are found.", next: E61}
       estimate: {label: "Estimate how big something is", help: "Plan the sample size for a confidence interval of a chosen width, or see its width at a given sample size. The next screen lets you choose what to estimate.", next: E46}
       prediction_model: {label: "Develop a model that predicts an outcome for each person (a risk score or prognostic model)", help: "For example, a model that predicts who will relapse from their age, symptoms and history. The sample size comes from criteria that keep the model from overfitting, not from power.", next: E77}
@@ -281,7 +281,7 @@ routes:
   question: "How do you want to start?"
   title: "Plan the sample size for your study"
   lead: "Describe your design and enter what you know about the effect. Powerkit gives the sample size, power or precision, with a methods paragraph and an R script that reproduces the answer."
-  tester_note: "Powerkit is a prototype. If you are trying it out, plan a study the way you usually would, plan it again here, and use \u201cFeedback on this screen\u201d at the top of any page to say what differed, took longer or was unclear. Most answers take seconds. A few designs are simulated, such as mediation's full simulation and models of participants and items: power at one sample size runs here in a few minutes, and their sample size comes as an R script to run on your own computer."
+  tester_note: "Powerkit is a prototype. If you are trying it out, plan a study the way you usually would, plan it again here, and use \u201cFeedback\u201d at the top of any page to say what differed, took longer or was unclear. Most answers take seconds. A few designs are simulated, such as mediation's full simulation and models of participants and items: power at one sample size runs here in a few minutes, and their sample size comes as an R script to run on your own computer."
   screening_start: s1
   # "I know my analysis" can skip the screening and see every analysis. The
   # questions then become a filter the user can apply afterwards.
@@ -301,8 +301,8 @@ routes:
       tag: "Not sure? Start here"
       after_screening: q1
     - id: guided
-      label: "Plan my whole study"
-      help: "Several analyses on the same data, planned together."
+      label: "Plan a whole study"
+      help: "Several analyses of one study, kept in a study plan."
       after_screening: guided
 
 # ---------------------------------------------------------------------------
@@ -365,7 +365,7 @@ nodes:
   s2_trials:
     doc_id: S2a
     text: "What does your main hypothesis compare?"
-    help: "powerkit calculates two or more conditions with a score or a yes/no answer on each trial, every participant responding in all of them or each in one."
+    help: "Powerkit calculates two or more conditions with a score or a yes/no answer on each trial, every participant responding in all of them or each in one."
     options:
       - {label: "Two conditions, and each person responds in both", next: E33, when: {outcome: [score, yesno]}, help: "e.g. emotional and neutral words, each person reading both kinds."}
       - {label: "Two conditions, and each person responds in both", next: E75, when: {outcome: [count, ordinal]}}
@@ -918,7 +918,7 @@ safety_net:
 # Named instead of established_tools_text when setting name_other_tools is
 # `name` (decided 22 October 2026) and the end point lists `tools`.
 named_tools_text: "Established tools for this design (powerkit hasn't checked them):"
-established_tools_text: "Established tools exist for this design; powerkit hasn't checked them."
+established_tools_text: "Established tools exist for this design; Powerkit hasn't checked them."
 
 # Shown on cards for end points with `no_ready_made_tool`.
 # Draft note for covered cards; {alternatives} is the card's list. Shown
@@ -928,11 +928,11 @@ established_tools_text: "Established tools exist for this design; powerkit hasn'
 # cards whose end point has a `rank_test`. Where powerkit simulates the
 # rank test itself (`rank_test_simulated: true`, from 28 October 2026),
 # rank_test_simulated_text replaces it.
-rank_test_text: "Planning {rank_test} instead? The figure here is for the parametric test, and only approximates the rank-based one: how closely depends on how your data are distributed, and powerkit hasn't checked it."
-rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, for the shape of scores you expect (normal, skewed or heavy-tailed)."
+rank_test_text: "Planning {rank_test} instead? The figure here is for the parametric test, and only approximates the rank-based one: how closely depends on how your data are distributed, and Powerkit hasn't checked it."
+rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: Powerkit simulates the rank test itself, for the shape of scores you expect (normal, skewed or heavy-tailed)."
 # On the cards with a Bayes factor version (`bayes_test: true`: the
 # t-tests, one proportion and the correlation).
-bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor test as the test version on the next screen: powerkit works out the chance that the study finds evidence at the threshold, without repeated simulation (bfpwr uses an approximation for t-tests, which can differ at small samples; BayesFactor supplies the Bayes factor for the correlation and two proportions, with JASP's default priors)."
+bayes_test_text: "Testing with a Bayes factor instead of a p-value? Choose the Bayes factor test as the test version on the next screen: Powerkit works out the chance that the study finds evidence at the threshold, without repeated simulation (bfpwr uses an approximation for t-tests, which can differ at small samples; BayesFactor supplies the Bayes factor for the correlation and two proportions, with JASP's default priors)."
 other_analyses_text: "Other defensible analyses exist for this design (e.g. {alternatives}), and they can need different sample sizes. Power the analysis you plan to run."
 
 no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulation in R (for example with Spower, where you write the data-generating and analysis code yourself) or advice from a statistician."
@@ -940,7 +940,7 @@ no_ready_made_tool_text: "No ready-made tool. Your options are a custom simulati
 # The effect-size justification prompt on every card (spec field
 # effect_justification; build guide section 4).
 justification_prompt:
-  text: "Where does your effect size come from? powerkit asks for a justification and never uses a 'medium effect' default."
+  text: "Where does your effect size come from? Powerkit asks for a justification and never uses a 'medium effect' default."
   types:
     smallest_effect_of_interest: "The smallest effect that would matter (smallest effect size of interest)"
     meta_analysis: "A meta-analysis"
@@ -1037,7 +1037,7 @@ endpoints:
   E4:
     rank_test: "Spearman's or Kendall's rank correlation"
     rank_test_simulated: true
-    rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: powerkit simulates the rank test itself, on scores of the shape you choose (normal, skewed or heavy-tailed) with the correlation you enter."
+    rank_test_simulated_text: "Planning {rank_test} instead? Choose it as the test version on the next screen: Powerkit simulates the rank test itself, on scores of the shape you choose (normal, skewed or heavy-tailed) with the correlation you enter."
     doc_name: "Pearson correlation"
     technical_name: "Pearson correlation"
     plain_name: "Test whether two scores are related"
@@ -1082,7 +1082,7 @@ endpoints:
     inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w", "The chi-square test or a Bayes factor"]
     card_points:
       - "Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis."
-      - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: powerkit simulates the chance of evidence at the threshold, with JASP's default sampling plan and prior."
+      - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: Powerkit simulates the chance of evidence at the threshold, with JASP's default sampling plan and prior."
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
     tier: MVP
@@ -1223,7 +1223,7 @@ endpoints:
     validation: {file: test-validation-mediation-binary.R, note: "Matches power4mome called directly, recovers the paths and the group split in its check run, and keeps the Type I error at alpha, in the engine's tests. Not yet checked against a published example."}
     card_points:
       - "X is two conditions or two groups, such as a self-affirmation or control condition, and it affects Y through one mediator (M)."
-      - "You give X's effects as Cohen's d of the groups (on M, and on Y overall), or as standardised paths per SD of X; with d, powerkit finds the paths and shows them with the result."
+      - "You give X's effects as Cohen's d of the groups (on M, and on Y overall), or as standardised paths per SD of X; with d, Powerkit finds the paths and shows them with the result."
       - "You can give the share of people in each group (equal by default)."
       - "With two or more mediators and a yes/no X, use the parallel or serial mediation screen and choose two groups for X."
     inputs: ["X's two groups or conditions, and the share in each", "X's effects, and the path M -> Y"]
@@ -1243,7 +1243,7 @@ endpoints:
     card_points:
       - "Moderated mediation (PROCESS model 7 or 14) where X is two groups, such as a randomised condition, or W is two groups, or both."
       - "A yes/no variable is drawn by power4mome's rbinary_rs() and rescaled to mean 0 and SD 1, so its paths are per SD, as for a score; it must be uncorrelated with the other predictor, as a randomised condition is."
-      - "With X as two groups, you can give X's effects as Cohen's d of the groups (on M, and on Y overall) instead; powerkit finds the paths and shows them with the result."
+      - "With X as two groups, you can give X's effects as Cohen's d of the groups (on M, and on Y overall) instead; Powerkit finds the paths and shows them with the result."
       - "Simulated with power4mome: a quick preview in the app, and the full run or the sample size from an R script."
     refs: "phase 3b (build guide, section 8)"
     tier: MVP
@@ -1261,11 +1261,11 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     card_points:
-      - "powerkit calculates this for different people in each group, with equal group sizes. The usual F test assumes the same SD in every group."
-      - "Expect the groups to vary by different amounts? Welch's F, the test powerkit plans for unless you choose otherwise, allows for it: give each group's SD on the next screen."
-      - "Will you analyse the data with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: powerkit gives the chance of evidence at the threshold, with JASP's default prior."
+      - "Powerkit calculates this for different people in each group, with equal group sizes. The usual F test assumes the same SD in every group."
+      - "Expect the groups to vary by different amounts? Welch's F, the test Powerkit plans for unless you choose otherwise, allows for it: give each group's SD on the next screen."
+      - "Will you analyse the data with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with JASP's default prior."
       - "For the same people in every condition, use the one-way repeated-measures ANOVA instead."
-      - "Will you analyse the study by comparing pairs of groups rather than the F test? Choose pairwise comparisons as the test version: powerkit gives the power of the pair you name, with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
+      - "Will you analyse the study by comparing pairs of groups rather than the F test? Choose pairwise comparisons as the test version: Powerkit gives the power of the pair you name, with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
     inputs: ["Names of the groups and the outcome", "The expected group means", "The SD", "The ANOVA, Welch's F, the Kruskal-Wallis test, pairwise comparisons or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts", "the Kruskal-Wallis test"]
@@ -1354,7 +1354,7 @@ endpoints:
     card_points:
       - "Two factors crossed, with different people in every combination (cell), and at least one factor with three or more levels, such as feedback (none or praise) by task difficulty (easy, medium or hard)."
       - "Power is for one effect: either factor's main effect, or the interaction (whether one factor's effect depends on the other)."
-      - "powerkit assumes the same number of people and the same SD in every cell. For three factors, use the three-factor ANOVA."
+      - "Powerkit assumes the same number of people and the same SD in every cell. For three factors, use the three-factor ANOVA."
     inputs: ["Names of the two factors, their levels and the outcome", "The expected cell means", "The SD", "Which effect", "The F test, the aligned rank transform or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts, such as a linear trend in one factor at each level of the other", "simple effects, one factor at each level of the other", "the aligned rank transform, if you analyse ranks"]
@@ -1390,9 +1390,9 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() (one factor) and ANCOVA_analytic() (two factors) in the engine's tests. The Bayes factor version agrees with an independently written simulation of the same Bayes factor, for evidence at the threshold for an effect and for none. Not yet checked against G*Power or a published example."}
     card_points:
-      - "powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
+      - "Powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
       - "It uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses; Superpower names Keppel's approach as the approximate one."
-      - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANCOVA? Choose it as the test version: powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors."
+      - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANCOVA? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors."
     inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome", "The ANCOVA's F test or a Bayes factor"]
     tier: v2
     alternatives: ["a t-test or ANOVA on change scores", "the mixed (group by time) interaction", "a regression with the covariate as a predictor"]
@@ -1408,9 +1408,9 @@ endpoints:
     validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. The Bayes factor for R-squared agrees with lmBF() on data simulated with fixed predictors, for the chance of evidence at the threshold for an effect, for none and of misleading evidence. Not yet checked against a published example."}
     card_points:
       - "One predictor's coefficient, controlling for the others, is tested with its partial R-squared (G*Power's single regression coefficient)."
-      - "Will you analyse whether the predictors together explain anything with a Bayes factor, as in JASP's Bayesian linear regression? Choose it as the test version for R-squared against 0: powerkit gives the chance of evidence at the threshold, with JASP's default prior, exactly."
+      - "Will you analyse whether the predictors together explain anything with a Bayes factor, as in JASP's Bayesian linear regression? Choose it as the test version for R-squared against 0: Powerkit gives the chance of evidence at the threshold, with JASP's default prior, exactly."
       - "A treatment effect that depends on a measured moderator, with the outcome measured before and after: choose \"Whether some predictors add to the others\", with 4 predictors in the full model (the treatment, the moderator, the before score and the treatment x moderator product) and 1 tested (the product). The R-squared increase is how much the product adds once the other three are in the model."
-      - "If the outcome spreads out more at some values of the predictor than others, choose robust (HC3 or HC4) standard errors; to test the median or another quantile instead of the mean, quantile regression. powerkit simulates both for the spread and error shape you give. With skewed errors whose spread changes, quantile regression's usual test rejects too often, so its power is optimistic there."
+      - "If the outcome spreads out more at some values of the predictor than others, choose robust (HC3 or HC4) standard errors; to test the median or another quantile instead of the mean, quantile regression. Powerkit simulates both for the spread and error shape you give. With skewed errors whose spread changes, quantile regression's usual test rejects too often, so its power is optimistic there."
     inputs: ["Your outcome's name and what you want to test", "R-squared, the R-squared change, or the predictor's partial R-squared", "Number of predictors", "How the predictor's coefficient is tested, and the spread and shape of the errors"]
     tier: v2
     alternatives: ["R-squared for the whole model", "the R-squared increase for a set of predictors", "the test of one coefficient, the usual way, with robust standard errors, or by quantile regression"]
@@ -1488,12 +1488,12 @@ endpoints:
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly in the engine's tests. Not yet checked against G*Power or a published example in the validation run."}
     card_points:
       - "Tests one predictor of a count (how many times something happened): a score, or a yes/no group. The rate ratio is per standard deviation for a score, or the second group against the first."
-      - "Poisson regression assumes the counts vary as much as their average. For counts that vary more than that (some people with many events, most with few), choose negative binomial regression, which powerkit simulates for the overdispersion you give."
+      - "Poisson regression assumes the counts vary as much as their average. For counts that vary more than that (some people with many events, most with few), choose negative binomial regression, which Powerkit simulates for the overdispersion you give."
       - "If some people could not have had an event at all, so there are more zeros than either model gives, choose a zero-inflated model: you add the share of extra zeros, and test the predictor's effect on the rate, on the extra zeros, or on both."
       - "Other predictors in the model enter only through how much they overlap with this one (R-squared)."
     inputs: ["Your outcome, your predictor and what kind of predictor it is", "The rate ratio, the starting rate and the time over which events are counted", "Poisson, negative binomial or zero-inflated regression", "How much the other predictors overlap with this one"]
     tier: v2
-    alternatives: ["a negative binomial regression, for counts that vary more than their average (a choice on the next screen)", "a zero-inflated model, for more zeros than either allows (a choice on the next screen)", "a hurdle model, which treats every zero as a separate process (not in powerkit yet)"]
+    alternatives: ["a negative binomial regression, for counts that vary more than their average (a choice on the next screen)", "a zero-inflated model, for more zeros than either allows (a choice on the next screen)", "a hurdle model, which treats every zero as a separate process (not in Powerkit yet)"]
   E29:
     doc_name: "Ordinal outcome (ordered categories)"
     technical_name: "Ordinal regression"
@@ -1566,7 +1566,7 @@ endpoints:
       - "Simulated, so the answer carries a little random error. On the log-odds or log-count scale an interaction can differ from one on the proportions or counts themselves."
       - "Not calculated here yet: a categorical outcome (three or more unordered answers), in moderation or mediation. For mediation through a yes/no mediator, use the card \"Mediation when a mediator isn't a score\"."
     packages:
-      - {name: regmedint, url: "https://cran.r-project.org/package=regmedint", what: "Regression-based causal mediation analysis (Valeri and VanderWeele), the analysis powerkit simulates for mediation of a yes/no or count outcome."}
+      - {name: regmedint, url: "https://cran.r-project.org/package=regmedint", what: "Regression-based causal mediation analysis (Valeri and VanderWeele), the analysis Powerkit simulates for mediation of a yes/no or count outcome."}
       - {name: Spower, url: "https://cran.r-project.org/package=Spower", what: "For the designs not calculated here yet: a general Monte Carlo power engine where you write the data-generating and analysis code yourself."}
     inputs: ["Your outcome, X and W, and what kind of variable each is", "The starting point and the effects: odds ratios for a yes/no outcome, rate ratios for a count", "How X and W relate"]
     tier: v2
@@ -1583,9 +1583,9 @@ endpoints:
     validation: {file: test-validation-mixed-model.R, note: "Matches simr called directly, replication for replication, recovers every population value in its check run, and agrees with an independent simulation and keeps the Type I error at alpha in the engine's tests. Not yet checked against a published example."}
     card_points:
       - "Each participant responds to many items (words, faces, trials) in two conditions, and both participants and items vary: for example, response times to emotional and neutral words. The conditions can be within participants (everyone responds in both) or between them (half the participants in each)."
-      - "You give the difference between conditions and how much participants and items vary, in the outcome's own units; the number of items is fixed and powerkit finds the number of participants."
+      - "You give the difference between conditions and how much participants and items vary, in the outcome's own units; the number of items is fixed and Powerkit finds the number of participants."
       - "The model has random intercepts for participants and items, a random condition effect for participants when everyone responds in both conditions, and one for items when every item appears in both; items can be in one condition each or in both."
-      - "With a yes/no answer on each trial (correct or not), you give each condition's chance of 'yes' for a typical participant and item, with the SDs on the log-odds scale; powerkit fits a logistic mixed model (glmer) and tests with the Wald test glmer reports or, if you choose, the likelihood-ratio test."
+      - "With a yes/no answer on each trial (correct or not), you give each condition's chance of 'yes' for a typical participant and item, with the SDs on the log-odds scale; Powerkit fits a logistic mixed model (glmer) and tests with the Wald test glmer reports or, if you choose, the likelihood-ratio test."
       - "Simulated with simr, testing the condition with Satterthwaite's t test rather than simr's default z test, an approximation that treats the t statistic as normal. Power at a given number of participants runs here; the number you need comes as an R script, because each sample size takes minutes."
     inputs: ["The two conditions and the outcome", "The difference between conditions (the fixed effect) in the outcome's units, or each condition's chance of 'yes'", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or both"]
     refs: "decisions, 30 October 2026 (docs/decisions.md); Departure 16"
@@ -1603,7 +1603,7 @@ endpoints:
     validation: {file: test-validation-cluster-randomised.R, note: "Matches powertools called directly, and the textbook design-effect calculation done with a second package, in the engine's tests, for all three designs and both outcomes. Not yet checked against a published worked example in the validation run."}
     card_points:
       - "Calculates three designs where a score or a yes/no outcome is compared between two conditions, for a score optionally adjusting for a baseline such as a pre-test. In a cluster-randomised trial, whole groups (for example, classes or clinics) are assigned to a condition, the same number of groups in each. In a multisite trial, people are assigned within each group, half to each condition. In a group treatment trial, people are assigned one by one and one condition is delivered in groups (for example, group therapy compared with individual treatment), with the same number of people in each condition."
-      - "People in the same group tend to be alike, so each person adds less information than in a study of separate people. The intraclass correlation (ICC) says how alike they are, and the result shows how much the grouping costs (or, in a multisite trial, often saves). powerkit works this out with the standard design-effect formula, an approximation, not by fitting a multilevel model. For a yes/no outcome with whole groups assigned or people randomised within groups, powertools' formula (also an approximation) asks how much the groups differ on the log-odds scale instead of an ICC; it asks for more groups than a simulation of the trial needs, and that simulation, analysed with a mixed-effects logistic regression, can be chosen instead."
+      - "People in the same group tend to be alike, so each person adds less information than in a study of separate people. The intraclass correlation (ICC) says how alike they are, and the result shows how much the grouping costs (or, in a multisite trial, often saves). Powerkit works this out with the standard design-effect formula, an approximation, not by fitting a multilevel model. For a yes/no outcome with whole groups assigned or people randomised within groups, powertools' formula (also an approximation) asks how much the groups differ on the log-odds scale instead of an ICC; it asks for more groups than a simulation of the trial needs, and that simulation, analysed with a mixed-effects logistic regression, can be chosen instead."
       - "Not calculated here yet: groups of unequal numbers in each condition, a count outcome, an equivalence test, for a yes/no outcome the smallest detectable effect or groups of different sizes, a group treatment trial with unequal numbers or SDs in the two conditions, covariates other than one baseline score, and models with predictors measured at both levels (for those, mlmpower or simr)."
     inputs: ["How the conditions are assigned, the outcome, and their names", "The effect: Cohen's d (the difference between conditions, over the outcome's total SD)", "How alike people in the same group are (the intraclass correlation), and how much the effect varies between groups", "A baseline score, such as a pre-test (optional)", "Yes/no outcome: the proportion of 'yes' in each condition", "Yes/no outcome: how much the groups differ", "Yes/no outcome: how power is worked out", "How many people in each group (the cluster size), and how much that varies"]
     tier: v2
@@ -1639,8 +1639,8 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-backend-toster.R, note: "Matches TOSTER called directly in the engine's tests, agrees with a large-sample approximation written out in base R, and keeps the chance of wrongly claiming equivalence at or below alpha. Not yet checked against a published example."}
     card_points:
-      - "Two one-sided tests (TOST): powerkit works out the chance of showing that the true difference lies inside the equivalence bounds, minus and plus the smallest difference that would matter."
-      - "powerkit calculates this for two groups of different people, the same people measured twice, one mean against a fixed value, a correlation, or two groups' proportions, with the same bound on each side."
+      - "Two one-sided tests (TOST): Powerkit works out the chance of showing that the true difference lies inside the equivalence bounds, minus and plus the smallest difference that would matter."
+      - "Powerkit calculates this for two groups of different people, the same people measured twice, one mean against a fixed value, a correlation, or two groups' proportions, with the same bound on each side."
       - "Non-inferiority, a bound on one side only, is here too: whether a new condition is no worse than the comparison by more than a margin you set, for two groups, the same people twice, one mean or two proportions (pwrss, one-sided test against the margin)."
       - "Minimum-effect tests, showing an effect is larger than a smallest effect of interest, are a test version on the one-sample, paired and two-group t-test cards (pwrss, a t-test against the margin)."
     inputs: ["What you are comparing, and the names", "The equivalence bound and the difference you expect: Cohen's d (d_z for the same people measured twice), or in your measure's own units", "For two groups: the size of group 2 relative to group 1 (1 = equal)", "For a correlation or two proportions: the equivalence bound and the value you expect", "For non-inferiority: the margin, which direction is better, and the difference you expect"]
@@ -1661,9 +1661,9 @@ endpoints:
     # item functioning has its own Q1 answer and card (E71).
     card_points:
       - "Four questions about models with latent variables, each by formula with semPower: whether the model fits (a CFA or SEM's test of exact fit), whether a questionnaire measures the same thing in different groups or on different occasions (measurement invariance, metric or scalar, for one factor or several), whether two factors are correlated, and whether latent variables predict another (a slope in a latent regression)."
-      - "Model fit is power to show a model is wrong, the reverse of what people often expect. A study with too few people will rarely reject even a poor model, so a model that \"fits\" in a small sample says little. Pick the smallest misfit you would want to notice: many studies use an RMSEA of 0.05. For a CFA, give the number of items and factors and powerkit counts the model's degrees of freedom (semPower, with lavaan); for any other model, enter its degrees of freedom, which lavaan reports when you fit it."
+      - "Model fit is power to show a model is wrong, the reverse of what people often expect. A study with too few people will rarely reject even a poor model, so a model that \"fits\" in a small sample says little. Pick the smallest misfit you would want to notice: many studies use an RMSEA of 0.05. For a CFA, give the number of items and factors and Powerkit counts the model's degrees of freedom (semPower, with lavaan); for any other model, enter its degrees of freedom, which lavaan reports when you fit it."
       - "The other three test one restriction against the model without it (a chi-square difference test), so you describe the model: how many items measure each factor, a typical standardised loading, and the difference you want to detect."
-      - "Exact fit asks whether a model is exactly right, which almost no model is. The tests of close and not-close fit (MacCallum, Browne and Sugawara, 1996) ask instead whether its RMSEA is above or below a small value (0.05), so a study can plan to show that a model fits closely; powerkit computes them with WebPower."
+      - "Exact fit asks whether a model is exactly right, which almost no model is. The tests of close and not-close fit (MacCallum, Browne and Sugawara, 1996) ask instead whether its RMSEA is above or below a small value (0.05), so a study can plan to show that a model fits closely; Powerkit computes them with WebPower."
       - "This card is about confirmatory factor analysis (CFA) and structural equation models (SEM). For item response theory (IRT), differential item functioning between two groups has its own card; other IRT designs aren't covered yet."
     inputs: ["What you want to test", "Model fit: the number of items and factors (for a CFA), or the model's degrees of freedom", "Model fit: the test, and the model's RMSEA in the population", "Measurement invariance: the groups or occasions, the items and their loadings, and how the last group or occasion differs", "Two factors: the items and loading of each, and their correlation", "Latent regression: the slopes, the predictors' correlation, and the items"]
     tier: v2
@@ -1679,7 +1679,7 @@ endpoints:
     validation: {file: test-validation-modmed-difference.R, note: "Agrees with a simulation written separately (OLS for each equation, PROCESS's way, and its own Monte Carlo interval for the difference), and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
       - "Moderated mediation where W changes both links of the indirect effect (PROCESS model 58), the first link and the direct path (model 8), or all three (model 59)."
-      - "These models have no single index of moderated mediation, so powerkit plans for the difference between the indirect effects at two values of W (by default one SD below and above its mean), tested by its Monte Carlo confidence interval."
+      - "These models have no single index of moderated mediation, so Powerkit plans for the difference between the indirect effects at two values of W (by default one SD below and above its mean), tested by its Monte Carlo confidence interval."
       - "Simulated with power4mome: a quick preview in the app, and the full run or the sample size from an R script."
     inputs: ["Which links W changes", "Standardised paths, including the interactions", "The two values of W to compare"]
     tier: v2
@@ -1702,7 +1702,7 @@ endpoints:
       - "Simulated with Spower, in under a minute for power."
     inputs: ["What X, the mediator and the outcome are", "How X changes the chance of the mediator, and how the mediator changes the outcome"]
     tier: v2
-    alternatives: ["a bootstrap confidence interval of the natural indirect effect, which the authors' macro also offers", "with a mediator in ordered categories, a model for ordered categories (not yet in powerkit)"]
+    alternatives: ["a bootstrap confidence interval of the natural indirect effect, which the authors' macro also offers", "with a mediator in ordered categories, a model for ordered categories (not yet in Powerkit)"]
   E40:
     doc_name: "Moderated mediation with two or more mediators"
     technical_name: "Multiple-mediator moderated mediation"
@@ -1758,7 +1758,7 @@ endpoints:
     card_points:
       - "Each person is measured on two scores at the same time, several times: for example, sleep and next-day mood on each of seven days. The question is whether the two go together within people: on days when someone sleeps more than usual, is their mood better than usual?"
       - "This is the repeated-measures correlation (Bakdash and Marusich, 2017; the R package rmcorr, and JASP's repeated-measures correlation). It removes each person's average, so differences between people don't count, and every measurement after the first adds to the power."
-      - "You give the correlation you expect within people and how many times each person is measured; powerkit finds the number of people. By formula, with no simulation."
+      - "You give the correlation you expect within people and how many times each person is measured; Powerkit finds the number of people. By formula, with no simulation."
       - "It assumes the association is the same for everyone. If it differs between people, a multilevel model with a random slope for each person is the analysis to plan for, and this card would overstate the power."
     inputs: ["Names of the two scores", "The expected correlation within people, and how many times each person is measured"]
     tier: v2
@@ -1818,9 +1818,9 @@ endpoints:
     validation: {file: test-validation-crossed-conditions.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for the F test and for a pair, recovers every mean difference and SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
       - "Each participant responds to many items (words, faces, trials) in three or more conditions: for example, response times to happy, angry and neutral faces. Every participant can be in every condition, or each in one of them."
-      - "You give each condition's mean and how much participants and items vary, in the outcome's own units; the number of items is fixed and powerkit finds the number of participants."
+      - "You give each condition's mean and how much participants and items vary, in the outcome's own units; the number of items is fixed and Powerkit finds the number of participants."
       - "Tests whether the conditions differ at all (Satterthwaite's F test), or one pair of conditions, adjusted for all the pairs (Holm's method unless you choose otherwise)."
-      - "With a yes/no answer on each trial (correct or not), you give each condition's chance of 'yes' for a typical participant and item, with the SDs on the log-odds scale; powerkit fits a logistic mixed model (glmer) and tests with the Wald test glmer reports or, if you choose, the likelihood-ratio test."
+      - "With a yes/no answer on each trial (correct or not), you give each condition's chance of 'yes' for a typical participant and item, with the SDs on the log-odds scale; Powerkit fits a logistic mixed model (glmer) and tests with the Wald test glmer reports or, if you choose, the likelihood-ratio test."
       - "Simulated with simr, as for two conditions, so the answer carries a little random error. Power at a given number of participants runs here; the number you need comes as an R script."
     inputs: ["The conditions and the outcome", "Each condition's mean, in the outcome's units, or its chance of 'yes'", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or all", "The test: any difference between the conditions, or one pair"]
     tier: v2
@@ -1837,7 +1837,7 @@ endpoints:
     validation: {file: test-validation-item-predictor.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest or glmer without simr) for a score and a yes/no outcome, recovers the slope and every SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
       - "Each participant responds to many items that differ on something measured on each item, such as a word's frequency or a face's rated attractiveness: does the response depend on it?"
-      - "You give the effect of one SD more of that score, how much participants differ in their average and in the effect, how much items differ beyond the score, and the number of items; powerkit finds the number of participants."
+      - "You give the effect of one SD more of that score, how much participants differ in their average and in the effect, how much items differ beyond the score, and the number of items; Powerkit finds the number of participants."
       - "A score on each trial is tested with Satterthwaite's t test; a yes/no answer (correct or not) with the Wald test glmer reports or the likelihood-ratio test. Simulated with simr, so the answer carries a little random error."
       - "The predictor can instead be measured on each trial (such as how long the stimulus is shown), so it varies within items too and its effect can differ between items."
     inputs: ["The item score and the outcome", "The effect, and how participants and items vary", "The items"]
@@ -1891,10 +1891,10 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-validation-lpa.R, note: "Agrees with the same model fitted by an expectation-maximisation algorithm written separately, with the BIC computed by hand, in three cases from a clear to a hard enumeration. Not yet checked against a published simulation table."}
     card_points:
-      - "The question here is not a significance test: it is whether your sample can find the right number of profiles (class enumeration). powerkit simulates studies from the profiles you expect, fits latent profile models with 1 up to one more than that number of profiles (mclust), and counts how often the BIC chooses the right number: the study's chance of finding it."
+      - "The question here is not a significance test: it is whether your sample can find the right number of profiles (class enumeration). Powerkit simulates studies from the profiles you expect, fits latent profile models with 1 up to one more than that number of profiles (mclust), and counts how often the BIC chooses the right number: the study's chance of finding it."
       - "Separation between profiles matters more than sample size. In Tein, Coxe and Cham's (2013) simulations, no sample size up to 1,000 reliably found the right number of profiles when profiles differed by a small or medium amount on each indicator (Cohen's d of .2 or .5); at d = .8, it took at least 500 people and 10 or more indicators; at d = 1.5, 250 people were enough for most criteria."
       - "As a working range, Nylund-Gibson and Choi (2018) suggest that about 300 to 1,000 people is where the usual criteria work adequately; the median sample in published latent profile studies was 377 in Tein and colleagues' review and 494 in Spurk and colleagues' (2020). A small profile needs more people: with a class of 5% of 200 people, its estimates were poor (Nylund, Asparouhov and Muthén, 2007)."
-      - "powerkit uses the BIC, which did best with the bootstrap likelihood ratio test in these simulations (Nylund, Asparouhov and Muthén, 2007; Tein, Coxe and Cham, 2013); the bootstrap test is too slow to simulate here. Entropy describes how cleanly people are classified but is not a way to choose the number of profiles."
+      - "Powerkit uses the BIC, which did best with the bootstrap likelihood ratio test in these simulations (Nylund, Asparouhov and Muthén, 2007; Tein, Coxe and Cham, 2013); the bootstrap test is too slow to simulate here. Entropy describes how cleanly people are classified but is not a way to choose the number of profiles."
       - "Assumes score indicators, profiles that are equally far apart on every indicator, the same spread within each profile and indicators unrelated within a profile (the usual latent profile model). Yes/no indicators (latent class analysis) and other shapes are not covered yet."
     inputs: ["The scores the profiles are formed from", "The profiles you expect"]
     tier: v2
@@ -1911,7 +1911,7 @@ endpoints:
     validation: {file: test-validation-riclpm.R, note: "Agrees with a simulation written separately (data drawn in base R, the model written out in lavaan syntax) in three cases, with no allowance beyond Monte Carlo error. Not yet checked against a published example."}
     card_points:
       - "Two scores, X and Y, measured on the same people at three or more waves. The random-intercept cross-lagged panel model (Hamaker, Kuiper and Grasman, 2015) separates each person's stable level on each score from their ups and downs around it, and asks whether a person's X being higher than usual predicts their Y being higher than usual at the next wave (the cross-lagged effect), and the other way round."
-      - "You give the lagged effects within people (standardised), how much of each score is stable between people, and how X and Y go together. powRICLPM (Mulder, 2023) simulates studies like yours and fits the model, and powerkit counts how often the effect you test is significant."
+      - "You give the lagged effects within people (standardised), how much of each score is stable between people, and how X and Y go together. powRICLPM (Mulder, 2023) simulates studies like yours and fits the model, and Powerkit counts how often the effect you test is significant."
       - "Small lagged effects need many people. A quick preview runs here; the full run of power takes a couple of minutes, and a required sample size comes as an R script to run on your computer."
       - "Not covered yet: more than two scores, measurement error estimated in the model (the STARTS model), and the traditional cross-lagged panel model without random intercepts, which mixes stable differences between people with within-person effects."
     inputs: ["The two scores and the waves", "The effect you want to test", "The lagged effects within people (standardised)", "How people differ, and how X and Y go together"]
@@ -1928,7 +1928,7 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-validation-efa.R, note: "Agrees with fits by base R's factanal() (maximum likelihood) on data drawn separately, with congruence and matching computed separately, within 0.03 in three cases. Not yet checked against a published table."}
     card_points:
-      - "An exploratory factor analysis has no significance test to power: the question is whether your sample is large enough to recover the factors' loadings. powerkit simulates studies from the factor structure you expect, fits the factor analysis researchers usually run (psych's fa(), minimum residual with oblimin rotation), and counts how often every factor's loadings match the true ones (Tucker's congruence of at least .95 by default)."
+      - "An exploratory factor analysis has no significance test to power: the question is whether your sample is large enough to recover the factors' loadings. Powerkit simulates studies from the factor structure you expect, fits the factor analysis researchers usually run (psych's fa(), minimum residual with oblimin rotation), and counts how often every factor's loadings match the true ones (Tucker's congruence of at least .95 by default)."
       - "The sample size needed depends on how strongly the items measure their factors (the communalities, the loadings squared) and how many items each factor has, not on a fixed ratio of people to items (MacCallum, Widaman, Zhang and Hong, 1999): strong loadings and four or more items per factor can need few people; weak loadings need many."
       - "Assumes each item loads on one factor (simple structure) with the same loading, and that you fit the right number of factors. Choosing the number of factors (parallel analysis, for example) and cross-loadings are not covered yet."
     inputs: ["The questionnaire and its factors", "How strongly the items measure their factors", "What counts as recovering the factors"]
@@ -1983,7 +1983,7 @@ endpoints:
     card_points:
       - "Two questions about the time until something happens, such as relapse, dropout or disengagement, where some people may not reach the event before the study ends: whether two groups differ in how soon it happens (the log-rank test), and whether a measured score predicts how soon (a Cox regression)."
       - "Power depends on how many events you observe, not on how many people take part. A rare event, or a short follow-up, needs many more people."
-      - "For two groups you give the proportion of each who have had the event by a given time, how long recruitment takes and how long people are followed; powerkit assumes the event's rate stays the same over time in each group (exponential times), as Hmisc's cpower() does. For a score you give its hazard ratio per SD and the proportion who will have the event."
+      - "For two groups you give the proportion of each who have had the event by a given time, how long recruitment takes and how long people are followed; Powerkit assumes the event's rate stays the same over time in each group (exponential times), as Hmisc's cpower() does. For a score you give its hazard ratio per SD and the proportion who will have the event."
       - "Both are large-sample formulas, two-sided. Not calculated here yet: one-sided tests, dropout before the event that differs between groups, and hazards that change over time."
     tier: v2
     alternatives: ["a Cox regression of the group with other predictors", "a comparison of restricted mean survival times", "a parametric survival model, such as a Weibull model"]
@@ -2001,7 +2001,7 @@ endpoints:
     card_points:
       - "Four questions about a measure: whether raters, or the same people on two occasions, give similar scores (the intraclass correlation, ICC); whether a scale's items are consistent (Cronbach's alpha); whether raters choose the same category (kappa); and whether two methods of measurement agree closely enough to be used in place of each other (Bland-Altman limits of agreement)."
       - "Each tests the value against one you name, such as an ICC above 0.6 or an alpha above 0.7, not against zero: showing only that agreement beats chance is rarely the question. For two methods, you name the largest difference that wouldn't matter, and agreement is shown when both limits of agreement, at the outer ends of their confidence intervals, lie within it."
-      - "The limits of agreement are simulated: powerkit analyses each simulated study with SimplyAgree's agreement_limit(), with MOVER confidence intervals by default or Bland and Altman's. Power at a fixed sample size runs here; a sample size comes as an R script (about 5 minutes). Lu et al.'s formula is offered as an instant approximation."
+      - "The limits of agreement are simulated: Powerkit analyses each simulated study with SimplyAgree's agreement_limit(), with MOVER confidence intervals by default or Bland and Altman's. Power at a fixed sample size runs here; a sample size comes as an R script (about 5 minutes). Lu et al.'s formula is offered as an instant approximation."
       - "The ICC is for a one-way random-effects model, with the same number of ratings for every person. Cronbach's alpha uses Bonett and Wright's test. Kappa takes 2 to 6 raters and 2 to 5 categories, and is two-sided."
       - "To plan for a precise estimate of an ICC rather than a test, use the precision card. Not calculated here yet: McDonald's omega, Krippendorff's alpha, and ICCs for two-way models."
     tier: v2
@@ -2020,7 +2020,7 @@ endpoints:
     card_points:
       - "Pairs of people whose scores are related, such as couples or friends, with something measured on each member (X) and an outcome measured on each (Y): each person's X can affect their own Y (the actor effect) and their partner's Y (the partner effect)."
       - "Members can be distinguishable (for example, a woman and a man, or a parent and child), with their own actor and partner effects, or indistinguishable (for example, same-sex friends), sharing them."
-      - "You give the actor and partner effects as standardised paths, the correlation of the two members' X, and how alike the two members' outcomes are beyond their X; powerkit finds the number of pairs."
+      - "You give the actor and partner effects as standardised paths, the correlation of the two members' X, and how alike the two members' outcomes are beyond their X; Powerkit finds the number of pairs."
       - "Several effects can be planned for together: the chance that the actor and partner effects (or both members' partner effects) are all significant in the same study, counted directly in the simulated studies."
       - "The actor effect can depend on a score that describes the pair, such as relationship length (a pair-level moderator): you give how much the actor effect changes per SD of it, and can plan for the moderation alone or with the actor effect, significant in the same study."
       - "Simulated with power4mome, the model fitted by lavaan in each simulated study, so the answer carries a little random error."
@@ -2034,7 +2034,7 @@ endpoints:
     status: not_in_powerkit
     generic: true
     established_tools: true
-    card_text: "powerkit doesn't cover data from pairs of people whose scores are related (dyadic data), such as couples or a parent and child. Treating the two members as independent people can overstate or understate power, depending on whether the predictor varies between dyads (for example, couples assigned to different conditions) or within dyads (for example, each partner's own stress), so dyadic methods are needed."
+    card_text: "Powerkit doesn't cover data from pairs of people whose scores are related (dyadic data), such as couples or a parent and child. Treating the two members as independent people can overstate or understate power, depending on whether the predictor varies between dyads (for example, couples assigned to different conditions) or within dyads (for example, each partner's own stress), so dyadic methods are needed."
     tier: later
   E45:
     doc_name: "Many measurements over time: segmented regression or interrupted time series"
@@ -2047,10 +2047,10 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-validation-its.R, note: "Agrees with series drawn and fitted separately (base R and gls() by REML) and, for PITS's own test, with PITS's calculate_power(), with no allowance beyond Monte Carlo error. Not yet checked against a published table."}
     card_points:
-      - "One series of equally spaced measurements (for example monthly admissions) with an intervention at a known point. powerkit simulates series like yours with PITS and fits the segmented regression with autocorrelated (AR(1)) errors: an immediate change in level, a change in the trend after the intervention, or both together."
+      - "One series of equally spaced measurements (for example monthly admissions) with an intervention at a known point. Powerkit simulates series like yours with PITS and fits the segmented regression with autocorrelated (AR(1)) errors: an immediate change in level, a change in the trend after the intervention, or both together."
       - "A change is judged against the trend before the intervention, so the number of points before it limits how precisely the change can be measured: past a point, adding points after the intervention barely raises the power."
       - "Autocorrelation makes standard power calculations wrong: too optimistic when it's positive, too pessimistic when it's negative."
-      - "In short series these tests find changes that aren't there more often than alpha. powerkit fits the series by REML, which does so less than PITS's own maximum-likelihood test (offered as an option), and shows the rate for the series you plan beside the power."
+      - "In short series these tests find changes that aren't there more often than alpha. Powerkit fits the series by REML, which does so less than PITS's own maximum-likelihood test (offered as an option), and shows the rate for the series you plan beside the power."
       - "A before/after comparison of means (a t-test) asks a different question: whether the average level differs, not whether the trend changes. A breakpoint estimated from the data, several series or a control series are not covered yet."
     inputs: ["The outcome, and the series before the breakpoint", "The change you want to detect, in level and slope", "How noisy the series is, and its autocorrelation", "The analysis"]
     tier: later
@@ -2070,7 +2070,7 @@ endpoints:
     card_points:
       - "Plans the sample size for how precisely the study estimates its result (the width of its confidence interval), rather than for power."
       - "For Cohen's d between two groups, d_z for paired scores, a standardised mean, a difference between two means in the outcome's own units, a correlation (Pearson's, Spearman's or Kendall's), a proportion, an odds ratio, an intraclass correlation or one predictor's coefficient in a multiple regression."
-      - "It assumes separate people (or simple pairs of scores). For people within groups, such as pupils in classes, or three or more conditions per person, the interval would be wider than this card says: powerkit has no precision plan for those designs yet."
+      - "It assumes separate people (or simple pairs of scores). For people within groups, such as pupils in classes, or three or more conditions per person, the interval would be wider than this card says: Powerkit has no precision plan for those designs yet."
       - "Gives the sample size for the width you set, or the width you would get at a given sample size. For d and standardised means you can also ask for a chance (assurance) that the interval is narrow enough."
     inputs: ["What you want to estimate", "Names", "The value you expect", "The kind of interval"]
     tier: v2
@@ -2125,7 +2125,7 @@ endpoints:
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and pwr's pwr.chisq.test() in the engine's tests. Not yet checked against G*Power or a published example."}
     card_points:
       - "The test has one fewer degree of freedom than the number of categories."
-      - "Without fixed proportions to compare with, powerkit compares with equal proportions, as pwrss's probs.to.w() does."
+      - "Without fixed proportions to compare with, Powerkit compares with equal proportions, as pwrss's probs.to.w() does."
     inputs: ["The categories of the variable", "The expected proportion in each category, and the fixed proportions they are compared with, or Cohen's w"]
     tier: v2
     alternatives: ["an exact multinomial test", "a likelihood-ratio (G) test"]
@@ -2156,7 +2156,7 @@ endpoints:
     validation: {file: test-backend-generic.R, note: "Matches four G*Power 3.1 examples (t, F, chi-square and z) in the full validation run of 27 October 2026, and pwrss and base R's noncentral distributions in the engine's tests."}
     card_points:
       - "For people who have worked out their test's noncentrality parameter themselves."
-      - "There is no sample size: the noncentrality parameter already reflects it. powerkit gives the power for a noncentrality, or the noncentrality needed for a target power."
+      - "There is no sample size: the noncentrality parameter already reflects it. Powerkit gives the power for a noncentrality, or the noncentrality needed for a target power."
       - "Only from \"I know my analysis\": the other routes find a design with its own card."
     inputs: ["The test statistic", "The noncentrality parameter and the degrees of freedom"]
     tier: v2
@@ -2238,9 +2238,9 @@ endpoints:
       - "The test is Pillai's trace, as in G*Power. With two groups every MANOVA statistic gives the same answer."
       - "With two factors crossed (different people in every combination), the test is of either factor or their interaction, each with Pillai's trace."
       - "You give each group's expected mean on each outcome, each outcome's SD, and how strongly the outcomes are correlated. That correlation matters: outcomes that go together carry less separate information."
-      - "Or give one effect size, Pillai's V, as in G*Power: powerkit then uses G*Power's formula (Faul et al., 2007), and needs no SDs or correlation. Means are the default because they show which outcomes you expect to differ; a single V hides that, and a published V tends to be too large."
+      - "Or give one effect size, Pillai's V, as in G*Power: Powerkit then uses G*Power's formula (Faul et al., 2007), and needs no SDs or correlation. Means are the default because they show which outcomes you expect to differ; a single V hides that, and a published V tends to be too large."
       - "With two groups the answer is calculated exactly, as G*Power does. With three or more it is simulated, so it carries a little random error; G*Power uses an approximation there."
-      - "PERMANOVA, a permutation test on the distances between people's standardised scores (vegan's adonis2()), is a choice for scores that aren't normal: you choose their shape, and powerkit simulates it."
+      - "PERMANOVA, a permutation test on the distances between people's standardised scores (vegan's adonis2()), is a choice for scores that aren't normal: you choose their shape, and Powerkit simulates it."
     inputs: ["The groups and the outcomes", "The expected means on each outcome, or Pillai's V", "Each outcome's SD, and the correlation between the outcomes", "MANOVA or PERMANOVA"]
     tier: v2
     alternatives: ["a separate ANOVA for each outcome, with the significance level adjusted for the number of outcomes", "a discriminant analysis, if the question is which outcomes separate the groups", "PERMANOVA, for scores that aren't normal (a choice on the next screen)"]
@@ -2275,7 +2275,7 @@ endpoints:
       - "For a systematic review you are planning: how many studies you need, or the power you can expect, for the meta-analysis to detect the average effect."
       - "You give the average effect (Cohen's d or a correlation), the size of a typical study, and how much the studies' true effects are expected to differ (heterogeneity, as I-squared)."
       - "Under the random-effects model, heterogeneity costs power: Jackson and Turner (2017) found that about five or more studies are needed before a random-effects meta-analysis reasonably consistently has more power than the studies in it."
-      - "Under the random-effects model powerkit plans for the Hartung-Knapp test by default, which keeps false positives closer to alpha than the z test (IntHout, Ioannidis & Borm, 2014); it is simulated, so the answer carries a little random error. metapower's z test is one click away."
+      - "Under the random-effects model Powerkit plans for the Hartung-Knapp test by default, which keeps false positives closer to alpha than the z test (IntHout, Ioannidis & Borm, 2014); it is simulated, so the answer carries a little random error. metapower's z test is one click away."
       - "It can also test whether the effect differs between kinds of study (a subgroup or moderator analysis, such as lab against online studies), by the between-groups Q test, with the Hartung-Knapp version by default under the random-effects model."
       - "When studies give several effect sizes each (several outcomes or time points), POMADE plans for the robust test of the average effect, allowing for heterogeneity between and within studies and for the correlation of a study's estimates."
       - "It can also plan a meta-regression on a score measured on each study (such as the participants' mean age), and the test of heterogeneity (whether the studies' true effects differ at all), both simulated with metafor."
@@ -2299,7 +2299,7 @@ endpoints:
       - "Everyone takes part in every condition, such as three task difficulties or three timepoints, and the test asks whether the condition means differ at all."
       - "Because the same people give every score, you also give the correlation between people's scores in any two conditions: the higher it is, the fewer people you need."
       - "With one SD for every condition and one correlation for every pair, sphericity holds and no correction is needed. If they differ, give an SD for each condition and a correlation for each pair, and the F test is then corrected for sphericity (Greenhouse-Geisser unless you choose otherwise); the MANOVA approach, which doesn't assume sphericity, is shown beside it."
-      - "Will you analyse the study by comparing pairs of conditions rather than the F test? Choose pairwise comparisons as the test version: powerkit gives the power of the pair you name (a paired t-test), with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
+      - "Will you analyse the study by comparing pairs of conditions rather than the F test? Choose pairwise comparisons as the test version: Powerkit gives the power of the pair you name (a paired t-test), with the p-values of all the pairs adjusted for their number (Holm's or Bonferroni's method), simulated with Superpower."
     inputs: ["Names of the conditions and the outcome", "The expected mean in each condition", "The SD", "The correlation between any two conditions", "The ANOVA, Friedman's test, pairwise comparisons or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts among the conditions", "the multivariate (MANOVA) approach to repeated measures", "a mixed-effects model"]
@@ -2335,8 +2335,8 @@ endpoints:
     card_points:
       - "Three factors crossed, every combination appearing, such as group (training or control) by time (before or after) by task difficulty (easy or hard). Each factor is either different people at each level or measured in everyone."
       - "Power is for one effect: a factor's main effect, a two-way interaction, or the three-way interaction (whether a two-way interaction depends on the third factor)."
-      - "powerkit assumes equal group sizes, the same SD in every cell and the same correlation between any two conditions a person is measured in. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
-      - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors. With a factor everyone is measured in, the full analysis is an R script you run yourself."
+      - "Powerkit assumes equal group sizes, the same SD in every cell and the same correlation between any two conditions a person is measured in. Then sphericity holds, so the test applies no correction for it (such as Greenhouse-Geisser)."
+      - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANOVA? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors. With a factor everyone is measured in, the full analysis is an R script you run yourself."
     inputs: ["Names of the three factors, their levels and the outcome", "Which factors everyone is measured in", "The expected cell means", "The SD", "The correlation between any two conditions a person is measured in", "Which effect", "The F test or a Bayes factor"]
     tier: v2
     alternatives: ["planned contrasts, such as the two-way interaction at each level of the third factor", "a mixed-effects model, with trials and items as random effects", "the multivariate (MANOVA) approach to repeated measures"]
@@ -2346,7 +2346,7 @@ endpoints:
     plain_name: "None of these fit, or I'm not sure"
     status: not_in_powerkit
     generic: true
-    card_heading: "powerkit can't advise on this design yet."
+    card_heading: "Powerkit can't advise on this design yet."
     card_text: "We suggest discussing it with a statistician."
     tier: none
   E-bayes:
@@ -2359,10 +2359,10 @@ endpoints:
     search_words: "Bayes Bayesian Bayes factor BF10 JASP prior"
     card_points:
       - "A Bayes factor says how strongly the data support an effect over no effect, or no effect over an effect. Unlike a p-value, it can give evidence that there is no effect. Planning a study for a Bayes factor means finding the sample size that gives a good chance of evidence at the threshold either way."
-      - "powerkit plans this for every design below, with the default priors JASP uses, which you can change. Open one to start with its Bayes factor test already chosen."
+      - "Powerkit plans this for every design below, with the default priors JASP uses, which you can change. Open one to start with its Bayes factor test already chosen."
     inputs: ["Prior and expected effect"]
     packages:
-      - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; powerkit uses it for the t-tests."}
+      - {name: bfpwr, url: "https://cran.r-project.org/package=bfpwr", what: "Analytic power and sample size for z-test, t-test and normal-moment-prior Bayes factors; Powerkit uses it for the t-tests."}
       - {name: BFDA, url: "https://github.com/nicebread/BFDA", what: "Bayes factor design analysis by simulation, fixed-N and sequential (GitHub, not on CRAN)."}
     tier: later
 
@@ -2379,7 +2379,7 @@ guided:
   # Screening answers the guided rules can use (they are added to the
   # variable answers as `times`).
   context: {times: [once, twice]}
-  single_analysis_note: "Plan my whole study simulates studies of separate people, so this design is planned one analysis at a time. Work out this analysis here, then press \"Add this to my study plan\" under the result; do the same for each further analysis, and My study plan collects them."
+  single_analysis_note: "\u201cPlan a whole study\u201d simulates studies of separate people, so this design is planned one analysis at a time. Work out this analysis here, then press \"Add this to my study plan\" under the result; do the same for each further analysis, and My study plan collects them."
   many_conditions_note: "The guided route covers people measured once, or before and after. For three or more conditions per person, continue in 'Help me choose', which keeps your screening answers."
   variables:
     - id: x
@@ -2683,7 +2683,7 @@ glossary:
   - {term: "Monte Carlo CI", pattern: "\\bMonte Carlo(?= CI\\b)", hint: "A confidence interval built by simulating many sets of the model's estimates from their estimated uncertainty, computing the effect for each set, and keeping the middle 95% of the results."}
   - {term: "ANOVA_exact() (exact)", pattern: "\\bANOVA_exact\\(\\)", hint: "Superpower's quick method: it builds one data set whose means, standard deviations and correlations exactly match the ones you enter, analyses it once, and works out power from that result instead of simulating many data sets."}
   - {term: "simulation (ANOVA_power())", pattern: "(?<!repeated )\\bsimulation\\b", hint: "Estimating power by generating many random data sets from the design and counting how often the test comes out significant."}
-  - {term: "brackets N (power_interaction_r2())", pattern: "\\bpower_interaction_r2\\(\\) only brackets N\\b", hint: "InteractionPoweR's power_interaction_r2() is a quick formula-based power calculation; powerkit uses it only to narrow down the range of sample sizes to search, and the reported power comes from the simulation in power_interaction()."}
+  - {term: "brackets N (power_interaction_r2())", pattern: "\\bpower_interaction_r2\\(\\) only brackets N\\b", hint: "InteractionPoweR's power_interaction_r2() is a quick formula-based power calculation; Powerkit uses it only to narrow down the range of sample sizes to search, and the reported power comes from the simulation in power_interaction()."}
   - {term: "k.x1 / k.x2 = 2", pattern: "\\bk\\.x1 / k\\.x2 = 2\\b", hint: "Settings that tell InteractionPoweR's simulation to give x1 or x2 only two possible values, so it becomes a yes/no variable."}
   - {term: "rbinary_rs() (x_fun)", pattern: "(?:\\bx_fun = )?\\brbinary_rs\\(\\)", hint: "Tells power4mome to generate X as a yes/no variable (0 or 1, with a chosen chance of 1) instead of from a normal distribution; the 0/1 values are then rescaled to a chosen mean and standard deviation."}
   - {term: "multilevel or cluster design", pattern: "\\bmultilevel\\b|\\bcluster design\\b", hint: "A design in which people are grouped (for example, pupils within classes, or patients within doctors), so people in the same group tend to be more alike than people in different groups."}

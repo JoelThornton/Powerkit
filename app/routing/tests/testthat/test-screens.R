@@ -27,14 +27,14 @@ test_that("every end-point card renders, with its status and inputs", {
     runs <- tree$endpoints[[id]]$status %in% c("runs_validated", "runs_validation_in_progress", "coming_soon")
     # A guide page (E-bayes) lists the designs that run instead.
     if (!is.null(tree$endpoints[[id]]$guide)) {
-      expect_match(html, "designs powerkit plans with a Bayes factor", fixed = TRUE, label = id)
+      expect_match(html, "designs Powerkit plans with a Bayes factor", fixed = TRUE, label = id)
       next
     }
     if (!is.null(tree$endpoints[[id]]$inputs)) expect_match(html, if (runs) "What you('|&#39;)ll need" else "What you would enter", label = id)
-    expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in powerkit yet." else switch(tree$endpoints[[id]]$status,
+    expected <- if (isTRUE(tree$endpoints[[id]]$generic)) tree$endpoints[[id]]$card_heading %||% "Not in Powerkit yet." else switch(tree$endpoints[[id]]$status,
       runs_validated = "Checks for this analysis in general: ", runs_validation_in_progress = "What has been checked so far: ",
       coming_soon = "Coming soon.",
-      not_in_powerkit = if (isTRUE(tree$endpoints[[id]]$no_ready_made_tool)) "Not in powerkit yet." else tree$endpoints[[id]]$not_in_powerkit_heading %||% "Not in powerkit yet: use")
+      not_in_powerkit = if (isTRUE(tree$endpoints[[id]]$no_ready_made_tool)) "Not in Powerkit yet." else tree$endpoints[[id]]$not_in_powerkit_heading %||% "Not in Powerkit yet: use")
     expect_match(html, expected, fixed = TRUE, label = id)
   }
 })
@@ -176,7 +176,7 @@ test_that("the analysis list offers common starting points and labels what doesn
   # Status is a small label, not a run-on sentence; validated analyses have none.
   n_not <- sum(vapply(tree$endpoints[setdiff(names(tree$endpoints), tree$safety_net$endpoint)],
     function(ep) identical(ep$status, "not_in_powerkit") && is.null(ep$guide), logical(1)))
-  expect_equal(lengths(regmatches(html, gregexpr("known-badge-not\">Not in powerkit yet<", html, fixed = TRUE))), n_not)
+  expect_equal(lengths(regmatches(html, gregexpr("known-badge-not\">Not in Powerkit yet<", html, fixed = TRUE))), n_not)
   expect_no_match(html, "the card points to tools that do it", fixed = TRUE)
   # A live count, and a way back from no matches to the questions.
   expect_match(html, "id=\"known_count\"", fixed = TRUE)
@@ -235,10 +235,10 @@ test_that("the maintainer's view is asked for by the environment or the address"
 })
 
 test_that("deciding against the guided route hides it, with no code change", {
-  expect_match(as.character(start_ui(tree)), "Plan my whole study", fixed = TRUE)
+  expect_match(as.character(start_ui(tree)), "Plan a whole study", fixed = TRUE)
   t2 <- tree
   for (i in seq_along(t2$settings)) if (t2$settings[[i]]$key == "guided_route") t2$settings[[i]]$value <- "no"
-  expect_false(grepl("Plan my whole study", as.character(start_ui(t2)), fixed = TRUE))
+  expect_false(grepl("Plan a whole study", as.character(start_ui(t2)), fixed = TRUE))
 })
 
 test_that("the plan screen offers the experimental whole-study simulation only where it applies, and shows no numbers before any calculation", {
@@ -264,7 +264,7 @@ test_that("the plan screen offers the experimental whole-study simulation only w
   expect_match(html, "E16", fixed = TRUE)
 })
 
-test_that("the plan opens each analysis's input screen, where powerkit has one", {
+test_that("the plan opens each analysis's input screen, where Powerkit has one", {
   answers <- list(x = "cond2", outcome = "score", mediators = "one", moderator = "score", covariate = "baseline", times = "once")
   ticked <- c("compare", "moderation", "mediation")
   asks <- list(compare = "ANCOVA: the outcome adjusting for the baseline")
@@ -538,9 +538,9 @@ test_that("app.R parses (the other tests read it as text)", {
 test_that("each tab has its own address, so a page can be shared by link", {
   expect_identical(page_from_query("?page=labs"), labs_tab_title)
   expect_identical(page_from_query("?page=About"), "About")
-  expect_identical(page_from_query("?page=updates"), "Updates")
+  expect_identical(page_from_query("?page=updates"), "About")
   # Links from when the tab was called "What's new" still open it.
-  expect_identical(page_from_query("?page=whats-new"), "Updates")
+  expect_identical(page_from_query("?page=whats-new"), "About")
   expect_null(page_from_query(""))
   expect_null(page_from_query("?page=nowhere"))
   # The maintainer's tab only opens in the maintainer's view.
@@ -576,15 +576,15 @@ test_that("a link can open a card, not only a tab", {
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "card_from_query(isolate(session$clientData$url_search), tree)", fixed = TRUE)
   expect_match(code, "card = card_in_address(", fixed = TRUE)
-  expect_match(nav_js, "params.set('card', window.pkCard)", fixed = TRUE)
+  expect_match(share_link_js, "params.set('card', window.pkCard)", fixed = TRUE)
 })
 
 test_that("the top bar's share button copies a working link to the page", {
   # Inside Connect Cloud's frame the address bar can't show the page, so
   # the button builds the link from the public address.
   expect_match(as.character(share_page_ui()), public_address, fixed = TRUE)
-  expect_match(nav_js, "window.pkSharePage", fixed = TRUE)
-  expect_match(nav_js, "window.pkLabsTool", fixed = TRUE)
+  expect_match(share_link_js, "window.pkPageLink", fixed = TRUE)
+  expect_match(share_link_js, "window.pkLabsTool", fixed = TRUE)
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "share_page_ui())", fixed = TRUE)
   # Each shared page name is one the app opens.
@@ -680,7 +680,7 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   html <- as.character(card_ui(tree, "E2"))
   expect_match(html, "class=\"card-facts\"", fixed = TRUE)
   expect_match(html, "In a second or two", fixed = TRUE)
-  expect_match(html, "Checks recorded (details below)", fixed = TRUE)
+  expect_match(html, "Checks recorded: see \u201cMore about this analysis\u201d", fixed = TRUE)
   # Its other versions (rank test, Bayes factor) are gathered in one box.
   expect_match(html, "Other versions, chosen on the next screen", fixed = TRUE)
   expect_match(as.character(card_ui(tree, "E13")), "A preview here, then an R script", fixed = TRUE)
@@ -736,15 +736,15 @@ test_that("the Bayes factor page lists every design with a Bayes factor version,
     expect_true("bayes_factor" %in% names(f[[1]]$choices), label = d$id)
   }
   html <- as.character(card_ui(tree, "E-bayes"))
-  expect_no_match(html, "Not in powerkit yet.", fixed = TRUE)
+  expect_no_match(html, "Not in Powerkit yet.", fixed = TRUE)
   for (id in names(designs)) expect_match(html, sprintf("bayesform:%s(&#39;|')", id), label = id)
   expect_match(html, "go_labs_bayes", fixed = TRUE)
-  expect_match(html, sprintf("The %d designs powerkit plans with a Bayes factor", length(designs)), fixed = TRUE)
+  expect_match(html, sprintf("The %d designs Powerkit plans with a Bayes factor", length(designs)), fixed = TRUE)
   # In the list of analyses: no "not in powerkit" badge, and searching
   # "Bayes" finds the designs that have it.
   known <- as.character(known_ui(tree))
   item <- regmatches(known, regexpr('<button[^>]*data-ep="E-bayes"[^>]*>.*?</button>', known))
-  expect_no_match(item, "Not in powerkit yet", fixed = TRUE)
+  expect_no_match(item, "Not in Powerkit yet", fixed = TRUE)
   expect_match(known, 'data-search="[^"]* bayes [^"]*"[^>]*>\\s*<button[^>]*data-ep="E18"', perl = TRUE)
   # The app opens the screen with it chosen.
   app <- paste(readLines(test_path("..", "..", "app.R")), collapse = "\n")
