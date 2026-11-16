@@ -5,3 +5,8 @@
   About. Labs is renamed Tools, Updates moves into About, and the
   Feedback tab gives way to the top bar's Feedback button; the old
   ?page= addresses still work.
+* App only: one Share button in the top bar shares what is open (the
+  analysis with its result, the answers so far, the study plan, or the
+  page), replacing the separate "Copy a link" buttons. The result's ways
+  of coming back are together in "Keep this result"; the documents are
+  under "Write it up".

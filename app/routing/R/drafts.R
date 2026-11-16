@@ -181,7 +181,7 @@ guided_plan_save_ui <- function(k = 0, name = NULL) {
         if (k == 1) "1 analysis" else sprintf("%d analyses", k)))),
     if (!is.null(name)) p(class = "small mt-1", sprintf(
       "This plan is kept in your study plan “%s”, with each analysis you calculate from it. Save this plan saves the whole study plan as one file.", name)),
-    p(class = "text-muted small mt-1", "A file on your computer: open it later on the Study plans page, or on the start screen under “Open a saved file”, to carry on where you left off. Copy a link puts the same inside a link that opens it on any computer; powerkit stores nothing, so anyone with the link can open it."))
+    p(class = "text-muted small mt-1", "A file on your computer: open it later on the Study plans page, or on the start screen under “Open a saved file”, to carry on where you left off. Share, at the top, puts the same inside a link that opens it on any computer."))
 }
 
 # A whole-study specification downloaded from the simulation's result is

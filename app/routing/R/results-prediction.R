@@ -180,7 +180,7 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
   hero <- tryCatch(prediction_hero_ui(spec, result), error = function(e) NULL)
   div(
     class = "result-panel", role = "status", tabindex = "-1",
-    result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")),
+    result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up", `result-how-card` = "How it was calculated")),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
       h3(class = "h4", id = "result-heading", tabindex = "-1", `data-result-focus` = "true", "Your result"),
       hero,
@@ -196,7 +196,7 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(calc$notes, tags$li))),
       keep_result_ui(can_export, plan = TRUE, kept = isTRUE(calc$saved) && !isTRUE(calc$from_browser))),
     div(class = "result-card result-save", id = "result-take",
-      h4(class = "h5", "Write it up and save it"),
+      h4(class = "h5", "Write it up"),
       writeup_ui(prediction_writeup(forms$forms[[ep_id]], spec, result, fields, values, departures)),
       if (blank(values$just_source)) p(class = "export-needs-reasoning",
         tags$strong("No reason for the model's anticipated performance is recorded yet. "),

@@ -576,15 +576,15 @@ test_that("a link can open a card, not only a tab", {
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "card_from_query(isolate(session$clientData$url_search), tree)", fixed = TRUE)
   expect_match(code, "card = card_in_address(", fixed = TRUE)
-  expect_match(nav_js, "params.set('card', window.pkCard)", fixed = TRUE)
+  expect_match(share_link_js, "params.set('card', window.pkCard)", fixed = TRUE)
 })
 
 test_that("the top bar's share button copies a working link to the page", {
   # Inside Connect Cloud's frame the address bar can't show the page, so
   # the button builds the link from the public address.
   expect_match(as.character(share_page_ui()), public_address, fixed = TRUE)
-  expect_match(nav_js, "window.pkSharePage", fixed = TRUE)
-  expect_match(nav_js, "window.pkLabsTool", fixed = TRUE)
+  expect_match(share_link_js, "window.pkPageLink", fixed = TRUE)
+  expect_match(share_link_js, "window.pkLabsTool", fixed = TRUE)
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "share_page_ui())", fixed = TRUE)
   # Each shared page name is one the app opens.

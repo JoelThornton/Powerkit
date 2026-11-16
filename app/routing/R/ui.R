@@ -307,20 +307,13 @@ name_swap <- function(plain, technical) {
   tagList(tags$span(class = "name-plain", plain), tags$span(class = "name-tech", technical))
 }
 
-share_page_ui <- function() {
-  div(class = "share-page",
-    tags$span(class = "share-page-status", role = "status", `aria-live` = "polite"),
-    tags$button(type = "button", class = "btn btn-sm share-page-btn", onclick = "pkSharePage(this)",
-      `data-public` = public_address, title = "Copies a link to this page or Labs tool. To share your answers and results, use Copy a link beside Save project.", "Copy page link"))
-}
-
 # Each history entry carries its page in the address (?page=...); a link
 # with ?page= opens that page.
 nav_js <- "
   Shiny.addCustomMessageHandler('calculation_current', function(current) {
     // Once the result matches the answers, saving the project keeps more
-    // than a draft would, so the draft row (with its own Copy a link) goes:
-    // one Save and one Copy a link on the page, not two of each.
+    // than a draft would, so the draft row goes and Share shares the
+    // analysis: one Save on the page, not two.
     document.querySelectorAll('.form-draft-save').forEach(function(el) { el.hidden = !!current; });
     $(document).trigger('pk:calculation-current', [!!current]);
     document.querySelectorAll('#download_project, #share_project, #download_planning_document, #download_planning_docx, #planning_document_button, #planning_document_formats, #plan_add').forEach(function(el) {
@@ -390,21 +383,6 @@ nav_js <- "
   window.addEventListener('popstate', function(e) {
     if (e.state && e.state.pk) Shiny.setInputValue('pk_nav_to', e.state.pk, { priority: 'event' });
   });
-  // Copy a link to the page: the public address inside Connect Cloud's
-  // frame, else this address (without the maintainer's view).
-  window.pkSharePage = function(btn) {
-    var framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
-    var base = framed ? btn.getAttribute('data-public') + '/' : window.location.origin + window.location.pathname;
-    var page = window.pkPage || 'plan';
-    var params = new URLSearchParams();
-    if (page !== 'plan') params.set('page', page);
-    if (page === 'labs' && window.pkLabsTool) params.set('tool', window.pkLabsTool);
-    if (page === 'plan' && window.pkCard) params.set('card', window.pkCard);
-    var link = base + (params.toString() ? '?' + params.toString() : '');
-    var status = btn.parentNode.querySelector('.share-page-status');
-    pkCopyText(link, null);
-    if (status) { status.textContent = 'Page link copied'; setTimeout(function() { status.textContent = ''; }, 3000); }
-  };
 "
 
 # Start screen ---------------------------------------------------------------

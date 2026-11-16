@@ -357,14 +357,14 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     action_bar(
       tags$button(type = "button", id = "form_needed", class = "btn btn-link form-needed", hidden = NA,
         `aria-live` = "polite", onclick = "pkGoToNeeded()"),
-      actionButton("form_copy", "Copy my answers", class = "btn btn-outline-primary"),
+      actionButton("form_copy", "Copy answers as text", class = "btn btn-outline-primary"),
       actionButton("form_check", "Calculate", class = "btn btn-primary")
     ),
     # Saving a draft is a secondary action, so it sits after the fields
     # rather than above them.
     div(class = "form-draft-save mt-3", download_button("download_draft", "Save answers so far", class = "btn btn-outline-secondary"),
-      share_link_ui("draft", class = "btn btn-outline-secondary"),
-      p(class = "hint", "Saves your answers so far to a file you can reopen from the start screen, or copies a link that opens them on any computer.")),
+      share_link_ui("draft"),
+      p(class = "hint", "Saves your answers so far to a file you can reopen from the start screen. Share, at the top, puts them in a link instead.")),
     div(id = "copy-status", class = "visually-hidden", `aria-live` = "polite"),
     uiOutput("form_copy_text"),
     uiOutput("form_result")

@@ -2183,7 +2183,7 @@ technical_details_ui <- function(result) {
   tags$details(class = "result-more result-technical",
     tags$summary("Technical details (for checking against G*Power or R)"),
     tags$ul(lapply(Filter(Negate(is.null), lines), tags$li)),
-    p(class = "small", "The R script (under \u201cWrite it up and save it\u201d) reproduces the whole calculation with the package alone."))
+    p(class = "small", "The R script (under \u201cWrite it up\u201d) reproduces the whole calculation with the package alone."))
 }
 
 # The n the result is about: the required n, or the goal's n.
@@ -3024,7 +3024,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
     `result-bayes` = if (!is.null(bayes_card)) "If it isn't significant",
     `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
-    `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")
+    `result-take` = "Write it up", `result-how-card` = "How it was calculated")
   div(
     class = "result-panel", role = "status", tabindex = "-1",
     result_sections_ui(as.list(sections[!is.na(sections)])),
@@ -3083,7 +3083,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     bayes_card,
     sequential_card,
     div(class = "result-card result-save", id = "result-take",
-    h4(class = "h5", "Write it up and save it"),
+    h4(class = "h5", "Write it up"),
     writeup_ui(writeup_text(forms$forms[[ep_id]], spec, result, fields, values, departures,
       vapply(known_difference_keys(forms, ep_id, spec), function(k) forms$known_differences_methods[[k]], character(1)), known)),
     if (blank(values$just_source)) p(class = "export-needs-reasoning",
@@ -3961,7 +3961,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
   # downloads, then how it was calculated.
   div(
     class = "result-panel", role = "status", tabindex = "-1",
-    result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")),
+    result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up", `result-how-card` = "How it was calculated")),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
       h3(class = "h4", id = "result-heading", tabindex = "-1", `data-result-focus` = "true", "Your result"),
       simulation_failures_ui(result),
@@ -3978,7 +3978,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(calc$notes, tags$li))),
       keep_result_ui(can_export, plan = !is.na(result$precision$target_width), kept = isTRUE(calc$saved) && !isTRUE(calc$from_browser))),
     div(class = "result-card result-save", id = "result-take",
-      h4(class = "h5", "Write it up and save it"),
+      h4(class = "h5", "Write it up"),
       writeup_ui(precision_writeup(forms$forms[[ep_id]], spec, result, fields, values, departures)),
       if (blank(values$just_source)) p(class = "export-needs-reasoning",
         tags$strong("No reason for the effect size is recorded yet. "),
@@ -4168,7 +4168,7 @@ bayes_companion_writeup_ui <- function(text) {
     tags$span(class = "writeup-copied small visually-hidden", role = "status"))
   div(class = "result-writeup result-bayes-writeup mt-3",
     h5(class = "h6", "Write-up for both"),
-    p(class = "small", "The methods paragraph with the Bayes factor added as a secondary analysis. Use it instead of the one under \u201cWrite it up and save it\u201d if you will report both."),
+    p(class = "small", "The methods paragraph with the Bayes factor added as a secondary analysis. Use it instead of the one under \u201cWrite it up\u201d if you will report both."),
     div(class = "writeup-head", tags$label(`for` = "writeup_both_short", "Short version (for the paper)"), copy("writeup_both_short")),
     tags$textarea(id = "writeup_both_short", class = "form-control writeup", rows = 8, text[["short"]]),
     tags$details(class = "result-more",

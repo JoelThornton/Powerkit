@@ -102,7 +102,7 @@ project_opened_ui <- function(project, shown = FALSE, from_browser = FALSE) {
   div(
     class = "alert alert-info", role = "status",
     if (from_browser) tagList(tags$strong("Your last result is back."),
-      " It was kept in this browser only: save the analysis file or copy a link to keep it.")
+      " It was kept in this browser only: save the analysis file, or share it as a link, to keep it.")
     else tagList(tags$strong("Project opened."),
       sprintf(" Saved %s with powerkit %s.", project$saved, project$powerkit_version)),
     if (shown) {

@@ -1,4 +1,4 @@
-# "Keep this result" and "Documents for your study" (R/keep-result.R).
+# "Keep this result" and "Documents to download" (R/keep-result.R).
 
 test_that("the box under the answer holds the three ways to come back", {
   html <- as.character(keep_result_ui(TRUE))
@@ -7,6 +7,11 @@ test_that("the box under the answer holds the three ways to come back", {
   expect_match(html, "Save analysis", fixed = TRUE)
   expect_match(html, 'id="share_project"', fixed = TRUE)
   expect_match(html, 'id="study_plan_bar"', fixed = TRUE)
+  # Add to my study plan comes first; Save analysis is then secondary
+  # (layout review, 16 November 2026).
+  expect_lt(regexpr("study_plan_bar", html, fixed = TRUE), regexpr("download_project", html, fixed = TRUE))
+  save <- regmatches(html, regexpr("<a[^>]*id=\"download_project\"[^>]*>", html))
+  expect_match(save, "btn-outline-primary", fixed = TRUE)
   expect_match(html, 'data-kept="no"', fixed = TRUE)
   expect_match(html, "Not saved yet", fixed = TRUE)
   expect_null(keep_result_ui(FALSE))
@@ -16,10 +21,10 @@ test_that("the box under the answer holds the three ways to come back", {
   expect_match(reopened, "Opened from a saved file", fixed = TRUE)
 })
 
-test_that("the documents say they don't reopen, and the project file moved out of them", {
+test_that("the documents are only for downloading, and the analysis file moved out of them", {
   html <- as.character(documents_ui(TRUE, "pwrss", span("menu")))
-  expect_match(html, "Documents for your study", fixed = TRUE)
-  expect_match(html, "These don't reopen in powerkit", fixed = TRUE)
+  expect_match(html, "Documents to download", fixed = TRUE)
+  expect_no_match(html, "don't reopen", fixed = TRUE)
   expect_match(html, 'id="download_bundle"', fixed = TRUE)
   expect_match(html, 'id="download_script"', fixed = TRUE)
   expect_false(grepl("download_project", html, fixed = TRUE))

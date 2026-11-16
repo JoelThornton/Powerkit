@@ -386,7 +386,6 @@ app_css <- "
   .share-page-btn:hover, .share-page-btn:focus { color: var(--pk-navy); background: #fff; }
   /* A visible focus ring on the top bar's buttons (design review D-29). */
   .share-page-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px var(--pk-blue); }
-  .share-page-status { font-size: 0.85rem; color: #fff; }
   .brand { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: #fff; display: flex; align-items: center; gap: 0.6rem; }
   .brand .badge-proto { text-transform: none; letter-spacing: 0; font-size: 0.75rem; }
   .prototype-banner { font-size: 0.95rem; color: #44505e; background: #fff6e5; border-left: 4px solid var(--pk-amber); border-radius: 8px; padding: 0.6rem 0.9rem; margin: 0 0 1rem 0; }

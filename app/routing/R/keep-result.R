@@ -6,14 +6,15 @@
 # planning PDF, think the work was saved, and lose it. The screen now
 # separates the two jobs:
 #
-# * "Keep this result", right under the answer: Save project file, Copy a
-#   link and Add to my study plan, the three ways to come back to it, with
-#   a line that says whether the result has been kept yet.
-# * "Documents for your study", in "Write it up and save it": the
-#   planning document, the R script, citations and "Download everything
-#   (.zip)", said plainly not to reopen in powerkit. The zip holds the
-#   project file too, and "Open a saved or shared project" opens the zip
-#   itself (zip_project_file()).
+# * "Keep this result", right under the answer: Add to my study plan
+#   (first), Save analysis, and the top bar's Share, the ways to come back
+#   to it, with a line that says whether the result has been kept yet.
+# * "Documents to download", in "Write it up": the report, the R script,
+#   citations and "Download everything (.zip)". The zip holds the analysis
+#   file too, and "Open a saved file" opens the zip itself
+#   (zip_project_file()). Since 16 November 2026 every way to come back
+#   is in "Keep this result", so the documents need no note saying they
+#   don't reopen.
 #
 # Two safety nets: the last current result is kept in this browser
 # (localStorage, as unfinished answers already are) so a closed tab can
@@ -32,24 +33,23 @@ keep_result_ui <- function(can_export, plan = TRUE, kept = FALSE) {
       tags$span(id = "keep-status", class = "keep-status", role = "status", `aria-live` = "polite",
         `data-kept` = if (kept) "yes" else "no", if (kept) "Opened from a saved file" else "Not saved yet")),
     div(class = "keep-result-actions",
-      download_button("download_project", "Save analysis", class = "btn btn-primary"),
-      share_link_ui("project"),
-      if (plan) uiOutput("study_plan_bar", inline = TRUE)),
-    p(class = "small mb-0", "Opens again in powerkit with your answers and result. An analysis file holds this one analysis; a study plan keeps several analyses of one study together. The documents further down are for reading, running and citing; they don't reopen here."))
+      if (plan) uiOutput("study_plan_bar", inline = TRUE),
+      download_button("download_project", "Save analysis", class = if (plan) "btn btn-outline-primary" else "btn btn-primary"),
+      share_link_ui("project")),
+    p(class = "small mb-0", "A study plan keeps several analyses of one study together; an analysis file holds this one. Both open again in Powerkit with your answers and result. Share, at the top, puts this analysis in a link."))
 }
 
-# The documents, in "Write it up and save it".
+# The documents, in "Write it up".
 documents_ui <- function(can_export, backend, planning_menu) {
   tagList(
-    h4(class = "h6 mt-3", "Documents for your study"),
-    p(class = "small", "These don't reopen in powerkit. To come back to this result, use “Keep this result” under the answer, or download everything: the zip holds the analysis file too."),
+    h4(class = "h6 mt-3", "Documents to download"),
     div(class = "nav-buttons result-downloads",
       if (can_export) planning_menu,
       if (can_export) download_button("download_script", "R script", class = "btn btn-outline-primary"),
       download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
       if (can_export) download_button("download_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
     tags$ul(class = "result-downloads-notes small",
-      if (can_export) tags$li(tags$strong("Report: "), "the plan, its reasoning and the methods paragraph, for an ethics application, a preregistration or a supervisor."),
+      if (can_export) tags$li(tags$strong("Report: "), "the reasoning, the methods paragraph and the result, for an ethics application, a preregistration or a supervisor."),
       if (can_export) tags$li(tags$strong("R script: "), "reproduces this result with ", backend, " alone; powerkit isn't needed."),
       tags$li(tags$strong("Citations: "), "the package's own citation(), its method paper and the software used."),
       if (can_export) tags$li(tags$strong("Download everything: "), "all of these with the analysis file and, where there is one, the simulated data set, in one zip. Open the zip itself from the start screen to carry on.")))

@@ -196,7 +196,7 @@ study_plan_bar_ui <- function(plans, current, hash, origin = NULL, from_guided =
   ids <- names(plans)
   ordered <- c(intersect(current, ids), setdiff(ids, current))
   div(class = "study-plan-bar nav-buttons mt-2",
-    actionButton("plan_add", "Add this to my study plan", class = "btn btn-outline-primary"),
+    actionButton("plan_add", "Add this to my study plan", class = "btn btn-primary"),
     if (length(ids) >= 2) span(class = "plan-target",
       tags$label(`for` = "plan_target", class = "small", "Add to"),
       tags$select(id = "plan_target", class = "form-select form-select-sm",
@@ -277,7 +277,7 @@ plan_guided_ui <- function(record) {
   summary <- record$plan$ws_result
   ticked <- length(unlist(record$plan$ticked))
   div(class = "plan-guided result-card",
-    h3(class = "h5", "Study plan"),
+    h3(class = "h5", "The study's variables and analyses"),
     p(sprintf("Made with “Plan a whole study”: %s chosen, with the values you entered for each.",
       if (ticked == 1) "1 analysis" else sprintf("%d analyses", ticked))),
     if (is.list(summary)) p(class = "plan-guided-result", tags$strong("Last whole-study simulation: "), whole_study_summary_text(summary))
@@ -348,7 +348,7 @@ plan_page_ui <- function(plan, plans_n = 1L) {
       if (!plan_is_replication(plan)) actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
       if (saveable) share_link_ui("study_plan"),
       if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
-    if (saveable) p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it. Download everything adds a report for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
+    if (saveable) p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top, puts the same inside a link. Download everything adds a report for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
     p(class = "small plan-delete",
       plan_delete_button(plan, input = "plan_delete", class = "btn btn-link btn-sm p-0", label = "Delete this plan"))
   )
