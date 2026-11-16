@@ -210,7 +210,7 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         "powerkit built the call from your answers and checked the values it passes. Cite the package and the method paper: see Citations above."),
       validation_ui(ep, result),
       if (length(departures)) tagList(
-        h4(class = "h6", "Where powerkit differs from the tool's defaults"),
+        h4(class = "h6", "Where powerkit differs from other tools' defaults"),
         tags$ul(class = "result-departures", lapply(unname(departures), tags$li))),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),

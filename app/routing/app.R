@@ -798,6 +798,53 @@ app_css <- "
   }
   @media print { .topbar, .screen-nav, .action-bar, .saved-projects { display: none !important; } }
   @media print { header, .nav-tabs, .nav-buttons, .labs-sde summary + p, .labs-notice { display: none !important; } }
+  /* One look for the same control on every screen (design review, 16
+     November 2026). Buttons, text boxes, menus and file pickers outside
+     the input form kept Bootstrap's square corners and dark grey borders
+     beside the form's rounded ones; the Labs sliders kept the default
+     light blue; and a fold whose summary is laid out with flex lost its
+     arrow, so it read as a line of blue text rather than something that
+     opens. */
+  .btn { --bs-btn-border-radius: 10px; }
+  .btn-sm, .btn-group-sm > .btn { --bs-btn-border-radius: 8px; }
+  .btn-outline-secondary { --bs-btn-color: var(--pk-navy); --bs-btn-border-color: #8794a6; --bs-btn-hover-bg: var(--pk-navy); --bs-btn-hover-border-color: var(--pk-navy);
+    --bs-btn-active-bg: var(--pk-navy); --bs-btn-active-border-color: var(--pk-navy); background: #fff; }
+  .btn-outline-secondary:hover, .btn-outline-secondary:active { background: var(--pk-navy); }
+  .app-main .form-control, .app-main .form-select { border-radius: 10px; border-color: #c6cfdb; }
+  .app-main .form-control:focus, .app-main .form-select:focus { border-color: var(--pk-blue); box-shadow: 0 0 0 0.2rem rgba(10,90,140,.18); }
+  .app-main .input-group > .form-control:not(:first-child) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+  .app-main .input-group .btn-file, .app-main .input-group > .input-group-btn > .btn, .app-main .input-group > .input-group-prepend > .btn, .app-main .input-group > label.btn {
+    border-radius: 10px 0 0 10px; border-color: #c6cfdb; background: #fff; color: var(--pk-navy); }
+  .app-main .input-group .btn-file:hover { background: #eef4fb; color: var(--pk-navy); }
+  .app-main [aria-invalid='true'] { border-color: #a12a2a !important; }
+  .irs--shiny .irs-bar { background: var(--pk-blue); border-top-color: var(--pk-blue); border-bottom-color: var(--pk-blue); }
+  .irs--shiny .irs-single, .irs--shiny .irs-from, .irs--shiny .irs-to { background: var(--pk-blue); }
+  .irs--shiny .irs-handle { background: var(--pk-blue); border-color: var(--pk-blue); box-shadow: 0 1px 3px rgba(20,40,75,.3); }
+  .irs--shiny .irs-handle:hover, .irs--shiny .irs-handle.state_hover, .irs--shiny .irs-handle:active { background: #084a73; }
+  .irs--shiny .irs-min, .irs--shiny .irs-max { background: #e9eef4; color: #44505e; }
+  .result-more > summary, .result-validation > summary, .card-more > summary, .mismatch summary, .capabilities-fold > summary { list-style: none; }
+  .result-more > summary::-webkit-details-marker, .result-validation > summary::-webkit-details-marker, .card-more > summary::-webkit-details-marker,
+  .mismatch summary::-webkit-details-marker, .capabilities-fold > summary::-webkit-details-marker { display: none; }
+  .result-more > summary::before, .result-validation > summary::before, .card-more > summary::before, .mismatch summary::before, .capabilities-fold > summary::before {
+    content: ''; flex: none; display: inline-block; width: 0.45rem; height: 0.45rem; margin: 0 0.6rem 0 0.15rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg); transition: transform .15s ease; vertical-align: 0.1em; }
+  .result-more[open] > summary::before, .result-validation[open] > summary::before, .card-more[open] > summary::before, .mismatch details[open] > summary::before,
+  details.mismatch[open] > summary::before, .capabilities-fold[open] > summary::before { transform: rotate(45deg); }
+  @media (prefers-reduced-motion: reduce) { .result-more > summary::before, .result-validation > summary::before, .card-more > summary::before { transition: none; } }
+  /* Text links that are buttons start at the column's edge, like the text around them. */
+  .start-more .start-more-link { border: 0; }
+  .known-open-all { padding-left: 0; padding-right: 0; }
+  /* A fold's one line sits in the middle of its box. */
+  .form-settings > summary, .form-guess > summary { padding: 0.6rem 0; min-height: 44px; }
+  .form-settings, .form-guess { padding-top: 0.15rem; padding-bottom: 0.15rem; }
+  .form-settings[open], .form-guess[open] { padding-bottom: 0.75rem; }
+  .form-draft-save { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+  .form-draft-save[hidden] { display: none; }
+  .form-draft-save > p, .form-draft-save > .small, .form-draft-save > div:not(.share-link) { flex: 1 0 100%; margin: 0; }
+  .result-card p + h4.h6, .result-card ul + h4.h6 { margin-top: 1rem; }
+  .labs-moved { color: #44505e; }
+  @media (max-width: 575px) { .keep-result-actions > *, .keep-result-actions .btn { width: 100%; }
+    .keep-result-actions .study-plan-bar { display: block; } }
 "
 
 # After each screen change, move keyboard and screen-reader focus to the new
