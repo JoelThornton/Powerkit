@@ -39,7 +39,7 @@
     "app/routing/R/study-variation.R": "c85f34b82772432f3cddeedd691af73d",
     "app/routing/R/table-grid.R": "1cc7bd9e70c800f25c56d37cb3612b8a",
     "app/routing/R/tree.R": "01a79d77829f35de16f493fbcd58df7c",
-    "app/routing/R/ui.R": "60a5df153b762d353f430c7239dc5060",
+    "app/routing/R/ui.R": "cf20f979d1ff88ee26a5aea55e77649b",
     "app/routing/R/whole-study.R": "a9f6bf17f671fbecc3dcef692f13f466"
   },
   "evidence_registry": "engine/inst/evidence/records.json",
