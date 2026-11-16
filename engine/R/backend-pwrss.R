@@ -94,10 +94,11 @@ pwrss_backend <- function(spec, seed = NULL) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    # Multiple regression: the smallest partial R-squared pwrss's F test
-    # detects at n (6 November 2026), so no effect size is needed.
-    sensitivity = if (spec$template %in% c("r2_zero", "r2_increase", "single_coefficient")) {
-      function(n, power) regression_sensitivity(spec, n, power)
+    # The smallest detectable effect: pwrss's own power searched over the
+    # effect at n (sensitivity-pwrss.R; regression since 6 November 2026,
+    # the other formula tests since 16 November 2026).
+    sensitivity = if (pwrss_search_available(spec)) {
+      function(n, power) pwrss_sensitivity(spec, n, power)
     } else if (identical(spec$template, "independent_t")) {
       function(n, power) welch_sensitivity(spec, n, power)
     },
@@ -207,46 +208,12 @@ pwrss_alternative <- function(spec) {
   if (identical(spec$target_test$alternative %||% "two_sided", "two_sided")) "two.sided" else "one.sided"
 }
 
-# Partial R-squared of the tested set: R-squared change over what the
-# reduced model leaves unexplained, (R2_full - R2_reduced) / (1 - R2_reduced).
-# pwrss's power.f.regression() turns its r.squared.change into Cohen's f^2
-# as r / (1 - r), so passing the partial R-squared gives
-# f^2 = (R2_full - R2_reduced) / (1 - R2_full), Cohen's (1988) f^2 for an
-# R-squared increase. For R-squared against 0 it is R-squared itself.
-# The smallest partial R-squared that pwrss's power.f.regression() detects
-# with the target power at n: its own power, searched over the partial
-# R-squared (no new formula). For R-squared against 0 that is the model's
-# R-squared; for an increase, the increase over 1 minus the reduced model's
-# R-squared; for one coefficient, the predictor's partial R-squared.
-regression_sensitivity <- function(spec, n, target) {
-  at <- function(p) {
-    s <- spec
-    if (spec$template == "r2_zero") s$population$r2 <- p
-    if (spec$template == "single_coefficient") s$population$partial_r2 <- p
-    if (spec$template == "r2_increase") {
-      reduced <- s$population$r2_reduced %||% 0
-      s$population$r2_full <- reduced + p * (1 - reduced)
-    }
-    pwrss_power(pwrss_inputs(s), n)
-  }
-  if (at(0.99) < target) abort_run("No partial R-squared below 0.99 reaches the target power at this n.")
-  p <- stats::uniroot(function(x) at(x) - target, lower = 1e-8, upper = 0.99, tol = 1e-10)$root
-  what <- switch(spec$template,
-    r2_zero = "R-squared of the predictors together",
-    r2_increase = "partial R-squared of the predictors you are testing (their R-squared increase over 1 minus the R-squared without them)",
-    single_coefficient = sprintf("partial R-squared of %s, controlling for the other predictors", spec$variables$X$label %||% "the predictor"))
-  list(effect = p, effect_name = if (spec$template == "r2_zero") "r2" else "partial_r2",
-    effect_description = sprintf("the %s; Cohen's f-squared = %s", what, format(signif(p / (1 - p), 3))),
-    power = at(p))
-}
-
 # Welch's t-test: the smallest standardised mean difference (in the
 # spec's units, the root mean square of the two SDs when they differ) at
 # which pwrss's power.t.welch() reaches the target power at n, with the
-# spread ratio and allocation kept: its own power, searched over d as
-# regression_sensitivity() searches R-squared (no new formula). The sign
-# is the specified effect's (positive if none was given), or the
-# one-sided test's direction.
+# spread ratio and allocation kept: its own power, searched over d (no new
+# formula). The sign is the specified effect's (positive if none was
+# given), or the one-sided test's direction.
 welch_sensitivity <- function(spec, n, target) {
   alternative <- spec$target_test$alternative %||% "two_sided"
   negative <- identical(alternative, "less") ||
@@ -268,6 +235,12 @@ welch_sensitivity <- function(spec, n, target) {
   list(effect = sign * d, effect_name = "d", effect_description = description, power = at(d))
 }
 
+# Partial R-squared of the tested set: R-squared change over what the
+# reduced model leaves unexplained, (R2_full - R2_reduced) / (1 - R2_reduced).
+# pwrss's power.f.regression() turns its r.squared.change into Cohen's f^2
+# as r / (1 - r), so passing the partial R-squared gives
+# f^2 = (R2_full - R2_reduced) / (1 - R2_full), Cohen's (1988) f^2 for an
+# R-squared increase. For R-squared against 0 it is R-squared itself.
 partial_r_squared <- function(spec) {
   pop <- spec$population
   if (spec$template == "r2_zero") {
