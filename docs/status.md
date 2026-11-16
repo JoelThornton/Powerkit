@@ -26,6 +26,18 @@ pre-selected for counts (E75, E32), the whole-study step bar, the
 reliability-left-empty wording on the moderation cards, and the smaller
 items listed as later in the reviews.
 
+The app's layout and names were made consistent the same day, from the
+16 November layout review: one name for each thing that is saved
+(analysis, analysis file, study plan, replication plan, report); a top
+row of Power and sample size, Study plans (with its count and unsaved
+dot), Tools (formerly Labs, without "experimental") and About, which now
+holds the Updates; one Share button that shares what is open; every way
+of keeping a result in "Keep this result"; "Replicate a published
+finding" starting a replication plan; a route line on the whole-study
+screens; and "Powerkit" spelled the same in the app's sentences. Old
+saved files and ?page= addresses still open as before
+(`saving-projects.md`, "Names used in the app").
+
 JASP's analyses were reviewed against powerkit's cards (13 November
 2026; `coverage-roadmap.md`, "JASP's analyses"). Those powerkit already
 plans under other names (CFA, MIMIC, latent growth, mixed models, the
