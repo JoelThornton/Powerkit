@@ -222,7 +222,27 @@ feedback_preview_ui <- function(subject, text) {
 feedback_js <- "
   Shiny.addCustomMessageHandler('fb_status', function(text) {
     var status = document.getElementById('fb-status');
-    if (status) status.textContent = text;
+    if (status) { status.classList.remove('fb-sent'); status.textContent = text; }
+  });
+  // After a message is stored: Send becomes Sent, and a panel confirms it,
+  // until the message is changed.
+  Shiny.addCustomMessageHandler('fb_sent', function(text) {
+    var status = document.getElementById('fb-status');
+    var button = document.getElementById('fb_send');
+    if (status) {
+      status.classList.add('fb-sent');
+      status.innerHTML = '';
+      var strong = document.createElement('strong'); strong.textContent = 'Sent. ';
+      status.appendChild(strong); status.appendChild(document.createTextNode(text + ' Write another message to send more.'));
+    }
+    if (button) { button.textContent = 'Sent \\u2713'; button.disabled = true; }
+  });
+  document.addEventListener('input', function(e) {
+    if (!e.target || e.target.id !== 'fb_message') return;
+    var button = document.getElementById('fb_send');
+    if (button && button.disabled) { button.textContent = 'Send'; button.disabled = false; }
+    var status = document.getElementById('fb-status');
+    if (status && status.classList.contains('fb-sent')) { status.classList.remove('fb-sent'); status.textContent = ''; }
   });
   window.pkSendFeedback = function(how) {
     var status = document.getElementById('fb-status');

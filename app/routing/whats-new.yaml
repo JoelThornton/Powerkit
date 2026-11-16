@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-16"
+    title: "Plan a replication from Tools, and see every analysis on About"
+    text: "Tools has a Replication planner again, first under For planning; it starts a replication plan. On About, \"What it can plan\" opens the coloured list of every analysis Powerkit calculates, and the capability table now has one row per analysis with the tests it offers. Searching it for a test such as ANOVA lists those analyses first, and the full table downloads as a spreadsheet. After you send feedback, the button says Sent and a green box confirms it."
+  - date: "2026-11-16"
     title: "Installing Powerkit on your own computer needs no extra tools"
     text: "On a Mac or Windows computer, the one-line install no longer stops asking for Xcode, gfortran or Rtools when a package Powerkit uses has had a newer release. It downloads the ready-made version Powerkit records instead, so the same versions are installed as before."
   - date: "2026-11-16"

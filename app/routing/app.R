@@ -266,6 +266,7 @@ app_css <- "
   .mismatch summary { color: #0a5a8c; text-decoration: underline; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
   .mismatch-text { font-size: 0.85rem; font-family: monospace; }
   .copy-status { margin-top: 0.5rem; font-size: 0.9rem; }
+  .copy-status.fb-sent { background: #e8f5ee; border: 1px solid #1f8a5b; border-left-width: 4px; border-radius: var(--pk-radius); padding: 0.75rem 1rem; color: #14502f; font-size: 1rem; }
   .about { max-width: 46rem; }
   /* Every tab uses the same column as the tab bar; long text keeps a readable line length. */
   .about-page, .whats-new-page { max-width: none; }
@@ -289,6 +290,26 @@ app_css <- "
   .about-steps li span { color: #44505e; font-size: 0.95rem; }
   .about-note, .about-small { color: #44505e; font-size: 0.92rem; }
   .about-start { min-height: 44px; }
+  .about-key { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin: 0.5rem 0 1rem; font-size: 0.88rem; color: #44505e; }
+  .about-key-item::before { content: ''; display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; margin-right: 0.35rem; vertical-align: -1px; }
+  .how-now.about-key-item::before { background: #1f8a5b; } .how-background.about-key-item::before { background: var(--pk-blue); }
+  .how-full.about-key-item::before { background: #7b4fb3; } .how-script.about-key-item::before { background: var(--pk-amber); }
+  .about-families { columns: 3 17rem; column-gap: 0.75rem; }
+  .about-family { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 0.8rem 0.9rem; break-inside: avoid; display: inline-block; width: 100%; margin-bottom: 0.75rem; }
+  .about-family-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .about-family-head h4 { margin: 0; font-size: 0.95rem; }
+  .about-family-count { color: #6b7684; font-size: 0.8rem; white-space: nowrap; }
+  .about-ep-list { display: flex; flex-direction: column; gap: 0.3rem; }
+  .about-ep { text-align: left; background: var(--pk-bg); border: 1px solid transparent; border-left: 4px solid #1f8a5b; border-radius: 8px; padding: 0.3rem 0.55rem;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.4rem; color: var(--pk-navy); font-size: 0.88rem; min-height: 40px; line-height: 1.3; }
+  .about-ep:hover, .about-ep:focus { border-color: var(--pk-blue); background: #fff; }
+  .about-ep.how-background { border-left-color: var(--pk-blue); } .about-ep.how-full { border-left-color: #7b4fb3; } .about-ep.how-script { border-left-color: var(--pk-amber); }
+  .about-ep-name { font-weight: 600; flex: 1 1 100%; }
+  .about-ep-doc { color: #5d6875; font-size: 0.82rem; }
+  .about-ep-tag { font-size: 0.75rem; color: #44505e; background: #fff; border: 1px solid var(--pk-line); border-radius: 999px; padding: 0 0.45rem; }
+  .about-plans-fold > summary { color: var(--pk-blue); font-weight: 600; cursor: pointer; margin: 0.25rem 0 0.75rem; }
+  .about-family-head { margin-bottom: 0.5rem; }
+  @media (max-width: 767px) { .about-families { columns: 1; } }
   .about-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
   .about-card { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.1rem; box-shadow: var(--pk-shadow); }
   .about-card p:last-child, .about-card ul:last-child { margin-bottom: 0; }
@@ -1958,8 +1979,8 @@ server <- function(input, output, session) {
     }
   )
   output$download_capabilities <- downloadHandler(
-    filename = function() "powerkit-current-capabilities.csv",
-    content = function(file) utils::write.csv(capability_rows(tree, forms), file, row.names = FALSE, na = ""))
+    filename = function() "powerkit-capabilities.csv",
+    content = function(file) capability_table_csv(tree, forms, file))
 
   output$download_citations <- downloadHandler(
     filename = function() sprintf("powerkit-%s-citations.txt", state$endpoint),
@@ -2926,8 +2947,12 @@ server <- function(input, output, session) {
     if (identical(result, "ok")) {
       feedback_sent <<- feedback_sent + 1L
       updateTextAreaInput(session, "fb_message", value = "")
+      # A clear confirmation: the button says Sent until the message is
+      # changed, and a panel says it arrived (the small line was missed).
+      session$sendCustomMessage("fb_sent", feedback_result_message(result))
+    } else {
+      session$sendCustomMessage("fb_status", feedback_result_message(result))
     }
-    session$sendCustomMessage("fb_status", feedback_result_message(result))
   })
   # The four steps, apart from the screen itself, so that showing a result
   # never redraws the form.
