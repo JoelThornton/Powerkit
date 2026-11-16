@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-16"
+    title: "The smallest effect you could detect, on more analyses"
+    text: "If your sample size is fixed, you can now ask for the smallest effect it could detect on multiple regression (at one sample size, as well as across a range), logistic and count (Poisson) regression, one proportion, McNemar's test, two independent correlations, the goodness-of-fit test, planned contrasts and ANCOVA. The ANOVAs and moderated regression can now also find it when you give partial eta-squared or the R-squared change. Where the effect can be left empty, Powerkit keeps your starting point (such as the proportion of 'yes') and finds how far from it the effect would need to be. The R script reproduces the answer."
+  - date: "2026-11-16"
     title: "You choose the model for counts"
     text: "When the outcome is a count measured more than once, or a count in moderation or mediation, the screen no longer starts on the Poisson model. Choose Poisson or the more spread-out negative binomial model from what your earlier data show: counts of behaviour usually vary more than Poisson allows, and Poisson then gives too much power."
   - date: "2026-11-16"
