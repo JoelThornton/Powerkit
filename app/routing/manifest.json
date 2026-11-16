@@ -6430,7 +6430,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.71.0",
+        "Version": "0.71.1",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6449,19 +6449,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "7069434409759ca4669df0ede400516548a5f6bc",
-        "RemoteSha": "7069434409759ca4669df0ede400516548a5f6bc",
+        "RemoteRef": "f11aeefd7356d86eca88b0b1d5eb6511fc3375c4",
+        "RemoteSha": "f11aeefd7356d86eca88b0b1d5eb6511fc3375c4",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "7069434409759ca4669df0ede400516548a5f6bc",
-        "GithubSHA1": "7069434409759ca4669df0ede400516548a5f6bc",
+        "GithubRef": "f11aeefd7356d86eca88b0b1d5eb6511fc3375c4",
+        "GithubSHA1": "f11aeefd7356d86eca88b0b1d5eb6511fc3375c4",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-16 18:27:27 UTC; runner",
+        "Packaged": "2026-11-16 18:48:00 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-16 18:28:18 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-16 18:48:27 UTC; unix"
       }
     },
     "powertools": {
@@ -8829,7 +8829,7 @@
   },
   "files": {
     "app.R": {
-      "checksum": "3c456e8e4cb67d5c4efdc0133687f82c"
+      "checksum": "621ee25f46a084cfb537955264bd1089"
     },
     "forms.yaml": {
       "checksum": "6818d90aefcfb952b84aafe831b492ee"
@@ -8871,7 +8871,7 @@
       "checksum": "a0499a177636646c7752c41746a27410"
     },
     "R/forms_ui.R": {
-      "checksum": "ece6dc57414912035601455636d65f75"
+      "checksum": "48a7b59179f2416ccd175e678543b55f"
     },
     "R/forms.R": {
       "checksum": "9063cc490e319d5aa29a18eb1342e76b"
@@ -8946,7 +8946,7 @@
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "c727f8c049b445ae59764bec8a38e286"
+      "checksum": "d6aae89f37677d63a7c6667756f031a3"
     },
     "R/whole-study.R": {
       "checksum": "639ee03abec953a2f190ef7ba1a96bfa"
@@ -8955,13 +8955,13 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "0ffe3fe0f69995b5d7c9bac98430d756"
+      "checksum": "fbcb3bc82236f8e474e45afcb09650c6"
     },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
     },
     "whats-new.yaml": {
-      "checksum": "6472d4ec32e28a4ee56e480f849607fc"
+      "checksum": "74cdb7c761d65421a1ab0c132c9850ff"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

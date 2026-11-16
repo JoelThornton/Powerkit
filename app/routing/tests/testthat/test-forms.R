@@ -684,7 +684,11 @@ test_that("long labels are short, with the detail as help linked to the field", 
 test_that("definitions and routine direction help use disclosures; scientific warnings stay in view", {
   groups <- form_groups(forms, "E2")
   html <- as.character(form_ui(tree, forms, "E2", groups))
-  expect_match(html, "<summary>What these terms mean</summary>", fixed = TRUE)
+  expect_match(html, "<summary>What these terms mean: ", fixed = TRUE)
+  # Each group's definitions name their terms, so no two summaries match.
+  summaries <- regmatches(html, gregexpr("<summary>What these terms mean[^<]*</summary>", html))[[1]]
+  expect_false(anyDuplicated(summaries) > 0)
+  expect_identical(terms_summary(c("a", "b", "c", "d")), "What these terms mean: a, b, c and more")
   expect_match(html, 'aria-label="Info: Your hypothesis"', fixed = TRUE)
   expect_match(html, direction_note, fixed = TRUE)
   # The observed-power warning is not folded.
@@ -697,7 +701,9 @@ test_that("definitions and routine direction help use disclosures; scientific wa
 
 test_that("people unsure of their effect size get honest routes, never a suggested number", {
   e2 <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
-  expect_match(e2, "Not sure what number to put here?", fixed = TRUE)
+  # Below the "Don't know" prompt the list doesn't ask the same question again.
+  expect_match(e2, "Four ways to a number you can defend", fixed = TRUE)
+  expect_no_match(e2, "Not sure what number to put here?", fixed = TRUE)
   expect_match(e2, "I don&#39;t know my effect size|I don't know my effect size")
   expect_match(e2, "pkEffectUnsure(true)", fixed = TRUE)
   expect_match(e2, "divide it by how much people usually vary", fixed = TRUE)

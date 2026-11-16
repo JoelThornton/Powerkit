@@ -257,7 +257,7 @@ app_css <- "
   .doc-menu .dropdown-toggle-split { min-width: 44px; min-height: 44px; } /* the format menu beside a document's PDF button */
   .doc-menu .dropdown-item { min-height: 44px; display: flex; align-items: center; }
   .usual-value { min-height: 44px; min-width: 44px; margin: 0.25rem 0 0.5rem; } /* one click for the usual value; touch target at least 44 x 44 px */
-  .field-prompt { font-size: 0.85rem; color: #4a4a4a; font-style: italic; margin-top: 0.2rem; }
+  .field-prompt { font-size: 0.85rem; color: #4a4a4a; margin-top: 0.2rem; }
   .form-problems { border-left: 4px solid #a12a2a; background: #fbeaea; padding: 0.75rem 1rem; margin: 1rem 0; }
   .not-wired { margin-top: 1rem; }
   .spec-json { white-space: pre-wrap; font-size: 0.8rem; background: #f4f6f9; padding: 0.5rem; border-radius: 0.4rem; }
@@ -364,7 +364,7 @@ app_css <- "
     .wn-tools { flex-direction: column; align-items: stretch; gap: 0.25rem; } }
   .plan-result { margin: 0.5rem 0; }
   .whole-study-lead { background: #fff; border: 2px solid #0A5A8C; border-radius: 0.6rem; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
-  .plan-separate > summary { cursor: pointer; margin: 1rem 0; }
+  .plan-separate > summary { cursor: pointer; margin: 1rem 0; font-size: 1.1rem; font-weight: 600; }
   .plan-more > summary { cursor: pointer; color: #0A5A8C; margin: 0.5rem 0; }
   .plan-design { margin: 0.25rem 0 0.5rem; }
   .plan-item { background: #fff; border: 1px solid #dde2ea; border-radius: 0.6rem; padding: 0.75rem 1rem; margin-bottom: 1rem; }
@@ -2958,7 +2958,9 @@ server <- function(input, output, session) {
   # The four steps, apart from the screen itself, so that showing a result
   # never redraws the form.
   output$progress <- renderUI({
-    has_result <- !is.null(state$calc) && identical(state$calc$status, "ok")
+    has_result <- if (identical(state$screen, "g_sim")) {
+      !is.null(state$ws_calc) && identical(state$ws_calc$status, "ok")
+    } else !is.null(state$calc) && identical(state$calc$status, "ok")
     # The start screen introduces powerkit instead: the steps begin with
     # the first choice.
     if (identical(state$screen, "start")) return(NULL)
