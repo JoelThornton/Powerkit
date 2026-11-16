@@ -403,6 +403,9 @@ pwrss_goal_section <- function(spec, result) {
   if (identical(spec$goal$type, "sensitivity") && identical(spec$template, "independent_t")) {
     return(welch_sensitivity_section(spec, result))
   }
+  if (identical(spec$goal$type, "sensitivity") && pwrss_search_available(spec)) {
+    return(pwrss_search_section(spec, result))
+  }
   if (spec$goal$type != "sample_size" || !isTRUE(pwrss_backend(spec)$sawtooth)) {
     return(pwr_goal_section(spec, result))
   }
@@ -433,6 +436,48 @@ welch_sensitivity_section <- function(spec, result) {
     ),
     "",
     "reproduced <- list(effect = d, power = power)",
+    sprintf("powerkit_result <- list(effect = %s, power = %s)", r_code(s$effect), r_code(s$power)),
+    ""
+  )
+}
+
+# The smallest detectable effect of the other formula tests, found as
+# powerkit finds it (pwrss_sensitivity(), sensitivity-pwrss.R): the same
+# grid, the first grid value whose power reaches the target, then uniroot()
+# between it and the one before.
+pwrss_search_section <- function(spec, result) {
+  s <- result$sensitivity
+  plan <- pwrss_search_plan(spec)
+  c(
+    "# Smallest detectable effect ----",
+    sprintf("# pwrss's %s() solves for n or power, not for the effect, so powerkit", pwrss_inputs(spec)$fun),
+    "# searches the effect with the same power call (power_at() above), keeping",
+    "# the rest of the population as entered: power at each value of a grid,",
+    "# from the smallest effect up, then uniroot() between the first value that",
+    "# reaches the target power and the one before it.",
+    if (!is.null(plan$direction)) sprintf("direction <- %s # the direction of the effect searched", r_code(plan$direction)),
+    plan$script_before,
+    "power_with <- function(x) {",
+    paste0("  ", plan$script),
+    "  power_at(n_total)",
+    "}",
+    sprintf("grid <- %s", r_code(plan$grid)),
+    "found <- NA",
+    "for (i in seq_along(grid)) {",
+    "  if (power_with(grid[i]) >= target_power) {",
+    "    found <- if (i == 1) grid[1] else uniroot(function(x) power_with(x) - target_power,",
+    "      lower = grid[i - 1], upper = grid[i], tol = 1e-10)$root",
+    "    break",
+    "  }",
+    "}",
+    "power <- power_with(found)",
+    sprintf("effect <- %s", plan$effect_script),
+    sprintf(
+      "cat(sprintf(\"Smallest detectable effect: %%.4g, %s (power %%.4f)\\n\", effect, power))",
+      gsub("%", "%%", gsub("\"", "'", comment_text(s$effect_description)), fixed = TRUE)
+    ),
+    "",
+    "reproduced <- list(effect = effect, power = power)",
     sprintf("powerkit_result <- list(effect = %s, power = %s)", r_code(s$effect), r_code(s$power)),
     ""
   )

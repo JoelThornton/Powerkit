@@ -73,10 +73,12 @@ test_that("Plan my whole study says what it can't do: other aims, and Bayes fact
   expect_match(code, "whole_study_bayes_note(state$bayes_mode)", fixed = TRUE)
 })
 
-test_that("a fixed sample on a card without the smallest-effect goal says so, and E24's label stands alone", {
+test_that("a fixed sample on a card without the smallest-effect goal says so, and the range follows the goal it repeats", {
+  # E24 has both goals since 16 November 2026, so the range says "The same".
   goals <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E24")))[[1]]
-  expect_false(any(grepl("^The same", unlist(goals$choices))))
-  situation <- Filter(function(f) identical(f$id, "situation"), form_fields(form_groups(forms, "E27")))[[1]]
+  expect_true("sensitivity" %in% names(goals$choices))
+  expect_match(goals$choices$sensitivity_curve, "^The same")
+  situation <- Filter(function(f) identical(f$id, "situation"), form_fields(form_groups(forms, "E29")))[[1]]
   expect_match(situation$choice_notes$fixed, "doesn't yet give the smallest effect", fixed = TRUE)
   with_goal <- Filter(function(f) identical(f$id, "situation"), form_fields(form_groups(forms, "E2")))[[1]]
   expect_null(with_goal$choice_notes)
