@@ -37,7 +37,8 @@ runs_in_background <- function(forms, ep_id, spec = NULL, simulates = engine_fun
 # runs here as before rather than asking the user to wait.
 search_in_background <- function(spec) identical(spec$goal$type, "sample_size")
 usual_seconds <- function(forms, ep_id, goal) {
-  forms$background[[ep_id]][[goal]] %||% forms$simulated_times[[ep_id]][[goal]] %||% NA_real_
+  forms$background[[ep_id]][[goal]] %||% forms$simulated_times[[ep_id]][[goal]] %||%
+    forms$simulated_version_times[[ep_id]][[goal]] %||% NA_real_
 }
 
 # Run the engine on a checked spec. The input screen puts the seed in the
@@ -2253,7 +2254,7 @@ calculating_ui <- function() {
 # For a background run: an estimated progress bar, the time so far and a
 # Cancel button. The bar and time are updated in place (calc_progress
 # message in app.R); only the first line is announced to screen readers.
-calculating_background_ui <- function(usual, title = "Calculating with powerkit's engine\u2026") {
+calculating_background_ui <- function(usual, title = "Calculating with powerkit's engine\u2026", keep = FALSE) {
   usual_words <- if (is.na(usual)) NULL else if (usual < 120) sprintf("%s seconds", whole(usual)) else sprintf("%s minutes", whole(round(usual / 60)))
   div(class = "result-panel calculating calc-progress", tabindex = "-1",
     p(role = "status", tags$strong(title),
@@ -2265,7 +2266,25 @@ calculating_background_ui <- function(usual, title = "Calculating with powerkit'
     tags$label(`for` = "calc-progress-bar", class = "small", "Progress, estimated from the usual run time"),
     tags$progress(id = "calc-progress-bar", max = "100", value = "0", style = "width: 100%; height: 1.25rem;"),
     p(id = "calc-progress-text", class = "small", progress_text(0, usual)),
+    # A run that takes a while can carry on in a study plan while the
+    # person does something else (16 November 2026). Shown once the run
+    # has gone on for keep_offer_after seconds (calc_progress's `keep`),
+    # so a quick search never shows it.
+    if (isTRUE(keep)) div(id = "calc-keep", class = "calc-keep", hidden = NA,
+      p(class = "small mb-1", "Taking a while? It can carry on in a study plan while you do something else in Powerkit. Keep this browser tab open: closing it stops the run."),
+      actionButton("calc_keep", "Keep it running in my study plan", class = "btn btn-outline-primary me-2")),
     actionButton("calc_cancel", "Cancel", class = "btn btn-outline-danger"))
+}
+
+# How long a run goes on before it is offered a place in a study plan.
+keep_offer_after <- 10
+
+# On the input screen once a run has moved to a study plan.
+kept_run_moved_ui <- function(plan_name) {
+  div(class = "result-panel calc-kept", role = "status", tabindex = "-1",
+    p(tags$strong(sprintf("Running in your study plan \u201c%s\u201d.", plan_name))),
+    p("You can leave this screen and carry on: its progress is shown on the plan, and the result is added there when it finishes. Keep this browser tab open: closing it stops the run."),
+    actionLink("plan_view", "See the study plan"))
 }
 
 cancelled_ui <- function() {

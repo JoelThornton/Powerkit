@@ -3748,3 +3748,28 @@ method chosen first. All follow JASP's default priors.
   screen starts on since 12 November 2026, has no validation run. Its
   choice note, the result's estimate notice and the card's status line
   say so; the card stays validated for the simulation.
+
+## 2026-11-16 · Long runs can carry on in a study plan
+
+- **"Keep it running in my study plan".** A run on an input screen that
+  has gone on for ten seconds (a simulated design, a sample-size search,
+  or mediation's full run) offers to move to a study plan: the current
+  plan, or a new one. The person can then leave the screen and use the
+  rest of the app; the plan's page shows the run with an estimated
+  progress bar and a Stop button, the list of plans counts running
+  analyses, and when it finishes the result is added to the plan (as
+  "Add this to my study plan" would add it) with a notice that links to
+  the plan. Still on the same input screen, the result is shown there too.
+- **Within the open tab only.** Runs belong to the visitor's session, as
+  every run does: the app keeps nothing on its server, so closing the
+  tab stops them, and the screens say so. While one runs, the page sends
+  the progress messages that keep its connection open. Runs that outlast
+  a closed tab need a durable job queue, which waits on the hosting
+  decision (`next.md`, hosting).
+- **The usual wait for corrected repeated measures.** The one-way
+  repeated-measures, mixed and two-factor within cards simulate the
+  corrected F test when the SDs or correlations differ (Departure 28),
+  which takes from about 20 seconds (power) to two minutes (sample size)
+  on a recent computer. Their measured times are in `forms.yaml`'s
+  `simulated_version_times`, so the progress bar and the "usually takes" line
+  apply to them.

@@ -289,7 +289,27 @@ plan_guided_ui <- function(record) {
 plan_common_recruitment_caveat <- "The recorded sample units and design structures match. A common recruitment plan also needs the same population, eligibility, allocation and measurement schedule; the maximum alone does not establish those."
 plan_incomparable_note <- "These analyses have different or incomplete sample requirements. Their counts are kept separate; there is no single study-wide sample size here. Participants, pairs, items and studies cannot be compared just by taking the largest number. Matching units also need compatible allocation and measurement schedules."
 
-plan_page_ui <- function(plan, plans_n = 1L) {
+# Runs still going for this plan (kept from an input screen, 16 November
+# 2026): each with a bar the server updates in place (kept_progress) and
+# a Stop button.
+plan_running_ui <- function(runs) {
+  if (!length(runs)) return(NULL)
+  div(class = "plan-running result-card",
+    h3(class = "h5", "Still running"),
+    p(class = "small", "Each is added to this plan when it finishes. Keep this browser tab open: closing it stops them."),
+    tags$ul(class = "plan-running-list", lapply(runs, function(r) {
+      tags$li(class = "plan-running-item",
+        tags$strong(r$label),
+        tags$progress(id = paste0("kept-bar-", r$id), class = "kept-bar", max = "100", style = "width: 100%; height: 1rem;",
+          `aria-label` = sprintf("Progress of %s, estimated", r$label)),
+        p(id = paste0("kept-text-", r$id), class = "small mb-1", progress_text(0, r$usual)),
+        tags$button(type = "button", class = "btn btn-sm btn-outline-danger",
+          onclick = sprintf("Shiny.setInputValue('kept_stop', %s, {priority: 'event'})", js_string(r$id)),
+          `aria-label` = sprintf("Stop %s", r$label), "Stop"))
+    })))
+}
+
+plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
   entries <- plan$entries
   k <- length(entries)
   largest <- plan_largest_entry(entries)
@@ -315,10 +335,11 @@ plan_page_ui <- function(plan, plans_n = 1L) {
     # link doesn't redraw the page under the share button.
     p(class = "plan-status-line", uiOutput("plan_status", inline = TRUE)),
     if (is.list(plan$guided)) plan_guided_ui(plan$guided),
+    plan_running_ui(running),
     if (k == 0 && plan_is_replication(plan)) div(class = "plan-empty result-card",
       p(tags$strong("The original's analysis isn't planned yet.")),
       p("Work through the sections below in any order. Under The original study, find its design: its card plans the replication's sample size, and the result is kept here.")),
-    if (k == 0 && !is.list(plan$guided) && !plan_is_replication(plan)) div(class = "plan-empty result-card",
+    if (k == 0 && !length(running) && !is.list(plan$guided) && !plan_is_replication(plan)) div(class = "plan-empty result-card",
       p(tags$strong("This plan has no analyses yet.")),
       tags$ol(
         tags$li("Press “Add an analysis” to find one with “Help me choose”, or use “I know my analysis”, and calculate its sample size."),
