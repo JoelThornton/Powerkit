@@ -12,7 +12,7 @@ input_support_ui <- function(form, fields) {
     if (any(grepl("^(p_|r_)", ids))) p("Regression and mediation need the stated model's component coefficients and correlations. A total indirect effect, an unadjusted correlation, or a p-value alone does not identify the full population. Keep raw versus standardised units and binary-variable coding consistent."),
     p("If an input is missing, open its 'What this means and where to find it' help. You can record it as unknown under assumptions/sources and save an unfinished draft. Named alternatives can compare defensible assumptions; they do not establish which assumption is true."),
     if (has("just_type") && has("goal") && isTRUE(form$base$design == "basic_test")) p("If you cannot justify an effect but know your available sample size, choose the smallest effect you could detect under 'Your goal'. This describes sensitivity at that budget; it does not choose a meaningful effect for you."),
-    p("An unsupported published summary cannot always be converted uniquely. Keep the draft and seek the matching model output or data. Do not put zero, a conventional 'medium' effect, or a package default in a box simply to obtain an answer."))
+    p("An unsupported published summary cannot always be converted uniquely. Keep the draft and seek the matching model output or data. If you use a rule-of-thumb effect meanwhile, choose \u201cA convention or rule of thumb\u201d as its source, so the write-up says where the number came from. Zero or a package default is not an effect to plan for."))
 }
 
 published_import_ui <- function() {

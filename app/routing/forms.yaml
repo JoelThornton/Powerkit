@@ -721,7 +721,7 @@ forms:
           - {id: effect_units, label: "How you'll give the effect", type: select, path: population.metric,
              choices: {standardised: "As d_z: mean of the differences (second minus first) / SD of the differences", raw: "In my measure's own units: the mean in each condition and an SD"},
              default: standardised, default_source: "d_z, the effect size pwr.t.test() takes for a paired test (pwr 1.3-0); Powerkit works it out from the means and SD if you give those"}
-          - {id: dz, label: "d_z", type: number, path: population.dz, effect: true,
+          - {id: dz, label: "Effect size d_z (the mean of the differences divided by their SD)", writeup_label: "d_z", type: number, path: population.dz, effect: true,
              shown_if: {field: effect_units, is_not: raw}}
           - {id: raw_mean_1, label: "Expected mean, first condition", type: number, path: population.raw.mean_1, effect: true, writeup_label: "first-condition mean",
              shown_if: {field: effect_units, is: raw}}
@@ -1654,8 +1654,7 @@ forms:
           - {id: glmm_distribution, label: "Counts are", type: select, required: true,
              shown_if: {field: glmm_outcome, is: count},
              choices: {poisson: "Poisson: given the person and condition, the variance equals the mean", negative_binomial: "More spread out than Poisson (negative binomial)"},
-             default: poisson, default_source: "the Poisson mixed model, simr's model for counts; the person intercepts already allow people to differ",
-             help: "Counts of behaviour often vary more from one measurement to the next than a Poisson distribution allows. If yours do, choose the negative binomial model: it is slower to simulate (lme4's glmer.nb()), and gives less power for the same counts."}
+             help: "Not chosen for you: pick the one your earlier data support. Counts of behaviour often vary more from one measurement to the next than a Poisson distribution allows, and a Poisson model then gives too much power. The negative binomial model allows for that; it is slower to simulate (lme4's glmer.nb()), and gives less power for the same counts."}
           - {id: glmm_dispersion, writeup_label: "overdispersion k", label: "Overdispersion k: a count with expected value mu varies with variance mu + k mu squared (for example, 0.5)", type: number, path: population.dispersion, effect: true, min_exclusive: 0,
              shown_if: [{field: glmm_outcome, is: count}, {field: glmm_distribution, is: negative_binomial}]}
       - input: "The test"
@@ -4009,14 +4008,12 @@ forms:
           - {id: Y_label, label: "Outcome (for example, sought counselling, or drinking days in a month)", type: text, path: variables.Y.label, required: true}
           - {id: count_model, label: "How spread out the counts are", type: select, path: target_test.method, required: true,
              choices: {wald_z: "As a Poisson distribution allows (the variance equals the mean)", negative_binomial: "More spread out than that (negative binomial)"},
-             default: wald_z, default_source: "Poisson regression, the usual first model for counts",
              shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
-             help: "Counts of behaviour usually vary more than their mean (some people have many, many have none). If they do, choose negative binomial: a Poisson model then gives too much power."}
+             help: "Not chosen for you: pick the one your earlier data support. Counts of behaviour usually vary more than their mean (some people have many, many have none). If they do, choose negative binomial: a Poisson model then gives too much power."}
           - {id: med_count_model, label: "How spread out the counts are", type: select, path: population.count_model, required: true,
              choices: {poisson: "As a Poisson distribution allows (the variance equals the mean)", negative_binomial: "More spread out than that (negative binomial)"},
-             default: poisson, default_source: "Poisson regression, the usual first model for counts",
              shown_if: [{field: Y_kind, is: count}, {field: analysis, is: mediation}],
-             help: "Counts of behaviour usually vary more than their mean (some people have many, many have none). If they do, choose negative binomial: a Poisson model then gives too much power."}
+             help: "Not chosen for you: pick the one your earlier data support. Counts of behaviour usually vary more than their mean (some people have many, many have none). If they do, choose negative binomial: a Poisson model then gives too much power."}
           - {id: X_label, label: "Main predictor (X)", type: text, path: variables.X.label, required: true}
           - {id: X_type, label: "What kind of variable X is", type: select, path: variables.X.type, required: true,
              choices: {continuous: "A score", binary: "A yes/no group (for example, treatment or control)"}}

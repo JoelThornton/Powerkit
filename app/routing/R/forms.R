@@ -245,7 +245,7 @@ mediation_analysis_group <- function(simple = FALSE) {
   f$default <- "joint_significance"
   f$default_source <- "the quick estimate, so the screen gives an answer straight away (pwrss's power.z.mediation(method = 'joint') formula, a little optimistic); choose a simulated method for the number you report"
   f$choice_notes <- list(
-    joint_significance = "An estimate for planning, not for your write-up. The joint-significance test counts the indirect effect when both paths are significant; its power comes from a formula, so the answer is instant, but it is optimistic: with paths of .3 and 100 people it gives 75% power where the full simulation gives 71%, so the sample size it gives can be about 10% short. For the number you report, choose one of the simulated methods: power at a fixed sample size runs here in about 12 minutes, and the sample size comes as an R script for your own computer.")
+    joint_significance = "Validation in progress: this estimate has not had a validation run yet (the full simulation has). An estimate for planning, not for your write-up. The joint-significance test counts the indirect effect when both paths are significant; its power comes from a formula, so the answer is instant, but it is optimistic: with paths of .3 and 100 people it gives 75% power where the full simulation gives 71%, so the sample size it gives can be about 10% short. For the number you report, choose one of the simulated methods: power at a fixed sample size runs here in about 12 minutes, and the sample size comes as an R script for your own computer.")
   f$help <- paste("Start with the quick estimate to see roughly how many people you need.", f$help)
   group$fields[[1]] <- f
   group
@@ -1235,7 +1235,12 @@ form_problems <- function(fields, values) {
     if (identical(f$type, "number")) {
       x <- parse_number(v)
       if (is.nan(x)) {
-        add(sprintf("%s should be a number written with a decimal point, such as 0.3.", quote_label(f)))
+        top <- f$max_exclusive %||% f[["max"]]
+        add(if (grepl("%", v, fixed = TRUE) && !is.null(top) && top <= 1) {
+          sprintf("%s should be a proportion, without the %% sign: for 5%%, type 0.05.", quote_label(f))
+        } else {
+          sprintf("%s should be a plain number, such as 12 or 0.3 (with a full stop for the decimal point, not a comma).", quote_label(f))
+        })
         next
       }
       # A percentage typed where a proportion is asked for (80 for 80%
