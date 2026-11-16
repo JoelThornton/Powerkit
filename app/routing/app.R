@@ -658,6 +658,10 @@ app_css <- "
   .plan-remove:hover, .plan-remove:focus { color: #b42318; }
   .plan-hero .plan-hero-text { flex: 1 1 18rem; margin: 0; }
   .plan-empty ol { margin-bottom: 0; }
+  .plan-running { margin-bottom: 1rem; }
+  .plan-running-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+  .plan-running-item .kept-bar { display: block; margin: 0.35rem 0 0.25rem; }
+  .calc-keep { margin: 0.5rem 0 0.75rem; }
   .plan-note { background: #fff8eb; border: 1px solid #f1d9a6; border-left: 4px solid var(--pk-amber); border-radius: 10px; padding: 0.75rem 1rem; color: #4a3b16; }
   .ws-quick-note { background: #eef5fb; border: 1px solid #cfe0ef; border-left: 4px solid var(--pk-blue); border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.92rem; }
   .ws-table td { vertical-align: middle; }
@@ -926,6 +930,15 @@ copy_js <- "
   Shiny.addCustomMessageHandler('calc_progress', function(m) {
     var bar = document.getElementById('calc-progress-bar');
     var text = document.getElementById('calc-progress-text');
+    if (bar) { if (m.value === null) { bar.removeAttribute('value'); } else { bar.value = m.value; } }
+    if (text) text.textContent = m.text;
+    var keep = document.getElementById('calc-keep');
+    if (keep && m.keep) keep.hidden = false;
+  });
+  // A run kept in a study plan: its bar on the plan's page, if shown.
+  Shiny.addCustomMessageHandler('kept_progress', function(m) {
+    var bar = document.getElementById('kept-bar-' + m.id);
+    var text = document.getElementById('kept-text-' + m.id);
     if (bar) { if (m.value === null) { bar.removeAttribute('value'); } else { bar.value = m.value; } }
     if (text) text.textContent = m.text;
   });
@@ -1574,7 +1587,7 @@ server <- function(input, output, session) {
       # A simulated card's usual time applies only when this version simulates.
       usual <- if (state$endpoint %in% names(forms$background) || runs_in_background(forms, state$endpoint, spec))
         usual_seconds(forms, state$endpoint, spec$goal$type) else NA_real_
-      output$form_result <- renderUI(calculating_background_ui(usual))
+      output$form_result <- renderUI(calculating_background_ui(usual, keep = TRUE))
       # The comparison line's two searches run there too (cost_line()),
       # straight after a quick search; after a search of more than a
       # second, the result is shown first and they follow (cost_pending).
@@ -1769,6 +1782,8 @@ server <- function(input, output, session) {
       session$sendCustomMessage("focus_result", target)
       return(invisible(FALSE))
     }
+    # A run kept in a study plan no longer owns the input screen's result.
+    if (identical(target, "form_result")) kept_form_run(NULL)
     job$kind <- kind
     job$target <- target
     job$screen <- isolate(state$screen)
@@ -1792,7 +1807,8 @@ server <- function(input, output, session) {
       value <- progress_estimate(elapsed, job$usual)
       session$sendCustomMessage("calc_progress", list(
         value = if (is.na(value)) NULL else round(100 * value),
-        text = progress_text(elapsed, job$usual)))
+        text = progress_text(elapsed, job$usual),
+        keep = identical(job$kind, "calc") && identical(job$target, "form_result") && elapsed >= keep_offer_after))
       return()
     }
     calc <- collect_background_calculation(job$process)
@@ -1855,7 +1871,7 @@ server <- function(input, output, session) {
     req(full_run_in_app(forms, state$endpoint, spec$goal$type, spec))
     usual <- full_seconds(forms, state$endpoint, spec$goal$type)
     output$form_result <- renderUI(calculating_background_ui(usual,
-      sprintf("Running the full analysis (%s simulations)\u2026", whole(spec$options$nrep %||% 1000L))))
+      sprintf("Running the full analysis (%s simulations)\u2026", whole(spec$options$nrep %||% 1000L)), keep = TRUE))
     start_job("calc", spec, usual, job$shown)
     session$sendCustomMessage("focus_result", "form_result")
   })
@@ -1865,8 +1881,95 @@ server <- function(input, output, session) {
     output[[target]] <- renderUI(cancelled_ui())
     session$sendCustomMessage("focus_result", target)
   })
+  # Runs kept in a study plan (16 November 2026): "Keep it running in my
+  # study plan" moves the input screen's run here, so it carries on while
+  # the person goes elsewhere in the app; its progress is shown on the
+  # plan's page and the result is added to the plan when it finishes.
+  # They end with the session, like every run (nothing is kept on the
+  # server), so the screens say to keep the tab open.
+  kept <- new.env()
+  kept$runs <- list()
+  kept_runs <- reactiveVal(list())
+  kept_form_run <- reactiveVal(NULL)
+  kept_info <- function() lapply(kept$runs, function(r) list(id = r$id, plan = r$plan, label = r$label, usual = r$usual))
+  kept_changed <- function() kept_runs(kept_info())
+  kept_stop <- function(id) {
+    r <- kept$runs[[id]]
+    if (is.null(r)) return()
+    if (r$process$is_alive()) r$process$kill()
+    kept$runs[[id]] <- NULL
+    kept_changed()
+  }
+  observeEvent(input$calc_keep, {
+    req(identical(job$kind, "calc"), identical(job$target, "form_result"), !is.null(job$process), job$process$is_alive())
+    plan <- plan_for_adding(isolate(input$plan_target))
+    plans_put(plan)
+    state$current_plan <- plan$id
+    id <- plan_new_key()
+    kept$runs[[id]] <- list(id = id, plan = plan$id, process = job$process, started = job$started, usual = job$usual,
+      shown = job$shown, label = plan_label(tree, job$shown$ep_id))
+    # The input screen's slot is free again; the run itself goes on.
+    job$process <- NULL
+    job_running(FALSE)
+    kept_form_run(id)
+    kept_changed()
+    output$form_result <- renderUI(kept_run_moved_ui(plan$name))
+  })
+  observeEvent(input$kept_stop, kept_stop(input$kept_stop))
+  observeEvent(input$kept_open_plan, open_plans_page(input$kept_open_plan))
+  session$onSessionEnded(function() for (id in names(kept$runs)) kept_stop(id))
+  observe({
+    req(length(kept_runs()) > 0)
+    invalidateLater(1000)
+    for (id in names(kept$runs)) {
+      r <- kept$runs[[id]]
+      elapsed <- as.numeric(difftime(Sys.time(), r$started, units = "secs"))
+      if (r$process$is_alive()) {
+        value <- progress_estimate(elapsed, r$usual)
+        # The page stays connected while these arrive (R/connection.R).
+        session$sendCustomMessage("kept_progress", list(id = id, value = if (is.na(value)) NULL else round(100 * value),
+          text = progress_text(elapsed, r$usual)))
+        next
+      }
+      calc <- collect_background_calculation(r$process)
+      kept$runs[[id]] <- NULL
+      shown <- r$shown
+      plan <- plan_get(r$plan)
+      if (identical(calc$status, "ok")) {
+        # The comparison line's searches are left out here: the result is
+        # complete without them, and opening it from the plan shows it.
+        calc <- if (isTRUE(shown$finish)) finish_calc(calc, shown$route, shown$values) else { calc$route <- shown$route; calc }
+        calc$cost_pending <- NULL
+        keep_calculation(shown$key, calc)
+        if (is.null(plan)) plan <- new_plan()
+        plan <- plan_add_entry(plan, plan_entry(tree, shown$ep_id, calc, calc$route))
+        plans_put(plan)
+        showNotification(tags$span(sprintf("Finished: %s, added to your study plan \u201c%s\u201d. ", r$label, plan$name),
+          tags$a(href = "#", onclick = sprintf("Shiny.setInputValue('kept_open_plan', %s, {priority: 'event'}); return false;", js_string(plan$id)),
+            "See the plan")), duration = NULL, type = "message")
+        # Still on the screen it was started from, with the same answers:
+        # the result is shown there too.
+        if (identical(isolate(kept_form_run()), id) && identical(isolate(state$screen), "form") &&
+            identical(isolate(state$endpoint), shown$ep_id)) {
+          state$calc <- calc
+          output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
+        }
+      } else {
+        showNotification(sprintf("%s, kept in your study plan, stopped without a result: %s", r$label,
+          calc$message %||% "Powerkit couldn't calculate it."), duration = NULL, type = "warning")
+        if (identical(isolate(kept_form_run()), id) && identical(isolate(state$screen), "form")) {
+          output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
+        }
+      }
+      if (identical(isolate(kept_form_run()), id)) kept_form_run(NULL)
+      kept_changed()
+    }
+  })
   # Leaving the screen a run was started from stops it.
-  observeEvent(state$screen, if (!identical(state$screen, job$screen %||% "form")) cancel_job(), ignoreInit = TRUE)
+  observeEvent(state$screen, {
+    if (!identical(state$screen, job$screen %||% "form")) cancel_job()
+    kept_form_run(NULL)
+  }, ignoreInit = TRUE)
 
   # Whole-study simulation (experimental; R/whole-study.R). The plan, the
   # values the engine says the population needs, and the run.
@@ -2180,15 +2283,18 @@ server <- function(input, output, session) {
     strip <- function(p) { p$saved_at <- NULL; p$saved_how <- NULL; p$too_large <- NULL; p$description <- NULL; p$changed <- NULL
       if (plan_is_replication(p)) { p$replication$fields <- NULL; p$changed <- NULL }; p }
     view <- state$plans_view %||% ""
-    shown <- if (!is.null(state$plans[[view]])) list(view = view, plan = strip(state$plans[[view]]), n = length(state$plans))
-      else list(view = "", plans = state$plans, current = state$current_plan)
+    running <- kept_runs()
+    shown <- if (!is.null(state$plans[[view]])) list(view = view, plan = strip(state$plans[[view]]), n = length(state$plans),
+        running = Filter(function(r) identical(r$plan, view), running))
+      else list(view = "", plans = state$plans, current = state$current_plan,
+        running = vapply(running, function(r) r$plan, ""))
     if (!identical(shown, isolate(plans_page_shown()))) plans_page_shown(shown)
   })
   output$plans_page <- renderUI({
     shown <- plans_page_shown()
     req(shown)
     plan <- isolate(state$plans[[shown$view]])
-    if (is.null(plan)) plans_list_ui(shown$plans, shown$current) else plan_page_ui(plan, shown$n)
+    if (is.null(plan)) plans_list_ui(shown$plans, shown$current, shown$running) else plan_page_ui(plan, shown$n, shown$running)
   })
   output$plan_status <- renderUI({
     plan <- state$plans[[state$plans_view %||% ""]]

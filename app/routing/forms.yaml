@@ -191,6 +191,15 @@ simulated_times:
   E66: {power: 2, sample_size: 16}
   E18: {power: 1, sample_size: 11}
   E57: {power: 1, sample_size: 10}
+# Usual times (seconds) for a version that simulates on a card whose
+# default doesn't: shown only when that version runs (usual_seconds(),
+# R/results.R), and not counted as a simulated card on About. The
+# corrected F test without sphericity (Departure 28), measured 16 November
+# 2026 on the engine's example designs with unequal correlations.
+simulated_version_times:
+  E54: {power: 22, sample_size: 120}
+  E55: {power: 30, sample_size: 350}
+  E20: {power: 21, sample_size: 170}
 # At most this many background calculations (E9 and E10-E14's preview and
 # full run) at once, across everyone using the app; others are asked to try
 # again shortly (R/results.R, background_limit()). Two suits a server with
