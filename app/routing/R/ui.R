@@ -667,15 +667,25 @@ known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
       h3(class = "known-section-title", id = "known_groups_title", "All analyses, by group"),
       tags$button(type = "button", class = "btn btn-link known-open-all", id = "known_open_all",
         onclick = "powerkitOpenAllFamilies(this)", "Open all groups")),
-    div(class = "known-groups", cached_html(list("known_groups", eps, families, maintainer_view()), function() lapply(families, function(f) {
-      ids <- intersect(unlist(f$endpoints), names(eps))
-      tags$details(class = "known-family", `data-family` = f$id,
-        tags$summary(
-          tags$span(class = "known-family-label", name_swap(f$label, f$technical_label %||% f$label)),
-          tags$span(class = "known-family-count", `data-total` = length(ids),
-            `aria-label` = sprintf("%d analyses", length(ids)), length(ids))),
-        div(class = "known-family-items", lapply(seq_along(ids), function(i) tagAppendAttributes(item(ids[i], f), `data-index` = i))))
-    }))),
+    # Two columns that stand on their own: the first half of the groups
+    # down the left and the rest down the right. In a grid of rows, opening
+    # a group stretched its row and pushed the group beside it away from
+    # its neighbours. Splitting in halves keeps the reading order on a
+    # phone, where the columns stack.
+    div(class = "known-groups", cached_html(list("known_groups", eps, families, maintainer_view()), function() {
+      family_html <- lapply(families, function(f) {
+        ids <- intersect(unlist(f$endpoints), names(eps))
+        tags$details(class = "known-family", `data-family` = f$id,
+          tags$summary(
+            tags$span(class = "known-family-label", name_swap(f$label, f$technical_label %||% f$label)),
+            tags$span(class = "known-family-count", `data-total` = length(ids),
+              `aria-label` = sprintf("%d analyses", length(ids)), length(ids))),
+          div(class = "known-family-items", lapply(seq_along(ids), function(i) tagAppendAttributes(item(ids[i], f), `data-index` = i))))
+      })
+      left <- seq_len(ceiling(length(family_html) / 2))
+      list(div(class = "known-groups-column", family_html[left]),
+           div(class = "known-groups-column", family_html[-left]))
+    })),
     # One line for both ways out (12 November 2026): two dashed boxes said
     # nearly the same thing.
     p(class = "known-way-out", "Can't find it? ",
