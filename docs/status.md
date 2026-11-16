@@ -38,6 +38,10 @@ screens; and "Powerkit" spelled the same in the app's sentences. Old
 saved files and ?page= addresses still open as before
 (`saving-projects.md`, "Names used in the app").
 
+Colleague testing starts 16 November 2026. What testers report, and what
+the reviews left for later, is `next.md` item 25 and comes first while
+testing runs; the Mac installation steps wait on a CRAN binary (item 26).
+
 JASP's analyses were reviewed against powerkit's cards (13 November
 2026; `coverage-roadmap.md`, "JASP's analyses"). Those powerkit already
 plans under other names (CFA, MIMIC, latent growth, mixed models, the

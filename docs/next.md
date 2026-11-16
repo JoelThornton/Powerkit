@@ -1,6 +1,6 @@
 # What to work on next
 
-*14 November 2026: Bland-Altman limits of agreement landed on E69, finishing item 1. 13 November 2026: the analyses JASP offers that powerkit doesn't plan yet lead the queue, in the maintainer's order (`coverage-roadmap.md`, "JASP's analyses"); broad first-release support, case-level evidence and a measured coverage benchmark follow. Implementation does not imply validation; the current state is in [status.md](status.md).*
+*16 November 2026: colleague testing starts. The 15 and 16 November reviews' fixes and the layout and names changes are in (0.69.4, 0.70.0); what they left for later is item 25, which, with whatever the testers report, comes before the rest of the queue while testing runs. Implementation does not imply validation; the current state is in [status.md](status.md).*
 
 **How a thread uses this page**
 
@@ -15,51 +15,15 @@
    dated; a queue written three weeks ago can be stale, and the
    maintainer's priorities beat it.
 
-The 10 November default review made between-study variation an explicit
-optional scenario and added power at the actual analysed N to smaller-effect
-comparisons (merged in PR #368; saved values retained). Next, continue the departure
-audit for analysis mismatches: mediation ML/Monte Carlo versus PROCESS
-OLS/bootstrap, continuity-corrected proportions tests, fixed/random
-predictors and family-level claims. This is part of the selected-variant
-audit below; none is resolved merely by changing labels. PR #368 adds a selectable OLS/casewise-percentile-bootstrap route, paired regression
-checks and a completed selected null-calibration job (two passes, one direct
-reference TODO skip; archived). Direct PROCESS-software comparison, broader
-model/null settings and the 5,000-resample default remain before equivalence
-or broad calibration claims.
-The same PR now adds explicit continuity-corrected count-test choices, with
-independent finite-enumeration/simulation checks. Four selected returned-N checks are now independently archived, including
-small target shortfalls. Published references and a discretisation-aware or
-independently verified final-N search remain required. Next audit fixed
-versus random predictors and whether the selected claim is one effect,
-any effect, or all required effects; do not replace these with a single
-blanket power claim. The first wording pass now scopes interaction benchmarks,
-explains the two regression input routes before calculation, and distinguishes
-individual-test power from a family success probability. Formula-based
-interaction sensitivity has three archived matched-route checks and
-offers a matched fixed-N verification step; broader parameter checks remain.
-New all-required-test plans use unknown dependence and the existing sufficient
-bound, with explicit historical saved choices preserved. Selected-setting
-evidence is visible on complete input screens. Compact-mode
-test/family labels are now audited for all 77 entries and 14 groups, with
-short common test selectors and no duplicate plain-language subtitles.
-The compact-guidance follow-up now folds routine input/default/group help
-behind info controls with explanations off, shortens common labels and keeps
-errors, captured methods and scientific warnings visible. Power offers equal
-80/90/95% examples without a default and explains the trade-off.
-Continue the remaining wording checklist and the unresolved scientific
-items above; concise labels do not complete their evidence requirements.
-
-The 0.61.1 pre-sharing safeguards merged in PR #369 and the deployment
-handoff correction in PR #370. Common analysis identities and exercised
-desktop/mobile/keyboard journeys pass their checks. Publication run
-42927530578 succeeded; leave the normal host rollout to finish and confirm
-the live version later. R14's scientific failures and R17's discrete-count
-search accuracy remain priorities. The completed interface safeguards do
-not close those mathematical requirements. The follow-on corrected-count fix
-requires a fresh, selection-adjusted lower-power check at the returned N.
-Four independent checks passed; required hosted gates must pass before merge. This addresses
-the known smooth-search shortfall risk, not the ANOVA/mediation failures or
-a minimum-N guarantee.
+Still open from the 10 November default review and the pre-sharing
+safeguards (PRs #368 to #372), and not closed by any wording change: the
+departure audit for analysis mismatches (mediation ML or Monte Carlo
+against PROCESS OLS with a bootstrap, with a direct PROCESS comparison and
+the 5,000-resample default; continuity-corrected proportions tests;
+fixed against random predictors; whether a claim is one effect, any
+effect or all of them), published references for the returned-N checks,
+and broader parameter checks of the formula-based interaction
+sensitivity. They belong to items 5 and 12 below.
 
 ## The queue
 
@@ -89,6 +53,8 @@ a minimum-N guarantee.
 | 22 | **Three-way interactions: simulate studies, as two-way ones are** | The fixed-model formula gives about 4 points more power than simulated studies at its own N (853 against about 940 needed in the example; Known difference 17). InteractionPoweR has no three-way simulation | M | Needs a decision: which method is the default. Recommendation: a Spower experiment with random predictors and `lm()`, built from the same true-score correlations, as the default, the formula kept as the quick option and for the search's bracket |
 | 23 | **How much does the answer depend on my assumptions?** | A required N rests on several uncertain numbers besides the effect: an ICC, a correlation between measurements, an SD, attrition. Researchers need to see which one the answer depends on most, not only power at a smaller or larger effect (the comparison that exists, decisions.md 10 November 2026). Release-readiness R25 asks for plausible ranges and "a small coherent scenario table". Build: (a) one at a time, a low and a high plausible value for each uncertain input, the required N (or power at the planned N) at each, drawn as a tornado chart in order of influence; (b) a two-way grid of the effect against one chosen input (for example effect × ICC), as a heatmap. Instant for formula designs; simulated designs get a coarse grid or the R-script route. Named so it isn't confused with the "smallest detectable effect" goal, which G*Power calls sensitivity. Not global (Sobol or Morris) sensitivity analysis: it needs a distribution for every input, which researchers rarely have; the planning literature's equivalent is assurance over the uncertain inputs (O'Hagan, Stevens and Campbell, 2005), which item 9 and Bayes mode extend | M | Ready (maintainer, 13 November 2026): take after item 1 |
 | 24 | **A permutation test on Welch's t, as a test version on E2** | De Winter (2026, *Quality & Quantity*, doi:10.1007/s11135-026-02909-5) shows that with skewed scores and unequal groups both Student's and Welch's t-tests can lose control of the false-positive rate, and that a permutation test on Welch's statistic keeps it. Welch stays the default (Departure 21) | S | Ready (maintainer, 14 November 2026): simulated with Spower, the permutation from a package (check `MKinfer::perm.t.test()` or `coin`; none chosen yet), validated against a by-hand permutation; a note on the Welch result when the groups are unequal and the score shape is skewed; the paper added to `refs.bib` from the PDF the maintainer holds |
+| 25 | **What colleague testers report, and what the 15 and 16 November reviews left for later** | Testing starts 16 November 2026. Left from the reviews (`review-2026-11-15/` in the project files): Poisson preselected for counts on E75 and E32 (N-05), N-06 to N-09, the whole-study step bar and heading size (P-14), P-16 to P-20, W-04 to W-09, W-11, W-12, M-6 and M-7; M-3 and M-4 wait on the maintainer. Later from the layout review: one file for an analysis with or without a result, so the separate draft file can go | M | Ready: testers' reports first, one PR per screen or fix group |
+| 26 | **The Mac installation steps** | The macOS "follow-the-steps" check fails since 16 November 2026: CRAN has no macOS binary of Hmisc 5.3-0 yet, so renv compiles it, which needs gfortran. Only people installing Powerkit on a Mac are affected | S | Ready: recheck once CRAN publishes the binary; if it is still missing, have the steps install gfortran or pin the previous Hmisc in the lockfile |
 
 ## The direction behind the methods map
 
