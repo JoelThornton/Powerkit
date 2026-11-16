@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-16"
+    title: "Opening a group no longer leaves a gap"
+    text: "In I know my analysis, the groups sit in two columns that move independently, so opening a group on one side no longer pushes the groups on the other side apart."
+  - date: "2026-11-16"
     title: "A corrected check on moderated mediation with a yes/no X"
     text: "Its notes now give the false-positive rate from 20,000 simulated studies: 5.4% at a 5% significance level, a slight excess (5.2% when the interval comes from separate regressions, as in PROCESS) that changes power by well under a point. The earlier figure of about 6.7% came from fewer studies."
   - date: "2026-11-16"
