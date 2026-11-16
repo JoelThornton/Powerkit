@@ -10034,10 +10034,11 @@
                   ]
                 },
                 "method": {
-                  "description": "'likelihood_ratio' (the default): the model against one without cond (simr's 'lr'), simr's default for a factor. 'wald': car's Wald chi-square test of cond (simr's 'chisq'; with two conditions the same p-value as glmer's Wald z).",
+                  "description": "'likelihood_ratio' (the default): the model against one without cond (simr's 'lr'), simr's default for a factor. 'wald': car's Wald chi-square test of cond (simr's 'chisq'; with two conditions the same p-value as glmer's Wald z). 'cochran_q': Cochran's Q, for a yes/no answer given once in each of three or more conditions (Y binary, X within people, population > measurements 1, no groups), the answers simulated from the same model and each study tested with Cochran's Q (stats::friedman.test() on the 0/1 answers).",
                   "enum": [
                     "wald",
-                    "likelihood_ratio"
+                    "likelihood_ratio",
+                    "cochran_q"
                   ]
                 }
               }

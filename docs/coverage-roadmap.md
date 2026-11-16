@@ -231,7 +231,7 @@ b path moderated (`mome_obs_b`). powerkit maps those two to PROCESS 7 and
 | B24 | Welch's t | ML | E2 (default Welch; Student is an option) | Wired (Welch default and ordinary unequal-group checks are distinct from between-study variation) | Now: AP, PN (Spower). Engine on request: AP, PN by formula (pwrss). Could: S, Co, Cr | Spower `p_t.test(var.equal = FALSE)` (default). **Engine, with `options > method = "exact"` only: pwrss `power.t.welch(d, var.ratio = 1, n.ratio)`** (wave 2, draft PR; the app still uses Spower) | Audit equal/unequal SDs and allocation; variation route has additional restrictions | — |
 | B25 | Kruskal–Wallis | ML; UCLA | E18 (test version) | Wired, 28 October 2026 (simulated; validation in progress) | Now: AP, PN | **Engine: Spower `p_kruskal.test(n, k, means, gen_fun)`**, normal, skewed or heavy-tailed scores | Choose a published example | — |
 | B26 | Friedman | ML; UCLA | E54 | Wired (31 October 2026: a test version on E54, simulated with Spower and powerkit's `p_friedman()` experiment calling `stats::friedman.test()`, for normal, skewed or heavy-tailed scores; checked against a simulation written separately) | — | Spower with powerkit's experiment | Transcribe a published example (validation placeholder) | [C10][] |
-| B27 | Cochran's Q | ML | E26 (its card says no ready-made tool) | No ready-made tool | — | none found. **Candidate, not checked:** DescTools' `CochranQTest()` is the test, not its power, so it would support a custom simulation only, and a published power method would still be needed (coverage.md) | Check the candidate against its own help files | [C6][] |
+| B27 | Cochran's Q | ML | E75 (test version; E26 points to it) | Wired, 16 November 2026 (simulated: the answers drawn from the repeated yes/no card's logistic model, each study tested with Cochran's Q by `stats::friedman.test()`, which equals Q on 0/1 data; checked against a simulation written separately and Q's own formula; validation in progress) | — | Spower with powerkit's experiment `p_repeated_cochran()` | Transcribe a published example (validation placeholder) | [C6][] |
 | B28 | Factorial logistic regression | ML; UCLA | E47 | Wired (29 October 2026: two between-participants factors, equal cells, Spower's `p_glm(family = binomial())`, the Wald test of one effect with effect coding; matches Spower called directly and holds alpha; published value to transcribe) | Now: AP, PN | Could: AP, PN, S, Co, Cr | Spower `p_glm(family = binomial())` with factor terms | Phase 6 | [C7][], [A1][] |
 | B29 | Ordinal regression | ML; UCLA | E29 | Wired (29 October 2026: two groups, powertools' `propodds()`; matches Hmisc's `popower()`; published value to transcribe. Repeated ordinal measurements of the same people: E75, ordinal's `clmm()`, 14 November 2026. More groups measured once or a measured predictor: not yet) | Now: AP, PN | Hmisc `popower()` (proportional odds); powertools `propodds()`. Neither is a foundation tool | Choose a backend | [C17][] |
 | B30 | Negative binomial and zero-inflated counts | ML | E28 | Wired (validation not finished): negative binomial regression of one predictor, 2 November 2026, and zero-inflated Poisson and negative binomial regression, 4 November 2026, simulated (Spower with MASS `glm.nb()` and pscl `zeroinfl()`, E28's model choice) | Now: AP, PN | **Engine: Spower, powerkit's experiments `p_negative_binomial()` around MASS `glm.nb()` and `p_zero_inflated()` around pscl `zeroinfl()`**; MKpower `power.nb.test()` covers two groups only (not a foundation tool) | Hurdle models: not covered | — |
@@ -489,11 +489,11 @@ Recounted from the reconciled rows on 10 November 2026. These are catalogue row 
 | Status | Part A | Part B | Part C | Total |
 | --- | --- | --- | --- | --- |
 | Done (validated and wired) | 0 | 0 | 4 | 4 |
-| Wired (validation not finished) | 40 | 42 | 0 | 82 |
+| Wired (validation not finished) | 40 | 43 | 0 | 83 |
 | Validated, not wired | 0 | 0 | 0 | 0 |
 | Planned | 1 | 2 | 0 | 3 |
 | Foundation tool can do it, not planned | 4 | 7 | 0 | 11 |
-| No ready-made tool | 0 | 3 | 0 | 3 |
+| No ready-made tool | 0 | 2 | 0 | 2 |
 | Partly working | 0 | 11 | 8 | 19 |
 | G\*Power covers it, powerkit doesn't | 3 | 0 | 0 | 3 |
 | Unknown | 1 | 5 | 0 | 6 |
