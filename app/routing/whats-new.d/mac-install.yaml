@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-16"
+    title: "Installing Powerkit on your own computer needs no extra tools"
+    text: "On a Mac or Windows computer, the one-line install no longer stops asking for Xcode, gfortran or Rtools when a package Powerkit uses has had a newer release. It downloads the ready-made version Powerkit records instead, so the same versions are installed as before."
