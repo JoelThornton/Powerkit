@@ -90,7 +90,7 @@ guided_single_note <- function(tree, ctx, start) {
   # Replicating goes through the same questions as testing a prediction.
   if (!aim %in% c("predict", "replicate")) {
     label <- aim_question(tree)$options[[aim]]$label %||% aim
-    return(sprintf("Plan my whole study plans several analyses of a study that tests predictions. For “%s”, this is the one card that plans it: work it out here, then press “Add this to my study plan” under the result if you want it in your plan.", label))
+    return(sprintf("\u201cPlan a whole study\u201d covers several analyses of a study that tests predictions. For “%s”, this is the one card that plans it: work it out here, then press “Add this to my study plan” under the result if you want it in your plan.", label))
   }
   if (!identical(ctx$grouping, "independent")) return(tree$guided$single_analysis_note)
   NULL

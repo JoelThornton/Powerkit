@@ -365,7 +365,7 @@ map_page_ui <- function(tree, ep_id) {
   if (is.null(ep_id) || !nzchar(ep_id) || is.null(tree$endpoints[[ep_id]])) return(NULL)
   div(class = "map-page", id = "map-page", tabindex = "-1",
     card_ui(tree, ep_id, compact = TRUE),
-    p(class = "small", "To plan this analysis, go to “Plan a power analysis” and choose “I know my analysis”, or answer the questions under “Help me choose”."))
+    p(class = "small", "To plan this analysis, go to “Power and sample size” and choose “I know my analysis”, or answer the questions under “Help me choose”."))
 }
 
 # Planning from the map replaces a plan in progress, so it asks first.

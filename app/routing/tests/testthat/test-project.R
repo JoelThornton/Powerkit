@@ -89,14 +89,14 @@ test_that("a project saved from an input screen opened from the plan reopens wit
 test_that("the start screen offers to open a project, and results offer to save one", {
   html <- as.character(open_project_ui())
   expect_match(html, "open_project", fixed = TRUE)
-  expect_match(html, "Open a saved project", fixed = TRUE)
+  expect_match(html, "Open a saved file", fixed = TRUE)
   app <- readLines(file.path(routing_dir, "app.R"))
   expect_true(any(grepl("output$download_project <- downloadHandler", app, fixed = TRUE)))
   expect_true(any(grepl("open_project_ui()", app, fixed = TRUE)))
   # Under the answer, in "Keep this result" (R/keep-result.R), which both
   # result panels show.
   keep <- readLines(file.path(routing_dir, "R", "keep-result.R"))
-  expect_true(any(grepl("download_button(\"download_project\", \"Save project file\"", keep, fixed = TRUE)))
+  expect_true(any(grepl("download_button(\"download_project\", \"Save analysis\"", keep, fixed = TRUE)))
   results <- readLines(file.path(routing_dir, "R", "results.R"))
   expect_true(any(grepl("keep_result_ui(can_export", results, fixed = TRUE)))
 })

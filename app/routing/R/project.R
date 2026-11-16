@@ -102,7 +102,7 @@ project_opened_ui <- function(project, shown = FALSE, from_browser = FALSE) {
   div(
     class = "alert alert-info", role = "status",
     if (from_browser) tagList(tags$strong("Your last result is back."),
-      " It was kept in this browser only: save the project file or copy a link to keep it.")
+      " It was kept in this browser only: save the analysis file or copy a link to keep it.")
     else tagList(tags$strong("Project opened."),
       sprintf(" Saved %s with powerkit %s.", project$saved, project$powerkit_version)),
     if (shown) {
@@ -134,13 +134,13 @@ project_file_name <- function(endpoint) {
 }
 
 # Where both words appear (colleague review P-11, 15 November 2026).
-project_or_plan_note <- "A project file holds one analysis and its result; a study plan holds several analyses of one study. Both open here."
+project_or_plan_note <- "An analysis, a study plan or a zip saved from Powerkit: an analysis file holds one analysis and its result, a study plan several analyses of one study."
 
 # On the start screen: open a file saved earlier.
 open_project_ui <- function() {
   div(
     class = "open-project mt-4",
-    fileInput("open_project", "Open a saved project, plan or unfinished draft", accept = c(".json", "application/json", ".zip", "application/zip"),
+    fileInput("open_project", "Open a saved file", accept = c(".json", "application/json", ".zip", "application/zip"),
       buttonLabel = "Choose file…", placeholder = "a .powerkit.json file, or the zip"),
     p(class = "small text-muted", project_or_plan_note),
     uiOutput("open_project_message")

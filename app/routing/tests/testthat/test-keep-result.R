@@ -4,7 +4,7 @@ test_that("the box under the answer holds the three ways to come back", {
   html <- as.character(keep_result_ui(TRUE))
   expect_match(html, "Keep this result", fixed = TRUE)
   expect_match(html, 'id="download_project"', fixed = TRUE)
-  expect_match(html, "Save project file", fixed = TRUE)
+  expect_match(html, "Save analysis", fixed = TRUE)
   expect_match(html, 'id="share_project"', fixed = TRUE)
   expect_match(html, 'id="study_plan_bar"', fixed = TRUE)
   expect_match(html, 'data-kept="no"', fixed = TRUE)
@@ -76,7 +76,7 @@ test_that("the zip's notes name every file and how to reopen it", {
   notes <- bundle_readme("E2", c(project = "/x/powerkit-E2-project.powerkit.json", script = "/x/powerkit-E2-script.R",
     data = "/x/SIMULATED-not-real-data-E2.csv"))
   expect_true(any(grepl("powerkit-E2-project.powerkit.json", notes, fixed = TRUE)))
-  expect_true(any(grepl("Open a saved or shared project", notes, fixed = TRUE)))
+  expect_true(any(grepl("Open a saved file", notes, fixed = TRUE)))
   expect_true(any(grepl("SIMULATED, NOT REAL DATA", notes, fixed = TRUE)))
 })
 
@@ -85,7 +85,7 @@ test_that("Open shows a plain message for a zip without a project file", {
   shiny::testServer(routing_dir, {
     session$setInputs(open_project = data.frame(name = "x.zip", size = file.info(none)$size,
       type = "application/zip", datapath = none))
-    expect_match(output$open_project_message$html, "no powerkit project file", fixed = TRUE)
+    expect_match(output$open_project_message$html, "no Powerkit analysis file", fixed = TRUE)
   })
 })
 

@@ -107,7 +107,7 @@ test_that("on a replication's card, each effect field says it takes the original
 test_that("the plan's page holds the workspace, and says where the original's analysis stands", {
   plan <- new_replication_plan("Smith replication")
   page <- as.character(plan_page_ui(plan))
-  expect_match(page, "Replication plan", fixed = TRUE)
+  expect_match(page, "Study plan \u00b7 Replication", fixed = TRUE)
   expect_no_match(page, "Add an analysis", fixed = TRUE)
   expect_match(page, "download_plan_bundle", fixed = TRUE)
   html <- as.character(replication_workspace_ui(tree))

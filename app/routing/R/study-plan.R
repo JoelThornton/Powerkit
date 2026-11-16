@@ -187,7 +187,7 @@ study_plan_bar_ui <- function(plans, current, hash, origin = NULL, from_guided =
   if (from_guided && !is.null(current) && in_plan(current)) {
     return(div(class = "study-plan-bar nav-buttons mt-2",
       span(class = "study-plan-added", role = "status",
-        sprintf("This analysis is in your study plan \u201c%s\u201d, with the other analyses of your whole-study plan.", esc_name(current))),
+        sprintf("This analysis is in your study plan \u201c%s\u201d, with the other analyses of your study plan.", esc_name(current))),
       see(current)))
   }
   if (!is.null(current) && in_plan(current)) {
@@ -278,12 +278,12 @@ plan_guided_ui <- function(record) {
   summary <- record$plan$ws_result
   ticked <- length(unlist(record$plan$ticked))
   div(class = "plan-guided result-card",
-    h3(class = "h5", "Whole-study plan"),
-    p(sprintf("Made with “Plan my whole study”: %s chosen, with the values you entered for each.",
+    h3(class = "h5", "Study plan"),
+    p(sprintf("Made with “Plan a whole study”: %s chosen, with the values you entered for each.",
       if (ticked == 1) "1 analysis" else sprintf("%d analyses", ticked))),
     if (is.list(summary)) p(class = "plan-guided-result", tags$strong("Last whole-study simulation: "), whole_study_summary_text(summary))
     else p(class = "small", "No whole-study simulation has been run for it yet."),
-    actionButton("plan_open_guided", "Open the guided plan", class = "btn btn-outline-primary"))
+    actionButton("plan_open_guided", "Change the variables and analyses", class = "btn btn-outline-primary"))
 }
 
 # The plan page's and the study-wide document's wording on sample sizes.
@@ -298,7 +298,7 @@ plan_page_ui <- function(plan, plans_n = 1L) {
   saveable <- plan_has_content(plan)
   tagList(
     actionLink("plans_back", "← All study plans", class = "btn btn-link plans-back"),
-    if (plan_is_replication(plan)) p(class = "card-eyebrow", "Replication plan"),
+    if (plan_is_replication(plan)) p(class = "card-eyebrow", "Study plan \u00b7 Replication"),
     h2(class = "plan-title", plan$name),
     tags$details(class = "plan-rename",
       tags$summary(class = "small", "Rename"),
@@ -349,7 +349,7 @@ plan_page_ui <- function(plan, plans_n = 1L) {
       if (!plan_is_replication(plan)) actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
       if (saveable) share_link_ui("study_plan"),
       if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
-    if (saveable) p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it. Download everything adds a planning document for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
+    if (saveable) p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Copy a link puts the same inside a link; powerkit stores nothing, so anyone with the link can open it. Download everything adds a report for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
     p(class = "small plan-delete",
       plan_delete_button(plan, input = "plan_delete", class = "btn btn-link btn-sm p-0", label = "Delete this plan"))
   )

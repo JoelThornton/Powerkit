@@ -57,7 +57,7 @@ then run another round.
 | 4–5 min | Think-aloud practice | "As you go, please say what you're thinking: what you're looking for, what you expect, anything unclear. If you go quiet, I'll prompt you." |
 | 5–7 min | Start screen | "Choose a way to start and tell us what you want to learn from your study." Note uncertainty about testing versus estimating. Sample-size goals and multiple-test claims are on the input screen. |
 | 7–11 min | Finding the design, their choice of route | "Now find the analysis for your study, however you like." Don't help. If they're stuck for over a minute, ask what they're looking for. |
-| 11–13 min | Another route | "Try one of the other ways in" (I know my analysis; Help me choose; Plan my whole study). Faster; note where routes disagree. |
+| 11–13 min | Another route | "Try one of the other ways in" (I know my analysis; Help me choose; Plan a whole study). Faster; note where routes disagree. |
 | 13–17 min | Inputs | On the card: "Is this the analysis you'd run?" Then **Enter your values**. Watch the effect size: where they say it comes from, and whether they pick "can't justify one". |
 | 17–19 min | Result | "In your own words, what does this result tell you?" Then: "What would you put in your ethics form or preregistration?" (the write-up, if shown). Note whether they keep the "if the true effect is…" condition. |
 | 19–20 min | Debrief | "What was the most confusing moment? Would you trust this result? Would you use it instead of what you use now?" Thank them. If anything didn't fit, ask them to open **Something doesn't fit?** and copy the path. |

@@ -57,7 +57,7 @@ planning_document <- function(tree, forms, calc) {
   route <- calc$route
   id <- route$endpoint
   values <- route$form_values
-  if (is.null(id) || is.null(values)) stop("This result has no captured form answers. Recalculate before downloading a planning document.")
+  if (is.null(id) || is.null(values)) stop("This result has no captured form answers. Recalculate before downloading a report.")
   if (isTRUE(values$source_stale)) stop("Confirm the current source reasoning and recalculate before keeping this plan.")
   spec <- calc$spec
   result <- calc$result
@@ -87,7 +87,7 @@ planning_document <- function(tree, forms, calc) {
     "## Result and methods", unname(text["full"]), "",
     "## Validation evidence", evidence_reader_lines(result$provenance$evidence), "",
     "## Reproducibility record", provenance_lines(result), "",
-    "Keep the matching project file for the complete structured specification, raw-to-derived conversions and machine-readable result. Review these assumptions and the selected decision rule before using the plan.")
+    "Keep the matching analysis file for the complete structured specification, raw-to-derived conversions and machine-readable result. Review these assumptions and the selected decision rule before using the plan.")
 }
 
 # The card's write-up (short and full methods paragraphs) from the

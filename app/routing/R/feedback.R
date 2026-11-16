@@ -126,8 +126,8 @@ feedback_result_message <- function(result) {
 feedback_screen_label <- function(screen) {
   labels <- c(start = "The start questions", known = "I know my analysis: the list of analyses",
     node = "A question in the design finder", card = "An analysis card", form = "The input and result screen",
-    g_vars = "Plan my whole study: the variables", g_analyses = "Plan my whole study: the analyses",
-    g_plan = "Plan my whole study: the plan", check = "Checking a saved project")
+    g_vars = "Plan a whole study: the variables", g_analyses = "Plan a whole study: the analyses",
+    g_plan = "Plan a whole study: the plan", check = "Checking a saved analysis")
   if (screen %in% names(labels)) labels[[screen]] else screen
 }
 

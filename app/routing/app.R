@@ -981,7 +981,7 @@ ui <- function(req) fluidPage(
       id = "tabs",
       # The page the address asks for (?page=labs and so on; page_from_query(), R/ui.R).
       selected = page_from_query(req$QUERY_STRING),
-      tabPanel(tab_title("Plan a power analysis", "Plan"), value = "Plan a power analysis", div(class = "pt-3", uiOutput("draft_offer"), uiOutput("progress"), uiOutput("screen"))),
+      tabPanel(tab_title("Power and sample size", "Calculate"), value = "Plan a power analysis", div(class = "pt-3", uiOutput("draft_offer"), uiOutput("progress"), uiOutput("screen"))),
       tabPanel(tab_title("About", "About"), value = "About", div(class = "pt-3",
         tags$p(class = "about-loading", tags$span(class = "pk-spinner pk-spinner-small", `aria-hidden` = "true"), "Loading the About page…"),
         div(id = "about_static"),
@@ -998,7 +998,11 @@ ui <- function(req) fluidPage(
       if (maintainer_view_requested(req$QUERY_STRING)) tabPanel("For the maintainer: undecided settings", div(class = "pt-3", maintainer_tab))
     ),
     tags$footer(class = "small text-muted mt-5", "Powerkit helps plan research studies. ",
-      tags$a(href = paste0(site_address, "/guide.html"), "Read the guide and current limitations", .noWS = "after"), ".")
+      # What it can't do is on About (the layout review of 16 November
+      # 2026); the longer guide is on the public site.
+      tags$a(href = "#", onclick = "var t=document.querySelector('#tabs a[data-value=\"About\"]'); if(t) t.click(); setTimeout(function(){var e=document.getElementById('about-limits'); if(e) e.scrollIntoView();}, 400); return false;",
+        "What it can and can't do"), " \u00b7 ",
+      tags$a(href = paste0(site_address, "/guide.html"), "The guide", .noWS = "after"), ".")
   )
 )
 
@@ -1054,7 +1058,7 @@ server <- function(input, output, session) {
     plans_view = NULL,       # the plan open on the Study plans page (NULL: the list)
     plan_origin = NULL,      # the plan analysis the open result was opened from
     plan_just_added = NULL,  # the result just added or updated, for the bar's message
-    guided_plan = NULL,      # the study plan the guided route ("Plan my whole study") fills
+    guided_plan = NULL,      # the study plan the guided route ("Plan a whole study") fills
     plan_more_target = NULL, # the plan whose "Add an analysis" was pressed last
     rep_plan = NULL,         # the replication plan the replicate aim's card fills (R/study-plan-replication.R)
     ws_result = NULL         # whole-study simulation: the last finished run, summarised for its study plan
@@ -2029,7 +2033,7 @@ server <- function(input, output, session) {
   observeEvent(state$screen, {
     if (!state$screen %in% c("g_analyses", "g_plan", "g_sim") || !is.null(plan_get(state$guided_plan))) return()
     target <- if (identical(state$plan_more_target, state$current_plan)) plan_get(state$plan_more_target)
-    plan <- if (!is.null(target) && !is.list(target$guided)) target else new_plan(plan_default_name(Sys.Date(), "Whole-study plan"))
+    plan <- if (!is.null(target) && !is.list(target$guided)) target else new_plan(plan_default_name(Sys.Date(), "Study plan"))
     plan$guided <- guided_normalise(guided_plan_record(reactiveValuesToList(state)))
     plans_put(plan)
     state$guided_plan <- plan$id

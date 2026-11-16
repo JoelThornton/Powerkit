@@ -235,10 +235,10 @@ test_that("the maintainer's view is asked for by the environment or the address"
 })
 
 test_that("deciding against the guided route hides it, with no code change", {
-  expect_match(as.character(start_ui(tree)), "Plan my whole study", fixed = TRUE)
+  expect_match(as.character(start_ui(tree)), "Plan a whole study", fixed = TRUE)
   t2 <- tree
   for (i in seq_along(t2$settings)) if (t2$settings[[i]]$key == "guided_route") t2$settings[[i]]$value <- "no"
-  expect_false(grepl("Plan my whole study", as.character(start_ui(t2)), fixed = TRUE))
+  expect_false(grepl("Plan a whole study", as.character(start_ui(t2)), fixed = TRUE))
 })
 
 test_that("the plan screen offers the experimental whole-study simulation only where it applies, and shows no numbers before any calculation", {
@@ -680,7 +680,7 @@ test_that("a card says at a glance how it calculates, with what, and how far its
   html <- as.character(card_ui(tree, "E2"))
   expect_match(html, "class=\"card-facts\"", fixed = TRUE)
   expect_match(html, "In a second or two", fixed = TRUE)
-  expect_match(html, "Checks recorded (details below)", fixed = TRUE)
+  expect_match(html, "Checks recorded: see \u201cMore about this analysis\u201d", fixed = TRUE)
   # Its other versions (rank test, Bayes factor) are gathered in one box.
   expect_match(html, "Other versions, chosen on the next screen", fixed = TRUE)
   expect_match(as.character(card_ui(tree, "E13")), "A preview here, then an R script", fixed = TRUE)

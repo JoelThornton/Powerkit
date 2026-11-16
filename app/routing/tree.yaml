@@ -161,7 +161,7 @@ settings:
     shown_at: [me3, E11]
   - key: guided_route
     ref: "Open question 11"
-    question: "Add the guided 'plan my whole study' route? (Its study file would be a schema change.)"
+    question: "Add the guided 'plan a whole study' route? (Its study file would be a schema change.)"
     options: {"yes": "Yes", "no": "No"}
     value: "yes"
     hides_guided_route_when: "no"
@@ -301,8 +301,8 @@ routes:
       tag: "Not sure? Start here"
       after_screening: q1
     - id: guided
-      label: "Plan my whole study"
-      help: "Several analyses on the same data, planned together."
+      label: "Plan a whole study"
+      help: "Several analyses of one study, kept in a study plan."
       after_screening: guided
 
 # ---------------------------------------------------------------------------
@@ -2379,7 +2379,7 @@ guided:
   # Screening answers the guided rules can use (they are added to the
   # variable answers as `times`).
   context: {times: [once, twice]}
-  single_analysis_note: "Plan my whole study simulates studies of separate people, so this design is planned one analysis at a time. Work out this analysis here, then press \"Add this to my study plan\" under the result; do the same for each further analysis, and My study plan collects them."
+  single_analysis_note: "\u201cPlan a whole study\u201d simulates studies of separate people, so this design is planned one analysis at a time. Work out this analysis here, then press \"Add this to my study plan\" under the result; do the same for each further analysis, and My study plan collects them."
   many_conditions_note: "The guided route covers people measured once, or before and after. For three or more conditions per person, continue in 'Help me choose', which keeps your screening answers."
   variables:
     - id: x

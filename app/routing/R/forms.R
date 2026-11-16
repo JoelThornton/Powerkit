@@ -677,7 +677,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
     list(input = NULL, title = "What you want to find out", fields = test)),
     list(list(input = NULL, title = "Scientific question (optional)", fields = list(
       list(id = "research_question", label = "What scientific question will this study address?", type = "text", optional = TRUE,
-        help = "For example, whether training improves recall enough to change practice. This labels the planning document; it does not choose a statistical test for you.")))),
+        help = "For example, whether training improves recall enough to change practice. This labels the report; it does not choose a statistical test for you.")))),
     if (!isTRUE(form$precision) && !isTRUE(form$criteria)) claim_groups(start$claim, start$n_tests, isTRUE(start$claim_from_plan)),
     list(
     list(input = NULL, title = "Where your effect size comes from", fields = c(list(

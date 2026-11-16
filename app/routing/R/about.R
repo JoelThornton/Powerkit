@@ -178,7 +178,8 @@ about_ui <- function(tree, forms) {
           tags$span("The analysis asks only what it needs, and helps you say where your effect size comes from.")),
         tags$li(tags$strong("Get the answer."),
           tags$span("An established R package calculates it. You get a write-up, the citations, and an R script that reruns it without powerkit."))),
-      p(class = "about-note", "Most calculations call the packages under Credits. Documented formulas and simulations implemented in powerkit are identified in the method notes and reproduction scripts."),
+      p(class = "about-note", "Most calculations call the packages under Credits. Documented formulas and simulations implemented in powerkit are identified in the method notes and reproduction scripts. ",
+        "A longer guide is on ", tags$a(href = paste0(site_address, "/guide.html"), "Powerkit's website", .noWS = "after"), "."),
       tags$button(type = "button", class = "btn btn-primary about-start", onclick = "pkAboutTab('Plan a power analysis')",
         "Start planning")),
 
@@ -204,7 +205,7 @@ about_ui <- function(tree, forms) {
             "Every result and every R script you download says this version, so a number you quote can be traced back to it. ",
             "Version 1.0 will be the first release. ",
             tags$a(href = "#", onclick = "pkAboutTab('Updates'); return false;", "See the updates."))),
-        div(class = "about-card about-card-wide",
+        div(class = "about-card about-card-wide", id = "about-limits",
           tags$h4("What it doesn't do"),
           tags$ul(
             tags$li(tags$strong("It doesn't choose your effect size. "), "It asks where yours comes from and helps you explain it, ",

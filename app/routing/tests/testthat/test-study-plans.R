@@ -178,7 +178,7 @@ test_that("an empty plan keeps its name and description in the browser", {
 test_that("the Study plans page lists every plan, names escaped, and says how to start with none", {
   empty <- as.character(plans_list_ui(list()))
   expect_match(empty, "You have no study plans yet.", fixed = TRUE)
-  expect_match(empty, "Open a saved plan", fixed = TRUE)
+  expect_match(empty, "Open a saved file", fixed = TRUE)
   expect_match(empty, "can be cleared without warning", fixed = TRUE)
   expect_no_match(empty, "plans_forget_all", fixed = TRUE)
   a <- plan_add_entry(new_plan("<b>Bold</b>", now = t0), entry_with_hash("A", 128, "h1"), now = t0)

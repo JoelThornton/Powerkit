@@ -362,7 +362,7 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     ),
     # Saving a draft is a secondary action, so it sits after the fields
     # rather than above them.
-    div(class = "form-draft-save mt-3", download_button("download_draft", "Save unfinished draft", class = "btn btn-outline-secondary"),
+    div(class = "form-draft-save mt-3", download_button("download_draft", "Save answers so far", class = "btn btn-outline-secondary"),
       share_link_ui("draft", class = "btn btn-outline-secondary"),
       p(class = "hint", "Saves your answers so far to a file you can reopen from the start screen, or copies a link that opens them on any computer.")),
     div(id = "copy-status", class = "visually-hidden", `aria-live` = "polite"),
@@ -508,7 +508,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
     planning_decision_ui(form),
     if (any(section == "study")) div(class = "form-section", h3(class = "h5 form-section-title", "2. Your study and hypothesis"), part("study")),
     if (any(section == "question")) tags$details(class = "form-question", open = if (nzchar(values$research_question %||% "")) NA,
-      tags$summary("Your scientific question, for the planning document (optional)"), part("question")),
+      tags$summary("Your scientific question, for the report (optional)"), part("question")),
     div(class = "form-section form-section-effect", h3(class = "h5 form-section-title", sprintf("%d. Your effect size, and where it comes from", if (any(section == "study")) 3 else 2)),
       effect_unsure_ui(form),
       effect_waits_ui(form, groups),

@@ -635,11 +635,11 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       script,
       div(class = "nav-buttons mt-2",
         document_menu("ws_planning_document", "ws_download_planning_docx", "ws_download_planning_md",
-          "Planning document (PDF)", "the planning document"),
+          "Report (PDF)", "the report"),
         download_button("ws_download_spec", "Download the specification (JSON)", class = "btn btn-outline-primary"),
         download_button("download_guided_plan", "Save this plan", class = "btn btn-outline-primary"),
         share_link_ui("guided_plan", id = "share_guided_plan_result")),
-      p(class = "small text-muted", "The planning document gathers every analysis and its role, the claim, the population assumed, the joint and separate powers and the R script that reproduces them, for a plan you share or cite. \u201cSave this plan\u201d keeps your plan and these inputs in a file you can open again on the start screen; the specification is for running the simulation in R.")),
+      p(class = "small text-muted", "The report gathers every analysis and its role, the claim, the population assumed, the joint and separate powers and the R script that reproduces them, for a plan you share or cite. \u201cSave this plan\u201d keeps your plan and these inputs in a file you can open again on the start screen; the specification is for running the simulation in R.")),
     div(class = "result-card result-how", id = "ws-how",
       h4(class = "h5", "How it was calculated"),
       if (experiment) p(class = "result-credit", "Simulated with the R package ", tags$strong("Superpower"), sprintf(" (version %s), with afex %s fitting each ANOVA. The whole-study simulation's validation is in progress.",
@@ -995,7 +995,7 @@ whole_study_planning_document <- function(calc, script, departure = NULL) {
   backend <- if (experiment) sprintf("Superpower %s, with afex %s fitting each ANOVA", pv$packages[["Superpower"]], pv$packages[["afex"]])
     else sprintf("power4mome %s, with lavaan %s and manymome %s", pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]])
   others <- names(pv$packages)[names(pv$packages) != "powerkit"]
-  unname(c("# Whole-study planning document", "",
+  unname(c("# Whole-study simulation report", "",
     sprintf("Planning draft for review, made with %s. It does not register a preregistration or guarantee that the assumptions are correct.",
       powerkit_cited(pv$packages[["powerkit"]])), "",
     "**Validation in progress.** The whole-study simulation is new in powerkit and its validation is not finished. Treat these numbers as a planning aid, and say so if you cite them.", "",

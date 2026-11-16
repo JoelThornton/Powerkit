@@ -43,7 +43,7 @@ test_that("the replication plan's write-up (with the notes) and the planning doc
   expect_match(labs, "pkPrintDocument(&#39;rep_document&#39;)", fixed = TRUE)
   expect_no_match(labs, "window.print()", fixed = TRUE)
   results <- paste(readLines(file.path(routing_dir, "R", "results.R")), collapse = "\n")
-  expect_match(results, 'document_menu("planning_document", "download_planning_docx", "download_planning_document",\n        "Planning document (PDF)"', fixed = TRUE)
+  expect_match(results, 'document_menu("planning_document", "download_planning_docx", "download_planning_document",\n        "Report (PDF)"', fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   rep <- paste(readLines(file.path(routing_dir, "R", "replication.R")), collapse = "\n")
   expect_match(rep, "observeEvent(input$rep_document, send_document(", fixed = TRUE)
@@ -150,7 +150,7 @@ test_that("going ahead or changing the plan gives a section under the paper's th
 
 test_that("a document's formats are one button with a menu", {
   html <- as.character(document_menu("planning_document", "download_planning_docx", "download_planning_document",
-    "Planning document (PDF)", "the planning document"))
+    "Report (PDF)", "the planning document"))
   expect_match(html, 'id="planning_document_button"', fixed = TRUE)
   expect_match(html, 'id="planning_document_formats"', fixed = TRUE)
   expect_match(html, 'data-bs-toggle="dropdown"', fixed = TRUE)

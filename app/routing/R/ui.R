@@ -117,7 +117,7 @@ technical_name <- function(ep) ep$technical_name %||% standard_name(ep$doc_name 
 
 # The app's four steps (the new design, 18 October 2026). Steps, not a
 # percentage: the design finder's length depends on the answers.
-progress_steps <- c(study = "Your study", design = "Find your design", numbers = "Your numbers", result = "Result")
+progress_steps <- c(study = "Your study", design = "Find your analysis", numbers = "Your numbers", result = "Result")
 
 screen_step <- function(screen, has_result = FALSE) {
   if (screen %in% c("start", "aim", "check")) return("study")
@@ -488,7 +488,7 @@ start_ui <- function(tree, start = list(), saved_projects = NULL) {
         `aria-expanded` = "false", `aria-controls` = "saved_projects_panel",
         onclick = paste0("var p = document.getElementById('saved_projects_panel'); var open = p.hidden; p.hidden = !open; ",
           "this.setAttribute('aria-expanded', open ? 'true' : 'false'); if (open) p.scrollIntoView({block: 'nearest'});"),
-        "Open a saved or shared project"),
+        "Open a saved file"),
       span(class = "local-download",
         if (local) tagList(tags$strong("Running on your computer."), " "),
         tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
@@ -627,7 +627,9 @@ known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
     screen_nav_ui(),
     trail_ui(history, tree),
     h2("Which analysis do you want?"),
-    p(class = "lead", "Search for it, pick a common one, or open its group. Each analysis opens its card, which says what it assumes and needs."),
+    p(class = "lead", "Search for it, pick a common one, or open its group. Each analysis opens its card, which says what it assumes and needs. ",
+      # The methods map, reachable from here too (layout review, 16 November 2026).
+      tags$a(href = "#", onclick = "Shiny.setInputValue('safety_open_map', Date.now(), {priority: 'event'}); return false;", "Browse them on a map", .noWS = "after"), "."),
     bayes_mode_toggle_ui(bayes_on, "known", length(tree$bayes_designs)),
     if (isTRUE(bayes_on)) {
       p(class = "text-muted known-bayes-count", sprintf("Showing the %d of %d analyses with a Bayes factor version. Switch it off to see them all.",
@@ -979,7 +981,7 @@ validation_scope_note <- "Checks apply to the cases described in this record, no
 card_facts_ui <- function(tree, ep_id, ep) {
   how <- unname(tree$calculate_how[ep_id])
   if (!length(how) || is.na(how) || !ep$status %in% c("runs_validated", "runs_validation_in_progress")) return(NULL)
-  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded (details below)" else "Validation in progress"
+  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded: see \u201cMore about this analysis\u201d" else "Validation in progress"
   fact <- function(label, value, cls = NULL) div(class = paste("card-fact", cls), tags$span(class = "card-fact-label", label), tags$span(class = "card-fact-value", value))
   div(class = "card-facts",
     fact("Calculates", card_how_words[[how]], paste0("how-", how)),
@@ -1085,7 +1087,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
     return(tagList(
       screen_nav_ui(),
       trail_ui(history, tree),
-      h2("Plan my whole study: your variables"),
+      h2("Plan a whole study: your variables"),
       div(class = "status status-soon", g$many_conditions_note),
       placeholders_at(tree, "guided_variables"),
       action_bar(pick_button("Continue in 'Help me choose'", "continue:choose", class = "btn btn-primary"))
@@ -1094,7 +1096,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
   tagList(
     screen_nav_ui(),
     trail_ui(history, tree),
-    h2("Plan my whole study: your variables"),
+    h2("Plan a whole study: your variables"),
     p(class = "lead", g$intro),
     p(class = "text-muted", g$scope_note),
     placeholders_at(tree, "guided_variables"),
@@ -1131,7 +1133,7 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
   several_main <- sprintf("[%s].filter(function(v) { return v === 'main'; }).length >= 2", paste(role_inputs, collapse = ", "))
   tagList(
     screen_nav_ui("guided:variables", "Back to the variables"),
-    h2("Plan my whole study: your analyses"),
+    h2("Plan a whole study: your analyses"),
     p(class = "lead", "For each analysis, say whether you plan it, and whether it is a main analysis. The sample size is worked out for the main analyses."),
     lapply(apps, function(a) {
       res <- resolve_analysis(tree, a, answers, asks[[a$id]])
@@ -1156,7 +1158,7 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
 }
 
 guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
-                           history = list(), route_label = "Plan my whole study", raw_answers = answers,
+                           history = list(), route_label = "Plan a whole study", raw_answers = answers,
                            forms = NULL, results = list(), shared = list()) {
   g <- tree$guided
   rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)[[1]]
