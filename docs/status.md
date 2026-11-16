@@ -47,7 +47,7 @@ inside a phone's chart.
 
 Colleague testing starts 16 November 2026. What testers report, and what
 the reviews left for later, is `next.md` item 25 and comes first while
-testing runs; the Mac installation steps wait on a CRAN binary (item 26).
+testing runs.
 
 JASP's analyses were reviewed against powerkit's cards (13 November
 2026; `coverage-roadmap.md`, "JASP's analyses"). Those powerkit already
@@ -309,6 +309,10 @@ completion stamp written only after a successful matching install.
 An isolated three-package binary restore on Windows passed with renv 1.0.3
 and an unchanged lockfile. Full clean Windows/macOS first/repeat starts passed
 on that PR's final head. No fix is claimed for every network.
+Since 16 November 2026 the launcher needs no compilers on Windows or
+macOS: recorded versions that CRAN no longer builds come from Posit
+Package Manager's dated CRAN snapshots, and the install check runs with
+every compiler switched off (`run-it-yourself.md`).
 
 The [default review and checklist](variation-default-review.md) records the
 maintainer's approval of ordinary t-test and Pearson correlation plans starting

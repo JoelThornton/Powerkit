@@ -17,15 +17,24 @@ You will:
 4. run one line, which installs what powerkit needs and opens it in your
    web browser.
 
-Allow tens of minutes the first time; the time depends on your connection
-and whether any packages need compiling. Later starts reuse installed
+Allow tens of minutes the first time; the time depends on your connection.
+Nothing needs compiling, so you don't need Xcode, gfortran or Rtools.
+Later starts reuse installed
 packages. Everything runs
 on your computer. Sending feedback is optional and sends the information
 described on the Feedback tab.
 
 These steps are checked automatically on clean Windows and macOS machines
-(`.github/workflows/run-it-yourself.yaml`), so if they stop working we
-find out.
+with every compiler switched off (`.github/workflows/run-it-yourself.yaml`),
+so if they stop working, or start needing a compiler, we find out.
+
+CRAN keeps ready-made Windows and macOS downloads of only the newest
+version of each package. When a package powerkit records has since had a
+newer release on CRAN, the launcher finds a day on which the recorded
+version was CRAN's newest and downloads it from Posit Package Manager's
+snapshot of CRAN for that day (`packagemanager.posit.co`), which keeps
+ready-made downloads of past versions. The versions installed are still
+exactly those in `renv.lock`.
 
 ## 1. Install R
 
@@ -191,8 +200,10 @@ the final error and package name. Restart R before trying again.
 A package had to be built from source code, which needs extra tools.
 First check the R version and the preceding download messages: a failed
 binary download can cause a source fallback even on the right R version.
-Try the connection recovery above first. Some recorded versions may still
-need compilation when a compatible binary is unavailable:
+Try the connection recovery above first, and check that your network
+allows `packagemanager.posit.co`, which supplies ready-made downloads of
+recorded versions CRAN no longer builds. If a recorded version has no
+ready-made download anywhere, it needs compiling:
 - **Windows:** install **Rtools45** from
   <https://cran.r-project.org/bin/windows/Rtools/rtools45/rtools.html>,
   keeping the defaults, then start again.

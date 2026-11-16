@@ -97,6 +97,19 @@ jobs:
           cd "$RUNNER_TEMP/user" && unzip -q "$RUNNER_TEMP/Powerkit-main.zip"
           ls "$RUNNER_TEMP/user/Powerkit-main/run_powerkit.R"
 
+      - name: "Like most people's computers: no compilers"
+        run: |
+          set -euo pipefail
+          # GitHub's runners have compilers (Xcode's clang; Rtools on
+          # Windows) that most people's computers lack, which once hid a
+          # package that could only be compiled. Every compiler R would
+          # call is made to fail, so any package that needs compiling stops
+          # the install here as it would for a tester.
+          printf '%s=false\n' CC CXX CXX11 CXX14 CXX17 CXX20 CXX23 FC F77 OBJC OBJCXX > "$RUNNER_TEMP/no-compilers.mk"
+          folder="$RUNNER_TEMP/no-compilers.mk"
+          if command -v cygpath >/dev/null; then folder=$(cygpath -m "$folder"); fi
+          echo "R_MAKEVARS_USER=$folder" >> "$GITHUB_ENV"
+
       - name: "Step 4: run the one line, and check the app answers"
         env:
           POWERKIT_PORT: "8765"
@@ -122,6 +135,8 @@ jobs:
           if [ "$ok" = true ] && grep -q "powerkit" "$RUNNER_TEMP/page.html" && grep -q 'id="about_page"' "$RUNNER_TEMP/page.html"; then
             echo "The app answered after about $((i * 5 / 60)) minutes, with its About tab."
             grep "^powerkit:" "$RUNNER_TEMP/powerkit.log" || true
+            echo "Packages installed from source (with no compilers, these need none):"
+            grep "built from source" "$RUNNER_TEMP/powerkit.log" || echo "none"
             kill "$pid" 2>/dev/null || true
             exit 0
           fi
