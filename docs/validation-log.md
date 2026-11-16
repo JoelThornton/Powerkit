@@ -1613,7 +1613,7 @@ the rejection rates were:
 | OLS t-test | 4.87% | |
 | OLS Monte Carlo interval | 5.17% | |
 
-All are consistent with 5%. At a true 5.38%, a 1,000-study rate above
+All lie inside a 99.9% interval around 5%, but the lavaan Monte Carlo interval's 5.38% is about 2.4 Monte Carlo SEs above 5%, so a slight excess (about 0.4 points) is likely; the OLS route is closer to 5%. At a true 5.38%, a 1,000-study rate above
 .0707 has a 1.2% chance, and the test's fixed seed draws the same 1,000
 studies every night. No engine fault. Re-seeding or more replications is
 the maintainer's call (`next.md` item 5).

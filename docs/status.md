@@ -50,6 +50,8 @@ About folds the coloured list of every analysis and a capability table
 with one row per analysis (downloadable in full as a spreadsheet), and
 Feedback confirms a sent message on its button and in a panel.
 
+Moderated mediation with a yes/no X tests slightly liberally (5.38% at alpha .05 in 20,000 studies, `validation-log.md`); its card note says so.
+
 Colleague testing starts 16 November 2026. What testers report, and what
 the reviews left for later, is `next.md` item 25 and comes first while
 testing runs.
