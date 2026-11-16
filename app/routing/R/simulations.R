@@ -40,7 +40,8 @@ mediation_estimate <- function(spec) {
 mediation_estimate_ui <- function(spec) {
   if (!mediation_estimate(spec)) return(NULL)
   div(class = "result-estimate-notice alert alert-warning", role = "note",
-    tags$p(tags$strong("This is a quick estimate, for planning.")),
+    tags$p(tags$strong("This is a quick estimate, for planning. "), tags$span(class = "badge-progress", "Validation in progress")),
+    tags$p("The full simulation has had its validation run; this estimate has not had one yet."),
     tags$p("It comes from a formula for the joint-significance test (both paths significant), so it is instant, but it is optimistic: with paths of .3 and 100 people it gives 75% power where the full simulation gives 71%, so the sample size it gives can be about 10% short."),
     tags$p("For the number you report, choose \u201cFull simulation\u201d under \u201cHow to work it out\u201d: power at a fixed sample size runs here in about 12 minutes, and the sample size comes as an R script to run on your own computer."))
 }

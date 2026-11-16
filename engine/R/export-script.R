@@ -123,6 +123,7 @@ export_script <- function(spec, result, file = NULL) {
   )
   lines <- add_recruitment_section(lines, spec, result)
   lines <- c(lines, simulated_data_section(spec, simulated_data_n(spec, result), result$provenance$seed))
+  lines <- c(lines, evidence_section(result$provenance$evidence))
   text <- paste(c(lines, ""), collapse = "\n")
   if (is.null(file)) {
     return(text)
@@ -219,11 +220,24 @@ script_header <- function(spec, result, package, call_description) {
     sprintf("# Goal: %s", goal_description(spec)),
     sprintf("# Method: %s", method_description(result)),
     sprintf("# Calculation: %s", call_description),
-    paste0("# ", comment_text(evidence_record_text(p$evidence))),
+    "# The checks recorded for this analysis are listed at the end of this script.",
     "#",
     sprintf("# %s did this calculation. Please cite it: run citation(\"%s\"),", package, package),
     "# and see powerkit's citations export for its method paper.",
     ""
+  )
+}
+
+# The evidence record, at the end of the script so that the code comes
+# first: "no linked record" reads as a failed check when it opens the file.
+evidence_section <- function(evidence) {
+  c(
+    "",
+    "# Checks recorded for this analysis ------------------------------------------",
+    "# From powerkit's evidence register, for this version of the analysis.",
+    "# \"No linked record\" means no check of that kind is linked to this exact",
+    "# version yet; it does not mean a check failed.",
+    paste0("# ", comment_text(evidence_record_text(evidence)))
   )
 }
 

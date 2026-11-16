@@ -1,0 +1,10 @@
+entries:
+  - date: "2026-11-16"
+    title: "You choose the model for counts"
+    text: "When the outcome is a count measured more than once, or a count in moderation or mediation, the screen no longer starts on the Poisson model. Choose Poisson or the more spread-out negative binomial model from what your earlier data show: counts of behaviour usually vary more than Poisson allows, and Poisson then gives too much power."
+  - date: "2026-11-16"
+    title: "Simple mediation's quick estimate is marked as still being validated"
+    text: "The quick estimate that simple mediation starts on now says \"Validation in progress\" on the input screen and on its result. The full simulation is the version that has had a validation run."
+  - date: "2026-11-16"
+    title: "Plainer messages and a script that starts with its code"
+    text: "Typing a percentage such as 5% where a proportion is asked for now tells you to type 0.05. Two messages no longer use Powerkit's internal names for the goal, and the paired test's effect box says what d_z is. The help no longer warns you off a rule-of-thumb effect size: it says what choosing one means. The R script you download now starts with the calculation, and the list of checks recorded for the analysis is at the end, with a line saying that \"no linked record\" does not mean a check failed."

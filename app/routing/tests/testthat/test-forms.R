@@ -126,7 +126,11 @@ test_that("the screen catches empty, non-numeric and out-of-range values, naming
   v <- values_for("E4")
   v$r <- "0,3"; v$alpha <- "0.7"; v$X_label <- ""
   problems <- form_problems(fields_for("E4"), v)
-  expect_true(any(grepl("“Correlation r” should be a number written with a decimal point", problems, fixed = TRUE)))
+  expect_true(any(grepl("“Correlation r” should be a plain number, such as 12 or 0.3 (with a full stop", problems, fixed = TRUE)))
+  # A percentage typed with its sign gets the proportion to type instead.
+  v <- values_for("E4"); v$alpha <- "5%"
+  expect_true(any(grepl("“Significance level (alpha)” should be a proportion, without the % sign: for 5%, type 0.05.",
+    form_problems(fields_for("E4"), v), fixed = TRUE)))
   expect_true(any(grepl("“Significance level (alpha)” must be at most 0.5.", problems, fixed = TRUE)))
   # Names may stay empty (they only label the result).
   expect_false(any(grepl("“First variable” is empty.", problems, fixed = TRUE)))
