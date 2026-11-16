@@ -333,9 +333,19 @@ labs_tool_card <- function(tool) {
       onclick = sprintf("pkLabsOpen('%s')", tool$id), paste("Open", tool$title)))
 }
 
+# Planning a replication is a kind of study plan (since 14 November 2026),
+# so its card on Tools starts one rather than opening a tool here.
+labs_replication_card <- function() {
+  div(class = "labs-tool-card labs-replication-card", h4(class = "h5", "Replication planner"),
+    p("Plan a replication of a published finding: decide whether it is worth replicating (the pre-replication notes), describe the original study, set the replication's sample size from what you want it to show, and get a write-up. It is kept as a replication plan, with your other study plans."),
+    actionButton("rep_plan_new_labs", "Start a replication plan", class = "btn btn-primary"))
+}
+
 labs_menu_section <- function(section) {
   tools <- Filter(function(tool) tool$id %in% labs_tool_sections[[section]], labs_tools)
-  tagList(h3(class = "h4 mt-4", section), div(class = "labs-menu", lapply(tools, labs_tool_card)))
+  cards <- lapply(tools, labs_tool_card)
+  if (identical(section, "For planning")) cards <- c(list(labs_replication_card()), cards)
+  tagList(h3(class = "h4 mt-4", section), div(class = "labs-menu", cards))
 }
 
 labs_ui <- function(tree) {

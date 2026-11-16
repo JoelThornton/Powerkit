@@ -115,7 +115,7 @@ test_that("the tabs that are the same for everyone are built once, not per visit
 
 # A Labs menu, and planning from the notes without losing work (22 October 2026)
 
-test_that("Tools opens on a list of tools, without the old replication notice or an experimental label", {
+test_that("Tools opens on a list of tools, starting with the replication planner, without an experimental label", {
   html <- as.character(labs_ui(tree))
   expect_match(html, "labs-menu", fixed = TRUE)
   expect_match(html, 'data-display-if="!input.labs_tool"', fixed = TRUE)
@@ -126,7 +126,9 @@ test_that("Tools opens on a list of tools, without the old replication notice or
   expect_length(labs_tools, 5)
   # The notes are on a replication plan's page.
   expect_no_match(html, "labs_finding", fixed = TRUE)
-  expect_no_match(html, "rep_plan_new_labs", fixed = TRUE)
+  # Tools starts a replication plan from the first planning card.
+  expect_match(html, 'id="rep_plan_new_labs"', fixed = TRUE)
+  expect_lt(regexpr("Replication planner", html, fixed = TRUE), regexpr("Methods map", html, fixed = TRUE))
   expect_match(as.character(replication_workspace_ui(tree)), "labs_finding", fixed = TRUE)
   expect_match(labs_js, "powerkit-labs-tool", fixed = TRUE)
 })
