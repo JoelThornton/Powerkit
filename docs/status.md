@@ -50,6 +50,8 @@ About folds the coloured list of every analysis and a capability table
 with one row per analysis (downloadable in full as a spreadsheet), and
 Feedback confirms a sent message on its button and in a panel.
 
+Nightly validation on 14 and 15 November found a slightly liberal Type I error for moderated mediation with a yes/no X and one mixed-ANOVA agreement miss (`next.md` items 26 and 27); the 16 November run was cut off by a lost runner, not a test.
+
 Colleague testing starts 16 November 2026. What testers report, and what
 the reviews left for later, is `next.md` item 25 and comes first while
 testing runs.
