@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-16"
+    title: "A tidier look for buttons, boxes and folds"
+    text: "Buttons, text boxes, menus and file pickers now look the same on every screen, and the edges of text boxes and menus are darker, so they stand out from the white behind them. The sliders in Tools match the one on the result screen. On the result screen and the cards, a line that opens to show more (such as \"Full version\" or \"Checks for this analysis in general\") now has a small arrow, so it no longer looks like plain text. On a phone, the power chart's label no longer runs off the edge, and the buttons for keeping a result are the full width of the screen."
+  - date: "2026-11-16"
     title: "One name for each thing you save"
     text: "\"Plan\" now only means a study plan: several analyses of one study, kept together. One calculation is an analysis, saved with \"Save analysis\" as an analysis file (files saved as project files open as before). The first tab is \"Power and sample size\", the start option is \"Plan a whole study\", the PDF for one analysis is its Report, and both open buttons say \"Open a saved file\". A replication plan is labelled as a kind of study plan. The list under \"I know my analysis\" links to the methods map, and the footer points to what Powerkit can and can't do."
   - date: "2026-11-16"

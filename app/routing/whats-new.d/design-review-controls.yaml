@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-16"
-    title: "A tidier look for buttons, boxes and folds"
-    text: "Buttons, text boxes, menus and file pickers now look the same on every screen, and the edges of text boxes and menus are darker, so they stand out from the white behind them. The sliders in Tools match the one on the result screen. On the result screen and the cards, a line that opens to show more (such as \"Full version\" or \"Checks for this analysis in general\") now has a small arrow, so it no longer looks like plain text. On a phone, the power chart's label no longer runs off the edge, and the buttons for keeping a result are the full width of the screen."
