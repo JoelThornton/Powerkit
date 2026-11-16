@@ -30,6 +30,9 @@
 #   two correlations      group 2's correlation, group 1's kept (searched
 #                         on Fisher's z scale)
 #   goodness of fit       Cohen's w, with the number of categories kept
+#   dependent             the second correlation (X with Z, or X2 with Y2),
+#   correlations          the first and the others kept, within the values
+#                         that keep the correlation matrix positive definite
 #   contrast and ANCOVA   the pattern of means entered, scaled about its
 #                         grand mean, as the ANOVAs' smallest detectable
 #                         effect scales it (superpower_sensitivity())
@@ -38,7 +41,8 @@
 pwrss_search_keys <- c(
   "r2_zero", "r2_increase", "single_coefficient", "interaction_r2_change", "anova_eta_squared",
   "single_predictor", "single_predictor_count", "one_proportion", "mcnemar",
-  "two_correlations", "chi_square_gof", "oneway_contrast", "oneway_ancova", "factorial_ancova"
+  "two_correlations", "chi_square_gof", "oneway_contrast", "oneway_ancova", "factorial_ancova",
+  "overlapping_correlations", "nonoverlapping_correlations"
 )
 
 pwrss_search_available <- function(spec) pwrss_key(spec) %in% pwrss_search_keys
@@ -168,6 +172,27 @@ pwrss_search_plan <- function(spec) {
         what = sprintf("correlation in group 2, with group 1's kept at %s", format(pop$r1))
       )
     },
+    overlapping_correlations = ,
+    nonoverlapping_correlations = {
+      overlapping <- key == "overlapping_correlations"
+      first <- if (overlapping) "r_X_Y" else "r_X1_Y1"
+      second <- if (overlapping) "r_X_Z" else "r_X2_Y2"
+      r1 <- pop[[first]]
+      range <- dependent_correlation_range(spec, second)
+      start <- min(max(r1, range[1]), range[2])
+      direction <- pwrss_search_direction(spec, (pop[[second]] %||% r1) - r1)
+      room <- if (direction > 0) range[2] - start else start - range[1]
+      list(
+        grid = seq(room / 400, room, length.out = 400),
+        direction = direction,
+        set = function(s, x) { s$population[[second]] <- start + direction * x; s },
+        script = sprintf("%s <<- %s + direction * x", second, r_code(start)),
+        effect = function(x) start + direction * x, effect_script = sprintf("%s + direction * found", r_code(start)),
+        effect_name = "r_second",
+        what = sprintf("second correlation (%s), with the first kept at %s and the other correlations as entered",
+          if (overlapping) "X with Z" else "X2 with Y2", format(r1))
+      )
+    },
     chi_square_gof = list(
       grid = log_grid(1e-4, 3),
       set = function(s, x) {
@@ -233,6 +258,32 @@ relist_means <- function(means, values) {
   sizes <- vapply(means, function(row) length(unlist(row)), integer(1))
   ends <- cumsum(sizes)
   lapply(seq_along(sizes), function(i) as.list(values[(ends[i] - sizes[i] + 1):ends[i]]))
+}
+
+# The values of one correlation that keep the matrix of all the
+# correlations positive definite, the others as entered: the determinant
+# is a quadratic in any one off-diagonal entry, so it is fitted through
+# three values and its roots are the ends (pulled in by 0.001).
+dependent_correlation_range <- function(spec, field) {
+  pop <- spec$population
+  overlapping <- identical(spec$template, "overlapping_correlations")
+  vars <- if (overlapping) c("X", "Y", "Z") else c("X1", "Y1", "X2", "Y2")
+  matrix_at <- function(x) {
+    p <- pop
+    p[[field]] <- x
+    m <- diag(length(vars))
+    for (i in seq_along(vars)) for (j in seq_along(vars)) if (i < j) {
+      value <- p[[paste0("r_", vars[i], "_", vars[j])]] %||% p[[paste0("r_", vars[j], "_", vars[i])]]
+      m[i, j] <- m[j, i] <- value
+    }
+    m
+  }
+  d <- vapply(c(-1, 0, 1), function(x) det(matrix_at(x)), numeric(1))
+  a <- (d[3] + d[1]) / 2 - d[2]
+  b <- (d[3] - d[1]) / 2
+  roots <- sort(Re(polyroot(c(d[2], b, a))))
+  ends <- c(max(-0.999, roots[1]), min(0.999, roots[2]))
+  ends + c(0.001, -0.001)
 }
 
 # The search itself (the steps at the top of this file).

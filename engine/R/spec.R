@@ -212,7 +212,7 @@ standardise_raw_effect <- function(spec) {
   # Equivalence tests: the bound, in the same SD units as the effect.
   if (identical(spec$design, "equivalence_test")) {
     sd <- if (identical(spec$template, "tost_paired")) paired_sd() else raw$sd
-    spec$population$bound <- raw$bound / sd
+    if (!is.null(raw$bound)) spec$population$bound <- raw$bound / sd
   }
   spec
 }

@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "The smallest effect you could detect, on six more analyses"
+    text: "Two dependent correlations, one and two variances, Hotelling's T-squared, MANOVA (by Pillai's V, or two groups by their means) and equivalence tests now offer \"the smallest effect I'd have a good chance of finding\". For an equivalence test the answer is the narrowest equivalence bounds your sample could show, so you can see whether it can test the smallest difference that matters in your field."

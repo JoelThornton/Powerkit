@@ -7645,8 +7645,7 @@
               "required": [
                 "mean_1",
                 "mean_2",
-                "sd",
-                "bound"
+                "sd"
               ],
               "additionalProperties": false,
               "properties": {
@@ -7692,8 +7691,7 @@
               },
               "else": {
                 "required": [
-                  "d",
-                  "bound"
+                  "d"
                 ],
                 "not": {
                   "required": [
@@ -7757,8 +7755,7 @@
               "type": "object",
               "required": [
                 "mean_1",
-                "mean_2",
-                "bound"
+                "mean_2"
               ],
               "additionalProperties": false,
               "properties": {
@@ -7845,8 +7842,7 @@
               },
               "else": {
                 "required": [
-                  "dz",
-                  "bound"
+                  "dz"
                 ],
                 "not": {
                   "required": [
@@ -7907,8 +7903,7 @@
               "required": [
                 "mean",
                 "test_value",
-                "sd",
-                "bound"
+                "sd"
               ],
               "additionalProperties": false,
               "properties": {
@@ -7954,8 +7949,7 @@
               },
               "else": {
                 "required": [
-                  "d",
-                  "bound"
+                  "d"
                 ],
                 "not": {
                   "required": [
@@ -8000,8 +7994,7 @@
         "population": {
           "required": [
             "metric",
-            "r",
-            "bound"
+            "r"
           ],
           "additionalProperties": false,
           "properties": {
@@ -8057,8 +8050,7 @@
           "required": [
             "metric",
             "p1",
-            "p2",
-            "bound"
+            "p2"
           ],
           "additionalProperties": false,
           "properties": {
@@ -8397,7 +8389,8 @@
               "type": {
                 "enum": [
                   "sample_size",
-                  "power"
+                  "power",
+                  "sensitivity"
                 ]
               }
             }
