@@ -22,7 +22,11 @@ test_that("the record keeps known fields only, as text, and blanks are left out"
   expect_null(replication_record(endpoint = "not an id")$endpoint)
   # The screen gets every field, with the planner's starting values.
   v <- replication_values(r)
-  expect_identical(v$rep_alpha, "0.05")
+  # Alpha and power start empty, with buttons, as on the cards; variation
+  # between studies starts at Small (P-04, 15 November 2026).
+  expect_identical(v$rep_alpha, "")
+  expect_identical(v$rep_power, "")
+  expect_identical(v$rep_tau, "0.05")
   expect_identical(v$labs_goals, "")
   expect_setequal(names(v), replication_plan_field_ids)
 })
@@ -103,7 +107,7 @@ test_that("on a replication's card, each effect field says it takes the original
 test_that("the plan's page holds the workspace, and says where the original's analysis stands", {
   plan <- new_replication_plan("Smith replication")
   page <- as.character(plan_page_ui(plan))
-  expect_match(page, "Replication plan", fixed = TRUE)
+  expect_match(page, "Study plan \u00b7 Replication", fixed = TRUE)
   expect_no_match(page, "Add an analysis", fixed = TRUE)
   expect_match(page, "download_plan_bundle", fixed = TRUE)
   html <- as.character(replication_workspace_ui(tree))

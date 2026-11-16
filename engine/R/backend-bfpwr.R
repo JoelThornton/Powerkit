@@ -148,6 +148,14 @@ bayes_summary <- function(spec, n, backend = NULL, nrep = NULL, seed = NULL) {
       backend$null_side(n, nrep, seed %||% 1L)
     ))
   }
+  if (bfthree_test(spec)) {
+    inputs <- bfthree_inputs(spec)
+    return(c(
+      list(evidence_threshold = inputs$threshold, prior_scale = inputs$prior_scale, inclusion = inputs$inclusion,
+        effect_sd = 0, n = n, hypotheses = bfthree_hypotheses_words(inputs)),
+      backend$null_side(n, nrep, seed %||% 1L)
+    ))
+  }
   if (bfancova_test(spec)) {
     inputs <- bfancova_inputs(spec)
     return(c(
@@ -266,6 +274,9 @@ bfpwr_script <- function(spec, result) {
   if (bffactorial_test(spec)) {
     return(bffactorial_script(spec, result))
   }
+  if (bfthree_test(spec)) {
+    return(bfthree_script(spec, result))
+  }
   if (bfancova_test(spec)) {
     return(bfancova_script(spec, result))
   }
@@ -283,7 +294,7 @@ bfpwr_script <- function(spec, result) {
     "# Inputs ----",
     sprintf("effect <- %s # the expected effect, as %s", r_code(inputs$effect), effect_name),
     sprintf("effect_sd <- %s # uncertainty about it (SD of the normal design prior; 0 = exactly this effect)", r_code(inputs$effect_sd)),
-    sprintf("threshold <- %s # strong evidence: BF10 at least this (BF01 at most 1 / threshold)", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: BF10 at least this (BF01 at most 1 / threshold)", r_code(inputs$threshold)),
     sprintf("prior_scale <- %s # scale of the Cauchy analysis prior (the JZS Bayes factor)", r_code(inputs$prior_scale)),
     sprintf("type <- %s", r_code(inputs$type)),
     sprintf("alternative <- %s", r_code(inputs$alternative)),
@@ -339,6 +350,9 @@ bayes_design_description <- function(spec, label, levels) {
   if (bffactorial_test(spec)) {
     return(bffactorial_design_description(spec, label, levels))
   }
+  if (bfthree_test(spec)) {
+    return(bfthree_design_description(spec, label, levels))
+  }
   if (bfancova_test(spec)) {
     return(bfancova_design_description(spec, label, levels))
   }
@@ -350,7 +364,7 @@ bayes_design_description <- function(spec, label, levels) {
     two.sample = sprintf("two-group Bayes factor t-test of %s between the groups of %s (%s)", label("Y"), label("X"), levels("X"))
   )
   sprintf(
-    "%s: JZS Bayes factor with a Cauchy prior of scale %s%s; strong evidence is BF10 of at least %s",
+    "%s: JZS Bayes factor with a Cauchy prior of scale %s%s; the evidence threshold is BF10 of at least %s",
     test, format_number(signif(inputs$prior_scale, 4)),
     if (identical(inputs$alternative, "two.sided")) "" else sprintf(" (one-sided, %s)", inputs$alternative),
     format_number(inputs$threshold)

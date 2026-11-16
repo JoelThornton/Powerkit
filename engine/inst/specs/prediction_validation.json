@@ -1,0 +1,33 @@
+{
+  "spec_version": "0.1",
+  "design": "prediction_model",
+  "template": "validation",
+  "variables": {
+    "Y": {
+      "type": "binary",
+      "label": "Relapse within a year"
+    }
+  },
+  "population": {
+    "prevalence": 0.2,
+    "c_statistic": 0.75,
+    "lp_distribution": "normal",
+    "lp_mean": -1.6,
+    "lp_sd": 1.2
+  },
+  "effect_justification": {
+    "type": "convention",
+    "source": "Example only: the existing model's reported C-statistic of about 0.75, about one in five relapsing, and its published linear predictor."
+  },
+  "target_test": {
+    "effect": "development_criteria",
+    "method": "riley_criteria"
+  },
+  "goal": {
+    "type": "criteria"
+  },
+  "options": {
+    "method": "exact",
+    "seed": 20261115
+  }
+}

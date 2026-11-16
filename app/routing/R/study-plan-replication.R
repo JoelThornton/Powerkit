@@ -19,8 +19,8 @@ replication_plan_field_ids <- c(replication_notes_ids, replication_field_ids)
 # The planner's starting values, as its screen had them.
 replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "test", rep_original_prior = "default",
   rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
-  rep_original_alpha = "0.05", rep_tau = "0",
-  rep_alpha = "0.05", rep_power = "0.8", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05")
+  rep_original_alpha = "0.05", rep_tau = "0.05",
+  rep_alpha = "", rep_power = "", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05")
 
 # Fields as the record keeps them: known ids only, each one string, blanks
 # left out.
@@ -117,11 +117,12 @@ plan_from_replication_text <- function(text, now = Sys.time()) {
 # fields from the plan when the plan opens, and keeps them in the plan.
 replication_workspace_ui <- function(tree) {
   div(class = "replication-workspace",
-    h3(class = "h4", "Planning the replication"),
+    h3(class = "h5", "Planning the replication"),
     p(class = "small", "Fill the sections in any order and come back to them. Everything is kept in this plan: save the plan to keep it."),
     radioButtons("rep_section", NULL, choices = replication_sections, selected = "whether", inline = TRUE, width = "100%"),
     conditionalPanel("input.rep_section == 'whether'", replication_notes_ui(tree)),
-    replication_planner_sections())
+    replication_planner_sections(),
+    replication_references_ui())
 }
 
 # The planner's fields when the original's card is chosen: its design and,
@@ -176,7 +177,7 @@ replication_analysis_lines <- function(plan, tree, forms) {
   unlist(lapply(plan$entries, function(e) {
     text <- tryCatch(planning_methods_text(tree, forms, plan_entry_calc(e)), error = function(err) NULL)
     c(sprintf("- %s: %s", e$label, plan_item_summary(e)), "",
-      text %||% "The methods paragraph for this analysis is in its own planning document.", "")
+      text %||% "The methods paragraph for this analysis is in its own report.", "")
   }))
 }
 

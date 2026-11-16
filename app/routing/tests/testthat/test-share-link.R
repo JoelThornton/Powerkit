@@ -1,5 +1,5 @@
-# "Copy a link" (R/share-link.R): the link carries the same text as the
-# save button's file, and opening it goes through the same reader.
+# Share (R/share-link.R): the link carries the same text as the save
+# button's file, and opening it goes through the same reader.
 
 draft_route <- function() {
   list(app = "routing-prototype", endpoint = "E2", route = "choose",
@@ -14,14 +14,29 @@ draft_text <- function() {
   paste(readLines(path, warn = FALSE), collapse = "\n")
 }
 
-test_that("each link button names what it carries and has a box to copy from", {
+test_that("each screen marks what Share shares, and Share has one box to copy from", {
   html <- as.character(share_link_ui("project"))
   expect_match(html, 'id="share_project"', fixed = TRUE)
   expect_match(html, 'data-kind="project"', fixed = TRUE)
-  expect_match(html, "pkShareLink(this)", fixed = TRUE)
-  expect_match(html, 'id="share_project_box"', fixed = TRUE)
-  expect_match(html, "nothing is stored by powerkit", fixed = TRUE)
+  expect_match(html, "share-target", fixed = TRUE)
+  # A marker, not a button: there is one way to share (layout review,
+  # 16 November 2026).
+  expect_false(grepl("<button", html, fixed = TRUE))
   expect_error(share_link_ui("something_else"))
+  top <- as.character(share_page_ui())
+  expect_match(top, 'id="share_button"', fixed = TRUE)
+  expect_match(top, "pkShare(this)", fixed = TRUE)
+  expect_match(top, 'id="share_box"', fixed = TRUE)
+  expect_match(top, "Powerkit stores nothing", fixed = TRUE)
+  expect_match(top, "</svg>\\s*Share\\s*</button>")
+  # The tooltip says what it shares; the analysis comes before the answers
+  # so far, and the page when there is nothing else.
+  expect_identical(share_link_titles[["project"]], "Share this analysis")
+  expect_identical(share_link_titles[["study_plan"]], "Share this study plan")
+  expect_identical(share_link_titles[["page"]], "Share this page")
+  expect_lt(match("project", names(share_link_kinds)), match("draft", names(share_link_kinds)))
+  expect_match(share_link_js, "classList.contains('disabled')", fixed = TRUE)
+  expect_match(share_link_js, "window.pkPageLink", fixed = TRUE)
 })
 
 test_that("the link is read from the fragment, which browsers don't send to the server", {
@@ -32,7 +47,7 @@ test_that("the link is read from the fragment, which browsers don't send to the 
   expect_false(grepl("location.search", sub("window.location.pathname \\+ window.location.search", "", share_link_js)))
 })
 
-test_that("every save button that makes a file has a link beside it", {
+test_that("every screen with a save button can be shared", {
   sources <- vapply(file.path(routing_dir, "R", c("keep-result.R", "study-plan.R", "drafts.R", "whole-study.R", "forms_ui.R")),
     function(f) paste(readLines(f), collapse = "\n"), character(1))
   expect_match(sources[[1]], 'share_link_ui("project")', fixed = TRUE)
@@ -76,7 +91,7 @@ test_that("a broken link changes nothing", {
   })
 })
 
-test_that("Copy a link sends the draft's own text, and that text opens again", {
+test_that("Share sends the draft's own text, and that text opens again", {
   shiny::testServer(routing_dir, {
     sent <- list()
     session$sendCustomMessage <- function(type, message) sent[[type]] <<- message
@@ -95,7 +110,7 @@ test_that("Copy a link sends the draft's own text, and that text opens again", {
   })
 })
 
-test_that("Copy a link says what to do when there is nothing to share yet", {
+test_that("Share says what to do when there is nothing to share yet", {
   shiny::testServer(routing_dir, {
     sent <- list()
     session$sendCustomMessage <- function(type, message) sent[[type]] <<- message
@@ -108,7 +123,7 @@ test_that("Copy a link says what to do when there is nothing to share yet", {
   })
 })
 
-test_that("a current result hides the draft row, so the page has one Copy a link", {
+test_that("a current result hides the draft row, so Share shares the analysis", {
   expect_match(nav_js, "querySelectorAll('.form-draft-save')", fixed = TRUE)
   expect_match(nav_js, "el.hidden = !!current", fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")

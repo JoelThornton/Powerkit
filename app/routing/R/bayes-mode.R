@@ -25,10 +25,10 @@ bayes_mode_js <- "
 # researcher sees which they are (`where` = "known" or "guided").
 bayes_mode_toggle_ui <- function(on = FALSE, where = "known", n_designs = NULL) {
   help <- if (identical(where, "known")) {
-    sprintf("Shows only the analyses with a Bayes factor version%s. Each opens with that version chosen, and its result leads with the chances of strong evidence for an effect, strong evidence for none, and misleading evidence. You can switch back to a p-value on any card.",
+    sprintf("Shows only the analyses with a Bayes factor version%s. Each opens with that version chosen, and its result leads with the chances of evidence at the threshold for an effect, evidence at the threshold for none, and misleading evidence. You can switch back to a p-value on any card.",
       if (!is.null(n_designs)) sprintf(" (%d of them)", n_designs) else "")
   } else {
-    "The design your answers lead to opens with its Bayes factor version chosen, if it has one, and says so if it hasn't. Its result leads with the chances of strong evidence for an effect, strong evidence for none, and misleading evidence."
+    "The design your answers lead to opens with its Bayes factor version chosen, if it has one, and says so if it hasn't. Its result leads with the chances of evidence at the threshold for an effect, evidence at the threshold for none, and misleading evidence."
   }
   div(class = "bayes-mode-toggle",
     div(class = "form-check form-switch",
@@ -52,7 +52,7 @@ bayes_mode_card_note <- function(tree, ep_id, on = FALSE) {
       tags$strong("Bayes factors: "), "the input screen opens with this design's Bayes factor version chosen."))
   }
   div(class = "status status-soon bayes-mode-note", role = "note",
-    tags$strong("Bayes factors: "), "powerkit has no Bayes factor version of this design yet, so its plan uses a p-value.")
+    tags$strong("Bayes factors: "), "Powerkit has no Bayes factor version of this design yet, so its plan uses a p-value.")
 }
 
 # In Bayes mode the Bayes factor tests plan with a design prior by
@@ -77,7 +77,7 @@ bayes_mode_groups <- function(groups, on = FALSE) {
       if (!f$id %in% bayes_mode_prior_fields) return(f)
       f[["default"]] <- NULL
       f$default_source <- paste("Analysing with Bayes factors: say how unsure you are about the effect, so the plan averages over the effects you",
-        "think plausible (a design prior; O'Hagan, Stevens and Campbell, 2005, call the result assurance). powerkit won't",
+        "think plausible (a design prior; O'Hagan, Stevens and Campbell, 2005, call the result assurance). Powerkit won't",
         "suggest an SD: choose one you could defend, for example from the earlier study's standard error. 0 plans for",
         "exactly the value entered")
       f

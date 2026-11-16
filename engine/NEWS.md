@@ -1,3 +1,142 @@
+# powerkit 0.70.1
+
+* Repository tidy: a stray app log removed and logs ignored; the queue
+  page's opening narrative condensed, with rows for testers' reports and
+  the Mac installation steps. No change to the engine or the app.
+
+# powerkit 0.70.0
+
+* App only: the saved things have one name each (analysis, analysis
+  file, study plan, replication plan, report). No change to the engine
+  or the file formats.
+* App only: the top row is Power and sample size, Study plans, Tools and
+  About. Labs is renamed Tools, Updates moves into About, and the
+  Feedback tab gives way to the top bar's Feedback button; the old
+  ?page= addresses still work.
+* App only: one Share button in the top bar shares what is open (the
+  analysis with its result, the answers so far, the study plan, or the
+  page), replacing the separate "Copy a link" buttons. The result's ways
+  of coming back are together in "Keep this result"; the documents are
+  under "Write it up".
+* App only: "Replicate a published finding" starts a replication plan at
+  "The original study", and the whole-study route shows which route it is
+  on each screen.
+* App only: the app's sentences spell the name "Powerkit"; the R package
+  and its code keep "powerkit".
+
+# powerkit 0.69.4
+
+* `repeated_ordinal_wald()` (E75, ordered categories in two or more
+  groups, Wald test) tests the group-by-condition terms on their own
+  degrees of freedom, (groups - 1) x (conditions - 1), rather than
+  conditions - 1. With three groups the old test rejected about 17% of
+  null studies at alpha .05 and overstated power; a null-rate test with
+  three groups now covers it.
+* `pwr_sensitivity_p2()` (E5, two proportions, smallest detectable
+  effect) starts its search just past `p1`, so unequal groups no longer
+  stop with pwrss's "The value of margin should be different from the
+  prob1 - prob2 difference".
+* The Bayes factor methods paragraphs and exported scripts call the
+  Bayes factor the study should reach its evidence threshold ("the
+  evidence threshold is BF10 of at least 10"), as the cards do, rather
+  than "strong evidence".
+
+# powerkit 0.69.3
+
+* Prediction model development (E77): new design `prediction_model /
+  development` and goal type `"criteria"`, the minimum sample size for
+  developing a multivariable prediction model by the criteria of Riley et
+  al. (2019), computed by pmsampsize's `pmsampsize()` (Suggests) for a
+  binary, continuous or time-to-event outcome. Population: `metric`
+  (`c_statistic`, `cox_snell_r2`, `nagelkerke_r2` or `r2`), the matching
+  value, `parameters`, and `prevalence`, `mean` and `sd`, or `rate`,
+  `timepoint` and `mean_follow_up`; goal: `shrinkage` (default 0.9) and,
+  for a continuous outcome, `intercept_margin` (default 1.1). A
+  C-statistic's conversion always uses pmsampsize's default seed (123456),
+  recorded in the provenance. New file `backend-prediction-model.R`: spec
+  checks, the result's `$prediction` (each criterion's sample size, the
+  binding criterion, events and events per parameter), check run, R
+  script and design description. Riley et al. (2019) is in refs.bib as
+  `pmsampsize_method`. New validation chunk `prediction`: agreement with
+  pmsampsize called directly, and the binary criteria from their closed
+  forms.
+* Prediction model validation (E77): template `prediction_model /
+  validation`, the minimum sample size for validating an existing model of
+  a binary outcome by the criteria of Riley et al. (2021), computed by
+  pmvalsampsize's `pmvalsampsize()` (Suggests): precise O/E ratio,
+  calibration slope, C-statistic and, given `population > threshold`,
+  standardised net benefit. Population: `prevalence`, `c_statistic`,
+  `lp_distribution` (`normal` with `lp_mean` and `lp_sd`, or `beta` with
+  `beta_a` and `beta_b`), and optionally `oe`, `calibration_slope`,
+  `threshold`, `sensitivity` and `specificity`; goal: `oe_ci_width`,
+  `cslope_ci_width`, `cstat_ci_width` and `nb_ci_width` (pmvalsampsize's
+  defaults). The linear predictor is simulated with pmvalsampsize's
+  default seed and draws, recorded in the provenance. New file
+  `backend-prediction-validation.R`; Riley et al. (2021) is in refs.bib as
+  `pmvalsampsize_method`. The `prediction` chunk adds agreement with
+  pmvalsampsize and the O/E and C-statistic criteria from their closed
+  forms; pmvalsampsize's grid search for the O/E standard error is noted
+  in docs/upstream-questions.md.
+
+# powerkit 0.69.2
+
+* App only, no engine change. Three findings from the 15 November 2026
+  completeness review, on cards added in this round:
+  - P-01: on the online app (`powerkit.local` not set), the engine's
+    message for a missing optional backend no longer tells the person to
+    run `install.packages()`, which nobody visiting can do there. It says
+    the analysis isn't available on the online app right now and asks for
+    a note through Feedback (`online_package_message()` in
+    `app/routing/R/forms.R`, called by `plain_engine_message()`). A local
+    copy keeps the install advice.
+  - P-03: the E32 card named another card by its internal code. It now
+    names the card ("Mediation when a mediator isn't a score"), and a test
+    refuses an internal code in any card's text.
+  - P-21: the hints under a card's name came from its `doc_name`, which a
+    card with a `technical_name` never shows. E75 explained "ordinal
+    outcome", and E18 "omnibus test", above names that don't contain those
+    words. The hints now come from the name the card shows
+    (`technical_name()`); the backend line's hints leave out the same terms.
+
+# powerkit 0.69.1
+
+* Bayes factor three-factor ANOVA (E56): `factorial_anova /
+  factorial_three` takes `target_test > method` `"bayes_factor"`, with
+  `evidence_threshold`, `prior_scale` (default 0.5) and `inclusion`, JASP's
+  Bayesian ANOVA defaults. New file `backend-bayesfactor-three.R`: Spower
+  runs `p_bayes_three()`, which draws equal groups across the between
+  factors, each person scored in every within cell with their own level
+  (correlation `r`), and scores each study with BayesFactor's
+  `anovaBF(whichModels = "withmain")` (participants a random factor with
+  a within factor) and bayestestR's `bayesfactor_inclusion()`; the
+  no-effect side removes the effect from the cell means by the
+  equal-weight decomposition. Check run, spec checks (no `eta_squared`
+  metric, no sphericity correction), R script and design description. New
+  validation chunk `bayes_three`.
+
+# powerkit 0.69.0
+
+* Replication plans and study plans, from the colleague-testing review of
+  15 November 2026 (app only, apart from one message): the replication
+  planner's Bayes factor goals say "Evidence, at your threshold" instead
+  of "Strong evidence", and the threshold is labelled "Evidence
+  threshold" with 10 as "a common threshold", as on the cards. Variation
+  between studies starts at Small (tau 0.05) rather than none, a
+  departure from BayesRepDesign's default recorded in
+  docs/conventions.md and shown on the result; the engine's default stays
+  0. The replication's alpha and power start empty with one-click
+  buttons, and the planner asks for them before calculating. The
+  pre-replication notes show one box per part in plain words, the
+  second question folded and Karhulahti et al.'s questions in the help.
+  The references are listed once, folded, with links. The result's
+  headline names the belief the write-up starts on, and the table's
+  caption is above it. `replication_planning()`'s threshold error is
+  worded the same way.
+* Study plans: each plan on the Study plans list has its own Delete
+  (with the plan page's confirmation), the description saves when its box
+  is left, an empty plan no longer says so twice, and a line tells a
+  project file (one analysis) from a study plan (several).
+
 # powerkit 0.68.0
 
 * A clustered trial with a yes/no outcome (E34's cluster-randomised and

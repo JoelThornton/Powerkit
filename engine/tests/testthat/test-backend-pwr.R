@@ -477,3 +477,19 @@ test_that("the basic tests need no effect size for the smallest detectable effec
   expect_equal(found$effect, pwr::pwr.chisq.test(N = 200, w = NULL, df = 2, power = 0.8)$w)
   expect_equal(found$power, 0.8, tolerance = 1e-4) # pwr's own search tolerance
 })
+
+test_that("two proportions with unequal groups find the smallest detectable proportion (correctness review, 15 November 2026)", {
+  # The search used to start at p2 = p1, a difference pwrss refuses with
+  # unequal groups.
+  spec <- read_spec(system.file("specs", "two_proportions.json", package = "powerkit"))
+  for (ratio in c(0.5, 2)) {
+    spec$options$allocation_ratio <- ratio
+    spec$goal <- list(type = "sensitivity", n = 300, power = 0.8)
+    result <- run_quietly(spec)
+    expect_equal(result$sensitivity$power, 0.8, tolerance = 1e-6, info = ratio)
+    spec$population$p2 <- result$sensitivity$effect
+    spec$goal <- list(type = "power", n = 300)
+    expect_equal(run_quietly(spec)$curve$power, 0.8, tolerance = 1e-4, info = ratio)
+    spec <- read_spec(system.file("specs", "two_proportions.json", package = "powerkit"))
+  }
+})

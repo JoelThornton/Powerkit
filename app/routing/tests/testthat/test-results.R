@@ -29,6 +29,8 @@ light_spec <- function(ep, goal = list(type = "power", n = 48L)) {
   if (ep == "E47" && !is.null(goal$n)) goal$n <- 60L
   # Precision planning has no power: the width expected at n instead.
   if (ep == "E46") goal <- list(type = "precision", n = goal$n %||% 48L)
+  # A prediction model's criteria have no power or n to set.
+  if (ep == "E77") return(spec)
   spec$goal <- goal
   if (!ep %in% c("E7", "E8", "E36", "E46")) spec$options$nrep <- 100L
   spec
@@ -682,7 +684,7 @@ test_that("the write-up says when no reasoning was recorded, and words the fixed
   values <- modifyList(form_examples[["E4"]], list(just_type = "none", situation = "fixed", claim = "any", n_tests = "2"))
   values$just_source <- ""
   bare <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values)
-  expect_match(bare[["short"]], "No justification for the effect size was recorded.", fixed = TRUE)
+  expect_match(bare[["short"]], "No reason for this choice was recorded.", fixed = TRUE)
   expect_false(any(grepl("no reason recorded]]", bare, fixed = TRUE)))
   values$just_source <- "Our participant pool has 80 students a year."
   w <- writeup_text(forms$forms$E4, calc$spec, calc$result, fields, values)
@@ -791,7 +793,7 @@ test_that("the rank tests (E1, E2, E3 and E18's test version) are simulated with
     expect_identical(calc$result$provenance$backend, "Spower", info = ep)
     expect_true(all(calc$result$check_run$ok), info = ep)
     html <- as.character(result_panel_ui(tree, forms, ep, fields, values, calc))
-    expect_match(html, "powerkit simulates the rank test itself", fixed = TRUE, info = ep) # Known difference 5
+    expect_match(html, "Powerkit simulates the rank test itself", fixed = TRUE, info = ep) # Known difference 5
     expect_no_match(html, "Calculated with a formula", fixed = TRUE, info = ep)          # Departure 9
     expect_no_match(html, "exact dataset is built", fixed = TRUE, info = ep)              # Departure 3
     expect_null(explore_effect(calc$spec))
@@ -858,7 +860,7 @@ test_that("Welch's F is the one-way ANOVA's default, shown as a departure, with 
   calc <- run_calculation(spec, run, seed = 1L)
   expect_true("22" %in% names(departures_for(forms, "E18", calc$spec)))
   html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
-  expect_match(html, "powerkit plans for Welch&#39;s F unless you choose the classical F test|powerkit plans for Welch's F unless you choose the classical F test")
+  expect_match(html, "Powerkit plans for Welch&#39;s F unless you choose the classical F test|Powerkit plans for Welch's F unless you choose the classical F test")
   # The classical F test: no departure.
   f_test <- build_spec(forms, "E18", fields, form_examples$E18)
   expect_false("22" %in% names(departures_for(forms, "E18", f_test)))
@@ -1100,7 +1102,7 @@ test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr,
     calc <- run_calculation(spec, run, seed = 1L)
     expect_identical(calc$result$provenance$backend, "bfpwr", info = ep)
     words <- result_sentences(calc$spec, calc$result)
-    expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE, info = ep)
+    expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE, info = ep)
     expect_match(words[["detail"]], "If there were no effect", fixed = TRUE, info = ep)
     html <- as.character(result_panel_ui(tree, forms, ep, fields, values, calc))
     expect_match(html, "treating the effect estimate as normally distributed", fixed = TRUE, info = ep) # Known difference 6
@@ -1112,7 +1114,7 @@ test_that("the Bayes factor t-tests (E1, E2 and E3's test version) run on bfpwr,
     expect_match(w[["short"]], "BF10 ≥ 10", fixed = TRUE, info = ep)
     expect_no_match(w[["short"]], "α", fixed = TRUE, info = ep)
     expect_no_match(w[["ethics"]], "NA", fixed = TRUE, info = ep)
-    expect_match(w[["ethics"]], "strong evidence", fixed = TRUE, info = ep)
+    expect_match(w[["ethics"]], "evidence at the threshold", fixed = TRUE, info = ep)
   }
   # With uncertainty about the effect, Departure 15 (the default) doesn't apply.
   values <- modifyList(form_examples$E1, list(method = "bayes_factor", evidence_threshold = "10", prior_scale = "0.707", effect_sd = "0.1", alpha = NULL))
@@ -1136,7 +1138,7 @@ test_that("the two-proportion Bayes factor version runs on BayesFactor, with JAS
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E5", fields, values, calc))
   expect_match(html, "plans for exactly the effect you entered", fixed = TRUE)        # Departure 15
   expect_match(html, "10,000 random draws", fixed = TRUE)                             # Known difference 13
@@ -1165,7 +1167,7 @@ test_that("the one-way ANOVA's Bayes factor version runs on BayesFactor, with JA
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE)
   expect_match(words[["detail"]], "If there were no effect", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
   expect_no_match(html, "under the run's seed", fixed = TRUE)
@@ -1193,7 +1195,7 @@ test_that("the chi-square card's Bayes factor version is simulated with JASP's s
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE)
   expect_match(words[["detail"]], "simulated studies with no association", fixed = TRUE)
   known <- vapply(known_difference_keys(forms, "E6", calc$spec), function(k) forms$known_differences_methods[[k]], character(1))
   w <- writeup_text(forms$forms$E6, calc$spec, calc$result, fields, values, known_methods = known)
@@ -1215,7 +1217,7 @@ test_that("the correlation's Bayes factor version runs on BayesFactor, with JASP
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "chance of strong evidence", fixed = TRUE)
+  expect_match(words[["headline"]], "chance of evidence at the threshold", fixed = TRUE)
   expect_match(words[["detail"]], "If there were no effect", fixed = TRUE)
   html <- as.character(result_panel_ui(tree, forms, "E4", fields, values, calc))
   expect_match(html, "default prior width is JASP", fixed = TRUE)                    # Known difference 12
@@ -1705,7 +1707,7 @@ test_that("the write-up has a plain-words version for an ethics application, for
   # No reasoning: every version says so in place of the reason.
   bare <- writeup_text(forms$forms$E2, calc$spec, calc$result, fields, modifyList(sens, list(just_source = "")))
   for (version in names(bare)[!is.na(bare)]) {
-    expect_match(bare[[version]], "No justification for the effect size was recorded.", fixed = TRUE, info = version)
+    expect_match(bare[[version]], "No reason for this choice was recorded.", fixed = TRUE, info = version)
     expect_no_match(bare[[version]], "no reason recorded]]", fixed = TRUE, info = version)
   }
   # A reason written for different values still holds the write-up back.
@@ -1742,7 +1744,7 @@ test_that("the app checks the limit before starting any background run, and says
   # start_background_calculation() is only called through start_job().
   expect_length(regmatches(code, gregexpr("start_background_calculation(", code, fixed = TRUE))[[1]], 1)
   html <- as.character(busy_ui())
-  expect_match(html, "powerkit is busy just now", fixed = TRUE)
+  expect_match(html, "Powerkit is busy just now", fixed = TRUE)
   expect_match(html, "in a minute or two", fixed = TRUE)
   expect_false(grepl("Error|error|stack", html))
 })
@@ -1912,12 +1914,12 @@ test_that("the conversion's formula is cited from refs.bib", {
     "with the psych package's t2d(), by the formula in Lakens (2013)")
 })
 
-test_that("a conversion saved by an earlier powerkit is named as such, with what this version gives", {
+test_that("a conversion saved by an earlier Powerkit is named as such, with what this version gives", {
   conv <- list(from_name = "a t statistic", value = 2.5, df_error = 29L, effect_name = "Cohen's d", converted = 0.464,
     function_used = "psych::t2d(t = 2.5, n1 = 30)", package = list(name = "psych"), earlier = TRUE, now = 0.4564355)
   expect_identical(conversion_sentence(list(effect_conversion = conv)), paste0(
     "Effect size converted: the published t statistic of 2.5 (error df 29) gives Cohen's d = 0.464, as an earlier version ",
-    "of powerkit converted it and the saved plan records (this version gives 0.456)."))
+    "of Powerkit converted it and the saved plan records (this version gives 0.456)."))
 })
 
 test_that("pairwise comparisons after a one-way ANOVA: the pair and the adjustment reach the engine, and the write-up names them", {
@@ -2540,7 +2542,7 @@ test_that("three effects side by side: conservative, the plan's and optimistic",
   calc <- run_calculation(spec, seed = forms$default_seed)
   html <- as.character(scenarios_ui(calc$spec, calc$result))
   expect_match(html, "What if the true effect is smaller?", fixed = TRUE)
-  expect_match(html, "powerkit won&#39;t suggest them|powerkit won't suggest them")
+  expect_match(html, "Powerkit won&#39;t suggest them|Powerkit won't suggest them")
   # Only the values given are drawn; the plan's effect always is.
   n <- scenario_n(calc$spec, calc$result, conservative = 0.3, seed = forms$default_seed)
   expect_named(n, c("conservative", "expected"))
@@ -2585,7 +2587,7 @@ test_that("the t-tests take the effect in the measure's own units, and the engin
     calc <- run_calculation(spec, seed = forms$default_seed)
     expect_equal(calc$status, "ok", info = ep)
     expect_equal(calc$result$effect_from_units$value, expected[[ep]], info = ep)
-    expect_match(result_sentences(calc$spec, calc$result)[["detail"]], "From the means and SD you entered, powerkit worked out", fixed = TRUE)
+    expect_match(result_sentences(calc$spec, calc$result)[["detail"]], "From the means and SD you entered, Powerkit worked out", fixed = TRUE)
     w <- writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields,
       modifyList(values, list(just_source = "Smallest difference that matters.")))
     expect_match(w[["short"]], sprintf("= %s)", format(round(expected[[ep]], 3), nsmall = 2)), fixed = TRUE, info = ep)
@@ -2958,11 +2960,11 @@ test_that("ANCOVA (E23): the Bayes factor of the effect, as JASP's Bayesian ANCO
   expect_identical(calc$status, "ok")
   expect_identical(calc$result$bayes$prior_scale_covariates, 0.354)
   words <- result_sentences(calc$spec, calc$result)
-  expect_match(words[["headline"]], "with a Bayes factor ANCOVA (strong evidence: an inclusion Bayes factor of at least 10, across all models", fixed = TRUE)
+  expect_match(words[["headline"]], "with a Bayes factor ANCOVA (evidence threshold: an inclusion Bayes factor of at least 10, across all models", fixed = TRUE)
   expect_match(words[["headline"]], "on the covariates' slopes, r scale 0.354, as in JASP", fixed = TRUE)
   w <- writeup_text(forms$forms$E23, calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "was conducted for a Bayes factor ANCOVA (default Bayes factors with a Cauchy analysis prior of r scale 0.5", fixed = TRUE)
-  expect_match(w[["short"]], "If there were no effect, the probability of strong evidence for its absence", fixed = TRUE)
+  expect_match(w[["short"]], "If there were no effect, the probability of evidence at the threshold for its absence", fixed = TRUE)
   expect_no_match(w[["short"]], "association", fixed = TRUE)
 })
 
@@ -2971,7 +2973,7 @@ test_that("the factorial ANOVAs' Bayes factor names its test in the write-up, an
   values <- modifyList(form_examples$E7, list(test_version = "bayes_factor", evidence_threshold = "10", prior_scale = "0.5",
     inclusion = "all_models", goal = "power", n = "200"))
   spec <- build_spec(forms, "E7", fields, values)
-  expect_match(test_text(spec), "^a Bayes factor between-participants ANOVA \\(strong evidence: an inclusion Bayes factor of at least 10")
+  expect_match(test_text(spec), "^a Bayes factor between-participants ANOVA \\(evidence threshold: an inclusion Bayes factor of at least 10")
   skip_without_run()
   spec$options$nrep <- 100L
   calc <- run_calculation(spec, run, seed = forms$default_seed)
@@ -3509,7 +3511,7 @@ test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and wo
   calc <- run_calculation(spec, run, seed = 1L)
   expect_identical(calc$result$provenance$backend, "BayesFactor")
   text <- paste(result_sentences(calc$spec, calc$result), collapse = " ")
-  expect_match(text, "chance of strong evidence", fixed = TRUE)
+  expect_match(text, "chance of evidence at the threshold", fixed = TRUE)
   w <- writeup_text(forms$forms[["E24"]], calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "a Bayes factor test of R-squared in a linear regression", fixed = TRUE)
   expect_match(w[["short"]], "as in JASP", fixed = TRUE)
@@ -3531,4 +3533,76 @@ test_that("within-person moderation (E41) counts observations, and the result na
   expect_match(text, "1,120 observations (80 people measured on 14 occasions each)", fixed = TRUE)
   w <- writeup_text(forms$forms[["E41"]], calc$spec, calc$result, fields, values)
   expect_match(w[["short"]], "80 people measured on 14 occasions each", fixed = TRUE)
+})
+
+test_that("developing a prediction model (E77) shows each criterion's sample size and the one that sets it, without power", {
+  skip_without_run()
+  skip_if_not_installed("pmsampsize")
+  calc_of <- function(v) {
+    fields <- form_fields(form_groups(forms, "E77"))
+    expect_length(form_problems(fields, v), 0)
+    spec <- build_spec(forms, "E77", fields, v)
+    list(calc = run_calculation(spec, run, seed = 1L), fields = fields, values = v)
+  }
+  out <- calc_of(form_examples$E77)
+  calc <- out$calc
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$spec$goal, list(shrinkage = 0.9, type = "criteria"))
+  expect_identical(calc$result$provenance$backend, "pmsampsize")
+  direct <- pmsampsize::pmsampsize(type = "b", cstatistic = 0.8, parameters = 20, prevalence = 0.2)
+  expect_identical(calc$result$prediction$n, as.numeric(direct$sample_size))
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], sprintf("at least %s participants are needed", whole(direct$sample_size)), fixed = TRUE)
+  expect_match(words[["reading"]], "not a power calculation", fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E77", out$fields, out$values, calc))
+  expect_match(html, "The sample size each criterion needs", fixed = TRUE)
+  expect_match(html, "Sets the answer", fixed = TRUE)
+  expect_match(html, "pmsampsize", fixed = TRUE)
+  w <- planning_writeup(forms, "E77", calc$spec, calc$result, out$fields, out$values)
+  expect_match(w[["short"]], "by the criteria of Riley et al.", fixed = TRUE)
+  expect_match(w[["short"]], "pmsampsize (version", fixed = TRUE)
+  expect_match(w[["ethics"]], "not the result of a power analysis", fixed = TRUE)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
+  # A continuous outcome asks for the margin for the mean outcome.
+  v <- modifyList(form_examples$E77, list(outcome = "continuous", bin_metric = NULL, c_statistic = NULL, prevalence = NULL,
+    r2 = "0.2", mean = "1.9", sd = "0.6", intercept_margin = "1.1"))
+  out <- calc_of(v)
+  expect_identical(out$calc$status, "ok")
+  expect_identical(out$calc$spec$population$metric, "r2")
+  expect_identical(nrow(out$calc$result$prediction$criteria), 4L)
+})
+
+test_that("validating an existing prediction model (E77) shows pmvalsampsize's criteria, without power", {
+  skip_without_run()
+  skip_if_not_installed("pmvalsampsize")
+  v <- list(purpose = "validation", Y_label = "Relapse within a year", c_statistic = "0.75", prevalence = "0.2",
+    lp_distribution = "normal", lp_mean = "-1.6", lp_sd = "1.2", goal = "criteria",
+    oe_ci_width = "0.2", cslope_ci_width = "0.2", cstat_ci_width = "0.1",
+    just_type = "prior_study", just_source = "Example only", just_adjustment = "Example only: the reported C-statistic, lowered a little")
+  fields <- form_fields(form_groups(forms, "E77"))
+  expect_length(form_problems(fields, v), 0)
+  # The development questions are not asked.
+  shown <- vapply(Filter(function(f) field_applies(f, v), fields), `[[`, character(1), "id")
+  expect_false(any(c("outcome", "parameters", "shrinkage", "bin_metric") %in% shown))
+  expect_true(all(c("lp_mean", "lp_sd", "oe_ci_width", "threshold") %in% shown))
+  spec <- build_spec(forms, "E77", fields, v)
+  expect_identical(spec$template, "validation")
+  expect_identical(spec$variables$Y$type, "binary")
+  expect_null(spec$population$parameters)
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$status, "ok")
+  expect_identical(calc$result$provenance$backend, "pmvalsampsize")
+  direct <- suppressMessages(pmvalsampsize::pmvalsampsize(type = "b", prevalence = 0.2, cstatistic = 0.75, lpnormal = c(-1.6, 1.2)))
+  expect_identical(calc$result$prediction$n, as.numeric(direct$sample_size))
+  words <- result_sentences(calc$spec, calc$result)
+  expect_match(words[["headline"]], sprintf("To validate the existing model of Relapse within a year in new data, at least %s participants are needed.",
+    whole(direct$sample_size)), fixed = TRUE)
+  html <- as.character(result_panel_ui(tree, forms, "E77", fields, v, calc))
+  expect_match(html, "A precise estimate of the calibration slope", fixed = TRUE)
+  expect_match(html, "Sets the answer", fixed = TRUE)
+  expect_match(html, "pmvalsampsize", fixed = TRUE)
+  w <- planning_writeup(forms, "E77", calc$spec, calc$result, fields, v)
+  expect_match(w[["short"]], "validating an existing prediction model", fixed = TRUE)
+  expect_match(w[["short"]], "pmvalsampsize (version", fixed = TRUE)
+  expect_true(script_reproduces(script(calc$spec, calc$result)))
 })

@@ -288,6 +288,27 @@ test_that("with groups, the ordered-categories Wald test is of the interaction t
   expect_equal(repeated_ordinal_wald(fit, 2, interaction = TRUE), stats::pchisq(z^2, 1, lower.tail = FALSE), tolerance = 1e-8)
 })
 
+test_that("with three groups, the ordered-categories Wald test has (groups - 1) x (conditions - 1) degrees of freedom", {
+  # With df = conditions - 1 it rejected about 17% of null studies at
+  # three groups (correctness review, 15 November 2026).
+  set.seed(5)
+  groups <- c("A", "B", "C")
+  data <- repeated_ordinal_data(450, c("Before", "After"), rep(0, 6), stats::qlogis(c(0.3, 0.7)), 0.5, 2L, FALSE, groups)
+  fit <- repeated_ordinal_fit(y ~ group * cond + (1 | person), data)
+  terms <- grep(":", names(stats::coef(fit)), fixed = TRUE, value = TRUE)
+  expect_length(terms, 2)
+  b <- stats::coef(fit)[terms]
+  w <- as.numeric(t(b) %*% solve(stats::vcov(fit)[terms, terms], b))
+  expect_equal(repeated_ordinal_wald(fit, 2, interaction = TRUE), stats::pchisq(w, 2, lower.tail = FALSE), tolerance = 1e-8)
+})
+
+test_that("with three groups and no effect, the Wald test's false-positive rate is near alpha", {
+  skip_unless_full_validation()
+  rejections <- with_seed(11, vapply(seq_len(1000), function(i) p_repeated_ordinal(150, c("Before", "After"), rep(0, 6),
+    stats::qlogis(c(0.3, 0.7)), 0.5, 2L, FALSE, method = "wald", groups = c("A", "B", "C")) < 0.05, logical(1)))
+  expect_lt(abs(mean(rejections) - 0.05), 3 * sqrt(0.05 * 0.95 / 1000))
+})
+
 test_that("with groups, inputs that don't fit the design are refused", {
   spec <- interaction_spec()
   spec$population$rates <- list(list(2, 2), list(2))

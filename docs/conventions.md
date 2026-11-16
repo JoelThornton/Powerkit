@@ -757,6 +757,20 @@ little, because the models with and without each covariate enter the
 average; powerkit gives each the same share. A covariate that is always
 in the model (JASP's "Add to null model") is not offered yet.
 
+## Bayes factor of a three-factor ANOVA effect (E56)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No Bayes factor tests | — | — |
+| JASP (Bayesian ANOVA and repeated-measures ANOVA; analysis only, no planning) | The effect's inclusion Bayes factor over the models that respect marginality (with three factors, 18 models besides the null, only one of them with the three-way interaction); with repeated measures, the participants a random factor in every model | — | "r scale fixed effects" 0.5, "r scale random effects" 1 (jaspAnova, `inst/qml/common/bayesian/AdditionalOptions.qml`); Effects table across all models, uniform model prior (`DefaultOptions.qml`) |
+| BayesFactor | `anovaBF(whichModels = "withmain")`, with `whichRandom` for the participants (Rouder, Morey, Speckman and Province, 2012) | — | "medium" fixed scale 0.5, "nuisance" random scale 1 [BayesFactor help] |
+| **powerkit** | The effect's inclusion Bayes factor from `anovaBF()` and bayestestR's `bayesfactor_inclusion()`, across all models by default (matched models as an option), simulated with Spower: equal groups, one SD, and with a within factor one correlation between any two of a person's scores (a level for each person, the random intercept JASP fits) (E56, from 15 November 2026) [powerkit] | Cell means and the SD (not partial eta-squared) | JASP's r scales 0.5 and 1 by default. Not a departure: the analysis is JASP's default one |
+
+Because only one model has the three-way interaction, its prior inclusion
+probability across all models is 1/19, so the inclusion Bayes factor for
+it and the one across matched models can differ more than with two
+factors; both are offered.
+
 ## Sequential Bayes factor designs (Labs)
 
 | Tool | Test | Effect size | Settings |
@@ -787,6 +801,20 @@ significance goal is a power analysis by the normal approximation") shows
 its size. An independent simulation of Student's t-tests, with true effects
 drawn from the uncertain prior, agrees with the planner's chance to within
 3 percentage points at 60 per group (same file).
+
+**Variation between studies in replication plans** (15 November 2026).
+BayesRepDesign's `designPrior()` takes `tau = 0` by default, and the
+engine's `replication_planning()` keeps that default. A replication plan's
+screen starts at tau = 0.05 (in d; Fisher's z for r), the smallest of
+Kenny and Judd's (2019) example values, because they argue zero should
+not be the default and the help beside the box already said so. It
+applies to the uncertain and shrunk beliefs only. The result says so,
+with "Choose None under Goals" to see the numbers without it, and the
+methods paragraph states the standard deviation used. For an original
+d = 0.7 with 20 per group, the significance goal asks for 106 in total with
+no variation and 110 with 0.05 (uncertain), and 200 against 210 (shrunk);
+`engine/tests/testthat/test-replication-planning.R` ("the app's starting
+variation") shows it.
 
 ## Effects that vary between studies (t-test cards)
 

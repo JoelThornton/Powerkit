@@ -8,13 +8,15 @@
 # shown (the original study's smallest detectable effect) comes from the
 # engine's sensitivity, as in the main app.
 
-labs_tab_title <- "Labs (experimental)"
+# Called "Labs (experimental)" until 16 November 2026: most of these are
+# solid, and the whole app already says it is a prototype.
+labs_tab_title <- "Tools"
 
 # The tools on Labs' first screen; each opens on its own (22 October 2026),
 # so that more can be added.
 labs_tools <- list(
   list(id = "map", title = "Methods map",
-       text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page.",
+       text = "Every analysis Powerkit knows about, arranged by the question a study asks, with which ones Powerkit calculates. Move around it and open any analysis's page.",
        purpose = "For finding your way among designs: what each analysis is and what it is next to.",
        sure = "Drawn from powerkit's design finder. It shows where each question leads, not which analysis is right for your study."),
   list(id = "picture", title = "Power visualiser",
@@ -26,7 +28,7 @@ labs_tools <- list(
        purpose = "For learning how results vary from study to study, and how looking only at significant results exaggerates effects.",
        sure = "Simulated by powerkit's engine (R's t.test() and effectsize's cohens_d()). Not part of powerkit's validation."),
   list(id = "bayes", title = "Bayesian planning",
-       text = "For a Bayes factor t-test: choose the prior the Bayes factor will use and, separately, what you believe about the effect, and see how often a study of the size you set would give strong evidence for an effect, strong evidence for none, or neither.",
+       text = "For a Bayes factor t-test: choose the prior the Bayes factor will use and, separately, what you believe about the effect, and see how often a study of the size you set would give evidence at the threshold for an effect, evidence at the threshold for none, or neither.",
        purpose = "For seeing a Bayes factor t-test's priors and outcomes in detail. To plan a study, use the Bayes factor version of the t-test cards, which give the same numbers with a write-up and a script.",
        sure = "Every number comes from the R package bfpwr (Pawel and Held) through powerkit's engine, as on the main cards. Not part of powerkit's validation."),
   list(id = "published", title = "Effect size converter",
@@ -41,12 +43,12 @@ labs_tools <- list(
 labs_tool_head <- function(id) {
   tool <- Filter(function(t) identical(t$id, id), labs_tools)[[1]]
   tagList(
-    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "← All Labs tools"),
+    tags$button(type = "button", class = "btn btn-link labs-back", onclick = "pkLabsOpen('')", "← All tools"),
     h2(class = "h3 labs-tool-title", tool$title),
-    div(class = "labs-notice", role = "note", tags$strong("Experimental. "), tool$purpose, " ", tool$sure))
+    div(class = "labs-notice", role = "note", tool$purpose, " ", tool$sure))
 }
-labs_tool_sections <- list("Research tools" = c("map", "bayes", "published"),
-  "Educational tools" = c("picture", "variation"))
+labs_tool_sections <- list("For planning" = c("map", "bayes", "published"),
+  "For learning" = c("picture", "variation"))
 labs_ref_key <- "Karhulahti2025_prereplication"
 
 # The paper's three questions, word for word (its "Pre-replication" section).
@@ -56,16 +58,23 @@ labs_questions <- list(
   value = "Why has replication been chosen to reach the desired epistemic goals?"
 )
 
-# Every free-text box, in the order of the screen and the notes.
+# Every free-text box, in the order of the screen and the notes. `label`
+# is the notes document's wording (the paper's own questions); `ask` is
+# the screen's plain wording, with the paper's question in its help, and
+# `fold` puts a part's second box behind a fold (colleague review P-06,
+# 15 November 2026: one box per part in view).
 labs_fields <- list(
-  list(id = "labs_study", step = "finding", label = "The original study (authors, year, title or link)"),
   list(id = "labs_finding", step = "finding", label = "The finding you want to replicate, in a sentence"),
-  list(id = "labs_goals", step = "goals", label = labs_questions$goals),
-  list(id = "labs_smallest", step = "goals", label = "What is the smallest effect that would matter, for theory or in practice? (for example, the smallest benefit worth having for the people involved)"),
-  list(id = "labs_quality", step = "quality", label = labs_questions$quality),
-  list(id = "labs_improve", step = "quality", label = "What weaknesses in the original design will the replication improve?"),
-  list(id = "labs_value", step = "value", label = labs_questions$value),
-  list(id = "labs_alternatives", step = "value", label = "What else could serve the same goal (for example, a new study of an unexplored part of the theory), and why is a replication better?")
+  list(id = "labs_study", step = "finding", label = "The original study (authors, year, title or link)", fold = "The study it comes from"),
+  list(id = "labs_goals", step = "goals", label = labs_questions$goals, ask = "What do you want this replication to tell you?"),
+  list(id = "labs_smallest", step = "goals", label = "What is the smallest effect that would matter, for theory or in practice? (for example, the smallest benefit worth having for the people involved)",
+    fold = "Another question to consider: the smallest effect that would matter"),
+  list(id = "labs_quality", step = "quality", label = labs_questions$quality, ask = "Is the original study good enough to be worth replicating?"),
+  list(id = "labs_improve", step = "quality", label = "What weaknesses in the original design will the replication improve?",
+    fold = "Another question to consider: what the replication will do better"),
+  list(id = "labs_value", step = "value", label = labs_questions$value, ask = "Why a replication, rather than another way of learning the same thing?"),
+  list(id = "labs_alternatives", step = "value", label = "What else could serve the same goal (for example, a new study of an unexplored part of the theory), and why is a replication better?",
+    fold = "Another question to consider: what else could serve the same goal")
 )
 
 labs_outcomes <- c(
@@ -305,14 +314,16 @@ labs_markdown <- function(answers, outcome = NULL, sde = NULL, citation = labs_c
     if (!is.null(outcome) && outcome %in% names(labs_outcomes)) labs_outcomes[[outcome]] else "_(not chosen)_", "",
     "---", "",
     sprintf("The questions are from: %s", citation), "",
-    sprintf("Written with powerkit Labs (experimental) on %s. These are the author's own notes; powerkit does not score or judge them.", format(date, "%d %B %Y"))
+    sprintf("Written with Powerkit on %s. These are the author's own notes; Powerkit does not score or judge them.", format(date, "%d %B %Y"))
   ) |> paste(collapse = "\n")
 }
 
 # --- The screen -----------------------------------------------------------------
 
-labs_box <- function(f, rows = 4) {
-  div(class = "form-field", textAreaInput(f$id, f$label, rows = rows, width = "100%"))
+labs_box <- function(f, rows = 3) {
+  box <- div(class = "form-field", textAreaInput(f$id, f$ask %||% f$label, rows = rows, width = "100%"),
+    if (!is.null(f$ask)) p(class = "small text-muted", sprintf("In Karhulahti, Martončik and Adamkovič's (2025) words: “%s”", f$label)))
+  if (is.null(f$fold)) box else tags$details(class = "labs-more-question", tags$summary(class = "small", f$fold), box)
 }
 labs_boxes <- function(step) lapply(Filter(function(f) identical(f$step, step), labs_fields), labs_box)
 
@@ -332,20 +343,16 @@ labs_ui <- function(tree) {
     # First screen: the list of tools. A tool's own page starts with its
     # name, not the whole Labs header again.
     conditionalPanel("!input.labs_tool",
-      h2("Labs (experimental)"),
-      p(class = "lead", "Tools that may help you think about a study before you plan it. They are not part of the main route, nothing here is required, and they may change or disappear."),
-      lapply(names(labs_tool_sections), labs_menu_section),
-      p(class = "small text-muted", "More tools will be added here.")),
+      h2("Tools"),
+      p(class = "lead", "Tools that help you think about a study before you plan it, or learn how power works. They are not part of the main route, and nothing here is required."),
+      lapply(names(labs_tool_sections), labs_menu_section)),
     conditionalPanel("input.labs_tool == 'map'",
       labs_tool_head("map"),
       map_ui(tree)),
     picture_ui(),
     study_variation_ui(),
     bayes_ui(),
-    published_ui(),
-    # Replication planning moved to replication plans (Study plans page).
-    p(class = "small labs-moved", "Looking for the pre-replication notes or the replication planner? They are now part of a replication plan, on the Study plans page: ",
-      actionLink("rep_plan_new_labs", "Start a replication plan"), ".")
+    published_ui()
   )
 }
 
@@ -356,7 +363,7 @@ replication_notes_ui <- function(tree) {
   test_choices <- c("Choose one" = "", stats::setNames(labs_tests,
     vapply(labs_tests, function(e) tree$endpoints[[e]]$plain_name, character(1))))
   tagList(
-    p("Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025)."),
+    p("Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025): each part's help gives their own words, and the reference is at the foot of the plan."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The finding"),
       p(class = "group-note", "Name the finding you want to test again, not only the study it came from. A replication can test the same finding with a better design."),
       labs_boxes("finding")),
@@ -368,7 +375,7 @@ replication_notes_ui <- function(tree) {
       labs_boxes("quality"),
       tags$details(class = "labs-sde",
         tags$summary("Optional: the smallest effect the original study could detect"),
-        p(class = "small", "Enter the original study's test and sample size. powerkit finds the smallest effect that design would detect at the power you choose. Compare it with the smallest effect that matters, from step 2. This is one part of quality, not a verdict on it."),
+        p(class = "small", "Enter the original study's test and sample size. Powerkit finds the smallest effect that design would detect at the power you choose. Compare it with the smallest effect that matters, from step 2. This is one part of quality, not a verdict on it."),
         selectInput("labs_test", "The original study's test", choices = test_choices, selectize = FALSE, width = "100%"),
         textInput("labs_n", "Participants analysed in the original study (in total, all groups together)", width = "100%"),
         conditionalPanel("input.labs_test == 'E5'",
@@ -376,8 +383,8 @@ replication_notes_ui <- function(tree) {
         conditionalPanel("input.labs_test == 'E6'",
           textInput("labs_rows", "Number of categories in the first variable", width = "100%"),
           textInput("labs_cols", "Number of categories in the second variable", width = "100%")),
-        textInput("labs_power", "Power (the chance of detecting the effect)", value = "0.8", width = "100%"),
-        textInput("labs_alpha", "Significance level", value = "0.05", width = "100%"),
+        textInput("labs_power", "Power: the chance of detecting the effect (0.8 is a common choice, not a rule; try 0.5 and 0.9 too)", value = "0.8", width = "100%"),
+        textInput("labs_alpha", "The significance level the original study used (often 0.05)", value = "0.05", width = "100%"),
         actionButton("labs_sde_run", "Show the smallest detectable effect", class = "btn btn-primary"),
         uiOutput("labs_sde_result"))),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Why a replication"),
@@ -386,8 +393,7 @@ replication_notes_ui <- function(tree) {
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. Where you landed"),
       p(class = "group-note", "All three are good outcomes. Deciding that a finding isn't worth replicating, before spending time and participants on it, is a useful result."),
       radioButtons("labs_outcome", NULL, choices = stats::setNames(names(labs_outcomes), unname(labs_outcomes)), selected = character(0), width = "100%")),
-    uiOutput("labs_next"),
-    p(class = "small text-muted", "Reference: ", labs_citation()))
+    uiOutput("labs_next"))
 }
 
 # Planning the replication from the notes (22 October 2026): the user's own
@@ -407,7 +413,7 @@ labs_seed_reasoning <- function(answers) {
 # On the main route's card and input screens while planning from the notes.
 labs_return_ui <- function(on_form = FALSE, carried = FALSE) {
   div(class = "labs-return", role = "note",
-    "You're planning the replication from your pre-replication notes. Your notes are kept in Labs. ",
+    "You're planning the replication from your pre-replication notes. Your notes are kept in your replication plan. ",
     actionLink("labs_back", "Back to the notes"),
     if (on_form && carried) p(class = "small mb-0 mt-1", "Your notes' finding and smallest effect that would matter are copied into \u201cWhy this effect size?\u201d below; edit them as you like."))
 }
@@ -558,7 +564,7 @@ published_result <- function(values, convert, safeguard) {
       error = function(e) e)
     if (inherits(out, "error")) {
       problem <- if (inherits(out, "powerkit_error")) sub("^This design spec has an? problems?:\n\\* ", "", conditionMessage(out)) else
-        "powerkit couldn't convert this value: something went wrong in its engine. Please report this, with the values you entered."
+        "Powerkit couldn't convert this value: something went wrong in its engine. Please report this, with the values you entered."
       return(list(lines = character(), problems = problem))
     }
     estimate <- out$value
@@ -866,7 +872,7 @@ published_ui <- function() {
   designs <- stats::setNames(names(published_designs), vapply(published_designs, `[[`, "", "label"))
   conditionalPanel("input.labs_tool == 'published'",
     labs_tool_head("published"),
-    p("Enter an effect as a paper reported it. powerkit shows it as the effect size a power analysis uses and, for the t-tests and correlations, a safeguard value to plan with instead."),
+    p("Enter an effect as a paper reported it. Powerkit shows it as the effect size a power analysis uses and, for the t-tests and correlations, a safeguard value to plan with instead."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published result"),
       selectInput("pub_design", "What kind of study was it?", choices = c("Choose one" = "", designs), selectize = FALSE, width = "100%"),
       uiOutput("pub_from_ui"),
@@ -907,7 +913,7 @@ bayes_directions <- c("Either direction (two-sided)" = "two.sided",
 bayes_ui <- function() {
   conditionalPanel("input.labs_tool == 'bayes'",
     labs_tool_head("bayes"),
-    p("A Bayes factor compares how well two hypotheses predict the data: an effect against no effect. A study can end three ways: strong evidence for an effect, strong evidence for no effect, or neither. This tool shows how often each happens, for the study size you set, in two worlds: if the effect is what you believe, and if there is no effect."),
+    p("A Bayes factor compares how well two hypotheses predict the data: an effect against no effect. A study can end three ways: evidence at the threshold for an effect, evidence at the threshold for no effect, or neither. This tool shows how often each happens, for the study size you set, in two worlds: if the effect is what you believe, and if there is no effect."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The study"),
       selectInput("bayes_type", "The design", choices = bayes_types, selectize = FALSE, width = "100%"),
       numericInput("bayes_n", "Sample size (in each group, for two groups)", value = 120, min = 3, max = 10000, step = 1, width = "100%"),
@@ -919,10 +925,10 @@ bayes_ui <- function() {
       p(class = "group-note", "Separate from the analysis prior. This is your honest belief about the true standardised effect (Cohen's d, or d_z for pairs), with your uncertainty about it as an SD. An SD of 0 plans for exactly that effect, as most power analyses do; a larger SD averages over the effects you think plausible, which usually lowers the chances."),
       numericInput("bayes_effect", "The effect you expect", value = 0.5, min = -5, max = 5, step = 0.05, width = "100%"),
       numericInput("bayes_effect_sd", "How unsure you are about the effect, as an SD (0 = exactly this effect)", value = 0.15, min = 0, max = 5, step = 0.05, width = "100%")),
-    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. What counts as strong evidence"),
+    tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Your evidence threshold"),
       radioButtons("bayes_threshold", "Evidence threshold: the Bayes factor the study should reach (BF10 for an effect, BF01 for no effect)", choices = bayes_thresholds, selected = "10", inline = TRUE),
       p(class = "group-note", "There is no correct threshold: a higher one asks more of the data, and evidence for no effect needs larger studies than evidence for an effect."),
-      numericInput("bayes_target", "Find the sample size that gives strong evidence for an effect with this chance", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
+      numericInput("bayes_target", "Find the sample size that gives evidence at the threshold for an effect with this chance (0.8 is a common starting point, not a rule: choose the chance your study needs)", value = 0.8, min = 0.05, max = 0.99, step = 0.05, width = "100%")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. When you look at the data"),
       radioButtons("bayes_design", NULL, choices = bayes_designs, selected = "fixed", width = "100%"),
       conditionalPanel("input.bayes_design == 'sequential'",
@@ -940,7 +946,7 @@ bayes_ui <- function() {
 # plain apology, never R's own text.
 bayes_problem <- function(e) {
   if (!inherits(e, "powerkit_error")) {
-    return("powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
+    return("Powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
   }
   labels <- c("'n'" = "The sample size", "'effect_sd' (the uncertainty about the effect)" = "How unsure you are about the effect",
     "'effect'" = "The effect you expect", "'prior_scale'" = "The scale of the analysis prior",
@@ -983,16 +989,16 @@ bayes_numbers <- function(plan) {
     sprintf("If the effect is exactly %s", format(plan$effect))
   target <- paste0(format(100 * plan$target), "%")
   a_target <- paste(if (grepl("^(8|11|18)", target)) "an" else "a", target)
-  needed <- if (is.na(plan$n_needed)) sprintf("More than 10,000 %s would be needed for %s chance of strong evidence for an effect.",
+  needed <- if (is.na(plan$n_needed)) sprintf("More than 10,000 %s would be needed for %s chance of evidence at the threshold for an effect.",
       if (identical(plan$type, "two.sample")) "in each group" else "participants", a_target) else
-    sprintf("For %s chance of strong evidence for an effect, under your belief: %s %s.", a_target, format(plan$n_needed),
+    sprintf("For %s chance of evidence at the threshold for an effect, under your belief: %s %s.", a_target, format(plan$n_needed),
       if (identical(plan$type, "two.sample")) "in each group" else if (identical(plan$type, "paired")) "pairs" else "people")
   tagList(
     h4(class = "h5 mt-3", sprintf("With %s", bayes_size_words(plan))),
     tags$table(class = "table table-sm bayes-outcomes",
-      tags$caption(sprintf("How often the study ends each way (strong evidence: a Bayes factor of at least %s).", k)),
-      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Strong evidence for an effect"),
-        tags$th(scope = "col", "Strong evidence for no effect"), tags$th(scope = "col", "Neither"))),
+      tags$caption(sprintf("How often the study ends each way (evidence threshold: a Bayes factor of at least %s).", k)),
+      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Evidence at the threshold for an effect"),
+        tags$th(scope = "col", "Evidence at the threshold for no effect"), tags$th(scope = "col", "Neither"))),
       tags$tbody(
         tags$tr(tags$th(scope = "row", belief_words), tags$td(pct(belief$for_effect)),
           tags$td(pct(belief$for_null), if (plan$effect != 0) " (misleading)"), tags$td(pct(belief$neither))),
@@ -1001,13 +1007,13 @@ bayes_numbers <- function(plan) {
     tags$ul(class = "bayes-notes",
       tags$li(needed),
       if (plan$effect_sd > 0) tags$li(sprintf(
-        "Averaged over your uncertainty like this, the %s chance of strong evidence for an effect is the average power over your uncertainty: the chance it succeeds given what you believe now, rather than if one guessed effect were exactly right (O'Hagan, Stevens and Campbell, 2005, who call it assurance and define it for clinical trials).",
+        "Averaged over your uncertainty like this, the %s chance of evidence at the threshold for an effect is the average power over your uncertainty: the chance it succeeds given what you believe now, rather than if one guessed effect were exactly right (O'Hagan, Stevens and Campbell, 2005, who call it assurance and define it for clinical trials).",
         pct(belief$for_effect))),
       if (!is.na(plan$largest_bf01)) tags$li(sprintf(
         "The most evidence for no effect this study can give is a Bayes factor of %.1f (when the observed effect is exactly 0)%s.",
         plan$largest_bf01, if (plan$largest_bf01 < plan$threshold) sprintf(", so it can never reach %s in favour of no effect, however true that is", k) else "")),
       tags$li("These chances are not power in the usual sense: they don't depend on a significance level, and a study can end with neither, which is a result, not a failure."),
-      if (bayes_small(plan)) tags$li("With this few participants, bfpwr's calculation (which treats the effect estimate as normally distributed) gives a chance of strong evidence for an effect a few points lower than simulated Bayes factors do.")),
+      if (bayes_small(plan)) tags$li("With this few participants, bfpwr's calculation (which treats the effect estimate as normally distributed) gives a chance of evidence at the threshold for an effect a few points lower than simulated Bayes factors do.")),
     p(class = "small text-muted", sprintf("From %s, bfpwr version %s.", plan$function_used, plan$package$version)),
     p(class = "small text-muted", "Reference: ", bayes_citation()),
     if (plan$effect_sd > 0) p(class = "small text-muted", "Assurance: ", labs_citation(key = "OHagan2005_assurance",
@@ -1038,10 +1044,10 @@ bayes_sequential_numbers <- function(plan) {
   tagList(
     h4(class = "h5 mt-3", sprintf("Looking from %s%s, %s, up to %s%s", format(plan$n_min), unit, looks, format(plan$n_max), unit)),
     tags$table(class = "table table-sm bayes-outcomes",
-      tags$caption(sprintf("How often the study stops each way (strong evidence: a BF10 of at least %s for an effect, a BF01 of at least %s for no effect), and its size when it stops.",
+      tags$caption(sprintf("How often the study stops each way (evidence threshold: a BF10 of at least %s for an effect, a BF01 of at least %s for no effect), and its size when it stops.",
         format(plan$threshold), format(plan$threshold_null))),
-      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Stops with strong evidence for an effect"),
-        tags$th(scope = "col", "Stops with strong evidence for no effect"), tags$th(scope = "col", "Reaches the largest size without either"),
+      tags$thead(tags$tr(tags$th(scope = "col", ""), tags$th(scope = "col", "Stops with evidence at the threshold for an effect"),
+        tags$th(scope = "col", "Stops with evidence at the threshold for no effect"), tags$th(scope = "col", "Reaches the largest size without either"),
         tags$th(scope = "col", sprintf("Size when it stops: median%s", unit)))),
       tags$tbody(
         tags$tr(tags$th(scope = "row", belief_words), tags$td(pct(belief$for_effect)),
@@ -1049,7 +1055,7 @@ bayes_sequential_numbers <- function(plan) {
         tags$tr(tags$th(scope = "row", "If there is no effect"), tags$td(pct(null$for_effect), " (misleading)"),
           tags$td(pct(null$for_null)), tags$td(pct(null$at_max)), tags$td(size(null))))),
     tags$ul(class = "bayes-notes",
-      tags$li(sprintf("Testing once at %s%s instead: strong evidence for an effect %s of the time under your belief, and misleading strong evidence for an effect %s of the time if there is none.",
+      tags$li(sprintf("Testing once at %s%s instead: evidence at the threshold for an effect %s of the time under your belief, and misleading evidence at the threshold for an effect %s of the time if there is none.",
         format(plan$n_max), unit, pct(f$for_effect[f$truth == "belief"]), pct(f$for_effect[f$truth == "null"]))),
       if (!is.null(at_max_words(belief, "Under your belief"))) tags$li(at_max_words(belief, "Under your belief"), " ",
         at_max_words(null, "With no effect")),
@@ -1118,7 +1124,7 @@ bayes_curves_plot <- function(plan) {
   chart_start(chart_key_rows(2))
   graphics::plot(cu$n, 100 * cu$for_effect, type = "n", ylim = c(0, 100), axes = FALSE,
     xlab = if (identical(plan$type, "two.sample")) "Sample size in each group" else "Sample size",
-    ylab = "Chance of strong evidence")
+    ylab = "Chance of evidence at the threshold")
   chart_axes(yat = seq(0, 100, 20), ylabels = paste0(seq(0, 100, 20), "%"))
   graphics::lines(cu$n, 100 * cu$for_effect, lwd = 2.5, col = chart_colours$blue)
   graphics::lines(cu$n, 100 * cu$for_null, lwd = 2.5, col = chart_colours$red, lty = 2)

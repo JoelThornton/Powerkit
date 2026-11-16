@@ -56,7 +56,7 @@ form_examples <- list(
   E55 = c(list(test_version = "anova_f", group_sizes = "equal", A_label = "Group", A_levels = "Therapy, Waiting list", B_label = "Time", B_levels = "Before, After, Follow-up",
                Y_label = "Anxiety score", metric = "raw", means = "20, 16, 15\n20, 19, 18.5", spread = "same", sd = "6", r = "0.5",
                effect = "interaction", method = "exact"), closing_ok),
-  E56 = c(list(A_label = "Group", A_levels = "Control, Training", B_label = "Time", B_levels = "Before, After",
+  E56 = c(list(test_version = "anova_f", A_label = "Group", A_levels = "Control, Training", B_label = "Time", B_levels = "Before, After",
                C_label = "Task difficulty", C_levels = "Easy, Hard", Y_label = "Accuracy", within = "BC", metric = "raw",
                means = "80, 60\n81, 61\n80, 60\n84, 70", sd = "12", r = "0.5", effect = "interaction_ABC", method = "exact"), closing_ok),
   E20 = c(list(test_version = "anova_f", A_label = "Cue", A_levels = "Valid, Invalid", B_label = "Delay", B_levels = "Short, Medium, Long",
@@ -271,6 +271,11 @@ form_examples$E47 <- c(list(A_label = "Message frame", A_levels = "Gain, Loss", 
 form_examples$E46 <- list(estimate = "proportion", Y_label = "Reports burnout", p = "0.3", p_method = "wilson",
   goal = "precision_n", width = "0.1", conf_level = "0.95",
   just_type = "smallest_effect_of_interest", just_source = "Example only")
+
+# E77: developing a prediction model of a yes/no outcome (pmsampsize).
+form_examples$E77 <- list(purpose = "development", outcome = "binary", Y_label = "Relapse within a year", parameters = "20", bin_metric = "c_statistic",
+  c_statistic = "0.8", prevalence = "0.2", goal = "criteria", shrinkage = "0.9",
+  just_type = "prior_study", just_source = "Example only", just_adjustment = "Example only: the reported C-statistic, lowered a little")
 
 # The mediation analysis selector starts at the existing ML/MC method.
 for (ep in c("E10", "E16", "E11", "E12", "E13", "E14", "E17", "E38", "E40")) {

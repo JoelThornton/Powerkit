@@ -403,6 +403,23 @@ Questions about PITS 0.1.0, from running it (6 November 2026).
    error at the planned length?
 
 
+## pmvalsampsize
+
+Questions about pmvalsampsize 0.1.0, from reading its source (15 November
+2026).
+
+1. **Criterion 1's standard error is found on a grid.** The binary
+   criterion for the O/E ratio steps the standard error of log(O/E) up
+   by `oeseincrement` (default 0.0001) until the interval's width reaches
+   the target, then takes n = (1 - phi) / (phi SE^2). The step overshoots
+   the exact SE, so n is a little below the closed form: 1,538 against
+   1,542 (1,541.75 rounded up) at phi = 0.2 and a width of 0.2, so the
+   interval is very slightly wider than the target. Would solving for the
+   SE exactly (it has the closed form asinh(width / (2 O/E)) / 1.96) suit
+   the package? powerkit passes the default and reports pmvalsampsize's
+   answer; its validation checks this criterion to within 1%
+   (engine/tests/testthat/test-validation-prediction-model.R).
+
 ## Superpower: corrected mixed-design approximation
 
 **Open investigation; no contact or author endorsement recorded.**

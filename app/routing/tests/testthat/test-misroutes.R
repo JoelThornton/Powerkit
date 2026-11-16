@@ -30,7 +30,7 @@ test_that("every route starts with the four screening questions, in order", {
   expect_identical(leads_to(c(screen_score, "Once")), c(choose = "q1", known = "list", guided = "guided"))
 })
 
-test_that("no route suggests a test powerkit runs, or will run, before the screening is finished", {
+test_that("no route suggests a test Powerkit runs, or will run, before the screening is finished", {
   for (r in routes) {
     for (p in all_paths(tree, r)) {
       end <- p[length(p)]
@@ -97,7 +97,7 @@ test_that("a rating analysed as a score continues as a score (decision D1)", {
 test_that("every question, in every context a user can reach, offers 'None of these fit / I'm not sure'", {
   expect_identical(tree$safety_net$label, "None of these fit / I'm not sure")
   card <- as.character(card_ui(tree, tree$safety_net$endpoint))
-  expect_match(card, htmltools::htmlEscape("powerkit can't advise on this design yet."), fixed = TRUE)
+  expect_match(card, htmltools::htmlEscape("Powerkit can't advise on this design yet."), fixed = TRUE)
   expect_match(card, "We suggest discussing it with a statistician.", fixed = TRUE)
   label <- htmltools::htmlEscape(tree$safety_net$label)
   # Walk every route with its context and check each question shown.
@@ -492,7 +492,7 @@ test_that("search on \"I know my analysis\" finds the names researchers type", {
   expect_match(words("E23"), "ancova", fixed = TRUE)
 })
 
-test_that("JASP's names for analyses powerkit already plans find their cards", {
+test_that("JASP's names for analyses Powerkit already plans find their cards", {
   # JASP's menus name these analyses differently from powerkit's cards
   # (review of JASP's analyses, 13 November 2026). The search matches every
   # word typed against the card's names and search words, as

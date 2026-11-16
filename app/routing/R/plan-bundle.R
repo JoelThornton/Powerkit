@@ -37,6 +37,7 @@ plan_analysis_hashes <- function(plan) {
 # What the analysis aimed for, in the words its card uses.
 plan_entry_target <- function(spec) {
   goal <- spec$goal %||% list()
+  if (identical(spec$design, "prediction_model")) return(paste0("the criteria for developing a prediction model, shrinkage ", format(goal$shrinkage %||% 0.9)))
   if (identical(spec$design, "precision")) return(paste0("interval width ", format(goal$width),
     if (!is.null(goal$assurance)) paste0(", assurance ", format(goal$assurance))))
   if (!is.null(goal$power)) return(paste("power", format(goal$power)))
@@ -87,7 +88,7 @@ plan_planning_document <- function(plan, tree, forms, joint = NULL, engine = eng
     text <- tryCatch(planning_methods_text(tree, forms, plan_entry_calc(e)), error = function(err) NULL)
     c(sprintf("### %d. %s (%s)", i, e$label, tolower(plan_roles[[e$role %||% "secondary"]])),
       if (nzchar(e$note %||% "")) paste("Note:", e$note),
-      text %||% "The methods paragraph for this analysis couldn't be made; it is in the analysis's own planning document.", "")
+      text %||% "The methods paragraph for this analysis couldn't be made; it is in the analysis's own report.", "")
   }))
   requirement <- if (!is.null(largest)) c(
     sprintf("The largest comparable requirement is N = %s, for %s.", whole(largest$n), largest$label),
@@ -95,7 +96,7 @@ plan_planning_document <- function(plan, tree, forms, joint = NULL, engine = eng
     "The plan has one analysis: its requirement is the plan's."
   refs <- plan_merge_citations(plan_citation_texts(entries, engine))
   c(sprintf("# %s", plan$name), "",
-    sprintf("Study planning document for review, made with powerkit %s. It restates the analyses in this study plan as each card calculated them; it does not register a preregistration or guarantee the assumptions are correct.", version), "",
+    sprintf("Study plan report for review, made with Powerkit %s. It restates the analyses in this study plan as each card calculated them; it does not register a preregistration or guarantee the assumptions are correct.", version), "",
     if (nzchar(plan$description %||% "")) c("## About this study", plan$description, ""),
     "## Analyses", plan_role_counts_text(entries), "",
     "| Analysis | Role | N needed | Unit | Target | Backend |", "|---|---|---|---|---|---|",
@@ -108,7 +109,7 @@ plan_planning_document <- function(plan, tree, forms, joint = NULL, engine = eng
     },
     "## Methods, analysis by analysis", "", methods,
     "## References", if (length(refs)) unlist(lapply(refs, function(r) c(r, ""))) else c("No references could be gathered from these results.", ""),
-    "Each analysis's own files (its project file, planning document, R script and citations) are in the analyses folder of “Download everything”. The study plan file opens every analysis again in powerkit.")
+    "Each analysis's own files (its analysis file, report, R script and citations) are in the analyses folder of “Download everything”. The study plan file opens every analysis again in Powerkit.")
 }
 
 plan_bundle_file_name <- function(plan) sub("\\.powerkit\\.json$", "-everything.zip", plan_file_name(plan))
@@ -122,16 +123,16 @@ plan_analysis_folder <- function(i, entry) {
 
 plan_bundle_readme <- function(plan, plan_file, docs, analyses, skipped) {
   about <- c(
-    sprintf("%s\n  Opens the whole plan again in powerkit: on the Study plans page choose \"Open a saved plan\" and pick this file, or this zip.", plan_file),
-    if ("md" %in% docs) "study-plan.md\n  The study-wide planning document as Markdown, to paste into a preregistration or edit.",
-    if ("docx" %in% docs) "study-plan.docx\n  The study-wide planning document as an editable Word document.",
+    sprintf("%s\n  Opens the whole plan again in powerkit: on the Study plans page choose \"Open a saved file\" and pick this file, or this zip.", plan_file),
+    if ("md" %in% docs) "study-plan.md\n  The study plan report as Markdown, to paste into a preregistration or edit.",
+    if ("docx" %in% docs) "study-plan.docx\n  The study plan report as an editable Word document.",
     if ("refs" %in% docs) "references.txt\n  Every analysis's references, each once.",
     if ("replication" %in% docs) "replication-plan.md and replication-plan.docx\n  The replication plan's write-up: the pre-replication notes, the original study, the goals, how the replication differs and the original's analysis.",
-    if (length(analyses)) "analyses/\n  One folder per analysis, with its own \"Download everything\": project file, planning document, R script, citations and, where offered, SIMULATED (not real) data.")
+    if (length(analyses)) "analyses/\n  One folder per analysis, with its own \"Download everything\": analysis file, report, R script, citations and, where offered, SIMULATED (not real) data.")
   c(sprintf("powerkit: everything for the study plan \"%s\", saved %s", plan$name, format(Sys.time(), "%d %B %Y at %H:%M UTC", tz = "UTC")), "",
     about, "",
     if (length(skipped)) c("Couldn't be made, so not included:", paste0("  ", skipped), ""),
-    "Opening the zip in powerkit opens the plan file, not an analysis's own project file.")
+    "Opening the zip in Powerkit opens the study plan file, not the file of any one analysis.")
 }
 
 # "Download everything" for a plan. The plan file is written first, without
@@ -155,7 +156,7 @@ write_plan_bundle <- function(plan, file, tree, forms, joint = NULL, engine = en
     if (!inherits(try(writeLines(doc, file.path(dir, "study-plan.md"), useBytes = TRUE), silent = TRUE), "try-error")) docs <- c(docs, "md")
     if (!inherits(try(docx_document(doc, file.path(dir, "study-plan.docx"), powerkit_version()), silent = TRUE), "try-error") &&
       file.exists(file.path(dir, "study-plan.docx"))) docs <- c(docs, "docx")
-  } else skipped <- c(skipped, "the study-wide planning document")
+  } else skipped <- c(skipped, "the study plan report")
   if (plan_is_replication(plan)) {
     rep_doc <- tryCatch(replication_plan_report(plan, tree, forms, engine = engine), error = function(e) NULL)
     if (!is.null(rep_doc)) {

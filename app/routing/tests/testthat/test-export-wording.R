@@ -1,9 +1,9 @@
 # Wording of exported text: powerkit named as a prototype until 1.0, and
 # effect-size labels written for a paper rather than for the input screen.
 
-test_that("exports name powerkit as a prototype until version 1.0", {
-  expect_match(powerkit_cited("0.36.0"), "powerkit (version 0.36.0, a prototype in development whose results are not yet fully validated)", fixed = TRUE)
-  expect_identical(powerkit_cited("1.0.0"), "powerkit (version 1.0.0)")
+test_that("exports name Powerkit as a prototype until version 1.0", {
+  expect_match(powerkit_cited("0.36.0"), "Powerkit (version 0.36.0, a prototype in development whose results are not yet fully validated)", fixed = TRUE)
+  expect_identical(powerkit_cited("1.0.0"), "Powerkit (version 1.0.0)")
   expect_match(powerkit_cited(NULL), "a prototype", fixed = TRUE)
 })
 

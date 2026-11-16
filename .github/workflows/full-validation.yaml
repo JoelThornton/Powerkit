@@ -86,6 +86,7 @@ on:
           - bayes
           - bayes_factorial
           - bayes_ancova
+          - bayes_three
           - meta
           - dyadic
           - survival
@@ -136,6 +137,7 @@ on:
           - trend
           - anova_mixed_unequal
           - precision
+          - prediction
           - whole_study
           - cluster
           - multisite

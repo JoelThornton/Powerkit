@@ -137,6 +137,9 @@ endpoints:
   E73: model
   E74: model
   E75: model
+  # Planned for precise estimates of the model's performance and small
+  # overfitting (Riley et al.), not for one test.
+  E77: ci
   E-bayes: bayes
 
 relations:
@@ -147,6 +150,7 @@ relations:
   - {from: E2, to: E36, label: "turned round, to show a difference is too small to matter, is"}
   - {from: E2, to: E46, label: "planned for precision instead of a test is"}
   - {from: E69, to: E46, label: "planned for a precise ICC instead of a test is"}
+  - {from: E27, to: E77, label: "built to predict each person's risk, rather than to test one predictor, is"}
   - {from: E2, to: E-bayes, label: "judged by a Bayes factor instead of a p-value is"}
   - {from: E2, to: E61, label: "pooled across many studies is"}
   # ANOVA family

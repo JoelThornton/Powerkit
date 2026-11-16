@@ -361,6 +361,7 @@ result_record <- function(result) {
     n_required = result$n_required,
     sensitivity = result$sensitivity,
     precision = result$precision,
+    prediction = result$prediction,
     justified_alpha = result$justified_alpha,
     bayes = result$bayes,
     clusters = result$clusters,
@@ -391,7 +392,7 @@ saved_cores <- function(record) {
 
 # The numbers a reproduction must match.
 result_numbers <- function(record) {
-  fields <- c("curve", "n_required", "sensitivity", "recruitment", "precision",
+  fields <- c("curve", "n_required", "sensitivity", "recruitment", "precision", "prediction",
     "justified_alpha", "bayes", "clusters", "sem", "manova", "details", "critical_effect")
   record[intersect(fields, names(record))]
 }

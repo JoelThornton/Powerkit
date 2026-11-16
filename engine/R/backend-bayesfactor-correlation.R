@@ -199,7 +199,7 @@ bfcor_script <- function(spec, result) {
     "# Inputs ----",
     sprintf("r <- %s # the expected correlation", r_code(inputs$r)),
     sprintf("r_sd <- %s # uncertainty about it (SD of a stretched beta design prior; 0 = exactly r)", r_code(inputs$r_sd)),
-    sprintf("threshold <- %s # strong evidence: BF10 at least this", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
     sprintf("width <- %s # width of the stretched beta analysis prior (1 = uniform, JASP's default)", r_code(inputs$prior_width)),
     sprintf("alternative <- %s", r_code(inputs$alternative)),
     bayes_goal_inputs(spec),
@@ -253,7 +253,7 @@ bfcor_script <- function(spec, result) {
 bfcor_design_description <- function(spec, label) {
   inputs <- bfcor_inputs(spec)
   sprintf(
-    "Bayes factor test of the correlation between %s and %s: %s, with a stretched beta analysis prior of width %s; strong evidence is BF10 of at least %s",
+    "Bayes factor test of the correlation between %s and %s: %s, with a stretched beta analysis prior of width %s; the evidence threshold is BF10 of at least %s",
     label("X"), label("Y"), bfcor_hypotheses_words(inputs), format_number(inputs$prior_width), format_number(inputs$threshold)
   )
 }

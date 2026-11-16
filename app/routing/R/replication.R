@@ -79,7 +79,7 @@ replication_card_note <- function(forms, ep_id, plan = NULL) {
       "A published effect is often larger than the true one, because larger effects are more likely to be published, so consider planning for a smaller effect as well, such as the smallest that would matter."),
     p(class = "mb-0",
       if (!is.null(plan)) tagList(sprintf("This is kept in the replication plan \u201c%s\u201d, with its notes, goals and write-up. ", plan$name),
-        actionLink("rep_view_plan", "Open the replication plan"), ". ") else NULL,
+        actionLink("rep_view_plan", "Open the replication plan."), " ") else NULL,
       if (planner) "For this design, the plan's Goals give the sample size for each goal a replication can have (a significant result again, a pooled estimate, agreement with the original, Bayes factors)."
       else tagList("This card plans the replication for a significant result again. ", replication_card_effect_note(forms, ep_id))))
 }
@@ -91,8 +91,6 @@ replication_form_values <- function(values) {
   values
 }
 
-# How much the true effect may vary between studies (Kenny & Judd, 2019,
-# whose representative values for d these are).
 # How the original was analysed (queue item 21): a test, a Bayes factor
 # (a default-prior t-test) or a posterior.
 replication_analyses_ui <- c("A significance test (a p-value)" = "test", "A Bayes factor" = "bayes_factor",
@@ -102,6 +100,10 @@ replication_original_priors_ui <- c("Vague (flat, or nearly)" = "vague",
   "An informative prior (built from earlier findings or a theory)" = "informative")
 replication_post_from_ui <- c("Its posterior SD" = "sd", "Its credible interval" = "ci")
 
+# How much the true effect may vary between studies (Kenny & Judd, 2019,
+# whose example values for d these are). It starts at Small (0.05):
+# Kenny and Judd argue zero should not be the default (decided 15
+# November 2026).
 replication_taus <- c(
   "None: the same effect in every study" = "0",
   "Small (0.05)" = "0.05",
@@ -113,12 +115,12 @@ replication_goal_labels <- c(
   significance = "A significant result in the original's direction",
   pooled = "A significant result when the two studies are pooled",
   agreement = "A result that agrees with the original's, within the smallest effect that matters",
-  bf_replication = "Strong evidence that the original's effect was found again (replication Bayes factor)",
-  bf_sceptical = "Strong evidence for the effect that would convince a sceptic (sceptical Bayes factor)",
-  bf_repeat = "Strong evidence for an effect from the original's own Bayes factor test, repeated",
+  bf_replication = "Evidence, at your threshold, that the original's effect was found again (replication Bayes factor)",
+  bf_sceptical = "Evidence, at your threshold, for the effect that would convince a sceptic (sceptical Bayes factor)",
+  bf_repeat = "Evidence for an effect, at your threshold, from the original's own Bayes factor test, repeated",
   small_telescopes = "Show the original study was too small to have detected the effect (small telescopes)",
   negligible = "Show the effect is too small to matter (equivalence test)",
-  bf_null = "Strong evidence for no effect from the original's Bayes factor test, if there is none"
+  bf_null = "Evidence for no effect, at your threshold, from the original's Bayes factor test, if there is none"
 )
 
 # Short notes on what each goal answers (Anderson & Maxwell, 2016; Pawel,
@@ -169,7 +171,7 @@ replication_planner_sections <- function() {
         radioButtons("rep_analysis", "How it was analysed", choices = replication_analyses_ui, selected = "test", width = "100%"),
         conditionalPanel("input.rep_analysis == 'bayes_factor'",
           field("rep_bf", "Its Bayes factor for an effect, BF10",
-            help = "If the paper gives BF01 (for no effect), enter 1 / BF01. powerkit reads the effect from it for a t-test (two groups, one group or pairs), as JASP's Summary Statistics do the other way (Ly et al., 2018).")),
+            help = "If the paper gives BF01 (for no effect), enter 1 / BF01. Powerkit reads the effect from it for a t-test (two groups, one group or pairs), as JASP's Summary Statistics do the other way (Ly et al., 2018).")),
         conditionalPanel("input.rep_analysis == 'posterior'",
           radioButtons("rep_original_prior", "Its prior", choices = replication_original_priors_ui, selected = "default", width = "100%"),
           p(class = "small text-muted", "A posterior stands in for the original's estimate only when its prior was vague or a default one: an informative prior's posterior mixes the prior's beliefs into what the original found (McLatchie, Warmelink & Tkacheva, 2020). For an informative prior, give the estimate with its standard error, or the Bayes factor.")),
@@ -182,7 +184,7 @@ replication_planner_sections <- function() {
           selectInput("rep_scale", "Its scale", choices = replication_scales_ui, selectize = FALSE, width = "100%")),
         conditionalPanel("input.rep_analysis != 'bayes_factor'",
           field("rep_effect", "The effect it reported, with its sign",
-            help = "As the paper reported it: d, d_z or r for the first four designs (if it gave a t or F instead, the Effect size converter in Labs turns it into d or r); for another design, on its own scale, a ratio as the ratio. For a posterior, its mean.")),
+            help = "As the paper reported it: d, d_z or r for the first four designs (if it gave a t or F instead, the Effect size converter in Tools turns it into d or r); for another design, on its own scale, a ratio as the ratio. For a posterior, its mean.")),
         conditionalPanel("input.rep_analysis == 'posterior'",
           radioButtons("rep_post_from", "How sure it was", choices = replication_post_from_ui, selected = "sd", inline = TRUE, width = "100%"),
           conditionalPanel("input.rep_post_from == 'sd'",
@@ -214,8 +216,9 @@ replication_planner_sections <- function() {
         # 2026): the sample size to find the effect significant again,
         # with the usual settings, before the goals and beliefs.
         div(class = "rep-quick",
+          p(class = "rep-routes", "Two ways to the sample size: the quick answer here, from the numbers above, or the original's design on its own card, below, with that card's full options and its exact test. The quick answer uses a normal approximation, so for a t-test it can ask for a few people fewer than the card."),
           actionButton("rep_run_quick", "Show the sample size to replicate it", class = "btn btn-primary"),
-          p(class = "small text-muted mt-1", "The sample size for a significant result again, with the significance level and chance of success under Goals (.05 and 80% to start, which you can change there). Goals also shows what other goals of a replication need."))),
+          p(class = "small text-muted mt-1", "It opens Goals, where you choose the significance level and the chance of success (one click each for the usual values), and shows what other goals of a replication need."))),
       uiOutput("rep_card_status")),
 
     section("goals",
@@ -224,11 +227,16 @@ replication_planner_sections <- function() {
         uiOutput("rep_from_notes_smallest"),
         field("rep_smallest", "The smallest effect that would matter (positive: d, d_z or r, or another design's effect on its own scale, a ratio above 1)",
           help = "Needed for the goals of agreement and of an effect too small to matter. Leave blank to skip those two."),
-        selectInput("rep_tau", "How much the true effect may vary between studies", choices = replication_taus, selected = "0", selectize = FALSE, width = "100%"),
-        p(class = "small text-muted", "Labs, samples and procedures differ, so the true effect can differ too. Kenny and Judd (2019) suggest 0.05, 0.125 and 0.20 (in d) as small, medium and large, and argue zero should not be the default. It applies to the uncertain and shrunk beliefs. For a correlation it is on Fisher's z scale, close to r for small values."),
-        field("rep_alpha", "The replication's significance level (two-sided)", value = "0.05"),
-        field("rep_power", "The chance of success to aim for", value = "0.8"),
-        radioButtons("rep_threshold", "Strong evidence, for the Bayes factor goals", choices = c("3", "6", "10", "30"), selected = "10", inline = TRUE),
+        selectInput("rep_tau", "How much the true effect may vary between studies (as an SD in d)", choices = replication_taus, selected = "0.05", selectize = FALSE, width = "100%"),
+        p(class = "small text-muted", "Laboratories, samples and procedures differ, so the true effect can differ from study to study, and assuming it can't makes a replication look easier than it is. The best source is a meta-analysis of this effect that reports tau. Kenny and Judd (2019) use 0.05, 0.125 and 0.20 as examples and argue zero should not be the default; they are a quarter of Cohen's 0.2, 0.5 and 0.8, so treat them as illustrations, not estimates for your field. It starts at the smallest. It applies to the uncertain and shrunk beliefs. For a correlation it is on Fisher's z scale, close to r for small values."),
+        shortcut_field("rep_alpha", "The replication's significance level (two-sided)", c("0.05", "0.01", "0.005"),
+          c("Use 0.05, the usual level", "0.01", "0.005"),
+          help = "0.01 or 0.005 fit a replication that runs many tests, or a claim that needs stronger evidence."),
+        shortcut_field("rep_power", "The chance of success to aim for", c("0.8", "0.9", "0.95"), c("80%", "90%", "95%"),
+          help = "The table shows the sample size each goal needs for this chance; a higher chance needs more people."),
+        radioButtons("rep_threshold", "Evidence threshold for the Bayes factor goals: the Bayes factor the replication should reach",
+          choiceNames = c("3", "6", "10 (a common threshold)", "30"), choiceValues = c("3", "6", "10", "30"), selected = "10", inline = TRUE),
+        p(class = "small text-muted", "Choose the evidence your claim needs: 10 is a common threshold, and so is 3; there is no correct one."),
         field("rep_n_at", "Optional: a sample size you could recruit (in total), to see each goal's chance at it"),
         actionButton("rep_run", "Show the sample sizes", class = "btn btn-primary"),
         uiOutput("rep_result"),
@@ -249,14 +257,45 @@ replication_planner_sections <- function() {
         div(class = "nav-buttons",
           document_menu("rep_document", "rep_docx", "rep_markdown", "Save as PDF or print", "the replication plan", class = "btn btn-primary"),
           download_button("rep_script", "Download the R script", class = "btn btn-outline-primary")),
-        uiOutput("rep_writeup_note"))),
-    p(class = "small text-muted", "References: ", replication_citations())
-  )
+        uiOutput("rep_writeup_note"))))
+}
+
+# A text box with buttons that fill in conventional values, as the input
+# screens' alpha and power boxes have (forms_ui.R): the box starts empty,
+# so choosing a value stays the user's act (colleague review P-04).
+shortcut_field <- function(id, label, values, labels, help = NULL) {
+  div(class = "form-field", textInput(id, label, value = "", width = "100%"),
+    div(class = "usual-values", lapply(seq_along(values), function(i) tags$button(type = "button",
+      class = "btn btn-sm btn-outline-secondary usual-value", id = sprintf("%s_usual%s", id, if (i > 1) paste0("_", i) else ""),
+      `data-target` = id, `data-value` = values[[i]],
+      onclick = "var e = document.getElementById(this.getAttribute('data-target')); e.value = this.getAttribute('data-value'); e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); e.focus();",
+      labels[[i]]))),
+    if (!is.null(help)) p(class = "small text-muted", help))
 }
 
 replication_citations <- function(path = labs_refs_path(), keys = replication_ref_keys) {
   texts <- vapply(keys, function(k) labs_citation(path, key = k, fallback = ""), character(1))
   paste(texts[nzchar(texts)], collapse = " ")
+}
+
+# One reference's text with its <https://...> links as links.
+reference_with_links <- function(text) {
+  parts <- regmatches(text, gregexpr("<https?://[^>]+>", text), invert = NA)[[1]]
+  lapply(parts, function(x) if (grepl("^<https?://", x)) {
+    url <- substr(x, 2L, nchar(x) - 1L)
+    tags$a(href = url, target = "_blank", rel = "noopener", url)
+  } else x)
+}
+
+# The plan's references, once, folded at its foot (colleague review P-07):
+# the pre-replication notes' paper and the planner's, one per line.
+replication_references_ui <- function(path = labs_refs_path(), keys = c(labs_ref_key, replication_ref_keys)) {
+  texts <- vapply(keys, function(k) labs_citation(path, key = k, fallback = ""), character(1))
+  texts <- unique(texts[nzchar(texts)])
+  if (!length(texts)) return(NULL)
+  tags$details(class = "rep-references small mt-3",
+    tags$summary(sprintf("References (%d)", length(texts))),
+    tags$ul(class = "list-unstyled mt-2", lapply(texts, function(t) tags$li(class = "mb-1", reference_with_links(t)))))
 }
 
 # Every field the planner keeps, for the file and the write-up.
@@ -278,7 +317,7 @@ replication_args <- function(values) {
   if (!nzchar(design)) design <- "two_groups"
   args <- list(design = design, original_effect = num("rep_effect", NA_real_),
     original_alpha = num("rep_original_alpha", 0.05), alpha = num("rep_alpha", 0.05),
-    power = num("rep_power", 0.8), tau = num("rep_tau", 0), smallest_effect = num("rep_smallest"),
+    power = num("rep_power", 0.8), tau = num("rep_tau", 0.05), smallest_effect = num("rep_smallest"),
     threshold = num("rep_threshold", 10), n = num("rep_n_at"))
   if (identical(design, "two_groups")) {
     args$original_n1 <- num("rep_n1", NA_real_)
@@ -324,6 +363,13 @@ replication_args <- function(values) {
 }
 
 # What is missing before the engine can plan, in the field's words.
+# The replication's own settings under Goals, which start empty (P-04):
+# what is still to choose, in words.
+replication_settings_missing <- function(values) {
+  v <- function(id) nzchar(trimws(as.character(values[[id]] %||% "")))
+  c(if (!v("rep_alpha")) "the significance level", if (!v("rep_power")) "the chance of success to aim for")
+}
+
 replication_missing <- function(values) {
   v <- function(id) nzchar(trimws(as.character(values[[id]] %||% "")))
   two <- identical(values$rep_design %||% "two_groups", "two_groups") || !v("rep_design")
@@ -349,7 +395,7 @@ replication_missing <- function(values) {
 
 replication_problem <- function(e) {
   if (!inherits(e, "powerkit_error")) {
-    return("powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
+    return("Powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
   }
   conditionMessage(e)
 }
@@ -372,6 +418,11 @@ replication_cell <- function(plan, row) {
 }
 
 replication_pct <- function(x) if (is.na(x)) "unknown" else sprintf("%.0f%%", 100 * x)
+# With its article: "an 80%", "a 90%" (said "eighty", "ninety").
+replication_a_pct <- function(x) {
+  pct <- replication_pct(x)
+  if (grepl("^(8|11%|18%|11[.]|18[.])", pct)) paste("an", pct) else paste("a", pct)
+}
 
 # The table: one row per goal, a column per belief; the goals planned for
 # no effect have one value across the row.
@@ -389,7 +440,7 @@ replication_table_ui <- function(plan) {
     tags$tr(label, lapply(names(replication_prior_labels), function(p) tags$td(replication_cell(plan, rows[rows$prior %in% p, ][1, ]))))
   })
   tags$table(class = "table table-sm result-table", id = "rep-table",
-    tags$caption(sprintf("Replication sample size (in total) for a %s chance of each goal", replication_pct(plan$inputs$power))),
+    tags$caption(sprintf("Replication sample size (in total) for %s chance of each goal", replication_a_pct(plan$inputs$power))),
     tags$thead(head), tags$tbody(rows))
 }
 
@@ -440,18 +491,28 @@ replication_result_ui <- function(plan) {
       replication_table_ui(plan),
       tags$dl(class = "small", lapply(names(replication_prior_labels), function(p) tagList(
         tags$dt(replication_prior_labels[[p]]), tags$dd(replication_prior_notes[[p]])))),
+      replication_tau_note(plan$inputs$tau),
       if (!is.null(plan$telescope)) p(class = "small", sprintf("Small telescopes' yardstick is %s = %s, the effect the original study had a one-in-three chance of detecting.",
         plan$telescope$effect_name, format(signif(plan$telescope$effect, 3))))
       else if (bayes && !identical(plan$inputs$design, "generic")) p(class = "small", "Small telescopes is left out: it rests on the original's significance test, and the original was analysed with Bayes factors.")
       else p(class = "small", sprintf("The replication's standard error is the original's scaled by the square root of the ratio of sample sizes, which assumes it copies the original's design. Small telescopes is planned on the design's card.")),
       replication_chances_ui(plan),
       if (!is.null(plan$sequential)) div(class = "mt-2",
-        p(class = "small", "The replication could also collect data until its Bayes factor is strong either way, a sequential design. Labs' Bayesian planning tool works it out, with the belief chosen below as its design prior and the original's prior as the analysis prior."),
+        p(class = "small", "The replication could also collect data until its Bayes factor is strong either way, a sequential design. The Bayesian planning tool under Tools works it out, with the belief chosen below as its design prior and the original's prior as the analysis prior."),
         actionButton("rep_to_sequential", "Plan it as a sequential Bayes factor study", class = "btn btn-outline-primary btn-sm")),
-      p(class = "small text-muted", "Calculated by powerkit's engine with ",
+      p(class = "small text-muted", paste0("Calculated by powerkit's engine with ",
         paste(vapply(plan$packages, function(p) sprintf("%s %s", p$name, p$version), ""), collapse = ", "),
         if (identical(plan$inputs$design, "generic")) ". Every goal uses a normal approximation to the original's estimate (Pawel, Consonni & Held, 2026)."
-        else ". Every goal judged against the original's effect uses a normal approximation (Pawel, Consonni & Held, 2026), which for a t-test asks for a few people fewer than the t-test cards; small telescopes is the cards' own calculation.")))
+        else ". Every goal judged against the original's effect uses a normal approximation (Pawel, Consonni & Held, 2026), which for a t-test asks for a few people fewer than the t-test cards; small telescopes is the cards' own calculation."))))
+}
+
+# The variation between studies the uncertain and shrunk beliefs allow,
+# and powerkit's departure from BayesRepDesign's default of none
+# (docs/conventions.md, "Variation between studies in replication plans").
+replication_tau_note <- function(tau) {
+  if (is.null(tau) || is.na(tau)) return(NULL)
+  if (tau > 0) p(class = "small", sprintf("The uncertain and shrunk beliefs allow the true effect to vary between studies with an SD of %s (Kenny & Judd, 2019). BayesRepDesign's own default is no variation; Powerkit starts at 0.05, because assuming none makes a replication look easier than it is. Choose None under Goals to see the numbers without it.", format(tau)))
+  else p(class = "small", "No variation between studies is allowed for: the true effect is taken to be the same in the replication as in the original (BayesRepDesign's default). Kenny and Judd (2019) argue this should not be the default.")
 }
 
 # The simple answer above the table (C-14): the sample size for a
@@ -465,12 +526,15 @@ replication_headline_ui <- function(plan) {
     row <- g[g$prior %in% prior, ][1, ]
     if (is.na(row$n)) tolower(replication_cell(plan, row)) else replication_n_words(plan, row$n)
   }
+  # All three beliefs, naming the one the write-up starts on (P-08).
+  beliefs <- sprintf("%s if the true effect is as large as %s, %s allowing for the uncertainty in the original's estimate (the belief the plan you write up starts on, below), or %s if it is shrunk towards zero, as published effects often are.",
+    cell("as_reported"), if (repeated) "the original's data say" else "reported", cell("uncertain"), cell("shrunk"))
   if (repeated) return(p(class = "result-headline lead", sprintf(
-    "For strong evidence of the effect again from the original's own Bayes factor test (BF10 of at least %s), with a %s chance, you need %s if the true effect is as large as the original's data say, or %s if it is shrunk towards zero, as published effects often are.",
-    format(plan$inputs$threshold), replication_pct(plan$inputs$power), cell("as_reported"), cell("shrunk"))))
+    "For evidence of the effect again from the original's own Bayes factor test (BF10 of at least %s), with %s chance, you need %s",
+    format(plan$inputs$threshold), replication_a_pct(plan$inputs$power), beliefs)))
   p(class = "result-headline lead", sprintf(
-    "To find the effect significant again, in the original's direction (two-sided test, alpha = %s), with %s power, you need %s if the true effect is as large as reported, or %s if it is shrunk towards zero, as published effects often are.",
-    sub("^0", "", format(plan$inputs$alpha)), replication_pct(plan$inputs$power), cell("as_reported"), cell("shrunk")))
+    "To find the effect significant again, in the original's direction (two-sided test, alpha = %s), with %s power, you need %s",
+    sub("^0", "", format(plan$inputs$alpha)), replication_pct(plan$inputs$power), beliefs))
 }
 
 # The goal and belief the plan is written up with.
@@ -598,7 +662,7 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
       lines <- c(lines, sprintf("| %s | %s |", replication_goal_labels[[g]], paste(cells, collapse = " | ")))
     }
     lines <- c(lines, "",
-      sprintf("Settings: replication significance level %s (two-sided), chance aimed for %s, variation between studies %s, smallest effect that matters %s, strong evidence a Bayes factor of %s.",
+      sprintf("Settings: replication significance level %s (two-sided), chance aimed for %s, variation between studies %s, smallest effect that matters %s, evidence threshold a Bayes factor of %s.",
         format(plan$inputs$alpha), replication_pct(plan$inputs$power), format(plan$inputs$tau),
         if (is.null(plan$inputs$smallest_effect)) "not given" else format(plan$inputs$smallest_effect), format(plan$inputs$threshold)), "")
   }
@@ -638,6 +702,11 @@ replication_server <- function(input, output, session, notes = function() list()
     missing <- replication_missing(values())
     if (length(missing)) {
       problem(sprintf("The original study needs %s first.", paste(missing, collapse = " and ")))
+      return()
+    }
+    settings <- replication_settings_missing(values())
+    if (length(settings)) {
+      problem(sprintf("Choose %s under Goals first: the buttons below each box fill in the usual values.", paste(settings, collapse = " and ")))
       return()
     }
     result <- tryCatch(do.call(engine_function("replication_planning"), replication_args(values())),
@@ -684,8 +753,9 @@ replication_server <- function(input, output, session, notes = function() list()
   observeEvent(input$rep_document, send_document(session, function() printable_document(report(), powerkit_version())))
   output$rep_script <- downloadHandler(filename = function() paste0(stem(), ".R"),
     content = function(file) {
-      p <- plan() %||% tryCatch(do.call(engine_function("replication_planning"), replication_args(values())), error = function(e) NULL)
-      text <- if (is.null(p)) "# Fill in The original study first: the script needs its effect and sample size." else
+      p <- plan() %||% if (!length(replication_settings_missing(values())))
+        tryCatch(do.call(engine_function("replication_planning"), replication_args(values())), error = function(e) NULL)
+      text <- if (is.null(p)) "# Fill in The original study, and the significance level and chance of success under Goals, first: the script needs them." else
         engine_function("replication_planning_script")(p)
       writeLines(text, file, useBytes = TRUE)
     })

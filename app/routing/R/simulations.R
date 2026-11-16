@@ -169,7 +169,7 @@ script_offer_ui <- function(forms, ep_id, goal, seed, heading = TRUE, spec) {
   div(class = "script-offer",
     if (heading) h4(class = "h5", "Run the full analysis on your computer"),
     p(sprintf(
-      "This calculation takes %s, too long to run here. The R script runs it on your computer with the same spec and seed (%s), so it gives the result powerkit would.",
+      "This calculation takes %s, too long to run here. The R script runs it on your computer with the same spec and seed (%s), so it gives the result Powerkit would.",
       script_run_time(forms, ep_id, goal, spec), seed)),
     if (!is.null(ma <- mediation_analysis_sentence(list(mediation_analysis = requirements$mediation_analysis)))) p(class = "planned-mediation-analysis", ma),
     p("What you need:"),

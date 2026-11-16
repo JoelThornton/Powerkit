@@ -24,7 +24,7 @@ test_that("in the other two routes, every path leaves the screening at an end po
 })
 
 test_that("generic 'not covered' cards have their own text, and those that claim tools exist name them (or use the neutral sentence)", {
-  expect_identical(tree$established_tools_text, "Established tools exist for this design; powerkit hasn't checked them.")
+  expect_identical(tree$established_tools_text, "Established tools exist for this design; Powerkit hasn't checked them.")
   for (id in names(tree$endpoints)) {
     ep <- tree$endpoints[[id]]
     if (!isTRUE(ep$generic)) next
@@ -56,11 +56,11 @@ test_that("the cards with a rank-based counterpart offer it as a simulated test 
   # the repeated-measures card since Friedman's test was added, 31 October
   # 2026).
   e4 <- as.character(card_ui(tree, "E4"))
-  expect_match(e4, "powerkit simulates the rank test itself, on scores of the shape you choose", fixed = TRUE)
+  expect_match(e4, "Powerkit simulates the rank test itself, on scores of the shape you choose", fixed = TRUE)
   for (id in c("E1", "E2", "E3", "E7", "E8", "E18", "E20", "E21", "E22", "E54", "E55")) {
     html <- as.character(card_ui(tree, id))
     expect_match(html, htmltools::htmlEscape(tree$endpoints[[id]]$rank_test), fixed = TRUE, label = id)
-    expect_match(html, "powerkit simulates the rank test itself", fixed = TRUE, label = id)
+    expect_match(html, "Powerkit simulates the rank test itself", fixed = TRUE, label = id)
     expect_false(grepl("only approximates", html, fixed = TRUE), label = id)
     method <- Filter(function(f) identical(f$path, "target_test.method"), form_fields(forms$forms[[id]]$groups))
     expect_true(any(c("wilcoxon_signed_rank", "mann_whitney", "kruskal_wallis", "friedman", "aligned_rank_transform") %in% names(method[[1]]$choices)), label = id)

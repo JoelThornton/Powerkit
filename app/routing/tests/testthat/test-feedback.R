@@ -90,7 +90,7 @@ test_that("the Feedback tab offers every kind of message, a preview and the ways
   expect_match(html, "identify a participant", fixed = TRUE)
   expect_match(html, "including variable names, numbers and notes", fixed = TRUE)
   expect_match(html, "browser&#39;s identification string|browser's identification string")
-  expect_no_match(html, "Nothing else you enter in powerkit is sent", fixed = TRUE)
+  expect_no_match(html, "Nothing else you enter in Powerkit is sent", fixed = TRUE)
   # With the database set (tree.yaml), Send comes first and says what it stores.
   expect_match(html, 'id="fb_send"', fixed = TRUE)
   expect_match(html, "which only the developer can read", fixed = TRUE)
@@ -183,8 +183,8 @@ test_that("long values are cut, so the message fits in a link", {
 })
 
 test_that("the subject names the kind and starts the message", {
-  expect_identical(feedback_subject("question", ""), "powerkit feedback (Question)")
-  expect_identical(feedback_subject("bug", "Wrong N\nmore"), "powerkit feedback (Problem): Wrong N")
+  expect_identical(feedback_subject("question", ""), "Powerkit feedback (Question)")
+  expect_identical(feedback_subject("bug", "Wrong N\nmore"), "Powerkit feedback (Problem): Wrong N")
   expect_lt(nchar(feedback_subject("idea", strrep("b", 200))), 100)
 })
 

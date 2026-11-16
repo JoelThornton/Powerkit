@@ -100,10 +100,14 @@ test_that("Updates can be searched and marks changes since your last visit", {
   expect_match(html, "pkUpdatesView(&#39;full&#39;)", fixed = TRUE)
 })
 
-test_that("the app has an Updates tab, between Labs and Feedback", {
+test_that("the top row is the calculator, Study plans, Tools and About, with Updates inside About", {
   app <- readLines(file.path(routing_dir, "app.R"))
   tabs <- grep("^\\s*tabPanel\\(", app, value = TRUE)
   # Each tab's value is its full name (the title has a short phone name).
   expect_identical(sub("^.*value = ([^,]+),.*", "\\1", tabs)[1:5],
-    c('"Plan a power analysis"', '"About"', "labs_tab_title", '"Updates"', '"Feedback"'))
+    c('"Plan a power analysis"', '"Study plans"', "labs_tab_title", '"About"', '"Feedback"'))
+  # Updates lives in About (layout review, 16 November 2026); the Feedback
+  # tab stays for ?page=feedback but is hidden: the top bar's button opens it.
+  expect_match(paste(app, collapse = "\n"), 'div(id = "about-updates", class = "about-updates", whats_new_tab)', fixed = TRUE)
+  expect_match(paste(app, collapse = "\n"), ".nav-tabs .nav-link[data-value='Feedback']", fixed = TRUE)
 })

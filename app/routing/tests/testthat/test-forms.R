@@ -60,7 +60,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
     }
     # E24's, E34's, E36's, E37's, E43's, E69's, E51's, E62's and E68's effect sizes appear once their first question is chosen.
     start <- switch(ep, E24 = list(question = "r2_increase"), E37 = list(question = "model_fit"), E43 = list(question = "log_rank"), E69 = list(question = "icc"), E51 = list(comparison = "overlapping_correlations"), E36 = list(comparison = "tost_independent"),
-                    E46 = list(estimate = "proportion"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"),
+                    E46 = list(estimate = "proportion"), E77 = list(purpose = "development", outcome = "binary", bin_metric = "c_statistic"), E34 = list(outcome_type = "standardised", assignment = "cluster_randomised"), E61 = list(meta_question = "mean_effect"),
                     E62 = list(two_outcome = "continuous", in_sites = "no"), E41 = list(two_outcome = "continuous"), E68 = list(three_outcome = "continuous"), list())
     problems <- form_problems(form_fields(groups), start)
     # Fields shown only for another choice (E7's per-cell SDs) are checked
@@ -68,7 +68,7 @@ test_that("effect sizes start empty and are required; nothing suggests a value",
     for (f in Filter(function(f) field_applies(f, start), effect)) {
       expect_true(any(grepl(f$label, problems, fixed = TRUE)), label = paste(ep, f$id))
     }
-    expect_true(any(grepl("powerkit doesn't fill in effect sizes", problems, fixed = TRUE)))
+    expect_true(any(grepl("Powerkit doesn't fill in effect sizes", problems, fixed = TRUE)))
   }
 })
 
@@ -83,7 +83,13 @@ test_that("other settings start at the wrapped tool's default or, for alpha, its
   # Latent profiles (E58) have no significance test, so no alpha.
   expect_length(Filter(function(f) f$id == "alpha", fields_for("E58")), 0)
   expect_match(Filter(function(f) f$id == "power", fields_for("E58"))[[1]]$label, "right number of profiles", fixed = TRUE)
-  for (ep in setdiff(form_ids, c("E46", "E58", "E73"))) {
+  # Developing a prediction model (E77) has no test: its shrinkage target
+  # starts at pmsampsize's default.
+  expect_length(Filter(function(f) f$id == "alpha", fields_for("E77")), 0)
+  shrinkage <- Filter(function(f) f$id == "shrinkage", fields_for("E77"))[[1]]
+  expect_equal(shrinkage[["default"]], 0.9)
+  expect_match(shrinkage$default_source, "pmsampsize", fixed = TRUE)
+  for (ep in setdiff(form_ids, c("E46", "E58", "E73", "E77"))) {
     # Empty on every card (8 November 2026), with the usual level one
     # click away and an optional reason.
     f <- alpha(ep)
@@ -134,8 +140,9 @@ test_that("the screen catches empty, non-numeric and out-of-range values, naming
   v$n <- "80.5"
   expect_match(form_problems(fields_for("E1"), v), "must be a whole number", fixed = TRUE)
   # A previous study needs its adjustment.
+  # How it was adjusted is optional, as every reasoning box is (S-02).
   v <- values_for("E1"); v$just_type <- "prior_study"
-  expect_match(form_problems(fields_for("E1"), v), "How you adjusted it", fixed = TRUE)
+  expect_length(form_problems(fields_for("E1"), v), 0)
   # The table of proportions must fit the categories.
   v <- values_for("E6"); v$probabilities <- "0.3, 0.25\n0.12, 0.08"
   expect_match(form_problems(fields_for("E6"), v), "should have 3 lines", fixed = TRUE)
@@ -148,7 +155,8 @@ test_that("the example values build the spec the engine expects", {
     expect_length(form_problems(fields, v), 0)
     spec <- build_spec(forms, ep, fields, v)
     # The generic tests (E50) have no sample size to find.
-    goal <- if (ep == "E50") list(type = "power") else if (ep == "E46") list(width = 0.1, type = "precision") else list(type = "sample_size", power = 0.8)
+    goal <- if (ep == "E50") list(type = "power") else if (ep == "E46") list(width = 0.1, type = "precision") else
+      if (ep == "E77") list(shrinkage = 0.9, type = "criteria") else list(type = "sample_size", power = 0.8)
     got <- spec$goal
     # Within-person moderation (E41) counts observations.
     if (ep == "E41") {
@@ -327,6 +335,7 @@ test_that("the start screen asks only how to start; the aim follows on its own s
 
 test_that("estimation goes to its card; equivalence sets the goal and goes on to the design finder, as does testing a prediction", {
   expect_equal(start_exit(tree, list(aim = "estimate")), "E46")
+  expect_equal(start_exit(tree, list(aim = "prediction_model")), "E77")
   expect_null(start_exit(tree, list(aim = "equivalence")))
   expect_equal(aim_context(tree, list(aim = "equivalence")), list(goal = "equivalence"))
   expect_null(start_exit(tree, list(aim = "predict")))
@@ -374,7 +383,7 @@ test_that("the t-tests and the correlation need no effect size for the smallest 
   expect_length(form_problems(fields, values), 0)
   expect_equal(build_spec(forms, "E2", fields, values)$population$d, 0)
   values$goal <- "sample_size"
-  expect_match(form_problems(fields, values), "powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
+  expect_match(form_problems(fields, values), "Powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
 })
 
 test_that("two proportions and chi-square need no effect size for the smallest detectable effect", {
@@ -398,7 +407,7 @@ test_that("two proportions and chi-square need no effect size for the smallest d
   expect_equal(lengths(p), rep(cols, rows))
   expect_equal(sum(unlist(p)), 1)
   values$goal <- "sample_size"
-  expect_match(form_problems(fields, values), "powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
+  expect_match(form_problems(fields, values), "Powerkit doesn't fill in effect sizes", fixed = TRUE, all = FALSE)
 })
 
 # Screen C: the effect-size source -------------------------------------------
@@ -659,7 +668,7 @@ test_that("long labels are short, with the detail as help linked to the field", 
   for (f in fields) expect_lt(nchar(f$label), 80, label = f$id)
   # The adjustment appears for one study's estimate, published or a
   # pilot, unless safeguard power or small telescopes is used instead; it
-  # is needed for both.
+  # is optional, as every reasoning box is (S-02).
   adj <- Filter(function(f) f$id == "just_adjustment", fields)[[1]]
   expect_identical(adj$shown_if, list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
     list(field = "sg_use", is_not = "telescopes")))
@@ -1069,7 +1078,7 @@ test_that("a justified significance level is not offered with a Bayes factor tes
   expect_length(form_problems(list(goal), values), 0)
   # The planning line has a Bayes factor wording, and no engine function
   # names reach the checker's messages.
-  expect_match(as.character(planning_decision_ui(forms$forms$E2)), "strong evidence", fixed = TRUE)
+  expect_match(as.character(planning_decision_ui(forms$forms$E2)), "evidence at the threshold", fixed = TRUE)
   code <- readLines(file.path(routing_dir, "R", "forms_ui.R"))
   expect_false(any(grepl("validate_spec()", code[!grepl("^\\s*#", code)], fixed = TRUE)))
 })
@@ -1111,7 +1120,19 @@ test_that("the Bayes factor threshold starts empty with 10 one click away, a rea
   }
   v <- list(evidence_threshold = "30", evidence_reason = "the claim contradicts an established finding.", method = "bayes_factor")
   fields <- fields_for("E1")
-  expect_identical(writeup_choices(fields, v), "The threshold for strong evidence, BF10 ≥ 30, was chosen because the claim contradicts an established finding.")
+  expect_identical(writeup_choices(fields, v), "The evidence threshold, BF10 ≥ 30, was chosen because the claim contradicts an established finding.")
   # With no reason given, the paragraph states the value alone.
   expect_length(writeup_choices(fields, list(evidence_threshold = "10", method = "bayes_factor", alpha = "0.05")), 0)
+})
+
+test_that("a missing backend's install advice is replaced on the online app", {
+  msg <- "This analysis needs the R package 'WRS2', which isn't installed. Install it with install.packages(\"WRS2\"), then run it again."
+  online <- plain_engine_message(msg, list(), local = FALSE)
+  expect_match(online, "isn't available on the online app right now", fixed = TRUE)
+  expect_match(online, "'WRS2'", fixed = TRUE)
+  expect_no_match(online, "install.packages", fixed = TRUE)
+  expect_identical(plain_engine_message(msg, list(), local = TRUE), msg)
+  two <- "This analysis needs the R packages 'a' and 'b', which aren't installed. Install them with install.packages(c(\"a\", \"b\")), then run it again."
+  expect_match(online_package_message(two, local = FALSE), "packages it needs ('a' and 'b') aren't installed there", fixed = TRUE)
+  expect_identical(online_package_message("Some other problem.", local = FALSE), "Some other problem.")
 })

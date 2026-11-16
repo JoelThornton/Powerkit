@@ -1,7 +1,7 @@
 test_that("research and educational Labs tools have separate, complete menus", {
   html <- as.character(labs_ui(tree))
-  expect_match(html, "Research tools", fixed = TRUE)
-  expect_match(html, "Educational tools", fixed = TRUE)
+  expect_match(html, "For planning", fixed = TRUE)
+  expect_match(html, "For learning", fixed = TRUE)
   expect_setequal(unlist(labs_tool_sections), vapply(labs_tools, `[[`, "", "id"))
   expect_equal(anyDuplicated(unlist(labs_tool_sections)), 0)
   expect_match(html, "Open 1,000 studies", fixed = TRUE)

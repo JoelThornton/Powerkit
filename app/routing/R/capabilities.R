@@ -32,7 +32,7 @@ evidence_reader_lines <- function(record) {
     pending = "a published benchmark is still to be transcribed",
     not_linked = "no record yet, so how well it is covered is unknown",
     outside_scope = "your settings fall outside the cases that were checked")
-  c("These checks cover representative cases, not every value you could enter. powerkit is a prototype until version 1.0, and a statistician's review of its methods is still to come.",
+  c("These checks cover representative cases, not every value you could enter. Powerkit is a prototype until version 1.0, and a statistician's review of its methods is still to come.",
     vapply(names(labels), function(k) {
       item <- record$categories[[k]]
       state <- unname(states[item$status %||% "not_linked"])
@@ -123,7 +123,7 @@ capabilities_ui <- function(tree, forms) {
   rows <- capability_rows(tree, forms)
   # Folded: the table has over a thousand rows, which pushed the rest of
   # About far down the page.
-  tags$details(class = "capabilities-fold", tags$summary(sprintf("Every test version and its checks (%s)", format(nrow(rows), big.mark = ","))),
+  tags$details(class = "capabilities-fold", tags$summary(sprintf("Every version of every analysis, and how it was checked (%s)", format(nrow(rows), big.mark = ","))),
     p("Generated from the current cards and input forms. Each row is one available choice, not a claim that every combination works. Conditional fields, mathematical limits and population assumptions still apply. Evidence for your complete, selected analysis is captured with its result."),
     tags$label(`for` = "capability_search", "Search analyses, test versions or assumptions"),
     tags$input(id = "capability_search", type = "search", class = "form-control", oninput = "pkFilterCapabilities(this.value)"),

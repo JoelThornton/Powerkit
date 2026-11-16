@@ -5715,6 +5715,36 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:40:30 UTC; unix"
       }
     },
+    "pROC": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "pROC",
+        "Type": "Package",
+        "Title": "Display and Analyze ROC Curves",
+        "Version": "1.19.1",
+        "Date": "2026-08-27",
+        "Encoding": "UTF-8",
+        "Depends": "R (>= 2.14)",
+        "Imports": "methods, Rcpp (>= 0.11.1)",
+        "Suggests": "MASS, logcondens, testthat, vdiffr, ggplot2, rlang, knitr,\nrmarkdown",
+        "VignetteBuilder": "knitr, rmarkdown",
+        "LinkingTo": "Rcpp",
+        "Authors@R": "c(person(\"Xavier\", \"Robin\", role = c(\"cre\", \"aut\"), \n                    email = \"pROC-cran@xavamail.net\",\n                    comment = c(ORCID = \"0000-0002-6813-3200\")),\n             person(\"Natacha\", \"Turck\", role = \"aut\"),\n             person(\"Alexandre\", \"Hainard\", role = \"aut\"),\n             person(\"Natalia\", \"Tiberti\", role = \"aut\"),\n             person(\"Frédérique\", \"Lisacek\", role = \"aut\"),\n             person(\"Jean-Charles\", \"Sanchez\", role = \"aut\"),\n             person(\"Markus\", \"Müller\", role = \"aut\"),\n             person(\"Stefan\", \"Siegert\", role = \"ctb\", \n                    comment = \"Fast DeLong code\", \n                    email = \"stefan_siegert@gmx.de\"),\n             person(\"Matthias\", \"Doering\", role = \"ctb\", \n                    comment = \"Hand & Till Multiclass\"),\n             person(\"Zane\", \"Billings\", role = \"ctb\", \n                    comment = \"DeLong paired test CI\"))",
+        "Description": "Tools for visualizing, smoothing and comparing receiver operating characteristic (ROC curves). (Partial) area under the curve (AUC) can be compared with statistical tests based on U-statistics or bootstrap. Confidence intervals can be computed for (p)AUC or ROC curves.",
+        "License": "GPL (>= 3)",
+        "URL": "https://xrobin.github.io/pROC/",
+        "BugReports": "https://github.com/xrobin/pROC/issues",
+        "LazyData": "yes",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-08-27 07:17:30 UTC; xavier",
+        "Author": "Xavier Robin [cre, aut] (ORCID:\n    <https://orcid.org/0000-0002-6813-3200>),\n  Natacha Turck [aut],\n  Alexandre Hainard [aut],\n  Natalia Tiberti [aut],\n  Frédérique Lisacek [aut],\n  Jean-Charles Sanchez [aut],\n  Markus Müller [aut],\n  Stefan Siegert [ctb] (Fast DeLong code),\n  Matthias Doering [ctb] (Hand & Till Multiclass),\n  Zane Billings [ctb] (DeLong paired test CI)",
+        "Maintainer": "Xavier Robin <pROC-cran@xavamail.net>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-08-27 10:00:02 UTC",
+        "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-09 06:49:23 UTC; unix"
+      }
+    },
     "pan": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6187,6 +6217,56 @@
         "Built": "R 4.5.0; x86_64-pc-linux-gnu; 2026-09-09 06:52:25 UTC; unix"
       }
     },
+    "pmsampsize": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "pmsampsize",
+        "Version": "1.1.3",
+        "Date": "2023-12-05",
+        "Title": "Sample Size for Development of a Prediction Model",
+        "Authors@R": "c(person(\"Joie\", \"Ensor\", role = c(\"aut\", \"cre\"), email = \"j.ensor@bham.ac.uk\"))",
+        "Maintainer": "Joie Ensor <j.ensor@bham.ac.uk>",
+        "Depends": "R (>= 2.1)",
+        "Suggests": "stats",
+        "Description": "Computes the minimum sample size required for the development of a new multivariable prediction model using the criteria proposed by Riley et al. (2018) <doi: 10.1002/sim.7992>. pmsampsize can be used to calculate the minimum sample size for the development of models with continuous, binary or survival (time-to-event) outcomes. Riley et al. (2018) <doi: 10.1002/sim.7992> lay out a series of criteria the sample size should meet. These aim to minimise the overfitting and to ensure precise estimation of key parameters in the prediction model.",
+        "License": "GPL (>= 3)",
+        "RoxygenNote": "7.2.3",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-12-06 00:06:39 UTC; ensorj",
+        "Author": "Joie Ensor [aut, cre]",
+        "Repository": "RSPM",
+        "Date/Publication": "2023-12-06 09:10:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-23 22:02:42 UTC; unix"
+      }
+    },
+    "pmvalsampsize": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "pmvalsampsize",
+        "Version": "0.1.0",
+        "Date": "2023-11-14",
+        "Language": "en-GB",
+        "Title": "Sample Size for External Validation of a Prediction Model",
+        "Authors@R": "c(person(\"Joie\", \"Ensor\", role = c(\"aut\", \"cre\"), email = \"j.ensor@bham.ac.uk\"))",
+        "Maintainer": "Joie Ensor <j.ensor@bham.ac.uk>",
+        "Depends": "R (>= 2.1)",
+        "Imports": "graphics, pROC, utils",
+        "Suggests": "",
+        "Description": "Computes the minimum sample size required for the external validation of an existing multivariable prediction model using the criteria proposed by Archer (2020) <doi:10.1002/sim.8766> and Riley (2021) <doi:10.1002/sim.9025>.",
+        "License": "GPL (>= 3)",
+        "RoxygenNote": "7.2.3",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-11-14 16:43:53 UTC; ensorj",
+        "Author": "Joie Ensor [aut, cre]",
+        "Repository": "RSPM",
+        "Date/Publication": "2023-11-16 20:00:02 UTC",
+        "Built": "R 4.5.0; ; 2026-04-23 21:02:27 UTC; unix"
+      }
+    },
     "polyclip": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6350,7 +6430,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.68.0",
+        "Version": "0.70.1",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6360,7 +6440,7 @@
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
         "Imports": "afex, BayesFactor, bayestestR, bfpwr, car, digest, effectsize,\nHmisc, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nlme4, lmerTest, manymome, parallel, nlme, psych, power4mome,\npwr, powertools, pwrss, simr, SimDesign, Spower (>= 0.7),\nstats, SuppDists, Superpower, utils",
-        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, boot, GPArotation,\ngsl, hypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha,\nkappaSize, lavaan, longpower, lmhelprs (>= 0.4.2), MASS,\nMatrix, MBESS, mclust, metafor, metapower, mirt, nnet, ordinal,\npbkrtest, PITS, PMCMRplus, POMADE, powerSurvEpi, powRICLPM,\npresize, pscl, PUMP, quantreg, regmedint, semPower, simsem,\nSimplyAgree, statpsych, survival, testthat (>= 3.0.0), TOSTER,\nvegan, WebPower, withr, WRS2",
+        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, boot, GPArotation,\ngsl, hypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha,\nkappaSize, lavaan, longpower, lmhelprs (>= 0.4.2), MASS,\nMatrix, MBESS, mclust, metafor, metapower, mirt, nnet, ordinal,\npbkrtest, PITS, pmsampsize, pmvalsampsize, PMCMRplus, POMADE,\npowerSurvEpi, powRICLPM, presize, pscl, PUMP, quantreg,\nregmedint, semPower, simsem, SimplyAgree, statpsych, survival,\ntestthat (>= 3.0.0), TOSTER, vegan, WebPower, withr, WRS2",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
         "Config/testthat/start-first": "export-script, whole-study,\nbackend-modmed-parallel, backend-mixed-model",
@@ -6369,19 +6449,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "f9048db7d295619c38ad8e34c0025efdceca89fe",
-        "RemoteSha": "f9048db7d295619c38ad8e34c0025efdceca89fe",
+        "RemoteRef": "ffce590ed4ababf723db2f47c30f46ee81124233",
+        "RemoteSha": "ffce590ed4ababf723db2f47c30f46ee81124233",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "f9048db7d295619c38ad8e34c0025efdceca89fe",
-        "GithubSHA1": "f9048db7d295619c38ad8e34c0025efdceca89fe",
+        "GithubRef": "ffce590ed4ababf723db2f47c30f46ee81124233",
+        "GithubSHA1": "ffce590ed4ababf723db2f47c30f46ee81124233",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-15 15:15:15 UTC; runner",
+        "Packaged": "2026-11-16 08:16:58 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-15 15:15:52 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-16 08:17:26 UTC; unix"
       }
     },
     "powertools": {
@@ -8749,136 +8829,139 @@
   },
   "files": {
     "app.R": {
-      "checksum": "2bbe797820e088293206fa1e48fb74bf"
+      "checksum": "7ecca3272597be0e2609a027772cfb1b"
     },
     "forms.yaml": {
-      "checksum": "5c37cdddf5a47bf4d7eddc5cf8f424cb"
+      "checksum": "e427bba68354b20c4ebefe6d455a28f5"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
     },
     "methods-map.yaml": {
-      "checksum": "70d20d0a36846c26c10690c032b49d42"
+      "checksum": "eeabddcbbdd74474cb77c7e16d9d4d2d"
     },
     "optional-packages.R": {
-      "checksum": "b814115da174b26f237a5c9850a62a75"
+      "checksum": "b9e2ae446b3463af89a23fa4562e7ec6"
     },
     "R/about.R": {
-      "checksum": "a172ecb968eb9154f2398e46197f6101"
+      "checksum": "72f92aea4ecc779ddde918c5ab65b786"
     },
     "R/bayes-mode.R": {
-      "checksum": "68841d063bae6464432273a9f1e62180"
+      "checksum": "61ceec04bc71a01248f8cd559b2136f8"
     },
     "R/capabilities.R": {
-      "checksum": "d48d7a91fe06c19660f2e47ec20df39a"
+      "checksum": "32cb1c15ff3dd52ed6d22b6ed9665d44"
     },
     "R/choice-buttons.R": {
       "checksum": "961cdd15544a058c897ea02e3bb6faf6"
     },
     "R/connection.R": {
-      "checksum": "bd1289fc05b527c776e9988bd8d5ea77"
+      "checksum": "9a317aa6a950c4406ada6f46a1554c4a"
     },
     "R/count-test-notes.R": {
       "checksum": "0bfb0dc26db69c058b309ee7f9cc7d89"
     },
     "R/documents.R": {
-      "checksum": "9add2489945c9fa4a949051cb2857083"
+      "checksum": "f2c9ae7ba2bd2cfad2d87b33ee158f6f"
     },
     "R/drafts.R": {
-      "checksum": "8af72c83421a02b41b932264f49ca013"
+      "checksum": "d311cb2aabc2237bb7c6f5642e39fcc4"
     },
     "R/feedback.R": {
-      "checksum": "ea3c82b95a2b94558f086cfdf6c0ae84"
+      "checksum": "705da5fc76a4d3f3d2c57581ef15a595"
     },
     "R/forms_ui.R": {
-      "checksum": "25c600ea67e6fbe9510225af5e569935"
+      "checksum": "ece6dc57414912035601455636d65f75"
     },
     "R/forms.R": {
-      "checksum": "49b2a8822ff395e09be7b7fcb17c898f"
+      "checksum": "ea50a86fd72881d4a02ce7e7845a549d"
     },
     "R/input-support.R": {
       "checksum": "6cf35ca8f05a2d4a91b08507fc478730"
     },
     "R/keep-result.R": {
-      "checksum": "215a1384b18af7b0ecf4a0e2fb7270cc"
+      "checksum": "55386e11ce8261968262d58c112a3492"
     },
     "R/labs.R": {
-      "checksum": "e885748eae17ed410afede92b83ded77"
+      "checksum": "ab78addaf0d379b60a82d03cffabf8e3"
     },
     "R/map.R": {
-      "checksum": "a606e91a440ff249228881df2521fa04"
+      "checksum": "1aadfe6aae6f153c423889f953298cab"
     },
     "R/plan-bundle.R": {
-      "checksum": "42d073e2a3aa0846a41666f6374d78e8"
+      "checksum": "c6dd68f141490a26a54be5fdb182221c"
     },
     "R/planning-safeguards.R": {
       "checksum": "134b25139179974fc5ed150a76d0c826"
     },
     "R/planning.R": {
-      "checksum": "d01eeb841fbadfba3ef68e4c965c363b"
+      "checksum": "dcf8e02e4576263aa1a3901799f61688"
     },
     "R/project.R": {
-      "checksum": "f8073aa709e9478782817e0e48168b9f"
+      "checksum": "410f3022b7ab3271e07678258c4c05e5"
     },
     "R/replication.R": {
-      "checksum": "a3fce536ece691c9cd3b25a8ad8dd43a"
+      "checksum": "ed037f365a5885119f2375f835ed27a0"
+    },
+    "R/results-prediction.R": {
+      "checksum": "68f0ae806394e74d36344908c2d82f7b"
     },
     "R/results.R": {
-      "checksum": "3a2fcab0b8be2f8c534876fc11f41b07"
+      "checksum": "b1ebfcf58fe7ba0ad77c278891c68ff5"
     },
     "R/route-fit.R": {
-      "checksum": "763727cf1f8850d8c1747dfa9428c333"
+      "checksum": "c830450a6bca26096a9381adff98c11f"
     },
     "R/sample.R": {
-      "checksum": "5a2faf0bd5eeff5c04489743edadd733"
+      "checksum": "44f913b6f7bd36461fbfc3aee08b13af"
     },
     "R/scenarios.R": {
-      "checksum": "4c637bbcf8efa95600840ed24a6ca478"
+      "checksum": "80d66ff8889865cec2716a879c847f23"
     },
     "R/selected-evidence.R": {
-      "checksum": "e30fdccb2e5d1c95fd1b7e5d78711244"
+      "checksum": "5e4a3ae98f49a3834baeaa14548ceba0"
     },
     "R/share-link.R": {
-      "checksum": "9554d48deed7a9018f791f3b16fb263d"
+      "checksum": "649fe41f99939bc5c8e4ba0fab27e89f"
     },
     "R/simulations.R": {
-      "checksum": "d31804e250901e75bbdfadf845b40db1"
+      "checksum": "5a70d83d75fc067c9b1c412c5d10355f"
     },
     "R/study-plan-replication.R": {
-      "checksum": "cccccdda47446dd3a72a7f6b8ab03e5c"
+      "checksum": "bfddc0d69c42d32e49b601dad16822fb"
     },
     "R/study-plan.R": {
-      "checksum": "6600ff283ce8e67b8ba6c70b9901f178"
+      "checksum": "30635d1e82590564c417d14386a042fb"
     },
     "R/study-plans.R": {
-      "checksum": "2d3106201916a071b3982c444600bfb8"
+      "checksum": "d6388954acf7492f9f45f1c4dff7fa3c"
     },
     "R/study-variation.R": {
-      "checksum": "6a14c13df303825e8d6afafd84888024"
+      "checksum": "9f3fc4d6f06c280c6f6c626019919774"
     },
     "R/table-grid.R": {
-      "checksum": "b9283c51478a69834abcead48c999c3d"
+      "checksum": "b5194d881655cc2a2fcb21e5a466433e"
     },
     "R/tree.R": {
       "checksum": "75dc9cc1dedc6bffdc9a1b810f644317"
     },
     "R/ui.R": {
-      "checksum": "12c6400abddfa2ac851ca0b2462f1210"
+      "checksum": "131a572c92471ce09daf001392636ceb"
     },
     "R/whole-study.R": {
-      "checksum": "0f5c1d4efb94c2107c262727623ec1e9"
+      "checksum": "639ee03abec953a2f190ef7ba1a96bfa"
     },
     "README.md": {
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "33f7eae41c793e9266cbbf9207b11682"
+      "checksum": "523d156720827ce463498848170de573"
     },
     "whats-new.d/README": {
       "checksum": "25627e58c40ca60cf35cdca9ecfe6dbb"
     },
     "whats-new.yaml": {
-      "checksum": "31784797931e8b92aa8560c09a86733d"
+      "checksum": "8a40e4ee4f241ba2b799cd40b88ee006"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

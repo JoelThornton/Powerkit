@@ -233,7 +233,7 @@ bfprop_script <- function(spec, result) {
     sprintf("p2 <- %s # and in group 2", r_code(inputs$p2)),
     sprintf("p_sd <- %s # uncertainty about each (SD of a beta design prior; 0 = exactly these)", r_code(inputs$p_sd)),
     sprintf("ratio <- %s # group 2's size divided by group 1's", r_code(inputs$ratio)),
-    sprintf("threshold <- %s # strong evidence: BF10 at least this", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
     sprintf("a <- %s # prior concentration (JASP's default 1)", r_code(inputs$a)),
     sprintf("alternative <- %s # 'greater': group 2's proportion is the higher", r_code(inputs$alternative)),
     bayes_goal_inputs(spec),
@@ -289,7 +289,7 @@ bfprop_script <- function(spec, result) {
 bfprop_design_description <- function(spec, label, levels) {
   inputs <- bfprop_inputs(spec)
   sprintf(
-    "Bayes factor test of the proportion of %s between %s (%s and %s): %s, contingency table Bayes factor (independent multinomial, group sizes fixed) with prior concentration %s; strong evidence is BF10 of at least %s",
+    "Bayes factor test of the proportion of %s between %s (%s and %s): %s, contingency table Bayes factor (independent multinomial, group sizes fixed) with prior concentration %s; the evidence threshold is BF10 of at least %s",
     label("Y"), label("X"), levels("X")[1], levels("X")[2], bfprop_hypotheses_words(inputs),
     format_number(inputs$a), format_number(inputs$threshold)
   )

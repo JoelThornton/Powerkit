@@ -17,24 +17,11 @@ selected_warning_spec <- function(form, fields, values) {
   spec
 }
 
-# Show the selected complete spec, not the card's broader default badge.
+# The input screen shows only the warnings that apply to the answers so
+# far (a known limitation of the chosen method). The checks recorded for
+# exactly these settings are on the result ("Checks recorded for exactly
+# these settings"), not above the form while it is being filled in (15
+# November 2026).
 selected_evidence_ui <- function(forms, id, fields, values) {
-  warning_spec <- selected_warning_spec(forms$forms[[id]], fields, values)
-  warnings <- planning_warnings_ui(warning_spec)
-  # Nothing is said about checks until the answers name a calculation.
-  pending <- NULL
-  spec <- tryCatch({
-    if (length(form_problems(fields, values))) NULL else {
-      candidate <- build_spec(forms, id, fields, values)
-      if (identical(check_spec(candidate, fields)$status, "ok")) candidate else NULL
-    }
-  }, error = function(e) NULL)
-  if (is.null(spec)) return(tagList(warnings, pending))
-  lookup <- engine_function("analysis_evidence")
-  record <- if (!is.null(lookup)) tryCatch(lookup(spec), error = function(e) NULL)
-  if (is.null(record)) return(tagList(warnings, pending))
-  tagList(warnings,
-    explanation_ui("selected-evidence-info", "Evidence for these settings",
-      p(class = "selected-evidence small", "Selected settings: evidence is limited to recorded cases. A card's status does not validate every test version or assumption.")),
-    evidence_ui(record, "Checks covering my selected settings"))
+  tagList(planning_warnings_ui(selected_warning_spec(forms$forms[[id]], fields, values)))
 }
