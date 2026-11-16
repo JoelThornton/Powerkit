@@ -16,7 +16,7 @@ table_grid_kind <- function(f) {
 table_grid_note <- function(f) {
   switch(table_grid_kind(f),
     means = paste(
-      "Enter the mean you expect in each box. powerkit asks for means rather than one overall effect size because means are easier",
+      "Enter the mean you expect in each box. Powerkit asks for means rather than one overall effect size because means are easier",
       "to justify, from earlier studies or from the difference that would matter; it works the effect size out from them."),
     sds = "Enter the SD you expect in each box, in the means' units.",
     proportions = "Enter the proportion you expect in each box, from 0 to 1.")

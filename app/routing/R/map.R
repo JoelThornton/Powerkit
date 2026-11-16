@@ -22,16 +22,16 @@ map_branch_text <- list(
 # How each status reads on the map, and its colour class.
 map_status <- list(
   runs_validated = list(text = "Calculates in powerkit", key = "runs"),
-  runs_validation_in_progress = list(text = "Calculates in powerkit (checks in progress)", key = "runs"),
+  runs_validation_in_progress = list(text = "Calculates in Powerkit (checks in progress)", key = "runs"),
   coming_soon = list(text = "Coming to powerkit", key = "soon"),
-  not_in_powerkit = list(text = "Not in powerkit yet: guidance and other tools", key = "not")
+  not_in_powerkit = list(text = "Not in Powerkit yet: guidance and other tools", key = "not")
 )
 
 # The filters down the side: each group's values and how they read.
 map_filters <- list(
   outcome = c(score = "A score or scale", yesno = "Yes/no, or categories", count = "A count", ordinal = "Ordered categories", other = "Not fixed by the questions"),
   times = c(once = "Once", twice = "Twice", many_conditions = "Three or more times", other = "Not fixed by the questions"),
-  status = c(runs = "Calculates in powerkit", soon = "Coming", not = "Not in powerkit yet")
+  status = c(runs = "Calculates in powerkit", soon = "Coming", not = "Not in Powerkit yet")
 )
 
 # What each analysis is, beyond the questions: its test and how it relates
@@ -303,7 +303,7 @@ map_ui <- function(tree, meta = map_meta()) {
   tagList(
     tags$script(id = "map-data", type = "application/json", HTML(map_json(tree, meta))),
     tags$script(src = "methods-map.js"),
-    p("Every analysis powerkit knows about, on one map. Find a study like yours to see what it is, which test it uses, the simpler designs that lead to it and the ways to change it, then plan it."),
+    p("Every analysis Powerkit knows about, on one map. Find a study like yours to see what it is, which test it uses, the simpler designs that lead to it and the ways to change it, then plan it."),
     tags$button(type = "button", class = "btn btn-primary mb-3", onclick = "pkMapFull(true)", "Open the map full screen"),
     div(class = "map-stage", id = "map-stage", role = "region", `aria-label` = "Methods map",
       div(id = "map-canvas", class = "map-canvas", role = "img",
@@ -365,7 +365,7 @@ map_page_ui <- function(tree, ep_id) {
   if (is.null(ep_id) || !nzchar(ep_id) || is.null(tree$endpoints[[ep_id]])) return(NULL)
   div(class = "map-page", id = "map-page", tabindex = "-1",
     card_ui(tree, ep_id, compact = TRUE),
-    p(class = "small", "To plan this analysis, go to “Plan a power analysis” and choose “I know my analysis”, or answer the questions under “Help me choose”."))
+    p(class = "small", "To plan this analysis, go to “Power and sample size” and choose “I know my analysis”, or answer the questions under “Help me choose”."))
 }
 
 # Planning from the map replaces a plan in progress, so it asks first.

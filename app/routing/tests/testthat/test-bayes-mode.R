@@ -65,7 +65,7 @@ test_that("in Bayes mode the t-tests wait for how unsure you are about the effec
   mode <- Filter(function(f) identical(f$id, "effect_sd"), form_fields(bayes_mode_groups(groups, TRUE)))[[1]]
   expect_null(mode[["default"]])
   expect_true(isTRUE(mode$required))
-  expect_match(mode$default_source, "powerkit won't suggest an SD", fixed = TRUE)
+  expect_match(mode$default_source, "Powerkit won't suggest an SD", fixed = TRUE)
   # Empty, the screen asks for it before planning.
   values <- modifyList(form_examples$E2, list(method = "bayes_factor", effect_sd = ""))
   expect_true(length(form_problems(form_fields(bayes_mode_groups(groups, TRUE)), values)) > 0)

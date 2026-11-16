@@ -171,7 +171,7 @@ replication_planner_sections <- function() {
         radioButtons("rep_analysis", "How it was analysed", choices = replication_analyses_ui, selected = "test", width = "100%"),
         conditionalPanel("input.rep_analysis == 'bayes_factor'",
           field("rep_bf", "Its Bayes factor for an effect, BF10",
-            help = "If the paper gives BF01 (for no effect), enter 1 / BF01. powerkit reads the effect from it for a t-test (two groups, one group or pairs), as JASP's Summary Statistics do the other way (Ly et al., 2018).")),
+            help = "If the paper gives BF01 (for no effect), enter 1 / BF01. Powerkit reads the effect from it for a t-test (two groups, one group or pairs), as JASP's Summary Statistics do the other way (Ly et al., 2018).")),
         conditionalPanel("input.rep_analysis == 'posterior'",
           radioButtons("rep_original_prior", "Its prior", choices = replication_original_priors_ui, selected = "default", width = "100%"),
           p(class = "small text-muted", "A posterior stands in for the original's estimate only when its prior was vague or a default one: an informative prior's posterior mixes the prior's beliefs into what the original found (McLatchie, Warmelink & Tkacheva, 2020). For an informative prior, give the estimate with its standard error, or the Bayes factor.")),
@@ -184,7 +184,7 @@ replication_planner_sections <- function() {
           selectInput("rep_scale", "Its scale", choices = replication_scales_ui, selectize = FALSE, width = "100%")),
         conditionalPanel("input.rep_analysis != 'bayes_factor'",
           field("rep_effect", "The effect it reported, with its sign",
-            help = "As the paper reported it: d, d_z or r for the first four designs (if it gave a t or F instead, the Effect size converter in Labs turns it into d or r); for another design, on its own scale, a ratio as the ratio. For a posterior, its mean.")),
+            help = "As the paper reported it: d, d_z or r for the first four designs (if it gave a t or F instead, the Effect size converter in Tools turns it into d or r); for another design, on its own scale, a ratio as the ratio. For a posterior, its mean.")),
         conditionalPanel("input.rep_analysis == 'posterior'",
           radioButtons("rep_post_from", "How sure it was", choices = replication_post_from_ui, selected = "sd", inline = TRUE, width = "100%"),
           conditionalPanel("input.rep_post_from == 'sd'",
@@ -395,7 +395,7 @@ replication_missing <- function(values) {
 
 replication_problem <- function(e) {
   if (!inherits(e, "powerkit_error")) {
-    return("powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
+    return("Powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
   }
   conditionMessage(e)
 }
@@ -498,7 +498,7 @@ replication_result_ui <- function(plan) {
       else p(class = "small", sprintf("The replication's standard error is the original's scaled by the square root of the ratio of sample sizes, which assumes it copies the original's design. Small telescopes is planned on the design's card.")),
       replication_chances_ui(plan),
       if (!is.null(plan$sequential)) div(class = "mt-2",
-        p(class = "small", "The replication could also collect data until its Bayes factor is strong either way, a sequential design. Labs' Bayesian planning tool works it out, with the belief chosen below as its design prior and the original's prior as the analysis prior."),
+        p(class = "small", "The replication could also collect data until its Bayes factor is strong either way, a sequential design. The Bayesian planning tool under Tools works it out, with the belief chosen below as its design prior and the original's prior as the analysis prior."),
         actionButton("rep_to_sequential", "Plan it as a sequential Bayes factor study", class = "btn btn-outline-primary btn-sm")),
       p(class = "small text-muted", paste0("Calculated by powerkit's engine with ",
         paste(vapply(plan$packages, function(p) sprintf("%s %s", p$name, p$version), ""), collapse = ", "),
@@ -511,7 +511,7 @@ replication_result_ui <- function(plan) {
 # (docs/conventions.md, "Variation between studies in replication plans").
 replication_tau_note <- function(tau) {
   if (is.null(tau) || is.na(tau)) return(NULL)
-  if (tau > 0) p(class = "small", sprintf("The uncertain and shrunk beliefs allow the true effect to vary between studies with an SD of %s (Kenny & Judd, 2019). BayesRepDesign's own default is no variation; powerkit starts at 0.05, because assuming none makes a replication look easier than it is. Choose None under Goals to see the numbers without it.", format(tau)))
+  if (tau > 0) p(class = "small", sprintf("The uncertain and shrunk beliefs allow the true effect to vary between studies with an SD of %s (Kenny & Judd, 2019). BayesRepDesign's own default is no variation; Powerkit starts at 0.05, because assuming none makes a replication look easier than it is. Choose None under Goals to see the numbers without it.", format(tau)))
   else p(class = "small", "No variation between studies is allowed for: the true effect is taken to be the same in the replication as in the original (BayesRepDesign's default). Kenny and Judd (2019) argue this should not be the default.")
 }
 

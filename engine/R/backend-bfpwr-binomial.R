@@ -190,7 +190,7 @@ bfbin_script <- function(spec, result) {
     sprintf("p <- %s # the expected proportion of 'yes'", r_code(inputs$p)),
     sprintf("p_sd <- %s # uncertainty about it (SD of a beta design prior; 0 = exactly p)", r_code(inputs$p_sd)),
     sprintf("p0 <- %s # the fixed proportion it is compared with", r_code(inputs$p0)),
-    sprintf("threshold <- %s # strong evidence: BF10 at least this", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
     sprintf("a <- %s; b <- %s # the beta analysis prior, Beta(a, b)", r_code(inputs$prior_a), r_code(inputs$prior_b))
   )
   design_lines <- c(
@@ -252,7 +252,7 @@ bfbin_script <- function(spec, result) {
 bfbin_design_description <- function(spec, label) {
   inputs <- bfbin_inputs(spec)
   sprintf(
-    "Bayes factor test of the proportion of %s: %s, with a Beta(%s, %s) analysis prior; strong evidence is BF10 of at least %s",
+    "Bayes factor test of the proportion of %s: %s, with a Beta(%s, %s) analysis prior; the evidence threshold is BF10 of at least %s",
     label("Y"), bfbin_hypotheses_words(inputs), format_number(inputs$prior_a), format_number(inputs$prior_b),
     format_number(inputs$threshold)
   )

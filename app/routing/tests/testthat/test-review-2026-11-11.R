@@ -45,7 +45,7 @@ test_that("the main button says what it does, and feedback is one click from eve
   code <- paste(readLines(file.path(routing_dir, "R", "forms_ui.R")), collapse = "\n")
   expect_match(code, 'actionButton("form_check", "Calculate"', fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(app, "Feedback on this screen", fixed = TRUE)
+  expect_match(app, "Feedback on the screen you are on", fixed = TRUE)
 })
 
 test_that("a rule of thumb can be named as the source, and is written up as one", {
@@ -129,11 +129,13 @@ test_that("a study plan survives a round trip through the browser's copy", {
   expect_length(plans_from_browser(tree, list(records = list(abc = "not a plan")))$plans, 0)
 })
 
-test_that("Study plans is in the top bar on every screen, and removing or deleting asks first", {
-  expect_match(as.character(study_plans_chip_ui(0)), ">Study plans<", fixed = TRUE)
-  expect_match(as.character(study_plans_chip_ui(2)), "Study plans (2)", fixed = TRUE)
-  expect_no_match(as.character(study_plans_chip_ui(2)), "plan-unsaved-dot", fixed = TRUE)
-  marked <- as.character(study_plans_chip_ui(2, unsaved = TRUE))
+test_that("Study plans is a tab with its count and unsaved marker, and removing or deleting asks first", {
+  expect_match(as.character(study_plans_tab_label_ui(0)), ">Study plans<", fixed = TRUE)
+  app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(app, 'tabPanel(uiOutput("study_plans_tab_label"', fixed = TRUE)
+  expect_match(as.character(study_plans_tab_label_ui(2)), "Study plans (2)", fixed = TRUE)
+  expect_no_match(as.character(study_plans_tab_label_ui(2)), "plan-unsaved-dot", fixed = TRUE)
+  marked <- as.character(study_plans_tab_label_ui(2, unsaved = TRUE))
   expect_match(marked, "plan-unsaved-dot", fixed = TRUE)
   expect_match(marked, "some not saved to a file", fixed = TRUE)
   html <- page_html(list(list(endpoint = "E2", label = "A t-test", goal = "sample_size", n = 128L)))
@@ -294,8 +296,14 @@ test_that("simple mediation opens on a quick estimate, clearly marked, with the 
     p_X_M = "0.3", p_M_Y = "0.3", p_X_Y = "0"))
   spec <- build_spec(forms, "E10", fields, values)
   expect_identical(spec$target_test$method, "joint_significance")
-  # A formula: no background run, no preview.
+  # A formula: no background run, no preview, and the app calculates it
+  # (the gate Calculate goes through: E10 and E16 are not in `calculates`).
   expect_false(runs_long(forms, "E10", spec))
+  expect_true(form_calculates(forms, "E10", spec))
+  e16 <- build_spec(forms, "E16", form_fields(form_groups(forms, "E16")), modifyList(form_examples$E16, list(method = "joint_significance")))
+  expect_identical(e16$target_test$method, "joint_significance")
+  expect_true(form_calculates(forms, "E16", e16))
+  expect_false(runs_long(forms, "E16", e16))
   calc <- run_calculation(spec, seed = forms$default_seed)
   expect_identical(calc$status, "ok")
   expect_equal(calc$result$n_required$n, 110)
@@ -342,11 +350,13 @@ test_that("a factorial total rounded to whole groups says so, and the ANCOVA say
   expect_match(forms$known_differences[["15"]], "Shieh", fixed = TRUE)
 })
 
-test_that("an empty adjustment box says where it is and why it is asked", {
+test_that("an empty adjustment box doesn't block Calculate, and the write-up says none was recorded (S-02)", {
   fields <- form_fields(form_groups(forms, "E1"))
   values <- modifyList(form_examples$E1, list(just_type = "pilot_study", just_adjustment = ""))
-  problems <- form_problems(fields, values)
-  expect_match(problems, "in the box under “Source of the effect size”", fixed = TRUE, all = FALSE)
+  expect_length(form_problems(fields, values), 0)
+  adj <- Filter(function(f) identical(f$id, "just_adjustment"), fields)[[1]]
+  expect_true(isTRUE(adj$optional))
+  expect_match(adj$help, "the write-up says no adjustment was recorded", fixed = TRUE)
 })
 
 test_that("every table input is a grid named from its level fields, with the text box kept underneath", {
@@ -528,4 +538,21 @@ test_that("a field shows one line of help, the rest behind its info button (D-11
   expect_match(html, "<summary>Add a reason for the write-up (optional)</summary>", fixed = TRUE)
   # The fold starts closed in both explanation modes.
   expect_match(terms_js, "!el.classList.contains('field-more')", fixed = TRUE)
+})
+
+test_that("every input screen's example answers reach a calculation or a simulation, never the placeholder", {
+  # app.R's Calculate handler sends a valid spec to the engine only when the
+  # card simulates (runs_long()) or the app calculates it (form_calculates());
+  # anything else falls to "Calculation not wired in yet".
+  for (ep in names(form_examples)) {
+    fields <- form_fields(form_groups(forms, ep, as.integer(form_examples[[ep]]$n_mediators %||% 2)))
+    for (method in c(NA, unique(unlist(lapply(Filter(function(f) identical(f$path, "target_test.method") && identical(f$type, "select"), fields),
+      function(f) names(f$choices)))))) {
+      values <- form_examples[[ep]]
+      if (!is.na(method)) values[[Filter(function(f) identical(f$path, "target_test.method") && method %in% names(f$choices), fields)[[1]]$id]] <- method
+      spec <- tryCatch(build_spec(forms, ep, fields, values), error = function(e) NULL)
+      if (is.null(spec)) next
+      expect_true(runs_long(forms, ep, spec) || form_calculates(forms, ep, spec), label = paste(ep, method))
+    }
+  }
 })

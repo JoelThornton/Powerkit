@@ -117,7 +117,7 @@ technical_name <- function(ep) ep$technical_name %||% standard_name(ep$doc_name 
 
 # The app's four steps (the new design, 18 October 2026). Steps, not a
 # percentage: the design finder's length depends on the answers.
-progress_steps <- c(study = "Your study", design = "Find your design", numbers = "Your numbers", result = "Result")
+progress_steps <- c(study = "Your study", design = "Find your analysis", numbers = "Your numbers", result = "Result")
 
 screen_step <- function(screen, has_result = FALSE) {
   if (screen %in% c("start", "aim", "check")) return("study")
@@ -164,12 +164,12 @@ nav_key <- function(screen, node, endpoint, n_answers, tab, labs_tool = "", plan
 # Each tab has its own address (?page=labs and so on), so a page can be
 # shared by link. The plan tab is the plain address.
 page_slugs <- function() {
-  c(plan = "Plan a power analysis", about = "About", updates = "Updates",
-    labs = labs_tab_title, feedback = "Feedback", plans = "Study plans", maintainer = "For the maintainer: undecided settings")
+  c(plan = "Plan a power analysis", plans = "Study plans", labs = labs_tab_title, about = "About",
+    feedback = "Feedback", maintainer = "For the maintainer: undecided settings")
 }
 
 # A tab's name: in full, and a short name that phones show so that all
-# five tabs fit on one row.
+# the tabs fit on one row.
 tab_title <- function(full, short) {
   if (identical(full, short)) return(full)
   tagList(tags$span(class = "tab-long", full), tags$span(class = "tab-short", short))
@@ -181,8 +181,11 @@ page_from_query <- function(query = "") {
   slug <- shiny::parseQueryString(query %||% "")$page
   if (is.null(slug)) return(NULL)
   slug <- tolower(slug)
-  # The Updates tab was called "What's new"; old links still open it.
-  if (identical(slug, "whats-new")) slug <- "updates"
+  # The Updates are on About since 16 November 2026 (they were a tab,
+  # called "What's new" before that), and Labs is called Tools: old
+  # links still open them.
+  if (slug %in% c("whats-new", "updates")) slug <- "about"
+  if (identical(slug, "tools")) slug <- "labs"
   if (identical(slug, "maintainer") && !maintainer_view_requested(query)) return(NULL)
   tab <- page_slugs()[slug]
   if (is.na(tab)) NULL else unname(tab)
@@ -304,11 +307,15 @@ name_swap <- function(plain, technical) {
   tagList(tags$span(class = "name-plain", plain), tags$span(class = "name-tech", technical))
 }
 
-share_page_ui <- function() {
-  div(class = "share-page",
-    tags$span(class = "share-page-status", role = "status", `aria-live` = "polite"),
-    tags$button(type = "button", class = "btn btn-sm share-page-btn", onclick = "pkSharePage(this)",
-      `data-public` = public_address, title = "Copies a link to this page or Labs tool. To share your answers and results, use Copy a link beside Save project.", "Copy page link"))
+# On every screen of the whole-study route, a quiet line that says which
+# route this is (layout review, 16 November 2026): its first screens are
+# the same questions "Help me choose" asks.
+route_marker_screens <- c("aim", "node", "known", "card", "form", "g_vars", "g_analyses", "g_plan", "g_sim")
+route_marker_ui <- function(route, screen) {
+  if (!identical(route, "guided") || !isTRUE(screen %in% route_marker_screens)) return(NULL)
+  p(class = "route-marker", "Planning a whole study \u00b7 ",
+    tags$button(type = "button", class = "btn btn-link route-marker-link",
+      onclick = "Shiny.setInputValue('pick', 'route:choose', {priority: 'event'})", "Start again for a single analysis"))
 }
 
 # Each history entry carries its page in the address (?page=...); a link
@@ -316,8 +323,8 @@ share_page_ui <- function() {
 nav_js <- "
   Shiny.addCustomMessageHandler('calculation_current', function(current) {
     // Once the result matches the answers, saving the project keeps more
-    // than a draft would, so the draft row (with its own Copy a link) goes:
-    // one Save and one Copy a link on the page, not two of each.
+    // than a draft would, so the draft row goes and Share shares the
+    // analysis: one Save on the page, not two.
     document.querySelectorAll('.form-draft-save').forEach(function(el) { el.hidden = !!current; });
     $(document).trigger('pk:calculation-current', [!!current]);
     document.querySelectorAll('#download_project, #share_project, #download_planning_document, #download_planning_docx, #planning_document_button, #planning_document_formats, #plan_add').forEach(function(el) {
@@ -365,6 +372,12 @@ nav_js <- "
     var b = pane.querySelectorAll('.choices-numbered > .choice')[+e.key - 1];
     if (b) { e.preventDefault(); b.click(); }
   });
+  // Clicking the Study plans tab opens the list of plans, as the top bar's
+  // Study plans button did; the app's own moves to a plan's page don't click.
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest && e.target.closest('#tabs a[data-value=\"Study plans\"]');
+    if (a && window.Shiny && Shiny.setInputValue) Shiny.setInputValue('plans_open_page', Date.now(), {priority: 'event'});
+  });
   // On a phone the tab bar scrolls sideways: keep the open tab in view.
   document.addEventListener('shown.bs.tab', function(e) {
     if (e.target && e.target.scrollIntoView) e.target.scrollIntoView({block: 'nearest', inline: 'nearest'});
@@ -387,21 +400,6 @@ nav_js <- "
   window.addEventListener('popstate', function(e) {
     if (e.state && e.state.pk) Shiny.setInputValue('pk_nav_to', e.state.pk, { priority: 'event' });
   });
-  // Copy a link to the page: the public address inside Connect Cloud's
-  // frame, else this address (without the maintainer's view).
-  window.pkSharePage = function(btn) {
-    var framed = false; try { framed = window.self !== window.top; } catch (e) { framed = true; }
-    var base = framed ? btn.getAttribute('data-public') + '/' : window.location.origin + window.location.pathname;
-    var page = window.pkPage || 'plan';
-    var params = new URLSearchParams();
-    if (page !== 'plan') params.set('page', page);
-    if (page === 'labs' && window.pkLabsTool) params.set('tool', window.pkLabsTool);
-    if (page === 'plan' && window.pkCard) params.set('card', window.pkCard);
-    var link = base + (params.toString() ? '?' + params.toString() : '');
-    var status = btn.parentNode.querySelector('.share-page-status');
-    pkCopyText(link, null);
-    if (status) { status.textContent = 'Page link copied'; setTimeout(function() { status.textContent = ''; }, 3000); }
-  };
 "
 
 # Start screen ---------------------------------------------------------------
@@ -488,11 +486,11 @@ start_ui <- function(tree, start = list(), saved_projects = NULL) {
         `aria-expanded` = "false", `aria-controls` = "saved_projects_panel",
         onclick = paste0("var p = document.getElementById('saved_projects_panel'); var open = p.hidden; p.hidden = !open; ",
           "this.setAttribute('aria-expanded', open ? 'true' : 'false'); if (open) p.scrollIntoView({block: 'nearest'});"),
-        "Open a saved or shared project"),
+        "Open a saved file"),
       span(class = "local-download",
         if (local) tagList(tags$strong("Running on your computer."), " "),
         tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
-          if (local) "Download and update instructions" else "Run powerkit on your own computer"))),
+          if (local) "Download and update instructions" else "Run Powerkit on your own computer"))),
     if (!is.null(saved_projects)) div(id = "saved_projects_panel", class = "saved-projects", hidden = NA, saved_projects),
     # One line for someone trying the prototype out: what to do and where
     # to say what went wrong (11 November 2026).
@@ -591,7 +589,7 @@ known_status_badge <- list(
   runs_validated = NULL,
   runs_validation_in_progress = c("known-badge known-badge-progress", "Validation in progress"),
   coming_soon = c("known-badge known-badge-soon", "Coming soon"),
-  not_in_powerkit = c("known-badge known-badge-not", "Not in powerkit yet")
+  not_in_powerkit = c("known-badge known-badge-not", "Not in Powerkit yet")
 )
 
 known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
@@ -627,7 +625,9 @@ known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
     screen_nav_ui(),
     trail_ui(history, tree),
     h2("Which analysis do you want?"),
-    p(class = "lead", "Search for it, pick a common one, or open its group. Each analysis opens its card, which says what it assumes and needs."),
+    p(class = "lead", "Search for it, pick a common one, or open its group. Each analysis opens its card, which says what it assumes and needs. ",
+      # The methods map, reachable from here too (layout review, 16 November 2026).
+      tags$a(href = "#", onclick = "Shiny.setInputValue('safety_open_map', Date.now(), {priority: 'event'}); return false;", "Browse them on a map", .noWS = "after"), "."),
     bayes_mode_toggle_ui(bayes_on, "known", length(tree$bayes_designs)),
     if (isTRUE(bayes_on)) {
       p(class = "text-muted known-bayes-count", sprintf("Showing the %d of %d analyses with a Bayes factor version. Switch it off to see them all.",
@@ -815,10 +815,32 @@ function powerkitRestoreAnalyses() {
 # The validation note and links for a validated design, inside the card's
 # "More about this analysis".
 validated_line_ui <- function(tree, ep) {
-  if (!identical(ep$status, "runs_validated")) return(NULL)
-  p(class = "validated-line", tags$strong("Checks for this analysis in general: "), ep$validation$note, " ", validation_scope_note, " ",
+  if (!ep$status %in% c("runs_validated", "runs_validation_in_progress")) return(NULL)
+  # A card whose validation is in progress keeps its note here too, folded
+  # with the rest, so the card opens on what the analysis is (15 November
+  # 2026); the facts above already say "Validation in progress".
+  label <- if (identical(ep$status, "runs_validated")) "Checks for this analysis in general: " else "What has been checked so far: "
+  p(class = "validated-line", tags$strong(label), ep$validation$note, " ", validation_scope_note, " ",
     tags$a(href = tree$links$validation_log, target = "_blank", "Validation log"), " \u00b7 ",
     tags$a(href = paste0(tree$links$tests_folder, "/", ep$validation$file), target = "_blank", tags$code(ep$validation$file)))
+}
+
+# A link followed directly by punctuation ("Open the plan."): htmltools
+# puts a line break, read as a space, between a tag and the text after it.
+no_space_after <- function(tag) {
+  tag$.noWS <- "after"
+  tag
+}
+
+# The card's points, with a related test it can't run (E26: Cochran's Q)
+# as the last of them, said once.
+card_points_ui <- function(tree, ep) {
+  if (!is.null(ep$guide)) return(NULL)
+  related <- if (is.character(ep$no_ready_made_tool) && ep$status %in% c("runs_validated", "runs_validation_in_progress")) {
+    tags$li(tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text)
+  }
+  if (is.null(ep$card_points) && is.null(related)) return(NULL)
+  tags$ul(class = "card-points", lapply(ep$card_points, tags$li), related)
 }
 
 status_ui <- function(tree, ep) {
@@ -832,7 +854,7 @@ status_ui <- function(tree, ep) {
       htmltools::htmlEscape(pk$url), htmltools::htmlEscape(pk$name), htmltools::htmlEscape(pk$what))))
   }))
   not_five <- if (identical(ep$five_tools, "not covered")) {
-    p(tags$strong("Not covered by the five tools"), " powerkit builds on (Superpower, Spower, power4mome, InteractionPoweR, G*Power).")
+    p(tags$strong("Not covered by the five tools"), " Powerkit builds on (Superpower, Spower, power4mome, InteractionPoweR, G*Power).")
   }
   if (identical(ep$guide, "bayes")) return(bayes_guide_ui(tree, ep, package_list))
   switch(
@@ -842,34 +864,32 @@ status_ui <- function(tree, ep) {
     # analysis" (validated_line_ui()).
     runs_validated = NULL,
     # The facts above already say "Validation in progress" (14 November
-    # 2026: the card said it three times); this note says how far it got.
-    runs_validation_in_progress = div(
-      class = "status status-in-progress",
-      tags$strong("Checks so far: "), ep$validation$note, " ", validation_links(),
-      # A card that runs one test but not a related one (E26: Cochran's Q).
-      if (is.character(ep$no_ready_made_tool)) p(class = "mb-0", tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text)
-    ),
+    # 2026: the card said it three times); how far the checks have got is
+    # under "More about this analysis" (validated_line_ui(), 15 November
+    # 2026), and a related test the card can't run is one of its points
+    # (card_points_ui()).
+    runs_validation_in_progress = NULL,
     coming_soon = div(class = "status status-soon", tags$strong("Coming soon."), " ", ep$coming_soon_note),
     not_in_powerkit = if (isTRUE(ep$generic)) {
       div(
         class = "status status-not",
-        tags$strong(ep$card_heading %||% "Not in powerkit yet."),
+        tags$strong(ep$card_heading %||% "Not in Powerkit yet."),
         p(class = if (!isTRUE(ep$established_tools)) "mb-0", ep$card_text),
         if (isTRUE(ep$established_tools)) named_tools_ui(tree, ep) %||% p(class = "mb-0", tree$established_tools_text)
       )
     } else if (isTRUE(ep$no_ready_made_tool)) {
       div(
         class = "status status-not",
-        tags$strong("Not in powerkit yet."),
+        tags$strong("Not in Powerkit yet."),
         not_five,
         p(ep$status_text %||% tree$no_ready_made_tool_text),
         package_list(),
-        p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From powerkit's review of what other tools cover. ", "powerkit can't check results from other tools.")
+        p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From powerkit's review of what other tools cover. ", "Powerkit can't check results from other tools.")
       )
     } else {
       div(
         class = "status status-not",
-        tags$strong(ep$not_in_powerkit_heading %||% "Not in powerkit yet: use ",
+        tags$strong(ep$not_in_powerkit_heading %||% "Not in Powerkit yet: use ",
           lapply(seq_along(ep$packages), function(i) {
             pk <- ep$packages[[i]]
             tagList(if (i > 1) " or ", tags$a(href = pk$url, target = "_blank", pk$name))
@@ -878,7 +898,7 @@ status_ui <- function(tree, ep) {
         not_five,
         package_list(),
         if (is.character(ep$no_ready_made_tool)) p(tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text),
-        p(class = "small mb-0", "From powerkit's review of what other tools cover. powerkit can't check results from other tools.")
+        p(class = "small mb-0", "From powerkit's review of what other tools cover. Powerkit can't check results from other tools.")
       )
     }
   )
@@ -959,7 +979,7 @@ validation_scope_note <- "Checks apply to the cases described in this record, no
 card_facts_ui <- function(tree, ep_id, ep) {
   how <- unname(tree$calculate_how[ep_id])
   if (!length(how) || is.na(how) || !ep$status %in% c("runs_validated", "runs_validation_in_progress")) return(NULL)
-  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded (details below)" else "Validation in progress"
+  checked <- if (identical(ep$status, "runs_validated")) "Checks recorded: see \u201cMore about this analysis\u201d" else "Validation in progress"
   fact <- function(label, value, cls = NULL) div(class = paste("card-fact", cls), tags$span(class = "card-fact-label", label), tags$span(class = "card-fact-value", value))
   div(class = "card-facts",
     fact("Calculates", card_how_words[[how]], paste0("how-", how)),
@@ -998,7 +1018,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
       div(class = "card-eid", hidden = if (!maintainer_view()) NA, `aria-hidden` = if (!maintainer_view()) "true", ep_id),
       # A card that can't hold everything the user said (route_fit_ui()) is
       # the closest, not the one that fits.
-      if (!compact) p(class = "card-eyebrow", if (!length(history)) "Analysis" else if (fits) "The analysis that fits your answers" else "The closest analysis powerkit has"),
+      if (!compact) p(class = "card-eyebrow", if (!length(history)) "Analysis" else if (fits) "The analysis that fits your answers" else "The closest analysis Powerkit has"),
       (if (compact) h3 else h2)(class = "card-title h3", name_swap(ep$plain_name, technical_name(ep))),
       p(class = "standard-name", "Standard name: ", tags$strong(technical_name(ep)), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
       if (!is.null(standard_name(ep$doc_name)$also)) p(class = "also-called small text-muted", standard_name(ep$doc_name)$also),
@@ -1008,7 +1028,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
       if (!compact) card_facts_ui(tree, ep_id, ep),
       status_ui(tree, ep),
       if (identical(ep_id, tree$safety_net$endpoint) && !compact) tagList(prepare_ui(tree, history), safety_net_ways_ui()),
-      if (!is.null(ep$card_points) && is.null(ep$guide)) tags$ul(class = "card-points", lapply(ep$card_points, tags$li)),
+      card_points_ui(tree, ep),
       other_analyses_ui(tree, ep),
       # What the input screen will ask, shown openly on a card that runs, so
       # you can gather it before starting (1 November 2026).
@@ -1065,7 +1085,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
     return(tagList(
       screen_nav_ui(),
       trail_ui(history, tree),
-      h2("Plan my whole study: your variables"),
+      h2("Plan a whole study: your variables"),
       div(class = "status status-soon", g$many_conditions_note),
       placeholders_at(tree, "guided_variables"),
       action_bar(pick_button("Continue in 'Help me choose'", "continue:choose", class = "btn btn-primary"))
@@ -1074,7 +1094,7 @@ guided_variables_ui <- function(tree, answers, ctx = list(), history = list()) {
   tagList(
     screen_nav_ui(),
     trail_ui(history, tree),
-    h2("Plan my whole study: your variables"),
+    h2("Plan a whole study: your variables"),
     p(class = "lead", g$intro),
     p(class = "text-muted", g$scope_note),
     placeholders_at(tree, "guided_variables"),
@@ -1111,7 +1131,7 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
   several_main <- sprintf("[%s].filter(function(v) { return v === 'main'; }).length >= 2", paste(role_inputs, collapse = ", "))
   tagList(
     screen_nav_ui("guided:variables", "Back to the variables"),
-    h2("Plan my whole study: your analyses"),
+    h2("Plan a whole study: your analyses"),
     p(class = "lead", "For each analysis, say whether you plan it, and whether it is a main analysis. The sample size is worked out for the main analyses."),
     lapply(apps, function(a) {
       res <- resolve_analysis(tree, a, answers, asks[[a$id]])
@@ -1136,7 +1156,7 @@ guided_analyses_ui <- function(tree, answers, ticked, primary, asks, rule) {
 }
 
 guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
-                           history = list(), route_label = "Plan my whole study", raw_answers = answers,
+                           history = list(), route_label = "Plan a whole study", raw_answers = answers,
                            forms = NULL, results = list(), shared = list()) {
   g <- tree$guided
   rule_def <- Filter(function(r) identical(r$id, rule), g$combination_rules)[[1]]
@@ -1165,7 +1185,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
     } else if (!is.null(res$ask)) {
       div(class = "status status-soon", "Answer the follow-up question on the previous screen: ", res$ask$text)
     } else {
-      div(class = "status status-not", tags$strong("Not in powerkit yet. "), res$unmapped,
+      div(class = "status status-not", tags$strong("Not in Powerkit yet. "), res$unmapped,
         if (!is.null(res$package)) p(tags$a(href = res$package$url, target = "_blank", res$package$name), ": ", res$package$what))
     }
     div(class = "plan-item", head, body)
@@ -1297,7 +1317,7 @@ combined_n_ui <- function(tree, ticked, primary, asks, answers, forms, results) 
     else p("Calculate the sample size for each main analysis (\u201cEnter your values\u201d above). The plan then shows the largest, which is the sample size the study needs."),
     if (length(to_do)) p(HTML(sprintf("Still to calculate: %s.", names_of(to_do)))),
     if (length(elsewhere)) p(HTML(sprintf(
-      "powerkit can't calculate these yet, so work out their sample size elsewhere and use the largest number overall: %s.", names_of(elsewhere)))),
+      "Powerkit can't calculate these yet, so work out their sample size elsewhere and use the largest number overall: %s.", names_of(elsewhere)))),
     if (length(mains) >= 2) p(class = "text-muted",
       "Each main analysis's input screen already takes your claim into account, so these numbers can be compared directly.")
   )
@@ -1369,7 +1389,7 @@ bayes_guide_ui <- function(tree, ep, package_list) {
   designs <- tree$bayes_designs %||% list()
   div(class = "bayes-guide",
     lapply(ep$card_points, p),
-    tags$h3(class = "card-section-title", sprintf("The %d designs powerkit plans with a Bayes factor", length(designs))),
+    tags$h3(class = "card-section-title", sprintf("The %d designs Powerkit plans with a Bayes factor", length(designs))),
     tags$ul(class = "bayes-guide-list", lapply(designs, function(d) {
       e <- tree$endpoints[[d$id]]
       tags$li(class = "bayes-guide-item",
@@ -1381,15 +1401,15 @@ bayes_guide_ui <- function(tree, ep, package_list) {
     })),
     p(class = "bayes-guide-labs", "To see how the priors and your uncertainty about the effect change a plan, or to plan a sequential design (checking the evidence as the data come in), try ",
       tags$button(type = "button", class = "btn btn-link known-inline-link",
-        onclick = "Shiny.setInputValue('go_labs_bayes', Date.now(), {priority: 'event'})", "Bayesian planning in Labs"), "."),
+        onclick = "Shiny.setInputValue('go_labs_bayes', Date.now(), {priority: 'event'})", "Bayesian planning under Tools"), "."),
     tags$details(class = "card-more",
-      tags$summary("Other designs: not in powerkit yet"),
-      p(tags$strong("Other designs, not in powerkit yet: "),
+      tags$summary("Other designs: not in Powerkit yet"),
+      p(tags$strong("Other designs, not in Powerkit yet: "),
         lapply(seq_along(ep$packages), function(i) {
           pk <- ep$packages[[i]]
           tagList(if (i > 1) " or ", tags$a(href = pk$url, target = "_blank", pk$name))
         })),
       package_list(),
-      p(class = "small mb-0", "From powerkit's review of what other tools cover. powerkit can't check results from other tools."))
+      p(class = "small mb-0", "From powerkit's review of what other tools cover. Powerkit can't check results from other tools."))
   )
 }

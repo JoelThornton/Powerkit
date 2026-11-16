@@ -3,7 +3,7 @@
 
 test_that("the page arrives with the starting screen and the busy bar, and leaves the host's own lost-connection message alone", {
   html <- as.character(connection_ui())
-  expect_match(html, "Starting powerkit", fixed = TRUE)
+  expect_match(html, "Starting Powerkit", fixed = TRUE)
   expect_match(html, 'id="pk-busy"', fixed = TRUE)
   expect_no_match(html, "pk-lost", fixed = TRUE)
   expect_no_match(connection_css, "shiny-disconnected-overlay", fixed = TRUE)

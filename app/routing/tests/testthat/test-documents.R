@@ -9,7 +9,7 @@ test_that("a document is a standalone page with its title, the text and a footer
   expect_match(html, "<h1>Pre-replication notes</h1>", fixed = TRUE)
   expect_match(html, "<strong>The finding.</strong>", fixed = TRUE)
   expect_match(html, "<li>two</li>", fixed = TRUE)
-  expect_match(html, "Made with powerkit 0.33.3", fixed = TRUE)
+  expect_match(html, "Made with Powerkit 0.33.3", fixed = TRUE)
   expect_match(html, "@page", fixed = TRUE)
   # Nothing of the app comes with it.
   expect_no_match(html, "shiny", ignore.case = TRUE)
@@ -43,7 +43,7 @@ test_that("the replication plan's write-up (with the notes) and the planning doc
   expect_match(labs, "pkPrintDocument(&#39;rep_document&#39;)", fixed = TRUE)
   expect_no_match(labs, "window.print()", fixed = TRUE)
   results <- paste(readLines(file.path(routing_dir, "R", "results.R")), collapse = "\n")
-  expect_match(results, 'document_menu("planning_document", "download_planning_docx", "download_planning_document",\n        "Planning document (PDF)"', fixed = TRUE)
+  expect_match(results, 'document_menu("planning_document", "download_planning_docx", "download_planning_document",\n        "Report (PDF)"', fixed = TRUE)
   app <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   rep <- paste(readLines(file.path(routing_dir, "R", "replication.R")), collapse = "\n")
   expect_match(rep, "observeEvent(input$rep_document, send_document(", fixed = TRUE)
@@ -100,7 +100,7 @@ test_that("a Word document has the parts Word needs and well-formed XML", {
   expect_match(text, "Pre-replication of: Smith & Lee (2019)", fixed = TRUE)
   expect_match(text, "•\tone", fixed = TRUE)
   expect_match(text, "1.\tfirst", fixed = TRUE)
-  expect_match(text, "Made with powerkit 0.34.1.", fixed = TRUE)
+  expect_match(text, "Made with Powerkit 0.34.1.", fixed = TRUE)
   expect_length(xml2::xml_find_all(parts$document, "//w:b", ns), 1)
   expect_length(xml2::xml_find_all(parts$document, "//w:hyperlink", ns), 1)
   expect_match(parts$rels, 'Target="https://doi.org/10.15626/MP.2024.4155" TargetMode="External"', fixed = TRUE)
@@ -150,7 +150,7 @@ test_that("going ahead or changing the plan gives a section under the paper's th
 
 test_that("a document's formats are one button with a menu", {
   html <- as.character(document_menu("planning_document", "download_planning_docx", "download_planning_document",
-    "Planning document (PDF)", "the planning document"))
+    "Report (PDF)", "the planning document"))
   expect_match(html, 'id="planning_document_button"', fixed = TRUE)
   expect_match(html, 'id="planning_document_formats"', fixed = TRUE)
   expect_match(html, 'data-bs-toggle="dropdown"', fixed = TRUE)

@@ -29,7 +29,7 @@ guided_lines <- function(tree, answers) {
 path_text <- function(tree, route_label, history, ep_id, extra = character()) {
   ep <- tree$endpoints[[ep_id]]
   paste(c(
-    "powerkit routing prototype: the path I took",
+    "Powerkit routing prototype: the path I took",
     "",
     paste0("Route: ", route_label),
     path_lines(tree, history),
@@ -126,8 +126,8 @@ feedback_result_message <- function(result) {
 feedback_screen_label <- function(screen) {
   labels <- c(start = "The start questions", known = "I know my analysis: the list of analyses",
     node = "A question in the design finder", card = "An analysis card", form = "The input and result screen",
-    g_vars = "Plan my whole study: the variables", g_analyses = "Plan my whole study: the analyses",
-    g_plan = "Plan my whole study: the plan", check = "Checking a saved project")
+    g_vars = "Plan a whole study: the variables", g_analyses = "Plan a whole study: the analyses",
+    g_plan = "Plan a whole study: the plan", check = "Checking a saved analysis")
   if (screen %in% names(labels)) labels[[screen]] else screen
 }
 
@@ -161,7 +161,7 @@ feedback_subject <- function(kind, message) {
   if (is.na(first)) first <- ""
   if (nchar(first) > 60) first <- paste0(substr(first, 1, 57), "...")
   label <- c(bug = "Problem", confusing = "Confusing", question = "Question", idea = "Suggestion", other = "Comment")[[kind %||% "other"]]
-  if (nzchar(first)) sprintf("powerkit feedback (%s): %s", label, first) else sprintf("powerkit feedback (%s)", label)
+  if (nzchar(first)) sprintf("Powerkit feedback (%s): %s", label, first) else sprintf("Powerkit feedback (%s)", label)
 }
 
 feedback_text <- function(kind, message, context = character()) {

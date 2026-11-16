@@ -156,7 +156,7 @@ bfanova_script <- function(spec, result) {
     "# Inputs ----",
     sprintf("means <- %s # the expected group means", r_code(inputs$means)),
     sprintf("sd <- %s # the SD within each group", r_code(inputs$sd)),
-    sprintf("threshold <- %s # strong evidence: BF10 at least this", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
     sprintf("rscale <- %s # r scale of the Cauchy prior on the fixed effects (JASP's default 0.5)", r_code(inputs$prior_scale)),
     bayes_goal_inputs(spec),
     "",
@@ -185,7 +185,7 @@ bfanova_script <- function(spec, result) {
 bfanova_design_description <- function(spec, label, levels) {
   inputs <- bfanova_inputs(spec)
   sprintf(
-    "Bayes factor one-way ANOVA of %s across the groups of %s (%s): %s, BayesFactor's ANOVA Bayes factor with a Cauchy prior of r scale %s on the effects; strong evidence is BF10 of at least %s",
+    "Bayes factor one-way ANOVA of %s across the groups of %s (%s): %s, BayesFactor's ANOVA Bayes factor with a Cauchy prior of r scale %s on the effects; the evidence threshold is BF10 of at least %s",
     label("Y"), label("A"), paste(levels("A"), collapse = ", "), bfanova_hypotheses_words(inputs),
     format_number(inputs$prior_scale), format_number(inputs$threshold)
   )

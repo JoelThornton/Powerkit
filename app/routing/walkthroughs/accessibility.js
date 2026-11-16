@@ -48,12 +48,12 @@ const URL = process.env.PROTOTYPE_URL || 'http://127.0.0.1:8765/';
     await label("None of these fit / I'm not sure"); await audit('card E-unsure');
     await btn('Start again'); await btn('I know my analysis');
     await audit('analysis list');
-    await btn('Start again'); await btn('Plan my whole study'); await label('Test a prediction'); await label('A score or scale'); await label('Independent people'); await label('Once');
+    await btn('Start again'); await btn('Plan a whole study'); await label('Test a prediction'); await label('A score or scale'); await label('Independent people'); await label('Once');
     await audit('guided variables');
     await btn('Next: choose the analyses'); await audit('guided analyses');
     await p.locator('input[type=radio][value=main]').first().check(); await settle();
     await btn('Show my plan'); await audit('guided plan');
-    await p.locator('a', { hasText: 'Feedback' }).first().click(); await settle(); await audit('feedback tab');
+    await p.locator('button', { hasText: 'Feedback' }).first().click(); await settle(); await audit('feedback form');
     // The maintainer's tab is only there in the maintainer's view.
     await p.goto(URL + '?view=maintainer'); await settle();
     await p.locator('a', { hasText: 'For the maintainer' }).click(); await settle(); await audit('maintainer tab');

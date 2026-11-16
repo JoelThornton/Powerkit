@@ -176,7 +176,7 @@ plan_from_guided_text <- function(text, now = Sys.time()) {
   record$study_plan <- NULL
   saved_date <- tryCatch(as.Date(substr(record$saved_at %||% "", 1L, 10L)), error = function(e) NA)
   if (is.na(saved_date)) saved_date <- as.Date(now)
-  plan <- new_plan(if (is.list(meta)) meta$name else plan_default_name(saved_date, "Whole-study plan"), now = now)
+  plan <- new_plan(if (is.list(meta)) meta$name else plan_default_name(saved_date, "Study plan"), now = now)
   if (is.list(meta) && is.character(meta$id) && grepl("^[0-9a-f]{16}$", meta$id)) plan$id <- meta$id
   if (is.list(meta)) plan$description <- plan_clean_text(meta$description %||% "", plan_description_max)
   plan$guided <- record
@@ -367,7 +367,7 @@ plans_list_ui <- function(plans, current = NULL) {
       tags$button(type = "button", class = "btn btn-link plans-row-name",
         onclick = sprintf("Shiny.setInputValue('plans_view_plan', %s, {priority: 'event'})", js_string(plan$id)),
         plan$name),
-      if (plan_is_replication(plan)) span(class = "plans-row-kind small", "Replication plan"),
+      if (plan_is_replication(plan)) span(class = "plans-row-kind small", "Study plan \u00b7 Replication"),
       span(class = "plans-row-facts small",
         paste(c(if (k == 1) "1 analysis" else sprintf("%d analyses", k),
           if (!is.null(largest)) sprintf("largest comparable N = %s", whole(largest$n))), collapse = " · ")),
@@ -383,14 +383,14 @@ plans_list_ui <- function(plans, current = NULL) {
       tags$ul(
         tags$li("Start one here with “New study plan”, then add analyses to it."),
         tags$li("Or calculate any analysis and press “Add this to my study plan” under its result: a plan is made for it."),
-        tags$li("Or start “Plan my whole study”, on the start screen: it plans several analyses of one study together, and keeps your guided plan and each analysis you calculate from it."),
+        tags$li("Or start “Plan a whole study”, on the start screen: it plans several analyses of one study together, and keeps the study's variables and analyses and each analysis you calculate from it."),
         tags$li("Replicating a published finding? “New replication plan” keeps the pre-replication notes, the original study, the goals a replication can have, how it differs and its write-up, with the original's analysis planned on its own card."))),
     if (length(plans)) tags$ul(class = "plans-list", lapply(rev(plans), row)),
     div(class = "nav-buttons",
       actionButton("plans_new", "New study plan", class = "btn btn-primary"),
       actionButton("plans_new_replication", "New replication plan", class = "btn btn-outline-primary")),
     div(class = "open-project mt-3",
-      fileInput("plans_open_file", "Open a saved plan", accept = c(".json", "application/json", ".zip", "application/zip"), width = "100%",
+      fileInput("plans_open_file", "Open a saved file", accept = c(".json", "application/json", ".zip", "application/zip"), width = "100%",
         buttonLabel = "Choose file…", placeholder = "a .powerkit.json or .zip file"),
       p(class = "small text-muted", project_or_plan_note),
       uiOutput("plans_open_message")),

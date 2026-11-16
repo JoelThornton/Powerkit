@@ -2,7 +2,7 @@
 # (5 November 2026).
 #
 # * A visit after a quiet spell waits while the server starts a new R
-#   process; the page shows "Starting powerkit" until the app answers,
+#   process; the page shows "Starting Powerkit" until the app answers,
 #   instead of a blank page.
 # * While the app is busy (a calculation, a new screen, the About tab being
 #   built) a bar at the top of the page says so.
@@ -230,7 +230,7 @@ connection_ui <- function() {
     div(id = "pk-starting", role = "status", `aria-live` = "polite",
       div(class = "pk-starting-box",
         div(class = "pk-spinner", `aria-hidden` = "true"),
-        tags$p(tags$strong("Starting powerkit…")),
+        tags$p(tags$strong("Starting Powerkit…")),
         tags$p(class = "small text-muted", "After a quiet spell the server needs a little while to wake up, up to a minute. The page will appear by itself."))),
     div(id = "pk-busy", role = "status", `aria-live` = "polite",
       div(class = "pk-busy-bar"), tags$span(class = "pk-busy-label", "Working…"))

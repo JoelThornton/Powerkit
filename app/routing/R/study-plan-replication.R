@@ -177,7 +177,7 @@ replication_analysis_lines <- function(plan, tree, forms) {
   unlist(lapply(plan$entries, function(e) {
     text <- tryCatch(planning_methods_text(tree, forms, plan_entry_calc(e)), error = function(err) NULL)
     c(sprintf("- %s: %s", e$label, plan_item_summary(e)), "",
-      text %||% "The methods paragraph for this analysis is in its own planning document.", "")
+      text %||% "The methods paragraph for this analysis is in its own report.", "")
   }))
 }
 

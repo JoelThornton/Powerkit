@@ -1,26 +1,45 @@
+# powerkit 0.70.1
+
+* Repository tidy: a stray app log removed and logs ignored; the queue
+  page's opening narrative condensed, with rows for testers' reports and
+  the Mac installation steps. No change to the engine or the app.
+
+# powerkit 0.70.0
+
+* App only: the saved things have one name each (analysis, analysis
+  file, study plan, replication plan, report). No change to the engine
+  or the file formats.
+* App only: the top row is Power and sample size, Study plans, Tools and
+  About. Labs is renamed Tools, Updates moves into About, and the
+  Feedback tab gives way to the top bar's Feedback button; the old
+  ?page= addresses still work.
+* App only: one Share button in the top bar shares what is open (the
+  analysis with its result, the answers so far, the study plan, or the
+  page), replacing the separate "Copy a link" buttons. The result's ways
+  of coming back are together in "Keep this result"; the documents are
+  under "Write it up".
+* App only: "Replicate a published finding" starts a replication plan at
+  "The original study", and the whole-study route shows which route it is
+  on each screen.
+* App only: the app's sentences spell the name "Powerkit"; the R package
+  and its code keep "powerkit".
+
 # powerkit 0.69.4
 
-* App styles: a text box's or menu's border is `#8794a6` on every screen,
-  3.1:1 against white, which meets WCAG 1.4.11 (the form's `#c6cfdb` was
-  1.6:1); the sticky action bar is a whole rounded bar pinned 0.6rem above
-  the window's edge, so it no longer looks cut off at the foot of the
-  page; "I don't know my effect size" starts at the column's edge.
-
-* App styles (design review): buttons, text boxes, menus and file pickers
-  share one corner radius and border colour on every screen (they kept
-  Bootstrap's defaults outside the input form); `btn-outline-secondary`
-  takes the app's navy; ionRangeSlider's shiny skin takes the app's blue,
-  so the Labs sliders match the result screen's; a fold whose summary is
-  laid out with flex (`.result-more`, `.result-validation`, `.card-more`,
-  `.mismatch`, `.capabilities-fold`) draws its own arrow, since flex
-  removes the browser's; the Settings and "Guess the answer first" folds
-  centre their line; on a phone the "Keep this result" buttons take the
-  full width.
-* `power_curve_plot()` puts the "This analysis" label on the side of the
-  point with room for it, and shortens it to the number when neither side
-  has room (it ran off the edge of a phone's chart).
-* The result's departures heading reads "Where powerkit differs from other
-  tools' defaults".
+* `repeated_ordinal_wald()` (E75, ordered categories in two or more
+  groups, Wald test) tests the group-by-condition terms on their own
+  degrees of freedom, (groups - 1) x (conditions - 1), rather than
+  conditions - 1. With three groups the old test rejected about 17% of
+  null studies at alpha .05 and overstated power; a null-rate test with
+  three groups now covers it.
+* `pwr_sensitivity_p2()` (E5, two proportions, smallest detectable
+  effect) starts its search just past `p1`, so unequal groups no longer
+  stop with pwrss's "The value of margin should be different from the
+  prob1 - prob2 difference".
+* The Bayes factor methods paragraphs and exported scripts call the
+  Bayes factor the study should reach its evidence threshold ("the
+  evidence threshold is BF10 of at least 10"), as the cards do, rather
+  than "strong evidence".
 
 # powerkit 0.69.3
 

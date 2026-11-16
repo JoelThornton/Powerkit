@@ -121,7 +121,7 @@ test_that("an old guided-plan file opens as a new whole-study plan", {
   write_guided_plan(guided_state(), file)
   text <- paste(readLines(file), collapse = "\n")
   plan <- plan_from_text(tree, text, read = guided_engine("read_study_plan"), now = as.POSIXct("2026-11-14 09:00:00", tz = "UTC"))
-  expect_match(plan$name, "^Whole-study plan, ")
+  expect_match(plan$name, "^Study plan, ")
   expect_length(plan$entries, 0)
   expect_identical(plan$guided$format, "powerkit-guided-plan")
   expect_identical(plan$saved_how, "file")

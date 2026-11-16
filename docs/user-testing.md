@@ -57,7 +57,7 @@ then run another round.
 | 4–5 min | Think-aloud practice | "As you go, please say what you're thinking: what you're looking for, what you expect, anything unclear. If you go quiet, I'll prompt you." |
 | 5–7 min | Start screen | "Choose a way to start and tell us what you want to learn from your study." Note uncertainty about testing versus estimating. Sample-size goals and multiple-test claims are on the input screen. |
 | 7–11 min | Finding the design, their choice of route | "Now find the analysis for your study, however you like." Don't help. If they're stuck for over a minute, ask what they're looking for. |
-| 11–13 min | Another route | "Try one of the other ways in" (I know my analysis; Help me choose; Plan my whole study). Faster; note where routes disagree. |
+| 11–13 min | Another route | "Try one of the other ways in" (I know my analysis; Help me choose; Plan a whole study). Faster; note where routes disagree. |
 | 13–17 min | Inputs | On the card: "Is this the analysis you'd run?" Then **Enter your values**. Watch the effect size: where they say it comes from, and whether they pick "can't justify one". |
 | 17–19 min | Result | "In your own words, what does this result tell you?" Then: "What would you put in your ethics form or preregistration?" (the write-up, if shown). Note whether they keep the "if the true effect is…" condition. |
 | 19–20 min | Debrief | "What was the most confusing moment? Would you trust this result? Would you use it instead of what you use now?" Thank them. If anything didn't fit, ask them to open **Something doesn't fit?** and copy the path. |
@@ -83,7 +83,7 @@ checked answer sheet before the session; do not show that sheet to testers.
 | Interpretation | Ask what 80% power means, what it depends on, and whether increasing simulations resolves uncertainty about the expected effect. Then ask what an expected interval width means. | Separates repeated-study detection from probability the hypothesis is true; retains the population assumptions; separates Monte Carlo error from uncertain inputs; does not read average width as a median or a guarantee. |
 | Edit, save and reopen | Calculate, change the effect without rerunning, and attempt to save/add it. Then recalculate, save, reopen, save again and reopen once more. | Notices stale results; two round trips retain the same answers, units, settings and result. Record inability to find a save/recovery route as a problem. |
 | Mixed study plan | Add a participant-based analysis and an item- or dyad-based analysis. Ask whether one maximum is a recruitment target for both. | Understands incompatible units and conditional comparisons; does not interpret item or pair counts as people. |
-| Educational Labs | Run 1,000 studies and explain the spread and the significant subset's effects. Visit another tab and go Back. | Distinguishes the stipulated simulation from their own study, understands selection/exaggeration, and recovers the same tool and settings. |
+| Learning tools (Tools tab) | Run 1,000 studies and explain the spread and the significant subset's effects. Visit another tab and go Back. | Distinguishes the stipulated simulation from their own study, understands selection/exaggeration, and recovers the same tool and settings. |
 
 If the current tool cannot support a task honestly, record the limitation
 and the participant's next step. Do not replace missing support with an
@@ -95,7 +95,7 @@ as assisted.
 
 Compare only tasks both tools actually support, such as the same Student
 t-test planning question with the same tail, allocation and effect
-definition. Keep Powerkit-specific saving and Labs tasks separate. Let
+definition. Keep Powerkit-specific saving and Tools tasks separate. Let
 participants use their usual comparator (record its name/version) or a
 preselected comparator for that round. Record prior familiarity with both.
 

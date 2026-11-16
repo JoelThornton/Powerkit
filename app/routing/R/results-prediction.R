@@ -38,9 +38,9 @@ prediction_validation_sentences <- function(spec, result) {
   label <- spec$variables$Y$label %||% "the outcome"
   headline <- sprintf("To validate the existing model of %s in new data, at least %s are needed.", label, prediction_people(pr$n))
   events <- if (!is.na(pr$events)) sprintf(" That is about %s people with the outcome.", whole(ceiling(pr$events))) else ""
-  reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is: %s.", tolower_first(pr$binding)), events,
+  reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is %s.", binding_phrase(pr$binding)), events,
     " It is a minimum for estimating the model's calibration and discrimination precisely, not a power calculation.")
-  how <- sprintf("Calculated with pmvalsampsize (pmvalsampsize()), which powerkit called with your answers, assuming a C-statistic of %s and %s%% with the outcome.",
+  how <- sprintf("Calculated with pmvalsampsize (pmvalsampsize()), which Powerkit called with your answers, assuming a C-statistic of %s and %s%% with the outcome.",
     format(spec$population$c_statistic), format(100 * spec$population$prevalence))
   c(headline = headline, reading = reading, detail = how)
 }
@@ -53,9 +53,9 @@ prediction_sentences <- function(spec, result) {
     label, whole(pr$parameters), prediction_people(pr$n))
   events <- if (!is.na(pr$events)) sprintf(" That is about %s %s, or %s per candidate parameter.", whole(ceiling(pr$events)),
     if (identical(pr$outcome, "survival")) "events" else "people with the outcome", format(round(pr$events_per_parameter, 1), nsmall = 1)) else ""
-  reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is: %s.", tolower_first(pr$binding)), events,
+  reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is %s.", binding_phrase(pr$binding)), events,
     " It is a minimum for developing the model, not a power calculation: a smaller sample risks a model that overfits and predicts less well in new people.")
-  how <- sprintf("Calculated by formula with pmsampsize (pmsampsize()), which powerkit called with your answers, assuming %s for a model of %s.",
+  how <- sprintf("Calculated by formula with pmsampsize (pmsampsize()), which Powerkit called with your answers, assuming %s for a model of %s.",
     prediction_performance_text(spec), prediction_outcome_words(pr$outcome))
   c(headline = headline, reading = reading, detail = how)
 }
@@ -180,7 +180,7 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
   hero <- tryCatch(prediction_hero_ui(spec, result), error = function(e) NULL)
   div(
     class = "result-panel", role = "status", tabindex = "-1",
-    result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up and save it", `result-how-card` = "How it was calculated")),
+    result_sections_ui(list(`result-answer` = "The answer", `result-take` = "Write it up", `result-how-card` = "How it was calculated")),
     div(class = paste("result-card result-main", if (!is.null(hero)) "has-hero"), id = "result-answer",
       h3(class = "h4", id = "result-heading", tabindex = "-1", `data-result-focus` = "true", "Your result"),
       hero,
@@ -196,21 +196,21 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       if (length(calc$notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(calc$notes, tags$li))),
       keep_result_ui(can_export, plan = TRUE, kept = isTRUE(calc$saved) && !isTRUE(calc$from_browser))),
     div(class = "result-card result-save", id = "result-take",
-      h4(class = "h5", "Write it up and save it"),
+      h4(class = "h5", "Write it up"),
       writeup_ui(prediction_writeup(forms$forms[[ep_id]], spec, result, fields, values, departures)),
       if (blank(values$just_source)) p(class = "export-needs-reasoning",
         tags$strong("No reason for the model's anticipated performance is recorded yet. "),
         "The write-up and saved files say so. To add one, write it under “Where your effect size comes from” and press “Calculate” again."),
       documents_ui(can_export, p_$backend, document_menu("planning_document", "download_planning_docx", "download_planning_document",
-        "Planning document (PDF)", "the planning document"))),
+        "Report (PDF)", "the report"))),
     div(class = "result-card result-how", id = "result-how-card",
       h4(class = "h5", "How it was calculated"),
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
-        "powerkit built the call from your answers and checked the values it passes. Cite the package and the method paper: see Citations above."),
+        "Powerkit built the call from your answers and checked the values it passes. Cite the package and the method paper: see Citations above."),
       validation_ui(ep, result),
       if (length(departures)) tagList(
-        h4(class = "h6", "Where powerkit differs from other tools' defaults"),
+        h4(class = "h6", "Where Powerkit differs from other tools' defaults"),
         tags$ul(class = "result-departures", lapply(unname(departures), tags$li))),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),
@@ -218,4 +218,11 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       tags$details(class = "result-more", tags$summary("Reproducibility record"), tags$ul(lapply(provenance_lines(result), tags$li))),
       tags$details(class = "result-more", tags$summary("The design spec that was run (JSON)"), tags$pre(class = "spec-json", spec_json(spec))))
   )
+}
+
+# "Little overfitting: expected shrinkage ..." as "little overfitting
+# (expected shrinkage ...)", so the sentence has one colon.
+binding_phrase <- function(binding) {
+  text <- tolower_first(binding)
+  sub("^([^:]+): (.+)$", "\\1 (\\2)", text)
 }

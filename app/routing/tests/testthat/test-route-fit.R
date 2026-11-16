@@ -47,7 +47,7 @@ test_that("a card built for a score names an outcome it can't take", {
   expect_match(route_fit_messages(tree, "E26", list(outcome = "yesno", times = "many_conditions")), "compares two", fixed = TRUE)
   # The card's heading changes with it.
   expect_match(as.character(card_ui(tree, "E35", history = list(list(node = "s1", answer = "A count")), fits = FALSE)),
-    "The closest analysis powerkit has", fixed = TRUE)
+    "The closest analysis Powerkit has", fixed = TRUE)
 })
 
 test_that("counts and ratings over many trials reach the repeated counts card, and E41 points to regression", {

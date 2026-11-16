@@ -173,7 +173,7 @@ bftable_script <- function(spec, result) {
     "# Inputs ----",
     sprintf("probs <- matrix(%s, nrow = %d, byrow = TRUE) # cell probabilities: rows X, columns Y",
       r_code(as.vector(t(inputs$probs))), nrow(inputs$probs)),
-    sprintf("threshold <- %s # strong evidence: BF10 at least this", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
     sprintf("a <- %s # prior concentration (JASP's default 1)", r_code(inputs$a)),
     switch(goal$type,
       sample_size = sprintf("target_power <- %s # target probability that BF10 reaches the threshold", r_code(goal$power)),
@@ -206,7 +206,7 @@ bftable_script <- function(spec, result) {
 bftable_design_description <- function(spec, label, levels) {
   inputs <- bftable_inputs(spec)
   sprintf(
-    "Bayes factor test of association between %s (%s) and %s (%s): BayesFactor's contingency table Bayes factor with %s and prior concentration %s; strong evidence is BF10 of at least %s",
+    "Bayes factor test of association between %s (%s) and %s (%s): BayesFactor's contingency table Bayes factor with %s and prior concentration %s; the evidence threshold is BF10 of at least %s",
     label("X"), paste(levels("X"), collapse = ", "), label("Y"), paste(levels("Y"), collapse = ", "),
     bftable_plans[[inputs$plan]]$words, format_number(inputs$a), format_number(inputs$threshold)
   )

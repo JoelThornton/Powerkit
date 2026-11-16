@@ -40,7 +40,7 @@ code_unescape <- function(html) {
 printable_document <- function(markdown, version = NULL) {
   text <- paste(markdown, collapse = "\n")
   headings <- markdown[grepl("^#\\s+", markdown)]
-  title <- if (length(headings)) sub("^#\\s+", "", headings[1]) else "powerkit document"
+  title <- if (length(headings)) sub("^#\\s+", "", headings[1]) else "Powerkit document"
   # Every "<" is escaped first, so the page shows what was typed
   # ("p < .05", or "<b>") as text and nothing typed can become markup;
   # only Markdown's own links, <https://...>, are left to become links.
@@ -49,7 +49,7 @@ printable_document <- function(markdown, version = NULL) {
   # In code, commonmark escapes the "&" of that "&lt;" again; undo that
   # there, so an R script's "<-" reads as written. It stays escaped.
   body <- code_unescape(body)
-  footer <- sprintf("Made with powerkit%s.", if (is.null(version)) "" else paste0(" ", version))
+  footer <- sprintf("Made with Powerkit%s.", if (is.null(version)) "" else paste0(" ", version))
   paste0(
     "<!DOCTYPE html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">",
     "<title>", htmltools::htmlEscape(title), "</title>",
@@ -169,10 +169,10 @@ docx_styles <- paste0(
 # Writes the Markdown as a Word document at `file`.
 docx_document <- function(markdown, file, version = NULL) {
   headings <- markdown[grepl("^#\\s+", markdown)]
-  title <- if (length(headings)) sub("^#\\s+", "", headings[1]) else "powerkit document"
+  title <- if (length(headings)) sub("^#\\s+", "", headings[1]) else "Powerkit document"
   built <- docx_body(markdown)
   footer <- sprintf('<w:p><w:pPr><w:pStyle w:val="Footer"/></w:pPr><w:r><w:t xml:space="preserve">%s</w:t></w:r></w:p>',
-    docx_escape(sprintf("Made with powerkit%s.", if (is.null(version)) "" else paste0(" ", version))))
+    docx_escape(sprintf("Made with Powerkit%s.", if (is.null(version)) "" else paste0(" ", version))))
   # A4, margins about 2 cm.
   section <- '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1247" w:bottom="1134" w:left="1247" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>'
   parts <- list(

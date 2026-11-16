@@ -227,7 +227,7 @@ bfancova_script <- function(spec, result) {
     sprintf("r2 <- %s # the share of the outcome's variance within a cell the covariates explain", r_code(inputs$r2)),
     sprintf("q <- %s # the number of covariates", r_code(inputs$covariates)),
     sprintf("term <- %s # %s", r_code(inputs$term), bfancova_effect_words(inputs)),
-    sprintf("threshold <- %s # strong evidence: an inclusion BF at least this", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: an inclusion BF at least this", r_code(inputs$threshold)),
     sprintf("r_scale <- %s # Cauchy prior scale on the factors' standardised effects (JASP's default 0.5)", r_code(inputs$prior_scale)),
     sprintf("r_scale_covariates <- %s # Cauchy prior scale on the covariates' standardised slopes (JASP's default 0.354)", r_code(inputs$prior_scale_covariates)),
     sprintf("matched <- %s # FALSE: across all models (JASP's default); TRUE: across matched models", r_code(identical(inputs$inclusion, "matched_models"))),
@@ -284,7 +284,7 @@ bfancova_design_description <- function(spec, label, levels) {
     sprintf("the effect of %s", label("A"))
   }
   sprintf(
-    "Bayes factor of %s in %s, adjusting for %s: the inclusion Bayes factor %s (BayesFactor's generalTestBF(), r scale %s on the effects and %s on the covariates' slopes, models respecting marginality); strong evidence is an inclusion BF of at least %s",
+    "Bayes factor of %s in %s, adjusting for %s: the inclusion Bayes factor %s (BayesFactor's generalTestBF(), r scale %s on the effects and %s on the covariates' slopes, models respecting marginality); evidence at the threshold is an inclusion BF of at least %s",
     effect, layout, if (inputs$covariates == 1) "one covariate" else sprintf("%d covariates", inputs$covariates),
     if (identical(inputs$inclusion, "matched_models")) "across matched models" else "across all models",
     format_number(inputs$prior_scale), format_number(inputs$prior_scale_covariates), format_number(inputs$threshold)

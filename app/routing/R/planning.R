@@ -16,7 +16,7 @@ planning_decision_ui <- function(form) {
     input_id <- sprintf("input.%s", field_input_id(list(id = bayes_field)))
     current <- tagList(conditionalPanel(sprintf("%s != 'bayes_factor'", input_id), inline = TRUE, current),
       conditionalPanel(sprintf("%s == 'bayes_factor'", input_id), inline = TRUE,
-        "This plans the chance that your study reaches strong evidence (a Bayes factor past your threshold) if the effect you enter is the true one. A Bayes factor test has no significance level."))
+        "This plans the chance that your study reaches evidence at the threshold (a Bayes factor past your threshold) if the effect you enter is the true one. A Bayes factor test has no significance level."))
   }
   explanation_ui("planning-goal-info", "What this planning goal means", class = "planning-decision small",
     tags$details(tags$summary("What this goal plans, and goals for other questions"),
@@ -57,7 +57,7 @@ planning_document <- function(tree, forms, calc) {
   route <- calc$route
   id <- route$endpoint
   values <- route$form_values
-  if (is.null(id) || is.null(values)) stop("This result has no captured form answers. Recalculate before downloading a planning document.")
+  if (is.null(id) || is.null(values)) stop("This result has no captured form answers. Recalculate before downloading a report.")
   if (isTRUE(values$source_stale)) stop("Confirm the current source reasoning and recalculate before keeping this plan.")
   spec <- calc$spec
   result <- calc$result
@@ -87,7 +87,7 @@ planning_document <- function(tree, forms, calc) {
     "## Result and methods", unname(text["full"]), "",
     "## Validation evidence", evidence_reader_lines(result$provenance$evidence), "",
     "## Reproducibility record", provenance_lines(result), "",
-    "Keep the matching project file for the complete structured specification, raw-to-derived conversions and machine-readable result. Review these assumptions and the selected decision rule before using the plan.")
+    "Keep the matching analysis file for the complete structured specification, raw-to-derived conversions and machine-readable result. Review these assumptions and the selected decision rule before using the plan.")
 }
 
 # The card's write-up (short and full methods paragraphs) from the
@@ -357,7 +357,7 @@ additional_input_guide <- function(f) {
   if (identical(f$id, "pillai_v")) return(make(
     "Pillai's V (Pillai's trace) summarises how far apart the groups' mean vectors are on all the outcomes at once, relative to the spread within groups; it is not a proportion of variance in one outcome.",
     "0.10 with three groups and three outcomes is an illustrative input, not a recommendation; it can run from 0 up to the smaller of the outcomes and the groups minus 1.",
-    "A MANOVA with the same outcomes and groups, or the means you expect, from which powerkit could work out V; a published sample V tends to be too large."))
+    "A MANOVA with the same outcomes and groups, or the means you expect, from which Powerkit could work out V; a published sample V tends to be too large."))
   if (f$id %in% c("d", "dz", "ni_d", "ni_dz", "w", "eta_squared")) return(make(
     if (f$id == "w") "Cohen's w is an effect size for a population pattern of categorical probabilities, not a raw proportion." else if (f$id == "eta_squared") "Partial eta-squared uses an effect and its error sums of squares; ordinary eta-squared uses total sums of squares. Match the requested definition." else "A standardised mean difference in this screen's stated SD units. d_z uses the SD of within-person differences; other denominators are not interchangeable.",
     if (f$id %in% c("w", "eta_squared")) "0.10 is an illustrative effect-size input, not a recommendation to call your effect small or to assume that value." else "A difference of 0.30 means 0.30 of the SD unit defined by this screen; raw means/SDs are safer when a paper uses another denominator.", "Comparable data with the same effect-size definition, a synthesis, or a justified meaningful difference; do not select a conventional value merely to proceed."))

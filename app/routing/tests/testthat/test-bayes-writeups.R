@@ -30,15 +30,15 @@ test_that("a Bayes factor plan is written up as a design analysis, with its anal
   expect_match(short, "The design prior is centred on the planned effect, Cohen's d = 0.4", fixed = TRUE)
   expect_match(short, "a normal design prior on the effect size with an SD of 0.1", fixed = TRUE)
   expect_match(short, "assurance; O'Hagan, Stevens & Campbell, 2005", fixed = TRUE)
-  expect_match(short, "For a target probability of strong evidence for the effect (BF10 of at least 10) of 80%", fixed = TRUE)
-  expect_match(short, "The probabilities of strong evidence were calculated", fixed = TRUE)
+  expect_match(short, "For a target probability of evidence at the threshold for the effect (BF10 of at least 10) of 80%", fixed = TRUE)
+  expect_match(short, "The probabilities of evidence at the threshold were calculated", fixed = TRUE)
   # A methods paragraph speaks of the study, not to the reader, and a
   # Bayes factor plan has no power or alpha.
   for (word in c(" you", "your", "Power was", "power analysis", "α")) expect_no_match(short, word, fixed = TRUE, label = word)
   ethics <- w[["ethics"]]
   expect_match(ethics, "This number comes from a Bayes factor design analysis.", fixed = TRUE)
   expect_match(ethics, "Averaged over the effect sizes we think plausible", fixed = TRUE)
-  expect_match(ethics, "could not find strong evidence that there is no effect", fixed = TRUE)
+  expect_match(ethics, "could not find evidence at the threshold that there is no effect", fixed = TRUE)
 })
 
 test_that("a point design prior says so, and the chance of evidence for no effect is given", {
@@ -46,7 +46,7 @@ test_that("a point design prior says so, and the chance of evidence for no effec
   w <- bayes_writeup("E4", list(method = "bayes_factor", evidence_threshold = "10", prior_width = "1", r_sd = "0", goal = "power", n = 900))
   expect_match(w[["short"]], "The design prior is a point at that value", fixed = TRUE)
   expect_match(w[["short"]], "stretched beta prior of width 1 on the correlation as the analysis prior", fixed = TRUE)
-  expect_match(w[["short"]], "If there were no effect, the probability of strong evidence for its absence (BF01 of at least 10) would be", fixed = TRUE)
+  expect_match(w[["short"]], "If there were no effect, the probability of evidence at the threshold for its absence (BF01 of at least 10) would be", fixed = TRUE)
   expect_match(w[["ethics"]], "If that effect is real", fixed = TRUE)
 })
 
@@ -75,5 +75,5 @@ test_that("a plan that reports both has a write-up with the Bayes factor as its 
   # With no reasoning given, the write-up says so.
   expect_match(as.character(bayes_companion_ui(calc$spec, calc$result, comp)), "Wording for your plan", fixed = TRUE)
   expect_match(bayes_companion_writeup(forms$forms$E2, calc$spec, calc$result, fields, modifyList(values, list(just_source = "")), comp)[["short"]],
-    "No justification for the effect size was recorded.", fixed = TRUE)
+    "No reason for this choice was recorded.", fixed = TRUE)
 })
