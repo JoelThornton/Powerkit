@@ -1403,6 +1403,17 @@ server <- function(input, output, session) {
   # answered (ticking doesn't need a re-render).
   observeEvent(input$g_rule, state$rule <- input$g_rule, ignoreInit = TRUE)
 
+  # Partial eta-squared or Cohen's f plans the classical ANOVA only: choosing
+  # it switches a screen whose default is Welch's ANOVA (E7) to the
+  # classical F test, which the effect field's help says, rather than
+  # refusing it at Calculate (W-03, 15 November 2026).
+  observeEvent(input$f_metric, {
+    if (!identical(input$f_metric, "eta_squared")) return()
+    version <- Filter(function(f) identical(f$id, "test_version"), current_form_fields())
+    if (length(version) != 1 || !"anova_f" %in% names(version[[1]]$choices)) return()
+    if (!identical(input$f_test_version, "anova_f")) updateSelectInput(session, "f_test_version", selected = "anova_f")
+  }, ignoreInit = TRUE)
+
   # Input screen: redraw for a new number of mediators, keeping the values.
   observeEvent(input$f_n_mediators, {
     k <- as.integer(input$f_n_mediators)
@@ -1479,7 +1490,7 @@ server <- function(input, output, session) {
         sprintf("Running a rough preview (%s simulations)\u2026", whole(preview_nrep(forms)))))
       start_job("preview", preview_spec(spec, preview_nrep(forms)), usual,
         list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice, route = calc_route))
-    } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint) && !identical(values$goal, "sensitivity_curve") &&
+    } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint, spec) && !identical(values$goal, "sensitivity_curve") &&
                (runs_in_background(forms, state$endpoint, spec) ||
                 (search_in_background(spec) && background_running() < background_limit(forms)))) {
       # Long runs (E9) and sample-size searches: a separate R process, polled
@@ -1496,7 +1507,7 @@ server <- function(input, output, session) {
       cost_powers <- if (!state$endpoint %in% names(forms$background)) cost_line_powers(values)
       start_job("calc", spec, usual, list(ep_id = state$endpoint, fields = fields, values = values, advice = check$advice, route = calc_route,
         finish = !is.null(cost_powers), key = key, cost_powers = cost_powers), cost_powers = cost_powers, defer_after = 1)
-    } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint)) {
+    } else if (identical(check$status, "ok") && form_calculates(forms, state$endpoint, spec)) {
       # Show "Calculating" first; the engine runs once that has reached the
       # browser (well under a second for these: a power or precision goal on
       # a design with a formula).
@@ -2649,7 +2660,7 @@ server <- function(input, output, session) {
   output$bayes_curves_plot <- renderPlot({
     req(is.null(bayes_plan()$problem))
     bayes_curves_plot(bayes_plan())
-  }, res = 96, alt = "The chance of strong evidence for an effect, and for no effect, against the sample size.")
+  }, res = 96, alt = "The chance of evidence at the threshold for an effect, and for no effect, against the sample size.")
   # Labs map: the page of the analysis clicked on the map.
   output$map_page <- renderUI(map_page_ui(tree, input$map_endpoint))
   # "Plan this study" on the map opens that analysis's card on "Plan a

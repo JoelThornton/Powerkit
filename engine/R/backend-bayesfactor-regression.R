@@ -174,7 +174,7 @@ bfreg_script <- function(spec, result) {
     "# Inputs ----",
     sprintf("r2 <- %s # the expected R-squared of the model with all the predictors", r_code(inputs$r2)),
     sprintf("p <- %s # the number of predictors", r_code(inputs$p)),
-    sprintf("threshold <- %s # strong evidence: BF10 at least this", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: BF10 at least this", r_code(inputs$threshold)),
     sprintf("rscale <- %s # r scale of the Cauchy prior on the standardised coefficients (JASP's default 0.354)", r_code(inputs$prior_scale)),
     bayes_goal_inputs(spec),
     "",
@@ -204,7 +204,7 @@ bfreg_script <- function(spec, result) {
 bfreg_design_description <- function(spec, label) {
   inputs <- bfreg_inputs(spec)
   sprintf(
-    "Bayes factor for R-squared in a linear regression of %s on %d predictors: %s, BayesFactor's linear-regression Bayes factor (JZS) with a Cauchy prior of r scale %s on the standardised coefficients; strong evidence is BF10 of at least %s",
+    "Bayes factor for R-squared in a linear regression of %s on %d predictors: %s, BayesFactor's linear-regression Bayes factor (JZS) with a Cauchy prior of r scale %s on the standardised coefficients; the evidence threshold is BF10 of at least %s",
     label("Y"), inputs$p, bfreg_hypotheses_words(inputs),
     format_number(inputs$prior_scale), format_number(inputs$threshold)
   )

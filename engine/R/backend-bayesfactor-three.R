@@ -266,7 +266,7 @@ bfthree_script <- function(spec, result) {
     sprintf("within <- %s # which factors are within participants", r_code(inputs$within)),
     sprintf("r <- %s # the correlation of a person's scores in any two cells (with a within factor)", r_code(inputs$r)),
     sprintf("term <- %s # %s", r_code(inputs$term), bfthree_effect_words(inputs$term)),
-    sprintf("threshold <- %s # strong evidence: an inclusion BF at least this", r_code(inputs$threshold)),
+    sprintf("threshold <- %s # evidence threshold: an inclusion BF at least this", r_code(inputs$threshold)),
     sprintf("r_scale <- %s # Cauchy prior scale on the standardised effects (JASP's default 0.5)", r_code(inputs$prior_scale)),
     sprintf("matched <- %s # FALSE: across all models (JASP's default); TRUE: across matched models", r_code(identical(inputs$inclusion, "matched_models"))),
     switch(goal$type,
@@ -329,7 +329,7 @@ bfthree_design_description <- function(spec, label, levels) {
   }, character(1))
   effect <- bfthree_effect_words(inputs$term, label)
   sprintf(
-    "Bayes factor of %s in a %s ANOVA of %s by %s: the inclusion Bayes factor %s (BayesFactor's anovaBF(), r scale %s, models respecting marginality%s); strong evidence is an inclusion BF of at least %s",
+    "Bayes factor of %s in a %s ANOVA of %s by %s: the inclusion Bayes factor %s (BayesFactor's anovaBF(), r scale %s, models respecting marginality%s); evidence at the threshold is an inclusion BF of at least %s",
     effect, paste(dim(inputs$means), collapse = " x "), label("Y"), paste(factor_words, collapse = ", "),
     if (identical(inputs$inclusion, "matched_models")) "across matched models" else "across all models",
     format_number(inputs$prior_scale), if (any(inputs$within)) ", participants a random factor" else "", format_number(inputs$threshold)

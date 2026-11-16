@@ -180,7 +180,7 @@ repeated_ordinal_wald <- function(fit, k, interaction = FALSE) {
     utils::tail(names(stats::coef(fit)), k - 1)
   b <- stats::coef(fit)[terms]
   v <- stats::vcov(fit)[terms, terms, drop = FALSE]
-  stats::pchisq(as.numeric(t(b) %*% solve(v, b)), df = k - 1, lower.tail = FALSE)
+  stats::pchisq(as.numeric(t(b) %*% solve(v, b)), df = length(terms), lower.tail = FALSE)
 }
 
 # Spower experiment for ordered categories: one study, analysed with

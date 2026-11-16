@@ -140,8 +140,9 @@ test_that("the screen catches empty, non-numeric and out-of-range values, naming
   v$n <- "80.5"
   expect_match(form_problems(fields_for("E1"), v), "must be a whole number", fixed = TRUE)
   # A previous study needs its adjustment.
+  # How it was adjusted is optional, as every reasoning box is (S-02).
   v <- values_for("E1"); v$just_type <- "prior_study"
-  expect_match(form_problems(fields_for("E1"), v), "How you adjusted it", fixed = TRUE)
+  expect_length(form_problems(fields_for("E1"), v), 0)
   # The table of proportions must fit the categories.
   v <- values_for("E6"); v$probabilities <- "0.3, 0.25\n0.12, 0.08"
   expect_match(form_problems(fields_for("E6"), v), "should have 3 lines", fixed = TRUE)
@@ -667,7 +668,7 @@ test_that("long labels are short, with the detail as help linked to the field", 
   for (f in fields) expect_lt(nchar(f$label), 80, label = f$id)
   # The adjustment appears for one study's estimate, published or a
   # pilot, unless safeguard power or small telescopes is used instead; it
-  # is needed for both.
+  # is optional, as every reasoning box is (S-02).
   adj <- Filter(function(f) f$id == "just_adjustment", fields)[[1]]
   expect_identical(adj$shown_if, list(list(field = "just_type", is_one_of = c("prior_study", "pilot_study")), list(field = "sg_use", is_not = "yes"),
     list(field = "sg_use", is_not = "telescopes")))
@@ -1077,7 +1078,7 @@ test_that("a justified significance level is not offered with a Bayes factor tes
   expect_length(form_problems(list(goal), values), 0)
   # The planning line has a Bayes factor wording, and no engine function
   # names reach the checker's messages.
-  expect_match(as.character(planning_decision_ui(forms$forms$E2)), "strong evidence", fixed = TRUE)
+  expect_match(as.character(planning_decision_ui(forms$forms$E2)), "evidence at the threshold", fixed = TRUE)
   code <- readLines(file.path(routing_dir, "R", "forms_ui.R"))
   expect_false(any(grepl("validate_spec()", code[!grepl("^\\s*#", code)], fixed = TRUE)))
 })
@@ -1119,7 +1120,7 @@ test_that("the Bayes factor threshold starts empty with 10 one click away, a rea
   }
   v <- list(evidence_threshold = "30", evidence_reason = "the claim contradicts an established finding.", method = "bayes_factor")
   fields <- fields_for("E1")
-  expect_identical(writeup_choices(fields, v), "The threshold for strong evidence, BF10 ≥ 30, was chosen because the claim contradicts an established finding.")
+  expect_identical(writeup_choices(fields, v), "The evidence threshold, BF10 ≥ 30, was chosen because the claim contradicts an established finding.")
   # With no reason given, the paragraph states the value alone.
   expect_length(writeup_choices(fields, list(evidence_threshold = "10", method = "bayes_factor", alpha = "0.05")), 0)
 })

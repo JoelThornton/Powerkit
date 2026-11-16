@@ -296,10 +296,10 @@ whole_study_entry_ui <- function(plan, ticked = NULL, labels = NULL, badge = NUL
       p("It covers studies where:"), tags$ul(lapply(plan$reasons, tags$li))))
   }
   div(class = "whole-study-entry whole-study-lead",
-    h3(class = "h4", "Your whole study in one go ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
+    h3(class = "h4", "Your whole study in one go ", tags$span(class = "known-badge known-badge-progress", "Validation in progress")),
     p(class = "lead", "Describe your study once. powerkit simulates it many times and runs every analysis below on each simulated study, so you see the power of each one, and the chance that your claim succeeds, from one model."),
     if (length(ticked)) tags$ul(class = "whole-study-analyses", lapply(ticked, function(id) tags$li(labels[[id]], if (!is.null(badge)) badge(id)))),
-    p(class = "text-muted small", "New in powerkit and not yet checked by a statistician: use it to explore, not to report."),
+    p(class = "text-muted small", "A quick estimate runs here; the R script gives the full analysis and finds the sample size. Use it to explore your plan."),
     pick_button("Describe your study", "guided:simulate", class = "btn btn-primary")
   )
 }
@@ -313,10 +313,9 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
   nrep_choices <- forms$whole_study$nrep_choices
   tagList(
     screen_nav_ui("guided:plan", "Back to your plan"),
-    h2("Simulate the whole study ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
+    h2("Simulate the whole study ", tags$span(class = "known-badge known-badge-progress", "Validation in progress")),
     p(class = "lead", "Describe your study once. Every planned analysis is then run on the same simulated studies."),
-    div(class = "alert alert-warning", role = "note",
-      "The method is new in powerkit and is waiting for a statistician's check. The results may change. Use them to explore your plan, not to report."),
+    p(class = "small text-muted", "This screen gives a quick estimate; the R script runs the full analysis and finds the sample size. The method is new in powerkit and its validation is in progress."),
     if (!is.null(problem)) div(class = "form-problems", role = "alert", tabindex = "-1", h3(class = "h5", "Please check"), tags$ul(lapply(problem, tags$li))),
     h3(class = "h5", "Your analyses"),
     tags$ul(lapply(plan$analyses, function(a) tags$li(a$label, " ",
@@ -643,9 +642,9 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
       p(class = "small text-muted", "The planning document gathers every analysis and its role, the claim, the population assumed, the joint and separate powers and the R script that reproduces them, for a plan you share or cite. \u201cSave this plan\u201d keeps your plan and these inputs in a file you can open again on the start screen; the specification is for running the simulation in R.")),
     div(class = "result-card result-how", id = "ws-how",
       h4(class = "h5", "How it was calculated"),
-      if (experiment) p(class = "result-credit", "Simulated with the R package ", tags$strong("Superpower"), sprintf(" (version %s), with afex %s fitting each ANOVA. Experimental: a statistician's check is still to come.",
+      if (experiment) p(class = "result-credit", "Simulated with the R package ", tags$strong("Superpower"), sprintf(" (version %s), with afex %s fitting each ANOVA. The whole-study simulation's validation is in progress.",
         pv$packages[["Superpower"]], pv$packages[["afex"]]))
-      else p(class = "result-credit", "Simulated with the R package ", tags$strong("power4mome"), sprintf(" (version %s), with lavaan %s and manymome %s. Experimental: a statistician's check is still to come.",
+      else p(class = "result-credit", "Simulated with the R package ", tags$strong("power4mome"), sprintf(" (version %s), with lavaan %s and manymome %s. The whole-study simulation's validation is in progress.",
         pv$packages[["power4mome"]], pv$packages[["lavaan"]], pv$packages[["manymome"]])),
       h5(class = "h6", "How this differs from calculating each analysis separately"),
       p(departure %||% "Separate calculations each describe their own study; this simulation uses one model of your study for all of them."),
@@ -793,10 +792,9 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
   }
   tagList(
     screen_nav_ui("guided:plan", "Back to your plan"),
-    h2("Simulate the whole study ", tags$span(class = "badge bg-warning text-dark", "Experimental")),
+    h2("Simulate the whole study ", tags$span(class = "known-badge known-badge-progress", "Validation in progress")),
     p(class = "lead", "Describe your experiment once. Every planned test is then run on the same simulated studies."),
-    div(class = "alert alert-warning", role = "note",
-      "The method is new in powerkit and is waiting for a statistician's check. The results may change. Use them to explore your plan, not to report."),
+    p(class = "small text-muted", "This screen gives a quick estimate; the R script runs the full analysis and finds the sample size. The method is new in powerkit and its validation is in progress."),
     if (!is.null(problem)) div(class = "form-problems", role = "alert", tabindex = "-1", h3(class = "h5", "Please check"), tags$ul(lapply(problem, tags$li))),
     h3(class = "h5", "Your analyses"),
     p(sprintf("Your study is an experiment with %s. Each analysis is one of its F tests, all from the same ANOVA on the same data.", design_words)),
@@ -1000,7 +998,7 @@ whole_study_planning_document <- function(calc, script, departure = NULL) {
   unname(c("# Whole-study planning document", "",
     sprintf("Planning draft for review, made with %s. It does not register a preregistration or guarantee that the assumptions are correct.",
       powerkit_cited(pv$packages[["powerkit"]])), "",
-    "**Experimental.** The whole-study simulation has not yet been checked by a statistician. Treat these numbers as a planning aid, and say so if you cite them.", "",
+    "**Validation in progress.** The whole-study simulation is new in powerkit and its validation is not finished. Treat these numbers as a planning aid, and say so if you cite them.", "",
     sprintf("These numbers come from a quick look of %s simulated studies, so each power is within about ±%s percentage points. For numbers to report, and for the sample size you need, run the full simulation with the R script for it on the result page.",
       whole(pv$nrep), whole_study_precision(pv$nrep)), "",
     "## The study and its claim",
