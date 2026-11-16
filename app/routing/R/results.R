@@ -2909,7 +2909,14 @@ power_curve_plot <- function(lines, target = NULL, planned_n = NULL, xlab = "Par
       y <- stats::approx(d$n, d$power, xout = planned_n)$y
       segments(planned_n, 0, planned_n, y, col = navy, lty = 3, lwd = 1.5)
       points(planned_n, y, pch = 21, bg = "#ffffff", col = navy, cex = 1.8, lwd = 2.5)
-      text(planned_n, y - 0.1, sprintf("This analysis: %s", whole(planned_n)), pos = 4, offset = 0.6, col = navy, font = 2, cex = 0.9)
+      # The label goes on the side of the point that has room for it: on a
+      # phone's narrow chart it ran off the right-hand edge.
+      label <- sprintf("This analysis: %s", whole(planned_n))
+      room <- graphics::strwidth(label, cex = 0.9, font = 2) + graphics::strwidth("M", cex = 0.9)
+      usr <- graphics::par("usr")
+      side <- if (planned_n + room <= usr[2]) 4 else if (planned_n - room >= usr[1]) 2 else NA
+      if (is.na(side)) { label <- whole(planned_n); side <- if (planned_n - usr[1] > usr[2] - planned_n) 2 else 4 }
+      text(planned_n, y - 0.1, label, pos = side, offset = 0.6, col = navy, font = 2, cex = 0.9)
     }
   }
   if (!is.null(key)) do.call(chart_key, key)
@@ -3104,7 +3111,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       "Cite the package: see Citations above."),
     validation_ui(ep, result),
     if (length(departures_in_view)) tagList(
-      h4(class = "h6", "Where Powerkit differs from the tool's defaults"),
+      h4(class = "h6", "Where Powerkit differs from other tools' defaults"),
       tags$ul(class = "result-departures", lapply(unname(departures_in_view), tags$li))
     ),
     if (any(folded)) tags$details(class = "result-more result-departures-minor",
@@ -3993,7 +4000,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         "Powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
       validation_ui(ep, result),
       if (length(departures)) tagList(
-        h4(class = "h6", "Where Powerkit differs from the tool's defaults"),
+        h4(class = "h6", "Where Powerkit differs from other tools' defaults"),
         tags$ul(class = "result-departures", lapply(unname(departures), tags$li))),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),

@@ -96,10 +96,110 @@ powerkit_download_override <- function(original = NULL, download = NULL, pause =
   }
 }
 
-powerkit_restore <- function(root, restore = renv::restore, ...) {
+# CRAN keeps a ready-made (binary) download of only the newest version of
+# each package for Windows and macOS. Once CRAN publishes a newer version
+# than renv.lock records, the recorded version exists there only as source
+# code, which needs compilers (Rtools, Xcode and gfortran) that most people
+# have not installed. Posit Public Package Manager keeps dated snapshots of
+# CRAN with Windows and macOS binaries, so for each such package this finds
+# a snapshot date on which its recorded version was CRAN's current one, and
+# adds that snapshot as an extra repository. renv still installs exactly the
+# recorded versions, and prefers CRAN where CRAN has them.
+powerkit_snapshot_url <- "https://packagemanager.posit.co/cran/"
+
+powerkit_read_lines <- function(url) {
+  tryCatch(suppressWarnings(readLines(url, warn = FALSE)), error = function(e) character())
+}
+
+# Release dates of every version of a package on CRAN: archived versions
+# from the archive listing, the current one from its CRAN page.
+powerkit_cran_release_dates <- function(package, cran = "https://cloud.r-project.org",
+  read = powerkit_read_lines) {
+  archive <- paste(read(paste0(cran, "/src/contrib/Archive/", package, "/")), collapse = "\n")
+  pattern <- paste0("href=\"", gsub(".", "\\.", package, fixed = TRUE),
+    "_([^\"]+)\\.tar\\.gz\".*?([0-9]{4}-[0-9]{2}-[0-9]{2})")
+  hits <- regmatches(archive, gregexpr(pattern, archive, perl = TRUE))[[1]]
+  versions <- sub(pattern, "\\1", hits, perl = TRUE)
+  dates <- sub(pattern, "\\2", hits, perl = TRUE)
+  page <- paste(read(paste0(cran, "/web/packages/", package, "/index.html")), collapse = "\n")
+  current <- regmatches(page, regexec("Version:</td>\\s*<td>([^<]+)</td>", page))[[1]]
+  published <- regmatches(page, regexec("Published:</td>\\s*<td>([0-9]{4}-[0-9]{2}-[0-9]{2})", page))[[1]]
+  if (length(current) == 2L && length(published) == 2L) {
+    versions <- c(versions, current[[2]])
+    dates <- c(dates, published[[2]])
+  }
+  keep <- !duplicated(versions) & !is.na(suppressWarnings(as.Date(dates)))
+  data.frame(version = versions[keep], date = as.Date(dates[keep]), stringsAsFactors = FALSE)
+}
+
+# The days on which `version` was CRAN's current version, less the first
+# two (the snapshot needs time to build binaries) and on weekdays only
+# (snapshots are taken on working days). NULL when there are none.
+powerkit_current_window <- function(version, releases) {
+  if (!nrow(releases) || !version %in% releases$version) return(NULL)
+  newer <- releases$date[package_version(releases$version) > package_version(version)]
+  if (!length(newer)) return(NULL)
+  start <- releases$date[releases$version == version][[1]] + 2L
+  end <- min(newer) - 1L
+  if (end < start) return(NULL)
+  days <- seq(start, end, by = 1L)
+  days <- days[!format(days, "%u") %in% c("6", "7")]
+  if (length(days)) days else NULL
+}
+
+# As few snapshot dates as cover every window: pick the last day of the
+# window that ends first, drop the windows it falls in, and repeat.
+powerkit_cover_windows <- function(windows) {
+  windows <- Filter(length, windows)
+  picked <- as.Date(character())
+  while (length(windows)) {
+    ends <- vapply(windows, function(w) as.numeric(max(w)), numeric(1))
+    day <- max(windows[[which.min(ends)]])
+    picked <- c(picked, day)
+    windows <- Filter(function(w) !day %in% w, windows)
+  }
+  sort(picked)
+}
+
+powerkit_binary_snapshots <- function(root, sysname = Sys.info()[["sysname"]],
+  records = NULL, binaries = NULL, bundled = NULL,
+  releases = powerkit_cran_release_dates, cran = "https://cloud.r-project.org") {
+  if (!sysname %in% c("Darwin", "Windows")) return(character())
+  tryCatch({
+    if (is.null(records)) records <- renv::lockfile_read(file.path(root, "renv.lock"))$Packages
+    if (is.null(binaries)) {
+      listing <- suppressWarnings(utils::available.packages(
+        contriburl = utils::contrib.url(cran, "binary"), filters = list()))
+      binaries <- stats::setNames(listing[, "Version"], listing[, "Package"])
+    }
+    if (is.null(bundled)) {
+      base <- utils::installed.packages(.Library)
+      bundled <- stats::setNames(base[, "Version"], base[, "Package"])
+    }
+    windows <- list()
+    for (record in records) {
+      package <- record$Package
+      # renv itself is installed by renv/activate.R, not by restore().
+      if (!identical(record$Source, "Repository") || identical(package, "renv")) next
+      if (identical(unname(binaries[package]), record$Version)) next
+      if (identical(unname(bundled[package]), record$Version)) next
+      windows[[package]] <- powerkit_current_window(record$Version, releases(package, cran = cran))
+    }
+    days <- format(powerkit_cover_windows(windows))
+    stats::setNames(paste0(powerkit_snapshot_url, days), paste0("P3M-", days))
+  }, error = function(e) character())
+}
+
+powerkit_restore <- function(root, restore = renv::restore,
+  snapshots = powerkit_binary_snapshots(root), ...) {
   # The public CRAN mirror avoids the observed intermittent TLS resets on
   # Posit's Windows binary redirects. Versions still come from renv.lock.
   message("powerkit: downloading recorded package versions from cloud.r-project.org; the lockfile is unchanged.")
+  if (length(snapshots)) {
+    message("powerkit: some recorded versions have no ready-made download on CRAN now; ",
+      "fetching those from Posit Package Manager's CRAN snapshot(s) of ",
+      paste(sub("^P3M-", "", names(snapshots)), collapse = ", "), ", so nothing needs compiling.")
+  }
   original <- getOption("renv.download.override")
   options(renv.download.override = powerkit_download_override(original))
   on.exit(options(renv.download.override = original), add = TRUE)
@@ -110,5 +210,5 @@ powerkit_restore <- function(root, restore = renv::restore, ...) {
     if ("retry" %in% names(formals(restore))) args$retry <- FALSE
     if (!is.null(repos)) args$repos <- repos
     do.call(restore, args)
-  }, "Installing packages", initial_repos = c(CRAN = "https://cloud.r-project.org"), ...)
+  }, "Installing packages", initial_repos = c(CRAN = "https://cloud.r-project.org", snapshots), ...)
 }
