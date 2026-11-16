@@ -1753,19 +1753,76 @@ usual_test_line <- function(spec, result, run = engine_function("run_spec"), see
 }
 
 # The explore panel (the new design): power by sample size for any effect
-# size the user tries, kept apart from the plan. The t-tests and the
-# correlation by formula only for now. The app only calls the engine.
+# size the user tries, kept apart from the plan. Every card whose effect is
+# one number and whose power comes from a formula (instant): the t-tests
+# and the correlation (since October 2026), and since 16 November 2026
+# multiple, logistic and Poisson regression, an interaction given by its
+# R-squared change, the ANOVAs given by partial eta-squared, one and two
+# proportions and two correlations. Each entry says how a value sets the
+# spec (`set`), its range, and the value that means no effect (`null`).
+# The app only calls the engine.
 explore_effect <- function(spec) {
-  # Every formula-based version, Welch's t-test (the two-group default)
-  # included: its power comes from pwrss's formula, as quickly as Student's.
-  if (!identical(spec$design, "basic_test") || identical(spec$options$method, "simulation") ||
-      is_rank_test(spec) || is_rank_correlation(spec)) return(NULL)
-  switch(spec$template,
-    one_sample_t = list(field = "d", label = "Cohen's d", max = 1.5),
-    independent_t = list(field = "d", label = "Cohen's d", max = 1.5),
-    paired_t = list(field = "dz", label = "d_z", max = 1.5),
-    correlation = list(field = "r", label = "Correlation r", max = 0.9),
+  if (identical(spec$options$method, "simulation") || is_rank_test(spec) || is_rank_correlation(spec)) return(NULL)
+  pop <- spec$population
+  standardised <- function(field) function(s, x) {
+    # The slider is in standardised units, whatever units the plan used.
+    s$population$metric <- "standardised"
+    s$population$raw <- NULL
+    s$population[[field]] <- x
+    s
+  }
+  # Set the value, and drop a conversion from another effect size (such as
+  # Cohen's f-squared), which would otherwise replace it.
+  plain <- function(field) function(s, x) {
+    s$population[[field]] <- x
+    s$effect_justification$conversion <- NULL
+    s
+  }
+  one <- function(field, label, lower, upper, null = 0, set = plain(field), ratio = FALSE) {
+    list(field = field, label = label, min = lower, max = upper, null = null, set = set, ratio = ratio)
+  }
+  # A ratio's range sits on the side of 1 the plan's effect is on.
+  ratio_range <- function(field, label) {
+    if (isTRUE((pop[[field]] %||% 1) < 1)) one(field, label, 0.2, 0.95, null = 1, ratio = TRUE)
+    else one(field, label, 1.05, 4, null = 1, ratio = TRUE)
+  }
+  if (is_bayes_test(spec) && !identical(spec$design, "basic_test")) return(NULL)
+  key <- paste(spec$design, spec$template, sep = "/")
+  if (identical(spec$design, "factorial_anova") && identical(pop$metric, "eta_squared")) {
+    return(one("eta_squared", "Partial eta-squared", 0.005, 0.3))
+  }
+  switch(key,
+    "basic_test/one_sample_t" = one("d", "Cohen's d", 0.05, 1.5, set = standardised("d")),
+    "basic_test/independent_t" = one("d", "Cohen's d", 0.05, 1.5, set = standardised("d")),
+    "basic_test/paired_t" = one("dz", "d_z", 0.05, 1.5, set = standardised("dz")),
+    "basic_test/correlation" = one("r", "Correlation r", 0.05, 0.9, set = standardised("r")),
+    "basic_test/one_proportion" = if (!is_bayes_test(spec)) one("p", "Proportion", 0.01, 0.99, null = pop$p0),
+    "basic_test/two_proportions" = if (!is_bayes_test(spec)) one("p2", "Group 2's proportion", 0.01, 0.99, null = pop$p1),
+    "basic_test/two_correlations" = one("r2", "Group 2's correlation", -0.95, 0.95, null = pop$r1),
+    "multiple_regression/r2_zero" = one("r2", "R-squared", 0.005, 0.5),
+    "multiple_regression/single_coefficient" = if (identical(spec$target_test$method, "f_test")) one("partial_r2", "Partial R-squared", 0.005, 0.5),
+    "multiple_regression/r2_increase" = {
+      reduced <- pop$r2_reduced %||% 0
+      one("r2_full", "R-squared with all the predictors", round(reduced + 0.005, 3), round(min(0.95, reduced + 0.5), 3), null = reduced)
+    },
+    "regression_interaction/two_way" = if (identical(pop$metric, "r2_change")) one("r2_change", "R-squared change", 0.002, 0.2),
+    "logistic_regression/single_predictor" = ratio_range("odds_ratio", "Odds ratio"),
+    "poisson_regression/single_predictor_count" = if (identical(spec$target_test$method, "wald_z")) ratio_range("rate_ratio", "Rate ratio"),
     NULL)
+}
+
+# What "no effect" is for the effect explored, in words.
+explore_null_text <- function(e) {
+  if (isTRUE(e$ratio)) return("1")
+  if (identical(e$null, 0)) return("zero")
+  sprintf("%s, no difference", format(e$null))
+}
+
+# The plan's value of the effect explored: the safeguard value, the value
+# converted from another effect size or from the measure's own units, or
+# the value entered.
+explore_planned <- function(spec, result, e) {
+  result$safeguard$lower %||% result$effect_conversion$converted %||% result$effect_from_units$value %||% spec$population[[e$field]]
 }
 
 # The step between totals that split into whole groups: the engine's own
@@ -1795,12 +1852,7 @@ explore_curve <- function(spec, result, effect, run = engine_function("run_spec"
   e <- explore_effect(spec)
   ns <- explore_sizes(spec, result)
   power <- vapply(ns, function(n) {
-    s <- spec
-    # The slider is in standardised units, whatever units the plan used.
-    s$population$metric <- "standardised"
-    s$population$raw <- NULL
-    s$population[[e$field]] <- effect
-    s <- without_safeguard(s)
+    s <- without_safeguard(e$set(spec, effect))
     s$goal <- list(type = "power", n = as.integer(n))
     calc <- run_calculation(s, run, seed)
     if (identical(calc$status, "ok")) calc$result$curve$power[1] else NA_real_
@@ -1811,12 +1863,18 @@ explore_curve <- function(spec, result, effect, run = engine_function("run_spec"
 explore_ui <- function(spec, result = NULL) {
   e <- explore_effect(spec)
   if (is.null(e)) return(NULL)
-  planned <- result$safeguard$lower %||% result$effect_conversion$converted %||% result$effect_from_units$value %||% spec$population[[e$field]]
-  start <- if (is.null(planned) || planned == 0) 0.3 else abs(planned)
+  planned <- explore_planned(spec, result, e)
+  # The t-tests and the correlation explore the size of the effect (its
+  # absolute value); the others their own scale, from the plan's value.
+  start <- if (is.null(planned) || isTRUE(all.equal(planned, e$null))) {
+    if (isTRUE(e$ratio)) if (e$min < 1) 0.8 else 1.5 else if (identical(e$min, 0.05)) 0.3 else (e$min + e$max) / 4
+  } else if (identical(e$min, 0.05)) abs(planned) else planned
+  start <- min(max(start, e$min), e$max)
+  step <- if (e$max <= 0.5) 0.005 else 0.01
   div(class = "explore-panel",
     h5(class = "h6", "If the effect were different"),
     p(class = "small", "Move the slider: the line shows power at each sample size for that effect, and the circle marks this analysis's answer. Exploring doesn't change it."),
-    sliderInput("explore_effect", e$label, min = 0.05, max = e$max, value = round(start, 2), step = 0.01, width = "100%"),
+    sliderInput("explore_effect", e$label, min = e$min, max = e$max, value = round(start, if (step < 0.01) 3 else 2), step = step, width = "100%"),
     plotOutput("explore_plot", height = "300px"),
     tags$details(tags$summary("Read the exploration values as a table"), uiOutput("explore_table"))
   )
@@ -1834,7 +1892,7 @@ scenario_names <- c(conservative = "Conservative", expected = "The effect you en
 scenario_planned <- function(spec, result = NULL) {
   e <- explore_effect(spec)
   if (is.null(e)) return(NULL)
-  result$safeguard$lower %||% result$effect_conversion$converted %||% result$effect_from_units$value %||% spec$population[[e$field]]
+  explore_planned(spec, result, e)
 }
 
 scenario_effects <- function(spec, result = NULL, conservative = NA, optimistic = NA) {
@@ -1852,11 +1910,7 @@ scenario_curves <- function(spec, result, conservative = NA, optimistic = NA, n 
   ns <- sort(unique(c(pmax(step * ceiling(8 / step), step * round(seq(8, top, length.out = 15) / step)), n_analysed(result))))
   do.call(rbind, lapply(names(effects), function(k) {
     power <- vapply(ns, function(at) {
-      s <- spec
-      s$population$metric <- "standardised"
-      s$population$raw <- NULL
-      s$population[[e$field]] <- effects[[k]]
-      s <- without_safeguard(s)
+      s <- without_safeguard(e$set(spec, effects[[k]]))
       s$goal <- list(type = "power", n = as.integer(at))
       calc <- run_calculation(s, run, seed)
       if (identical(calc$status, "ok")) calc$result$curve$power[1] else NA_real_
@@ -1872,11 +1926,7 @@ scenario_n <- function(spec, result, conservative = NA, optimistic = NA, run = e
   effects <- scenario_effects(spec, result, conservative, optimistic)
   power <- spec$goal$power %||% 0.8
   vapply(effects, function(effect) {
-    s <- spec
-    s$population$metric <- "standardised"
-    s$population$raw <- NULL
-    s$population[[e$field]] <- effect
-    s <- without_safeguard(s)
+    s <- without_safeguard(e$set(spec, effect))
     s$goal <- list(type = "sample_size", power = power)
     calc <- run_calculation(s, run, seed)
     if (identical(calc$status, "ok")) calc$result$n_required$n else NA_real_
@@ -1896,14 +1946,14 @@ scenarios_ui <- function(spec, result = NULL) {
   planned <- scenario_planned(spec, result)
   # Nothing to compare with a plan for the smallest detectable effect, or
   # with no effect.
-  if (is.null(e) || identical(spec$goal$type, "sensitivity") || is.null(planned) || planned == 0) return(NULL)
+  if (is.null(e) || identical(spec$goal$type, "sensitivity") || is.null(planned) || isTRUE(all.equal(planned, e$null))) return(NULL)
   div(class = "scenario-panel",
     h5(class = "h6", "What if the true effect is smaller?"),
     p(class = "small", "The main answer depends on the effect and other assumptions you entered. Compare plausible alternatives before settling on a sample size. These comparisons keep the analysis and any chosen between-study variation unchanged."),
     p(class = "small", sprintf(paste0(
-      "This analysis uses %s = %s. Enter a weaker effect (closer to zero, keeping its direction) you would still find plausible, and a stronger one, ",
+      "This analysis uses %s = %s. Enter a weaker effect (closer to %s, keeping its direction) you would still find plausible, and a stronger one, ",
       "and Powerkit draws power for all three. Choose values you could defend; Powerkit won't suggest them."),
-      e$label, format(round(planned, 3)))),
+      e$label, format(round(planned, 3)), explore_null_text(e))),
     div(class = "d-flex gap-3 flex-wrap",
       numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
       numericInput("scenario_optimistic", sprintf("Optimistic %s", e$label), value = NA, step = 0.01, width = "14rem")),

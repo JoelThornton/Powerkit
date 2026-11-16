@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-16"
+    title: "Try a different effect on more cards"
+    text: "The panels \"If the effect were different\" and \"What if the true effect is smaller?\" now appear on multiple, logistic and count regression, the ANOVAs entered as partial eta-squared, moderated regression entered as the R-squared change, one and two proportions and two correlations, not only the basic tests. For an odds or rate ratio, a weaker effect means one closer to 1."
+  - date: "2026-11-16"
     title: "Small fixes to the steps, the effect section and the search"
     text: "The progress steps no longer stay on Find your analysis on a study plan's page. The effect section has one question for people unsure of their effect, and each What these terms mean link names its terms. Searching the analyses finds moderation by simple slopes, puts the best match first, and says what to search for when the words are only power or G*Power."
   - date: "2026-11-16"
