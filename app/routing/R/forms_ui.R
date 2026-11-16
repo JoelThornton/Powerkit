@@ -298,7 +298,9 @@ group_ui_build <- function(tree, g, values, index) {
       if (!is.null(g$note_more)) p(class = "group-note", g$note_more)),
     # Routine notes follow explanation mode; required-input prompts and
     # scientific warnings are rendered separately and remain visible.
-    if (length(hints)) tags$details(class = "form-terms", tags$summary("What these terms mean"),
+    # The summary names its terms, so that two of these on one screen
+    # don't read as the same link twice (16 November 2026).
+    if (length(hints)) tags$details(class = "form-terms", tags$summary(terms_summary(vapply(hints, `[[`, "", "term"))),
       div(id = hint_id, lapply(hints, function(h) div(class = "hint", tags$dfn(h$term, .noWS = "after"), ": ", h$hint)))),
     lapply(g$fields, function(f) field_ui(f, values[[f$id]] %||% f[["default"]], if (length(hints)) hint_id else character()))
   )
@@ -650,7 +652,19 @@ effect_waits_ui <- function(form, groups) {
     p(class = "effect-waits", sprintf("Choose \u201c%s\u201d above first: the boxes for its effect size appear here.", f[[1]]$label)))
 }
 
-# "Not sure what number to put here?": the four honest routes.
+# The disclosure's summary for a group's definitions: "What these terms
+# mean" followed by the terms, at most three of them.
+terms_summary <- function(terms) {
+  terms <- unique(terms)
+  shown <- paste(utils::head(terms, 3), collapse = ", ")
+  if (length(terms) > 3) shown <- paste0(shown, " and more")
+  sprintf("What these terms mean: %s", shown)
+}
+
+# "Not sure what number to put here?": the four honest routes. Where the
+# "Don't know what effect to expect?" prompt sits just above, the summary
+# says what the list adds, rather than asking the same question twice
+# (16 November 2026).
 effect_help_ui <- function(form, groups) {
   ids <- unlist(lapply(groups, function(g) vapply(g$fields, `[[`, "", "id")))
   convert <- if ("d" %in% ids) {
@@ -670,7 +684,7 @@ effect_help_ui <- function(form, groups) {
       tags$dd("This design can't yet work out the smallest effect your sample could detect. Talk to a colleague or a statistician about a value you can defend; Powerkit won't suggest one."))
   }
   tags$details(class = "effect-help",
-    tags$summary("Not sure what number to put here?"),
+    tags$summary(if (is.null(unsure)) "Have an effect in mind? Four ways to a number you can defend" else "Not sure what number to put here?"),
     p("Powerkit won't suggest a number. These are the ways to one you can defend."),
     tags$dl(
       tags$dt("The smallest effect that would matter"),

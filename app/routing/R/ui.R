@@ -122,7 +122,10 @@ progress_steps <- c(study = "Your study", design = "Find your analysis", numbers
 screen_step <- function(screen, has_result = FALSE) {
   if (screen %in% c("start", "aim", "check")) return("study")
   if (identical(screen, "form")) return(if (isTRUE(has_result)) "result" else "numbers")
-  if (identical(screen, "g_sim")) return("numbers")
+  # A study plan's own page comes once its analyses are chosen (16 November
+  # 2026: it showed "Find your analysis" there and on the simulation).
+  if (identical(screen, "g_plan")) return("numbers")
+  if (identical(screen, "g_sim")) return(if (isTRUE(has_result)) "result" else "numbers")
   "design"
 }
 
@@ -673,16 +676,18 @@ known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
     # its neighbours. Splitting in halves keeps the reading order on a
     # phone, where the columns stack.
     div(class = "known-groups", cached_html(list("known_groups", eps, families, maintainer_view()), function() {
-      family_html <- lapply(families, function(f) {
+      half <- ceiling(length(families) / 2)
+      family_html <- lapply(seq_along(families), function(k) {
+        f <- families[[k]]
         ids <- intersect(unlist(f$endpoints), names(eps))
-        tags$details(class = "known-family", `data-family` = f$id,
+        tags$details(class = "known-family", `data-family` = f$id, `data-order` = k, `data-col` = if (k <= half) 1 else 2,
           tags$summary(
             tags$span(class = "known-family-label", name_swap(f$label, f$technical_label %||% f$label)),
             tags$span(class = "known-family-count", `data-total` = length(ids),
               `aria-label` = sprintf("%d analyses", length(ids)), length(ids))),
           div(class = "known-family-items", lapply(seq_along(ids), function(i) tagAppendAttributes(item(ids[i], f), `data-index` = i))))
       })
-      left <- seq_len(ceiling(length(family_html) / 2))
+      left <- seq_len(half)
       list(div(class = "known-groups-column", family_html[left]),
            div(class = "known-groups-column", family_html[-left]))
     })),
@@ -735,15 +740,25 @@ search_text <- function(...) {
 # Within a group, analyses whose own name holds every word come first (so
 # "ANCOVA" lists the ANCOVA card before the ANOVAs that mention a
 # covariate); an empty box restores the usual order.
+# Groups whose analyses hold every word in their own name come first too,
+# alternating between the two columns (so "Fisher" lists the Fisher exact
+# test's group before the correlations, whose card mentions Fisher's z).
+# Words every analysis shares ("power", "G*Power", "analysis") are
+# left out of the match; a search of those alone says what to search for
+# instead (16 November 2026).
 # The search and the open groups are remembered in the page (not stored
 # anywhere), so Back from a card returns to the same place in the list.
 known_search_js <- "
 window.powerkitKnown = window.powerkitKnown || { query: '', open: [], back: null };
+var powerkitGeneralWords = ['power', 'gpower', 'g', 'analysis', 'analyses', 'calculation', 'calculator'];
 function powerkitFilterAnalyses(query) {
-  var words = query.toLowerCase().replace(/['\\u2019]/g, '').replace(/[^a-z0-9\\u00b2\\u00d7]+/g, ' ').split(' ').filter(function(w) { return w.length > 0; });
+  var typed = query.toLowerCase().replace(/['\\u2019]/g, '').replace(/[^a-z0-9\\u00b2\\u00d7]+/g, ' ').split(' ').filter(function(w) { return w.length > 0; });
+  var words = typed.filter(function(w) { return powerkitGeneralWords.indexOf(w) < 0; });
+  var onlyGeneral = typed.length > 0 && words.length === 0;
   var any = false, items = 0, groups = 0;
+  var best = [];
   document.querySelectorAll('.known-family').forEach(function(family) {
-    var shown = 0;
+    var shown = 0, named = false;
     var has = function(text, w) { return text.indexOf(w.length <= 2 ? ' ' + w + ' ' : w) >= 0; };
     var list = family.querySelector('.known-family-items');
     var rows = Array.prototype.slice.call(family.querySelectorAll('.known-item'));
@@ -752,7 +767,9 @@ function powerkitFilterAnalyses(query) {
       var match = words.every(function(w) { return has(text, w); });
       item.hidden = !match;
       if (match) shown++;
+      if (match && words.length > 0 && words.every(function(w) { return has(item.getAttribute('data-name') || '', w); })) named = true;
     });
+    best.push({ family: family, named: named, shown: shown });
     if (list) {
       var rank = function(item) {
         var name = item.getAttribute('data-name') || '';
@@ -771,6 +788,17 @@ function powerkitFilterAnalyses(query) {
     }
     if (shown > 0) { any = true; groups++; items += shown; }
   });
+  var columns = document.querySelectorAll('.known-groups-column');
+  if (columns.length === 2) {
+    var order = function(x) { return Number(x.family.getAttribute('data-order')); };
+    if (words.length > 0) {
+      best.sort(function(a, b) { return (b.shown > 0) - (a.shown > 0) || b.named - a.named || order(a) - order(b); });
+      best.forEach(function(x, i) { columns[i % 2].appendChild(x.family); });
+    } else {
+      best.sort(function(a, b) { return order(a) - order(b); });
+      best.forEach(function(x) { columns[Number(x.family.getAttribute('data-col')) - 1].appendChild(x.family); });
+    }
+  }
   var none = document.getElementById('known_none');
   if (none) none.hidden = any;
   var shortcuts = document.getElementById('known_shortcuts');
@@ -782,7 +810,8 @@ function powerkitFilterAnalyses(query) {
   var line = document.getElementById('known_count');
   if (line) {
     var plural = function(n, one, many) { return n + ' ' + (n === 1 ? one : many); };
-    line.textContent = words.length === 0 ? plural(items, 'analysis', 'analyses') + ' in ' + plural(groups, 'group.', 'groups.') :
+    line.textContent = onlyGeneral ? 'Every analysis here works out power. Search for your test or design instead, for example t-test, ANOVA or mediation.' :
+      words.length === 0 ? plural(items, 'analysis', 'analyses') + ' in ' + plural(groups, 'group.', 'groups.') :
       any ? plural(items, 'analysis matches', 'analyses match') + ', in ' + plural(groups, 'group.', 'groups.') : 'No analysis matches.';
   }
   window.powerkitKnown.query = query;
@@ -1228,7 +1257,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
     h2("Your plan"),
     if (isTRUE(sim$ok)) tagList(
       whole_study_entry_ui(sim, ticked = ticked, labels = labels, badge = role_badge),
-      tags$details(class = "plan-separate", tags$summary(class = "h4", "Or calculate each analysis on its own"), separate)
+      tags$details(class = "plan-separate", tags$summary("Or calculate each analysis on its own"), separate)
     ) else tagList(
       separate,
       whole_study_entry_ui(sim)

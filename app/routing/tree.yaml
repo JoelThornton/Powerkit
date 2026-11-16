@@ -488,7 +488,7 @@ nodes:
       - {label: "Two, each with exactly two levels (a 2 x 2 design)", next: f4, group: "Two or more things",
          help: "Crossed: every combination appears, for example two conditions for both younger and older people."}
       - {label: "Two, crossed, at least one with three or more levels", next: f3a_by_times, group: "Two or more things",
-         help: "For example two groups each measured at three timepoints."}
+         help: "For example three doses, each given to younger and to older people."}
       - {label: "Three, crossed (every combination appears)", next: E56, group: "Two or more things"}
       - {label: "Four or more", next: E-unsure, group: "Two or more things"}
       - {label: "One group, its several outcomes compared with fixed values at once", next: E60, when: {times: once}, group: "Several outcomes at once",
@@ -1125,6 +1125,7 @@ endpoints:
     doc_name: "Moderated regression (continuous × continuous)"
     technical_name: "Moderated regression"
     plain_name: "Does the effect of one score depend on another score?"
+    search_words: "interaction product term simple slopes probing johnson neyman continuous moderator"
     template: "regression_interaction / two_way"
     backend: "InteractionPoweR: power_interaction() (power_interaction_r2() only brackets N)"
     method: Simulation
@@ -1199,6 +1200,7 @@ endpoints:
     doc_name: "Moderated regression with a yes/no X or W"
     technical_name: "Moderated regression: binary predictor"
     plain_name: "Does an effect depend on a moderator, when X or W is two groups?"
+    search_words: "interaction product term simple slopes binary moderator dummy"
     template: "regression_interaction / two_way (X or W yes/no)"
     backend: "InteractionPoweR: power_interaction() with k.x1 / k.x2 = 2 (simulation)"
     method: Simulation
@@ -1515,7 +1517,7 @@ endpoints:
     doc_name: "Moderator with three or more groups"
     technical_name: "Moderation: multicategorical moderator"
     plain_name: "Moderation where X or W has three or more groups"
-    search_words: "categorical moderator group differences in slopes interaction three groups factor by covariate"
+    search_words: "categorical moderator simple slopes group differences in slopes interaction three groups factor by covariate"
     template: "regression_interaction / group_moderator"
     backend: "Spower: powerkit's experiment around stats::lm(), the F test of the X x group terms (simulation)"
     method: Simulation
