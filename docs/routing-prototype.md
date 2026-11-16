@@ -254,7 +254,7 @@ comes from, and expected attrition).
 - **The inputs it used** (the values entered), **the backend credited by
   name** with its version and the function powerkit called, the **validation
   status** (green "Validated" or "Validation in progress", with the card's
-  validation note), and **where powerkit differs from the tool's defaults**
+  validation note), and **where powerkit differs from other tools' defaults**
   (the card's departures, from `conventions.md`).
 - **Download R script** (the engine's `export_script()`: reproduces the
   result with the backend package alone) and **Citations**
