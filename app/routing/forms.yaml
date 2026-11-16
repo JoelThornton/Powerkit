@@ -3138,6 +3138,7 @@ forms:
     # covers, and for a correlation (power_z_cor()) and two proportions
     # (power_twoprop()); the comparison sets the template.
     methods_name: "an equivalence test (two one-sided tests, TOST)"
+    sensitivity: true
     sides: false
     tool: TOSTER
     directional: false
@@ -3187,13 +3188,13 @@ forms:
              default: standardised, default_source: "standardised units, which TOSTER's power_t_TOST() takes with sd = 1 (TOSTER 0.8.6); Powerkit works them out from the means and SD if you give those",
              shown_if: {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}}
           - {id: bound, label: "Equivalence bound (more than 0)", type: number, path: population.bound, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "equivalence bound (±)",
-             shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}]}
+             shown_if: [{field: goal, is_not: sensitivity}, {field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}]}
           - {id: d, label: "Expected true difference, as Cohen's d (0 = no difference)", type: number, path: population.d, effect: true, writeup_label: "expected Cohen's d",
              shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is_not: tost_paired}]}
           - {id: dz, label: "Expected true difference, as d_z (0 = no difference)", type: number, path: population.dz, effect: true, writeup_label: "expected d_z",
              shown_if: [{field: effect_units, is_not: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_paired}]}
           - {id: raw_bound, label: "Equivalence bound, in your measure's units (more than 0)", type: number, path: population.raw.bound, required: true, min_exclusive: 0, in_effect_text: true, writeup_label: "equivalence bound (±)",
-             shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}]}
+             shown_if: [{field: goal, is_not: sensitivity}, {field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}]}
           - {id: raw_mean, label: "Expected mean", type: number, path: population.raw.mean, effect: true, writeup_label: "expected mean",
              shown_if: [{field: effect_units, is: raw}, {field: comparison, is_one_of: [tost_independent, tost_paired, tost_one_sample]}, {field: comparison, is: tost_one_sample}]}
           - {id: raw_test_value, label: "The fixed value it is compared with", type: number, path: population.raw.test_value, required: true, in_effect_text: true, writeup_label: "fixed value",
@@ -3225,11 +3226,11 @@ forms:
         note: "The bound is the smallest difference that would matter; the expected value is what you think the truth is. The closer it is to the bound, the more people you need."
         fields:
           - {id: cor_bound, label: "Equivalence bound, as a correlation (between 0 and 1)", type: number, path: population.bound, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "equivalence bound (±r)",
-             shown_if: {field: comparison, is: tost_correlation}, help: "For example 0.2: a correlation between -0.2 and 0.2 counts as too small to matter."}
+             shown_if: [{field: comparison, is: tost_correlation}, {field: goal, is_not: sensitivity}], help: "For example 0.2: a correlation between -0.2 and 0.2 counts as too small to matter."}
           - {id: cor_r, label: "Expected true correlation (0 = none)", type: number, path: population.r, effect: true, min_exclusive: -1, max_exclusive: 1, writeup_label: "expected correlation",
              shown_if: {field: comparison, is: tost_correlation}}
           - {id: prop_bound, label: "Equivalence bound, as a difference in proportions (between 0 and 1)", type: number, path: population.bound, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "equivalence bound (±)",
-             shown_if: {field: comparison, is: tost_two_proportions}, help: "For example 0.1: a difference of less than 10 percentage points either way counts as too small to matter."}
+             shown_if: [{field: comparison, is: tost_two_proportions}, {field: goal, is_not: sensitivity}], help: "For example 0.1: a difference of less than 10 percentage points either way counts as too small to matter."}
           - {id: p1, label: "Expected proportion, first group (0 to 1)", type: number, path: population.p1, required: true, min_exclusive: 0, max_exclusive: 1, in_effect_text: true, writeup_label: "first group's proportion",
              shown_if: {field: comparison, is: tost_two_proportions}}
           - {id: p2, label: "Expected proportion, second group (0 to 1)", type: number, path: population.p2, effect: true, min_exclusive: 0, max_exclusive: 1, writeup_label: "second group's proportion",
@@ -3369,6 +3370,8 @@ forms:
   # to get one from an SD. Two groups are equal in size on this screen.
   E52:
     methods_name: "a chi-square test of one variance"
+    sensitivity: true
+    sensitivity_without_effect: true
     tool: formula
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: one_variance,
@@ -3380,13 +3383,15 @@ forms:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected variance and the fixed value"
         fields:
-          - {id: var, writeup_label: "expected variance", label: "Expected variance (the SD squared)", type: number, path: population.var, effect: true, min_exclusive: 0,
+          - {id: var, when_empty: same_as, same_as: var0, writeup_label: "expected variance", label: "Expected variance (the SD squared)", type: number, path: population.var, effect: true, min_exclusive: 0,
              help: "For example, an SD of 1.2 is a variance of 1.44."}
           - {id: var0, label: "The fixed variance you compare it with", type: number, path: population.var0, required: true, min_exclusive: 0,
              help: "For example, the variance of a published norm. A one-sided test predicting 'positive' says your group's variance is the larger."}
 
   E53:
     methods_name: "an F test of two variances"
+    sensitivity: true
+    sensitivity_without_effect: true
     tool: formula
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: two_variances,
@@ -3401,9 +3406,9 @@ forms:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected variance in each group"
         fields:
-          - {id: var1, writeup_label: "variance in group 1", label: "Variance in group 1 (the SD squared)", type: number, path: population.var1, effect: true, min_exclusive: 0,
+          - {id: var1, when_empty: same_as, same_as: var2, writeup_label: "variance in group 1", label: "Variance in group 1 (the SD squared)", type: number, path: population.var1, effect: true, min_exclusive: 0,
              help: "For example, an SD of 1.2 is a variance of 1.44. A one-sided test predicting 'positive' says group 1's variance is the larger."}
-          - {id: var2, writeup_label: "variance in group 2", label: "Variance in group 2 (the SD squared)", type: number, path: population.var2, effect: true, min_exclusive: 0}
+          - {id: var2, baseline: true, writeup_label: "variance in group 2", label: "Variance in group 2 (the SD squared)", type: number, path: population.var2, effect: true, min_exclusive: 0}
 
   # Two variances in the same people (the Pitman-Morgan test), simulated
   # with Spower's p_r() on the sum and the difference of the paired scores.
@@ -3434,6 +3439,11 @@ forms:
   # (build_spec()) makes one variable of each, Y1 to Yp.
   E59:
     methods_name: "a MANOVA (Pillai's trace; with two groups, Hotelling's T-squared)"
+    sensitivity: true
+    # Two groups by their means (Hotelling's T-squared) or any groups by
+    # Pillai's V are exact; three or more groups by their means are
+    # simulated and have no sensitivity analysis yet.
+    sensitivity_shown_if: {field: manova_test, is: pillai_trace}
     tool: Spower
     directional: false
     known_differences: ["8"]
@@ -3508,6 +3518,7 @@ forms:
   # variable of each, Y1 to Yp.
   E60:
     methods_name: "a one-sample Hotelling's T-squared test"
+    sensitivity: true
     tool: formula
     directional: false
     outcomes: Y_labels
@@ -4458,6 +4469,8 @@ forms:
   # direction of the second correlation minus the first.
   E51:
     methods_name: "Steiger's z test of two dependent correlations"
+    sensitivity: true
+    sensitivity_without_effect: true
     tool: pwrss
     directional: true
     departures: ["12"]
@@ -4481,26 +4494,26 @@ forms:
           - {id: Y2_label, label: "Y2", type: text, path: variables.Y2.label, required: true, shown_if: {field: comparison, is: nonoverlapping_correlations}}
       - input: "The two correlations you are comparing"
         fields:
-          - {id: r_X_Y, writeup_label: "first correlation (X with Y)", label: "First: X with Y", type: number, path: population.r_X_Y, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X_Y, baseline: true, writeup_label: "first correlation (X with Y)", label: "First: X with Y", type: number, path: population.r_X_Y, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: overlapping_correlations}}
-          - {id: r_X_Z, writeup_label: "second correlation (X with Z)", label: "Second: X with Z", type: number, path: population.r_X_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X_Z, when_empty: same_as, same_as: r_X_Y, writeup_label: "second correlation (X with Z)", label: "Second: X with Z", type: number, path: population.r_X_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: overlapping_correlations}}
-          - {id: r_X1_Y1, writeup_label: "first correlation (X1 with Y1)", label: "First: X1 with Y1", type: number, path: population.r_X1_Y1, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X1_Y1, baseline: true, writeup_label: "first correlation (X1 with Y1)", label: "First: X1 with Y1", type: number, path: population.r_X1_Y1, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: nonoverlapping_correlations}}
-          - {id: r_X2_Y2, writeup_label: "second correlation (X2 with Y2)", label: "Second: X2 with Y2", type: number, path: population.r_X2_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X2_Y2, when_empty: same_as, same_as: r_X1_Y1, writeup_label: "second correlation (X2 with Y2)", label: "Second: X2 with Y2", type: number, path: population.r_X2_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: nonoverlapping_correlations}}
       - input: "The correlations between the other pairs of variables"
         fields:
-          - {id: r_Y_Z, writeup_label: "correlation of Y with Z", label: "Y with Z", type: number, path: population.r_Y_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_Y_Z, baseline: true, writeup_label: "correlation of Y with Z", label: "Y with Z", type: number, path: population.r_Y_Z, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: overlapping_correlations},
              help: "The higher this is, the more the two compared correlations move together, and the fewer people you need."}
-          - {id: r_X1_X2, writeup_label: "correlation of X1 with X2", label: "X1 with X2", type: number, path: population.r_X1_X2, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X1_X2, baseline: true, writeup_label: "correlation of X1 with X2", label: "X1 with X2", type: number, path: population.r_X1_X2, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: nonoverlapping_correlations}}
-          - {id: r_Y1_Y2, writeup_label: "correlation of Y1 with Y2", label: "Y1 with Y2", type: number, path: population.r_Y1_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_Y1_Y2, baseline: true, writeup_label: "correlation of Y1 with Y2", label: "Y1 with Y2", type: number, path: population.r_Y1_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: nonoverlapping_correlations}}
-          - {id: r_X1_Y2, writeup_label: "correlation of X1 with Y2", label: "X1 with Y2", type: number, path: population.r_X1_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_X1_Y2, baseline: true, writeup_label: "correlation of X1 with Y2", label: "X1 with Y2", type: number, path: population.r_X1_Y2, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: nonoverlapping_correlations}}
-          - {id: r_Y1_X2, writeup_label: "correlation of Y1 with X2", label: "Y1 with X2", type: number, path: population.r_Y1_X2, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: r_Y1_X2, baseline: true, writeup_label: "correlation of Y1 with X2", label: "Y1 with X2", type: number, path: population.r_Y1_X2, effect: true, min_exclusive: -1, max_exclusive: 1,
              shown_if: {field: comparison, is: nonoverlapping_correlations}}
 
   # Generic tests (G*Power's "Generic" tests): no sample size, because the
