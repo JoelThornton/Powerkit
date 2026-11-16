@@ -1,3 +1,9 @@
+# powerkit 0.70.1
+
+* Repository tidy: a stray app log removed and logs ignored; the queue
+  page's opening narrative condensed, with rows for testers' reports and
+  the Mac installation steps. No change to the engine or the app.
+
 # powerkit 0.70.0
 
 * App only: the saved things have one name each (analysis, analysis
