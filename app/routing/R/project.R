@@ -104,7 +104,7 @@ project_opened_ui <- function(project, shown = FALSE, from_browser = FALSE) {
     if (from_browser) tagList(tags$strong("Your last result is back."),
       " It was kept in this browser only: save the analysis file, or share it as a link, to keep it.")
     else tagList(tags$strong("Project opened."),
-      sprintf(" Saved %s with powerkit %s.", project$saved, project$powerkit_version)),
+      sprintf(" Saved %s with Powerkit %s.", project$saved, project$powerkit_version)),
     if (shown) {
       tagList(
         " Below is the saved result, as it was saved: it hasn't been run again. Running it again should give the same numbers. ",
@@ -228,7 +228,7 @@ plan_check_ui <- function(tree, forms, project) {
   div(
     class = "plan-check",
     h2(class = "h4", "Checking a shared plan"),
-    p(class = "small", sprintf("Saved %s with powerkit %s. Nothing here changes the file.", project$saved %||% "(date unknown)", project$powerkit_version %||% "(unknown)")),
+    p(class = "small", sprintf("Saved %s with Powerkit %s. Nothing here changes the file.", project$saved %||% "(date unknown)", project$powerkit_version %||% "(unknown)")),
     h3(class = "h5", "What the plan is for"),
     p(tags$strong(ep$plain_name %||% ep_id), if (!is.null(ep$doc_name)) sprintf(" (%s)", ep$doc_name)),
     h3(class = "h5", "What it found"),

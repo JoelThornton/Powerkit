@@ -793,7 +793,7 @@ test_that("the rank tests (E1, E2, E3 and E18's test version) are simulated with
     expect_identical(calc$result$provenance$backend, "Spower", info = ep)
     expect_true(all(calc$result$check_run$ok), info = ep)
     html <- as.character(result_panel_ui(tree, forms, ep, fields, values, calc))
-    expect_match(html, "powerkit simulates the rank test itself", fixed = TRUE, info = ep) # Known difference 5
+    expect_match(html, "Powerkit simulates the rank test itself", fixed = TRUE, info = ep) # Known difference 5
     expect_no_match(html, "Calculated with a formula", fixed = TRUE, info = ep)          # Departure 9
     expect_no_match(html, "exact dataset is built", fixed = TRUE, info = ep)              # Departure 3
     expect_null(explore_effect(calc$spec))
@@ -860,7 +860,7 @@ test_that("Welch's F is the one-way ANOVA's default, shown as a departure, with 
   calc <- run_calculation(spec, run, seed = 1L)
   expect_true("22" %in% names(departures_for(forms, "E18", calc$spec)))
   html <- as.character(result_panel_ui(tree, forms, "E18", fields, values, calc))
-  expect_match(html, "powerkit plans for Welch&#39;s F unless you choose the classical F test|powerkit plans for Welch's F unless you choose the classical F test")
+  expect_match(html, "Powerkit plans for Welch&#39;s F unless you choose the classical F test|Powerkit plans for Welch's F unless you choose the classical F test")
   # The classical F test: no departure.
   f_test <- build_spec(forms, "E18", fields, form_examples$E18)
   expect_false("22" %in% names(departures_for(forms, "E18", f_test)))
@@ -1744,7 +1744,7 @@ test_that("the app checks the limit before starting any background run, and says
   # start_background_calculation() is only called through start_job().
   expect_length(regmatches(code, gregexpr("start_background_calculation(", code, fixed = TRUE))[[1]], 1)
   html <- as.character(busy_ui())
-  expect_match(html, "powerkit is busy just now", fixed = TRUE)
+  expect_match(html, "Powerkit is busy just now", fixed = TRUE)
   expect_match(html, "in a minute or two", fixed = TRUE)
   expect_false(grepl("Error|error|stack", html))
 })
@@ -1914,12 +1914,12 @@ test_that("the conversion's formula is cited from refs.bib", {
     "with the psych package's t2d(), by the formula in Lakens (2013)")
 })
 
-test_that("a conversion saved by an earlier powerkit is named as such, with what this version gives", {
+test_that("a conversion saved by an earlier Powerkit is named as such, with what this version gives", {
   conv <- list(from_name = "a t statistic", value = 2.5, df_error = 29L, effect_name = "Cohen's d", converted = 0.464,
     function_used = "psych::t2d(t = 2.5, n1 = 30)", package = list(name = "psych"), earlier = TRUE, now = 0.4564355)
   expect_identical(conversion_sentence(list(effect_conversion = conv)), paste0(
     "Effect size converted: the published t statistic of 2.5 (error df 29) gives Cohen's d = 0.464, as an earlier version ",
-    "of powerkit converted it and the saved plan records (this version gives 0.456)."))
+    "of Powerkit converted it and the saved plan records (this version gives 0.456)."))
 })
 
 test_that("pairwise comparisons after a one-way ANOVA: the pair and the adjustment reach the engine, and the write-up names them", {
@@ -2542,7 +2542,7 @@ test_that("three effects side by side: conservative, the plan's and optimistic",
   calc <- run_calculation(spec, seed = forms$default_seed)
   html <- as.character(scenarios_ui(calc$spec, calc$result))
   expect_match(html, "What if the true effect is smaller?", fixed = TRUE)
-  expect_match(html, "powerkit won&#39;t suggest them|powerkit won't suggest them")
+  expect_match(html, "Powerkit won&#39;t suggest them|Powerkit won't suggest them")
   # Only the values given are drawn; the plan's effect always is.
   n <- scenario_n(calc$spec, calc$result, conservative = 0.3, seed = forms$default_seed)
   expect_named(n, c("conservative", "expected"))
@@ -2587,7 +2587,7 @@ test_that("the t-tests take the effect in the measure's own units, and the engin
     calc <- run_calculation(spec, seed = forms$default_seed)
     expect_equal(calc$status, "ok", info = ep)
     expect_equal(calc$result$effect_from_units$value, expected[[ep]], info = ep)
-    expect_match(result_sentences(calc$spec, calc$result)[["detail"]], "From the means and SD you entered, powerkit worked out", fixed = TRUE)
+    expect_match(result_sentences(calc$spec, calc$result)[["detail"]], "From the means and SD you entered, Powerkit worked out", fixed = TRUE)
     w <- writeup_text(forms$forms[[ep]], calc$spec, calc$result, fields,
       modifyList(values, list(just_source = "Smallest difference that matters.")))
     expect_match(w[["short"]], sprintf("= %s)", format(round(expected[[ep]], 3), nsmall = 2)), fixed = TRUE, info = ep)

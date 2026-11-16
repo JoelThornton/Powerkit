@@ -21,7 +21,7 @@ test_that("About says how many analyses calculate and links to the full list ins
   expect_match(html, "route:known", fixed = TRUE)
 })
 
-test_that("the About page leads with what powerkit does and links to its sections", {
+test_that("the About page leads with what Powerkit does and links to its sections", {
   html <- about_html()
   for (id in c("about-how", "about-plans", "about-trust", "about-privacy", "about-credits")) {
     expect_match(html, sprintf("id=\"%s\"", id), fixed = TRUE, label = id)
@@ -68,7 +68,7 @@ test_that("the app has an About tab", {
   expect_true(any(grepl('tabPanel(tab_title("About", "About"), value = "About"', app, fixed = TRUE)))
 })
 
-test_that("the About panel says what powerkit doesn't do and how far along it is", {
+test_that("the About panel says what Powerkit doesn't do and how far along it is", {
   html <- about_html()
   expect_match(html, "What it doesn&#39;t do|What it doesn't do")
   expect_match(html, "choose your effect size", fixed = TRUE)

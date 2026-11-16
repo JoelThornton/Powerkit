@@ -171,7 +171,7 @@ replication_planner_sections <- function() {
         radioButtons("rep_analysis", "How it was analysed", choices = replication_analyses_ui, selected = "test", width = "100%"),
         conditionalPanel("input.rep_analysis == 'bayes_factor'",
           field("rep_bf", "Its Bayes factor for an effect, BF10",
-            help = "If the paper gives BF01 (for no effect), enter 1 / BF01. powerkit reads the effect from it for a t-test (two groups, one group or pairs), as JASP's Summary Statistics do the other way (Ly et al., 2018).")),
+            help = "If the paper gives BF01 (for no effect), enter 1 / BF01. Powerkit reads the effect from it for a t-test (two groups, one group or pairs), as JASP's Summary Statistics do the other way (Ly et al., 2018).")),
         conditionalPanel("input.rep_analysis == 'posterior'",
           radioButtons("rep_original_prior", "Its prior", choices = replication_original_priors_ui, selected = "default", width = "100%"),
           p(class = "small text-muted", "A posterior stands in for the original's estimate only when its prior was vague or a default one: an informative prior's posterior mixes the prior's beliefs into what the original found (McLatchie, Warmelink & Tkacheva, 2020). For an informative prior, give the estimate with its standard error, or the Bayes factor.")),
@@ -395,7 +395,7 @@ replication_missing <- function(values) {
 
 replication_problem <- function(e) {
   if (!inherits(e, "powerkit_error")) {
-    return("powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
+    return("Powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
   }
   conditionMessage(e)
 }
@@ -511,7 +511,7 @@ replication_result_ui <- function(plan) {
 # (docs/conventions.md, "Variation between studies in replication plans").
 replication_tau_note <- function(tau) {
   if (is.null(tau) || is.na(tau)) return(NULL)
-  if (tau > 0) p(class = "small", sprintf("The uncertain and shrunk beliefs allow the true effect to vary between studies with an SD of %s (Kenny & Judd, 2019). BayesRepDesign's own default is no variation; powerkit starts at 0.05, because assuming none makes a replication look easier than it is. Choose None under Goals to see the numbers without it.", format(tau)))
+  if (tau > 0) p(class = "small", sprintf("The uncertain and shrunk beliefs allow the true effect to vary between studies with an SD of %s (Kenny & Judd, 2019). BayesRepDesign's own default is no variation; Powerkit starts at 0.05, because assuming none makes a replication look easier than it is. Choose None under Goals to see the numbers without it.", format(tau)))
   else p(class = "small", "No variation between studies is allowed for: the true effect is taken to be the same in the replication as in the original (BayesRepDesign's default). Kenny and Judd (2019) argue this should not be the default.")
 }
 

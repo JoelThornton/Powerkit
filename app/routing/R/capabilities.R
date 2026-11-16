@@ -32,7 +32,7 @@ evidence_reader_lines <- function(record) {
     pending = "a published benchmark is still to be transcribed",
     not_linked = "no record yet, so how well it is covered is unknown",
     outside_scope = "your settings fall outside the cases that were checked")
-  c("These checks cover representative cases, not every value you could enter. powerkit is a prototype until version 1.0, and a statistician's review of its methods is still to come.",
+  c("These checks cover representative cases, not every value you could enter. Powerkit is a prototype until version 1.0, and a statistician's review of its methods is still to come.",
     vapply(names(labels), function(k) {
       item <- record$categories[[k]]
       state <- unname(states[item$status %||% "not_linked"])

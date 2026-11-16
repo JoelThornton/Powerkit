@@ -103,7 +103,7 @@ study_variation_csv <- function(run) {
 study_variation_server <- function(input, output, session) {
   run <- shiny::eventReactive(input$variation_run, {
     engine <- engine_function("study_variation")
-    if (is.null(engine)) return(list(problem = "This tool needs the current powerkit engine."))
+    if (is.null(engine)) return(list(problem = "This tool needs the current Powerkit engine."))
     seed <- if (isTRUE(input$variation_fixed_seed)) input$variation_seed else sample.int(2147483646, 1)
     tryCatch(engine(n = input$variation_n, d = input$variation_d,
       alpha = as.numeric(input$variation_alpha), seed = seed, replications = 1000L),

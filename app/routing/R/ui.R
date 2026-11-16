@@ -372,6 +372,12 @@ nav_js <- "
     var b = pane.querySelectorAll('.choices-numbered > .choice')[+e.key - 1];
     if (b) { e.preventDefault(); b.click(); }
   });
+  // Clicking the Study plans tab opens the list of plans, as the top bar's
+  // Study plans button did; the app's own moves to a plan's page don't click.
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest && e.target.closest('#tabs a[data-value=\"Study plans\"]');
+    if (a && window.Shiny && Shiny.setInputValue) Shiny.setInputValue('plans_open_page', Date.now(), {priority: 'event'});
+  });
   // On a phone the tab bar scrolls sideways: keep the open tab in view.
   document.addEventListener('shown.bs.tab', function(e) {
     if (e.target && e.target.scrollIntoView) e.target.scrollIntoView({block: 'nearest', inline: 'nearest'});
@@ -484,7 +490,7 @@ start_ui <- function(tree, start = list(), saved_projects = NULL) {
       span(class = "local-download",
         if (local) tagList(tags$strong("Running on your computer."), " "),
         tags$a(href = "https://joelthornton.github.io/Powerkit/download.html", target = "_blank", rel = "noopener",
-          if (local) "Download and update instructions" else "Run powerkit on your own computer"))),
+          if (local) "Download and update instructions" else "Run Powerkit on your own computer"))),
     if (!is.null(saved_projects)) div(id = "saved_projects_panel", class = "saved-projects", hidden = NA, saved_projects),
     # One line for someone trying the prototype out: what to do and where
     # to say what went wrong (11 November 2026).
@@ -583,7 +589,7 @@ known_status_badge <- list(
   runs_validated = NULL,
   runs_validation_in_progress = c("known-badge known-badge-progress", "Validation in progress"),
   coming_soon = c("known-badge known-badge-soon", "Coming soon"),
-  not_in_powerkit = c("known-badge known-badge-not", "Not in powerkit yet")
+  not_in_powerkit = c("known-badge known-badge-not", "Not in Powerkit yet")
 )
 
 known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
@@ -848,7 +854,7 @@ status_ui <- function(tree, ep) {
       htmltools::htmlEscape(pk$url), htmltools::htmlEscape(pk$name), htmltools::htmlEscape(pk$what))))
   }))
   not_five <- if (identical(ep$five_tools, "not covered")) {
-    p(tags$strong("Not covered by the five tools"), " powerkit builds on (Superpower, Spower, power4mome, InteractionPoweR, G*Power).")
+    p(tags$strong("Not covered by the five tools"), " Powerkit builds on (Superpower, Spower, power4mome, InteractionPoweR, G*Power).")
   }
   if (identical(ep$guide, "bayes")) return(bayes_guide_ui(tree, ep, package_list))
   switch(
@@ -867,23 +873,23 @@ status_ui <- function(tree, ep) {
     not_in_powerkit = if (isTRUE(ep$generic)) {
       div(
         class = "status status-not",
-        tags$strong(ep$card_heading %||% "Not in powerkit yet."),
+        tags$strong(ep$card_heading %||% "Not in Powerkit yet."),
         p(class = if (!isTRUE(ep$established_tools)) "mb-0", ep$card_text),
         if (isTRUE(ep$established_tools)) named_tools_ui(tree, ep) %||% p(class = "mb-0", tree$established_tools_text)
       )
     } else if (isTRUE(ep$no_ready_made_tool)) {
       div(
         class = "status status-not",
-        tags$strong("Not in powerkit yet."),
+        tags$strong("Not in Powerkit yet."),
         not_five,
         p(ep$status_text %||% tree$no_ready_made_tool_text),
         package_list(),
-        p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From powerkit's review of what other tools cover. ", "powerkit can't check results from other tools.")
+        p(class = "small mb-0", if (!isFALSE(ep$from_coverage)) "From powerkit's review of what other tools cover. ", "Powerkit can't check results from other tools.")
       )
     } else {
       div(
         class = "status status-not",
-        tags$strong(ep$not_in_powerkit_heading %||% "Not in powerkit yet: use ",
+        tags$strong(ep$not_in_powerkit_heading %||% "Not in Powerkit yet: use ",
           lapply(seq_along(ep$packages), function(i) {
             pk <- ep$packages[[i]]
             tagList(if (i > 1) " or ", tags$a(href = pk$url, target = "_blank", pk$name))
@@ -892,7 +898,7 @@ status_ui <- function(tree, ep) {
         not_five,
         package_list(),
         if (is.character(ep$no_ready_made_tool)) p(tags$strong(paste0(ep$no_ready_made_tool, ":")), " ", tree$no_ready_made_tool_text),
-        p(class = "small mb-0", "From powerkit's review of what other tools cover. powerkit can't check results from other tools.")
+        p(class = "small mb-0", "From powerkit's review of what other tools cover. Powerkit can't check results from other tools.")
       )
     }
   )
@@ -1012,7 +1018,7 @@ card_ui <- function(tree, ep_id, compact = FALSE, history = list(), forms = get0
       div(class = "card-eid", hidden = if (!maintainer_view()) NA, `aria-hidden` = if (!maintainer_view()) "true", ep_id),
       # A card that can't hold everything the user said (route_fit_ui()) is
       # the closest, not the one that fits.
-      if (!compact) p(class = "card-eyebrow", if (!length(history)) "Analysis" else if (fits) "The analysis that fits your answers" else "The closest analysis powerkit has"),
+      if (!compact) p(class = "card-eyebrow", if (!length(history)) "Analysis" else if (fits) "The analysis that fits your answers" else "The closest analysis Powerkit has"),
       (if (compact) h3 else h2)(class = "card-title h3", name_swap(ep$plain_name, technical_name(ep))),
       p(class = "standard-name", "Standard name: ", tags$strong(technical_name(ep)), if (!is.null(ep$template) && maintainer_view()) tagList(" · ", tags$code(ep$template))),
       if (!is.null(standard_name(ep$doc_name)$also)) p(class = "also-called small text-muted", standard_name(ep$doc_name)$also),
@@ -1179,7 +1185,7 @@ guided_plan_ui <- function(tree, answers, ticked, primary, asks, rule,
     } else if (!is.null(res$ask)) {
       div(class = "status status-soon", "Answer the follow-up question on the previous screen: ", res$ask$text)
     } else {
-      div(class = "status status-not", tags$strong("Not in powerkit yet. "), res$unmapped,
+      div(class = "status status-not", tags$strong("Not in Powerkit yet. "), res$unmapped,
         if (!is.null(res$package)) p(tags$a(href = res$package$url, target = "_blank", res$package$name), ": ", res$package$what))
     }
     div(class = "plan-item", head, body)
@@ -1311,7 +1317,7 @@ combined_n_ui <- function(tree, ticked, primary, asks, answers, forms, results) 
     else p("Calculate the sample size for each main analysis (\u201cEnter your values\u201d above). The plan then shows the largest, which is the sample size the study needs."),
     if (length(to_do)) p(HTML(sprintf("Still to calculate: %s.", names_of(to_do)))),
     if (length(elsewhere)) p(HTML(sprintf(
-      "powerkit can't calculate these yet, so work out their sample size elsewhere and use the largest number overall: %s.", names_of(elsewhere)))),
+      "Powerkit can't calculate these yet, so work out their sample size elsewhere and use the largest number overall: %s.", names_of(elsewhere)))),
     if (length(mains) >= 2) p(class = "text-muted",
       "Each main analysis's input screen already takes your claim into account, so these numbers can be compared directly.")
   )
@@ -1383,7 +1389,7 @@ bayes_guide_ui <- function(tree, ep, package_list) {
   designs <- tree$bayes_designs %||% list()
   div(class = "bayes-guide",
     lapply(ep$card_points, p),
-    tags$h3(class = "card-section-title", sprintf("The %d designs powerkit plans with a Bayes factor", length(designs))),
+    tags$h3(class = "card-section-title", sprintf("The %d designs Powerkit plans with a Bayes factor", length(designs))),
     tags$ul(class = "bayes-guide-list", lapply(designs, function(d) {
       e <- tree$endpoints[[d$id]]
       tags$li(class = "bayes-guide-item",
@@ -1397,13 +1403,13 @@ bayes_guide_ui <- function(tree, ep, package_list) {
       tags$button(type = "button", class = "btn btn-link known-inline-link",
         onclick = "Shiny.setInputValue('go_labs_bayes', Date.now(), {priority: 'event'})", "Bayesian planning under Tools"), "."),
     tags$details(class = "card-more",
-      tags$summary("Other designs: not in powerkit yet"),
-      p(tags$strong("Other designs, not in powerkit yet: "),
+      tags$summary("Other designs: not in Powerkit yet"),
+      p(tags$strong("Other designs, not in Powerkit yet: "),
         lapply(seq_along(ep$packages), function(i) {
           pk <- ep$packages[[i]]
           tagList(if (i > 1) " or ", tags$a(href = pk$url, target = "_blank", pk$name))
         })),
       package_list(),
-      p(class = "small mb-0", "From powerkit's review of what other tools cover. powerkit can't check results from other tools."))
+      p(class = "small mb-0", "From powerkit's review of what other tools cover. Powerkit can't check results from other tools."))
   )
 }

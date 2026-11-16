@@ -52,7 +52,7 @@ bayes_mode_card_note <- function(tree, ep_id, on = FALSE) {
       tags$strong("Bayes factors: "), "the input screen opens with this design's Bayes factor version chosen."))
   }
   div(class = "status status-soon bayes-mode-note", role = "note",
-    tags$strong("Bayes factors: "), "powerkit has no Bayes factor version of this design yet, so its plan uses a p-value.")
+    tags$strong("Bayes factors: "), "Powerkit has no Bayes factor version of this design yet, so its plan uses a p-value.")
 }
 
 # In Bayes mode the Bayes factor tests plan with a design prior by
@@ -77,7 +77,7 @@ bayes_mode_groups <- function(groups, on = FALSE) {
       if (!f$id %in% bayes_mode_prior_fields) return(f)
       f[["default"]] <- NULL
       f$default_source <- paste("Analysing with Bayes factors: say how unsure you are about the effect, so the plan averages over the effects you",
-        "think plausible (a design prior; O'Hagan, Stevens and Campbell, 2005, call the result assurance). powerkit won't",
+        "think plausible (a design prior; O'Hagan, Stevens and Campbell, 2005, call the result assurance). Powerkit won't",
         "suggest an SD: choose one you could defend, for example from the earlier study's standard error. 0 plans for",
         "exactly the value entered")
       f

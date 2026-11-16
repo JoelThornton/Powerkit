@@ -1529,7 +1529,7 @@ server <- function(input, output, session) {
     n <- bayes_companion_n(calc$spec, calc$result)
     target <- if (identical(calc$result$goal_type, "sample_size")) calc$spec$goal$power
     comp <- tryCatch(engine_function("bayes_companion")(calc$spec, n, target = target),
-      error = function(e) list(available = FALSE, reason = "powerkit couldn't work out the Bayes factor side of this plan."))
+      error = function(e) list(available = FALSE, reason = "Powerkit couldn't work out the Bayes factor side of this plan."))
     # The write-up for both, from the card's own answers when they allow one.
     writeup <- tryCatch(bayes_companion_writeup(forms$forms[[state$endpoint]], calc$spec, calc$result,
       current_form_fields(), current_form_values(), comp), error = function(e) NULL)
@@ -1577,7 +1577,7 @@ server <- function(input, output, session) {
     out <- tryCatch(list(at_n = run(at_n), needed = if (!is.null(needed)) run(needed)), error = function(e) list(problem = e))
     output$bayes_uncertain_result <- renderUI(if (!is.null(out$problem)) {
       div(class = "form-problems mt-2", role = "alert", p(if (inherits(out$problem, "powerkit_error"))
-        plain_engine_message(conditionMessage(out$problem), list()) else "powerkit couldn't work this out. Please report it, with the values you entered."))
+        plain_engine_message(conditionMessage(out$problem), list()) else "Powerkit couldn't work this out. Please report it, with the values you entered."))
     } else div(class = "mt-2", role = "status", lapply(bayes_uncertain_words(spec, sd, out$at_n, out$needed), p)))
   })
   # Switch the plan's test version to its Bayes factor test.
@@ -2439,7 +2439,7 @@ server <- function(input, output, session) {
       "Opening a project needs powerkit's engine, which isn't installed where this prototype is running."
     } else {
       tryCatch(read(path), error = function(e) {
-        if (inherits(e, "powerkit_error")) conditionMessage(e) else "This file couldn't be opened as a powerkit project."
+        if (inherits(e, "powerkit_error")) conditionMessage(e) else "This file couldn't be opened as a Powerkit project."
       })
     }
     restored <- if (is.character(project)) project else restore_from_project(project$route, tree, forms)
@@ -2526,7 +2526,7 @@ server <- function(input, output, session) {
     read <- engine_function("read_project")
     if (is.null(read)) return("Opening a project needs powerkit's engine, which isn't installed where this prototype is running.")
     tryCatch(read(path), error = function(e) {
-      if (inherits(e, "powerkit_error")) conditionMessage(e) else "This file couldn't be opened as a powerkit project."
+      if (inherits(e, "powerkit_error")) conditionMessage(e) else "This file couldn't be opened as a Powerkit project."
     })
   }
   observeEvent(input$check_project, {

@@ -167,7 +167,7 @@ guided_plan_opened_ui <- function(record) {
     tags$strong("Plan opened. "),
     "Your variables, analyses, claim and the values you entered were restored. Sample sizes found earlier are shown; open an analysis and check your answers to calculate it again, or run the whole-study simulation again (the same seed gives the same numbers).",
     if (is.character(record$saved_at) && length(record$saved_at) == 1) p(class = "mb-0", "Plan saved ", saved_time_ui(record$saved_at),
-      if (is.character(record$powerkit_version)) sprintf(" with powerkit %s.", record$powerkit_version) else "."))
+      if (is.character(record$powerkit_version)) sprintf(" with Powerkit %s.", record$powerkit_version) else "."))
 }
 
 # Under the guided plan: saving it. The guided plan is kept inside a study

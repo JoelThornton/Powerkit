@@ -96,7 +96,7 @@ plan_planning_document <- function(plan, tree, forms, joint = NULL, engine = eng
     "The plan has one analysis: its requirement is the plan's."
   refs <- plan_merge_citations(plan_citation_texts(entries, engine))
   c(sprintf("# %s", plan$name), "",
-    sprintf("Study plan report for review, made with powerkit %s. It restates the analyses in this study plan as each card calculated them; it does not register a preregistration or guarantee the assumptions are correct.", version), "",
+    sprintf("Study plan report for review, made with Powerkit %s. It restates the analyses in this study plan as each card calculated them; it does not register a preregistration or guarantee the assumptions are correct.", version), "",
     if (nzchar(plan$description %||% "")) c("## About this study", plan$description, ""),
     "## Analyses", plan_role_counts_text(entries), "",
     "| Analysis | Role | N needed | Unit | Target | Backend |", "|---|---|---|---|---|---|",
@@ -109,7 +109,7 @@ plan_planning_document <- function(plan, tree, forms, joint = NULL, engine = eng
     },
     "## Methods, analysis by analysis", "", methods,
     "## References", if (length(refs)) unlist(lapply(refs, function(r) c(r, ""))) else c("No references could be gathered from these results.", ""),
-    "Each analysis's own files (its analysis file, report, R script and citations) are in the analyses folder of “Download everything”. The study plan file opens every analysis again in powerkit.")
+    "Each analysis's own files (its analysis file, report, R script and citations) are in the analyses folder of “Download everything”. The study plan file opens every analysis again in Powerkit.")
 }
 
 plan_bundle_file_name <- function(plan) sub("\\.powerkit\\.json$", "-everything.zip", plan_file_name(plan))
@@ -132,7 +132,7 @@ plan_bundle_readme <- function(plan, plan_file, docs, analyses, skipped) {
   c(sprintf("powerkit: everything for the study plan \"%s\", saved %s", plan$name, format(Sys.time(), "%d %B %Y at %H:%M UTC", tz = "UTC")), "",
     about, "",
     if (length(skipped)) c("Couldn't be made, so not included:", paste0("  ", skipped), ""),
-    "Opening the zip in powerkit opens the study plan file, not the file of any one analysis.")
+    "Opening the zip in Powerkit opens the study plan file, not the file of any one analysis.")
 }
 
 # "Download everything" for a plan. The plan file is written first, without

@@ -50,7 +50,7 @@ documents_ui <- function(can_export, backend, planning_menu) {
       if (can_export) download_button("download_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
     tags$ul(class = "result-downloads-notes small",
       if (can_export) tags$li(tags$strong("Report: "), "the reasoning, the methods paragraph and the result, for an ethics application, a preregistration or a supervisor."),
-      if (can_export) tags$li(tags$strong("R script: "), "reproduces this result with ", backend, " alone; powerkit isn't needed."),
+      if (can_export) tags$li(tags$strong("R script: "), "reproduces this result with ", backend, " alone; Powerkit isn't needed."),
       tags$li(tags$strong("Citations: "), "the package's own citation(), its method paper and the software used."),
       if (can_export) tags$li(tags$strong("Download everything: "), "all of these with the analysis file and, where there is one, the simulated data set, in one zip. Open the zip itself from the start screen to carry on.")))
 }

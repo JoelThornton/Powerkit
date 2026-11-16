@@ -107,7 +107,7 @@ plan_largest_n <- function(entries) {
 joint_power_ui <- function(entries) {
   div(class = "study-plan-joint-power result-card",
     h3(class = "h5", "The chance that every analysis is significant"),
-    p("Your analyses compare the same randomised groups on different outcomes, so powerkit can calculate the chance that all of them are significant in the same study, with PUMP. It depends on how strongly the outcomes are correlated."),
+    p("Your analyses compare the same randomised groups on different outcomes, so Powerkit can calculate the chance that all of them are significant in the same study, with PUMP. It depends on how strongly the outcomes are correlated."),
     numericInput("plan_rho", "Correlation between the outcomes (for example 0.3)", value = NA, min = -0.99, max = 0.99, step = 0.05),
     actionButton("plan_joint", "Calculate joint power", class = "btn btn-outline-primary"),
     uiOutput("plan_joint_result"))
@@ -342,7 +342,7 @@ plan_page_ui <- function(plan, plans_n = 1L) {
     else if (joint_power_needs_student(entries)) p(class = "study-plan-joint plan-note",
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is calculated for Student's t-test only (PUMP's test), and these analyses use Welch's: choose Student's test on each card to see it. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each.")
     else if (k >= 2) p(class = "study-plan-joint plan-note",
-      "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
+      "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and Powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
     div(class = "nav-buttons",
       if (saveable) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
       if (!plan_is_replication(plan)) actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),

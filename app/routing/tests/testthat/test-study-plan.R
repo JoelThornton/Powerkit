@@ -24,14 +24,14 @@ test_that("the plan keeps different sample structures separate", {
   expect_match(html, "no single study-wide sample size", fixed = TRUE)
   expect_no_match(html, "groups needed", fixed = TRUE)
   expect_match(html, "participants needed", fixed = TRUE)
-  expect_match(html, "powerkit doesn't calculate it for these designs yet", fixed = TRUE)
+  expect_match(html, "Powerkit doesn't calculate it for these designs yet", fixed = TRUE)
   expect_match(html, "Add an analysis", fixed = TRUE)
   expect_match(html, "Save plan", fixed = TRUE)
 })
 
 test_that("one analysis has no joint-power note, and an empty plan says how to add one", {
   one <- page_html((list(fake_entry("A t-test", 128))))
-  expect_no_match(one, "powerkit doesn't calculate it", fixed = TRUE)
+  expect_no_match(one, "Powerkit doesn't calculate it", fixed = TRUE)
   empty <- page_html((list()))
   expect_match(empty, "This plan has no analyses yet.", fixed = TRUE)
   expect_no_match(empty, "download_study_plan", fixed = TRUE)

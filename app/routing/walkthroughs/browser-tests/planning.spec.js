@@ -55,6 +55,8 @@ test.beforeEach(async ({ page }) => {
   // the relevant condition; waiting for network idle would be incorrect.
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#screen')).toContainText('How do you want to start?');
+  // The app's first history entry, which Back returns to.
+  await page.waitForFunction(() => history.state && history.state.pk);
 });
 
 test('calculate, edit, save and reopen an actual project', async ({ page }, info) => {
@@ -159,6 +161,8 @@ test('Labs tool history returns to the tool/menu, then forwards again', async ({
   await page.getByRole('tab', { name: 'Tools', exact: true }).click();
   await page.locator('button[data-labs-tool="variation"]').click();
   await expect(page.locator('.labs-back:visible')).toBeVisible();
+  // The tool's own history entry, before going back from it.
+  await expect(page).toHaveURL(/tool=variation/);
   await page.goBack({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('button[data-labs-tool="variation"]')).toBeVisible();
   await expect(page.getByRole('tab', { name: 'Tools', exact: true })).toHaveAttribute('aria-selected', 'true');
@@ -404,7 +408,7 @@ test('Plan a whole study keeps its plan in a study plan, which saves it and open
   const pending = page.waitForEvent('download');
   await page.locator('#download_guided_plan').click();
   const saved = await pending;
-  expect(saved.suggestedFilename()).toMatch(/^powerkit-whole-study-plan-.*\.powerkit\.json$/);
+  expect(saved.suggestedFilename()).toMatch(/^powerkit-study-plan-.*\.powerkit\.json$/);
   const file = info.outputPath('whole.powerkit.json');
   await saved.saveAs(file);
   const record = JSON.parse(await fs.readFile(file, 'utf8'));
@@ -413,7 +417,7 @@ test('Plan a whole study keeps its plan in a study plan, which saves it and open
   expect(record.plan.primary).toBeTruthy();
   // The plan's page shows the guided plan and opens it again.
   await page.locator('#plan_view').click();
-  await expect(page.locator('.plan-guided')).toContainText('Study plan');
+  await expect(page.locator('.plan-guided')).toContainText('Made with “Plan a whole study”');
   await expect(page.locator('#plans_page')).toContainText('Saved to a file');
   await page.locator('#plan_open_guided').click();
   await expect(page.locator('#screen .plan-item').first()).toBeVisible();

@@ -121,7 +121,7 @@ test_that("the version in DESCRIPTION, CITATION.cff and the About page agree", {
   # checked where the engine is installed.
   skip_if_not(nzchar(system.file(package = "powerkit")), "powerkit isn't installed")
   expect_equal(powerkit_version(), version)
-  expect_match(as.character(about_ui(tree, forms)), paste("powerkit", version), fixed = TRUE)
+  expect_match(as.character(about_ui(tree, forms)), paste("Powerkit", version), fixed = TRUE)
 })
 
 test_that("_dependencies.R names every package the engine imports", {

@@ -40,7 +40,7 @@ prediction_validation_sentences <- function(spec, result) {
   events <- if (!is.na(pr$events)) sprintf(" That is about %s people with the outcome.", whole(ceiling(pr$events))) else ""
   reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is %s.", binding_phrase(pr$binding)), events,
     " It is a minimum for estimating the model's calibration and discrimination precisely, not a power calculation.")
-  how <- sprintf("Calculated with pmvalsampsize (pmvalsampsize()), which powerkit called with your answers, assuming a C-statistic of %s and %s%% with the outcome.",
+  how <- sprintf("Calculated with pmvalsampsize (pmvalsampsize()), which Powerkit called with your answers, assuming a C-statistic of %s and %s%% with the outcome.",
     format(spec$population$c_statistic), format(100 * spec$population$prevalence))
   c(headline = headline, reading = reading, detail = how)
 }
@@ -55,7 +55,7 @@ prediction_sentences <- function(spec, result) {
     if (identical(pr$outcome, "survival")) "events" else "people with the outcome", format(round(pr$events_per_parameter, 1), nsmall = 1)) else ""
   reading <- paste0(sprintf("This is the largest of the sample sizes the criteria need; the one that sets it is %s.", binding_phrase(pr$binding)), events,
     " It is a minimum for developing the model, not a power calculation: a smaller sample risks a model that overfits and predicts less well in new people.")
-  how <- sprintf("Calculated by formula with pmsampsize (pmsampsize()), which powerkit called with your answers, assuming %s for a model of %s.",
+  how <- sprintf("Calculated by formula with pmsampsize (pmsampsize()), which Powerkit called with your answers, assuming %s for a model of %s.",
     prediction_performance_text(spec), prediction_outcome_words(pr$outcome))
   c(headline = headline, reading = reading, detail = how)
 }
@@ -207,10 +207,10 @@ prediction_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       h4(class = "h5", "How it was calculated"),
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
-        "powerkit built the call from your answers and checked the values it passes. Cite the package and the method paper: see Citations above."),
+        "Powerkit built the call from your answers and checked the values it passes. Cite the package and the method paper: see Citations above."),
       validation_ui(ep, result),
       if (length(departures)) tagList(
-        h4(class = "h6", "Where powerkit differs from the tool's defaults"),
+        h4(class = "h6", "Where Powerkit differs from the tool's defaults"),
         tags$ul(class = "result-departures", lapply(unname(departures), tags$li))),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),

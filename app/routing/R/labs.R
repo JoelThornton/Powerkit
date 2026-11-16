@@ -16,7 +16,7 @@ labs_tab_title <- "Tools"
 # so that more can be added.
 labs_tools <- list(
   list(id = "map", title = "Methods map",
-       text = "Every analysis powerkit knows about, arranged by the question a study asks, with which ones powerkit calculates. Move around it and open any analysis's page.",
+       text = "Every analysis Powerkit knows about, arranged by the question a study asks, with which ones Powerkit calculates. Move around it and open any analysis's page.",
        purpose = "For finding your way among designs: what each analysis is and what it is next to.",
        sure = "Drawn from powerkit's design finder. It shows where each question leads, not which analysis is right for your study."),
   list(id = "picture", title = "Power visualiser",
@@ -314,7 +314,7 @@ labs_markdown <- function(answers, outcome = NULL, sde = NULL, citation = labs_c
     if (!is.null(outcome) && outcome %in% names(labs_outcomes)) labs_outcomes[[outcome]] else "_(not chosen)_", "",
     "---", "",
     sprintf("The questions are from: %s", citation), "",
-    sprintf("Written with Powerkit on %s. These are the author's own notes; powerkit does not score or judge them.", format(date, "%d %B %Y"))
+    sprintf("Written with Powerkit on %s. These are the author's own notes; Powerkit does not score or judge them.", format(date, "%d %B %Y"))
   ) |> paste(collapse = "\n")
 }
 
@@ -375,7 +375,7 @@ replication_notes_ui <- function(tree) {
       labs_boxes("quality"),
       tags$details(class = "labs-sde",
         tags$summary("Optional: the smallest effect the original study could detect"),
-        p(class = "small", "Enter the original study's test and sample size. powerkit finds the smallest effect that design would detect at the power you choose. Compare it with the smallest effect that matters, from step 2. This is one part of quality, not a verdict on it."),
+        p(class = "small", "Enter the original study's test and sample size. Powerkit finds the smallest effect that design would detect at the power you choose. Compare it with the smallest effect that matters, from step 2. This is one part of quality, not a verdict on it."),
         selectInput("labs_test", "The original study's test", choices = test_choices, selectize = FALSE, width = "100%"),
         textInput("labs_n", "Participants analysed in the original study (in total, all groups together)", width = "100%"),
         conditionalPanel("input.labs_test == 'E5'",
@@ -564,7 +564,7 @@ published_result <- function(values, convert, safeguard) {
       error = function(e) e)
     if (inherits(out, "error")) {
       problem <- if (inherits(out, "powerkit_error")) sub("^This design spec has an? problems?:\n\\* ", "", conditionMessage(out)) else
-        "powerkit couldn't convert this value: something went wrong in its engine. Please report this, with the values you entered."
+        "Powerkit couldn't convert this value: something went wrong in its engine. Please report this, with the values you entered."
       return(list(lines = character(), problems = problem))
     }
     estimate <- out$value
@@ -872,7 +872,7 @@ published_ui <- function() {
   designs <- stats::setNames(names(published_designs), vapply(published_designs, `[[`, "", "label"))
   conditionalPanel("input.labs_tool == 'published'",
     labs_tool_head("published"),
-    p("Enter an effect as a paper reported it. powerkit shows it as the effect size a power analysis uses and, for the t-tests and correlations, a safeguard value to plan with instead."),
+    p("Enter an effect as a paper reported it. Powerkit shows it as the effect size a power analysis uses and, for the t-tests and correlations, a safeguard value to plan with instead."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published result"),
       selectInput("pub_design", "What kind of study was it?", choices = c("Choose one" = "", designs), selectize = FALSE, width = "100%"),
       uiOutput("pub_from_ui"),
@@ -946,7 +946,7 @@ bayes_ui <- function() {
 # plain apology, never R's own text.
 bayes_problem <- function(e) {
   if (!inherits(e, "powerkit_error")) {
-    return("powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
+    return("Powerkit couldn't work this out: something went wrong in its engine. Please report this, with the values you entered.")
   }
   labels <- c("'n'" = "The sample size", "'effect_sd' (the uncertainty about the effect)" = "How unsure you are about the effect",
     "'effect'" = "The effect you expect", "'prior_scale'" = "The scale of the analysis prior",

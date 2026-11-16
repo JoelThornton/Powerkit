@@ -13,3 +13,5 @@
 * App only: "Replicate a published finding" starts a replication plan at
   "The original study", and the whole-study route shows which route it is
   on each screen.
+* App only: the app's sentences spell the name "Powerkit"; the R package
+  and its code keep "powerkit".

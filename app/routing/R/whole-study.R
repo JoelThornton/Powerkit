@@ -297,7 +297,7 @@ whole_study_entry_ui <- function(plan, ticked = NULL, labels = NULL, badge = NUL
   }
   div(class = "whole-study-entry whole-study-lead",
     h3(class = "h4", "Your whole study in one go ", tags$span(class = "known-badge known-badge-progress", "Validation in progress")),
-    p(class = "lead", "Describe your study once. powerkit simulates it many times and runs every analysis below on each simulated study, so you see the power of each one, and the chance that your claim succeeds, from one model."),
+    p(class = "lead", "Describe your study once. Powerkit simulates it many times and runs every analysis below on each simulated study, so you see the power of each one, and the chance that your claim succeeds, from one model."),
     if (length(ticked)) tags$ul(class = "whole-study-analyses", lapply(ticked, function(id) tags$li(labels[[id]], if (!is.null(badge)) badge(id)))),
     p(class = "text-muted small", "A quick estimate runs here; the R script gives the full analysis and finds the sample size. Use it to explore your plan."),
     pick_button("Describe your study", "guided:simulate", class = "btn btn-primary")
@@ -315,7 +315,7 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
     screen_nav_ui("guided:plan", "Back to your plan"),
     h2("Simulate the whole study ", tags$span(class = "known-badge known-badge-progress", "Validation in progress")),
     p(class = "lead", "Describe your study once. Every planned analysis is then run on the same simulated studies."),
-    p(class = "small text-muted", "This screen gives a quick estimate; the R script runs the full analysis and finds the sample size. The method is new in powerkit and its validation is in progress."),
+    p(class = "small text-muted", "This screen gives a quick estimate; the R script runs the full analysis and finds the sample size. The method is new in Powerkit and its validation is in progress."),
     if (!is.null(problem)) div(class = "form-problems", role = "alert", tabindex = "-1", h3(class = "h5", "Please check"), tags$ul(lapply(problem, tags$li))),
     h3(class = "h5", "Your analyses"),
     tags$ul(lapply(plan$analyses, function(a) tags$li(a$label, " ",
@@ -338,7 +338,7 @@ whole_study_ui <- function(forms, plan, params, labels, prefill, n, rule, values
           textInput(whole_study_d_input_id(outcome), whole_study_d_label(outcome), value = values[[paste0("d_", outcome)]] %||% prefill[[paste0("d_", outcome)]] %||% "", width = "100%")),
         conditionalPanel("input.ws_x_effect == 'path'", field))
     })),
-    if (length(d_keys)) p(class = "text-muted small", "Cohen's d is the difference between the groups' means in pooled within-group standard deviations, as on the two-group card. powerkit finds the path that gives this d, from a very large simulated sample, when the simulation runs; the result shows it."),
+    if (length(d_keys)) p(class = "text-muted small", "Cohen's d is the difference between the groups' means in pooled within-group standard deviations, as on the two-group card. Powerkit finds the path that gives this d, from a very large simulated sample, when the simulation runs; the result shows it."),
     h3(class = "h5", "Sample size and precision"),
     textInput("ws_n", "Total participants analysed (N)", value = values$n %||% (if (!is.null(n)) as.character(n) else ""), width = "100%"),
     if (!is.null(n)) p(class = "text-muted small", "Filled in with the largest sample size calculated on your plan for a main analysis."),
@@ -440,7 +440,7 @@ whole_study_check <- function(spec, validate = engine_function("validate_whole_s
     character()
   }, error = function(e) {
     if (!inherits(e, "powerkit_error")) {
-      return("powerkit couldn't check this plan: something went wrong in its engine. Please report this, with the answers you copied.")
+      return("Powerkit couldn't check this plan: something went wrong in its engine. Please report this, with the answers you copied.")
     }
     msg <- conditionMessage(e)
     lines <- trimws(sub("^\\*\\s*", "", strsplit(msg, "\n", fixed = TRUE)[[1]]))
@@ -494,7 +494,7 @@ whole_study_script_ui <- function(forms, plan, n, rule, mains) {
     p("What you need:"),
     tags$ul(
       tags$li(sprintf("R%s, from cran.r-project.org.", if (is.null(r_needs)) "" else sprintf(" %s or later", r_needs))),
-      tags$li("powerkit and the packages it uses. In R, run once: ",
+      tags$li("Powerkit and the packages it uses. In R, run once: ",
         tags$code("install.packages(\"remotes\")"), " then ",
         tags$code("remotes::install_github(\"JoelThornton/Powerkit\", subdir = \"engine\", dependencies = TRUE)"), "."),
       tags$li("Then run the script. More cores finish sooner (its first lines say how) without changing the result. It saves the result and the citations.")),
@@ -654,7 +654,7 @@ whole_study_result_ui <- function(calc, plan_values = list(), departure = NULL, 
           "\n\nPopulation values:\n", r$models$population_values,
           "\n\nAnalysis models:\n", paste(sprintf("%s: %s", a$id, gsub("\n", "; ", r$models$analyses)), collapse = "\n"),
           sprintf("\n\nCheck run (n = 100,000): %s", if (all(r$check_run$ok)) "passed" else "FAILED"))),
-        p(class = "small", sprintf("Seed %s; %s simulated studies%s; spec hash %s; %s; %s; powerkit %s. Run time %s seconds.",
+        p(class = "small", sprintf("Seed %s; %s simulated studies%s; spec hash %s; %s; %s; Powerkit %s. Run time %s seconds.",
           pv$seed, whole(pv$nrep), if (!is.na(pv$ci_draws)) sprintf("; %s Monte Carlo draws per confidence interval", whole(pv$ci_draws)) else "",
           pv$spec_hash, pv$r_version, paste(names(pv$packages)[names(pv$packages) != "powerkit"], pv$packages[names(pv$packages) != "powerkit"], collapse = ", "),
           pv$packages[["powerkit"]], round(pv$run_time_seconds)))))
@@ -794,7 +794,7 @@ whole_study_experiment_ui <- function(forms, plan, labels, n, rule, values = lis
     screen_nav_ui("guided:plan", "Back to your plan"),
     h2("Simulate the whole study ", tags$span(class = "known-badge known-badge-progress", "Validation in progress")),
     p(class = "lead", "Describe your experiment once. Every planned test is then run on the same simulated studies."),
-    p(class = "small text-muted", "This screen gives a quick estimate; the R script runs the full analysis and finds the sample size. The method is new in powerkit and its validation is in progress."),
+    p(class = "small text-muted", "This screen gives a quick estimate; the R script runs the full analysis and finds the sample size. The method is new in Powerkit and its validation is in progress."),
     if (!is.null(problem)) div(class = "form-problems", role = "alert", tabindex = "-1", h3(class = "h5", "Please check"), tags$ul(lapply(problem, tags$li))),
     h3(class = "h5", "Your analyses"),
     p(sprintf("Your study is an experiment with %s. Each analysis is one of its F tests, all from the same ANOVA on the same data.", design_words)),
@@ -918,7 +918,7 @@ whole_study_curve_offer_ui <- function(forms, plan) {
   div(class = "ws-curve mt-3",
     h4(class = "h6", "How many people do you need?"),
     p(class = "small", sprintf(
-      "See roughly how power changes with N: powerkit simulates the study at %d sample sizes around this one, %s simulated studies each (about %s). It is a guide for choosing N; the sample size to report comes from the R script\u2019s search.",
+      "See roughly how power changes with N: Powerkit simulates the study at %d sample sizes around this one, %s simulated studies each (about %s). It is a guide for choosing N; the sample size to report comes from the R script\u2019s search.",
       length(ws$curve_multipliers), whole(ws$curve_nrep), duration_words(whole_study_curve_seconds(forms, plan)))),
     actionButton("ws_curve_run", "Show a rough power curve", class = "btn btn-outline-primary"),
     uiOutput("ws_curve"))
@@ -998,7 +998,7 @@ whole_study_planning_document <- function(calc, script, departure = NULL) {
   unname(c("# Whole-study simulation report", "",
     sprintf("Planning draft for review, made with %s. It does not register a preregistration or guarantee that the assumptions are correct.",
       powerkit_cited(pv$packages[["powerkit"]])), "",
-    "**Validation in progress.** The whole-study simulation is new in powerkit and its validation is not finished. Treat these numbers as a planning aid, and say so if you cite them.", "",
+    "**Validation in progress.** The whole-study simulation is new in Powerkit and its validation is not finished. Treat these numbers as a planning aid, and say so if you cite them.", "",
     sprintf("These numbers come from a quick look of %s simulated studies, so each power is within about ±%s percentage points. For numbers to report, and for the sample size you need, run the full simulation with the R script for it on the result page.",
       whole(pv$nrep), whole_study_precision(pv$nrep)), "",
     "## The study and its claim",
@@ -1023,9 +1023,9 @@ whole_study_planning_document <- function(calc, script, departure = NULL) {
       if (!is.na(pv$ci_draws %||% NA)) sprintf("; %s Monte Carlo draws per confidence interval", whole(pv$ci_draws)) else ""),
     sprintf("- Spec hash (SHA-256): %s.", pv$spec_hash),
     sprintf("- Check run (n = 100,000): %s.", if (all(r$check_run$ok)) "passed" else "failed"),
-    sprintf("- %s; %s; powerkit %s.", pv$r_version, paste(others, pv$packages[others], collapse = ", "), pv$packages[["powerkit"]]), "",
+    sprintf("- %s; %s; Powerkit %s.", pv$r_version, paste(others, pv$packages[others], collapse = ", "), pv$packages[["powerkit"]]), "",
     "## The R script that reproduces these numbers",
-    "Run it in R with powerkit installed (its first lines say how). It holds the whole-study specification and seed above, so it gives the same numbers with the same package versions.", "",
+    "Run it in R with Powerkit installed (its first lines say how). It holds the whole-study specification and seed above, so it gives the same numbers with the same package versions.", "",
     "```r", strsplit(script, "\n", fixed = TRUE)[[1]], "```"))
 }
 

@@ -9,7 +9,7 @@ test_that("a document is a standalone page with its title, the text and a footer
   expect_match(html, "<h1>Pre-replication notes</h1>", fixed = TRUE)
   expect_match(html, "<strong>The finding.</strong>", fixed = TRUE)
   expect_match(html, "<li>two</li>", fixed = TRUE)
-  expect_match(html, "Made with powerkit 0.33.3", fixed = TRUE)
+  expect_match(html, "Made with Powerkit 0.33.3", fixed = TRUE)
   expect_match(html, "@page", fixed = TRUE)
   # Nothing of the app comes with it.
   expect_no_match(html, "shiny", ignore.case = TRUE)
@@ -100,7 +100,7 @@ test_that("a Word document has the parts Word needs and well-formed XML", {
   expect_match(text, "Pre-replication of: Smith & Lee (2019)", fixed = TRUE)
   expect_match(text, "•\tone", fixed = TRUE)
   expect_match(text, "1.\tfirst", fixed = TRUE)
-  expect_match(text, "Made with powerkit 0.34.1.", fixed = TRUE)
+  expect_match(text, "Made with Powerkit 0.34.1.", fixed = TRUE)
   expect_length(xml2::xml_find_all(parts$document, "//w:b", ns), 1)
   expect_length(xml2::xml_find_all(parts$document, "//w:hyperlink", ns), 1)
   expect_match(parts$rels, 'Target="https://doi.org/10.15626/MP.2024.4155" TargetMode="External"', fixed = TRUE)

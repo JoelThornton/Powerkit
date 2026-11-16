@@ -175,7 +175,7 @@ test_that("the methods map is drawn from the design finder and reaches every ana
   # Each analysis's status is shown in words, and opens its page.
   html <- as.character(map_ui(tree))
   expect_match(html, "Calculates in powerkit", fixed = TRUE)
-  expect_match(html, "Not in powerkit yet", fixed = TRUE)
+  expect_match(html, "Not in Powerkit yet", fixed = TRUE)
   # The graph library is fetched when the map is first shown, not with the page.
   expect_false(grepl("vendor/cytoscape.min.js", html, fixed = TRUE))
   map_js_code <- paste(readLines(test_path("..", "..", "www", "methods-map.js")), collapse = "\n")

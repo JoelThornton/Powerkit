@@ -293,7 +293,7 @@ register_background <- function(process) {
 # Shown instead of starting a run when the limit is reached.
 busy_ui <- function() {
   div(class = "form-problems", role = "status", tabindex = "-1",
-    h3(class = "h5", "powerkit is busy just now"),
+    h3(class = "h5", "Powerkit is busy just now"),
     p("Other people's long calculations are using the server, so this one can't start yet. ",
       "Please choose \u201cCalculate\u201d again in a minute or two. ",
       "Quick calculations, such as t-tests, correlations and ANOVA, still work as usual."))
@@ -1141,14 +1141,14 @@ units_sentence <- function(result) {
     if (!is.null(u$smallest_r)) {
       return(sprintf("As a point-biserial correlation, that is r = %s (with %s).", round3(u$smallest_r), share))
     }
-    return(sprintf("From the point-biserial r of %s you entered, powerkit worked out Cohen's d = %s (with %s), which gives the same test as G*Power's point-biserial model.",
+    return(sprintf("From the point-biserial r of %s you entered, Powerkit worked out Cohen's d = %s (with %s), which gives the same test as G*Power's point-biserial model.",
       format(u$r), round3(u$value), share))
   }
   if (!is.null(u$smallest_difference)) {
     return(sprintf("In your outcome's own units, that is a difference of %s (%s × %s, %s).",
       round3(u$smallest_difference), round3(result$sensitivity$effect), format(signif(u$sd, 4)), u$sd_name))
   }
-  out <- sprintf("From the means and SD you entered, powerkit worked out %s = %s: a difference of %s divided by %s (%s).",
+  out <- sprintf("From the means and SD you entered, Powerkit worked out %s = %s: a difference of %s divided by %s (%s).",
     u$name, round3(u$value), format(signif(u$difference, 4)), u$sd_name, format(signif(u$sd, 4)))
   # Equivalence tests: the bound, divided by the same SD.
   if (!is.null(u$bound)) out <- paste(out, sprintf("The equivalence bound of %s is %s in the same units.", format(signif(u$bound, 4)), round3(u$bound_value)))
@@ -1556,7 +1556,7 @@ conversion_details <- function(conv) {
 # 0.24.1 converted t and F that way, the value the plan keeps.
 conversion_by <- function(conv) {
   if (isTRUE(conv$earlier)) {
-    return(sprintf("as an earlier version of powerkit converted it and the saved plan records (this version gives %s)",
+    return(sprintf("as an earlier version of Powerkit converted it and the saved plan records (this version gives %s)",
       format(round(conv$now, 3), nsmall = 2)))
   }
   conversion_package_text(conv$package$name, conv$function_used)
@@ -1879,7 +1879,7 @@ scenario_n <- function(spec, result, conservative = NA, optimistic = NA, run = e
 scenario_sentence <- function(spec, n) {
   power <- spec$goal$power %||% 0.8
   parts <- vapply(names(n), function(k) {
-    sprintf("%s needs %s", tolower(scenario_names[[k]]), if (is.na(n[[k]])) "a number powerkit couldn't find" else whole(n[[k]]))
+    sprintf("%s needs %s", tolower(scenario_names[[k]]), if (is.na(n[[k]])) "a number Powerkit couldn't find" else whole(n[[k]]))
   }, character(1))
   sprintf("For %s power, %s participants in total.", percent(power), paste(parts, collapse = "; "))
 }
@@ -1895,7 +1895,7 @@ scenarios_ui <- function(spec, result = NULL) {
     p(class = "small", "The main answer depends on the effect and other assumptions you entered. Compare plausible alternatives before settling on a sample size. These comparisons keep the analysis and any chosen between-study variation unchanged."),
     p(class = "small", sprintf(paste0(
       "This analysis uses %s = %s. Enter a weaker effect (closer to zero, keeping its direction) you would still find plausible, and a stronger one, ",
-      "and powerkit draws power for all three. Choose values you could defend; powerkit won't suggest them."),
+      "and Powerkit draws power for all three. Choose values you could defend; Powerkit won't suggest them."),
       e$label, format(round(planned, 3)))),
     div(class = "d-flex gap-3 flex-wrap",
       numericInput("scenario_conservative", sprintf("Conservative %s", e$label), value = NA, step = 0.01, width = "14rem"),
@@ -3099,12 +3099,12 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (simulated(result)) p(class = "result-simulation", simulation_note(result)),
     p(class = "result-credit",
       "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s. ", p_$packages[[p_$backend]], p_$backend_function),
-      if (p_$backend %in% c("pwr", "stats", "pwrss", "powertools")) "powerkit built the call from your answers and checked the effect size it passes. " else
-        "powerkit built the call from your answers and checked that it reproduces the population you entered. ",
+      if (p_$backend %in% c("pwr", "stats", "pwrss", "powertools")) "Powerkit built the call from your answers and checked the effect size it passes. " else
+        "Powerkit built the call from your answers and checked that it reproduces the population you entered. ",
       "Cite the package: see Citations above."),
     validation_ui(ep, result),
     if (length(departures_in_view)) tagList(
-      h4(class = "h6", "Where powerkit differs from the tool's defaults"),
+      h4(class = "h6", "Where Powerkit differs from the tool's defaults"),
       tags$ul(class = "result-departures", lapply(unname(departures_in_view), tags$li))
     ),
     if (any(folded)) tags$details(class = "result-more result-departures-minor",
@@ -3225,8 +3225,8 @@ writeup_quote <- function(x) sprintf("“%s”", trimws(gsub("\\s+", " ", as.cha
 powerkit_cited <- function(version) {
   version <- as.character(version %||% "unknown")
   major <- suppressWarnings(as.integer(sub("\\..*$", "", version)))
-  if (!is.na(major) && major >= 1) return(sprintf("powerkit (version %s)", version))
-  sprintf("powerkit (version %s, a prototype in development whose results are not yet fully validated)", version)
+  if (!is.na(major) && major >= 1) return(sprintf("Powerkit (version %s)", version))
+  sprintf("Powerkit (version %s, a prototype in development whose results are not yet fully validated)", version)
 }
 
 writeup_software <- function(result, full = FALSE, bayes = FALSE) {
@@ -3837,7 +3837,7 @@ precision_sentences <- function(spec, result) {
     sprintf("If the estimate comes out at %s = %s, its %s runs from %s to %s, a width of %s.",
       pr$effect_name, format(pr$effect), interval, precision_number(pr$lower), precision_number(pr$upper), precision_number(pr$width))
   }
-  how <- sprintf("Calculated by formula with %s (%s()), which powerkit called with your answers.", result$provenance$backend, pr$function_used)
+  how <- sprintf("Calculated by formula with %s (%s()), which Powerkit called with your answers.", result$provenance$backend, pr$function_used)
   if (!is.na(pr$target_width)) {
     headline <- if (is.na(pr$assurance)) {
       sprintf("With %s, the %s for %s is expected to be no wider than %s.", precision_people(spec, pr$n), interval, estimate, format(pr$target_width))
@@ -3990,10 +3990,10 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
       h4(class = "h5", "How it was calculated"),
       p(class = "result-credit",
         "Calculated by the R package ", tags$strong(p_$backend), sprintf(" (version %s), with %s(). ", p_$packages[[p_$backend]], p_$backend_function),
-        "powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
+        "Powerkit built the call from your answers and checked the values it passes. Cite the package: see Citations above."),
       validation_ui(ep, result),
       if (length(departures)) tagList(
-        h4(class = "h6", "Where powerkit differs from the tool's defaults"),
+        h4(class = "h6", "Where Powerkit differs from the tool's defaults"),
         tags$ul(class = "result-departures", lapply(unname(departures), tags$li))),
       tags$details(class = "result-more",
         tags$summary("More about this result: the values it used"),
@@ -4020,7 +4020,7 @@ bayes_companion_card_ui <- function(tree, ep_id, spec, result) {
   if (!bayes_companion_applies(tree, ep_id, spec, result)) return(NULL)
   div(class = "result-card result-bayes", id = "result-bayes",
     h4(class = "h5", "Planning to interpret a non-significant result?"),
-    p("A non-significant result is not evidence that an effect is absent. Two ways to plan for that question: an equivalence test (is the effect too small to matter?), which has its own analysis in powerkit, or a Bayes factor (do the data favour no effect over the effects your prior expects?). Either can need more people than this plan."),
+    p("A non-significant result is not evidence that an effect is absent. Two ways to plan for that question: an equivalence test (is the effect too small to matter?), which has its own analysis in Powerkit, or a Bayes factor (do the data favour no effect over the effects your prior expects?). Either can need more people than this plan."),
     actionButton("bayes_companion_show", "See what a Bayes factor would add to this plan", class = "btn btn-outline-primary",
       onclick = "this.hidden = true;"),
     uiOutput("bayes_companion"))
@@ -4232,9 +4232,9 @@ bayes_uncertain_ui <- function(spec, result) {
   tagList(
     h5(class = "h6", "Not sure of the effect?"),
     p(class = "small", sprintf(paste(
-      "This plan assumes the effect is exactly %s. If you are unsure, say how unsure as an SD, and powerkit averages over",
+      "This plan assumes the effect is exactly %s. If you are unsure, say how unsure as an SD, and Powerkit averages over",
       "true effects spread around it (a normal design prior): the chance of evidence at the threshold given what you believe now",
-      "(O'Hagan, Stevens and Campbell, 2005, call it assurance). Choose an SD you could defend; powerkit won't suggest one.",
+      "(O'Hagan, Stevens and Campbell, 2005, call it assurance). Choose an SD you could defend; Powerkit won't suggest one.",
       "Nothing here changes the plan: to plan with it, enter the SD under Settings and check your answers again."), format(effect))),
     div(class = "d-flex flex-wrap align-items-end gap-2",
       numericInput("bayes_uncertain_sd", "How unsure you are about the effect, as an SD", value = NA, min = 0, max = 5, step = 0.05, width = "16rem"),

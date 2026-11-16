@@ -49,7 +49,7 @@ route_fit_messages <- function(tree, ep_id, ctx = list()) {
     } else if (covered) {
       out <- c(out, paste(
         "You said you want to show there's no meaningful effect. This card plans to detect an effect, which is not the same:",
-        "a study can fail to find an effect without showing it is absent. powerkit has no equivalence version of this design yet.",
+        "a study can fail to find an effect without showing it is absent. Powerkit has no equivalence version of this design yet.",
         "A simulation in R of the two one-sided tests for your model is the usual route; this card's R script can be a starting point."))
     }
   }
@@ -58,12 +58,12 @@ route_fit_messages <- function(tree, ep_id, ctx = list()) {
   if (!is.null(fit) && !is.null(outcome) && !outcome %in% fit$takes) {
     out <- c(out, sprintf(paste(
       "You said your outcome is %s. This card plans for %s, so its answer would not fit your study. Data like yours are usually",
-      "analysed with a generalised mixed model, whose power is simulated in R (for example with simr); powerkit doesn't calculate it yet."),
+      "analysed with a generalised mixed model, whose power is simulated in R (for example with simr); Powerkit doesn't calculate it yet."),
       route_outcome_words[[outcome]], fit$words))
   }
   if (identical(ep_id, "E26") && identical(ctx$times, "many_conditions")) {
     out <- c(out, paste(
-      "You said the same people are in three or more conditions. This card compares two (McNemar's test); powerkit has nothing",
+      "You said the same people are in three or more conditions. This card compares two (McNemar's test); Powerkit has nothing",
       "for three or more yet (Cochran's Q, or a logistic mixed model simulated in R with simr). You can plan one pair of conditions here."))
   }
   if (identical(ep_id, "E41") && identical(ctx$times, "twice")) {
@@ -100,7 +100,7 @@ whole_study_bayes_note <- function(on) {
   if (!isTRUE(on)) return(NULL)
   div(class = "status status-soon bayes-mode-note", role = "note",
     tags$strong("Bayes factors: "),
-    "the plan and the whole-study simulation use p-values: powerkit has no Bayes factor version of them yet. An analysis opened from the plan on its own card opens on its Bayes factor version where it has one.")
+    "the plan and the whole-study simulation use p-values: Powerkit has no Bayes factor version of them yet. An analysis opened from the plan on its own card opens on its Bayes factor version where it has one.")
 }
 
 # The safety net's way on (V-09): search by name, or the map.

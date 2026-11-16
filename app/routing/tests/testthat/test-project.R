@@ -106,7 +106,7 @@ test_that("the notice after opening names the version and any differences", {
     result = list(goal_type = "power"), notes = "Saved with pwr 1.2; here it is 1.3.0. Results may differ slightly.")
   html <- as.character(project_opened_ui(project))
   expect_match(html, "Project opened.", fixed = TRUE)
-  expect_match(html, "powerkit 0.0.0.9000", fixed = TRUE)
+  expect_match(html, "Powerkit 0.0.0.9000", fixed = TRUE)
   expect_match(html, "Saved with pwr 1.2", fixed = TRUE)
 })
 

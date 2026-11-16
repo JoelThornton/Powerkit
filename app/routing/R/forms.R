@@ -201,8 +201,8 @@ form_groups <- function(forms, ep_id, k = 2, start = list()) {
       id = "n_mediators", label = "Number of mediators", type = "select", required = TRUE,
       choices = stats::setNames(as.list(as.character(mediator_choices_for(form$mediators))), mediator_choices_for(form$mediators)),
       default = "2", default_source = if (identical(form$mediators, "parallel"))
-        "two, the number powerkit has validated for parallel mediation; more will be offered once checked"
-      else "the number powerkit has validated (two)"
+        "two, the number Powerkit has validated for parallel mediation; more will be offered once checked"
+      else "the number Powerkit has validated (two)"
     )))), groups)
   }
   if (!is.null(form$names) || !is.null(form$mediators)) groups <- c(list(names_group(form, k)), groups)
@@ -799,7 +799,7 @@ heterogeneity_fields <- function(template) {
       help = paste("Optional. Leave empty to plan for the correlation you entered. If you enter a value, the answer is averaged over",
         "studies whose true correlations differ by this much (an SD on Fisher's z, which is close to r for small values;",
         "McShane & Bockenholt, 2014). That changes the question, and it can raise or lower power. The best source is a",
-        "meta-analysis of this correlation that reports tau on Fisher's z. powerkit knows of no published reference values on",
+        "meta-analysis of this correlation that reports tau on Fisher's z. Powerkit knows of no published reference values on",
         "this scale; 0.025, 0.075 and 0.125 are a quarter of r = .1, .3 and .5, the rule Kenny and Judd (2019) use for d,",
         "and are only illustrations. The results show the answer at each of them and at your value."),
       shown_if = c(list(list(field = "method", is = "pearson")), common))))
@@ -861,7 +861,7 @@ with_eta_squared <- function(group, template) {
         id = "eta_squared", label = "Partial eta-squared of the effect you test", writeup_label = "partial eta-squared",
         type = "number", path = "population.eta_squared", effect = TRUE, min_exclusive = 0, max_exclusive = 1,
         shown_if = list(field = "metric", is = "eta_squared"),
-        help = paste("For one factor, its eta-squared. powerkit treats it as the true effect, as G*Power does. A published value",
+        help = paste("For one factor, its eta-squared. Powerkit treats it as the true effect, as G*Power does. A published value",
                      "is that study's estimate and tends to be too large; omega-squared, if reported, is less biased. Groups are",
                      "taken as equal in size, and the test is the classical ANOVA F test: Welch's F and rank tests need the means, so",
                      "choosing an effect size sets the test version to the classical ANOVA.")
@@ -873,17 +873,17 @@ with_eta_squared <- function(group, template) {
   at <- which(vapply(fields, function(f) identical(f$id, "eta_squared"), logical(1)))
   if (length(at) == 1 && template %in% c("oneway_ancova", "factorial_ancova")) {
     fields[[at]]$help <- paste("The partial eta-squared of the effect you test, from an ANCOVA with the same covariates. It already",
-      "allows for them, so their R-squared isn't needed; their number still counts, as in G*Power. powerkit treats it as the",
+      "allows for them, so their R-squared isn't needed; their number still counts, as in G*Power. Powerkit treats it as the",
       "true effect; a published value tends to be too large. Groups are taken as equal in size.")
   }
   if (length(at) == 1 && identical(template, "factorial_three")) {
     fields[[at]]$help <- paste("The partial eta-squared of the effect you test, as in G*Power. This is for three factors that are all",
       "between participants (different people in every cell); with a within-participants factor, give the means instead.",
-      "powerkit treats it as the true effect; a published value tends to be too large. Groups are taken as equal in size.")
+      "Powerkit treats it as the true effect; a published value tends to be too large. Groups are taken as equal in size.")
   }
   if (mixed) {
     if (length(at) == 1) {
-      fields[[at]]$help <- paste("The partial eta-squared of the effect you test. powerkit treats it as the true effect, as G*Power does;",
+      fields[[at]]$help <- paste("The partial eta-squared of the effect you test. Powerkit treats it as the true effect, as G*Power does;",
         "a published value tends to be too large. Groups are equal in size, and sphericity is assumed.")
       fields <- append(fields, list(list(
         id = "eta_r", label = "Correlation between measurements (the same for every pair)", writeup_label = "correlation between measurements",
@@ -964,10 +964,10 @@ conversion_fields <- function(template, when = list()) {
     list(id = "conv_from", label = if (has_f) "Do you have Cohen's f or an F statistic instead?" else "Is your effect size published in another form?", type = "select", default = "none",
          choices = choices, sets = sets, shown_if = planning,
          help = if (proportions) paste(
-           "powerkit works out group 2's proportion from the ratio and group 1's proportion (an odds ratio with the effectsize",
+           "Powerkit works out group 2's proportion from the ratio and group 1's proportion (an odds ratio with the effectsize",
            "package, Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result. An odds ratio from a logistic regression",
            "with covariates is a conditional one, usually further from 1 than the two groups' raw odds ratio. Published effects",
-           "tend to be larger than the true effect: say how you adjusted it.") else paste("powerkit converts it with the psych package (a t or F statistic, by the formula in Lakens, 2013) or the",
+           "tend to be larger than the true effect: say how you adjusted it.") else paste("Powerkit converts it with the psych package (a t or F statistic, by the formula in Lakens, 2013) or the",
                       "effectsize package (Ben-Shachar, L\u00fcdecke & Makowski, 2020) and shows the result and the function used. Published effects",
                       "tend to be larger than the true effect: say how you adjusted it, or use safeguard power below if it comes",
                       "from one study.")),
@@ -1034,10 +1034,10 @@ claim_notes <- function() list(
   ),
   related = paste(
     "You said each test supports its own claim, and that the tests form a related group you want to correct for, such as several outcomes of the same treatment.",
-    "powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test; plan each of the others the same way.",
+    "Powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test; plan each of the others the same way.",
     "This follows the error-statistical view that a related group of tests needs a correction (Mayo, 2018, pp. 275\u2013276); under Rubin's (2021) view, separate claims need none."
   ),
-  any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
+  any = "You said your claim is about the set: it is supported if any one of the tests is significant. So the chance of a false positive is spread over the set: Powerkit divides your significance level by the number of tests (Bonferroni) and uses that for this test.",
   all = paste(
     "You said your claim needs every test to be significant. No correction to the significance level is needed, but the joint chance cannot exceed the least powerful individual test:",
     "two independent tests at 0.8 each succeed together only about 0.8 x 0.8 = 0.64 of the time.",
@@ -1062,7 +1062,7 @@ claim_groups <- function(claim = "one", n_tests = NULL, from_plan = FALSE) {
          choices = list(independent = "Independent tests: use the product of their powers",
            unknown = "Dependence unknown: use a sufficient target that may be conservative"),
          shown_if = list(field = "claim", is = "all"),
-         help = "If you can't say how the tests' results are related, choose \"unknown\": measuring the same participants does not make the tests independent. powerkit then sets each test's power high enough that all of them succeed together at least as often as your target, whatever the relationship. This is a safe bound: the true chance is usually higher.")
+         help = "If you can't say how the tests' results are related, choose \"unknown\": measuring the same participants does not make the tests independent. Powerkit then sets each test's power high enough that all of them succeed together at least as often as your target, whatever the relationship. This is a safe bound: the true chance is usually higher.")
   )
   list(list(input = NULL, title = "Your claim", fields = fields))
 }
@@ -1093,14 +1093,14 @@ claim_result_note <- function(values, alpha_used, goal = NULL) {
     one = NULL,
     each = "Your claim: several claims, each standing on its own. This result is for one test, with no correction; work out each of the others the same way.",
     related = if (is.null(alpha_used)) {
-      sprintf("Your claim: %s related tests, corrected as a group. A Bayes factor test has no significance level, so powerkit applies no correction.", values$n_tests)
+      sprintf("Your claim: %s related tests, corrected as a group. A Bayes factor test has no significance level, so Powerkit applies no correction.", values$n_tests)
     } else sprintf(
       "Your claim: %s related tests, each its own claim, corrected as a group. The significance level for this test is %s divided by %s (Bonferroni): %s. Work out each of the others the same way.",
       values$n_tests, format(signif(alpha_used * as.numeric(values$n_tests), 3)), values$n_tests, format(signif(alpha_used, 3))
     ),
     any = if (is.null(alpha_used)) {
       # Bayes factor tests have no significance level to divide.
-      sprintf("Your claim: any of %s tests. A Bayes factor test has no significance level, so powerkit applies no correction; the more tests you run, the more chances one of them has to give misleading evidence.", values$n_tests)
+      sprintf("Your claim: any of %s tests. A Bayes factor test has no significance level, so Powerkit applies no correction; the more tests you run, the more chances one of them has to give misleading evidence.", values$n_tests)
     } else sprintf(
       "Your claim: any of %s tests. The significance level for this test is %s divided by %s (Bonferroni): %s. The power shown is for this test at its adjusted alpha, not the chance that any test in the set succeeds.",
       values$n_tests, format(signif(alpha_used * as.numeric(values$n_tests), 3)), values$n_tests, format(signif(alpha_used, 3))
@@ -1113,7 +1113,7 @@ claim_result_note <- function(values, alpha_used, goal = NULL) {
       sprintf(paste(
         "Your claim: all of %s tests. So that all of them succeed together with a chance of %s, this test is planned at %s^(1/%s) = %s power; plan each of the others at the same power.",
         "This assumes every test reaches at least the stated power under the same population assumptions and their significance decisions are independent. This calculation does not verify the other tests. Related tests can have a lower or higher joint chance; this calculation does not guarantee the target for them. Where supported, use the study plan's joint-power simulation.",
-        "Another approach raises each test's significance level instead (a \"reverse Bonferroni\": Francis & Thunell, 2021); powerkit doesn't do that."),
+        "Another approach raises each test's significance level instead (a \"reverse Bonferroni\": Francis & Thunell, 2021); Powerkit doesn't do that."),
         whole(k), format(target), format(target), whole(k), format(signif(claim_power(target, values), 3)))
     } else {
       "Your claim: all of several tests. The power shown is for this test alone. If the tests are independent, the chance that every test succeeds is the product of their powers (for two tests at 0.8, 0.64). For related tests it can be lower or higher; a joint-power simulation is needed to model their dependence."
@@ -1226,7 +1226,7 @@ form_problems <- function(fields, values) {
     if (blank(v)) {
       if (effect_optional(f, values) || source_not_asked(f, values)) next
       if (isTRUE(f$effect)) {
-        add(sprintf("%s is empty. Enter the value you expect; powerkit doesn't fill in effect sizes.", quote_label(f)))
+        add(sprintf("%s is empty. Enter the value you expect; Powerkit doesn't fill in effect sizes.", quote_label(f)))
       } else if (needed) {
         add(f$empty_message %||% sprintf("%s is empty.", quote_label(f)))
       }
@@ -1536,7 +1536,7 @@ online_package_message <- function(message, local = isTRUE(getOption("powerkit.l
   if (local || !grepl(pattern, message)) return(message)
   noun <- sub(pattern, "\\1", message)
   names <- sub(pattern, "\\2", message)
-  sprintf("This analysis isn't available on the online app right now: the R %s it needs (%s) %s installed there. Please let us know with the \u201cFeedback\u201d button at the top. It runs in powerkit installed on your own computer.",
+  sprintf("This analysis isn't available on the online app right now: the R %s it needs (%s) %s installed there. Please let us know with the \u201cFeedback\u201d button at the top. It runs in Powerkit installed on your own computer.",
     noun, names, if (noun == "package") "isn't" else "aren't")
 }
 
@@ -1558,7 +1558,7 @@ check_spec <- function(spec, fields, validate = engine_validator()) {
   # Only the engine's own errors are worded for users; anything else is a
   # fault, reported without its internals.
   problems <- if (inherits(result, "powerkit_error")) result$problems %||% conditionMessage(result) else
-    "powerkit couldn't check these answers: something went wrong in its engine. Please report this, with the answers you copied."
+    "Powerkit couldn't check these answers: something went wrong in its engine. Please report this, with the answers you copied."
   list(status = "problems", problems = vapply(problems, plain_engine_message, "", fields = fields, USE.NAMES = FALSE),
        advice = vapply(advice, plain_engine_message, "", fields = fields, USE.NAMES = FALSE))
 }
@@ -1570,7 +1570,7 @@ spec_json <- function(spec) as.character(jsonlite::toJSON(spec, auto_unbox = TRU
 # The route taken and the values entered, as plain text to paste anywhere.
 answers_text <- function(tree, route_label, history, ep_id, fields, values) {
   ep <- tree$endpoints[[ep_id]]
-  lines <- c("powerkit routing prototype: my answers", "", paste0("Route: ", route_label))
+  lines <- c("Powerkit routing prototype: my answers", "", paste0("Route: ", route_label))
   lines <- c(lines, path_lines(tree, history))
   lines <- c(lines, "", sprintf("End point: %s, %s (%s)", ep_id, ep$plain_name, ep$doc_name), "", "Values entered:")
   for (f in fields) {
