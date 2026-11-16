@@ -1,5 +1,11 @@
 # powerkit 0.69.4
 
+* App styles: a text box's or menu's border is `#8794a6` on every screen,
+  3.1:1 against white, which meets WCAG 1.4.11 (the form's `#c6cfdb` was
+  1.6:1); the sticky action bar is a whole rounded bar pinned 0.6rem above
+  the window's edge, so it no longer looks cut off at the foot of the
+  page; "I don't know my effect size" starts at the column's edge.
+
 * App styles (design review): buttons, text boxes, menus and file pickers
   share one corner radius and border colour on every screen (they kept
   Bootstrap's defaults outside the input form); `btn-outline-secondary`

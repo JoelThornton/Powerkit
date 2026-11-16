@@ -810,11 +810,14 @@ app_css <- "
   .btn-outline-secondary { --bs-btn-color: var(--pk-navy); --bs-btn-border-color: #8794a6; --bs-btn-hover-bg: var(--pk-navy); --bs-btn-hover-border-color: var(--pk-navy);
     --bs-btn-active-bg: var(--pk-navy); --bs-btn-active-border-color: var(--pk-navy); background: #fff; }
   .btn-outline-secondary:hover, .btn-outline-secondary:active { background: var(--pk-navy); }
-  .app-main .form-control, .app-main .form-select { border-radius: 10px; border-color: #c6cfdb; }
+  /* A text box's edge has 3:1 contrast against the white behind it
+     (WCAG 1.4.11): #8794a6 is 3.1:1, where the form's earlier #c6cfdb
+     was 1.6:1. */
+  .app-main .form-control, .app-main .form-select, .app-main .form-field .form-control, .app-main .form-field .form-select { border-radius: 10px; border-color: #8794a6; }
   .app-main .form-control:focus, .app-main .form-select:focus { border-color: var(--pk-blue); box-shadow: 0 0 0 0.2rem rgba(10,90,140,.18); }
   .app-main .input-group > .form-control:not(:first-child) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
   .app-main .input-group .btn-file, .app-main .input-group > .input-group-btn > .btn, .app-main .input-group > .input-group-prepend > .btn, .app-main .input-group > label.btn {
-    border-radius: 10px 0 0 10px; border-color: #c6cfdb; background: #fff; color: var(--pk-navy); }
+    border-radius: 10px 0 0 10px; border-color: #8794a6; background: #fff; color: var(--pk-navy); }
   .app-main .input-group .btn-file:hover { background: #eef4fb; color: var(--pk-navy); }
   .app-main [aria-invalid='true'] { border-color: #a12a2a !important; }
   .irs--shiny .irs-bar { background: var(--pk-blue); border-top-color: var(--pk-blue); border-bottom-color: var(--pk-blue); }
@@ -834,6 +837,14 @@ app_css <- "
   /* Text links that are buttons start at the column's edge, like the text around them. */
   .start-more .start-more-link { border: 0; }
   .known-open-all { padding-left: 0; padding-right: 0; }
+  /* The I don't know my effect size link starts at the column's edge when it is
+     on a line of its own, and keeps a space when it follows the text. */
+  .effect-unsure .btn { margin: 0 !important; }
+  .effect-unsure > div:first-child::after { content: ' '; }
+  /* The action bar is a whole rounded bar, pinned a little above the
+     window's edge: with only its top corners rounded it looked cut off
+     when it came to rest at the foot of the page. */
+  .action-bar { border: 1px solid var(--pk-line); border-radius: var(--pk-radius); bottom: 0.6rem; box-shadow: 0 4px 18px rgba(20,40,75,.12); }
   /* A fold's one line sits in the middle of its box. */
   .form-settings > summary, .form-guess > summary { padding: 0.6rem 0; min-height: 44px; }
   .form-settings, .form-guess { padding-top: 0.15rem; padding-bottom: 0.15rem; }
