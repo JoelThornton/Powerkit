@@ -371,6 +371,8 @@ app_css <- "
     padding: 0.6rem calc(var(--bs-gutter-x, 1.5rem) * 0.5) 0.5rem; }
   .topbar-inner { max-width: 70rem; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
   .share-page { display: flex; align-items: center; gap: 0.5rem; }
+  .route-marker { font-size: 0.9rem; color: #5d6875; margin: 0 0 0.25rem 0; }
+  .route-marker-link { padding: 0; font-size: inherit; vertical-align: baseline; }
   /* Explanations off (terms_js): technical names first, and the
      plain-English hints of terms hidden; the help under each field,
      notes, assumptions, departures and known differences stay. */
@@ -1242,6 +1244,16 @@ server <- function(input, output, session) {
         # The aim comes next, on its own screen.
         state$screen <- "aim"
       }
+    } else if (kind == "aim" && identical(value, "replicate")) {
+      # Replicating a published finding starts a replication plan, open at
+      # "The original study", which finds the original's analysis and keeps
+      # it in the plan (layout review, 16 November 2026): both ways in end
+      # in the same place.
+      plan <- new_replication()
+      state$rep_plan <- plan$id; state$current_plan <- plan$id
+      state$screen <- "start"; state$start <- list(); state$history <- list(); state$ctx <- list()
+      open_plans_page(plan$id)
+      session$onFlushed(function() updateRadioButtons(session, "rep_section", selected = "original"), once = TRUE)
     } else if (kind == "aim") {
       # Estimation and equivalence go to their cards.
       state$start <- list(aim = value)
@@ -2937,7 +2949,7 @@ server <- function(input, output, session) {
     if (!identical(input$tabs, snap$tab) && !is.null(snap$tab)) updateTabsetPanel(session, "tabs", selected = snap$tab)
   })
   output$screen <- renderUI({
-    switch(
+    tagList(route_marker_ui(state$route, state$screen), switch(
       state$screen,
       aim = aim_ui(tree),
       start = start_ui(tree, isolate(state$start),
@@ -2992,7 +3004,7 @@ server <- function(input, output, session) {
             values = state$ws_values, path = state$ws_values$path))
         }
       })
-    )
+    ))
   })
   # The Word and Markdown downloads sit in a closed format menu
   # (document_menu()). Shiny leaves a hidden output's link empty until it

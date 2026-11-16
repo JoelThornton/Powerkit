@@ -307,6 +307,17 @@ name_swap <- function(plain, technical) {
   tagList(tags$span(class = "name-plain", plain), tags$span(class = "name-tech", technical))
 }
 
+# On every screen of the whole-study route, a quiet line that says which
+# route this is (layout review, 16 November 2026): its first screens are
+# the same questions "Help me choose" asks.
+route_marker_screens <- c("aim", "node", "known", "card", "form", "g_vars", "g_analyses", "g_plan", "g_sim")
+route_marker_ui <- function(route, screen) {
+  if (!identical(route, "guided") || !isTRUE(screen %in% route_marker_screens)) return(NULL)
+  p(class = "route-marker", "Planning a whole study \u00b7 ",
+    tags$button(type = "button", class = "btn btn-link route-marker-link",
+      onclick = "Shiny.setInputValue('pick', 'route:choose', {priority: 'event'})", "Start again for a single analysis"))
+}
+
 # Each history entry carries its page in the address (?page=...); a link
 # with ?page= opens that page.
 nav_js <- "

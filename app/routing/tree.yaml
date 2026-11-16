@@ -266,10 +266,10 @@ start_questions:
     question: "What is your study trying to do?"
     options:
       predict: {label: "Test a prediction", help: "For example, that a training improves memory scores."}
-      # The original's design is asked first, so every design reaches its
-      # card (12 November 2026); the four designs the replication planner
-      # covers are offered it from the card (R/replication.R).
-      replicate: {label: "Replicate a published finding", help: "A few questions about the original study's design find its analysis, and you plan the replication there. For a t-test or correlation, the replication planner adds the sample size for each goal a replication can have."}
+      # Starts a replication plan at "The original study" (16 November
+      # 2026), which asks the original's design so every design reaches
+      # its card, kept in the plan (app.R, the "aim" pick).
+      replicate: {label: "Replicate a published finding", help: "Starts a replication plan: notes on whether to replicate, the original study, the goals a replication can have, and the sample size for each."}
       meta: {label: "Combine studies others have done (a meta-analysis)", help: "For a systematic review you are planning, before the studies are found.", next: E61}
       estimate: {label: "Estimate how big something is", help: "Plan the sample size for a confidence interval of a chosen width, or see its width at a given sample size. The next screen lets you choose what to estimate.", next: E46}
       prediction_model: {label: "Develop a model that predicts an outcome for each person (a risk score or prognostic model)", help: "For example, a model that predicts who will relapse from their age, symptoms and history. The sample size comes from criteria that keep the model from overfitting, not from power.", next: E77}

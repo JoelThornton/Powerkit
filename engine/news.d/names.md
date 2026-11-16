@@ -10,3 +10,6 @@
   page), replacing the separate "Copy a link" buttons. The result's ways
   of coming back are together in "Keep this result"; the documents are
   under "Write it up".
+* App only: "Replicate a published finding" starts a replication plan at
+  "The original study", and the whole-study route shows which route it is
+  on each screen.

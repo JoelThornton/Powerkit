@@ -8,3 +8,6 @@ entries:
   - date: "2026-11-16"
     title: "One Share button that shares what you have open"
     text: "Share, at the top, now shares what is on the screen: on a result, the analysis with its result; on an input screen, your answers so far; on a study plan, the plan; anywhere else, the page. Its tooltip says which. The separate \"Copy a link\" buttons are gone, and \"Copy my answers\" is now \"Copy answers as text\". Under a result, \"Keep this result\" holds every way to come back to it, with Add to my study plan first, and the downloads are under \"Write it up\"."
+  - date: "2026-11-16"
+    title: "Replication starts a replication plan, and the whole-study route says where you are"
+    text: "Choosing \"Replicate a published finding\" now starts a replication plan and opens it at \"The original study\", the same place \"New replication plan\" leads. On every screen of \"Plan a whole study\", a line says that you are planning a whole study, with a link to start again for a single analysis."
