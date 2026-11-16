@@ -1228,8 +1228,7 @@ goal_sentences <- function(spec, result) {
         )
       } else if (is.null(s$cohen_f)) {
         # Basic tests (pwr): the effect is solved for directly.
-        name <- switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
-          r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared", "the effect")
+        name <- sensitivity_effect_label(s$effect_name, "the effect")
         c(
           headline = paste0(if (isTRUE(s$approximation)) "Formula approximation: " else "", sprintf(
             "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s = %s. The effect: %s.",
@@ -1243,8 +1242,15 @@ goal_sentences <- function(spec, result) {
             )
           } else {
             sprintf(
-              "Smaller true effects than this would give a significant result less often than %s of the time. Worked out by formula (%s), which finds the effect directly.",
-              percent(spec$goal$power), exact_source(result)
+              "Smaller true effects than this would give a significant result less often than %s of the time. Worked out by formula (%s), %s",
+              percent(spec$goal$power), exact_source(result),
+              if (!is.null(s$scale)) {
+                "with the pattern of means you entered kept in shape and scaled until the test reaches the target power."
+              } else if (isTRUE(s$searched)) {
+                "searching the effect with the package's own power calculation and keeping the rest of what you entered."
+              } else {
+                "which finds the effect directly."
+              }
             )
           }, sensitivity_critical_text(spec, result)), collapse = " ")
         )
@@ -1951,11 +1957,30 @@ run_sensitivity_curve <- function(spec, run = engine_function("run_spec"), seed 
   main
 }
 
+# The name of the effect a smallest-detectable-effect result reports
+# (run_spec()'s sensitivity$effect_name), in words.
+sensitivity_effect_label <- function(effect_name, fallback = "effect") {
+  switch(effect_name %||% "",
+    d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
+    r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared",
+    r2_change = "R-squared change", eta_squared = "partial eta-squared", V = "Pillai's V",
+    odds_ratio = "odds ratio", rate_ratio = "rate ratio", p = "proportion",
+    p_second_only = "proportion changing only in the second condition", r_group2 = "group 2's correlation",
+    contrast = "contrast", mean_range = "difference between the largest and smallest mean",
+    fallback)
+}
+
+# Results that are a value to reach rather than a size.
+sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2")
+
 curve_table_ui <- function(spec, result, table) {
-  name <- switch(result$sensitivity$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "p2", r2 = "R-squared", partial_r2 = "partial R-squared", V = "Pillai's V", "effect")
+  name <- if (identical(result$sensitivity$effect_name, "p2")) "p2" else sensitivity_effect_label(result$sensitivity$effect_name, "effect")
   # Two proportions: the column is group 2's proportion, not a size.
+  value <- isTRUE(result$sensitivity$effect_name %in% sensitivity_value_names)
   heading <- function(power) {
-    if (identical(name, "p2")) sprintf("Group 2's proportion, %s power", power) else sprintf("Smallest %s, %s power", name, power)
+    if (identical(name, "p2")) sprintf("Group 2's proportion, %s power", power)
+    else if (value) sprintf("%s%s, %s power", toupper(substr(name, 1, 1)), substring(name, 2), power)
+    else sprintf("Smallest %s, %s power", name, power)
   }
   tagList(
     h4(class = "h6", "The smallest effect you could detect at each sample size"),
@@ -2770,9 +2795,13 @@ result_figure <- function(spec, result) {
     sensitivity = {
       s <- result$sensitivity
       if (is.null(s$effect) || is.na(s$effect)) NULL else {
-        name <- if (!is.null(s$cohen_f)) "Cohen's f" else switch(s$effect_name %||% "", d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion", r2 = "R-squared", partial_r2 = "partial R-squared", "effect")
+        name <- if (!is.null(s$cohen_f)) "Cohen's f" else sensitivity_effect_label(s$effect_name, "effect")
         value <- if (!is.null(s$cohen_f)) sprintf("%.3f", s$cohen_f) else format(round(s$effect, 3), nsmall = 2)
-        list(value = value, label = if (identical(name, "group 2's proportion")) "group 2's proportion you could detect" else paste("the smallest", name, "you could detect"),
+        # A value rather than a size (a proportion or correlation to reach,
+        # or a ratio below 1) isn't "the smallest".
+        not_size <- isTRUE(s$effect_name %in% sensitivity_value_names) ||
+          (isTRUE(s$effect_name %in% c("odds_ratio", "rate_ratio")) && isTRUE(s$effect < 1))
+        list(value = value, label = if (not_size) paste(if (startsWith(name, "group")) name else paste("the", name), "you could detect") else paste("the smallest", name, "you could detect"),
           sub = sprintf("with %s %s, at %s power", whole(spec$goal$n), unit, percent(spec$goal$power)))
       }
     },
@@ -3550,7 +3579,7 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
         sprintf("%s (95%% simulation interval %s to %s; %s)", format(signif(s$effect, 3)),
           format(signif(s$effect_lower, 3)), format(signif(s$effect_upper, 3)), s$effect_description)
       } else if (is.null(s$cohen_f)) {
-        sprintf("%s = %s (%s)", s$effect_name %||% "effect", format(round(s$effect, 3), nsmall = 2), s$effect_description)
+        sprintf("%s = %s (%s)", sensitivity_effect_label(s$effect_name, "effect"), format(round(s$effect, 3), nsmall = 2), s$effect_description)
       } else {
         sprintf("Cohen's f = %.3f (%s)", s$cohen_f, s$effect_description)
       }

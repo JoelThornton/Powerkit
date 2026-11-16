@@ -2887,6 +2887,8 @@ forms:
     sides: false
     methods_name: "an ANCOVA (Shieh's method)"
     tool: pwrss
+    sensitivity: true
+    sensitivity_shown_if: {field: test_version, is_not: bayes_factor}
     known_differences: ["15"]
     known_differences_if_method: {"15": ancova_f}
     directional: false
@@ -2958,6 +2960,8 @@ forms:
     sides: false
     methods_name: "a multiple regression F test"
     tool: pwrss
+    sensitivity: true
+    sensitivity_shown_if: {any: [[{field: question, is: r2_increase}], [{field: question, is: r2_zero}, {field: r2_test, is: f_test}], [{field: question, is: single_coefficient}, {field: coef_test, is: f_test}]]}
     directional: false
     base: {spec_version: "0.1", design: multiple_regression,
            variables: {"Y": {type: continuous}}, population: {metric: r_squared},
@@ -3048,6 +3052,10 @@ forms:
   E25:
     methods_name: "an exact binomial test of one proportion"
     tool: pwrss
+    sensitivity: true
+    sensitivity_without_effect: true
+    sensitivity_shown_if: {field: method, is_not: bayes_factor}
+    sensitivity_note: "For the smallest effect you could detect, the expected proportion can stay empty if you have no estimate: Powerkit keeps the fixed value and finds how far above it the proportion would need to be. A value below the fixed one looks for a decrease instead."
     departures: ["15"]
     known_differences: ["2"]
     known_differences_if_method: {"2": exact_binomial}
@@ -3061,7 +3069,7 @@ forms:
           - {id: Y_label, label: "Yes/no outcome (for example, guessed correctly)", type: text, path: variables.Y.label, required: true}
       - input: "The expected proportion"
         fields:
-          - {id: p, writeup_label: "expected proportion of 'yes'", label: "Expected proportion of 'yes' (0 to 1)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1}
+          - {id: p, when_empty: same_as, same_as: p0, writeup_label: "expected proportion of 'yes'", label: "Expected proportion of 'yes' (0 to 1)", type: number, path: population.p, effect: true, min_exclusive: 0, max_exclusive: 1}
       - input: "The fixed value"
         fields:
           - {id: p0, label: "The fixed proportion you compare it with (0 to 1; for example 0.5 for chance with two options)", type: number, path: population.p0, required: true, min_exclusive: 0, max_exclusive: 1}
@@ -3094,6 +3102,9 @@ forms:
   E26:
     methods_name: "an exact McNemar's test"
     tool: pwrss
+    sensitivity: true
+    sensitivity_without_effect: true
+    sensitivity_note: "For the smallest effect you could detect, the second proportion can stay empty if you have no estimate: Powerkit keeps the proportion who change only in the first condition and finds how many more would need to change only in the second. A smaller value looks for the opposite direction instead."
     known_differences: ["2"]
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: mcnemar,
@@ -3108,8 +3119,8 @@ forms:
           - {id: Y_label, label: "Yes/no outcome (for example, passed)", type: text, path: variables.Y.label, required: true}
       - input: "The expected discordant proportions"
         fields:
-          - {id: p_first_only, writeup_label: "proportion 'yes' in the first condition only", label: "Proportion of people who say 'yes' in the first condition only (0 to 1)", type: number, path: population.p_first_only, effect: true, min: 0, max: 1}
-          - {id: p_second_only, writeup_label: "proportion 'yes' in the second condition only", label: "Proportion of people who say 'yes' in the second condition only (0 to 1)", type: number, path: population.p_second_only, effect: true, min: 0, max: 1}
+          - {id: p_first_only, baseline: true, writeup_label: "proportion 'yes' in the first condition only", label: "Proportion of people who say 'yes' in the first condition only (0 to 1)", type: number, path: population.p_first_only, effect: true, min: 0, max: 1}
+          - {id: p_second_only, when_empty: same_as, same_as: p_first_only, writeup_label: "proportion 'yes' in the second condition only", label: "Proportion of people who say 'yes' in the second condition only (0 to 1)", type: number, path: population.p_second_only, effect: true, min: 0, max: 1}
 
 
   E36:
@@ -3242,6 +3253,9 @@ forms:
     sides: false
     methods_name: "a chi-square goodness-of-fit test"
     tool: pwrss
+    sensitivity: true
+    sensitivity_without_effect: true
+    sensitivity_note: "For the smallest effect you could detect, Cohen's w can stay empty: the answer is the smallest w for your number of categories, whatever proportions you expect."
     directional: false
     base: {spec_version: "0.1", design: basic_test, template: chi_square_gof,
            variables: {"Y": {type: categorical}}, population: {metric: proportion},
@@ -3256,7 +3270,7 @@ forms:
           - {id: chisq_metric, label: "How you'll give the effect", type: select, path: population.metric,
              choices: {proportion: "As proportions", w: "As an effect size: Cohen's w, as in G*Power"},
              default: proportion, default_source: "the proportions, from which pwrss's probs.to.w() works out Cohen's w (pwrss 1.3.3); power.chisq.gof() itself takes w"}
-          - {id: probabilities, writeup_label: "expected proportions", label: "Expected proportions: one for each category, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true,
+          - {id: probabilities, baseline: true, writeup_label: "expected proportions", label: "Expected proportions: one for each category, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true,
              shown_if: {field: chisq_metric, is_not: w}}
           - {id: null_probabilities, writeup_label: "proportions under the null hypothesis", label: "Fixed proportions to compare with (the null hypothesis), in the same order (optional; equal proportions if left empty)", type: numbers, per_levels: Y_levels, path: population.null_probabilities, optional: true,
              shown_if: {field: chisq_metric, is_not: w}}
@@ -3316,6 +3330,9 @@ forms:
   E49:
     methods_name: "a test of two independent correlations (Fisher's z)"
     tool: pwrss
+    sensitivity: true
+    sensitivity_without_effect: true
+    sensitivity_note: "For the smallest effect you could detect, group 2's correlation can stay empty if you have no estimate: Powerkit keeps group 1's correlation and finds how far above it group 2's would need to be. A lower value looks for a smaller correlation in group 2 instead."
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: two_correlations,
            variables: {G: {type: binary}, X: {type: continuous}, "Y": {type: continuous}}, population: {metric: correlation},
@@ -3330,8 +3347,8 @@ forms:
           - {id: Y_label, label: "Second variable", type: text, path: variables.Y.label, required: true}
       - input: "The expected correlation in each group"
         fields:
-          - {id: r1, writeup_label: "correlation in group 1", label: "Correlation r in group 1", type: number, path: population.r1, effect: true, min_exclusive: -1, max_exclusive: 1}
-          - {id: r2, writeup_label: "correlation in group 2", label: "Correlation r in group 2", type: number, path: population.r2, effect: true, min_exclusive: -1, max_exclusive: 1}
+          - {id: r1, baseline: true, writeup_label: "correlation in group 1", label: "Correlation r in group 1", type: number, path: population.r1, effect: true, min_exclusive: -1, max_exclusive: 1}
+          - {id: r2, when_empty: same_as, same_as: r1, writeup_label: "correlation in group 2", label: "Correlation r in group 2", type: number, path: population.r2, effect: true, min_exclusive: -1, max_exclusive: 1}
       - input: "The size of group 2 relative to group 1"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
@@ -3581,6 +3598,9 @@ forms:
   E27:
     methods_name: "a logistic regression (the Wald z test of one predictor)"
     tool: pwrss
+    sensitivity: true
+    sensitivity_without_effect: true
+    sensitivity_note: "For the smallest effect you could detect, the odds ratio can stay empty if you have no estimate: Powerkit keeps the proportion of 'yes' at the starting point and finds the smallest odds ratio above 1 your sample could detect. An odds ratio below 1 looks for a decrease instead."
     directional: true
     known_differences: ["3"]
     known_differences_if_above_zero: {"3": r2_other_predictors}
@@ -3600,9 +3620,9 @@ forms:
              shown_if: {field: X_type, is: binary}}
       - input: "The odds ratio and the proportion of 'yes' at the starting point"
         fields:
-          - {id: odds_ratio, writeup_label: "odds ratio", label: "Odds ratio", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
+          - {id: odds_ratio, when_empty: one, writeup_label: "odds ratio", label: "Odds ratio", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
              help: "For a score: how many times the odds of 'yes' change for each standard deviation higher on the predictor. For a group: the odds of 'yes' in the second group divided by the odds in the first. 1 means no effect."}
-          - {id: base_prob, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' at the starting point (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: base_prob, baseline: true, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' at the starting point (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
              help: "For a score: the proportion at the predictor's average. For a group: the proportion in the first group."}
           - {id: x_prob, label: "Proportion of people in the second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)",
@@ -4084,6 +4104,10 @@ forms:
   E28:
     methods_name: "a Poisson regression (the Wald z test of one predictor)"
     tool: pwrss
+    sensitivity: true
+    sensitivity_without_effect: true
+    sensitivity_shown_if: {field: count_model, is: wald_z}
+    sensitivity_note: "For the smallest effect you could detect with the Poisson model, the rate ratio can stay empty if you have no estimate: Powerkit keeps the base rate and finds the smallest rate ratio above 1 your sample could detect. A rate ratio below 1 looks for a decrease instead."
     directional: true
     base: {spec_version: "0.1", design: poisson_regression, template: single_predictor_count,
            variables: {X: {}, "Y": {type: count}}, population: {metric: rate_ratio},
@@ -4101,9 +4125,9 @@ forms:
              shown_if: {field: X_type, is: binary}}
       - input: "The rate ratio, the starting rate and the time over which events are counted"
         fields:
-          - {id: rate_ratio, writeup_label: "rate ratio", label: "Rate ratio", type: number, path: population.rate_ratio, effect: true, min_exclusive: 0,
+          - {id: rate_ratio, when_empty: one, writeup_label: "rate ratio", label: "Rate ratio", type: number, path: population.rate_ratio, effect: true, min_exclusive: 0,
              help: "For a score: how many times the rate of events changes for each standard deviation higher on the predictor. For a group: the rate in the second group divided by the rate in the first. 1 means no effect."}
-          - {id: base_rate, writeup_label: "starting rate of events", label: "Starting rate: events per unit of time", type: number, path: population.base_rate, effect: true, min_exclusive: 0,
+          - {id: base_rate, baseline: true, writeup_label: "starting rate of events", label: "Starting rate: events per unit of time", type: number, path: population.base_rate, effect: true, min_exclusive: 0,
              help: "For a score: the expected count per unit of time at the predictor's average. For a group: in the first group."}
           - {id: mean_exposure, label: "Average time each person is followed, in those units", type: number, path: population.mean_exposure, required: true, min_exclusive: 0,
              default: 1, default_source: "one unit, so the starting rate is the expected count per person: powerkit's and pwrss's default (power.z.poisson(mean.exposure = 1))",
@@ -4122,7 +4146,7 @@ forms:
           - {id: dispersion, label: "Overdispersion k (variance = mean + k × mean²)", type: number, path: population.dispersion, required: true, min_exclusive: 0,
              shown_if: {field: count_model, is_one_of: [negative_binomial, zero_inflated_negative_binomial]},
              help: "From earlier data: k = (variance - mean) / mean². 0 would be Poisson; 0.5 or 1 is common for counts such as visits or symptoms. In MASS's glm.nb() and pscl's zeroinfl() output it is 1 / theta."}
-          - {id: zero_prob, writeup_label: "share of extra zeros", label: "Share of extra zeros at the starting point (0 to 1)", type: number, path: population.zero_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: zero_prob, baseline: true, writeup_label: "share of extra zeros", label: "Share of extra zeros at the starting point (0 to 1)", type: number, path: population.zero_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: count_model, is_one_of: [zero_inflated_poisson, zero_inflated_negative_binomial]},
              help: "The share of people who could not have had an event, on top of the zeros among everyone else (for a score, at its average; for a group, in the first group). The rate and the rate ratio above describe everyone else. In pscl's zeroinfl() output, plogis() of the zero model's intercept."}
           - {id: zero_odds_ratio, writeup_label: "odds ratio for being an extra zero", label: "Odds ratio for being an extra zero", type: number, path: population.zero_odds_ratio, required: true, min_exclusive: 0,
@@ -4395,6 +4419,7 @@ forms:
   E19:
     methods_name: "a planned contrast (a t test of a weighted combination of the group means)"
     tool: pwrss
+    sensitivity: true
     directional: false
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_contrast,
            variables: {A: {type: between_factor}, "Y": {type: continuous}},

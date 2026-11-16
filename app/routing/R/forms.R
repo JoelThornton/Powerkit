@@ -572,7 +572,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   pairs <- identical(form$units, "pairs")
   if (pairs) goals <- list(sample_size = "The number of pairs I need", power = "The power I'd have with a given number of pairs")
   if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I'd have a good chance of finding, at a given sample size"
-  # "The same" only follows the goal it repeats (E24 has the range alone).
+  # "The same" only follows the goal it repeats.
   if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- if (isTRUE(form$sensitivity)) "The same, across a range of sample sizes" else "The smallest effect I'd have a good chance of finding, across a range of sample sizes"
   # A justified alpha (JustifyAlpha's optimal_alpha()): the one-sample,
   # paired and two-group t-tests and the correlation (E1-E4).
@@ -586,6 +586,14 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # So a justified significance level is offered only with a test that
   # has one (`choices_shown_if`: the choice is hidden otherwise).
   if (!is.null(no_bayes) && !is.null(goals$justified_alpha)) goal$choices_shown_if <- list(justified_alpha = list(no_bayes))
+  # The smallest detectable effect only with the test versions that have
+  # one (forms.yaml's `sensitivity_shown_if`), so a Bayes factor or a
+  # simulated version doesn't offer a goal the engine refuses.
+  if (!is.null(form$sensitivity_shown_if)) {
+    for (g in intersect(c("sensitivity", "sensitivity_curve"), names(goals))) {
+      goal$choices_shown_if[[g]] <- list(form$sensitivity_shown_if)
+    }
+  }
   if (identical(start$situation, "fixed")) {
     goal$default <- if (isTRUE(form$sensitivity)) "sensitivity" else "power"
     goal$default_source <- "you said your sample size is fixed"
@@ -1434,14 +1442,20 @@ build_spec <- function(forms, ep_id, fields, values) {
 }
 
 # The value an empty effect size stands for: zero; group 1's proportion
-# (two proportions: no difference); the reduced model's R-squared (no
-# increase); or, for a table of proportions, equal
+# (two proportions: no difference); 1 for a ratio; another field's value
+# (`same_as`); the reduced model's R-squared (no increase); or, for a
+# table of proportions, equal
 # proportions in every combination (no association).
 empty_effect <- function(f, values) {
   switch(
     f$when_empty %||% "zero",
     zero = "0",
     same_as_p1 = values$p1,
+    # A ratio's "no effect" (an odds or rate ratio of 1).
+    one = "1",
+    # Another field's value: no difference from it (one proportion against
+    # its fixed value, group 2's correlation against group 1's).
+    same_as = values[[f$same_as]],
     # Multiple regression's R-squared increase: no increase over the model
     # without the tested predictors.
     same_as_r2_reduced = values$r2_reduced %||% "0",
