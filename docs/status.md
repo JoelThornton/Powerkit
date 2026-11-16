@@ -45,6 +45,11 @@ the app's blue, folds on the result screen and the cards show an arrow,
 the action bar is a whole rounded bar, and the power chart's label stays
 inside a phone's chart.
 
+Tools offers the replication planner (it starts a replication plan),
+About folds the coloured list of every analysis and a capability table
+with one row per analysis (downloadable in full as a spreadsheet), and
+Feedback confirms a sent message on its button and in a panel.
+
 Colleague testing starts 16 November 2026. What testers report, and what
 the reviews left for later, is `next.md` item 25 and comes first while
 testing runs.

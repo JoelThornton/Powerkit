@@ -13,12 +13,17 @@ test_that("the About panel says it's a prototype and what it does", {
   expect_no_match(html, "everything else you enter stays on your computer", fixed = TRUE)
 })
 
-test_that("About says how many analyses calculate and links to the full list instead of repeating it", {
+test_that("About says how many analyses calculate, with the coloured list of every one folded beneath", {
   html <- about_html()
-  # The full list is "I know my analysis" (layout review, 16 November 2026).
-  expect_false(grepl("data-endpoint=", html, fixed = TRUE))
-  expect_match(html, "See every analysis", fixed = TRUE)
-  expect_match(html, "route:known", fixed = TRUE)
+  expect_match(html, '<details class="about-plans-fold">', fixed = TRUE)
+  expect_match(html, "Show every analysis it calculates (", fixed = TRUE)
+  # Coloured by how each runs, and each opens its card.
+  for (how in c("now", "background", "full", "script")) expect_match(html, paste0("about-ep how-", how), fixed = TRUE)
+  expect_match(html, 'data-endpoint="E2"', fixed = TRUE)
+  expect_match(html, "pkAboutPlan(this.dataset.endpoint)", fixed = TRUE)
+  expect_match(about_js, "map_plan", fixed = TRUE)
+  plans <- as.character(about_plans_ui(tree, forms))
+  for (f in tree$analysis_families) expect_match(plans, f$label, fixed = TRUE)
 })
 
 test_that("the About page leads with what Powerkit does and links to its sections", {
@@ -83,7 +88,7 @@ test_that("About counts the analyses as the methods map does, folds the capabili
   html <- as.character(about_ui(tree, forms))
   in_families <- length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))
   expect_match(html, sprintf("of the %d analyses calculate", in_families), fixed = TRUE)
-  expect_match(html, "Every version of every analysis, and how it was checked (", fixed = TRUE)
+  expect_match(html, "Every analysis and the tests it offers (", fixed = TRUE)
   expect_lt(regexpr('id="about-trust"', html, fixed = TRUE), regexpr('id="about-capabilities"', html, fixed = TRUE))
   expect_no_match(html, "?:", fixed = TRUE)
 })

@@ -105,6 +105,43 @@ powerkit_version <- function() {
 }
 
 
+# Every analysis that calculates, by family (tree.yaml's
+# analysis_families), each a button that opens its card, coloured by how
+# it runs.
+about_plans_ui <- function(tree, forms) {
+  how <- about_endpoint_how(forms)
+  families <- tree$analysis_families %||% list()
+  placed <- unlist(lapply(families, `[[`, "endpoints"))
+  rest <- setdiff(names(how), placed)
+  if (length(rest)) families <- c(families, list(list(id = "more", label = "More", endpoints = rest)))
+  chip <- function(id) {
+    ep <- tree$endpoints[[id]]
+    tag <- about_how_tag[[how[[id]]]]
+    tags$button(type = "button", class = paste("about-ep", paste0("how-", how[[id]])), `data-endpoint` = id,
+      title = paste0(about_how_words[[how[[id]]]], ". Click to plan it."),
+      onclick = "pkAboutPlan(this.dataset.endpoint)",
+      tags$span(class = "about-ep-name", ep$plain_name),
+      tags$span(class = "about-ep-doc", ep$doc_name),
+      if (!is.na(tag)) tags$span(class = "about-ep-tag", tag))
+  }
+  groups <- lapply(families, function(f) {
+    ids <- intersect(unlist(f$endpoints), names(how))
+    if (!length(ids)) return(NULL)
+    div(class = "about-family",
+      div(class = "about-family-head", tags$h4(f$label), tags$span(class = "about-family-count",
+        sprintf("%d of %d", length(ids), length(intersect(unlist(f$endpoints), names(tree$endpoints)))))),
+      div(class = "about-ep-list", lapply(ids, chip)))
+  })
+  tagList(
+    div(class = "about-key",
+      tags$span(class = "about-key-item how-now", "Calculates in a second or two"),
+      tags$span(class = "about-key-item how-background", "In the background, with a progress bar"),
+      tags$span(class = "about-key-item how-full", "Simulated: a preview, then the full run here"),
+      tags$span(class = "about-key-item how-script", "A preview, then an R script for your computer")),
+    div(class = "about-families", groups)
+  )
+}
+
 about_section <- function(id, title, ...) {
   tags$section(class = "about-section", id = id, tags$h3(class = "about-h", title), ...)
 }
@@ -149,12 +186,13 @@ about_ui <- function(tree, forms) {
     about_section("about-plans", "What it can plan",
       # Counted as the methods map counts them: the analyses in the
       # families, without the "not sure" card.
-      # Two lines and a link: the full list is "I know my analysis", not a
-      # third copy here (the layout review of 16 November 2026).
       p(sprintf("%d of the %d analyses calculate in the app. ", length(how), length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))),
         "The other cards say which analysis fits a study and point to a tool that does it."),
-      p(tags$a(href = "#", onclick = "pkAboutTab('Plan a power analysis'); Shiny.setInputValue('pick', 'route:known', {priority: 'event'}); return false;",
-        "See every analysis"))),
+      # Folded, so About stays short; opened, every analysis that
+      # calculates, by family and coloured by how it runs.
+      tags$details(class = "about-plans-fold",
+        tags$summary(sprintf("Show every analysis it calculates (%d)", length(how))),
+        about_plans_ui(tree, forms))),
 
     about_section("about-trust", "Can you trust it?",
       div(class = "about-cards",
@@ -207,6 +245,10 @@ about_ui <- function(tree, forms) {
 }
 
 about_js <- "
+  window.pkAboutPlan = function(id) {
+    if (window.Shiny && Shiny.setInputValue) Shiny.setInputValue('map_plan', id, {priority: 'event'});
+    window.scrollTo(0, 0);
+  };
   window.pkAboutTab = function(name) {
     var a = document.querySelector('#tabs a[data-value=\"' + name + '\"]');
     if (a) { a.click(); window.scrollTo(0, 0); }

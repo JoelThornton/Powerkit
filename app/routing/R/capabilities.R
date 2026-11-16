@@ -119,22 +119,72 @@ capability_rows <- function(tree, forms) {
   do.call(rbind, rows)
 }
 
+# One row per analysis: what it is, what it is usually called, the test
+# versions it offers and how it runs. The per-choice table above is the
+# download, for anyone who wants every option and its checks.
+capability_summary <- function(tree, forms, rows = capability_rows(tree, forms)) {
+  ids <- unique(rows$endpoint)
+  out <- lapply(ids, function(id) {
+    ep <- tree$endpoints[[id]]
+    form <- forms$forms[[id]]
+    tests <- character()
+    if (!is.null(form)) {
+      fields <- form_fields(form_groups(forms, id))
+      for (f in fields) if (identical(f$type, "select") && identical(f$path, "target_test.method"))
+        tests <- c(tests, unlist(f$choices, use.names = FALSE))
+    }
+    first <- rows[rows$endpoint == id, ][1, ]
+    data.frame(endpoint = id, analysis = first$analysis, called = ep$doc_name %||% "",
+      tests = paste(unique(tests), collapse = "; "), access = first$access,
+      restrictions = first$restrictions, evidence = first$evidence, stringsAsFactors = FALSE)
+  })
+  do.call(rbind, out)
+}
+
+# The download: every row of capability_rows(), with readable headings.
+capability_table_csv <- function(tree, forms, file) {
+  rows <- capability_rows(tree, forms)
+  called <- vapply(rows$endpoint, function(id) tree$endpoints[[id]]$doc_name %||% "", character(1))
+  table <- data.frame(Analysis = rows$analysis, `Usually called` = unname(called), Choice = rows$choice,
+    `How it runs` = rows$access, Limits = rows$restrictions, `Checks recorded` = rows$evidence,
+    check.names = FALSE, stringsAsFactors = FALSE)
+  utils::write.csv(table, file, row.names = FALSE, na = "")
+}
+
+# Search: rows whose name or usual name match come first, then rows whose
+# test versions match, then rows that match only in their limits and
+# checks; the rest are hidden.
+capability_search_js <- "window.pkFilterCapabilities=function(q){
+  var words=q.toLocaleLowerCase().split(/\\s+/).filter(Boolean);var body=document.querySelector('#capability_table tbody');if(!body)return;
+  var rows=Array.prototype.slice.call(body.rows),n=0;
+  var has=function(t){return words.every(function(w){return t.indexOf(w)>=0;});};
+  rows.forEach(function(r){var name=(r.dataset.name||'').toLocaleLowerCase(),tests=(r.dataset.tests||'').toLocaleLowerCase(),all=r.textContent.toLocaleLowerCase();
+    r._score=!words.length?0:has(name)?3:has(name+' '+tests)?2:has(all)?1:-1;r.hidden=r._score<0;if(!r.hidden)n++;});
+  rows.sort(function(a,b){return (b._score-a._score)||(a.dataset.order-b.dataset.order);}).forEach(function(r){body.appendChild(r);});
+  document.getElementById('capability_count').textContent=(words.length?n+' of '+rows.length:rows.length)+' analyses';};"
+
 capabilities_ui <- function(tree, forms) {
   rows <- capability_rows(tree, forms)
-  # Folded: the table has over a thousand rows, which pushed the rest of
-  # About far down the page.
-  tags$details(class = "capabilities-fold", tags$summary(sprintf("Every version of every analysis, and how it was checked (%s)", format(nrow(rows), big.mark = ","))),
-    p("Generated from the current cards and input forms. Each row is one available choice, not a claim that every combination works. Conditional fields, mathematical limits and population assumptions still apply. Evidence for your complete, selected analysis is captured with its result."),
-    tags$label(`for` = "capability_search", "Search analyses, test versions or assumptions"),
-    tags$input(id = "capability_search", type = "search", class = "form-control", oninput = "pkFilterCapabilities(this.value)"),
-    p(id = "capability_count", role = "status", `aria-live` = "polite", sprintf("%d choices", nrow(rows))),
-    download_button("download_capabilities", "Download current capability table (CSV)", class = "btn btn-outline-primary"),
-    div(style = "overflow-x:auto; max-height:36rem; overflow-y:auto;",
-      tags$table(id = "capability_table", class = "table table-sm",
-        tags$caption("Current analysis choices, access routes, limits and evidence"),
-        tags$thead(tags$tr(lapply(c("Analysis", "Choice", "Access", "Limits and evidence"), function(x) tags$th(scope = "col", x)))),
-        tags$tbody(lapply(seq_len(nrow(rows)), function(i) tags$tr(
-          tags$th(scope = "row", rows$analysis[i]), tags$td(rows$choice[i]), tags$td(rows$access[i]),
-          tags$td(tags$details(tags$summary("Read limits and evidence"), p(rows$restrictions[i]), p(rows$evidence[i])))))))),
-    tags$script(HTML("window.pkFilterCapabilities=function(q){var n=0;q=q.toLocaleLowerCase();document.querySelectorAll('#capability_table tbody tr').forEach(function(r){r.hidden=!r.textContent.toLocaleLowerCase().includes(q);if(!r.hidden)n++;});document.getElementById('capability_count').textContent=n+' choices';};")))
+  summary <- capability_summary(tree, forms, rows)
+  tagList(
+    p(sprintf("Each analysis, with the tests it offers and how it runs. The full table lists all %s choices of every analysis (each test version, effect size, goal and option), with its limits and the checks recorded for it.",
+      format(nrow(rows), big.mark = ","))),
+    download_button("download_capabilities", "Download the full table (spreadsheet, CSV)", class = "btn btn-outline-primary"),
+    # Folded, so About stays short.
+    tags$details(class = "capabilities-fold", tags$summary(sprintf("Every analysis and the tests it offers (%d)", nrow(summary))),
+      p("Generated from the current cards and input forms. Each test version is one available choice, not a claim that every combination works. Evidence for your complete, selected analysis is captured with its result."),
+      tags$label(`for` = "capability_search", "Search by analysis or test, for example ANOVA or Welch"),
+      tags$input(id = "capability_search", type = "search", class = "form-control", oninput = "pkFilterCapabilities(this.value)"),
+      p(id = "capability_count", role = "status", `aria-live` = "polite", sprintf("%d analyses", nrow(summary))),
+      div(style = "overflow-x:auto; max-height:36rem; overflow-y:auto;",
+        tags$table(id = "capability_table", class = "table table-sm",
+          tags$caption("The analyses Powerkit covers, the tests each offers and how each runs"),
+          tags$thead(tags$tr(lapply(c("Analysis", "Tests it offers", "How it runs", "Limits and checks"), function(x) tags$th(scope = "col", x)))),
+          tags$tbody(lapply(seq_len(nrow(summary)), function(i) tags$tr(
+            `data-order` = i, `data-name` = paste(summary$analysis[i], summary$called[i]), `data-tests` = summary$tests[i],
+            tags$th(scope = "row", summary$analysis[i], if (nzchar(summary$called[i])) tags$div(class = "small text-muted", summary$called[i])),
+            tags$td(if (nzchar(summary$tests[i])) summary$tests[i] else tags$span(class = "text-muted", "One version")),
+            tags$td(summary$access[i]),
+            tags$td(tags$details(tags$summary("Read limits and checks"), p(summary$restrictions[i]), p(summary$evidence[i])))))))),
+      tags$script(HTML(capability_search_js))))
 }

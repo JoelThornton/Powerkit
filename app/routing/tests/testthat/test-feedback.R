@@ -204,3 +204,13 @@ test_that("the Feedback tab keeps the exact message a click away and the reasons
   expect_match(html, "feedback-kinds", fixed = TRUE)
   expect_match(html, "Posts on GitHub are public", fixed = TRUE)
 })
+
+test_that("a stored message is confirmed clearly: Send becomes Sent until the message changes", {
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, 'session$sendCustomMessage("fb_sent", feedback_result_message(result))', fixed = TRUE)
+  expect_match(feedback_js, "addCustomMessageHandler('fb_sent'", fixed = TRUE)
+  expect_match(feedback_js, "Sent \\u2713", fixed = TRUE)
+  expect_match(feedback_js, "button.disabled = true", fixed = TRUE)
+  expect_match(feedback_js, "e.target.id !== 'fb_message'", fixed = TRUE)
+  expect_match(code, ".copy-status.fb-sent", fixed = TRUE)
+})
