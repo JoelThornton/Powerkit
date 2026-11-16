@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-16"
+    title: "Installing Powerkit on your own computer needs no extra tools"
+    text: "On a Mac or Windows computer, the one-line install no longer stops asking for Xcode, gfortran or Rtools when a package Powerkit uses has had a newer release. It downloads the ready-made version Powerkit records instead, so the same versions are installed as before."
+  - date: "2026-11-16"
     title: "One name for each thing you save"
     text: "\"Plan\" now only means a study plan: several analyses of one study, kept together. One calculation is an analysis, saved with \"Save analysis\" as an analysis file (files saved as project files open as before). The first tab is \"Power and sample size\", the start option is \"Plan a whole study\", the PDF for one analysis is its Report, and both open buttons say \"Open a saved file\". A replication plan is labelled as a kind of study plan. The list under \"I know my analysis\" links to the methods map, and the footer points to what Powerkit can and can't do."
   - date: "2026-11-16"
