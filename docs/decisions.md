@@ -3827,3 +3827,34 @@ method chosen first. All follow JASP's default priors.
 - **Mediation with a categorical outcome** stays uncovered: it needs a
   definition of the indirect effect on K - 1 log-odds scales, and no
   package checked so far provides one (docs/next.md, item 1).
+
+## 2026-11-17 · Which assumption the answer depends on most
+
+- **What it does.** On the result screen's "How sure can you be?" card,
+  for a sample size or power worked out by formula, the researcher can
+  give a lowest and a highest plausible value for the effect and for each
+  other uncertain input the screen asked for (forms.yaml's
+  `assumption_fields`: SDs and SD ratios, correlations between measures,
+  reliabilities, ICCs, base rates and similar). Each is changed on its
+  own with the rest as planned, and the engine works out the answer at
+  each end. The rows are drawn as a tornado chart, the input the answer
+  moves most with at the top, with the same values in a table.
+- **Two-way grid.** Optionally, the effect and one chosen input are
+  changed together over five values each, drawn as a heatmap with each
+  cell's answer written in it, because the one-at-a-time rows can't show
+  what a weaker effect and a worse value of another input cost together.
+- **No suggested values.** The ranges are blank: they come from the
+  researcher's evidence, as for the effect scenarios, so no default range
+  becomes a new ritual.
+- **Why one at a time, not global sensitivity analysis.** Sobol or Morris
+  methods need a probability distribution for every input, which
+  researchers rarely have; one-at-a-time ranges need only a plausible low
+  and high. The planning literature's treatment of uncertain inputs as
+  distributions is assurance (O'Hagan, Stevens and Campbell, 2005), which
+  Bayes mode and the assurance tools already offer.
+- **Scope.** Designs whose answer is simulated are left out for now (each
+  value would be a fresh simulation); next.md item 23 holds that part.
+  Each changed set of answers goes through the input screen's own checks
+  and the engine, so the app computes nothing itself, and the comparison
+  never changes the saved plan.
+

@@ -3289,10 +3289,11 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   telescope_sure <- if (telescopes) telescope_if_small_ui(spec, result)
   explore <- if (!telescopes) explore_ui(spec, result)
   scen <- if (!telescopes) scenarios_ui(spec, result)
+  assume <- if (!telescopes) assumptions_ui(spec, result, assumption_candidates(forms, fields, values))
   bayes_card <- if (!telescopes) bayes_companion_card_ui(tree, ep_id, spec, result)
   sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
-    `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
+    `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(assume) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
     `result-bayes` = if (!is.null(bayes_card)) "If it isn't significant",
     `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up", `result-how-card` = "How it was calculated")
@@ -3341,7 +3342,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below."),
     keep_result_ui(can_export, kept = isTRUE(calc$saved) && !isTRUE(calc$from_browser))),
-    if (!is.null(telescope_sure) || !is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
+    if (!is.null(telescope_sure) || !is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(assume) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
       if (is.null(telescope_sure)) p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
       telescope_sure,
@@ -3349,7 +3350,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       bayes_robustness_ui(spec, calc$robustness),
       bayes_uncertain_ui(spec, result),
       explore,
-      scen),
+      scen,
+      assume),
     labs_learn_ui(spec, result),
     bayes_card,
     sequential_card,
