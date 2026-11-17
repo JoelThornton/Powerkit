@@ -43,7 +43,9 @@ test_that("the exported script's population values are power4mome's at every siz
 })
 
 test_that("simple mediation's smallest indirect effect has the target power in a fresh simulation, and the script reproduces it", {
-  skip_on_cran()
+  # About 15 minutes of Monte Carlo intervals: too slow for every pull
+  # request, so it runs with the full validation.
+  skip_unless_full_validation()
   spec <- example_spec("mediation_simple")
   spec$goal <- list(type = "sensitivity", n = 150L, power = 0.8)
   spec$options$nrep <- 300L
