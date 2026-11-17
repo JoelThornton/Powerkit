@@ -8,6 +8,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Replication plans: fixes from a review"
+    text: "Several fixes to replication plans. A goal that any replication meets, such as the pooled goal after a strong original, now says so instead of \"not reachable\". The variation between studies is now on each design's own scale: for correlations it was set in d units and was about twice too large, and for other designs it is now none until you choose it, which changed the sample sizes shown (for example, 109 and 127 people rather than 114 and 135 for one published interaction). The plan warns when the design you entered and the original's analysis don't match, keeps other analyses in the plan (such as an extension) apart from the original's in the write-up, and cites only the methods you used."
+  - date: "2026-11-17"
+    title: "Replication plans: the original's result as a t, an F or a repeated-measures d"
+    text: "You can enter a t-test original as its t statistic, and a paired one as the repeated-measures d many papers report, with the correlation between the two measurements; powerkit converts them to the d the plan needs and says how. For other designs, the original's uncertainty can be entered as an F with one degree of freedom in the numerator, as many ANOVA results are reported."
+  - date: "2026-11-17"
     title: "New: comparing pairs of groups after a rank test"
     text: "The Kruskal-Wallis and Friedman cards can now plan the comparisons of pairs that usually follow them. Choose either a separate rank test of each pair (Mann-Whitney or Wilcoxon signed-rank) or Dunn's or Conover's test, the follow-ups JASP uses; a note under each says how they differ, so you can pick the one you will report."
   - date: "2026-11-17"
