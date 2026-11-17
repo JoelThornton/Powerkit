@@ -3000,10 +3000,12 @@ server <- function(input, output, session) {
     values <- replication_values(plan$replication)
     for (id in names(values)) {
       v <- values[[id]]
-      if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test")) updateSelectInput(session, id, selected = v)
-      else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type")) updateRadioButtons(session, id, selected = v)
+      if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test", "rep_goal")) updateSelectInput(session, id, selected = v)
+      else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type",
+        "rep_purpose", "rep_prior")) updateRadioButtons(session, id, selected = v)
+      else if (identical(id, "rep_also")) updateCheckboxGroupInput(session, id, selected = replication_also_selected(v))
       else if (identical(id, "labs_outcome")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
-      else if (!id %in% c("rep_goal", "rep_prior")) updateTextInput(session, id, value = v)
+      else updateTextInput(session, id, value = v)
     }
     rep_loaded(list(id = plan$id, values = values, synced = FALSE))
     rep_server$reset()
@@ -3013,7 +3015,11 @@ server <- function(input, output, session) {
     if (plan_is_replication(plan) && !identical(isolate(rep_loaded())$id, plan$id)) rep_fill(plan)
   }, ignoreNULL = FALSE)
   rep_inputs <- debounce(reactive(stats::setNames(lapply(replication_plan_field_ids, function(id) {
-    v <- input[[id]]; if (is.null(v) || !length(v)) "" else paste(as.character(v), collapse = "\n")
+    v <- input[[id]]
+    # No "Also report" ticked is a choice the plan keeps ("none"); a blank
+    # would restore the starting tick.
+    if (identical(id, "rep_also")) return(replication_also_value(v))
+    if (is.null(v) || !length(v)) "" else paste(as.character(v), collapse = "\n")
   }), replication_plan_field_ids)), 600)
   observe({
     values <- rep_inputs()
@@ -3024,12 +3030,12 @@ server <- function(input, output, session) {
     loaded <- rep_loaded()
     if (!plan_is_replication(plan) || is.null(loaded) || !identical(loaded$id, id)) return()
     if (!isTRUE(loaded$synced)) {
-      same <- setdiff(names(values), c("labs_outcome", "rep_goal", "rep_prior"))
+      same <- setdiff(names(values), "labs_outcome")
       if (!identical(values[same], loaded$values[same])) return()
       loaded$synced <- TRUE
       rep_loaded(loaded)
       # The choices the screen can't set before they are drawn keep the plan's.
-      values[c("labs_outcome", "rep_goal", "rep_prior")] <- loaded$values[c("labs_outcome", "rep_goal", "rep_prior")]
+      values["labs_outcome"] <- loaded$values["labs_outcome"]
     }
     updated <- plan_set_replication(plan, fields = values)
     if (!identical(updated$changed, plan$changed)) plans_put(updated)

@@ -2015,6 +2015,43 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   used (`app/routing/R/results.R`, `departures_for()`), and in the methods
   paragraph.
 
+### 30. Replication plans: a criterion that can show absence is reported by default
+
+- **Established convention:** a replication is planned for one criterion,
+  usually a significant result in the original's direction (G\*Power, or
+  BayesRepDesign's `ssdSig()` with the paper's other criteria as
+  alternatives); a non-significant replication then says nothing about
+  whether the effect is absent.
+- **powerkit:** the replication plan asks the researcher's purpose, plans
+  the sample size for one main criterion, and starts with "Also report:
+  whether the effect is absent" ticked (from 17 November 2026). With a
+  Bayes factor main criterion this is the default Bayes factor for no
+  effect (bfpwr, the original's test run the other way) where the
+  original was a t-test, and the replication Bayes factor (no effect
+  against the original's) for another design; with any other main
+  criterion it is the equivalence test (TOST)
+  against the smallest effect that matters, d33 (Simonsohn, 2015) when
+  none is entered. Its chance at the main criterion's sample size is
+  shown beside the main one. Unticking it gives the single-criterion
+  plan.
+- **Why:** a replication that fails to reach significance is commonly
+  misread as evidence of absence; reporting a criterion that can show
+  absence, with its chance planned in advance, lets either result be
+  interpreted (Simonsohn, 2015, `Simonsohn2015_telescopes`; Pawel,
+  Consonni and Held, 2026, `Pawel2026_replication`, whose equivalence
+  criterion this is).
+- **Size:** the sample size is unchanged, because it comes from the main
+  criterion alone: for an original d = 0.5 with 40 per group, the shrunk
+  belief and variation 0.05, the significance criterion asks for the same
+  number with and without the absence criterion; the plan adds one line,
+  the equivalence test's chance at that number
+  (`app/routing/tests/testthat/test-replication.R`, "the purpose picks
+  the main criterion").
+- **Shown to users:** on the replication plan's result (the table of
+  chances at the main sample size, and a note when no bound is available)
+  and in the methods paragraph, which names each criterion also reported
+  and its chance.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool

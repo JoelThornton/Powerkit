@@ -4025,3 +4025,43 @@ to 32).
 - **Still to decide:** the package for group-sequential designs with
   interim analyses (rpact or gsDesign), which replications and other
   expensive studies need (`next.md` item 15).
+
+## 2026-11-17 · Replication plans start from the question
+
+Queue item 29, part 1 (the page and its criteria). A replication plan's
+Goals section now asks the researcher's purpose first: to confirm the
+original's effect, to settle whether it is there either way, or to test
+whether it is absent. Each purpose has a usual main criterion (the
+original's own test repeated where it was a Bayes factor, else
+significance; the default Bayes factor t-test, else the replication
+Bayes factor; the equivalence test), which the researcher can replace
+with any criterion the original allows. The sample size is the main
+criterion's, under one chosen belief about the true effect (with its
+uncertainty by default), and every criterion under "Also report" is
+given as its chance at that sample size, computed by the engine at that
+N. The table of every criterion under every belief stays, folded under
+the answer.
+
+- **A default Bayes factor t-test for p-value originals.** bfpwr's
+  goals for the Bayes factor t-test, for an effect and for no effect,
+  are offered for every t-test original (two groups, one sample, pairs),
+  at the default prior scale 0.707 (JASP's default; the card's), not
+  only when the original reported a Bayes factor. A researcher who
+  replicates a frequentist study can then plan a Bayes factor without
+  entering one the paper never reported.
+- **The criterion that can show absence** (Departure 30). With a Bayes
+  factor main criterion it is the Bayes factor for no effect where the
+  original was a t-test, otherwise the replication Bayes factor; with
+  any other main criterion, the equivalence test, whose bound is the
+  smallest effect that matters or, left blank, d33 (Simonsohn, 2015)
+  where the original was a t-test. Where neither is available, the plan
+  says what to enter.
+- **The smallest effect that matters and the evidence threshold** are
+  asked only when a chosen criterion uses them, and the quick answer
+  uses alpha .05 and power .80 when none are entered.
+- **References** follow the criteria chosen, not every criterion the
+  engine computed.
+- **Still to come (part 2):** a write-up with one sample size and a
+  registered-report design table, an R script that runs only the chosen
+  criteria, a one-sided option, alpha and power passed to the card, the
+  card opened in replication mode, and a step bar for the page.
