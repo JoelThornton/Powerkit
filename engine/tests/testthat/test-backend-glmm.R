@@ -344,3 +344,79 @@ test_that("with groups, the R script reproduces the run", {
   out <- run_exported_script(spec, run_quietly(spec))
   expect_equal(out$reproduced, out$powerkit)
 })
+
+# Cochran's Q (target_test > method "cochran_q"): one yes/no answer from
+# every person in each of three or more conditions.
+cochran_spec <- function(probabilities = c(0.5, 0.6, 0.65), n = 60L, nrep = 100L) {
+  spec <- example_spec("repeated_glmm_cochran")
+  spec$variables$X$levels <- as.list(LETTERS[seq_along(probabilities)])
+  spec$population$probabilities <- as.list(probabilities)
+  spec$goal <- list(type = "power", n = n)
+  spec$options <- list(nrep = nrep, seed = 9L)
+  spec
+}
+
+test_that("Cochran's Q: friedman.test() on 0/1 answers is Q from its own formula, and McNemar's test with two", {
+  x <- with_seed(3, matrix(stats::rbinom(40 * 4, 1, 0.4), nrow = 40))
+  x[1:3, ] <- 1
+  x[4:5, ] <- 0
+  k <- ncol(x)
+  q <- (k - 1) * (k * sum(colSums(x)^2) - sum(x)^2) / (k * sum(x) - sum(rowSums(x)^2))
+  expect_equal(unname(stats::friedman.test(x)$statistic), q)
+  pair <- x[, 1:2]
+  expect_equal(unname(stats::friedman.test(pair)$statistic),
+    unname(stats::mcnemar.test(table(factor(pair[, 1], 0:1), factor(pair[, 2], 0:1)), correct = FALSE)$statistic))
+  # Nobody's answers vary: no test, not significant.
+  expect_equal(with_seed(1, p_repeated_cochran(5, stats::qlogis(c(0.999999, 0.999999, 0.999999)), 0)), 1)
+})
+
+test_that("Cochran's Q: the run is Spower's, replication for replication, with its check run and provenance", {
+  spec <- validate_spec(cochran_spec())
+  inputs <- repeated_glmm_inputs(spec)
+  expect_true(inputs$cochran)
+  result <- suppressWarnings(run_spec(spec))
+  expect_equal(result$provenance$backend, "Spower")
+  expect_match(result$provenance$backend_function, "Cochran's Q", fixed = TRUE)
+  expect_true(all(result$check_run$ok))
+  expect_length(result$check_run$parameter, 3)
+  direct <- with_seed(9, Spower::Spower(p_repeated_cochran(n = 60, centre = stats::qlogis(c(0.5, 0.6, 0.65)), sd_person = 1),
+    sig.level = 0.05, replications = 100, parallel = FALSE, verbose = FALSE))
+  expect_equal(result$curve$power, direct$power)
+  # The shares across everyone are closer to 1/2 than a typical person's
+  # chance when people differ, and equal to it when they don't.
+  expect_equal(repeated_cochran_shares(stats::qlogis(c(0.2, 0.5)), 0), c(0.2, 0.5))
+  shares <- repeated_cochran_shares(stats::qlogis(c(0.2, 0.5)), 1)
+  expect_gt(shares[1], 0.2)
+  expect_equal(shares[2], 0.5, tolerance = 1e-6)
+})
+
+test_that("Cochran's Q: refused outside one yes/no answer per condition in three or more conditions", {
+  two <- cochran_spec(c(0.5, 0.6))
+  expect_spec_problem(two, "McNemar's test")
+  several <- cochran_spec()
+  several$population$measurements <- 2L
+  expect_spec_problem(several, "set 'population > measurements' to 1")
+  between <- cochran_spec()
+  between$variables$X$type <- "between_factor"
+  expect_spec_problem(between, "'within_factor'")
+  count <- cochran_spec()
+  count$variables$Y <- list(type = "count", label = "Visits")
+  count$population$probabilities <- NULL
+  count$population$rates <- list(1, 2, 3)
+  count$population$metric <- "rate"
+  expect_spec_problem(count, "Cochran's Q is for a yes/no outcome")
+  # The mixed model's tests, once per condition, point to Cochran's Q.
+  glmm <- cochran_spec()
+  glmm$target_test$method <- "likelihood_ratio"
+  expect_spec_problem(glmm, "cochran_q")
+})
+
+test_that("Cochran's Q: the exported script reproduces the run", {
+  result <- suppressWarnings(run_spec(validate_spec(cochran_spec(nrep = 100L))))
+  file <- tempfile(fileext = ".R")
+  export_script(validate_spec(cochran_spec(nrep = 100L)), result, file)
+  text <- readLines(file)
+  expect_true(any(grepl("friedman.test(answers)", text, fixed = TRUE)))
+  output <- utils::capture.output(sys.source(file, envir = new.env()))
+  expect_true(any(grepl("Reproduced powerkit's result", output, fixed = TRUE)))
+})

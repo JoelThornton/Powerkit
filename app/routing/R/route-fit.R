@@ -63,8 +63,8 @@ route_fit_messages <- function(tree, ep_id, ctx = list()) {
   }
   if (identical(ep_id, "E26") && identical(ctx$times, "many_conditions")) {
     out <- c(out, paste(
-      "You said the same people are in three or more conditions. This card compares two (McNemar's test); Powerkit has nothing",
-      "for three or more yet (Cochran's Q, or a logistic mixed model simulated in R with simr). You can plan one pair of conditions here."))
+      "You said the same people are in three or more conditions. This card compares two (McNemar's test). For three or more,",
+      "use the card for the same people measured more than once with a yes/no outcome, which plans Cochran's Q."))
   }
   if (identical(ep_id, "E41") && identical(ctx$times, "twice")) {
     out <- c(out, paste(

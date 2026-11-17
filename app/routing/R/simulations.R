@@ -26,9 +26,16 @@
 runs_long <- function(forms, ep_id, spec = NULL) {
   # Simple mediation's quick estimate is a formula (12 November 2026).
   if (mediation_estimate(spec)) return(FALSE)
+  # A quick test version of a long-run card (forms.yaml, simulations >
+  # quick_methods) runs like any other simulated card.
+  if (quick_method(forms, ep_id, spec)) return(FALSE)
   if (ep_id %in% names(forms$simulations$endpoints)) return(TRUE)
   route <- forms$simulations$method_routes[[ep_id]]
   !is.null(route) && !is.null(spec) && isTRUE(spec$target_test$method %in% unlist(route$method))
+}
+
+quick_method <- function(forms, ep_id, spec = NULL) {
+  !is.null(spec) && isTRUE(spec$target_test$method %in% unlist(forms$simulations$quick_methods[[ep_id]]))
 }
 
 mediation_estimate <- function(spec) {

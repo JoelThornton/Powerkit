@@ -604,7 +604,7 @@ nodes:
     doc_id: Q3
     text: "What are you comparing? (answered by S3 when the same people are measured more than once)"
     branch_on: times
-    routes: {once: q3_cat, twice: E26, many_conditions: E26}
+    routes: {once: q3_cat, twice: E26, many_conditions: E75}
   q3_cat:
     doc_id: Q3
     text: "What are you comparing?"
@@ -616,7 +616,8 @@ nodes:
       - {label: "One group against a known proportion", next: E25, when: {times: once}}
       - {label: "One group's categories against expected proportions", next: E48, when: {times: once}}
       - {label: "Two or more factors (for example, a 2 x 2 design)", next: E47, when: {times: once}}
-      - {label: "The same people in every condition", next: E26, when: {times: [twice, many_conditions]}}
+      - {label: "The same people in every condition", next: E26, when: {times: twice}}
+      - {label: "The same people in every condition", next: E75, when: {times: many_conditions}}
 
   # How much scores vary -----------------------------------------------------
   v1_by_times:
@@ -1431,16 +1432,17 @@ endpoints:
     tier: v2
     alternatives: ["the exact binomial test", "a z test for one proportion"]
   E26:
-    doc_name: "McNemar's test (same people, yes/no); Cochran's Q"
-    technical_name: "McNemar's test and Cochran's Q"
-    plain_name: "The same people, a yes/no outcome in each condition"
-    search_words: "cochran"
+    doc_name: "McNemar's test (same people, yes/no, two conditions)"
+    technical_name: "McNemar's test"
+    plain_name: "The same people, a yes/no outcome in each of two conditions"
+    search_words: "paired proportions matched pairs"
     template: "basic_test / mcnemar"
     backend: "pwrss: power.exact.mcnemar(method = \"exact\") (McNemar's exact test, as G*Power's exact option)"
     method: "Formula (no simulation)"
     status: runs_validation_in_progress
     validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
-    no_ready_made_tool: "Cochran's Q"
+    card_points:
+      - "Three or more conditions, a yes/no answer from each person in each: Cochran's Q, on the card for the same people measured more than once (choose a yes/no outcome measured once in each condition)."
     inputs: ["Names of the two conditions and the outcome", "The expected discordant proportions"]
     tier: v2
     alternatives: ["McNemar's exact test", "McNemar's chi-square approximation"]
@@ -1769,9 +1771,9 @@ endpoints:
     doc_name: "Repeated measures with a yes/no, count or ordinal outcome (generalised mixed model)"
     technical_name: "Generalised linear mixed models: repeated measures"
     plain_name: "The same people measured more than once, with a count, ordered categories or yes/no"
-    search_words: "repeated counts paired counts before after count poisson mixed model negative binomial mixed model glmm generalised linear mixed model generalized glmer glmer.nb random intercept overdispersion cumulative link mixed model clmm ordinal repeated measures logistic mixed model gee"
+    search_words: "cochran cochran's q yes/no three conditions repeated counts paired counts before after count poisson mixed model negative binomial mixed model glmm generalised linear mixed model generalized glmer glmer.nb random intercept overdispersion cumulative link mixed model clmm ordinal repeated measures logistic mixed model gee"
     template: "mixed_model / repeated_glmm"
-    backend: "simr: powerSim() on glmer's y ~ cond + (1 | person) (with groups, y ~ group * cond + (1 | person)), Poisson or logistic; Spower with lme4's glmer.nb() for a negative binomial count, or with ordinal's clmm() for ordered categories; the likelihood-ratio or Wald test of the conditions, or of the group-by-condition interaction (simulation)"
+    backend: "simr: powerSim() on glmer's y ~ cond + (1 | person) (with groups, y ~ group * cond + (1 | person)), Poisson or logistic; Spower with lme4's glmer.nb() for a negative binomial count, or with ordinal's clmm() for ordered categories; the likelihood-ratio or Wald test of the conditions, or of the group-by-condition interaction; Spower with Cochran's Q (stats::friedman.test() on the 0/1 answers) for one yes/no answer in each of three or more conditions (simulation)"
     method: "Simulation"
     status: runs_validation_in_progress
     validation: {file: test-validation-glmm.R, note: "Agrees with a simulation written separately (each person's level drawn directly, the counts or answers drawn and fitted with lme4, or ordinal's clmm() for ordered categories, without simr, car or Spower) for Poisson, negative binomial, yes/no and ordered outcomes, recovers each effect, the person SD, the overdispersion and the thresholds in its check run, and keeps the Type I error at alpha, for the conditions and for the group-by-condition interaction. Not yet checked against a published example."}
@@ -1779,15 +1781,16 @@ endpoints:
       - "The same people give a count, a yes/no answer or an answer in ordered categories more than once: for example, the number of cigarettes smoked in the week before and the week after a programme, how often each pupil disrupts a lesson in two kinds of classroom, or a mood rating from 1 to 5 on several days under two conditions. Each person can be in every condition, or in one of them and measured several times, or in one of two or more groups and measured in every condition."
       - "You give the expected count (or chance of 'yes', or the share of answers in each category and each condition's odds ratio) for a typical person, how much people differ in their typical level, and how many times each person is measured in each condition."
       - "Analysed with a generalised linear mixed model with a random intercept for each person: Poisson for a count, or negative binomial when counts vary more than a Poisson distribution allows, logistic for yes/no, and a cumulative link (proportional odds) mixed model for ordered categories. The test is the likelihood-ratio test of the conditions, or the Wald test if you choose."
+      - "A yes/no answer given once in each of three or more conditions, such as whether each person attends after no reminder, a text and a call: Cochran's Q, as such data are usually analysed. The answers are simulated from the same model, and the number of people you need runs here too."
       - "With two or more groups each measured in every condition, such as a programme group and a control group before and after, you give the expected count (or chance, or odds ratio) in each group and condition, and the test is whether the groups change differently: the group-by-condition interaction."
-      - "Simulated with simr (lme4's glmer), or with Spower and lme4's glmer.nb() for a negative binomial count or the R package ordinal's clmm() for ordered categories, so the answer carries a little random error. Power at a given number of people runs here; the number you need comes as an R script."
+      - "Simulated with simr (lme4's glmer), or with Spower and lme4's glmer.nb() for a negative binomial count or the R package ordinal's clmm() for ordered categories, so the answer carries a little random error. Power at a given number of people runs here; the number you need comes as an R script (with Cochran's Q, both run here)."
       - "Not yet here: trials with many stimuli whose own variation matters (for a score or yes/no, the cards for many stimuli per person)."
     inputs: ["The conditions, the outcome, and how often each person is measured", "The expected count, chance of 'yes' or answers in each condition, and how much people differ", "The test"]
     packages:
       - {name: simr, url: "https://cran.r-project.org/package=simr", what: "Simulation power for mixed models fitted with lme4, including generalised mixed models for yes/no and count outcomes built with makeGlmer()."}
       - {name: mixpower, url: "https://cran.r-project.org/package=mixpower", what: "Design-first simulation power for mixed models with a score, yes/no or count (Poisson or negative binomial) outcome."}
     tier: v2
-    alternatives: ["a Poisson or negative binomial regression, if each person is measured once", "McNemar's test or Cochran's Q, for a yes/no answer given once in each condition", "the proportional-odds card for two groups, if each person answers once in one group"]
+    alternatives: ["a Poisson or negative binomial regression, if each person is measured once", "McNemar's test, for a yes/no answer given once in each of two conditions", "the proportional-odds card for two groups, if each person answers once in one group"]
   E62:
     doc_name: "Multilevel model: a person-level and a group-level predictor, and their cross-level interaction"
     technical_name: "Multilevel regression"
