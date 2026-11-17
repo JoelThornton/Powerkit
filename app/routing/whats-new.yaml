@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Fixed: headings on the values screen"
+    text: "With explanations off, a box's heading sometimes sat on the same line as its first question, and two boxes could share the heading \"Effect size\". Each box now has the same heading whether explanations are on or off, and the boxes where you enter the effect say so, for example \"Effect size: the expected group means\". With explanations on, the screen also gives the analysis's standard name, such as one-way between-subjects ANOVA, as its card does."
+  - date: "2026-11-17"
     title: "New: comparing pairs of groups after a rank test"
     text: "The Kruskal-Wallis and Friedman cards can now plan the comparisons of pairs that usually follow them. Choose either a separate rank test of each pair (Mann-Whitney or Wilcoxon signed-rank) or Dunn's or Conover's test, the follow-ups JASP uses; a note under each says how they differ, so you can pick the one you will report."
   - date: "2026-11-17"
