@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Search finds test versions by their own names"
+    text: "Searching the analyses for a test that is a version of a bigger analysis, such as Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Spearman's rho, PERMANOVA or quantile regression, now shows it by name under the analysis it belongs to. Choosing it opens that analysis with the version already chosen. Searching \"nonparametric\" lists every rank-based version, and each word you type now matches the start of a word, so \"sign\" no longer finds every card that mentions a design."
+  - date: "2026-11-17"
     title: "Cochran's Q has a card of its own"
     text: "Searching for Cochran's Q now finds a card with that name, under yes/no and categories, for the same people giving a yes/no answer in three or more conditions. You give each condition's chance of yes and how much people differ; power and the number of people you need both run here."
   - date: "2026-11-17"
