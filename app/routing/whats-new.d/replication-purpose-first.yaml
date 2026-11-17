@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-17"
-    title: "Replication plans start from your question"
-    text: "A replication plan now asks what the replication is for: to confirm the original effect, to settle whether it is there either way, or to test whether it is absent. It then gives one sample size, from one main criterion you can change (a significance test, an equivalence test, small telescopes or a Bayes factor), and shows the chance of any other criterion you tick at that sample size. A criterion that could show the effect is absent is ticked to start with, so a replication that finds nothing can still be interpreted. A replication of a t-test can plan a default Bayes factor even when the original reported only a p-value. The smallest effect that matters is asked only when it is needed, and left blank it is the small-telescopes effect. The write-up cites only the methods you chose, and the full table of every criterion is still there, folded under the answer."
