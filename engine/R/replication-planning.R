@@ -121,13 +121,16 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   or `"posterior"` (a posterior from a vague or default prior, whose mean
 #'   is `original_effect` and whose SD is `original_se`, or whose credible
 #'   interval is `original_ci`). Either Bayesian route leaves out small
-#'   telescopes and, for a t-test, adds the original's Bayes factor test
-#'   repeated (`bf_repeat`, bfpwr) and evidence for no effect (`bf_null`).
+#'   telescopes. For every t-test original the plan adds a default Bayes
+#'   factor t-test (bfpwr): evidence for an effect (`bf_repeat`, the
+#'   original's own test for a Bayesian original) and for no effect
+#'   (`bf_null`).
 #' @param original_bf The original's Bayes factor, as BF10 (evidence for an
 #'   effect over none).
 #' @param original_prior_scale The scale of the original's Cauchy prior on
 #'   the standardised effect (0.707 is the usual default), for reading its
-#'   Bayes factor and for repeating its test.
+#'   Bayes factor and for the replication's Bayes factor t-test (JASP's
+#'   default for an original analysed by a significance test).
 #' @param original_prior For `"posterior"`: `"vague"` or `"default"`; an
 #'   informative prior's posterior is refused.
 #' @param original_effect_type What `original_effect` holds for a t-test
@@ -213,7 +216,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     abort_run(paste("A Bayes factor gives the original's effect only for a t-test (two groups, one group or pairs).",
       "For another analysis, give its posterior, if its prior was vague or a default one, or its estimate with a standard error."))
   }
-  if (bayes && t_test && (!one_number(original_prior_scale) || original_prior_scale <= 0 || original_prior_scale > 5)) {
+  if (t_test && (!one_number(original_prior_scale) || original_prior_scale <= 0 || original_prior_scale > 5)) {
     abort_run("The scale of the original's prior should be more than 0 and at most 5; 0.707 is the usual default.")
   }
   if (posterior) {
@@ -452,12 +455,16 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   telescopes <- !generic && !bayes
   telescope <- if (telescopes) replication_telescope(design, original_effect, original_n,
     original_n1, original_n2, original_alpha, alpha, power)
-  # An original analysed with Bayes factors (a t-test): its Bayes factor
-  # test repeated, for an effect under each belief and for no effect, with
-  # bfpwr (Pawel & Held). Counted in each group for two groups.
+  # A t-test original: the default Bayes factor t-test (the original's own
+  # test, with its Cauchy prior scale, for an original analysed with Bayes
+  # factors; JASP's default scale otherwise), for an effect under each
+  # belief and for no effect, with bfpwr (Pawel & Held). Offered for
+  # p-value originals too, so a replication can be planned on a Bayes factor
+  # whatever the original used (decisions.md, 17 November 2026). Counted in
+  # each group for two groups.
   bf_type <- switch(design, two_groups = "two.sample", one_sample = "one.sample", paired = "paired", NA_character_)
   per_unit <- if (identical(design, "two_groups")) 2 else 1
-  bf_tests <- if (bayes && t_test) list(
+  bf_tests <- if (t_test) list(
     bf_repeat = function(dp, n, need = NULL) {
       args <- list(k = 1 / threshold, pscale = original_prior_scale, type = bf_type,
         dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))
@@ -534,7 +541,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       original_se = original_se, original_ci = original_ci, original_ci_level = original_ci_level,
       original_statistic = original_statistic, scale = scale, effect_name = effect_name,
       original_analysis = original_analysis, original_bf = original_bf,
-      original_prior_scale = if (bayes && t_test) original_prior_scale, original_prior = original_prior,
+      original_prior_scale = if (t_test) original_prior_scale, original_prior = original_prior,
       original_effect_type = if (converting) original_effect_type else "d",
       original_reported = if (converting) original_reported, original_r = if (converting) original_r,
       original_f = original_f),
@@ -549,7 +556,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     at_n = at_n,
     # The sequential Bayes factor design (bayes_sequential()) for the
     # replication: each belief as its design prior, on the original's prior.
-    sequential = if (bayes && t_test) data.frame(prior = names(priors), type = bf_type,
+    sequential = if (t_test) data.frame(prior = names(priors), type = bf_type,
       effect = vapply(priors, function(dp) dp$dpMean, numeric(1)),
       effect_sd = vapply(priors, function(dp) sqrt(dp$dpVar), numeric(1)),
       prior_scale = original_prior_scale, row.names = NULL),
@@ -784,7 +791,7 @@ replication_planning_script <- function(plan) {
     if (!bayes) "# Small telescopes (Simonsohn, 2015): pwr for d33 (or r33) and pwrss for the replication's test.",
     if (from_bf) "# The original's effect from its Bayes factor and sample size (BayesFactor's ttest.tstat(), inverted).",
     if (post) sprintf("# The original's posterior (%s prior) stands in for its estimate and standard error.", i$original_prior),
-    if (bayes && !is.na(bf_type)) "# The original's Bayes factor test repeated: bfpwr (Pawel & Held).",
+    if (!is.na(bf_type)) sprintf("# %s: bfpwr (Pawel & Held).", if (bayes) "The original's Bayes factor test repeated" else "A default Bayes factor t-test"),
     sprintf("# Written by powerkit %s on %s.", as.character(utils::packageVersion("powerkit")), format(Sys.Date())),
     "library(BayesRepDesign)",
     "",
@@ -827,8 +834,9 @@ replication_planning_script <- function(plan) {
       sprintf("telescope_power <- function(n) %s", telescope_power),
       sprintf("n <- %s; while (telescope_power(n) < power) n <- n + %s", if (two) 6 else if (correlation) 5 else 5, if (two) 2 else 1),
       "n"),
-    if (bayes && !is.na(bf_type)) c("",
-      sprintf("# The original's Bayes factor test repeated (BF10 of at least %s), in total%s", num(i$threshold),
+    if (!is.na(bf_type)) c("",
+      sprintf("# %s (BF10 of at least %s), in total%s", if (bayes) "The original's Bayes factor test repeated" else "A default Bayes factor t-test",
+        num(i$threshold),
         if (two) ", from bfpwr's size per group" else ""),
       sprintf("bf_size <- function(...) %sbfpwr::ntbf01(pscale = %s, type = \"%s\", nrange = c(2, 1e5), ...)",
         if (two) "2 * " else "", num(i$original_prior_scale), bf_type),
