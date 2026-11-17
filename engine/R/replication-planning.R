@@ -130,6 +130,19 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   Bayes factor and for repeating its test.
 #' @param original_prior For `"posterior"`: `"vague"` or `"default"`; an
 #'   informative prior's posterior is refused.
+#' @param original_effect_type What `original_effect` holds for a t-test
+#'   original (two groups, one sample, pairs): `"d"`, the standardised
+#'   effect the design plans in (d, or d_z for pairs); `"t"`, its t
+#'   statistic, converted to d by Lakens (2013): t times the square root of
+#'   1/n1 + 1/n2 for two groups, t over the square root of n for one sample
+#'   or pairs; or, for pairs only, `"d_rm"`, the repeated-measures d (or
+#'   d_av when the two SDs are about equal), converted to d_z by dividing by
+#'   the square root of 2(1 - r), with `original_r` (Lakens, 2013).
+#' @param original_r For `original_effect_type = "d_rm"`: the correlation
+#'   between the two measurements in the original study.
+#' @param original_f For a generic design: an F statistic with one
+#'   numerator degree of freedom, whose square root is the estimate's
+#'   |t| (in place of `original_statistic`).
 #' @param original_alpha The original study's two-sided significance
 #'   level (for small telescopes' d33).
 #' @param alpha The replication's two-sided significance level.
@@ -150,8 +163,10 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   belief); `goals`, a data frame of `goal`, `prior` (`NA` for the goals
 #'   planned for no effect), `n` (the total sample size needed, `NA` when
 #'   not reachable), `per_group`, `ratio` (n over the original's), `limit`
-#'   (the highest chance reachable, when the goal cannot reach `power`) and
-#'   `reason`; `at_n` (the chance of each goal at `n`); `telescope` (d33
+#'   (the highest chance reachable, when the goal cannot reach `power`;
+#'   for `reason` `"any_size"`, the chance with the smallest replication,
+#'   which already exceeds `power`) and `reason` (`"not_reachable"`,
+#'   `"over_max"`, `"not_found"` or `"any_size"`); `at_n` (the chance of each goal at `n`); `telescope` (d33
 #'   and its calculation, `NULL` for a generic design or a Bayesian
 #'   original); `sequential` (for a Bayesian t-test original, each belief as
 #'   a design prior for [bayes_sequential()]); `functions_used`; and
@@ -173,7 +188,8 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
                                  original_ci_level = 0.95, original_statistic = NULL,
                                  scale = "none", effect_name = NULL, original_analysis = "test",
                                  original_bf = NULL, original_prior_scale = 1 / sqrt(2),
-                                 original_prior = NULL) {
+                                 original_prior = NULL, original_effect_type = "d", original_r = NULL,
+                                 original_f = NULL) {
   if (!requireNamespace("BayesRepDesign", quietly = TRUE)) {
     abort_run("The replication planner needs the R package BayesRepDesign. Install it with install.packages(\"BayesRepDesign\").")
   }
@@ -208,6 +224,48 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     }
     if (!is.null(original_statistic) || (is.null(original_se) + is.null(original_ci)) != 1) {
       abort_run("Give the posterior's standard deviation or its credible interval, one of the two.")
+    }
+  }
+  if (!is.character(original_effect_type) || length(original_effect_type) != 1 ||
+      !original_effect_type %in% c("d", "t", "d_rm")) {
+    abort_run("'original_effect_type' should be \"d\", \"t\" or \"d_rm\".")
+  }
+  converting <- !identical(original_effect_type, "d") && !from_bf && !posterior
+  if (converting && !t_test) {
+    abort_run("A t statistic or a repeated-measures d is converted for a t-test original only (two groups, one group or pairs).")
+  }
+  if (identical(original_effect_type, "d_rm") && converting && !identical(design, "paired")) {
+    abort_run("A repeated-measures d (d_rm or d_av) applies to pairs, the same people measured twice.")
+  }
+  if (!is.null(original_f)) {
+    if (!generic) abort_run("An F statistic stands in for the test statistic of another design's one-number effect only.")
+    if (!one_number(original_f) || original_f <= 0) {
+      abort_run("The original's F statistic should be a number above 0, with one numerator degree of freedom.")
+    }
+    original_statistic <- sqrt(original_f)
+  }
+  original_reported <- if (converting) original_effect
+  if (converting) {
+    if (!one_number(original_effect) || original_effect == 0) {
+      abort_run(if (identical(original_effect_type, "t")) "The original's t statistic should be a number, and not 0." else
+        "The original's repeated-measures d should be a number, and not 0.")
+    }
+    if (identical(design, "two_groups")) {
+      if (!whole(original_n1, 2) || !whole(original_n2, 2)) {
+        abort_run("The original study's two group sizes should be whole numbers, at least 2 each.")
+      }
+    } else if (!whole(original_n, 2)) {
+      abort_run(sprintf("The original study's number of %s should be a whole number, at least 2.",
+        if (identical(design, "paired")) "pairs" else "people"))
+    }
+    if (identical(original_effect_type, "d_rm")) {
+      if (!one_number(original_r) || original_r <= -1 || original_r >= 1) {
+        abort_run("The correlation between the original's two measurements should be between -1 and 1.")
+      }
+      original_effect <- original_effect / sqrt(2 * (1 - original_r))
+    } else {
+      original_effect <- if (identical(design, "two_groups")) original_effect * sqrt(1 / original_n1 + 1 / original_n2) else
+        original_effect / sqrt(original_n)
     }
   }
   if (generic) {
@@ -336,7 +394,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
 
   # A search's sample size, or why there is none: the package warns when a
   # chance can't reach `power` however large the study, and says the most.
-  search <- function(run, limit_of) {
+  search <- function(run, limit_of, small_of = function() NA_real_) {
     warned <- NULL
     out <- withCallingHandlers(
       tryCatch(run(), error = function(e) NULL),
@@ -351,17 +409,29 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       if (size <= max_n) return(list(n = size, limit = NA_real_, reason = NA_character_))
       return(list(n = NA_real_, limit = NA_real_, reason = "over_max"))
     }
+    # Met at any size: the package's search fails as well when the goal's
+    # chance is above `power` even for the smallest replication, as the
+    # pooled goal is after a strong original. Said so, with that chance.
+    small <- tryCatch(suppressWarnings(small_of()), error = function(e) NA_real_)
+    if (is.numeric(small) && length(small) == 1 && is.finite(small) && small >= power) {
+      return(list(n = NA_real_, limit = small, reason = "any_size"))
+    }
     # Not reachable: the chance with a very large replication.
     list(n = NA_real_, limit = limit_of(), reason = if (is.null(warned)) "not_found" else "not_reachable")
   }
   huge_se <- se_at(max_n)
+  # The smallest replication a goal is judged at: two people in each group
+  # for two groups, otherwise three (a correlation's standard error needs n > 3).
+  min_n <- if (identical(design, "two_groups")) 4 else if (correlation && !generic) 4 else 3
+  small_se <- se_at(min_n)
 
   rows <- list()
   for (goal in names(rules)) {
     for (prior in names(priors)) {
       dp <- priors[[prior]]
       found <- search(function() rules[[goal]]$ssd(dp),
-        function() tryCatch(rules[[goal]]$pors(dp, huge_se), error = function(e) NA_real_))
+        function() tryCatch(rules[[goal]]$pors(dp, huge_se), error = function(e) NA_real_),
+        function() rules[[goal]]$pors(dp, small_se))
       rows[[length(rows) + 1]] <- data.frame(goal = goal, prior = prior, n = found$n,
         limit = found$limit, reason = found$reason)
     }
@@ -371,7 +441,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   negligible <- if (!is.null(margin)) {
     tost <- function(sr) BayesRepDesign::porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr)
     found <- search(function() BayesRepDesign::ssdTOST(level = 2 * alpha, dprior = at_zero, power = power,
-      margin = margin, searchInt = c(1e-6, 2)), function() tost(huge_se))
+      margin = margin, searchInt = c(1e-6, 2)), function() tost(huge_se), function() tost(small_se))
     rows[[length(rows) + 1]] <- data.frame(goal = "negligible", prior = NA_character_, n = found$n,
       limit = found$limit, reason = found$reason)
     tost
@@ -410,6 +480,10 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       })
     if (!warned && is.numeric(out) && length(out) == 1 && is.finite(out)) {
       return(list(n = per_unit * out, limit = NA_real_, reason = NA_character_))
+    }
+    small <- tryCatch(suppressWarnings(test(dp, min_n)), error = function(e) NA_real_)
+    if (is.numeric(small) && length(small) == 1 && is.finite(small) && small >= power) {
+      return(list(n = NA_real_, limit = small, reason = "any_size"))
     }
     list(n = NA_real_, limit = tryCatch(test(dp, max_n), error = function(e) NA_real_),
       reason = if (warned) "not_reachable" else "not_found")
@@ -460,7 +534,10 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       original_se = original_se, original_ci = original_ci, original_ci_level = original_ci_level,
       original_statistic = original_statistic, scale = scale, effect_name = effect_name,
       original_analysis = original_analysis, original_bf = original_bf,
-      original_prior_scale = if (bayes && t_test) original_prior_scale, original_prior = original_prior),
+      original_prior_scale = if (bayes && t_test) original_prior_scale, original_prior = original_prior,
+      original_effect_type = if (converting) original_effect_type else "d",
+      original_reported = if (converting) original_reported, original_r = if (converting) original_r,
+      original_f = original_f),
     effect_name = if (generic) effect_name %||% "estimate" else rule$effect,
     scale = if (generic) switch(scale, log = "log", fisher_z = "Fisher's z", "as reported") else if (correlation) "Fisher's z" else rule$effect,
     original = original,
@@ -674,6 +751,10 @@ replication_planning_script <- function(plan) {
     "hi <- 1; while (log_bf(hi) < log(bf10)) hi <- 2 * hi",
     "t_original <- uniroot(function(t) log_bf(t) - log(bf10), c(0, hi), tol = 1e-10)$root  # its t statistic",
     sprintf("to <- t_original * %s  # its standardised effect", if (two) "sqrt(1 / n1 + 1 / n2)" else sprintf("1 / sqrt(%s)", i$original_n)))
+  else if (identical(i$original_effect_type, "t")) sprintf("to <- %s * %s  # its t statistic as d (Lakens, 2013)", num(i$original_reported),
+    if (two) sprintf("sqrt(1 / %s + 1 / %s)", i$original_n1, i$original_n2) else sprintf("1 / sqrt(%s)", i$original_n))
+  else if (identical(i$original_effect_type, "d_rm")) sprintf("to <- %s / sqrt(2 * (1 - %s))  # its repeated-measures d as d_z (Lakens, 2013)",
+    num(i$original_reported), num(i$original_r))
   else sprintf("to <- %s", if (correlation) sprintf("atanh(%s)  # Fisher's z", num(i$original_effect)) else num(i$original_effect))
   # Its standard error: from the design, or the posterior's (vague or default prior).
   so_post <- if (post) {

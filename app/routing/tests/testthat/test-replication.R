@@ -360,3 +360,92 @@ test_that("the result names the belief the write-up starts on, without stray spa
   expect_no_match(html, "[[:alnum:])] [.](\\s|<|$)", perl = TRUE)
   expect_match(html, "vary between studies with an SD of 0.05", fixed = TRUE)
 })
+
+# The 17 November 2026 review of replication plans.
+test_that("variation between studies is on each design's own scale", {
+  base <- list(rep_effect = "0.5", rep_n = "50", rep_alpha = "0.05", rep_power = "0.8")
+  # Designs planned in d start at Kenny and Judd's 0.05.
+  expect_equal(replication_args(c(base, rep_design = "paired"))$tau, 0.05)
+  # A correlation starts at the correlation card's 0.025 on Fisher's z, and
+  # ignores a value chosen for d.
+  expect_equal(replication_args(c(base, rep_design = "correlation", rep_tau = "0.2"))$tau, 0.025)
+  expect_equal(replication_args(c(base, rep_design = "correlation", rep_tau_r = "0.125"))$tau, 0.125)
+  # Another design takes a number on its own scale, none when empty: values
+  # in d have no meaning there.
+  generic <- c(base, rep_design = "generic", rep_se = "0.2", rep_tau = "0.05")
+  expect_equal(replication_args(generic)$tau, 0)
+  expect_equal(replication_args(c(generic, rep_tau_value = "0.03"))$tau, 0.03)
+  html <- as.character(replication_workspace_ui(tree))
+  expect_match(html, '<option value="0.025" selected>Small (0.025)</option>', fixed = TRUE)
+  expect_match(html, "an SD on the effect's own scale", fixed = TRUE)
+  expect_match(as.character(replication_tau_note(0, "generic", "log")), "no meaning on this effect's scale", fixed = TRUE)
+  expect_match(as.character(replication_tau_note(0.03, "generic", "log")), "0.03 on the log scale", fixed = TRUE)
+  expect_match(as.character(replication_tau_note(0.025, "correlation")), "the correlation card's smallest value", fixed = TRUE)
+})
+
+test_that("a goal any replication meets says so, and doesn't set the sample size", {
+  plan <- engine_function("replication_planning")("generic", 0.74, original_n = 120, original_f = 15.38,
+    power = 0.9, effect_name = "interaction contrast")
+  row <- plan$goals[plan$goals$goal == "pooled", ][1, ]
+  expect_identical(row$reason, "any_size")
+  expect_match(replication_cell(plan, row), "^Any size: even the smallest replication has a chance above 99%")
+  expect_match(replication_methods_paragraph(plan, "pooled", "uncertain"), "does not set the replication's sample size", fixed = TRUE)
+  html <- as.character(replication_result_ui(plan))
+  expect_no_match(html, "Not reachable: at most 100%", fixed = TRUE)
+})
+
+test_that("the paper's t, its repeated-measures d or an F become the engine's arguments", {
+  paired <- list(rep_design = "paired", rep_effect = "1.99", rep_n = "60", rep_alpha = "0.05", rep_power = "0.8")
+  expect_null(replication_args(paired)$original_effect_type)
+  expect_identical(replication_args(c(paired, rep_effect_type = "t"))$original_effect_type, "t")
+  rm <- replication_args(c(paired, rep_effect_type = "d_rm", rep_effect_r = "0.6"))
+  expect_identical(rm$original_effect_type, "d_rm")
+  expect_equal(rm$original_r, 0.6)
+  expect_match(replication_missing(c(paired, rep_effect_type = "d_rm")), "correlation between the original's two measurements", all = FALSE)
+  # A repeated-measures d is only for pairs; a correlation never converts.
+  expect_null(replication_args(list(rep_design = "two_groups", rep_effect = "0.5", rep_n1 = "20", rep_n2 = "20",
+    rep_effect_type = "d_rm"))$original_effect_type)
+  expect_null(replication_args(list(rep_design = "correlation", rep_effect = "0.3", rep_n = "50", rep_effect_type = "t"))$original_effect_type)
+  f <- replication_args(list(rep_design = "generic", rep_effect = "0.74", rep_n = "120", rep_se_from = "f", rep_f = "15.38"))
+  expect_equal(f$original_f, 15.38)
+  expect_match(replication_missing(list(rep_design = "generic", rep_effect = "0.74", rep_n = "120", rep_se_from = "f")), "its F statistic", all = FALSE)
+  # The methods paragraph and the write-up say what the paper reported.
+  plan <- do.call(engine_function("replication_planning"), replication_args(c(paired, rep_effect_type = "t")))
+  expect_match(replication_methods_paragraph(plan, "significance", "uncertain"), "from its t statistic of 1.99 (Lakens, 2013)", fixed = TRUE)
+  report <- paste(replication_report(c(paired, rep_effect_type = "t"), plan), collapse = "\n")
+  expect_match(report, "Reported effect: a t statistic of 1.99", fixed = TRUE)
+  expect_match(report, "Lakens D (2013)", fixed = TRUE)
+  expect_match(report, "for t-tests and ANOVAs", fixed = TRUE)
+})
+
+test_that("the write-up cites only what its goals, settings and original used", {
+  planner <- engine_function("replication_planning")
+  # Not calculated: no references at all.
+  expect_no_match(paste(replication_report(list()), collapse = "\n"), "## References", fixed = TRUE)
+  # An original t-test with no variation: no Kenny and Judd, no Bayes factor
+  # reading, no bfpwr, no Lakens.
+  plain <- planner("two_groups", 0.7, original_n1 = 20, original_n2 = 20, tau = 0)
+  keys <- replication_ref_keys_used(plain)
+  expect_true(all(c("Pawel2026_replication", "Anderson2016_replication", "Simonsohn2015_telescopes") %in% keys))
+  expect_false(any(c("Kenny2019_heterogeneity", "Ly2018_summary_reanalysis", "bfpwr_method", "McLatchie2020_bayes_factors",
+    "Lakens2013_effectsizes") %in% keys))
+  # Another design has no small telescopes, so no Simonsohn.
+  generic <- planner("generic", 0.74, original_n = 120, original_f = 15.38)
+  expect_false("Simonsohn2015_telescopes" %in% replication_ref_keys_used(generic))
+  # Variation and a Bayes factor original bring their own.
+  bf <- planner("paired", original_n = 25, original_analysis = "bayes_factor", original_bf = 8, tau = 0.05)
+  expect_true(all(c("Kenny2019_heterogeneity", "Ly2018_summary_reanalysis", "bfpwr_method", "McLatchie2020_bayes_factors") %in%
+    replication_ref_keys_used(bf)))
+  report <- paste(replication_report(list(rep_design = "two_groups", rep_effect = "0.7", rep_n1 = "20", rep_n2 = "20"), plain), collapse = "\n")
+  expect_no_match(report, "Kenny", fixed = TRUE)
+})
+
+test_that("a card that can't plan isn't kept as the original's design", {
+  note <- as.character(replication_card_note(forms, "E-unsure"))
+  expect_match(note, "isn't kept as the original's design", fixed = TRUE)
+  expect_no_match(note, "This card plans the replication", fixed = TRUE)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "req(!is.null(tree$endpoints[[ep %||% \"\"]]), !is.null(forms$forms[[ep]]))", fixed = TRUE)
+  # Already in a replication plan, the input screen hides the signpost offering one.
+  expect_match(code, "if (replicating(state$start)) tags$style(\".labs-signpost { display: none; }\")", fixed = TRUE)
+})

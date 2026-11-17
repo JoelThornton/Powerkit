@@ -3006,8 +3006,8 @@ server <- function(input, output, session) {
     values <- replication_values(plan$replication)
     for (id in names(values)) {
       v <- values[[id]]
-      if (id %in% c("rep_design", "rep_tau", "rep_scale", "labs_test")) updateSelectInput(session, id, selected = v)
-      else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from")) updateRadioButtons(session, id, selected = v)
+      if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test")) updateSelectInput(session, id, selected = v)
+      else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type")) updateRadioButtons(session, id, selected = v)
       else if (identical(id, "labs_outcome")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
       else if (!id %in% c("rep_goal", "rep_prior")) updateTextInput(session, id, value = v)
     }
@@ -3088,7 +3088,8 @@ server <- function(input, output, session) {
   observeEvent(list(state$screen, state$endpoint), {
     if (!replicating(state$start) || !identical(state$screen, "card")) return()
     ep <- state$endpoint
-    req(!is.null(tree$endpoints[[ep %||% ""]]))
+    # Only a card that plans (one with an input screen) is the original's.
+    req(!is.null(tree$endpoints[[ep %||% ""]]), !is.null(forms$forms[[ep]]))
     plan <- plan_get(isolate(state$rep_plan))
     if (!plan_is_replication(plan)) plan <- new_replication_plan()
     # The planner starts on the card's design and effect (forms.yaml's
@@ -3252,6 +3253,8 @@ server <- function(input, output, session) {
       ),
       form = tagList(
         if (isTRUE(state$from_labs)) labs_return_ui(on_form = TRUE, carried = !is.null(state$labs_seed)),
+        # Already in a replication plan: the signpost offering one is hidden.
+        if (replicating(state$start)) tags$style(".labs-signpost { display: none; }"),
         form_ui(tree, forms, state$endpoint, if (replicating(state$start)) replication_effect_labels(current_form_groups()) else current_form_groups(),
           isolate(state$form_values), state$history,
           from_plan = identical(state$came_from, "plan"),
