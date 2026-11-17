@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Fixed: headings on the values screen"
+    text: "With explanations off, a box's heading sometimes sat on the same line as its first question, and two boxes could share the heading \"Effect size\". Each box now has the same heading whether explanations are on or off, and the boxes where you enter the effect say so, for example \"Effect size: the expected group means\". With explanations on, the screen also gives the analysis's standard name, such as one-way between-subjects ANOVA, as its card does."
+  - date: "2026-11-17"
     title: "The ANCOVA asks how your covariates come about"
     text: "The ANCOVA card now asks whether your covariates are measured on each person, such as a before score, or set by the design, such as doses chosen in advance. Nothing is chosen for you. Measured covariates are planned with Shieh's method, as before; covariates set by the design are planned as fixed, as G*Power does, which gives a little more power."
   - date: "2026-11-17"
