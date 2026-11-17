@@ -4082,3 +4082,18 @@ to 32).
   them. A validation test in the mixed_model chunk compares the
   Kenward-Roger route with `pbkrtest::KRmodcomp()` on independently
   simulated studies.
+
+## 2026-11-17 · The input screen's headings with explanations on or off
+
+The 10 November decision (conventional names in compact mode) also
+swapped each box heading on the input screen for a short name with
+explanations off. That gave two boxes the same heading ("Effect size"
+for both the group means and the SD of a one-way ANOVA), while with
+explanations on no box said it took the effect size, and the screen
+never gave the analysis's standard name. Box headings are now the same
+in both modes, and a box with an effect field is headed "Effect size:"
+followed by its own title ("Effect size: the expected group means"). The
+input screen shows the card's "Standard name:" line under its plain
+title when explanations are on; with them off the heading is that name,
+as before. Field labels keep their compact versions.
+
