@@ -1703,6 +1703,14 @@ scripts/run-validation.R --only replication --cores 2`.
   and 3 published-reference TODO SKIP, with the same chances. The
   added goals are bfpwr's, validated by the `bayes` chunk on their own
   cards.
+- **The one-sided option** (17 November 2026, engine 0.78.11 plus that
+  change): the simulation check now also applies the one-sided rules
+  (the replication at alpha, the pooled estimate at alpha squared) to
+  the same draws, for every case and belief; all 24 one-sided chances
+  agree within the 99.9% Monte Carlo interval (for example .7812
+  simulated against .7800 for significance under the uncertain belief,
+  two groups). `--only replication`: 3 PASS, 3 published-reference TODO
+  SKIP.
 
 Not covered: the sceptical Bayes factor (left to a published example)
 and the bfpwr Bayes factor goals (the bayes chunk's). The published

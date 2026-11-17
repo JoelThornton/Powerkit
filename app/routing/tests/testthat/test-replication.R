@@ -550,3 +550,55 @@ test_that("the quick answer uses the usual settings when none are chosen", {
   expect_match(code, "usual <- list(rep_alpha = \"0.05\", rep_power = \"0.8\")", fixed = TRUE)
   expect_match(code, "run(usual)", fixed = TRUE)
 })
+
+test_that("a one-sided replication is planned, written up and restored as one", {
+  planner <- engine_function("replication_planning")
+  base <- list(rep_design = "two_groups", rep_effect = "0.5", rep_n1 = "40", rep_n2 = "40", rep_tau = "0.05",
+    rep_alpha = "0.05", rep_power = "0.8", rep_purpose = "confirm", rep_also = "none")
+  expect_null(replication_args(base)$alternative)
+  one <- c(base, rep_sided = "one.sided")
+  expect_identical(replication_args(one)$alternative, "one.sided")
+  two_plan <- replication_run(base, planner)
+  one_plan <- replication_run(one, planner)
+  expect_lt(one_plan$at_main$n, two_plan$at_main$n)
+  report <- paste(replication_report(one, one_plan), collapse = "\n")
+  expect_match(report, "(a one-sided test at 0.05)", fixed = TRUE)
+  expect_match(report, "replication significance level 0.05 (one-sided, in the original's direction)", fixed = TRUE)
+  expect_match(paste(replication_report(base, two_plan), collapse = "\n"),
+    "(a two-sided test at 0.05, counted as a success only in the original's direction)", fixed = TRUE)
+  expect_identical(replication_field_defaults$rep_sided, "two.sided")
+  expect_true("rep_sided" %in% replication_field_ids)
+  code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(code, "\"rep_purpose\", \"rep_prior\", \"rep_sided\")) updateRadioButtons", fixed = TRUE)
+})
+
+test_that("the write-up has a study design table, and the script runs the chosen criteria only", {
+  planner <- engine_function("replication_planning")
+  values <- list(rep_design = "two_groups", rep_effect = "0.5", rep_n1 = "40", rep_n2 = "40", rep_tau = "0.05",
+    rep_alpha = "0.05", rep_power = "0.8", rep_purpose = "confirm", rep_also = "absence\nbf_replication")
+  plan <- replication_run(values, planner)
+  report <- replication_report(values, plan)
+  start <- which(report == "### Study design table")
+  expect_length(start, 1)
+  expect_match(report[start + 4], "^| Question | Hypothesis | Sampling plan | Analysis plan |")
+  rows <- report[(start + 6):(start + 8)]
+  expect_true(all(startsWith(rows, "| Does the original effect replicate? |")))
+  expect_match(rows[1], "set by this criterion for an 80% chance of success", fixed = TRUE)
+  expect_match(rows[2], "The data support the original's effect over no effect.", fixed = TRUE)
+  expect_match(rows[3], "Two one-sided tests at 0.05 against the bounds", fixed = TRUE)
+  expect_match(rows[3], "d33, the effect the original had a one-in-three chance of detecting", fixed = TRUE)
+  expect_identical(report[start + 9], "")
+  # Labels keep their capitals inside a sentence.
+  expect_match(paste(report, collapse = "\n"), "(replication Bayes factor), ", fixed = TRUE)
+  # The script: the main criterion's sample size, then the others' chances at it.
+  script <- replication_script_text(plan, engine_function("replication_planning_script"))
+  expect_no_match(script, "sapply(priors", fixed = TRUE)
+  expect_match(script, "dp <- priors$uncertain", fixed = TRUE)
+  env <- new.env()
+  chances <- suppressWarnings(eval(parse(text = script), envir = env))
+  expect_identical(env$n, plan$at_main$n)
+  expect_setequal(names(chances), c("negligible", "bf_replication"))
+  # Before a choice is made, every goal under every belief.
+  plan$choice <- NULL
+  expect_match(replication_script_text(plan, engine_function("replication_planning_script")), "sapply(priors", fixed = TRUE)
+})

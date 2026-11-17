@@ -115,14 +115,17 @@ draw_replications <- function(prior, to, so, tau, sr, nsim) {
 # Each goal's success rule, for an original with a positive estimate,
 # applied to replication estimates `tr` (paper, "Analysis Methods"; the
 # levels are replication_planning()'s, from the paper's worked example).
-replication_success <- function(goal, tr, to, so, sr, alpha, margin, threshold) {
+replication_success <- function(goal, tr, to, so, sr, alpha, margin, threshold, one_sided = FALSE) {
+  level <- if (one_sided) alpha else alpha / 2
   switch(goal,
-    # The two-trials rule: the replication alone, one-sided at alpha / 2.
-    significance = tr / sr > stats::qnorm(1 - alpha / 2),
-    # The fixed-effect pooled estimate of both studies, one-sided at (alpha / 2)^2.
+    # The two-trials rule: the replication alone, one-sided at alpha / 2
+    # (at alpha for a one-sided replication).
+    significance = tr / sr > stats::qnorm(1 - level),
+    # The fixed-effect pooled estimate of both studies, one-sided at that
+    # level squared.
     pooled = {
       w <- c(1 / so^2, 1 / sr^2)
-      (w[1] * to + w[2] * tr) / sqrt(sum(w)) > stats::qnorm(1 - (alpha / 2)^2)
+      (w[1] * to + w[2] * tr) / sqrt(sum(w)) > stats::qnorm(1 - level^2)
     },
     # The (1 - 2 alpha) interval for the difference inside +- the margin.
     agreement = abs(tr - to) + stats::qnorm(1 - alpha) * sqrt(so^2 + sr^2) < margin,
@@ -179,12 +182,19 @@ test_that("every goal's chance at a sample size agrees with a simulation of the 
     expect_equal(plan$original$se, case$so, tolerance = 1e-8, label = paste(case$label, "original SE"))
     margin <- switch(case$design, correlation = atanh(case$margin), generic = log(case$margin), case$margin)
     a <- plan$at_n
+    one <- do.call(replication_of, c(list(case$design, case$effect), case$args,
+      list(tau = case$tau, threshold = threshold, n = case$n, alternative = "one.sided")))$at_n
     for (prior in c("as_reported", "uncertain", "shrunk")) {
       tr <- draw_replications(prior, to, case$so, case$tau, case$sr, nsim)
       for (goal in c("significance", "pooled", "agreement", "bf_replication")) {
         simulated <- mean(replication_success(goal, tr, to, case$so, case$sr, alpha, margin, threshold))
         expect_chance_agrees(simulated, nsim, a$chance[a$goal == goal & a$prior == prior],
           sprintf("%s: %s, %s", case$label, goal, prior))
+      }
+      for (goal in c("significance", "pooled")) {
+        simulated <- mean(replication_success(goal, tr, to, case$so, case$sr, alpha, margin, threshold, one_sided = TRUE))
+        expect_chance_agrees(simulated, nsim, one$chance[one$goal == goal & one$prior %in% prior],
+          sprintf("%s: %s, %s, one-sided", case$label, goal, prior))
       }
     }
     # Too small to matter: the replication alone, its (1 - 2 alpha)

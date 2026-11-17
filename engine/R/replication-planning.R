@@ -148,7 +148,16 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   |t| (in place of `original_statistic`).
 #' @param original_alpha The original study's two-sided significance
 #'   level (for small telescopes' d33).
-#' @param alpha The replication's two-sided significance level.
+#' @param alpha The replication's significance level: two-sided by
+#'   default, one-sided in the original's direction with `alternative =
+#'   "one.sided"`.
+#' @param alternative `"two.sided"` (the default) or `"one.sided"`. The
+#'   significance goal is BayesRepDesign's one-sided test in the original's
+#'   direction at `alpha / 2` (a two-sided test at `alpha` that also needs
+#'   the original's direction) or, one-sided, at `alpha`; the pooled goal
+#'   is at that level squared. Agreement, too small to matter (TOST at
+#'   `alpha`), small telescopes (one-sided at `alpha`) and the Bayes factor
+#'   goals are the same either way.
 #' @param power The chance of success the sample sizes aim for.
 #' @param tau How much the true effect varies between studies (a standard
 #'   deviation on the effect's scale; Fisher's z for a correlation), for
@@ -192,7 +201,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
                                  scale = "none", effect_name = NULL, original_analysis = "test",
                                  original_bf = NULL, original_prior_scale = 1 / sqrt(2),
                                  original_prior = NULL, original_effect_type = "d", original_r = NULL,
-                                 original_f = NULL) {
+                                 original_f = NULL, alternative = "two.sided") {
   if (!requireNamespace("BayesRepDesign", quietly = TRUE)) {
     abort_run("The replication planner needs the R package BayesRepDesign. Install it with install.packages(\"BayesRepDesign\").")
   }
@@ -304,6 +313,11 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       abort_run(sprintf("The %s significance level should be between 0 and 0.5, for example 0.05.", level[[2]]))
     }
   }
+  if (!is.character(alternative) || length(alternative) != 1 || !alternative %in% c("two.sided", "one.sided")) {
+    abort_run("'alternative' should be \"two.sided\" or \"one.sided\".")
+  }
+  # The significance goal's one-sided level in the original's direction.
+  sig_level <- if (identical(alternative, "one.sided")) alpha else alpha / 2
   if (!one_number(power) || power <= alpha / 2 || power >= 1) {
     abort_run("The chance of success to aim for should be between the significance level and 1, for example 0.8.")
   }
@@ -375,13 +389,13 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   # (pors*), as the package's functions with the levels above.
   bf_level <- 1 / threshold
   rules <- list(
-    significance = list(ssd = function(dp) BayesRepDesign::ssdSig(level = alpha / 2, dprior = dp, power = power),
-      pors = function(dp, sr) BayesRepDesign::porsSig(level = alpha / 2, dprior = dp, sr = sr),
-      call = sprintf("ssdSig(level = %s)", format(alpha / 2))),
-    pooled = list(ssd = function(dp) BayesRepDesign::ssdMeta(level = (alpha / 2)^2, dprior = dp, power = power,
+    significance = list(ssd = function(dp) BayesRepDesign::ssdSig(level = sig_level, dprior = dp, power = power),
+      pors = function(dp, sr) BayesRepDesign::porsSig(level = sig_level, dprior = dp, sr = sr),
+      call = sprintf("ssdSig(level = %s)", format(sig_level))),
+    pooled = list(ssd = function(dp) BayesRepDesign::ssdMeta(level = sig_level^2, dprior = dp, power = power,
         searchInt = c(1e-6, 10)),
-      pors = function(dp, sr) BayesRepDesign::porsMeta(level = (alpha / 2)^2, dprior = dp, sr = sr),
-      call = sprintf("ssdMeta(level = %s)", format(signif((alpha / 2)^2, 4)))),
+      pors = function(dp, sr) BayesRepDesign::porsMeta(level = sig_level^2, dprior = dp, sr = sr),
+      call = sprintf("ssdMeta(level = %s)", format(signif(sig_level^2, 4)))),
     agreement = if (!is.null(margin)) list(
       ssd = function(dp) BayesRepDesign::ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin),
       pors = function(dp, sr) BayesRepDesign::porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr),
@@ -544,7 +558,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       original_prior_scale = if (t_test) original_prior_scale, original_prior = original_prior,
       original_effect_type = if (converting) original_effect_type else "d",
       original_reported = if (converting) original_reported, original_r = if (converting) original_r,
-      original_f = original_f),
+      original_f = original_f, alternative = alternative),
     effect_name = if (generic) effect_name %||% "estimate" else rule$effect,
     scale = if (generic) switch(scale, log = "log", fisher_z = "Fisher's z", "as reported") else if (correlation) "Fisher's z" else rule$effect,
     original = original,
@@ -644,7 +658,7 @@ replication_generic_original <- function(effect, n, se = NULL, ci = NULL, ci_lev
 
 # The script for a generic design: the goals judged against the original's
 # effect, from its estimate and standard error (no small telescopes).
-replication_generic_script <- function(plan, num, tf_call, margin) {
+replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL) {
   i <- plan$inputs
   post <- identical(i$original_analysis, "posterior")
   so_line <- switch(plan$original$from,
@@ -653,7 +667,7 @@ replication_generic_script <- function(plan, num, tf_call, margin) {
       tf_call(num(i$original_ci[2])), tf_call(num(i$original_ci[1])), num(i$original_ci_level), num(100 * i$original_ci_level),
       if (post) "credible" else "confidence"),
     statistic = sprintf("so <- abs(to / %s)  # from its test statistic", num(i$original_statistic)))
-  c(
+  head <- c(
     "# Replication plan, from powerkit's replication plan.",
     "# Every goal judged against the original's effect: BayesRepDesign (Pawel, Consonni & Held, 2026).",
     sprintf("# The original's effect: %s, planned %s.", plan$effect_name,
@@ -669,6 +683,7 @@ replication_generic_script <- function(plan, num, tf_call, margin) {
     so_line,
     "n_from_se <- function(se) max(2, ceiling(n_original * (so / se)^2 - 1e-9))",
     sprintf("alpha <- %s; power <- %s; tau <- %s", num(i$alpha), num(i$power), num(i$tau)),
+    replication_level_line(i),
     if (!is.null(margin)) sprintf("margin <- %s  # the smallest effect that matters", margin),
     "",
     "# The three beliefs about the true effect (design priors)",
@@ -676,13 +691,18 @@ replication_generic_script <- function(plan, num, tf_call, margin) {
     "  as_reported = designPrior(to = to, so = so, type = \"conditional\"),",
     "  uncertain = designPrior(to = to, so = so, tau = tau, type = \"predictive\"),",
     "  shrunk = designPrior(to = to, so = so, tau = tau, type = \"EB\")",
-    ")",
+    ")")
+  if (!is.null(focus)) {
+    return(paste(c(head, replication_focused_lines(plan, focus, num, margin,
+      se_line = "se_of <- function(n) so * sqrt(n_original / n)  # the replication's standard error")), collapse = "\n"))
+  }
+  c(head,
     "",
     "# The sample size for each goal and belief; NA when no replication can reach it",
     "size <- function(found) if (is.finite(found$sr)) n_from_se(found$sr) else NA",
     "sapply(priors, function(dp) c(",
-    "  significance = size(ssdSig(level = alpha / 2, dprior = dp, power = power)),",
-    "  pooled = size(ssdMeta(level = (alpha / 2)^2, dprior = dp, power = power, searchInt = c(1e-6, 10))),",
+    "  significance = size(ssdSig(level = level, dprior = dp, power = power)),",
+    "  pooled = size(ssdMeta(level = level^2, dprior = dp, power = power, searchInt = c(1e-6, 10))),",
     if (!is.null(margin)) "  agreement = size(ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin)),",
     sprintf("  bf_replication = size(ssdBFr(level = 1/%s, dprior = dp, power = power)),", num(i$threshold)),
     sprintf("  bf_sceptical = size(ssdBFs(level = 1/%s, dprior = dp, power = power))", num(i$threshold)),
@@ -691,6 +711,89 @@ replication_generic_script <- function(plan, num, tf_call, margin) {
       "# Too small to matter: the usual TOST at alpha (a 1 - 2 alpha interval), planned for no effect",
       "size(ssdTOST(level = 2 * alpha, dprior = designPrior(to = 0, so = so, type = \"conditional\"), power = power, margin = margin, searchInt = c(1e-6, 2)))")
   ) |> paste(collapse = "\n")
+}
+
+# The significance goal's level in a script.
+replication_level_line <- function(i) {
+  if (identical(i$alternative, "one.sided")) {
+    "level <- alpha  # one-sided, in the original's direction"
+  } else "level <- alpha / 2  # one-sided in the original's direction: a two-sided test at alpha"
+}
+
+# A script's chosen criteria, checked: NULL for every goal's table.
+replication_script_focus <- function(plan, goal, also, prior) {
+  if (is.null(goal)) return(NULL)
+  available <- unique(plan$goals$goal)
+  if (!is.character(goal) || length(goal) != 1 || !goal %in% available) {
+    abort_run(sprintf("'goal' should be one of the plan's goals: %s.", paste(available, collapse = ", ")))
+  }
+  if (!is.character(prior) || length(prior) != 1 || !prior %in% names(replication_priors)) {
+    abort_run("'prior' should be \"as_reported\", \"uncertain\" or \"shrunk\".")
+  }
+  also <- as.character(also)
+  if (length(setdiff(also, available))) {
+    abort_run(sprintf("'also' should hold the plan's goals only: %s.", paste(available, collapse = ", ")))
+  }
+  list(goal = goal, also = setdiff(unique(also), goal), prior = prior)
+}
+
+# The script for the chosen criteria: the main criterion's sample size
+# under the chosen belief, then each other criterion's chance at it, with
+# the same functions and levels as replication_planning().
+replication_focused_lines <- function(plan, focus, num, margin, se_line, telescope_lines = NULL,
+                                      telescope_search = NULL, bf = NULL) {
+  thr <- num(plan$inputs$threshold)
+  goals <- c(focus$goal, focus$also)
+  label <- c(significance = "a significant result in the original's direction", pooled = "the pooled estimate significant",
+    agreement = "the replication agrees with the original", bf_replication = "the replication Bayes factor",
+    bf_sceptical = "the sceptical Bayes factor", negligible = "the effect too small to matter (equivalence test)",
+    small_telescopes = "small telescopes", bf_repeat = "a Bayes factor t-test for an effect",
+    bf_null = "a Bayes factor t-test for no effect")
+  belief <- c(as_reported = "as reported", uncertain = "with its uncertainty", shrunk = "shrunk towards zero")
+  size_of <- function(goal) switch(goal,
+    significance = "n <- size(ssdSig(level = level, dprior = dp, power = power))",
+    pooled = "n <- size(ssdMeta(level = level^2, dprior = dp, power = power, searchInt = c(1e-6, 10)))",
+    agreement = "n <- size(ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin))",
+    bf_replication = sprintf("n <- size(ssdBFr(level = 1/%s, dprior = dp, power = power))", thr),
+    bf_sceptical = sprintf("n <- size(ssdBFs(level = 1/%s, dprior = dp, power = power))", thr),
+    negligible = "n <- size(ssdTOST(level = 2 * alpha, dprior = at_zero, power = power, margin = margin, searchInt = c(1e-6, 2)))",
+    small_telescopes = telescope_search,
+    bf_repeat = sprintf("n <- bf_size(k = 1/%s, power = power, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))", thr),
+    bf_null = sprintf("n <- bf_size(k = %s, power = power, dpm = 0, dpsd = 0, lower.tail = FALSE)", thr))
+  chance_of <- function(goal) switch(goal,
+    significance = "porsSig(level = level, dprior = dp, sr = sr)",
+    pooled = "porsMeta(level = level^2, dprior = dp, sr = sr)",
+    agreement = "porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr)",
+    bf_replication = sprintf("porsBFr(level = 1/%s, dprior = dp, sr = sr)", thr),
+    bf_sceptical = sprintf("porsBFs(level = 1/%s, dprior = dp, sr = sr)", thr),
+    negligible = "porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr)",
+    small_telescopes = "telescope_power(n)",
+    bf_repeat = sprintf("bfpwr::ptbf01(k = 1/%s, n = n / %s, pscale = %s, type = \"%s\", dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))",
+      thr, bf$per_unit, bf$scale, bf$type),
+    bf_null = sprintf("bfpwr::ptbf01(k = %s, n = n / %s, pscale = %s, type = \"%s\", dpm = 0, dpsd = 0, lower.tail = FALSE)",
+      thr, bf$per_unit, bf$scale, bf$type))
+  no_effect <- c("negligible", "small_telescopes", "bf_null")
+  c("",
+    se_line,
+    "size <- function(found) if (is.finite(found$sr)) n_from_se(found$sr) else NA",
+    sprintf("dp <- priors$%s  # the belief about the true effect: %s", focus$prior, belief[[focus$prior]]),
+    if ("negligible" %in% goals) "at_zero <- designPrior(to = 0, so = so, type = \"conditional\")  # no effect",
+    if ("small_telescopes" %in% goals) telescope_lines,
+    if (any(c("bf_repeat", "bf_null") %in% goals)) bf$size_line,
+    "",
+    sprintf("# The main criterion, %s%s: the sample size in total (NA when no replication reaches it, or any does)",
+      label[[focus$goal]], if (focus$goal %in% no_effect) ", planned for no effect" else ""),
+    size_of(focus$goal),
+    "n",
+    if (length(focus$also)) c("",
+      "# Each criterion also reported: its chance with n people (those marked planned for no effect, if there is none)",
+      "sr <- se_of(n)",
+      "c(",
+      paste0("  ", focus$also, " = ", vapply(focus$also, chance_of, ""),
+        ifelse(seq_along(focus$also) < length(focus$also), ",", ""),
+        ifelse(focus$also %in% no_effect, "  # planned for no effect", "")),
+      ")")
+  )
 }
 
 # Small telescopes for the planner: the small-telescopes card's own spec,
@@ -724,6 +827,14 @@ replication_telescope <- function(design, original_effect, original_n, original_
 #' BayesRepDesign, pwr and pwrss alone, for the reader of a plan.
 #'
 #' @param plan What [replication_planning()] returned.
+#' @param goal The main criterion, one of `plan$goals$goal`: the script
+#'   then plans the sample size for it alone, under `prior`, and gives each
+#'   goal in `also` as its chance at that sample size. `NULL` (the
+#'   default) gives every goal's sample size under every belief.
+#' @param also Goals to report as their chance at the main criterion's
+#'   sample size.
+#' @param prior The belief about the true effect for `goal` and `also`:
+#'   `"as_reported"`, `"uncertain"` or `"shrunk"`.
 #' @return The script, as one string.
 #' @export
 #' @examples
@@ -732,8 +843,9 @@ replication_telescope <- function(design, original_effect, original_n, original_
 #'     smallest_effect = 0.2)
 #'   cat(replication_planning_script(plan))
 #' }
-replication_planning_script <- function(plan) {
+replication_planning_script <- function(plan, goal = NULL, also = character(), prior = "uncertain") {
   i <- plan$inputs
+  focus <- replication_script_focus(plan, goal, also, prior)
   num <- function(x) format(signif(x, 8))
   correlation <- identical(i$design, "correlation")
   two <- identical(i$design, "two_groups")
@@ -744,7 +856,7 @@ replication_planning_script <- function(plan) {
   }
   margin <- if (!is.null(i$smallest_effect)) tf_call(num(i$smallest_effect))
   if (generic) {
-    return(replication_generic_script(plan, num, tf_call, margin))
+    return(replication_generic_script(plan, num, tf_call, margin, focus))
   }
   analysis <- i$original_analysis %||% "test"
   from_bf <- identical(analysis, "bayes_factor")
@@ -785,13 +897,14 @@ replication_planning_script <- function(plan) {
     sprintf("pwrss::power.t.student(d = 0, margin = yardstick, n2 = n, alpha = alpha, alternative = \"one.sided\", design = \"%s\", verbose = 0)$power",
       if (identical(i$design, "paired")) "paired" else "one.sample")
   }
-  c(
+  uses <- function(g) is.null(focus) || any(g %in% c(focus$goal, focus$also))
+  head <- c(
     "# Replication plan, from powerkit's replication plan.",
     "# Every goal judged against the original's effect: BayesRepDesign (Pawel, Consonni & Held, 2026).",
-    if (!bayes) "# Small telescopes (Simonsohn, 2015): pwr for d33 (or r33) and pwrss for the replication's test.",
+    if (!bayes && uses("small_telescopes")) "# Small telescopes (Simonsohn, 2015): pwr for d33 (or r33) and pwrss for the replication's test.",
     if (from_bf) "# The original's effect from its Bayes factor and sample size (BayesFactor's ttest.tstat(), inverted).",
     if (post) sprintf("# The original's posterior (%s prior) stands in for its estimate and standard error.", i$original_prior),
-    if (!is.na(bf_type)) sprintf("# %s: bfpwr (Pawel & Held).", if (bayes) "The original's Bayes factor test repeated" else "A default Bayes factor t-test"),
+    if (!is.na(bf_type) && uses(c("bf_repeat", "bf_null"))) sprintf("# %s: bfpwr (Pawel & Held).", if (bayes) "The original's Bayes factor test repeated" else "A default Bayes factor t-test"),
     sprintf("# Written by powerkit %s on %s.", as.character(utils::packageVersion("powerkit")), format(Sys.Date())),
     "library(BayesRepDesign)",
     "",
@@ -807,6 +920,7 @@ replication_planning_script <- function(plan) {
       "n_from_se <- function(se) ceiling(se2n(se, unitSD = 1) - 1e-9)"),
     if (bayes) sprintf("alpha <- %s; power <- %s; tau <- %s", num(i$alpha), num(i$power), num(i$tau))
     else sprintf("original_alpha <- %s; alpha <- %s; power <- %s; tau <- %s", num(i$original_alpha), num(i$alpha), num(i$power), num(i$tau)),
+    replication_level_line(i),
     if (!is.null(margin)) sprintf("margin <- %s  # the smallest effect that matters", margin),
     "",
     "# The three beliefs about the true effect (design priors)",
@@ -814,13 +928,29 @@ replication_planning_script <- function(plan) {
     "  as_reported = designPrior(to = to, so = so, type = \"conditional\"),",
     "  uncertain = designPrior(to = to, so = so, tau = tau, type = \"predictive\"),",
     "  shrunk = designPrior(to = to, so = so, tau = tau, type = \"EB\")",
-    ")",
+    ")")
+  telescope_lines <- c(
+    sprintf("yardstick <- sign(%s) * %s", num(i$original_effect), telescope_call),
+    sprintf("telescope_power <- function(n) %s", telescope_power))
+  telescope_search <- sprintf("n <- %s; while (telescope_power(n) < power) n <- n + %s", if (two) 6 else 5, if (two) 2 else 1)
+  bf_size_line <- if (!is.na(bf_type)) sprintf("bf_size <- function(...) %sbfpwr::ntbf01(pscale = %s, type = \"%s\", nrange = c(2, 1e5), ...)",
+    if (two) "2 * " else "", num(i$original_prior_scale), bf_type)
+  if (!is.null(focus)) {
+    se_line <- if (two) "se_of <- function(n) 2 / sqrt(n)  # the replication's standard error, two equal groups"
+      else if (correlation) "se_of <- function(n) 1 / sqrt(n - 3)  # the replication's standard error, Fisher's z"
+      else "se_of <- function(n) 1 / sqrt(n)  # the replication's standard error"
+    return(paste(c(head, replication_focused_lines(plan, focus, num, margin, se_line = se_line,
+      telescope_lines = if (!bayes) telescope_lines, telescope_search = telescope_search,
+      bf = if (!is.na(bf_type)) list(size_line = bf_size_line, type = bf_type, per_unit = if (two) 2 else 1,
+        scale = num(i$original_prior_scale)))), collapse = "\n"))
+  }
+  c(head,
     "",
     "# The sample size (in total) for each goal and belief; NA when no replication can reach it",
     "size <- function(found) if (is.finite(found$sr)) n_from_se(found$sr) else NA",
     "sapply(priors, function(dp) c(",
-    "  significance = size(ssdSig(level = alpha / 2, dprior = dp, power = power)),",
-    "  pooled = size(ssdMeta(level = (alpha / 2)^2, dprior = dp, power = power, searchInt = c(1e-6, 10))),",
+    "  significance = size(ssdSig(level = level, dprior = dp, power = power)),",
+    "  pooled = size(ssdMeta(level = level^2, dprior = dp, power = power, searchInt = c(1e-6, 10))),",
     if (!is.null(margin)) "  agreement = size(ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin)),",
     sprintf("  bf_replication = size(ssdBFr(level = 1/%s, dprior = dp, power = power)),", num(i$threshold)),
     sprintf("  bf_sceptical = size(ssdBFs(level = 1/%s, dprior = dp, power = power))", num(i$threshold)),
@@ -830,16 +960,12 @@ replication_planning_script <- function(plan) {
       "size(ssdTOST(level = 2 * alpha, dprior = designPrior(to = 0, so = so, type = \"conditional\"), power = power, margin = margin))"),
     if (!bayes) c("",
       "# Small telescopes: the smallest n with this power to show the effect is smaller than d33 when it is 0",
-      sprintf("yardstick <- sign(%s) * %s", num(i$original_effect), telescope_call),
-      sprintf("telescope_power <- function(n) %s", telescope_power),
-      sprintf("n <- %s; while (telescope_power(n) < power) n <- n + %s", if (two) 6 else if (correlation) 5 else 5, if (two) 2 else 1),
-      "n"),
+      telescope_lines, telescope_search, "n"),
     if (!is.na(bf_type)) c("",
       sprintf("# %s (BF10 of at least %s), in total%s", if (bayes) "The original's Bayes factor test repeated" else "A default Bayes factor t-test",
         num(i$threshold),
         if (two) ", from bfpwr's size per group" else ""),
-      sprintf("bf_size <- function(...) %sbfpwr::ntbf01(pscale = %s, type = \"%s\", nrange = c(2, 1e5), ...)",
-        if (two) "2 * " else "", num(i$original_prior_scale), bf_type),
+      bf_size_line,
       sprintf("sapply(priors, function(dp) bf_size(k = 1/%s, power = power, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar)))", num(i$threshold)),
       sprintf("# Evidence for no effect (BF01 of at least %s) if there is none", num(i$threshold)),
       sprintf("bf_size(k = %s, power = power, dpm = 0, dpsd = 0, lower.tail = FALSE)", num(i$threshold)))

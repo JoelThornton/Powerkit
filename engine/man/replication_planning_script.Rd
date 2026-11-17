@@ -4,10 +4,26 @@
 \alias{replication_planning_script}
 \title{R script for a replication plan}
 \usage{
-replication_planning_script(plan)
+replication_planning_script(
+  plan,
+  goal = NULL,
+  also = character(),
+  prior = "uncertain"
+)
 }
 \arguments{
 \item{plan}{What \code{\link[=replication_planning]{replication_planning()}} returned.}
+
+\item{goal}{The main criterion, one of \code{plan$goals$goal}: the script
+then plans the sample size for it alone, under \code{prior}, and gives each
+goal in \code{also} as its chance at that sample size. \code{NULL} (the
+default) gives every goal's sample size under every belief.}
+
+\item{also}{Goals to report as their chance at the main criterion's
+sample size.}
+
+\item{prior}{The belief about the true effect for \code{goal} and \code{also}:
+\code{"as_reported"}, \code{"uncertain"} or \code{"shrunk"}.}
 }
 \value{
 The script, as one string.
