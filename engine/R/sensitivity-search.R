@@ -210,7 +210,8 @@ formula_search_plan <- function(spec) {
         direction = direction,
         power = function(s, n) propodds_backend(s)$exact_power(n),
         set = function(s, x) { s$population$odds_ratio <- exp(direction * x); s },
-        # The script gives powertools the odds ratio above 1 (the same power).
+        # The script gives powertools the odds ratio above 1, with the shares
+        # ordered for the direction searched (propodds_inputs()).
         script = "OR <<- exp(x)",
         effect = function(x) exp(direction * x), effect_script = "exp(direction * found)",
         effect_name = "odds_ratio",

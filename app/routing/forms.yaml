@@ -3385,7 +3385,7 @@ forms:
         fields:
           - {id: probabilities, writeup_label: "shares of group 1 in each category", label: "Share of group 1 in each category: one for each, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true}
           - {id: odds_ratio, optional_for: [sensitivity], when_empty: one, label: "Odds ratio: how many times higher the odds of a higher category are in group 2 than in group 1", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
-             help: "Below 1 if group 2 tends to be in lower categories. Power is the same for an odds ratio and its reciprocal (2 and 0.5)."}
+             help: "Below 1 if group 2 tends to be in lower categories. When group 1's shares are uneven, power depends on the direction: a shift towards the categories with few people spreads the answers out and gives more power than the same odds ratio the other way."}
       - input: "The size of group 2 relative to group 1 (1 = equal)"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,

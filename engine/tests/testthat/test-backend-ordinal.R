@@ -12,10 +12,47 @@ ordinal_spec <- function(goal = list(type = "power", n = 200), ...) {
 test_that("power is powertools' propodds(), with group 1's size and the ratio", {
   result <- run_spec(ordinal_spec())
   expect_equal(result$provenance$backend_function, "powertools::propodds")
-  # An odds ratio of 0.5 is passed as 2: power is the same either way.
+  # An odds ratio of 0.5 (group 2 lower) is passed as 2 with the shares as
+  # given, so powertools shifts group 2 towards the lowest category.
   expect_equal(result$curve$power, powertools::propodds(pC = c(0.1, 0.3, 0.4, 0.2), OR = 2, n1 = 100))
-  expect_equal(run_spec(ordinal_spec(odds_ratio = 2))$curve$power, result$curve$power)
+  # An odds ratio of 2 (group 2 higher) passes the shares highest first.
+  expect_equal(run_spec(ordinal_spec(odds_ratio = 2))$curve$power, powertools::propodds(pC = c(0.2, 0.4, 0.3, 0.1), OR = 2, n1 = 100))
   expect_true(all(result$check_run$ok))
+})
+
+test_that("group 2 is shifted the way the odds ratio says, which matters when the shares are uneven", {
+  # Whitehead's variance uses the two groups' average shares, so the same
+  # odds ratio has more power when it spreads the answers out. Group 1
+  # mostly in the lowest category: group 2 higher (2.5) spreads them out,
+  # group 2 lower (0.4) bunches them further.
+  shares <- list(0.7, 0.2, 0.1)
+  spec_up <- ordinal_spec(probabilities = shares, odds_ratio = 2.5, goal = list(type = "power", n = 100))
+  spec_up$variables$Y$levels <- list("Low", "Middle", "High")
+  spec_down <- spec_up
+  spec_down$population$odds_ratio <- 0.4
+  up <- run_spec(spec_up)$curve$power
+  down <- run_spec(spec_down)$curve$power
+  expect_equal(up, powertools::propodds(pC = c(0.1, 0.2, 0.7), OR = 2.5, n1 = 50))
+  expect_equal(down, powertools::propodds(pC = c(0.7, 0.2, 0.1), OR = 2.5, n1 = 50))
+  expect_gt(up, down + 0.1)
+  # Against a simulation of the same population: group 2's shares by
+  # proportional odds (Hmisc's pomodm(), as in the simulated-data export),
+  # tested with the Wilcoxon-Mann-Whitney test, the proportional-odds score
+  # test's two-group form. 4,000 studies: Monte Carlo SE about 0.008.
+  skip_on_cran()
+  simulated <- function(odds_ratio) {
+    p1 <- c(0.7, 0.2, 0.1)
+    p2 <- Hmisc::pomodm(p = p1, odds.ratio = odds_ratio)
+    withr::with_seed(2026, mean(replicate(4000, {
+      a <- sample.int(3, 50, TRUE, p1)
+      b <- sample.int(3, 50, TRUE, p2)
+      suppressWarnings(stats::wilcox.test(a, b, exact = FALSE, correct = FALSE)$p.value) < 0.05
+    })))
+  }
+  # Within 0.035 (Whitehead's approximation and the simulation's error);
+  # passing the shares the wrong way round was off by about 0.15 here.
+  expect_lt(abs(up - simulated(2.5)), 0.035)
+  expect_lt(abs(down - simulated(0.4)), 0.035)
 })
 
 test_that("unequal groups use powertools' n.ratio", {
