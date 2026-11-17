@@ -43,9 +43,8 @@ field_ui <- function(f, value, described_by = character()) {
   # One convention (22 October 2026): everything is needed unless marked
   # optional. Effect sizes start empty; the box itself shows that.
   label <- if (field_is_optional(f) || !is.null(f$name_default)) paste0(f$label, " (optional)") else f$label
-  short <- compact_field_label(f)
-  if (!is.null(short)) label <- name_swap(label,
-    if (field_is_optional(f) || !is.null(f$name_default)) paste0(short, " (optional)") else short)
+  # The label is the same with explanations on or off (17 November 2026);
+  # compact_field_label() names the field only in the "still needed" line.
   # A table's label names what goes in it; the line-by-line layout it
   # also describes is shown only when typing it as text (R/table-grid.R).
   if (identical(f$type, "table")) label <- table_grid_label(label)
@@ -288,7 +287,7 @@ group_ui_build <- function(tree, g, values, index) {
   box <- tags$fieldset(
     class = paste("form-group-box", if (names_only) "form-group-names"),
     tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6",
-      group_heading(g, legend)),
+      legend),
     # The group's info button sits beside its heading, as a field's does
     # beside its label, rather than repeating the heading as a link.
     if (!is.null(g$note) || !is.null(g$note_more)) explanation_ui(sprintf("group-%d-info", index), legend, class = "group-more",
@@ -319,16 +318,26 @@ group_ui_build <- function(tree, g, values, index) {
   if (is.null(shown)) box else conditionalPanel(shown, box)
 }
 
-# A group's heading, the same with explanations on or off (17 November
-# 2026): a box that takes part of the effect size says so and keeps its
-# own name ("Effect size: the expected group means"), so the effect is
-# findable with explanations on and two such boxes never share one
-# heading with them off.
-group_heading <- function(g, legend) {
-  if (!any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) return(legend)
-  if (grepl("effect", legend, ignore.case = TRUE)) return(legend)
-  if (grepl("^(The|A|An) ", legend)) legend <- paste0(tolower(substr(legend, 1, 1)), substring(legend, 2))
-  paste0("Effect size: ", legend)
+# Which boxes take the effect size, in one line under the effect
+# section's title (17 November 2026): a box with an effect field, named by its heading in quotes, so the line stays true
+# whatever the heading says. Labelling each such box "Effect size: ..."
+# was wrong for boxes of SDs, correlations between conditions or variance
+# components, which feed the calculation but aren't the effect.
+effect_boxes_ui <- function(groups) {
+  # A box counts when an effect field in it shows with the screen's
+  # default answers (the one-way ANOVA's SD box shows for every test,
+  # through fields that each depend on the test chosen).
+  defaults <- list()
+  for (f in form_fields(groups)) if (!is.null(f[["default"]])) defaults[[f$id]] <- f[["default"]]
+  boxes <- Filter(function(g) identical(form_section(g), "effect") && is.null(g$shown_if) &&
+    any(vapply(g$fields, function(f) isTRUE(f$effect) && field_applies(f, defaults), logical(1))), groups)
+  names <- unique(vapply(boxes, function(g) g$input %||% g$title %||% "", character(1)))
+  names <- names[nzchar(names)]
+  if (!length(names)) return(NULL)
+  quoted <- paste0("\u201c", names, "\u201d")
+  list_text <- if (length(quoted) == 1) quoted else paste(paste(quoted[-length(quoted)], collapse = ", "), "and", quoted[length(quoted)])
+  p(class = "effect-boxes", if (length(quoted) == 1) sprintf("For this analysis, the effect size goes in the box headed %s.", list_text)
+    else sprintf("For this analysis, the effect size and the values it depends on go in the boxes headed %s.", list_text))
 }
 
 # The browser condition under which at least one of a group's fields is
@@ -529,6 +538,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       effect_unsure_ui(form),
       effect_waits_ui(form, groups),
       effect_help_ui(form, groups),
+      effect_boxes_ui(groups),
       part("effect")),
     if (any(section == "accuracy")) div(class = "form-section", part("accuracy")),
     if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),
