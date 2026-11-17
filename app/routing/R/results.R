@@ -1876,6 +1876,98 @@ usual_test_line <- function(spec, result, run = engine_function("run_spec"), see
   sprintf("With Student's t-test%s (the test G*Power and pwr plan for) the power is %s.", spreads, sprintf("%.1f%%", 100 * calc$result$curve$power))
 }
 
+# The rank tests and the parametric tests they stand in for (17 November
+# 2026): on a rank test's result, the same plan by the card's default test,
+# by formula assuming normal scores, so the cost or gain of the rank test is
+# in view; on the default test's result, one line offering the rank test,
+# to be chosen before the data are seen. Each entry: the input screen's
+# test field, the rank test's value and name, the default parametric test's
+# name, and the parametric tests whose result offers the rank test.
+rank_pairs <- list(
+  E1 = list(field = "method", rank = "wilcoxon_signed_rank", rank_name = "the Wilcoxon signed-rank test", param_name = "the one-sample t-test", params = "t_test"),
+  E2 = list(field = "method", rank = "mann_whitney", rank_name = "the Mann-Whitney test", param_name = "Welch's t-test", params = c("welch_t", "student_t")),
+  E3 = list(field = "method", rank = "wilcoxon_signed_rank", rank_name = "the Wilcoxon signed-rank test", param_name = "the paired t-test", params = "t_test"),
+  E18 = list(field = "test_version", rank = "kruskal_wallis", rank_name = "the Kruskal-Wallis test", param_name = "Welch's ANOVA", params = c("welch_f", "anova_f")),
+  E54 = list(field = "test_version", rank = "friedman", rank_name = "Friedman's test", param_name = "the repeated-measures ANOVA", params = "anova_f")
+)
+
+# The test field's default (the parametric test) for a card in rank_pairs.
+rank_pair_default <- function(forms, ep_id) {
+  pair <- rank_pairs[[ep_id %||% ""]]
+  if (is.null(pair)) return(NULL)
+  f <- Filter(function(x) identical(x$id, pair$field), form_fields(form_groups(forms, ep_id)))
+  if (length(f)) f[[1]]$default
+}
+
+# On a rank test's result: the same plan by the card's default test. The
+# answer is by formula, which assumes normal scores, and the sentence after
+# it says why the two differ, from the numbers themselves.
+rank_comparison_line <- function(forms, ep_id, values, spec, result, run = engine_function("run_spec"), seed = 1L) {
+  pair <- rank_pairs[[ep_id %||% ""]]
+  if (is.null(pair) || !identical(spec$target_test$method, pair$rank) ||
+      !isTRUE(result$goal_type %in% c("sample_size", "power"))) return(NULL)
+  default <- rank_pair_default(forms, ep_id)
+  if (is.null(default)) return(NULL)
+  values[[pair$field]] <- default
+  values$score_shape <- NULL
+  fields <- form_fields(form_groups(forms, ep_id))
+  # Fields the default test shows that the rank test didn't (such as the
+  # repeated-measures ANOVA's method or Welch's SD ratio) start at their own
+  # defaults, as on the input screen; text prompts are not defaults.
+  for (f in fields) {
+    starts <- !is.null(f$default) && (is.numeric(f$default) || (!is.null(f$choices) && as.character(f$default) %in% names(f$choices)))
+    if (starts && field_applies(f, values) && blank(values[[f$id]])) values[[f$id]] <- as.character(f$default)
+  }
+  if (length(form_problems(fields, values))) return(NULL)
+  param <- build_spec(forms, ep_id, fields, values)
+  calc <- run_calculation(param, run, seed)
+  if (!identical(calc$status, "ok")) return(NULL)
+  shape <- spec$population$score_shape %||% "normal"
+  shape_word <- sub(" scores.*$", "", score_shape_text(shape))
+  power_goal <- identical(result$goal_type, "power")
+  if (identical(result$goal_type, "sample_size")) {
+    n_rank <- result$n_required$n
+    n_param <- calc$result$n_required$n
+    if (is.null(n_rank) || is.null(n_param)) return(NULL)
+    rank_more <- n_rank > n_param
+    same <- n_rank == n_param
+    first <- sprintf("Planned for %s instead, by formula assuming normal scores, the answer is %s%s%s.",
+      pair$param_name, whole(n_param), group_text(param, n_param), if (same) ", the same" else "")
+  } else {
+    p_rank <- result$curve$power
+    p_param <- calc$result$curve$power
+    if (is.null(p_rank) || is.null(p_param)) return(NULL)
+    rank_more <- p_rank < p_param
+    same <- abs(p_rank - p_param) < 0.005
+    first <- sprintf("With %s instead, by formula assuming normal scores, the power is %s.", pair$param_name, sprintf("%.1f%%", 100 * p_param))
+  }
+  why <- if (same) NULL
+    else if (identical(ep_id, "E54") && rank_more) sprintf("Friedman's test ranks each person's scores only against their own other scores, which uses less of the data than the ANOVA does, so it %s even when the scores are normal.",
+      if (power_goal) "has noticeably less power" else "needs noticeably more people")
+    else if (rank_more && identical(shape, "normal")) sprintf("With normal scores a rank test %s, because it uses only the order of the scores.",
+      if (power_goal) "has a little less power" else "needs a few more people")
+    else if (rank_more) sprintf("Even with the %s scores you assumed, %s %s here.", shape_word, pair$rank_name, if (power_goal) "has less power" else "needs more people")
+    else sprintf("With the %s scores you assumed, %s %s: extreme scores move a rank much less than they pull a mean. The formula's answer assumes normal scores, so it doesn't say how %s itself would do with these scores.",
+      shape_word, pair$rank_name, if (power_goal) "has more power" else "needs fewer people", pair$param_name)
+  paste(c(first, why), collapse = " ")
+}
+
+# On the default test's result, for a card with a rank test version: one
+# line offering it, chosen before the data are seen. The sample size is
+# planned for the test named on the input screen, and choosing the test
+# after a preliminary normality test alters the error rates of the test
+# then run (Rochon, Gondan and Kieser, 2012), although in their study the
+# two steps together kept an acceptable overall error rate and power.
+rank_switch_ui <- function(forms, ep_id, spec, result) {
+  pair <- rank_pairs[[ep_id %||% ""]]
+  if (is.null(pair) || !isTRUE(result$goal_type %in% c("sample_size", "power")) ||
+      !isTRUE(spec$target_test$method %in% pair$params)) return(NULL)
+  p(class = "result-rank-switch small",
+    sprintf("Might you analyse with %s instead, for example if the scores turn out skewed? Then choose it now: this plan is for the test you chose, and picking the test after a normality test alters the error rates of the test you then run (Rochon, Gondan and Kieser, 2012). ",
+      pair$rank_name),
+    actionButton("rank_switch", sprintf("Plan with %s instead", pair$rank_name), class = "btn btn-link p-0 align-baseline"))
+}
+
 # The explore panel (the new design): power by sample size for any effect
 # size the user tries, kept apart from the plan. Every card whose effect is
 # one number and whose power comes from a formula (instant): the t-tests
@@ -3337,7 +3429,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     if (!is.null(recruit <- recruitment_lines(result, spec))) div(class = "result-recruitment",
       p(tags$strong(recruit[["analysed"]])), p(tags$strong(recruit[["recruit"]])),
       p(class = "small", recruit[["caveat"]])),
-    result_details_ui(calc$usual_line, actual_power_sentence(spec, result), reasoning_line(values), words[["detail"]]),
+    result_details_ui(calc$usual_line %||% calc$rank_line, actual_power_sentence(spec, result), reasoning_line(values), words[["detail"]]),
+    rank_switch_ui(forms, ep_id, spec, result),
     if (length(notes)) tagList(h4(class = "h6", "Notes"), tags$ul(class = "result-notes", lapply(notes, tags$li))),
     # Not when the only difference is Welch's test and Student's answer,
     # shown just above, is the same: then the usual tools agree.

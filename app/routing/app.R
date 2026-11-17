@@ -1632,7 +1632,7 @@ server <- function(input, output, session) {
       ep_id <- state$endpoint
       session$onFlushed(function() {
         calc <- if (identical(values$goal, "sensitivity_curve")) run_sensitivity_curve(spec, seed = forms$default_seed) else run_calculation(spec, seed = forms$default_seed)
-        calc <- finish_calc(calc, calc_route, values)
+        calc <- with_rank_line(finish_calc(calc, calc_route, values), ep_id, values)
         keep_calculation(key, calc)
         isolate(state$calc <- calc)
         output$form_result <- renderUI(result_panel_ui(tree, forms, ep_id, fields, values, calc, check$advice))
@@ -1701,6 +1701,13 @@ server <- function(input, output, session) {
       div(class = "form-problems mt-2", role = "alert", p(if (inherits(out$problem, "powerkit_error"))
         plain_engine_message(conditionMessage(out$problem), list()) else "Powerkit couldn't work this out. Please report it, with the values you entered."))
     } else div(class = "mt-2", role = "status", lapply(bayes_uncertain_words(spec, sd, out$at_n, out$needed), p)))
+  })
+  # Switch the plan's test to its rank test version (rank_switch_ui()).
+  observeEvent(input$rank_switch, {
+    pair <- rank_pairs[[state$endpoint %||% ""]]
+    req(pair)
+    updateSelectInput(session, field_input_id(list(id = pair$field)), selected = pair$rank)
+    session$sendCustomMessage("focus_result", field_input_id(list(id = pair$field)))
   })
   # Switch the plan's test version to its Bayes factor test.
   observeEvent(input$bayes_companion_switch, {
@@ -1814,6 +1821,14 @@ server <- function(input, output, session) {
     if (length(old) >= 20) rm(list = old[seq_len(length(old) - 19)], envir = calc_cache)
     calc_cache[[key]] <- calc
   }
+  # A rank test's comparison with the card's default test (one formula
+  # call), for results from the session and from a background run alike.
+  with_rank_line <- function(calc, ep_id, values) {
+    if (identical(calc$status, "ok") && is.null(calc$rank_line)) {
+      calc$rank_line <- tryCatch(rank_comparison_line(forms, ep_id, values, calc$spec, calc$result, seed = forms$default_seed), error = function(e) NULL)
+    }
+    calc
+  }
   finish_calc <- function(calc, route, values) {
     calc$route <- route
     if (!identical(calc$status, "ok")) return(calc)
@@ -1916,6 +1931,7 @@ server <- function(input, output, session) {
       # A search gets what the in-process route adds (finish_calc()); the
       # long runs (forms.yaml, `background`) are shown as they come.
       calc <- if (isTRUE(shown$finish)) finish_calc(calc, shown$route, shown$values) else { calc$route <- shown$route; calc }
+      calc <- with_rank_line(calc, shown$ep_id, shown$values)
       if (!isTRUE(calc$cost_pending)) keep_calculation(shown$key, calc)
       state$calc <- calc
       output$form_result <- renderUI(result_panel_ui(tree, forms, shown$ep_id, shown$fields, shown$values, calc, shown$advice))
@@ -2003,6 +2019,7 @@ server <- function(input, output, session) {
         # The comparison line's searches are left out here: the result is
         # complete without them, and opening it from the plan shows it.
         calc <- if (isTRUE(shown$finish)) finish_calc(calc, shown$route, shown$values) else { calc$route <- shown$route; calc }
+        calc <- with_rank_line(calc, shown$ep_id, shown$values)
         calc$cost_pending <- NULL
         keep_calculation(shown$key, calc)
         if (is.null(plan)) plan <- new_plan()

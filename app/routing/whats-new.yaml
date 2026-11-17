@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Rank tests shown beside the t-test or ANOVA"
+    text: "When you plan a Wilcoxon, Mann-Whitney, Kruskal-Wallis or Friedman test, the result also gives the answer for the usual t-test or ANOVA, assuming normal scores, and says why they differ: a rank test loses a little power with normal scores and can gain it with skewed or heavy-tailed ones, while Friedman's test loses more. When you plan the t-test or ANOVA, one line asks whether you might analyse with a rank test instead, and if so to choose it now rather than after looking at the data."
+  - date: "2026-11-17"
     title: "Bayes factors for an R-squared increase and one regression coefficient"
     text: "On the multiple regression card, the R-squared increase and one coefficient can now be planned with a Bayes factor, as R-squared against 0 already could: the chance that the evidence for the model with the predictors you are testing, against the model without them, reaches the threshold you choose. It uses JASP's default prior. For one coefficient, the screen also asks for the R-squared of the other predictors, which the Bayes factor needs."
   - date: "2026-11-17"
