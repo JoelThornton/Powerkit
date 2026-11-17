@@ -1,0 +1,22 @@
+===== powerkit validation summary (copy from here) =====
+Date: 2026-11-17 06:59   Commit: 91bf208   Cores: 3
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Selected chunks: bayes_r2change
+Partition: 1 of 1; totals cover only this selected partition.
+Packages: powerkit 0.76.0, Superpower 0.2.4.1, Spower 0.7, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 3 PASS, 0 FAIL, 0 ERROR, 1 SKIP, 0 NOT RUN (of 4)
+
+SKIP    bayes_r2change / Bayes factor for an R-squared increase: matches a published example (published) (4s)
+PASS    bayes_r2change / Bayes factor for an R-squared increase, two of five predictors: agrees with lmBF() on simulated data (0h 08m)
+          success: Reference power 0.8078; must lie in [0.7940, 0.8306] around powerkit's estimate 0.8123 (MCSE 0.0039, 99.9% Monte Carlo interval plus rounding of the reference).
+          success: success
+          success: success
+PASS    bayes_r2change / Bayes factor for an R-squared increase, the only predictors, a wider prior and threshold 3: agrees with lmBF() on simulated data (0h 03m)
+          success: Reference power 0.4246; must lie in [0.4103, 0.4565] around powerkit's estimate 0.4334 (MCSE 0.0050, 99.9% Monte Carlo interval plus rounding of the reference).
+          success: success
+          success: success
+PASS    bayes_r2change / Bayes factor for one coefficient among four predictors: agrees with lmBF() on simulated data (0h 07m)
+          success: Reference power 0.6160; must lie in [0.5998, 0.6460] around powerkit's estimate 0.6229 (MCSE 0.0048, 99.9% Monte Carlo interval plus rounding of the reference).
+          success: success
+          success: success
+===== end of summary =====

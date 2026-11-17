@@ -5020,7 +5020,7 @@
       }
     },
     "template_r2_increase": {
-      "description": "Linear multiple regression (fixed predictors): does adding a set of predictors increase R-squared? The F test of the added set.",
+      "description": "Linear multiple regression (fixed predictors): does adding a set of predictors increase R-squared? The F test of the added set. Or the Bayes factor of the full model against the model without the tested set (method 'bayes_factor').",
       "properties": {
         "population": {
           "required": [
@@ -5063,7 +5063,10 @@
               "const": "r_squared_change"
             },
             "method": {
-              "const": "f_test"
+              "enum": [
+                "f_test",
+                "bayes_factor"
+              ]
             }
           }
         }
@@ -5112,6 +5115,12 @@
               "type": "number",
               "exclusiveMinimum": 0,
               "exclusiveMaximum": 1
+            },
+            "r2_reduced": {
+              "description": "The Bayes factor test only (method 'bayes_factor'): R-squared of the outcome on the other predictors, without the tested one (0 if there are none). The Bayes factor depends on both models' R-squared, not only the partial R-squared.",
+              "type": "number",
+              "minimum": 0,
+              "exclusiveMaximum": 1
             }
           }
         },
@@ -5125,7 +5134,8 @@
                 "f_test",
                 "ols_hc3",
                 "ols_hc4",
-                "quantile_regression"
+                "quantile_regression",
+                "bayes_factor"
               ]
             }
           }
