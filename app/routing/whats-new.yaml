@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "The smallest effect you could detect, for moderation, categories, profiles and factors"
+    text: "Moderation of a yes/no, count or categorical outcome, an outcome in three or more unordered categories, moderated regression with a yes/no predictor or moderator, the three-way interaction, latent profiles and factor analysis now offer \"the smallest effect I'd have a good chance of finding\". The answer is the interaction's odds or rate ratio, the odds ratio for a category, the interaction's correlation with the outcome, the three-way coefficient, the separation between profiles, or the loadings at which the factors are recovered. Mediation on the moderation card doesn't offer it yet."
+  - date: "2026-11-17"
     title: "New: comparing pairs of groups after a rank test"
     text: "The Kruskal-Wallis and Friedman cards can now plan the comparisons of pairs that usually follow them. Choose either a separate rank test of each pair (Mann-Whitney or Wilcoxon signed-rank) or Dunn's or Conover's test, the follow-ups JASP uses; a note under each says how they differ, so you can pick the one you will report."
   - date: "2026-11-17"
