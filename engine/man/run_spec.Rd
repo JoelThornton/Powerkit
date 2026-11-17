@@ -271,8 +271,9 @@ don't solve for the effect, the effect is searched with the backend's
 own power at n (pwrss's tests, the variances, Hotelling's T-squared,
 the equivalence tests, metapower's z test, SEM, and the ordinal,
 survival, growth-curve and reliability tests). The random-effects
-meta-analysis's Hartung-Knapp test searches its average effect by
-simulation, with a 95\% interval. Other simulated tests have no
+meta-analysis's Hartung-Knapp test, the paired variances, the trend in
+proportions and d' search their effect by simulation, with a 95\%
+interval (\code{simulated_effect_sensitivity()}). Other simulated tests have no
 sensitivity analysis yet.
 }
 \examples{

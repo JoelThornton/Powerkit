@@ -1298,8 +1298,10 @@ goal_sentences <- function(spec, result) {
         # Welch's F: the pattern of means scaled by simulation.
         c(
           headline = sprintf(
-            "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s (95%% interval %s to %s). The effect: %s.",
+            "With %s participants in total%s, the smallest effect you could detect with %s power, with %s, is %s%s (95%% interval %s to %s). The effect: %s.",
             whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
+            # A searched effect is named (a variance ratio, a difference in d').
+            if (isTRUE(s$searched) && nzchar(sensitivity_effect_label(s$effect_name, ""))) paste(sensitivity_effect_label(s$effect_name, ""), "= ") else "",
             format(signif(s$effect, 3)), format(signif(s$effect_lower, 3)), format(signif(s$effect_upper, 3)), s$effect_description
           ),
           detail = if (isTRUE(s$searched)) sprintf(
@@ -2145,6 +2147,7 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     rmsea = "RMSEA", factor_r = "factor correlation", latent_slope = "standardised slope",
     p_event2 = "group 2's proportion with the event", hazard_ratio = "hazard ratio",
     slope_difference = "difference in rates of change", icc = "ICC", reliability = "Cronbach's alpha", kappa = "kappa",
+    proportion_range = "difference between the highest and lowest proportions", dprime_difference = "difference in d'",
     fallback)
 }
 

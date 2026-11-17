@@ -355,3 +355,40 @@ test_that("ordinal, survival, growth-curve and reliability searches agree with t
   needed <- kappaSize::PowerBinary(pop$kappa_null, x$s$effect, pop$proportions[[2]], raters = pop$raters, alpha = 0.05, power = 0.8)$N
   expect_true(abs(needed - 150) <= 1)
 })
+
+test_that("simulated searches for paired variances, a trend in proportions and d' land where a fresh simulation has the target power", {
+  skip_on_cran()
+  set_found <- list(
+    paired_variances = function(spec, s) { spec$population$var1 <- spec$population$var2 * s$effect; spec },
+    proportion_trend = function(spec, s) {
+      p <- unlist(spec$population$proportions)
+      spec$population$proportions <- as.list(mean(p) + s$scale * (p - mean(p)))
+      spec
+    },
+    dprime = function(spec, s) { spec$population$dprime[[2]] <- spec$population$dprime[[1]] + s$effect; spec }
+  )
+  for (name in names(set_found)) {
+    spec <- example_spec(name)
+    spec$goal <- list(type = "sensitivity", n = 100L, power = 0.8)
+    spec$options$nrep <- 500L
+    result <- suppressWarnings(run_quietly(spec))
+    s <- result$sensitivity
+    expect_true(isTRUE(s$simulated) && s$effect_lower < s$effect && s$effect < s$effect_upper, label = name)
+    # Power simulated afresh at the effect found, with more replications
+    # and another seed.
+    at <- set_found[[name]](spec, s)
+    at$goal <- list(type = "power", n = 100L)
+    at$options$nrep <- 4000L
+    at$options$seed <- 99L
+    expect_equal(suppressWarnings(run_quietly(at))$curve$power, 0.8, tolerance = 0.04, label = name)
+    file <- withr::local_tempfile(fileext = ".R")
+    writeLines(export_script(spec, result), file)
+    out <- system2(file.path(R.home("bin"), "Rscript"), file, stdout = TRUE, stderr = TRUE)
+    expect_true(any(grepl("^Reproduced powerkit's result", out)), label = name)
+  }
+  # A flat pattern of proportions has nothing to scale.
+  flat <- example_spec("proportion_trend")
+  flat$population$proportions <- list(0.3, 0.3, 0.3, 0.3)
+  flat$goal <- list(type = "sensitivity", n = 100L, power = 0.8)
+  expect_error(validate_spec(flat), "no effect pattern to scale")
+})
