@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "Search finds test versions by their own names"
+    text: "Searching the analyses for a test that is a version of a bigger analysis, such as Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, Spearman's rho, PERMANOVA or quantile regression, now shows it by name under the analysis it belongs to. Choosing it opens that analysis with the version already chosen. Searching \"nonparametric\" lists every rank-based version, and each word you type now matches the start of a word, so \"sign\" no longer finds every card that mentions a design."
