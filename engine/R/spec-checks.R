@@ -12,7 +12,8 @@ population_problems <- function(spec) {
     logistic_regression = function(spec) {
       switch(spec$template, factorial = check_logistic_factorial(spec),
         multinomial = c(check_single_predictor_x(spec), check_multinomial(spec)),
-        interaction = check_logistic_interaction(spec), check_single_predictor_x(spec))
+        interaction = check_logistic_interaction(spec), multinomial_interaction = c(check_logistic_interaction(spec), check_multinomial_interaction(spec)),
+        check_single_predictor_x(spec))
     },
     ordinal_regression = check_ordinal_two_groups,
     mixed_model = function(spec) {
@@ -876,7 +877,7 @@ check_score_shape_allowed <- function(spec) {
 # designs, with powertools' formulas only).
 pwrss_only <- function(spec) {
   (spec$design %in% c("logistic_regression", "poisson_regression", "cluster_trial", "sem", "ordinal_regression") &&
-    !isTRUE(spec$template %in% c("factorial", "multinomial", "interaction"))) ||
+    !isTRUE(spec$template %in% c("factorial", "multinomial", "interaction", "multinomial_interaction"))) ||
     spec$template %in% c("one_proportion", "mcnemar", "chi_square_gof", "two_correlations",
                          "oneway_ancova", "factorial_ancova", "oneway_contrast") ||
     spec$template %in% dependent_correlation_templates() ||
@@ -3112,8 +3113,10 @@ minimum_n_design <- function(spec) {
       # intercept and X's slope for each category but the first), so that
       # most simulated data sets have someone in every category.
       multinomial = 10 * 2 * (length(spec$variables$Y$levels) - 1),
-      # Moderation: ten for each of the four coefficients.
+      # Moderation: ten for each of the four coefficients (for each
+      # category but the first, with an outcome in categories).
       interaction = 40,
+      multinomial_interaction = 10 * 4 * (length(spec$variables$Y$levels) - 1),
       3
     ),
     # The zero-inflated models: thirty, so that most simulated data sets
@@ -3424,6 +3427,13 @@ target_effect_is_zero <- function(spec) {
         if (is.null(k) || is.na(k)) max(abs(slopes)) else slopes[[k - 1]]
       },
       interaction = log(pop$odds_ratio_xw),
+      # Moderation of an outcome in categories: the X x W coefficient for
+      # the category tested, or for any category when all are tested.
+      multinomial_interaction = {
+        bxw <- log(as.numeric(unlist(pop$odds_ratios_xw)))
+        k <- multinomial_category(spec)
+        if (!length(bxw)) 1 else if (is.null(k) || is.na(k)) max(abs(bxw)) else bxw[[k - 1]]
+      },
       log(pop$odds_ratio)
     ),
     ordinal_regression = log(pop$odds_ratio),

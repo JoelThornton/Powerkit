@@ -3623,6 +3623,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       sprintf("a negative binomial regression with an interaction (the Wald z test of the X x W coefficient, overdispersion k = %s), simulated", format(spec$population$dispersion))
     } else "a Poisson regression with an interaction (the Wald z test of the X x W coefficient), simulated"
   }
+  if (identical(spec$template, "multinomial_interaction")) {
+    name <- if (identical(spec$target_test$method, "wald_z")) {
+      sprintf("a multinomial logistic regression with an interaction (the Wald z test of the X x W coefficient for '%s' against '%s'), simulated",
+        spec$target_test$category, unlist(spec$variables$Y$levels)[[1]])
+    } else "a multinomial logistic regression with an interaction (the likelihood-ratio test of the X x W terms for every category together), simulated"
+  }
   if (identical(spec$template, "binary_or_count_outcome")) {
     name <- sprintf("regression-based causal mediation analysis with %s outcome (the natural indirect effect, delta method), simulated",
       if (identical(spec$variables$Y$type, "binary")) "a yes/no (logistic)" else if (identical(spec$population$count_model, "negative_binomial"))

@@ -3801,3 +3801,29 @@ method chosen first. All follow JASP's default priors.
 - **Runs in the app.** About 0.01 s per simulated study, so power and the
   required sample size both run in the app like any other simulated card
   (`forms.yaml`, `simulations > quick_methods`), not as an R script.
+
+## 2026-11-17 · Moderation of an outcome in three or more unordered categories
+
+- **What it covers.** E32's moderation route when Y is one of three or
+  more unordered categories: does X's effect on the odds of each category
+  (against the first) depend on W? X and W are each a score or a yes/no
+  group, as for a yes/no outcome.
+- **Method.** The usual analysis is a multinomial logistic regression with
+  X, W and X x W, as fitted by `nnet::multinom()` (the function powerkit
+  already uses for the multinomial card). No package computes this test's
+  power and no closed form for it is in `refs.bib`, so it is simulated
+  with Spower. The default test is the likelihood-ratio test of all K - 1
+  product terms together, because the question "does W moderate X's
+  effect on the outcome" is about all the categories at once and that
+  test answers it with K - 1 df; the Wald z test of one category's
+  product is kept as an option for a question about one category, the
+  test researchers see first in most software output.
+- **Inputs.** The share in each category with X and W at their starting
+  points (averages or first groups), and for each category but the
+  first, the odds ratios for X and W and the ratio of odds ratios for
+  X x W, the same scale as the yes/no card.
+- **Runs in the app.** About 0.01 s per simulated study, so power (about
+  10 s) and the sample size (one to two minutes) run in the app.
+- **Mediation with a categorical outcome** stays uncovered: it needs a
+  definition of the indirect effect on K - 1 log-odds scales, and no
+  package checked so far provides one (docs/next.md, item 1).

@@ -2095,6 +2095,35 @@ test_that("moderation of a yes/no outcome (E32) builds a logistic interaction sp
   expect_match(w[["short"]], "a regression with an interaction (logistic", fixed = TRUE)
 })
 
+test_that("moderation of an outcome in categories (E32) builds a multinomial interaction spec and reaches Spower", {
+  fields <- form_fields(form_groups(forms, "E32"))
+  by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]
+  categories <- list(Y_kind = "categories", analysis = "moderation")
+  expect_false(field_applies(by_id("base_prob"), categories))
+  expect_true(field_applies(by_id("cat_odds_ratios_xw"), categories))
+  expect_false(field_applies(by_id("cat_category"), categories))
+  values <- modifyList(form_examples$E32, list(Y_kind = "categories", Y_label = "Where help is sought first",
+    Y_levels = "General practitioner, Online search, Friends or family", X_type = "binary", X_level1 = "Usual care",
+    X_level2 = "Programme", x_prob = "0.5", base_prob = NULL, odds_ratio_x = NULL, odds_ratio_w = NULL, odds_ratio_xw = NULL,
+    cat_probabilities = "0.5, 0.3, 0.2", cat_odds_ratios_x = "0.8, 1", cat_odds_ratios_w = "1.3, 1.1",
+    cat_odds_ratios_xw = "0.6, 0.9", cat_test = "likelihood_ratio", goal = "power", n = "300"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E32", fields, values)
+  expect_identical(spec$design, "logistic_regression")
+  expect_identical(spec$template, "multinomial_interaction")
+  expect_identical(spec$variables$Y$type, "categorical")
+  expect_length(spec$variables$Y$levels, 3)
+  expect_equal(unlist(spec$population$odds_ratios_xw), c(0.6, 0.9))
+  expect_null(spec$population$odds_ratio_xw)
+  skip_without_run()
+  spec$options$nrep <- 100L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  expect_true(all(calc$result$check_run$ok))
+  w <- writeup_text(forms$forms[["E32"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "a multinomial logistic regression with an interaction (the likelihood-ratio test of the X x W terms", fixed = TRUE)
+})
+
 test_that("moderation of a count outcome (E32) builds a Poisson or negative binomial interaction spec and reaches Spower", {
   fields <- form_fields(form_groups(forms, "E32"))
   by_id <- function(id) Filter(function(f) identical(f$id, id), fields)[[1]]

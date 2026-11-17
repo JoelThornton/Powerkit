@@ -462,6 +462,16 @@ design_description <- function(spec) {
       label("Y"), levels("Y"), label("X"), if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
       label("W"), if (identical(v$W$type, "binary")) sprintf(" (%s)", levels("W")) else ""
     ),
+    "logistic_regression/multinomial_interaction" = sprintf(
+      "moderation of an outcome in unordered categories: multinomial logistic regression of %s (%s; the first is the reference) on %s%s, %s%s and their product; %s",
+      label("Y"), levels("Y"), label("X"), if (identical(v$X$type, "binary")) sprintf(" (%s)", levels("X")) else "",
+      label("W"), if (identical(v$W$type, "binary")) sprintf(" (%s)", levels("W")) else "",
+      if (identical(spec$target_test$method, "wald_z")) {
+        sprintf("Wald z test of the product's coefficient for %s against %s", multinomial_level(spec, multinomial_category(spec)), multinomial_level(spec, 1))
+      } else {
+        "likelihood-ratio test of the product's coefficients for every category"
+      }
+    ),
     "logistic_regression/multinomial" = sprintf(
       "multinomial logistic regression of %s (%s; the first is the reference) on %s%s: %s%s",
       label("Y"), levels("Y"), label("X"),
@@ -2030,6 +2040,24 @@ spower_script_inputs <- function(spec) {
       sprintf("w_prob <- %s # proportion in W's second group (yes/no W only)", r_code(pop$w_prob %||% 0.5)),
       sprintf("r <- %s # correlation between X and W (two scores only)", r_code(pop$r_xw %||% 0))
     ),
+    multinomial_interaction = c(
+      sprintf("# The categories of %s, in order (the first is the reference): %s.", comment_text(v$Y$label),
+        paste(comment_text(unlist(v$Y$levels)), collapse = ", ")),
+      sprintf("probabilities <- %s # share in each category with X and W at their means (or in their first groups)", r_code(as.numeric(unlist(pop$probabilities)))),
+      sprintf("odds_ratios_x <- %s # each category's odds ratio against the first for X", r_code(as.numeric(unlist(pop$odds_ratios_x)))),
+      sprintf("odds_ratios_w <- %s # each category's odds ratio against the first for W", r_code(as.numeric(unlist(pop$odds_ratios_w)))),
+      sprintf("odds_ratios_xw <- %s # the interaction: how many times X's odds ratio is multiplied per SD (or group) of W", r_code(as.numeric(unlist(pop$odds_ratios_xw)))),
+      sprintf("x_binary <- %s # %s", r_code(identical(v$X$type, "binary")), if (identical(v$X$type, "binary")) "X is a yes/no group, coded 0 and 1" else "X is a score, standardised"),
+      sprintf("w_binary <- %s # %s", r_code(identical(v$W$type, "binary")), if (identical(v$W$type, "binary")) "W is a yes/no group, coded 0 and 1" else "W is a score, standardised"),
+      sprintf("x_prob <- %s # proportion in X's second group (yes/no X only)", r_code(pop$x_prob %||% 0.5)),
+      sprintf("w_prob <- %s # proportion in W's second group (yes/no W only)", r_code(pop$w_prob %||% 0.5)),
+      sprintf("r <- %s # correlation between X and W (two scores only)", r_code(pop$r_xw %||% 0)),
+      sprintf("test <- %s # %s", r_code(spec$target_test$method %||% "likelihood_ratio"),
+        if (identical(spec$target_test$method, "wald_z")) "the Wald z test of one category's X x W coefficient" else "the likelihood-ratio test of the X x W terms, every category together"),
+      if (identical(spec$target_test$method, "wald_z")) {
+        sprintf("category <- %d # the category tested against the first: %s", multinomial_category(spec), comment_text(spec$target_test$category))
+      }
+    ),
     multinomial = c(
       sprintf("# The categories of %s, in order (the first is the reference): %s.", comment_text(v$Y$label),
         paste(comment_text(unlist(v$Y$levels)), collapse = ", ")),
@@ -2301,6 +2329,12 @@ spower_experiment_lines <- function(spec, inputs, one_sided) {
       "base_prob = base_prob,", "or_x = or_x,", "or_w = or_w,", "or_xw = or_xw,",
       "x_binary = x_binary,", "w_binary = w_binary,", "x_prob = x_prob,", "w_prob = w_prob,",
       "r = r"
+    ),
+    multinomial_interaction = c(
+      "n = batch_n, # sample size",
+      "intercepts = intercepts,", "bx = bx,", "bw = bw,", "bxw = bxw,",
+      "x_binary = x_binary,", "w_binary = w_binary,", "x_prob = x_prob,", "w_prob = w_prob,", "r = r,",
+      if (identical(spec$target_test$method, "wald_z")) c("test = test,", "category = category") else "test = test"
     ),
     multinomial = c(
       "n = batch_n, # sample size",
@@ -2626,6 +2660,50 @@ spower_derived_lines <- function(spec) {
       "    greater = pnorm(z, lower.tail = FALSE),",
       "    less = pnorm(z)",
       "  )",
+      "}"
+    ),
+    multinomial_interaction = c(
+      "# The model: the log odds of category k against the first are",
+      "# intercepts[k - 1] + bx[k - 1] x + bw[k - 1] w + bxw[k - 1] x w, for k = 2, ..., K.",
+      "intercepts <- log(probabilities[-1] / probabilities[1]) # at the starting point",
+      "bx <- log(odds_ratios_x)",
+      "bw <- log(odds_ratios_w)",
+      "bxw <- log(odds_ratios_xw)",
+      "# The experiment, as powerkit runs it: X and W (two scores standard normal",
+      "# with correlation r; a yes/no X has round(n * x_prob) people in its second",
+      "# group in random order, a yes/no W is 1 with chance w_prob), then each",
+      "# person's category from the model's shares. nnet's multinom() is fitted;",
+      "# a data set with nobody in some category can't be, and counts as not",
+      "# significant. The p-value is the likelihood-ratio test of y ~ x * w",
+      "# against y ~ x + w (K - 1 df) or the Wald z test of one category's x:w",
+      "# coefficient against the first.",
+      "p_multinomial_interaction <- function(n, intercepts, bx, bw, bxw, x_binary, w_binary, x_prob, w_prob, r,",
+      "                                      test = \"likelihood_ratio\", category = NULL) {",
+      "  if (!x_binary && !w_binary) {",
+      "    x <- rnorm(n)",
+      "    w <- r * x + sqrt(1 - r^2) * rnorm(n)",
+      "  } else {",
+      "    x <- if (x_binary) sample(rep(c(0, 1), c(n - round(n * x_prob), round(n * x_prob)))) else rnorm(n)",
+      "    w <- if (w_binary) as.numeric(runif(n) < w_prob) else rnorm(n)",
+      "  }",
+      "  eta <- cbind(0, rep(intercepts, each = n) + outer(x, bx) + outer(w, bw) + outer(x * w, bxw))",
+      "  p <- exp(eta - apply(eta, 1, max))",
+      "  p <- p / rowSums(p)",
+      "  k <- ncol(p)",
+      "  below <- t(apply(p, 1, cumsum))[, -k, drop = FALSE]",
+      "  data <- data.frame(x = x, w = w, y = factor(1L + rowSums(runif(n) > below), levels = seq_len(k)))",
+      "  if (any(tabulate(data$y, k) == 0)) return(1)",
+      "  wald <- test == \"wald_z\"",
+      "  full <- nnet::multinom(y ~ x * w, data = data, trace = FALSE, Hess = wald)",
+      "  if (wald) {",
+      "    fit <- summary(full)",
+      "    z <- fit$coefficients[category - 1, \"x:w\"] / fit$standard.errors[category - 1, \"x:w\"]",
+      "    p <- 2 * pnorm(-abs(z))",
+      "  } else {",
+      "    reduced <- nnet::multinom(y ~ x + w, data = data, trace = FALSE)",
+      "    p <- pchisq(deviance(reduced) - deviance(full), df = length(bxw), lower.tail = FALSE)",
+      "  }",
+      "  if (is.finite(p)) p else 1",
       "}"
     ),
     multinomial = c(
