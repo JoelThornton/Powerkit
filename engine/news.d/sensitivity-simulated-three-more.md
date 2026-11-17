@@ -1,4 +1,4 @@
-* The smallest detectable effect (goal `sensitivity`) for two more
+* The smallest detectable effect (goal `sensitivity`) for three more
   simulated tests, by the simulated search
   (`simulated_effect_sensitivity()`), with a 95% interval:
   - The Jonckheere-Terpstra trend test: the pattern of group means is
@@ -12,6 +12,11 @@
     averaged over the other factor on the log-odds scale; the interaction
     as the largest ratio of odds ratios over any two levels of each factor
     (in a 2 x 2 design, the ratio of the odds ratios).
+  - Moderation by three or more groups (the F test of the X x A terms):
+    the groups' correlations of X with Y are scaled about their average
+    (kept within -0.99 to 0.99), the group means kept, and the result is
+    reported as the difference between the largest and smallest
+    correlation.
   A flat pattern is refused plainly. The exported scripts repeat the
   search. Tests: power simulated afresh at each effect found (4,000
   replications, another seed) is within 0.04 of the target, every script

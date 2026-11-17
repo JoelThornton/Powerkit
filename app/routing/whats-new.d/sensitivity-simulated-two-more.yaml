@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-17"
-    title: "The smallest effect you could detect, on two more simulated analyses"
-    text: "The Jonckheere-Terpstra test, for scores that rise or fall across ordered groups, and logistic regression with two crossed factors now offer \"the smallest effect I'd have a good chance of finding\". Powerkit keeps the shape of the pattern you enter and finds how large it must be: for the trend, the difference between the largest and smallest means; for the factors, the odds ratio of the effect you test (for an interaction, the ratio of odds ratios). Each answer comes with an interval for the simulation's uncertainty."

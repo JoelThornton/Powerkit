@@ -226,6 +226,23 @@ simulated_search_plan <- function(spec, n, power) {
       effect_script = sprintf("x * %s", r_code(spread))
     ))
   }
+  if (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) {
+    r <- as.numeric(unlist(pop$r_xy))
+    centre <- mean(r)
+    spread <- max(r) - min(r)
+    # The largest scale keeping every correlation within -0.99 to 0.99.
+    room <- min(ifelse(r > centre, (0.99 - centre) / (r - centre), ifelse(r < centre, (centre + 0.99) / (centre - r), Inf)))
+    return(list(
+      guess = 1, limit = room,
+      set = function(s, x) { s$population$r_xy <- as.list(centre + x * (r - centre)); s },
+      effect = function(x) x * spread,
+      effect_name = "r_range",
+      what = sprintf("difference between the largest and smallest group's correlation of %s with %s, with the pattern you entered kept and scaled about its average (%s) and the group means kept",
+        spec$variables$X$label %||% "X", spec$variables$Y$label %||% "Y", format(signif(centre, 3))),
+      script_set = sprintf("  r <<- %s + x * (%s - %s)", r_code(centre), r_code(r), r_code(centre)),
+      effect_script = sprintf("x * %s", r_code(spread))
+    ))
+  }
   if (logistic_factorial_search(spec)) {
     design <- logistic_factorial_design(spec)
     tested <- names(design$betas) %in% design$tested
@@ -305,7 +322,8 @@ simulated_search_available <- function(spec) {
   (identical(spec$design, "meta_analysis") && identical(spec$template, "mean_effect") && hartung_knapp_test(spec)) ||
     (identical(spec$design, "basic_test") && isTRUE(spec$template %in% c("paired_variances", "proportion_trend"))) ||
     (identical(spec$design, "signal_detection") && identical(spec$template, "dprime")) ||
-    jonckheere_search(spec) || logistic_factorial_search(spec)
+    jonckheere_search(spec) || logistic_factorial_search(spec) ||
+    (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator"))
 }
 
 logistic_factorial_search <- function(spec) {
@@ -339,7 +357,7 @@ jonckheere_search <- function(spec) {
 # Whether the search scales the pattern entered (so a flat pattern can't
 # be searched).
 simulated_search_scales_pattern <- function(spec) {
-  identical(spec$template, "proportion_trend") || jonckheere_search(spec) || logistic_factorial_search(spec)
+  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || jonckheere_search(spec) || logistic_factorial_search(spec)
 }
 
 simulated_effect_sensitivity <- function(spec, n, power, nrep, seed, cores = 1L, level = 0.95) {

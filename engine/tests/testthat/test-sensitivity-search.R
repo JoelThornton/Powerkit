@@ -356,7 +356,7 @@ test_that("ordinal, survival, growth-curve and reliability searches agree with t
   expect_true(abs(needed - 150) <= 1)
 })
 
-test_that("simulated searches for paired variances, trends, d' and factorial logistic effects land where a fresh simulation has the target power", {
+test_that("simulated searches for paired variances, trends, d', factorial logistic effects and moderation by groups land where a fresh simulation has the target power", {
   skip_on_cran()
   set_found <- list(
     paired_variances = function(spec, s) { spec$population$var1 <- spec$population$var2 * s$effect; spec },
@@ -369,6 +369,11 @@ test_that("simulated searches for paired variances, trends, d' and factorial log
     jonckheere = function(spec, s) {
       m <- unlist(spec$population$means)
       spec$population$means <- as.list(mean(m) + s$scale * (m - mean(m)))
+      spec
+    },
+    group_moderator = function(spec, s) {
+      r <- unlist(spec$population$r_xy)
+      spec$population$r_xy <- as.list(mean(r) + s$scale * (r - mean(r)))
       spec
     },
     # The interaction's part of each cell's log-odds (the cell less its
@@ -391,7 +396,7 @@ test_that("simulated searches for paired variances, trends, d' and factorial log
   for (name in names(set_found)) {
     spec <- if (name == "jonckheere") jonckheere() else example_spec(name)
     if (name == "logistic_factorial") spec$target_test$effect <- "interaction"
-    n <- switch(name, jonckheere = 99L, logistic_factorial = 600L, 100L)
+    n <- switch(name, jonckheere = 99L, logistic_factorial = 600L, group_moderator = 300L, 100L)
     spec$goal <- list(type = "sensitivity", n = n, power = 0.8)
     spec$options$nrep <- 500L
     result <- suppressWarnings(run_quietly(spec))

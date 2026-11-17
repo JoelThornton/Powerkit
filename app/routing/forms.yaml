@@ -180,7 +180,7 @@ simulated_times:
   E47: {power: 6, sample_size: 50, sensitivity: 60}
   E64: {power: 5, sample_size: 40, sensitivity: 50}
   E70: {power: 5, sample_size: 40}
-  E30: {power: 4, sample_size: 35}
+  E30: {power: 4, sample_size: 35, sensitivity: 45}
   # E32: moderation takes about 4 seconds for power; mediation with a
   # negative binomial count (regmedint) about 30, the slower case shown.
   E32: {power: 30, sample_size: 200}
@@ -4020,6 +4020,7 @@ forms:
   # group, optional group means; the F test of the X x group terms.
   E30:
     methods_name: "a regression with a score by group interaction (the F test of the interaction terms), simulated"
+    sensitivity: true
     tool: Spower
     directional: false
     base: {spec_version: "0.1", design: regression_interaction, template: group_moderator,
