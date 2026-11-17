@@ -211,15 +211,24 @@ test_that("ordinal two groups, survival, growth curves and reliability give the 
   expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(question = "bland_altman")))
 })
 
-test_that("paired variances, a trend in proportions and d' find the smallest effect by a simulated search", {
+test_that("paired variances, the trend tests, d', factorial logistic regression and moderation by groups find the smallest effect by a simulated search", {
   cases <- list(
     list(ep = "E57", extra = list(var1 = ""), label = "the smallest variance ratio you could detect", name = "variance ratio = "),
     list(ep = "E66", extra = list(), label = "the smallest difference between the highest and lowest proportions you could detect",
       name = "difference between the highest and lowest proportions = "),
-    list(ep = "E72", extra = list(d2 = ""), label = "the smallest difference in d' you could detect", name = "difference in d' = ")
+    list(ep = "E72", extra = list(d2 = ""), label = "the smallest difference in d' you could detect", name = "difference in d' = "),
+    list(ep = "E64", extra = list(), label = "the smallest difference between the largest and smallest mean you could detect",
+      name = "difference between the largest and smallest mean = "),
+    list(ep = "E30", extra = list(), label = "the smallest difference between the largest and smallest group's correlation you could detect",
+      name = "difference between the largest and smallest group's correlation = "),
+    list(ep = "E45", extra = list(level_change = ""), label = "the smallest change in level you could detect", name = "change in level = "),
+    list(ep = "E47", extra = list(), label = "the smallest odds ratio you could detect", name = "odds ratio = "),
+    list(ep = "E47", extra = list(effect = "interaction"), label = "the smallest ratio of odds ratios you could detect",
+      name = "ratio of odds ratios = ")
   )
   for (case in cases) {
-    run <- smallest_effect_run(case$ep, c(case$extra, list(n = "100", simulation_accuracy = "quick")))
+    n <- switch(case$ep, E47 = "420", E30 = "300", E45 = "24", "100")
+    run <- smallest_effect_run(case$ep, c(case$extra, list(n = n, simulation_accuracy = "quick")))
     expect_true(isTRUE(run$result$sensitivity$simulated), label = case$ep)
     expect_identical(result_figure(run$spec, run$result)$label, case$label)
     expect_match(result_sentences(run$spec, run$result)[["headline"]], case$name, fixed = TRUE)
