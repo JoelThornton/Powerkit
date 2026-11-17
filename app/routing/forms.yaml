@@ -146,6 +146,17 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # can't go quietly unreachable again; delete an entry when its card and
 # input screen land.
 engine_only: {}  # none waiting at the moment
+# Uncertain numbers other than the effect that the result screen's "Which
+# assumption matters most?" comparison offers to vary (R/assumptions.R).
+# Effect fields (effect: true) are offered without being listed. Each is a
+# number the researcher estimates from evidence (an SD, a correlation
+# between measures, a reliability, a clustering ICC, a base rate, dropout),
+# not a design choice such as alpha or the number of groups.
+assumption_fields: [sd_ratio, welch_sd_ratio, raw_sd, raw_sd1, raw_sd2, raw_sd_difference, raw_r, yuen_r,
+  r2_main, r2_other, rel_X, rel_W, rel_Z, rel_Y, x_prob, mean_exposure, dispersion, zero_odds_ratio,
+  sd_intercept, r_intercept_slope, event_proportion, manova_r, factor_correlation, binm_m_baseline,
+  binm_y_baseline, p1, p0, base_rate, icc, icc_group, icc_site, within_correlation, predictor_correlation,
+  ri_correlation]
 
 # End points whose calculation runs on the input screen (phase 5). E1-E8
 # run in seconds on one core (measured 17 October 2026 with the example
