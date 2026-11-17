@@ -8,6 +8,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "A fairer warning for moderated mediation with a yes/no X"
+    text: "The result's note now gives the false-positive rate from Powerkit's largest check, 5.38% at a 5% significance level, instead of an earlier, smaller check's 6.7%. The test is still slightly liberal, so the power shown may be a little high."
+  - date: "2026-11-17"
+    title: "Continuity-corrected tests of proportions are now exact"
+    text: "For two proportions or a 2 by 2 table analysed with the continuity correction (R's default), Powerkit now works out power over every possible result of the study instead of simulating. The answer has no random error, the sample size is the smallest that reaches your target, and it no longer adds people as a safety margin."
+  - date: "2026-11-17"
     title: "See which assumption your answer depends on most"
     text: "After a sample size or power is worked out, the \"How sure can you be?\" section lets you enter the lowest and highest values you think plausible for the effect and for the other numbers you estimated, such as a standard deviation, a correlation or a reliability. Powerkit shows the answer at each end, with the assumption that moves it most at the top, and can also show a grid of the effect against one other assumption changed together. Powerkit doesn't suggest the values, and nothing in your plan changes. It covers analyses worked out by formula for now."
   - date: "2026-11-17"

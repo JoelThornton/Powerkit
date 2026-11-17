@@ -8,13 +8,13 @@ async function put(page,id,value){
 }
 test('binary-predictor mediation warns before inputs and tracks the chosen method',async({page})=>{
  await open(page,'E17');
- await expect(page.locator('#selected_evidence .planning-critical')).toContainText('test too liberal');
+ await expect(page.locator('#selected_evidence .planning-critical')).toContainText('test is slightly liberal');
  await expect(page.locator('#selected_evidence')).not.toContainText('Checks covering my selected settings');
  await page.locator('#explanations_on').uncheck();
  await expect(page.locator('#selected_evidence .planning-critical')).toBeVisible();
  await put(page,'method','ols_percentile_bootstrap');
  await expect(page.locator('#selected_evidence .planning-critical')).toContainText('not a calibration estimate for the selected bootstrap');
- await expect(page.locator('#selected_evidence .planning-critical')).not.toContainText('test too liberal');
+ await expect(page.locator('#selected_evidence .planning-critical')).not.toContainText('test is slightly liberal');
  await put(page,'x_type','continuous');
  await expect(page.locator('#selected_evidence .planning-critical')).toHaveCount(0);
 });

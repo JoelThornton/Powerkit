@@ -3858,3 +3858,38 @@ method chosen first. All follow JASP's default priors.
   and the engine, so the app computes nothing itself, and the comparison
   never changes the saved plan.
 
+## 2026-11-17 · Continuity-corrected count tests worked out exactly
+
+- **What changes.** The continuity-corrected two-proportion test (E5,
+  R's `prop.test(correct = TRUE)` with fixed group sizes) and the
+  corrected 2 x 2 chi-square test (E6, `chisq.test(correct = TRUE)` with
+  a fixed total) are worked out exactly by default: power is the
+  probability of every possible result of the study times whether R's
+  test rejects on it, summed (`backend-corrected-exact.R`). They were
+  simulated, and a sample size came from a curve fitted to simulations
+  with fresh confirmation checks (10 November 2026), which could
+  recommend more people than needed and carried random error.
+- **Why.** The finite enumeration was already the validation reference
+  for the two-proportion test; using it directly removes the simulation
+  error and finds the smallest sample size that reaches the target, as
+  for the exact binomial test. No package computes this test's power;
+  the test itself is base R's, written out for many tables at once
+  (`corrected_prop_statistic()`) and checked against `prop.test()` and
+  `chisq.test()` on every table, and the power against table-by-table
+  enumerations.
+- **The 2 x 2 table.** With the total fixed, the row totals are binomial
+  and, given them, each row's count is binomial. Power goes up and down
+  a little with n, so the search checks smaller totals too: every one
+  for two groups, and for the table (up to a second per total) a walk
+  down from the bisection's answer until power is 0.03 below the target,
+  twice the largest dip measured (0.015 where power is above 0.3, totals
+  10 to 300, four tables), with a quick upper bound skipping totals that
+  can't reach the target. A test checks the walk against every smaller
+  total.
+- **Simulation stays an option** (`options > method` "simulation" in a
+  spec), with its confirmation checks. The app no longer offers
+  simulation accuracy for these tests.
+- **Validation.** The corrected_counts chunk passes on the exact route
+  (`validation-log.md`, 17 November 2026); an exact result is held to
+  `expect_power_exact()`'s 0.0005 against a finite reference.
+

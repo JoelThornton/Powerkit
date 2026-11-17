@@ -274,7 +274,7 @@ simulation_accuracy_group <- function(forms, ep_id) {
   if (!offered) return(NULL)
   when <- NULL
   if (isTRUE(form$basic_method)) when <- list(any = list(
-    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "spearman", "kendall", "z_test_corrected", "pearson_chi_square_corrected")),
+    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "spearman", "kendall")),
     list(list(field = "method", is = "welch_t"), list(field = "welch_method", is_not = "exact")),
     list(list(field = "calc_method", is = "simulation"), list(field = "method", is_not = "welch_t"),
       list(field = "method", is_not = "bayes_factor"), list(field = "method", is_not = "minimum_effect"), list(field = "method", is_not = "fisher_exact"))))
@@ -293,9 +293,7 @@ simulation_accuracy_group <- function(forms, ep_id) {
     note_more = paste(
     "The margins below are approximate pointwise 95% margins for the random error in a probability, assuming every simulated study gives a valid decision.",
     "Failures can reduce the effective number of decisions; read the actual interval and failure counts in the result.",
-    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error.",
-    if (any(choices %in% c("z_test_corrected", "pearson_chi_square_corrected")))
-      "For continuity-corrected count tests, finding N also uses fresh checks of at least 10,000 studies per candidate. This takes longer and may recommend more participants than the minimum."), fields = list(
+    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error."), fields = list(
     list(id = "simulation_accuracy", label = "How precise should the simulation be?", type = "select", optional = TRUE,
       default = "standard", default_source = "1,000 repeated studies, powerkit's usual simulation setting",
       choices = list(quick = "Quick exploration: about +/-5 percentage points (400 studies)",
