@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-17"
-    title: "See which assumption your answer depends on most"
-    text: "After a sample size or power is worked out, the \"How sure can you be?\" section lets you enter the lowest and highest values you think plausible for the effect and for the other numbers you estimated, such as a standard deviation, a correlation or a reliability. Powerkit shows the answer at each end, with the assumption that moves it most at the top, and can also show a grid of the effect against one other assumption changed together. Powerkit doesn't suggest the values, and nothing in your plan changes. It covers analyses worked out by formula for now."
