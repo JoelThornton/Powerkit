@@ -101,10 +101,12 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
   e32 <- as.character(card_ui(tree, "E32"))
   expect_match(e32, htmltools::htmlEscape("Mediation of a categorical outcome (three or more unordered answers):"), fixed = TRUE)
   expect_match(e32, text, fixed = TRUE)
-  # Cochran's Q calculates on E75 since 16 November 2026; E26 points to it.
+  # Cochran's Q calculates on its own card (E78) since 17 November 2026;
+  # E26 points to it.
   e26 <- as.character(card_ui(tree, "E26"))
   expect_false(grepl(text, e26, fixed = TRUE))
-  expect_match(e26, htmltools::htmlEscape("Cochran's Q, on the card for the same people measured more than once"), fixed = TRUE)
+  expect_match(e26, htmltools::htmlEscape("Cochran's Q, which has its own card"), fixed = TRUE)
+  expect_false(grepl(text, as.character(card_ui(tree, "E78")), fixed = TRUE))
 })
 
 test_that("end points outside the five tools say so", {
@@ -398,7 +400,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
     "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result", "spec_hash", "study_variation", "sample_structure", "analysis_requirements", "all_tests_target", "analysis_evidence", "simulation_margin"))
   # Calculations run only for the end points listed in forms.yaml.
-  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15", "E59", "E60", "E61", "E64", "E66", "E46", "E44", "E43", "E69", "E70", "E32", "E30", "E35", "E71", "E72", "E58", "E73", "E45", "E76", "E39", "E77"))
+  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15", "E59", "E60", "E61", "E64", "E66", "E46", "E44", "E43", "E69", "E70", "E32", "E30", "E35", "E71", "E72", "E58", "E73", "E45", "E76", "E39", "E77", "E78"))
 })
 
 test_that("each card lists only the closing questions that apply to it", {
