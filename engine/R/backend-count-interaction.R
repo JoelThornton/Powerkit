@@ -97,6 +97,7 @@ count_interaction_backend <- function(spec, seed = NULL) {
       })
     },
     sensitivity = NULL,
+    simulated_sensitivity = function(n, power, nrep, seed, cores) simulated_effect_sensitivity(spec, n, power, nrep, seed, cores),
     check_run = function() count_interaction_check_run(inputs, seed)
   )
 }

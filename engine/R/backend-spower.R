@@ -356,7 +356,9 @@ spower_inputs <- function(spec) {
     efa = list(
       experiment = "p_efa", own = TRUE,
       args = function(n) {
-        list(n = n, factors = pop$factors, items = pop$items_per_factor, loading = pop$loading,
+        # A loading left out for the smallest detectable effect is found by
+        # the search; 0.5 only stands in for it until then.
+        list(n = n, factors = pop$factors, items = pop$items_per_factor, loading = pop$loading %||% 0.5,
           phi = pop$factor_correlation %||% 0, congruence = spec$target_test$congruence %||% 0.95)
       }
     ),
@@ -364,7 +366,7 @@ spower_inputs <- function(spec) {
       experiment = "p_lpa", own = TRUE,
       args = function(n) {
         k <- pop$profiles
-        list(n = n, profiles = k, indicators = pop$indicators, separation = pop$separation,
+        list(n = n, profiles = k, indicators = pop$indicators, separation = pop$separation %||% 1,
           shares = as.numeric(unlist(pop$shares %||% rep(1 / k, k))))
       }
     ),

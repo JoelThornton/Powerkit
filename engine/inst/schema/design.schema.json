@@ -704,6 +704,20 @@
           "description": "Bayes factor ANCOVA only: the scale of the Cauchy analysis prior on the covariates' standardised slopes. Default 0.354, JASP's Bayesian ANCOVA 'r scale covariates' (BayesFactor's generalTestBF(rscaleCont = 'medium'), sqrt(2)/4).",
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "covariate_model": {
+          "enum": [
+            "random",
+            "fixed"
+          ],
+          "description": "ANCOVA only (oneway_ancova, factorial_ancova): whether the covariates are measured on each person ('random', the default, Shieh's method) or fixed by the design ('fixed', as G*Power takes them); see those templates."
+        },
+        "df_method": {
+          "enum": [
+            "satterthwaite",
+            "kenward_roger"
+          ],
+          "description": "Mixed models with a score (crossed_two_condition, crossed_conditions, two_level, three_level, item_predictor): the small-sample degrees of freedom of the t or F test, Satterthwaite's ('satterthwaite', the default, lmerTest; Departure 16) or Kenward and Roger's ('kenward_roger', pbkrtest). Not for a yes/no outcome."
         }
       },
       "allOf": [
@@ -6242,7 +6256,14 @@
                 "ancova_f",
                 "bayes_factor"
               ],
-              "description": "'ancova_f': the ANCOVA's F test (Shieh's method). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
+              "description": "'ancova_f': the ANCOVA's F test (Shieh's method, or with fixed covariates; see 'covariate_model'). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
+            },
+            "covariate_model": {
+              "enum": [
+                "random",
+                "fixed"
+              ],
+              "description": "'random' (the default): the covariates are measured on each person and vary from sample to sample, Shieh's (2020) method (pwrss's power.f.ancova.shieh()). 'fixed': the covariates are set by the design, as G*Power takes them (noncentrality N gamma^2, pwrss's power.f.ancova()); an effect given as 'eta_squared' is always planned this way."
             }
           }
         }
@@ -6380,7 +6401,14 @@
                 "ancova_f",
                 "bayes_factor"
               ],
-              "description": "'ancova_f': the ANCOVA's F test (Shieh's method). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
+              "description": "'ancova_f': the ANCOVA's F test (Shieh's method, or with fixed covariates; see 'covariate_model'). 'bayes_factor': the effect's inclusion Bayes factor, as in JASP's Bayesian ANCOVA (BayesFactor's generalTestBF(), simulated); it takes adjusted means, not 'eta_squared'."
+            },
+            "covariate_model": {
+              "enum": [
+                "random",
+                "fixed"
+              ],
+              "description": "'random' (the default): the covariates are measured on each person and vary from sample to sample, Shieh's (2020) method (pwrss's power.f.ancova.shieh()). 'fixed': the covariates are set by the design, as G*Power takes them (noncentrality N gamma^2, pwrss's power.f.ancova()); an effect given as 'eta_squared' is always planned this way."
             }
           }
         }
@@ -8846,6 +8874,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -9864,6 +9899,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -10001,6 +10043,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -11085,6 +11134,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -11206,6 +11262,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -12528,8 +12591,7 @@
           "required": [
             "metric",
             "profiles",
-            "indicators",
-            "separation"
+            "indicators"
           ],
           "additionalProperties": false,
           "properties": {
@@ -12637,8 +12699,7 @@
           "required": [
             "metric",
             "factors",
-            "items_per_factor",
-            "loading"
+            "items_per_factor"
           ],
           "additionalProperties": false,
           "properties": {

@@ -28,7 +28,7 @@ simr_backend <- function(spec, seed = NULL) {
   if (conditions) inputs$test <- crossed_conditions_test(inputs)
   list(
     name = "simr",
-    packages = c("simr", "lme4", "lmerTest"),
+    packages = c("simr", "lme4", "lmerTest", if (simr_kr(spec)) "pbkrtest"),
     methods = "simulation",
     default_method = "simulation",
     functions = c(simulation = if (!is.null(inputs$test_label)) sprintf("simr::powerSim with %s", inputs$test_label) else
@@ -69,8 +69,21 @@ crossed_binary <- function(spec) identical(spec$variables$Y$type, "binary")
 # simr's method for the test chosen.
 simr_method <- function(spec) {
   three <- identical(spec$template, "crossed_conditions")
-  switch(spec$target_test$method, satterthwaite_t = "sa", satterthwaite_f = "sa", wald = if (three) "chisq" else "z",
-    likelihood_ratio = "lr")
+  simr_df_method(spec, switch(spec$target_test$method, satterthwaite_t = "sa", satterthwaite_f = "sa",
+    wald = if (three) "chisq" else "z", likelihood_ratio = "lr"))
+}
+
+# Kenward-Roger's degrees of freedom in place of Satterthwaite's (17
+# November 2026): with a score, the researcher chooses which small-sample
+# correction the t or F test uses (target_test.df_method; Satterthwaite
+# when it is absent, Departure 16). simr's method "kr" is pbkrtest's
+# Kenward-Roger test; lmerTest's tests take ddf = "Kenward-Roger".
+simr_kr <- function(spec) identical(spec$target_test$df_method, "kenward_roger")
+simr_df_method <- function(spec, method) if (identical(method, "sa") && simr_kr(spec)) "kr" else method
+simr_ddf <- function(spec) if (simr_kr(spec)) "Kenward-Roger" else "Satterthwaite"
+simr_test_comment <- function(method) {
+  if (identical(method, "kr")) "library(pbkrtest) # the Kenward-Roger t test (simr's method \"kr\")" else
+    "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")"
 }
 
 # The spec in simr's terms: the model formula, fixed effects, random-effect
@@ -294,7 +307,7 @@ two_level_inputs <- function(spec) {
   } else {
     list(group = group)
   }
-  method <- switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr")
+  method <- simr_df_method(spec, switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"))
   terms <- two_level_terms(spec$target_test$effect, three)
   list(
     formula = stats::as.formula(formula, env = globalenv()),
@@ -436,7 +449,7 @@ two_level_script <- function(spec, result) {
     "library(simr)",
     if (binary) sprintf("# A yes/no outcome: a logistic mixed model (glmer), tested by %s.",
       if (identical(inputs$method, "lr")) "the likelihood ratio (simr's method \"lr\")" else "glmer's Wald z test (simr's method \"z\")") else
-      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+      simr_test_comment(inputs$method),
     "",
     "# Inputs ----",
     sprintf("# The outcome, %s, %s; x is %s (per SD, centred within each group),",
@@ -562,6 +575,7 @@ crossed_conditions_inputs <- function(spec) {
     formula = stats::as.formula(paste("y ~ cond +", paste(terms, collapse = " + ")), env = globalenv()),
     binary = binary,
     method = simr_method(spec),
+    ddf = simr_ddf(spec),
     fixef = c(centre[1], centre[-1] - centre[1]),
     VarCorr = var_corr,
     sigma = if (!binary) pop$sd_residual,
@@ -577,8 +591,8 @@ crossed_conditions_inputs <- function(spec) {
     test_label = if (binary) {
       if (pairwise) "car::linearHypothesis() (Wald), adjusted by stats::p.adjust()" else
         sprintf("simr::fixed(\"cond\", \"%s\")", simr_method(spec))
-    } else if (pairwise) "lmerTest::contest() (Satterthwaite), adjusted by stats::p.adjust()" else
-      "lmerTest's anova() (Satterthwaite F)"
+    } else if (pairwise) sprintf("lmerTest::contest() (%s), adjusted by stats::p.adjust()", simr_ddf(spec)) else
+      sprintf("lmerTest's anova() (%s F)", simr_ddf(spec))
   )
 }
 
@@ -606,9 +620,9 @@ crossed_conditions_design <- function(inputs, n) {
   data
 }
 
-# The p-value of the test, for simr's powerSim(): the Satterthwaite F test
-# of cond, or the chosen pair's Satterthwaite t test adjusted for all the
-# pairs. A fit lmerTest can't test counts as not significant (NA).
+# The p-value of the test, for simr's powerSim(): the Satterthwaite (or
+# Kenward-Roger) F test of cond, or the chosen pair's t test adjusted for
+# all the pairs. A fit lmerTest can't test counts as not significant (NA).
 crossed_conditions_test <- function(inputs) {
   k <- length(inputs$levels)
   pairs <- utils::combn(k, 2)
@@ -632,13 +646,13 @@ crossed_conditions_test <- function(inputs) {
   function(fit) {
     model <- if (inherits(fit, "lmerModLmerTest")) fit else lmerTest::as_lmerModLmerTest(fit)
     if (!inputs$pairwise) {
-      return(stats::anova(model, ddf = "Satterthwaite")["cond", "Pr(>F)"])
+      return(stats::anova(model, ddf = inputs$ddf %||% "Satterthwaite")["cond", "Pr(>F)"])
     }
     p <- apply(pairs, 2, function(ij) {
       contrast <- numeric(k)
       contrast[ij[2]] <- 1
       if (ij[1] > 1) contrast[ij[1]] <- -1
-      lmerTest::contest(model, contrast, ddf = "Satterthwaite")[["Pr(>F)"]]
+      lmerTest::contest(model, contrast, ddf = inputs$ddf %||% "Satterthwaite")[["Pr(>F)"]]
     })
     stats::p.adjust(p, inputs$p_adjust)[[chosen]]
   }
@@ -718,7 +732,7 @@ crossed_conditions_script <- function(spec, result) {
     script_header(spec, result, "simr", sprintf("simr::powerSim() with %s", inputs$test_label)),
     "library(simr)",
     if (inputs$binary) "# A yes/no outcome: a logistic mixed model (glmer), every SD on the log-odds scale." else
-      "library(lmerTest) # Satterthwaite's tests",
+      sprintf("library(lmerTest) # %s's tests%s", inputs$ddf, if (identical(inputs$ddf, "Kenward-Roger")) " (through pbkrtest)" else ""),
     "",
     "# Inputs ----",
     sprintf("# The outcome, %s, in its own units; cond is %s, a factor whose", comment_text(v$Y$label), comment_text(v$X$label)),
@@ -793,7 +807,7 @@ crossed_conditions_script <- function(spec, result) {
       sprintf("# The test that the conditions differ: simr's fixed(\"cond\", \"%s\").", inputs$method),
       sprintf("test_p <- fixed(\"cond\", \"%s\")", inputs$method)
     ) else if (inputs$pairwise) c(
-      "# The chosen pair's Satterthwaite t test, adjusted for all the pairs.",
+      sprintf("# The chosen pair's %s t test, adjusted for all the pairs.", inputs$ddf),
       "test_p <- function(fit) {",
       "  model <- as_lmerModLmerTest(fit)",
       "  k <- length(conditions)",
@@ -802,14 +816,14 @@ crossed_conditions_script <- function(spec, result) {
       "    contrast <- numeric(k)",
       "    contrast[ij[2]] <- 1",
       "    if (ij[1] > 1) contrast[ij[1]] <- -1",
-      "    contest(model, contrast, ddf = \"Satterthwaite\")[[\"Pr(>F)\"]]",
+      sprintf("    contest(model, contrast, ddf = \"%s\")[[\"Pr(>F)\"]]", inputs$ddf),
       "  })",
       "  at <- sort(match(pair, conditions))",
       "  p.adjust(p, p_adjust)[[which(pairs[1, ] == at[1] & pairs[2, ] == at[2])]]",
       "}"
     ) else c(
-      "# The Satterthwaite F test that the conditions differ.",
-      "test_p <- function(fit) anova(as_lmerModLmerTest(fit), ddf = \"Satterthwaite\")[\"cond\", \"Pr(>F)\"]"
+      sprintf("# The %s F test that the conditions differ.", inputs$ddf),
+      sprintf("test_p <- function(fit) anova(as_lmerModLmerTest(fit), ddf = \"%s\")[\"cond\", \"Pr(>F)\"]", inputs$ddf)
     ),
     "",
     "# One batch of simulated data sets: significant results and data sets.",
@@ -874,7 +888,7 @@ three_level_inputs <- function(spec) {
     groups_per_site = pop$groups_per_site,
     site_size = pop$group_size * pop$groups_per_site,
     term = "cond",
-    method = switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"),
+    method = simr_df_method(spec, switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr")),
     alpha = spec$target_test$alpha,
     design = three_level_design
   )
@@ -960,7 +974,7 @@ three_level_script <- function(spec, result) {
     "library(simr)",
     if (binary) sprintf("# A yes/no outcome: a logistic mixed model (glmer), tested by %s.",
       if (identical(inputs$method, "lr")) "the likelihood ratio (simr's method \"lr\")" else "glmer's Wald z test (simr's method \"z\")") else
-      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+      simr_test_comment(inputs$method),
     "",
     "# Inputs ----",
     sprintf("# The outcome, %s, %s; cond is %s coded -0.5 (%s) and 0.5 (%s).",
@@ -1036,7 +1050,7 @@ item_predictor_inputs <- function(spec) {
     formula = stats::as.formula(paste("y ~ x + (1 + x | participant) +", if (item_slope) "(1 + x | item)" else "(1 | item)"), env = globalenv()),
     binary = binary,
     trial = trial,
-    method = switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr"),
+    method = simr_df_method(spec, switch(spec$target_test$method, satterthwaite_t = "sa", wald = "z", likelihood_ratio = "lr")),
     term = "x",
     fixef = c(if (binary) stats::qlogis(pop$probability) else 0, pop$slope),
     VarCorr = list(participant = participant, item = if (item_slope) diag(c(pop$sd_item^2, pop$sd_item_slope^2)) else pop$sd_item^2),
@@ -1106,7 +1120,7 @@ item_predictor_script <- function(spec, result) {
     script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"x\", \"%s\")", inputs$method)),
     "library(simr)",
     if (inputs$binary) "# A yes/no outcome: a logistic mixed model (glmer), every SD on the log-odds scale." else
-      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+      simr_test_comment(inputs$method),
     "",
     "# Inputs ----",
     sprintf("# x is %s, measured on each %s and standardised; the outcome is %s.",

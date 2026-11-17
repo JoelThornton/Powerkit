@@ -547,12 +547,22 @@ replication_bayes_original_words <- function(plan) {
     i$original_prior, format(signif(i$original_effect, 3)), format(signif(o$se, 3)), scale_words)
 }
 
+# Where the replication goals' validation stands (docs/validation-log.md,
+# "Replication plans"): every goal's chance agrees with a simulation of the
+# method's model written separately, and small telescopes with t-tests on
+# simulated data, but the published examples are still to be transcribed,
+# so the plan says validation is in progress.
+replication_validation_text <- paste(
+  "Each goal's chance agrees with a separate simulation of the method's model, and small telescopes",
+  "with t-tests on simulated people; the check against published examples is still to come.")
+
 replication_result_ui <- function(plan) {
   o <- plan$original
   bayes <- !identical(plan$inputs$original_analysis %||% "test", "test")
   tagList(
     div(class = "result-panel mt-2", role = "status",
       replication_headline_ui(plan),
+      p(class = "small", tags$span(class = "badge-progress", "Validation in progress"), " ", replication_validation_text),
       if (bayes) p(replication_bayes_original_words(plan)) else p(sprintf("The original estimate is %s with a standard error of %s%s (two-sided p = %s, by the normal approximation). %s",
         format(signif(o$estimate, 3)), format(signif(o$se, 3)),
         if (identical(plan$inputs$design, "correlation") || identical(plan$inputs$scale, "fisher_z")) " on Fisher's z scale"
@@ -708,6 +718,7 @@ replication_report <- function(values, plan = NULL, notes = NULL, notes_outcome 
   two <- identical(v("rep_design"), "two_groups") || !nzchar(v("rep_design"))
   lines <- c(if (is.null(title)) "# Replication plan" else paste("# Replication plan:", title), "",
     sprintf("Written with powerkit's replication plan%s, %s.", if (!is.null(version)) paste0(", version ", version) else "", format(date)), "",
+    if (!is.null(plan)) c(paste("Validation in progress:", replication_validation_text), ""),
     "## The original study", "",
     sprintf("- Study: %s", or_blank(v("rep_study"))),
     sprintf("- Design: %s", design_label),

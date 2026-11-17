@@ -169,7 +169,17 @@ scores drawn as for the Kruskal-Wallis and Friedman tests.
 Two-way ANCOVA (template \code{factorial_ancova}): two between factors, either
 main effect or the interaction, by pwrss's \code{power.f.ancova.shieh()}
 (Shieh's method) with the effect's rows of \code{factorial.contrasts()};
-adjusted cell means laid out as for \code{mixed}, equal cells.
+adjusted cell means laid out as for \code{mixed}, equal cells. For either
+ANCOVA, \code{target_test > covariate_model = "fixed"} plans covariates fixed
+by the design, as G\emph{Power does: pwrss's \code{power.f.ancova()} from the
+partial eta-squared of the adjusted means (noncentrality N gamma^2,
+Shieh, 2020); \code{"random"}, the default, is Shieh's method for covariates
+measured on each person.
+The mixed models with a score (templates \code{crossed_two_condition},
+\code{crossed_conditions}, \code{two_level}, \code{three_level}, \code{item_predictor}) take
+\code{target_test > df_method}: \code{"satterthwaite"} (the default, lmerTest) or
+\code{"kenward_roger"} (pbkrtest; simr's method \code{"kr"}, lmerTest's
+\code{ddf = "Kenward-Roger"} for three or more conditions).
 Two-factor ANOVA with both factors between participants, beyond 2 x 2
 (template \code{factorial_between}, design \code{"kb*mb"}), or both within
 participants, 2 x 2 or larger (template \code{factorial_within}, design
@@ -193,7 +203,7 @@ of a participant's cells; any main effect or interaction on
 Superpower's \code{ANOVA_exact()}. \code{goal > n} is the total number of
 participants, split equally across the between factors' combinations.
 Two dependent correlations in one group (engine only), by Steiger's z
-test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
+test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G}Power):
 templates \code{overlapping_correlations} (X with Y against X with Z) and
 \code{nonoverlapping_correlations} (X1 with Y1 against X2 with Y2).
 Logistic regression (design \code{logistic_regression}, engine only): the Wald z
@@ -278,11 +288,14 @@ Welch's F when simulation is asked for (\code{\link[=welch_f_sensitivity]{welch_
 don't solve for the effect, the effect is searched with the backend's
 own power at n (pwrss's tests, the variances, Hotelling's T-squared,
 the equivalence tests, metapower's z test, SEM, and the ordinal,
-survival, growth-curve and reliability tests). The random-effects
+survival, growth-curve and reliability tests, and the three-way
+interaction). The random-effects
 meta-analysis's Hartung-Knapp test, the paired variances, the trend in
 proportions, d', the Jonckheere-Terpstra trend test, the factorial
-logistic regression, moderation by groups and the interrupted time
-series search their effect by simulation, with a 95\%
+logistic regression, moderation by groups, the interrupted time series,
+moderation of a yes/no or count outcome, an outcome in unordered
+categories, moderated regression with a yes/no X or W, latent profiles
+(the separation) and factor recovery (the loading) search their effect by simulation, with a 95\%
 interval (\code{simulated_effect_sensitivity()}). Other simulated tests have no
 sensitivity analysis yet.
 }
