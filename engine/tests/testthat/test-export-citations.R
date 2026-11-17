@@ -117,7 +117,9 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
   # on mediation with a multicategorical X, from its PubMed record (the same day),
   # and Valeri and VanderWeele's paper on regression-based causal mediation
   # analysis, from its PubMed record (the same day), and four sources on
-  # Bayes factors for replications, from the full-text PDFs (15 November 2026).
+  # Bayes factors for replications, from the full-text PDFs (15 November 2026),
+  # and Rochon, Gondan and Kieser on preliminary normality tests, from its
+  # Crossref and PubMed records (17 November 2026).
   expect_equal(
     vapply(names(entries), function(k) refs_entry_source(k, entries[[k]]), character(1)),
     c(
@@ -146,6 +148,7 @@ test_that("every refs.bib entry is copied from citation() or a DOI verified with
       Sommet2023_interaction = "verified",
       AlbersLakens2018_pilot = "verified", Carter2019_biascorrection = "verified",
       Delacre2017_welch = "verified", Delacre2019_welch_f = "verified",
+      Rochon2012_pretest = "verified",
       Simonsohn2015_telescopes = "verified", Pawel2026_replication = "verified",
       Anderson2016_replication = "verified", Kenny2019_heterogeneity = "verified",
       McShane2014_river = "verified", Dwan2019_crossover = "verified", Faul2007_gpower = "verified",
