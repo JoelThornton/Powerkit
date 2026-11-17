@@ -244,6 +244,7 @@ shown_if_js <- function(item) {
       function(x) shown_if_js(list(shown_if = x)), character(1)), collapse = " || "), ")"))
     other <- sprintf("input.%s", field_input_id(list(id = cond$field)))
     if (!is.null(cond[["is_one_of"]])) return(sprintf("[%s].indexOf(%s || '') >= 0", paste0("'", cond[["is_one_of"]], "'", collapse = ", "), other))
+    if (!is.null(cond[["is_not_one_of"]])) return(sprintf("[%s].indexOf(%s || '') < 0", paste0("'", cond[["is_not_one_of"]], "'", collapse = ", "), other))
     if (!is.null(cond[["is"]])) sprintf("%s == '%s'", other, cond[["is"]]) else sprintf("%s != '%s'", other, cond[["is_not"]])
   }, character(1))
   paste(condition, collapse = " && ")

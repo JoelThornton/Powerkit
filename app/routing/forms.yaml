@@ -3032,7 +3032,7 @@ forms:
     methods_name: "a multiple regression F test"
     tool: pwrss
     sensitivity: true
-    sensitivity_shown_if: {any: [[{field: question, is: r2_increase}], [{field: question, is: r2_zero}, {field: r2_test, is: f_test}], [{field: question, is: single_coefficient}, {field: coef_test, is: f_test}]]}
+    sensitivity_shown_if: {any: [[{field: question, is: r2_increase}, {field: r2c_test, is_not: bayes_factor}], [{field: question, is: r2_zero}, {field: r2_test, is: f_test}], [{field: question, is: single_coefficient}, {field: coef_test, is: f_test}]]}
     directional: false
     base: {spec_version: "0.1", design: multiple_regression,
            variables: {"Y": {type: continuous}}, population: {metric: r_squared},
@@ -3062,12 +3062,22 @@ forms:
                        bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
              default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
              choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model with none, reaches the threshold you choose below. Worked out exactly, with no simulation."}}
+          # The Bayes factor for an increase or one coefficient (17 November
+          # 2026): the full model against the model without the tested
+          # predictors, simulated from the two R-squared values
+          # (backend-bayesfactor-r2change.R).
+          - {id: r2c_test, label: "Test version", type: select, path: target_test.method, required: true,
+             shown_if: {field: question, is: r2_increase},
+             choices: {f_test: "The F test of the increase (G*Power's R-squared increase)",
+                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
+             default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
+             choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model without the ones you are testing, reaches the threshold you choose below (what BayesFactor's regressionBF() reports for that comparison). Simulated from the two R-squared values."}}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
-             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             shown_if: {any: [[{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}], [{field: question, is: r2_increase}, {field: r2c_test, is: bayes_factor}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)",
-             help: "BF10 is how many times more likely the data are if the predictors explain some of the outcome than if they explain none. Power here is the chance that BF10 reaches this number."}
+             help: "BF10 is how many times more likely the data are under the model with the predictors you are testing than under the model without them (for R-squared against 0, without any). Power here is the chance that BF10 reaches this number."}
           - {id: prior_scale, label: "Scale of the analysis prior on the standardised coefficients (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
-             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             shown_if: {any: [[{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}], [{field: question, is: r2_increase}, {field: r2c_test, is: bayes_factor}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
              default: 0.354, default_source: "JASP's Bayesian linear regression (JZS prior, 'r scale' 0.354), the same as BayesFactor's 'medium' scale for continuous predictors (regressionBF(rscaleCont = 'medium'), sqrt(2)/4; BayesFactor 0.9.12-4.8)",
              help: "The prior you will use when you analyse the data. 0.354 is JASP's default; use the same value as in your analysis plan."}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
@@ -3087,7 +3097,8 @@ forms:
           - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors (0 to 1)", type: number, path: population.r2_full, effect: true, when_empty: same_as_r2_reduced, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: r2_increase}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}]}
           - {id: r2_reduced, writeup_label: "R² without the tested predictors", label: "R-squared without the predictors you are testing (0 to 1; 0 if there are no others)", type: number, path: population.r2_reduced, effect: true, min: 0, max_exclusive: 1,
-             shown_if: {field: question, is: r2_increase}}
+             shown_if: {any: [[{field: question, is: r2_increase}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
+             help: "For one coefficient's Bayes factor, the R-squared of the outcome on the other predictors: the Bayes factor depends on both models' R-squared, not only the partial R-squared."}
           - {id: partial_r2, writeup_label: "partial R²", label: "Partial R-squared of the predictor (0 to 1)", type: number, path: population.partial_r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: single_coefficient}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}],
              help: "The share of the outcome's variance left over by the other predictors that this one explains: its squared partial correlation. From R-squared with and without it, (R² with − R² without) / (1 − R² without). G*Power asks for Cohen's f², which is partial R² / (1 − partial R²)."}
@@ -3106,15 +3117,17 @@ forms:
              choices: {f_test: "The usual t test (G*Power's single regression coefficient)",
                        ols_hc3: "The t test with HC3 robust standard errors, simulated",
                        ols_hc4: "The t test with HC4 robust standard errors, simulated",
-                       quantile_regression: "Quantile regression (the median or another quantile instead of the mean), simulated"},
+                       quantile_regression: "Quantile regression (the median or another quantile instead of the mean), simulated",
+                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
              default: f_test, default_source: "the usual t test, the test G*Power and pwrss's power.f.regression() compute",
+             choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model without this one, reaches the threshold you choose. It needs the R-squared without this predictor too. Simulated from the two R-squared values."},
              help: "The usual test assumes the outcome spreads out as much at every value of the predictor. Robust (HC3 or HC4) standard errors keep the test honest when the spread changes; HC4 is the safer of the two when a few people have extreme predictor values. Quantile regression tests a quantile of the outcome, such as the median, and is less affected by extreme outcome values."}
           - {id: variance_ratio, label: "How much the spread changes: the error variance 1 SD above the predictor's mean over 1 SD below (1 = no change)", type: number, path: population.variance_ratio, required: true, min_exclusive: 0,
-             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_not: f_test}],
+             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_one_of: [ols_hc3, ols_hc4, quantile_regression]}],
              default: 1, default_source: "the same spread everywhere, as the usual test assumes (the design spec's default)",
              help: "From earlier data: the variance of the residuals among people about 1 SD above the predictor's mean, divided by their variance about 1 SD below. 2 means the outcome is twice as variable at the high end. Below 1 means it is less variable."}
           - {id: error_shape, label: "Shape of the errors", type: select, path: population.error_shape, required: true,
-             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_not: f_test}],
+             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_one_of: [ols_hc3, ols_hc4, quantile_regression]}],
              choices: {normal: "Normal", skewed: "Skewed (a long tail on one side)", heavy_tailed: "Heavy-tailed (more extreme values than normal)"},
              default: normal, default_source: "normal errors, as the usual test assumes (the design spec's default)"}
           - {id: quantile, label: "The quantile of the outcome you test (0.5 = the median)", type: number, path: population.quantile, required: true, min_exclusive: 0, max_exclusive: 1,
