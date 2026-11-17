@@ -388,6 +388,11 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
   # Each goal: its sample size search (ssd*) and chance at a standard error
   # (pors*), as the package's functions with the levels above.
   bf_level <- 1 / threshold
+  # The replication and sceptical Bayes factors count a success only in the
+  # original's direction (paradox = FALSE, not the package's default TRUE:
+  # Departure 31 in conventions.md). A replication on the other side of
+  # zero is not evidence for the original's effect, however large its
+  # Bayes factor (Pawel, Consonni & Held, 2026, the "replication paradox").
   rules <- list(
     significance = list(ssd = function(dp) BayesRepDesign::ssdSig(level = sig_level, dprior = dp, power = power),
       pors = function(dp, sr) BayesRepDesign::porsSig(level = sig_level, dprior = dp, sr = sr),
@@ -400,12 +405,12 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       ssd = function(dp) BayesRepDesign::ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin),
       pors = function(dp, sr) BayesRepDesign::porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr),
       call = sprintf("ssdEqu(level = %s, margin = %s)", format(2 * alpha), format(signif(margin, 4)))),
-    bf_replication = list(ssd = function(dp) BayesRepDesign::ssdBFr(level = bf_level, dprior = dp, power = power),
-      pors = function(dp, sr) BayesRepDesign::porsBFr(level = bf_level, dprior = dp, sr = sr),
-      call = sprintf("ssdBFr(level = 1/%s)", format(threshold))),
-    bf_sceptical = list(ssd = function(dp) BayesRepDesign::ssdBFs(level = bf_level, dprior = dp, power = power),
-      pors = function(dp, sr) BayesRepDesign::porsBFs(level = bf_level, dprior = dp, sr = sr),
-      call = sprintf("ssdBFs(level = 1/%s)", format(threshold)))
+    bf_replication = list(ssd = function(dp) BayesRepDesign::ssdBFr(level = bf_level, dprior = dp, power = power, paradox = FALSE),
+      pors = function(dp, sr) BayesRepDesign::porsBFr(level = bf_level, dprior = dp, sr = sr, paradox = FALSE),
+      call = sprintf("ssdBFr(level = 1/%s, paradox = FALSE)", format(threshold))),
+    bf_sceptical = list(ssd = function(dp) BayesRepDesign::ssdBFs(level = bf_level, dprior = dp, power = power, paradox = FALSE),
+      pors = function(dp, sr) BayesRepDesign::porsBFs(level = bf_level, dprior = dp, sr = sr, paradox = FALSE),
+      call = sprintf("ssdBFs(level = 1/%s, paradox = FALSE)", format(threshold)))
   )
   rules <- Filter(Negate(is.null), rules)
 
@@ -704,8 +709,8 @@ replication_generic_script <- function(plan, num, tf_call, margin, focus = NULL)
     "  significance = size(ssdSig(level = level, dprior = dp, power = power)),",
     "  pooled = size(ssdMeta(level = level^2, dprior = dp, power = power, searchInt = c(1e-6, 10))),",
     if (!is.null(margin)) "  agreement = size(ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin)),",
-    sprintf("  bf_replication = size(ssdBFr(level = 1/%s, dprior = dp, power = power)),", num(i$threshold)),
-    sprintf("  bf_sceptical = size(ssdBFs(level = 1/%s, dprior = dp, power = power))", num(i$threshold)),
+    sprintf("  bf_replication = size(ssdBFr(level = 1/%s, dprior = dp, power = power, paradox = FALSE)),", num(i$threshold)),
+    sprintf("  bf_sceptical = size(ssdBFs(level = 1/%s, dprior = dp, power = power, paradox = FALSE))", num(i$threshold)),
     "))",
     if (!is.null(margin)) c("",
       "# Too small to matter: the usual TOST at alpha (a 1 - 2 alpha interval), planned for no effect",
@@ -754,8 +759,8 @@ replication_focused_lines <- function(plan, focus, num, margin, se_line, telesco
     significance = "n <- size(ssdSig(level = level, dprior = dp, power = power))",
     pooled = "n <- size(ssdMeta(level = level^2, dprior = dp, power = power, searchInt = c(1e-6, 10)))",
     agreement = "n <- size(ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin))",
-    bf_replication = sprintf("n <- size(ssdBFr(level = 1/%s, dprior = dp, power = power))", thr),
-    bf_sceptical = sprintf("n <- size(ssdBFs(level = 1/%s, dprior = dp, power = power))", thr),
+    bf_replication = sprintf("n <- size(ssdBFr(level = 1/%s, dprior = dp, power = power, paradox = FALSE))", thr),
+    bf_sceptical = sprintf("n <- size(ssdBFs(level = 1/%s, dprior = dp, power = power, paradox = FALSE))", thr),
     negligible = "n <- size(ssdTOST(level = 2 * alpha, dprior = at_zero, power = power, margin = margin, searchInt = c(1e-6, 2)))",
     small_telescopes = telescope_search,
     bf_repeat = sprintf("n <- bf_size(k = 1/%s, power = power, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))", thr),
@@ -764,8 +769,8 @@ replication_focused_lines <- function(plan, focus, num, margin, se_line, telesco
     significance = "porsSig(level = level, dprior = dp, sr = sr)",
     pooled = "porsMeta(level = level^2, dprior = dp, sr = sr)",
     agreement = "porsEqu(level = 2 * alpha, dprior = dp, margin = margin, sr = sr)",
-    bf_replication = sprintf("porsBFr(level = 1/%s, dprior = dp, sr = sr)", thr),
-    bf_sceptical = sprintf("porsBFs(level = 1/%s, dprior = dp, sr = sr)", thr),
+    bf_replication = sprintf("porsBFr(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE)", thr),
+    bf_sceptical = sprintf("porsBFs(level = 1/%s, dprior = dp, sr = sr, paradox = FALSE)", thr),
     negligible = "porsTOST(level = 2 * alpha, dprior = at_zero, margin = margin, sr = sr)",
     small_telescopes = "telescope_power(n)",
     bf_repeat = sprintf("bfpwr::ptbf01(k = 1/%s, n = n / %s, pscale = %s, type = \"%s\", dpm = dp$dpMean, dpsd = sqrt(dp$dpVar))",
@@ -952,8 +957,8 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     "  significance = size(ssdSig(level = level, dprior = dp, power = power)),",
     "  pooled = size(ssdMeta(level = level^2, dprior = dp, power = power, searchInt = c(1e-6, 10))),",
     if (!is.null(margin)) "  agreement = size(ssdEqu(level = 2 * alpha, dprior = dp, power = power, margin = margin)),",
-    sprintf("  bf_replication = size(ssdBFr(level = 1/%s, dprior = dp, power = power)),", num(i$threshold)),
-    sprintf("  bf_sceptical = size(ssdBFs(level = 1/%s, dprior = dp, power = power))", num(i$threshold)),
+    sprintf("  bf_replication = size(ssdBFr(level = 1/%s, dprior = dp, power = power, paradox = FALSE)),", num(i$threshold)),
+    sprintf("  bf_sceptical = size(ssdBFs(level = 1/%s, dprior = dp, power = power, paradox = FALSE))", num(i$threshold)),
     "))",
     if (!is.null(margin)) c("",
       "# Too small to matter: the usual TOST at alpha (a 1 - 2 alpha interval), planned for no effect",

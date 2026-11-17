@@ -1,11 +1,13 @@
 # powerkit 0.78.13
 
-* App: field labels on the input screen are the same with explanations on
-  or off (`field_ui()` no longer swaps in `compact_field_label()`, which
-  now names fields only in the "still needed" line). The "Effect size:"
-  prefix on box headings (0.78.10) is replaced by one line under the
-  effect section's title, `effect_boxes_ui()`, naming in quotes the boxes
-  with an effect field that show with the default answers.
+* `replication_planning()` counts a replication or sceptical Bayes factor
+  as a success only in the original's direction: BayesRepDesign's
+  `ssdBFr()`, `porsBFr()`, `ssdBFs()` and `porsBFs()` are called with
+  `paradox = FALSE`, where the package defaults to `TRUE` (Departure 31,
+  `docs/conventions.md`). Sample sizes for those goals can rise sharply
+  under the shrunk belief (26,086 against 7,393 for an original d = 0.3
+  with 90 per group and tau = 0.1). The scripts, the validation chunk's
+  simulation and the app's result and methods paragraph follow.
 
 # powerkit 0.78.12
 
