@@ -230,6 +230,11 @@ form_examples$E75 <- c(list(glmm_groups = "none", X_label = "Classroom", X_level
                             glmm_rates = "2, 1.6", glmm_sd_person = "0.5", glmm_distribution = "poisson",
                             glmm_test = "likelihood_ratio"), closing_ok)
 
+# E78: Cochran's Q, whether each person attends after three kinds of
+# reminder.
+form_examples$E78 <- c(list(X_label = "Reminder", X_levels = "None, Text, Call", Y_label = "Attended",
+                            glmm_probabilities = "0.5, 0.6, 0.65", glmm_sd_person = "1"), closing_ok)
+
 # E68: pupils in classes in schools, whole schools assigned.
 form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score", three_outcome = "continuous",
                             three_assignment = "site", d = "0.25", icc_site = "0.1", icc_group = "0.05",

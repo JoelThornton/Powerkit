@@ -163,7 +163,7 @@ assumption_fields: [sd_ratio, welch_sd_ratio, raw_sd, raw_sd1, raw_sd2, raw_sd_d
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E77, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73, E39]
+calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E77, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73, E39, E78]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -190,6 +190,9 @@ simulated_times:
   E61: {power: 8, sample_size: 65, sensitivity: 40}
   E47: {power: 6, sample_size: 50, sensitivity: 60}
   E64: {power: 5, sample_size: 40, sensitivity: 50}
+  # Cochran's Q, measured 16 November 2026 on the repeated-measures card's
+  # example design (one core).
+  E78: {power: 11, sample_size: 190}
   E70: {power: 5, sample_size: 40}
   E30: {power: 4, sample_size: 35, sensitivity: 45}
   # E32: moderation takes about 4 seconds for power (an outcome in three
@@ -1701,6 +1704,32 @@ forms:
              choices: {cochran_q: "Cochran's Q"},
              default: cochran_q, default_source: "Cochran's Q, the usual test of one yes/no answer from each person in each of three or more conditions",
              help: "For three or more conditions; with two, Cochran's Q is McNemar's test, which has its own card. One yes/no answer per condition is too little to fit the mixed model's person SD, so each simulated study is tested with Cochran's Q, as researchers usually analyse such data. The answers are still drawn from the card's model: the SD above makes some people likelier to say yes in every condition, which is what makes the answers in different conditions go together. With people who differ, the share saying yes across everyone is a little closer to 50% than a typical person's chance; the check run shows those shares."}
+
+  # Cochran's Q (17 November 2026): its own card for the test that the
+  # repeated-measures card (E75) offers as a test version, so that a
+  # researcher who knows the test by name finds it under its name. The
+  # same engine route: the answers drawn from a logistic model with a
+  # random intercept for each person, each study tested with Cochran's Q.
+  E78:
+    methods_name: "Cochran's Q"
+    tool: Spower
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: repeated_glmm,
+           variables: {X: {type: within_factor}, "Y": {type: binary}}, population: {metric: probability, measurements: 1},
+           target_test: {effect: condition, method: cochran_q}}
+    groups:
+      - input: "The conditions and the outcome"
+        fields:
+          - {id: X_label, label: "What the conditions are (for example, the kind of reminder)", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The conditions, separated by commas (three or more)", type: levels, path: variables.X.levels, required: true,
+             help: "Every person answers once in each condition. With two conditions, use McNemar's test, which has its own card."}
+          - {id: Y_label, label: "The yes/no outcome (for example, attended)", type: text, path: variables.Y.label, required: true}
+      - input: "The chance of 'yes' in each condition, and how much people differ"
+        fields:
+          - {id: glmm_probabilities, writeup_label: "chance of yes in each condition", label: "The chance of 'yes' in each condition for a typical person, as proportions in the same order, separated by commas (for example, 0.30, 0.40, 0.50)", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "A typical person is one whose own tendency to say yes is average. With people who differ, the share saying yes across everyone is a little closer to 50% than this; the check run shows those shares."}
+          - {id: glmm_sd_person, writeup_label: "SD of people's tendency to say yes", label: "How much people differ in how likely they are to say yes: the SD of the person intercepts, on the log-odds scale (0 if they don't differ; for example, 1)", type: number, path: population.sd_person, effect: true, min: 0,
+             help: "This is what makes a person's answers in different conditions go together: people likelier to say yes in one condition are likelier in the others. The more people differ, the more the answers go together, and the fewer people you usually need for the same change in the chances. With an SD of 1, a person one SD above average has about 2.7 times (exp(1)) a typical person's odds of saying yes. Base it on earlier data where you can."}
 
   # A predictor measured on each item (simr), 1 November 2026.
   E67:
