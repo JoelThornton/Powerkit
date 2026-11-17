@@ -3931,3 +3931,38 @@ method chosen first. All follow JASP's default priors.
   simulated with fixed predictors, for two increases and one coefficient
   (`validation-log.md`, 17 November 2026); a published example is a
   placeholder for the maintainer.
+
+## 2026-11-17 · Pairwise rank comparisons after the Kruskal-Wallis and Friedman tests (E18, E54)
+
+- **What is offered.** Two kinds of follow-up for each rank test, as test
+  versions on the card. After the Kruskal-Wallis test (E18): a
+  Mann-Whitney test of each pair, or Dunn's test. After Friedman's test
+  (E54): a Wilcoxon signed-rank test of each pair, or Conover's test.
+  Each powers one pair, with the p-values of every pair adjusted
+  together (Holm, Bonferroni or none), as the t-test pairwise version
+  already does.
+- **The researcher chooses; neither is preselected.** The two kinds
+  answer slightly different questions. Separate tests of each pair use
+  only that pair's scores, so a pair's result does not depend on the
+  other groups. Dunn's and Conover's tests rank all the groups (or all of
+  each person's conditions) together, so a pair's result can change with
+  the other groups, and Conover's test, using only each person's ranks,
+  usually has less power (at n 30 with normal scores, 0.58 against the
+  signed-rank tests' 0.69). They are JASP's follow-ups to these tests,
+  and researchers who will report them need to plan for them. The choice
+  notes on the form say this; the method is the one the researcher will
+  report.
+- **Backends.** Simulated with Spower by powerkit's own experiment
+  `p_rank_pairs()`: `stats::wilcox.test()` and `stats::p.adjust()` for the
+  separate tests, PMCMRplus's `kwAllPairsDunnTest()` and
+  `frdAllPairsConoverTest()` (its default t distribution) for the others.
+  Scores are drawn in the shape the researcher chooses, as for the
+  omnibus rank tests. Equal groups only, as for the Kruskal-Wallis card's
+  pairwise t-tests.
+- **Not built:** the smallest detectable effect, which no pairwise
+  version offers yet (the t-test one included), and unequal groups.
+- **Validation.** The rank chunk's new file checks each test against a
+  simulation written out separately (Dunn's z from mean ranks,
+  Mann-Whitney and signed-rank tests with `wilcox.test()`, Conover's test
+  on `MASS::mvrnorm()` scores) and the Type I error of each test and
+  shape; a published example is left for the maintainer to transcribe.

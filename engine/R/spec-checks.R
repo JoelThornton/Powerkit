@@ -260,7 +260,20 @@ spower_only <- function(spec) {
 # chosen shape, so they share this route (yuen_test()).
 rank_test <- function(spec) {
   isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "kruskal_wallis", "friedman", "jonckheere_terpstra",
-    "aligned_rank_transform", "yuen"))
+    "aligned_rank_transform", "yuen", "dunn", "conover"))
+}
+
+# Pairwise rank comparisons (17 November 2026): after the Kruskal-Wallis
+# test, a Mann-Whitney test of each pair or Dunn's test; after Friedman's
+# test, a signed-rank test of each pair or Conover's test. One pair's power
+# is planned, with the p-values of every pair adjusted together
+# (p_rank_pairs()).
+rank_pair_methods <- list(
+  oneway_between = c("mann_whitney", "dunn"),
+  oneway_within = c("wilcoxon_signed_rank", "conover")
+)
+rank_pairs_test <- function(spec) {
+  pairwise_comparison(spec) && isTRUE(spec$target_test$method %in% rank_pair_methods[[spec$template %||% ""]])
 }
 
 # Yuen's test of trimmed means (WRS2's yuen() for two groups, yuend() for
@@ -488,6 +501,11 @@ check_pairwise <- function(spec) {
     if (identical(tt$method, "t_test") && identical(spec$design, "factorial_anova")) {
       problems <- c(problems, "'target_test > method' \"t_test\" is for pairwise comparisons: set 'target_test > effect' to \"pairwise\".")
     }
+    if (isTRUE(tt$method %in% unlist(rank_pair_methods)) && identical(spec$design, "factorial_anova")) {
+      problems <- c(problems, sprintf(
+        "'target_test > method' \"%s\" compares pairs of %s: set 'target_test > effect' to \"pairwise\".", tt$method,
+        if (identical(spec$template, "oneway_within")) "conditions" else "groups"))
+    }
     return(problems)
   }
   if (identical(spec$template, "crossed_conditions")) {
@@ -498,8 +516,16 @@ check_pairwise <- function(spec) {
     return("Pairwise comparisons are available after a one-way ANOVA (between or within participants) only, so far.")
   }
   problems <- character()
-  if (!identical(tt$method, "t_test")) {
-    problems <- c(problems, "Pairwise comparisons are t-tests: set 'target_test > method' to \"t_test\".")
+  allowed <- c("t_test", rank_pair_methods[[spec$template]])
+  if (!isTRUE(tt$method %in% allowed)) {
+    problems <- c(problems, sprintf(
+      "Pairwise comparisons here are %s: set 'target_test > method' to one of %s.",
+      if (identical(spec$template, "oneway_within")) {
+        "paired t-tests, signed-rank tests of each pair or Conover's test"
+      } else {
+        "t-tests, Mann-Whitney tests of each pair or Dunn's test"
+      },
+      paste(sprintf("\"%s\"", allowed), collapse = ", ")))
   }
   # Partial eta-squared: check_eta_squared_anova() says the means are needed.
   levels <- unlist(spec$variables$A$levels)
@@ -521,7 +547,9 @@ check_pairwise <- function(spec) {
 # person's and must be at least 0 and below 1; the effect is given by the
 # condition means.
 check_friedman <- function(spec) {
-  if (!identical(spec$target_test$method, "friedman")) {
+  # Pairwise rank comparisons of conditions draw their scores as Friedman's
+  # test does.
+  if (!identical(spec$target_test$method, "friedman") && !(rank_pairs_test(spec) && identical(spec$template, "oneway_within"))) {
     return(character())
   }
   problems <- character()
@@ -532,7 +560,7 @@ check_friedman <- function(spec) {
   r <- spec$population$r
   if (is.numeric(r) && length(r) == 1 && (r < 0 || r >= 1)) {
     problems <- c(problems, paste0(
-      "For Friedman's test, the correlation between conditions ('population > r') must be at least 0 and below 1: ",
+      "For Friedman's test and its pairwise comparisons, the correlation between conditions ('population > r') must be at least 0 and below 1: ",
       "powerkit draws each score as the person's own level plus a deviation, so the correlation is the share of ",
       "the variance that is the person's."))
   }
@@ -571,7 +599,11 @@ check_within_covariance <- function(spec) {
       "from partial eta-squared powerkit assumes sphericity (pwrss's epsilon = 1)."))
   }
   if (several && !spec$target_test$method %in% c("anova_f", "t_test")) {
-    problems <- c(problems, "An SD per condition or a correlation per pair is available for the F test and pairwise comparisons; Friedman's test takes one of each.")
+    problems <- c(problems, if (rank_pairs_test(spec)) {
+      "An SD per condition or a correlation per pair is available for the F test and paired t-tests; the rank tests of pairs of conditions take one of each, as Friedman's test does."
+    } else {
+      "An SD per condition or a correlation per pair is available for the F test and paired t-tests; Friedman's test takes one of each."
+    })
   }
   if (length(sds) > 1 && length(sds) != k) {
     problems <- c(problems, sprintf("'population > sd' should have one SD per condition (%d); it has %d.", k, length(sds)))

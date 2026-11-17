@@ -2479,20 +2479,26 @@ forms:
              choices: {welch_f: "Welch's ANOVA", anova_f: "Classical one-way ANOVA",
                        kruskal_wallis: "Kruskal-Wallis test",
                        t_test: "Pairwise t-tests",
+                       mann_whitney: "Pairwise rank comparisons: a Mann-Whitney test of each pair",
+                       dunn: "Pairwise rank comparisons: Dunn's test (JASP's follow-up to the Kruskal-Wallis test)",
                        bayes_factor: "Bayes factor ANOVA"},
-             sets: {t_test: [{path: target_test.effect, value: pairwise}]},
+             sets: {t_test: [{path: target_test.effect, value: pairwise}], mann_whitney: [{path: target_test.effect, value: pairwise}],
+                    dunn: [{path: target_test.effect, value: pairwise}]},
              default: welch_f, default_source: "Welch's F, as Delacre, Leys, Mora and Lakens (2019) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses little power when they don't. G*Power and Superpower plan for the classical F test",
-             choice_notes: {bayes_factor: "Uses the default analysis prior and equal groups; choose the evidence threshold and prior settings below to match the planned Bayesian analysis.", kruskal_wallis: "Rank-based analysis, simulated; power depends on the score shape you choose.", t_test: "Simulates the selected pairwise comparison and applies the adjustment chosen below across all pairs.", welch_f: "Its power is worked out by formula (Levy's approximation, which Jan and Shieh, 2014, found within 1 percentage point of simulation), so the answer comes at once; you can choose a simulation instead below. With one SD for every group it needs only a few more people than the classical F test.",
+             choice_notes: {bayes_factor: "Uses the default analysis prior and equal groups; choose the evidence threshold and prior settings below to match the planned Bayesian analysis.", kruskal_wallis: "Rank-based analysis, simulated; power depends on the score shape you choose.", t_test: "Simulates the selected pairwise comparison and applies the adjustment chosen below across all pairs.",
+                            mann_whitney: "Each pair is compared on its own two groups' scores, so its result depends only on those two groups. Simulated, with the adjustment chosen below across all pairs; power depends on the score shape you choose.",
+                            dunn: "Compares pairs on the ranks of all the groups together, as JASP does after the Kruskal-Wallis test, so a pair's result can change with the other groups' scores. Choose it if that is the test you will report. Simulated, with the adjustment chosen below across all pairs.",
+                            welch_f: "Its power is worked out by formula (Levy's approximation, which Jan and Shieh, 2014, found within 1 percentage point of simulation), so the answer comes at once; you can choose a simulation instead below. With one SD for every group it needs only a few more people than the classical F test.",
                             anova_f: "Choose the classical F test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or an ANOVA that is one part of a larger model assuming equal spreads. Reporting Welch's F beside it is good practice. Its power is worked out exactly (Superpower), with no simulation."}}
           - {id: comparison, label: "The pair you'll compare: two groups' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
-             shown_if: {field: test_version, is: t_test},
-             help: "The t-test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}
+             shown_if: {field: test_version, is_one_of: [t_test, mann_whitney, dunn]},
+             help: "This pair's test is the one powered; every pair is still compared, and the adjustment counts them all."}
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
-             shown_if: {field: test_version, is: t_test},
+             shown_if: {field: test_version, is_one_of: [t_test, mann_whitney, dunn]},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
              default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
-             shown_if: {field: test_version, is: kruskal_wallis},
+             shown_if: {field: test_version, is_one_of: [kruskal_wallis, mann_whitney, dunn]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_kruskal.test(), Spower 0.7)",
              help: "Every group has the same shape; the groups differ only by a shift (their means). A rank test's power depends on this shape; the parametric test's figure assumes normal scores."}
@@ -2568,9 +2574,15 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "One-way repeated-measures ANOVA (F test)", friedman: "Friedman's test (rank-based), simulated",
-                       t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
-             sets: {t_test: [{path: target_test.effect, value: pairwise}]},
-             default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)"}
+                       t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated",
+                       wilcoxon_signed_rank: "Pairwise rank comparisons: a Wilcoxon signed-rank test of each pair of conditions, simulated",
+                       conover: "Pairwise rank comparisons: Conover's test (JASP's follow-up to Friedman's test), simulated",
+                       bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
+             sets: {t_test: [{path: target_test.effect, value: pairwise}], wilcoxon_signed_rank: [{path: target_test.effect, value: pairwise}],
+                    conover: [{path: target_test.effect, value: pairwise}]},
+             default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)",
+             choice_notes: {wilcoxon_signed_rank: "Each pair is compared on the two conditions' own scores (each person's difference between them), so its result depends only on those two conditions. Power depends on the score shape you choose; the adjustment chosen below covers all the pairs.",
+                            conover: "Ranks each person's scores across all the conditions and compares pairs on those ranks, as JASP does after Friedman's test. With only the order of a person's scores to go on it usually has less power than a signed-rank test of each pair, and a pair's result can change with the other conditions' scores. Choose it if that is the test you will report."}}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
@@ -2583,15 +2595,15 @@ forms:
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of each person's scores around their own level", type: select, path: population.score_shape, required: true,
-             shown_if: {field: test_version, is: friedman},
+             shown_if: {field: test_version, is_one_of: [friedman, wilcoxon_signed_rank, conover]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, as the ANOVA assumes",
              help: "Each score is the condition's mean, the person's own level and a deviation of this shape; the correlation between conditions is the share that is the person's, so it must be at least 0. Conditions differ only by a shift."}
           - {id: comparison, label: "The pair you'll compare: two conditions' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
-             shown_if: {field: test_version, is: t_test},
-             help: "The t-test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}
+             shown_if: {field: test_version, is_one_of: [t_test, wilcoxon_signed_rank, conover]},
+             help: "This pair's test is the one powered; every pair is still compared, and the adjustment counts them all."}
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
-             shown_if: {field: test_version, is: t_test},
+             shown_if: {field: test_version, is_one_of: [t_test, wilcoxon_signed_rank, conover]},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
              default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
     extra:
