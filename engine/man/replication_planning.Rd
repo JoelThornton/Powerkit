@@ -30,7 +30,8 @@ replication_planning(
   original_prior = NULL,
   original_effect_type = "d",
   original_r = NULL,
-  original_f = NULL
+  original_f = NULL,
+  alternative = "two.sided"
 )
 }
 \arguments{
@@ -51,7 +52,8 @@ two groups.}
 \item{original_alpha}{The original study's two-sided significance
 level (for small telescopes' d33).}
 
-\item{alpha}{The replication's two-sided significance level.}
+\item{alpha}{The replication's significance level: two-sided by
+default, one-sided in the original's direction with \code{alternative = "one.sided"}.}
 
 \item{power}{The chance of success the sample sizes aim for.}
 
@@ -90,15 +92,18 @@ Bayes factor t-test, for \code{"two_groups"}, \code{"one_sample"} and
 or \code{"posterior"} (a posterior from a vague or default prior, whose mean
 is \code{original_effect} and whose SD is \code{original_se}, or whose credible
 interval is \code{original_ci}). Either Bayesian route leaves out small
-telescopes and, for a t-test, adds the original's Bayes factor test
-repeated (\code{bf_repeat}, bfpwr) and evidence for no effect (\code{bf_null}).}
+telescopes. For every t-test original the plan adds a default Bayes
+factor t-test (bfpwr): evidence for an effect (\code{bf_repeat}, the
+original's own test for a Bayesian original) and for no effect
+(\code{bf_null}).}
 
 \item{original_bf}{The original's Bayes factor, as BF10 (evidence for an
 effect over none).}
 
 \item{original_prior_scale}{The scale of the original's Cauchy prior on
 the standardised effect (0.707 is the usual default), for reading its
-Bayes factor and for repeating its test.}
+Bayes factor and for the replication's Bayes factor t-test (JASP's
+default for an original analysed by a significance test).}
 
 \item{original_prior}{For \code{"posterior"}: \code{"vague"} or \code{"default"}; an
 informative prior's posterior is refused.}
@@ -118,6 +123,14 @@ between the two measurements in the original study.}
 \item{original_f}{For a generic design: an F statistic with one
 numerator degree of freedom, whose square root is the estimate's
 |t| (in place of \code{original_statistic}).}
+
+\item{alternative}{\code{"two.sided"} (the default) or \code{"one.sided"}. The
+significance goal is BayesRepDesign's one-sided test in the original's
+direction at \code{alpha / 2} (a two-sided test at \code{alpha} that also needs
+the original's direction) or, one-sided, at \code{alpha}; the pooled goal
+is at that level squared. Agreement, too small to matter (TOST at
+\code{alpha}), small telescopes (one-sided at \code{alpha}) and the Bayes factor
+goals are the same either way.}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the

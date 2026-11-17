@@ -812,7 +812,7 @@ factors; both are offered.
 | --- | --- | --- | --- |
 | G\*Power | No replication planning; a replication is planned as an ordinary test with the original's effect | — | — |
 | BayesRepDesign (Pawel, Consonni & Held, 2026) | `ssdSig()`, `ssdMeta()`, `ssdEqu()`, `ssdTOST()`, `ssdBFr()`, `ssdBFs()` and their `pors*()` chances, on the normal-normal hierarchical model: the effect estimate is normal with a known standard error | The original estimate and its standard error; a design prior (`designPrior()`, conditional, predictive or empirical Bayes) with a heterogeneity SD `tau` | Levels as the user passes them; `se2n(se, unitSD = 2)` turns a standard error into a total sample size for a standardised mean difference |
-| **powerkit** | `replication_planning()` (Labs, from 8 November 2026): every goal judged against the original's effect is BayesRepDesign's, under all three design priors; small telescopes is the card's own pwr and pwrss calculation (above), so the two agree [powerkit] | d (two groups, one sample), d_z (pairs) or r (on Fisher's z); the original's standard error from the paper's equation 9 for two groups, 1/sqrt(n) for one sample or pairs, 1/sqrt(n - 3) for r | The paper's worked levels: the two-trials rule at one-sided alpha/2, the pooled estimate at (alpha/2)^2, agreement by a (1 - 2 alpha) interval for the difference, Bayes factors at 1/threshold (10 by default), and TOST at alpha (BayesRepDesign's `level` set to 2 alpha, because `porsTOST()` uses `qnorm(1 - level/2)`; `upstream-questions.md`). `tau` applies to the uncertain and shrunk priors only: the conditional prior is a point mass. Two equal groups in the replication |
+| **powerkit** | `replication_planning()` (Labs, from 8 November 2026): every goal judged against the original's effect is BayesRepDesign's, under all three design priors; small telescopes is the card's own pwr and pwrss calculation (above), so the two agree [powerkit] | d (two groups, one sample), d_z (pairs) or r (on Fisher's z); the original's standard error from the paper's equation 9 for two groups, 1/sqrt(n) for one sample or pairs, 1/sqrt(n - 3) for r | The paper's worked levels: the two-trials rule at one-sided alpha/2, the pooled estimate at (alpha/2)^2, agreement by a (1 - 2 alpha) interval for the difference, Bayes factors at 1/threshold (10 by default), and TOST at alpha (BayesRepDesign's `level` set to 2 alpha, because `porsTOST()` uses `qnorm(1 - level/2)`; `upstream-questions.md`). `tau` applies to the uncertain and shrunk priors only: the conditional prior is a point mass. Two equal groups in the replication. A one-sided option (17 November 2026) puts the two-trials rule at alpha and the pooled estimate at alpha squared, BayesRepDesign's levels for a one-sided test in the original's direction; two-sided is the default |
 
 **The normal approximation against the t-test cards.** With the "as
 reported" prior and no heterogeneity, the significance goal is a classical
@@ -1577,6 +1577,16 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   powerkit's example, `inst/specs/item_predictor.json`: 60 items, a
   slope of -15 ms per SD of word frequency), 48.9% against 54.1% at 10
   participants and 80.1% against 81.6% at 30 (1,000 simulated data sets).
+- **Kenward-Roger as a choice (from 17 November 2026):** with a score,
+  each of these cards also offers Kenward and Roger's degrees of freedom
+  (`target_test > df_method` "kenward_roger"; simr's method "kr", or
+  lmerTest's `ddf = "Kenward-Roger"` for three or more conditions), the
+  same departure from simr's z test. With E33's example at 20
+  participants, on the same 500 simulated data sets: 27.0% with
+  Kenward-Roger, 27.4% with Satterthwaite and 29.2% with z, the two
+  corrections reaching the same decision in 99.6% of them (simr 1.0.11,
+  pbkrtest 0.5.5). `test-backend-mixed-kr.R` checks it replication for
+  replication against simr's `fixed("cond", "kr")`.
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
@@ -2031,6 +2041,43 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
 - **Shown to users:** on the E69 result whenever the ICC's exact power is
   used (`app/routing/R/results.R`, `departures_for()`), and in the methods
   paragraph.
+
+### 30. Replication plans: a criterion that can show absence is reported by default
+
+- **Established convention:** a replication is planned for one criterion,
+  usually a significant result in the original's direction (G\*Power, or
+  BayesRepDesign's `ssdSig()` with the paper's other criteria as
+  alternatives); a non-significant replication then says nothing about
+  whether the effect is absent.
+- **powerkit:** the replication plan asks the researcher's purpose, plans
+  the sample size for one main criterion, and starts with "Also report:
+  whether the effect is absent" ticked (from 17 November 2026). With a
+  Bayes factor main criterion this is the default Bayes factor for no
+  effect (bfpwr, the original's test run the other way) where the
+  original was a t-test, and the replication Bayes factor (no effect
+  against the original's) for another design; with any other main
+  criterion it is the equivalence test (TOST)
+  against the smallest effect that matters, d33 (Simonsohn, 2015) when
+  none is entered. Its chance at the main criterion's sample size is
+  shown beside the main one. Unticking it gives the single-criterion
+  plan.
+- **Why:** a replication that fails to reach significance is commonly
+  misread as evidence of absence; reporting a criterion that can show
+  absence, with its chance planned in advance, lets either result be
+  interpreted (Simonsohn, 2015, `Simonsohn2015_telescopes`; Pawel,
+  Consonni and Held, 2026, `Pawel2026_replication`, whose equivalence
+  criterion this is).
+- **Size:** the sample size is unchanged, because it comes from the main
+  criterion alone: for an original d = 0.5 with 40 per group, the shrunk
+  belief and variation 0.05, the significance criterion asks for the same
+  number with and without the absence criterion; the plan adds one line,
+  the equivalence test's chance at that number
+  (`app/routing/tests/testthat/test-replication.R`, "the purpose picks
+  the main criterion").
+- **Shown to users:** on the replication plan's result (the table of
+  chances at the main sample size, and a note when no bound is available)
+  and in the methods paragraph, which names each criterion also reported
+  and its chance.
 
 ## Known differences
 
@@ -2952,8 +2999,11 @@ every PROCESS option is not established.
   means (Shieh's method) and from the same partial eta-squared (G*Power's)
   differ a little"). A pre-release comparison found 90 against
   G\*Power's 87 for a three-group example.
-- **Shown to users:** on every E23 result (`app/routing/forms.yaml`,
-  `known_differences`, key "15").
+- **Shown to users:** on every E23 result planned with measured covariates
+  (`app/routing/forms.yaml`, `known_differences`, key "15"). Since 17
+  November 2026 the card asks whether the covariates are measured or set
+  by the design; with fixed covariates, or an effect given as partial
+  eta-squared, powerkit plans as G*Power does and the note is not shown.
 - **Methods paragraph:** `known_differences_methods`, key "15".
 
 ## All-tests sufficient power target under unknown dependence

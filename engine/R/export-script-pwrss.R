@@ -13,6 +13,7 @@ pwrss_script <- function(spec, result) {
     "",
     "# Inputs ----",
     pwrss_script_inputs(spec),
+    if (ancova_fixed(spec)) ancova_fixed_script_lines(spec),
     goal_inputs(spec, result),
     "",
     "# Power at a total sample size, from pwrss's formula.",
@@ -257,6 +258,38 @@ pwrss_script_inputs <- function(spec) {
   )
 }
 
+# An ANCOVA with covariates fixed by the design (ancova_fixed(),
+# backend-pwrss.R): the standardised effect gamma^2 of Shieh's (2020)
+# equations from the adjusted means, then pwrss's power.f.ancova() from the
+# partial eta-squared gamma^2 / (1 + gamma^2), as G*Power takes it.
+ancova_fixed_script_lines <- function(spec) {
+  c(
+    "",
+    "# Covariates fixed by the design: the F test's noncentrality is N gamma^2,",
+    "# as G*Power takes it, where gamma^2 is the effect over the error variance",
+    "# after adjusting (Shieh, 2020): (C mu)' (C Q C')^-1 (C mu) / (sd^2 (1 - R^2)),",
+    "# with Q = the number of cells for equal groups.",
+    if (identical(spec$template, "oneway_ancova")) {
+      "contrasts <- factorial.contrasts(factor.levels = groups, intercept = FALSE, verbose = 0)$contrast.matrix"
+    },
+    "difference <- contrasts %*% means",
+    "q <- diag(length(means), length(means)) # N / n in each cell: the number of cells, for equal groups",
+    "gamma2 <- as.numeric(t(difference) %*% solve(contrasts %*% q %*% t(contrasts)) %*% difference) / (sd^2 * (1 - r2_covariates))",
+    "eta_squared <- gamma2 / (1 + gamma2) # the effect's partial eta-squared"
+  )
+}
+
+ancova_fixed_call <- function(spec) {
+  design <- eta_anova_design(spec)
+  list(head = "power.f.ancova( # ANCOVA with fixed covariates, as in G*Power", args = c(
+    "eta.squared = eta_squared",
+    if (identical(spec$template, "oneway_ancova")) "factor.levels = groups" else "factor.levels = levels",
+    if (!is.null(design$target)) sprintf("target.effect = %s", r_code(design$target)),
+    "k.covariates = covariates", "n.total = n_total # equal groups", "alpha = alpha",
+    "ceil.n = FALSE", "verbose = 0"
+  ))
+}
+
 pwrss_script_call_lines <- function(spec, inputs) {
   call <- switch(
     pwrss_key(spec),
@@ -359,12 +392,12 @@ pwrss_script_call_lines <- function(spec, inputs) {
       "r.squared = 0", "k.covariates = 0 # no covariates (pwrss defaults this to 1)",
       "alpha = alpha", "adjust.alpha = \"none\"", "ceil.n = FALSE", "verbose = 0"
     )),
-    oneway_ancova = list(head = "power.f.ancova.shieh( # one-way ANCOVA, Shieh's method", args = c(
+    oneway_ancova = if (ancova_fixed(spec)) ancova_fixed_call(spec) else list(head = "power.f.ancova.shieh( # one-way ANCOVA, Shieh's method", args = c(
       "mu.vector = means", "sd.vector = rep(sd, groups) # the same SD in every group",
       "n.vector = rep(n_total / groups, groups) # equal groups", "r.squared = r2_covariates",
       "k.covariates = covariates", "alpha = alpha", "ceil.n = FALSE", "verbose = 0"
     )),
-    factorial_ancova = list(head = "power.f.ancova.shieh( # two-way ANCOVA, Shieh's method", args = c(
+    factorial_ancova = if (ancova_fixed(spec)) ancova_fixed_call(spec) else list(head = "power.f.ancova.shieh( # two-way ANCOVA, Shieh's method", args = c(
       "mu.vector = means", "sd.vector = rep(sd, prod(levels)) # the same SD in every cell",
       "n.vector = rep(n_total / prod(levels), prod(levels)) # equal cells", "factor.levels = levels",
       "r.squared = r2_covariates", "k.covariates = covariates", "contrast.matrix = contrasts",

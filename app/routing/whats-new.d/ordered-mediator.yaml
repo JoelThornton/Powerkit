@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "Plan mediation through a mediator in ordered categories"
+    text: "The card for mediation when a mediator isn't a score now also takes a mediator answered in three or more ordered categories, such as a rating from \"unlikely\" to \"certain\". Powerkit treats the categories as cut from an underlying score, the usual structural equation model for an ordered variable, and tests the indirect effect through that score. You give the share of people in each category and how X and the outcome relate to the underlying score."

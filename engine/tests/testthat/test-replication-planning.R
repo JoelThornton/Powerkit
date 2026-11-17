@@ -153,7 +153,7 @@ test_that("inputs that can't be planned get plain words", {
 
 test_that("the result records what calculated it", {
   plan <- two_groups()
-  expect_setequal(vapply(plan$packages, `[[`, "", "name"), c("BayesRepDesign", "pwr", "pwrss"))
+  expect_setequal(vapply(plan$packages, `[[`, "", "name"), c("BayesRepDesign", "pwr", "pwrss", "bfpwr"))
   expect_match(plan$functions_used[["significance"]], "ssdSig\\(level = 0.025\\)")
   expect_match(plan$functions_used[["negligible"]], "level = 0.1")
   expect_match(plan$functions_used[["small_telescopes"]], "pwr.t2n.test")
@@ -182,10 +182,65 @@ test_that("the R script gives the planner's numbers with the packages alone", {
   }
 })
 
+test_that("the script for the chosen criteria gives the main sample size and the others' chances at it", {
+  cases <- list(
+    list(args = list("two_groups", 0.5, original_n1 = 40, original_n2 = 40, tau = 0.05, smallest_effect = 0.3),
+      goal = "significance", also = c("negligible", "bf_null", "small_telescopes", "bf_replication"), prior = "shrunk"),
+    list(args = list("paired", 0.45, original_n = 36, smallest_effect = 0.2, alternative = "one.sided"),
+      goal = "bf_repeat", also = c("bf_null", "significance", "pooled"), prior = "uncertain"),
+    list(args = list("correlation", 0.3, original_n = 80, smallest_effect = 0.1),
+      goal = "negligible", also = c("small_telescopes", "agreement", "bf_sceptical"), prior = "as_reported"),
+    list(args = list("generic", 1.8, original_n = 200, original_se = 0.25, scale = "log", smallest_effect = 1.2, tau = 0.05),
+      goal = "bf_replication", also = c("negligible", "significance"), prior = "uncertain")
+  )
+  for (case in cases) {
+    plan <- do.call(replication_planning, case$args)
+    script <- replication_planning_script(plan, case$goal, case$also, case$prior)
+    env <- new.env()
+    chances <- suppressWarnings(eval(parse(text = script), envir = env))
+    n <- goal_n(plan, case$goal, if (all(is.na(plan$goals$prior[plan$goals$goal == case$goal]))) NA else case$prior)
+    expect_equal(env$n, n, info = case$args[[1]])
+    at <- do.call(replication_planning, c(case$args, list(n = n)))$at_n
+    for (goal in case$also) {
+      row <- at[at$goal == goal & (is.na(at$prior) | at$prior %in% case$prior), ]
+      expect_equal(chances[[goal]], row$chance[1], tolerance = 1e-6, info = paste(case$args[[1]], goal))
+    }
+    # Only what was chosen: no table of every goal.
+    expect_no_match(script, "sapply(priors", fixed = TRUE)
+  }
+  plan <- do.call(replication_planning, cases[[1]]$args)
+  expect_no_match(replication_planning_script(plan, "significance", "pooled"), "telescope|bfpwr")
+  expect_error(replication_planning_script(plan, "agreement_typo"), "one of the plan's goals")
+  expect_error(replication_planning_script(plan, "significance", prior = "hopeful"), "as_reported")
+})
+
+test_that("a one-sided replication tests in the original's direction at alpha", {
+  two <- replication_planning("two_groups", 0.5, original_n1 = 40, original_n2 = 40, smallest_effect = 0.3, alpha = 0.1)
+  one <- replication_planning("two_groups", 0.5, original_n1 = 40, original_n2 = 40, smallest_effect = 0.3,
+    alternative = "one.sided")
+  # One-sided at .05 is the two-sided rule at .10: the same level, alpha / 2.
+  for (goal in c("significance", "pooled")) {
+    expect_equal(goal_n(one, goal, "uncertain"), goal_n(two, goal, "uncertain"), info = goal)
+  }
+  usual <- replication_planning("two_groups", 0.5, original_n1 = 40, original_n2 = 40, smallest_effect = 0.3)
+  expect_lt(goal_n(one, "significance", "uncertain"), goal_n(usual, "significance", "uncertain"))
+  # The rest are the same either way.
+  for (goal in c("negligible", "small_telescopes", "bf_null")) {
+    expect_equal(goal_n(one, goal), goal_n(usual, goal), info = goal)
+  }
+  expect_equal(goal_n(one, "agreement", "uncertain"), goal_n(usual, "agreement", "uncertain"))
+  expect_match(one$functions_used[["significance"]], "ssdSig\\(level = 0.05\\)")
+  expect_match(replication_planning_script(one), "level <- alpha  # one-sided", fixed = TRUE)
+  expect_error(replication_planning("paired", 0.5, original_n = 30, alternative = "less"), "one.sided")
+})
+
 # Any design whose focal effect is one number (queue item 21): the
 # original's standard error scaled by sqrt(n_original / n).
+# Small telescopes and the default Bayes factor t-test need the original's
+# t-test, so the generic route has neither.
+t_test_only <- c("small_telescopes", "bf_repeat", "bf_null")
 generic_goals <- function(plan) {
-  g <- plan$goals[plan$goals$goal != "small_telescopes", c("goal", "prior", "n", "reason")]
+  g <- plan$goals[!plan$goals$goal %in% t_test_only, c("goal", "prior", "n", "reason")]
   rownames(g) <- NULL
   g
 }
@@ -196,9 +251,9 @@ test_that("the generic route gives one sample's and pairs' exact tables", {
     generic <- replication_planning("generic", 0.45, original_n = 36, original_se = 1 / sqrt(36),
       smallest_effect = 0.2, tau = 0.1, n = 70)
     expect_equal(generic_goals(generic), generic_goals(exact))
-    keep <- exact$at_n$goal != "small_telescopes"
+    keep <- !exact$at_n$goal %in% t_test_only
     expect_equal(generic$at_n$chance, exact$at_n$chance[keep])
-    expect_false("small_telescopes" %in% generic$goals$goal)
+    expect_false(any(t_test_only %in% generic$goals$goal))
   }
 })
 

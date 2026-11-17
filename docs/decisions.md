@@ -4051,3 +4051,144 @@ to 32).
 - **Still to decide:** the package for group-sequential designs with
   interim analyses (rpact or gsDesign), which replications and other
   expensive studies need (`next.md` item 15).
+
+## 2026-11-17 · The ANCOVA asks whether the covariates are measured or fixed (E23)
+
+- **What changes.** E23 asks how the covariates come about: measured on
+  each person (a before score, age) or set by the design (doses or times
+  chosen in advance). Neither answer is preselected. Until now the card
+  always used Shieh's (2020) method, for measured covariates, and named
+  G*Power's fixed-covariate answer only as a known difference; a
+  researcher whose covariate is fixed by the design couldn't plan for it.
+  This is the first fix of `next.md` item 27's audit of decisions made for
+  the researcher.
+- **Measured** (`target_test > covariate_model` "random", the engine's
+  default for older specs): Shieh's method, pwrss's
+  `power.f.ancova.shieh()`, unchanged.
+- **Fixed** ("fixed"): the F test's noncentrality is N gamma^2, as
+  G*Power takes it, where gamma^2 is the standardised effect of Shieh's
+  equations, (C mu)' (C Q C')^-1 (C mu) / (SD^2 (1 - R-squared)), computed
+  in the engine as pwrss computes it internally (unexported), then pwrss's
+  `power.f.ancova()` from the partial eta-squared gamma^2 / (1 + gamma^2).
+  For one factor it equals pwrss's `power.f.ancova.keppel()` (checked to
+  1e-10); for two factors it equals each effect's sum of squares of the
+  adjusted cell means, and agrees with lm()'s F test on simulated studies
+  with fixed covariate values (validation chunk ancova).
+- **Partial eta-squared.** An effect given as partial eta-squared was
+  already planned with fixed covariates (power.f.ancova()), but its
+  methods paragraph named Shieh's method and showed Known difference 15.
+  It now names the fixed-covariate F test and drops that note; giving
+  partial eta-squared with "random" is refused with a plain message.
+- **Size.** Adjusted means 20, 18 and 16, SD 6, one covariate explaining
+  36%, 90 people: 81.8% fixed against 81.3% measured.
+
+## 2026-11-17 · The mixed-model cards offer Kenward and Roger's degrees of freedom (E33, E41, E62, E63, E67, E68)
+
+- **What changes.** The six cards simulated with simr and a score outcome
+  ask which degrees of freedom the t or F test uses: Satterthwaite's
+  (lmerTest), preselected as decided on 30 October 2026 (Departure 16), or
+  Kenward and Roger's (pbkrtest). Both are small-sample corrections that
+  researchers report from lme4 models; until now a researcher who would
+  report Kenward-Roger had no way to plan for it. The second fix of
+  `next.md` item 27's audit of decisions made for the researcher.
+- **How.** `target_test > df_method` ("satterthwaite" or "kenward_roger").
+  With Kenward-Roger, simr's `fixed(term, "kr")` replaces `"sa"`; with
+  three or more conditions (E63), lmerTest's `anova()` and `contest()`
+  take `ddf = "Kenward-Roger"`. pbkrtest's version joins the result's
+  record, and the exported script loads it. A yes/no outcome, tested by
+  glmer's Wald or likelihood-ratio test, refuses the choice.
+- **Why Satterthwaite stays preselected.** It is the maintainer's earlier
+  decision and the p-value lmerTest prints by default; Kenward-Roger is
+  slower to simulate (each simulated study refits pbkrtest's adjusted
+  covariance matrix). The form says both usually give similar p-values
+  and to plan with the one that will be reported.
+- **Size.** E33's example at 20 participants, the same 500 simulated
+  data sets: 27.0% with Kenward-Roger against 27.4% with Satterthwaite
+  (29.2% with simr's z test); the two reach the same decision in 99.6% of
+  them. A validation test in the mixed_model chunk compares the
+  Kenward-Roger route with `pbkrtest::KRmodcomp()` on independently
+  simulated studies.
+
+## 2026-11-17 · The input screen's headings with explanations on or off
+
+The 10 November decision (conventional names in compact mode) also
+swapped each box heading on the input screen for a short name with
+explanations off. That gave two boxes the same heading ("Effect size"
+for both the group means and the SD of a one-way ANOVA), while with
+explanations on no box said it took the effect size, and the screen
+never gave the analysis's standard name. Box headings are now the same
+in both modes, and a box with an effect field is headed "Effect size:"
+followed by its own title ("Effect size: the expected group means"). The
+input screen shows the card's "Standard name:" line under its plain
+title when explanations are on; with them off the heading is that name,
+as before. Field labels keep their compact versions.
+
+## 2026-11-17 · Replication plans start from the question
+
+Queue item 29, part 1 (the page and its criteria). A replication plan's
+Goals section now asks the researcher's purpose first: to confirm the
+original's effect, to settle whether it is there either way, or to test
+whether it is absent. Each purpose has a usual main criterion (the
+original's own test repeated where it was a Bayes factor, else
+significance; the default Bayes factor t-test, else the replication
+Bayes factor; the equivalence test), which the researcher can replace
+with any criterion the original allows. The sample size is the main
+criterion's, under one chosen belief about the true effect (with its
+uncertainty by default), and every criterion under "Also report" is
+given as its chance at that sample size, computed by the engine at that
+N. The table of every criterion under every belief stays, folded under
+the answer.
+
+- **A default Bayes factor t-test for p-value originals.** bfpwr's
+  goals for the Bayes factor t-test, for an effect and for no effect,
+  are offered for every t-test original (two groups, one sample, pairs),
+  at the default prior scale 0.707 (JASP's default; the card's), not
+  only when the original reported a Bayes factor. A researcher who
+  replicates a frequentist study can then plan a Bayes factor without
+  entering one the paper never reported.
+- **The criterion that can show absence** (Departure 30). With a Bayes
+  factor main criterion it is the Bayes factor for no effect where the
+  original was a t-test, otherwise the replication Bayes factor; with
+  any other main criterion, the equivalence test, whose bound is the
+  smallest effect that matters or, left blank, d33 (Simonsohn, 2015)
+  where the original was a t-test. Where neither is available, the plan
+  says what to enter.
+- **The smallest effect that matters and the evidence threshold** are
+  asked only when a chosen criterion uses them, and the quick answer
+  uses alpha .05 and power .80 when none are entered.
+- **References** follow the criteria chosen, not every criterion the
+  engine computed.
+- **Still to come (part 2):** a write-up with one sample size and a
+  registered-report design table, an R script that runs only the chosen
+  criteria, a one-sided option, alpha and power passed to the card, the
+  card opened in replication mode, and a step bar for the page.
+
+## 2026-11-17 · Replication plans: a study design table, a script for the chosen criteria, and a one-sided option
+
+Queue item 29, part 2a. Researchers preregistering a replication, or
+submitting it as a Registered Report, need its criteria written up as
+they will be tested.
+
+- **Study design table.** The write-up adds the table Registered Report
+  journals ask for: one row for each criterion in the plan, the main one
+  first, with the question (from the plan's purpose), the hypothesis,
+  the sampling plan (the main criterion's sample size, and the others'
+  chances at it), the analysis plan, what sets the test's sensitivity
+  (the belief about the true effect, the bound, the evidence threshold),
+  how each outcome will be read, and a cell for the theory, left for the
+  researcher.
+- **The script runs the chosen criteria only.**
+  `replication_planning_script()` takes the main criterion, the others
+  and the belief: it plans the main criterion's sample size under that
+  belief and gives each other criterion's chance at it, with the same
+  functions and levels as `replication_planning()` (tested to give its
+  numbers). Without them it gives every goal under every belief, as
+  before.
+- **One-sided.** `replication_planning(alternative = "one.sided")` tests
+  the significance goal at alpha, one-sided in the original's direction,
+  and the pooled goal at alpha squared; the default stays BayesRepDesign's
+  two-trials rule at alpha / 2 (a two-sided test at alpha that also needs
+  the original's direction). The other goals do not depend on it. The
+  plan asks only when significance or pooling is used, and the methods
+  paragraph and settings line say which was chosen. Checked against the
+  simulation of the method's model (`validation-log.md`).
