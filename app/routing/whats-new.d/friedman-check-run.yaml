@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "Fixed: Friedman's test with heavy-tailed scores"
+    text: "Planning Friedman's test with heavy-tailed scores often stopped with a message about an internal check failing. The check was too strict for scores with many extreme values; it now allows for them, and the test runs."
