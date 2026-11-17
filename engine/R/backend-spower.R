@@ -2098,14 +2098,29 @@ rank_check_run <- function(spec, args, seed) {
   pop <- spec$population
   if (identical(spec$template, "oneway_within")) {
     y <- call_backend("Spower", with_seed(seed, friedman_scores(args$n, args$means, args$r, args$shape)))
+    n <- nrow(y)
+    # Standard errors that hold for any shape, as in the check of Yuen's
+    # paired test below: an SD's allows for the scores' kurtosis (the
+    # variance of a log SD is about (kurtosis - 1) / (4 n)), and the average
+    # correlation's comes from the average of each pair's influence
+    # function, z1 z2 - r (z1^2 + z2^2) / 2. The normal-theory errors
+    # (1 / sqrt(2 n) and Fisher's z) are far too small for heavy-tailed
+    # deviations, which have no finite fourth moment, so the check failed
+    # by chance on about half of the seeds.
+    z <- scale(y)
+    pairs <- utils::combn(ncol(y), 2)
+    influence <- rowMeans(vapply(seq_len(ncol(pairs)), function(k) {
+      z1 <- z[, pairs[1, k]]; z2 <- z[, pairs[2, k]]
+      r_hat <- mean(z1 * z2)
+      z1 * z2 - r_hat * (z1^2 + z2^2) / 2
+    }, numeric(n)))
     within_r <- stats::cor(y)[upper.tri(diag(ncol(y)))]
-    r_row <- check_run_rows("correlation between two conditions (average)", args$r, mean(within_r), NA)
-    r_row$ok <- abs(atanh(mean(within_r)) - atanh(args$r)) <= 5 / sqrt(nrow(y) - 3)
+    kurtosis <- apply(y, 2, function(x) mean((x - mean(x))^4) / stats::var(x)^2)
     return(rbind(
-      check_run_rows(sprintf("mean of %s (SD units)", unlist(spec$variables$A$levels)), args$means, colMeans(y), 1 / sqrt(nrow(y))),
+      check_run_rows(sprintf("mean of %s (SD units)", unlist(spec$variables$A$levels)), args$means, colMeans(y), 1 / sqrt(n)),
       check_run_rows(sprintf("SD in %s (SD units)", unlist(spec$variables$A$levels)), rep(1, ncol(y)), apply(y, 2, stats::sd),
-        rep(1 / sqrt(2 * (nrow(y) - 1)), ncol(y))),
-      r_row
+        sqrt((kurtosis - 1) / (4 * n))),
+      check_run_rows("correlation between two conditions (average)", args$r, mean(within_r), stats::sd(influence) / sqrt(n))
     ))
   }
   if (art_within(spec)) {
