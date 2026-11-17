@@ -165,7 +165,9 @@
 #' the equivalence tests, metapower's z test, SEM, and the ordinal,
 #' survival, growth-curve and reliability tests). The random-effects
 #' meta-analysis's Hartung-Knapp test, the paired variances, the trend in
-#' proportions and d' search their effect by simulation, with a 95%
+#' proportions, d', the Jonckheere-Terpstra trend test, the factorial
+#' logistic regression, moderation by groups and the interrupted time
+#' series search their effect by simulation, with a 95%
 #' interval (`simulated_effect_sensitivity()`). Other simulated tests have no
 #' sensitivity analysis yet.
 #'

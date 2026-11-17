@@ -175,6 +175,10 @@ scale_from_curve <- function(points, target, level = 0.95) {
 #                                   between the highest and lowest
 #   d' in two conditions            the second condition's average d',
 #                                   the first's and the rest kept
+#   Jonckheere-Terpstra trend       the pattern of group means scaled about
+#                                   their mean, reported as the difference
+#                                   between the largest and smallest, the
+#                                   SD kept
 simulated_search_plan <- function(spec, n, power) {
   pop <- spec$population
   guess_from <- function(entered, otherwise) if (isTRUE(abs(entered) > 1e-8)) abs(entered) else otherwise
@@ -206,6 +210,106 @@ simulated_search_plan <- function(spec, n, power) {
       what = sprintf("difference between the highest and lowest groups' proportions, with the pattern you entered kept and scaled about its average (%s)", format(signif(centre, 3))),
       script_set = sprintf("  proportions <<- %s + x * (%s - %s)", r_code(centre), r_code(p), r_code(centre)),
       effect_script = sprintf("x * %s", r_code(spread))
+    ))
+  }
+  if (jonckheere_search(spec)) {
+    m <- as.numeric(unlist(pop$means))
+    centre <- mean(m)
+    spread <- max(m) - min(m)
+    return(list(
+      guess = 1,
+      set = function(s, x) { s$population$means <- as.list(centre + x * (m - centre)); s },
+      effect = function(x) x * spread,
+      effect_name = "mean_range",
+      what = sprintf("difference between the largest and smallest group means, in the outcome's units, with the pattern you entered kept and scaled about its average and the SD kept at %s", format(pop$sd %||% 1)),
+      script_set = sprintf("  means <<- (%s + x * (%s - %s)) / %s", r_code(centre), r_code(m), r_code(centre), r_code(pop$sd %||% 1)),
+      effect_script = sprintf("x * %s", r_code(spread))
+    ))
+  }
+  if (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) {
+    r <- as.numeric(unlist(pop$r_xy))
+    centre <- mean(r)
+    spread <- max(r) - min(r)
+    # The largest scale keeping every correlation within -0.99 to 0.99.
+    room <- min(ifelse(r > centre, (0.99 - centre) / (r - centre), ifelse(r < centre, (centre + 0.99) / (centre - r), Inf)))
+    return(list(
+      guess = 1, limit = room,
+      set = function(s, x) { s$population$r_xy <- as.list(centre + x * (r - centre)); s },
+      effect = function(x) x * spread,
+      effect_name = "r_range",
+      what = sprintf("difference between the largest and smallest group's correlation of %s with %s, with the pattern you entered kept and scaled about its average (%s) and the group means kept",
+        spec$variables$X$label %||% "X", spec$variables$Y$label %||% "Y", format(signif(centre, 3))),
+      script_set = sprintf("  r <<- %s + x * (%s - %s)", r_code(centre), r_code(r), r_code(centre)),
+      effect_script = sprintf("x * %s", r_code(spread))
+    ))
+  }
+  if (identical(spec$template, "its")) {
+    test <- spec$target_test$effect
+    if (identical(test, "both")) {
+      level <- pop$level_change %||% 0
+      slope <- pop$slope_change %||% 0
+      return(list(
+        guess = 1,
+        set = function(s, x) { s$population$level_change <- x * level; s$population$slope_change <- x * slope; s },
+        effect = function(x) x * level,
+        effect_name = "level_change",
+        what = sprintf("change in level at the intervention, with the change in trend scaled with it (%s per time point for each unit of level) and the rest you entered kept",
+          format(signif(slope / level, 3))),
+        script_set = c(sprintf("  level <<- x * %s", r_code(level)), sprintf("  slope <<- x * %s", r_code(slope))),
+        effect_script = sprintf("x * %s", r_code(level))
+      ))
+    }
+    slope_test <- identical(test, "slope")
+    entered <- if (slope_test) pop$slope_change %||% 0 else pop$level_change %||% 0
+    direction <- pwrss_search_direction(spec, entered)
+    return(list(
+      guess = guess_from(entered, pop$sigma * if (slope_test) 0.05 else 0.5),
+      set = function(s, x) {
+        if (slope_test) s$population$slope_change <- direction * x else s$population$level_change <- direction * x
+        s
+      },
+      effect = function(x) direction * x,
+      effect_name = if (slope_test) "slope_change" else "level_change",
+      what = sprintf("%s, in the outcome's units, with the rest you entered kept (errors' SD %s, autocorrelation %s)",
+        if (slope_test) "change in trend per time point after the intervention" else "change in level at the intervention",
+        format(pop$sigma), format(pop$rho %||% 0)),
+      script_set = sprintf("  %s <<- %s * x", if (slope_test) "slope" else "level", r_code(direction)),
+      effect_script = sprintf("%s * x", r_code(direction))
+    ))
+  }
+  if (logistic_factorial_search(spec)) {
+    design <- logistic_factorial_design(spec)
+    tested <- names(design$betas) %in% design$tested
+    model <- stats::model.matrix(~ A * B, design$cells)
+    index <- cbind(as.integer(design$cells$A), as.integer(design$cells$B))
+    at_scale <- function(x) {
+      logits <- drop(model %*% (design$betas * ifelse(tested, x, 1)))
+      p <- matrix(NA_real_, nlevels(design$cells$A), nlevels(design$cells$B))
+      p[index] <- stats::plogis(logits)
+      p
+    }
+    size <- logistic_factorial_contrast(spec, stats::qlogis(at_scale(1)))
+    effect <- spec$target_test$effect
+    return(list(
+      guess = 1,
+      set = function(s, x) {
+        p <- at_scale(x)
+        s$population$probabilities <- lapply(seq_len(nrow(p)), function(i) as.list(p[i, ]))
+        s
+      },
+      effect = function(x) exp(x * size),
+      effect_name = if (identical(effect, "interaction")) "ratio_of_odds_ratios" else "factorial_odds_ratio",
+      what = if (identical(effect, "interaction")) {
+        "largest ratio of odds ratios in any two levels of each factor, with the pattern of the interaction you entered kept and scaled, and the main effects kept"
+      } else {
+        sprintf("odds ratio between the levels of %s with the most and the fewest 'yes' (on the log-odds scale, averaged over %s), with the pattern you entered kept and scaled, and the other effects kept",
+          spec$variables[[if (identical(effect, "main_effect_A")) "A" else "B"]]$label %||% "the factor",
+          spec$variables[[if (identical(effect, "main_effect_A")) "B" else "A"]]$label %||% "the other factor")
+      },
+      # The script's coefficients (logistic_factorial_design()): the tested
+      # ones multiplied by x.
+      script_set = sprintf("  betas <<- %s * ifelse(%s, x, 1)", r_code(unname(design$betas)), r_code(tested)),
+      effect_script = sprintf("exp(x * %s)", r_code(size))
     ))
   }
   if (identical(spec$design, "signal_detection") && identical(spec$template, "dprime")) {
@@ -251,12 +355,46 @@ simulated_search_plan <- function(spec, n, power) {
 simulated_search_available <- function(spec) {
   (identical(spec$design, "meta_analysis") && identical(spec$template, "mean_effect") && hartung_knapp_test(spec)) ||
     (identical(spec$design, "basic_test") && isTRUE(spec$template %in% c("paired_variances", "proportion_trend"))) ||
-    (identical(spec$design, "signal_detection") && identical(spec$template, "dprime"))
+    (identical(spec$design, "signal_detection") && identical(spec$template, "dprime")) ||
+    jonckheere_search(spec) || logistic_factorial_search(spec) ||
+    (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) ||
+    identical(spec$template, "its")
+}
+
+logistic_factorial_search <- function(spec) {
+  identical(spec$design, "logistic_regression") && identical(spec$template, "factorial") && !is.null(spec$population$probabilities)
+}
+
+# The size of the factorial logistic effect tested, on the log-odds scale,
+# from the cells' log-odds (rows are A's levels): for a main effect the
+# largest difference between the factor's levels averaged over the other
+# factor; for the interaction the largest interaction contrast of any two
+# levels of each factor (the log of a ratio of odds ratios).
+logistic_factorial_contrast <- function(spec, logits) {
+  effect <- spec$target_test$effect
+  if (identical(effect, "main_effect_A")) return(diff(range(rowMeans(logits))))
+  if (identical(effect, "main_effect_B")) return(diff(range(colMeans(logits))))
+  pairs <- function(k) utils::combn(k, 2)
+  rows <- pairs(nrow(logits))
+  cols <- pairs(ncol(logits))
+  max(vapply(seq_len(ncol(rows)), function(i) max(vapply(seq_len(ncol(cols)), function(j) {
+    r <- rows[, i]
+    k <- cols[, j]
+    abs(logits[r[1], k[1]] - logits[r[2], k[1]] - logits[r[1], k[2]] + logits[r[2], k[2]])
+  }, numeric(1))), numeric(1)))
+}
+
+jonckheere_search <- function(spec) {
+  identical(spec$design, "factorial_anova") && identical(spec$template, "oneway_between") &&
+    identical(spec$target_test$method, "jonckheere_terpstra") && !is.null(spec$population$means)
 }
 
 # Whether the search scales the pattern entered (so a flat pattern can't
 # be searched).
-simulated_search_scales_pattern <- function(spec) identical(spec$template, "proportion_trend")
+simulated_search_scales_pattern <- function(spec) {
+  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || jonckheere_search(spec) || logistic_factorial_search(spec) ||
+    (identical(spec$template, "its") && identical(spec$target_test$effect, "both"))
+}
 
 simulated_effect_sensitivity <- function(spec, n, power, nrep, seed, cores = 1L, level = 0.95) {
   plan <- simulated_search_plan(spec, n, power)
