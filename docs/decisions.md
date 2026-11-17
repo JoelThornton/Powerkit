@@ -4025,3 +4025,60 @@ to 32).
 - **Still to decide:** the package for group-sequential designs with
   interim analyses (rpact or gsDesign), which replications and other
   expensive studies need (`next.md` item 15).
+
+## 2026-11-17 · The ANCOVA asks whether the covariates are measured or fixed (E23)
+
+- **What changes.** E23 asks how the covariates come about: measured on
+  each person (a before score, age) or set by the design (doses or times
+  chosen in advance). Neither answer is preselected. Until now the card
+  always used Shieh's (2020) method, for measured covariates, and named
+  G*Power's fixed-covariate answer only as a known difference; a
+  researcher whose covariate is fixed by the design couldn't plan for it.
+  This is the first fix of `next.md` item 27's audit of decisions made for
+  the researcher.
+- **Measured** (`target_test > covariate_model` "random", the engine's
+  default for older specs): Shieh's method, pwrss's
+  `power.f.ancova.shieh()`, unchanged.
+- **Fixed** ("fixed"): the F test's noncentrality is N gamma^2, as
+  G*Power takes it, where gamma^2 is the standardised effect of Shieh's
+  equations, (C mu)' (C Q C')^-1 (C mu) / (SD^2 (1 - R-squared)), computed
+  in the engine as pwrss computes it internally (unexported), then pwrss's
+  `power.f.ancova()` from the partial eta-squared gamma^2 / (1 + gamma^2).
+  For one factor it equals pwrss's `power.f.ancova.keppel()` (checked to
+  1e-10); for two factors it equals each effect's sum of squares of the
+  adjusted cell means, and agrees with lm()'s F test on simulated studies
+  with fixed covariate values (validation chunk ancova).
+- **Partial eta-squared.** An effect given as partial eta-squared was
+  already planned with fixed covariates (power.f.ancova()), but its
+  methods paragraph named Shieh's method and showed Known difference 15.
+  It now names the fixed-covariate F test and drops that note; giving
+  partial eta-squared with "random" is refused with a plain message.
+- **Size.** Adjusted means 20, 18 and 16, SD 6, one covariate explaining
+  36%, 90 people: 81.8% fixed against 81.3% measured.
+
+## 2026-11-17 · The mixed-model cards offer Kenward and Roger's degrees of freedom (E33, E41, E62, E63, E67, E68)
+
+- **What changes.** The six cards simulated with simr and a score outcome
+  ask which degrees of freedom the t or F test uses: Satterthwaite's
+  (lmerTest), preselected as decided on 30 October 2026 (Departure 16), or
+  Kenward and Roger's (pbkrtest). Both are small-sample corrections that
+  researchers report from lme4 models; until now a researcher who would
+  report Kenward-Roger had no way to plan for it. The second fix of
+  `next.md` item 27's audit of decisions made for the researcher.
+- **How.** `target_test > df_method` ("satterthwaite" or "kenward_roger").
+  With Kenward-Roger, simr's `fixed(term, "kr")` replaces `"sa"`; with
+  three or more conditions (E63), lmerTest's `anova()` and `contest()`
+  take `ddf = "Kenward-Roger"`. pbkrtest's version joins the result's
+  record, and the exported script loads it. A yes/no outcome, tested by
+  glmer's Wald or likelihood-ratio test, refuses the choice.
+- **Why Satterthwaite stays preselected.** It is the maintainer's earlier
+  decision and the p-value lmerTest prints by default; Kenward-Roger is
+  slower to simulate (each simulated study refits pbkrtest's adjusted
+  covariance matrix). The form says both usually give similar p-values
+  and to plan with the one that will be reported.
+- **Size.** E33's example at 20 participants, the same 500 simulated
+  data sets: 27.0% with Kenward-Roger against 27.4% with Satterthwaite
+  (29.2% with simr's z test); the two reach the same decision in 99.6% of
+  them. A validation test in the mixed_model chunk compares the
+  Kenward-Roger route with `pbkrtest::KRmodcomp()` on independently
+  simulated studies.

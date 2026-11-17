@@ -8,6 +8,12 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "The ANCOVA asks how your covariates come about"
+    text: "The ANCOVA card now asks whether your covariates are measured on each person, such as a before score, or set by the design, such as doses chosen in advance. Nothing is chosen for you. Measured covariates are planned with Shieh's method, as before; covariates set by the design are planned as fixed, as G*Power does, which gives a little more power."
+  - date: "2026-11-17"
+    title: "Mixed models: choose Kenward and Roger's test"
+    text: "The mixed-model cards with a score (participants and items, people in groups, three levels, a measured item predictor and within-person moderation) now let you choose the test's degrees of freedom: Satterthwaite's, as before, or Kenward and Roger's, which many researchers report instead. Plan with the one you will use."
+  - date: "2026-11-17"
     title: "The smallest effect you could detect, for moderation, categories, profiles and factors"
     text: "Moderation of a yes/no, count or categorical outcome, an outcome in three or more unordered categories, moderated regression with a yes/no predictor or moderator, the three-way interaction, latent profiles and factor analysis now offer \"the smallest effect I'd have a good chance of finding\". The answer is the interaction's odds or rate ratio, the odds ratio for a category, the interaction's correlation with the outcome, the three-way coefficient, the separation between profiles, or the loadings at which the factors are recovered. Mediation on the moderation card doesn't offer it yet."
   - date: "2026-11-17"

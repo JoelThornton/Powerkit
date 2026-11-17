@@ -66,6 +66,7 @@ population_problems <- function(spec) {
     check_cell_ratio_allowed(spec),
     check_group_ratio_allowed(spec),
     check_method_allowed(spec),
+    check_df_method(spec),
     check_score_shape_allowed(spec),
     check_welch_sds(spec),
     check_bayes_factor(spec),
@@ -2159,6 +2160,8 @@ check_probability_table <- function(spec) {
 
 check_factorial_anova <- function(spec) {
   pop <- spec$population
+  covariate <- check_ancova_covariate(spec)
+  if (length(covariate)) return(covariate)
   if (identical(pop$metric, "eta_squared")) {
     return(check_eta_squared_anova(spec))
   }
@@ -3764,6 +3767,29 @@ check_logistic_factorial <- function(spec) {
 # An ANOVA given by its partial eta-squared (pwrss's F test, as in G*Power):
 # equal groups and the ANOVA F test only, since the group means that
 # Welch's F, the Kruskal-Wallis test and unequal cells need aren't given.
+# Whether the ANCOVA's covariates are measured on each person ("random",
+# Shieh's method, the default) or fixed by the design ("fixed", as G*Power
+# takes them), 17 November 2026.
+check_ancova_covariate <- function(spec) {
+  model <- spec$target_test$covariate_model
+  if (is.null(model)) return(character())
+  if (!spec$template %in% c("oneway_ancova", "factorial_ancova")) {
+    return("'target_test > covariate_model' describes an ANCOVA's covariates; remove it for this design.")
+  }
+  if (identical(spec$target_test$method, "bayes_factor") && identical(model, "fixed")) {
+    return(paste0(
+      "The Bayes factor ANCOVA is simulated with covariates measured on each person; ",
+      "set 'target_test > covariate_model' to \"random\" or remove it."))
+  }
+  if (identical(spec$population$metric, "eta_squared") && identical(model, "random")) {
+    return(paste0(
+      "An effect given as partial eta-squared is planned with the covariates fixed, as in G*Power: ",
+      "Shieh's method for measured covariates needs the adjusted means. Give the means, or set ",
+      "'target_test > covariate_model' to \"fixed\"."))
+  }
+  character()
+}
+
 check_eta_squared_anova <- function(spec) {
   if (!spec$template %in% eta_squared_templates) {
     return(paste0(
@@ -3861,6 +3887,23 @@ check_riclpm <- function(spec) {
   residual <- within - phi %*% within %*% t(phi)
   if (any(eigen(residual, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
     return("These lagged effects and the correlation between X and Y at the same wave can't all hold: together they would explain more than all of a score's within-person variation. Use smaller lagged effects or a different correlation.")
+  }
+  character()
+}
+
+# The degrees of freedom of a mixed model's t or F test (17 November
+# 2026): Satterthwaite's or Kenward and Roger's, for the simr mixed models
+# with a score. A yes/no outcome is tested by glmer's Wald or
+# likelihood-ratio test, which have no such correction.
+check_df_method <- function(spec) {
+  df_method <- spec$target_test$df_method
+  if (is.null(df_method)) return(character())
+  simr_templates <- c("crossed_two_condition", "crossed_conditions", "two_level", "three_level", "item_predictor")
+  if (!identical(spec$design, "mixed_model") || !spec$template %in% simr_templates) {
+    return("'target_test > df_method' chooses the degrees of freedom of a mixed model's t or F test (participants and items, people in groups or three levels); remove it here.")
+  }
+  if (identical(spec$variables$Y$type, "binary") && identical(df_method, "kenward_roger")) {
+    return("Kenward and Roger's degrees of freedom are for a score; a yes/no outcome is tested by glmer's Wald or likelihood-ratio test. Remove 'target_test > df_method'.")
   }
   character()
 }
