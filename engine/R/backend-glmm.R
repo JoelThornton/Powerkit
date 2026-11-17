@@ -122,6 +122,7 @@ repeated_glmm_inputs <- function(spec) {
     measurements = as.integer(pop$measurements %||% 1L),
     between = identical(spec$variables$X$type, "between_factor"),
     method = method,
+    cochran = identical(method, "cochran_q"),
     simr_method = if (identical(method, "likelihood_ratio")) "lr" else "chisq",
     alpha = spec$target_test$alpha,
     design = repeated_glmm_design
@@ -259,8 +260,68 @@ repeated_nb_rejections <- function(inputs, n, nrep, seed) {
   round(result$power * nrep)
 }
 
+# Cochran's Q (target_test > method "cochran_q"): a yes/no answer given
+# once in each of three or more conditions by every person (X within
+# people, measurements 1, no groups). The answers are drawn from the same
+# model as the logistic mixed model's (each person's intercept from
+# N(0, sd_person^2), then each answer with chance plogis(log odds of the
+# condition + intercept)), so the chances are a typical person's as on the
+# rest of this card, and each simulated study is tested with Cochran's Q.
+# On 0/1 data the Friedman test with its correction for ties is
+# algebraically Cochran's Q (test-backend-glmm.R checks it against Q's own
+# formula), so stats::friedman.test() computes it (its p-value from the chi-square distribution on k - 1 degrees of
+# freedom); a study in which nobody's answers vary has no test and counts
+# as not significant (p = 1).
+repeated_glmm_cochran <- function(spec) identical(spec$target_test$method, "cochran_q")
+
+repeated_cochran_data <- function(n, centre, sd_person) {
+  intercepts <- stats::rnorm(n, 0, sd_person)
+  chance <- stats::plogis(outer(intercepts, centre, "+"))
+  matrix(stats::rbinom(length(chance), 1L, chance), nrow = n)
+}
+
+p_repeated_cochran <- function(n, centre, sd_person) {
+  answers <- repeated_cochran_data(n, centre, sd_person)
+  if (all(apply(answers, 1, stats::var) == 0)) return(1)
+  p <- stats::friedman.test(answers)$p.value
+  if (is.finite(p)) p else 1
+}
+
+repeated_cochran_rejections <- function(inputs, n, nrep, seed) {
+  args <- list(n = n, centre = inputs$centre, sd_person = inputs$sd_person)
+  result <- spower_eval(as.name("p_repeated_cochran"), args, nrep, inputs$alpha, seed)
+  round(result$power * nrep)
+}
+
+# The share answering 'yes' in each condition across everyone (over the
+# people's intercepts), which the check run compares with the simulated
+# shares: a typical person's chance is further from 1/2 than this when
+# people differ (sd_person above 0).
+repeated_cochran_shares <- function(centre, sd_person) {
+  if (sd_person == 0) return(stats::plogis(centre))
+  vapply(centre, function(eta) {
+    stats::integrate(function(u) stats::plogis(eta + u) * stats::dnorm(u, 0, sd_person), -Inf, Inf)$value
+  }, numeric(1))
+}
+
+# Check run for Cochran's Q: one large data set (2,000 people) drawn as the
+# simulation draws it; each condition's share of 'yes' within 5 of its
+# standard errors of the share the model implies.
+repeated_cochran_check_run <- function(inputs, seed) {
+  n <- 2000L
+  answers <- with_seed(seed %||% 1L, repeated_cochran_data(n, inputs$centre, inputs$sd_person))
+  expected <- repeated_cochran_shares(inputs$centre, inputs$sd_person)
+  check <- check_run_rows(sprintf("share answering 'yes' across everyone, %s", inputs$levels), expected,
+    colMeans(answers), sqrt(expected * (1 - expected) / n))
+  rownames(check) <- NULL
+  check
+}
+
 repeated_glmm_test_label <- function(inputs) {
   term <- inputs$term %||% "cond"
+  if (isTRUE(inputs$cochran)) {
+    return("Spower::Spower(p_repeated_cochran()) (Cochran's Q, by stats::friedman.test() on the 0/1 answers)")
+  }
   if (inputs$ordinal) {
     return(sprintf("Spower::Spower(p_repeated_ordinal()) (ordinal::clmm(), %s)",
       if (identical(inputs$method, "likelihood_ratio")) sprintf("the likelihood-ratio test of %s", term) else
@@ -279,8 +340,8 @@ repeated_glmm_backend <- function(spec, seed = NULL) {
   inputs$test <- simr::fixed(inputs$term, inputs$simr_method)
   k <- length(inputs$levels)
   list(
-    name = if (inputs$nb || inputs$ordinal) "Spower" else "simr",
-    packages = if (inputs$ordinal) c("Spower", "SimDesign", "ordinal") else
+    name = if (inputs$nb || inputs$ordinal || inputs$cochran) "Spower" else "simr",
+    packages = if (inputs$cochran) c("Spower", "SimDesign") else if (inputs$ordinal) c("Spower", "SimDesign", "ordinal") else
       if (inputs$nb) c("Spower", "SimDesign", "lme4", "car") else c("simr", "lme4", "car"),
     methods = "simulation",
     default_method = "simulation",
@@ -289,7 +350,8 @@ repeated_glmm_backend <- function(spec, seed = NULL) {
     exact_min_n = minimum_n(spec),
     simulate = function(n, nrep, seed, cores) {
       simulate_in_chunks(nrep, seed, cores, function(chunk, chunk_seed) {
-        if (inputs$ordinal) repeated_ordinal_rejections(inputs, n, chunk, chunk_seed) else
+        if (inputs$cochran) repeated_cochran_rejections(inputs, n, chunk, chunk_seed) else
+          if (inputs$ordinal) repeated_ordinal_rejections(inputs, n, chunk, chunk_seed) else
           if (inputs$nb) repeated_nb_rejections(inputs, n, chunk, chunk_seed) else simr_rejections(inputs, n, chunk, chunk_seed)
       })
     },
@@ -307,6 +369,7 @@ repeated_glmm_backend <- function(spec, seed = NULL) {
 # binomial outcome the overdispersion k, within 5 of its approximate
 # standard error.
 repeated_glmm_check_run <- function(spec, inputs, seed) {
+  if (inputs$cochran) return(repeated_cochran_check_run(inputs, seed))
   if (inputs$ordinal) return(repeated_ordinal_check_run(inputs, seed))
   n <- 2000L
   k <- length(inputs$levels)
@@ -443,6 +506,7 @@ check_repeated_interaction <- function(spec, field) {
 }
 
 check_repeated_glmm <- function(spec) {
+  if (repeated_glmm_cochran(spec)) return(c(check_repeated_cochran(spec), check_repeated_glmm_values(spec)))
   if (repeated_glmm_ordinal(spec)) return(check_repeated_ordinal(spec))
   pop <- spec$population
   levels <- unlist(spec$variables$X$levels)
@@ -480,9 +544,52 @@ check_repeated_glmm <- function(spec) {
   }
   if (!identical(spec$variables$X$type, "between_factor") && !count && measurements < 2) {
     problems <- c(problems, paste0(
-      "A yes/no outcome measured once in each condition is McNemar's test (two conditions) or Cochran's Q (three or more), ",
-      "not a mixed model, whose person SD can't be estimated from one yes/no answer per condition. ",
-      "Set 'population > measurements' to 2 or more if each person answers several times in each condition."))
+      "A yes/no outcome measured once in each condition is McNemar's test (two conditions) or Cochran's Q (three or more: ",
+      "set 'target_test > method' to \"cochran_q\"), not a mixed model, whose person SD can't be estimated from one yes/no ",
+      "answer per condition. Set 'population > measurements' to 2 or more if each person answers several times in each condition."))
+  }
+  problems
+}
+
+# Cochran's Q: yes/no, every person in every one of three or more
+# conditions, once each, one group.
+check_repeated_cochran <- function(spec) {
+  problems <- character()
+  if (!identical(spec$variables$Y$type, "binary")) {
+    problems <- c(problems, "Cochran's Q is for a yes/no outcome: set Y's type to binary, or choose the likelihood-ratio or Wald test.")
+  }
+  if (!identical(spec$variables$X$type, "within_factor")) {
+    problems <- c(problems, "Cochran's Q compares the same people's answers across the conditions, so X is within people (type 'within_factor').")
+  }
+  if (!is.null(spec$variables$W)) {
+    problems <- c(problems, "Cochran's Q compares one group's answers across the conditions; for groups that change differently, use the likelihood-ratio or Wald test of the mixed model.")
+  }
+  if (!identical(spec$target_test$effect %||% "condition", "condition")) {
+    problems <- c(problems, "Cochran's Q tests whether the conditions differ: set 'target_test > effect' to \"condition\".")
+  }
+  if ((spec$population$measurements %||% 1) != 1) {
+    problems <- c(problems, "Cochran's Q takes one yes/no answer from each person in each condition: set 'population > measurements' to 1, or choose the likelihood-ratio or Wald test for several answers.")
+  }
+  if (length(unlist(spec$variables$X$levels)) < 3) {
+    problems <- c(problems, "With two conditions, Cochran's Q is McNemar's test: use the card for the same people with a yes/no outcome in two conditions (McNemar's test), which computes it exactly.")
+  }
+  problems
+}
+
+# The probabilities for Cochran's Q, checked as for the mixed model.
+check_repeated_glmm_values <- function(spec) {
+  pop <- spec$population
+  levels <- unlist(spec$variables$X$levels)
+  problems <- character()
+  if (is.null(pop$probabilities)) {
+    problems <- c(problems, sprintf("Give 'population > probabilities', one per condition of X, in the order of its levels (%s).",
+      paste(levels, collapse = ", ")))
+  } else if (length(unlist(pop$probabilities)) != length(levels)) {
+    problems <- c(problems, sprintf("'population > probabilities' has %d values, but X has %d conditions: give one per condition, in the order of its levels.",
+      length(unlist(pop$probabilities)), length(levels)))
+  }
+  for (other in intersect(c("rates", "dispersion", "odds_ratios", "category_probabilities"), names(pop))) {
+    problems <- c(problems, sprintf("'population > %s' is not used by Cochran's Q, which takes each condition's chance of 'yes'; remove it.", other))
   }
   problems
 }
@@ -544,6 +651,7 @@ check_repeated_ordinal <- function(spec) {
 # (negative binomial), with the same design and test (export_script()).
 repeated_glmm_script <- function(spec, result) {
   inputs <- repeated_glmm_inputs(spec)
+  if (inputs$cochran) return(repeated_cochran_script(spec, result, inputs))
   pop <- spec$population
   v <- spec$variables
   lr <- identical(inputs$method, "likelihood_ratio")
@@ -748,6 +856,51 @@ repeated_glmm_script <- function(spec, result) {
     "",
     batch_section(result, "powerSim()"),
     simulation_goal_section(spec, result, n_step),
+    comparison_section()
+  )
+}
+
+# The standalone script for Cochran's Q: Spower with the same experiment
+# (each person's intercept, then each yes/no answer; Cochran's Q by
+# friedman.test() on the person-by-condition table of 0/1 answers).
+repeated_cochran_script <- function(spec, result, inputs) {
+  v <- spec$variables
+  c(
+    script_header(spec, result, "Spower", "Spower::Spower, stats::friedman.test"),
+    "library(Spower)",
+    "",
+    "# Inputs ----",
+    sprintf("# The outcome, %s, a yes/no answer from every person once in each", comment_text(v$Y$label)),
+    sprintf("# condition of %s.", comment_text(v$X$label)),
+    sprintf("conditions <- %s", r_code(inputs$levels)),
+    sprintf("probabilities <- %s # each condition's chance of 'yes', for a typical person", r_code(as.numeric(unlist(spec$population$probabilities)))),
+    sprintf("sd_person <- %s # SD of the person intercepts, on the log-odds scale", r_code(inputs$sd_person)),
+    goal_inputs(spec, result),
+    "",
+    "# One simulated study: each person's intercept, then each answer with",
+    "# chance plogis(log odds of the condition + intercept), one row per",
+    "# person and one column per condition. On 0/1 answers, friedman.test()",
+    "# (with its correction for ties) is Cochran's Q. A study in which",
+    "# nobody's answers vary has no test and counts as not significant.",
+    "p_repeated_cochran <- function(n) {",
+    "  intercepts <- rnorm(n, 0, sd_person)",
+    "  chance <- plogis(outer(intercepts, qlogis(probabilities), \"+\"))",
+    "  answers <- matrix(rbinom(length(chance), 1, chance), nrow = n, dimnames = list(NULL, conditions))",
+    "  if (all(apply(answers, 1, var) == 0)) return(1)",
+    "  p <- friedman.test(answers)$p.value",
+    "  if (is.finite(p)) p else 1",
+    "}",
+    "",
+    "# One batch: significant results, and studies run.",
+    "run_batch <- function(batch_n, batch_replications, batch_seed) {",
+    "  set.seed(batch_seed)",
+    "  result <- Spower(p_repeated_cochran(n = batch_n), sig.level = alpha,",
+    "    replications = batch_replications, parallel = FALSE, verbose = FALSE)",
+    "  c(round(result$power * batch_replications), batch_replications)",
+    "}",
+    "",
+    batch_section(result, "Spower()"),
+    simulation_goal_section(spec, result, 1),
     comparison_section()
   )
 }

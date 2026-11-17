@@ -1556,7 +1556,7 @@
     "Independent people",
     "Twice"
    ],
-   "pick": "The same people, a yes/no outcome in each condition"
+   "pick": "The same people, a yes/no outcome in each of two conditions"
   },
   "guided": {
    "answers": [
@@ -1833,7 +1833,7 @@
     "Many times",
     "The same people in three or more conditions"
    ],
-   "pick": "The same people, a yes/no outcome in each condition"
+   "pick": "The same people measured more than once, with a count, ordered categories or yes/no"
   },
   "guided": {
    "answers": [
@@ -1847,9 +1847,9 @@
    ]
   },
   "reaches": {
-   "choose": "E26",
-   "known": "E26",
-   "guided": "E26"
+   "choose": "E75",
+   "known": "E75",
+   "guided": "E75"
   }
  },
  {

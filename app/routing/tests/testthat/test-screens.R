@@ -100,9 +100,10 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
   e32 <- as.character(card_ui(tree, "E32"))
   expect_match(e32, htmltools::htmlEscape("A categorical outcome (three or more unordered answers), in moderation or mediation:"), fixed = TRUE)
   expect_match(e32, text, fixed = TRUE)
+  # Cochran's Q calculates on E75 since 16 November 2026; E26 points to it.
   e26 <- as.character(card_ui(tree, "E26"))
-  expect_match(e26, htmltools::htmlEscape("Cochran's Q:"), fixed = TRUE)
-  expect_match(e26, text, fixed = TRUE)
+  expect_false(grepl(text, e26, fixed = TRUE))
+  expect_match(e26, htmltools::htmlEscape("Cochran's Q, on the card for the same people measured more than once"), fixed = TRUE)
 })
 
 test_that("end points outside the five tools say so", {

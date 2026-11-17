@@ -3773,3 +3773,31 @@ method chosen first. All follow JASP's default priors.
   on a recent computer. Their measured times are in `forms.yaml`'s
   `simulated_version_times`, so the progress bar and the "usually takes" line
   apply to them.
+
+## 2026-11-16 · Cochran's Q, simulated from the repeated yes/no model
+
+- **What it covers.** A yes/no answer given once by every person in each
+  of three or more conditions (with two, McNemar's test, E26). It is a
+  test version of the repeated-measures card (E75: Y binary, X within
+  people, `measurements` 1, no groups), chosen on its input screen when
+  those answers are given; the design finder's "the same people, three or
+  more conditions" with a yes/no outcome now reaches it, and E26's card
+  points to it.
+- **Method.** No package computes Cochran's Q's power, and no closed form
+  from a published source is in `refs.bib`, so it is simulated. The
+  answers come from the model the card already uses for yes/no (each
+  person's intercept from N(0, sd_person^2), each condition's chance of
+  'yes' for a typical person), because Cochran's Q needs the answers in
+  different conditions to go together and the person SD is what makes
+  them do so. Each study is tested with Cochran's Q, computed by
+  `stats::friedman.test()` on the 0/1 answers: with its correction for
+  ties, the Friedman statistic is Cochran's Q on yes/no data, which the
+  engine's tests check against Q's own formula. The mixed model's own
+  tests are refused here, because one yes/no answer per condition is too
+  little to estimate the person SD (the existing check).
+- **Shares across everyone.** With people who differ, the share saying
+  'yes' across everyone is closer to 1/2 than a typical person's chance;
+  the check run shows those shares, and the input screen says so.
+- **Runs in the app.** About 0.01 s per simulated study, so power and the
+  required sample size both run in the app like any other simulated card
+  (`forms.yaml`, `simulations > quick_methods`), not as an R script.

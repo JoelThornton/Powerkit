@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Cochran's Q: yes/no answers in three or more conditions"
+    text: "Powerkit now plans Cochran's Q, for the same people giving a yes/no answer once in each of three or more conditions, such as whether each person attends after no reminder, a text and a call. Choose a yes/no outcome measured once in each condition on the card for the same people measured more than once. Power and the number of people you need both run in the app, and the design finder takes you there."
+  - date: "2026-11-17"
     title: "The smallest effect you could detect, on six more analyses"
     text: "Two dependent correlations, one and two variances, Hotelling's T-squared, MANOVA (by Pillai's V, or two groups by their means) and equivalence tests now offer \"the smallest effect I'd have a good chance of finding\". For an equivalence test the answer is the narrowest equivalence bounds your sample could show, so you can see whether it can test the smallest difference that matters in your field."
   - date: "2026-11-16"

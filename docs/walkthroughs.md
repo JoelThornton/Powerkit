@@ -1062,16 +1062,12 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 **Answers given**
 
 - **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions*
-- **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → list: *The same people, a yes/no outcome in each condition*
+- **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → list: *The same people measured more than once, with a count, ordered categories or yes/no*
 - **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *Continue in 'Help me choose'* → *A difference between groups or conditions* → *The same people in every condition*
 
-**End point:** E26 (The same people, a yes/no outcome in each condition) in all three routes.
+**End point:** E75 (The same people measured more than once, with a count, ordered categories or yes/no) in all three routes, since 17 November 2026: it plans Cochran's Q for one yes/no answer in each condition.
 
-![E26 card](figures/walkthroughs/E26.png)
-
-**Would the card make sense without statistics training?** **E26:** The title is clear, and "discordant proportions" now has a hint. The Cochran's Q line (no ready-made tool) is clear. As for the repeated measures ANOVA.
-
-**Before/after (card content):** E26 now has plain-English hints for discordant proportions.
+**Would the card make sense without statistics training?** Not yet re-walked on E75 (this route reached E26, McNemar's test, before Cochran's Q was added).
 
 ### Two or more factors
 

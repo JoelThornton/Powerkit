@@ -10,7 +10,9 @@
 # Whether the app calculates this card's answer itself (no preview, no R
 # script): the cards listed under `calculates`, and simple mediation's
 # quick estimate, a formula on cards that otherwise simulate (E10, E16).
-form_calculates <- function(forms, ep_id, spec = NULL) ep_id %in% unlist(forms$calculates) || mediation_estimate(spec)
+form_calculates <- function(forms, ep_id, spec = NULL) {
+  ep_id %in% unlist(forms$calculates) || mediation_estimate(spec) || quick_method(forms, ep_id, spec)
+}
 
 # End points whose calculation takes long enough to run in the background,
 # with a progress bar and a Cancel button (forms.yaml, `background`: the
@@ -3489,6 +3491,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     name <- sprintf("regression-based causal mediation analysis with %s outcome (the natural indirect effect, delta method), simulated",
       if (identical(spec$variables$Y$type, "binary")) "a yes/no (logistic)" else if (identical(spec$population$count_model, "negative_binomial"))
         sprintf("a count (negative binomial, overdispersion k = %s)", format(spec$population$dispersion)) else "a count (Poisson)")
+  }
+  # One yes/no answer in each of three or more conditions (E75).
+  if (identical(spec$target_test$method, "cochran_q")) {
+    name <- sprintf(paste0("Cochran's Q, simulated from a logistic model with a random intercept for each person ",
+      "(SD %s on the log-odds scale), each person answering once in each condition"), format(spec$population$sd_person))
   }
   if (is_rank_test(spec)) name <- rank_test_name(spec)
   if (is_rank_correlation(spec)) name <- rank_correlation_name(spec)

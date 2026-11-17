@@ -195,11 +195,15 @@ simulated_times:
 # default doesn't: shown only when that version runs (usual_seconds(),
 # R/results.R), and not counted as a simulated card on About. The
 # corrected F test without sphericity (Departure 28), measured 16 November
-# 2026 on the engine's example designs with unequal correlations.
+# 2026 on the engine's example designs with unequal correlations. Also a
+# quick version of a long-run card (simulations > quick_methods): Cochran's
+# Q on the repeated-measures card (E75), measured the same day on its
+# example design (one core).
 simulated_version_times:
   E54: {power: 22, sample_size: 120}
   E55: {power: 30, sample_size: 350}
   E20: {power: 21, sample_size: 170}
+  E75: {power: 11, sample_size: 190}
 # At most this many background calculations (E9 and E10-E14's preview and
 # full run) at once, across everyone using the app; others are asked to try
 # again shortly (R/results.R, background_limit()). Two suits a server with
@@ -317,6 +321,12 @@ simulations:
   # factor of a repeated-measures ANOVA effect (about 0.8 s per simulated
   # study; the preview simulates the no-effect side too, so about four
   # minutes). The full analysis is the R script.
+  # A test version of a long-run card that is quick enough to run like any
+  # other simulated card, required sample size included (R/simulations.R,
+  # runs_long()): Cochran's Q on the repeated-measures card, about 0.015 s
+  # per simulated study (measured 16 November 2026).
+  quick_methods:
+    E75: [cochran_q]
   method_routes:
     E54: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
     E20: {method: bayes_factor, full_run: [], preview: {power: 240}, script: {power: "about 40 minutes on one core (an estimate)", sample_size: "several hours on one core (an estimate; 5 to 8 sample sizes are simulated)"}}
@@ -1634,7 +1644,7 @@ forms:
              shown_if: {field: glmm_outcome, is: categorical}}
           - {id: glmm_measurements, writeup_label: "measurements per person in each condition", label: "How many times each person is measured in each condition (1 if once)", type: number, path: population.measurements, required: true, min: 1, integer: true,
              default: 1, default_source: "one measurement per condition, as in a before-and-after study",
-             help: "With each person in one condition, or a yes/no outcome, at least 2: the person's own average can't be told apart from their measurement otherwise."}
+             help: "With each person in one condition, at least 2: the person's own average can't be told apart from their measurement otherwise. A yes/no answer given once in each of three or more conditions is tested with Cochran's Q."}
       - input: "The expected count, chance of 'yes' or answers in each condition, and how much people differ"
         fields:
           - {id: glmm_rates, writeup_label: "expected count in each condition", label: "The expected count per measurement in each condition, for a typical person, in the same order, separated by commas (for example, 10, 8)", type: numbers, per_levels: X_levels, path: population.rates, effect: true,
@@ -1669,9 +1679,15 @@ forms:
       - input: "The test"
         fields:
           - {id: glmm_test, label: "Test (that the conditions differ, or with groups that the groups change differently)", type: select, path: target_test.method, required: true,
+             shown_if: [{any: [{field: glmm_outcome, is_not: binary}, {field: glmm_groups, is: groups}, {field: glmm_people, is: between_factor}, {field: glmm_measurements, is_not: "1"}]}],
              choices: {likelihood_ratio: "Likelihood-ratio test (comparing the model with and without the differences)", wald: "Wald test (the Wald chi-square; with two conditions, the p-value the model's summary reports)"},
              default: likelihood_ratio, default_source: "the likelihood-ratio test, simr's default for a factor, as on the many-conditions card (E63)",
              help: "lme4's help on p-values (help('pvalues'), lme4 2.0.6) notes that glmer's Wald p-values rest on assumptions about the shape of the log-likelihood and about a chi-squared approximation; the likelihood-ratio test is its model comparison."}
+          - {id: glmm_test_once, label: "Test (a yes/no answer once in each condition)", type: select, path: target_test.method, required: true,
+             shown_if: [{field: glmm_outcome, is: binary}, {field: glmm_groups, is_not: groups}, {field: glmm_people, is: within_factor}, {field: glmm_measurements, is: "1"}],
+             choices: {cochran_q: "Cochran's Q"},
+             default: cochran_q, default_source: "Cochran's Q, the usual test of one yes/no answer from each person in each of three or more conditions",
+             help: "For three or more conditions; with two, Cochran's Q is McNemar's test, which has its own card. One yes/no answer per condition is too little to fit the mixed model's person SD, so each simulated study is tested with Cochran's Q, as researchers usually analyse such data. The answers are still drawn from the card's model: the SD above makes some people likelier to say yes in every condition, which is what makes the answers in different conditions go together. With people who differ, the share saying yes across everyone is a little closer to 50% than a typical person's chance; the check run shows those shares."}
 
   # A predictor measured on each item (simr), 1 November 2026.
   E67:

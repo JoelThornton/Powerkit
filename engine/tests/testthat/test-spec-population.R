@@ -256,6 +256,7 @@ zero_effect_cases <- list(
   crossed_conditions = function(s) within(s, population$means <- list(600, 600, 590)),
   repeated_glmm = function(s) within(s, population$rates <- list(2, 2)),
   repeated_glmm_interaction = function(s) within(s, population$rates <- list(list(2, 1.4), list(2, 1.4))),
+  repeated_glmm_cochran = function(s) within(s, population$probabilities <- list(0.5, 0.5, 0.5)),
   item_predictor = function(s) within(s, population$slope <- 0),
   # Small schools (two classes of four), so that the fixed-n check's 240
   # people are a whole number of them (30), above the minimum of six.
