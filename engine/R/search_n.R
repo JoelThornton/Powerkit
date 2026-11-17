@@ -239,9 +239,26 @@ search_n_exact <- function(spec, backend, power) {
     # the target. Check every smaller valid n and take the smallest. (Not
     # settled: some tools report a larger n beyond which power stays above
     # the target; see docs/coverage-roadmap.md, wave 2.)
-    below <- seq(n_start, n, by = step)
-    reaches <- vapply(below, backend$exact_power, numeric(1)) >= power
-    n <- below[which(reaches)[1]]
+    if (is.numeric(backend$sawtooth_window)) {
+      # A slow exact power (the corrected 2 x 2 test with a fixed total):
+      # walk down from the bisection's answer until power is more than the
+      # window below the target, far larger than the dips measured for it
+      # (backend-corrected-exact.R), keeping the smallest n that reaches it.
+      m <- n - step
+      while (m >= n_start) {
+        # An upper bound first, where the backend has one: the exact power
+        # is needed only where the bound could reach the target.
+        at <- if (is.function(backend$power_upper)) backend$power_upper(m) else Inf
+        if (at >= power) at <- backend$exact_power(m)
+        if (at >= power) n <- m
+        if (at < power - backend$sawtooth_window) break
+        m <- m - step
+      }
+    } else {
+      below <- seq(n_start, n, by = step)
+      reaches <- vapply(below, backend$exact_power, numeric(1)) >= power
+      n <- below[which(reaches)[1]]
+    }
   }
   ns <- n + step * (-3:3)
   ns <- ns[ns >= n_start]

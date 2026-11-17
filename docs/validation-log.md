@@ -1624,3 +1624,24 @@ The maintainer chose seed 1500 for this check before it was run
 0.66.3) passes: the null rejection rate is .051 against the .0707 limit,
 and the power comparisons pass; the published-value test is skipped
 (`TODO_PUBLISHED_VALUE`).
+
+## 2026-11-17 · Continuity-corrected count tests worked out exactly (local)
+
+Linux, R 4.5.3, engine 0.76.0 plus this change (working tree on 2df8dfd).
+Command: `Rscript scripts/run-validation.R --only corrected_counts --cores 2`.
+[Summary](validation/2026-11-17-corrected-counts-summary.txt): **6 PASS,
+0 FAIL, 0 ERROR, 1 published-reference TODO SKIP**.
+
+The corrected two-proportion test and the corrected 2 x 2 test are now
+worked out exactly by default (`backend-corrected-exact.R`), so the
+chunk's comparisons check the exact route. Against the finite
+enumeration references, the exact power agrees to four decimals (.4346,
+.5609 twice, and .0353 under the null); against the independent
+multinomial simulations (10,000 studies each), .7692 against .7603 and
+.0340 against .0340, inside their Monte Carlo intervals. An exact result
+has no Monte Carlo error, so `expect_power_near()` now allows it
+`expect_power_exact()`'s 0.0005 against a finite reference; before that
+change the first run failed the four enumeration comparisons on
+differences below 1e-9 (an interval of zero width). The simulated route
+remains available (`options > method` "simulation") and keeps its unit
+tests in `test-continuity-correction.R`.

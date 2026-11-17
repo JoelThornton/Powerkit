@@ -169,6 +169,10 @@ expect_power_near <- function(estimate, reference, reference_nrep = NULL, level 
     se <- sqrt(se^2 + reference * (1 - reference) / reference_nrep)
   }
   half_width <- z_for(level) * se + allowance
+  # An exact result (no Monte Carlo error) against a finite reference:
+  # the 0.0005 agreement of expect_power_exact(), so rounding error in the
+  # sums doesn't fail an otherwise equal answer.
+  if (identical(estimate$mcse, 0) && is.null(reference_nrep)) half_width <- max(half_width, 0.0005)
   lower <- estimate$power - half_width
   upper <- estimate$power + half_width
   expect(

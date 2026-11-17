@@ -66,13 +66,17 @@ corrected_anova_verification_values <- function(calc, values) {
 
 corrected_count_verification_values <- function(calc, values) {
   if (!identical(calc$status, "ok") || !is_corrected_count_test(calc$spec) ||
-      !identical(calc$result$goal_type, "sample_size")) return(NULL)
+      !identical(calc$result$goal_type, "sample_size") ||
+      !identical(calc$result$provenance$method, "simulation")) return(NULL)
   values$goal <- "power"
   values$n <- as.character(n_analysed(calc$result))
   values
 }
 corrected_count_search_note <- function(spec, result) {
   if (!is_corrected_count_test(spec) || !identical(result$goal_type, "sample_size")) return(NULL)
+  if (identical(result$provenance$method, "exact")) return(paste(
+    "Power is worked out exactly at every sample size, with no simulation error, and this is the smallest sample size that reaches the target.",
+    "Power of a test of counts goes up and down a little as the sample grows, so a slightly larger sample can fall just short of the target: check the nearby sizes below before choosing yours."))
   checked <- result$n_required$verification
   if (!is.null(checked)) return(paste(
     sprintf("This sample size passed a fresh simulation check: estimated power %.1f%%, with a one-sided lower bound of %.1f%%.",

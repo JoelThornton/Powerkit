@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "version": "2026-11-10.2",
+  "version": "2026-11-17.1",
   "limits": [
     "Records describe representative checked cases at the stated revisions, not a guarantee for your exact parameter values.",
     "Software agreement, independent reference work, published examples and method-validation runs are separate evidence categories.",
@@ -137,6 +137,18 @@
         "engine/tests/testthat/test-validation-zero-inflated.R"
       ],
       "note": "Frozen-source local run: three PASS blocks, one published-example TODO SKIP. Engine uses 10,000 replications; separate likelihood checks use 4,000. Exact cases and pre-integration source are recorded, not the full current release.",
+      "replications": 10000
+    },
+    "corrected-counts-2026-11-17": {
+      "date": "2026-11-17",
+      "revision": "0.76.0 plus the exact corrected-count route (working tree on 2df8dfd)",
+      "url": "https://github.com/JoelThornton/Powerkit/blob/main/docs/validation/2026-11-17-corrected-counts-summary.txt",
+      "files": [
+        "engine/tests/testthat/test-validation-corrected-counts.R",
+        "engine/tests/testthat/test-corrected-exact.R",
+        "docs/validation/2026-11-17-corrected-counts-summary.txt"
+      ],
+      "note": "Linux R 4.5.3: corrected_counts chunk 6 PASS, 1 published-reference TODO skip, on the exact route (exact sums over every possible result). Local selected-case evidence, not release-wide validation.",
       "replications": 10000
     }
   },
@@ -1027,12 +1039,13 @@
         "template": "two_proportions",
         "target_test.method": "z_test_corrected"
       },
-      "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+      "scope": "Fixed independent group sizes; two-sided and directional power at N=180, 1:2 allocation, p1=.5, p2=.65 or .35; null at N=120, equal groups and p=.5. Finite binomial enumeration supplies the independent reference. Power is worked out exactly by default (from 17 November 2026; the 10 November run checked the simulated route). Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
       "categories": {
         "package_agreement": {
           "status": "scoped_only",
           "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
           "sources": [
+            "corrected-counts-2026-11-17",
             "corrected-counts-2026-11-10"
           ]
         },
@@ -1040,6 +1053,7 @@
           "status": "scoped_only",
           "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
           "sources": [
+            "corrected-counts-2026-11-17",
             "corrected-counts-2026-11-10"
           ],
           "when": {
@@ -1050,6 +1064,7 @@
           "status": "scoped_only",
           "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
           "sources": [
+            "corrected-counts-2026-11-17",
             "corrected-counts-2026-11-10"
           ],
           "when": {
@@ -1060,6 +1075,7 @@
           "status": "pending",
           "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
           "sources": [
+            "corrected-counts-2026-11-17",
             "corrected-counts-2026-11-10"
           ]
         }
@@ -1072,12 +1088,13 @@
         "template": "chi_square_independence",
         "target_test.method": "pearson_chi_square_corrected"
       },
-      "scope": "Fixed-total independent joint-multinomial 2 by 2 tables; N=340 with P=((.25,.25),(.175,.325)) and null N=120 with uniform cells. Independent multinomial simulation supplies the reference; not fixed margins. Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
+      "scope": "Fixed-total independent joint-multinomial 2 by 2 tables; N=340 with P=((.25,.25),(.175,.325)) and null N=120 with uniform cells. Independent multinomial simulation supplies the reference; not fixed margins. Power is worked out exactly by default (from 17 November 2026; the 10 November run checked the simulated route). Only these cases/revisions; not sparse populations generally, all sample sizes, recommended-N accuracy, every setting or a full release validation.",
       "categories": {
         "package_agreement": {
           "status": "scoped_only",
           "note": "Same-data direction/allocation, sparse failure bookkeeping and executed standalone replays pass for the named fixtures.",
           "sources": [
+            "corrected-counts-2026-11-17",
             "corrected-counts-2026-11-10"
           ]
         },
@@ -1085,6 +1102,7 @@
           "status": "scoped_only",
           "note": "Selected independent power/null comparisons pass; see archived settings and Monte Carlo error.",
           "sources": [
+            "corrected-counts-2026-11-17",
             "corrected-counts-2026-11-10"
           ],
           "when": {
@@ -1095,6 +1113,7 @@
           "status": "scoped_only",
           "note": "The selected corrected_counts chunk passed six blocks; one published reference was skipped. This is not every-case validation.",
           "sources": [
+            "corrected-counts-2026-11-17",
             "corrected-counts-2026-11-10"
           ],
           "when": {
@@ -1105,6 +1124,7 @@
           "status": "pending",
           "note": "A published/software power reference remains untranscribed; its skip is not a pass.",
           "sources": [
+            "corrected-counts-2026-11-17",
             "corrected-counts-2026-11-10"
           ]
         }

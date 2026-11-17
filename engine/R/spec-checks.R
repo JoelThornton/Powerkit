@@ -175,7 +175,7 @@ uses_simulation <- function(spec) {
 # regression, and Welch's t-test), and Welch's F by Levy's approximation
 # (backend-welch-anova.R).
 exact_available <- function(spec) {
-  bayes_factor_test(spec) || minimum_effect_test(spec) || mediation_joint_test(spec) ||
+  continuity_corrected(spec) || bayes_factor_test(spec) || minimum_effect_test(spec) || mediation_joint_test(spec) ||
     welch_anova(spec) && identical(spec$template, "oneway_between") || !rank_test(spec) && !welch_anova(spec) && !rank_correlation(spec) && !unequal_cells(spec) &&
     !simulated_count_test(spec) && !robust_regression(spec) &&
     !pairwise_comparison(spec) &&
@@ -999,7 +999,7 @@ check_proportions_formula_allowed <- function(spec) {
   if (spec$template != "two_proportions") {
     return("'options > proportions_formula' only applies to the two-proportions test; remove it.")
   }
-  if (continuity_corrected(spec)) return("Remove 'options > proportions_formula': a continuity-corrected test is simulated, not calculated with an uncorrected formula.")
+  if (continuity_corrected(spec)) return("Remove 'options > proportions_formula': a continuity-corrected test is worked out from R's corrected test itself, not from an uncorrected formula.")
   if (identical(spec$options$method, "simulation")) {
     return(paste0(
       "'options > proportions_formula' only applies when power is calculated by formula; ",
