@@ -2148,6 +2148,9 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     p_event2 = "group 2's proportion with the event", hazard_ratio = "hazard ratio",
     slope_difference = "difference in rates of change", icc = "ICC", reliability = "Cronbach's alpha", kappa = "kappa",
     proportion_range = "difference between the highest and lowest proportions", dprime_difference = "difference in d'",
+    factorial_odds_ratio = "odds ratio", ratio_of_odds_ratios = "ratio of odds ratios",
+    level_change = "change in level", slope_change = "change in trend per time point",
+    r_range = "difference between the largest and smallest group's correlation",
     fallback)
 }
 
@@ -2157,7 +2160,7 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
 sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2", "r_second", "rmsea", "p_event2", "icc", "reliability", "kappa")
 
 # Ratios, which are "the smallest" only above 1.
-sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio", "hazard_ratio")
+sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio", "hazard_ratio", "factorial_odds_ratio", "ratio_of_odds_ratios")
 
 # Reliability and agreement: the value the study could show is beyond the
 # one named (the ICC, Cronbach's alpha or kappa to beat).
