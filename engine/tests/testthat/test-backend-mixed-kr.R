@@ -4,9 +4,11 @@
 # simr's method "kr" (pbkrtest), or, for three or more conditions, with
 # lmerTest's ddf = "Kenward-Roger".
 
-kr_spec <- function(template, nrep = 100L, seed = 11L, n = NULL) {
+kr_spec <- function(template, nrep = 100L, seed = 11L, n = NULL, items = NULL) {
   spec <- example_spec(switch(template, two_level = "mixed_two_level", three_level = "mixed_three_level", template))
   spec$target_test$df_method <- "kenward_roger"
+  # Kenward-Roger refits are slow: the runs below use small designs.
+  if (!is.null(items)) spec$population$items <- items
   spec$options <- utils::modifyList(spec$options %||% list(), list(nrep = nrep, seed = seed))
   if (!is.null(n)) spec$goal <- list(type = "power", n = n)
   spec
@@ -30,14 +32,15 @@ test_that("Kenward-Roger reaches simr as its method \"kr\" on every mixed model 
 })
 
 # One shared Kenward-Roger run (seed 11, one core, as the direct simr call
-# below runs): each refits 100 mixed models with pbkrtest's test.
+# below runs): each refits 100 mixed models with pbkrtest's test, so the
+# design is small (12 participants, 20 items).
 kr_run <- local({
   result <- NULL
   function() {
     if (is.null(result)) {
       old <- options(powerkit.cores = 1)
       on.exit(options(old))
-      result <<- suppressWarnings(run_spec(kr_spec("crossed_two_condition", n = 20L)))
+      result <<- suppressWarnings(run_spec(kr_spec("crossed_two_condition", n = 12L, items = 20L)))
     }
     result
   }
@@ -46,11 +49,11 @@ kr_run <- local({
 test_that("powerkit's Kenward-Roger simulation is simr's powerSim() with fixed(\"cond\", \"kr\"), replication for replication", {
   old <- options(powerkit.cores = 1)
   on.exit(options(old))
-  spec <- kr_spec("crossed_two_condition", n = 20L)
+  spec <- kr_spec("crossed_two_condition", n = 12L, items = 20L)
   result <- kr_run()
   inputs <- simr_inputs(validate_spec(spec))
   direct <- suppressMessages(suppressWarnings(simr::powerSim(
-    simr_model(inputs, 20), test = simr::fixed("cond", "kr"), nsim = 100, seed = 11, progress = FALSE
+    simr_model(inputs, 12), test = simr::fixed("cond", "kr"), nsim = 100, seed = 11, progress = FALSE
   )))
   expect_equal(result$curve$power, direct$x / direct$n)
   expect_true("pbkrtest" %in% names(result$provenance$packages))
@@ -87,7 +90,7 @@ test_that("with three or more conditions, the F test and a pair's t test use lme
 })
 
 test_that("the exported script reproduces a Kenward-Roger F test of three or more conditions", {
-  spec <- kr_spec("crossed_conditions", n = 12L)
+  spec <- kr_spec("crossed_conditions", n = 12L, items = 12L)
   spec$target_test <- list(effect = "condition", method = "satterthwaite_f", alpha = 0.05, df_method = "kenward_roger")
   result <- suppressWarnings(run_spec(spec))
   script <- export_script(spec, result)
@@ -101,7 +104,7 @@ test_that("Kenward-Roger and Satterthwaite give similar power on the same simula
   old <- options(powerkit.cores = 1)
   on.exit(options(old))
   kr <- kr_run()
-  sa_spec <- kr_spec("crossed_two_condition", n = 20L)
+  sa_spec <- kr_spec("crossed_two_condition", n = 12L, items = 20L)
   sa_spec$target_test$df_method <- "satterthwaite"
   sa <- suppressWarnings(run_spec(sa_spec))
   expect_lte(abs(kr$curve$power - sa$curve$power), 0.1)
