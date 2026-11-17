@@ -132,12 +132,13 @@ replication_success <- function(goal, tr, to, so, sr, alpha, margin, threshold, 
     # The replication Bayes factor (Verhagen & Wagenmakers, 2014), in the
     # normal form the paper uses: the replication's estimate under no
     # effect against under the original's posterior from a flat prior.
-    # Success: BF_0r at most 1 / threshold. As BayesRepDesign's default
-    # (paradox = TRUE), which replication_planning() uses, a replication on
-    # either side of zero counts.
+    # Success: BF_0r at most 1 / threshold, with the replication's estimate
+    # in the original's direction (replication_planning() sets paradox =
+    # FALSE; Departure 31), so a replication on the other side of zero
+    # does not count.
     bf_replication = {
       log_bf0r <- stats::dnorm(tr, 0, sr, log = TRUE) - stats::dnorm(tr, to, sqrt(so^2 + sr^2), log = TRUE)
-      log_bf0r <= -log(threshold)
+      log_bf0r <= -log(threshold) & sign(tr) == sign(to)
     }
   )
 }

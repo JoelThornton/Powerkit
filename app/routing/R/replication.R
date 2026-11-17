@@ -775,6 +775,7 @@ replication_result_ui <- function(plan) {
         format(signif(o$p, 2)),
         if (o$p > plan$inputs$original_alpha) "It was not significant at its own level, so most goals here, which ask the replication to confirm it, may not fit; showing the effect is too small to matter may." else "")),
       replication_tau_note(plan$inputs$tau, plan$inputs$design, plan$inputs$scale),
+      replication_direction_note(plan),
       if (!is.null(plan$telescope)) p(class = "small", sprintf("Small telescopes' yardstick is %s = %s, the effect the original study had a one-in-three chance of detecting.",
         plan$telescope$effect_name, format(signif(plan$telescope$effect, 3))))
       else if (bayes && !identical(plan$inputs$design, "generic")) p(class = "small", "Small telescopes is left out: it rests on the original's significance test, and the original was analysed with Bayes factors.")
@@ -793,6 +794,20 @@ replication_result_ui <- function(plan) {
         paste(vapply(plan$packages, function(p) sprintf("%s %s", p$name, p$version), ""), collapse = ", "),
         if (identical(plan$inputs$design, "generic")) ". Every goal uses a normal approximation to the original's estimate (Pawel, Consonni & Held, 2026)."
         else ". Every goal judged against the original's effect uses a normal approximation (Pawel, Consonni & Held, 2026), which for a t-test asks for a few people fewer than the t-test cards; small telescopes is the cards' own calculation."))))
+}
+
+# The replication and sceptical Bayes factors count a success only in the
+# original's direction, where BayesRepDesign by default counts either side
+# (docs/conventions.md, Departure 31). Shown when the plan uses either.
+replication_direction_text <- "A replication Bayes factor or sceptical Bayes factor counts as a success only when the replication's estimate is in the original's direction: a large Bayes factor for an effect on the other side of zero is not evidence for the original's effect. BayesRepDesign counts either side by default, which can ask for far fewer people when the belief is shrunk towards zero."
+replication_direction_used <- function(plan) {
+  ch <- plan$choice
+  goals <- if (is.null(ch)) unique(plan$goals$goal) else c(ch$goal, ch$also)
+  any(c("bf_replication", "bf_sceptical") %in% goals)
+}
+replication_direction_note <- function(plan) {
+  if (!replication_direction_used(plan)) return(NULL)
+  p(class = "small", id = "rep-direction-note", replication_direction_text)
 }
 
 # The variation between studies the uncertain and shrunk beliefs allow,
@@ -898,8 +913,9 @@ replication_methods_paragraph <- function(plan, goal, prior) {
     sprintf("%s%s, %s%s, with the original estimate (%s) and the normal-normal hierarchical model of Pawel, Consonni and Held (2026), calculated with BayesRepDesign%s",
       replication_lc(replication_goal_labels[[goal]]), replication_sided_words(plan, goal), belief, varies, shown, scaled)
   }
-  sprintf("We planned the replication's sample size for %s chance of %s. This gives %s.",
-    replication_a_pct(i$power), calc, replication_n_words(plan, m$row$n))
+  sprintf("We planned the replication's sample size for %s chance of %s. This gives %s.%s",
+    replication_a_pct(i$power), calc, replication_n_words(plan, m$row$n),
+    if (replication_direction_used(plan)) " A replication or sceptical Bayes factor counted as a success only with the replication's estimate in the original's direction (BayesRepDesign's paradox = FALSE)." else "")
 }
 
 # How a significance or pooled goal is tested, in words.
