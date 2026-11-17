@@ -617,6 +617,8 @@ app_css <- "
   .result-how h4.h6 { margin-top: 1rem; }
   .result-records-body { border-left: 3px solid var(--pk-line); padding: 0.25rem 0 0.25rem 1rem; margin: 0.25rem 0 0.5rem; }
   .result-sure .explore-panel, .result-sure .scenario-panel, .result-sure .assumption-panel { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--pk-line); }
+  .assumption-panel td .form-group { max-width: 8rem; min-width: 4rem; margin-bottom: 0; }
+  .assumption-panel td:first-child { overflow-wrap: anywhere; }
   .result-learn { margin: 0.75rem 0 1rem; color: #3d4852; }
   .writeup-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0 0.3rem 0; }
   .writeup-head label { margin: 0; font-weight: 600; }

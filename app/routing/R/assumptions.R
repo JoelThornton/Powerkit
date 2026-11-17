@@ -100,13 +100,15 @@ assumptions_ui <- function(spec, result, candidates) {
     div(class = "assumption-inputs", style = "max-width:100%; overflow-x:auto", tabindex = "0", role = "region",
       `aria-label` = "Plausible values for each assumption",
       tags$table(class = "table table-sm",
-        tags$thead(tags$tr(tags$th(scope = "col", "Assumption"), tags$th(scope = "col", "Planned"),
+        tags$thead(tags$tr(tags$th(scope = "col", "Assumption (as planned)"),
           tags$th(scope = "col", "Lowest plausible"), tags$th(scope = "col", "Highest plausible"))),
+        # The planned value sits under the name rather than in a column of
+        # its own, so the table fits a 320px screen.
         tags$tbody(lapply(candidates, function(f) tags$tr(
-          tags$th(scope = "row", class = "fw-normal", assumption_label(f)),
-          tags$td(format_planned_value(spec, f)),
-          tags$td(numericInput(sprintf("assume_low_%s", f$id), span(class = "visually-hidden", sprintf("Lowest plausible %s", assumption_label(f))), value = NA, width = "8rem")),
-          tags$td(numericInput(sprintf("assume_high_%s", f$id), span(class = "visually-hidden", sprintf("Highest plausible %s", assumption_label(f))), value = NA, width = "8rem"))))))),
+          tags$th(scope = "row", class = "fw-normal", assumption_label(f),
+            tags$br(), span(class = "small", sprintf("planned %s", format_planned_value(spec, f)))),
+          tags$td(numericInput(sprintf("assume_low_%s", f$id), span(class = "visually-hidden", sprintf("Lowest plausible %s", assumption_label(f))), value = NA, width = "100%")),
+          tags$td(numericInput(sprintf("assume_high_%s", f$id), span(class = "visually-hidden", sprintf("Highest plausible %s", assumption_label(f))), value = NA, width = "100%"))))))),
     if (length(effect) && length(others)) div(class = "assumption-grid-choice",
       selectInput("assumptions_grid", "Also show the effect against one assumption together (both need a lowest and a highest value)",
         choices = c("No two-way grid" = "", stats::setNames(vapply(others, `[[`, "", "id"), vapply(others, assumption_label, ""))),
