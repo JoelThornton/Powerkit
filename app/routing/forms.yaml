@@ -502,6 +502,7 @@ replication_effects:
   E33: {effect: "the condition effect (the fixed effect of condition)", scale: none}
   E63: {multi_df: "the difference between the two conditions the hypothesis is about (card E33)"}
   E75: {effect: "the effect of interest as a rate ratio or odds ratio", scale: log}
+  E78: {multi_df: "the difference between the two conditions the hypothesis is about (card E26, McNemar's test, for two conditions)"}
   E67: {effect: "the item predictor's coefficient", scale: none}
   E68: {effect: "the coefficient of interest (a fixed effect)", scale: none}
   E43: {effect: "hazard ratio", scale: log}
