@@ -1,4 +1,4 @@
-# powerkit 0.78.1
+# powerkit 0.78.2
 
 * A rank test's result (the Wilcoxon signed-rank test on E1 and E3,
   Mann-Whitney on E2, Kruskal-Wallis on E18, Friedman on E54) gives, under
@@ -13,6 +13,18 @@
   and Kieser (2012, added to refs.bib from its Crossref and PubMed
   records) for how choosing the test after a normality test alters the
   error rates of the test then run (`rank_switch_ui()`).
+
+# powerkit 0.78.1
+
+* `r2_increase` and `single_coefficient` take `target_test.method`
+  "bayes_factor" (`backend-bayesfactor-r2change.R`): the Bayes factor of
+  the full model against the model without the tested predictors, each
+  model's Bayes factor from BayesFactor's `linearReg.R2stat()`, simulated
+  from the three independent sums of squares of a regression with fixed
+  predictors. The chance of evidence for no increase and of misleading
+  evidence come from studies with no increase. `single_coefficient`
+  takes `population.r2_reduced`, the R-squared of the other predictors,
+  which this Bayes factor needs. Validation chunk `bayes_r2change`.
 
 # powerkit 0.78.0
 

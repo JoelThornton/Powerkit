@@ -74,7 +74,9 @@ test_that("a hidden test selector does not name the result's test", {
   id <- names(Filter(function(f) any(vapply(form_fields(f$groups), function(x) identical(x$id, "coef_test"), logical(1))), forms$forms))[1]
   fields <- form_fields(form_groups(forms, id))
   spec <- list(target_test = list(method = "f_test"))
-  expect_null(selected_method_label(spec, fields, list(question = "r2_increase")))
+  # The R-squared increase has a selector of its own (the F test or a Bayes factor).
+  expect_match(selected_method_label(spec, fields, list(question = "r2_increase", r2c_test = "f_test")), "R-squared increase", fixed = TRUE)
+  expect_no_match(selected_method_label(spec, fields, list(question = "r2_increase", r2c_test = "f_test")), "usual t test", fixed = TRUE)
   expect_match(selected_method_label(spec, fields, list(question = "single_coefficient")), "usual t test", fixed = TRUE)
 })
 
@@ -483,7 +485,7 @@ test_that("the regression card takes Cohen's f-squared, converted by the engine 
   fields <- form_fields(form_groups(forms, "E24"))
   values <- list(question = "r2_increase", goal = "sample_size", r2_given = "f2", f2 = "0.0588", r2_reduced = "0",
     predictors_total = "5", predictors_tested = "2", Y_label = "Wellbeing", power = "0.8", alpha = "0.05",
-    just_type = "smallest_effect_of_interest")
+    just_type = "smallest_effect_of_interest", r2c_test = "f_test")
   expect_length(form_problems(fields, values), 0)
   spec <- build_spec(forms, "E24", fields, values)
   expect_identical(spec$effect_justification$conversion, list(from = "f2", value = 0.0588))

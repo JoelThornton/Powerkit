@@ -69,7 +69,7 @@ form_examples <- list(
                metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3"), closing_ok),
   E23 = c(list(factors = "oneway_ancova", A_label = "Intervention", A_levels = "Control, Brief, Full", Y_label = "Anxiety after",
                metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1", test_version = "ancova_f"), closing_ok),
-  E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2_full = "0.15", r2_reduced = "0.1",
+  E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2c_test = "f_test", r2_full = "0.15", r2_reduced = "0.1",
                predictors_total = "5", predictors_tested = "2"), closing_ok),
   E25 = c(list(Y_label = "Correct guess", p = "0.65", p0 = "0.5", alternative = "two_sided", method = "exact_binomial"), closing_ok),
   E26 = c(list(X_label = "Session", X_level1 = "Before training", X_level2 = "After training", Y_label = "Passed",

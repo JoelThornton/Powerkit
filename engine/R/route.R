@@ -133,7 +133,9 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     "basic_test/two_correlations" = ,
     "basic_test/overlapping_correlations" = ,
     "basic_test/nonoverlapping_correlations" = ,
-    "multiple_regression/single_coefficient" = if (robust_regression(spec)) {
+    "multiple_regression/single_coefficient" = if (bfr2c_test(spec)) {
+      bfr2c_backend(spec, seed)
+    } else if (robust_regression(spec)) {
       # Robust standard errors or quantile regression, simulated with Spower.
       spower_backend(spec, seed)
     } else {
@@ -146,7 +148,13 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     } else {
       pwrss_backend(spec, seed)
     },
-    "multiple_regression/r2_increase" = ,
+    "multiple_regression/r2_increase" = if (bfr2c_test(spec)) {
+      # The Bayes factor of the full model over the model without the
+      # tested predictors, simulated (backend-bayesfactor-r2change.R).
+      bfr2c_backend(spec, seed)
+    } else {
+      pwrss_backend(spec, seed)
+    },
     "logistic_regression/single_predictor" = ,
     "poisson_regression/single_predictor_count" = if (simulated_count_test(spec)) {
       # Negative binomial and zero-inflated regression, simulated with

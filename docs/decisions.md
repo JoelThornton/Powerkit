@@ -3893,3 +3893,41 @@ method chosen first. All follow JASP's default priors.
   (`validation-log.md`, 17 November 2026); an exact result is held to
   `expect_power_exact()`'s 0.0005 against a finite reference.
 
+
+## 2026-11-17 · Bayes factors for an R-squared increase and one coefficient
+
+- **What changes.** E24's R-squared increase and one-coefficient
+  questions offer a Bayes factor, as R-squared against 0 already did:
+  the Bayes factor of the model with all the predictors against the
+  model without the tested ones (one for a coefficient), the comparison
+  `regressionBF(whichModels = "top")` reports and the analogue of the F
+  test of the increase, as decided on 15 November 2026. JASP's r scale
+  0.354 and an evidence threshold the researcher chooses, with no
+  pre-filled value.
+- **How.** Each model's Bayes factor against the intercept-only model is
+  BayesFactor's `linearReg.R2stat()` from that model's R-squared, so a
+  simulated study needs only its two R-squared values. With fixed
+  predictors (as for the F test) the reduced model's sum of squares, the
+  sum the tested predictors add and the residual sum are independent
+  noncentral chi-squares, so each study is three draws rather than a
+  data set and a model fit (`backend-bayesfactor-r2change.R`).
+  `linearReg.R2stat()` is interpolated by a cubic spline from 64 values
+  spanning a batch's studies, within 0.1% of calling it for every study.
+  Power is the share of studies whose Bayes factor reaches the
+  threshold; the chance of evidence for no increase and of misleading
+  evidence come from studies with no increase, as for E24's other Bayes
+  factor.
+- **One coefficient needs R-squared without it.** The F test of a
+  coefficient depends only on its partial R-squared, but the Bayes factor
+  depends on both models' R-squared, so the screen asks for the
+  R-squared of the other predictors when the Bayes factor is chosen
+  (spec `population.r2_reduced`), and the full model's R-squared follows
+  from the partial one.
+- **Not JASP's coefficient table.** JASP reports a coefficient's
+  evidence as an inclusion Bayes factor averaged over every model, which
+  also depends on how the predictors correlate; the card names the
+  comparison it plans for in its result and methods text.
+- **Validation.** Chunk `bayes_r2change` against `lmBF()` on data
+  simulated with fixed predictors, for two increases and one coefficient
+  (`validation-log.md`, 17 November 2026); a published example is a
+  placeholder for the maintainer.
