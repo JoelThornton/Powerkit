@@ -356,7 +356,7 @@ test_that("ordinal, survival, growth-curve and reliability searches agree with t
   expect_true(abs(needed - 150) <= 1)
 })
 
-test_that("simulated searches for paired variances, trends and d' land where a fresh simulation has the target power", {
+test_that("simulated searches for paired variances, trends, d' and factorial logistic effects land where a fresh simulation has the target power", {
   skip_on_cran()
   set_found <- list(
     paired_variances = function(spec, s) { spec$population$var1 <- spec$population$var2 * s$effect; spec },
@@ -370,6 +370,15 @@ test_that("simulated searches for paired variances, trends and d' land where a f
       m <- unlist(spec$population$means)
       spec$population$means <- as.list(mean(m) + s$scale * (m - mean(m)))
       spec
+    },
+    # The interaction's part of each cell's log-odds (the cell less its
+    # row and column means, plus the grand mean) multiplied by the scale.
+    logistic_factorial = function(spec, s) {
+      l <- stats::qlogis(do.call(rbind, lapply(spec$population$probabilities, unlist)))
+      ab <- l - outer(rowMeans(l), colMeans(l), "+") + mean(l)
+      p <- stats::plogis(l + (s$scale - 1) * ab)
+      spec$population$probabilities <- lapply(seq_len(nrow(p)), function(i) as.list(p[i, ]))
+      spec
     }
   )
   jonckheere <- function() {
@@ -381,7 +390,8 @@ test_that("simulated searches for paired variances, trends and d' land where a f
   }
   for (name in names(set_found)) {
     spec <- if (name == "jonckheere") jonckheere() else example_spec(name)
-    n <- if (name == "jonckheere") 99L else 100L
+    if (name == "logistic_factorial") spec$target_test$effect <- "interaction"
+    n <- switch(name, jonckheere = 99L, logistic_factorial = 600L, 100L)
     spec$goal <- list(type = "sensitivity", n = n, power = 0.8)
     spec$options$nrep <- 500L
     result <- suppressWarnings(run_quietly(spec))
@@ -399,6 +409,20 @@ test_that("simulated searches for paired variances, trends and d' land where a f
     out <- system2(file.path(R.home("bin"), "Rscript"), file, stdout = TRUE, stderr = TRUE)
     expect_true(any(grepl("^Reproduced powerkit's result", out)), label = name)
   }
+  # The factorial logistic effect's size: for a main effect, the odds
+  # ratio between the levels with the most and the fewest 'yes' on the
+  # log-odds scale averaged over the other factor; for the interaction in
+  # a 2 x 2 table, the ratio of the odds ratios.
+  spec <- example_spec("logistic_factorial")
+  l <- stats::qlogis(do.call(rbind, lapply(spec$population$probabilities, unlist)))
+  plan <- simulated_search_plan(spec, 600L, 0.8)
+  expect_equal(plan$effect(2), exp(2 * abs(diff(rowMeans(l)))))
+  spec$variables$B$levels <- list("Doctor", "Friend")
+  spec$population$probabilities <- list(list(0.3, 0.4), list(0.4, 0.45))
+  spec$target_test$effect <- "interaction"
+  odds <- function(p) p / (1 - p)
+  ratio <- (odds(0.3) / odds(0.4)) / (odds(0.4) / odds(0.45))
+  expect_equal(simulated_search_plan(spec, 600L, 0.8)$effect(1), max(ratio, 1 / ratio))
   # A flat pattern of proportions has nothing to scale.
   flat <- example_spec("proportion_trend")
   flat$population$proportions <- list(0.3, 0.3, 0.3, 0.3)

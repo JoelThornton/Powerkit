@@ -177,7 +177,7 @@ simulated_times:
   E44: {power: 60, sample_size: 520}
   E22: {power: 20, sample_size: 175}
   E61: {power: 8, sample_size: 65, sensitivity: 40}
-  E47: {power: 6, sample_size: 50}
+  E47: {power: 6, sample_size: 50, sensitivity: 60}
   E64: {power: 5, sample_size: 40, sensitivity: 50}
   E70: {power: 5, sample_size: 40}
   E30: {power: 4, sample_size: 35}
@@ -3336,6 +3336,7 @@ forms:
   E47:
     methods_name: "a factorial logistic regression (Wald test of one effect)"
     tool: Spower
+    sensitivity: true
     directional: false
     base: {spec_version: "0.1", design: logistic_regression, template: factorial,
            variables: {A: {type: between_factor}, B: {type: between_factor}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: proportion},
