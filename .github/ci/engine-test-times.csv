@@ -226,3 +226,5 @@ validation-zero-inflated,0.1
 welch-population,7.7
 whole-study,321.5
 whole-study-experiment,73.3
+backend-levene,20.0
+backend-mcnemar-chisq,10.0

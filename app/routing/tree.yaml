@@ -1449,13 +1449,14 @@ endpoints:
     plain_name: "The same people, a yes/no outcome in each of two conditions"
     search_words: "paired proportions matched pairs"
     template: "basic_test / mcnemar"
-    backend: "pwrss: power.exact.mcnemar(method = \"exact\") (McNemar's exact test, as G*Power's exact option)"
-    method: "Formula (no simulation)"
+    backend: "pwrss: power.exact.mcnemar(method = \"exact\") (McNemar's exact test, as G*Power's exact option); McNemar's chi-square test, with or without the continuity correction, simulated with Spower's p_mcnemar.test()"
+    method: "Formula (no simulation) for the exact test; simulation for the chi-square tests"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "The exact test matches G*Power to seven decimal places in the engine's tests. The chi-square tests agree with a simulation written separately (the pairs drawn as counts and McNemar's statistic computed from its formula) and keep the Type I error at alpha without the correction (17 November 2026). Not yet checked against a published example."}
     card_points:
+      - "Choose the test you will run: McNemar's exact test (SPSS, G*Power), or the chi-square test with the continuity correction (R's mcnemar.test()) or without it (jamovi)."
       - "Three or more conditions, a yes/no answer from each person in each: Cochran's Q, which has its own card."
-    inputs: ["Names of the two conditions and the outcome", "The expected discordant proportions"]
+    inputs: ["Names of the two conditions and the outcome", "The expected discordant proportions", "McNemar's exact test or the chi-square test"]
     tier: v2
     alternatives: ["McNemar's exact test", "McNemar's chi-square approximation"]
   E78:
@@ -2234,15 +2235,15 @@ endpoints:
     technical_name: "Two independent variances"
     plain_name: "Do two groups differ in how spread out their scores are?"
     template: "basic_test / two_variances"
-    backend: "powerkit's formula with base R's stats::pf() (the F test of two variances, as the G*Power 3.1 manual gives it, section 15); Spower's p_var.test() simulates it on request"
-    method: "Formula (no simulation)"
+    backend: "powerkit's formula with base R's stats::pf() (the F test of two variances, as the G*Power 3.1 manual gives it, section 15); Spower's p_var.test() simulates it on request; Levene's and the Brown-Forsythe test (car::leveneTest()) are simulated with Spower, on normal, skewed or heavy-tailed scores"
+    method: "Formula (no simulation) for the F test; simulation for Levene's and the Brown-Forsythe test"
     status: runs_validated
-    validation: {file: test-backend-variance.R, note: "Gives the G*Power 3.1 manual's example exactly (193 per group, actual power 0.800105, and its critical values), and agrees with Spower's simulation of the same test (31 October 2026)."}
+    validation: {file: test-backend-variance.R, note: "The F test gives the G*Power 3.1 manual's example exactly (193 per group, actual power 0.800105, and its critical values), and agrees with Spower's simulation of the same test (31 October 2026). Levene's and the Brown-Forsythe test agree with a simulation written separately (an ANOVA of the absolute deviations, without car) and keep the Type I error at alpha (17 November 2026); no published example yet."}
     card_points:
       - "Compares how spread out scores are (their variance, the SD squared) in two groups of different people."
       - "Groups of equal size only, for now."
-      - "Calculated exactly, as G*Power does."
-    inputs: ["Names of the two groups and the outcome", "The expected variance in each group"]
+      - "The F test is calculated exactly, as G*Power does, and assumes normal scores; Levene's and the Brown-Forsythe test, which don't, are simulated on the score shape you choose."
+    inputs: ["Names of the two groups and the outcome", "The expected variance in each group", "The F test, Levene's test or the Brown-Forsythe test"]
     tier: v2
     alternatives: ["the independent-samples t-test, if your hypothesis is about the average rather than the spread"]
   E57:

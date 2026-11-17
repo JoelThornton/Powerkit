@@ -122,7 +122,10 @@ Wave 2 (engine only, not yet in the app): one-way between-participants
 ANOVA on Superpower's \code{ANOVA_exact()}; multiple regression R-squared
 (against 0, or an increase) on \code{pwrss::power.f.regression()}; one
 proportion and McNemar's test on pwrss's exact tests
-(\code{power.exact.oneprop()}, \code{power.exact.mcnemar()}); and Welch's t-test
+(\code{power.exact.oneprop()}, \code{power.exact.mcnemar()}; McNemar's chi-square
+test, \code{target_test > method = "mcnemar_chisq"} or
+\code{"mcnemar_chisq_corrected"}, is simulated with Spower's
+\code{p_mcnemar.test()}); and Welch's t-test
 by formula (\code{pwrss::power.t.welch()}, unless
 \code{options > method = "simulation"} asks for Spower's simulation). Welch's
 one-way ANOVA (\code{target_test > method = "welch_f"}) is worked out by

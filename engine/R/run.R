@@ -15,7 +15,10 @@
 #' ANOVA on Superpower's `ANOVA_exact()`; multiple regression R-squared
 #' (against 0, or an increase) on `pwrss::power.f.regression()`; one
 #' proportion and McNemar's test on pwrss's exact tests
-#' (`power.exact.oneprop()`, `power.exact.mcnemar()`); and Welch's t-test
+#' (`power.exact.oneprop()`, `power.exact.mcnemar()`; McNemar's chi-square
+#' test, `target_test > method = "mcnemar_chisq"` or
+#' `"mcnemar_chisq_corrected"`, is simulated with Spower's
+#' `p_mcnemar.test()`); and Welch's t-test
 #' by formula (`pwrss::power.t.welch()`, unless
 #' `options > method = "simulation"` asks for Spower's simulation). Welch's
 #' one-way ANOVA (`target_test > method = "welch_f"`) is worked out by

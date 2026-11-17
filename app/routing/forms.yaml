@@ -3248,6 +3248,8 @@ forms:
     sensitivity: true
     sensitivity_without_effect: true
     sensitivity_note: "For the smallest effect you could detect, the second proportion can stay empty if you have no estimate: Powerkit keeps the proportion who change only in the first condition and finds how many more would need to change only in the second. A smaller value looks for the opposite direction instead."
+    # Known Difference 2 is about the exact test only.
+    known_differences_if_method: {"2": mcnemar_exact}
     known_differences: ["2"]
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: mcnemar,
@@ -3264,6 +3266,13 @@ forms:
         fields:
           - {id: p_first_only, baseline: true, writeup_label: "proportion 'yes' in the first condition only", label: "Proportion of people who say 'yes' in the first condition only (0 to 1)", type: number, path: population.p_first_only, effect: true, min: 0, max: 1}
           - {id: p_second_only, when_empty: same_as, same_as: p_first_only, writeup_label: "proportion 'yes' in the second condition only", label: "Proportion of people who say 'yes' in the second condition only (0 to 1)", type: number, path: population.p_second_only, effect: true, min: 0, max: 1}
+      - input: "McNemar's exact test or the chi-square test"
+        fields:
+          - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {mcnemar_exact: "McNemar's exact test", mcnemar_chisq: "McNemar's chi-square test (uncorrected)", mcnemar_chisq_corrected: "McNemar's chi-square test (continuity-corrected)"},
+             default: mcnemar_exact, default_source: "the exact test G*Power's McNemar test computes, pwrss's exact power (power.exact.mcnemar(method = \"exact\"), pwrss 1.3.3)",
+             help: "Choose the test you will actually use to analyse your study. R's mcnemar.test() applies the continuity correction by default; jamovi reports the uncorrected chi-square test by default; SPSS reports the exact test. The chi-square tests are two-sided.",
+             choice_notes: {mcnemar_exact: "The binomial test of the pairs that changed. It never rejects a true null more often than alpha, so it can need a few more pairs than the chi-square test.", mcnemar_chisq: "The chi-square test without the correction, as jamovi reports it by default and R's mcnemar.test(correct = FALSE) runs it. Powerkit simulates its power with Spower.", mcnemar_chisq_corrected: "R's mcnemar.test() with its default continuity correction, which lowers power compared with the uncorrected test. Powerkit simulates its power with Spower."}}
 
 
   E36:
@@ -3545,6 +3554,18 @@ forms:
           - {id: var1, when_empty: same_as, same_as: var2, writeup_label: "variance in group 1", label: "Variance in group 1 (the SD squared)", type: number, path: population.var1, effect: true, min_exclusive: 0,
              help: "For example, an SD of 1.2 is a variance of 1.44. A one-sided test predicting 'positive' says group 1's variance is the larger."}
           - {id: var2, baseline: true, writeup_label: "variance in group 2", label: "Variance in group 2 (the SD squared)", type: number, path: population.var2, effect: true, min_exclusive: 0}
+      - input: "The F test, Levene's test or the Brown-Forsythe test"
+        fields:
+          - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
+             choices: {f_var: "F test of two variances", levene: "Levene's test (deviations from the means)", brown_forsythe: "Brown-Forsythe test (deviations from the medians)"},
+             default: f_var, default_source: "the F test G*Power computes for two variances (section 15)",
+             help: "Choose the test you will actually use to analyse your study. The F test assumes normal scores, and its false-positive rate is wrong when they aren't. Levene's test is what SPSS reports; the Brown-Forsythe version is the default of R's car::leveneTest() and is the safer of the two with skewed or heavy-tailed scores. Both are two-sided.",
+             choice_notes: {f_var: "Powerkit works out its power exactly, as G*Power does, for normal scores.", levene: "An ANOVA of each person's distance from their group's mean (car::leveneTest(center = mean)). Powerkit simulates its power with Spower, on scores of the shape you choose.", brown_forsythe: "As Levene's test, with distances from each group's median (car::leveneTest(center = median), car's default). Powerkit simulates its power with Spower, on scores of the shape you choose."}}
+          - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
+             shown_if: {field: method, is_one_of: [levene, brown_forsythe]},
+             choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
+             default: normal, default_source: "normal scores, the F test's assumption and Spower's default for variance tests (gen_var.test(), Spower 0.7)",
+             help: "Both groups have the same shape; they differ only in spread (their variances). These tests' power depends on the shape: heavy tails make the groups' spreads harder to tell apart."}
 
   # Two variances in the same people (the Pitman-Morgan test), simulated
   # with Spower's p_r() on the sum and the difference of the paired scores.
