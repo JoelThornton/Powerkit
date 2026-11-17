@@ -159,3 +159,115 @@ test_that("an equivalence test's narrowest bound shows equivalence with the targ
   power$population$bound <- NULL
   expect_error(validate_spec(power), "Give the equivalence bound")
 })
+
+test_that("a meta-analysis's smallest average effect: metapower's z test against metafor, and the simulated Hartung-Knapp test", {
+  skip_on_cran()
+  spec <- example_spec("meta_mean_effect")
+  spec$target_test$test <- "z"
+  s <- sensitivity_of(spec, n = 20L)$sensitivity
+  expect_identical(s$effect_name, "meta_d")
+  expect_equal(s$power, 0.8, tolerance = 1e-6)
+  # metafor's random-effects z test (DerSimonian and Laird) on simulated
+  # meta-analyses of 20 studies at that average effect. metapower allows
+  # for tau-squared being estimated (Jackson and Turner, 2017), so the two
+  # agree only roughly.
+  pop <- spec$population
+  v <- 4 / pop$study_size + s$effect^2 / (2 * pop$study_size)
+  tau2 <- pop$i2 * v / (1 - pop$i2)
+  set.seed(20261117)
+  hits <- replicate(2000, {
+    yi <- stats::rnorm(20, stats::rnorm(20, s$effect, sqrt(tau2)), sqrt(v))
+    metafor::rma(yi = yi, vi = rep(v, 20), method = "DL")$pval < 0.05
+  })
+  expect_equal(mean(hits), 0.8, tolerance = 0.06)
+  for (name in c("z")) {
+    script_spec <- spec
+    script_spec$goal <- list(type = "sensitivity", n = 20L, power = 0.8)
+    result <- sensitivity_of(spec, n = 20L)
+    file <- withr::local_tempfile(fileext = ".R")
+    writeLines(export_script(script_spec, result), file)
+    out <- system2(file.path(R.home("bin"), "Rscript"), file, stdout = TRUE, stderr = TRUE)
+    expect_true(any(grepl("^Reproduced powerkit's result", out)))
+  }
+
+  hk <- example_spec("meta_mean_effect")
+  hk$goal <- list(type = "sensitivity", n = 20L, power = 0.8)
+  hk$options$nrep <- 500L
+  result <- suppressWarnings(run_quietly(hk))
+  s <- result$sensitivity
+  expect_true(isTRUE(s$simulated) && s$effect_lower < s$effect && s$effect < s$effect_upper)
+  # Power simulated afresh at the effect found, with more replications.
+  at <- hk
+  at$population$effect <- s$effect
+  at$goal <- list(type = "power", n = 20L)
+  at$options$nrep <- 4000L
+  at$options$seed <- 99L
+  expect_equal(suppressWarnings(run_quietly(at))$curve$power, 0.8, tolerance = 0.04)
+  file <- withr::local_tempfile(fileext = ".R")
+  writeLines(export_script(hk, result), file)
+  out <- system2(file.path(R.home("bin"), "Rscript"), file, stdout = TRUE, stderr = TRUE)
+  expect_true(any(grepl("^Reproduced powerkit's result", out)))
+  # The other meta-analysis questions still refuse the goal plainly.
+  sub <- example_spec("meta_subgroups")
+  sub$goal <- list(type = "sensitivity", n = 20L, power = 0.8)
+  expect_error(validate_spec(sub), "average effect only")
+})
+
+test_that("SEM: the RMSEA found matches WebPower's own solver, and semPower needs the n given at the correlation and slope found", {
+  skip_on_cran()
+  skip_if_not_installed("semPower")
+  fit <- example_spec("sem_model_fit")
+  df <- sem_df(fit)
+  for (method in c("chi_square_exact_fit", "chi_square_close_fit", "chi_square_not_close_fit")) {
+    spec <- fit
+    spec$target_test$method <- method
+    spec$population$rmsea <- NULL
+    n <- if (method == "chi_square_not_close_fit") 600L else 200L
+    s <- sensitivity_of(spec, n = n)$sensitivity
+    expect_identical(s$effect_name, "rmsea")
+    # WebPower solves wp.sem.rmsea() for rmsea1 itself; the test of exact
+    # fit is its test of close fit with a null RMSEA of 0.
+    solved <- WebPower::wp.sem.rmsea(
+      n = n, df = df, rmsea0 = if (method == "chi_square_exact_fit") 0 else 0.05, rmsea1 = NULL, power = 0.8,
+      alpha = 0.05, type = if (method == "chi_square_not_close_fit") "notclose" else "close"
+    )$rmsea1
+    # WebPower's uniroot() keeps R's default tolerance (about 1e-4 on the
+    # RMSEA), so the two agree to about three significant figures.
+    expect_equal(s$effect, solved, tolerance = 2e-3, label = method)
+    spec$goal <- list(type = "sensitivity", n = n, power = 0.8)
+    file <- withr::local_tempfile(fileext = ".R")
+    writeLines(export_script(spec, sensitivity_of(spec, n = n)), file)
+    out <- system2(file.path(R.home("bin"), "Rscript"), file, stdout = TRUE, stderr = TRUE)
+    expect_true(any(grepl("^Reproduced powerkit's result", out)), label = method)
+  }
+  # With an RMSEA given for power, it is still required.
+  power <- fit
+  power$population$rmsea <- NULL
+  expect_error(validate_spec(power), "Give the model's RMSEA")
+
+  for (name in c("sem_factor_correlation", "sem_latent_regression")) {
+    spec <- example_spec(name)
+    result <- sensitivity_of(spec, n = 200L)
+    s <- result$sensitivity
+    # semPower's own a-priori analysis at the value found needs about the n
+    # given (it rounds up to a whole person).
+    at <- spec
+    if (name == "sem_factor_correlation") at$population$r <- s$effect else {
+      at$population$slopes[[at$population$tested %||% 1L]] <- s$effect
+    }
+    args <- sem_restriction_args(at)
+    fun <- getExportedValue("semPower", sub("^semPower::", "", sem_function(at)))
+    needed <- suppressMessages(do.call(fun, c(list(type = "a-priori", alpha = 0.05, power = 0.8), args)))$requiredN
+    expect_true(abs(needed - 200) <= 1, label = name)
+    spec$goal <- list(type = "sensitivity", n = 200L, power = 0.8)
+    file <- withr::local_tempfile(fileext = ".R")
+    writeLines(export_script(spec, result), file)
+    out <- system2(file.path(R.home("bin"), "Rscript"), file, stdout = TRUE, stderr = TRUE)
+    expect_true(any(grepl("^Reproduced powerkit's result", out)), label = name)
+  }
+  # Invariance compares a pattern of loadings or intercepts: no single
+  # effect to search, so the goal is refused plainly.
+  mi <- example_spec("sem_invariance")
+  mi$goal <- list(type = "sensitivity", n = 200L, power = 0.8)
+  expect_error(suppressWarnings(run_quietly(mi)), "isn't available yet")
+})

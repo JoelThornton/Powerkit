@@ -31,7 +31,7 @@ metapower_backend <- function(spec, seed = NULL) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = function(n, power) formula_search_sensitivity(spec, n, power),
     check_run = function() metapower_check_run(spec, inputs)
   )
 }
@@ -117,7 +117,8 @@ metapower_script <- function(spec, result) {
     switch(
       goal$type,
       sample_size = sprintf("target_power <- %s", r_code(goal$power)),
-      power = sprintf("n_total <- %s # the number of studies (k)", r_code(goal$n))
+      power = sprintf("n_total <- %s # the number of studies (k)", r_code(goal$n)),
+      sensitivity = c(sprintf("n_total <- %s # the number of studies (k)", r_code(goal$n)), sprintf("target_power <- %s", r_code(goal$power)))
     ),
     "# metapower's calculations draw no random numbers, so powerkit's seed isn't used.",
     "",
@@ -234,6 +235,7 @@ meta_hk_backend <- function(spec, seed = NULL) {
       })
     },
     sensitivity = NULL,
+    simulated_sensitivity = function(n, power, nrep, seed, cores) simulated_effect_sensitivity(spec, n, power, nrep, seed, cores),
     check_run = function() meta_hk_check_run(spec, model, seed)
   )
 }

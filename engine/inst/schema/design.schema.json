@@ -6582,7 +6582,8 @@
               "type": {
                 "enum": [
                   "power",
-                  "sample_size"
+                  "sample_size",
+                  "sensitivity"
                 ]
               }
             }
@@ -6668,8 +6669,7 @@
         },
         "population": {
           "required": [
-            "metric",
-            "rmsea"
+            "metric"
           ],
           "additionalProperties": false,
           "properties": {

@@ -559,10 +559,17 @@ design_description <- function(spec) {
       label("Y"), label("X"), levels("X"), spec$population$cluster_size,
       if (identical(spec$population$metric, "proportion")) "yes/no outcome, z test of the difference in proportions" else "t test with Satterthwaite degrees of freedom"
     ),
-    "sem/model_fit" = sprintf(
-      "structural equation model: chi-square test of exact fit, power to reject a model with RMSEA %s on %s degrees of freedom",
-      spec$population$rmsea, sem_df(spec)
-    ),
+    "sem/model_fit" = if (is.null(spec$population[["rmsea"]])) {
+      sprintf("structural equation model: %s on %s degrees of freedom, the RMSEA searched",
+        switch(spec$target_test$method %||% "chi_square_exact_fit",
+          chi_square_close_fit = "the test of close fit", chi_square_not_close_fit = "the test of not-close fit",
+          "chi-square test of exact fit"), sem_df(spec))
+    } else {
+      sprintf(
+        "structural equation model: chi-square test of exact fit, power to reject a model with RMSEA %s on %s degrees of freedom",
+        spec$population$rmsea, sem_df(spec)
+      )
+    },
     "sem/invariance" = sem_invariance_description(spec),
     "sem/factor_correlation" = sprintf(
       "correlation between two factors (%s and %s items, loadings %s and %s): chi-square difference test of r = %s against 0",
@@ -982,6 +989,7 @@ simulation_goal_section <- function(spec, result, n_step) {
     ))
   }
   if (spec$goal$type == "sensitivity") {
+    if (simulated_search_available(spec)) return(simulated_search_section(spec, result))
     return(simulated_sensitivity_section(result))
   }
   est <- result$n_required
@@ -1030,6 +1038,69 @@ simulation_goal_section <- function(spec, result, n_step) {
     "powerkit_result <- list(",
     sprintf("  n = %s, lower = %s, upper = %s,", r_code(est$n), r_code(est$lower), r_code(est$upper)),
     sprintf("  power = %s", r_code(result$curve$power)),
+    ")",
+    ""
+  )
+}
+
+# The smallest detectable effect of the other simulated tests
+# (simulated_effect_sensitivity()): the simulations at each value of the
+# effect, and the same probit curve.
+simulated_search_section <- function(spec, result) {
+  sims <- result$provenance$simulations
+  s <- result$sensitivity
+  plan <- simulated_search_plan(spec, spec$goal$n, spec$goal$power)
+  c(
+    "# Smallest detectable effect ----",
+    "# powerkit simulated power at these values of the effect (x, its size),",
+    "# each with its own seed, keeping the rest of what you entered (it chose",
+    "# them from a formula's answer, not repeated here). `fitted` marks the",
+    "# values its power curve was fitted to: those within 20% of its first",
+    "# estimate.",
+    "set_effect <- function(x) {",
+    plan$script_set,
+    "}",
+    "simulated <- data.frame(",
+    sprintf("  scale = %s,", r_code(sims$scale)),
+    sprintf("  seed = %s,", r_code(sims$seed)),
+    sprintf("  fitted = %s", r_code(sims$fitted)),
+    ")",
+    "counts <- t(vapply(seq_len(nrow(simulated)), function(i) {",
+    "  set_effect(simulated$scale[i])",
+    "  simulate_power(n_total, simulated$seed[i])",
+    "}, numeric(2)))",
+    "simulated$rejections <- counts[, 1]",
+    "simulated$valid <- counts[, 2]",
+    "simulated$power <- simulated$rejections / simulated$valid",
+    "print(simulated)",
+    "",
+    "# powerkit smooths the simulated power with a probit regression of the",
+    "# rejections on x. The smallest detectable effect is where the fitted",
+    "# power reaches the target; its 95% interval runs between the values",
+    "# where the curve's upper and lower confidence limits reach it.",
+    "fitted_points <- simulated[simulated$fitted, ]",
+    "fit <- suppressWarnings(glm(",
+    "  cbind(rejections, valid - rejections) ~ scale,",
+    "  family = binomial(link = \"probit\"),",
+    "  data = fitted_points",
+    "))",
+    "candidates <- data.frame(scale = seq(min(fitted_points$scale), max(fitted_points$scale), length.out = 2001))",
+    "link <- predict(fit, candidates, se.fit = TRUE)",
+    "z <- qnorm(0.975)",
+    "first_reaching <- function(p) {",
+    "  hit <- which(p >= target_power)",
+    "  if (length(hit) == 0 || hit[1] == 1) NA else candidates$scale[hit[1]]",
+    "}",
+    "x <- first_reaching(pnorm(link$fit))",
+    "x_lower <- first_reaching(pnorm(link$fit + z * link$se.fit))",
+    "x_upper <- first_reaching(pnorm(link$fit - z * link$se.fit))",
+    sprintf("effect <- %s", plan$effect_script),
+    "cat(sprintf(\"Smallest detectable effect: %.4g (the size of x: %.4g, 95%% interval %.4g to %.4g)\\n\", effect, x, x_lower, x_upper))",
+    "",
+    "reproduced <- list(scale = x, lower = x_lower, upper = x_upper, effect = effect)",
+    "powerkit_result <- list(",
+    sprintf("  scale = %s, lower = %s, upper = %s,", r_code(s$scale), r_code(s$scale_lower), r_code(s$scale_upper)),
+    sprintf("  effect = %s", r_code(s$effect)),
     ")",
     ""
   )

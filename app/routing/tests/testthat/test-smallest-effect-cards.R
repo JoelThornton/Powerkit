@@ -119,10 +119,66 @@ test_that("an equivalence test gives the narrowest bounds it could show, and the
   figure <- result_figure(run$spec, run$result)
   expect_identical(figure$label, "the narrowest equivalence bounds you could show")
   expect_match(figure$value, "^±")
-  lines <- goal_sentences(run$spec, run$result)
+  lines <- result_sentences(run$spec, run$result)
   expect_match(lines[["headline"]], "narrowest equivalence bounds you could show", fixed = TRUE)
   expect_no_match(lines[["headline"]], "smallest effect", fixed = TRUE)
   # In the measure's own units, the bounds are given in those units.
   run <- smallest_effect_run("E36", list(effect_units = "raw", raw_bound = "", raw_mean_1 = "50", raw_mean_2 = "51", raw_sd = "10"))
   expect_match(units_sentence(run$result) %||% "", "bounds of ±", fixed = TRUE)
+})
+
+test_that("a meta-analysis gives the smallest average effect its number of studies could detect", {
+  goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E61")))[[1]]
+  expect_match(goal$choices$sensitivity, "number of studies", fixed = TRUE)
+  expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(meta_question = "subgroups")))
+  for (test in c("z", "hartung_knapp")) {
+    fields <- form_fields(form_groups(forms, "E61"))
+    values <- modifyList(form_examples$E61, list(goal = "sensitivity", n = "20", power = "0.8", alpha = "0.05", meta_effect = "", meta_test = test))
+    expect_length(form_problems(fields, values), 0)
+    spec <- build_spec(forms, "E61", fields, values)
+    calc <- run_calculation(spec, seed = forms$default_seed)
+    expect_identical(calc$status, "ok")
+    figure <- result_figure(calc$spec, calc$result)
+    expect_match(figure$label, "average effect", fixed = TRUE)
+    expect_match(figure$sub, "20 studies", fixed = TRUE)
+    lines <- result_sentences(calc$spec, calc$result)
+    expect_match(lines[["headline"]], "With 20 studies, the smallest average effect", fixed = TRUE)
+    expect_no_match(lines[["headline"]], "participants in total", fixed = TRUE)
+  }
+})
+
+test_that("a structural equation model gives the smallest misfit, factor correlation or latent slope its sample could detect", {
+  goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E37")))[[1]]
+  expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(question = "invariance")))
+  expect_true(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(question = "model_fit")))
+  # The RMSEA may stay empty: the search sets it.
+  fits <- list(
+    chi_square_exact_fit = list(n = "200", label = "the smallest RMSEA you could detect", headline = "the smallest misfit that the chi-square test of exact model fit"),
+    chi_square_close_fit = list(n = "200", label = "the smallest RMSEA you could detect", headline = "the smallest RMSEA that the test of close fit"),
+    chi_square_not_close_fit = list(n = "600", label = "the largest RMSEA you could show to fit closely", headline = "would show close fit with 80% power if the model's RMSEA in the population is")
+  )
+  for (fit in names(fits)) {
+    extra <- list(n = fits[[fit]]$n, question = "model_fit", fit_test = fit, rmsea = "",
+      rmsea_null = if (fit == "chi_square_exact_fit") "" else "0.05")
+    run <- smallest_effect_run("E37", extra)
+    expect_null(run$spec$population[["rmsea"]], label = fit)
+    expect_identical(result_figure(run$spec, run$result)$label, fits[[fit]]$label)
+    lines <- result_sentences(run$spec, run$result)
+    expect_match(lines[["headline"]], fits[[fit]]$headline, fixed = TRUE)
+    expect_no_match(paste(lines, collapse = " "), "NULL", fixed = TRUE)
+    methods <- writeup_text(forms$forms$E37, run$spec, run$result, run$fields, run$values)[["short"]]
+    # The test chosen is named, and the RMSEA found is stated once.
+    expect_match(methods, if (fit == "chi_square_exact_fit") "exact model fit" else if (fit == "chi_square_close_fit") "test of close fit" else "test of not-close fit", fixed = TRUE)
+    expect_no_match(methods, "misfit to detect was|assumed a population RMSEA")
+  }
+  # A factor correlation and a latent slope: the value tested is searched,
+  # so the model described leaves it out.
+  for (question in c("factor_correlation", "latent_regression")) {
+    example <- sem_examples[[question]]
+    run <- smallest_effect_run("E37", c(example[setdiff(names(example), names(closing_ok))], list(n = "200")))
+    figure <- result_figure(run$spec, run$result)
+    expect_match(figure$label, if (question == "factor_correlation") "smallest factor correlation" else "smallest standardised slope", fixed = TRUE)
+    lines <- result_sentences(run$spec, run$result)
+    expect_no_match(lines[["detail"]], if (question == "factor_correlation") "correlating 0.2" else "slopes 0.2, 0.3", fixed = TRUE)
+  }
 })
