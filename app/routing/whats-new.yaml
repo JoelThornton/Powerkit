@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "The smallest effect you could detect, on five more analyses"
+    text: "Two groups on an ordinal outcome, the log-rank test and a Cox regression, growth curves, and the ICC, Cronbach's alpha and kappa now offer \"the smallest effect I'd have a good chance of finding\", and the effect can be left empty. For reliability the answer is the lowest value your sample could show is above the one you name. When the smallest detectable effect is the goal, the methods paragraph no longer calls the values you entered \"the effect size\"."
+  - date: "2026-11-17"
     title: "The smallest effect you could detect, for meta-analyses and structural equation models"
     text: "A meta-analysis of the average effect can now give the smallest average effect its number of studies could detect. A structural equation model can give the smallest misfit (RMSEA) its sample would detect, the largest RMSEA it could show to fit closely, or the smallest factor correlation or latent slope it could detect. The methods paragraph for a model-fit test now names the test of close or not-close fit when that is the one you chose."
   - date: "2026-11-17"

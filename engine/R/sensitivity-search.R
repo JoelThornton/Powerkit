@@ -49,6 +49,10 @@ formula_search_kind <- function(spec) {
   if (identical(spec$design, "sem") && isTRUE(spec$template %in% c("model_fit", "factor_correlation", "latent_regression"))) {
     return(paste0("sem_", spec$template))
   }
+  if (identical(spec$design, "ordinal_regression") && identical(spec$template, "ordinal_two_groups")) return("ordinal_two_groups")
+  if (identical(spec$design, "survival") && isTRUE(spec$template %in% c("log_rank", "cox_predictor"))) return(spec$template)
+  if (identical(spec$design, "mixed_model") && identical(spec$template, "growth_curve")) return("growth_curve")
+  if (identical(spec$design, "reliability") && isTRUE(spec$template %in% c("icc", "cronbach_alpha", "kappa"))) return(paste0("reliability_", spec$template))
   NULL
 }
 
@@ -196,6 +200,85 @@ formula_search_plan <- function(spec) {
         } else {
           "standardised slope of the latent predictor, with the items kept as entered"
         }
+      )
+    },
+    ordinal_two_groups = {
+      direction <- pwrss_search_direction(spec, log(pop$odds_ratio))
+      list(
+        grid = log_grid(1e-4, log(100)),
+        direction = direction,
+        power = function(s, n) propodds_backend(s)$exact_power(n),
+        set = function(s, x) { s$population$odds_ratio <- exp(direction * x); s },
+        # The script gives powertools the odds ratio above 1 (the same power).
+        script = "OR <<- exp(x)",
+        effect = function(x) exp(direction * x), effect_script = "exp(direction * found)",
+        effect_name = "odds_ratio",
+        what = "odds ratio between the groups, with group 1's shares in the categories kept"
+      )
+    },
+    log_rank = {
+      p1 <- pop$p_event[[1]]
+      direction <- pwrss_search_direction(spec, pop$p_event[[2]] - p1)
+      list(
+        grid = log_grid(1e-4, (if (direction < 0) p1 else 1 - p1) - 1e-4),
+        direction = direction,
+        power = function(s, n) survival_backend(s)$exact_power(n),
+        set = function(s, x) { s$population$p_event[[2]] <- p1 + direction * x; s },
+        script = sprintf("p_event[2] <<- %s + direction * x", r_code(p1)),
+        effect = function(x) p1 + direction * x, effect_script = sprintf("%s + direction * found", r_code(p1)),
+        effect_name = "p_event2",
+        description = sprintf("the proportion of group 2 with the event by time %s, with group 1's kept at %s", format(pop$time), format(p1))
+      )
+    },
+    cox_predictor = {
+      direction <- pwrss_search_direction(spec, log(pop$hazard_ratio))
+      list(
+        grid = log_grid(1e-4, log(100)),
+        direction = direction,
+        power = function(s, n) survival_backend(s)$exact_power(n),
+        set = function(s, x) { s$population$hazard_ratio <- exp(direction * x); s },
+        script = "hazard_ratio <<- exp(direction * x)",
+        effect = function(x) exp(direction * x), effect_script = "exp(direction * found)",
+        effect_name = "hazard_ratio",
+        what = "hazard ratio for a person 1 SD higher on X, with the share with the event and the other predictors kept"
+      )
+    },
+    growth_curve = {
+      direction <- pwrss_search_direction(spec, pop$slope_difference)
+      spread <- max(pop$sd_slope, pop$sd_residual, pop$sd_intercept %||% 0, 1)
+      list(
+        grid = log_grid(1e-4 * spread, 100 * spread),
+        direction = direction,
+        power = function(s, n) route_backend(s)$exact_power(n),
+        set = function(s, x) { s$population$slope_difference <- direction * x; s },
+        script = "slope_difference <<- direction * x",
+        effect = function(x) direction * x, effect_script = "direction * found",
+        effect_name = "slope_difference",
+        what = "difference between the groups' average rates of change, per unit of time, in the outcome's units, with the SDs and correlation kept"
+      )
+    },
+    reliability_icc = ,
+    reliability_cronbach_alpha = ,
+    reliability_kappa = {
+      field <- switch(kind, reliability_icc = "icc", reliability_cronbach_alpha = "reliability", reliability_kappa = "kappa")
+      null_field <- switch(kind, reliability_icc = "icc_null", reliability_cronbach_alpha = "reliability_null", reliability_kappa = "kappa_null")
+      null <- pop[[null_field]]
+      direction <- pwrss_search_direction(spec, pop[[field]] - null)
+      # Below the null value an ICC, alpha or kappa can go down to -1 in
+      # principle; the search keeps to the side the test looks at.
+      room <- if (direction > 0) 1 - null else null + 1
+      script_name <- switch(kind, reliability_icc = "icc", reliability_cronbach_alpha = "reliability", reliability_kappa = "kappa1")
+      script_null <- switch(kind, reliability_icc = "icc_null", reliability_cronbach_alpha = "reliability_null", reliability_kappa = "kappa0")
+      name <- switch(kind, reliability_icc = "ICC", reliability_cronbach_alpha = "Cronbach's alpha", reliability_kappa = "kappa")
+      list(
+        grid = log_grid(1e-4, room - 1e-3),
+        direction = direction,
+        power = function(s, n) route_backend(s)$exact_power(n),
+        set = function(s, x) { s$population[[field]] <- null + direction * x; s },
+        script = sprintf("%s <<- %s + direction * x", script_name, script_null),
+        effect = function(x) null + direction * x, effect_script = sprintf("%s + direction * found", script_null),
+        effect_name = field,
+        description = sprintf("the %s the study could show %s the null value %s", name, if (direction > 0) "exceeds" else "is below", format(null))
       )
     },
     tost = {
