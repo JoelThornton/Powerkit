@@ -104,6 +104,27 @@ test_that("a goal no replication can reach says so, with the most it could reach
   expect_false(any(c("agreement", "negligible") %in% plain$goals$goal))
 })
 
+test_that("a goal met by even the smallest replication says so, not that it can't be reached", {
+  # A strong original (z = 3.92) carries the pooled goal on its own: its
+  # chance is above 90% for a replication of three people, so
+  # BayesRepDesign's search has no sample size to find.
+  plan <- replication_planning("generic", 0.74, original_n = 120, original_statistic = 3.92,
+    power = 0.9)
+  pooled <- plan$goals[plan$goals$goal == "pooled", ]
+  expect_true(all(pooled$reason == "any_size"))
+  expect_true(all(is.na(pooled$n)))
+  for (p in pooled$prior) {
+    dp <- BayesRepDesign::designPrior(to = 0.74, so = plan$original$se, tau = 0,
+      type = c(as_reported = "conditional", uncertain = "predictive", shrunk = "EB")[[p]])
+    small <- BayesRepDesign::porsMeta(level = 0.025^2, dprior = dp, sr = plan$original$se * sqrt(120 / 3))
+    expect_equal(pooled$limit[pooled$prior == p], small)
+    expect_gt(small, 0.9)
+  }
+  # A goal that really can't be reached keeps its own reason.
+  agree <- two_groups()$goals
+  expect_false(any(agree$reason[agree$goal == "agreement"] == "any_size"))
+})
+
 test_that("an independent simulation of t-tests agrees with the uncertain belief's chance", {
   # True effects drawn from the design prior (mean 0.7, its SD), then two
   # groups of the planned size, then Student's t-test: the share
@@ -361,4 +382,45 @@ test_that("the app's starting variation (tau 0.05) against BayesRepDesign's defa
   expect_equal(goal_n(none, "significance", "as_reported"), goal_n(small, "significance", "as_reported"))
   expect_equal(c(goal_n(none, "significance", "uncertain"), goal_n(small, "significance", "uncertain")), c(106, 110))
   expect_equal(c(goal_n(none, "significance", "shrunk"), goal_n(small, "significance", "shrunk")), c(200, 210))
+})
+
+test_that("a reported t or repeated-measures d becomes the design's d (Lakens, 2013)", {
+  # Pairs: d_z = t / sqrt(n); a d_rm (or d_av with equal SDs) divided by sqrt(2(1 - r)).
+  from_t <- replication_planning("paired", 1.99, original_n = 60, original_effect_type = "t")
+  expect_equal(from_t$original$estimate, 1.99 / sqrt(60))
+  expect_equal(from_t$goals$n, replication_planning("paired", 1.99 / sqrt(60), original_n = 60)$goals$n)
+  from_rm <- replication_planning("paired", 0.4, original_n = 40, original_effect_type = "d_rm", original_r = 0.7)
+  expect_equal(from_rm$original$estimate, 0.4 / sqrt(2 * 0.3))
+  # A correlation of .5 leaves d_rm and d_z equal.
+  expect_equal(replication_planning("paired", 0.4, original_n = 40, original_effect_type = "d_rm",
+    original_r = 0.5)$original$estimate, 0.4)
+  # Two groups: d = t sqrt(1/n1 + 1/n2); one sample: t / sqrt(n).
+  expect_equal(replication_planning("two_groups", 2.5, original_n1 = 20, original_n2 = 30,
+    original_effect_type = "t")$original$estimate, 2.5 * sqrt(1 / 20 + 1 / 30))
+  expect_equal(replication_planning("one_sample", 3, original_n = 25,
+    original_effect_type = "t")$original$estimate, 3 / 5)
+  # The inputs say what was reported, and the script redoes the conversion.
+  expect_identical(from_rm$inputs$original_effect_type, "d_rm")
+  expect_equal(from_rm$inputs$original_reported, 0.4)
+  for (plan in list(from_t, from_rm)) {
+    env <- new.env()
+    results <- suppressWarnings(lapply(parse(text = replication_planning_script(plan)), eval, envir = env))
+    expect_equal(env$to, plan$original$estimate)
+  }
+  # Refused where it doesn't apply, in plain words.
+  expect_error(replication_planning("correlation", 2, original_n = 50, original_effect_type = "t"), "t-test original only")
+  expect_error(replication_planning("two_groups", 0.4, original_n1 = 20, original_n2 = 20,
+    original_effect_type = "d_rm", original_r = 0.5), "applies to pairs")
+  expect_error(replication_planning("paired", 0.4, original_n = 40, original_effect_type = "d_rm"), "correlation between")
+})
+
+test_that("an F with one numerator df gives another design's test statistic", {
+  # Shnabel et al. (2009), Study 1: the role by message interaction,
+  # F(1, 118) = 15.38, a contrast of 0.74 scale points.
+  from_f <- replication_planning("generic", 0.74, original_n = 120, original_f = 15.38)
+  from_t <- replication_planning("generic", 0.74, original_n = 120, original_statistic = sqrt(15.38))
+  expect_equal(from_f$original$se, from_t$original$se)
+  expect_equal(from_f$goals$n, from_t$goals$n)
+  expect_error(replication_planning("generic", 0.74, original_n = 120, original_f = -1), "above 0")
+  expect_error(replication_planning("paired", 0.5, original_n = 30, original_f = 4), "another design")
 })
