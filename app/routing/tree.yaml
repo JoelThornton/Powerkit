@@ -1287,7 +1287,7 @@ endpoints:
     doc_name: "Jonckheere-Terpstra trend test"
     technical_name: "Jonckheere–Terpstra test"
     plain_name: "A steady rise or fall across groups in order, on ranks"
-    search_words: "jonckheere terpstra trend ordered alternative dose response ranks nonparametric ordered groups"
+    search_words: "jonckheere terpstra trend ordered alternative dose response ranks nonparametric non-parametric rank based ordered groups"
     template: "factorial_anova / oneway_between"
     backend: "Spower, with powerkit's experiment calling PMCMRplus's jonckheereTest() (simulated)"
     method: "Simulation"
@@ -1531,6 +1531,7 @@ endpoints:
     doc_name: "Ordinal outcome (ordered categories)"
     technical_name: "Ordinal regression"
     plain_name: "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
+    search_words: "proportional odds cumulative logit ordered logistic regression polr likert rating item whitehead"
     template: "ordinal_regression / ordinal_two_groups"
     backend: "powertools: propodds() (proportional odds, Whitehead's method)"
     method: Formula
@@ -2629,6 +2630,38 @@ guided:
 # "Common starting points" at the top of "I know my analysis": everyday
 # analyses, one click away without searching or opening a group. Each is
 # also in its family below.
+# Test versions researchers know by name (17 November 2026). Many tests
+# are a version chosen on another analysis's input screen (the
+# Mann-Whitney test on the two-group card, Friedman's test on the
+# repeated-measures ANOVA). The search lists each by its own name when a
+# search matches it, and opening it there starts the input screen with
+# that version chosen. `value` is the version's choice on the card's
+# test-version field; the field is found from forms.yaml at start-up
+# (test_version_fields(), R/ui.R).
+test_versions:
+  - {endpoint: E1, value: wilcoxon_signed_rank, name: "Wilcoxon signed-rank test", search_words: "wilcoxon signed rank test nonparametric non-parametric rank based"}
+  - {endpoint: E2, value: mann_whitney, name: "Mann-Whitney U test", search_words: "mann whitney u test wilcoxon rank sum test nonparametric non-parametric rank based"}
+  - {endpoint: E2, value: brunner_munzel, name: "Brunner-Munzel test", search_words: "brunner munzel test nonparametric non-parametric rank based unequal spreads variances"}
+  - {endpoint: E2, value: yuen, name: "Yuen's trimmed-means test", search_words: "yuen yuens trimmed means test robust t test outliers"}
+  - {endpoint: E3, value: wilcoxon_signed_rank, name: "Wilcoxon signed-rank test", search_words: "wilcoxon signed rank test nonparametric non-parametric rank based"}
+  - {endpoint: E3, value: yuen, name: "Yuen's paired trimmed-means test", search_words: "yuen yuens paired trimmed means test robust t test outliers"}
+  - {endpoint: E4, value: spearman, name: "Spearman's rho", search_words: "spearman spearmans rho rank correlation nonparametric non-parametric rank based"}
+  - {endpoint: E4, value: kendall, name: "Kendall's tau", search_words: "kendall kendalls tau rank correlation nonparametric non-parametric rank based"}
+  - {endpoint: E5, value: fisher_exact, name: "Fisher's exact test", search_words: "fisher fishers exact test"}
+  - {endpoint: E18, value: kruskal_wallis, name: "Kruskal-Wallis test", search_words: "kruskal wallis h test nonparametric non-parametric rank based"}
+  - {endpoint: E54, value: friedman, name: "Friedman's test", search_words: "friedman friedmans test nonparametric non-parametric rank based"}
+  - {endpoint: E7, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial"}
+  - {endpoint: E22, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial"}
+  - {endpoint: E21, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial"}
+  - {endpoint: E8, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial mixed"}
+  - {endpoint: E55, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial mixed"}
+  - {endpoint: E20, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial within"}
+  - {endpoint: E59, value: permanova, name: "PERMANOVA", search_words: "permanova permutational permutation manova adonis vegan nonparametric non-parametric"}
+  - {endpoint: E24, value: ols_hc3, name: "Regression with robust (HC3) standard errors", search_words: "robust standard errors hc3 heteroscedasticity consistent sandwich"}
+  - {endpoint: E24, value: quantile_regression, name: "Quantile regression", search_words: "quantile regression median regression"}
+  - {endpoint: E28, value: zero_inflated_poisson, name: "Zero-inflated Poisson regression", search_words: "zero inflated poisson regression zip excess zeros"}
+  - {endpoint: E28, value: zero_inflated_negative_binomial, name: "Zero-inflated negative binomial regression", search_words: "zero inflated negative binomial regression zinb excess zeros"}
+
 known_shortcuts: [E2, E3, E4, E18, E8, E24, E27, E10]
 
 # The families "I know my analysis" groups its list into, in order (the
