@@ -95,6 +95,7 @@ export_script <- function(spec, result, file = NULL) {
       if (identical(spec$design, "meta_analysis")) meta_hk_script(spec, result) else
       if (identical(spec$template, "multicategorical")) mediation_mcx_script(spec, result) else
       if (identical(spec$template, "binary_mediator")) mediation_binm_script(spec, result) else
+      if (identical(spec$template, "ordinal_mediator")) mediation_ordm_script(spec, result) else
       if (identical(spec$template, "binary_or_count_outcome")) mediation_yglm_script(spec, result) else spower_script(spec, result),
     Superpower = superpower_script(spec, result),
     InteractionPoweR = interactionpower_script(spec, result),
@@ -726,6 +727,12 @@ design_description <- function(spec) {
     "mediation/binary_mediator" = sprintf(
       "mediation with a yes/no mediator (%s), X %s and Y %s; natural indirect effect tested by regression-based causal mediation analysis",
       spec$variables$M$label %||% "M",
+      if (identical(spec$variables$X$type, "binary")) sprintf("in two groups (%s)", levels("X")) else "a score",
+      if (identical(spec$variables$Y$type, "binary")) "yes/no" else "a score"
+    ),
+    "mediation/ordinal_mediator" = sprintf(
+      "mediation with a mediator in %d ordered categories (%s), X %s and Y %s; indirect effect tested in a latent-response model (lavaan, the mediator's underlying score)",
+      length(spec$population$m_probabilities), spec$variables$M$label %||% "M",
       if (identical(spec$variables$X$type, "binary")) sprintf("in two groups (%s)", levels("X")) else "a score",
       if (identical(spec$variables$Y$type, "binary")) "yes/no" else "a score"
     ),

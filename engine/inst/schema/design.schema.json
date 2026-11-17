@@ -3819,6 +3819,7 @@
               "process_6",
               "multicategorical",
               "binary_mediator",
+              "ordinal_mediator",
               "binary_or_count_outcome"
             ]
           },
@@ -3843,7 +3844,7 @@
                       "joint_significance",
                       "delta_method"
                     ],
-                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate. delta_method (templates binary_mediator and binary_or_count_outcome only): the natural indirect effect's delta-method test in regression-based causal mediation analysis (regmedint), simulated"
+                    "description": "How the indirect effect is tested. monte_carlo_ci (the default): significant when the Monte Carlo confidence interval excludes 0, simulated with power4mome. percentile_bootstrap and ols_percentile_bootstrap: a percentile bootstrap interval, simulated. joint_significance (simple mediation with one mediator only): significant when both paths are; power by pwrss's power.z.mediation(method = 'joint') formula, a quick estimate. delta_method (templates binary_mediator, ordinal_mediator and binary_or_count_outcome only): the natural indirect effect's delta-method test in regression-based causal mediation analysis (regmedint), or for ordinal_mediator the delta-method test of a*b in a latent-response model (lavaan), simulated"
                   }
                 }
               }
@@ -3909,6 +3910,21 @@
             },
             "then": {
               "$ref": "#/definitions/template_mediation_binary_mediator"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "template"
+              ],
+              "properties": {
+                "template": {
+                  "const": "ordinal_mediator"
+                }
+              }
+            },
+            "then": {
+              "$ref": "#/definitions/template_mediation_ordinal_mediator"
             }
           },
           {
@@ -13733,6 +13749,83 @@
               "type": "number",
               "exclusiveMinimum": 0,
               "exclusiveMaximum": 1
+            }
+          }
+        }
+      }
+    },
+    "template_mediation_ordinal_mediator": {
+      "description": "Mediation with a mediator in ordered categories (E39): the mediator's categories cut from an underlying normal score (the latent-response, ordered probit formulation), M* = a X + e (residual SD 1); Y a score, Y = b M* + c' X + e, or yes/no, from an underlying score in the same way; fitted by lavaan::sem() with the mediator (and a yes/no Y) declared ordered and parameterization 'theta'; the indirect effect a*b tested by its delta-method standard error, in a Spower simulation. With X in two groups, the groups are of equal size; goal > n is the total.",
+      "properties": {
+        "variables": {
+          "required": [
+            "X",
+            "M",
+            "Y"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "X": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            },
+            "M": {
+              "description": "The mediator: its levels are its ordered categories, lowest first.",
+              "$ref": "#/definitions/variable_categorical"
+            },
+            "Y": {
+              "$ref": "#/definitions/variable_continuous_or_binary"
+            }
+          }
+        },
+        "population": {
+          "required": [
+            "metric",
+            "m_probabilities",
+            "a",
+            "b"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "metric": {
+              "const": "latent_response"
+            },
+            "m_probabilities": {
+              "description": "The mediator's category proportions for the first group of X (or at X's mean, for a score), lowest category first: three or more, adding up to 1.",
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              }
+            },
+            "a": {
+              "description": "X's effect on the mediator's underlying score (the second group against the first, or per SD of a score), in the SD of its residual (path a).",
+              "type": "number"
+            },
+            "b": {
+              "description": "Y's change per SD of the mediator's underlying score, holding X (path b): in Y's residual SD for a score, on Y's underlying (probit) scale for yes/no.",
+              "type": "number"
+            },
+            "direct": {
+              "description": "X's effect on Y holding the mediator (c'), on the same scale as b. 0 if omitted.",
+              "type": "number"
+            },
+            "y_baseline": {
+              "description": "Y yes/no only: the chance that Y is yes for the first group of X (or at X's mean) when the mediator's underlying score is at its average.",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            }
+          }
+        },
+        "target_test": {
+          "properties": {
+            "path": {
+              "const": "X->M->Y"
+            },
+            "method": {
+              "const": "delta_method"
             }
           }
         }

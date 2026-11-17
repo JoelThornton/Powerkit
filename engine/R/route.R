@@ -307,6 +307,7 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     # pwrss's formula (backend-mediation-joint.R).
     "mediation/multicategorical" = mcx_backend(spec, seed),
     "mediation/binary_mediator" = binm_backend(spec, seed),
+    "mediation/ordinal_mediator" = ordm_backend(spec, seed),
     "mediation/binary_or_count_outcome" = yglm_backend(spec, seed),
     "mediation/process_4" = if (mediation_joint_test(spec)) mediation_joint_backend(spec, seed) else power4mome_backend(spec, seed),
     "mediation/process_6" = ,

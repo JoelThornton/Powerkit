@@ -70,7 +70,10 @@
 # (mediation with X in three or more groups: relative indirect effects
 # against an independent OLS simulation, and Type I error), mediation_binm
 # (mediation with a yes/no mediator: the natural indirect effect against an
-# independent simulation of the published formulas, and Type I error), mediation_joint (simple mediation's quick
+# independent simulation of the published formulas, and Type I error),
+# mediation_ordm (mediation with a mediator in ordered categories: the
+# latent-response model against an independent lavaan simulation in the
+# other parameterization, and Type I error), mediation_joint (simple mediation's quick
 # estimate by formula), process_6 (serial mediation), process_7, process_14,
 # mediation_crosscheck (simple mediation against pwrss and simsem, two
 # tools written independently of power4mome; both are in Suggests and
@@ -152,6 +155,7 @@ validation_chunks <- function() {
     process_4_binary = "test-validation-mediation-binary.R",
     mediation_mcx = "test-validation-mediation-mcx.R",
     mediation_binm = "test-validation-mediation-binm.R",
+    mediation_ordm = "test-validation-mediation-ordm.R",
     mediation_yglm = "test-validation-mediation-yglm.R",
     mediation_joint = "test-validation-mediation-joint.R",
     process_6 = "test-validation-mediation-serial.R",
@@ -190,7 +194,7 @@ validation_chunks <- function() {
 # estimate (which is then corrected by how fast tests actually run).
 # Direct-call tests run two simulations, so count double.
 validation_minutes <- function() {
-  c(corrected_counts = 2, replication = 0.2, basic = 0.3, welch_spreads = 3, variances = 2, rmcorr = 2, yuen = 3, agreement = 8, manova = 3, rank = 3, bayes = 2, bayes_factorial = 90, bayes_ancova = 45, bayes_three = 180, bayes_r2change = 25, meta = 12, dyadic = 25, survival = 4, reliability = 2, aligned_rank = 6, aligned_rank_within = 8, permanova = 10, negative_binomial = 4, robust_regression = 8, multinomial = 18, zero_inflated = 6, logistic_interaction = 4, count_interaction = 6, group_moderator = 3, growth = 12, signal_detection = 4, lpa = 20, efa = 15, its = 6, riclpm = 15, irt = 12, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60, mediation_mcx = 25, mediation_binm = 10, mediation_yglm = 10, mediation_joint = 1,
+  c(corrected_counts = 2, replication = 0.2, basic = 0.3, welch_spreads = 3, variances = 2, rmcorr = 2, yuen = 3, agreement = 8, manova = 3, rank = 3, bayes = 2, bayes_factorial = 90, bayes_ancova = 45, bayes_three = 180, bayes_r2change = 25, meta = 12, dyadic = 25, survival = 4, reliability = 2, aligned_rank = 6, aligned_rank_within = 8, permanova = 10, negative_binomial = 4, robust_regression = 8, multinomial = 18, zero_inflated = 6, logistic_interaction = 4, count_interaction = 6, group_moderator = 3, growth = 12, signal_detection = 4, lpa = 20, efa = 15, its = 6, riclpm = 15, irt = 12, anova = 15, anova_mixed_unequal = 10, interactions = 1.5, three_way = 0.3, process_4 = 60, process_4_binary = 60, mediation_mcx = 25, mediation_binm = 10, mediation_ordm = 115, mediation_yglm = 10, mediation_joint = 1,
     process_6 = 60, process_7 = 120, process_14 = 120, modmed_parallel = 120, modmed_binary = 120, modmed_difference = 120,
     process_bootstrap = 60, mediation_crosscheck = 40, mediation_crosscheck_parallel = 40,
     mediation_crosscheck_serial = 40, logistic = 0.3, ordinal = 0.3, logistic_factorial = 2, poisson = 0.3,
