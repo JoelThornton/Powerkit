@@ -449,3 +449,16 @@ test_that("a card that can't plan isn't kept as the original's design", {
   # Already in a replication plan, the input screen hides the signpost offering one.
   expect_match(code, "if (replicating(state$start)) tags$style(\".labs-signpost { display: none; }\")", fixed = TRUE)
 })
+
+test_that("a replication plan says its validation is in progress, on screen and in the write-up", {
+  skip_if(is.null(engine_function("replication_planning", file.path(repo_dir, "engine"))), "no engine")
+  plan <- engine_function("replication_planning", file.path(repo_dir, "engine"))("two_groups", 0.5,
+    original_n1 = 40, original_n2 = 40)
+  html <- as.character(replication_result_ui(plan))
+  expect_match(html, "badge-progress", fixed = TRUE)
+  expect_match(html, "Validation in progress", fixed = TRUE)
+  report <- paste(replication_report(list(rep_design = "two_groups"), plan), collapse = "\n")
+  expect_match(report, "Validation in progress: Each goal's chance agrees", fixed = TRUE)
+  # No plan, no claim about it.
+  expect_no_match(paste(replication_report(list()), collapse = "\n"), "Validation in progress", fixed = TRUE)
+})
