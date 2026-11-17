@@ -1,3 +1,32 @@
+# powerkit 0.78.3
+
+* Fixed: Friedman's test (E54) with heavy-tailed scores often refused to
+  run, saying powerkit's translation had not reproduced the population.
+  The check run's standard errors for each condition's SD and the average
+  correlation assumed normal scores; heavy-tailed deviations (t, 3 df)
+  have no finite fourth moment, so the sample SDs and correlation vary far
+  more and the check failed by chance on about half of the seeds. The SD's
+  error now allows for the scores' kurtosis and the correlation's comes
+  from its influence function, as the check of Yuen's paired test already
+  did (`rank_check_run()`). The check passes on every seed tried for each
+  shape and still flags scores drawn with the wrong correlation.
+
+# powerkit 0.78.2
+
+* A rank test's result (the Wilcoxon signed-rank test on E1 and E3,
+  Mann-Whitney on E2, Kruskal-Wallis on E18, Friedman on E54) gives, under
+  Details, the same plan by the card's default test, by formula assuming
+  normal scores, and says why the two differ from the numbers themselves:
+  a little less power with normal scores, because ranks use only the
+  order; more with skewed or heavy-tailed scores; and for Friedman's test,
+  which ranks within each person, noticeably less even with normal scores
+  (`rank_comparison_line()` in `app/routing/R/results.R`; one more engine
+  call). The default test's result on those cards offers the rank test in
+  one line, to be chosen before the data are seen, citing Rochon, Gondan
+  and Kieser (2012, added to refs.bib from its Crossref and PubMed
+  records) for how choosing the test after a normality test alters the
+  error rates of the test then run (`rank_switch_ui()`).
+
 # powerkit 0.78.1
 
 * `r2_increase` and `single_coefficient` take `target_test.method`
