@@ -1709,6 +1709,7 @@ Bayes factor in either direction as a success (BayesRepDesign's
 whether a replication in the opposite direction should count is a
 question for the maintainer (`next.md`).
 
+
 ## 2026-11-17 · Mediation through a mediator in ordered categories (local)
 
 Linux, R 4.5.3, engine 0.77.1 plus this change (commit 25e288b, a clean
