@@ -1711,6 +1711,15 @@ scripts/run-validation.R --only replication --cores 2`.
   simulated against .7800 for significance under the uncertain belief,
   two groups). `--only replication`: 3 PASS, 3 published-reference TODO
   SKIP.
+- **A success only in the original's direction** (17 November 2026,
+  engine 0.78.12 plus that change): the maintainer decided that a
+  replication or sceptical Bayes factor in the opposite direction does
+  not count (Departure 31), so replication_planning() sets `paradox =
+  FALSE` and the simulation's rule requires the replication's estimate
+  in the original's direction. `--only replication`: 3 PASS, 3
+  published-reference TODO SKIP; the replication Bayes factor's chances
+  agree under every belief (for example .4891 simulated against .4900
+  under the shrunk belief, two groups).
 
 Not covered: the sceptical Bayes factor (left to a published example)
 and the bfpwr Bayes factor goals (the bayes chunk's). The published

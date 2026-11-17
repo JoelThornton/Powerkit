@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "Replication plans: Bayes factors count only in the original's direction"
+    text: "In a replication plan, the replication Bayes factor and the sceptical Bayes factor now count as a success only when the replication's estimate is in the same direction as the original's. Before, a strong result on the other side of zero also counted, which is not evidence for the original effect. Plans that use these Bayes factors may now ask for more people, especially when you believe the original effect is overestimated, and the result says so."
