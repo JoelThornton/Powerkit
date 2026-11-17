@@ -2229,7 +2229,7 @@ run_sensitivity_curve <- function(spec, run = engine_function("run_spec"), seed 
 sensitivity_effect_label <- function(effect_name, fallback = "effect") {
   switch(effect_name %||% "",
     d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
-    r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared",
+    r_XW_Y = "correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared",
     r2_change = "R-squared change", eta_squared = "partial eta-squared", V = "Pillai's V",
     odds_ratio = "odds ratio", rate_ratio = "rate ratio", p = "proportion",
     p_second_only = "proportion changing only in the second condition", r_group2 = "group 2's correlation",
@@ -2241,6 +2241,7 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     slope_difference = "difference in rates of change", icc = "ICC", reliability = "Cronbach's alpha", kappa = "kappa",
     proportion_range = "difference between the highest and lowest proportions", dprime_difference = "difference in d'",
     factorial_odds_ratio = "odds ratio", ratio_of_odds_ratios = "ratio of odds ratios",
+    b_XWZ = "three-way coefficient", separation = "separation between neighbouring profiles", loading = "loading", odds_ratio_xw = "interaction odds ratio", rate_ratio_xw = "interaction rate ratio",
     level_change = "change in level", slope_change = "change in trend per time point",
     r_range = "difference between the largest and smallest group's correlation",
     fallback)
@@ -2252,7 +2253,7 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
 sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2", "r_second", "rmsea", "p_event2", "icc", "reliability", "kappa")
 
 # Ratios, which are "the smallest" only above 1.
-sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio", "hazard_ratio", "factorial_odds_ratio", "ratio_of_odds_ratios")
+sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio", "hazard_ratio", "factorial_odds_ratio", "ratio_of_odds_ratios", "odds_ratio_xw", "rate_ratio_xw")
 
 # Reliability and agreement: the value the study could show is beyond the
 # one named (the ICC, Cronbach's alpha or kappa to beat).
@@ -2961,11 +2962,22 @@ departures_for <- function(forms, ep_id, spec) {
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 
+# An ANCOVA planned with fixed covariates: chosen, or implied by an effect
+# given as partial eta-squared (pwrss's power.f.ancova(), as G*Power).
+is_fixed_ancova <- function(spec) {
+  isTRUE(spec$template %in% c("oneway_ancova", "factorial_ancova")) &&
+    identical(spec$target_test$method %||% "ancova_f", "ancova_f") &&
+    (identical(spec$target_test$covariate_model, "fixed") || identical(spec$population$metric, "eta_squared"))
+}
+
 # `known_differences_if_method` limits a known difference to one test
 # version (E5: Known difference 2 applies only to Fisher's exact test).
 known_difference_keys <- function(forms, ep_id, spec = NULL) {
   form <- forms$forms[[ep_id]]
   keys <- unlist(form$known_differences)
+  # Known difference 15 is Shieh's method against G*Power's fixed
+  # covariates; with fixed covariates there is no difference.
+  if (!is.null(spec) && is_fixed_ancova(spec)) keys <- setdiff(keys, "15")
   # Known difference 9 is about metapower, which the Hartung-Knapp test
   # doesn't use.
   # Known difference 9 is mpower()'s rounding of Fisher's z; mod_power()
@@ -3706,6 +3718,15 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # brackets, not two in a row (P-15).
   if (identical(spec$target_test$method, "welch_t")) name <- paste0("Welch's ", sub("^an? ", "", name))
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  # An ANCOVA's covariates: fixed by the design (as G*Power, and for an
+  # effect given as partial eta-squared) or measured (Shieh's method).
+  if (is_fixed_ancova(spec)) name <- "an ANCOVA with the covariates fixed by the design, as in G*Power (F test)"
+  # A mixed model's test with Kenward and Roger's degrees of freedom in
+  # place of Satterthwaite's (17 November 2026).
+  if (identical(spec$target_test$df_method, "kenward_roger")) {
+    name <- if (grepl("Satterthwaite", name, fixed = TRUE)) gsub("Satterthwaite", "Kenward-Roger", name, fixed = TRUE) else
+      paste0(name, " (Kenward-Roger tests)")
+  }
   if (identical(spec$design, "survival")) {
     name <- switch(spec$target_test$method %||% "",
       log_rank = "a time-to-event analysis (the log-rank test)",

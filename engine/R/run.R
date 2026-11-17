@@ -62,7 +62,17 @@
 #' Two-way ANCOVA (template `factorial_ancova`): two between factors, either
 #' main effect or the interaction, by pwrss's `power.f.ancova.shieh()`
 #' (Shieh's method) with the effect's rows of `factorial.contrasts()`;
-#' adjusted cell means laid out as for `mixed`, equal cells.
+#' adjusted cell means laid out as for `mixed`, equal cells. For either
+#' ANCOVA, `target_test > covariate_model = "fixed"` plans covariates fixed
+#' by the design, as G*Power does: pwrss's `power.f.ancova()` from the
+#' partial eta-squared of the adjusted means (noncentrality N gamma^2,
+#' Shieh, 2020); `"random"`, the default, is Shieh's method for covariates
+#' measured on each person.
+#' The mixed models with a score (templates `crossed_two_condition`,
+#' `crossed_conditions`, `two_level`, `three_level`, `item_predictor`) take
+#' `target_test > df_method`: `"satterthwaite"` (the default, lmerTest) or
+#' `"kenward_roger"` (pbkrtest; simr's method `"kr"`, lmerTest's
+#' `ddf = "Kenward-Roger"` for three or more conditions).
 #' Two-factor ANOVA with both factors between participants, beyond 2 x 2
 #' (template `factorial_between`, design `"kb*mb"`), or both within
 #' participants, 2 x 2 or larger (template `factorial_within`, design
@@ -171,11 +181,14 @@
 #' don't solve for the effect, the effect is searched with the backend's
 #' own power at n (pwrss's tests, the variances, Hotelling's T-squared,
 #' the equivalence tests, metapower's z test, SEM, and the ordinal,
-#' survival, growth-curve and reliability tests). The random-effects
+#' survival, growth-curve and reliability tests, and the three-way
+#' interaction). The random-effects
 #' meta-analysis's Hartung-Knapp test, the paired variances, the trend in
 #' proportions, d', the Jonckheere-Terpstra trend test, the factorial
-#' logistic regression, moderation by groups and the interrupted time
-#' series search their effect by simulation, with a 95%
+#' logistic regression, moderation by groups, the interrupted time series,
+#' moderation of a yes/no or count outcome, an outcome in unordered
+#' categories, moderated regression with a yes/no X or W, latent profiles
+#' (the separation) and factor recovery (the loading) search their effect by simulation, with a 95%
 #' interval (`simulated_effect_sensitivity()`). Other simulated tests have no
 #' sensitivity analysis yet.
 #'

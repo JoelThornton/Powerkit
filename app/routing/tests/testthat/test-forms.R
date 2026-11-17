@@ -1146,3 +1146,29 @@ test_that("a missing backend's install advice is replaced on the online app", {
   expect_match(online_package_message(two, local = FALSE), "packages it needs ('a' and 'b') aren't installed there", fixed = TRUE)
   expect_identical(online_package_message("Some other problem.", local = FALSE), "Some other problem.")
 })
+
+test_that("box headings are the same with explanations on or off, and name the effect", {
+  # With explanations off, two effect boxes were both headed "Effect size",
+  # and with them on no box said it took the effect size (17 November 2026).
+  html <- as.character(form_ui(tree, forms, "E18", form_groups(forms, "E18")))
+  legends <- regmatches(html, gregexpr("<legend[^>]*>.*?</legend>", html))[[1]]
+  expect_false(any(grepl("name-tech|name-plain", legends)))
+  expect_true(any(grepl(">Effect size: the expected group means<", legends, fixed = TRUE)))
+  expect_true(any(grepl(">Effect size: the SD<", legends, fixed = TRUE)))
+  texts <- gsub("<[^>]+>", "", legends)
+  expect_false(anyDuplicated(texts[nzchar(texts)]) > 0)
+  # The screen names the analysis by its standard name too.
+  expect_match(html, "Standard name:\\s*<strong>One-way between-subjects ANOVA</strong>")
+  # A heading that already names the effect is kept as it is.
+  g <- list(fields = list(list(id = "d", effect = TRUE)))
+  expect_identical(group_heading(g, "The effect size"), "The effect size")
+  expect_identical(group_heading(g, "Cohen's d"), "Effect size: Cohen's d")
+  expect_identical(group_heading(list(fields = list(list(id = "n"))), "The sample"), "The sample")
+})
+
+test_that("a field shown only for some choices clears its box's floated heading", {
+  # Shiny's conditional wrapper has display: contents, so clearing the
+  # wrapper alone left such a field beside the heading (17 November 2026).
+  css <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(css, "fieldset.form-group-box > legend.h6 ~ .shiny-panel-conditional > *", fixed = TRUE)
+})

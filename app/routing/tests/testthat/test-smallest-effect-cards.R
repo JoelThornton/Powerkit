@@ -222,16 +222,42 @@ test_that("paired variances, the trend tests, d', factorial logistic regression 
     list(ep = "E30", extra = list(), label = "the smallest difference between the largest and smallest group's correlation you could detect",
       name = "difference between the largest and smallest group's correlation = "),
     list(ep = "E45", extra = list(level_change = ""), label = "the smallest change in level you could detect", name = "change in level = "),
+    list(ep = "E32", extra = list(odds_ratio_xw = ""), label = "the smallest interaction odds ratio you could detect", name = "interaction odds ratio = "),
+    list(ep = "E15", extra = list(r_XW_Y = ""), label = "the smallest correlation of the interaction with Y you could detect",
+      name = "is correlation of the interaction with Y = "),
+    list(ep = "E70", extra = list(), label = "the smallest odds ratio you could detect", name = "odds ratio = "),
     list(ep = "E47", extra = list(), label = "the smallest odds ratio you could detect", name = "odds ratio = "),
     list(ep = "E47", extra = list(effect = "interaction"), label = "the smallest ratio of odds ratios you could detect",
       name = "ratio of odds ratios = ")
   )
+  # Mediation on the moderation card has no smallest-effect goal.
+  goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E32")))[[1]]
+  expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(analysis = "mediation")))
   for (case in cases) {
-    n <- switch(case$ep, E47 = "420", E30 = "300", E45 = "24", "100")
+    n <- switch(case$ep, E47 = "420", E30 = "300", E45 = "24", E32 = "400", E70 = "400", E15 = "300", "100")
     run <- smallest_effect_run(case$ep, c(case$extra, list(n = n, simulation_accuracy = "quick")))
     expect_true(isTRUE(run$result$sensitivity$simulated), label = case$ep)
     expect_identical(result_figure(run$spec, run$result)$label, case$label)
     expect_match(result_sentences(run$spec, run$result)[["headline"]], case$name, fixed = TRUE)
+    expect_false(is.na(usual_seconds(forms, case$ep, "sensitivity")), label = case$ep)
+  }
+})
+
+test_that("the three-way interaction finds its smallest coefficient by InteractionPoweR's formula", {
+  run <- smallest_effect_run("E31", list(b_XWZ = "", n = "300"))
+  expect_identical(run$result$sensitivity$effect_name, "b_XWZ")
+  expect_identical(result_figure(run$spec, run$result)$label, "the smallest three-way coefficient you could detect")
+})
+
+test_that("latent profiles and factor analysis find their smallest separation and loading", {
+  cases <- list(
+    list(ep = "E58", extra = list(separation = ""), label = "the smallest separation between neighbouring profiles you could detect"),
+    list(ep = "E73", extra = list(loading = ""), label = "the smallest loading you could detect")
+  )
+  for (case in cases) {
+    run <- smallest_effect_run(case$ep, c(case$extra, list(n = "150", simulation_accuracy = "quick")))
+    expect_true(isTRUE(run$result$sensitivity$simulated), label = case$ep)
+    expect_identical(result_figure(run$spec, run$result)$label, case$label)
     expect_false(is.na(usual_seconds(forms, case$ep, "sensitivity")), label = case$ep)
   }
 })

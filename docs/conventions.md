@@ -1560,6 +1560,16 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   powerkit's example, `inst/specs/item_predictor.json`: 60 items, a
   slope of -15 ms per SD of word frequency), 48.9% against 54.1% at 10
   participants and 80.1% against 81.6% at 30 (1,000 simulated data sets).
+- **Kenward-Roger as a choice (from 17 November 2026):** with a score,
+  each of these cards also offers Kenward and Roger's degrees of freedom
+  (`target_test > df_method` "kenward_roger"; simr's method "kr", or
+  lmerTest's `ddf = "Kenward-Roger"` for three or more conditions), the
+  same departure from simr's z test. With E33's example at 20
+  participants, on the same 500 simulated data sets: 27.0% with
+  Kenward-Roger, 27.4% with Satterthwaite and 29.2% with z, the two
+  corrections reaching the same decision in 99.6% of them (simr 1.0.11,
+  pbkrtest 0.5.5). `test-backend-mixed-kr.R` checks it replication for
+  replication against simr's `fixed("cond", "kr")`.
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
@@ -2972,8 +2982,11 @@ every PROCESS option is not established.
   means (Shieh's method) and from the same partial eta-squared (G*Power's)
   differ a little"). A pre-release comparison found 90 against
   G\*Power's 87 for a three-group example.
-- **Shown to users:** on every E23 result (`app/routing/forms.yaml`,
-  `known_differences`, key "15").
+- **Shown to users:** on every E23 result planned with measured covariates
+  (`app/routing/forms.yaml`, `known_differences`, key "15"). Since 17
+  November 2026 the card asks whether the covariates are measured or set
+  by the design; with fixed covariates, or an effect given as partial
+  eta-squared, powerkit plans as G*Power does and the note is not shown.
 - **Methods paragraph:** `known_differences_methods`, key "15".
 
 ## All-tests sufficient power target under unknown dependence

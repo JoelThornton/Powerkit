@@ -2,6 +2,7 @@ file,seconds
 all-tests-target,0.3
 analysis-evidence,5.6
 analysis-requirements,2.1
+backend-ancova-fixed,3.0
 backend-anova-eta,9.3
 backend-anova-pairwise,85.8
 backend-anova-unequal,40.9
@@ -51,6 +52,7 @@ backend-meta-subgroups,15.4
 backend-metapower,53.3
 backend-minimum-effect,9.2
 backend-mixed,10.4
+backend-mixed-kr,280.0
 backend-mixed-model,139.7
 backend-mixed-unequal,70.6
 backend-modmed-binary,525.3
@@ -111,6 +113,11 @@ sample-allocation,2.9
 sample-structure,0.2
 search-n,0.1
 sensitivity-anova-regression,18.7
+sensitivity-lpa-efa,900
+sensitivity-search,550
+sensitivity-simulated-a,700
+sensitivity-simulated-b,1000
+sensitivity-simulated-c,900
 simulated-data,8.1
 simulation-outcomes,0.1
 spec-hash,0.1

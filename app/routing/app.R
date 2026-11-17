@@ -211,6 +211,12 @@ app_css <- "
      its heading (the legend floats so the button can follow it). */
   fieldset.form-group-box > legend.h6 { float: left; width: auto; margin: 0 0.35rem 0.5rem 0; padding: 0; line-height: 32px; }
   fieldset.form-group-box > legend.h6 ~ * { clear: both; }
+  /* A field shown only for some choices sits in Shiny's conditional
+     wrapper, which has no box of its own (display: contents), so clearing
+     the wrapper does nothing and the field rose beside the floated
+     heading (17 November 2026). Its contents clear instead. */
+  fieldset.form-group-box > legend.h6 ~ .shiny-panel-conditional > *,
+  fieldset.form-group-box .shiny-panel-conditional .shiny-panel-conditional > * { clear: both; }
   fieldset.form-group-box > legend.h6 ~ .group-more { clear: none; }
   .explanation-help.group-more, .explanation-help.inline-more { display: block; margin: 0 0 0.5rem; }
   .explanation-help.group-more > .explanation-content, .explanation-help.inline-more > .explanation-content { clear: left; }

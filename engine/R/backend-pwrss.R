@@ -29,7 +29,9 @@
 #                      (two between factors): Shieh's method,
 #                      pwrss::power.f.ancova.shieh(); for two factors the
 #                      effect tested is chosen by its rows of pwrss's own
-#                      factorial.contrasts() matrix
+#                      factorial.contrasts() matrix; with covariates fixed
+#                      by the design (target_test > covariate_model
+#                      "fixed"), pwrss::power.f.ancova() as G*Power does
 #   logistic           logistic_regression/single_predictor: the Wald z
 #   regression         test of one predictor, pwrss::power.z.logistic()
 #                      (Demidenko's 2007 method with its variance
@@ -384,7 +386,7 @@ pwrss_inputs <- function(spec) {
         args = function(n) list(w = w$w, df = w$df, n = n, alpha = alpha, ceil.n = FALSE, verbose = 0)
       )
     },
-    oneway_ancova = {
+    oneway_ancova = if (ancova_fixed(spec)) ancova_fixed_inputs(spec, alpha) else {
       k <- length(spec$variables$A$levels)
       list(
         fun = "power.f.ancova.shieh",
@@ -395,7 +397,7 @@ pwrss_inputs <- function(spec) {
         )
       )
     },
-    factorial_ancova = {
+    factorial_ancova = if (ancova_fixed(spec)) ancova_fixed_inputs(spec, alpha) else {
       k <- length(spec$variables$A$levels)
       m <- length(spec$variables$B$levels)
       contrasts <- ancova_effect_contrasts(k, m, spec$target_test$effect)
@@ -614,11 +616,11 @@ pwrss_check_run <- function(spec, inputs) {
         row("degrees of freedom (categories - 1)", length(p) - 1, args$df)
       )
     },
-    oneway_ancova = rbind(
+    oneway_ancova = if (ancova_fixed(spec)) ancova_fixed_rows(spec, inputs, args, row) else rbind(
       row("adjusted means passed to pwrss (mu.vector)", as.numeric(unlist(pop$means)), args$mu.vector),
       row("covariates' R-squared passed to pwrss (r.squared)", pop$r2_covariates, args$r.squared)
     ),
-    factorial_ancova = {
+    factorial_ancova = if (ancova_fixed(spec)) ancova_fixed_rows(spec, inputs, args, row) else {
       k <- length(spec$variables$A$levels)
       m <- length(spec$variables$B$levels)
       rbind(
@@ -676,6 +678,74 @@ pwrss_check_run <- function(spec, inputs) {
       }
       row("Cohen's f^2 pwrss will use (r.squared.change / (1 - r.squared.change))", expected_f2, r / (1 - r))
     }
+  )
+}
+
+# An ANCOVA whose covariates are fixed by the design rather than measured
+# on each person (target_test > covariate_model "fixed", 17 November 2026).
+# Shieh's (2020) method, the default, allows for a measured covariate
+# varying from sample to sample; with fixed covariates the F test's
+# noncentrality is N gamma^2, as G*Power takes it, where gamma^2 is the
+# standardised effect of Shieh's equations: (C mu)' (C Q C')^-1 (C mu) /
+# sigma_e^2, with C the effect's rows of pwrss's own contrast matrix, Q =
+# diag(N / n_i) (the number of cells, for equal groups) and sigma_e^2 =
+# SD^2 (1 - R-squared), the error variance after adjusting
+# (Shieh2020_ancova; pwrss's power.f.ancova.shieh() computes the same
+# gamma^2 internally, unexported). The power is then pwrss's
+# power.f.ancova() from the partial eta-squared gamma^2 / (1 + gamma^2),
+# the route an effect given as partial eta-squared already takes, with
+# error df N minus the cells minus the covariates. For one factor this is
+# pwrss's power.f.ancova.keppel(), which the tests check.
+ancova_fixed <- function(spec) {
+  identical(spec$target_test$covariate_model, "fixed") &&
+    spec$template %in% c("oneway_ancova", "factorial_ancova") &&
+    !identical(spec$population$metric, "eta_squared")
+}
+
+ancova_fixed_contrasts <- function(spec) {
+  k <- length(spec$variables$A$levels)
+  if (identical(spec$template, "oneway_ancova")) {
+    return(call_backend("pwrss", quietly(pwrss::factorial.contrasts(
+      factor.levels = k, intercept = FALSE, verbose = 0
+    )))$contrast.matrix)
+  }
+  ancova_effect_contrasts(k, length(spec$variables$B$levels), spec$target_test$effect)
+}
+
+ancova_fixed_gamma2 <- function(spec) {
+  pop <- spec$population
+  mu <- matrix(as.numeric(unlist(pop$means)), ncol = 1)
+  contrasts <- ancova_fixed_contrasts(spec)
+  q <- diag(length(mu), length(mu))
+  difference <- contrasts %*% mu
+  as.numeric(t(difference) %*% solve(contrasts %*% q %*% t(contrasts)) %*% difference) /
+    (pop$sd^2 * (1 - pop$r2_covariates))
+}
+
+ancova_fixed_inputs <- function(spec, alpha) {
+  design <- eta_anova_design(spec)
+  gamma2 <- ancova_fixed_gamma2(spec)
+  list(
+    fun = "power.f.ancova",
+    design = design,
+    gamma2 = gamma2,
+    args = function(n) c(
+      list(eta.squared = gamma2 / (1 + gamma2), factor.levels = design$levels),
+      if (!is.null(design$target)) list(target.effect = design$target),
+      list(k.covariates = spec$population$covariates, n.total = n, alpha = alpha, ceil.n = FALSE, verbose = 0)
+    )
+  )
+}
+
+ancova_fixed_rows <- function(spec, inputs, args, row) {
+  out <- pwrss_output(inputs$fun, args)
+  rbind(
+    row("partial eta-squared passed to pwrss, from the adjusted means, SD and R-squared (eta.squared)",
+        inputs$gamma2 / (1 + inputs$gamma2), args$eta.squared),
+    row("numerator df of the effect pwrss tested (df1)", inputs$design$df, out$df1),
+    row("error df: N minus the cells minus the covariates (df2)",
+        args$n.total - prod(inputs$design$levels) - spec$population$covariates, out$df2),
+    row("noncentrality: N x the standardised effect gamma^2 (fixed covariates)", args$n.total * inputs$gamma2, out$ncp)
   )
 }
 

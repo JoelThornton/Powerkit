@@ -288,10 +288,7 @@ group_ui_build <- function(tree, g, values, index) {
   box <- tags$fieldset(
     class = paste("form-group-box", if (names_only) "form-group-names"),
     tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6",
-      if (length(g$fields) && identical(g$fields[[1]]$label, "Test version")) name_swap(legend, "Test")
-      else if (any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) name_swap(legend, "Effect size")
-      else if (any(vapply(g$fields, function(f) identical(f$id, "just_type"), logical(1)))) name_swap(legend, "Effect-size source")
-      else if (identical(legend, "Your hypothesis")) name_swap(legend, "Hypothesis") else legend),
+      group_heading(g, legend)),
     # The group's info button sits beside its heading, as a field's does
     # beside its label, rather than repeating the heading as a link.
     if (!is.null(g$note) || !is.null(g$note_more)) explanation_ui(sprintf("group-%d-info", index), legend, class = "group-more",
@@ -322,6 +319,18 @@ group_ui_build <- function(tree, g, values, index) {
   if (is.null(shown)) box else conditionalPanel(shown, box)
 }
 
+# A group's heading, the same with explanations on or off (17 November
+# 2026): a box that takes part of the effect size says so and keeps its
+# own name ("Effect size: the expected group means"), so the effect is
+# findable with explanations on and two such boxes never share one
+# heading with them off.
+group_heading <- function(g, legend) {
+  if (!any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) return(legend)
+  if (grepl("effect", legend, ignore.case = TRUE)) return(legend)
+  if (grepl("^(The|A|An) ", legend)) legend <- paste0(tolower(substr(legend, 1, 1)), substring(legend, 2))
+  paste0("Effect size: ", legend)
+}
+
 # The browser condition under which at least one of a group's fields is
 # shown; NULL when some field is always shown.
 group_shown_js <- function(g) {
@@ -345,6 +354,10 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     trail_ui(history, tree),
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(name_swap(paste0("Your values: ", ep$plain_name), technical_name(ep))),
+    # The analysis's standard name, as on its card, so that with
+    # explanations on the screen still says which analysis it plans
+    # (17 November 2026); with them off the heading is that name.
+    if (!identical(ep$plain_name, technical_name(ep))) p(class = "standard-name", "Standard name: ", tags$strong(technical_name(ep))),
     p(class = "lead", "Fields marked optional can be left empty."),
     # The label alone: how far the checks have got is on the card and
     # under the result's "Checks for this analysis in general" (15
