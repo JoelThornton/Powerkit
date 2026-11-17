@@ -678,8 +678,10 @@ November 2026), which gives .051.
   or with only some factors differing in their own items.
 - Technical details (df, critical value, noncentrality) are missing where
   the package reports none (TOSTER, powertools) and for Bayes factors.
-- With a yes/no X and no moderation, power4mome's moderated mediation has
-  a Type I error of about 6.7%, stated on the results screen pending investigation and author review (`upstream-questions.md`).
+- With a yes/no X and no moderated mediation, power4mome's Monte Carlo
+  interval rejected in 5.38% of 20,000 studies (likely about 0.4 points
+  above 5%); the results screen states it (`validation-log.md`,
+  14 November 2026; `upstream-questions.md`).
 - Long simulations end with the visitor's session; no durable job queue
   (`hosting-options.md`, `next.md` item 11).
 - No usability sessions with researchers yet

@@ -2325,18 +2325,19 @@ critical_effect_sentence <- function(result) {
 
 # Moderated mediation with a yes/no X (E17): in powerkit's validation the
 # Monte Carlo test rejected a little more often than alpha with no
-# moderated mediation (test-validation-modmed-binary.R;
-# upstream-questions.md, power4mome), so the result says so.
+# moderated mediation (5.38% in 20,000 null studies, validation-log.md,
+# 14 November 2026; upstream-questions.md, power4mome), so the result
+# says so.
 binary_x_modmed_note <- function(spec) {
   if (!identical(spec$design, "moderated_mediation") || !identical(spec$variables$X$type, "binary")) return(NULL)
   if (!identical(spec$target_test$method %||% "monte_carlo_ci", "monte_carlo_ci")) return(paste(
     "The existing binary-X moderated-mediation calibration warning was measured for maximum likelihood with Monte Carlo intervals.",
     "It is not a calibration estimate for the selected bootstrap analysis; changing the interval is not proof that the issue is resolved."))
   paste(
-    "In a PROCESS model 7 scenario with a yes/no X, powerkit's checks found the test too liberal: with no moderated mediation it was",
-    "significant in about 6.7% of simulated studies at alpha .05, against 5.3% for a separately written simulation,",
-    "so the power shown may be high. These are results for a checked scenario, not a correction for every design.",
-    "Author review is needed; this message does not mean the authors have been contacted or endorse the method."
+    "In powerkit's largest check of this test (PROCESS model 7, a yes/no X, 250 people, no moderated mediation), it was significant",
+    "in 5.38% of 20,000 simulated studies at alpha .05: close to 5%, but probably slightly above it, so the test is slightly liberal",
+    "and the power shown may be a little high. The same interval from separate regressions gave 5.17%.",
+    "This is one checked scenario, not a correction for every design."
   )
 }
 
