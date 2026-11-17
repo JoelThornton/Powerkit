@@ -65,7 +65,7 @@ test_that("calculating designs calculate; simulated designs preview first, then 
   expect_identical(names(forms$background), c("E9", "E15", "E59", "E58", "E73", "E39", "E60"))
   # Cards whose default version simulates say so, and their bars estimate.
   expect_setequal(names(forms$simulated_times), c("E44", "E22", "E61", "E47", "E64", "E70", "E30", "E32", "E45", "E72",
-    "E66", "E18", "E57"))
+    "E66", "E18", "E57", "E78"))
   expect_equal(usual_seconds(forms, "E44", "sample_size"), 520)
   # Welch's ANOVA, the one-way default, simulates: its bar estimates too.
   expect_equal(usual_seconds(forms, "E18", "sample_size"), 11)
@@ -3210,8 +3210,9 @@ test_that("technical details cover semPower's chi-square and the correlation's t
 test_that("moderated mediation with a yes/no X says the test was found slightly liberal, and nothing else does", {
   binary_x <- list(design = "moderated_mediation", variables = list(X = list(type = "binary"), W = list(type = "continuous")))
   note <- binary_x_modmed_note(binary_x)
-  expect_match(note, "6.7%", fixed = TRUE)
-  expect_match(note, "5.3%", fixed = TRUE)
+  expect_match(note, "5.38% of 20,000", fixed = TRUE)
+  expect_match(note, "slightly liberal", fixed = TRUE)
+  expect_false(grepl("6.7%", note, fixed = TRUE))
   binary_w <- list(design = "moderated_mediation", variables = list(X = list(type = "continuous"), W = list(type = "binary")))
   expect_null(binary_x_modmed_note(binary_w))
   expect_null(binary_x_modmed_note(list(design = "mediation", variables = list(X = list(type = "binary")))))
@@ -3529,6 +3530,28 @@ test_that("repeated counts, yes/no and ordered categories (E75) build valid spec
   expect_identical(grouped$target_test$effect, "interaction")
   expect_equal(unlist(grouped$population$rates), c(2, 2, 2, 1.4))
   expect_silent(powerkit::validate_spec(grouped))
+})
+
+test_that("Cochran's Q has its own card (E78): one yes/no answer per condition, run here like any simulated card", {
+  fields <- form_fields(form_groups(forms, "E78"))
+  values <- modifyList(form_examples$E78, list(goal = "power", n = "100"))
+  expect_equal(form_problems(fields, values), character())
+  spec <- build_spec(forms, "E78", fields, values)
+  expect_identical(spec$template, "repeated_glmm")
+  expect_identical(spec$target_test$method, "cochran_q")
+  expect_identical(spec$variables$Y$type, "binary")
+  expect_identical(spec$variables$X$type, "within_factor")
+  expect_equal(spec$population$measurements, 1)
+  expect_equal(unlist(spec$population$probabilities), c(0.5, 0.6, 0.65))
+  expect_silent(powerkit::validate_spec(spec))
+  # Not a long run: power and the sample size both calculate here.
+  expect_false(runs_long(forms, "E78", spec))
+  skip_without_run()
+  spec$options$nrep <- 200L
+  calc <- run_calculation(spec, run, seed = 1L)
+  expect_identical(calc$result$provenance$backend, "Spower")
+  w <- writeup_text(forms$forms[["E78"]], calc$spec, calc$result, fields, values)
+  expect_match(w[["short"]], "Cochran's Q", fixed = TRUE)
 })
 
 test_that("the Bayes factor for R-squared (E24) builds a BayesFactor spec and words the result as evidence", {

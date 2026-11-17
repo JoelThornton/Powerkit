@@ -274,7 +274,7 @@ simulation_accuracy_group <- function(forms, ep_id) {
   if (!offered) return(NULL)
   when <- NULL
   if (isTRUE(form$basic_method)) when <- list(any = list(
-    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "spearman", "kendall", "z_test_corrected", "pearson_chi_square_corrected")),
+    list(field = "method", is_one_of = c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "spearman", "kendall")),
     list(list(field = "method", is = "welch_t"), list(field = "welch_method", is_not = "exact")),
     list(list(field = "calc_method", is = "simulation"), list(field = "method", is_not = "welch_t"),
       list(field = "method", is_not = "bayes_factor"), list(field = "method", is_not = "minimum_effect"), list(field = "method", is_not = "fisher_exact"))))
@@ -293,9 +293,7 @@ simulation_accuracy_group <- function(forms, ep_id) {
     note_more = paste(
     "The margins below are approximate pointwise 95% margins for the random error in a probability, assuming every simulated study gives a valid decision.",
     "Failures can reduce the effective number of decisions; read the actual interval and failure counts in the result.",
-    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error.",
-    if (any(choices %in% c("z_test_corrected", "pearson_chi_square_corrected")))
-      "For continuity-corrected count tests, finding N also uses fresh checks of at least 10,000 studies per candidate. This takes longer and may recommend more participants than the minimum."), fields = list(
+    "More simulations do not guarantee a sample-size search's accuracy. Formulas have no simulation error."), fields = list(
     list(id = "simulation_accuracy", label = "How precise should the simulation be?", type = "select", optional = TRUE,
       default = "standard", default_source = "1,000 repeated studies, powerkit's usual simulation setting",
       choices = list(quick = "Quick exploration: about +/-5 percentage points (400 studies)",
@@ -461,19 +459,29 @@ offers_bayes_factor <- function(form) {
   if (length(hit)) hit[[1]]$id
 }
 
-# The condition under which a form's significance level applies: the test
-# version isn't the Bayes factor, or the test-version field is itself
-# hidden (E24 offers the Bayes factor for R-squared against 0 only, so a
-# Bayes factor chosen there doesn't hide alpha once another question is
-# chosen). NULL when the form offers no Bayes factor.
-no_bayes_condition <- function(form, bayes_field) {
-  if (is.null(bayes_field)) return(NULL)
-  own <- list(field = bayes_field, is_not = "bayes_factor")
-  f <- Filter(function(x) identical(x$id, bayes_field), form_fields(form$groups))[[1]]
-  hidden <- lapply(Filter(function(cond) !is.null(cond[["is"]]), shown_if_conditions(f)),
-    function(cond) list(field = cond$field, is_not = cond[["is"]]))
-  if (length(hidden) == 0) return(own)
-  list(any = c(list(own), hidden))
+# The fields that offer a Bayes factor test version (each writing
+# target_test.method): E24 has one for R-squared against 0 or an
+# increase, and one for a coefficient.
+bayes_factor_fields <- function(form) {
+  hit <- Filter(function(f) identical(f$path, "target_test.method") && "bayes_factor" %in% names(f$choices), form_fields(form$groups))
+  vapply(hit, `[[`, "", "id")
+}
+
+# The conditions (all must hold) under which a form's significance level
+# applies: for each field offering a Bayes factor, its version isn't the
+# Bayes factor, or the field is itself hidden (E24 offers the Bayes factor
+# for some questions only, so a Bayes factor chosen for one doesn't hide
+# alpha once another question is chosen). NULL when the form offers none.
+no_bayes_condition <- function(form, bayes_field = NULL) {
+  ids <- bayes_factor_fields(form)
+  if (!length(ids)) return(NULL)
+  lapply(ids, function(id) {
+    own <- list(field = id, is_not = "bayes_factor")
+    f <- Filter(function(x) identical(x$id, id), form_fields(form$groups))[[1]]
+    hidden <- lapply(Filter(function(cond) !is.null(cond[["is"]]) || !is.null(cond[["is_one_of"]]), shown_if_conditions(f)),
+      function(cond) if (!is.null(cond[["is"]])) list(field = cond$field, is_not = cond[["is"]]) else list(field = cond$field, is_not_one_of = cond[["is_one_of"]]))
+    if (length(hidden) == 0) own else list(any = c(list(own), hidden))
+  })
 }
 
 # Precision planning (E46): the interval's width instead of power. Both
@@ -585,7 +593,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   no_bayes <- no_bayes_condition(form, bayes_field)
   # So a justified significance level is offered only with a test that
   # has one (`choices_shown_if`: the choice is hidden otherwise).
-  if (!is.null(no_bayes) && !is.null(goals$justified_alpha)) goal$choices_shown_if <- list(justified_alpha = list(no_bayes))
+  if (!is.null(no_bayes) && !is.null(goals$justified_alpha)) goal$choices_shown_if <- list(justified_alpha = no_bayes)
   # The smallest detectable effect only with the test versions that have
   # one (forms.yaml's `sensitivity_shown_if`), so a Bayes factor or a
   # simulated version doesn't offer a goal the engine refuses.
@@ -653,11 +661,11 @@ closing_groups <- function(forms, ep_id, start = list()) {
          # Not asked when the goal is to find the level (the balance of the
          # two errors): build_spec() gives the engine the usual 0.05 for
          # its comparison row.
-         shown_if = Filter(Negate(is.null), list(no_bayes, list(field = "goal", is_not = "justified_alpha")))),
+         shown_if = c(no_bayes, list(list(field = "goal", is_not = "justified_alpha")))),
     # Goes in the write-up when given (8 November 2026: asked whatever the
     # level, and optional).
     list(id = "alpha_reason", label = "Why this significance level", help = "Goes in the write-up; for example \"the claim is new, so stronger evidence is wanted\".",
-         type = "text", optional = TRUE, shown_if = Filter(Negate(is.null), list(no_bayes, list(field = "goal", is_not = "justified_alpha"))))
+         type = "text", optional = TRUE, shown_if = c(no_bayes, list(list(field = "goal", is_not = "justified_alpha"))))
   )
   if (isTRUE(form$generic)) test <- Filter(function(f) !f$id %in% c("n", "n_max"), test)
   # No significance test (latent profiles: the BIC chooses the number of
@@ -1180,7 +1188,8 @@ parse_table <- function(x) {
 
 # Whether a field applies, given the goal, the justification and any other
 # choice it depends on (`shown_if`: shown only when another field `is`, or
-# `is_not`, a given value; an empty choice counts as no value; a list of
+# `is_not`, a given value, or is (`is_one_of`) or isn't (`is_not_one_of`)
+# one of several; an empty choice counts as no value; a list of
 # such conditions must all hold).
 field_applies <- function(field, values) {
   # The number of tests: only for a claim about a set (an empty claim is
@@ -1196,6 +1205,7 @@ field_applies <- function(field, values) {
     if (!is.null(cond[["is"]]) && !identical(current, cond[["is"]])) return(FALSE)
     if (!is.null(cond[["is_not"]]) && identical(current, cond[["is_not"]])) return(FALSE)
     if (!is.null(cond[["is_one_of"]]) && !current %in% cond[["is_one_of"]]) return(FALSE)
+    if (!is.null(cond[["is_not_one_of"]]) && current %in% cond[["is_not_one_of"]]) return(FALSE)
   }
   if (!is.null(field$needed_for)) return(isTRUE(values$goal %in% field$needed_for))
   if (!is.null(field$shown_for_goals)) return(isTRUE(values$goal %in% field$shown_for_goals))
@@ -1207,7 +1217,7 @@ field_applies <- function(field, values) {
 # all hold).
 shown_if_conditions <- function(field) {
   if (is.null(field$shown_if)) return(list())
-  if (!is.null(field$shown_if$field)) list(field$shown_if) else field$shown_if
+  if (!is.null(field$shown_if$field) || !is.null(field$shown_if$any)) list(field$shown_if) else field$shown_if
 }
 
 quote_label <- function(field) sprintf("“%s”", field$label)

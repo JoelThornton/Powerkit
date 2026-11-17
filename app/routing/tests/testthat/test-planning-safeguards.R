@@ -90,13 +90,17 @@ test_that("a moderated regression sample size or power result, whose sensitivity
 
 test_that("corrected count search uncertainty and verification preserve the analysis", {
   calc <- list(status="ok", spec=list(design="basic_test",template="two_proportions",
-    target_test=list(method="z_test_corrected")),result=list(goal_type="sample_size",n_required=list(n=362)))
+    target_test=list(method="z_test_corrected")),result=list(goal_type="sample_size",n_required=list(n=362),
+    provenance=list(method="simulation")))
   values <- list(goal="sample_size",p1=".5",p2=".65",method="z_test_corrected",allocation_ratio="1")
   next_values <- corrected_count_verification_values(calc,values)
   expect_identical(next_values$n,"362")
   expect_identical(next_values$goal,"power")
   expect_identical(next_values$method,values$method)
   expect_match(corrected_count_search_note(calc$spec,calc$result),"can fall below the target",fixed=TRUE)
+  calc$result$provenance$method <- "exact"
+  expect_null(corrected_count_verification_values(calc,values))
+  expect_match(corrected_count_search_note(calc$spec,calc$result),"smallest sample size that reaches the target",fixed=TRUE)
   calc$result$goal_type <- "power"
   expect_null(corrected_count_search_note(calc$spec,calc$result))
   expect_null(corrected_count_verification_values(calc,values))
@@ -127,6 +131,7 @@ test_that("a confirmed count result retains the check in the complete result and
     p1 = ".2", p2 = ".8", power = ".8", attrition = ".1"))
   spec <- build_spec(forms, "E5", fields, values)
   spec$options$nrep <- 1000L
+  spec$options$method <- "simulation"
   result <- suppressWarnings(powerkit::run_spec(spec))
   html <- as.character(result_panel_ui(tree, forms, "E5", fields, values,
     list(status = "ok", spec = spec, result = result)))
@@ -139,6 +144,20 @@ test_that("a confirmed count result retains the check in the complete result and
     expect_match(text[[version]], "recruitment buffer", fixed = TRUE, info = version)
     expect_false(grepl("95% interval for the required sample size", text[[version]], fixed = TRUE))
   }
+})
+
+test_that("an exact corrected count result says it is the smallest sample size, with no simulation check to run", {
+  fields <- form_fields(form_groups(forms, "E5"))
+  values <- modifyList(form_examples$E5, list(method = "z_test_corrected", goal = "sample_size",
+    p1 = ".2", p2 = ".8", power = ".8"))
+  spec <- build_spec(forms, "E5", fields, values)
+  result <- powerkit::run_spec(spec)
+  expect_identical(result$provenance$method, "exact")
+  calc <- list(status = "ok", spec = spec, result = result)
+  html <- as.character(result_panel_ui(tree, forms, "E5", fields, values, calc))
+  expect_match(html, "smallest sample size that reaches the target", fixed = TRUE)
+  expect_false(grepl("verify_corrected_count", html, fixed = TRUE))
+  expect_false(grepl("fresh simulation check", html, fixed = TRUE))
 })
 
 test_that("attrition and pilot guidance do not imply missing-data modelling or automatic effect shrinkage", {

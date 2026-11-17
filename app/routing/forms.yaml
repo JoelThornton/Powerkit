@@ -146,13 +146,24 @@ basic_method_field: {id: calc_method, label: "How power is worked out", type: se
 # can't go quietly unreachable again; delete an entry when its card and
 # input screen land.
 engine_only: {}  # none waiting at the moment
+# Uncertain numbers other than the effect that the result screen's "Which
+# assumption matters most?" comparison offers to vary (R/assumptions.R).
+# Effect fields (effect: true) are offered without being listed. Each is a
+# number the researcher estimates from evidence (an SD, a correlation
+# between measures, a reliability, a clustering ICC, a base rate, dropout),
+# not a design choice such as alpha or the number of groups.
+assumption_fields: [sd_ratio, welch_sd_ratio, raw_sd, raw_sd1, raw_sd2, raw_sd_difference, raw_r, yuen_r,
+  r2_main, r2_other, rel_X, rel_W, rel_Z, rel_Y, x_prob, mean_exposure, dispersion, zero_odds_ratio,
+  sd_intercept, r_intercept_slope, event_proportion, manova_r, factor_correlation, binm_m_baseline,
+  binm_y_baseline, p1, p0, base_rate, icc, icc_group, icc_site, within_correlation, predictor_correlation,
+  ri_correlation]
 
 # End points whose calculation runs on the input screen (phase 5). E1-E8
 # run in seconds on one core (measured 17 October 2026 with the example
 # values and 1,000 replications: 1 to 19 seconds, the longest a
 # correlation's sample size). E9 runs in the background with a progress bar
 # and a Cancel button (below). E10-E14 run as set under `simulations`.
-calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E77, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73, E39]
+calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E23, E24, E25, E26, E27, E28, E34, E36, E37, E48, E49, E50, E51, E52, E53, E54, E55, E56, E57, E31, E29, E47, E22, E15, E59, E60, E61, E64, E66, E46, E77, E44, E43, E69, E70, E32, E30, E35, E71, E72, E58, E73, E39, E78]
 
 # End points that run in a separate R process, with an estimated progress
 # bar and a Cancel button: the usual run time in seconds for each goal,
@@ -179,6 +190,9 @@ simulated_times:
   E61: {power: 8, sample_size: 65, sensitivity: 40}
   E47: {power: 6, sample_size: 50, sensitivity: 60}
   E64: {power: 5, sample_size: 40, sensitivity: 50}
+  # Cochran's Q, measured 16 November 2026 on the repeated-measures card's
+  # example design (one core).
+  E78: {power: 11, sample_size: 190}
   E70: {power: 5, sample_size: 40, sensitivity: 60}
   E30: {power: 4, sample_size: 35, sensitivity: 45}
   # E32: moderation takes about 4 seconds for power (an outcome in three
@@ -488,6 +502,7 @@ replication_effects:
   E33: {effect: "the condition effect (the fixed effect of condition)", scale: none}
   E63: {multi_df: "the difference between the two conditions the hypothesis is about (card E33)"}
   E75: {effect: "the effect of interest as a rate ratio or odds ratio", scale: log}
+  E78: {multi_df: "the difference between the two conditions the hypothesis is about (card E26, McNemar's test, for two conditions)"}
   E67: {effect: "the item predictor's coefficient", scale: none}
   E68: {effect: "the coefficient of interest (a fixed effect)", scale: none}
   E43: {effect: "hazard ratio", scale: log}
@@ -907,7 +922,7 @@ forms:
              choices: {z_test: "Two-proportion z test (uncorrected)", z_test_corrected: "Two-proportion test (continuity-corrected)", fisher_exact: "Fisher's exact test", bayes_factor: "Bayes factor test"},
              default: z_test, default_source: "the test G*Power and pwr's formulas cover for two independent proportions",
              help: "Choose the test you will actually use to analyse your study. R's prop.test() applies continuity correction by default; that can lower power compared with the uncorrected test.",
-             choice_notes: {fisher_exact: "An exact test of two independent proportions, rather than a large-sample z approximation. Group sizes and expected proportions still determine its power.", z_test_corrected: "Simulates independent people in two groups with fixed group sizes, then runs R's prop.test(correct = TRUE). Power and required sample size are supported; to compare effects, run separate fixed-sample power plans. This is not Fisher's exact test, and the correction does not make a sparse-data approximation exact."}}
+             choice_notes: {fisher_exact: "An exact test of two independent proportions, rather than a large-sample z approximation. Group sizes and expected proportions still determine its power.", z_test_corrected: "R's prop.test(correct = TRUE) with fixed group sizes. Powerkit works out its power exactly, over every possible result of the study, so there is no simulation error and the sample size is the smallest that reaches the target. Power and required sample size are supported; to compare effects, run separate fixed-sample power plans. This is not Fisher's exact test, and the correction does not make a sparse-data approximation exact."}}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)",
@@ -966,7 +981,7 @@ forms:
              choices: {pearson_chi_square: "Pearson's chi-square test (uncorrected)", pearson_chi_square_corrected: "Pearson's chi-square test (continuity-corrected)", bayes_factor: "Bayes factor test (as in JASP's Bayesian contingency tables), instead of a p-value, simulated"},
              default: pearson_chi_square, default_source: "Pearson's chi-square test, which pwr computes (pwr.chisq.test(), pwr 1.3-0) as G*Power does",
              help: "Choose the test in your analysis plan. R's chisq.test() uses continuity correction by default for 2 by 2 tables only. The corrected and Bayes factor versions need the table of proportions, not Cohen's w.",
-             choice_notes: {pearson_chi_square_corrected: "Needs a 2 by 2 table of population proportions. Simulates independent people with a fixed total sample size; row and column totals vary. If group sizes are fixed, use the two-proportions design instead. Supports power and required sample size; to compare effects, run separate fixed-sample power plans. Sparse counts can still make this approximate test unsuitable."}}
+             choice_notes: {pearson_chi_square_corrected: "Needs a 2 by 2 table of population proportions. R's chisq.test(correct = TRUE) with a fixed total sample size; row and column totals vary. Powerkit works out its power exactly, over every possible table. If group sizes are fixed, use the two-proportions design instead. Supports power and required sample size; to compare effects, run separate fixed-sample power plans. Sparse counts can still make this approximate test unsuitable."}}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: method, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)",
@@ -1692,6 +1707,32 @@ forms:
              choices: {cochran_q: "Cochran's Q"},
              default: cochran_q, default_source: "Cochran's Q, the usual test of one yes/no answer from each person in each of three or more conditions",
              help: "For three or more conditions; with two, Cochran's Q is McNemar's test, which has its own card. One yes/no answer per condition is too little to fit the mixed model's person SD, so each simulated study is tested with Cochran's Q, as researchers usually analyse such data. The answers are still drawn from the card's model: the SD above makes some people likelier to say yes in every condition, which is what makes the answers in different conditions go together. With people who differ, the share saying yes across everyone is a little closer to 50% than a typical person's chance; the check run shows those shares."}
+
+  # Cochran's Q (17 November 2026): its own card for the test that the
+  # repeated-measures card (E75) offers as a test version, so that a
+  # researcher who knows the test by name finds it under its name. The
+  # same engine route: the answers drawn from a logistic model with a
+  # random intercept for each person, each study tested with Cochran's Q.
+  E78:
+    methods_name: "Cochran's Q"
+    tool: Spower
+    directional: false
+    base: {spec_version: "0.1", design: mixed_model, template: repeated_glmm,
+           variables: {X: {type: within_factor}, "Y": {type: binary}}, population: {metric: probability, measurements: 1},
+           target_test: {effect: condition, method: cochran_q}}
+    groups:
+      - input: "The conditions and the outcome"
+        fields:
+          - {id: X_label, label: "What the conditions are (for example, the kind of reminder)", type: text, path: variables.X.label, required: true}
+          - {id: X_levels, label: "The conditions, separated by commas (three or more)", type: levels, path: variables.X.levels, required: true,
+             help: "Every person answers once in each condition. With two conditions, use McNemar's test, which has its own card."}
+          - {id: Y_label, label: "The yes/no outcome (for example, attended)", type: text, path: variables.Y.label, required: true}
+      - input: "The chance of 'yes' in each condition, and how much people differ"
+        fields:
+          - {id: glmm_probabilities, writeup_label: "chance of yes in each condition", label: "The chance of 'yes' in each condition for a typical person, as proportions in the same order, separated by commas (for example, 0.30, 0.40, 0.50)", type: numbers, per_levels: X_levels, path: population.probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
+             help: "A typical person is one whose own tendency to say yes is average. With people who differ, the share saying yes across everyone is a little closer to 50% than this; the check run shows those shares."}
+          - {id: glmm_sd_person, writeup_label: "SD of people's tendency to say yes", label: "How much people differ in how likely they are to say yes: the SD of the person intercepts, on the log-odds scale (0 if they don't differ; for example, 1)", type: number, path: population.sd_person, effect: true, min: 0,
+             help: "This is what makes a person's answers in different conditions go together: people likelier to say yes in one condition are likelier in the others. The more people differ, the more the answers go together, and the fewer people you usually need for the same change in the chances. With an SD of 1, a person one SD above average has about 2.7 times (exp(1)) a typical person's odds of saying yes. Base it on earlier data where you can."}
 
   # A predictor measured on each item (simr), 1 November 2026.
   E67:
@@ -2993,7 +3034,7 @@ forms:
     methods_name: "a multiple regression F test"
     tool: pwrss
     sensitivity: true
-    sensitivity_shown_if: {any: [[{field: question, is: r2_increase}], [{field: question, is: r2_zero}, {field: r2_test, is: f_test}], [{field: question, is: single_coefficient}, {field: coef_test, is: f_test}]]}
+    sensitivity_shown_if: {any: [[{field: question, is: r2_increase}, {field: r2c_test, is_not: bayes_factor}], [{field: question, is: r2_zero}, {field: r2_test, is: f_test}], [{field: question, is: single_coefficient}, {field: coef_test, is: f_test}]]}
     directional: false
     base: {spec_version: "0.1", design: multiple_regression,
            variables: {"Y": {type: continuous}}, population: {metric: r_squared},
@@ -3023,12 +3064,22 @@ forms:
                        bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
              default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
              choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model with none, reaches the threshold you choose below. Worked out exactly, with no simulation."}}
+          # The Bayes factor for an increase or one coefficient (17 November
+          # 2026): the full model against the model without the tested
+          # predictors, simulated from the two R-squared values
+          # (backend-bayesfactor-r2change.R).
+          - {id: r2c_test, label: "Test version", type: select, path: target_test.method, required: true,
+             shown_if: {field: question, is: r2_increase},
+             choices: {f_test: "The F test of the increase (G*Power's R-squared increase)",
+                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
+             default: f_test, default_source: "the F test, the test G*Power and pwrss's power.f.regression() compute",
+             choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model without the ones you are testing, reaches the threshold you choose below (what BayesFactor's regressionBF() reports for that comparison). Simulated from the two R-squared values."}}
           - {id: evidence_threshold, label: "Evidence threshold: the Bayes factor (BF10) the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
-             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             shown_if: {any: [[{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}], [{field: question, is: r2_increase}, {field: r2c_test, is: bayes_factor}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)",
-             help: "BF10 is how many times more likely the data are if the predictors explain some of the outcome than if they explain none. Power here is the chance that BF10 reaches this number."}
+             help: "BF10 is how many times more likely the data are under the model with the predictors you are testing than under the model without them (for R-squared against 0, without any). Power here is the chance that BF10 reaches this number."}
           - {id: prior_scale, label: "Scale of the analysis prior on the standardised coefficients (r scale, a Cauchy distribution)", type: number, path: target_test.prior_scale, required: true, min_exclusive: 0,
-             shown_if: [{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}],
+             shown_if: {any: [[{field: question, is: r2_zero}, {field: r2_test, is: bayes_factor}], [{field: question, is: r2_increase}, {field: r2c_test, is: bayes_factor}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
              default: 0.354, default_source: "JASP's Bayesian linear regression (JZS prior, 'r scale' 0.354), the same as BayesFactor's 'medium' scale for continuous predictors (regressionBF(rscaleCont = 'medium'), sqrt(2)/4; BayesFactor 0.9.12-4.8)",
              help: "The prior you will use when you analyse the data. 0.354 is JASP's default; use the same value as in your analysis plan."}
       - input: "R-squared, the R-squared change, or the predictor's partial R-squared"
@@ -3048,7 +3099,8 @@ forms:
           - {id: r2_full, writeup_label: "R² with all predictors", label: "R-squared with all the predictors (0 to 1)", type: number, path: population.r2_full, effect: true, when_empty: same_as_r2_reduced, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: r2_increase}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}]}
           - {id: r2_reduced, writeup_label: "R² without the tested predictors", label: "R-squared without the predictors you are testing (0 to 1; 0 if there are no others)", type: number, path: population.r2_reduced, effect: true, min: 0, max_exclusive: 1,
-             shown_if: {field: question, is: r2_increase}}
+             shown_if: {any: [[{field: question, is: r2_increase}], [{field: question, is: single_coefficient}, {field: coef_test, is: bayes_factor}]]},
+             help: "For one coefficient's Bayes factor, the R-squared of the outcome on the other predictors: the Bayes factor depends on both models' R-squared, not only the partial R-squared."}
           - {id: partial_r2, writeup_label: "partial R²", label: "Partial R-squared of the predictor (0 to 1)", type: number, path: population.partial_r2, effect: true, min: 0, max_exclusive: 1,
              shown_if: [{field: question, is: single_coefficient}, {any: [[{field: r2_given, is_not: f2}], [{field: goal, is_one_of: [sensitivity, sensitivity_curve, ""]}]]}],
              help: "The share of the outcome's variance left over by the other predictors that this one explains: its squared partial correlation. From R-squared with and without it, (R² with − R² without) / (1 − R² without). G*Power asks for Cohen's f², which is partial R² / (1 − partial R²)."}
@@ -3067,15 +3119,17 @@ forms:
              choices: {f_test: "The usual t test (G*Power's single regression coefficient)",
                        ols_hc3: "The t test with HC3 robust standard errors, simulated",
                        ols_hc4: "The t test with HC4 robust standard errors, simulated",
-                       quantile_regression: "Quantile regression (the median or another quantile instead of the mean), simulated"},
+                       quantile_regression: "Quantile regression (the median or another quantile instead of the mean), simulated",
+                       bayes_factor: "Bayes factor (default JZS prior, as in JASP's Bayesian linear regression), instead of a p-value"},
              default: f_test, default_source: "the usual t test, the test G*Power and pwrss's power.f.regression() compute",
+             choice_notes: {bayes_factor: "Power becomes the chance that the Bayes factor for the model with all the predictors, against the model without this one, reaches the threshold you choose. It needs the R-squared without this predictor too. Simulated from the two R-squared values."},
              help: "The usual test assumes the outcome spreads out as much at every value of the predictor. Robust (HC3 or HC4) standard errors keep the test honest when the spread changes; HC4 is the safer of the two when a few people have extreme predictor values. Quantile regression tests a quantile of the outcome, such as the median, and is less affected by extreme outcome values."}
           - {id: variance_ratio, label: "How much the spread changes: the error variance 1 SD above the predictor's mean over 1 SD below (1 = no change)", type: number, path: population.variance_ratio, required: true, min_exclusive: 0,
-             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_not: f_test}],
+             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_one_of: [ols_hc3, ols_hc4, quantile_regression]}],
              default: 1, default_source: "the same spread everywhere, as the usual test assumes (the design spec's default)",
              help: "From earlier data: the variance of the residuals among people about 1 SD above the predictor's mean, divided by their variance about 1 SD below. 2 means the outcome is twice as variable at the high end. Below 1 means it is less variable."}
           - {id: error_shape, label: "Shape of the errors", type: select, path: population.error_shape, required: true,
-             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_not: f_test}],
+             shown_if: [{field: question, is: single_coefficient}, {field: coef_test, is_one_of: [ols_hc3, ols_hc4, quantile_regression]}],
              choices: {normal: "Normal", skewed: "Skewed (a long tail on one side)", heavy_tailed: "Heavy-tailed (more extreme values than normal)"},
              default: normal, default_source: "normal errors, as the usual test assumes (the design spec's default)"}
           - {id: quantile, label: "The quantile of the outcome you test (0.5 = the median)", type: number, path: population.quantile, required: true, min_exclusive: 0, max_exclusive: 1,

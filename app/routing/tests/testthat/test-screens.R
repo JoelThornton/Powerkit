@@ -101,10 +101,12 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
   e32 <- as.character(card_ui(tree, "E32"))
   expect_match(e32, htmltools::htmlEscape("Mediation of a categorical outcome (three or more unordered answers):"), fixed = TRUE)
   expect_match(e32, text, fixed = TRUE)
-  # Cochran's Q calculates on E75 since 16 November 2026; E26 points to it.
+  # Cochran's Q calculates on its own card (E78) since 17 November 2026;
+  # E26 points to it.
   e26 <- as.character(card_ui(tree, "E26"))
   expect_false(grepl(text, e26, fixed = TRUE))
-  expect_match(e26, htmltools::htmlEscape("Cochran's Q, on the card for the same people measured more than once"), fixed = TRUE)
+  expect_match(e26, htmltools::htmlEscape("Cochran's Q, which has its own card"), fixed = TRUE)
+  expect_false(grepl(text, as.character(card_ui(tree, "E78")), fixed = TRUE))
 })
 
 test_that("end points outside the five tools say so", {
@@ -398,7 +400,7 @@ test_that("the app never computes power itself: it only calls the engine's run_s
     "implied_group_difference", "write_project", "read_project", "validate_whole_study", "whole_study_parameters", "export_whole_study_script",
     "convert_effect", "safeguard_effect", "write_study_plan", "read_study_plan", "joint_power", "runs_simulation", "saved_result", "spec_hash", "study_variation", "sample_structure", "analysis_requirements", "all_tests_target", "analysis_evidence", "simulation_margin"))
   # Calculations run only for the end points listed in forms.yaml.
-  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15", "E59", "E60", "E61", "E64", "E66", "E46", "E44", "E43", "E69", "E70", "E32", "E30", "E35", "E71", "E72", "E58", "E73", "E45", "E76", "E39", "E77"))
+  expect_setequal(unlist(forms$calculates), c(paste0("E", 1:9), "E18", "E19", "E20", "E21", "E23", "E24", "E25", "E26", "E27", "E28", "E34", "E36", "E37", "E48", "E49", "E50", "E51", "E52", "E53", "E54", "E55", "E56", "E57", "E31", "E29", "E47", "E22", "E15", "E59", "E60", "E61", "E64", "E66", "E46", "E44", "E43", "E69", "E70", "E32", "E30", "E35", "E71", "E72", "E58", "E73", "E45", "E76", "E39", "E77", "E78"))
 })
 
 test_that("each card lists only the closing questions that apply to it", {
@@ -669,12 +671,12 @@ test_that("the analysis search finds tests by their other names, and short words
   items <- regmatches(html, gregexpr("data-search=\"[^\"]*\"[^>]*>\\s*<button[^>]*&#39;ep:[A-Za-z0-9-]+&#39;", html))[[1]]
   text <- stats::setNames(sub("^data-search=\"([^\"]*)\".*$", "\\1", items),
     sub("^.*&#39;ep:([A-Za-z0-9-]+)&#39;$", "\\1", items))
-  # The same rule as known_search_js: every word must appear, and a word
-  # of one or two letters only as a whole word.
+  # The same rule as known_search_js: every word must start a word, and a
+  # word of one or two letters only as a whole word.
   find <- function(query) {
     words <- strsplit(trimws(gsub("[^a-z0-9]+", " ", tolower(query))), " ")[[1]]
     names(text)[vapply(text, function(t) all(vapply(words, function(w)
-      grepl(if (nchar(w) <= 2) paste0(" ", w, " ") else w, t, fixed = TRUE), TRUE)), TRUE)]
+      grepl(if (nchar(w) <= 2) paste0(" ", w, " ") else paste0(" ", w), t, fixed = TRUE), TRUE)), TRUE)]
   }
   expect_true(all(c("E1", "E3") %in% find("Wilcoxon")))
   expect_true("E2" %in% find("Mann-Whitney"))
@@ -688,6 +690,52 @@ test_that("the analysis search finds tests by their other names, and short words
   expect_setequal(find("t-test"), find("t test"))
   expect_true(all(find("t test") %in% c("E1", "E2", "E3", "E50")))
   expect_match(known_search_js, "w.length <= 2", fixed = TRUE)
+  # Test versions known by their own names find the analysis they are
+  # part of (17 November 2026).
+  expect_true("E2" %in% find("Brunner-Munzel"))
+  expect_true("E2" %in% find("U test"))
+  expect_true("E59" %in% find("PERMANOVA"))
+  expect_true("E29" %in% find("proportional odds"))
+  expect_true("E24" %in% find("quantile regression"))
+  expect_true("E28" %in% find("zero-inflated"))
+  expect_true(all(c("E1", "E2", "E3", "E4", "E18", "E54") %in% find("nonparametric")))
+  expect_setequal(find("non-parametric"), find("nonparametric"))
+  # A word matches at the start of a word only: "sign" is not in "design".
+  expect_length(find("esign"), 0)
+  expect_gt(length(find("design")), 0)
+  expect_match(known_search_js, "' ' + w)", fixed = TRUE)
+})
+
+test_that("a test version found by name opens its card, then its input screen with the version chosen", {
+  versions <- tree$test_versions
+  expect_gt(length(versions), 10)
+  for (v in versions) {
+    # Each names a real choice on its analysis's input screen.
+    f <- Filter(function(x) identical(x$id, v$field), form_fields(form_groups(forms, v$endpoint)))
+    expect_length(f, 1)
+    expect_true(v$value %in% names(f[[1]]$choices), label = paste(v$endpoint, v$value))
+    expect_true(nzchar(v$name))
+  }
+  html <- as.character(known_ui(tree))
+  expect_match(html, "version:E2:brunner_munzel", fixed = TRUE)
+  expect_match(html, "Test version: ", fixed = TRUE)
+  # Hidden until the search matches it.
+  expect_match(html, "class=\"btn btn-link known-version\" hidden", fixed = TRUE)
+  # The card says it, and the input screen opens with it chosen, together
+  # with any question the choice depends on.
+  bm <- Filter(function(v) identical(v$value, "brunner_munzel"), versions)[[1]]
+  expect_match(as.character(version_card_note(bm, "E2")), "Brunner", fixed = TRUE)
+  expect_null(version_card_note(bm, "E3"))
+  expect_equal(version_form_values(bm)[[bm$field]], "brunner_munzel")
+  qr <- Filter(function(v) identical(v$value, "quantile_regression"), versions)[[1]]
+  vals <- version_form_values(qr)
+  expect_equal(vals[[qr$field]], "quantile_regression")
+  for (cond in qr$requires) expect_equal(vals[[cond$field]], cond[["is"]])
+  # An answer the user already gave is kept.
+  if (length(qr$requires)) {
+    given <- stats::setNames(list("mine"), qr$requires[[1]]$field)
+    expect_equal(version_form_values(qr, given)[[qr$requires[[1]]$field]], "mine")
+  }
 })
 
 test_that("a card says at a glance how it calculates, with what, and how far its checks are", {

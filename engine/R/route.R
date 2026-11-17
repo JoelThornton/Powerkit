@@ -133,7 +133,9 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     "basic_test/two_correlations" = ,
     "basic_test/overlapping_correlations" = ,
     "basic_test/nonoverlapping_correlations" = ,
-    "multiple_regression/single_coefficient" = if (robust_regression(spec)) {
+    "multiple_regression/single_coefficient" = if (bfr2c_test(spec)) {
+      bfr2c_backend(spec, seed)
+    } else if (robust_regression(spec)) {
       # Robust standard errors or quantile regression, simulated with Spower.
       spower_backend(spec, seed)
     } else {
@@ -146,7 +148,13 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     } else {
       pwrss_backend(spec, seed)
     },
-    "multiple_regression/r2_increase" = ,
+    "multiple_regression/r2_increase" = if (bfr2c_test(spec)) {
+      # The Bayes factor of the full model over the model without the
+      # tested predictors, simulated (backend-bayesfactor-r2change.R).
+      bfr2c_backend(spec, seed)
+    } else {
+      pwrss_backend(spec, seed)
+    },
     "logistic_regression/single_predictor" = ,
     "poisson_regression/single_predictor_count" = if (simulated_count_test(spec)) {
       # Negative binomial and zero-inflated regression, simulated with
@@ -190,6 +198,8 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     },
     "basic_test/two_proportions" = if (bayes_factor_test(spec)) {
       bfprop_backend(spec, seed)
+    } else if (continuity_corrected(spec) && basic_test_method(spec) == "exact") {
+      corrected_exact_backend(spec, seed)
     } else if (pwrss_covers(spec)) {
       pwrss_backend(spec, seed)
     } else if (basic_test_method(spec) == "exact") {
@@ -229,6 +239,8 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     },
     "basic_test/chi_square_independence" = if (bayes_factor_test(spec)) {
       bftable_backend(spec, seed)
+    } else if (continuity_corrected(spec) && basic_test_method(spec) == "exact") {
+      corrected_exact_backend(spec, seed)
     } else if (basic_test_method(spec) == "exact") {
       pwr_backend(spec, seed)
     } else {
@@ -325,7 +337,7 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
 # variances the chi-square and F distributions (backend-variance.R).
 # Welch's t-test by formula (pwrss) only when options > method = "exact".
 basic_test_method <- function(spec) {
-  spec$options$method %||% if (pwr_covers(spec) || formula_test(spec)) "exact" else "simulation"
+  spec$options$method %||% if (pwr_covers(spec) || formula_test(spec) || continuity_corrected(spec)) "exact" else "simulation"
 }
 
 abort_not_available <- function(message) {

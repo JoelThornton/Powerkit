@@ -3827,3 +3827,107 @@ method chosen first. All follow JASP's default priors.
 - **Mediation with a categorical outcome** stays uncovered: it needs a
   definition of the indirect effect on K - 1 log-odds scales, and no
   package checked so far provides one (docs/next.md, item 1).
+
+## 2026-11-17 · Which assumption the answer depends on most
+
+- **What it does.** On the result screen's "How sure can you be?" card,
+  for a sample size or power worked out by formula, the researcher can
+  give a lowest and a highest plausible value for the effect and for each
+  other uncertain input the screen asked for (forms.yaml's
+  `assumption_fields`: SDs and SD ratios, correlations between measures,
+  reliabilities, ICCs, base rates and similar). Each is changed on its
+  own with the rest as planned, and the engine works out the answer at
+  each end. The rows are drawn as a tornado chart, the input the answer
+  moves most with at the top, with the same values in a table.
+- **Two-way grid.** Optionally, the effect and one chosen input are
+  changed together over five values each, drawn as a heatmap with each
+  cell's answer written in it, because the one-at-a-time rows can't show
+  what a weaker effect and a worse value of another input cost together.
+- **No suggested values.** The ranges are blank: they come from the
+  researcher's evidence, as for the effect scenarios, so no default range
+  becomes a new ritual.
+- **Why one at a time, not global sensitivity analysis.** Sobol or Morris
+  methods need a probability distribution for every input, which
+  researchers rarely have; one-at-a-time ranges need only a plausible low
+  and high. The planning literature's treatment of uncertain inputs as
+  distributions is assurance (O'Hagan, Stevens and Campbell, 2005), which
+  Bayes mode and the assurance tools already offer.
+- **Scope.** Designs whose answer is simulated are left out for now (each
+  value would be a fresh simulation); next.md item 23 holds that part.
+  Each changed set of answers goes through the input screen's own checks
+  and the engine, so the app computes nothing itself, and the comparison
+  never changes the saved plan.
+
+## 2026-11-17 · Continuity-corrected count tests worked out exactly
+
+- **What changes.** The continuity-corrected two-proportion test (E5,
+  R's `prop.test(correct = TRUE)` with fixed group sizes) and the
+  corrected 2 x 2 chi-square test (E6, `chisq.test(correct = TRUE)` with
+  a fixed total) are worked out exactly by default: power is the
+  probability of every possible result of the study times whether R's
+  test rejects on it, summed (`backend-corrected-exact.R`). They were
+  simulated, and a sample size came from a curve fitted to simulations
+  with fresh confirmation checks (10 November 2026), which could
+  recommend more people than needed and carried random error.
+- **Why.** The finite enumeration was already the validation reference
+  for the two-proportion test; using it directly removes the simulation
+  error and finds the smallest sample size that reaches the target, as
+  for the exact binomial test. No package computes this test's power;
+  the test itself is base R's, written out for many tables at once
+  (`corrected_prop_statistic()`) and checked against `prop.test()` and
+  `chisq.test()` on every table, and the power against table-by-table
+  enumerations.
+- **The 2 x 2 table.** With the total fixed, the row totals are binomial
+  and, given them, each row's count is binomial. Power goes up and down
+  a little with n, so the search checks smaller totals too: every one
+  for two groups, and for the table (up to a second per total) a walk
+  down from the bisection's answer until power is 0.03 below the target,
+  twice the largest dip measured (0.015 where power is above 0.3, totals
+  10 to 300, four tables), with a quick upper bound skipping totals that
+  can't reach the target. A test checks the walk against every smaller
+  total.
+- **Simulation stays an option** (`options > method` "simulation" in a
+  spec), with its confirmation checks. The app no longer offers
+  simulation accuracy for these tests.
+- **Validation.** The corrected_counts chunk passes on the exact route
+  (`validation-log.md`, 17 November 2026); an exact result is held to
+  `expect_power_exact()`'s 0.0005 against a finite reference.
+
+
+## 2026-11-17 · Bayes factors for an R-squared increase and one coefficient
+
+- **What changes.** E24's R-squared increase and one-coefficient
+  questions offer a Bayes factor, as R-squared against 0 already did:
+  the Bayes factor of the model with all the predictors against the
+  model without the tested ones (one for a coefficient), the comparison
+  `regressionBF(whichModels = "top")` reports and the analogue of the F
+  test of the increase, as decided on 15 November 2026. JASP's r scale
+  0.354 and an evidence threshold the researcher chooses, with no
+  pre-filled value.
+- **How.** Each model's Bayes factor against the intercept-only model is
+  BayesFactor's `linearReg.R2stat()` from that model's R-squared, so a
+  simulated study needs only its two R-squared values. With fixed
+  predictors (as for the F test) the reduced model's sum of squares, the
+  sum the tested predictors add and the residual sum are independent
+  noncentral chi-squares, so each study is three draws rather than a
+  data set and a model fit (`backend-bayesfactor-r2change.R`).
+  `linearReg.R2stat()` is interpolated by a cubic spline from 64 values
+  spanning a batch's studies, within 0.1% of calling it for every study.
+  Power is the share of studies whose Bayes factor reaches the
+  threshold; the chance of evidence for no increase and of misleading
+  evidence come from studies with no increase, as for E24's other Bayes
+  factor.
+- **One coefficient needs R-squared without it.** The F test of a
+  coefficient depends only on its partial R-squared, but the Bayes factor
+  depends on both models' R-squared, so the screen asks for the
+  R-squared of the other predictors when the Bayes factor is chosen
+  (spec `population.r2_reduced`), and the full model's R-squared follows
+  from the partial one.
+- **Not JASP's coefficient table.** JASP reports a coefficient's
+  evidence as an inclusion Bayes factor averaged over every model, which
+  also depends on how the predictors correlate; the card names the
+  comparison it plans for in its result and methods text.
+- **Validation.** Chunk `bayes_r2change` against `lmBF()` on data
+  simulated with fixed predictors, for two increases and one coefficient
+  (`validation-log.md`, 17 November 2026); a published example is a
+  placeholder for the maintainer.

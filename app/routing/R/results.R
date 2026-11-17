@@ -2326,18 +2326,19 @@ critical_effect_sentence <- function(result) {
 
 # Moderated mediation with a yes/no X (E17): in powerkit's validation the
 # Monte Carlo test rejected a little more often than alpha with no
-# moderated mediation (test-validation-modmed-binary.R;
-# upstream-questions.md, power4mome), so the result says so.
+# moderated mediation (5.38% in 20,000 null studies, validation-log.md,
+# 14 November 2026; upstream-questions.md, power4mome), so the result
+# says so.
 binary_x_modmed_note <- function(spec) {
   if (!identical(spec$design, "moderated_mediation") || !identical(spec$variables$X$type, "binary")) return(NULL)
   if (!identical(spec$target_test$method %||% "monte_carlo_ci", "monte_carlo_ci")) return(paste(
     "The existing binary-X moderated-mediation calibration warning was measured for maximum likelihood with Monte Carlo intervals.",
     "It is not a calibration estimate for the selected bootstrap analysis; changing the interval is not proof that the issue is resolved."))
   paste(
-    "In a PROCESS model 7 scenario with a yes/no X, powerkit's checks found the test too liberal: with no moderated mediation it was",
-    "significant in about 6.7% of simulated studies at alpha .05, against 5.3% for a separately written simulation,",
-    "so the power shown may be high. These are results for a checked scenario, not a correction for every design.",
-    "Author review is needed; this message does not mean the authors have been contacted or endorse the method."
+    "In powerkit's largest check of this test (PROCESS model 7, a yes/no X, 250 people, no moderated mediation), it was significant",
+    "in 5.38% of 20,000 simulated studies at alpha .05: close to 5%, but probably slightly above it, so the test is slightly liberal",
+    "and the power shown may be a little high. The same interval from separate regressions gave 5.17%.",
+    "This is one checked scenario, not a correction for every design."
   )
 }
 
@@ -2658,9 +2659,10 @@ is_bayes_ancova <- function(spec) is_bayes_test(spec) && isTRUE(spec$template %i
 # direction, and JASP's r scale of 0.5 by default.
 is_bayes_anova <- function(spec) is_bayes_test(spec) && identical(spec$template, "oneway_between")
 
-# The Bayes factor for R-squared (BayesFactor's linearReg.R2stat()): no
-# direction, and JASP's r scale of 0.354 by default.
-is_bayes_regression <- function(spec) is_bayes_test(spec) && identical(spec$template, "r2_zero")
+# The Bayes factor for R-squared, an R-squared increase or one coefficient
+# (BayesFactor's linearReg.R2stat()): no direction, and JASP's r scale of
+# 0.354 by default.
+is_bayes_regression <- function(spec) is_bayes_test(spec) && isTRUE(spec$template %in% c("r2_zero", "r2_increase", "single_coefficient"))
 
 # The Bayes factor test of a table (BayesFactor's contingencyTableBF(),
 # simulated): no direction, JASP's sampling plan by default.
@@ -2690,6 +2692,8 @@ bayes_test_name <- function(spec) {
     independent_t = "an independent-samples Bayes factor t-test",
     oneway_between = "a Bayes factor one-way ANOVA",
     r2_zero = "a Bayes factor test of R-squared in a linear regression",
+    r2_increase = "a Bayes factor test of an R-squared increase in a linear regression",
+    single_coefficient = "a Bayes factor test of one coefficient in a linear regression",
     oneway_ancova = ,
     factorial_ancova = "a Bayes factor ANCOVA",
     "2x2_between" = ,
@@ -3290,10 +3294,11 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
   telescope_sure <- if (telescopes) telescope_if_small_ui(spec, result)
   explore <- if (!telescopes) explore_ui(spec, result)
   scen <- if (!telescopes) scenarios_ui(spec, result)
+  assume <- if (!telescopes) assumptions_ui(spec, result, assumption_candidates(forms, fields, values))
   bayes_card <- if (!telescopes) bayes_companion_card_ui(tree, ep_id, spec, result)
   sequential_card <- bayes_sequential_card_ui(spec, result)
   sections <- c(`result-answer` = "The answer",
-    `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
+    `result-sure` = if (!is.null(telescope_sure) || !is.null(explore) || !is.null(scen) || !is.null(assume) || !is.null(calc$curve_table) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) "How sure can you be?",
     `result-bayes` = if (!is.null(bayes_card)) "If it isn't significant",
     `result-sequential` = if (!is.null(sequential_card)) "Check as you go?",
     `result-take` = "Write it up", `result-how-card` = "How it was calculated")
@@ -3342,7 +3347,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       p(class = "result-differs-pointer small",
       "Other established tools can give a slightly different answer for this design: see \u201cHow it was calculated\u201d below."),
     keep_result_ui(can_export, kept = isTRUE(calc$saved) && !isTRUE(calc$from_browser))),
-    if (!is.null(telescope_sure) || !is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
+    if (!is.null(telescope_sure) || !is.null(calc$curve_table) || !is.null(explore) || !is.null(scen) || !is.null(assume) || !is.null(calc$robustness) || !is.null(bayes_uncertain_ui(spec, result))) div(class = "result-card result-sure", id = "result-sure",
       h4(class = "h5", "How sure can you be?"),
       if (is.null(telescope_sure)) p(class = "small", "The answer holds only if the effect is about the size you entered. See how it changes if the effect is smaller or larger. Nothing here changes the answer."),
       telescope_sure,
@@ -3350,7 +3355,8 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
       bayes_robustness_ui(spec, calc$robustness),
       bayes_uncertain_ui(spec, result),
       explore,
-      scen),
+      scen,
+      assume),
     labs_learn_ui(spec, result),
     bayes_card,
     sequential_card,
@@ -3718,9 +3724,16 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       if (jasp) ", as in JASP" else "", result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
   } else if (is_bayes_regression(spec)) {
     tt <- spec$target_test
-    test <- sprintf("a Bayes factor test of R-squared in a linear regression (the JZS Bayes factor of the model with all the predictors against the intercept-only model, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
-      format(signif(tt$prior_scale %||% 0.354, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else "",
-      result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+    test <- if (identical(spec$template, "r2_zero")) {
+      sprintf("a Bayes factor test of R-squared in a linear regression (the JZS Bayes factor of the model with all the predictors against the intercept-only model, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s, computed with BayesFactor; the evidence threshold set at BF10 ≥ %s)",
+        format(signif(tt$prior_scale %||% 0.354, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else "",
+        result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+    } else {
+      sprintf("%s (the ratio of the JZS Bayes factors of the model with all the predictors and the model without the tested %s, as BayesFactor's regressionBF() reports it, with a Cauchy analysis prior of r scale %s on the standardised coefficients%s, testing %s; simulated from the two models' R-squared values; the evidence threshold set at BF10 ≥ %s)",
+        bayes_test_name(spec), if (identical(spec$template, "single_coefficient") || identical(spec$population$predictors_tested, 1L) || identical(spec$population$predictors_tested, 1)) "predictor" else "predictors",
+        format(signif(tt$prior_scale %||% 0.354, 3)), if (isTRUE(all.equal(tt$prior_scale %||% 0.354, 0.354))) ", as in JASP" else "",
+        result$bayes$hypotheses %||% "", format(tt$evidence_threshold %||% 10))
+    }
   } else if (is_bayes_test(spec)) {
     tt <- spec$target_test
     test <- sprintf("%s (%s; a JZS Bayes factor with a Cauchy analysis prior of scale %s on the effect size, computed with bfpwr; the evidence threshold set at BF10 ≥ %s)",

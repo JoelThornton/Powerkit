@@ -735,12 +735,22 @@ interaction, covariates and a bootstrap interval are not offered yet.
 | BayesFactor | `regressionBF()` and `lmBF()` on the data (Liang, Paulo, Molina, Clyde and Berger, 2008; Rouder and Morey, "Bayesian testing in regression", the references in `regressionBF()`'s help); `linearReg.R2stat()` from R-squared, the same Bayes factor | — | `rscaleCont` "medium", sqrt(2)/4 (0.354), by default [BayesFactor help] |
 | **powerkit** | BayesFactor's `linearReg.R2stat()`, which rises with R-squared and so with the regression's F, so strong evidence is exactly an F past a critical value, found by root-finding; its chance from the noncentral F (p and n - p - 1 df, noncentrality f^2 n, as for the F test), with no simulation (E24, from 14 November 2026) [powerkit] | R-squared of the model with all the predictors, and their number | r scale 0.354 by default, JASP's and BayesFactor's. `linearReg.R2stat()` equals `lmBF()` on the data (tested, and in every run's check run); on one simulated data set (n = 80, three predictors) BAS's JZS Bayes factor, JASP's engine, was 15.73 where `linearReg.R2stat()` gave 15.75. Not a departure |
 
-The R-squared increase and one coefficient have no Bayes factor version
-yet. Their Bayes factor (the full model against the model without the
-tested predictors) depends on two R-squared values, not one, and JASP
-reports a coefficient's evidence as a model-averaged inclusion Bayes
-factor, which also depends on how the predictors correlate: which of the
-two to plan for is open (`next.md` item 2).
+**The R-squared increase and one coefficient** (from 17 November 2026).
+powerkit plans the Bayes factor of the model with all the predictors
+against the model without the tested ones (one, for a coefficient): the
+comparison BayesFactor's `regressionBF(whichModels = "top")` reports,
+and the ratio of two `lmBF()` Bayes factors, each `linearReg.R2stat()`
+from its model's R-squared. A study is simulated from the three
+independent sums of squares (the reduced model's, the increase's and the
+residual's, noncentral chi-squares with fixed predictors, as for the F
+test), with the same r scale 0.354. The inputs are both models'
+R-squared, or a coefficient's partial R-squared and the R-squared of the
+other predictors, which the Bayes factor needs and the F test does not.
+JASP reports a coefficient's evidence as an inclusion Bayes factor
+averaged over every model, which also depends on how the predictors
+correlate; powerkit's comparison is the one that matches the F test of
+the same question, and the result and methods text name it. Not a
+departure: no tool plans either, and the Bayes factor is BayesFactor's.
 
 ## Bayes factor of an ANCOVA effect (E23)
 

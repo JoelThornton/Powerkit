@@ -69,7 +69,7 @@ form_examples <- list(
                metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3"), closing_ok),
   E23 = c(list(factors = "oneway_ancova", A_label = "Intervention", A_levels = "Control, Brief, Full", Y_label = "Anxiety after",
                metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1", test_version = "ancova_f"), closing_ok),
-  E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2_full = "0.15", r2_reduced = "0.1",
+  E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2c_test = "f_test", r2_full = "0.15", r2_reduced = "0.1",
                predictors_total = "5", predictors_tested = "2"), closing_ok),
   E25 = c(list(Y_label = "Correct guess", p = "0.65", p0 = "0.5", alternative = "two_sided", method = "exact_binomial"), closing_ok),
   E26 = c(list(X_label = "Session", X_level1 = "Before training", X_level2 = "After training", Y_label = "Passed",
@@ -229,6 +229,11 @@ form_examples$E75 <- c(list(glmm_groups = "none", X_label = "Classroom", X_level
                             Y_label = "Disruptive acts per lesson", glmm_outcome = "count", glmm_measurements = "3",
                             glmm_rates = "2, 1.6", glmm_sd_person = "0.5", glmm_distribution = "poisson",
                             glmm_test = "likelihood_ratio"), closing_ok)
+
+# E78: Cochran's Q, whether each person attends after three kinds of
+# reminder.
+form_examples$E78 <- c(list(X_label = "Reminder", X_levels = "None, Text, Call", Y_label = "Attended",
+                            glmm_probabilities = "0.5, 0.6, 0.65", glmm_sd_person = "1"), closing_ok)
 
 # E68: pupils in classes in schools, whole schools assigned.
 form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score", three_outcome = "continuous",

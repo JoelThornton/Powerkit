@@ -1,10 +1,10 @@
-test_that("corrected count tests select simulation and reject incompatible plans", {
+test_that("corrected count tests are exact by default, can be simulated, and reject incompatible plans", {
   for (name in c("two_proportions_corrected", "chi_square_independence_corrected")) {
     spec <- example_spec(name)
     expect_valid_spec(spec)
-    expect_equal(basic_test_method(spec), "simulation")
-    spec$options$method <- "exact"
-    expect_spec_problem(spec, "power is simulated")
+    expect_equal(basic_test_method(spec), "exact")
+    spec$options$method <- "simulation"
+    expect_valid_spec(spec)
     spec$options$method <- NULL
     spec$goal <- list(type = "sensitivity", n = 340, power = .8)
     expect_spec_problem(spec, "Continuity-corrected tests")
@@ -24,6 +24,7 @@ test_that("corrected two-proportion simulation matches R including direction and
   skip_if_not_installed("Spower")
   for (alternative in c("two_sided", "greater", "less")) {
     spec <- example_spec("two_proportions_corrected")
+    spec$options$method <- "simulation"
     spec$target_test$alternative <- alternative
     spec$options$allocation_ratio <- 2
     spec$goal$n <- 90
@@ -42,6 +43,7 @@ test_that("corrected two-proportion simulation matches R including direction and
 test_that("corrected contingency simulation matches R's fixed-total multinomial test", {
   skip_if_not_installed("Spower")
   spec <- example_spec("chi_square_independence_corrected")
+  spec$options$method <- "simulation"
   inputs <- spower_inputs(validate_spec(spec))
   got <- spower_rejections(inputs, 90, 40, 72)
   P <- matrix(c(.25, .25, .175, .325), 2, byrow = TRUE)
@@ -57,6 +59,7 @@ test_that("unanalysable corrected studies remain in the denominator and exports 
   on.exit(options(old))
   for (name in c("two_proportions_corrected", "chi_square_independence_corrected")) {
     spec <- example_spec(name)
+    spec$options$method <- "simulation"
     spec$goal <- list(type = "power", n = 20)
     spec$options$nrep <- 100
     spec$options$seed <- 9
@@ -83,6 +86,7 @@ test_that("corrected sample-size searches and their standalone replays retain th
   on.exit(options(old))
   for (name in c("two_proportions_corrected", "chi_square_independence_corrected")) {
     spec <- example_spec(name)
+    spec$options$method <- "simulation"
     spec$goal <- list(type = "sample_size", power = .8)
     spec$options$nrep <- 1000
     spec$options$attrition <- .1

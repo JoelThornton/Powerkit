@@ -53,7 +53,9 @@ export_script <- function(spec, result, file = NULL) {
   } else switch(
     result$provenance$backend,
     pwr = ,
-    stats = if (heterogeneity_test(spec)) {
+    stats = if (continuity_corrected(spec)) {
+      corrected_exact_script(spec, result)
+    } else if (heterogeneity_test(spec)) {
       heterogeneity_script(spec, result)
     } else if (variance_formula_test(spec)) {
       variance_script(spec, result)

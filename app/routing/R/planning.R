@@ -11,11 +11,17 @@ planning_decision_ui <- function(form) {
       "This plans the chance that your test gives a significant result if the effect you enter is the true one. Powering a study for the smallest effect that would matter does not test that the effect is at least that big: a minimum-effect test does that."
   # A form whose test version can be a Bayes factor test (E1-E3) words
   # the line for that version as well.
-  bayes_field <- offers_bayes_factor(form)
-  if (!is.null(bayes_field) && !isTRUE(form$precision) && !identical(design, "equivalence_test") && !identical(design, "sem")) {
-    input_id <- sprintf("input.%s", field_input_id(list(id = bayes_field)))
-    current <- tagList(conditionalPanel(sprintf("%s != 'bayes_factor'", input_id), inline = TRUE, current),
-      conditionalPanel(sprintf("%s == 'bayes_factor'", input_id), inline = TRUE,
+  bayes_ids <- bayes_factor_fields(form)
+  if (length(bayes_ids) && !isTRUE(form$precision) && !identical(design, "equivalence_test") && !identical(design, "sem")) {
+    # The Bayes factor chosen in a field that is shown (E24 has one for
+    # R-squared and one for a coefficient).
+    chosen <- paste(vapply(bayes_ids, function(id) {
+      f <- Filter(function(x) identical(x$id, id), form_fields(form$groups))[[1]]
+      shown <- shown_if_js(f)
+      sprintf("(input.%s == 'bayes_factor'%s)", field_input_id(list(id = id)), if (nzchar(shown)) paste0(" && ", shown) else "")
+    }, character(1)), collapse = " || ")
+    current <- tagList(conditionalPanel(sprintf("!(%s)", chosen), inline = TRUE, current),
+      conditionalPanel(chosen, inline = TRUE,
         "This plans the chance that your study reaches evidence at the threshold (a Bayes factor past your threshold) if the effect you enter is the true one. A Bayes factor test has no significance level."))
   }
   explanation_ui("planning-goal-info", "What this planning goal means", class = "planning-decision small",

@@ -43,6 +43,7 @@ chunk_sources <- function() {
     bayes_factorial = "engine/R/backend-bayesfactor-factorial.R",
     bayes_ancova = c("engine/R/backend-bayesfactor-ancova.R", "engine/R/backend-bayesfactor-factorial.R"),
     bayes_three = c("engine/R/backend-bayesfactor-three.R"),
+    bayes_r2change = c("engine/R/backend-bayesfactor-r2change.R", "engine/R/backend-bayesfactor-regression.R"),
     lpa = "engine/R/backend-spower.R",
     efa = "engine/R/backend-spower.R",
     riclpm = "engine/R/backend-spower.R",

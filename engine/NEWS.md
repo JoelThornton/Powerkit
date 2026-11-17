@@ -1,3 +1,80 @@
+# powerkit 0.78.1
+
+* `r2_increase` and `single_coefficient` take `target_test.method`
+  "bayes_factor" (`backend-bayesfactor-r2change.R`): the Bayes factor of
+  the full model against the model without the tested predictors, each
+  model's Bayes factor from BayesFactor's `linearReg.R2stat()`, simulated
+  from the three independent sums of squares of a regression with fixed
+  predictors. The chance of evidence for no increase and of misleading
+  evidence come from studies with no increase. `single_coefficient`
+  takes `population.r2_reduced`, the R-squared of the other predictors,
+  which this Bayes factor needs. Validation chunk `bayes_r2change`.
+
+# powerkit 0.78.0
+
+* The list of every analysis finds test versions by their own names
+  (tree.yaml's new `test_versions`: endpoint, form value, name and search
+  words). A search for Brunner-Munzel, Mann-Whitney, Kruskal-Wallis,
+  Friedman, Spearman, Kendall, Fisher's exact test, the aligned rank
+  transform, PERMANOVA, quantile regression, HC3 standard errors or a
+  zero-inflated model shows a "Test version" line under the analysis that
+  holds it. Choosing the line opens the card with a note and then the
+  input screen with that version chosen, together with any question the
+  choice depends on (`test_version_fields()`, `version_form_values()`,
+  `version_card_note()` in `app/routing/R/ui.R`). The search now matches
+  each typed word at the start of a word rather than anywhere, so "sign"
+  no longer matches "design"; "nonparametric", "non-parametric" and
+  "rank based" find every rank-based version, and the ordinal regression
+  card answers to "proportional odds".
+
+# powerkit 0.77.2
+
+* Cochran's Q has a card of its own (E78, "The same people, a yes/no
+  outcome in each of three or more conditions") in the yes/no and
+  categories group. Its form asks only for the conditions, the outcome,
+  each condition's chance of 'yes' and the SD of people's tendency to say
+  yes, and runs the existing engine route (`repeated_glmm` with
+  `target_test > method = "cochran_q"`). Before, the test was a version of
+  the generalised mixed model card, which a search for Cochran's Q
+  reached under that card's name, in the multilevel group, with simr and
+  a several-minute run on its header. The design finder's yes/no branch
+  for three or more conditions now asks how each person answers: once in
+  each condition (Cochran's Q) or any other way (the mixed model card).
+
+# powerkit 0.77.1
+
+* The result note for moderated mediation with a yes/no X (E17) gives the
+  20,000-study null check (5.38%, likely slightly above 5%;
+  `validation-log.md`, 14 November 2026) in place of the earlier
+  3,000-study figure of about 6.7%, which overstated the excess.
+
+* The continuity-corrected two-proportion test and the corrected 2 x 2
+  chi-square test are worked out exactly by default
+  (`backend-corrected-exact.R`): power sums every possible result's
+  probability where R's `prop.test()` or `chisq.test()` (with
+  `correct = TRUE`) rejects, so the sample size is the smallest that
+  reaches the target, with no simulation error. Simulation with fresh
+  confirmation checks stays available through `options > method`. The
+  standalone script needs base R only. `expect_power_near()` holds an
+  exact result to 0.0005 against a finite reference.
+
+# powerkit 0.77.0
+
+* The result screen's "How sure can you be?" card asks which assumption
+  matters most (`app/routing/R/assumptions.R`). For a sample size or
+  power worked out by formula, the researcher gives a lowest and highest
+  plausible value for the effect and for any other uncertain input listed
+  in forms.yaml's new `assumption_fields`; each is changed on its own
+  through the input screen's checks and the engine, and the answers are
+  drawn as a tornado chart with an accessible table. An optional two-way
+  grid changes the effect and one other input together. No values are
+  suggested, and the saved plan is unchanged. Simulated designs remain
+  next.md item 23.
+
+# powerkit 0.76.2
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.76.1
 
 * The smallest detectable effect (goal `sensitivity`) for four more

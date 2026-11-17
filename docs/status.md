@@ -1,6 +1,6 @@
 # Project status
 
-*Last updated: 17 November 2026 (the smallest detectable effect on the interaction regression cards, a yes/no or count outcome's moderation, an outcome in unordered categories, latent profiles and factor analysis; the smallest detectable effect by a simulated search on the Jonckheere-Terpstra trend, factorial logistic regression, moderation-by-groups and interrupted time series cards; moderation of an outcome in three or more unordered categories, card E32; the smallest detectable effect by a simulated search on the paired-variance, trend and d' cards; the smallest detectable effect on the ordinal, survival, growth-curve and reliability cards; the smallest detectable effect for meta-analyses and structural equation models; Cochran's Q, yes/no answers from the same people in three or more conditions, on card E75; the smallest detectable effect on the dependent correlations, variances, Hotelling, MANOVA and equivalence cards; long runs that carry on in a study plan, with progress on the plan's page; the effect panels on the formula cards whose effect is one number; small fixes testers meet: the step bar on a study plan, the effect section's help, field prompts and the analysis search; the smallest detectable effect on the formula cards that lacked it; four fixes as colleague testing starts: no pre-selected count model, the mediation estimate's validation label, rule-of-thumb help and plainer errors and scripts; the analysis list's groups in two independent columns; design review: one look for buttons, boxes and folds; fixes from the 15 November reviews before colleague testing; methods decided for three Bayes factors: the R-squared increase, the multinomial test and the A/B test; developing or validating a prediction model, card E77; review fixes on this round's cards: the online app's missing-package message, a card code in E32's text and the hints under a card's name; the Bayes factor three-factor ANOVA, card E56; replication and study plan fixes from the colleague-testing review; clustered yes/no outcomes can be simulated with glmer(); the ICC planned by its F test's exact power; the Bayes factor ANCOVA, card E23, and the factorial ANOVAs' Bayes factor write-up; the Bayes factor for R-squared, card E24; within-person moderation, card E41; replication plans for an original analysed with Bayes factors; replication goals for any one-number effect; a count or yes/no outcome in moderation and mediation, card E32; the binary-X null check uses seed 1500; two groups in a ratio rounded at every total; mediation with a yes/no mediator, card E39; two or more groups measured more than once with a count, yes/no or ordered categories, card E75; mediation with X in three or more groups, card E42; corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
+*Last updated: 17 November 2026 (the smallest detectable effect on the interaction regression cards, a yes/no or count outcome's moderation, an outcome in unordered categories, latent profiles and factor analysis; Bayes factors for an R-squared increase and one regression coefficient on card E24; the analysis search finds test versions such as Mann-Whitney, Brunner-Munzel and PERMANOVA by name and opens them chosen, and matches words from their start; Cochran's Q on a card of its own, in the yes/no group; continuity-corrected count tests worked out exactly; the binary-X moderated mediation note gives the 20,000-study null rate; which assumption the answer depends on most, a tornado chart and a two-way grid on the result screen; the other-dyadic-designs card written as a guide to the pair cards; the smallest detectable effect by a simulated search on the Jonckheere-Terpstra trend, factorial logistic regression, moderation-by-groups and interrupted time series cards; moderation of an outcome in three or more unordered categories, card E32; the smallest detectable effect by a simulated search on the paired-variance, trend and d' cards; the smallest detectable effect on the ordinal, survival, growth-curve and reliability cards; the smallest detectable effect for meta-analyses and structural equation models; Cochran's Q, yes/no answers from the same people in three or more conditions, on card E75; the smallest detectable effect on the dependent correlations, variances, Hotelling, MANOVA and equivalence cards; long runs that carry on in a study plan, with progress on the plan's page; the effect panels on the formula cards whose effect is one number; small fixes testers meet: the step bar on a study plan, the effect section's help, field prompts and the analysis search; the smallest detectable effect on the formula cards that lacked it; four fixes as colleague testing starts: no pre-selected count model, the mediation estimate's validation label, rule-of-thumb help and plainer errors and scripts; the analysis list's groups in two independent columns; design review: one look for buttons, boxes and folds; fixes from the 15 November reviews before colleague testing; methods decided for three Bayes factors: the R-squared increase, the multinomial test and the A/B test; developing or validating a prediction model, card E77; review fixes on this round's cards: the online app's missing-package message, a card code in E32's text and the hints under a card's name; the Bayes factor three-factor ANOVA, card E56; replication and study plan fixes from the colleague-testing review; clustered yes/no outcomes can be simulated with glmer(); the ICC planned by its F test's exact power; the Bayes factor ANCOVA, card E23, and the factorial ANOVAs' Bayes factor write-up; the Bayes factor for R-squared, card E24; within-person moderation, card E41; replication plans for an original analysed with Bayes factors; replication goals for any one-number effect; a count or yes/no outcome in moderation and mediation, card E32; the binary-X null check uses seed 1500; two groups in a ratio rounded at every total; mediation with a yes/no mediator, card E39; two or more groups measured more than once with a count, yes/no or ordered categories, card E75; mediation with X in three or more groups, card E42; corrected repeated-measures tests without sphericity simulated by default, and both nightly validation failures explained; counts, yes/no and ordered categories measured more than once, card E75; Bland-Altman limits of agreement on E69; replication plans: the pre-replication notes and the replication planner move from Labs into a kind of study plan; Yuen's trimmed-means t-tests on E2 and E3; tidier cards and input screens; Plan my whole study keeps its plan in a study plan; a study plan's overview and Download everything; repeated-measures correlation, card E76; several named study plans with a page of their own; JASP's analyses reviewed against the cards and the queue reordered; every change on main now gets a version number, and 0.63.0 numbers the waiting notes; specialist maths review fixes; share links for projects, plans and drafts; a clearer save area on the result screen; the AI assistant is dropped from the plan; CLAUDE.md's facts brought up to date; version 0.62.0 closes the pre-tester fix batch; faster results; replication planner gives its simple answer first; small wording fixes; keyboard focus and contrast fixes, accessibility audit script runs again; one line of help per field; a calmer result screen; regression takes Cohen's f-squared; the goal and direction as buttons on the form; choosing an analysis takes fewer screens; MANOVA takes Pillai's V; tables of means, SDs and proportions entered in a labelled grid; moderated regression result screen fixed; replication from the design finder; cards say what they can't do; critical effect beside the smallest effect; sphericity correction default and exact correlation method; pre-tester review fixes; start screen layout; count-search safeguards merged in PR #372; compact guidance follow-up; live rollout unconfirmed). Where the project is
 now, one short paragraph per area; replace a paragraph rather than adding
 to it. What to do next is [`next.md`](next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
@@ -63,7 +63,12 @@ testing runs. Done from it on 16 November: the step bar and heading on a
 study plan's page, the finder's crossed-factors example, the effect
 section's duplicate help, the power and alpha rows' styling, and the
 analysis search (general words such as "power" ignored, best-matching
-groups first, "simple slopes"). A run that takes a while can move to a study plan
+groups first, "simple slopes"). On 17 November the search learned
+test versions by their own names (tree.yaml's `test_versions`): a
+search for Mann-Whitney, Brunner-Munzel, Kruskal-Wallis, PERMANOVA or
+quantile regression shows a "Test version" line under the analysis that
+holds it, which opens that input screen with the version chosen; each
+typed word now matches from the start of a word. A run that takes a while can move to a study plan
 and carry on while the person uses the rest of the app, with its
 progress on the plan's page; it still ends with the browser tab, until
 a hosting choice adds a durable job queue.
@@ -89,10 +94,14 @@ within factors, with `anovaBF()` as for the two-factor ANOVAs, simulated
 (a preview and the R script in the app); validation in progress (the
 `bayes_three` chunk). The factorial and repeated-measures
 ANOVAs' Bayes factor write-ups now name their test and say "effect"
-rather than "association". The methods for the next three are decided
-(`decisions.md`, 15 November 2026): the R-squared increase and one
-coefficient, the multinomial test (E48) and JASP's A/B test (E5), all
-waiting to be built (`next.md` item 2).
+rather than "association". E24's R-squared increase and one coefficient
+have a Bayes factor too (17 November 2026): the model with all the
+predictors against the model without the tested ones, simulated from the
+three independent sums of squares with BayesFactor's
+`linearReg.R2stat()`; validation in progress (the `bayes_r2change`
+chunk). The methods for the multinomial test (E48) and JASP's A/B test
+(E5) are decided (`decisions.md`, 15 November 2026) and waiting to be
+built (`next.md` item 2).
 
 Developing or validating a prediction model has a card of its own, E77
 (15 November 2026), reached from the start screen's aims. Developing: the
@@ -135,12 +144,14 @@ counts and ordinal's `clmm()` for ordered categories), the likelihood-ratio test
 default; power at a fixed number of people runs on the card, a number of
 people comes as an R script. Two or more groups measured more than once
 (the group-by-time interaction, `y ~ group * cond + (1 | person)`) run
-on the same card for all four outcomes. So does Cochran's Q (16 November
-2026), one yes/no answer from each person in each of three or more
-conditions: the answers simulated from the card's logistic model and each
-study tested with `stats::friedman.test()` (Cochran's Q on 0/1 data),
-power and the number of people both run on the card, and the design
-finder reaches it. Validation in progress: the chunk `glmm`, with
+on the same card for all four outcomes. Cochran's Q, one yes/no answer
+from each person in each of three or more conditions, has its own card
+(E78, 17 November 2026) in "Yes/no, categories and ordered categories",
+found under its name by search and reached from the design finder; it is
+the same engine route as the test version on the repeated-measures card
+(16 November 2026): the answers simulated from the card's logistic model
+and each study tested with `stats::friedman.test()` (Cochran's Q on 0/1
+data), power and the number of people both run in the app. Validation in progress: the chunk `glmm`, with
 Cochran's Q's file, passes; the published examples await transcription. E42, mediation with
 X in three or more groups, calculates too (14 November 2026): each
 group's relative indirect effect against the first (dummy coding, as
@@ -349,7 +360,14 @@ maintainer's approval of ordinary t-test and Pearson correlation plans starting
 without between-study variation (10 November). Explicit variation scenarios
 retain the existing engine and saved values, and explain averaged significance
 rather than power at the average effect. The smaller-effect comparison now
-shows power at the exact analysed sample size. These source changes are not a claim about the deployed app or new scientific validation.
+shows power at the exact analysed sample size. Since 17 November 2026 the
+result screen's "How sure can you be?" card also asks which assumption
+matters most: the researcher gives a lowest and highest plausible value
+for the effect and for any other uncertain input (an SD, a correlation
+between measures, a reliability, an ICC, a base rate), and sees the
+answer at each end, one input at a time, as a tornado chart, plus an
+optional grid of the effect against one other input changed together.
+It runs for formula designs only; simulated designs are next.md item 23. These source changes are not a claim about the deployed app or new scientific validation.
 
 This release batch adds [PROCESS-style mediation planning](process-style-planning.md):
 OLS plus casewise percentile bootstrap, alongside the existing ML Monte
@@ -370,15 +388,12 @@ The five safeguards merged in PR #368 are recorded in the
 visible corrected-ANOVA limitations, a new unknown-dependence default that
 preserves historical plans, matched interaction-sensitivity verification,
 four independent corrected-count fitted-N checks with honest uncertainty,
-and selected-setting evidence on input screens. The balanced-proportion
-reference found .79547 power at a nominal .8 fitted target; the smooth curve's
-interval missed that finite-reference value. The count-search fix merged in PR #372 and
-uses that curve only as a proposal: fresh checks at each candidate require a
-one-sided binomial lower bound above the target, with a 1% error budget across
-at most ten checks. It increases N when needed or refuses a recommendation.
-This is a checked N under the specified model, not a minimum-N guarantee or
-protection against optimistic population assumptions. Historical saved results
-retain the old warning. Independent case checks and hosted gates are recorded
+and selected-setting evidence on input screens. Since 17 November 2026 the
+continuity-corrected two-proportion and 2 x 2 tests are worked out exactly
+over every possible result, so their sample size is the smallest that
+reaches the target, with no simulation error; the simulated search with
+fresh confirmation checks (PR #372) remains for specs that ask for
+simulation. Historical saved results retain the old warning. Independent case checks and hosted gates are recorded
 in the count-test checklist; the ANOVA/mediation failures and broader evidence
 requirements remain open. Attrition input/results/methods now distinguish a
 recruitment buffer from missing-data modelling. Pilot guidance describes
@@ -437,10 +452,10 @@ and automated accessibility checks passed locally for the exercised routes.
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
   Bayes mode (item 17) waits on a decision.
 
-- **What calculates:** 70 of the 76 analyses run in the app, as the About
-  page says (77 cards, counting the "none of these fit" card; `tree.yaml`'s
-  statuses); the other seven say powerkit can't plan them yet and point
-  elsewhere. 55 calculate in the app directly (`forms.yaml`'s
+- **What calculates:** 77 of the 78 analyses run in the app (80 cards,
+  counting the "none of these fit" and Bayes factor guide cards;
+  `tree.yaml`'s statuses); the other dyadic designs card is a guide to the
+  pair cards. 59 calculate in the app directly (`forms.yaml`'s
   `calculates`), by a package's formula where one exists, otherwise by
   simulation with Spower, Superpower, simr, power4mome, metafor or PITS.
   The rest are simulations too slow for the app: a preview in the app,
@@ -674,8 +689,10 @@ November 2026), which gives .051.
   or with only some factors differing in their own items.
 - Technical details (df, critical value, noncentrality) are missing where
   the package reports none (TOSTER, powertools) and for Bayes factors.
-- With a yes/no X and no moderation, power4mome's moderated mediation has
-  a Type I error of about 6.7%, stated on the results screen pending investigation and author review (`upstream-questions.md`).
+- With a yes/no X and no moderated mediation, power4mome's Monte Carlo
+  interval rejected in 5.38% of 20,000 studies (likely about 0.4 points
+  above 5%); the results screen states it (`validation-log.md`,
+  14 November 2026; `upstream-questions.md`).
 - Long simulations end with the visitor's session; no durable job queue
   (`hosting-options.md`, `next.md` item 11).
 - No usability sessions with researchers yet

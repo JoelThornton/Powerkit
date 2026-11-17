@@ -391,6 +391,9 @@ test_that("the analyses in the UCLA OARC test-selection table reach the end poin
     "Chi-square test, relationship path" = list(c(once(yesno), rel, "One of several categories (and the other variable is categories too)"), "E6"),
     "Paired t-test" = list(c(twice(score), diff, "One"), "E3"),
     "McNemar's test" = list(c(twice(yesno), diff), "E26"),
+    "Cochran's Q" = list(c(yesno, "Independent people", "Many times", "The same people in three or more conditions", diff, "Once in each condition, yes or no"), "E78"),
+    "Repeated yes/no, several answers per condition" = list(c(yesno, "Independent people", "Many times", "The same people in three or more conditions", diff,
+      "Another way: several answers in each condition, groups of people compared over the conditions, or more than two categories"), "E75"),
     "One-way ANOVA" = list(c(once(score), diff, "Three or more groups, different people in each", "Any difference among the groups"), "E18"),
     "Three-factor ANOVA, group by time by task" = list(c(twice(score), diff, "Three, crossed (every combination appears)"), "E56"),
     "One-way repeated measures ANOVA" = list(c(score, "Independent people", "Many times", "The same people in three or more conditions", diff, "One", "Any difference among the conditions"), "E54"),
@@ -495,13 +498,13 @@ test_that("search on \"I know my analysis\" finds the names researchers type", {
 test_that("JASP's names for analyses Powerkit already plans find their cards", {
   # JASP's menus name these analyses differently from powerkit's cards
   # (review of JASP's analyses, 13 November 2026). The search matches every
-  # word typed against the card's names and search words, as
-  # powerkitFilterAnalyses() does.
+  # word typed against the start of a word in the card's names and search
+  # words, as powerkitFilterAnalyses() does.
   found <- function(query, id) {
     ep <- tree$endpoints[[id]]
     text <- search_text(ep$plain_name, ep$doc_name, ep$technical_name, ep$search_words)
     words <- strsplit(trimws(search_text(query)), " ")[[1]]
-    all(vapply(words, function(w) grepl(if (nchar(w) <= 2) paste0(" ", w, " ") else w, text, fixed = TRUE), logical(1)))
+    all(vapply(words, function(w) grepl(if (nchar(w) <= 2) paste0(" ", w, " ") else paste0(" ", w), text, fixed = TRUE), logical(1)))
   }
   expect_true(found("confirmatory factor analysis", "E37"))
   expect_true(found("MIMIC", "E37"))

@@ -6,12 +6,12 @@ test_that("known mediation limitations appear before numerical answers are compl
   expect_identical(spec$target_test$method,"monte_carlo_ci")
   html <- as.character(selected_evidence_ui(forms,"E17",fields,values))
   expect_match(html,"Important limitation",fixed=TRUE)
-  expect_match(html,"test too liberal",fixed=TRUE)
+  expect_match(html,"test is slightly liberal",fixed=TRUE)
   expect_no_match(html,"Evidence depends on",fixed=TRUE)
   values$method <- "ols_percentile_bootstrap"
   html <- as.character(selected_evidence_ui(forms,"E17",fields,values))
   expect_match(html,"not a calibration estimate for the selected bootstrap",fixed=TRUE)
-  expect_false(grepl("test too liberal",html,fixed=TRUE))
+  expect_false(grepl("test is slightly liberal",html,fixed=TRUE))
   values$x_type <- "continuous"
   expect_false(grepl("Important limitation",as.character(selected_evidence_ui(forms,"E17",fields,values)),fixed=TRUE))
 })
@@ -47,5 +47,5 @@ test_that("important result limitations precede the headline and survive copied 
   expect_match(writeup_text(forms$forms$E55,spec,result,fields,values)[["short"]],"applies the sphericity correction approximately",fixed=TRUE)
   binary <- list(design="moderated_mediation",template="process_7",variables=list(X=list(type="binary")),
     target_test=list(method="monte_carlo_ci"))
-  expect_match(paste(planning_warning_notes(binary),collapse=" "),"test too liberal",fixed=TRUE)
+  expect_match(paste(planning_warning_notes(binary),collapse=" "),"test is slightly liberal",fixed=TRUE)
 })

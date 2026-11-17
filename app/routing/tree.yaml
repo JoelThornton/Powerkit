@@ -604,7 +604,18 @@ nodes:
     doc_id: Q3
     text: "What are you comparing? (answered by S3 when the same people are measured more than once)"
     branch_on: times
-    routes: {once: q3_cat, twice: E26, many_conditions: E75}
+    routes: {once: q3_cat, twice: E26, many_conditions: q3_cat_many}
+  # Three or more conditions with a yes/no or categorical outcome: one
+  # yes/no answer per condition is Cochran's Q (E78); anything else is the
+  # generalised mixed model (E75).
+  q3_cat_many:
+    doc_id: Q3
+    text: "How does each person answer in the conditions?"
+    options:
+      - {label: "Once in each condition, yes or no", next: E78,
+         help: "e.g. whether each person attends after no reminder, a text and a call (Cochran's Q)."}
+      - {label: "Another way: several answers in each condition, groups of people compared over the conditions, or more than two categories", next: E75,
+         help: "e.g. a yes/no answer on every trial, or a programme and a control group each asked before and after."}
   q3_cat:
     doc_id: Q3
     text: "What are you comparing?"
@@ -617,7 +628,7 @@ nodes:
       - {label: "One group's categories against expected proportions", next: E48, when: {times: once}}
       - {label: "Two or more factors (for example, a 2 x 2 design)", next: E47, when: {times: once}}
       - {label: "The same people in every condition", next: E26, when: {times: twice}}
-      - {label: "The same people in every condition", next: E75, when: {times: many_conditions}}
+      - {label: "The same people in every condition", next: q3_cat_many, when: {times: many_conditions}}
 
   # How much scores vary -----------------------------------------------------
   v1_by_times:
@@ -1067,7 +1078,7 @@ endpoints:
     bayes_test: true
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed with the z test, which matches G*Power to seven decimals; unequal groups (pwrss) match G*Power to seven decimals in the examples checked. No published example has been checked for this design yet."}
     card_points:
-      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis."
+      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables, worked out exactly over every possible result; choose the version and sampling plan you will use in your analysis."
       - "Fisher's exact test, an option, is in validation: it matches pwrss called directly in the engine's tests, but hasn't yet been checked against G*Power or a published example."
       - "The Bayes factor test, an option, is in validation: it matches BayesFactor's contingencyTableBF() table by table and simulated studies in powerkit's checks, but hasn't yet been checked against a published example."
     tier: MVP
@@ -1082,7 +1093,7 @@ endpoints:
     method: "Formula (no simulation); simulation for the Bayes factor"
     inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w", "The chi-square test or a Bayes factor"]
     card_points:
-      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis."
+      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables, worked out exactly over every possible result; choose the version and sampling plan you will use in your analysis."
       - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: Powerkit simulates the chance of evidence at the threshold, with JASP's default sampling plan and prior."
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}
@@ -1276,7 +1287,7 @@ endpoints:
     doc_name: "Jonckheere-Terpstra trend test"
     technical_name: "Jonckheere–Terpstra test"
     plain_name: "A steady rise or fall across groups in order, on ranks"
-    search_words: "jonckheere terpstra trend ordered alternative dose response ranks nonparametric ordered groups"
+    search_words: "jonckheere terpstra trend ordered alternative dose response ranks nonparametric non-parametric rank based ordered groups"
     template: "factorial_anova / oneway_between"
     backend: "Spower, with powerkit's experiment calling PMCMRplus's jonckheereTest() (simulated)"
     method: "Simulation"
@@ -1405,13 +1416,13 @@ endpoints:
     plain_name: "Several predictors at once, or one predictor controlling for others"
     search_words: "linear regression ols coefficient r squared bayesian linear regression bayes factor regression jzs robust standard errors hc3 hc4 heteroscedasticity quantile median regression partial correlation covariates moderated treatment effect multiple regression hierarchical regression r squared change f squared f2 f² cohen's f squared"
     template: "multiple_regression / r2_zero, r2_increase, single_coefficient"
-    backend: "pwrss: power.f.regression() (the F test, by formula); Spower with car (HC3 and HC4 standard errors) or quantreg (quantile regression) for one coefficient tested those ways (simulated); BayesFactor's linearReg.R2stat() for the Bayes factor for R-squared (exact)"
+    backend: "pwrss: power.f.regression() (the F test, by formula); Spower with car (HC3 and HC4 standard errors) or quantreg (quantile regression) for one coefficient tested those ways (simulated); BayesFactor's linearReg.R2stat() for the Bayes factor for R-squared (exact against 0; simulated from the sums of squares for an increase or one coefficient)"
     method: "Formula (no simulation); simulation for robust standard errors and quantile regression"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. The Bayes factor for R-squared agrees with lmBF() on data simulated with fixed predictors, for the chance of evidence at the threshold for an effect, for none and of misleading evidence. Not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "The F tests match G*Power to seven decimal places in the engine's tests. Robust standard errors and quantile regression are checked against the usual test's formula and an independent simulation. The Bayes factors for R-squared, an increase and one coefficient agree with lmBF() on data simulated with fixed predictors, for the chance of evidence at the threshold for an effect, for none and of misleading evidence. Not yet checked against a published example."}
     card_points:
       - "One predictor's coefficient, controlling for the others, is tested with its partial R-squared (G*Power's single regression coefficient)."
-      - "Will you analyse whether the predictors together explain anything with a Bayes factor, as in JASP's Bayesian linear regression? Choose it as the test version for R-squared against 0: Powerkit gives the chance of evidence at the threshold, with JASP's default prior, exactly."
+      - "Will you analyse whether the predictors together explain anything with a Bayes factor, as in JASP's Bayesian linear regression? Choose it as the test version: Powerkit gives the chance of evidence at the threshold, with JASP's default prior, exactly for R-squared against 0 and by simulation for an R-squared increase or one coefficient (the model with them against the model without)."
       - "A treatment effect that depends on a measured moderator, with the outcome measured before and after: choose \"Whether some predictors add to the others\", with 4 predictors in the full model (the treatment, the moderator, the before score and the treatment x moderator product) and 1 tested (the product). The R-squared increase is how much the product adds once the other three are in the model."
       - "If the outcome spreads out more at some values of the predictor than others, choose robust (HC3 or HC4) standard errors; to test the median or another quantile instead of the mean, quantile regression. Powerkit simulates both for the spread and error shape you give. With skewed errors whose spread changes, quantile regression's usual test rejects too often, so its power is optimistic there."
     inputs: ["Your outcome's name and what you want to test", "R-squared, the R-squared change, or the predictor's partial R-squared", "Number of predictors", "How the predictor's coefficient is tested, and the spread and shape of the errors"]
@@ -1442,10 +1453,28 @@ endpoints:
     status: runs_validation_in_progress
     validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
     card_points:
-      - "Three or more conditions, a yes/no answer from each person in each: Cochran's Q, on the card for the same people measured more than once (choose a yes/no outcome measured once in each condition)."
+      - "Three or more conditions, a yes/no answer from each person in each: Cochran's Q, which has its own card."
     inputs: ["Names of the two conditions and the outcome", "The expected discordant proportions"]
     tier: v2
     alternatives: ["McNemar's exact test", "McNemar's chi-square approximation"]
+  E78:
+    doc_name: "Cochran's Q (same people, yes/no, three or more conditions)"
+    technical_name: "Cochran's Q"
+    plain_name: "The same people, a yes/no outcome in each of three or more conditions"
+    search_words: "cochran's q cochrans q cochran q test matched proportions repeated yes/no binary three conditions friedman 0/1 related samples dichotomous"
+    template: "mixed_model / repeated_glmm"
+    backend: "Spower: powerkit's experiment tests each simulated study with Cochran's Q (stats::friedman.test() on the 0/1 answers), the answers drawn from a logistic model with a random intercept for each person (simulation)"
+    method: "Simulation"
+    status: runs_validation_in_progress
+    validation: {file: test-validation-cochran-q.R, note: "Agrees with a simulation written separately (each answer drawn by cutting a latent logistic variable, and Q computed from its own formula, without friedman.test() or Spower) in three designs, and keeps the Type I error at alpha when every condition has the same chance of 'yes'. Not yet checked against a published example."}
+    card_points:
+      - "Every person gives one yes/no answer in each of three or more conditions: for example, whether each person attends after no reminder, a text and a call, or whether each patient's symptom is present at three visits."
+      - "You give the chance of 'yes' in each condition for a typical person, and how much people differ in how likely they are to say yes: people who differ more make the answers in different conditions go together, which changes the number you need."
+      - "Simulated with Spower, so the answer carries a little random error. Power and the number of people you need both run here: power in about ten seconds, the number of people in a few minutes."
+      - "With two conditions, Cochran's Q is McNemar's test, which has its own card and is computed exactly."
+    inputs: ["The conditions and the outcome", "The chance of 'yes' in each condition, and how much people differ"]
+    tier: v2
+    alternatives: ["a logistic mixed model of the same answers (the card for the same people measured more than once)", "McNemar's tests of pairs of conditions, adjusted for their number"]
   E27:
     doc_name: "Logistic regression (yes/no outcome)"
     technical_name: "Binary logistic regression"
@@ -1502,6 +1531,7 @@ endpoints:
     doc_name: "Ordinal outcome (ordered categories)"
     technical_name: "Ordinal regression"
     plain_name: "An outcome in ordered categories (e.g. a single Likert item analysed as ordinal)"
+    search_words: "proportional odds cumulative logit ordered logistic regression polr likert rating item whitehead"
     template: "ordinal_regression / ordinal_two_groups"
     backend: "powertools: propodds() (proportional odds, Whitehead's method)"
     method: Formula
@@ -1782,7 +1812,7 @@ endpoints:
       - "The same people give a count, a yes/no answer or an answer in ordered categories more than once: for example, the number of cigarettes smoked in the week before and the week after a programme, how often each pupil disrupts a lesson in two kinds of classroom, or a mood rating from 1 to 5 on several days under two conditions. Each person can be in every condition, or in one of them and measured several times, or in one of two or more groups and measured in every condition."
       - "You give the expected count (or chance of 'yes', or the share of answers in each category and each condition's odds ratio) for a typical person, how much people differ in their typical level, and how many times each person is measured in each condition."
       - "Analysed with a generalised linear mixed model with a random intercept for each person: Poisson for a count, or negative binomial when counts vary more than a Poisson distribution allows, logistic for yes/no, and a cumulative link (proportional odds) mixed model for ordered categories. The test is the likelihood-ratio test of the conditions, or the Wald test if you choose."
-      - "A yes/no answer given once in each of three or more conditions, such as whether each person attends after no reminder, a text and a call: Cochran's Q, as such data are usually analysed. The answers are simulated from the same model, and the number of people you need runs here too."
+      - "A yes/no answer given once in each of three or more conditions, such as whether each person attends after no reminder, a text and a call, is usually analysed with Cochran's Q, which has its own card (the same test can be chosen here too)."
       - "With two or more groups each measured in every condition, such as a programme group and a control group before and after, you give the expected count (or chance, or odds ratio) in each group and condition, and the test is whether the groups change differently: the group-by-condition interaction."
       - "Simulated with simr (lme4's glmer), or with Spower and lme4's glmer.nb() for a negative binomial count or the R package ordinal's clmm() for ordered categories, so the answer carries a little random error. Power at a given number of people runs here; the number you need comes as an R script (with Cochran's Q, both run here)."
       - "Not yet here: trials with many stimuli whose own variation matters (for a score or yes/no, the cards for many stimuli per person)."
@@ -2040,7 +2070,7 @@ endpoints:
     status: not_in_powerkit
     generic: true
     established_tools: true
-    card_text: "Powerkit doesn't cover data from pairs of people whose scores are related (dyadic data), such as couples or a parent and child. Treating the two members as independent people can overstate or understate power, depending on whether the predictor varies between dyads (for example, couples assigned to different conditions) or within dyads (for example, each partner's own stress), so dyadic methods are needed."
+    card_text: "Two pair designs have cards of their own. For how each member's score relates to their own and their partner's outcome, when the outcome is a score, use \"Pairs of people: how each one's score relates to their own and their partner's outcome\". For conditions given to whole pairs, such as couples randomised to a programme, use \"People nested in groups (classes, teams, clinics)\" with groups of two. If you matched the pairs yourself and compare them on one score, as with twins, use \"Compare the same people in two conditions (or before and after)\". Powerkit doesn't yet cover actor and partner effects on a yes/no, count or ordered outcome, or a condition given to one member of each pair. For those, dyadic methods are needed: treating the two members as independent people can overstate or understate power, depending on whether the predictor varies between dyads (couples assigned to different conditions) or within dyads (each partner's own stress)."
     tier: later
   E45:
     doc_name: "Many measurements over time: segmented regression or interrupted time series"
@@ -2600,6 +2630,38 @@ guided:
 # "Common starting points" at the top of "I know my analysis": everyday
 # analyses, one click away without searching or opening a group. Each is
 # also in its family below.
+# Test versions researchers know by name (17 November 2026). Many tests
+# are a version chosen on another analysis's input screen (the
+# Mann-Whitney test on the two-group card, Friedman's test on the
+# repeated-measures ANOVA). The search lists each by its own name when a
+# search matches it, and opening it there starts the input screen with
+# that version chosen. `value` is the version's choice on the card's
+# test-version field; the field is found from forms.yaml at start-up
+# (test_version_fields(), R/ui.R).
+test_versions:
+  - {endpoint: E1, value: wilcoxon_signed_rank, name: "Wilcoxon signed-rank test", search_words: "wilcoxon signed rank test nonparametric non-parametric rank based"}
+  - {endpoint: E2, value: mann_whitney, name: "Mann-Whitney U test", search_words: "mann whitney u test wilcoxon rank sum test nonparametric non-parametric rank based"}
+  - {endpoint: E2, value: brunner_munzel, name: "Brunner-Munzel test", search_words: "brunner munzel test nonparametric non-parametric rank based unequal spreads variances"}
+  - {endpoint: E2, value: yuen, name: "Yuen's trimmed-means test", search_words: "yuen yuens trimmed means test robust t test outliers"}
+  - {endpoint: E3, value: wilcoxon_signed_rank, name: "Wilcoxon signed-rank test", search_words: "wilcoxon signed rank test nonparametric non-parametric rank based"}
+  - {endpoint: E3, value: yuen, name: "Yuen's paired trimmed-means test", search_words: "yuen yuens paired trimmed means test robust t test outliers"}
+  - {endpoint: E4, value: spearman, name: "Spearman's rho", search_words: "spearman spearmans rho rank correlation nonparametric non-parametric rank based"}
+  - {endpoint: E4, value: kendall, name: "Kendall's tau", search_words: "kendall kendalls tau rank correlation nonparametric non-parametric rank based"}
+  - {endpoint: E5, value: fisher_exact, name: "Fisher's exact test", search_words: "fisher fishers exact test"}
+  - {endpoint: E18, value: kruskal_wallis, name: "Kruskal-Wallis test", search_words: "kruskal wallis h test nonparametric non-parametric rank based"}
+  - {endpoint: E54, value: friedman, name: "Friedman's test", search_words: "friedman friedmans test nonparametric non-parametric rank based"}
+  - {endpoint: E7, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial"}
+  - {endpoint: E22, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial"}
+  - {endpoint: E21, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial"}
+  - {endpoint: E8, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial mixed"}
+  - {endpoint: E55, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial mixed"}
+  - {endpoint: E20, value: aligned_rank_transform, name: "Aligned rank transform ANOVA", search_words: "aligned rank transform art anova artool nonparametric non-parametric rank based factorial within"}
+  - {endpoint: E59, value: permanova, name: "PERMANOVA", search_words: "permanova permutational permutation manova adonis vegan nonparametric non-parametric"}
+  - {endpoint: E24, value: ols_hc3, name: "Regression with robust (HC3) standard errors", search_words: "robust standard errors hc3 heteroscedasticity consistent sandwich"}
+  - {endpoint: E24, value: quantile_regression, name: "Quantile regression", search_words: "quantile regression median regression"}
+  - {endpoint: E28, value: zero_inflated_poisson, name: "Zero-inflated Poisson regression", search_words: "zero inflated poisson regression zip excess zeros"}
+  - {endpoint: E28, value: zero_inflated_negative_binomial, name: "Zero-inflated negative binomial regression", search_words: "zero inflated negative binomial regression zinb excess zeros"}
+
 known_shortcuts: [E2, E3, E4, E18, E8, E24, E27, E10]
 
 # The families "I know my analysis" groups its list into, in order (the
@@ -2611,7 +2673,7 @@ analysis_families:
   - {id: means, technical_label: "t-tests", label: "Comparing averages (t-tests)", endpoints: [E1, E2, E3]}
   - {id: anova, technical_label: "ANOVA and ANCOVA", label: "ANOVA and ANCOVA", endpoints: [E18, E54, E7, E8, E22, E21, E20, E55, E56, E19, E23, E64]}
   - {id: correlation, technical_label: "Correlations", label: "Correlations", endpoints: [E4, E76, E49, E51]}
-  - {id: categories, technical_label: "Categorical data", label: "Yes/no, categories and ordered categories", short: "Categories", endpoints: [E25, E5, E26, E6, E48, E70, E29, E66]}
+  - {id: categories, technical_label: "Categorical data", label: "Yes/no, categories and ordered categories", short: "Categories", endpoints: [E25, E5, E26, E78, E6, E48, E70, E29, E66]}
   - {id: regression, technical_label: "Regression", label: "Regression (scores, yes/no and counts)", short: "Regression", endpoints: [E24, E27, E47, E28]}
   - {id: moderation, technical_label: "Moderation", label: "Moderation (interactions)", endpoints: [E9, E15, E31, E30, E32]}
   - {id: mediation, technical_label: "Mediation", label: "Mediation and moderated mediation", short: "Mediation", endpoints: [E10, E11, E12, E16, E39, E42, E13, E14, E40, E17, E38]}
