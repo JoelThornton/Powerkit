@@ -498,13 +498,13 @@ test_that("search on \"I know my analysis\" finds the names researchers type", {
 test_that("JASP's names for analyses Powerkit already plans find their cards", {
   # JASP's menus name these analyses differently from powerkit's cards
   # (review of JASP's analyses, 13 November 2026). The search matches every
-  # word typed against the card's names and search words, as
-  # powerkitFilterAnalyses() does.
+  # word typed against the start of a word in the card's names and search
+  # words, as powerkitFilterAnalyses() does.
   found <- function(query, id) {
     ep <- tree$endpoints[[id]]
     text <- search_text(ep$plain_name, ep$doc_name, ep$technical_name, ep$search_words)
     words <- strsplit(trimws(search_text(query)), " ")[[1]]
-    all(vapply(words, function(w) grepl(if (nchar(w) <= 2) paste0(" ", w, " ") else w, text, fixed = TRUE), logical(1)))
+    all(vapply(words, function(w) grepl(if (nchar(w) <= 2) paste0(" ", w, " ") else paste0(" ", w), text, fixed = TRUE), logical(1)))
   }
   expect_true(found("confirmatory factor analysis", "E37"))
   expect_true(found("MIMIC", "E37"))

@@ -613,14 +613,26 @@ known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
     # Compact mode shows the conventional name once, without a subtitle.
     help <- tagList(tags$span(class = "name-tech-alt", shown_name(id)), tags$span(class = "name-plain-alt", ep$plain_name))
     words <- search_text(ep$plain_name, ep$doc_name, family$label, family$technical_label, ep$technical_name, ep$rank_test, ep$search_words,
-      if (id %in% names(tree$bayes_designs)) "Bayes factor Bayesian")
+      if (id %in% names(tree$bayes_designs)) "Bayes factor Bayesian",
+      lapply(Filter(function(v) identical(v$endpoint, id), tree$test_versions), function(v) c(v$name, v$search_words)))
     div(class = "known-item", `data-search` = words, `data-name` = search_text(ep$plain_name, ep$doc_name),
       tags$button(type = "button", `data-ep` = id,
         class = if (identical(ep$status, "not_in_powerkit") && is.null(ep$guide)) "btn choice known-choice known-choice-not" else "btn choice known-choice",
         onclick = sprintf("Shiny.setInputValue('pick', 'ep:%s', {priority: 'event'})", id),
         tags$span(class = "choice-label", name_swap(ep$plain_name, shown_name(id))),
         tags$span(class = "choice-help", help),
-        if (!is.null(badge)) tags$span(class = badge[[1]], badge[[2]])))
+        if (!is.null(badge)) tags$span(class = badge[[1]], badge[[2]])),
+      # Its test versions known by name, each shown only when the search
+      # matches that version (known_search_js).
+      if (length(versions <- Filter(function(v) identical(v$endpoint, id), tree$test_versions))) {
+        div(class = "known-versions", lapply(versions, function(v) {
+          tags$button(type = "button", class = "btn btn-link known-version", hidden = NA, `data-ep` = id,
+            `data-search` = search_text(v$name, v$search_words),
+            onclick = sprintf("Shiny.setInputValue('pick', 'version:%s:%s', {priority: 'event'})", id, v$value),
+            tags$span(class = "known-version-kind", "Test version: "), tags$span(class = "known-version-name", v$name),
+            tags$span(class = "visually-hidden", paste0(", on ", ep$plain_name)))
+        }))
+      })
   }
   families <- Filter(function(f) any(unlist(f$endpoints) %in% names(eps)), tree$analysis_families)
   shortcuts <- intersect(unlist(tree$known_shortcuts), names(eps))
@@ -732,9 +744,12 @@ search_text <- function(...) {
   paste0(" ", trimws(gsub("\\s+", " ", text)), " ")
 }
 
-# Filters the list as the user types: every word must appear in an
-# analysis's names, its group's or its other search words; a word of one
-# or two letters (such as "t" or "r") must be a whole word. Groups with
+# Filters the list as the user types: every word must start a word in an
+# analysis's names, its group's or its other search words (so "sign" does
+# not match "design"); a word of one or two letters (such as "t" or "r")
+# must be a whole word. A test version known by its own name (such as
+# Brunner-Munzel under the two-group comparison) shows as a line under its
+# analysis when every word matches it. Groups with
 # matches open and show how many match, the rest hide, and the common
 # starting points step aside; an empty box shows every group closed again.
 # Within a group, analyses whose own name holds every word come first (so
@@ -759,21 +774,30 @@ function powerkitFilterAnalyses(query) {
   var best = [];
   document.querySelectorAll('.known-family').forEach(function(family) {
     var shown = 0, named = false;
-    var has = function(text, w) { return text.indexOf(w.length <= 2 ? ' ' + w + ' ' : w) >= 0; };
+    var has = function(text, w) { return text.indexOf(w.length <= 2 ? ' ' + w + ' ' : ' ' + w) >= 0; };
     var list = family.querySelector('.known-family-items');
     var rows = Array.prototype.slice.call(family.querySelectorAll('.known-item'));
     rows.forEach(function(item) {
       var text = item.getAttribute('data-search');
       var match = words.every(function(w) { return has(text, w); });
+      // A test version known by name shows under its analysis when every
+      // word matches it, and counts as the analysis's own name.
+      var version = false;
+      item.querySelectorAll('.known-version').forEach(function(v) {
+        var hit = words.length > 0 && words.every(function(w) { return has(v.getAttribute('data-search') || '', w); });
+        v.hidden = !hit;
+        if (hit) version = true;
+      });
+      item.setAttribute('data-version-match', version ? '1' : '0');
       item.hidden = !match;
       if (match) shown++;
-      if (match && words.length > 0 && words.every(function(w) { return has(item.getAttribute('data-name') || '', w); })) named = true;
+      if (match && words.length > 0 && (version || words.every(function(w) { return has(item.getAttribute('data-name') || '', w); }))) named = true;
     });
     best.push({ family: family, named: named, shown: shown });
     if (list) {
       var rank = function(item) {
         var name = item.getAttribute('data-name') || '';
-        return words.length > 0 && words.every(function(w) { return has(name, w); }) ? 0 : 1;
+        return words.length > 0 && (item.getAttribute('data-version-match') === '1' || words.every(function(w) { return has(name, w); })) ? 0 : 1;
       };
       rows.sort(function(a, b) { return rank(a) - rank(b) || Number(a.getAttribute('data-index')) - Number(b.getAttribute('data-index')); });
       rows.forEach(function(item) { list.appendChild(item); });
@@ -827,7 +851,7 @@ function powerkitRestoreAnalyses() {
   state.back = null;
   var screen = document.getElementById('screen') || document;
   // Remember which analysis was opened, the search and the open groups.
-  screen.querySelectorAll('.known-choice, .known-shortcut').forEach(function(b) {
+  screen.querySelectorAll('.known-choice, .known-shortcut, .known-version').forEach(function(b) {
     b.addEventListener('click', function() {
       state.back = b.getAttribute('data-ep');
       state.open = Array.prototype.map.call(document.querySelectorAll('.known-family[open]'), function(f) { return f.getAttribute('data-family'); });
@@ -1419,6 +1443,44 @@ bayes_form_designs <- function(tree, forms) {
       requires = Filter(function(cond) !is.null(cond[["is"]]), shown_if_conditions(field)))
   }
   out
+}
+
+# Test versions known by name (tree.yaml, `test_versions`): each gets the
+# id of its card's test-version field (the select whose choices include
+# the version) and, like the Bayes factor designs, the choices that show
+# that field (E24's question), so the input screen can open with it
+# chosen. A version whose card has no such field is dropped.
+test_version_fields <- function(tree, forms) {
+  out <- list()
+  for (v in tree$test_versions) {
+    form <- forms$forms[[v$endpoint]]
+    if (is.null(form)) next
+    fields <- c(unlist(lapply(form$groups, `[[`, "fields"), recursive = FALSE), form$extra)
+    field <- NULL
+    for (f in fields) if (identical(f$type, "select") && v$value %in% names(f$choices)) { field <- f; break }
+    if (is.null(field)) next
+    v$field <- field$id
+    v$requires <- Filter(function(cond) !is.null(cond[["is"]]), shown_if_conditions(field))
+    out[[length(out) + 1]] <- v
+  }
+  out
+}
+
+# The input screen's starting values for a test version opened from the
+# search: the version chosen, and the choices that show its field.
+version_form_values <- function(version, values = list()) {
+  if (is.null(version)) return(values)
+  values[[version$field]] <- version$value
+  for (cond in version$requires) if (blank(values[[cond$field]])) values[[cond$field]] <- cond[["is"]]
+  values
+}
+
+# The note on a card opened from a test version in the search.
+version_card_note <- function(version, ep_id) {
+  if (is.null(version) || !identical(version$endpoint, ep_id)) return(NULL)
+  div(class = "status version-note", role = "note",
+    tags$strong(paste0(version$name, ": ")),
+    "a version of this analysis. The input screen opens with it chosen; you can change it there.")
 }
 
 # The "Plan a study analysed with Bayes factors" page: every design that

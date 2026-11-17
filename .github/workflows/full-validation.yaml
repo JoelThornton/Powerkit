@@ -86,6 +86,7 @@ on:
           - bayes
           - bayes_factorial
           - bayes_ancova
+          - bayes_r2change
           - bayes_three
           - meta
           - dyadic

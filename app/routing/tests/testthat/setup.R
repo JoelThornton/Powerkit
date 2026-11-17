@@ -45,6 +45,7 @@ forms <- load_forms(file.path(routing_dir, "forms.yaml"))
 # As in app.R: cards for end points that calculate.
 tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
 tree$bayes_designs <- bayes_form_designs(tree, forms)
+tree$test_versions <- test_version_fields(tree, forms)
 tree$calculate_how <- about_endpoint_how(forms)
 tree$evidence_defaults <- setNames(lapply(names(forms$forms), function(id) default_evidence(forms, id)), names(forms$forms))
 options(powerkit.routing_dir = routing_dir)

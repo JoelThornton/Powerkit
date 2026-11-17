@@ -1,3 +1,32 @@
+# powerkit 0.78.1
+
+* `r2_increase` and `single_coefficient` take `target_test.method`
+  "bayes_factor" (`backend-bayesfactor-r2change.R`): the Bayes factor of
+  the full model against the model without the tested predictors, each
+  model's Bayes factor from BayesFactor's `linearReg.R2stat()`, simulated
+  from the three independent sums of squares of a regression with fixed
+  predictors. The chance of evidence for no increase and of misleading
+  evidence come from studies with no increase. `single_coefficient`
+  takes `population.r2_reduced`, the R-squared of the other predictors,
+  which this Bayes factor needs. Validation chunk `bayes_r2change`.
+
+# powerkit 0.78.0
+
+* The list of every analysis finds test versions by their own names
+  (tree.yaml's new `test_versions`: endpoint, form value, name and search
+  words). A search for Brunner-Munzel, Mann-Whitney, Kruskal-Wallis,
+  Friedman, Spearman, Kendall, Fisher's exact test, the aligned rank
+  transform, PERMANOVA, quantile regression, HC3 standard errors or a
+  zero-inflated model shows a "Test version" line under the analysis that
+  holds it. Choosing the line opens the card with a note and then the
+  input screen with that version chosen, together with any question the
+  choice depends on (`test_version_fields()`, `version_form_values()`,
+  `version_card_note()` in `app/routing/R/ui.R`). The search now matches
+  each typed word at the start of a word rather than anywhere, so "sign"
+  no longer matches "design"; "nonparametric", "non-parametric" and
+  "rank based" find every rank-based version, and the ordinal regression
+  card answers to "proportional odds".
+
 # powerkit 0.77.2
 
 * Cochran's Q has a card of its own (E78, "The same people, a yes/no

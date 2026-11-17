@@ -67,6 +67,7 @@ whats_new <- load_whats_new("whats-new.yaml")
 # numbers are calculated".
 tree$calculates <- c(unlist(forms$calculates), names(forms$simulations$endpoints))
 tree$bayes_designs <- bayes_form_designs(tree, forms)
+tree$test_versions <- test_version_fields(tree, forms)
 tree$calculate_how <- about_endpoint_how(forms)
 tree$evidence_defaults <- setNames(lapply(names(forms$forms), function(id) default_evidence(forms, id)), names(forms$forms))
 options(powerkit.routing_dir = getwd())
@@ -731,6 +732,12 @@ app_css <- "
   .known-way-out { margin-top: 1.25rem; color: #3d4852; }
   .known-item { display: flex; }
   .known-item[hidden] { display: none; }
+  /* A test version found by its own name, under its analysis. */
+  .known-item { flex-direction: column; }
+  .known-versions { display: flex; flex-direction: column; align-items: flex-start; padding-left: 1rem; }
+  .known-version { padding: 0.2rem 0; text-align: left; font-size: 0.92rem; }
+  .known-version[hidden] { display: none; }
+  .known-version-kind { color: #4d5964; }
   .known-choice { width: 100%; box-shadow: none; border: 1px solid var(--pk-line); padding: 0.8rem 1rem;
                   display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
   .known-choice .choice-label { font-size: 0.98rem; }
@@ -1405,6 +1412,9 @@ server <- function(input, output, session) {
       # From the pre-replication notes: the user's own words as the reasoning.
       state$form_values <- if (isTRUE(state$from_labs) && !is.null(state$labs_seed)) list(just_source = state$labs_seed) else list()
       state$form_values <- bayes_mode_form_values(tree, state$endpoint, state$form_values, state$bayes_mode)
+      if (identical(state$preset_version$endpoint, state$endpoint)) {
+        state$form_values <- version_form_values(state$preset_version, state$form_values)
+      }
       if (replicating(state$start)) {
         state$form_values <- replication_form_values(state$form_values)
         # The replication plan's notes, in the user's own words, as the reasoning.
@@ -1436,6 +1446,7 @@ server <- function(input, output, session) {
       # A card from the start screen's "Recently opened" (nav_js): opened
       # as from the list of every analysis, so Back goes to that list.
       if (value %in% names(tree$endpoints)) {
+        state$preset_version <- NULL
         state$start <- list(); state$route <- "known"; state$history <- list(); state$ctx <- list()
         state$skip_screening <- TRUE; state$node <- NULL
         state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
@@ -1450,7 +1461,17 @@ server <- function(input, output, session) {
         state$form_k <- 2L; state$calc <- NULL
         state$screen <- "form"
       }
+    } else if (kind == "version") {
+      # A test version found by name in the list of every analysis: its
+      # card, then its input screen with that version chosen.
+      ep_id <- sub(":.*$", "", value); v_value <- sub("^[^:]*:", "", value)
+      v <- Filter(function(x) identical(x$endpoint, ep_id) && identical(x$value, v_value), tree$test_versions)
+      if (length(v) > 0 && ep_id %in% names(tree$endpoints)) {
+        state$preset_version <- v[[1]]
+        state$endpoint <- ep_id; state$came_from <- "known"; state$screen <- "card"
+      }
     } else if (kind == "ep") {
+      state$preset_version <- NULL
       state$endpoint <- value; state$came_from <- "known"; state$screen <- "card"
     } else if (kind == "guided") {
       if (state$screen == "g_vars") save_guided_variables()
@@ -1460,6 +1481,12 @@ server <- function(input, output, session) {
       state$plan_opened <- NULL
       state$screen <- switch(value, variables = "g_vars", analyses = "g_analyses", plan = "g_plan", simulate = "g_sim")
     }
+  })
+
+  # A test version chosen from the list of every analysis holds until the
+  # user leaves for another way in (the start, the list or the finder).
+  observeEvent(state$screen, {
+    if (state$screen %in% c("start", "aim", "known", "node", "g_vars")) state$preset_version <- NULL
   })
 
   # Values entered on an input screen opened from the plan: kept for that
@@ -3193,6 +3220,7 @@ server <- function(input, output, session) {
           div(class = "status status-soon guided-single-note", single),
         route_fit_ui(tree, state$endpoint, state$ctx),
         bayes_mode_card_note(tree, state$endpoint, state$bayes_mode),
+        version_card_note(state$preset_version, state$endpoint),
         if (replicating(state$start)) replication_card_note(forms, state$endpoint, plan_get(state$rep_plan)),
         card_ui(tree, state$endpoint, history = state$history,
           fits = !length(route_fit_messages(tree, state$endpoint, state$ctx))),
