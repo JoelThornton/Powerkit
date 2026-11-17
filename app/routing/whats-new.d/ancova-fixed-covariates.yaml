@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "The ANCOVA asks how your covariates come about"
+    text: "The ANCOVA card now asks whether your covariates are measured on each person, such as a before score, or set by the design, such as doses chosen in advance. Nothing is chosen for you. Measured covariates are planned with Shieh's method, as before; covariates set by the design are planned as fixed, as G*Power does, which gives a little more power."

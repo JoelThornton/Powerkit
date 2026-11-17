@@ -2962,11 +2962,22 @@ departures_for <- function(forms, ep_id, spec) {
   vapply(keys, function(k) forms$departures[[k]], character(1))
 }
 
+# An ANCOVA planned with fixed covariates: chosen, or implied by an effect
+# given as partial eta-squared (pwrss's power.f.ancova(), as G*Power).
+is_fixed_ancova <- function(spec) {
+  isTRUE(spec$template %in% c("oneway_ancova", "factorial_ancova")) &&
+    identical(spec$target_test$method %||% "ancova_f", "ancova_f") &&
+    (identical(spec$target_test$covariate_model, "fixed") || identical(spec$population$metric, "eta_squared"))
+}
+
 # `known_differences_if_method` limits a known difference to one test
 # version (E5: Known difference 2 applies only to Fisher's exact test).
 known_difference_keys <- function(forms, ep_id, spec = NULL) {
   form <- forms$forms[[ep_id]]
   keys <- unlist(form$known_differences)
+  # Known difference 15 is Shieh's method against G*Power's fixed
+  # covariates; with fixed covariates there is no difference.
+  if (!is.null(spec) && is_fixed_ancova(spec)) keys <- setdiff(keys, "15")
   # Known difference 9 is about metapower, which the Hartung-Knapp test
   # doesn't use.
   # Known difference 9 is mpower()'s rounding of Fisher's z; mod_power()
@@ -3707,6 +3718,9 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # brackets, not two in a row (P-15).
   if (identical(spec$target_test$method, "welch_t")) name <- paste0("Welch's ", sub("^an? ", "", name))
   if (identical(spec$target_test$method, "fisher_exact")) name <- "Fisher's exact test of two proportions"
+  # An ANCOVA's covariates: fixed by the design (as G*Power, and for an
+  # effect given as partial eta-squared) or measured (Shieh's method).
+  if (is_fixed_ancova(spec)) name <- "an ANCOVA with the covariates fixed by the design, as in G*Power (F test)"
   if (identical(spec$design, "survival")) {
     name <- switch(spec$target_test$method %||% "",
       log_rank = "a time-to-event analysis (the log-rank test)",

@@ -2159,6 +2159,8 @@ check_probability_table <- function(spec) {
 
 check_factorial_anova <- function(spec) {
   pop <- spec$population
+  covariate <- check_ancova_covariate(spec)
+  if (length(covariate)) return(covariate)
   if (identical(pop$metric, "eta_squared")) {
     return(check_eta_squared_anova(spec))
   }
@@ -3764,6 +3766,29 @@ check_logistic_factorial <- function(spec) {
 # An ANOVA given by its partial eta-squared (pwrss's F test, as in G*Power):
 # equal groups and the ANOVA F test only, since the group means that
 # Welch's F, the Kruskal-Wallis test and unequal cells need aren't given.
+# Whether the ANCOVA's covariates are measured on each person ("random",
+# Shieh's method, the default) or fixed by the design ("fixed", as G*Power
+# takes them), 17 November 2026.
+check_ancova_covariate <- function(spec) {
+  model <- spec$target_test$covariate_model
+  if (is.null(model)) return(character())
+  if (!spec$template %in% c("oneway_ancova", "factorial_ancova")) {
+    return("'target_test > covariate_model' describes an ANCOVA's covariates; remove it for this design.")
+  }
+  if (identical(spec$target_test$method, "bayes_factor") && identical(model, "fixed")) {
+    return(paste0(
+      "The Bayes factor ANCOVA is simulated with covariates measured on each person; ",
+      "set 'target_test > covariate_model' to \"random\" or remove it."))
+  }
+  if (identical(spec$population$metric, "eta_squared") && identical(model, "random")) {
+    return(paste0(
+      "An effect given as partial eta-squared is planned with the covariates fixed, as in G*Power: ",
+      "Shieh's method for measured covariates needs the adjusted means. Give the means, or set ",
+      "'target_test > covariate_model' to \"fixed\"."))
+  }
+  character()
+}
+
 check_eta_squared_anova <- function(spec) {
   if (!spec$template %in% eta_squared_templates) {
     return(paste0(

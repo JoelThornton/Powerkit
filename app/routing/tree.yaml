@@ -1398,15 +1398,15 @@ endpoints:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
     technical_name: "ANCOVA"
     plain_name: "Compare groups adjusting for a covariate (e.g. the before score)"
-    search_words: "ancova analysis of covariance baseline adjusted pre post randomised trial bayesian ancova bayes factor"
+    search_words: "ancova analysis of covariance baseline adjusted pre post randomised trial bayesian ancova bayes factor fixed covariate shieh keppel"
     template: "factorial_anova / oneway_ancova, factorial_ancova"
-    backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula); BayesFactor's generalTestBF() with bayestestR's bayesfactor_inclusion() for the Bayes factor of the effect (simulated with Spower)"
+    backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula) for measured covariates, power.f.ancova() for covariates fixed by the design; BayesFactor's generalTestBF() with bayestestR's bayesfactor_inclusion() for the Bayes factor of the effect (simulated with Spower)"
     method: "Formula (no simulation); the Bayes factor version is simulated"
     status: runs_validation_in_progress
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() (one factor) and ANCOVA_analytic() (two factors) in the engine's tests. The Bayes factor version agrees with an independently written simulation of the same Bayes factor, for evidence at the threshold for an effect and for none. Not yet checked against G*Power or a published example."}
     card_points:
       - "Powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
-      - "It uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses; Superpower names Keppel's approach as the approximate one."
+      - "You say how the covariates come about. Measured on each person, such as a before score, uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses. Set by the design, such as doses chosen in advance, plans them as fixed, as G*Power does, which gives a little more power."
       - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANCOVA? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors."
     inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome", "The ANCOVA's F test or a Bayes factor"]
     tier: v2

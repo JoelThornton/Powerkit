@@ -3017,14 +3017,23 @@ forms:
           - {id: r2_covariates, writeup_label: "R-squared of the covariates", label: "R-squared: the share of the outcome's variance the covariates explain (for one covariate, its correlation with the outcome, squared)", type: number, path: population.r2_covariates, effect: true, min: 0, max_exclusive: 1}
           - {id: covariates, label: "Number of covariates", type: number, path: population.covariates, required: true, min: 1, integer: true,
              default: 1, default_source: "one covariate, such as the before score"}
+          # Measured or fixed covariates (17 November 2026): the researcher
+          # says which; neither is preselected (docs/decisions.md).
+          - {id: covariate_model, label: "How the covariates come about", type: select, path: target_test.covariate_model, required: true,
+             shown_if: [{field: test_version, is: ancova_f}, {field: metric, is_not: eta_squared}],
+             choices: {random: "Measured on each person (for example, a before score or age)",
+                       fixed: "Set by the design (for example, doses or times chosen in advance)"},
+             help: "This changes how the covariates' spread enters the plan. Most covariates are measured, so they differ from one sample to the next.",
+             choice_notes: {random: "Powerkit uses Shieh's (2020) method, which allows for measured covariates varying from sample to sample. G*Power treats covariates as fixed, so it gives a little more power and a slightly smaller sample.",
+                            fixed: "The covariates' values are chosen in advance and would be the same in a repeat of the study, as G*Power assumes. For a measured covariate this gives slightly too much power."}}
       # The Bayes factor ANCOVA (15 November 2026): the effect's inclusion
       # Bayes factor, as JASP's Bayesian ANCOVA gives it, simulated with
       # BayesFactor's generalTestBF().
       - input: "The ANCOVA's F test or a Bayes factor"
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
-             choices: {ancova_f: "ANCOVA (F test, Shieh's method)", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANCOVA), instead of a p-value, simulated"},
-             default: ancova_f, default_source: "the F test pwrss's power.f.ancova.shieh() computes, the test G*Power's ANCOVA calculates (with fixed covariates)",
+             choices: {ancova_f: "ANCOVA (F test)", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian ANCOVA), instead of a p-value, simulated"},
+             default: ancova_f, default_source: "the ANCOVA's F test, the test G*Power's ANCOVA calculates; how the covariates come about is asked above",
              choice_notes: {bayes_factor: "Power becomes the chance that the effect's inclusion Bayes factor reaches the threshold you choose below, adjusting for the covariates. Simulated, with equal groups."}}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},

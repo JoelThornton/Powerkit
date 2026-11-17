@@ -4025,3 +4025,33 @@ to 32).
 - **Still to decide:** the package for group-sequential designs with
   interim analyses (rpact or gsDesign), which replications and other
   expensive studies need (`next.md` item 15).
+
+## 2026-11-17 · The ANCOVA asks whether the covariates are measured or fixed (E23)
+
+- **What changes.** E23 asks how the covariates come about: measured on
+  each person (a before score, age) or set by the design (doses or times
+  chosen in advance). Neither answer is preselected. Until now the card
+  always used Shieh's (2020) method, for measured covariates, and named
+  G*Power's fixed-covariate answer only as a known difference; a
+  researcher whose covariate is fixed by the design couldn't plan for it.
+  This is the first fix of `next.md` item 27's audit of decisions made for
+  the researcher.
+- **Measured** (`target_test > covariate_model` "random", the engine's
+  default for older specs): Shieh's method, pwrss's
+  `power.f.ancova.shieh()`, unchanged.
+- **Fixed** ("fixed"): the F test's noncentrality is N gamma^2, as
+  G*Power takes it, where gamma^2 is the standardised effect of Shieh's
+  equations, (C mu)' (C Q C')^-1 (C mu) / (SD^2 (1 - R-squared)), computed
+  in the engine as pwrss computes it internally (unexported), then pwrss's
+  `power.f.ancova()` from the partial eta-squared gamma^2 / (1 + gamma^2).
+  For one factor it equals pwrss's `power.f.ancova.keppel()` (checked to
+  1e-10); for two factors it equals each effect's sum of squares of the
+  adjusted cell means, and agrees with lm()'s F test on simulated studies
+  with fixed covariate values (validation chunk ancova).
+- **Partial eta-squared.** An effect given as partial eta-squared was
+  already planned with fixed covariates (power.f.ancova()), but its
+  methods paragraph named Shieh's method and showed Known difference 15.
+  It now names the fixed-covariate F test and drops that note; giving
+  partial eta-squared with "random" is refused with a plain message.
+- **Size.** Adjusted means 20, 18 and 16, SD 6, one covariate explaining
+  36%, 90 people: 81.8% fixed against 81.3% measured.

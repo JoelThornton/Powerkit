@@ -2935,8 +2935,11 @@ every PROCESS option is not established.
   means (Shieh's method) and from the same partial eta-squared (G*Power's)
   differ a little"). A pre-release comparison found 90 against
   G\*Power's 87 for a three-group example.
-- **Shown to users:** on every E23 result (`app/routing/forms.yaml`,
-  `known_differences`, key "15").
+- **Shown to users:** on every E23 result planned with measured covariates
+  (`app/routing/forms.yaml`, `known_differences`, key "15"). Since 17
+  November 2026 the card asks whether the covariates are measured or set
+  by the design; with fixed covariates, or an effect given as partial
+  eta-squared, powerkit plans as G*Power does and the note is not shown.
 - **Methods paragraph:** `known_differences_methods`, key "15".
 
 ## All-tests sufficient power target under unknown dependence

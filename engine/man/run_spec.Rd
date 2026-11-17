@@ -169,7 +169,12 @@ scores drawn as for the Kruskal-Wallis and Friedman tests.
 Two-way ANCOVA (template \code{factorial_ancova}): two between factors, either
 main effect or the interaction, by pwrss's \code{power.f.ancova.shieh()}
 (Shieh's method) with the effect's rows of \code{factorial.contrasts()};
-adjusted cell means laid out as for \code{mixed}, equal cells.
+adjusted cell means laid out as for \code{mixed}, equal cells. For either
+ANCOVA, \code{target_test > covariate_model = "fixed"} plans covariates fixed
+by the design, as G\emph{Power does: pwrss's \code{power.f.ancova()} from the
+partial eta-squared of the adjusted means (noncentrality N gamma^2,
+Shieh, 2020); \code{"random"}, the default, is Shieh's method for covariates
+measured on each person.
 Two-factor ANOVA with both factors between participants, beyond 2 x 2
 (template \code{factorial_between}, design \code{"kb*mb"}), or both within
 participants, 2 x 2 or larger (template \code{factorial_within}, design
@@ -193,7 +198,7 @@ of a participant's cells; any main effect or interaction on
 Superpower's \code{ANOVA_exact()}. \code{goal > n} is the total number of
 participants, split equally across the between factors' combinations.
 Two dependent correlations in one group (engine only), by Steiger's z
-test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
+test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G}Power):
 templates \code{overlapping_correlations} (X with Y against X with Z) and
 \code{nonoverlapping_correlations} (X1 with Y1 against X2 with Y2).
 Logistic regression (design \code{logistic_regression}, engine only): the Wald z

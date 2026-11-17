@@ -62,7 +62,12 @@
 #' Two-way ANCOVA (template `factorial_ancova`): two between factors, either
 #' main effect or the interaction, by pwrss's `power.f.ancova.shieh()`
 #' (Shieh's method) with the effect's rows of `factorial.contrasts()`;
-#' adjusted cell means laid out as for `mixed`, equal cells.
+#' adjusted cell means laid out as for `mixed`, equal cells. For either
+#' ANCOVA, `target_test > covariate_model = "fixed"` plans covariates fixed
+#' by the design, as G*Power does: pwrss's `power.f.ancova()` from the
+#' partial eta-squared of the adjusted means (noncentrality N gamma^2,
+#' Shieh, 2020); `"random"`, the default, is Shieh's method for covariates
+#' measured on each person.
 #' Two-factor ANOVA with both factors between participants, beyond 2 x 2
 #' (template `factorial_between`, design `"kb*mb"`), or both within
 #' participants, 2 x 2 or larger (template `factorial_within`, design
