@@ -595,7 +595,7 @@ known_status_badge <- list(
   not_in_powerkit = c("known-badge known-badge-not", "Not in Powerkit yet")
 )
 
-known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
+known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE, note = NULL) {
   eps <- tree$endpoints
   if (!is.null(ctx)) eps <- eps[endpoints_for_context(tree, ctx)]
   # With Bayes factors switched on, only the designs that have a Bayes
@@ -640,6 +640,7 @@ known_ui <- function(tree, history = list(), ctx = NULL, bayes_on = FALSE) {
     screen_nav_ui(),
     trail_ui(history, tree),
     h2("Which analysis do you want?"),
+    note,
     p(class = "lead", "Search for it, pick a common one, or open its group. Each analysis opens its card, which says what it assumes and needs. ",
       # The methods map, reachable from here too (layout review, 16 November 2026).
       tags$a(href = "#", onclick = "Shiny.setInputValue('safety_open_map', Date.now(), {priority: 'event'}); return false;", "Browse them on a map", .noWS = "after"), "."),

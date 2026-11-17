@@ -110,6 +110,39 @@ test_that("replicating from the finder asks the original's design, and its card 
   # The effect's source starts as an earlier study, unless already chosen.
   expect_identical(replication_form_values(list())$just_type, "prior_study")
   expect_identical(replication_form_values(list(just_type = "pilot_study"))$just_type, "pilot_study")
+  # With the plan (queue item 28): the sample-size question, the plan's
+  # level and chance of success, and the original's effect where the card
+  # takes it as the plan holds it.
+  pv <- replication_values(list(fields = list(rep_design = "two_groups", rep_effect = "0.45",
+    rep_alpha = "0.01", rep_power = "0.9")))
+  fv <- replication_form_values(list(), "E2", pv)
+  expect_identical(fv[c("goal", "alpha", "power", "effect_units", "d")],
+    list(goal = "sample_size", alpha = "0.01", power = "0.9", effect_units = "standardised", d = "0.45"))
+  # What the user already chose is kept.
+  expect_identical(replication_form_values(list(goal = "power", d = "0.3"), "E2", pv)[c("goal", "d")], list(goal = "power", d = "0.3"))
+  # Empty plan settings stay empty: the card asks for them.
+  empty <- replication_form_values(list(), "E2", replication_values(list(fields = list())))
+  expect_null(empty$alpha); expect_null(empty$power); expect_null(empty$d)
+  # A t statistic, d_rm, another design or a card that takes another effect: no effect copied.
+  t_given <- replication_values(list(fields = list(rep_design = "paired", rep_effect_type = "t", rep_effect = "3.1")))
+  expect_null(replication_form_values(list(), "E3", t_given)$dz)
+  dz <- replication_values(list(fields = list(rep_design = "paired", rep_effect = "0.4")))
+  expect_identical(replication_form_values(list(), "E3", dz)$dz, "0.4")
+  expect_null(replication_card_effect_field("E2", dz))
+  expect_null(replication_card_effect_field("E7", pv))
+  r <- replication_values(list(fields = list(rep_design = "correlation", rep_effect = "0.3")))
+  expect_identical(replication_form_values(list(), "E4", r)$r, "0.3")
+  expect_null(replication_form_values(list(), "E4", r)$effect_units)
+  # They reach the input screen.
+  screen <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2"), fv))
+  expect_match(screen, 'id="f_d"[^>]*value="0.45"|value="0.45"[^>]*id="f_d"')
+  expect_match(screen, 'id="f_alpha"[^>]*value="0.01"|value="0.01"[^>]*id="f_alpha"')
+  # Every field the presets name is one of the card's own.
+  for (ep in c("E1", "E2", "E3", "E4")) {
+    ids <- c(vapply(unlist(lapply(forms$forms[[ep]]$groups, `[[`, "fields"), recursive = FALSE), `[[`, character(1), "id"))
+    expect_true(all(c("d", "dz", "r")[c(ep %in% c("E1", "E2"), ep == "E3", ep == "E4")] %in% ids), info = ep)
+    expect_true("effect_units" %in% ids || ep == "E4", info = ep)
+  }
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
   expect_match(code, "if (replicating(state$start)) replication_card_note(forms, state$endpoint, plan_get(state$rep_plan))", fixed = TRUE)
   expect_match(code, "observeEvent(input$rep_view_plan", fixed = TRUE)

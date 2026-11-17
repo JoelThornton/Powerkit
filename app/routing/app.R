@@ -168,6 +168,18 @@ app_css <- "
   .progress-steps .done .step-num { background: #ddf2e3; border-color: #2e7d4f; color: #1d5434; }
   .progress-steps .current { color: #14284b; font-weight: 600; }
   .progress-steps .current .step-num { background: #0a5a8c; border-color: #0a5a8c; color: #fff; }
+  /* The replication plan's sections as numbered steps (queue item 28):
+     still radio buttons, so the keyboard and screen readers work as before. */
+  .replication-steps .shiny-options-group { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; counter-reset: rep-step; margin-bottom: 1rem; }
+  .replication-steps .shiny-options-group label { counter-increment: rep-step; margin: 0; padding: 0; }
+  .replication-steps .shiny-input-container > .control-label:empty { display: none; }
+  .replication-steps input[type=radio] { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .replication-steps .shiny-options-group label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; color: #545b62; min-height: 44px; }
+  .replication-steps .shiny-options-group label::before { content: counter(rep-step); display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem;
+                                     border-radius: 50%; border: 1.5px solid #8a929a; font-weight: 600; font-size: 0.8rem; background: #fff; color: #333; }
+  .replication-steps .shiny-options-group label:has(input:checked) { color: #14284b; font-weight: 600; }
+  .replication-steps .shiny-options-group label:has(input:checked)::before { background: #0a5a8c; border-color: #0a5a8c; color: #fff; }
+  .replication-steps .shiny-options-group label:has(input:focus-visible) { outline: 2px solid #0a5a8c; outline-offset: 2px; border-radius: 0.3rem; }
   .card-more { margin-top: 0.75rem; }
   .card-more > summary { cursor: pointer; color: #0a5a8c; text-decoration: underline; min-height: 44px; display: flex; align-items: center; }
   .field-help { font-size: 0.85rem; color: #4a4a4a; margin-top: 0.2rem; }
@@ -1422,9 +1434,12 @@ server <- function(input, output, session) {
         state$form_values <- version_form_values(state$preset_version, state$form_values)
       }
       if (replicating(state$start)) {
-        state$form_values <- replication_form_values(state$form_values)
-        # The replication plan's notes, in the user's own words, as the reasoning.
+        # The replication plan's settings, entered once: its significance
+        # level, chance of success and the original's effect.
         rep <- plan_get(state$rep_plan)
+        state$form_values <- replication_form_values(state$form_values, state$endpoint,
+          if (plan_is_replication(rep)) replication_values(rep$replication))
+        # The replication plan's notes, in the user's own words, as the reasoning.
         seed <- if (plan_is_replication(rep)) labs_seed_reasoning(replication_values(rep$replication))
         if (!is.null(seed) && is.null(state$form_values$just_source)) state$form_values$just_source <- seed
       }
@@ -3067,22 +3082,32 @@ server <- function(input, output, session) {
   })
   # From the workspace to the main route: the finder's replicate aim, or
   # the original's card, filling this plan.
-  start_replication_route <- function(id, endpoint = NULL) {
+  # The original's analysis is usually named in its paper, so the
+  # searchable list of every analysis comes first and the design finder's
+  # questions second (queue item 28); either keeps the replicate aim, so
+  # the card chosen is kept in this plan.
+  start_replication_route <- function(id, endpoint = NULL, via = "list") {
     plan <- plan_get(id)
     req(plan_is_replication(plan))
     cancel_job()
     state$start <- list(aim = "replicate")
     state$rep_plan <- id; state$current_plan <- id
-    state$history <- list(); state$node <- NULL; state$calc <- NULL; state$route <- "choose"
+    state$history <- list(); state$node <- NULL; state$calc <- NULL
     state$ctx <- aim_context(tree, state$start)
     if (!is.null(endpoint)) {
+      state$route <- "known"; state$skip_screening <- TRUE
       state$endpoint <- endpoint; state$came_from <- "known"; state$screen <- "card"
+    } else if (identical(via, "list")) {
+      state$route <- "known"; state$skip_screening <- TRUE
+      state$screen <- "known"
     } else {
+      state$route <- "choose"; state$skip_screening <- FALSE
       go_to(resolve_target(tree, start_node(tree), state$ctx, state$route))
     }
     updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
   }
-  observeEvent(input$rep_find_design, start_replication_route(isolate(state$plans_view)))
+  observeEvent(input$rep_pick_design, start_replication_route(isolate(state$plans_view)))
+  observeEvent(input$rep_find_design, start_replication_route(isolate(state$plans_view), via = "finder"))
   observeEvent(input$rep_open_card, {
     plan <- plan_get(isolate(state$plans_view))
     req(plan_is_replication(plan), plan$replication$endpoint)
@@ -3240,7 +3265,8 @@ server <- function(input, output, session) {
       start = start_ui(tree, isolate(state$start),
         saved_projects = div(class = "saved-projects-grid", open_project_ui(), check_project_ui())),
       check = plan_check_ui(tree, forms, state$checked_project),
-      known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode),
+      known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode,
+        note = if (replicating(state$start)) replication_known_note(plan_get(state$rep_plan))),
       node = node_ui(tree, state$node, state$history, state$ctx, state$route, isolate(state$bayes_mode)),
       card = tagList(
         screen_nav_ui(),

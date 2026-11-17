@@ -112,7 +112,11 @@ test_that("the plan's page holds the workspace, and says where the original's an
   expect_match(page, "download_plan_bundle", fixed = TRUE)
   html <- as.character(replication_workspace_ui(tree))
   for (id in c("rep_section", "labs_finding", "rep_effect", "rep_card_status")) expect_match(html, id, fixed = TRUE)
-  expect_match(as.character(replication_card_status_ui(tree, plan)), "rep_find_design", fixed = TRUE)
+  # The list of analyses first, the design finder's questions second (queue item 28).
+  first <- as.character(replication_card_status_ui(tree, plan))
+  expect_match(first, "rep_pick_design", fixed = TRUE)
+  expect_match(first, "rep_find_design", fixed = TRUE)
+  expect_lt(regexpr("rep_pick_design", first, fixed = TRUE), regexpr("rep_find_design", first, fixed = TRUE))
   carded <- plan_set_replication(plan, endpoint = "E2")
   status <- as.character(replication_card_status_ui(tree, carded))
   expect_match(status, tree$endpoints$E2$plain_name, fixed = TRUE)
@@ -184,4 +188,26 @@ test_that("an extension added to a replication plan isn't reported as the origin
   # One analysis: no second heading.
   plan$entries <- plan$entries[2]
   expect_no_match(paste(replication_analysis_lines(plan, tree, forms), collapse = "\n"), "Other analyses", fixed = TRUE)
+})
+
+test_that("the replication plan's steps are numbered, each with a button to the next (queue item 28)", {
+  html <- as.character(replication_workspace_ui(tree))
+  expect_match(html, "replication-steps", fixed = TRUE)
+  nexts <- as.character(replication_next_step_ui())
+  ids <- unname(replication_sections)
+  for (i in seq_len(length(ids) - 1L)) {
+    expect_match(nexts, sprintf("Next: %s", names(replication_sections)[[i + 1L]]), fixed = TRUE)
+    expect_match(nexts, sprintf("value=%s]", ids[[i + 1L]]), fixed = TRUE)
+  }
+  # The last step has no next.
+  expect_no_match(nexts, sprintf("input.rep_section == '%s'", ids[[length(ids)]]), fixed = TRUE)
+})
+
+test_that("the list of analyses, opened from a replication plan, says what to choose and where it is kept", {
+  plan <- new_replication_plan("Smith replication")
+  note <- as.character(replication_known_note(plan))
+  expect_match(note, "the original study used", fixed = TRUE)
+  expect_match(note, "Smith replication", fixed = TRUE)
+  expect_match(as.character(known_ui(tree, note = replication_known_note(plan))), "replication-known-note", fixed = TRUE)
+  expect_no_match(as.character(known_ui(tree)), "replication-known-note", fixed = TRUE)
 })
