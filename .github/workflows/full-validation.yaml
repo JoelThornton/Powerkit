@@ -121,6 +121,7 @@ on:
           - modmed_difference
           - modmed_binary
           - corrected_counts
+          - replication
           - process_bootstrap
           - mediation_joint
           - mediation_crosscheck

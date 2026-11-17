@@ -1666,3 +1666,45 @@ agree with the same simulation of studies with no increase. A first run
 found the check run failing when the tested predictors are the only
 ones (a formula built from an empty set of names); that is fixed and
 covered by a unit test.
+
+## 2026-11-17 · Replication plans (local)
+
+Linux, R 4.5.3, engine 0.78.6 plus this change. Command: `Rscript
+scripts/run-validation.R --only replication --cores 2`.
+[Summary](validation/2026-11-17-replication-summary.txt): **3 PASS,
+0 FAIL, 0 ERROR, 3 published-reference TODO SKIP**. The chunk is new
+(`test-validation-replication.R`); replication plans had none before.
+
+- **The method's model, simulated separately.** For two groups, pairs, a
+  correlation and an odds ratio (another design), each with variation
+  between studies, the true effect was drawn from each design prior
+  (as reported, uncertain, shrunk), the replication's estimate around it
+  (200,000 draws), and each goal's success rule applied to the draws as
+  the paper defines it: the replication's z, the pooled estimate, the
+  interval for the difference, the replication Bayes factor from normal
+  densities, and TOST at a true effect of 0. All 52 chances agree with
+  replication_planning()'s closed forms within the 99.9% Monte Carlo
+  interval (for example .7307 simulated against .7297 for significance
+  under the uncertain belief, two groups).
+- **Real data, the classical goal.** Student's t-tests on simulated
+  people match the exact t-test power (.8097 against .8076 for two groups
+  of 65; .8673 against .8712 for 80 pairs). The planner's normal
+  approximation is above it by .0058 and .0079, inside the 2 points
+  recorded in conventions.md ("The normal approximation against the
+  t-test cards").
+- **Small telescopes on real data.** d33 from the noncentral t written
+  in the test matches the card's (pwr) to 1e-4, and Simonsohn's test
+  (the replication's t against the noncentral t that d33 implies) on
+  simulated studies with no effect gives .7938 and .7951 against the
+  card's .7968 and .7923, for two groups of 50 and 60 pairs.
+
+Not covered: the sceptical Bayes factor (left to a published example)
+and the bfpwr Bayes factor goals (the bayes chunk's). The published
+examples (Pawel, Consonni & Held's worked example; Simonsohn's; a
+sceptical Bayes factor example) are placeholders for the maintainer, so
+the plan says "Validation in progress". The run also showed that
+replication_planning() counts a replication Bayes factor or sceptical
+Bayes factor in either direction as a success (BayesRepDesign's
+`paradox = TRUE` default); the simulation follows that definition, and
+whether a replication in the opposite direction should count is a
+question for the maintainer (`next.md`).
