@@ -159,8 +159,13 @@
 #' until the target effect reaches the target power at n: exactly for the F
 #' test and for Welch's F (by Levy's approximation), and by simulation for
 #' Welch's F when simulation is asked for ([welch_f_sensitivity()], with a
-#' 95% interval for the scale and the effect). Simulated tests otherwise
-#' have no sensitivity analysis.
+#' 95% interval for the scale and the effect). For the formula tests that
+#' don't solve for the effect, the effect is searched with the backend's
+#' own power at n (pwrss's tests, the variances, Hotelling's T-squared,
+#' the equivalence tests, metapower's z test and SEM). The random-effects
+#' meta-analysis's Hartung-Knapp test searches its average effect by
+#' simulation, with a 95% interval. Other simulated tests have no
+#' sensitivity analysis yet.
 #'
 #' @param spec A spec as a named list, a JSON string or a path to a JSON file.
 #'

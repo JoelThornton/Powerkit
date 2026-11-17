@@ -62,6 +62,13 @@ sempower_backend <- function(spec, seed = NULL) {
   if (!identical(spec$template, "model_fit")) {
     return(sempower_restriction_backend(spec))
   }
+  # The smallest detectable misfit needs no RMSEA (the search sets it): the
+  # check run uses one on the side the test looks at.
+  if (is.null(spec$population[["rmsea"]])) {
+    null <- sem_rmsea_null(spec)
+    spec$population$rmsea <- switch(spec$target_test$method %||% "chi_square_exact_fit",
+      chi_square_close_fit = null + 0.03, chi_square_not_close_fit = null / 2, 0.05)
+  }
   if (sem_close_fit_test(spec)) {
     return(webpower_rmsea_backend(spec))
   }
@@ -78,7 +85,7 @@ sempower_backend <- function(spec, seed = NULL) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = function(n, power) formula_search_sensitivity(spec, n, power),
     details = function(n) sempower_details(sempower_post_hoc(spec, n, df), "semPower::semPower.postHoc"),
     check_run = function() sempower_check_run(spec, df)
   )
@@ -116,7 +123,7 @@ webpower_rmsea_backend <- function(spec) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = function(n, power) formula_search_sensitivity(spec, n, power),
     check_run = function() webpower_rmsea_check_run(spec, df)
   )
 }
@@ -233,7 +240,7 @@ sempower_restriction_backend <- function(spec) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = if (formula_search_available(spec)) function(n, power) formula_search_sensitivity(spec, n, power),
     details = function(n) sempower_details(post_hoc(n), sem_function(spec)),
     check_run = function() sem_restriction_check_run(spec, base, power_at)
   )
@@ -492,7 +499,7 @@ sempower_script <- function(spec, result) {
     "library(semPower)",
     "",
     "# Inputs ----",
-    sprintf("rmsea <- %s # the misfit (RMSEA) the test should detect", r_code(pop$rmsea)),
+    if (is.null(pop[["rmsea"]])) "rmsea <- NA # set by the search below" else sprintf("rmsea <- %s # the misfit (RMSEA) the test should detect", r_code(pop$rmsea)),
     df_lines,
     goal_inputs(spec, result),
     "",
@@ -530,7 +537,7 @@ webpower_rmsea_script <- function(spec, result) {
     "library(WebPower)",
     "",
     "# Inputs ----",
-    sprintf("rmsea <- %s # the model's RMSEA in the population", r_code(pop$rmsea)),
+    if (is.null(pop[["rmsea"]])) "rmsea <- NA # set by the search below" else sprintf("rmsea <- %s # the model's RMSEA in the population", r_code(pop$rmsea)),
     sprintf("rmsea_null <- %s # the RMSEA of the null hypothesis (close fit: at most this; not-close fit: at least this)", r_code(sem_rmsea_null(spec))),
     df_lines,
     goal_inputs(spec, result),

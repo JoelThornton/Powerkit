@@ -571,7 +571,7 @@ closing_groups <- function(forms, ep_id, start = list()) {
   # Dyadic data (E44): n is the number of pairs.
   pairs <- identical(form$units, "pairs")
   if (pairs) goals <- list(sample_size = "The number of pairs I need", power = "The power I'd have with a given number of pairs")
-  if (isTRUE(form$sensitivity)) goals$sensitivity <- "The smallest effect I'd have a good chance of finding, at a given sample size"
+  if (isTRUE(form$sensitivity)) goals$sensitivity <- if (meta) "The smallest average effect I'd have a good chance of finding, with a given number of studies" else "The smallest effect I'd have a good chance of finding, at a given sample size"
   # "The same" only follows the goal it repeats.
   if (isTRUE(form$sensitivity_without_effect)) goals$sensitivity_curve <- if (isTRUE(form$sensitivity)) "The same, across a range of sample sizes" else "The smallest effect I'd have a good chance of finding, across a range of sample sizes"
   # A justified alpha (JustifyAlpha's optimal_alpha()): the one-sample,
@@ -1459,6 +1459,9 @@ empty_effect <- function(f, values) {
     # Multiple regression's R-squared increase: no increase over the model
     # without the tested predictors.
     same_as_r2_reduced = values$r2_reduced %||% "0",
+    # Left out of the spec: the engine searches the value itself (E37's
+    # RMSEA, which can't be 0 in the spec).
+    omit = NULL,
     no_association = {
       rows <- length(parse_levels(values$X_levels))
       cols <- length(parse_levels(values$Y_levels))

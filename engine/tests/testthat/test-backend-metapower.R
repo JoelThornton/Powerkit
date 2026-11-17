@@ -42,10 +42,12 @@ test_that("a negative effect gives the power of its size, and a one-sided test r
   expect_spec_problem(spec, "direction of the expected effect")
 })
 
-test_that("a meta-analysis refuses an impossible r, odd study sizes for d, and sensitivity", {
+test_that("a meta-analysis refuses an impossible r and odd study sizes for d", {
   expect_spec_problem(meta_spec(metric = "r", effect = 1.2), "between -1 and 1")
   expect_spec_problem(meta_spec(study_size = 41L), "must be even")
-  expect_spec_problem(meta_spec(goal = list(type = "sensitivity", n = 20L, power = 0.8)), "smallest detectable")
+  # The average effect's smallest detectable value is searched
+  # (test-sensitivity-search.R), so the goal is accepted.
+  expect_silent(validate_spec(meta_spec(goal = list(type = "sensitivity", n = 20L, power = 0.8))))
 })
 
 test_that("metapower rounds Fisher's z to two decimals: the size of the difference (Known difference 9)", {

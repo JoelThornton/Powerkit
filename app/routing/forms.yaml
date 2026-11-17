@@ -3564,6 +3564,10 @@ forms:
     tool: metapower
     directional: true
     meta: true
+    sensitivity: true
+    # The average effect only; the other questions have no sensitivity
+    # analysis yet.
+    sensitivity_shown_if: {field: meta_question, is: mean_effect}
     departures: ["18"]
     known_differences: ["9"]
     base: {spec_version: "0.1", design: meta_analysis, template: mean_effect,
@@ -3590,7 +3594,7 @@ forms:
         fields:
           - {id: meta_effects, writeup_label: "average effects of the kinds of study", label: "The average effect in each kind of study, separated by commas (for example, lab then online: 0.2, 0.5); the studies are split equally between the kinds", type: numbers, path: population.effects, effect: true,
              shown_if: {field: meta_question, is: subgroups}}
-          - {id: meta_effect, writeup_label: "average effect", label: "The average effect the meta-analysis should detect", type: number, path: population.effect, effect: true,
+          - {id: meta_effect, optional_for: [sensitivity], writeup_label: "average effect", label: "The average effect the meta-analysis should detect", type: number, path: population.effect, effect: true,
              shown_if: {field: meta_question, is_one_of: [mean_effect, dependent_effects, meta_regression, heterogeneity]},
              help: "As Cohen's d, or as r. The smallest average effect that would matter, or one from an earlier review, reduced for publication bias."}
           - {id: meta_slope, writeup_label: "change in the effect per SD of the moderator", label: "How much the effect changes for one SD more of the moderator (on the effect's scale)", type: number, path: population.slope, effect: true,
@@ -4325,6 +4329,8 @@ forms:
   E37:
     methods_name: "the chi-square test of exact model fit (power to reject a model whose misfit is the RMSEA given)"
     tool: semPower
+    sensitivity: true
+    sensitivity_shown_if: {field: question, is_one_of: [model_fit, factor_correlation, latent_regression]}
     directional: false
     sides: false
     base: {spec_version: "0.1", design: sem, variables: {}, population: {}, target_test: {}}
@@ -4366,7 +4372,7 @@ forms:
                        chi_square_exact_fit: "Detect any misfit at all: the chi-square test of exact fit that SEM software reports"},
              default_source: "Not filled in for you, because the tests answer opposite questions (for reference: semPower computes only the test of exact fit)",
              help: "Power for exact or close fit is the chance of rejecting your model, so planning for it gives the sample size that makes a small misfit most likely to be detected. To gather evidence that a questionnaire's structure holds, plan for not-close fit (MacCallum, Browne and Sugawara, 1996). If what matters is a factor correlation or a path, plan for that instead (the other questions on this card)."}
-          - {id: rmsea, writeup_label: "RMSEA", label: "The model's RMSEA in the population", type: number, path: population.rmsea, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: rmsea, optional_for: [sensitivity], when_empty: omit, writeup_label: "RMSEA", label: "The model's RMSEA in the population", type: number, path: population.rmsea, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: model_fit},
              help: "For exact or close fit: how wrong the model would have to be for you to want the test to notice (0 would be a model that fits exactly; larger values are worse fit). Choose it from the misfit that would matter for how you will use the model, not from a habitual cut-off. For not-close fit: how well you expect the model to fit, below the null value (for example 0.01 or 0.02). Values near the null value need many more people."}
           - {id: rmsea_null, writeup_label: "RMSEA of the null hypothesis", label: "RMSEA that separates close from not-close fit", type: number, path: population.rmsea_null, required: true, min_exclusive: 0, max_exclusive: 1,

@@ -1582,7 +1582,16 @@ check_sem <- function(spec) {
   if (identical(spec$template, "factor_correlation")) {
     return(character())
   }
-  fit_problem <- check_sem_fit_test(spec)
+  # The smallest detectable misfit searches the RMSEA, so only then may it
+  # be left out (sensitivity-search.R).
+  sensitivity <- identical(spec$goal$type, "sensitivity")
+  if (is.null(pop[["rmsea"]]) && !sensitivity) {
+    return("Give the model's RMSEA in the population ('population > rmsea'): the misfit the test should detect, or, for the test of not-close fit, how well you expect the model to fit.")
+  }
+  fit_problem <- if (sensitivity) character() else check_sem_fit_test(spec)
+  if (sensitivity && identical(spec$target_test$method %||% "chi_square_exact_fit", "chi_square_exact_fit") && !is.null(pop$rmsea_null)) {
+    fit_problem <- "'population > rmsea_null' is used only by the tests of close and not-close fit; remove it, or choose one of those tests."
+  }
   if (length(fit_problem)) {
     return(fit_problem)
   }
@@ -2912,7 +2921,8 @@ check_goal <- function(spec, check_effect = TRUE) {
     !(identical(goal$type, "sensitivity") && pwrss_covers(spec) && pwrss_search_available(spec) &&
       !spec$template %in% c("oneway_contrast", "oneway_ancova", "factorial_ancova")) &&
     # Likewise the other formula tests searched (sensitivity-search.R).
-    !(identical(goal$type, "sensitivity") && formula_search_available(spec) && !formula_search_scales_pattern(spec))
+    !(identical(goal$type, "sensitivity") && formula_search_available(spec) && !formula_search_scales_pattern(spec)) &&
+    !(identical(goal$type, "sensitivity") && simulated_search_available(spec))
   if (check_effect && goal$type %in% c("sample_size", "sensitivity") &&
     needs_effect && target_effect_is_zero(spec)) {
     consequence <- if (goal$type == "sample_size") {
@@ -3640,10 +3650,10 @@ check_meta_analysis <- function(spec) {
       !identical(alternative, if (pop$effect > 0) "greater" else "less")) {
     problems <- c(problems, "A one-sided test of a meta-analysis runs in the direction of the expected effect.")
   }
-  if (identical(spec$goal$type, "sensitivity")) {
+  if (identical(spec$goal$type, "sensitivity") && !identical(spec$template, "mean_effect")) {
     problems <- c(problems, paste0(
-      "For a meta-analysis powerkit gives power, or the number of studies needed; the smallest detectable ",
-      "average effect isn't available yet."))
+      "For this meta-analysis question powerkit gives power, or the number of studies needed; the smallest detectable ",
+      "effect is available for the average effect only."))
   }
   # The Hartung-Knapp test is for the random-effects model and is
   # simulated; the z test is metapower's formula.
