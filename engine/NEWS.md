@@ -1,3 +1,7 @@
+# powerkit 0.76.2
+
+* No developer-facing changes; see the Updates entries.
+
 # powerkit 0.76.1
 
 * The smallest detectable effect (goal `sensitivity`) for four more
