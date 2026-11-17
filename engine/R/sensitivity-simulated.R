@@ -81,12 +81,14 @@ welch_f_sensitivity <- function(spec, n, power, nrep, seed, cores = 1L, level = 
 # has its own seed. `simulate_at_x(x, seed)` returns the backend's
 # simulate() result. Returns the points (column `scale` holding x), the
 # estimate and the values fitted.
-simulated_scale_search <- function(guess, power, seed, level, simulate_at_x) {
+simulated_scale_search <- function(guess, power, seed, level, simulate_at_x, limit = Inf) {
   points <- data.frame(scale = numeric(), seed = numeric(), rejections = numeric(), nrep = numeric(),
     attempted = numeric(), valid = numeric())
   simulate_at <- function(scales) {
     scales <- setdiff(signif(scales, 6), points$scale)
-    for (scale in scales[scales > 0]) {
+    # Values the population can't take (a proportion beyond 0 or 1) are
+    # left out.
+    for (scale in scales[scales > 0 & scales <= limit]) {
       scale_seed <- offset_seed(seed, 10007 * nrow(points))
       sim <- simulate_at_x(scale, scale_seed)
       points[nrow(points) + 1, ] <<- c(scale, scale_seed, sim$rejections, sim$nrep,
@@ -165,8 +167,61 @@ scale_from_curve <- function(points, target, level = 0.95) {
 #                                   the sign of the effect entered), the
 #                                   typical study's size and I-squared
 #                                   kept; the guess is metapower's z test
+#   two paired variances            the ratio of the first measurement's
+#   (Pitman-Morgan)                 variance to the second's, the second's
+#                                   and the correlation kept
+#   trend in proportions            the pattern of proportions scaled about
+#   (Cochran-Armitage)              their mean, reported as the difference
+#                                   between the highest and lowest
+#   d' in two conditions            the second condition's average d',
+#                                   the first's and the rest kept
 simulated_search_plan <- function(spec, n, power) {
   pop <- spec$population
+  guess_from <- function(entered, otherwise) if (isTRUE(abs(entered) > 1e-8)) abs(entered) else otherwise
+  if (identical(spec$template, "paired_variances")) {
+    entered <- log(pop$var1 / pop$var2)
+    direction <- pwrss_search_direction(spec, entered)
+    return(list(
+      guess = guess_from(entered, 0.5),
+      set = function(s, x) { s$population$var1 <- pop$var2 * exp(direction * x); s },
+      effect = function(x) exp(direction * x),
+      effect_name = "variance_ratio",
+      what = sprintf("ratio of the first measurement's variance to the second's, with the second's kept at %s and the correlation at %s",
+        format(pop$var2), format(pop$r)),
+      script_set = sprintf("  var1 <<- var2 * exp(%s * x)", r_code(direction)),
+      effect_script = sprintf("exp(%s * x)", r_code(direction))
+    ))
+  }
+  if (identical(spec$template, "proportion_trend")) {
+    p <- as.numeric(unlist(pop$proportions))
+    centre <- mean(p)
+    spread <- max(p) - min(p)
+    # The largest scale keeping every proportion between 0.001 and 0.999.
+    room <- min(ifelse(p > centre, (0.999 - centre) / (p - centre), ifelse(p < centre, (centre - 0.001) / (centre - p), Inf)))
+    return(list(
+      guess = 1, limit = room,
+      set = function(s, x) { s$population$proportions <- as.list(centre + x * (p - centre)); s },
+      effect = function(x) x * spread,
+      effect_name = "proportion_range",
+      what = sprintf("difference between the highest and lowest groups' proportions, with the pattern you entered kept and scaled about its average (%s)", format(signif(centre, 3))),
+      script_set = sprintf("  proportions <<- %s + x * (%s - %s)", r_code(centre), r_code(p), r_code(centre)),
+      effect_script = sprintf("x * %s", r_code(spread))
+    ))
+  }
+  if (identical(spec$design, "signal_detection") && identical(spec$template, "dprime")) {
+    d1 <- pop$dprime[[1]]
+    entered <- pop$dprime[[2]] - d1
+    direction <- pwrss_search_direction(spec, entered)
+    return(list(
+      guess = guess_from(entered, 0.3),
+      set = function(s, x) { s$population$dprime[[2]] <- d1 + direction * x; s },
+      effect = function(x) direction * x,
+      effect_name = "dprime_difference",
+      what = sprintf("difference in average d' between the conditions (the second minus the first), with the first's kept at %s", format(d1)),
+      script_set = sprintf("  d2 <<- d1 + %s * x", r_code(direction)),
+      effect_script = sprintf("%s * x", r_code(direction))
+    ))
+  }
   if (identical(spec$design, "meta_analysis") && identical(spec$template, "mean_effect") && hartung_knapp_test(spec)) {
     direction <- pwrss_search_direction(spec, pop$effect %||% 0)
     r <- identical(pop$metric, "r")
@@ -194,14 +249,20 @@ simulated_search_plan <- function(spec, n, power) {
 }
 
 simulated_search_available <- function(spec) {
-  identical(spec$design, "meta_analysis") && identical(spec$template, "mean_effect") && hartung_knapp_test(spec)
+  (identical(spec$design, "meta_analysis") && identical(spec$template, "mean_effect") && hartung_knapp_test(spec)) ||
+    (identical(spec$design, "basic_test") && isTRUE(spec$template %in% c("paired_variances", "proportion_trend"))) ||
+    (identical(spec$design, "signal_detection") && identical(spec$template, "dprime"))
 }
+
+# Whether the search scales the pattern entered (so a flat pattern can't
+# be searched).
+simulated_search_scales_pattern <- function(spec) identical(spec$template, "proportion_trend")
 
 simulated_effect_sensitivity <- function(spec, n, power, nrep, seed, cores = 1L, level = 0.95) {
   plan <- simulated_search_plan(spec, n, power)
   found <- simulated_scale_search(plan$guess, power, seed, level, function(x, x_seed) {
     route_backend(plan$set(spec, x), x_seed)$simulate(n, nrep, x_seed, cores)
-  })
+  }, limit = plan$limit %||% Inf)
   points <- found$points[order(found$points$scale), ]
   estimate <- found$estimate
   record <- simulation_record(rep(n, nrow(points)), points$seed, points$rejections, points$nrep,

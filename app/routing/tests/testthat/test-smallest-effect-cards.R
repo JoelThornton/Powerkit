@@ -210,3 +210,19 @@ test_that("ordinal two groups, survival, growth curves and reliability give the 
   goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E69")))[[1]]
   expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(question = "bland_altman")))
 })
+
+test_that("paired variances, a trend in proportions and d' find the smallest effect by a simulated search", {
+  cases <- list(
+    list(ep = "E57", extra = list(var1 = ""), label = "the smallest variance ratio you could detect", name = "variance ratio = "),
+    list(ep = "E66", extra = list(), label = "the smallest difference between the highest and lowest proportions you could detect",
+      name = "difference between the highest and lowest proportions = "),
+    list(ep = "E72", extra = list(d2 = ""), label = "the smallest difference in d' you could detect", name = "difference in d' = ")
+  )
+  for (case in cases) {
+    run <- smallest_effect_run(case$ep, c(case$extra, list(n = "100", simulation_accuracy = "quick")))
+    expect_true(isTRUE(run$result$sensitivity$simulated), label = case$ep)
+    expect_identical(result_figure(run$spec, run$result)$label, case$label)
+    expect_match(result_sentences(run$spec, run$result)[["headline"]], case$name, fixed = TRUE)
+    expect_false(is.na(usual_seconds(forms, case$ep, "sensitivity")), label = case$ep)
+  }
+})

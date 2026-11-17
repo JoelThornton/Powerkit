@@ -2922,7 +2922,7 @@ check_goal <- function(spec, check_effect = TRUE) {
       !spec$template %in% c("oneway_contrast", "oneway_ancova", "factorial_ancova")) &&
     # Likewise the other formula tests searched (sensitivity-search.R).
     !(identical(goal$type, "sensitivity") && formula_search_available(spec) && !formula_search_scales_pattern(spec)) &&
-    !(identical(goal$type, "sensitivity") && simulated_search_available(spec))
+    !(identical(goal$type, "sensitivity") && simulated_search_available(spec) && !simulated_search_scales_pattern(spec))
   if (check_effect && goal$type %in% c("sample_size", "sensitivity") &&
     needs_effect && target_effect_is_zero(spec)) {
     consequence <- if (goal$type == "sample_size") {
