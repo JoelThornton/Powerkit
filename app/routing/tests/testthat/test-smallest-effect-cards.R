@@ -182,3 +182,31 @@ test_that("a structural equation model gives the smallest misfit, factor correla
     expect_no_match(lines[["detail"]], if (question == "factor_correlation") "correlating 0.2" else "slopes 0.2, 0.3", fixed = TRUE)
   }
 })
+
+test_that("ordinal two groups, survival, growth curves and reliability give the smallest effect with the effect left empty", {
+  cases <- list(
+    list(ep = "E29", extra = list(odds_ratio = ""), label = "the smallest odds ratio you could detect"),
+    list(ep = "E43", extra = list(p_event2 = ""), label = "group 2's proportion with the event you could detect"),
+    list(ep = "E43", extra = list(question = "cox_predictor", hazard_ratio = "", event_proportion = "0.3", r2_other = "0.1", X_level1 = "", X_level2 = ""),
+      label = "the smallest hazard ratio you could detect"),
+    list(ep = "E35", extra = list(slope_difference = ""), label = "the smallest difference in rates of change you could detect"),
+    list(ep = "E69", extra = list(icc = ""), label = "the smallest ICC you could show is above 0.6"),
+    list(ep = "E69", extra = list(question = "cronbach_alpha", reliability = "", reliability_null = "0.7", items = "5"),
+      label = "the smallest Cronbach's alpha you could show is above 0.7"),
+    list(ep = "E69", extra = list(question = "kappa", kappa = "", kappa_null = "0.4", Y_levels = "Yes, No", proportions = "0.7, 0.3", kappa_raters = "2"),
+      label = "the smallest kappa you could show is above 0.4")
+  )
+  for (case in cases) {
+    run <- smallest_effect_run(case$ep, c(case$extra, list(n = "150")))
+    expect_identical(result_figure(run$spec, run$result)$label, case$label)
+    methods <- writeup_text(forms$forms[[case$ep]], run$spec, run$result, run$fields, run$values)[["short"]]
+    # The effect is what was found, so the write-up doesn't call what was
+    # entered the effect size.
+    expect_no_match(methods, "The effect size, ", fixed = TRUE)
+  }
+  lines <- result_sentences(run$spec, run$result)
+  expect_match(lines[["headline"]], "would show the kappa is above 0.4 with 80% power if it is", fixed = TRUE)
+  # Bland-Altman limits of agreement are simulated: no goal yet.
+  goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E69")))[[1]]
+  expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(question = "bland_altman")))
+})

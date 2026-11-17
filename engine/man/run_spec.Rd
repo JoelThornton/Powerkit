@@ -269,7 +269,8 @@ Welch's F when simulation is asked for (\code{\link[=welch_f_sensitivity]{welch_
 95\% interval for the scale and the effect). For the formula tests that
 don't solve for the effect, the effect is searched with the backend's
 own power at n (pwrss's tests, the variances, Hotelling's T-squared,
-the equivalence tests, metapower's z test and SEM). The random-effects
+the equivalence tests, metapower's z test, SEM, and the ordinal,
+survival, growth-curve and reliability tests). The random-effects
 meta-analysis's Hartung-Knapp test searches its average effect by
 simulation, with a 95\% interval. Other simulated tests have no
 sensitivity analysis yet.

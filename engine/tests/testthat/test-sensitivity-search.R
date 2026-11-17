@@ -271,3 +271,87 @@ test_that("SEM: the RMSEA found matches WebPower's own solver, and semPower need
   mi$goal <- list(type = "sensitivity", n = 200L, power = 0.8)
   expect_error(suppressWarnings(run_quietly(mi)), "isn't available yet")
 })
+
+test_that("ordinal, survival, growth-curve and reliability searches agree with the packages' own solvers and simulations", {
+  skip_on_cran()
+  found <- function(name, n = 150L) {
+    spec <- example_spec(name)
+    result <- sensitivity_of(spec, n = n)
+    # kappaSize's power is itself found by uniroot() over its whole-subject
+    # sample size, so it reaches the target to about 1e-5.
+    expect_equal(result$sensitivity$power, 0.8, tolerance = 1e-4, label = name)
+    spec$goal <- list(type = "sensitivity", n = n, power = 0.8)
+    file <- withr::local_tempfile(fileext = ".R", .local_envir = parent.frame())
+    writeLines(export_script(spec, result), file)
+    out <- system2(file.path(R.home("bin"), "Rscript"), file, stdout = TRUE, stderr = TRUE)
+    expect_true(any(grepl("^Reproduced powerkit's result", out)), label = name)
+    list(spec = spec, s = result$sensitivity)
+  }
+  # Proportional odds: Hmisc's popower() (Whitehead, 1993) gives the same
+  # power from the categories' shares pooled over the two groups (group
+  # 2's from group 1's by the odds ratio, Hmisc's pomodm()).
+  x <- found("ordinal_two_groups")
+  pop <- x$spec$population
+  expect_lt(x$s$effect, 1)
+  pooled <- (unlist(pop$probabilities) + Hmisc::pomodm(p = unlist(pop$probabilities), odds.ratio = x$s$effect)) / 2
+  expect_equal(Hmisc::popower(pooled, x$s$effect, 150)$power, 0.8, tolerance = 1e-3)
+
+  # A Cox regression predictor: powerSurvEpi's own sample size at the
+  # hazard ratio found.
+  x <- found("survival_cox_predictor")
+  pop <- x$spec$population
+  needed <- powerSurvEpi::ssizeEpiCont.default(power = 0.8, theta = x$s$effect, sigma2 = 1,
+    psi = pop$event_proportion, rho2 = pop$r2_other, alpha = 0.05)
+  expect_true(abs(needed - 150) <= 1)
+
+  # The log-rank test, simulated with survival's survdiff(): exponential
+  # times reaching the proportions by the reference time, uniform entry
+  # over the accrual period, follow-up to its end.
+  x <- found("survival_log_rank")
+  pop <- x$spec$population
+  expect_identical(x$s$effect_name, "p_event2")
+  rates <- -log(1 - c(pop$p_event[[1]], x$s$effect)) / pop$time
+  set.seed(20261117)
+  hits <- replicate(2000, {
+    group <- rep(1:2, each = 75)
+    entry <- stats::runif(150, 0, pop$accrual)
+    event_time <- stats::rexp(150, rates[group])
+    censor <- pop$accrual + pop$follow_up - entry
+    test <- survival::survdiff(survival::Surv(pmin(event_time, censor), event_time <= censor) ~ group)
+    stats::pchisq(test$chisq, 1, lower.tail = FALSE) < 0.05
+  })
+  expect_equal(mean(hits), 0.8, tolerance = 0.03)
+
+  # Growth curves: longpower solves diggle.linear.power() for delta itself.
+  x <- found("growth_curve")
+  pop <- x$spec$population
+  t <- unlist(pop$times)
+  cov_is <- pop$r_intercept_slope * pop$sd_intercept * pop$sd_slope
+  r <- outer(t, t, function(a, b) pop$sd_intercept^2 + a * b * pop$sd_slope^2 + (a + b) * cov_is) + diag(pop$sd_residual^2, length(t))
+  delta <- longpower::diggle.linear.power(n = 75, delta = NULL, t = t, sigma2 = 1, R = r, sig.level = 0.05, power = 0.8)$delta
+  expect_equal(abs(x$s$effect), delta, tolerance = 1e-4)
+
+  # The ICC's F test, simulated: one-way random effects with that ICC.
+  x <- found("reliability_icc")
+  pop <- x$spec$population
+  k <- pop$raters
+  ratio <- function(rho) (1 + (k - 1) * rho) / (1 - rho)
+  set.seed(20261117)
+  hits <- replicate(2000, {
+    y <- matrix(stats::rnorm(150, sd = sqrt(x$s$effect)), 150, k) + stats::rnorm(150 * k, sd = sqrt(1 - x$s$effect))
+    msb <- k * stats::var(rowMeans(y))
+    msw <- sum((y - rowMeans(y))^2) / (150 * (k - 1))
+    msb / msw > ratio(pop$icc_null) * stats::qf(0.95, 149, 150 * (k - 1))
+  })
+  expect_equal(mean(hits), 0.8, tolerance = 0.03)
+
+  # Cronbach's alpha and kappa: statpsych's and kappaSize's own sample
+  # sizes at the value found.
+  x <- found("reliability_cronbach_alpha")
+  pop <- x$spec$population
+  expect_true(abs(statpsych::size.test.cronbach(0.05, 0.8, x$s$effect, pop$items, pop$reliability_null)[[1]] - 150) <= 1)
+  x <- found("reliability_kappa")
+  pop <- x$spec$population
+  needed <- kappaSize::PowerBinary(pop$kappa_null, x$s$effect, pop$proportions[[2]], raters = pop$raters, alpha = 0.05, power = 0.8)$N
+  expect_true(abs(needed - 150) <= 1)
+})

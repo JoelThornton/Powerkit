@@ -1326,6 +1326,16 @@ goal_sentences <- function(spec, result) {
         )
       } else if (identical(s$effect_name, "rmsea")) {
         sem_fit_sensitivity_sentences(spec, result, test)
+      } else if (!is.null(reliability_sensitivity(spec, result))) {
+        rel <- reliability_sensitivity(spec, result)
+        side <- if (rel$above) "above" else "below"
+        c(
+          headline = sprintf("With %s participants in total%s, %s would show the %s is %s %s with %s power if it is %s or %s.",
+            whole(spec$goal$n), group_text(spec, spec$goal$n), test, rel$name, side, format(rel$null), percent(spec$goal$power),
+            rel$value, if (rel$above) "more" else "less"),
+          detail = sprintf("If the true %s is between %s and %s, the test would show it is %s %s less often than %s of the time. Worked out by formula (%s), searching the %s with the package's own power calculation.",
+            rel$name, format(rel$null), rel$value, side, format(rel$null), percent(spec$goal$power), exact_source(result), rel$name)
+        )
       } else if (identical(s$effect_name, "bound")) {
         # Equivalence: the narrowest bounds the test can show.
         c(
@@ -2133,16 +2143,28 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     r_second = "second correlation", variance_ratio = "variance ratio", mahalanobis = "Mahalanobis distance",
     bound = "equivalence bound", meta_d = "average effect (Cohen's d)", meta_r = "average correlation",
     rmsea = "RMSEA", factor_r = "factor correlation", latent_slope = "standardised slope",
+    p_event2 = "group 2's proportion with the event", hazard_ratio = "hazard ratio",
+    slope_difference = "difference in rates of change", icc = "ICC", reliability = "Cronbach's alpha", kappa = "kappa",
     fallback)
 }
 
 # Results that are a value to reach rather than a size.
 # The RMSEA too: for the test of not-close fit it is the largest that
 # could be shown to fit closely.
-sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2", "r_second", "rmsea")
+sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2", "r_second", "rmsea", "p_event2", "icc", "reliability", "kappa")
 
 # Ratios, which are "the smallest" only above 1.
-sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio")
+sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio", "hazard_ratio")
+
+# Reliability and agreement: the value the study could show is beyond the
+# one named (the ICC, Cronbach's alpha or kappa to beat).
+reliability_sensitivity <- function(spec, result) {
+  s <- result$sensitivity
+  if (!is.list(s) || !isTRUE(s$effect_name %in% c("icc", "reliability", "kappa"))) return(NULL)
+  null <- spec$population[[paste0(s$effect_name, "_null")]]
+  list(name = sensitivity_effect_label(s$effect_name), null = null, above = isTRUE(s$effect > null),
+    value = format(round(s$effect, 3), nsmall = 3))
+}
 
 curve_table_ui <- function(spec, result, table) {
   name <- if (identical(result$sensitivity$effect_name, "p2")) "p2" else sensitivity_effect_label(result$sensitivity$effect_name, "effect")
@@ -2992,6 +3014,12 @@ result_figure <- function(spec, result) {
         not_size <- isTRUE(s$effect_name %in% sensitivity_value_names) ||
           (isTRUE(s$effect_name %in% sensitivity_ratio_names) && isTRUE(s$effect < 1))
         # An equivalence test's answer is the narrowest bounds it can show.
+        rel <- reliability_sensitivity(spec, result)
+        if (!is.null(rel)) {
+          return(list(value = rel$value,
+            label = sprintf(if (rel$above) "the smallest %s you could show is above %s" else "the largest %s you could show is below %s", rel$name, format(rel$null)),
+            sub = sprintf("with %s %s, at %s power", whole(spec$goal$n), unit, percent(spec$goal$power))))
+        }
         # The test of not-close fit shows close fit up to the RMSEA found.
         if (identical(s$effect_name, "rmsea")) {
           not_close <- identical(spec$target_test$method, "chi_square_not_close_fit")
@@ -3745,6 +3773,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
     }
     if (!is.null(telescopes)) {
       sprintf("The original study's effect size, %s, set the test's direction (%s); its size does not enter the plan.", effect, reasoning)
+    } else if (identical(spec$goal$type, "sensitivity")) {
+      # The effect itself is what the analysis finds: what was entered is
+      # the rest of the population it keeps.
+      sprintf("The analysis keeps the other values entered (%s); the reasoning given: %s.%s", effect, reasoning, adj)
     } else {
       sprintf("The effect size, %s, was based on %s: %s.%s", effect, writeup_source[[values$just_type %||% "smallest_effect_of_interest"]], reasoning, adj)
     }

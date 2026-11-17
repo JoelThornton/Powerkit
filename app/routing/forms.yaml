@@ -1796,6 +1796,7 @@ forms:
   E43:
     methods_name: "a time-to-event analysis (the log-rank test, or a Cox regression)"
     tool: Hmisc
+    sensitivity: true
     directional: false
     base: {spec_version: "0.1", design: survival, variables: {"Y": {type: time_to_event}}, population: {}, target_test: {}}
     groups:
@@ -1820,7 +1821,7 @@ forms:
              help: "Use the same unit (days, weeks, months) for every time on this screen."}
           - {id: p_event1, writeup_label: "proportion with the event in group 1", label: "Proportion of group 1 who have had the event by then (0 to 1)", type: number, path: population.p_event.1, effect: true, baseline: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: log_rank}}
-          - {id: p_event2, writeup_label: "proportion with the event in group 2", label: "Proportion of group 2 who have had the event by then", type: number, path: population.p_event.2, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: p_event2, optional_for: [sensitivity], when_empty: same_as, same_as: p_event1, writeup_label: "proportion with the event in group 2", label: "Proportion of group 2 who have had the event by then", type: number, path: population.p_event.2, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: log_rank},
              help: "The smallest difference worth detecting, for example 0.25 where group 1's is 0.40."}
           - {id: accrual, writeup_label: "recruitment period", label: "How long recruitment takes", type: number, path: population.accrual, required: true, min: 0,
@@ -1836,7 +1837,7 @@ forms:
       - input: "A measured score: its hazard ratio, and how many people have the event"
         shown_if: {field: question, is: cox_predictor}
         fields:
-          - {id: hazard_ratio, writeup_label: "hazard ratio per SD", label: "Hazard ratio for a person 1 SD higher on the score", type: number, path: population.hazard_ratio, effect: true, min_exclusive: 0,
+          - {id: hazard_ratio, optional_for: [sensitivity], when_empty: one, writeup_label: "hazard ratio per SD", label: "Hazard ratio for a person 1 SD higher on the score", type: number, path: population.hazard_ratio, effect: true, min_exclusive: 0,
              shown_if: {field: question, is: cox_predictor},
              help: "Above 1: the event comes sooner for people higher on the score; below 1, later. For example 0.75: at any time, a quarter less likely to drop out."}
           - {id: event_proportion, writeup_label: "proportion with the event", label: "Proportion of all participants expected to have the event during the study (0 to 1)", type: number, path: population.event_proportion, required: true, min_exclusive: 0, max: 1,
@@ -1849,6 +1850,8 @@ forms:
   E69:
     methods_name: "a test of reliability or agreement (the ICC, Cronbach's alpha, kappa or the Bland-Altman limits of agreement)"
     tool: kappaSize
+    sensitivity: true
+    sensitivity_shown_if: {field: question, is_one_of: [icc, cronbach_alpha, kappa]}
     departures: ["27", "29"]
     directional: false
     base: {spec_version: "0.1", design: reliability, variables: {"Y": {type: continuous}}, population: {}, target_test: {}}
@@ -1873,7 +1876,7 @@ forms:
       - input: "The ICC: the value you expect, the value to beat, and the number of ratings"
         shown_if: {field: question, is: icc}
         fields:
-          - {id: icc, writeup_label: "expected ICC", label: "The ICC you expect", type: number, path: population.icc, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: icc, optional_for: [sensitivity], when_empty: same_as, same_as: icc_null, writeup_label: "expected ICC", label: "The ICC you expect", type: number, path: population.icc, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: icc}}
           - {id: icc_null, in_effect_text: true, writeup_label: "ICC to beat", label: "The ICC you want to show it is above (for example, 0.6)", type: number, path: population.icc_null, required: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: icc},
@@ -1892,7 +1895,7 @@ forms:
       - input: "Cronbach's alpha: the value you expect, the value to beat, and the number of items"
         shown_if: {field: question, is: cronbach_alpha}
         fields:
-          - {id: reliability, writeup_label: "expected alpha", label: "The alpha you expect", type: number, path: population.reliability, effect: true, min: 0.001, max: 0.999,
+          - {id: reliability, optional_for: [sensitivity], when_empty: same_as, same_as: reliability_null, writeup_label: "expected alpha", label: "The alpha you expect", type: number, path: population.reliability, effect: true, min: 0.001, max: 0.999,
              shown_if: {field: question, is: cronbach_alpha}}
           - {id: reliability_null, in_effect_text: true, writeup_label: "alpha to beat", label: "The alpha you want to show it is above (for example, 0.7)", type: number, path: population.reliability_null, required: true, min: 0, max_exclusive: 1,
              shown_if: {field: question, is: cronbach_alpha}}
@@ -1907,7 +1910,7 @@ forms:
              shown_if: {field: question, is: kappa}}
           - {id: kappa_raters, in_effect_text: true, writeup_label: "number of raters", label: "Number of raters who rate every subject (2 to 6)", type: number, path: population.raters, required: true, min: 2, max: 6, integer: true,
              shown_if: {field: question, is: kappa}}
-          - {id: kappa, writeup_label: "expected kappa", label: "The kappa you expect", type: number, path: population.kappa, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: kappa, optional_for: [sensitivity], when_empty: same_as, same_as: kappa_null, writeup_label: "expected kappa", label: "The kappa you expect", type: number, path: population.kappa, effect: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: kappa}}
           - {id: kappa_null, in_effect_text: true, writeup_label: "kappa under the null hypothesis", label: "The kappa to test against (for example, 0.4)", type: number, path: population.kappa_null, required: true, min_exclusive: 0, max_exclusive: 1,
              shown_if: {field: question, is: kappa},
@@ -3307,6 +3310,7 @@ forms:
   E29:
     methods_name: "a proportional-odds comparison of two groups on an ordinal outcome"
     tool: powertools
+    sensitivity: true
     directional: false
     base: {spec_version: "0.1", design: ordinal_regression, template: ordinal_two_groups,
            variables: {X: {type: binary}, "Y": {type: categorical}}, population: {metric: proportion},
@@ -3322,7 +3326,7 @@ forms:
       - input: "The share of group 1 in each category, and the odds ratio"
         fields:
           - {id: probabilities, writeup_label: "shares of group 1 in each category", label: "Share of group 1 in each category: one for each, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true}
-          - {id: odds_ratio, label: "Odds ratio: how many times higher the odds of a higher category are in group 2 than in group 1", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
+          - {id: odds_ratio, optional_for: [sensitivity], when_empty: one, label: "Odds ratio: how many times higher the odds of a higher category are in group 2 than in group 1", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
              help: "Below 1 if group 2 tends to be in lower categories. Power is the same for an odds ratio and its reciprocal (2 and 0.5)."}
       - input: "The size of group 2 relative to group 1 (1 = equal)"
         fields:
@@ -3781,6 +3785,7 @@ forms:
   E35:
     methods_name: "a growth-curve comparison of two groups' rates of change (Diggle and colleagues' formula for a linear mixed model)"
     tool: longpower
+    sensitivity: true
     directional: true
     base: {spec_version: "0.1", design: mixed_model, template: growth_curve,
            variables: {G: {type: binary}, "Y": {type: continuous}}, population: {metric: raw},
@@ -3796,7 +3801,7 @@ forms:
              help: "In the units the rates of change are per: with monthly measurements in months, the rate of change is per month."}
       - input: "The difference in rates of change"
         fields:
-          - {id: slope_difference, writeup_label: "difference in rates of change", label: "Group 2's average rate of change minus group 1's, per unit of time, in the outcome's units", type: number, path: population.slope_difference, effect: true,
+          - {id: slope_difference, optional_for: [sensitivity], writeup_label: "difference in rates of change", label: "Group 2's average rate of change minus group 1's, per unit of time, in the outcome's units", type: number, path: population.slope_difference, effect: true,
              help: "For example -1: the outcome falls one point more per month in group 2 than in group 1."}
       - input: "How much people vary"
         fields:
