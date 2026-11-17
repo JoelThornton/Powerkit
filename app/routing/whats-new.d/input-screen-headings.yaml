@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "Fixed: headings on the values screen"
+    text: "With explanations off, a box's heading sometimes sat on the same line as its first question, and two boxes could share the heading \"Effect size\". Each box now has the same heading whether explanations are on or off, and the boxes where you enter the effect say so, for example \"Effect size: the expected group means\". With explanations on, the screen also gives the analysis's standard name, such as one-way between-subjects ANOVA, as its card does."
