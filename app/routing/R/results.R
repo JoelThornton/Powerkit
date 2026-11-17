@@ -661,6 +661,26 @@ meta_sentences <- function(spec, result) {
   }
   finding <- if (subgroups) "find that the kinds of study differ" else if (regression) "find the moderator's slope significant" else
     if (heterogeneity) "find significant heterogeneity" else "find it significant"
+  if (identical(result$goal_type, "sensitivity")) {
+    # The smallest average effect the number of studies could detect.
+    sens <- result$sensitivity
+    interval <- if (isTRUE(sens$simulated)) {
+      sprintf(" (95%% simulation interval %s to %s)", format(signif(sens$effect_lower, 3)), format(signif(sens$effect_upper, 3)))
+    } else ""
+    return(c(
+      headline = sprintf("With %s studies, the smallest average effect the meta-analysis could detect with %s power is %s = %s%s, with %s.",
+        whole(spec$goal$n), percent(spec$goal$power), metric, format(round(sens$effect, 3), nsmall = 2), interval, test),
+      detail = paste(c(
+        sprintf("Smaller average effects would be found significant less often than %s of the time.", percent(spec$goal$power)),
+        if (isTRUE(sens$simulated)) {
+          sprintf("Power was simulated at %s values of the average effect (%s meta-analyses each, Spower with metafor) and read from a curve fitted to them, the studies' size and I-squared kept as entered.",
+            nrow(result$provenance$simulations), whole(result$provenance$nrep))
+        } else {
+          sprintf("Found by searching the average effect with %s, the studies' size and I-squared kept as entered.", exact_source(result))
+        },
+        caution), collapse = " ")
+    ))
+  }
   if (identical(result$goal_type, "sample_size")) {
     k <- result$n_required$n
     # A simulated search lands a few studies either side of the true answer
@@ -700,6 +720,10 @@ equivalence_bound <- function(spec, result) {
 }
 
 equivalence_test_text <- function(spec, result) {
+  # The smallest detectable effect finds the bounds, so none is named.
+  if (identical(spec$goal$type, "sensitivity")) {
+    return(sprintf("two one-sided tests (TOST), each at alpha = %s", alpha_text(spec$target_test$alpha)))
+  }
   sprintf("two one-sided tests (TOST), each at alpha = %s, and equivalence bounds of %s",
     alpha_text(spec$target_test$alpha), equivalence_bound(spec, result))
 }
@@ -769,6 +793,17 @@ equivalence_sentences <- function(spec, result) {
   shown <- sprintf("show that the true %s lies inside the equivalence bounds (both one-sided tests significant)", what)
   closer <- sprintf("An expected %s of 0 is the most optimistic case: the closer the true %s is to a bound, the lower the power.", what, what)
   source <- sprintf("calculated for the %s you entered (%s).", what, exact_source(result))
+  if (identical(result$goal_type, "sensitivity")) {
+    # The narrowest bounds the test can show (sensitivity-search.R).
+    b <- format(round(result$sensitivity$effect, 3), nsmall = 2)
+    return(c(
+      headline = sprintf("With %s participants in total%s, the narrowest equivalence bounds you could show with %s power are -%s to +%s, if the true %s is the one you entered, with %s. The bounds are %s.",
+        whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), b, b, what, test, result$sensitivity$effect_description),
+      detail = paste(sprintf(
+        "With bounds narrower than these, the two one-sided tests would show equivalence less often than %s of the time. If the smallest %s that matters in your field is wider than these bounds, this sample can test it; if it is narrower, it can't. Found by searching the bound with %s.",
+        percent(spec$goal$power), what, exact_source(result)), closer)
+    ))
+  }
   if (identical(result$goal_type, "sample_size")) {
     est <- result$n_required
     c(
@@ -961,12 +996,23 @@ sem_model_description <- function(spec) {
         else sprintf("having intercepts %s %s item SDs", if (pop$intercept_difference < 0) "lower by" else "higher by", format(abs(pop$intercept_difference))),
         sprintf(if (over_time) "on the %s occasion" else "in the %s group", last))
     },
-    factor_correlation = sprintf("two factors measured by %s and %s (standardised loadings %s and %s), correlating %s",
-      items(pop$indicators[[1]]), items(pop$indicators[[2]]), format(pop$loadings[[1]]), format(pop$loadings[[2]]), format(pop$r)),
+    # The smallest detectable correlation or slope searches the value
+    # tested, so the one entered isn't part of the model described.
+    factor_correlation = sprintf("two factors measured by %s and %s (standardised loadings %s and %s)%s",
+      items(pop$indicators[[1]]), items(pop$indicators[[2]]), format(pop$loadings[[1]]), format(pop$loadings[[2]]),
+      if (identical(spec$goal$type, "sensitivity")) "" else sprintf(", correlating %s", format(pop$r))),
     latent_regression = {
       k <- length(pop$slopes)
-      sprintf("a latent outcome regressed on %s latent predictor%s (standardised slope%s %s%s), every factor measured by %s (standardised loading %s)",
-        whole(k), if (k == 1) "" else "s", if (k == 1) "" else "s", paste(vapply(pop$slopes, format, ""), collapse = ", "),
+      tested <- pop$tested %||% 1L
+      slopes <- if (!identical(spec$goal$type, "sensitivity")) {
+        sprintf("standardised slope%s %s", if (k == 1) "" else "s", paste(vapply(pop$slopes, format, ""), collapse = ", "))
+      } else if (k == 1) {
+        "the standardised slope searched"
+      } else {
+        sprintf("predictor %s's standardised slope searched, the others %s", tested, paste(vapply(pop$slopes[-tested], format, ""), collapse = ", "))
+      }
+      sprintf("a latent outcome regressed on %s latent predictor%s (%s%s), every factor measured by %s (standardised loading %s)",
+        whole(k), if (k == 1) "" else "s", slopes,
         if (k > 1) sprintf("; the predictors correlating %s", format(pop$predictor_correlation %||% 0)) else "",
         items(pop$indicators), format(pop$loading))
     }
@@ -1008,8 +1054,18 @@ sem_fit_test_name <- function(method, rmsea_null) {
     "the chi-square test of exact model fit")
 }
 
-sem_sentence <- function(result) {
+# The smallest detectable misfit: the RMSEA the search found stands for
+# the one entered.
+sem_fit_summary <- function(result) {
   s <- result$sem
+  if (!is.null(s) && is.list(result$sensitivity) && identical(result$sensitivity$effect_name, "rmsea")) {
+    s$rmsea <- signif(result$sensitivity$effect, 3)
+  }
+  s
+}
+
+sem_sentence <- function(result) {
+  s <- sem_fit_summary(result)
   if (is.null(s)) return(NULL)
   if (identical(s$fit_test, "not_close")) {
     return(sprintf(paste0(
@@ -1030,8 +1086,13 @@ sem_sentence <- function(result) {
 }
 
 sem_writeup <- function(result) {
-  s <- result$sem
+  s <- sem_fit_summary(result)
   if (is.null(s)) return(NULL)
+  # The smallest detectable misfit: the RMSEA is the result, stated above.
+  if (is.list(result$sensitivity) && identical(result$sensitivity$effect_name, "rmsea")) {
+    return(sprintf("The model was %s%s.", sem_model_text(s),
+      if (identical(s$fit_test, "exact")) "" else "; the test is MacCallum, Browne and Sugawara's (1996)"))
+  }
   if (identical(s$fit_test, "not_close")) {
     return(sprintf("The model was %s; the test of not-close fit (MacCallum, Browne & Sugawara, 1996; H0: RMSEA ≥ %s) assumed a population RMSEA of %s, computed with WebPower.", sem_model_text(s), format(s$rmsea_null), format(s$rmsea)))
   }
@@ -1039,6 +1100,37 @@ sem_writeup <- function(result) {
     return(sprintf("The model was %s; the test of close fit (MacCallum, Browne & Sugawara, 1996; H0: RMSEA ≤ %s) was to detect a population RMSEA of %s, computed with WebPower.", sem_model_text(s), format(s$rmsea_null), format(s$rmsea)))
   }
   sprintf("The model was %s, and the misfit to detect was a population RMSEA of %s.", sem_model_text(s), format(s$rmsea))
+}
+
+# The smallest detectable misfit, in words: for the tests of exact and
+# close fit the smallest RMSEA the test would detect, for the test of
+# not-close fit the largest at which it would show close fit.
+sem_fit_sensitivity_sentences <- function(spec, result, test) {
+  s <- result$sensitivity
+  value <- format(round(s$effect, 3), nsmall = 3)
+  null <- format(spec$population$rmsea_null %||% 0.05)
+  people <- sprintf("With %s participants in total", whole(spec$goal$n))
+  how <- sprintf("Worked out by formula (%s), searching the RMSEA with the package's own power calculation.", exact_source(result))
+  switch(spec$target_test$method %||% "chi_square_exact_fit",
+    chi_square_not_close_fit = c(
+      headline = sprintf("%s, %s would show close fit with %s power if the model's RMSEA in the population is %s or less.",
+        people, test, percent(spec$goal$power), value),
+      detail = sprintf("A model whose RMSEA is between %s and %s would be shown to fit closely less often than %s of the time. %s",
+        value, null, percent(spec$goal$power), how)
+    ),
+    chi_square_close_fit = c(
+      headline = sprintf("%s, the smallest RMSEA that %s could detect with %s power is %s.",
+        people, test, percent(spec$goal$power), value),
+      detail = sprintf("A model whose RMSEA is between %s and %s would be rejected less often than %s of the time. %s",
+        null, value, percent(spec$goal$power), how)
+    ),
+    c(
+      headline = sprintf("%s, the smallest misfit that %s could detect with %s power is an RMSEA of %s.",
+        people, test, percent(spec$goal$power), value),
+      detail = sprintf("A model whose RMSEA in the population is smaller than this would be rejected less often than %s of the time. %s",
+        percent(spec$goal$power), how)
+    )
+  )
 }
 
 # Clustered designs: what the grouping costs, from the engine's
@@ -1210,7 +1302,10 @@ goal_sentences <- function(spec, result) {
             whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
             format(signif(s$effect, 3)), format(signif(s$effect_lower, 3)), format(signif(s$effect_upper, 3)), s$effect_description
           ),
-          detail = sprintf(
+          detail = if (isTRUE(s$searched)) sprintf(
+            "The effect is searched with the rest of what you entered kept: power is simulated at %s values of it (%s replications each) and read from a curve fitted to them. The interval is the simulation's uncertainty about where power reaches %s.",
+            nrow(result$provenance$simulations), whole(result$provenance$nrep), percent(spec$goal$power)
+          ) else sprintf(
             "The pattern of means you entered keeps its shape and is scaled until the simulated power reaches the target (Spower, %s replications at each of %s sizes of the pattern). The interval is the simulation's uncertainty about where power reaches %s.",
             whole(result$provenance$nrep), nrow(result$provenance$simulations), percent(spec$goal$power)
           )
@@ -1229,6 +1324,8 @@ goal_sentences <- function(spec, result) {
             exact_source(result)
           )
         )
+      } else if (identical(s$effect_name, "rmsea")) {
+        sem_fit_sensitivity_sentences(spec, result, test)
       } else if (identical(s$effect_name, "bound")) {
         # Equivalence: the narrowest bounds the test can show.
         c(
@@ -2034,12 +2131,15 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     p_second_only = "proportion changing only in the second condition", r_group2 = "group 2's correlation",
     contrast = "contrast", mean_range = "difference between the largest and smallest mean",
     r_second = "second correlation", variance_ratio = "variance ratio", mahalanobis = "Mahalanobis distance",
-    bound = "equivalence bound",
+    bound = "equivalence bound", meta_d = "average effect (Cohen's d)", meta_r = "average correlation",
+    rmsea = "RMSEA", factor_r = "factor correlation", latent_slope = "standardised slope",
     fallback)
 }
 
 # Results that are a value to reach rather than a size.
-sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2", "r_second")
+# The RMSEA too: for the test of not-close fit it is the largest that
+# could be shown to fit closely.
+sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2", "r_second", "rmsea")
 
 # Ratios, which are "the smallest" only above 1.
 sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio")
@@ -2892,6 +2992,12 @@ result_figure <- function(spec, result) {
         not_size <- isTRUE(s$effect_name %in% sensitivity_value_names) ||
           (isTRUE(s$effect_name %in% sensitivity_ratio_names) && isTRUE(s$effect < 1))
         # An equivalence test's answer is the narrowest bounds it can show.
+        # The test of not-close fit shows close fit up to the RMSEA found.
+        if (identical(s$effect_name, "rmsea")) {
+          not_close <- identical(spec$target_test$method, "chi_square_not_close_fit")
+          return(list(value = value, label = if (not_close) "the largest RMSEA you could show to fit closely" else "the smallest RMSEA you could detect",
+            sub = sprintf("with %s %s, at %s power", whole(spec$goal$n), unit, percent(spec$goal$power))))
+        }
         if (identical(s$effect_name, "bound")) {
           return(list(value = paste0("\u00b1", value), label = "the narrowest equivalence bounds you could show",
             sub = sprintf("with %s %s, at %s power", whole(spec$goal$n), unit, percent(spec$goal$power))))
@@ -3419,6 +3525,8 @@ meta_units <- function(text) {
   text <- gsub("power at this sample size is", "power with this many studies is", text, fixed = TRUE)
   text <- gsub("for an effect of an average effect", "for an average effect", text, fixed = TRUE)
   text <- gsub("at a (fixed )?sample size of ([0-9,]+) participants in total", "with \\2 studies", text)
+  text <- gsub("For a sample size of ([0-9,]+) participants in total", "With \\1 studies", text)
+  text <- gsub("fixed by resource constraints at ([0-9,]+) participants in total", "fixed by resource constraints at \\1 studies", text)
   text
 }
 
@@ -3511,6 +3619,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   if (is_minimum_effect(spec)) name <- sprintf("%s as a minimum-effect test against a smallest effect of interest of %s (pwrss's t-test against the margin)",
     name, minimum_effect_margin_text(spec))
   if (identical(spec$design, "sem") && !is_sem_fit(spec)) name <- sem_test_name(spec)
+  # The test of fit chosen, not only the test of exact fit.
+  if (is_sem_fit(spec)) name <- sem_fit_test_name(spec$target_test$method, spec$population$rmsea_null %||% 0.05)
   telescopes <- result$small_telescopes
   if (!is.null(telescopes)) {
     name <- sprintf(paste0("a small-telescopes replication test (Simonsohn, 2015): a one-sided test of whether the effect is smaller ",
@@ -3690,6 +3800,10 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
           whole(spec$goal$n), group_text(spec, spec$goal$n)),
         if (identical(s$effect_name, "bound")) {
           sprintf("The narrowest equivalence bounds that could be shown with %s power%s are %s.", percent(spec$goal$power), reason, size)
+        } else if (identical(s$effect_name, "rmsea") && identical(spec$target_test$method, "chi_square_not_close_fit")) {
+          sprintf("The largest population RMSEA at which the test would show close fit with %s power%s is %s.", percent(spec$goal$power), reason, format(round(s$effect, 3), nsmall = 3))
+        } else if (identical(s$effect_name, "rmsea")) {
+          sprintf("The smallest misfit detectable with %s power%s is a population RMSEA of %s.", percent(spec$goal$power), reason, format(round(s$effect, 3), nsmall = 3))
         } else {
           sprintf("The smallest effect detectable with %s power%s is %s.", percent(spec$goal$power), reason, size)
         },
@@ -3848,8 +3962,19 @@ ethics_text <- function(spec, result, fields, values) {
         sprintf("%s (Cohen's f = %.3f), measured as %s", format(signif(s$effect, 3)), s$cohen_f, s$effect_description)
       }
       c(include, recruit_line, set_by,
-        sprintf("A power analysis shows the smallest effect a study of this size would find %s of the time (using a %s threshold for statistical significance) is %s. Smaller effects would more often be missed.",
-          percent(spec$goal$power), alpha, size),
+        if (identical(s$effect_name, "rmsea") && identical(spec$target_test$method, "chi_square_not_close_fit")) {
+          sprintf("A power analysis shows a study of this size would show the model fits closely %s of the time (using a %s threshold for statistical significance) if its RMSEA in the population is %s or less. A model that fits less well would more often fail to be shown to fit closely.",
+            percent(spec$goal$power), alpha, format(round(s$effect, 3), nsmall = 3))
+        } else if (identical(s$effect_name, "rmsea")) {
+          sprintf("A power analysis shows the smallest misfit a study of this size would detect %s of the time (using a %s threshold for statistical significance) is a population RMSEA of %s. Smaller misfit would more often be missed.",
+            percent(spec$goal$power), alpha, format(round(s$effect, 3), nsmall = 3))
+        } else if (identical(s$effect_name, "bound")) {
+          sprintf("A power analysis shows the narrowest equivalence bounds a study of this size could show %s of the time (each one-sided test using a %s threshold) are \u00b1%s, %s. Narrower bounds would more often fail to show equivalence.",
+            percent(spec$goal$power), alpha, format(round(s$effect, 3), nsmall = 2), s$effect_description)
+        } else {
+          sprintf("A power analysis shows the smallest effect a study of this size would find %s of the time (using a %s threshold for statistical significance) is %s. Smaller effects would more often be missed.",
+            percent(spec$goal$power), alpha, size)
+        },
         sprintf("Our reasoning about the size of the effect: %s.", reasoning))
     },
     justified_alpha = {

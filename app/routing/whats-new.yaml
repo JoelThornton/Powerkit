@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "The smallest effect you could detect, for meta-analyses and structural equation models"
+    text: "A meta-analysis of the average effect can now give the smallest average effect its number of studies could detect. A structural equation model can give the smallest misfit (RMSEA) its sample would detect, the largest RMSEA it could show to fit closely, or the smallest factor correlation or latent slope it could detect. The methods paragraph for a model-fit test now names the test of close or not-close fit when that is the one you chose."
+  - date: "2026-11-17"
     title: "Cochran's Q: yes/no answers in three or more conditions"
     text: "Powerkit now plans Cochran's Q, for the same people giving a yes/no answer once in each of three or more conditions, such as whether each person attends after no reminder, a text and a call. Choose a yes/no outcome measured once in each condition on the card for the same people measured more than once. Power and the number of people you need both run in the app, and the design finder takes you there."
   - date: "2026-11-17"

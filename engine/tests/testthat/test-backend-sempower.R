@@ -98,8 +98,9 @@ test_that("the spec checks refuse what can't be computed", {
   expect_spec_problem(sem_spec(list(type = "power", n = 300), indicators = 3, factors = 1), "0 degrees of freedom")
   expect_spec_problem(sem_spec(list(type = "power", n = 10)), "at least 13")
   expect_error(validate_spec(sem_spec(list(type = "power", n = 300), rmsea = 0)), class = "powerkit_spec_error")
+  # The smallest detectable misfit is searched (test-sensitivity-search.R).
   spec <- sem_spec(list(type = "sensitivity", n = 300, power = 0.8))
-  expect_error(validate_spec(spec), class = "powerkit_spec_error")
+  expect_silent(validate_spec(spec))
   spec <- sem_spec(list(type = "power", n = 300))
   spec$target_test$alternative <- "greater"
   expect_error(validate_spec(spec), class = "powerkit_spec_error")

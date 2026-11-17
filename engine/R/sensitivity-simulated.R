@@ -37,40 +37,14 @@ welch_f_sensitivity <- function(spec, n, power, nrep, seed, cores = 1L, level = 
   mu_at <- function(scale) grand_mean + scale * (means - grand_mean)
   guess <- classical_f_scale(spec, n, power)
 
-  points <- data.frame(scale = numeric(), seed = numeric(), rejections = numeric(), nrep = numeric(),
-    attempted = numeric(), valid = numeric())
-  simulate_at <- function(scales) {
-    scales <- setdiff(signif(scales, 6), points$scale)
-    for (scale in scales[scales > 0]) {
-      scale_seed <- offset_seed(seed, 10007 * nrow(points))
-      scaled <- spec
-      scaled$population$means <- as.list(mu_at(scale))
-      sim <- spower_backend(scaled)$simulate(n, nrep, scale_seed, cores)
-      points[nrow(points) + 1, ] <<- c(scale, scale_seed, sim$rejections, sim$nrep,
-        sim$attempted %||% sim$nrep, sim$valid %||% sim$nrep)
-    }
-  }
-  simulate_at(guess * (1 + 0.08 * (-3:3)))
-  for (attempt in 1:6) {
-    estimate <- scale_from_curve(points, power, level)
-    if (!is.na(estimate$scale) && !is.na(estimate$lower) && !is.na(estimate$upper)) break
-    p <- points$rejections / points$nrep
-    # The target is above every simulated point: larger scales; below
-    # every point: smaller ones.
-    if (all(p < power)) simulate_at(max(points$scale) * c(1.15, 1.35, 1.6))
-    if (all(p >= power)) simulate_at(min(points$scale) / c(1.15, 1.35, 1.6))
-    if (any(p < power) && any(p >= power)) simulate_at(range(points$scale) * c(0.85, 1.15))
-  }
-  fitted <- points$scale
-  if (!is.na(estimate$scale)) {
-    near <- function() points[abs(points$scale / estimate$scale - 1) <= 0.2, ]
-    if (nrow(near()) < 5) simulate_at(estimate$scale * (1 + 0.05 * (-3:3)))
-    fitted <- near()$scale
-    estimate <- scale_from_curve(near(), power, level)
-  }
-  if (is.na(estimate$scale) || is.na(estimate$lower) || is.na(estimate$upper)) {
-    abort_run("The search for the smallest detectable effect could not pin it down: the simulated power didn't settle near the target. Try more replications ('options > nrep') or another seed.")
-  }
+  found <- simulated_scale_search(guess, power, seed, level, function(scale, scale_seed) {
+    scaled <- spec
+    scaled$population$means <- as.list(mu_at(scale))
+    spower_backend(scaled)$simulate(n, nrep, scale_seed, cores)
+  })
+  points <- found$points
+  estimate <- found$estimate
+  fitted <- found$fitted
 
   points <- points[order(points$scale), ]
   spread <- max(means) - min(means)
@@ -97,6 +71,50 @@ welch_f_sensitivity <- function(spec, n, power, nrep, seed, cores = 1L, level = 
     curve = data.frame(n = n, power = power, mcse = 0),
     simulations = record
   )
+}
+
+# The search itself, for any effect whose power rises with a positive
+# value x (a scale of the pattern of means, or the effect itself): power
+# simulated at seven values around the guess, widened until the target
+# lies inside them, then a probit curve of the rejections on x fitted to
+# the points within 20% of the estimate (scale_from_curve()). Each value
+# has its own seed. `simulate_at_x(x, seed)` returns the backend's
+# simulate() result. Returns the points (column `scale` holding x), the
+# estimate and the values fitted.
+simulated_scale_search <- function(guess, power, seed, level, simulate_at_x) {
+  points <- data.frame(scale = numeric(), seed = numeric(), rejections = numeric(), nrep = numeric(),
+    attempted = numeric(), valid = numeric())
+  simulate_at <- function(scales) {
+    scales <- setdiff(signif(scales, 6), points$scale)
+    for (scale in scales[scales > 0]) {
+      scale_seed <- offset_seed(seed, 10007 * nrow(points))
+      sim <- simulate_at_x(scale, scale_seed)
+      points[nrow(points) + 1, ] <<- c(scale, scale_seed, sim$rejections, sim$nrep,
+        sim$attempted %||% sim$nrep, sim$valid %||% sim$nrep)
+    }
+  }
+  simulate_at(guess * (1 + 0.08 * (-3:3)))
+  for (attempt in 1:6) {
+    estimate <- scale_from_curve(points, power, level)
+    if (!is.na(estimate$scale) && !is.na(estimate$lower) && !is.na(estimate$upper)) break
+    p <- points$rejections / points$nrep
+    # The target is above every simulated point: larger values; below
+    # every point: smaller ones.
+    if (all(p < power)) simulate_at(max(points$scale) * c(1.15, 1.35, 1.6))
+    if (all(p >= power)) simulate_at(min(points$scale) / c(1.15, 1.35, 1.6))
+    if (any(p < power) && any(p >= power)) simulate_at(range(points$scale) * c(0.85, 1.15))
+  }
+  fitted <- points$scale
+  if (!is.na(estimate$scale)) {
+    near <- function() points[abs(points$scale / estimate$scale - 1) <= 0.2, ]
+    if (nrow(near()) < 5) simulate_at(estimate$scale * (1 + 0.05 * (-3:3)))
+    fitted <- near()$scale
+    estimate <- scale_from_curve(near(), power, level)
+  }
+  if (is.na(estimate$scale) || is.na(estimate$lower) || is.na(estimate$upper)) {
+    abort_run("The search for the smallest detectable effect could not pin it down: the simulated power didn't settle near the target. Try more replications ('options > nrep') or another seed.")
+  }
+  list(points = points, estimate = estimate, fitted = fitted)
 }
 
 # The F test's smallest detectable scale of the pattern of means, exactly
@@ -136,5 +154,71 @@ scale_from_curve <- function(points, target, level = 0.95) {
     scale = first_reaching(stats::pnorm(link$fit)),
     lower = first_reaching(stats::pnorm(link$fit + z * link$se.fit)),
     upper = first_reaching(stats::pnorm(link$fit - z * link$se.fit))
+  )
+}
+
+# The smallest detectable effect of other simulated tests, by the same
+# search (simulated_scale_search()) over the effect itself: `plan` gives
+# a starting guess, how a positive value x sets the spec, and how x is
+# reported. What is searched, the rest kept as entered:
+#   meta-analysis (Hartung-Knapp)   the average effect, d or r (its size;
+#                                   the sign of the effect entered), the
+#                                   typical study's size and I-squared
+#                                   kept; the guess is metapower's z test
+simulated_search_plan <- function(spec, n, power) {
+  pop <- spec$population
+  if (identical(spec$design, "meta_analysis") && identical(spec$template, "mean_effect") && hartung_knapp_test(spec)) {
+    direction <- pwrss_search_direction(spec, pop$effect %||% 0)
+    r <- identical(pop$metric, "r")
+    z_test <- spec
+    z_test$target_test$test <- "z"
+    guess <- tryCatch(abs(formula_search_sensitivity(z_test, n, power)$effect), error = function(e) if (r) 0.2 else 0.3)
+    return(list(
+      guess = guess,
+      set = function(s, x) { s$population$effect <- direction * x; s },
+      effect = function(x) direction * x,
+      effect_name = if (r) "meta_r" else "meta_d",
+      what = sprintf("average effect, as %s, with studies of %s participants and I-squared %s",
+        if (r) "a correlation r" else "Cohen's d", format(pop$study_size), format(pop$i2)),
+      # The script's inputs for the average effect (meta_hk_script()).
+      script_set = c(
+        sprintf("  theta <<- %s", if (r) sprintf("atanh(%s * x)", r_code(direction)) else sprintf("%s * x", r_code(direction))),
+        if (r) sprintf("  v <<- 1 / (%s - 3)", r_code(pop$study_size)) else
+          sprintf("  v <<- 4 / %s + theta^2 / (2 * %s)", r_code(pop$study_size), r_code(pop$study_size)),
+        sprintf("  tau2 <<- %s * v / (1 - %s)", r_code(pop$i2), r_code(pop$i2))
+      ),
+      effect_script = sprintf("%s * x", r_code(direction))
+    ))
+  }
+  NULL
+}
+
+simulated_search_available <- function(spec) {
+  identical(spec$design, "meta_analysis") && identical(spec$template, "mean_effect") && hartung_knapp_test(spec)
+}
+
+simulated_effect_sensitivity <- function(spec, n, power, nrep, seed, cores = 1L, level = 0.95) {
+  plan <- simulated_search_plan(spec, n, power)
+  found <- simulated_scale_search(plan$guess, power, seed, level, function(x, x_seed) {
+    route_backend(plan$set(spec, x), x_seed)$simulate(n, nrep, x_seed, cores)
+  })
+  points <- found$points[order(found$points$scale), ]
+  estimate <- found$estimate
+  record <- simulation_record(rep(n, nrow(points)), points$seed, points$rejections, points$nrep,
+    points$scale %in% found$fitted, points$attempted, points$valid)
+  record$scale <- points$scale
+  ends <- sort(plan$effect(c(estimate$lower, estimate$upper)))
+  list(
+    sensitivity = list(
+      scale = estimate$scale, scale_lower = estimate$lower, scale_upper = estimate$upper,
+      effect = plan$effect(estimate$scale), effect_lower = ends[1], effect_upper = ends[2],
+      effect_name = plan$effect_name,
+      effect_description = sprintf("the %s", plan$what),
+      power = power,
+      simulated = TRUE,
+      searched = TRUE
+    ),
+    curve = data.frame(n = n, power = power, mcse = 0),
+    simulations = record
   )
 }
