@@ -30,7 +30,8 @@ replication_planning(
   original_prior = NULL,
   original_effect_type = "d",
   original_r = NULL,
-  original_f = NULL
+  original_f = NULL,
+  alternative = "two.sided"
 )
 }
 \arguments{
@@ -51,7 +52,8 @@ two groups.}
 \item{original_alpha}{The original study's two-sided significance
 level (for small telescopes' d33).}
 
-\item{alpha}{The replication's two-sided significance level.}
+\item{alpha}{The replication's significance level: two-sided by
+default, one-sided in the original's direction with \code{alternative = "one.sided"}.}
 
 \item{power}{The chance of success the sample sizes aim for.}
 
@@ -121,6 +123,14 @@ between the two measurements in the original study.}
 \item{original_f}{For a generic design: an F statistic with one
 numerator degree of freedom, whose square root is the estimate's
 |t| (in place of \code{original_statistic}).}
+
+\item{alternative}{\code{"two.sided"} (the default) or \code{"one.sided"}. The
+significance goal is BayesRepDesign's one-sided test in the original's
+direction at \code{alpha / 2} (a two-sided test at \code{alpha} that also needs
+the original's direction) or, one-sided, at \code{alpha}; the pooled goal
+is at that level squared. Agreement, too small to matter (TOST at
+\code{alpha}), small telescopes (one-sided at \code{alpha}) and the Bayes factor
+goals are the same either way.}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the

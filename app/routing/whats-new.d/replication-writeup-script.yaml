@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "Replication plans: a study design table, a shorter script and one-sided tests"
+    text: "A replication plan's write-up now includes the study design table that Registered Report journals ask for: for each criterion, the question, hypothesis, sampling plan, analysis plan, what sets the test's sensitivity and how each outcome will be read, with a column for your theory to fill in. The R script now runs only the criteria you chose: it finds the main criterion's sample size under your belief about the true effect, then the chance of each other criterion at that size. The significance test can now be one-sided, in the original's direction, if your preregistration says so."
