@@ -607,11 +607,16 @@ powertools_script_group_treatment <- function(spec, result) {
 # Ordinal outcome, two groups (ordinal_regression/ordinal_two_groups):
 # powertools::propodds(), the proportional-odds comparison of two groups by
 # Whitehead's method (its help, Details), two-sided. powertools wants
-# group 1's shares ordered from best to worst and an odds ratio above 1;
-# power depends on the odds ratio only through |log(OR)|, so an odds ratio
-# below 1 is passed as its reciprocal, and the shares are passed as given
-# (the order only fixes which direction "higher" means, and power is the
-# same either way). Group 1's size is n1, with n.ratio = n2 / n1.
+# group 1's shares ordered from best to worst and an odds ratio above 1,
+# and shifts group 2 towards the first category it is given (Hmisc's
+# pomodm() with the reciprocal odds ratio). Whitehead's variance uses the
+# average of the two groups' shares, so with uneven shares power depends
+# on the direction of the shift, not only on |log(OR)|. powerkit's shares
+# run from the lowest category and its odds ratio is for a higher category
+# in group 2, so an odds ratio above 1 passes the shares reversed (the
+# highest category first) and one below 1 passes them as given with the
+# reciprocal odds ratio: either way powertools shifts group 2 the way the
+# researcher described. Group 1's size is n1, with n.ratio = n2 / n1.
 propodds_backend <- function(spec) {
   # The smallest detectable effect may start from no effect (an odds ratio
   # of 1, which powertools refuses): its check run uses an odds ratio of 2,
@@ -641,8 +646,10 @@ propodds_backend <- function(spec) {
 propodds_inputs <- function(spec) {
   pop <- spec$population
   or <- pop$odds_ratio
+  shares <- as.numeric(unlist(pop$probabilities))
   list(
-    pC = as.numeric(unlist(pop$probabilities)),
+    pC = if (or < 1) shares else rev(shares),
+    reversed = or >= 1,
     OR = if (or < 1) 1 / or else or,
     ratio = allocation_ratio(spec),
     alpha = spec$target_test$alpha
@@ -689,11 +696,17 @@ propodds_script <- function(spec, result) {
     "library(powertools)",
     "",
     "# Inputs ----",
-    sprintf("pC <- %s # group 1's share in each category: %s", r_code(inputs$pC), paste(levels, collapse = ", ")),
+    sprintf("pC <- %s # group 1's share in each category: %s", r_code(inputs$pC),
+      paste(if (isTRUE(inputs$reversed)) rev(levels) else levels, collapse = ", ")),
+    if (isTRUE(inputs$reversed)) {
+      "# (highest category first: powertools shifts group 2 towards the first category, and group 2 tends to higher ones)"
+    } else {
+      "# (lowest category first: powertools shifts group 2 towards the first category, and group 2 tends to lower ones)"
+    },
     sprintf(
       "OR <- %s # the odds ratio between the groups%s",
       r_code(inputs$OR),
-      if (spec$population$odds_ratio < 1) sprintf(" (you gave %s; power is the same for an odds ratio and its reciprocal, and powertools needs one above 1)", format_number(spec$population$odds_ratio)) else ""
+      if (spec$population$odds_ratio < 1) sprintf(" (you gave %s for a higher category in group 2; powertools needs one above 1, so the reciprocal, with the shares in the order above)", format_number(spec$population$odds_ratio)) else ""
     ),
     sprintf("ratio <- %s # size of group 2 relative to group 1", r_code(inputs$ratio)),
     goal_inputs(spec, result),

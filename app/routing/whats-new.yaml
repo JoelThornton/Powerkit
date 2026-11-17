@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Fixed: ordered categories in two groups, when the shares are uneven"
+    text: "The analysis for comparing two groups on ordered categories planned the effect in the wrong direction: an odds ratio above 1, meaning group 2 tends to higher categories, was worked out as group 2 tending to lower ones. When group 1's answers are spread evenly this changed little, but when most of them are in one category the power or sample size could be well off. For example, with group 1's shares .7, .2 and .1, an odds ratio of 2.5 and 50 per group, the power is 63%, not the 48% shown before. If you planned this analysis with uneven shares, please run it again."
+  - date: "2026-11-17"
     title: "Fixed: Friedman's test with heavy-tailed scores"
     text: "Planning Friedman's test with heavy-tailed scores often stopped with a message about an internal check failing. The check was too strict for scores with many extreme values; it now allows for them, and the test runs."
   - date: "2026-11-17"
