@@ -15,10 +15,10 @@ test_that("nothing is required, scored or marked complete", {
   # The outcome starts unchosen, and all three outcomes are offered. (The
   # workspace's section, the planner's Bayes factor threshold, how
   # another design's uncertainty is entered, how the original was
-  # analysed, a posterior's prior and how its uncertainty is entered start
-  # at their defaults.)
+  # analysed, what the paper gave for a t-test's effect, a posterior's
+  # prior and how its uncertainty is entered start at their defaults.)
   checked <- regmatches(html, gregexpr("<input[^>]*checked=\"checked\"[^>]*>", html))[[1]]
-  expect_true(all(grepl("name=\"(picture_alpha|picture_sides|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design|rep_section|rep_threshold|rep_se_from|rep_analysis|rep_original_prior|rep_post_from)\"", checked)))
+  expect_true(all(grepl("name=\"(picture_alpha|picture_sides|bayes_alternative|bayes_threshold|bayes_threshold_null|bayes_design|rep_section|rep_threshold|rep_se_from|rep_analysis|rep_effect_type|rep_original_prior|rep_post_from)\"", checked)))
   for (o in labs_outcomes) expect_match(html, o, fixed = TRUE)
 })
 

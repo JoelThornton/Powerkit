@@ -19,7 +19,7 @@ replication_plan_field_ids <- c(replication_notes_ids, replication_field_ids)
 # The planner's starting values, as its screen had them.
 replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "test", rep_original_prior = "default",
   rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
-  rep_original_alpha = "0.05", rep_tau = "0.05",
+  rep_original_alpha = "0.05", rep_tau = "0.05", rep_tau_r = "0.025", rep_effect_type = "d",
   rep_alpha = "", rep_power = "", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05")
 
 # Fields as the record keeps them: known ids only, each one string, blanks
@@ -145,9 +145,45 @@ replication_fields_for_card <- function(fields, forms, ep) {
 
 # Under "The original study": the original's analysis on its own card,
 # which plans the replication for its design (12 November 2026).
+# Which of the plan's analyses is the original's: the first planned on the
+# original's card, else the first. Any others (an extension, a check) are
+# the researcher's own additions and are reported apart from it.
+replication_original_index <- function(plan) {
+  if (!length(plan$entries)) return(NA_integer_)
+  ep <- plan$replication$endpoint
+  hit <- which(vapply(plan$entries, function(e) identical(e$endpoint, ep), logical(1)))
+  if (length(hit)) hit[[1]] else 1L
+}
+
+# The planner's design that a card's original effect is entered as
+# (forms.yaml's replication_effects): one of the four exact designs,
+# "generic" for any other one-number effect, NULL when the card has none.
+replication_card_planner_design <- function(forms, ep) {
+  e <- replication_card_effect(forms, ep)
+  if (is.null(e)) return(NULL)
+  if (!is.null(e$exact)) return(e$exact)
+  if (!is.null(e$effect) || !is.null(e$multi_df)) return("generic")
+  NULL
+}
+
+# When the design chosen under "The original study" and the original's
+# card disagree, the plan describes two different studies: said in words.
+replication_design_mismatch <- function(plan, forms) {
+  ep <- plan$replication$endpoint
+  if (is.null(ep) || is.null(forms)) return(NULL)
+  want <- replication_card_planner_design(forms, ep)
+  have <- replication_values(plan$replication)$rep_design
+  if (is.null(want) || identical(want, have)) return(NULL)
+  label <- function(x) names(replication_designs_ui)[replication_designs_ui == x]
+  sprintf("These describe different studies: the design chosen above is \u201c%s\u201d, but the original's card is for \u201c%s\u201d. Change the design above, or choose the card for the original's design, so the goals and the card plan the same analysis.",
+    label(have), label(want))
+}
+
 replication_card_status_ui <- function(tree, plan, forms = NULL) {
   ep <- plan$replication$endpoint
-  entry <- if (length(plan$entries)) plan$entries[[1]]
+  i <- replication_original_index(plan)
+  entry <- if (!is.na(i)) plan$entries[[i]]
+  mismatch <- replication_design_mismatch(plan, forms)
   div(class = "rep-card-status form-group-box",
     h4(class = "h6", "Its analysis, on its own card"),
     if (is.null(ep)) tagList(
@@ -156,6 +192,7 @@ replication_card_status_ui <- function(tree, plan, forms = NULL) {
     else tagList(
       p(HTML(sprintf("The original's design: <strong>%s</strong>%s.", htmltools::htmlEscape(tree$endpoints[[ep]]$plain_name %||% ep),
         if (!is.null(entry)) sprintf(" (planned: %s)", htmltools::htmlEscape(plan_item_summary(entry))) else ""))),
+      if (!is.null(mismatch)) p(class = "rep-design-mismatch alert alert-warning", role = "alert", mismatch),
       if (!is.null(forms)) {
         note <- replication_card_effect_note(forms, ep)
         if (!is.null(note)) p(class = "small", note)
@@ -174,11 +211,19 @@ plan_item_summary <- function(entry) {
 # it found and the card's own methods paragraph. Nothing is recalculated.
 replication_analysis_lines <- function(plan, tree, forms) {
   if (!length(plan$entries)) return(NULL)
-  unlist(lapply(plan$entries, function(e) {
+  one <- function(e) {
     text <- tryCatch(planning_methods_text(tree, forms, plan_entry_calc(e)), error = function(err) NULL)
     c(sprintf("- %s: %s", e$label, plan_item_summary(e)), "",
       text %||% "The methods paragraph for this analysis is in its own report.", "")
-  }))
+  }
+  i <- replication_original_index(plan)
+  others <- plan$entries[-i]
+  # The other analyses (an extension, a check) under their own heading, so
+  # none is reported as the original's (the report's next heading follows).
+  c(one(plan$entries[[i]]),
+    if (length(others)) c("## Other analyses in this plan", "",
+      "Planned beside the replication, such as an extension or a check; not part of the original study.", "",
+      unlist(lapply(others, one))))
 }
 
 # On the card's input screen when replicating: each effect field says it
