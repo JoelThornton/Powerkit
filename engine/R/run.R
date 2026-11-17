@@ -171,11 +171,14 @@
 #' don't solve for the effect, the effect is searched with the backend's
 #' own power at n (pwrss's tests, the variances, Hotelling's T-squared,
 #' the equivalence tests, metapower's z test, SEM, and the ordinal,
-#' survival, growth-curve and reliability tests). The random-effects
+#' survival, growth-curve and reliability tests, and the three-way
+#' interaction). The random-effects
 #' meta-analysis's Hartung-Knapp test, the paired variances, the trend in
 #' proportions, d', the Jonckheere-Terpstra trend test, the factorial
-#' logistic regression, moderation by groups and the interrupted time
-#' series search their effect by simulation, with a 95%
+#' logistic regression, moderation by groups, the interrupted time series,
+#' moderation of a yes/no or count outcome, an outcome in unordered
+#' categories, moderated regression with a yes/no X or W, latent profiles
+#' (the separation) and factor recovery (the loading) search their effect by simulation, with a 95%
 #' interval (`simulated_effect_sensitivity()`). Other simulated tests have no
 #' sensitivity analysis yet.
 #'

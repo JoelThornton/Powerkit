@@ -171,10 +171,10 @@ calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E
 # (docs/phase5-simulations.md, table 1). The bar is estimated from these.
 background:
   E9: {power: 5, sample_size: 80, sensitivity: 2}
-  E15: {power: 5, sample_size: 80}
+  E15: {power: 5, sample_size: 80, sensitivity: 45}
   E59: {power: 4, sample_size: 30}
-  E58: {power: 25, sample_size: 120}
-  E73: {power: 35, sample_size: 320}
+  E58: {power: 25, sample_size: 120, sensitivity: 190}
+  E73: {power: 35, sample_size: 320, sensitivity: 800}
   # Mediation with a yes/no mediator (regmedint), measured 14 November 2026.
   E39: {power: 25, sample_size: 200}
   E60: {power: 4, sample_size: 30}
@@ -193,13 +193,13 @@ simulated_times:
   # Cochran's Q, measured 16 November 2026 on the repeated-measures card's
   # example design (one core).
   E78: {power: 11, sample_size: 190}
-  E70: {power: 5, sample_size: 40}
+  E70: {power: 5, sample_size: 40, sensitivity: 60}
   E30: {power: 4, sample_size: 35, sensitivity: 45}
   # E32: moderation takes about 4 seconds for power (an outcome in three
   # unordered categories, nnet::multinom(), about 10 and 80 for a sample
   # size); mediation with a negative binomial count (regmedint) about 30,
   # the slower case shown.
-  E32: {power: 30, sample_size: 200}
+  E32: {power: 30, sample_size: 200, sensitivity: 90}
   E45: {power: 2, sample_size: 10, sensitivity: 60}
   E72: {power: 2, sample_size: 10, sensitivity: 10}
   # Measured 12 November 2026 the same way: Welch's ANOVA (the one-way
@@ -1291,6 +1291,7 @@ forms:
 
   E15:
     methods_name: "a moderated regression with a yes/no predictor or moderator"
+    sensitivity: true
     tool: InteractionPoweR
     known_differences: ["1"]
     directional: false
@@ -1317,7 +1318,7 @@ forms:
         fields:
           - {id: r_X_Y, label: "Correlation of X with Y (for a yes/no X, the point-biserial correlation)", type: number, path: population.r_X_Y, effect: true, min: -1, max: 1}
           - {id: r_W_Y, label: "Correlation of W with Y (for a yes/no W, the point-biserial correlation)", type: number, path: population.r_W_Y, effect: true, min: -1, max: 1}
-          - {id: r_XW_Y, label: "Correlation of the interaction XW with Y", type: number, path: population.r_XW_Y, effect: true, min: -1, max: 1}
+          - {id: r_XW_Y, optional_for: [sensitivity], label: "Correlation of the interaction XW with Y", type: number, path: population.r_XW_Y, effect: true, min: -1, max: 1}
           - {id: r_X_W, label: "Correlation of X with W (0 when X is a randomised condition)", type: number, path: population.r_X_W, effect: true, min: -1, max: 1}
       - input: "Optional: reliability of the score variable and of Y"
         fields:
@@ -1332,6 +1333,7 @@ forms:
 
   E31:
     methods_name: "a three-way regression interaction"
+    sensitivity: true
     tool: InteractionPoweR
     known_differences: ["17"]
     directional: false
@@ -1353,7 +1355,7 @@ forms:
           - {id: r_W_Z, label: "Correlation of W with Z", type: number, path: population.r_W_Z, effect: true, min: -1, max: 1}
       - input: "The three-way effect (standardised coefficient of XWZ)"
         fields:
-          - {id: b_XWZ, label: "Standardised regression coefficient of the three-way product XWZ", type: number, path: population.b_XWZ, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: b_XWZ, optional_for: [sensitivity], label: "Standardised regression coefficient of the three-way product XWZ", type: number, path: population.b_XWZ, effect: true, min_exclusive: -1, max_exclusive: 1,
              help: "How much the XW interaction changes per SD of Z, in SD units of Y: InteractionPoweR's b.x1x2x3. Small three-way effects (around 0.05 to 0.1) need large samples."}
       - input: "Optional: reliability of X, W, Z and Y"
         fields:
@@ -3755,6 +3757,7 @@ forms:
   # report it. Other predictors enter only through X's R-squared with them.
   E70:
     methods_name: "a multinomial logistic regression, simulated"
+    sensitivity: true
     tool: Spower
     directional: false
     base: {spec_version: "0.1", design: logistic_regression, template: multinomial,
@@ -3897,6 +3900,7 @@ forms:
   # around psych's fa()): the chance every factor's loadings are recovered.
   E73:
     methods_name: "an exploratory factor analysis (psych's fa(): minimum residual, oblimin rotation), recovery of the loadings judged by Tucker's congruence, simulated"
+    sensitivity: true
     tool: Spower
     directional: false
     no_alpha: true
@@ -3914,7 +3918,7 @@ forms:
              help: "More items per factor make each factor better defined (overdetermined) and easier to recover."}
       - input: "How strongly the items measure their factors"
         fields:
-          - {id: loading, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: loading, optional_for: [sensitivity], when_empty: omit, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
              help: "Its square is the item's communality, the share of its variance its factor explains. Loadings around 0.4 are weak, 0.6 moderate, 0.8 strong. Take them from earlier studies of the same or similar items."}
           - {id: factor_correlation, label: "Correlation between the factors", type: number, path: population.factor_correlation, required: true, min: 0, max: 0.9,
              default: 0, default_source: "uncorrelated factors, powerkit's default"}
@@ -4019,6 +4023,7 @@ forms:
   # around mclust): the chance the BIC finds the right number of profiles.
   E58:
     methods_name: "a latent profile analysis (mclust's models with equal variances and local independence, the number of profiles chosen by the BIC), simulated"
+    sensitivity: true
     tool: Spower
     directional: false
     no_alpha: true
@@ -4035,7 +4040,7 @@ forms:
       - input: "The profiles you expect"
         fields:
           - {id: profiles, label: "Number of profiles", type: number, path: population.profiles, required: true, min: 2, max: 6, integer: true}
-          - {id: separation, writeup_label: "separation between neighbouring profiles", label: "How far apart neighbouring profiles are on each indicator, in SD units (Cohen's d)", type: number, path: population.separation, effect: true, min: 0, max: 5,
+          - {id: separation, optional_for: [sensitivity], when_empty: omit, writeup_label: "separation between neighbouring profiles", label: "How far apart neighbouring profiles are on each indicator, in SD units (Cohen's d)", type: number, path: population.separation, effect: true, min: 0, max: 5,
              help: "Each profile is this far above the one before it on every indicator, in SDs within a profile, as in Tein, Coxe and Cham's simulations. 0.5 is hard to find, 0.8 moderate, 1.5 clear."}
           - {id: profile_sizes, label: "Will the profiles be about the same size?", type: select, required: true,
              choices: {equal: "Yes, about equal", unequal: "No: give each profile's share"},
@@ -4123,6 +4128,8 @@ forms:
   E32:
     methods_name: "a regression with an interaction (logistic for a yes/no outcome, Poisson or negative binomial for a count; the Wald z test of the X x W coefficient), simulated"
     tool: Spower
+    sensitivity: true
+    sensitivity_shown_if: {field: analysis, is: moderation}
     directional: true
     direction_shown_if: [{field: analysis, is_not: mediation}, {field: Y_kind, is_not: categories}]
     base: {spec_version: "0.1", design: logistic_regression, template: interaction,
@@ -4180,7 +4187,7 @@ forms:
              help: "Per SD of X for a score, or X's second group against its first."}
           - {id: odds_ratio_w, writeup_label: "odds ratio for W", label: "Odds ratio for W, with X at its average or in its first group", type: number, path: population.odds_ratio_w, effect: true, min_exclusive: 0,
              shown_if: [{field: Y_kind, is_not: count}, {field: Y_kind, is_not: categories}, {field: analysis, is_not: mediation}]}
-          - {id: odds_ratio_xw, writeup_label: "interaction (ratio of odds ratios)", label: "The interaction: how many times X's odds ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.odds_ratio_xw, effect: true, min_exclusive: 0,
+          - {id: odds_ratio_xw, optional_for: [sensitivity], when_empty: one, writeup_label: "interaction (ratio of odds ratios)", label: "The interaction: how many times X's odds ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.odds_ratio_xw, effect: true, min_exclusive: 0,
              shown_if: [{field: Y_kind, is_not: count}, {field: Y_kind, is_not: categories}, {field: analysis, is_not: mediation}],
              help: "1 means no moderation. For example 1.25: X's odds ratio is a quarter larger for each SD of W. It is the exponent of the X x W coefficient a logistic regression reports."}
           - {id: cat_probabilities, writeup_label: "share in each category at the starting point", label: "Share of people in each category with X and W at their averages, or in their first groups: one for each, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
@@ -4200,7 +4207,7 @@ forms:
              help: "How many times the mean count is multiplied per SD of X for a score, or in X's second group against its first: 0.8 is a fifth fewer."}
           - {id: rate_ratio_w, writeup_label: "rate ratio for W", label: "Rate ratio for W, with X at its average or in its first group", type: number, path: population.rate_ratio_w, effect: true, min_exclusive: 0,
              shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}]}
-          - {id: rate_ratio_xw, writeup_label: "interaction (ratio of rate ratios)", label: "The interaction: how many times X's rate ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.rate_ratio_xw, effect: true, min_exclusive: 0,
+          - {id: rate_ratio_xw, optional_for: [sensitivity], when_empty: one, writeup_label: "interaction (ratio of rate ratios)", label: "The interaction: how many times X's rate ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.rate_ratio_xw, effect: true, min_exclusive: 0,
              shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
              help: "1 means no moderation. For example 0.85: X's rate ratio is 15% smaller for each SD of W. It is the exponent of the X x W coefficient a Poisson or negative binomial regression reports."}
           - {id: dispersion, writeup_label: "the counts' overdispersion", label: "Overdispersion k: a count's variance is its mean plus k times its mean squared", type: number, path: population.dispersion, required: true, min_exclusive: 0,

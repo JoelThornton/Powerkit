@@ -12528,8 +12528,7 @@
           "required": [
             "metric",
             "profiles",
-            "indicators",
-            "separation"
+            "indicators"
           ],
           "additionalProperties": false,
           "properties": {
@@ -12637,8 +12636,7 @@
           "required": [
             "metric",
             "factors",
-            "items_per_factor",
-            "loading"
+            "items_per_factor"
           ],
           "additionalProperties": false,
           "properties": {
