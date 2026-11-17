@@ -2040,7 +2040,7 @@ endpoints:
     status: not_in_powerkit
     generic: true
     established_tools: true
-    card_text: "Powerkit doesn't cover data from pairs of people whose scores are related (dyadic data), such as couples or a parent and child. Treating the two members as independent people can overstate or understate power, depending on whether the predictor varies between dyads (for example, couples assigned to different conditions) or within dyads (for example, each partner's own stress), so dyadic methods are needed."
+    card_text: "Two pair designs have cards of their own. For how each member's score relates to their own and their partner's outcome, when the outcome is a score, use \"Pairs of people: how each one's score relates to their own and their partner's outcome\". For conditions given to whole pairs, such as couples randomised to a programme, use \"People nested in groups (classes, teams, clinics)\" with groups of two. If you matched the pairs yourself and compare them on one score, as with twins, use \"Compare the same people in two conditions (or before and after)\". Powerkit doesn't yet cover actor and partner effects on a yes/no, count or ordered outcome, or a condition given to one member of each pair. For those, dyadic methods are needed: treating the two members as independent people can overstate or understate power, depending on whether the predictor varies between dyads (couples assigned to different conditions) or within dyads (each partner's own stress)."
     tier: later
   E45:
     doc_name: "Many measurements over time: segmented regression or interrupted time series"
