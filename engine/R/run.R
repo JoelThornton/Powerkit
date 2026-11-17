@@ -51,6 +51,14 @@
 #' `population > score_shape` (normal, skewed or heavy-tailed; the
 #' signed-rank test, which assumes symmetry, normal or heavy-tailed),
 #' shifted by the effect. No formula.
+#' Pairwise rank comparisons (`target_test > effect` `"pairwise"`, with
+#' `target_test > comparison` the pair powered and `target_test > p_adjust`
+#' the adjustment across all the pairs): `"mann_whitney"` (a test of each
+#' pair) or `"dunn"` (Dunn's test, PMCMRplus's `kwAllPairsDunnTest()`) for
+#' `oneway_between`, `"wilcoxon_signed_rank"` (a signed-rank test of each
+#' pair) or `"conover"` (Conover's test, PMCMRplus's
+#' `frdAllPairsConoverTest()`) for `oneway_within`; simulated with Spower on
+#' scores drawn as for the Kruskal-Wallis and Friedman tests.
 #' Two-way ANCOVA (template `factorial_ancova`): two between factors, either
 #' main effect or the interaction, by pwrss's `power.f.ancova.shieh()`
 #' (Shieh's method) with the effect's rows of `factorial.contrasts()`;
