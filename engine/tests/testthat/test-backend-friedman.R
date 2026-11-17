@@ -42,6 +42,27 @@ test_that("Friedman's scores have SD 1, the stated correlation and a shift betwe
   expect_equal(unname(colMeans(y)), c(0, 0.2, 0.4), tolerance = 0.02)
 })
 
+test_that("Friedman's check run holds for heavy-tailed deviations, whatever the seed", {
+  # Heavy-tailed deviations (t, 3 df) have no finite fourth moment, so an
+  # SD's or a correlation's normal-theory standard error is far too small:
+  # with those, the check failed by chance on about half of the seeds and
+  # the card refused to run. Its errors now allow for the scores' shape.
+  spec <- friedman_spec("heavy_tailed")
+  spec$variables$A$levels <- list("a", "b", "c")
+  for (shape in c("normal", "skewed", "heavy_tailed")) {
+    ok <- vapply(1:20, function(seed) {
+      all(rank_check_run(spec, list(n = check_run_n(), means = c(0, 0.3, 0.5), r = 0.5, shape = shape), seed)$ok)
+    }, logical(1))
+    expect_true(all(ok), label = shape)
+  }
+  # It still notices a population that isn't the one specified: scores
+  # drawn with a correlation of 0.3 checked against 0.5.
+  y <- withr::with_seed(1, friedman_scores(check_run_n(), c(0, 0.3, 0.5), 0.3, "heavy_tailed"))
+  local_mocked_bindings(friedman_scores = function(n, means, r, shape) y)
+  rows <- rank_check_run(spec, list(n = check_run_n(), means = c(0, 0.3, 0.5), r = 0.5, shape = "heavy_tailed"), 1)
+  expect_false(rows$ok[rows$parameter == "correlation between two conditions (average)"])
+})
+
 test_that("Friedman's test holds alpha when the conditions don't differ", {
   spec <- friedman_spec("heavy_tailed", nrep = 2000)
   spec$population$means <- list(600, 600, 600)
