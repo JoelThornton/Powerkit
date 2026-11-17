@@ -64,7 +64,7 @@ reliability_backend <- function(spec, seed = NULL) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = function(n, power) formula_search_sensitivity(spec, n, power),
     check_run = function() reliability_check_run(spec, inputs, seed)
   )
 }

@@ -613,6 +613,12 @@ powertools_script_group_treatment <- function(spec, result) {
 # (the order only fixes which direction "higher" means, and power is the
 # same either way). Group 1's size is n1, with n.ratio = n2 / n1.
 propodds_backend <- function(spec) {
+  # The smallest detectable effect may start from no effect (an odds ratio
+  # of 1, which powertools refuses): its check run uses an odds ratio of 2,
+  # and the search sets the odds ratio itself.
+  if (identical(spec$goal$type, "sensitivity") && isTRUE(spec$population$odds_ratio == 1)) {
+    spec$population$odds_ratio <- 2
+  }
   inputs <- propodds_inputs(spec)
   step <- valid_n_step(spec)
   power_at <- function(n) propodds_power(inputs, n)
@@ -627,7 +633,7 @@ propodds_backend <- function(spec) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = function(n, power) formula_search_sensitivity(spec, n, power),
     check_run = function() propodds_check_run(spec, inputs)
   )
 }

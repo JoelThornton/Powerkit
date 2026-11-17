@@ -78,7 +78,8 @@ test_that("a fixed sample on a card without the smallest-effect goal says so, an
   goals <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E24")))[[1]]
   expect_true("sensitivity" %in% names(goals$choices))
   expect_match(goals$choices$sensitivity_curve, "^The same")
-  situation <- Filter(function(f) identical(f$id, "situation"), form_fields(form_groups(forms, "E29")))[[1]]
+  # The interrupted time series (E45) has no smallest-effect goal yet.
+  situation <- Filter(function(f) identical(f$id, "situation"), form_fields(form_groups(forms, "E45")))[[1]]
   expect_match(situation$choice_notes$fixed, "doesn't yet give the smallest effect", fixed = TRUE)
   with_goal <- Filter(function(f) identical(f$id, "situation"), form_fields(form_groups(forms, "E2")))[[1]]
   expect_null(with_goal$choice_notes)
