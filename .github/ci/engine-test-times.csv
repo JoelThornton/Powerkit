@@ -111,6 +111,11 @@ sample-allocation,2.9
 sample-structure,0.2
 search-n,0.1
 sensitivity-anova-regression,18.7
+sensitivity-lpa-efa,900
+sensitivity-search,550
+sensitivity-simulated-a,700
+sensitivity-simulated-b,1000
+sensitivity-simulated-c,900
 simulated-data,8.1
 simulation-outcomes,0.1
 spec-hash,0.1

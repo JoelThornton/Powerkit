@@ -57,8 +57,11 @@ test_that("ordinal outcome, two groups: equals Hmisc's popower(), with equal and
     n1 <- 60
     spec <- ordinal_validation_spec(p_control, 2.5, n = n1 * (1 + ratio), allocation_ratio = ratio)
     # popower() takes the average of the two groups' shares; Hmisc's
-    # pomodm() gives group 2's shares under proportional odds.
-    p_average <- (p_control + Hmisc::pomodm(p = p_control, odds.ratio = 1 / 2.5)) / 2
+    # pomodm() gives group 2's shares under proportional odds; an odds ratio
+    # above 1 moves them towards the higher categories, as the card's help says
+    # (the comparison used 1 / 2.5, the engine's old direction, until 17
+    # November 2026; changed with the maintainer's agreement).
+    p_average <- (p_control + Hmisc::pomodm(p = p_control, odds.ratio = 2.5)) / 2
     direct <- Hmisc::popower(p = p_average, odds.ratio = 2.5, n1 = n1, n2 = n1 * ratio)$power
     expect_equal(run_spec(spec)$curve$power, direct, tolerance = 1e-8, label = paste("ratio", ratio))
   }

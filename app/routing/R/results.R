@@ -2229,7 +2229,7 @@ run_sensitivity_curve <- function(spec, run = engine_function("run_spec"), seed 
 sensitivity_effect_label <- function(effect_name, fallback = "effect") {
   switch(effect_name %||% "",
     d = "d", d_z = "d_z", r = "r", w = "w", p2 = "group 2's proportion",
-    r_XW_Y = "the correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared",
+    r_XW_Y = "correlation of the interaction with Y", r2 = "R-squared", partial_r2 = "partial R-squared",
     r2_change = "R-squared change", eta_squared = "partial eta-squared", V = "Pillai's V",
     odds_ratio = "odds ratio", rate_ratio = "rate ratio", p = "proportion",
     p_second_only = "proportion changing only in the second condition", r_group2 = "group 2's correlation",
@@ -2241,6 +2241,7 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     slope_difference = "difference in rates of change", icc = "ICC", reliability = "Cronbach's alpha", kappa = "kappa",
     proportion_range = "difference between the highest and lowest proportions", dprime_difference = "difference in d'",
     factorial_odds_ratio = "odds ratio", ratio_of_odds_ratios = "ratio of odds ratios",
+    b_XWZ = "three-way coefficient", separation = "separation between neighbouring profiles", loading = "loading", odds_ratio_xw = "interaction odds ratio", rate_ratio_xw = "interaction rate ratio",
     level_change = "change in level", slope_change = "change in trend per time point",
     r_range = "difference between the largest and smallest group's correlation",
     fallback)
@@ -2252,7 +2253,7 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
 sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2", "r_second", "rmsea", "p_event2", "icc", "reliability", "kappa")
 
 # Ratios, which are "the smallest" only above 1.
-sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio", "hazard_ratio", "factorial_odds_ratio", "ratio_of_odds_ratios")
+sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio", "hazard_ratio", "factorial_odds_ratio", "ratio_of_odds_ratios", "odds_ratio_xw", "rate_ratio_xw")
 
 # Reliability and agreement: the value the study could show is beyond the
 # one named (the ICC, Cronbach's alpha or kappa to beat).
@@ -2600,7 +2601,10 @@ entered_lines <- function(fields, values) {
 
 # Pairwise comparisons after a one-way ANOVA (E18, E54): the chosen pair's
 # t-test, adjusted across all the pairwise comparisons, simulated by the
-# engine with Superpower's ANOVA_power().
+# engine with Superpower's ANOVA_power(); or its rank test (17 November
+# 2026: a Mann-Whitney test of each pair or Dunn's test on E18, a
+# signed-rank test of each pair or Conover's test on E54), simulated with
+# Spower.
 is_pairwise <- function(spec) identical(spec$target_test$effect, "pairwise")
 
 pairwise_test_name <- function(spec) {
@@ -2608,8 +2612,19 @@ pairwise_test_name <- function(spec) {
   pair <- unlist(spec$target_test$comparison)
   adjust <- switch(spec$target_test$p_adjust %||% "holm",
     holm = "Holm's adjustment", bonferroni = "Bonferroni's adjustment", none = "no adjustment")
-  sprintf("a %s comparing %s with %s, one of the %d pairwise comparisons, with %s for their number",
-    if (identical(spec$template, "oneway_within")) "paired t-test" else "t-test", pair[1], pair[2], choose(k, 2), adjust)
+  within <- identical(spec$template, "oneway_within")
+  test <- switch(spec$target_test$method %||% "t_test",
+    mann_whitney = "Mann-Whitney test",
+    dunn = "Dunn's test (on the ranks of all the groups together)",
+    wilcoxon_signed_rank = "Wilcoxon signed-rank test",
+    conover = "Conover's test (on the ranks of each person's scores across all the conditions)",
+    if (within) "paired t-test" else "t-test")
+  name <- sprintf("a %s comparing %s with %s, one of the %d pairwise comparisons, with %s for their number",
+    test, pair[1], pair[2], choose(k, 2), adjust)
+  if (identical(spec$target_test$method %||% "t_test", "t_test")) return(name)
+  shape <- score_shape_text(spec$population$score_shape)
+  if (within) shape <- sub("scores", "deviations from each person's own level", shape)
+  sprintf("%s, simulated assuming %s", name, shape)
 }
 
 # The rank tests (Wilcoxon signed-rank, Mann-Whitney, Brunner-Munzel,
@@ -2618,7 +2633,8 @@ pairwise_test_name <- function(spec) {
 # aren't rank tests but take the same route: simulated, with a score
 # shape, and no formula to compare with.
 is_rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "kruskal_wallis", "friedman", "aligned_rank_transform"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "kruskal_wallis", "friedman", "aligned_rank_transform",
+    "dunn", "conover"))
 }
 
 # The trend tests across groups in order: Jonckheere-Terpstra (E64) and

@@ -1,3 +1,99 @@
+# powerkit 0.78.8
+
+* The smallest detectable effect (goal `sensitivity`) for the remaining
+  regression and moderation cards, latent profiles and factor analysis.
+  - By the simulated search (`simulated_effect_sensitivity()`, with a 95%
+    interval): moderation of a yes/no outcome (the X x W odds ratio) and
+    of a count (the X x W rate ratio; `count_interaction_backend()` gains
+    `simulated_sensitivity`); an outcome in unordered categories and its
+    moderation (the pattern of log odds ratios against the first category
+    scaled, reported as the Wald test's category or, for the
+    likelihood-ratio test, the category furthest from 1); moderated
+    regression with a yes/no X or W (the correlation of XW with Y, which
+    InteractionPoweR simulates; the exported script now repeats that
+    search rather than the fixed-model one).
+  - By the simulated search, too: latent profiles (the separation between
+    neighbouring profiles) and factor recovery (every item's loading, kept
+    below 0.95). Both run in the background in the app, with usual times.
+  - By the formula search (`formula_search_sensitivity()`): the three-way
+    interaction's standardised coefficient, with InteractionPoweR's
+    `power_interaction_3way_r2()`; coefficients impossible with the
+    correlations entered count as no power.
+  The results' label for the interaction correlation loses its article
+  ("is correlation of the interaction with Y = 0.1"), so the figure no
+  longer reads "the smallest the correlation". Tests: power simulated
+  afresh at each effect found (4,000 replications, another seed), every
+  script run, and the three-way coefficient checked against
+  InteractionPoweR's own sample size at the value found.
+
+# powerkit 0.78.7
+
+* New validation chunk `replication` (`test-validation-replication.R`)
+  for `replication_planning()`. Each goal's chance (significance, pooled,
+  agreement, replication Bayes factor, too small to matter), under each
+  design prior, is checked against a simulation of Pawel, Consonni and
+  Held's (2026) normal-normal model written separately: true effects
+  drawn from the design prior, replication estimates around them, and the
+  paper's success rules applied to the draws. The classical goal and small
+  telescopes are also checked against t-tests on simulated people; the
+  normal approximation's excess over the t-test is bounded at the 2
+  points recorded in conventions.md. Published examples (Pawel, Consonni
+  and Held's worked example; Simonsohn, 2015; a sceptical Bayes factor)
+  are `TODO_PUBLISHED_VALUE` placeholders.
+
+# powerkit 0.78.6
+
+* Fixed: `replication_planning()` reported a goal as unreachable when any
+  replication meets it. After a strong original, the pooled goal's chance
+  is above 99.9% even for three people, so BayesRepDesign's sample-size
+  search finds no root; the plan said "not reachable" (Shnabel et al.,
+  2009, Study 1, F(1, 118) = 15.38, N = 120). The search now checks the
+  smallest replication (three people, four for two groups or a
+  correlation) and, when it already reaches the target power, returns
+  `n = NA` with `reason = "any_size"` and that chance as `limit`. The
+  Bayes factor goals do the same.
+* `replication_planning()` takes a t-test original as its t statistic
+  (`original_effect_type = "t"`) and a paired original as d_rm with the
+  correlation between its two measurements (`original_effect_type =
+  "d_rm"`, `original_r`), converted to the design's d by Lakens (2013):
+  d = t sqrt(1/n1 + 1/n2) for two groups, d_z = t / sqrt(n) for pairs, and
+  d_z = d_rm / sqrt(2(1 - r)). Papers report several kinds of
+  repeated-measures d, which can differ from d_z by a factor of two or
+  more. Another design's uncertainty can be an F with one numerator df
+  (`original_f`), whose square root is its t. The inputs record what was
+  entered, and the R script shows the conversion.
+
+# powerkit 0.78.5
+
+* New: pairwise rank comparisons after the Kruskal-Wallis test (E18,
+  `oneway_between`: methods `mann_whitney` and `dunn`) and after
+  Friedman's test (E54, `oneway_within`: methods `wilcoxon_signed_rank`
+  and `conover`), with `target_test > effect` "pairwise", a
+  `comparison` and a `p_adjust`. Simulated with Spower by the new
+  experiment `p_rank_pairs()`, which adjusts the p-values of every pair
+  together and returns the chosen pair's; Dunn's and Conover's tests are
+  PMCMRplus's. Scores take `population > score_shape`, as for the
+  omnibus rank tests, and the exported R script reproduces the result.
+  New validation file `test-validation-rank-pairs.R` in the rank chunk.
+
+# powerkit 0.78.4
+
+* Fixed: the ordinal outcome in two groups (E29) shifted group 2 the wrong
+  way in `powertools::propodds()`. powertools takes group 1's shares from
+  best to worst and shifts group 2 towards the first category; powerkit
+  passed its shares lowest first, so an odds ratio above 1, which powerkit
+  defines as group 2 tending to higher categories, was planned as group 2
+  tending to lower ones. Whitehead's variance uses the two groups' average
+  shares, so with uneven shares the answer was wrong: with group 1's shares
+  .7, .2 and .1, an odds ratio of 2.5 and 50 per group, power was .477
+  where it is .634 (a simulation of the Wilcoxon-Mann-Whitney test on the
+  same population gives about .63, and of the proportional-odds model's
+  Wald and likelihood-ratio tests about .65). An odds ratio above 1 now
+  passes the shares highest first; one below 1 passes them as given with
+  the reciprocal (`propodds_inputs()`). The input screen no longer says
+  power is the same for an odds ratio and its reciprocal, and the R script
+  says which order it passes. With even shares the change is small.
+
 # powerkit 0.78.3
 
 * Fixed: Friedman's test (E54) with heavy-tailed scores often refused to

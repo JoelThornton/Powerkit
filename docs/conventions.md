@@ -812,12 +812,25 @@ its size. An independent simulation of Student's t-tests, with true effects
 drawn from the uncertain prior, agrees with the planner's chance to within
 3 percentage points at 60 per group (same file).
 
-**Variation between studies in replication plans** (15 November 2026).
-BayesRepDesign's `designPrior()` takes `tau = 0` by default, and the
-engine's `replication_planning()` keeps that default. A replication plan's
-screen starts at tau = 0.05 (in d; Fisher's z for r), the smallest of
-Kenny and Judd's (2019) example values, because they argue zero should
-not be the default and the help beside the box already said so. It
+**Variation between studies in replication plans** (15 November 2026;
+units corrected 17 November 2026). BayesRepDesign's `designPrior()` takes
+`tau = 0` by default, and the engine's `replication_planning()` keeps
+that default; tau is on the scale the original's estimate is planned on.
+A replication plan's screen starts at tau = 0.05 in d (d_z for pairs),
+the smallest of Kenny and Judd's (2019) example values, because they
+argue zero should not be the default and the help beside the box already
+said so. For a correlation it starts at 0.025 on Fisher's z, with 0.075
+and 0.125 offered, the correlation card's values (Kenny and Judd's rule
+of a quarter of the effect applied to r = .1, .3 and .5; "Correlations
+that vary between studies"); until 17 November 2026 the d values were
+applied to Fisher's z unchanged, twice the card's. For another design
+the plan takes tau as a number on the effect's own scale (log units for
+a ratio) and starts at none, because values in d have no meaning on
+another scale; the result says so and asks for a meta-analysis's tau.
+Until 17 November 2026 the 0.05 in d was applied to such an estimate
+unchanged, labelled as d (for an interaction contrast of 0.74 scale
+points with F(1, 118) = 15.38 and 90% power, 114 and 135 people for the
+uncertain and shrunk beliefs, against 109 and 127 with none). It
 applies to the uncertain and shrunk beliefs only. The result says so,
 with "Choose None under Goals" to see the numbers without it, and the
 methods paragraph states the standard deviation used. For an original

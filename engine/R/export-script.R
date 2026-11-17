@@ -794,6 +794,17 @@ rank_design_description <- function(spec, label, levels) {
     )
     return(sprintf("%s, simulated with %s", test, score_shape_words(spec$population$score_shape)))
   }
+  if (rank_pairs_test(spec)) {
+    pair <- comment_text(unlist(spec$target_test$comparison))
+    within <- identical(spec$template, "oneway_within")
+    test <- sprintf(
+      "%s of %s across the %d %s of %s (%s)%s: power for %s against %s, the p-values of all the pairs adjusted by %s",
+      rank_pair_test_words(spec$target_test$method), label("Y"), length(unlist(v$A$levels)),
+      if (within) "conditions" else "groups", label("A"), levels("A"), if (within) ", everyone in every condition" else "",
+      pair[1], pair[2], p_adjust_words(spec$target_test$p_adjust %||% "holm")
+    )
+    return(sprintf("%s, simulated with %s", test, score_shape_words(spec$population$score_shape)))
+  }
   test <- switch(
     spec$template,
     one_sample_t = sprintf("one-sample Wilcoxon signed-rank test of %s", label("Y")),
@@ -830,6 +841,19 @@ rank_design_description <- function(spec, label, levels) {
     )
   )
   sprintf("%s, simulated with %s", test, score_shape_words(spec$population$score_shape))
+}
+
+# Pairwise rank comparisons in words.
+rank_pair_test_words <- function(method) {
+  switch(method,
+    mann_whitney = "Mann-Whitney tests of each pair of groups",
+    dunn = "Dunn's test of each pair of groups",
+    wilcoxon_signed_rank = "Wilcoxon signed-rank tests of each pair of conditions",
+    conover = "Conover's test of each pair of conditions")
+}
+
+p_adjust_words <- function(p_adjust) {
+  switch(p_adjust, holm = "Holm's method", bonferroni = "Bonferroni's method", none = "none (unadjusted)", p_adjust)
 }
 
 # The trimming of Yuen's test in words: "20%".
@@ -2002,14 +2026,16 @@ spower_script_inputs <- function(spec) {
     efa = c(
       sprintf("factors <- %s # the number of factors", r_code(as.integer(pop$factors))),
       sprintf("items <- %s # items loading on each factor (%s)", r_code(as.integer(pop$items_per_factor)), comment_text(v$Y$label)),
-      sprintf("loading <- %s # each item's standardised loading on its factor", r_code(pop$loading)),
+      if (is.null(pop$loading)) "loading <- NA # set by the search below" else
+        sprintf("loading <- %s # each item's standardised loading on its factor", r_code(pop$loading)),
       sprintf("phi <- %s # correlation between factors", r_code(pop$factor_correlation %||% 0)),
       sprintf("congruence <- %s # Tucker's congruence each factor must reach", r_code(spec$target_test$congruence %||% 0.95))
     ),
     lpa = c(
       sprintf("profiles <- %s # the number of profiles in the population", r_code(as.integer(pop$profiles))),
       sprintf("indicators <- %s # the number of indicators (%s)", r_code(as.integer(pop$indicators)), comment_text(v$Y$label)),
-      sprintf("separation <- %s # distance between neighbouring profiles on each indicator, in SD units", r_code(pop$separation)),
+      if (is.null(pop$separation)) "separation <- NA # set by the search below" else
+        sprintf("separation <- %s # distance between neighbouring profiles on each indicator, in SD units", r_code(pop$separation)),
       sprintf("shares <- %s # each profile's share of the population", r_code(as.numeric(unlist(pop$shares %||% rep(1 / pop$profiles, pop$profiles)))))
     ),
     dprime = c(
@@ -3049,9 +3075,20 @@ rank_script_inputs <- function(spec) {
       sprintf("r <- %s # correlation between any two conditions, within a participant", r_code(pop$r))
     )
   )
+  pair_lines <- if (rank_pairs_test(spec)) {
+    pair <- pairwise_levels(spec)
+    names <- comment_text(unlist(v$A$levels)[pair])
+    c(
+      sprintf("test <- %s # %s", r_code(spec$target_test$method), rank_pair_test_words(spec$target_test$method)),
+      sprintf("first <- %d; second <- %d # the pair powered: %s and %s, by their places among the levels", pair[1], pair[2], names[1], names[2]),
+      sprintf("p_adjust <- %s # adjustment across all the pairs: %s", r_code(spec$target_test$p_adjust %||% "holm"),
+        p_adjust_words(spec$target_test$p_adjust %||% "holm"))
+    )
+  }
   c(
     effect,
     if (yuen_test(spec)) sprintf("trim <- %s # the share trimmed from each end of each sample (%s)", r_code(yuen_trim(spec)), trim_words(spec)),
+    pair_lines,
     shape
   )
 }
@@ -3210,6 +3247,7 @@ rank_derived_lines <- function(spec) {
       "gen_groups <- function(n, k, n.ratios, means, ...) {",
       "  lapply(seq_len(k), function(g) means[g] + draw_scores(n * n.ratios[g]))",
       "}",
+      if (rank_pairs_test(spec)) rank_pairs_script_lines(spec),
       if (jonckheere_test(spec)) c(
         "# The experiment, as powerkit runs it: the groups in the order of their",
         "# levels, and the p-value of PMCMRplus's Jonckheere-Terpstra test (its",
@@ -3223,7 +3261,17 @@ rank_derived_lines <- function(spec) {
         "}"
       )
     ),
-    oneway_within = c(
+    oneway_within = if (rank_pairs_test(spec)) c(
+      "# Each person's scores, as powerkit draws them: the condition's mean, the",
+      "# person's own level (normal, variance r) and a deviation in the chosen",
+      "# shape (variance 1 - r). The people's levels are drawn first, then each",
+      "# condition's deviations in turn.",
+      "condition_scores <- function(n, means, r) {",
+      "  person <- sqrt(r) * rnorm(n)",
+      "  matrix(vapply(seq_along(means), function(j) means[j] + person + sqrt(1 - r) * draw_scores(n), numeric(n)), nrow = n)",
+      "}",
+      rank_pairs_script_lines(spec)
+    ) else c(
       "# The experiment, as powerkit runs it: each score is the condition's mean,",
       "# the person's own level (normal, variance r) and a deviation in the chosen",
       "# shape (variance 1 - r), so every score has SD 1 and two conditions",
@@ -3237,6 +3285,37 @@ rank_derived_lines <- function(spec) {
     )
   )
   c(draw, "", rest)
+}
+
+# The experiment for pairwise rank comparisons, as powerkit runs it
+# (p_rank_pairs() and rank_pair_p_values()).
+rank_pairs_script_lines <- function(spec) {
+  within <- identical(spec$template, "oneway_within")
+  test_line <- switch(spec$target_test$method,
+    mann_whitney = "  p <- p.adjust(apply(pairs, 2, function(ij) wilcox.test(groups[[ij[1]]], groups[[ij[2]]])$p.value), p_adjust)",
+    wilcoxon_signed_rank = "  p <- p.adjust(apply(pairs, 2, function(ij) wilcox.test(y[, ij[1]], y[, ij[2]], paired = TRUE)$p.value), p_adjust)",
+    dunn = c(
+      "  g <- factor(rep(seq_along(groups), lengths(groups)))",
+      "  p_all <- PMCMRplus::kwAllPairsDunnTest(unlist(groups), g, p.adjust.method = p_adjust)$p.value",
+      "  p <- p_all[cbind(as.character(pairs[2, ]), as.character(pairs[1, ]))]"
+    ),
+    conover = c(
+      "  # With any adjustment but \"single-step\", Conover's test uses the t distribution.",
+      "  p_all <- PMCMRplus::frdAllPairsConoverTest(c(y), factor(rep(seq_len(ncol(y)), each = n)),",
+      "    factor(rep(seq_len(n), ncol(y))), p.adjust.method = p_adjust)$p.value",
+      "  p <- p_all[cbind(as.character(pairs[2, ]), as.character(pairs[1, ]))]"
+    ))
+  c(
+    "# The experiment, as powerkit runs it: every pair is tested, the p-values are",
+    "# adjusted together, and the chosen pair's adjusted p-value is returned.",
+    if (within) "p_rank_pairs <- function(n, means, r, test, first, second, p_adjust) {" else
+      "p_rank_pairs <- function(n, k, means, gen_fun, test, first, second, p_adjust) {",
+    if (within) "  y <- condition_scores(n, means, r)" else "  groups <- gen_fun(n, k, rep(1, k), means)",
+    "  pairs <- combn(length(means), 2)",
+    test_line,
+    "  unname(p[pairs[1, ] == first & pairs[2, ] == second])",
+    "}"
+  )
 }
 
 # The one-sided p-value of Yuen's test, as yuen_p_value() computes it.
@@ -3311,7 +3390,16 @@ rank_experiment_lines <- function(spec, inputs, one_sided) {
       "parent1 = shifted,",
       "parent2 = unshifted"
     ),
-    oneway_between = if (jonckheere_test(spec)) c(
+    oneway_between = if (rank_pairs_test(spec)) c(
+      "n = n_group, # size of each group",
+      "k = length(means), # number of groups",
+      "means = means, # group means in SD units",
+      "gen_fun = gen_groups,",
+      "test = test,",
+      "first = first,",
+      "second = second,",
+      "p_adjust = p_adjust"
+    ) else if (jonckheere_test(spec)) c(
       "n = n_share, # one share of the total",
       "k = length(means), # number of groups",
       "means = means, # group means in SD units",
@@ -3326,7 +3414,8 @@ rank_experiment_lines <- function(spec, inputs, one_sided) {
     oneway_within = c(
       "n = batch_n, # number of participants",
       "means = means, # condition means in SD units",
-      "r = r"
+      "r = r",
+      if (rank_pairs_test(spec)) c("test = test,", "first = first,", "second = second,", "p_adjust = p_adjust")
     )
   )
   if (one_sided) {
@@ -3774,7 +3863,11 @@ interactionpower_script <- function(spec, result) {
     ),
     goal_inputs(spec, result),
     "",
-    if (spec$goal$type == "sensitivity") interactionpower_sensitivity_section(result) else interactionpower_simulation_lines(spec, result)
+    if (spec$goal$type == "sensitivity" && !any(interaction_binary(spec))) {
+      interactionpower_sensitivity_section(result)
+    } else {
+      interactionpower_simulation_lines(spec, result)
+    }
   )
 }
 

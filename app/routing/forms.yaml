@@ -171,10 +171,10 @@ calculates: [E45, E1, E2, E3, E4, E76, E5, E6, E7, E8, E9, E18, E19, E20, E21, E
 # (docs/phase5-simulations.md, table 1). The bar is estimated from these.
 background:
   E9: {power: 5, sample_size: 80, sensitivity: 2}
-  E15: {power: 5, sample_size: 80}
+  E15: {power: 5, sample_size: 80, sensitivity: 45}
   E59: {power: 4, sample_size: 30}
-  E58: {power: 25, sample_size: 120}
-  E73: {power: 35, sample_size: 320}
+  E58: {power: 25, sample_size: 120, sensitivity: 190}
+  E73: {power: 35, sample_size: 320, sensitivity: 800}
   # Mediation with a yes/no mediator (regmedint), measured 14 November 2026.
   E39: {power: 25, sample_size: 200}
   E60: {power: 4, sample_size: 30}
@@ -193,13 +193,13 @@ simulated_times:
   # Cochran's Q, measured 16 November 2026 on the repeated-measures card's
   # example design (one core).
   E78: {power: 11, sample_size: 190}
-  E70: {power: 5, sample_size: 40}
+  E70: {power: 5, sample_size: 40, sensitivity: 60}
   E30: {power: 4, sample_size: 35, sensitivity: 45}
   # E32: moderation takes about 4 seconds for power (an outcome in three
   # unordered categories, nnet::multinom(), about 10 and 80 for a sample
   # size); mediation with a negative binomial count (regmedint) about 30,
   # the slower case shown.
-  E32: {power: 30, sample_size: 200}
+  E32: {power: 30, sample_size: 200, sensitivity: 90}
   E45: {power: 2, sample_size: 10, sensitivity: 60}
   E72: {power: 2, sample_size: 10, sensitivity: 10}
   # Measured 12 November 2026 the same way: Welch's ANOVA (the one-way
@@ -1291,6 +1291,7 @@ forms:
 
   E15:
     methods_name: "a moderated regression with a yes/no predictor or moderator"
+    sensitivity: true
     tool: InteractionPoweR
     known_differences: ["1"]
     directional: false
@@ -1317,7 +1318,7 @@ forms:
         fields:
           - {id: r_X_Y, label: "Correlation of X with Y (for a yes/no X, the point-biserial correlation)", type: number, path: population.r_X_Y, effect: true, min: -1, max: 1}
           - {id: r_W_Y, label: "Correlation of W with Y (for a yes/no W, the point-biserial correlation)", type: number, path: population.r_W_Y, effect: true, min: -1, max: 1}
-          - {id: r_XW_Y, label: "Correlation of the interaction XW with Y", type: number, path: population.r_XW_Y, effect: true, min: -1, max: 1}
+          - {id: r_XW_Y, optional_for: [sensitivity], label: "Correlation of the interaction XW with Y", type: number, path: population.r_XW_Y, effect: true, min: -1, max: 1}
           - {id: r_X_W, label: "Correlation of X with W (0 when X is a randomised condition)", type: number, path: population.r_X_W, effect: true, min: -1, max: 1}
       - input: "Optional: reliability of the score variable and of Y"
         fields:
@@ -1332,6 +1333,7 @@ forms:
 
   E31:
     methods_name: "a three-way regression interaction"
+    sensitivity: true
     tool: InteractionPoweR
     known_differences: ["17"]
     directional: false
@@ -1353,7 +1355,7 @@ forms:
           - {id: r_W_Z, label: "Correlation of W with Z", type: number, path: population.r_W_Z, effect: true, min: -1, max: 1}
       - input: "The three-way effect (standardised coefficient of XWZ)"
         fields:
-          - {id: b_XWZ, label: "Standardised regression coefficient of the three-way product XWZ", type: number, path: population.b_XWZ, effect: true, min_exclusive: -1, max_exclusive: 1,
+          - {id: b_XWZ, optional_for: [sensitivity], label: "Standardised regression coefficient of the three-way product XWZ", type: number, path: population.b_XWZ, effect: true, min_exclusive: -1, max_exclusive: 1,
              help: "How much the XW interaction changes per SD of Z, in SD units of Y: InteractionPoweR's b.x1x2x3. Small three-way effects (around 0.05 to 0.1) need large samples."}
       - input: "Optional: reliability of X, W, Z and Y"
         fields:
@@ -2479,20 +2481,26 @@ forms:
              choices: {welch_f: "Welch's ANOVA", anova_f: "Classical one-way ANOVA",
                        kruskal_wallis: "Kruskal-Wallis test",
                        t_test: "Pairwise t-tests",
+                       mann_whitney: "Pairwise rank comparisons: a Mann-Whitney test of each pair",
+                       dunn: "Pairwise rank comparisons: Dunn's test (JASP's follow-up to the Kruskal-Wallis test)",
                        bayes_factor: "Bayes factor ANOVA"},
-             sets: {t_test: [{path: target_test.effect, value: pairwise}]},
+             sets: {t_test: [{path: target_test.effect, value: pairwise}], mann_whitney: [{path: target_test.effect, value: pairwise}],
+                    dunn: [{path: target_test.effect, value: pairwise}]},
              default: welch_f, default_source: "Welch's F, as Delacre, Leys, Mora and Lakens (2019) recommend by default: it keeps the false-positive rate when the groups' spreads differ and loses little power when they don't. G*Power and Superpower plan for the classical F test",
-             choice_notes: {bayes_factor: "Uses the default analysis prior and equal groups; choose the evidence threshold and prior settings below to match the planned Bayesian analysis.", kruskal_wallis: "Rank-based analysis, simulated; power depends on the score shape you choose.", t_test: "Simulates the selected pairwise comparison and applies the adjustment chosen below across all pairs.", welch_f: "Its power is worked out by formula (Levy's approximation, which Jan and Shieh, 2014, found within 1 percentage point of simulation), so the answer comes at once; you can choose a simulation instead below. With one SD for every group it needs only a few more people than the classical F test.",
+             choice_notes: {bayes_factor: "Uses the default analysis prior and equal groups; choose the evidence threshold and prior settings below to match the planned Bayesian analysis.", kruskal_wallis: "Rank-based analysis, simulated; power depends on the score shape you choose.", t_test: "Simulates the selected pairwise comparison and applies the adjustment chosen below across all pairs.",
+                            mann_whitney: "Each pair is compared on its own two groups' scores, so its result depends only on those two groups. Simulated, with the adjustment chosen below across all pairs; power depends on the score shape you choose.",
+                            dunn: "Compares pairs on the ranks of all the groups together, as JASP does after the Kruskal-Wallis test, so a pair's result can change with the other groups' scores. Choose it if that is the test you will report. Simulated, with the adjustment chosen below across all pairs.",
+                            welch_f: "Its power is worked out by formula (Levy's approximation, which Jan and Shieh, 2014, found within 1 percentage point of simulation), so the answer comes at once; you can choose a simulation instead below. With one SD for every group it needs only a few more people than the classical F test.",
                             anova_f: "Choose the classical F test when the analysis must match one fixed in advance: a direct replication of a study that used it, a preregistration that names it, or an ANOVA that is one part of a larger model assuming equal spreads. Reporting Welch's F beside it is good practice. Its power is worked out exactly (Superpower), with no simulation."}}
           - {id: comparison, label: "The pair you'll compare: two groups' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
-             shown_if: {field: test_version, is: t_test},
-             help: "The t-test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}
+             shown_if: {field: test_version, is_one_of: [t_test, mann_whitney, dunn]},
+             help: "This pair's test is the one powered; every pair is still compared, and the adjustment counts them all."}
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
-             shown_if: {field: test_version, is: t_test},
+             shown_if: {field: test_version, is_one_of: [t_test, mann_whitney, dunn]},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
              default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
-             shown_if: {field: test_version, is: kruskal_wallis},
+             shown_if: {field: test_version, is_one_of: [kruskal_wallis, mann_whitney, dunn]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, Spower's default (p_kruskal.test(), Spower 0.7)",
              help: "Every group has the same shape; the groups differ only by a shift (their means). A rank test's power depends on this shape; the parametric test's figure assumes normal scores."}
@@ -2568,9 +2576,15 @@ forms:
         fields:
           - {id: test_version, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {anova_f: "One-way repeated-measures ANOVA (F test)", friedman: "Friedman's test (rank-based), simulated",
-                       t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated", bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
-             sets: {t_test: [{path: target_test.effect, value: pairwise}]},
-             default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)"}
+                       t_test: "Pairwise comparisons between conditions (paired t-tests, adjusted for their number), simulated",
+                       wilcoxon_signed_rank: "Pairwise rank comparisons: a Wilcoxon signed-rank test of each pair of conditions, simulated",
+                       conover: "Pairwise rank comparisons: Conover's test (JASP's follow-up to Friedman's test), simulated",
+                       bayes_factor: "Bayes factor of the effect (as in JASP's Bayesian repeated-measures ANOVA), instead of a p-value, simulated"},
+             sets: {t_test: [{path: target_test.effect, value: pairwise}], wilcoxon_signed_rank: [{path: target_test.effect, value: pairwise}],
+                    conover: [{path: target_test.effect, value: pairwise}]},
+             default: anova_f, default_source: "the F test Superpower computes (ANOVA_exact(), Superpower 0.2.4.1)",
+             choice_notes: {wilcoxon_signed_rank: "Each pair is compared on the two conditions' own scores (each person's difference between them), so its result depends only on those two conditions. Power depends on the score shape you choose; the adjustment chosen below covers all the pairs.",
+                            conover: "Ranks each person's scores across all the conditions and compares pairs on those ranks, as JASP does after Friedman's test. With only the order of a person's scores to go on it usually has less power than a signed-rank test of each pair, and a pair's result can change with the other conditions' scores. Choose it if that is the test you will report."}}
           - {id: evidence_threshold, label: "Evidence threshold: the inclusion Bayes factor the study should reach", type: number, path: target_test.evidence_threshold, required: true, min_exclusive: 1,
              shown_if: {field: test_version, is: bayes_factor},
              usual: 10, usual_label: "10 (a common threshold)", default_source: "Empty: choose the evidence your claim needs; 10 is a common threshold (so is 3; there is no correct one), the threshold powerkit's other Bayes factor tests use, bfpwr's default (its help calls it Jeffreys' threshold for evidence at the threshold; bfpwr 0.1.6)"}
@@ -2583,15 +2597,15 @@ forms:
              default: all_models, default_source: "across all models with equal prior probabilities, the default of JASP's Effects table (jaspAnova's DefaultOptions.qml)",
              help: "Simulating this Bayes factor takes about a second per simulated study, so you get a rough preview here and an R script for the full analysis."}
           - {id: score_shape, label: "The shape of each person's scores around their own level", type: select, path: population.score_shape, required: true,
-             shown_if: {field: test_version, is: friedman},
+             shown_if: {field: test_version, is_one_of: [friedman, wilcoxon_signed_rank, conover]},
              choices: {normal: "Roughly normal (bell-shaped)", skewed: "Skewed: bunched at one end, with a long tail at the other", heavy_tailed: "Heavy-tailed: more extreme scores than a bell curve, in both directions"},
              default: normal, default_source: "normal scores, as the ANOVA assumes",
              help: "Each score is the condition's mean, the person's own level and a deviation of this shape; the correlation between conditions is the share that is the person's, so it must be at least 0. Conditions differ only by a shift."}
           - {id: comparison, label: "The pair you'll compare: two conditions' names, separated by a comma", type: levels, path: target_test.comparison, required: true,
-             shown_if: {field: test_version, is: t_test},
-             help: "The t-test of this pair is the one powered; every pair is still compared, and the adjustment counts them all."}
+             shown_if: {field: test_version, is_one_of: [t_test, wilcoxon_signed_rank, conover]},
+             help: "This pair's test is the one powered; every pair is still compared, and the adjustment counts them all."}
           - {id: p_adjust, label: "Adjustment for the number of comparisons", type: select, path: target_test.p_adjust, required: true,
-             shown_if: {field: test_version, is: t_test},
+             shown_if: {field: test_version, is_one_of: [t_test, wilcoxon_signed_rank, conover]},
              choices: {holm: "Holm's method (never less power than Bonferroni's)", bonferroni: "Bonferroni's method", none: "None"},
              default: holm, default_source: "Holm's method, which never has less power than Bonferroni's (powerkit's choice; Superpower's default is no adjustment)"}
     extra:
@@ -3383,7 +3397,7 @@ forms:
         fields:
           - {id: probabilities, writeup_label: "shares of group 1 in each category", label: "Share of group 1 in each category: one for each, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true}
           - {id: odds_ratio, optional_for: [sensitivity], when_empty: one, label: "Odds ratio: how many times higher the odds of a higher category are in group 2 than in group 1", type: number, path: population.odds_ratio, effect: true, min_exclusive: 0,
-             help: "Below 1 if group 2 tends to be in lower categories. Power is the same for an odds ratio and its reciprocal (2 and 0.5)."}
+             help: "Below 1 if group 2 tends to be in lower categories. When group 1's shares are uneven, power depends on the direction: a shift towards the categories with few people spreads the answers out and gives more power than the same odds ratio the other way."}
       - input: "The size of group 2 relative to group 1 (1 = equal)"
         fields:
           - {id: allocation_ratio, label: "Size of group 2 divided by size of group 1", type: number, path: options.allocation_ratio, required: true, min_exclusive: 0,
@@ -3743,6 +3757,7 @@ forms:
   # report it. Other predictors enter only through X's R-squared with them.
   E70:
     methods_name: "a multinomial logistic regression, simulated"
+    sensitivity: true
     tool: Spower
     directional: false
     base: {spec_version: "0.1", design: logistic_regression, template: multinomial,
@@ -3885,6 +3900,7 @@ forms:
   # around psych's fa()): the chance every factor's loadings are recovered.
   E73:
     methods_name: "an exploratory factor analysis (psych's fa(): minimum residual, oblimin rotation), recovery of the loadings judged by Tucker's congruence, simulated"
+    sensitivity: true
     tool: Spower
     directional: false
     no_alpha: true
@@ -3902,7 +3918,7 @@ forms:
              help: "More items per factor make each factor better defined (overdetermined) and easier to recover."}
       - input: "How strongly the items measure their factors"
         fields:
-          - {id: loading, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: loading, optional_for: [sensitivity], when_empty: omit, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
              help: "Its square is the item's communality, the share of its variance its factor explains. Loadings around 0.4 are weak, 0.6 moderate, 0.8 strong. Take them from earlier studies of the same or similar items."}
           - {id: factor_correlation, label: "Correlation between the factors", type: number, path: population.factor_correlation, required: true, min: 0, max: 0.9,
              default: 0, default_source: "uncorrelated factors, powerkit's default"}
@@ -4007,6 +4023,7 @@ forms:
   # around mclust): the chance the BIC finds the right number of profiles.
   E58:
     methods_name: "a latent profile analysis (mclust's models with equal variances and local independence, the number of profiles chosen by the BIC), simulated"
+    sensitivity: true
     tool: Spower
     directional: false
     no_alpha: true
@@ -4023,7 +4040,7 @@ forms:
       - input: "The profiles you expect"
         fields:
           - {id: profiles, label: "Number of profiles", type: number, path: population.profiles, required: true, min: 2, max: 6, integer: true}
-          - {id: separation, writeup_label: "separation between neighbouring profiles", label: "How far apart neighbouring profiles are on each indicator, in SD units (Cohen's d)", type: number, path: population.separation, effect: true, min: 0, max: 5,
+          - {id: separation, optional_for: [sensitivity], when_empty: omit, writeup_label: "separation between neighbouring profiles", label: "How far apart neighbouring profiles are on each indicator, in SD units (Cohen's d)", type: number, path: population.separation, effect: true, min: 0, max: 5,
              help: "Each profile is this far above the one before it on every indicator, in SDs within a profile, as in Tein, Coxe and Cham's simulations. 0.5 is hard to find, 0.8 moderate, 1.5 clear."}
           - {id: profile_sizes, label: "Will the profiles be about the same size?", type: select, required: true,
              choices: {equal: "Yes, about equal", unequal: "No: give each profile's share"},
@@ -4111,6 +4128,8 @@ forms:
   E32:
     methods_name: "a regression with an interaction (logistic for a yes/no outcome, Poisson or negative binomial for a count; the Wald z test of the X x W coefficient), simulated"
     tool: Spower
+    sensitivity: true
+    sensitivity_shown_if: {field: analysis, is: moderation}
     directional: true
     direction_shown_if: [{field: analysis, is_not: mediation}, {field: Y_kind, is_not: categories}]
     base: {spec_version: "0.1", design: logistic_regression, template: interaction,
@@ -4168,7 +4187,7 @@ forms:
              help: "Per SD of X for a score, or X's second group against its first."}
           - {id: odds_ratio_w, writeup_label: "odds ratio for W", label: "Odds ratio for W, with X at its average or in its first group", type: number, path: population.odds_ratio_w, effect: true, min_exclusive: 0,
              shown_if: [{field: Y_kind, is_not: count}, {field: Y_kind, is_not: categories}, {field: analysis, is_not: mediation}]}
-          - {id: odds_ratio_xw, writeup_label: "interaction (ratio of odds ratios)", label: "The interaction: how many times X's odds ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.odds_ratio_xw, effect: true, min_exclusive: 0,
+          - {id: odds_ratio_xw, optional_for: [sensitivity], when_empty: one, writeup_label: "interaction (ratio of odds ratios)", label: "The interaction: how many times X's odds ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.odds_ratio_xw, effect: true, min_exclusive: 0,
              shown_if: [{field: Y_kind, is_not: count}, {field: Y_kind, is_not: categories}, {field: analysis, is_not: mediation}],
              help: "1 means no moderation. For example 1.25: X's odds ratio is a quarter larger for each SD of W. It is the exponent of the X x W coefficient a logistic regression reports."}
           - {id: cat_probabilities, writeup_label: "share in each category at the starting point", label: "Share of people in each category with X and W at their averages, or in their first groups: one for each, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
@@ -4188,7 +4207,7 @@ forms:
              help: "How many times the mean count is multiplied per SD of X for a score, or in X's second group against its first: 0.8 is a fifth fewer."}
           - {id: rate_ratio_w, writeup_label: "rate ratio for W", label: "Rate ratio for W, with X at its average or in its first group", type: number, path: population.rate_ratio_w, effect: true, min_exclusive: 0,
              shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}]}
-          - {id: rate_ratio_xw, writeup_label: "interaction (ratio of rate ratios)", label: "The interaction: how many times X's rate ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.rate_ratio_xw, effect: true, min_exclusive: 0,
+          - {id: rate_ratio_xw, optional_for: [sensitivity], when_empty: one, writeup_label: "interaction (ratio of rate ratios)", label: "The interaction: how many times X's rate ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.rate_ratio_xw, effect: true, min_exclusive: 0,
              shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}],
              help: "1 means no moderation. For example 0.85: X's rate ratio is 15% smaller for each SD of W. It is the exponent of the X x W coefficient a Poisson or negative binomial regression reports."}
           - {id: dispersion, writeup_label: "the counts' overdispersion", label: "Overdispersion k: a count's variance is its mean plus k times its mean squared", type: number, path: population.dispersion, required: true, min_exclusive: 0,

@@ -2450,7 +2450,11 @@
                       "friedman",
                       "jonckheere_terpstra",
                       "aligned_rank_transform",
-                      "bayes_factor"
+                      "bayes_factor",
+                      "mann_whitney",
+                      "dunn",
+                      "wilcoxon_signed_rank",
+                      "conover"
                     ]
                   }
                 }
@@ -4411,7 +4415,9 @@
                 "welch_f",
                 "t_test",
                 "jonckheere_terpstra",
-                "bayes_factor"
+                "bayes_factor",
+                "mann_whitney",
+                "dunn"
               ]
             }
           }
@@ -4585,7 +4591,9 @@
                 "anova_f",
                 "t_test",
                 "friedman",
-                "bayes_factor"
+                "bayes_factor",
+                "wilcoxon_signed_rank",
+                "conover"
               ]
             },
             "correction": {
@@ -12520,8 +12528,7 @@
           "required": [
             "metric",
             "profiles",
-            "indicators",
-            "separation"
+            "indicators"
           ],
           "additionalProperties": false,
           "properties": {
@@ -12629,8 +12636,7 @@
           "required": [
             "metric",
             "factors",
-            "items_per_factor",
-            "loading"
+            "items_per_factor"
           ],
           "additionalProperties": false,
           "properties": {

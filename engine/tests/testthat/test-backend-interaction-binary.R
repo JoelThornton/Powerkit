@@ -33,14 +33,16 @@ test_that("the yes/no variable's correlation is shown as the group difference it
   expect_null(implied_group_difference(read_spec(system.file("specs", "regression_interaction.json", package = "powerkit"))))
 })
 
-test_that("a yes/no variable's reliability, both variables yes/no and the smallest effect are refused", {
+test_that("a yes/no variable's reliability and both variables yes/no are refused", {
   spec <- binary_example()
   spec$variables$X$reliability <- 0.9
   expect_error(validate_spec(spec), "can't be used for a yes/no variable")
   spec <- binary_example()
   spec$variables$W <- list(type = "binary", label = "Sex", levels = list("Female", "Male"))
   expect_error(run_spec(spec), "use the 2x2 ANOVA design", class = "powerkit_not_available")
-  expect_error(run_spec(binary_example(goal = list(type = "sensitivity", n = 200, power = 0.8))), "isn't available yet")
+  # The smallest effect is found by a simulated search since 17 November
+  # 2026 (test-sensitivity-search.R).
+  expect_no_error(validate_spec(binary_example(goal = list(type = "sensitivity", n = 200, power = 0.8))))
 })
 
 test_that("the exported script and the simulated data use the two-level variable", {
