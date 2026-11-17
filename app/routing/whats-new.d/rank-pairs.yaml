@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-17"
-    title: "New: comparing pairs of groups after a rank test"
-    text: "The Kruskal-Wallis and Friedman cards can now plan the comparisons of pairs that usually follow them. Choose either a separate rank test of each pair (Mann-Whitney or Wilcoxon signed-rank) or Dunn's or Conover's test, the follow-ups JASP uses; a note under each says how they differ, so you can pick the one you will report."
