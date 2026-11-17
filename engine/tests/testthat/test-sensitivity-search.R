@@ -356,7 +356,7 @@ test_that("ordinal, survival, growth-curve and reliability searches agree with t
   expect_true(abs(needed - 150) <= 1)
 })
 
-test_that("simulated searches for paired variances, trends, d', factorial logistic effects and moderation by groups land where a fresh simulation has the target power", {
+test_that("simulated searches for paired variances, trends, d', factorial logistic effects, moderation by groups and time series land where a fresh simulation has the target power", {
   skip_on_cran()
   set_found <- list(
     paired_variances = function(spec, s) { spec$population$var1 <- spec$population$var2 * s$effect; spec },
@@ -371,6 +371,7 @@ test_that("simulated searches for paired variances, trends, d', factorial logist
       spec$population$means <- as.list(mean(m) + s$scale * (m - mean(m)))
       spec
     },
+    its = function(spec, s) { spec$population$level_change <- s$effect; spec },
     group_moderator = function(spec, s) {
       r <- unlist(spec$population$r_xy)
       spec$population$r_xy <- as.list(mean(r) + s$scale * (r - mean(r)))
@@ -396,7 +397,7 @@ test_that("simulated searches for paired variances, trends, d', factorial logist
   for (name in names(set_found)) {
     spec <- if (name == "jonckheere") jonckheere() else example_spec(name)
     if (name == "logistic_factorial") spec$target_test$effect <- "interaction"
-    n <- switch(name, jonckheere = 99L, logistic_factorial = 600L, group_moderator = 300L, 100L)
+    n <- switch(name, jonckheere = 99L, logistic_factorial = 600L, group_moderator = 300L, its = 24L, 100L)
     spec$goal <- list(type = "sensitivity", n = n, power = 0.8)
     spec$options$nrep <- 500L
     result <- suppressWarnings(run_quietly(spec))
@@ -428,6 +429,13 @@ test_that("simulated searches for paired variances, trends, d', factorial logist
   odds <- function(p) p / (1 - p)
   ratio <- (odds(0.3) / odds(0.4)) / (odds(0.4) / odds(0.45))
   expect_equal(simulated_search_plan(spec, 600L, 0.8)$effect(1), max(ratio, 1 / ratio))
+  # A time series tested on both changes scales the two together, so it
+  # needs one of them.
+  both <- example_spec("its")
+  both$target_test$effect <- "both"
+  both$population$level_change <- 0
+  both$goal <- list(type = "sensitivity", n = 24L, power = 0.8)
+  expect_error(validate_spec(both), "no effect pattern to scale")
   # A flat pattern of proportions has nothing to scale.
   flat <- example_spec("proportion_trend")
   flat$population$proportions <- list(0.3, 0.3, 0.3, 0.3)

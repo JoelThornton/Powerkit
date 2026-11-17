@@ -221,12 +221,13 @@ test_that("paired variances, the trend tests, d', factorial logistic regression 
       name = "difference between the largest and smallest mean = "),
     list(ep = "E30", extra = list(), label = "the smallest difference between the largest and smallest group's correlation you could detect",
       name = "difference between the largest and smallest group's correlation = "),
+    list(ep = "E45", extra = list(level_change = ""), label = "the smallest change in level you could detect", name = "change in level = "),
     list(ep = "E47", extra = list(), label = "the smallest odds ratio you could detect", name = "odds ratio = "),
     list(ep = "E47", extra = list(effect = "interaction"), label = "the smallest ratio of odds ratios you could detect",
       name = "ratio of odds ratios = ")
   )
   for (case in cases) {
-    n <- switch(case$ep, E47 = "420", E30 = "300", "100")
+    n <- switch(case$ep, E47 = "420", E30 = "300", E45 = "24", "100")
     run <- smallest_effect_run(case$ep, c(case$extra, list(n = n, simulation_accuracy = "quick")))
     expect_true(isTRUE(run$result$sensitivity$simulated), label = case$ep)
     expect_identical(result_figure(run$spec, run$result)$label, case$label)

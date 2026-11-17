@@ -243,6 +243,40 @@ simulated_search_plan <- function(spec, n, power) {
       effect_script = sprintf("x * %s", r_code(spread))
     ))
   }
+  if (identical(spec$template, "its")) {
+    test <- spec$target_test$effect
+    if (identical(test, "both")) {
+      level <- pop$level_change %||% 0
+      slope <- pop$slope_change %||% 0
+      return(list(
+        guess = 1,
+        set = function(s, x) { s$population$level_change <- x * level; s$population$slope_change <- x * slope; s },
+        effect = function(x) x * level,
+        effect_name = "level_change",
+        what = sprintf("change in level at the intervention, with the change in trend scaled with it (%s per time point for each unit of level) and the rest you entered kept",
+          format(signif(slope / level, 3))),
+        script_set = c(sprintf("  level <<- x * %s", r_code(level)), sprintf("  slope <<- x * %s", r_code(slope))),
+        effect_script = sprintf("x * %s", r_code(level))
+      ))
+    }
+    slope_test <- identical(test, "slope")
+    entered <- if (slope_test) pop$slope_change %||% 0 else pop$level_change %||% 0
+    direction <- pwrss_search_direction(spec, entered)
+    return(list(
+      guess = guess_from(entered, pop$sigma * if (slope_test) 0.05 else 0.5),
+      set = function(s, x) {
+        if (slope_test) s$population$slope_change <- direction * x else s$population$level_change <- direction * x
+        s
+      },
+      effect = function(x) direction * x,
+      effect_name = if (slope_test) "slope_change" else "level_change",
+      what = sprintf("%s, in the outcome's units, with the rest you entered kept (errors' SD %s, autocorrelation %s)",
+        if (slope_test) "change in trend per time point after the intervention" else "change in level at the intervention",
+        format(pop$sigma), format(pop$rho %||% 0)),
+      script_set = sprintf("  %s <<- %s * x", if (slope_test) "slope" else "level", r_code(direction)),
+      effect_script = sprintf("%s * x", r_code(direction))
+    ))
+  }
   if (logistic_factorial_search(spec)) {
     design <- logistic_factorial_design(spec)
     tested <- names(design$betas) %in% design$tested
@@ -323,7 +357,8 @@ simulated_search_available <- function(spec) {
     (identical(spec$design, "basic_test") && isTRUE(spec$template %in% c("paired_variances", "proportion_trend"))) ||
     (identical(spec$design, "signal_detection") && identical(spec$template, "dprime")) ||
     jonckheere_search(spec) || logistic_factorial_search(spec) ||
-    (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator"))
+    (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) ||
+    identical(spec$template, "its")
 }
 
 logistic_factorial_search <- function(spec) {
@@ -357,7 +392,8 @@ jonckheere_search <- function(spec) {
 # Whether the search scales the pattern entered (so a flat pattern can't
 # be searched).
 simulated_search_scales_pattern <- function(spec) {
-  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || jonckheere_search(spec) || logistic_factorial_search(spec)
+  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || jonckheere_search(spec) || logistic_factorial_search(spec) ||
+    (identical(spec$template, "its") && identical(spec$target_test$effect, "both"))
 }
 
 simulated_effect_sensitivity <- function(spec, n, power, nrep, seed, cores = 1L, level = 0.95) {

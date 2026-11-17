@@ -1,4 +1,4 @@
-* The smallest detectable effect (goal `sensitivity`) for three more
+* The smallest detectable effect (goal `sensitivity`) for four more
   simulated tests, by the simulated search
   (`simulated_effect_sensitivity()`), with a 95% interval:
   - The Jonckheere-Terpstra trend test: the pattern of group means is
@@ -17,6 +17,9 @@
     (kept within -0.99 to 0.99), the group means kept, and the result is
     reported as the difference between the largest and smallest
     correlation.
+  - The interrupted time series: the change in level or in trend tested,
+    the rest kept; when both are tested together they are scaled together
+    and the change in level is reported.
   A flat pattern is refused plainly. The exported scripts repeat the
   search. Tests: power simulated afresh at each effect found (4,000
   replications, another seed) is within 0.04 of the target, every script

@@ -184,7 +184,7 @@ simulated_times:
   # E32: moderation takes about 4 seconds for power; mediation with a
   # negative binomial count (regmedint) about 30, the slower case shown.
   E32: {power: 30, sample_size: 200}
-  E45: {power: 2, sample_size: 10}
+  E45: {power: 2, sample_size: 10, sensitivity: 60}
   E72: {power: 2, sample_size: 10, sensitivity: 10}
   # Measured 12 November 2026 the same way: Welch's ANOVA (the one-way
   # ANOVA's default), the trend test and two paired variances.
@@ -3862,6 +3862,7 @@ forms:
   E45:
     methods_name: "a segmented regression of the interrupted time series with AR(1) errors, fitted by generalised least squares (nlme's gls(), REML), simulated with PITS's series"
     tool: Spower
+    sensitivity: true
     directional: false
     no_attrition: true
     base: {spec_version: "0.1", design: time_series, template: its,
@@ -3881,9 +3882,9 @@ forms:
         fields:
           - {id: its_effect, label: "Which change", type: select, path: target_test.effect, required: true,
              choices: {level: "An immediate change in level at the intervention", slope: "A change in the trend after the intervention", both: "Either: the level and the trend tested together"}}
-          - {id: level_change, writeup_label: "change in level", label: "Immediate change in level, in the outcome's units", type: number, path: population.level_change, effect: true,
+          - {id: level_change, optional_for: [sensitivity], writeup_label: "change in level", label: "Immediate change in level, in the outcome's units", type: number, path: population.level_change, effect: true,
              help: "The step at the intervention: negative for a fall. Leave 0 if you expect only a change in trend."}
-          - {id: slope_change, writeup_label: "change in trend", label: "Change in the trend per time point after the intervention", type: number, path: population.slope_change, effect: true,
+          - {id: slope_change, optional_for: [sensitivity], writeup_label: "change in trend", label: "Change in the trend per time point after the intervention", type: number, path: population.slope_change, effect: true,
              help: "How much steeper (or, negative, flatter) the line becomes after the intervention, per time point. Leave 0 if you expect only a step."}
       - input: "How noisy the series is, and its autocorrelation"
         fields:
