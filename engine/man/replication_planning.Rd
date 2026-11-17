@@ -27,7 +27,10 @@ replication_planning(
   original_analysis = "test",
   original_bf = NULL,
   original_prior_scale = 1/sqrt(2),
-  original_prior = NULL
+  original_prior = NULL,
+  original_effect_type = "d",
+  original_r = NULL,
+  original_f = NULL
 )
 }
 \arguments{
@@ -99,6 +102,22 @@ Bayes factor and for repeating its test.}
 
 \item{original_prior}{For \code{"posterior"}: \code{"vague"} or \code{"default"}; an
 informative prior's posterior is refused.}
+
+\item{original_effect_type}{What \code{original_effect} holds for a t-test
+original (two groups, one sample, pairs): \code{"d"}, the standardised
+effect the design plans in (d, or d_z for pairs); \code{"t"}, its t
+statistic, converted to d by Lakens (2013): t times the square root of
+1/n1 + 1/n2 for two groups, t over the square root of n for one sample
+or pairs; or, for pairs only, \code{"d_rm"}, the repeated-measures d (or
+d_av when the two SDs are about equal), converted to d_z by dividing by
+the square root of 2(1 - r), with \code{original_r} (Lakens, 2013).}
+
+\item{original_r}{For \code{original_effect_type = "d_rm"}: the correlation
+between the two measurements in the original study.}
+
+\item{original_f}{For a generic design: an F statistic with one
+numerator degree of freedom, whose square root is the estimate's
+|t| (in place of \code{original_statistic}).}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the
@@ -106,8 +125,10 @@ analysis scale, z and two-sided p); \code{priors} (mean and SD of each
 belief); \code{goals}, a data frame of \code{goal}, \code{prior} (\code{NA} for the goals
 planned for no effect), \code{n} (the total sample size needed, \code{NA} when
 not reachable), \code{per_group}, \code{ratio} (n over the original's), \code{limit}
-(the highest chance reachable, when the goal cannot reach \code{power}) and
-\code{reason}; \code{at_n} (the chance of each goal at \code{n}); \code{telescope} (d33
+(the highest chance reachable, when the goal cannot reach \code{power};
+for \code{reason} \code{"any_size"}, the chance with the smallest replication,
+which already exceeds \code{power}) and \code{reason} (\code{"not_reachable"},
+\code{"over_max"}, \code{"not_found"} or \code{"any_size"}); \code{at_n} (the chance of each goal at \code{n}); \code{telescope} (d33
 and its calculation, \code{NULL} for a generic design or a Bayesian
 original); \code{sequential} (for a Bayesian t-test original, each belief as
 a design prior for \code{\link[=bayes_sequential]{bayes_sequential()}}); \code{functions_used}; and

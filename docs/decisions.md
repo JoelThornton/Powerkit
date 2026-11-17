@@ -3931,3 +3931,62 @@ method chosen first. All follow JASP's default priors.
   simulated with fixed predictors, for two increases and one coefficient
   (`validation-log.md`, 17 November 2026); a published example is a
   placeholder for the maintainer.
+
+## 2026-11-17 · Replication plans: a review, its fixes, and the plan for the rest
+
+A review of replication plans against several research questions (a
+direct replication, a replication with an extension, a test of whether
+the original was a false positive, and a mixed-design original reported
+as an F: Shnabel et al., 2009, Study 1) found output that was wrong or
+misleading, fixed here, and a plan that asks for its settings before the
+researcher's question, which the queue now rebuilds (`next.md` items 28
+to 32).
+
+- **Fixed.** A goal that any replication meets (the pooled goal after a
+  strong original, whose chance is above 99.9% for three people) is
+  reported as met at any size; BayesRepDesign's search finds no sample
+  size there, and the plan had said "not reachable". Variation between
+  studies is on each design's scale (the conventions entry gives the
+  sizes). The plan warns when the design entered and the original's card
+  differ, keeps only a card that plans as the original's design, reports
+  other analyses in the plan under their own heading, and cites only the
+  methods its goals, settings and original used.
+- **Inputs.** A t-test original can be entered as its t statistic, and a
+  paired one as d_rm (or d_av with equal SDs) with the correlation
+  between the measurements, converted by Lakens (2013): papers report
+  several kinds of repeated-measures d, which can differ from d_z by a
+  factor of two or more. Another design's uncertainty can be an F with
+  one numerator degree of freedom, whose square root is its t.
+- **p-values and Bayes factors (the maintainer's decision, 17 November
+  2026).** A researcher is never made to choose one or take both. A
+  replication plan sets its sample size by one primary criterion, of
+  either kind, fixed before the data are collected, and reports any
+  others beside it as their chance of success at that sample size. The
+  replication Bayes factor was built for frequentist originals
+  (Verhagen & Wagenmakers, 2014; Ly et al., 2019), and a replication can
+  have several goals (Anderson & Maxwell, 2016). One criterion that can
+  show the effect is absent (an equivalence test for a significance
+  plan, the replication Bayes factor otherwise) starts ticked, because a
+  non-significant replication alone cannot tell a failed replication from
+  an inconclusive one; it does not change the sample size. This replaces
+  the 8 November 2026 table of every goal under three beliefs as the
+  first answer; the table stays available.
+- **Replications that change something (the maintainer's decision).** The
+  plan asks what the replication keeps: everything (a close
+  replication), the original comparison with something added (a
+  replication with an extension, whose extension analyses join the plan
+  under their own heading, with their own effect sizes), the idea in
+  changed conditions (a conceptual replication, planned from the shrunk
+  belief with more variation between studies) or not the comparison (a
+  new study, planned as an ordinary study plan).
+- **BUCSS (the maintainer's decision).** Originals reported as an F or a
+  partial eta-squared from between, within and mixed ANOVAs, and
+  publication-bias-corrected planning, come from BUCSS (Anderson,
+  Kelley & Maxwell, 2017; Anderson & Kelley, 2024), not new maths. On
+  Shnabel et al.'s interaction (F(1, 118) = 15.38, N = 120, 90% power)
+  BUCSS gives 86 people at 50% assurance and 152 at 80%, against the
+  plan's 82, 109 and 127 for the three beliefs. Its references join
+  `refs.bib` from its own `citation()` when it is added.
+- **Still to decide:** the package for group-sequential designs with
+  interim analyses (rpact or gsDesign), which replications and other
+  expensive studies need (`next.md` item 15).

@@ -156,3 +156,32 @@ test_that("choosing the original's card starts the planner on its design and eff
   expect_match(code, "replication_fields_for_card(plan$replication$fields, forms, ep)", fixed = TRUE)
   expect_match(code, "replication_card_status_ui(tree, plan, forms)", fixed = TRUE)
 })
+
+test_that("the plan warns when the design entered and the original's card disagree", {
+  plan <- plan_set_replication(new_replication_plan(), fields = list(rep_design = "two_groups", rep_effect = "0.5"), endpoint = "E4")
+  status <- as.character(replication_card_status_ui(tree, plan, forms))
+  expect_match(status, "rep-design-mismatch", fixed = TRUE)
+  expect_match(status, "Two separate groups compared on a score", fixed = TRUE)
+  expect_match(status, "Two scores and how they are related", fixed = TRUE)
+  # Matching designs, and a card whose effect goes under Another design, don't warn.
+  same <- plan_set_replication(new_replication_plan(), fields = list(rep_design = "correlation"), endpoint = "E4")
+  expect_null(replication_design_mismatch(same, forms))
+  generic <- plan_set_replication(new_replication_plan(), fields = list(rep_design = "generic"), endpoint = "E8")
+  expect_null(replication_design_mismatch(generic, forms))
+  expect_identical(replication_card_planner_design(forms, "E8"), "generic")
+})
+
+test_that("an extension added to a replication plan isn't reported as the original's analysis", {
+  entry <- function(ep, label, n) list(endpoint = ep, label = label, n = n)
+  plan <- plan_set_replication(new_replication_plan(), endpoint = "E8")
+  plan$entries <- list(entry("E56", "The extension's three-way interaction", 400), entry("E8", "The original's interaction", 84))
+  expect_identical(replication_original_index(plan), 2L)
+  lines <- paste(replication_analysis_lines(plan, tree, forms), collapse = "\n")
+  expect_lt(regexpr("The original's interaction", lines, fixed = TRUE)[1], regexpr("## Other analyses in this plan", lines, fixed = TRUE)[1])
+  expect_gt(regexpr("The extension's three-way interaction", lines, fixed = TRUE)[1], regexpr("## Other analyses in this plan", lines, fixed = TRUE)[1])
+  status <- as.character(replication_card_status_ui(tree, plan, forms))
+  expect_match(status, "N = 84", fixed = TRUE)
+  # One analysis: no second heading.
+  plan$entries <- plan$entries[2]
+  expect_no_match(paste(replication_analysis_lines(plan, tree, forms), collapse = "\n"), "Other analyses", fixed = TRUE)
+})
