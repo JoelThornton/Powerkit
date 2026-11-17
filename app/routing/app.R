@@ -3008,7 +3008,7 @@ server <- function(input, output, session) {
       v <- values[[id]]
       if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test", "rep_goal")) updateSelectInput(session, id, selected = v)
       else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type",
-        "rep_purpose", "rep_prior")) updateRadioButtons(session, id, selected = v)
+        "rep_purpose", "rep_prior", "rep_sided")) updateRadioButtons(session, id, selected = v)
       else if (identical(id, "rep_also")) updateCheckboxGroupInput(session, id, selected = replication_also_selected(v))
       else if (identical(id, "labs_outcome")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
       else updateTextInput(session, id, value = v)

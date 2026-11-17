@@ -4136,3 +4136,33 @@ the answer.
   registered-report design table, an R script that runs only the chosen
   criteria, a one-sided option, alpha and power passed to the card, the
   card opened in replication mode, and a step bar for the page.
+
+## 2026-11-17 · Replication plans: a study design table, a script for the chosen criteria, and a one-sided option
+
+Queue item 29, part 2a. Researchers preregistering a replication, or
+submitting it as a Registered Report, need its criteria written up as
+they will be tested.
+
+- **Study design table.** The write-up adds the table Registered Report
+  journals ask for: one row for each criterion in the plan, the main one
+  first, with the question (from the plan's purpose), the hypothesis,
+  the sampling plan (the main criterion's sample size, and the others'
+  chances at it), the analysis plan, what sets the test's sensitivity
+  (the belief about the true effect, the bound, the evidence threshold),
+  how each outcome will be read, and a cell for the theory, left for the
+  researcher.
+- **The script runs the chosen criteria only.**
+  `replication_planning_script()` takes the main criterion, the others
+  and the belief: it plans the main criterion's sample size under that
+  belief and gives each other criterion's chance at it, with the same
+  functions and levels as `replication_planning()` (tested to give its
+  numbers). Without them it gives every goal under every belief, as
+  before.
+- **One-sided.** `replication_planning(alternative = "one.sided")` tests
+  the significance goal at alpha, one-sided in the original's direction,
+  and the pooled goal at alpha squared; the default stays BayesRepDesign's
+  two-trials rule at alpha / 2 (a two-sided test at alpha that also needs
+  the original's direction). The other goals do not depend on it. The
+  plan asks only when significance or pooling is used, and the methods
+  paragraph and settings line say which was chosen. Checked against the
+  simulation of the method's model (`validation-log.md`).
