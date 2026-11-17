@@ -1697,6 +1697,12 @@ scripts/run-validation.R --only replication --cores 2`.
   (the replication's t against the noncentral t that d33 implies) on
   simulated studies with no effect gives .7938 and .7951 against the
   card's .7968 and .7923, for two groups of 50 and 60 pairs.
+- **Rerun after the purpose-first page** (17 November 2026, engine
+  0.78.7 plus that change, which adds the default Bayes factor t-test
+  goals for t-test originals): `--only replication`, the same 3 PASS
+  and 3 published-reference TODO SKIP, with the same chances. The
+  added goals are bfpwr's, validated by the `bayes` chunk on their own
+  cards.
 
 Not covered: the sceptical Bayes factor (left to a published example)
 and the bfpwr Bayes factor goals (the bayes chunk's). The published
