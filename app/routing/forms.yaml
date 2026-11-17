@@ -176,7 +176,7 @@ background:
 simulated_times:
   E44: {power: 60, sample_size: 520}
   E22: {power: 20, sample_size: 175}
-  E61: {power: 8, sample_size: 65}
+  E61: {power: 8, sample_size: 65, sensitivity: 40}
   E47: {power: 6, sample_size: 50}
   E64: {power: 5, sample_size: 40}
   E70: {power: 5, sample_size: 40}
@@ -187,12 +187,12 @@ simulated_times:
   # the slower case shown.
   E32: {power: 30, sample_size: 200}
   E45: {power: 2, sample_size: 10}
-  E72: {power: 2, sample_size: 10}
+  E72: {power: 2, sample_size: 10, sensitivity: 10}
   # Measured 12 November 2026 the same way: Welch's ANOVA (the one-way
   # ANOVA's default), the trend test and two paired variances.
-  E66: {power: 2, sample_size: 16}
+  E66: {power: 2, sample_size: 16, sensitivity: 35}
   E18: {power: 1, sample_size: 11}
-  E57: {power: 1, sample_size: 10}
+  E57: {power: 1, sample_size: 10, sensitivity: 8}
 # Usual times (seconds) for a version that simulates on a card whose
 # default doesn't: shown only when that version runs (usual_seconds(),
 # R/results.R), and not counted as a simulated card on About. The
@@ -3437,6 +3437,7 @@ forms:
   E57:
     methods_name: "the Pitman-Morgan test of two paired variances"
     tool: Spower
+    sensitivity: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: paired_variances,
            variables: {X: {type: within_factor}, "Y": {type: continuous}}, population: {metric: variance},
@@ -3450,9 +3451,9 @@ forms:
           - {id: Y_label, label: "Outcome", type: text, path: variables.Y.label, required: true}
       - input: "The expected variance at each measurement, and how strongly the two correlate"
         fields:
-          - {id: var1, writeup_label: "variance at the first measurement", label: "Variance at the first measurement (the SD squared)", type: number, path: population.var1, effect: true, min_exclusive: 0,
+          - {id: var1, optional_for: [sensitivity], when_empty: same_as, same_as: var2, writeup_label: "variance at the first measurement", label: "Variance at the first measurement (the SD squared)", type: number, path: population.var1, effect: true, min_exclusive: 0,
              help: "For example, an SD of 50 ms is a variance of 2500. A one-sided test predicting 'positive' says the first measurement's variance is the larger."}
-          - {id: var2, writeup_label: "variance at the second measurement", label: "Variance at the second measurement (the SD squared)", type: number, path: population.var2, effect: true, min_exclusive: 0}
+          - {id: var2, writeup_label: "variance at the second measurement", label: "Variance at the second measurement (the SD squared)", type: number, path: population.var2, effect: true, baseline: true, min_exclusive: 0}
           - {id: pm_r, writeup_label: "correlation between the measurements", label: "Correlation between the two measurements", type: number, path: population.r, required: true, min_exclusive: -1, max_exclusive: 1, in_effect_text: true,
              help: "How strongly people's scores at the two measurements go together, for example a test-retest correlation of 0.6."}
 
@@ -3981,6 +3982,7 @@ forms:
   E72:
     methods_name: "a comparison of sensitivity (d') between two conditions, each person's d' from their hits and false alarms (signal detection theory), simulated"
     tool: Spower
+    sensitivity: true
     directional: true
     base: {spec_version: "0.1", design: signal_detection, template: dprime,
            variables: {"Y": {type: continuous}}, population: {metric: dprime},
@@ -3996,9 +3998,9 @@ forms:
           - {id: Y_label, label: "The task (for example, recognition memory)", type: text, path: variables.Y.label, required: true}
       - input: "Sensitivity (d') in each condition"
         fields:
-          - {id: d1, writeup_label: "average d' in condition 1", label: "Average d' in condition 1", type: number, path: population.dprime.1, effect: true, min: -5, max: 6,
+          - {id: d1, writeup_label: "average d' in condition 1", label: "Average d' in condition 1", type: number, path: population.dprime.1, effect: true, baseline: true, min: -5, max: 6,
              help: "d' describes sensitivity in signal-detection units; 0 means no separation. Its practical meaning depends on the task. Take it from comparable studies rather than choosing a conventional magnitude label."}
-          - {id: d2, writeup_label: "average d' in condition 2", label: "Average d' in condition 2", type: number, path: population.dprime.2, effect: true, min: -5, max: 6,
+          - {id: d2, optional_for: [sensitivity], when_empty: same_as, same_as: d1, writeup_label: "average d' in condition 2", label: "Average d' in condition 2", type: number, path: population.dprime.2, effect: true, min: -5, max: 6,
              help: "The test is of condition 2 minus condition 1."}
       - input: "Trials and how people vary"
         fields:
@@ -4827,6 +4829,7 @@ forms:
   E66:
     methods_name: "a Cochran-Armitage test of a trend in proportions"
     tool: Spower
+    sensitivity: true
     directional: true
     base: {spec_version: "0.1", design: basic_test, template: proportion_trend,
            variables: {X: {type: categorical}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: proportion},

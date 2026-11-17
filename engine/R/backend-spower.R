@@ -87,6 +87,8 @@ spower_backend <- function(spec, seed = NULL) {
     # (welch_f_sensitivity()).
     simulated_sensitivity = if (welch_anova(spec)) {
       function(n, power, nrep, seed, cores) welch_f_sensitivity(spec, n, power, nrep, seed, cores)
+    } else if (simulated_search_available(spec)) {
+      function(n, power, nrep, seed, cores) simulated_effect_sensitivity(spec, n, power, nrep, seed, cores)
     },
     check_run = function() {
       big_n <- step * ceiling(check_run_n() / step)

@@ -8,8 +8,8 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
-    title: "Moderation of an outcome with three or more unordered answers"
-    text: "The card for moderation or mediation with a yes/no, count or categorical outcome now plans moderation when the outcome is one of three or more unordered answers, such as which of three services people choose. You give the share choosing each answer, and for each answer but the first, the odds ratios and how much X's odds ratio changes with W. Powerkit tests all the interaction terms together by default, or one answer's if you choose. Power and the sample size both run in the app; the sample size takes a minute or two."
+    title: "The smallest effect you could detect, on three simulated analyses"
+    text: "Two paired variances, a trend in proportions across ordered groups and a comparison of d' between conditions now offer \"the smallest effect I'd have a good chance of finding\". Powerkit simulates power at several effect sizes and reads off where it reaches your target, with an interval for the simulation's uncertainty. The result names the measure, such as the variance ratio or the difference in d'."
   - date: "2026-11-17"
     title: "The smallest effect you could detect, on five more analyses"
     text: "Two groups on an ordinal outcome, the log-rank test and a Cox regression, growth curves, and the ICC, Cronbach's alpha and kappa now offer \"the smallest effect I'd have a good chance of finding\", and the effect can be left empty. For reliability the answer is the lowest value your sample could show is above the one you name. When the smallest detectable effect is the goal, the methods paragraph no longer calls the values you entered \"the effect size\"."

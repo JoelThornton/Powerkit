@@ -1,28 +1,22 @@
-# powerkit 0.76.0
+# powerkit 0.75.3
 
-* Moderation of an outcome in three or more unordered categories
-  (`logistic_regression / multinomial_interaction`, new
-  `R/backend-multinomial-interaction.R`): whether X's effect on the odds
-  of each category against the first depends on W, in a multinomial
-  logistic regression with X, W and X x W. No package computes its power,
-  so Spower runs powerkit's experiment `p_multinomial_interaction()`
-  around `nnet::multinom()`: the default test is the likelihood-ratio
-  test of the K - 1 product terms (y ~ x * w against y ~ x + w), and the
-  Wald z test of one category's product is an option
-  (`target_test > method "wald_z"`, `category`). X and W are each a score
-  or a yes/no group, correlated through `r_xw`. The population is given by
-  the shares in each category at the starting point and, for each
-  category but the first, the odds ratios for X and W and the ratio of
-  odds ratios for X x W. A data set with an empty category counts as not
-  significant. The check run recovers every coefficient; the exported
-  script reproduces both tests; the minimum n allows ten people per
-  coefficient. New example spec `multinomial_interaction.json`;
-  validation in test-validation-multinomial-interaction.R (an independent
-  simulation drawing the categories by the Gumbel-maximum rule and fitting
-  the model by its own multinomial log-likelihood with `stats::optim()`,
-  Type I error with both
-  main effects, a published-example placeholder), run in the `multinomial`
-  chunk.
+* The smallest detectable effect (goal `sensitivity`) for three simulated
+  tests, by the simulated search the Hartung-Knapp meta-analysis uses
+  (`simulated_effect_sensitivity()`): power is simulated at values of the
+  effect around a starting guess, a probit curve fitted to the rejections,
+  and the effect read where it reaches the target, with a 95% interval.
+  - Two paired variances (the Pitman-Morgan test): the ratio of the first
+    measurement's variance to the second's, the second's and the
+    correlation kept.
+  - A trend in proportions (the Cochran-Armitage test): the pattern of
+    proportions scaled about its mean, reported as the difference between
+    the highest and lowest; `simulated_scale_search()` gains a `limit`, so
+    no proportion leaves 0 to 1. A flat pattern is refused plainly.
+  - d' in two conditions: the second condition's average d', the first's
+    and the rest kept.
+  The exported scripts repeat the search. Tests: power simulated afresh at
+  each effect found (4,000 replications, another seed) is within 0.04 of
+  the target, and every script is run.
 
 # powerkit 0.75.2
 
