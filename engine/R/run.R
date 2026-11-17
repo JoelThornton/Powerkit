@@ -169,7 +169,8 @@
 #' proportions, d', the Jonckheere-Terpstra trend test, the factorial
 #' logistic regression, moderation by groups, the interrupted time series,
 #' moderation of a yes/no or count outcome, an outcome in unordered
-#' categories and moderated regression with a yes/no X or W search their effect by simulation, with a 95%
+#' categories, moderated regression with a yes/no X or W, latent profiles
+#' (the separation) and factor recovery (the loading) search their effect by simulation, with a 95%
 #' interval (`simulated_effect_sensitivity()`). Other simulated tests have no
 #' sensitivity analysis yet.
 #'

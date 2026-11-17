@@ -2000,14 +2000,16 @@ spower_script_inputs <- function(spec) {
     efa = c(
       sprintf("factors <- %s # the number of factors", r_code(as.integer(pop$factors))),
       sprintf("items <- %s # items loading on each factor (%s)", r_code(as.integer(pop$items_per_factor)), comment_text(v$Y$label)),
-      sprintf("loading <- %s # each item's standardised loading on its factor", r_code(pop$loading)),
+      if (is.null(pop$loading)) "loading <- NA # set by the search below" else
+        sprintf("loading <- %s # each item's standardised loading on its factor", r_code(pop$loading)),
       sprintf("phi <- %s # correlation between factors", r_code(pop$factor_correlation %||% 0)),
       sprintf("congruence <- %s # Tucker's congruence each factor must reach", r_code(spec$target_test$congruence %||% 0.95))
     ),
     lpa = c(
       sprintf("profiles <- %s # the number of profiles in the population", r_code(as.integer(pop$profiles))),
       sprintf("indicators <- %s # the number of indicators (%s)", r_code(as.integer(pop$indicators)), comment_text(v$Y$label)),
-      sprintf("separation <- %s # distance between neighbouring profiles on each indicator, in SD units", r_code(pop$separation)),
+      if (is.null(pop$separation)) "separation <- NA # set by the search below" else
+        sprintf("separation <- %s # distance between neighbouring profiles on each indicator, in SD units", r_code(pop$separation)),
       sprintf("shares <- %s # each profile's share of the population", r_code(as.numeric(unlist(pop$shares %||% rep(1 / pop$profiles, pop$profiles)))))
     ),
     dprime = c(

@@ -46,7 +46,7 @@ population_problems <- function(spec) {
     irt = check_irt,
     signal_detection = check_dprime,
     mixture = check_lpa,
-    factor_analysis = function(spec) character(),
+    factor_analysis = function(spec) searched_value_check(spec, "loading", "the items' loading"),
     time_series = function(spec) character(),
     panel = check_riclpm
   )
@@ -3786,11 +3786,20 @@ check_dprime <- function(spec) {
 }
 
 # Latent profile analysis: one share for each profile, adding up to 1.
+# A value the smallest-detectable-effect search finds may be left out for
+# that goal only.
+searched_value_check <- function(spec, name, words) {
+  if (is.null(spec$population[[name]]) && !identical(spec$goal$type, "sensitivity")) {
+    return(sprintf("Give %s ('population > %s'): it may be left out only when the goal is the smallest detectable effect.", words, name))
+  }
+  character()
+}
+
 check_lpa <- function(spec) {
   pop <- spec$population
-  if (is.null(pop$shares)) return(character())
+  problems <- searched_value_check(spec, "separation", "the separation between neighbouring profiles")
+  if (is.null(pop$shares)) return(problems)
   shares <- as.numeric(unlist(pop$shares))
-  problems <- character()
   if (length(shares) != pop$profiles) {
     problems <- c(problems, sprintf("'population > shares' needs one share for each of the %d profiles.", pop$profiles))
   } else if (abs(sum(shares) - 1) > 1e-6) {

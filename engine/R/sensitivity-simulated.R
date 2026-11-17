@@ -243,6 +243,32 @@ simulated_search_plan <- function(spec, n, power) {
       effect_script = sprintf("x * %s", r_code(spread))
     ))
   }
+  if (identical(spec$design, "mixture") && identical(spec$template, "lpa")) {
+    return(list(
+      guess = guess_from(pop$separation %||% 0, 1),
+      set = function(s, x) { s$population$separation <- x; s },
+      effect = function(x) x,
+      effect_name = "separation",
+      what = sprintf("separation between neighbouring profiles' means, in SDs of each indicator, with %s profiles, %s indicators and the shares kept",
+        format(pop$profiles), format(pop$indicators)),
+      script_set = "  separation <<- x",
+      effect_script = "x"
+    ))
+  }
+  if (identical(spec$design, "factor_analysis") && identical(spec$template, "efa")) {
+    return(list(
+      guess = guess_from(pop$loading %||% 0, 0.5),
+      # Loadings of 1 or more leave no unique variance.
+      limit = 0.95,
+      set = function(s, x) { s$population$loading <- x; s },
+      effect = function(x) x,
+      effect_name = "loading",
+      what = sprintf("loading of every item on its factor, with %s factors of %s items, a factor correlation of %s and recovery at a congruence of %s kept",
+        format(pop$factors), format(pop$items_per_factor), format(pop$factor_correlation %||% 0), format(spec$target_test$congruence %||% 0.95)),
+      script_set = "  loading <<- x",
+      effect_script = "x"
+    ))
+  }
   if (binary_interaction_search(spec)) {
     entered <- pop$r_XW_Y %||% 0
     direction <- pwrss_search_direction(spec, entered)
@@ -418,7 +444,9 @@ simulated_search_available <- function(spec) {
     jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) ||
     identical(spec$template, "its") || moderation_ratio_search(spec) || multinomial_search(spec) ||
-    binary_interaction_search(spec)
+    binary_interaction_search(spec) ||
+    (identical(spec$design, "mixture") && identical(spec$template, "lpa")) ||
+    (identical(spec$design, "factor_analysis") && identical(spec$template, "efa"))
 }
 
 # Moderated regression with a yes/no X or W (E15), which InteractionPoweR

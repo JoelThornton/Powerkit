@@ -1,5 +1,5 @@
 * The smallest detectable effect (goal `sensitivity`) for the remaining
-  regression and moderation cards.
+  regression and moderation cards, latent profiles and factor analysis.
   - By the simulated search (`simulated_effect_sensitivity()`, with a 95%
     interval): moderation of a yes/no outcome (the X x W odds ratio) and
     of a count (the X x W rate ratio; `count_interaction_backend()` gains
@@ -10,6 +10,9 @@
     regression with a yes/no X or W (the correlation of XW with Y, which
     InteractionPoweR simulates; the exported script now repeats that
     search rather than the fixed-model one).
+  - By the simulated search, too: latent profiles (the separation between
+    neighbouring profiles) and factor recovery (every item's loading, kept
+    below 0.95). Both run in the background in the app, with usual times.
   - By the formula search (`formula_search_sensitivity()`): the three-way
     interaction's standardised coefficient, with InteractionPoweR's
     `power_interaction_3way_r2()`; coefficients impossible with the

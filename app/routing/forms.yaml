@@ -162,8 +162,8 @@ background:
   E9: {power: 5, sample_size: 80, sensitivity: 2}
   E15: {power: 5, sample_size: 80, sensitivity: 45}
   E59: {power: 4, sample_size: 30}
-  E58: {power: 25, sample_size: 120}
-  E73: {power: 35, sample_size: 320}
+  E58: {power: 25, sample_size: 120, sensitivity: 190}
+  E73: {power: 35, sample_size: 320, sensitivity: 800}
   # Mediation with a yes/no mediator (regmedint), measured 14 November 2026.
   E39: {power: 25, sample_size: 200}
   E60: {power: 4, sample_size: 30}
@@ -3834,6 +3834,7 @@ forms:
   # around psych's fa()): the chance every factor's loadings are recovered.
   E73:
     methods_name: "an exploratory factor analysis (psych's fa(): minimum residual, oblimin rotation), recovery of the loadings judged by Tucker's congruence, simulated"
+    sensitivity: true
     tool: Spower
     directional: false
     no_alpha: true
@@ -3851,7 +3852,7 @@ forms:
              help: "More items per factor make each factor better defined (overdetermined) and easier to recover."}
       - input: "How strongly the items measure their factors"
         fields:
-          - {id: loading, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
+          - {id: loading, optional_for: [sensitivity], when_empty: omit, writeup_label: "standardised loading", label: "Each item's standardised loading on its factor", type: number, path: population.loading, effect: true, min_exclusive: 0, max_exclusive: 1,
              help: "Its square is the item's communality, the share of its variance its factor explains. Loadings around 0.4 are weak, 0.6 moderate, 0.8 strong. Take them from earlier studies of the same or similar items."}
           - {id: factor_correlation, label: "Correlation between the factors", type: number, path: population.factor_correlation, required: true, min: 0, max: 0.9,
              default: 0, default_source: "uncorrelated factors, powerkit's default"}
@@ -3956,6 +3957,7 @@ forms:
   # around mclust): the chance the BIC finds the right number of profiles.
   E58:
     methods_name: "a latent profile analysis (mclust's models with equal variances and local independence, the number of profiles chosen by the BIC), simulated"
+    sensitivity: true
     tool: Spower
     directional: false
     no_alpha: true
@@ -3972,7 +3974,7 @@ forms:
       - input: "The profiles you expect"
         fields:
           - {id: profiles, label: "Number of profiles", type: number, path: population.profiles, required: true, min: 2, max: 6, integer: true}
-          - {id: separation, writeup_label: "separation between neighbouring profiles", label: "How far apart neighbouring profiles are on each indicator, in SD units (Cohen's d)", type: number, path: population.separation, effect: true, min: 0, max: 5,
+          - {id: separation, optional_for: [sensitivity], when_empty: omit, writeup_label: "separation between neighbouring profiles", label: "How far apart neighbouring profiles are on each indicator, in SD units (Cohen's d)", type: number, path: population.separation, effect: true, min: 0, max: 5,
              help: "Each profile is this far above the one before it on every indicator, in SDs within a profile, as in Tein, Coxe and Cham's simulations. 0.5 is hard to find, 0.8 moderate, 1.5 clear."}
           - {id: profile_sizes, label: "Will the profiles be about the same size?", type: select, required: true,
              choices: {equal: "Yes, about equal", unequal: "No: give each profile's share"},
