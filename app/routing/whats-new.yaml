@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "The smallest effect you could detect, for moderation, categories, profiles and factors"
+    text: "Moderation of a yes/no, count or categorical outcome, an outcome in three or more unordered categories, moderated regression with a yes/no predictor or moderator, the three-way interaction, latent profiles and factor analysis now offer \"the smallest effect I'd have a good chance of finding\". The answer is the interaction's odds or rate ratio, the odds ratio for a category, the interaction's correlation with the outcome, the three-way coefficient, the separation between profiles, or the loadings at which the factors are recovered. Mediation on the moderation card doesn't offer it yet."
+  - date: "2026-11-17"
     title: "Rank tests shown beside the t-test or ANOVA"
     text: "When you plan a Wilcoxon, Mann-Whitney, Kruskal-Wallis or Friedman test, the result also gives the answer for the usual t-test or ANOVA, assuming normal scores, and says why they differ: a rank test loses a little power with normal scores and can gain it with skewed or heavy-tailed ones, while Friedman's test loses more. When you plan the t-test or ANOVA, one line asks whether you might analyse with a rank test instead, and if so to choose it now rather than after looking at the data."
   - date: "2026-11-17"
