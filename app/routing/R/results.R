@@ -3755,6 +3755,14 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       if (identical(spec$variables$Y$type, "binary")) "a yes/no (logistic)" else if (identical(spec$population$count_model, "negative_binomial"))
         sprintf("a count (negative binomial, overdispersion k = %s)", format(spec$population$dispersion)) else "a count (Poisson)")
   }
+  # Mediation with a mediator in ordered categories (E39).
+  if (identical(spec$template, "ordinal_mediator")) {
+    name <- sprintf(paste0("mediation with a mediator in %d ordered categories, as a structural equation model in which the categories are cut from ",
+      "an underlying normal score (lavaan's latent-response model for ordered variables, theta parameterisation, with %s), ",
+      "the indirect effect a*b tested by the delta method, simulated"),
+      length(spec$population$m_probabilities),
+      if (identical(spec$variables$Y$type, "binary")) "the yes/no outcome declared ordered too" else "the outcome a score")
+  }
   # One yes/no answer in each of three or more conditions (E75).
   if (identical(spec$target_test$method, "cochran_q")) {
     name <- sprintf(paste0("Cochran's Q, simulated from a logistic model with a random intercept for each person ",

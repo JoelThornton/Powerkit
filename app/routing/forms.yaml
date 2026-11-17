@@ -1471,25 +1471,48 @@ forms:
              default: binary, default_source: "two conditions, the usual design for mediation of an intervention"}
           - {id: X_levels, label: "The two conditions or groups, separated by commas (first the comparison group; the people are split equally between them)", type: levels, path: variables.X.levels, required: true,
              shown_if: {field: binm_x, is: binary}}
+          - {id: binm_m, label: "The mediator is", type: select, path: template, required: true,
+             choices: {binary_mediator: "Yes or no (for example, booked an appointment or not)", ordinal_mediator: "Ordered categories (for example, a rating from 'unlikely' to 'certain')"},
+             sets: {ordinal_mediator: [{path: variables.M.type, value: categorical}, {path: population.metric, value: latent_response}]},
+             default: binary_mediator, default_source: "a yes/no mediator, the card's first version",
+             choice_notes: {ordinal_mediator: "The categories are treated as cut from an underlying score, the usual structural equation model for an ordered variable (lavaan, as in Mplus). Powerkit tests the indirect effect through that score."}}
           - {id: M_levels, label: "The mediator's two answers, separated by commas (the 'no' first, then the 'yes')", type: levels, path: variables.M.levels, required: true,
+             shown_if: {field: binm_m, is_not: ordinal_mediator},
              help: "For example: No, Yes, or Did not book, Booked. The paths below are about the second answer."}
+          - {id: ordm_levels, label: "The mediator's categories, lowest first, separated by commas (three or more)", type: levels, path: variables.M.levels, required: true,
+             shown_if: {field: binm_m, is: ordinal_mediator},
+             help: "For example: Unlikely, Unsure, Likely, Certain."}
           - {id: binm_y, label: "The outcome is", type: select, path: variables.Y.type, required: true,
              choices: {continuous: "A score", binary: "Yes or no"},
              default: continuous, default_source: "a score, the usual outcome"}
-      - input: "How X changes the chance of the mediator, and how the mediator changes the outcome"
+      - input: "How X changes the mediator, and how the mediator changes the outcome"
         fields:
-          - {id: binm_m_baseline, writeup_label: "the chance of the mediator in the comparison group", label: "Chance that the mediator is 'yes' in the first group (or at X's average, for a score), from 0 to 1", type: number, path: population.m_baseline, required: true, min_exclusive: 0, max_exclusive: 1, baseline: true}
-          - {id: binm_m_or, writeup_label: "the odds ratio of the mediator for X", label: "Odds ratio of the mediator being 'yes' for X (the second group against the first, or per SD of a score: path a)", type: number, path: population.m_odds_ratio, effect: true, min_exclusive: 0}
+          - {id: binm_m_baseline, writeup_label: "the chance of the mediator in the comparison group", label: "Chance that the mediator is 'yes' in the first group (or at X's average, for a score), from 0 to 1", type: number, path: population.m_baseline, required: true, min_exclusive: 0, max_exclusive: 1, baseline: true,
+             shown_if: {field: binm_m, is_not: ordinal_mediator}}
+          - {id: binm_m_or, writeup_label: "the odds ratio of the mediator for X", label: "Odds ratio of the mediator being 'yes' for X (the second group against the first, or per SD of a score: path a)", type: number, path: population.m_odds_ratio, effect: true, min_exclusive: 0,
+             shown_if: {field: binm_m, is_not: ordinal_mediator}}
+          - {id: ordm_m_probabilities, writeup_label: "the share of each mediator category in the comparison group", label: "Share of people in each of the mediator's categories in the first group (or at X's average, for a score), in the same order, separated by commas, adding up to 1", type: numbers, per_levels: ordm_levels, path: population.m_probabilities, required: true, baseline: true,
+             shown_if: {field: binm_m, is: ordinal_mediator},
+             help: "For example, 0.3, 0.3, 0.25, 0.15. From a pilot or an earlier study with the same question, if you can."}
+          - {id: ordm_a, writeup_label: "X's effect on the mediator's underlying score", label: "X's effect on the mediator's underlying score, in its SD (the second group against the first, or per SD of a score: path a)", type: number, path: population.a, effect: true,
+             shown_if: {field: binm_m, is: ordinal_mediator},
+             help: "Like Cohen's d on the score the categories are cut from: 0.4 moves everyone's score up by 0.4 SD, so more people in the second group fall in the higher categories. It is the coefficient an ordered probit regression of the mediator on X estimates."}
+          - {id: ordm_b, writeup_label: "the outcome's change per SD of the mediator's underlying score", label: "Change in the outcome per SD of the mediator's underlying score, at the same X (path b): in the outcome's SD for a score, on its underlying scale for yes or no", type: number, path: population.b, effect: true,
+             shown_if: {field: binm_m, is: ordinal_mediator}}
+          - {id: ordm_direct, writeup_label: "the direct effect of X", label: "X's direct effect on the outcome, holding the mediator, on the same scale (optional; empty = 0)", type: number, path: population.direct, optional: true, empty_text: "0",
+             shown_if: {field: binm_m, is: ordinal_mediator}}
+          - {id: ordm_y_baseline, writeup_label: "the chance of the outcome in the comparison group", label: "Chance that the outcome is 'yes' in the first group (or at X's average) for someone at the middle of the mediator's underlying score, from 0 to 1", type: number, path: population.y_baseline, required: true, min_exclusive: 0, max_exclusive: 1, baseline: true,
+             shown_if: [{field: binm_m, is: ordinal_mediator}, {field: binm_y, is: binary}]}
           - {id: binm_b, writeup_label: "the difference in the outcome for the mediator", label: "Difference in the outcome between 'yes' and 'no' on the mediator, at the same X, in the outcome's SD (path b, like Cohen's d)", type: number, path: population.b, effect: true,
-             shown_if: {field: binm_y, is: continuous}}
+             shown_if: [{field: binm_m, is_not: ordinal_mediator}, {field: binm_y, is: continuous}]}
           - {id: binm_direct, writeup_label: "the direct effect of X", label: "X's direct effect on the outcome, holding the mediator, in the outcome's SD (optional; empty = 0)", type: number, path: population.direct, optional: true, empty_text: "0",
-             shown_if: {field: binm_y, is: continuous}}
+             shown_if: [{field: binm_m, is_not: ordinal_mediator}, {field: binm_y, is: continuous}]}
           - {id: binm_y_baseline, writeup_label: "the chance of the outcome in the comparison group", label: "Chance that the outcome is 'yes' in the first group (or at X's average) when the mediator is 'no', from 0 to 1", type: number, path: population.y_baseline, required: true, min_exclusive: 0, max_exclusive: 1, baseline: true,
-             shown_if: {field: binm_y, is: binary}}
+             shown_if: [{field: binm_m, is_not: ordinal_mediator}, {field: binm_y, is: binary}]}
           - {id: binm_b_or, writeup_label: "the odds ratio of the outcome for the mediator", label: "Odds ratio of the outcome being 'yes' for 'yes' against 'no' on the mediator, at the same X (path b)", type: number, path: population.b_odds_ratio, effect: true, min_exclusive: 0,
-             shown_if: {field: binm_y, is: binary}}
+             shown_if: [{field: binm_m, is_not: ordinal_mediator}, {field: binm_y, is: binary}]}
           - {id: binm_direct_or, writeup_label: "the direct odds ratio of X", label: "Odds ratio of the outcome for X, holding the mediator (optional; empty = 1, no direct effect)", type: number, path: population.direct_odds_ratio, optional: true, empty_text: "1", min_exclusive: 0,
-             shown_if: {field: binm_y, is: binary}}
+             shown_if: [{field: binm_m, is_not: ordinal_mediator}, {field: binm_y, is: binary}]}
 
   E33:
     methods_name: "a linear mixed model with participants and items as random factors (Satterthwaite t test)"

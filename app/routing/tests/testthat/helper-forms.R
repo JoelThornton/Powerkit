@@ -36,7 +36,7 @@ form_examples <- list(
                items = "40", item_design = "between"), closing_ok),
   E16 = c(list(X_label = "Condition", X_levels = "Control, Self-affirmation", x_prob = "0.5", M_label = "Defensiveness", Y_label = "Intention to change",
                x_effects = "paths", p_X_M = "-0.25", p_M_Y = "-0.3", p_X_Y = "0.1"), closing_ok),
-  E39 = c(list(binm_x = "binary", X_label = "Condition", X_levels = "Usual information, Reminder letter", M_label = "Booked an appointment",
+  E39 = c(list(binm_x = "binary", binm_m = "binary_mediator", X_label = "Condition", X_levels = "Usual information, Reminder letter", M_label = "Booked an appointment",
                M_levels = "No, Yes", Y_label = "Health knowledge", binm_y = "continuous", binm_m_baseline = "0.3", binm_m_or = "2.5",
                binm_b = "0.5", binm_direct = "0.1"), closing_ok),
   E42 = c(list(X_label = "Message", X_levels = "No message, Gain framed, Loss framed", M_label = "Perceived risk", Y_label = "Intention to be screened",
@@ -140,6 +140,12 @@ form_examples <- list(
 
 # The rank tests: a test version on E1, E2, E3 and E18, with the shape of
 # the scores.
+# Mediation with a mediator in ordered categories, from E39's screen.
+form_example_ordinal_mediator <- c(list(binm_x = "binary", X_label = "Condition", X_levels = "Usual information, Reminder letter",
+  binm_m = "ordinal_mediator", M_label = "Intention to book", ordm_levels = "Unlikely, Unsure, Likely, Certain",
+  Y_label = "Health knowledge", binm_y = "continuous", ordm_m_probabilities = "0.3, 0.3, 0.25, 0.15",
+  ordm_a = "0.4", ordm_b = "0.3", ordm_direct = "0.1"), closing_ok)
+
 form_examples_rank <- list(
   E1 = modifyList(form_examples$E1, list(method = "wilcoxon_signed_rank", score_shape = "heavy_tailed")),
   E2 = modifyList(form_examples$E2, list(method = "mann_whitney", score_shape = "skewed")),

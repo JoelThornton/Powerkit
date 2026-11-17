@@ -1724,21 +1724,22 @@ endpoints:
     doc_name: "Mediation with a yes/no or categorical mediator"
     technical_name: "Mediation: categorical mediator"
     plain_name: "Mediation when a mediator isn't a score"
-    search_words: "mediation binary dichotomous yes/no mediator logistic natural indirect effect causal mediation counterfactual vanderweele valeri regmedint"
-    template: "mediation / binary_mediator (a yes/no mediator; X two groups or a score; Y a score or yes/no)"
-    backend: "Spower: powerkit's experiment around regmedint::regmedint() (regression-based causal mediation analysis: the natural indirect effect and its delta-method test), simulated"
+    search_words: "mediation binary dichotomous yes/no mediator logistic natural indirect effect causal mediation counterfactual vanderweele valeri regmedint ordinal ordered categories likert rating latent response probit lavaan sem"
+    template: "mediation / binary_mediator (a yes/no mediator), ordinal_mediator (a mediator in three or more ordered categories); X two groups or a score; Y a score or yes/no"
+    backend: "Spower: powerkit's experiment around regmedint::regmedint() for a yes/no mediator (regression-based causal mediation analysis: the natural indirect effect and its delta-method test), and around lavaan::sem() with the mediator declared ordered for ordered categories (the latent-response model; a*b by the delta method), simulated"
     method: Simulation
     status: runs_validation_in_progress
-    validation: {file: test-validation-mediation-binm.R, note: "Agrees with a simulation written separately (the published formulas for the natural indirect effect, with their own delta-method standard errors) for each kind of X and outcome, recovers every path in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    validation: {file: test-validation-mediation-binm.R, note: "Yes/no mediator: agrees with a simulation written separately (the published formulas for the natural indirect effect, with their own delta-method standard errors) for each kind of X and outcome, recovers every path in its check run, and keeps the Type I error at alpha. Ordered categories (test-validation-mediation-ordm.R): agrees with a simulation written separately (lavaan's other parameterisation, with its own delta-method test) and keeps the Type I error at alpha. Neither is yet checked against a published example."}
     card_points:
       - "One mediator that is yes or no, such as whether someone booked an appointment, between X (two conditions or a score) and an outcome that is a score or yes or no."
       - "The analysis is regression-based causal mediation analysis (Valeri and VanderWeele): a logistic regression for the mediator, a linear or logistic regression for the outcome, and the natural indirect effect, the part of X's effect that runs through the mediator."
       - "You give the chance of the mediator in the first group, the odds ratio by which X changes it, and how much the mediator changes the outcome; the test is the natural indirect effect's delta-method test, as regmedint, the R version of the authors' macro, reports it."
-      - "PROCESS fits a linear regression to the mediator even when it is yes or no; this card models the mediator as yes or no, as Valeri and VanderWeele's method does. An interaction between X and the mediator isn't covered yet."
+      - "For a mediator in ordered categories, such as a rating from 'unlikely' to 'certain', the card uses the usual structural equation model for an ordered variable: the categories are cut from an underlying score, and the indirect effect runs through that score. You give the share of people in each category and the paths on the underlying score."
+      - "PROCESS fits a linear regression to the mediator even when it is yes or no or a few categories; this card models the mediator as it is measured. An interaction between X and the mediator, and a mediator in unordered categories, aren't covered yet."
       - "Simulated with Spower, in under a minute for power."
-    inputs: ["What X, the mediator and the outcome are", "How X changes the chance of the mediator, and how the mediator changes the outcome"]
+    inputs: ["What X, the mediator and the outcome are", "How X changes the mediator, and how the mediator changes the outcome"]
     tier: v2
-    alternatives: ["a bootstrap confidence interval of the natural indirect effect, which the authors' macro also offers", "with a mediator in ordered categories, a model for ordered categories (not yet in Powerkit)"]
+    alternatives: ["a bootstrap confidence interval of the natural indirect effect, which the authors' macro also offers", "with a mediator in unordered categories, a model for each category (not yet in Powerkit)"]
   E40:
     doc_name: "Moderated mediation with two or more mediators"
     technical_name: "Multiple-mediator moderated mediation"
