@@ -17,6 +17,7 @@
   coefficient. New example spec `multinomial_interaction.json`;
   validation in test-validation-multinomial-interaction.R (an independent
   simulation drawing the categories by the Gumbel-maximum rule and fitting
-  the Poisson log-linear form in `stats::glm()`, Type I error with both
+  the model by its own multinomial log-likelihood with `stats::optim()`,
+  Type I error with both
   main effects, a published-example placeholder), run in the `multinomial`
   chunk.

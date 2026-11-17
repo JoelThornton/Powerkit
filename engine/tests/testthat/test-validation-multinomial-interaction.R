@@ -4,11 +4,13 @@
 # Backend: Spower simulation of powerkit's experiment
 # p_multinomial_interaction(), which fits nnet's multinom() of y ~ x * w.
 #   1. analytic agreement: an independent simulation that draws each
-#      category by the Gumbel-maximum rule and fits the same model as a
-#      Poisson log-linear model in stats::glm() (one term per person; the
-#      multinomial-Poisson equivalence), without nnet or powerkit's code,
-#      testing the X x W terms by the change in deviance (every category
-#      together) or one category's X x W coefficient by its Wald z
+#      category by the Gumbel-maximum rule and fits the same model by
+#      maximising the multinomial log-likelihood written out here (with
+#      its gradient, by stats::optim()'s BFGS), without nnet or powerkit's
+#      code, testing the X x W terms by the change in deviance (every
+#      category together) or one category's X x W coefficient by its Wald
+#      z, from the inverse of the Hessian (the multinomial-Poisson form in
+#      stats::glm() gives the same fit but takes seconds per data set)
 #   2. Type I error with X and W both affecting the outcome and no
 #      interaction
 #   3. published example: placeholder, for the maintainer
@@ -37,6 +39,28 @@ mi_validation_spec <- function(probabilities, or_x, or_w, or_xw, n, x_binary = F
   )
 }
 
+# The multinomial logit's maximum likelihood fit: one column of
+# coefficients for each category but the first, stacked; value is the
+# negative log-likelihood and hessian its second derivatives.
+mi_fit_by_hand <- function(design, y, k) {
+  p <- ncol(design)
+  indicator <- outer(y, seq_len(k), "==")[, -1, drop = FALSE]
+  shares <- function(beta) {
+    eta <- design %*% matrix(beta, p, k - 1)
+    list(eta = eta, total = log1p(rowSums(exp(eta))))
+  }
+  value <- function(beta) {
+    s <- shares(beta)
+    -(sum(s$eta * indicator) - sum(s$total))
+  }
+  gradient <- function(beta) {
+    s <- shares(beta)
+    -as.vector(crossprod(design, indicator - exp(s$eta - s$total)))
+  }
+  stats::optim(rep(0, p * (k - 1)), value, gradient, method = "BFGS", hessian = TRUE,
+    control = list(maxit = 500, reltol = 1e-12))
+}
+
 # The independent simulation: X and W drawn directly, each category by the
 # Gumbel-maximum rule, the model fitted as a Poisson log-linear model.
 mi_by_hand <- function(probabilities, or_x, or_w, or_xw, n, nrep, seed, x_binary = FALSE, w_binary = FALSE, r = 0,
@@ -59,21 +83,16 @@ mi_by_hand <- function(probabilities, or_x, or_w, or_xw, n, nrep, seed, x_binary
     eta <- outer(rep(1, n), b0) + outer(x, bx) + outer(w, bw) + outer(x * w, bxw) + gumbel
     y <- max.col(eta, ties.method = "first")
     if (length(unique(y)) < k) return(FALSE)
-    long <- data.frame(person = factor(rep(seq_len(n), each = k)), category = factor(rep(seq_len(k), n)),
-      count = as.numeric(rep(y, each = k) == rep(seq_len(k), n)))
-    for (j in 2:k) {
-      on <- as.integer(long$category) == j
-      long[[paste0("x", j)]] <- rep(x, each = k) * on
-      long[[paste0("w", j)]] <- rep(w, each = k) * on
-      long[[paste0("xw", j)]] <- rep(x * w, each = k) * on
-    }
-    main <- c("person", "category", paste0("x", 2:k), paste0("w", 2:k))
-    full <- stats::glm(stats::reformulate(c(main, paste0("xw", 2:k)), "count"), family = stats::poisson(), data = long)
+    design <- cbind(1, x, w, x * w)
+    full <- mi_fit_by_hand(design, y, k)
     if (!is.null(wald_category)) {
-      return(stats::coef(summary(full))[sprintf("xw%d", wald_category), "Pr(>|z|)"] < 0.05)
+      # The X x W coefficient of category wald_category against the first.
+      index <- (wald_category - 2) * ncol(design) + 4
+      z <- full$par[index] / sqrt(solve(full$hessian)[index, index])
+      return(2 * stats::pnorm(-abs(z)) < 0.05)
     }
-    reduced <- stats::glm(stats::reformulate(main, "count"), family = stats::poisson(), data = long)
-    stats::pchisq(stats::deviance(reduced) - stats::deviance(full), df = k - 1, lower.tail = FALSE) < 0.05
+    reduced <- mi_fit_by_hand(design[, 1:3], y, k)
+    stats::pchisq(2 * (reduced$value - full$value), df = k - 1, lower.tail = FALSE) < 0.05
   }, logical(1)))
   list(power = mean(hits), mcse = sqrt(mean(hits) * (1 - mean(hits)) / nrep))
 }
