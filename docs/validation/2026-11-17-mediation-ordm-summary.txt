@@ -1,0 +1,18 @@
+===== powerkit validation summary (copy from here) =====
+Date: 2026-11-17 11:27   Commit: 25e288b   Cores: 2
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Selected chunks: mediation_ordm
+Partition: 1 of 1; totals cover only this selected partition.
+Packages: powerkit 0.77.1, Superpower 0.2.4.1, Spower 0.7, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 4 PASS, 0 FAIL, 0 ERROR, 1 SKIP, 0 NOT RUN (of 5)
+
+PASS    mediation_ordm / mediation with a mediator in ordered categories: agrees with an independent simulation, X two groups and Y a score (analytic) (0h 32m)
+          success: success
+PASS    mediation_ordm / mediation with a mediator in ordered categories: agrees with an independent simulation, X a score and Y a score, three skewed categories (analytic) (0h 29m)
+          success: success
+PASS    mediation_ordm / mediation with a mediator in ordered categories: agrees with an independent simulation, X two groups and Y yes/no (analytic) (0h 32m)
+          success: success
+SKIP    mediation_ordm / mediation with a mediator in ordered categories: matches a published example (published) (5s)
+PASS    mediation_ordm / mediation with a mediator in ordered categories: Type I error is at or below alpha when X doesn't change the mediator and its effect is large (0h 21m)
+          success: Type I error rate 0.0465; must lie in [0.040, 0.060] for alpha = 0.05.
+===== end of summary =====

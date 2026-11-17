@@ -1708,3 +1708,22 @@ Bayes factor in either direction as a success (BayesRepDesign's
 `paradox = TRUE` default); the simulation follows that definition, and
 whether a replication in the opposite direction should count is a
 question for the maintainer (`next.md`).
+
+## 2026-11-17 · Mediation through a mediator in ordered categories (local)
+
+Linux, R 4.5.3, engine 0.77.1 plus this change (commit 25e288b, a clean
+checkout). Command: `Rscript scripts/run-validation.R --only
+mediation_ordm --fresh --cores 2`.
+[Summary](validation/2026-11-17-mediation-ordm-summary.txt): **4 PASS,
+0 FAIL, 0 ERROR, 1 published-reference TODO SKIP**.
+
+Each analytic case compares powerkit's simulated power (lavaan's theta
+parameterisation, a*b tested by lavaan's delta method) with a simulation
+written separately in base R and fitted in lavaan's default delta
+parameterisation, with its own first-order delta-method test of a*b:
+X two groups and Y a score (four categories, n = 200), X a score and Y
+a score (three skewed categories, n = 250), and X two groups and Y
+yes/no (four categories, n = 300). Each difference lies inside its
+99.9% Monte Carlo interval. With X not changing the mediator and a large
+path b, the rejection rate is 0.0465 at alpha = 0.05. The four tests
+took about two hours of computing in all.
