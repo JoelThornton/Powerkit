@@ -1,3 +1,20 @@
+# powerkit 0.77.1
+
+* The result note for moderated mediation with a yes/no X (E17) gives the
+  20,000-study null check (5.38%, likely slightly above 5%;
+  `validation-log.md`, 14 November 2026) in place of the earlier
+  3,000-study figure of about 6.7%, which overstated the excess.
+
+* The continuity-corrected two-proportion test and the corrected 2 x 2
+  chi-square test are worked out exactly by default
+  (`backend-corrected-exact.R`): power sums every possible result's
+  probability where R's `prop.test()` or `chisq.test()` (with
+  `correct = TRUE`) rejects, so the sample size is the smallest that
+  reaches the target, with no simulation error. Simulation with fresh
+  confirmation checks stays available through `options > method`. The
+  standalone script needs base R only. `expect_power_near()` holds an
+  exact result to 0.0005 against a finite reference.
+
 # powerkit 0.77.0
 
 * The result screen's "How sure can you be?" card asks which assumption

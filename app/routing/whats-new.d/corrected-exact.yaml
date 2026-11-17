@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-17"
-    title: "Continuity-corrected tests of proportions are now exact"
-    text: "For two proportions or a 2 by 2 table analysed with the continuity correction (R's default), Powerkit now works out power over every possible result of the study instead of simulating. The answer has no random error, the sample size is the smallest that reaches your target, and it no longer adds people as a safety margin."
