@@ -285,3 +285,28 @@ test_that("the mediation cards offer the smallest indirect effect or index, thro
   goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E38")))[[1]]
   expect_false("sensitivity" %in% names(goal$choices))
 })
+
+test_that("the mixed-model cards offer the smallest effect through the R script, for one coefficient tested", {
+  export <- engine_function("export_run_script")
+  cases <- list(E33 = list(difference = "", n = "60"), E63 = list(n = "60"), E67 = list(slope = "", n = "60"), E68 = list(d = "", n = "640"),
+    E41 = list(n = "420"), E62 = list(n = "420"))
+  for (ep in names(cases)) {
+    goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, ep)))[[1]]
+    expect_true("sensitivity" %in% names(goal$choices), info = ep)
+    fields <- form_fields(form_groups(forms, ep))
+    values <- smallest_effect_values(ep, cases[[ep]])
+    expect_length(form_problems(fields, values), 0)
+    spec <- build_spec(forms, ep, fields, values)
+    spec$options$seed <- 3L
+    expect_true(runs_long(forms, ep, spec), info = ep)
+    expect_false(has_preview(forms, ep, "sensitivity", spec), info = ep)
+    expect_match(script_run_time(forms, ep, "sensitivity", spec), "sizes of the effect are simulated", fixed = TRUE, info = ep)
+    file <- withr::local_tempfile(fileext = ".R")
+    export(spec, file)
+    expect_true(any(grepl("sensitivity", readLines(file), fixed = TRUE)), info = ep)
+  }
+  # Several coefficients tested together: the goal isn't offered.
+  fields <- form_fields(form_groups(forms, "E41"))
+  values <- smallest_effect_values("E41", list(two_level_effect = "within_and_interaction"))
+  expect_match(form_problems(fields, values), "isn't available with the other answers", fixed = TRUE, all = FALSE)
+})

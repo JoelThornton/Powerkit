@@ -49,6 +49,10 @@ simr_backend <- function(spec, seed = NULL) {
       })
     },
     sensitivity = NULL,
+    # The smallest effect (sensitivity-simulated.R, mixed_model_search()).
+    simulated_sensitivity = if (mixed_model_search(spec)) function(n, power, nrep, seed, cores) {
+      simulated_effect_sensitivity(spec, n, power, nrep, seed, cores)
+    },
     check_run = function() {
       if (two_level) two_level_check_run(spec, inputs, seed) else if (conditions) crossed_conditions_check_run(spec, inputs, seed) else
         if (three) three_level_check_run(spec, inputs, seed) else if (item) item_predictor_check_run(spec, inputs, seed) else

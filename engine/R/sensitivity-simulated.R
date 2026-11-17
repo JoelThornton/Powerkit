@@ -276,6 +276,7 @@ simulated_search_plan <- function(spec, n, power) {
       effect_script = sprintf("x * %s", r_code(spread))
     ))
   }
+  if (mixed_model_search(spec)) return(mixed_model_search_plan(spec))
   if (mediation_search(spec)) {
     tested <- mediation_tested_paths(spec)
     k <- length(tested)
@@ -501,9 +502,96 @@ simulated_search_available <- function(spec) {
     jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) ||
     identical(spec$template, "its") || moderation_ratio_search(spec) || multinomial_search(spec) ||
-    binary_interaction_search(spec) || mediation_search(spec) ||
+    binary_interaction_search(spec) || mediation_search(spec) || mixed_model_search(spec) ||
     (identical(spec$design, "mixture") && identical(spec$template, "lpa")) ||
     (identical(spec$design, "factor_analysis") && identical(spec$template, "efa"))
+}
+
+# Mixed models fitted by simr (E33, E41, E62, E63, E67, E68): the effect
+# tested, the rest you entered kept. A score's difference between two
+# conditions, an item predictor's slope, a three-level design's d and a
+# two-level model's one coefficient tested are searched themselves (their
+# sign kept; for a yes/no outcome the slope or coefficient is on the log
+# odds). Conditions' means, or a yes/no outcome's chances on the log-odds
+# scale, are scaled about their average: the answer is the difference
+# between the conditions tested (the largest and smallest for the test of
+# every condition), or for a yes/no outcome their odds ratio. Several
+# coefficients tested together are not searched.
+mixed_model_search <- function(spec) {
+  if (!identical(spec$design, "mixed_model")) return(FALSE)
+  switch(spec$template %||% "",
+    crossed_two_condition = , crossed_conditions = , item_predictor = , three_level = TRUE,
+    two_level = length(two_level_terms(spec$target_test$effect %||% "cross_level_interaction", !is.null(spec$population$groups_per_site))) == 1,
+    FALSE)
+}
+
+mixed_model_search_plan <- function(spec) {
+  pop <- spec$population
+  binary <- identical(spec$variables$Y$type, "binary")
+  one_value <- function(name, script_name, effect_name, what, default) {
+    entered <- as.numeric(pop[[name]] %||% 0)
+    direction <- pwrss_search_direction(spec, entered)
+    list(
+      guess = if (isTRUE(abs(entered) > 1e-8)) abs(entered) else default,
+      set = function(s, x) { s$population[[name]] <- direction * x; s },
+      effect = function(x) direction * x,
+      effect_name = effect_name,
+      what = what,
+      script_set = sprintf("  %s <<- %s * x", script_name, r_code(direction)),
+      effect_script = sprintf("%s * x", r_code(direction))
+    )
+  }
+  units <- if (binary) "on the log odds" else "in the outcome's units"
+  if (spec$template %in% c("crossed_two_condition", "crossed_conditions", "three_level") && binary) {
+    # The chances of 'yes', scaled about their average on the log-odds
+    # scale; reported as the odds ratio of the conditions tested.
+    logits <- stats::qlogis(as.numeric(unlist(pop$probabilities)))
+    centre <- mean(logits)
+    pair <- if (identical(spec$target_test$effect, "pairwise")) match(unlist(spec$target_test$comparison), unlist(spec$variables$X$levels))
+    spread <- if (is.null(pair)) max(logits) - min(logits) else abs(diff(logits[pair]))
+    fixed_line <- if (identical(spec$template, "three_level")) "  fixed <<- c(mean(qlogis(probabilities)), diff(qlogis(probabilities)))"
+    return(list(
+      guess = 1,
+      set = function(s, x) { s$population$probabilities <- as.list(stats::plogis(centre + x * (logits - centre))); s },
+      effect = function(x) exp(x * spread),
+      effect_name = "odds_ratio",
+      what = sprintf("odds ratio of 'yes' %s, with the pattern of chances you entered kept and scaled about its average on the log-odds scale and every SD kept",
+        if (is.null(pair)) "between the conditions with the highest and lowest chance" else "between the two conditions compared"),
+      script_set = c(sprintf("  probabilities <<- plogis(%s + x * (%s - %s))", r_code(centre), r_code(logits), r_code(centre)), fixed_line),
+      effect_script = sprintf("exp(x * %s)", r_code(spread))
+    ))
+  }
+  switch(spec$template,
+    crossed_two_condition = one_value("difference", "difference", "mean_difference",
+      "difference between the conditions' means, in the outcome's units, with every SD you entered kept", 0.2 * (pop$sd_residual %||% 1)),
+    item_predictor = one_value("slope", "slope", "slope",
+      sprintf("slope of the item predictor, per SD of it, %s, with every SD you entered kept", units), if (binary) 0.3 else 0.2 * (pop$sd_residual %||% 1)),
+    three_level = one_value("d", "d", "d",
+      "standardised difference between the conditions (d over the outcome's total SD), with the shares of variance you entered kept", 0.3),
+    two_level = {
+      term <- two_level_terms(spec$target_test$effect %||% "cross_level_interaction", !is.null(pop$groups_per_site))
+      name <- switch(term, x = "b_X", w = "b_W", z = "b_Z", "x:w" = "b_XW", "x:z" = "b_XZ")
+      words <- switch(term, x = "X's effect within groups", w = "W's effect between groups", z = "Z's effect between sites",
+        "x:w" = "the cross-level interaction of X and W", "x:z" = "X's interaction with Z")
+      one_value(name, tolower(name), "coefficient", sprintf("coefficient of %s, %s, with the other coefficients and every SD you entered kept", words, units),
+        if (binary) 0.3 else 0.2 * (pop$sd_residual %||% 1))
+    },
+    crossed_conditions = {
+      m <- as.numeric(unlist(pop$means))
+      centre <- mean(m)
+      pair <- if (identical(spec$target_test$effect, "pairwise")) match(unlist(spec$target_test$comparison), unlist(spec$variables$X$levels))
+      spread <- if (is.null(pair)) max(m) - min(m) else abs(diff(m[pair]))
+      list(
+        guess = 1,
+        set = function(s, x) { s$population$means <- as.list(centre + x * (m - centre)); s },
+        effect = function(x) x * spread,
+        effect_name = if (is.null(pair)) "mean_range" else "mean_difference",
+        what = sprintf("difference between %s, in the outcome's units, with the pattern of means you entered kept and scaled about its average and every SD kept",
+          if (is.null(pair)) "the largest and smallest condition means" else "the two conditions compared"),
+        script_set = sprintf("  means <<- %s + x * (%s - %s)", r_code(centre), r_code(m), r_code(centre)),
+        effect_script = sprintf("x * %s", r_code(spread))
+      )
+    })
 }
 
 # Mediation and moderated mediation fitted by power4mome (E10 to E14, E16,
@@ -638,7 +726,8 @@ jonckheere_search <- function(spec) {
 # Whether the search scales the pattern entered (so a flat pattern can't
 # be searched).
 simulated_search_scales_pattern <- function(spec) {
-  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || multinomial_search(spec) || mediation_search(spec) || jonckheere_search(spec) || logistic_factorial_search(spec) ||
+  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || multinomial_search(spec) || mediation_search(spec) ||
+    (mixed_model_search(spec) && (identical(spec$template, "crossed_conditions") || identical(spec$variables$Y$type, "binary") && spec$template %in% c("crossed_two_condition", "three_level"))) || jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$template, "its") && identical(spec$target_test$effect, "both"))
 }
 
