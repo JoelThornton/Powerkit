@@ -1,0 +1,24 @@
+===== powerkit validation summary (copy from here) =====
+Date: 2026-11-17 05:39   Commit: 2df8dfd (with uncommitted changes)   Cores: 2
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Selected chunks: corrected_counts
+Partition: 1 of 1; totals cover only this selected partition.
+Packages: powerkit 0.76.0, Superpower 0.2.4.1, Spower 0.7, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 6 PASS, 0 FAIL, 0 ERROR, 1 SKIP, 0 NOT RUN (of 7)
+
+SKIP    corrected_counts / corrected count tests match an archived published power reference (4s)
+PASS    corrected_counts / corrected proportions match finite enumeration: two_sided (7s)
+          success: Reference power 0.4346; must lie in [0.4341, 0.4351] around powerkit's estimate 0.4346 (MCSE 0.0000, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    corrected_counts / corrected proportions match finite enumeration: greater (7s)
+          success: Reference power 0.5609; must lie in [0.5604, 0.5614] around powerkit's estimate 0.5609 (MCSE 0.0000, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    corrected_counts / corrected proportions match finite enumeration: less (7s)
+          success: Reference power 0.5609; must lie in [0.5604, 0.5614] around powerkit's estimate 0.5609 (MCSE 0.0000, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    corrected_counts / corrected proportion null rejection agrees with its finite reference (6s)
+          success: Reference power 0.0353; must lie in [0.0348, 0.0358] around powerkit's estimate 0.0353 (MCSE 0.0000, 99.9% Monte Carlo interval plus rounding of the reference).
+          success: success
+PASS    corrected_counts / corrected contingency power agrees with an independent multinomial simulation (8s)
+          success: Reference power 0.7603; must lie in [0.7552, 0.7833] around powerkit's estimate 0.7692 (MCSE 0.0000, 99.9% Monte Carlo interval plus rounding of the reference).
+PASS    corrected_counts / corrected contingency null rejection agrees with independent simulation (8s)
+          success: Reference power 0.0340; must lie in [0.0275, 0.0404] around powerkit's estimate 0.0340 (MCSE 0.0000, 99.9% Monte Carlo interval plus rounding of the reference).
+          success: success
+===== end of summary =====

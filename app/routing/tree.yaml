@@ -1067,7 +1067,7 @@ endpoints:
     bayes_test: true
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed with the z test, which matches G*Power to seven decimals; unequal groups (pwrss) match G*Power to seven decimals in the examples checked. No published example has been checked for this design yet."}
     card_points:
-      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis."
+      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables, worked out exactly over every possible result; choose the version and sampling plan you will use in your analysis."
       - "Fisher's exact test, an option, is in validation: it matches pwrss called directly in the engine's tests, but hasn't yet been checked against G*Power or a published example."
       - "The Bayes factor test, an option, is in validation: it matches BayesFactor's contingencyTableBF() table by table and simulated studies in powerkit's checks, but hasn't yet been checked against a published example."
     tier: MVP
@@ -1082,7 +1082,7 @@ endpoints:
     method: "Formula (no simulation); simulation for the Bayes factor"
     inputs: ["The categories of each variable", "The expected proportion of people in each combination (adding up to 1), or Cohen's w", "The chi-square test or a Bayes factor"]
     card_points:
-      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables. These are simulated and remain in validation; choose the version and sampling plan you will use in your analysis."
+      - "Continuity-corrected versions are available for two proportions and 2 by 2 tables, worked out exactly over every possible result; choose the version and sampling plan you will use in your analysis."
       - "Will you analyse the table with a Bayes factor, as in JASP's Bayesian contingency tables? Choose it as the test version: Powerkit simulates the chance of evidence at the threshold, with JASP's default sampling plan and prior."
     status: runs_validated
     validation: {file: test-validation-basic-tests.R, note: "Full validation run passed. No published example has been checked for this design yet."}

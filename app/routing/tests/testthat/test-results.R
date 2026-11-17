@@ -3210,8 +3210,9 @@ test_that("technical details cover semPower's chi-square and the correlation's t
 test_that("moderated mediation with a yes/no X says the test was found slightly liberal, and nothing else does", {
   binary_x <- list(design = "moderated_mediation", variables = list(X = list(type = "binary"), W = list(type = "continuous")))
   note <- binary_x_modmed_note(binary_x)
-  expect_match(note, "6.7%", fixed = TRUE)
-  expect_match(note, "5.3%", fixed = TRUE)
+  expect_match(note, "5.38% of 20,000", fixed = TRUE)
+  expect_match(note, "slightly liberal", fixed = TRUE)
+  expect_false(grepl("6.7%", note, fixed = TRUE))
   binary_w <- list(design = "moderated_mediation", variables = list(X = list(type = "continuous"), W = list(type = "binary")))
   expect_null(binary_x_modmed_note(binary_w))
   expect_null(binary_x_modmed_note(list(design = "mediation", variables = list(X = list(type = "binary")))))

@@ -16,7 +16,9 @@ test_that("count forms expose the corrected analysis and preserve uncorrected de
     expect_match(count_test_sentence(spec), "continuity correction", fixed = TRUE)
     expect_false(any(grepl("no continuity correction", departures_for(forms, ep, spec), fixed = TRUE)))
     accuracy <- Filter(function(f) identical(f$id, "simulation_accuracy"), fields)[[1]]
-    expect_true(field_applies(accuracy, inputs))
+    # Worked out exactly, so there is no simulation accuracy to choose.
+    expect_false(field_applies(accuracy, inputs))
+    expect_match(count_test_sentence(spec), "exactly", fixed = TRUE)
   }
 })
 
