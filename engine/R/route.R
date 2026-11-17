@@ -278,6 +278,7 @@ route_backend <- function(spec, seed = NULL, rounded = TRUE) {
     # Multinomial logistic regression, simulated with Spower (nnet's
     # multinom()).
     "logistic_regression/multinomial" = ,
+    "logistic_regression/multinomial_interaction" = ,
     # Moderation with a yes/no outcome, simulated with Spower (glm()).
     "logistic_regression/interaction" = spower_backend(spec, seed),
     "regression_interaction/two_way" = if (interaction_r2_change(spec)) {

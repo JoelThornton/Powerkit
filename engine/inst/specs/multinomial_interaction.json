@@ -1,0 +1,32 @@
+{
+  "spec_version": "0.1",
+  "design": "logistic_regression",
+  "template": "multinomial_interaction",
+  "variables": {
+    "X": {"type": "binary", "label": "Programme", "levels": ["Usual care", "Programme"]},
+    "W": {"type": "continuous", "label": "Health anxiety"},
+    "Y": {
+      "type": "categorical",
+      "label": "Where help was first sought",
+      "levels": ["General practitioner", "Online search", "Friends or family"]
+    }
+  },
+  "population": {
+    "metric": "odds_ratio",
+    "probabilities": [0.5, 0.3, 0.2],
+    "odds_ratios_x": [0.8, 1],
+    "odds_ratios_w": [1.3, 1.1],
+    "odds_ratios_xw": [0.6, 0.9]
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: the programme's effect on searching online first rather than seeing a practitioner shrinking by 40% for each SD of health anxiety is the smallest moderation of interest."
+  },
+  "target_test": {
+    "effect": "interaction",
+    "method": "likelihood_ratio",
+    "alpha": 0.05
+  },
+  "goal": {"type": "power", "n": 400},
+  "options": {"nrep": 500, "seed": 32}
+}
