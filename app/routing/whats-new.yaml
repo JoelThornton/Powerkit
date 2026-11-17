@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Plan mediation through a mediator in ordered categories"
+    text: "The card for mediation when a mediator isn't a score now also takes a mediator answered in three or more ordered categories, such as a rating from \"unlikely\" to \"certain\". Powerkit treats the categories as cut from an underlying score, the usual structural equation model for an ordered variable, and tests the indirect effect through that score. You give the share of people in each category and how X and the outcome relate to the underlying score."
+  - date: "2026-11-17"
     title: "The smallest effect you could detect, for moderation, categories, profiles and factors"
     text: "Moderation of a yes/no, count or categorical outcome, an outcome in three or more unordered categories, moderated regression with a yes/no predictor or moderator, the three-way interaction, latent profiles and factor analysis now offer \"the smallest effect I'd have a good chance of finding\". The answer is the interaction's odds or rate ratio, the odds ratio for a category, the interaction's correlation with the outcome, the three-way coefficient, the separation between profiles, or the loadings at which the factors are recovered. Mediation on the moderation card doesn't offer it yet."
   - date: "2026-11-17"
