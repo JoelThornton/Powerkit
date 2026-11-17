@@ -105,7 +105,7 @@ validation_chunks <- function() {
     variances = "test-validation-variance-tests.R",
     rmcorr = "test-validation-rmcorr.R",
     manova = c("test-validation-manova.R", "test-validation-hotelling-one.R"),
-    rank = c("test-validation-rank-tests.R", "test-validation-friedman.R", "test-validation-brunner-munzel.R"),
+    rank = c("test-validation-rank-tests.R", "test-validation-friedman.R", "test-validation-brunner-munzel.R", "test-validation-rank-pairs.R"),
     yuen = "test-validation-yuen.R",
     agreement = "test-validation-agreement.R",
     bayes_factorial = c("test-validation-bayes-factorial.R", "test-validation-bayes-repeated.R"),

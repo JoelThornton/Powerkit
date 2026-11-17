@@ -2600,7 +2600,10 @@ entered_lines <- function(fields, values) {
 
 # Pairwise comparisons after a one-way ANOVA (E18, E54): the chosen pair's
 # t-test, adjusted across all the pairwise comparisons, simulated by the
-# engine with Superpower's ANOVA_power().
+# engine with Superpower's ANOVA_power(); or its rank test (17 November
+# 2026: a Mann-Whitney test of each pair or Dunn's test on E18, a
+# signed-rank test of each pair or Conover's test on E54), simulated with
+# Spower.
 is_pairwise <- function(spec) identical(spec$target_test$effect, "pairwise")
 
 pairwise_test_name <- function(spec) {
@@ -2608,8 +2611,19 @@ pairwise_test_name <- function(spec) {
   pair <- unlist(spec$target_test$comparison)
   adjust <- switch(spec$target_test$p_adjust %||% "holm",
     holm = "Holm's adjustment", bonferroni = "Bonferroni's adjustment", none = "no adjustment")
-  sprintf("a %s comparing %s with %s, one of the %d pairwise comparisons, with %s for their number",
-    if (identical(spec$template, "oneway_within")) "paired t-test" else "t-test", pair[1], pair[2], choose(k, 2), adjust)
+  within <- identical(spec$template, "oneway_within")
+  test <- switch(spec$target_test$method %||% "t_test",
+    mann_whitney = "Mann-Whitney test",
+    dunn = "Dunn's test (on the ranks of all the groups together)",
+    wilcoxon_signed_rank = "Wilcoxon signed-rank test",
+    conover = "Conover's test (on the ranks of each person's scores across all the conditions)",
+    if (within) "paired t-test" else "t-test")
+  name <- sprintf("a %s comparing %s with %s, one of the %d pairwise comparisons, with %s for their number",
+    test, pair[1], pair[2], choose(k, 2), adjust)
+  if (identical(spec$target_test$method %||% "t_test", "t_test")) return(name)
+  shape <- score_shape_text(spec$population$score_shape)
+  if (within) shape <- sub("scores", "deviations from each person's own level", shape)
+  sprintf("%s, simulated assuming %s", name, shape)
 }
 
 # The rank tests (Wilcoxon signed-rank, Mann-Whitney, Brunner-Munzel,
@@ -2618,7 +2632,8 @@ pairwise_test_name <- function(spec) {
 # aren't rank tests but take the same route: simulated, with a score
 # shape, and no formula to compare with.
 is_rank_test <- function(spec) {
-  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "kruskal_wallis", "friedman", "aligned_rank_transform"))
+  isTRUE(spec$target_test$method %in% c("wilcoxon_signed_rank", "mann_whitney", "brunner_munzel", "yuen", "kruskal_wallis", "friedman", "aligned_rank_transform",
+    "dunn", "conover"))
 }
 
 # The trend tests across groups in order: Jonckheere-Terpstra (E64) and

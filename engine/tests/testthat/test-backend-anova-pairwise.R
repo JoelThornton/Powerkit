@@ -61,7 +61,7 @@ test_that("pairwise specs are refused in plain English when they can't be run", 
   expect_error(validate_spec(stray), "only apply to pairwise comparisons", class = "powerkit_spec_error")
   wrong_method <- pairwise_spec()
   wrong_method$target_test$method <- "anova_f"
-  expect_error(validate_spec(wrong_method), "Pairwise comparisons are t-tests", class = "powerkit_spec_error")
+  expect_error(validate_spec(wrong_method), "Pairwise comparisons here are t-tests", class = "powerkit_spec_error")
   t_without_pairwise <- example_spec("anova_oneway_between")
   t_without_pairwise$target_test$method <- "t_test"
   expect_error(validate_spec(t_without_pairwise), "is for pairwise comparisons", class = "powerkit_spec_error")
