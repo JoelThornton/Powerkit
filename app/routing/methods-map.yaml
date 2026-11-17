@@ -87,6 +87,7 @@ endpoints:
   E24: F
   E25: z
   E26: chi2
+  E78: chi2
   E27: model
   E28: model
   E29: model
@@ -192,6 +193,7 @@ relations:
   - {from: E5, to: E6, label: "with more categories becomes"}
   - {from: E25, to: E48, label: "with more categories becomes"}
   - {from: E5, to: E26, label: "in the same people becomes"}
+  - {from: E26, to: E78, label: "with three or more conditions becomes"}
   - {from: E5, to: E66, label: "for groups in order becomes"}
   # Mediation
   - {from: E24, to: E10, label: "with an effect through a mediator becomes"}

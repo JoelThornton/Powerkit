@@ -1,6 +1,6 @@
 # Validation: Cochran's Q, a yes/no answer from every person once in each of
 # three or more conditions (design "mixed_model", template "repeated_glmm",
-# target_test > method "cochran_q", E75; E26 points to it).
+# target_test > method "cochran_q"; card E78, and a test version of E75).
 # Backend: Spower running powerkit's experiment p_repeated_cochran(): each
 # person's intercept from N(0, sd_person^2), each answer with chance
 # plogis(log odds of the condition + intercept), each study tested with

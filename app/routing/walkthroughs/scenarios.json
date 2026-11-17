@@ -1824,7 +1824,8 @@
    "Independent people",
    "Many times",
    "The same people in three or more conditions",
-   "A difference between groups or conditions"
+   "A difference between groups or conditions",
+   "Once in each condition, yes or no"
   ],
   "known": {
    "answers": [
@@ -1833,7 +1834,7 @@
     "Many times",
     "The same people in three or more conditions"
    ],
-   "pick": "The same people measured more than once, with a count, ordered categories or yes/no"
+   "pick": "The same people, a yes/no outcome in each of three or more conditions"
   },
   "guided": {
    "answers": [
@@ -1843,13 +1844,14 @@
     "The same people in three or more conditions"
    ],
    "continue": [
-    "A difference between groups or conditions"
+    "A difference between groups or conditions",
+    "Once in each condition, yes or no"
    ]
   },
   "reaches": {
-   "choose": "E75",
-   "known": "E75",
-   "guided": "E75"
+   "choose": "E78",
+   "known": "E78",
+   "guided": "E78"
   }
  },
  {

@@ -1061,13 +1061,13 @@ One entry per analysis in UCLA OARC's [*Choosing the Correct Statistical Test*](
 
 **Answers given**
 
-- **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions*
-- **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → list: *The same people measured more than once, with a count, ordered categories or yes/no*
-- **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *Continue in 'Help me choose'* → *A difference between groups or conditions* → *The same people in every condition*
+- **Help me choose:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *A difference between groups or conditions* → *Once in each condition, yes or no*
+- **I know my analysis:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → list: *The same people, a yes/no outcome in each of three or more conditions*
+- **Plan my whole study:** *Yes/no, or one of several categories* → *Independent people* → *Many times* → *The same people in three or more conditions* → *Detect an effect* → *Continue in 'Help me choose'* → *A difference between groups or conditions* → *Once in each condition, yes or no*
 
-**End point:** E75 (The same people measured more than once, with a count, ordered categories or yes/no) in all three routes, since 17 November 2026: it plans Cochran's Q for one yes/no answer in each condition.
+**End point:** E78 (Cochran's Q: the same people, a yes/no outcome in each of three or more conditions) in all three routes, since 17 November 2026. Its card points to E75 for a mixed-effects logistic regression of the same data.
 
-**Would the card make sense without statistics training?** Not yet re-walked on E75 (this route reached E26, McNemar's test, before Cochran's Q was added).
+**Would the card make sense without statistics training?** Not yet re-walked on E78 (this route reached E26, McNemar's test, before Cochran's Q was added, then E75).
 
 ### Two or more factors
 
