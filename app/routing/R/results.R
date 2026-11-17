@@ -3721,6 +3721,12 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
   # An ANCOVA's covariates: fixed by the design (as G*Power, and for an
   # effect given as partial eta-squared) or measured (Shieh's method).
   if (is_fixed_ancova(spec)) name <- "an ANCOVA with the covariates fixed by the design, as in G*Power (F test)"
+  # A mixed model's test with Kenward and Roger's degrees of freedom in
+  # place of Satterthwaite's (17 November 2026).
+  if (identical(spec$target_test$df_method, "kenward_roger")) {
+    name <- if (grepl("Satterthwaite", name, fixed = TRUE)) gsub("Satterthwaite", "Kenward-Roger", name, fixed = TRUE) else
+      paste0(name, " (Kenward-Roger tests)")
+  }
   if (identical(spec$design, "survival")) {
     name <- switch(spec$target_test$method %||% "",
       log_rank = "a time-to-event analysis (the log-rank test)",

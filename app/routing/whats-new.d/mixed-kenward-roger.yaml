@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "Mixed models: choose Kenward and Roger's test"
+    text: "The mixed-model cards with a score (participants and items, people in groups, three levels, a measured item predictor and within-person moderation) now let you choose the test's degrees of freedom: Satterthwaite's, as before, or Kenward and Roger's, which many researchers report instead. Plan with the one you will use."

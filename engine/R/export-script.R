@@ -4203,7 +4203,7 @@ simr_script <- function(spec, result) {
     script_header(spec, result, "simr", sprintf("simr::powerSim() with fixed(\"cond\", \"%s\")", inputs$method)),
     "library(simr)",
     if (inputs$binary) "# A yes/no outcome: a logistic mixed model (glmer), every SD on the log-odds scale." else
-      "library(lmerTest) # the Satterthwaite t test (simr's method \"sa\")",
+      simr_test_comment(inputs$method),
     "",
     "# Inputs ----",
     sprintf("# The outcome, %s, in its own units; cond is %s coded -0.5 (%s) and 0.5 (%s),", comment_text(v$Y$label), comment_text(v$X$label), levels[1], levels[2]),

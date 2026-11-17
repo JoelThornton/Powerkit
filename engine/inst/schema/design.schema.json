@@ -711,6 +711,13 @@
             "fixed"
           ],
           "description": "ANCOVA only (oneway_ancova, factorial_ancova): whether the covariates are measured on each person ('random', the default, Shieh's method) or fixed by the design ('fixed', as G*Power takes them); see those templates."
+        },
+        "df_method": {
+          "enum": [
+            "satterthwaite",
+            "kenward_roger"
+          ],
+          "description": "Mixed models with a score (crossed_two_condition, crossed_conditions, two_level, three_level, item_predictor): the small-sample degrees of freedom of the t or F test, Satterthwaite's ('satterthwaite', the default, lmerTest; Departure 16) or Kenward and Roger's ('kenward_roger', pbkrtest). Not for a yes/no outcome."
         }
       },
       "allOf": [
@@ -8867,6 +8874,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -9885,6 +9899,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -10022,6 +10043,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -11106,6 +11134,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }
@@ -11227,6 +11262,13 @@
                     "wald",
                     "likelihood_ratio"
                   ]
+                },
+                "df_method": {
+                  "enum": [
+                    "satterthwaite",
+                    "kenward_roger"
+                  ],
+                  "description": "With a score: Satterthwaite's degrees of freedom (the default; lmerTest) or Kenward and Roger's (pbkrtest; simr's method \"kr\", lmerTest's ddf = \"Kenward-Roger\")."
                 }
               }
             }

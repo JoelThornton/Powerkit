@@ -4055,3 +4055,30 @@ to 32).
   partial eta-squared with "random" is refused with a plain message.
 - **Size.** Adjusted means 20, 18 and 16, SD 6, one covariate explaining
   36%, 90 people: 81.8% fixed against 81.3% measured.
+
+## 2026-11-17 · The mixed-model cards offer Kenward and Roger's degrees of freedom (E33, E41, E62, E63, E67, E68)
+
+- **What changes.** The six cards simulated with simr and a score outcome
+  ask which degrees of freedom the t or F test uses: Satterthwaite's
+  (lmerTest), preselected as decided on 30 October 2026 (Departure 16), or
+  Kenward and Roger's (pbkrtest). Both are small-sample corrections that
+  researchers report from lme4 models; until now a researcher who would
+  report Kenward-Roger had no way to plan for it. The second fix of
+  `next.md` item 27's audit of decisions made for the researcher.
+- **How.** `target_test > df_method` ("satterthwaite" or "kenward_roger").
+  With Kenward-Roger, simr's `fixed(term, "kr")` replaces `"sa"`; with
+  three or more conditions (E63), lmerTest's `anova()` and `contest()`
+  take `ddf = "Kenward-Roger"`. pbkrtest's version joins the result's
+  record, and the exported script loads it. A yes/no outcome, tested by
+  glmer's Wald or likelihood-ratio test, refuses the choice.
+- **Why Satterthwaite stays preselected.** It is the maintainer's earlier
+  decision and the p-value lmerTest prints by default; Kenward-Roger is
+  slower to simulate (each simulated study refits pbkrtest's adjusted
+  covariance matrix). The form says both usually give similar p-values
+  and to plan with the one that will be reported.
+- **Size.** E33's example at 20 participants, the same 500 simulated
+  data sets: 27.0% with Kenward-Roger against 27.4% with Satterthwaite
+  (29.2% with simr's z test); the two reach the same decision in 99.6% of
+  them. A validation test in the mixed_model chunk compares the
+  Kenward-Roger route with `pbkrtest::KRmodcomp()` on independently
+  simulated studies.

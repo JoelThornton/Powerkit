@@ -66,6 +66,7 @@ population_problems <- function(spec) {
     check_cell_ratio_allowed(spec),
     check_group_ratio_allowed(spec),
     check_method_allowed(spec),
+    check_df_method(spec),
     check_score_shape_allowed(spec),
     check_welch_sds(spec),
     check_bayes_factor(spec),
@@ -3886,6 +3887,23 @@ check_riclpm <- function(spec) {
   residual <- within - phi %*% within %*% t(phi)
   if (any(eigen(residual, symmetric = TRUE, only.values = TRUE)$values <= 0)) {
     return("These lagged effects and the correlation between X and Y at the same wave can't all hold: together they would explain more than all of a score's within-person variation. Use smaller lagged effects or a different correlation.")
+  }
+  character()
+}
+
+# The degrees of freedom of a mixed model's t or F test (17 November
+# 2026): Satterthwaite's or Kenward and Roger's, for the simr mixed models
+# with a score. A yes/no outcome is tested by glmer's Wald or
+# likelihood-ratio test, which have no such correction.
+check_df_method <- function(spec) {
+  df_method <- spec$target_test$df_method
+  if (is.null(df_method)) return(character())
+  simr_templates <- c("crossed_two_condition", "crossed_conditions", "two_level", "three_level", "item_predictor")
+  if (!identical(spec$design, "mixed_model") || !spec$template %in% simr_templates) {
+    return("'target_test > df_method' chooses the degrees of freedom of a mixed model's t or F test (participants and items, people in groups or three levels); remove it here.")
+  }
+  if (identical(spec$variables$Y$type, "binary") && identical(df_method, "kenward_roger")) {
+    return("Kenward and Roger's degrees of freedom are for a score; a yes/no outcome is tested by glmer's Wald or likelihood-ratio test. Remove 'target_test > df_method'.")
   }
   character()
 }

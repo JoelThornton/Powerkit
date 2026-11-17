@@ -68,6 +68,11 @@
 #' partial eta-squared of the adjusted means (noncentrality N gamma^2,
 #' Shieh, 2020); `"random"`, the default, is Shieh's method for covariates
 #' measured on each person.
+#' The mixed models with a score (templates `crossed_two_condition`,
+#' `crossed_conditions`, `two_level`, `three_level`, `item_predictor`) take
+#' `target_test > df_method`: `"satterthwaite"` (the default, lmerTest) or
+#' `"kenward_roger"` (pbkrtest; simr's method `"kr"`, lmerTest's
+#' `ddf = "Kenward-Roger"` for three or more conditions).
 #' Two-factor ANOVA with both factors between participants, beyond 2 x 2
 #' (template `factorial_between`, design `"kb*mb"`), or both within
 #' participants, 2 x 2 or larger (template `factorial_within`, design
