@@ -45,6 +45,7 @@ source(file.path("R", "capabilities.R"), local = TRUE)
 source(file.path("R", "selected-evidence.R"), local = TRUE)
 source(file.path("R", "planning.R"), local = TRUE)
 source(file.path("R", "scenarios.R"), local = TRUE)
+source(file.path("R", "assumptions.R"), local = TRUE)
 source(file.path("R", "labs.R"), local = TRUE)
 source(file.path("R", "replication.R"), local = TRUE)
 source(file.path("R", "study-plan-replication.R"), local = TRUE)
@@ -615,7 +616,7 @@ app_css <- "
   .simulated-data-more > summary { cursor: pointer; color: var(--pk-blue); font-size: 0.95rem; min-height: 36px; display: flex; align-items: center; }
   .result-how h4.h6 { margin-top: 1rem; }
   .result-records-body { border-left: 3px solid var(--pk-line); padding: 0.25rem 0 0.25rem 1rem; margin: 0.25rem 0 0.5rem; }
-  .result-sure .explore-panel, .result-sure .scenario-panel { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--pk-line); }
+  .result-sure .explore-panel, .result-sure .scenario-panel, .result-sure .assumption-panel { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--pk-line); }
   .result-learn { margin: 0.75rem 0 1rem; color: #3d4852; }
   .writeup-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0 0.3rem 0; }
   .writeup-head label { margin: 0; font-weight: 600; }
@@ -1736,6 +1737,40 @@ server <- function(input, output, session) {
     x <- scenario_results()
     p(class = "small", scenario_sentence(x$spec, x$n))
   })
+
+  # Which assumption matters most: each uncertain input at the low and high
+  # values the researcher gives, one at a time, by formula. Reads the last
+  # calculation's answers; never changes the plan.
+  assumption_results <- eventReactive(input$assumptions_run, {
+    calc <- state$calc
+    req(calc, identical(calc$status, "ok"), !is.null(calc$route$form_values))
+    values <- calc$route$form_values
+    fields <- current_form_fields()
+    candidates <- assumption_candidates(forms, fields, values)
+    ranges <- assumption_ranges_from_input(input, candidates)
+    table <- if (length(ranges)) run_assumption_ranges(forms, state$endpoint, fields, values, ranges, seed = forms$default_seed) else
+      data.frame(id = character(), label = character(), stringsAsFactors = FALSE)
+    other <- input$assumptions_grid %||% ""
+    effect <- Filter(function(f) isTRUE(f$effect), candidates)
+    grid <- if (nzchar(other) && length(effect)) list(run_assumption_grid(forms, state$endpoint, fields, values,
+      effect[[1]]$id, other, ranges, seed = forms$default_seed))
+    list(table = table, calc = calc, grid = grid)
+  })
+  output$assumptions_result <- renderUI({
+    x <- assumption_results()
+    tagList(assumptions_result_ui(x$table, x$calc$result, x$calc$spec),
+      if (!is.null(x$grid)) assumptions_grid_ui(x$grid[[1]], x$calc$result, x$calc$spec))
+  })
+  output$assumptions_grid_plot <- renderPlot({
+    x <- assumption_results()
+    req(!is.null(x$grid), !is.null(x$grid[[1]]))
+    assumptions_grid_plot(x$grid[[1]], x$calc$result, x$calc$spec)
+  }, res = 96, alt = "Grid of answers for the effect and one other assumption changed together, darker where more people are needed or power is lower. The same values are in the table below.")
+  output$assumptions_plot <- renderPlot({
+    x <- assumption_results()
+    req(nrow(x$table) > 0)
+    assumptions_plot(x$table, x$calc$result, x$calc$spec)
+  }, res = 96, alt = "Tornado chart: the answer at each assumption's lowest and highest plausible value, the assumption that moves it most at the top. The same values are in the table below.")
 
   # What the result screen adds to a calculation: the route, the
   # comparison line (its sample sizes found already when the run was in
