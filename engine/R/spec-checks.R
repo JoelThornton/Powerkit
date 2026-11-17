@@ -1481,7 +1481,14 @@ check_equivalence_test <- function(spec) {
     tost_two_proportions = if (!is.null(pop$p1) && !is.null(pop$p2)) pop$p2 - pop$p1,
     pop$d
   )
-  if (is.null(effect) || is.null(pop$bound)) {
+  # The smallest detectable effect of an equivalence test is the narrowest
+  # bound it can show (sensitivity-search.R), so only then may the bound
+  # be left out.
+  sensitivity <- identical(spec$goal$type, "sensitivity")
+  if (is.null(pop$bound) && is.null(pop$raw$bound) && !sensitivity) {
+    return("Give the equivalence bound (population > bound, or population > raw > bound): the smallest difference that would matter.")
+  }
+  if (is.null(effect) || is.null(pop$bound) || sensitivity) {
     return(character())
   }
   outside <- abs(effect) > pop$bound + 1e-12
@@ -2903,7 +2910,9 @@ check_goal <- function(spec, check_effect = TRUE) {
     # The formula tests pwrss's power is searched over (sensitivity-pwrss.R)
     # for an effect that needs no pattern to scale, so none is needed.
     !(identical(goal$type, "sensitivity") && pwrss_covers(spec) && pwrss_search_available(spec) &&
-      !spec$template %in% c("oneway_contrast", "oneway_ancova", "factorial_ancova"))
+      !spec$template %in% c("oneway_contrast", "oneway_ancova", "factorial_ancova")) &&
+    # Likewise the other formula tests searched (sensitivity-search.R).
+    !(identical(goal$type, "sensitivity") && formula_search_available(spec) && !formula_search_scales_pattern(spec))
   if (check_effect && goal$type %in% c("sample_size", "sensitivity") &&
     needs_effect && target_effect_is_zero(spec)) {
     consequence <- if (goal$type == "sample_size") {

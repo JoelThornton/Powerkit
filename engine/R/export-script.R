@@ -1628,7 +1628,7 @@ pwr_goal_section <- function(spec, result) {
       ),
       ""
     ),
-    sensitivity = pwr_sensitivity_section(spec, result)
+    sensitivity = if (formula_search_available(spec)) formula_search_section(spec, result) else pwr_sensitivity_section(spec, result)
   )
 }
 

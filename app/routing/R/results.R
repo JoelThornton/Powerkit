@@ -1148,7 +1148,7 @@ units_sentence <- function(result) {
       format(u$r), round3(u$value), share))
   }
   if (!is.null(u$smallest_difference)) {
-    return(sprintf("In your outcome's own units, that is a difference of %s (%s × %s, %s).",
+    return(sprintf(if (identical(result$sensitivity$effect_name, "bound")) "In your outcome's own units, those are bounds of \u00b1%s (%s × %s, %s)." else "In your outcome's own units, that is a difference of %s (%s × %s, %s).",
       round3(u$smallest_difference), round3(result$sensitivity$effect), format(signif(u$sd, 4)), u$sd_name))
   }
   out <- sprintf("From the means and SD you entered, Powerkit worked out %s = %s: a difference of %s divided by %s (%s).",
@@ -1227,6 +1227,19 @@ goal_sentences <- function(spec, result) {
           detail = sprintf(
             "The pattern of means you entered keeps its shape and is scaled until Welch's F reaches the target power, worked out by formula (%s), with no simulation error.",
             exact_source(result)
+          )
+        )
+      } else if (identical(s$effect_name, "bound")) {
+        # Equivalence: the narrowest bounds the test can show.
+        c(
+          headline = sprintf(
+            "With %s participants in total%s, the narrowest equivalence bounds you could show with %s power, with %s, are -%s to +%s. The bounds are %s.",
+            whole(spec$goal$n), group_text(spec, spec$goal$n), percent(spec$goal$power), test,
+            format(round(s$effect, 3), nsmall = 2), format(round(s$effect, 3), nsmall = 2), s$effect_description
+          ),
+          detail = sprintf(
+            "With bounds narrower than these, the two one-sided tests would show equivalence less often than %s of the time. If the smallest difference that matters in your field is wider than these bounds, this sample can test it; if it is narrower, it can't. Worked out by formula (%s), searching the bound with the package's own power calculation and keeping the expected difference you entered.",
+            percent(spec$goal$power), exact_source(result)
           )
         )
       } else if (is.null(s$cohen_f)) {
@@ -2020,11 +2033,16 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     odds_ratio = "odds ratio", rate_ratio = "rate ratio", p = "proportion",
     p_second_only = "proportion changing only in the second condition", r_group2 = "group 2's correlation",
     contrast = "contrast", mean_range = "difference between the largest and smallest mean",
+    r_second = "second correlation", variance_ratio = "variance ratio", mahalanobis = "Mahalanobis distance",
+    bound = "equivalence bound",
     fallback)
 }
 
 # Results that are a value to reach rather than a size.
-sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2")
+sensitivity_value_names <- c("p2", "p", "p_second_only", "r_group2", "r_second")
+
+# Ratios, which are "the smallest" only above 1.
+sensitivity_ratio_names <- c("odds_ratio", "rate_ratio", "variance_ratio")
 
 curve_table_ui <- function(spec, result, table) {
   name <- if (identical(result$sensitivity$effect_name, "p2")) "p2" else sensitivity_effect_label(result$sensitivity$effect_name, "effect")
@@ -2033,6 +2051,7 @@ curve_table_ui <- function(spec, result, table) {
   heading <- function(power) {
     if (identical(name, "p2")) sprintf("Group 2's proportion, %s power", power)
     else if (value) sprintf("%s%s, %s power", toupper(substr(name, 1, 1)), substring(name, 2), power)
+    else if (identical(name, "equivalence bound")) sprintf("Narrowest equivalence bound, %s power", power)
     else sprintf("Smallest %s, %s power", name, power)
   }
   tagList(
@@ -2871,7 +2890,12 @@ result_figure <- function(spec, result) {
         # A value rather than a size (a proportion or correlation to reach,
         # or a ratio below 1) isn't "the smallest".
         not_size <- isTRUE(s$effect_name %in% sensitivity_value_names) ||
-          (isTRUE(s$effect_name %in% c("odds_ratio", "rate_ratio")) && isTRUE(s$effect < 1))
+          (isTRUE(s$effect_name %in% sensitivity_ratio_names) && isTRUE(s$effect < 1))
+        # An equivalence test's answer is the narrowest bounds it can show.
+        if (identical(s$effect_name, "bound")) {
+          return(list(value = paste0("\u00b1", value), label = "the narrowest equivalence bounds you could show",
+            sub = sprintf("with %s %s, at %s power", whole(spec$goal$n), unit, percent(spec$goal$power))))
+        }
         list(value = value, label = if (not_size) paste(if (startsWith(name, "group")) name else paste("the", name), "you could detect") else paste("the smallest", name, "you could detect"),
           sub = sprintf("with %s %s, at %s power", whole(spec$goal$n), unit, percent(spec$goal$power)))
       }
@@ -3654,6 +3678,8 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       size <- if (isTRUE(s$simulated)) {
         sprintf("%s (95%% simulation interval %s to %s; %s)", format(signif(s$effect, 3)),
           format(signif(s$effect_lower, 3)), format(signif(s$effect_upper, 3)), s$effect_description)
+      } else if (identical(s$effect_name, "bound")) {
+        sprintf("\u00b1%s (%s)", format(round(s$effect, 3), nsmall = 2), s$effect_description)
       } else if (is.null(s$cohen_f)) {
         sprintf("%s = %s (%s)", sensitivity_effect_label(s$effect_name, "effect"), format(round(s$effect, 3), nsmall = 2), s$effect_description)
       } else {
@@ -3662,7 +3688,11 @@ writeup_text <- function(form, spec, result, fields, values, departures = charac
       c(sprintf("A sensitivity power analysis was conducted for %s.", test),
         sprintf("%s %s participants in total%s.", if (fixed) "The sample size was fixed by resource constraints at" else "For a sample size of",
           whole(spec$goal$n), group_text(spec, spec$goal$n)),
-        sprintf("The smallest effect detectable with %s power%s is %s.", percent(spec$goal$power), reason, size),
+        if (identical(s$effect_name, "bound")) {
+          sprintf("The narrowest equivalence bounds that could be shown with %s power%s are %s.", percent(spec$goal$power), reason, size)
+        } else {
+          sprintf("The smallest effect detectable with %s power%s is %s.", percent(spec$goal$power), reason, size)
+        },
         basis)
     },
     justified_alpha = {

@@ -7,6 +7,9 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
+  - date: "2026-11-17"
+    title: "The smallest effect you could detect, on six more analyses"
+    text: "Two dependent correlations, one and two variances, Hotelling's T-squared, MANOVA (by Pillai's V, or two groups by their means) and equivalence tests now offer \"the smallest effect I'd have a good chance of finding\". For an equivalence test the answer is the narrowest equivalence bounds your sample could show, so you can see whether it can test the smallest difference that matters in your field."
   - date: "2026-11-16"
     title: "Long calculations can carry on in your study plan"
     text: "When a calculation takes a while, you can keep it running in your study plan and do something else in Powerkit. The plan shows its progress and adds the result when it finishes. Keep the browser tab open: closing it stops the run. Repeated-measures designs with unequal correlations now say how long they usually take."
