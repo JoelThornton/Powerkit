@@ -2244,6 +2244,7 @@ sensitivity_effect_label <- function(effect_name, fallback = "effect") {
     b_XWZ = "three-way coefficient", separation = "separation between neighbouring profiles", loading = "loading", odds_ratio_xw = "interaction odds ratio", rate_ratio_xw = "interaction rate ratio",
     level_change = "change in level", slope_change = "change in trend per time point",
     r_range = "difference between the largest and smallest group's correlation",
+    indirect_effect = "indirect effect", index_of_moderated_mediation = "index of moderated mediation",
     fallback)
 }
 

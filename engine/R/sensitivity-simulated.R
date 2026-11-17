@@ -243,6 +243,29 @@ simulated_search_plan <- function(spec, n, power) {
       effect_script = sprintf("x * %s", r_code(spread))
     ))
   }
+  if (mediation_search(spec)) {
+    tested <- mediation_tested_paths(spec)
+    k <- length(tested)
+    paths <- spec$population$paths
+    entered <- prod(vapply(tested, function(p) as.numeric(paths[[p]]), numeric(1)))
+    set <- function(s, x) {
+      for (p in tested) s$population$paths[[p]] <- as.numeric(paths[[p]]) * x^(1 / k)
+      s
+    }
+    index <- identical(spec$design, "moderated_mediation")
+    return(list(
+      guess = 1, limit = mediation_scale_limit(spec, set),
+      set = set,
+      effect = function(x) x * entered,
+      effect_name = if (index) "index_of_moderated_mediation" else "indirect_effect",
+      what = sprintf("%s (the product of the standardised paths %s), with each of those paths scaled by the same factor and every other path and correlation you entered kept",
+        if (index) sprintf("index of moderated mediation through %s", var_label(spec, modmed_mediator(spec))) else
+          sprintf("indirect effect along %s", spec$target_test$path),
+        quote_list(gsub("->", " -> ", tested, fixed = TRUE), "and")),
+      script_set = mediation_pop_es_script(spec, tested, k),
+      effect_script = sprintf("x * %s", r_code(entered))
+    ))
+  }
   if (identical(spec$design, "mixture") && identical(spec$template, "lpa")) {
     return(list(
       guess = guess_from(pop$separation %||% 0, 1),
@@ -444,9 +467,91 @@ simulated_search_available <- function(spec) {
     jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) ||
     identical(spec$template, "its") || moderation_ratio_search(spec) || multinomial_search(spec) ||
-    binary_interaction_search(spec) ||
+    binary_interaction_search(spec) || mediation_search(spec) ||
     (identical(spec$design, "mixture") && identical(spec$template, "lpa")) ||
     (identical(spec$design, "factor_analysis") && identical(spec$template, "efa"))
+}
+
+# Mediation and moderated mediation fitted by power4mome (E10 to E14, E16,
+# E17, E40): the paths making up the effect tested (the indirect effect
+# along the path tested, or the index of moderated mediation, the moderated
+# link times the other) are each multiplied by x^(1/k) for k paths, so the
+# effect is x times the one entered and keeps its sign; every other path,
+# correlation and residual correlation is kept. The conditional indirect
+# effects' difference with W on both links (E38) is not searched: its
+# residual variances are given explicitly and change with every path.
+mediation_search <- function(spec) {
+  methods <- c("monte_carlo_ci", "percentile_bootstrap", "ols_percentile_bootstrap")
+  isTRUE(spec$target_test$method %in% methods) && (
+    (identical(spec$design, "mediation") && isTRUE(spec$template %in% c("process_4", "process_6"))) ||
+      (identical(spec$design, "moderated_mediation") && isTRUE(spec$template %in% c("process_7", "process_8", "process_14")) &&
+        !cond_indirect_difference(spec)))
+}
+
+# The paths whose product is the effect tested, as "from->to".
+mediation_tested_paths <- function(spec) {
+  if (identical(spec$design, "mediation")) {
+    nodes <- trimws(strsplit(spec$target_test$path, "->", fixed = TRUE)[[1]])
+    return(paste0(nodes[-length(nodes)], "->", nodes[-1]))
+  }
+  model <- path_model(spec)
+  m <- modmed_mediator(spec)
+  first <- if ("XW" %in% model$equations[[m]]) paste0("XW->", m) else paste0("X->", m)
+  mw <- names(Filter(function(p) identical(p, c(m, "W")), model$products))
+  second <- if (length(mw) == 1 && mw %in% model$equations$Y) paste0(mw, "->Y") else paste0(m, "->Y")
+  c(first, second)
+}
+
+# The largest scale at which every equation's R-squared stays below 0.99,
+# so the population can be standardised.
+mediation_scale_limit <- function(spec, set) {
+  model <- path_model(spec)
+  feasible <- function(x) {
+    r2 <- implied_r_squared(set(spec, x), model)$r_squared
+    length(r2) == length(setdiff(names(model$equations), names(model$products))) && all(r2 < 0.99)
+  }
+  if (feasible(1e4)) return(Inf)
+  lo <- 0
+  hi <- 1e4
+  for (i in 1:60) {
+    mid <- (lo + hi) / 2
+    if (feasible(mid)) lo <- mid else hi <- mid
+  }
+  lo
+}
+
+# The exported script's set_effect(): power4mome's population values
+# (power4mome_inputs()) rebuilt at x, with the same arithmetic, so the
+# simulated studies are the ones powerkit ran.
+mediation_pop_es_script <- function(spec, tested, k) {
+  model <- path_model(spec)
+  inputs <- power4mome_inputs(spec)
+  paths <- spec$population$paths
+  value_code <- function(p) {
+    if (p %in% tested) sprintf("%s * x^(1 / %s)", r_code(as.numeric(paths[[p]])), r_code(k)) else r_code(as.numeric(paths[[p]]))
+  }
+  pop_value <- function(code) sprintf("format(as.numeric(%s), digits = 15, scientific = FALSE)", code)
+  lines <- unlist(lapply(names(model$equations), function(outcome) {
+    vapply(model$equations[[outcome]], function(p) {
+      sprintf("paste0(%s, %s)", r_code(sprintf("%s ~ %s: ", outcome, inputs$term(p))), pop_value(value_code(paste0(p, "->", outcome))))
+    }, character(1))
+  }), use.names = FALSE)
+  existing <- strsplit(inputs$pop_es, "\n")[[1]]
+  rest <- existing[!grepl("^[^~]+ ~ [^~]", existing)]
+  if (!isTRUE(model$serial) && length(model$mediators) > 1 && length(model$products) == 0) {
+    # Parallel mediators' residual covariances: each residual correlation
+    # times the two residual SDs, which change with a tested X -> M path.
+    lookup <- correlation_lookup(spec)
+    pairs <- utils::combn(model$mediators, 2, simplify = FALSE)
+    residual <- function(m) sprintf("(1 - (%s)^2)", value_code(paste0("X->", m)))
+    rest <- vapply(pairs, function(pr) {
+      sprintf("paste0(%s, %s)", r_code(sprintf("%s ~~ %s: ", pr[1], pr[2])),
+        pop_value(sprintf("%s * sqrt(%s * %s)", r_code(lookup(pr[1], pr[2], residual = TRUE)), residual(pr[1]), residual(pr[2]))))
+    }, character(1))
+  } else {
+    rest <- vapply(rest, r_code, character(1), USE.NAMES = FALSE)
+  }
+  c("  pop_es <<- paste(c(", paste0("    ", c(lines, rest), c(rep(",", length(lines) + length(rest) - 1), "")), "  ), collapse = \"\\n\")")
 }
 
 # Moderated regression with a yes/no X or W (E15), which InteractionPoweR
@@ -499,7 +604,7 @@ jonckheere_search <- function(spec) {
 # Whether the search scales the pattern entered (so a flat pattern can't
 # be searched).
 simulated_search_scales_pattern <- function(spec) {
-  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || multinomial_search(spec) || jonckheere_search(spec) || logistic_factorial_search(spec) ||
+  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || multinomial_search(spec) || mediation_search(spec) || jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$template, "its") && identical(spec$target_test$effect, "both"))
 }
 

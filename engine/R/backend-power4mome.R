@@ -30,6 +30,11 @@ power4mome_backend <- function(spec, seed = NULL) {
       }, batch_size = power4mome_batch_size(inputs$ci_draws))
     },
     sensitivity = NULL,
+    # The smallest indirect effect or index (sensitivity-simulated.R,
+    # mediation_search()).
+    simulated_sensitivity = if (mediation_search(spec)) function(n, power, nrep, seed, cores) {
+      simulated_effect_sensitivity(spec, n, power, nrep, seed, cores)
+    },
     check_run = function() power4mome_check_run(spec, inputs, seed)
   )
 }
