@@ -160,7 +160,8 @@ simulated_data_code <- function(spec, n, seed) {
     precision = sim_precision_code(spec, n),
     equivalence_test = sim_equivalence_code(spec, n),
     logistic_regression = switch(spec$template, factorial = sim_logistic_factorial_code(spec, n),
-      interaction = sim_logistic_interaction_code(spec, n), sim_glm_code(spec, n)),
+      interaction = sim_logistic_interaction_code(spec, n),
+      multinomial_interaction = sim_multinomial_interaction_code(spec, n), sim_glm_code(spec, n)),
     ordinal_regression = sim_ordinal_code(spec, n),
     dyadic = sim_apim_code(spec, n),
     mixed_model = sim_mixed_code(spec, n),
@@ -655,6 +656,27 @@ sim_logistic_interaction_code <- function(spec, n) {
     sprintf("simulated <- data.frame(%s = %s, %s = %s, %s = y)",
       sim_label(spec, "X"), if (xb) sprintf("%s[x + 1]", r_code(sim_levels(spec, "X"))) else "x",
       sim_label(spec, "W"), if (wb) sprintf("%s[w + 1]", r_code(sim_levels(spec, "W"))) else "w",
+      sim_label(spec, "Y"))
+  )
+}
+
+# Moderation of an outcome in unordered categories: X and W drawn as for a
+# yes/no outcome, then each person's category from the multinomial
+# model's shares (multinomial_interaction_data()).
+sim_multinomial_interaction_code <- function(spec, n) {
+  co <- multinomial_interaction_coefficients(spec)
+  logistic <- sim_logistic_interaction_code(spec, n)
+  draws <- logistic[!grepl("^(eta|y|simulated) <-", logistic)]
+  v <- spec$variables
+  c(
+    draws,
+    sprintf("eta <- cbind(0, rep(%s, each = %d) + outer(x, %s) + outer(w, %s) + outer(x * w, %s)) # log odds against the first category",
+      r_code(co$intercepts), n, r_code(co$bx), r_code(co$bw), r_code(co$bxw)),
+    "p <- exp(eta) / rowSums(exp(eta))",
+    sprintf("y <- %s[1 + rowSums(stats::runif(%d) > t(apply(p, 1, cumsum))[, -ncol(p), drop = FALSE])]", r_code(sim_levels(spec, "Y")), n),
+    sprintf("simulated <- data.frame(%s = %s, %s = %s, %s = y)",
+      sim_label(spec, "X"), if (identical(v$X$type, "binary")) sprintf("%s[x + 1]", r_code(sim_levels(spec, "X"))) else "x",
+      sim_label(spec, "W"), if (identical(v$W$type, "binary")) sprintf("%s[w + 1]", r_code(sim_levels(spec, "W"))) else "w",
       sim_label(spec, "Y"))
   )
 }

@@ -96,9 +96,10 @@ test_that("end points with no ready-made tool say so plainly, with the two optio
   expect_match(html, "No ready-made tool.", fixed = TRUE)
   expect_match(html, text, fixed = TRUE)
   # E32 calculates moderation and mediation of a yes/no or count outcome;
-  # a categorical outcome has no tool.
+  # mediation of a categorical outcome has no tool (its moderation
+  # calculates since 17 November 2026).
   e32 <- as.character(card_ui(tree, "E32"))
-  expect_match(e32, htmltools::htmlEscape("A categorical outcome (three or more unordered answers), in moderation or mediation:"), fixed = TRUE)
+  expect_match(e32, htmltools::htmlEscape("Mediation of a categorical outcome (three or more unordered answers):"), fixed = TRUE)
   expect_match(e32, text, fixed = TRUE)
   # Cochran's Q calculates on E75 since 16 November 2026; E26 points to it.
   e26 <- as.character(card_ui(tree, "E26"))

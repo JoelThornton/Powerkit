@@ -70,7 +70,7 @@ spower_backend <- function(spec, seed = NULL) {
       # p_lpa() fits mclust's models.
       if (identical(spec$template, "lpa")) "mclust",
       # p_multinomial() fits nnet's multinom().
-      if (identical(spec$template, "multinomial")) "nnet"
+      if (spec$template %in% c("multinomial", "multinomial_interaction")) "nnet"
     ),
     methods = "simulation",
     default_method = "simulation",
@@ -413,6 +413,28 @@ spower_inputs <- function(spec) {
         }
       )
     },
+    # Moderation with an outcome in unordered categories: powerkit's own
+    # experiment, p_multinomial_interaction() (backend-multinomial-
+    # interaction.R), draws X, W and the category and returns the
+    # likelihood-ratio test of the X x W terms or the Wald z test of one
+    # category's, from nnet's multinom().
+    multinomial_interaction = {
+      coefficients <- multinomial_interaction_coefficients(spec)
+      list(
+        experiment = "p_multinomial_interaction", own = TRUE,
+        args = function(n) {
+          c(
+            list(
+              n = n, intercepts = coefficients$intercepts, bx = coefficients$bx, bw = coefficients$bw, bxw = coefficients$bxw,
+              x_binary = identical(spec$variables$X$type, "binary"), w_binary = identical(spec$variables$W$type, "binary"),
+              x_prob = pop$x_prob %||% 0.5, w_prob = pop$w_prob %||% 0.5, r = pop$r_xw %||% 0,
+              test = spec$target_test$method %||% "likelihood_ratio"
+            ),
+            if (identical(spec$target_test$method, "wald_z")) list(category = multinomial_category(spec))
+          )
+        }
+      )
+    },
     factorial = {
       design <- logistic_factorial_design(spec)
       list(
@@ -453,6 +475,8 @@ spower_inputs <- function(spec) {
   } else if (identical(template, "interaction") && identical(spec$design, "logistic_regression")) {
     sprintf("Spower::Spower(p_logistic_interaction(%s)) (stats::glm(family = binomial()), the Wald z test of the X x W coefficient)",
       if (alternative == "two_sided") "" else sprintf("alternative = \"%s\"", alternative))
+  } else if (identical(template, "multinomial_interaction")) {
+    multinomial_interaction_label(spec)
   } else if (identical(template, "multinomial")) {
     if (identical(spec$target_test$method, "wald_z")) {
       sprintf("Spower::Spower(p_multinomial()) (nnet::multinom(), the Wald z test of X's coefficient for %s against %s)",
@@ -1832,6 +1856,9 @@ spower_check_run <- function(spec, inputs, n, seed) {
   }
   if (identical(spec$template, "multinomial")) {
     return(multinomial_check_run(spec, args, seed))
+  }
+  if (identical(spec$template, "multinomial_interaction")) {
+    return(multinomial_interaction_check_run(spec, args, seed))
   }
   if (identical(spec$template, "interaction") && identical(spec$design, "logistic_regression")) {
     return(logistic_interaction_check_run(args, seed))

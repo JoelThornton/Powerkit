@@ -46,6 +46,7 @@ chunk_sources <- function() {
     lpa = "engine/R/backend-spower.R",
     efa = "engine/R/backend-spower.R",
     riclpm = "engine/R/backend-spower.R",
+    multinomial = c("engine/R/backend-spower.R", "engine/R/backend-multinomial-interaction.R"),
     mixed_model = "engine/R/backend-simr.R"
   )
 }

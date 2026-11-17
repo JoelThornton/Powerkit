@@ -181,8 +181,10 @@ simulated_times:
   E64: {power: 5, sample_size: 40, sensitivity: 50}
   E70: {power: 5, sample_size: 40}
   E30: {power: 4, sample_size: 35, sensitivity: 45}
-  # E32: moderation takes about 4 seconds for power; mediation with a
-  # negative binomial count (regmedint) about 30, the slower case shown.
+  # E32: moderation takes about 4 seconds for power (an outcome in three
+  # unordered categories, nnet::multinom(), about 10 and 80 for a sample
+  # size); mediation with a negative binomial count (regmedint) about 30,
+  # the slower case shown.
   E32: {power: 30, sample_size: 200}
   E45: {power: 2, sample_size: 10, sensitivity: 60}
   E72: {power: 2, sample_size: 10, sensitivity: 10}
@@ -4056,7 +4058,7 @@ forms:
     methods_name: "a regression with an interaction (logistic for a yes/no outcome, Poisson or negative binomial for a count; the Wald z test of the X x W coefficient), simulated"
     tool: Spower
     directional: true
-    direction_shown_if: [{field: analysis, is_not: mediation}]
+    direction_shown_if: [{field: analysis, is_not: mediation}, {field: Y_kind, is_not: categories}]
     base: {spec_version: "0.1", design: logistic_regression, template: interaction,
            variables: {X: {}, W: {}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: odds_ratio},
            target_test: {effect: interaction, method: wald_z}}
@@ -4071,10 +4073,18 @@ forms:
                                 {path: variables.M.type, value: continuous}]},
              default: moderation, default_source: "moderation, this card's first design"}
           - {id: Y_kind, label: "The outcome is", type: select, required: true,
-             choices: {binary: "Yes or no (for example, sought counselling)", count: "A count (0, 1, 2, ..., for example drinking days in a month)"},
+             choices: {binary: "Yes or no (for example, sought counselling)", count: "A count (0, 1, 2, ..., for example drinking days in a month)",
+                       categories: "One of three or more unordered categories (for example, where help was first sought)"},
+             choices_shown_if: {categories: [{field: analysis, is_not: mediation}]},
              sets: {count: [{path: design, value: poisson_regression, shown_if: {field: analysis, is_not: mediation}}, {path: population.metric, value: rate_ratio},
-                            {path: variables.Y.type, value: count}, {path: variables.Y.levels, value: null}]},
-             default: binary, default_source: "a yes/no outcome, this card's first design"}
+                            {path: variables.Y.type, value: count}, {path: variables.Y.levels, value: null}],
+                    categories: [{path: template, value: multinomial_interaction}, {path: variables.Y.type, value: categorical},
+                                 {path: variables.Y.levels, value: null}]},
+             default: binary, default_source: "a yes/no outcome, this card's first design",
+             help: "With unordered categories, Powerkit fits a multinomial logistic regression (nnet's multinom()): each category is compared with the first, and the test is whether the X x W terms improve the model. Mediation of such an outcome isn't calculated yet."}
+          - {id: Y_levels, label: "The outcome's categories, separated by commas (three or more; the first is the one the others are compared with)", type: levels, path: variables.Y.levels, required: true,
+             shown_if: [{field: Y_kind, is: categories}, {field: analysis, is_not: mediation}],
+             help: "Put first the category that makes the natural comparison, such as the most common or the usual choice: each odds ratio compares another category with it."}
           - {id: Y_label, label: "Outcome (for example, sought counselling, or drinking days in a month)", type: text, path: variables.Y.label, required: true}
           - {id: count_model, label: "How spread out the counts are", type: select, path: target_test.method, required: true,
              choices: {wald_z: "As a Poisson distribution allows (the variance equals the mean)", negative_binomial: "More spread out than that (negative binomial)"},
@@ -4098,15 +4108,25 @@ forms:
       - input: "The starting point and the effects: odds ratios for a yes/no outcome, rate ratios for a count"
         fields:
           - {id: base_prob, writeup_label: "proportion of 'yes' at the starting point", label: "Proportion of 'yes' with X and W at their averages, or in their first groups (0 to 1)", type: number, path: population.base_prob, effect: true, min_exclusive: 0, max_exclusive: 1,
-             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}]}
+             shown_if: [{field: Y_kind, is_not: count}, {field: Y_kind, is_not: categories}, {field: analysis, is_not: mediation}]}
           - {id: odds_ratio_x, writeup_label: "odds ratio for X", label: "Odds ratio for X, with W at its average or in its first group", type: number, path: population.odds_ratio_x, effect: true, min_exclusive: 0,
-             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}],
+             shown_if: [{field: Y_kind, is_not: count}, {field: Y_kind, is_not: categories}, {field: analysis, is_not: mediation}],
              help: "Per SD of X for a score, or X's second group against its first."}
           - {id: odds_ratio_w, writeup_label: "odds ratio for W", label: "Odds ratio for W, with X at its average or in its first group", type: number, path: population.odds_ratio_w, effect: true, min_exclusive: 0,
-             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}]}
+             shown_if: [{field: Y_kind, is_not: count}, {field: Y_kind, is_not: categories}, {field: analysis, is_not: mediation}]}
           - {id: odds_ratio_xw, writeup_label: "interaction (ratio of odds ratios)", label: "The interaction: how many times X's odds ratio is multiplied per SD of W (or in W's second group)", type: number, path: population.odds_ratio_xw, effect: true, min_exclusive: 0,
-             shown_if: [{field: Y_kind, is_not: count}, {field: analysis, is_not: mediation}],
+             shown_if: [{field: Y_kind, is_not: count}, {field: Y_kind, is_not: categories}, {field: analysis, is_not: mediation}],
              help: "1 means no moderation. For example 1.25: X's odds ratio is a quarter larger for each SD of W. It is the exponent of the X x W coefficient a logistic regression reports."}
+          - {id: cat_probabilities, writeup_label: "share in each category at the starting point", label: "Share of people in each category with X and W at their averages, or in their first groups: one for each, in the same order, separated by commas (adding up to 1)", type: numbers, per_levels: Y_levels, path: population.probabilities, effect: true, min_exclusive: 0, max_exclusive: 1,
+             shown_if: [{field: Y_kind, is: categories}, {field: analysis, is_not: mediation}]}
+          - {id: cat_odds_ratios_x, writeup_label: "odds ratios for X against the first category", label: "Odds ratios for X, with W at its average or in its first group: one for each category except the first, in the same order", type: numbers, path: population.odds_ratios_x, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: categories}, {field: analysis, is_not: mediation}],
+             help: "For each category, how many times the odds of being in it rather than the first category change per SD of X (a score) or in X's second group (SPSS calls them Exp(B)). 1 means no effect."}
+          - {id: cat_odds_ratios_w, writeup_label: "odds ratios for W against the first category", label: "Odds ratios for W, with X at its average or in its first group: one for each category except the first", type: numbers, path: population.odds_ratios_w, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: categories}, {field: analysis, is_not: mediation}]}
+          - {id: cat_odds_ratios_xw, writeup_label: "interaction for each category (ratio of odds ratios)", label: "The interaction for each category except the first: how many times X's odds ratio is multiplied per SD of W (or in W's second group)", type: numbers, path: population.odds_ratios_xw, effect: true, min_exclusive: 0,
+             shown_if: [{field: Y_kind, is: categories}, {field: analysis, is_not: mediation}],
+             help: "1 means X's effect on that category doesn't depend on W. For example 0.6, 0.9: X's odds ratio for the second category against the first shrinks by 40% per SD of W, and for the third by 10%. They are the exponents of the X x W coefficients a multinomial logistic regression reports."}
           - {id: base_rate, writeup_label: "mean count at the starting point", label: "Mean count with X and W at their averages, or in their first groups", type: number, path: population.base_rate, effect: true, min_exclusive: 0,
              shown_if: [{field: Y_kind, is: count}, {field: analysis, is_not: mediation}]}
           - {id: rate_ratio_x, writeup_label: "rate ratio for X", label: "Rate ratio for X, with W at its average or in its first group", type: number, path: population.rate_ratio_x, effect: true, min_exclusive: 0,
@@ -4139,6 +4159,13 @@ forms:
              help: "0.5 is common for counts of behaviour. From a pilot or a published count model: k = (variance - mean) / mean^2, or 1 / theta from R's glm.nb()."}
       - input: "How X and W relate"
         fields:
+          - {id: cat_test, label: "Which test (an outcome in categories)", type: select, path: target_test.method, required: true,
+             shown_if: [{field: Y_kind, is: categories}, {field: analysis, is_not: mediation}],
+             choices: {likelihood_ratio: "Whether X's effect depends on W for the outcome as a whole (the likelihood-ratio test of the X x W terms, every category together)", wald_z: "Whether it does for one category against the first (the Wald z test of one X x W coefficient)"},
+             default: likelihood_ratio, default_source: "the likelihood-ratio test of the X x W terms, as for multinomial logistic regression of one predictor (the test SPSS's 'Likelihood Ratio Tests' table reports)",
+             help: "The likelihood-ratio test asks whether W changes X's effect on the outcome at all. If your hypothesis is about one category in particular, the test of that category is the one to power."}
+          - {id: cat_category, label: "The category compared with the first", type: text, path: target_test.category, required: true,
+             shown_if: [{field: Y_kind, is: categories}, {field: cat_test, is: wald_z}, {field: analysis, is_not: mediation}]}
           - {id: x_prob, label: "Proportion of people in X's second group (0 to 1)", type: number, path: population.x_prob, required: true, min_exclusive: 0, max_exclusive: 1,
              default: 0.5, default_source: "equal groups, powerkit's default (the design spec's population > x_prob)", shown_if: [{field: X_type, is: binary}, {field: analysis, is_not: mediation}]}
           - {id: w_prob, label: "Proportion of people in W's second group (0 to 1)", type: number, path: population.w_prob, required: true, min_exclusive: 0, max_exclusive: 1,

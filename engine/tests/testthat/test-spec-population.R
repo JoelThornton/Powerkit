@@ -328,6 +328,7 @@ zero_effect_cases <- list(
   regression_coefficient = function(s) within(s, population$partial_r2 <- 0),
   multinomial_regression = function(s) within(s, population$probabilities_second <- population$probabilities),
   logistic_interaction = function(s) within(s, population$odds_ratio_xw <- 1),
+  multinomial_interaction = function(s) within(s, population$odds_ratios_xw <- list(1, 1)),
   poisson_interaction = function(s) within(s, population$rate_ratio_xw <- 1),
   group_moderator = function(s) within(s, population$r_xy <- list(-0.2, -0.2, -0.2)),
   growth_curve = function(s) within(s, population$slope_difference <- 0),
