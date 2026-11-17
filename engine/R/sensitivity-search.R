@@ -53,6 +53,7 @@ formula_search_kind <- function(spec) {
   if (identical(spec$design, "survival") && isTRUE(spec$template %in% c("log_rank", "cox_predictor"))) return(spec$template)
   if (identical(spec$design, "mixed_model") && identical(spec$template, "growth_curve")) return("growth_curve")
   if (identical(spec$design, "reliability") && isTRUE(spec$template %in% c("icc", "cronbach_alpha", "kappa"))) return(paste0("reliability_", spec$template))
+  if (identical(spec$design, "regression_interaction") && identical(spec$template, "three_way")) return("three_way")
   NULL
 }
 
@@ -241,6 +242,21 @@ formula_search_plan <- function(spec) {
         effect = function(x) exp(direction * x), effect_script = "exp(direction * found)",
         effect_name = "hazard_ratio",
         what = "hazard ratio for a person 1 SD higher on X, with the share with the event and the other predictors kept"
+      )
+    },
+    three_way = {
+      direction <- pwrss_search_direction(spec, pop$b_XWZ)
+      list(
+        grid = seq(0.001, 0.99, length.out = 200),
+        direction = direction,
+        # Coefficients impossible with the correlations entered have no
+        # power.
+        power = function(s, n) tryCatch(interactionpower_3way_backend(s)$exact_power(n), error = function(e) 0),
+        set = function(s, x) { s$population$b_XWZ <- direction * x; s },
+        script = "b_x1x2x3 <<- direction * x",
+        effect = function(x) direction * x, effect_script = "direction * found",
+        effect_name = "b_XWZ",
+        what = "standardised coefficient of the three-way product XWZ, with the correlations and reliabilities kept"
       )
     },
     growth_curve = {

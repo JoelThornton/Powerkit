@@ -1589,7 +1589,7 @@ test_that("E9: the smallest detectable interaction, labelled as the fixed-model 
   expect_equal(calc$status, "ok")
   expect_true(calc$result$sensitivity$approximation)
   html <- as.character(result_panel_ui(tree, forms, "E9", fields, values, calc))
-  expect_match(html, "is the correlation of the interaction with Y = 0.1", fixed = TRUE)
+  expect_match(html, "is correlation of the interaction with Y = 0.1", fixed = TRUE)
   expect_match(html, "fixed-model formula (InteractionPoweR::power_interaction_r2(), no simulation)", fixed = TRUE)
   expect_match(html, "comes from InteractionPoweR&#39;s fixed-model formula|comes from InteractionPoweR's fixed-model formula")
   expect_match(html, "The smallest detectable effect was found with a fixed-model formula", fixed = TRUE)

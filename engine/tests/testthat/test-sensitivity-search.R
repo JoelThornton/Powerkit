@@ -356,7 +356,7 @@ test_that("ordinal, survival, growth-curve and reliability searches agree with t
   expect_true(abs(needed - 150) <= 1)
 })
 
-test_that("simulated searches for paired variances, trends, d', factorial logistic effects, moderation by groups and time series land where a fresh simulation has the target power", {
+test_that("simulated searches for paired variances, trends, d', factorial logistic effects, moderation, time series and unordered categories land where a fresh simulation has the target power", {
   skip_on_cran()
   set_found <- list(
     paired_variances = function(spec, s) { spec$population$var1 <- spec$population$var2 * s$effect; spec },
@@ -372,6 +372,22 @@ test_that("simulated searches for paired variances, trends, d', factorial logist
       spec
     },
     its = function(spec, s) { spec$population$level_change <- s$effect; spec },
+    regression_interaction_binary = function(spec, s) { spec$population$r_XW_Y <- s$effect; spec },
+    logistic_interaction = function(spec, s) { spec$population$odds_ratio_xw <- s$effect; spec },
+    poisson_interaction = function(spec, s) { spec$population$rate_ratio_xw <- s$effect; spec },
+    # The log odds ratios of the categories against the first, scaled: from
+    # the shares entered (the second point's less the first's).
+    multinomial_regression = function(spec, s) {
+      p1 <- unlist(spec$population$probabilities)
+      p2 <- unlist(spec$population$probabilities_second)
+      spec$population$odds_ratios <- as.list(exp(s$scale * (log(p2[-1] / p2[1]) - log(p1[-1] / p1[1]))))
+      spec$population$probabilities_second <- NULL
+      spec
+    },
+    multinomial_interaction = function(spec, s) {
+      spec$population$odds_ratios_xw <- as.list(unlist(spec$population$odds_ratios_xw)^s$scale)
+      spec
+    },
     group_moderator = function(spec, s) {
       r <- unlist(spec$population$r_xy)
       spec$population$r_xy <- as.list(mean(r) + s$scale * (r - mean(r)))
@@ -397,7 +413,8 @@ test_that("simulated searches for paired variances, trends, d', factorial logist
   for (name in names(set_found)) {
     spec <- if (name == "jonckheere") jonckheere() else example_spec(name)
     if (name == "logistic_factorial") spec$target_test$effect <- "interaction"
-    n <- switch(name, jonckheere = 99L, logistic_factorial = 600L, group_moderator = 300L, its = 24L, 100L)
+    n <- switch(name, jonckheere = 99L, logistic_factorial = 600L, group_moderator = 300L, its = 24L, logistic_interaction = 400L, poisson_interaction = 400L,
+      multinomial_regression = 400L, multinomial_interaction = 400L, regression_interaction_binary = 300L, 100L)
     spec$goal <- list(type = "sensitivity", n = n, power = 0.8)
     spec$options$nrep <- 500L
     result <- suppressWarnings(run_quietly(spec))
@@ -441,4 +458,21 @@ test_that("simulated searches for paired variances, trends, d', factorial logist
   flat$population$proportions <- list(0.3, 0.3, 0.3, 0.3)
   flat$goal <- list(type = "sensitivity", n = 100L, power = 0.8)
   expect_error(validate_spec(flat), "no effect pattern to scale")
+})
+
+test_that("the three-way interaction's smallest effect matches InteractionPoweR's own sample size there", {
+  skip_on_cran()
+  spec <- example_spec("regression_three_way")
+  spec$goal <- list(type = "sensitivity", n = 300L, power = 0.8)
+  s <- run_quietly(spec)$sensitivity
+  expect_identical(s$effect_name, "b_XWZ")
+  expect_equal(s$power, 0.8, tolerance = 1e-6)
+  at <- spec
+  at$population$b_XWZ <- s$effect
+  at$goal <- list(type = "sample_size", power = 0.8)
+  expect_true(abs(run_quietly(at)$n_required$n - 300) <= 1)
+  file <- withr::local_tempfile(fileext = ".R")
+  writeLines(export_script(spec, run_quietly(spec)), file)
+  out <- system2(file.path(R.home("bin"), "Rscript"), file, stdout = TRUE, stderr = TRUE)
+  expect_true(any(grepl("^Reproduced powerkit's result", out)))
 })

@@ -243,6 +243,65 @@ simulated_search_plan <- function(spec, n, power) {
       effect_script = sprintf("x * %s", r_code(spread))
     ))
   }
+  if (binary_interaction_search(spec)) {
+    entered <- pop$r_XW_Y %||% 0
+    direction <- pwrss_search_direction(spec, entered)
+    return(list(
+      guess = guess_from(entered, 0.15),
+      set = function(s, x) { s$population$r_XW_Y <- direction * x; s },
+      effect = function(x) direction * x,
+      effect_name = "r_XW_Y",
+      what = "correlation of the interaction XW with Y, with the other correlations and the reliabilities kept",
+      script_set = sprintf("  r_x1x2_y <<- %s * x", r_code(direction)),
+      effect_script = sprintf("%s * x", r_code(direction))
+    ))
+  }
+  if (multinomial_search(spec)) {
+    interaction <- identical(spec$template, "multinomial_interaction")
+    slopes <- if (interaction) log(as.numeric(unlist(pop$odds_ratios_xw))) else multinomial_coefficients(spec)$slopes
+    category <- multinomial_category(spec)
+    # The Wald test's category, or else the category whose odds ratio is
+    # furthest from 1.
+    k <- if (is.null(category)) which.max(abs(slopes)) else category - 1
+    levels <- unlist(spec$variables$Y$levels)
+    return(list(
+      guess = 1,
+      set = function(s, x) {
+        if (interaction) {
+          s$population$odds_ratios_xw <- as.list(exp(x * slopes))
+        } else {
+          s$population$odds_ratios <- as.list(exp(x * slopes))
+          s$population$probabilities_second <- NULL
+        }
+        s
+      },
+      effect = function(x) exp(x * slopes[k]),
+      effect_name = if (interaction) "odds_ratio_xw" else "odds_ratio",
+      what = sprintf("%s for '%s' against '%s'%s, with the pattern of the categories' log odds ratios you entered kept and scaled, and the rest kept",
+        if (interaction) "interaction odds ratio" else "odds ratio", levels[k + 1], levels[1],
+        if (is.null(category)) " (the category furthest from 1)" else ""),
+      script_set = sprintf("  %s <<- x * %s", if (interaction) "bxw" else "slopes", r_code(slopes)),
+      effect_script = sprintf("exp(x * %s)", r_code(slopes[k]))
+    ))
+  }
+  if (moderation_ratio_search(spec)) {
+    count <- identical(spec$design, "poisson_regression")
+    entered <- log(if (count) pop$rate_ratio_xw else pop$odds_ratio_xw)
+    direction <- pwrss_search_direction(spec, entered)
+    return(list(
+      guess = guess_from(entered, 0.3),
+      set = function(s, x) {
+        if (count) s$population$rate_ratio_xw <- exp(direction * x) else s$population$odds_ratio_xw <- exp(direction * x)
+        s
+      },
+      effect = function(x) exp(direction * x),
+      effect_name = if (count) "rate_ratio_xw" else "odds_ratio_xw",
+      what = sprintf("interaction, as the factor by which %s's %s is multiplied per SD (or group) of %s, with the rest you entered kept",
+        spec$variables$X$label %||% "X", if (count) "rate ratio" else "odds ratio", spec$variables$W$label %||% "W"),
+      script_set = sprintf("  %s <<- exp(%s * x)", if (count) "rate_ratio_xw" else "or_xw", r_code(direction)),
+      effect_script = sprintf("exp(%s * x)", r_code(direction))
+    ))
+  }
   if (identical(spec$template, "its")) {
     test <- spec$target_test$effect
     if (identical(test, "both")) {
@@ -358,7 +417,27 @@ simulated_search_available <- function(spec) {
     (identical(spec$design, "signal_detection") && identical(spec$template, "dprime")) ||
     jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) ||
-    identical(spec$template, "its")
+    identical(spec$template, "its") || moderation_ratio_search(spec) || multinomial_search(spec) ||
+    binary_interaction_search(spec)
+}
+
+# Moderated regression with a yes/no X or W (E15), which InteractionPoweR
+# simulates (its fixed-model formula assumes continuous variables).
+binary_interaction_search <- function(spec) {
+  identical(spec$design, "regression_interaction") && identical(spec$template %||% "two_way", "two_way") &&
+    any(interaction_binary(spec))
+}
+
+# An outcome in unordered categories (E70), and its moderation (E32): the
+# pattern of log odds ratios against the first category, scaled.
+multinomial_search <- function(spec) {
+  identical(spec$design, "logistic_regression") && isTRUE(spec$template %in% c("multinomial", "multinomial_interaction"))
+}
+
+# Moderation of a yes/no or count outcome (E32): the X x W odds or rate
+# ratio.
+moderation_ratio_search <- function(spec) {
+  identical(spec$template, "interaction") && isTRUE(spec$design %in% c("logistic_regression", "poisson_regression"))
 }
 
 logistic_factorial_search <- function(spec) {
@@ -392,7 +471,7 @@ jonckheere_search <- function(spec) {
 # Whether the search scales the pattern entered (so a flat pattern can't
 # be searched).
 simulated_search_scales_pattern <- function(spec) {
-  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || jonckheere_search(spec) || logistic_factorial_search(spec) ||
+  isTRUE(spec$template %in% c("proportion_trend", "group_moderator")) || multinomial_search(spec) || jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$template, "its") && identical(spec$target_test$effect, "both"))
 }
 

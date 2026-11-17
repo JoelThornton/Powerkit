@@ -3772,7 +3772,11 @@ interactionpower_script <- function(spec, result) {
     ),
     goal_inputs(spec, result),
     "",
-    if (spec$goal$type == "sensitivity") interactionpower_sensitivity_section(result) else interactionpower_simulation_lines(spec, result)
+    if (spec$goal$type == "sensitivity" && !any(interaction_binary(spec))) {
+      interactionpower_sensitivity_section(result)
+    } else {
+      interactionpower_simulation_lines(spec, result)
+    }
   )
 }
 

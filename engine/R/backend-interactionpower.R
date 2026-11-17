@@ -34,6 +34,7 @@ interactionpower_backend <- function(spec, seed = NULL) {
     # Not with a yes/no X or W: the formula assumes continuous variables.
     sensitivity = if (!any(binary)) function(n, power) interactionpower_sensitivity(inputs, n, power),
     sensitivity_method = if (!any(binary)) "analytic",
+    simulated_sensitivity = if (any(binary)) function(n, power, nrep, seed, cores) simulated_effect_sensitivity(spec, n, power, nrep, seed, cores),
     check_run = function() interactionpower_check_run(spec, inputs, seed)
   )
 }
@@ -213,7 +214,7 @@ interactionpower_3way_backend <- function(spec) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = function(n, power) formula_search_sensitivity(spec, n, power),
     check_run = function() interactionpower_3way_check_run(spec, inputs)
   )
 }
