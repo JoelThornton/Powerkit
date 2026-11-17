@@ -1,0 +1,26 @@
+{
+  "spec_version": "0.1",
+  "design": "mixed_model",
+  "template": "repeated_glmm",
+  "variables": {
+    "X": {"type": "within_factor", "label": "Reminder", "levels": ["None", "Text message", "Phone call"]},
+    "Y": {"type": "binary", "label": "Attended the appointment"}
+  },
+  "population": {
+    "metric": "probability",
+    "probabilities": [0.5, 0.6, 0.65],
+    "sd_person": 1,
+    "measurements": 1
+  },
+  "effect_justification": {
+    "type": "smallest_effect_of_interest",
+    "source": "Example only: a rise from 50% to 60% attending with a text reminder is the smallest change of interest."
+  },
+  "target_test": {
+    "effect": "condition",
+    "method": "cochran_q",
+    "alpha": 0.05
+  },
+  "goal": {"type": "power", "n": 100},
+  "options": {"nrep": 500, "seed": 26}
+}

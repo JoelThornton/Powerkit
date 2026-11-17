@@ -446,11 +446,22 @@ welch_sensitivity_section <- function(spec, result) {
 # grid, the first grid value whose power reaches the target, then uniroot()
 # between it and the one before.
 pwrss_search_section <- function(spec, result) {
+  search_section(result, pwrss_search_plan(spec),
+    sprintf("# pwrss's %s() solves for n or power, not for the effect, so powerkit", pwrss_inputs(spec)$fun))
+}
+
+# The same search for the other formula tests (formula_search_plan(),
+# sensitivity-search.R).
+formula_search_section <- function(spec, result) {
+  search_section(result, formula_search_plan(spec),
+    "# The power calculation above gives power, not the effect, so powerkit")
+}
+
+search_section <- function(result, plan, opening) {
   s <- result$sensitivity
-  plan <- pwrss_search_plan(spec)
   c(
     "# Smallest detectable effect ----",
-    sprintf("# pwrss's %s() solves for n or power, not for the effect, so powerkit", pwrss_inputs(spec)$fun),
+    opening,
     "# searches the effect with the same power call (power_at() above), keeping",
     "# the rest of the population as entered: power at each value of a grid,",
     "# from the smallest effect up, then uniroot() between the first value that",

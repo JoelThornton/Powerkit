@@ -635,10 +635,12 @@ design_description <- function(spec) {
       if ((spec$population$measurements %||% 1) == 1) "once" else sprintf("%s times", format_number(spec$population$measurements)),
       length(spec$variables$X$levels), label("X"), levels("X"),
       if (identical(spec$variables$X$type, "between_factor")) "between" else "within",
-      if (identical(spec$variables$Y$type, "binary")) "a logistic" else
+      if (identical(spec$target_test$method, "cochran_q")) "answers simulated from a logistic" else
+        if (identical(spec$variables$Y$type, "binary")) "a logistic" else
         if (identical(spec$variables$Y$type, "categorical")) "a cumulative link (proportional odds)" else
         if ((spec$population$dispersion %||% 0) > 0) "a negative binomial" else "a Poisson",
-      paste0(if (identical(spec$target_test$method, "likelihood_ratio")) "likelihood ratio" else "Wald chi-square",
+      paste0(if (identical(spec$target_test$method, "cochran_q")) "Cochran's Q" else
+        if (identical(spec$target_test$method, "likelihood_ratio")) "likelihood ratio" else "Wald chi-square",
         if (!is.null(spec$variables$W)) sprintf(" of the interaction with %s (%s, between people)", label("W"), levels("W")) else "")
     ),
     "mixed_model/crossed_conditions" = sprintf(
@@ -1626,7 +1628,7 @@ pwr_goal_section <- function(spec, result) {
       ),
       ""
     ),
-    sensitivity = pwr_sensitivity_section(spec, result)
+    sensitivity = if (formula_search_available(spec)) formula_search_section(spec, result) else pwr_sensitivity_section(spec, result)
   )
 }
 

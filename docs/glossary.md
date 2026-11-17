@@ -74,7 +74,7 @@ only partly supported, and the details are listed there.
 | continuity correction | A slight adjustment to the normal approximation for counts that moves the observed difference toward zero before testing. | E5 |
 | chi-square test of independence | A test of whether two categorical variables (for example, group and a yes/no answer) are related, using a table of counts. | E6 |
 | McNemar's test | A test of whether the share of 'yes' answers differs between two yes/no measurements on the same people (or on matched pairs). | E26 |
-| Cochran's Q | An extension of McNemar's test to three or more yes/no measurements on the same people. | E26 |
+| Cochran's Q | An extension of McNemar's test to three or more yes/no measurements on the same people. | E26, E75 |
 | logistic regression | A regression for a yes/no outcome: it models the log of the odds of 'yes' from the predictors. | E27, E47 |
 | Poisson or negative binomial | Regressions for count outcomes (how many times something happens); Poisson assumes the counts vary as much as their average, while negative binomial allows them to vary more than that. | E28 |
 | ordinal outcome | An outcome whose categories have a natural order (for example, never, sometimes, often) but where the steps between neighbouring categories need not be equal. | E29 |

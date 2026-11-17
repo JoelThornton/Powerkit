@@ -1,3 +1,53 @@
+# powerkit 0.75.0
+
+* Cochran's Q: power and sample size for a yes/no answer given once by
+  every person in each of three or more conditions, as a test version of
+  the repeated-measures generalised mixed model card
+  (`mixed_model / repeated_glmm`, `target_test > method "cochran_q"`).
+  No package computes its power, so Spower runs powerkit's experiment
+  `p_repeated_cochran()`: the answers are drawn from the card's logistic
+  model (each person's intercept from N(0, sd_person^2)), and each study is
+  tested with `stats::friedman.test()` on the 0/1 answers, which is
+  Cochran's Q (test-backend-glmm.R checks it against Q's own formula, and
+  McNemar's test with two conditions). Its check run compares each
+  condition's share of 'yes' across everyone with the share the model
+  implies. `check_repeated_cochran()` refuses two conditions (McNemar's
+  card), several answers per condition, groups and a between factor. New
+  example spec `repeated_glmm_cochran.json`; validation in
+  test-validation-cochran-q.R (an independent simulation computing Q from
+  its formula, Type I error, a published-example placeholder), run in the
+  `glmm` chunk. The exported script and the design line say Cochran's Q.
+
+# powerkit 0.74.0
+
+* The smallest detectable effect (goal `sensitivity`) for more formula
+  tests, found by searching the backend's own exact power over the effect
+  at the fixed n, as for pwrss's tests: the first grid point that reaches
+  the target, then `uniroot()` (`formula_search_sensitivity()`, new
+  `R/sensitivity-search.R`; `pwrss_search_root()`). No new formula.
+  - Two dependent correlations (Steiger's z, pwrss): the second
+    correlation, the others kept, within the values that keep the
+    correlation matrix positive definite (`dependent_correlation_range()`).
+  - One and two variances (stats, the G*Power manual's chi-square and F
+    distributions): the ratio of the variances, on the side the test
+    looks at.
+  - One-sample Hotelling's T-squared and the two-group MANOVA by its means:
+    the Mahalanobis distance, the pattern of means scaled. MANOVA given by
+    Pillai's V already had it in the engine; the card now offers it.
+  - Equivalence tests (TOSTER, all five versions): the narrowest
+    equivalence bounds the test shows with the target power, the expected
+    difference kept. `population > bound` may be left out for this goal
+    only (schema and `check_equivalence_test()`); TOSTER's check run then
+    checks the expected difference alone.
+  The exported R script repeats each search with its own `power_at()`
+  (`formula_search_section()`, sharing `search_section()` with pwrss's).
+  Tests: `test-sensitivity-search.R` checks each against a simulation of
+  the test itself (`psych::r.test()`, `var.test()`, Spower's Hotelling
+  simulation, two one-sided `t.test()`s and Fisher z tests) and runs all
+  eleven scripts. Steiger's z: pwrss's asymptotic power, as G*Power's, is
+  about 0.03 below the test's simulated rejection rate at both the entered
+  and the found correlations.
+
 # powerkit 0.73.0
 
 * Long runs can carry on in a study plan. A run on an input screen that

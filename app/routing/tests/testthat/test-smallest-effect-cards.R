@@ -81,3 +81,48 @@ test_that("an ANOVA given by partial eta-squared finds the smallest partial eta-
   expect_identical(run$result$sensitivity$effect_name, "eta_squared")
   expect_match(result_figure(run$spec, run$result)$label, "partial eta-squared", fixed = TRUE)
 })
+
+test_that("the dependent correlations, variances, Hotelling and MANOVA cards find their effect (16 November 2026)", {
+  cases <- list(
+    E51 = list(extra = list(r_X_Z = ""), label = "second correlation"),
+    E52 = list(extra = list(var = ""), label = "variance ratio"),
+    E53 = list(extra = list(var1 = ""), label = "variance ratio"),
+    E60 = list(extra = list(), label = "Mahalanobis distance"),
+    E59 = list(extra = list(A_levels = "Control, Treatment", means = "20, 18, 22\n18, 16.5, 20"), label = "Mahalanobis distance")
+  )
+  for (ep in names(cases)) {
+    goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, ep)))[[1]]
+    expect_true("sensitivity" %in% names(goal$choices), info = ep)
+    run <- smallest_effect_run(ep, cases[[ep]]$extra)
+    expect_equal(run$result$sensitivity$power, 0.8, tolerance = 1e-6, label = ep)
+    expect_match(result_figure(run$spec, run$result)$label, cases[[ep]]$label, fixed = TRUE, label = ep)
+    expect_match(goal_sentences(run$spec, run$result)[["headline"]], cases[[ep]]$label, fixed = TRUE, label = ep)
+  }
+  # A one-sided test for a smaller variance: the ratio below 1 isn't "the smallest".
+  run <- smallest_effect_run("E52", list(var = ""))
+  expect_lt(run$result$sensitivity$effect, 1)
+  expect_identical(result_figure(run$spec, run$result)$label, "the variance ratio you could detect")
+  # MANOVA's smallest effect is offered with the MANOVA test, not PERMANOVA.
+  goal <- Filter(function(f) identical(f$id, "goal"), form_fields(form_groups(forms, "E59")))[[1]]
+  expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(manova_test = "permanova")))
+})
+
+test_that("an equivalence test gives the narrowest bounds it could show, and the bound is not asked for", {
+  fields <- form_fields(form_groups(forms, "E36"))
+  bound <- Filter(function(f) identical(f$id, "bound"), fields)[[1]]
+  expect_false(field_applies(bound, list(goal = "sensitivity", effect_units = "standardised", comparison = "tost_independent")))
+  expect_true(field_applies(bound, list(goal = "power", effect_units = "standardised", comparison = "tost_independent")))
+  run <- smallest_effect_run("E36", list(bound = ""))
+  s <- run$result$sensitivity
+  expect_identical(s$effect_name, "bound")
+  expect_equal(s$power, 0.8, tolerance = 1e-6)
+  figure <- result_figure(run$spec, run$result)
+  expect_identical(figure$label, "the narrowest equivalence bounds you could show")
+  expect_match(figure$value, "^±")
+  lines <- goal_sentences(run$spec, run$result)
+  expect_match(lines[["headline"]], "narrowest equivalence bounds you could show", fixed = TRUE)
+  expect_no_match(lines[["headline"]], "smallest effect", fixed = TRUE)
+  # In the measure's own units, the bounds are given in those units.
+  run <- smallest_effect_run("E36", list(effect_units = "raw", raw_bound = "", raw_mean_1 = "50", raw_mean_2 = "51", raw_sd = "10"))
+  expect_match(units_sentence(run$result) %||% "", "bounds of ±", fixed = TRUE)
+})

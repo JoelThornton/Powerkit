@@ -49,7 +49,7 @@ toster_backend <- function(spec, seed = NULL) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = function(n, power) formula_search_sensitivity(spec, n, power),
     check_run = function() toster_check_run(spec, inputs)
   )
 }
@@ -110,7 +110,7 @@ toster_z_backend <- function(spec, inputs) {
     exact_power = power_at,
     bracket_power = power_at,
     simulate = NULL,
-    sensitivity = NULL,
+    sensitivity = function(n, power) formula_search_sensitivity(spec, n, power),
     check_run = function() toster_check_run(spec, inputs)
   )
 }
@@ -123,8 +123,17 @@ toster_power <- function(inputs, n) {
 # Check run: there is no simulated data, so the check confirms TOSTER
 # receives the expected difference and the bounds the spec gives.
 toster_check_run <- function(spec, inputs) {
-  args <- inputs$args(100)
   pop <- spec$population
+  # The smallest detectable effect searches the bound (sensitivity-search.R):
+  # with none entered, the check is of the expected difference alone.
+  searched <- is.null(pop$bound)
+  if (searched) {
+    spec$population$bound <- 1
+    pop <- spec$population
+    inputs <- toster_inputs(spec)
+  }
+  args <- inputs$args(100)
+  keep <- function(passed) if (searched) passed[!grepl("bound", passed$parameter), , drop = FALSE] else passed
   if (!is.null(inputs$fun)) {
     passed <- if (identical(inputs$fun, "power_z_cor")) {
       data.frame(parameter = c("expected correlation passed to TOSTER (rho)", "equivalence bound passed to TOSTER (null)"),
@@ -134,7 +143,7 @@ toster_check_run <- function(spec, inputs) {
                  specified = c(pop$p1, pop$p2, pop$bound, 50), recovered = c(args$p1, args$p2, args$null, args$n))
     }
     passed$ok <- mapply(function(a, b) isTRUE(all.equal(a, b)), passed$specified, passed$recovered)
-    return(passed)
+    return(keep(passed))
   }
   specified <- if (identical(inputs$type, "paired")) pop$dz else pop$d
   name <- if (identical(inputs$type, "paired")) "d_z" else "d"
@@ -144,11 +153,11 @@ toster_check_run <- function(spec, inputs) {
       ok = isTRUE(all.equal(spec_value, passed))
     )
   }
-  rbind(
+  keep(rbind(
     row(sprintf("expected difference (%s) passed to TOSTER (delta, with sd = 1)", name), specified, args$delta),
     row("lower equivalence bound passed to TOSTER", -pop$bound, args$eqb[1]),
     row("upper equivalence bound passed to TOSTER", pop$bound, args$eqb[2])
-  )
+  ))
 }
 
 # The R script for an equivalence test: the same TOSTER call at each size

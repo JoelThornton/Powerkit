@@ -77,8 +77,10 @@ test_that("plain-English refusals for equivalence specs", {
   expect_spec_problem(outside_power, "has to lie inside the bounds")
   no_bound <- tost_spec("tost_independent", population = list(metric = "standardised", d = 0))
   expect_error(validate_spec(no_bound), class = "powerkit_spec_error")
+  # The smallest detectable effect is the narrowest bound (sensitivity-search.R),
+  # so it is accepted (test-sensitivity-search.R).
   sens <- tost_spec("tost_independent", list(type = "sensitivity", n = 100, power = 0.8))
-  expect_error(validate_spec(sens), class = "powerkit_spec_error")
+  expect_silent(validate_spec(sens))
   one_sided <- tost_spec("tost_one_sample")
   one_sided$target_test$alternative <- "greater"
   expect_error(validate_spec(one_sided), class = "powerkit_spec_error")
