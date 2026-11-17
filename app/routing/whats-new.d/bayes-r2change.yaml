@@ -1,4 +1,0 @@
-entries:
-  - date: "2026-11-17"
-    title: "Bayes factors for an R-squared increase and one regression coefficient"
-    text: "On the multiple regression card, the R-squared increase and one coefficient can now be planned with a Bayes factor, as R-squared against 0 already could: the chance that the evidence for the model with the predictors you are testing, against the model without them, reaches the threshold you choose. It uses JASP's default prior. For one coefficient, the screen also asks for the R-squared of the other predictors, which the Bayes factor needs."
