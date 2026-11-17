@@ -40,7 +40,8 @@ spower_backend <- function(spec, seed = NULL) {
       # p_glm() tests the coefficients with car::lht().
       if (identical(spec$template, "factorial")) "car",
       # p_jonckheere() calls PMCMRplus's jonckheereTest().
-      if (jonckheere_test(spec)) "PMCMRplus",
+      # p_rank_pairs() calls PMCMRplus for Dunn's and Conover's tests.
+      if (jonckheere_test(spec) || isTRUE(spec$target_test$method %in% c("dunn", "conover"))) "PMCMRplus",
       # p_brunner_munzel() calls brunnermunzel's brunnermunzel.test().
       if (brunner_munzel_test(spec)) "brunnermunzel",
       # p_yuen() and p_yuend() call WRS2's yuen() and yuend().
@@ -562,6 +563,29 @@ rank_test_inputs <- function(spec, first_group, second_ratio) {
   ratio <- allocation_ratio(spec)
   draw <- score_shape_sampler(pop$score_shape)
   shifted <- function(n, d) d + draw(n)
+  # Pairwise rank comparisons: powerkit's own experiment, p_rank_pairs(),
+  # on scores drawn as for the Kruskal-Wallis test (equal groups) or
+  # Friedman's test, the pair as its two positions among A's levels.
+  if (rank_pairs_test(spec)) {
+    means <- as.numeric(unlist(pop$means)) / pop$sd
+    shape <- pop$score_shape %||% "normal"
+    pair <- pairwise_levels(spec)
+    common <- list(test = spec$target_test$method, first = pair[1], second = pair[2], p_adjust = spec$target_test$p_adjust %||% "holm")
+    if (identical(spec$template, "oneway_within")) {
+      return(list(
+        experiment = "p_rank_pairs", own = TRUE, rank = "rank_pairs", draw = draw,
+        args = function(n) c(list(n = n, means = means, r = pop$r, shape = shape), common)
+      ))
+    }
+    k <- length(means)
+    gen <- function(n, k, n.ratios, means, ...) {
+      lapply(seq_len(k), function(g) means[g] + draw(n * n.ratios[g]))
+    }
+    return(list(
+      experiment = "p_rank_pairs", own = TRUE, rank = "rank_pairs", draw = draw,
+      args = function(n) c(list(n = n / k, k = k, means = means, gen_fun = gen), common)
+    ))
+  }
   if (identical(spec$template, "oneway_within")) {
     # Friedman's test: powerkit's own experiment, p_friedman() (see
     # friedman_scores()), with the condition means in SD units.
@@ -709,6 +733,16 @@ rank_test_description <- function(test, template, alternative) {
       "Spower::Spower(p_art_within()) (ARTool::art() with the participants as an error term, ARTool::artlm(), aov())"
     })
   }
+  if (identical(test$experiment, "p_rank_pairs")) {
+    a <- test$args(100)
+    return(sprintf("Spower::Spower(p_rank_pairs()) (%s, the p-values of all the pairs adjusted by %s; power for one pair)",
+      switch(a$test,
+        mann_whitney = "stats::wilcox.test() of each pair of groups",
+        wilcoxon_signed_rank = "stats::wilcox.test(paired = TRUE) of each pair of conditions",
+        dunn = "PMCMRplus::kwAllPairsDunnTest(), Dunn's test",
+        conover = "PMCMRplus::frdAllPairsConoverTest(), Conover's test"),
+      switch(a$p_adjust, holm = "Holm's method", bonferroni = "Bonferroni's method", none = "no method (unadjusted)", a$p_adjust)))
+  }
   if (identical(template, "oneway_within")) {
     return("Spower::Spower(p_friedman()) (stats::friedman.test())")
   }
@@ -764,6 +798,48 @@ friedman_scores <- function(n, means, r, shape) {
 # Spower experiment for Friedman's test: its p-value on friedman_scores().
 p_friedman <- function(n, means, r, shape) {
   stats::friedman.test(friedman_scores(n, means, r, shape))$p.value
+}
+
+# The adjusted p-values of every pair of groups or conditions, in the order
+# of utils::combn(k, 2) (1 with 2, 1 with 3, ..., 2 with 3). `scores` is a
+# list of groups (Mann-Whitney, Dunn) or a matrix with one column per
+# condition and one row per person (signed-rank, Conover).
+#   mann_whitney: stats::wilcox.test() of each pair of groups, the p-values
+#     adjusted by stats::p.adjust().
+#   dunn: PMCMRplus::kwAllPairsDunnTest(), Dunn's z tests on the ranks of
+#     all the groups together (the post hoc test JASP offers after the
+#     Kruskal-Wallis test).
+#   wilcoxon_signed_rank: stats::wilcox.test(paired = TRUE) of each pair of
+#     conditions, adjusted by stats::p.adjust().
+#   conover: PMCMRplus::frdAllPairsConoverTest(), Conover's t tests on the
+#     ranks within each person (the post hoc test JASP offers after
+#     Friedman's test); with any adjustment but "single-step" it uses the t
+#     distribution, as JASP does.
+rank_pair_p_values <- function(scores, test, p_adjust) {
+  k <- if (is.matrix(scores)) ncol(scores) else length(scores)
+  pairs <- utils::combn(k, 2)
+  from_matrix <- function(p) p[cbind(as.character(pairs[2, ]), as.character(pairs[1, ]))]
+  switch(
+    test,
+    mann_whitney = stats::p.adjust(apply(pairs, 2, function(ij) stats::wilcox.test(scores[[ij[1]]], scores[[ij[2]]])$p.value), p_adjust),
+    wilcoxon_signed_rank = stats::p.adjust(apply(pairs, 2, function(ij) {
+      stats::wilcox.test(scores[, ij[1]], scores[, ij[2]], paired = TRUE)$p.value
+    }), p_adjust),
+    dunn = from_matrix(PMCMRplus::kwAllPairsDunnTest(unlist(scores), factor(rep(seq_len(k), lengths(scores))),
+      p.adjust.method = p_adjust)$p.value),
+    conover = from_matrix(PMCMRplus::frdAllPairsConoverTest(c(scores), factor(rep(seq_len(k), each = nrow(scores))),
+      factor(rep(seq_len(nrow(scores)), k)), p.adjust.method = p_adjust)$p.value)
+  )
+}
+
+# Spower experiment for pairwise rank comparisons: the adjusted p-value of
+# the pair (first, second) among all the pairs. Groups are drawn by
+# gen_fun (as for the Kruskal-Wallis test, n in each), conditions by
+# friedman_scores() (as for Friedman's test).
+p_rank_pairs <- function(n, means, test, first, second, p_adjust, r = NULL, shape = "normal", k = NULL, gen_fun = NULL) {
+  scores <- if (is.null(gen_fun)) friedman_scores(n, means, r, shape) else gen_fun(n, k, rep(1, k), means)
+  pairs <- utils::combn(length(means), 2)
+  unname(rank_pair_p_values(scores, test, p_adjust)[pairs[1, ] == first & pairs[2, ] == second])
 }
 
 # Spower experiment for the Jonckheere-Terpstra test: k groups of

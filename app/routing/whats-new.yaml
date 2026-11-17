@@ -8,8 +8,8 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
-    title: "The smallest effect you could detect, for moderation, categories, profiles and factors"
-    text: "Moderation of a yes/no, count or categorical outcome, an outcome in three or more unordered categories, moderated regression with a yes/no predictor or moderator, the three-way interaction, latent profiles and factor analysis now offer \"the smallest effect I'd have a good chance of finding\". The answer is the interaction's odds or rate ratio, the odds ratio for a category, the interaction's correlation with the outcome, the three-way coefficient, the separation between profiles, or the loadings at which the factors are recovered. Mediation on the moderation card doesn't offer it yet."
+    title: "New: comparing pairs of groups after a rank test"
+    text: "The Kruskal-Wallis and Friedman cards can now plan the comparisons of pairs that usually follow them. Choose either a separate rank test of each pair (Mann-Whitney or Wilcoxon signed-rank) or Dunn's or Conover's test, the follow-ups JASP uses; a note under each says how they differ, so you can pick the one you will report."
   - date: "2026-11-17"
     title: "Fixed: ordered categories in two groups, when the shares are uneven"
     text: "The analysis for comparing two groups on ordered categories planned the effect in the wrong direction: an odds ratio above 1, meaning group 2 tends to higher categories, was worked out as group 2 tending to lower ones. When group 1's answers are spread evenly this changed little, but when most of them are in one category the power or sample size could be well off. For example, with group 1's shares .7, .2 and .1, an odds ratio of 2.5 and 50 per group, the power is 63%, not the 48% shown before. If you planned this analysis with uneven shares, please run it again."

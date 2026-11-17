@@ -158,6 +158,14 @@ Rank tests (\code{target_test > method} \code{"wilcoxon_signed_rank"} for
 \code{population > score_shape} (normal, skewed or heavy-tailed; the
 signed-rank test, which assumes symmetry, normal or heavy-tailed),
 shifted by the effect. No formula.
+Pairwise rank comparisons (\code{target_test > effect} \code{"pairwise"}, with
+\code{target_test > comparison} the pair powered and \code{target_test > p_adjust}
+the adjustment across all the pairs): \code{"mann_whitney"} (a test of each
+pair) or \code{"dunn"} (Dunn's test, PMCMRplus's \code{kwAllPairsDunnTest()}) for
+\code{oneway_between}, \code{"wilcoxon_signed_rank"} (a signed-rank test of each
+pair) or \code{"conover"} (Conover's test, PMCMRplus's
+\code{frdAllPairsConoverTest()}) for \code{oneway_within}; simulated with Spower on
+scores drawn as for the Kruskal-Wallis and Friedman tests.
 Two-way ANCOVA (template \code{factorial_ancova}): two between factors, either
 main effect or the interaction, by pwrss's \code{power.f.ancova.shieh()}
 (Shieh's method) with the effect's rows of \code{factorial.contrasts()};
