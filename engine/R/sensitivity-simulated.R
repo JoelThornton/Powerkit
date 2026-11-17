@@ -175,6 +175,10 @@ scale_from_curve <- function(points, target, level = 0.95) {
 #                                   between the highest and lowest
 #   d' in two conditions            the second condition's average d',
 #                                   the first's and the rest kept
+#   Jonckheere-Terpstra trend       the pattern of group means scaled about
+#                                   their mean, reported as the difference
+#                                   between the largest and smallest, the
+#                                   SD kept
 simulated_search_plan <- function(spec, n, power) {
   pop <- spec$population
   guess_from <- function(entered, otherwise) if (isTRUE(abs(entered) > 1e-8)) abs(entered) else otherwise
@@ -205,6 +209,20 @@ simulated_search_plan <- function(spec, n, power) {
       effect_name = "proportion_range",
       what = sprintf("difference between the highest and lowest groups' proportions, with the pattern you entered kept and scaled about its average (%s)", format(signif(centre, 3))),
       script_set = sprintf("  proportions <<- %s + x * (%s - %s)", r_code(centre), r_code(p), r_code(centre)),
+      effect_script = sprintf("x * %s", r_code(spread))
+    ))
+  }
+  if (jonckheere_search(spec)) {
+    m <- as.numeric(unlist(pop$means))
+    centre <- mean(m)
+    spread <- max(m) - min(m)
+    return(list(
+      guess = 1,
+      set = function(s, x) { s$population$means <- as.list(centre + x * (m - centre)); s },
+      effect = function(x) x * spread,
+      effect_name = "mean_range",
+      what = sprintf("difference between the largest and smallest group means, in the outcome's units, with the pattern you entered kept and scaled about its average and the SD kept at %s", format(pop$sd %||% 1)),
+      script_set = sprintf("  means <<- (%s + x * (%s - %s)) / %s", r_code(centre), r_code(m), r_code(centre), r_code(pop$sd %||% 1)),
       effect_script = sprintf("x * %s", r_code(spread))
     ))
   }
@@ -251,12 +269,18 @@ simulated_search_plan <- function(spec, n, power) {
 simulated_search_available <- function(spec) {
   (identical(spec$design, "meta_analysis") && identical(spec$template, "mean_effect") && hartung_knapp_test(spec)) ||
     (identical(spec$design, "basic_test") && isTRUE(spec$template %in% c("paired_variances", "proportion_trend"))) ||
-    (identical(spec$design, "signal_detection") && identical(spec$template, "dprime"))
+    (identical(spec$design, "signal_detection") && identical(spec$template, "dprime")) ||
+    jonckheere_search(spec)
+}
+
+jonckheere_search <- function(spec) {
+  identical(spec$design, "factorial_anova") && identical(spec$template, "oneway_between") &&
+    identical(spec$target_test$method, "jonckheere_terpstra") && !is.null(spec$population$means)
 }
 
 # Whether the search scales the pattern entered (so a flat pattern can't
 # be searched).
-simulated_search_scales_pattern <- function(spec) identical(spec$template, "proportion_trend")
+simulated_search_scales_pattern <- function(spec) identical(spec$template, "proportion_trend") || jonckheere_search(spec)
 
 simulated_effect_sensitivity <- function(spec, n, power, nrep, seed, cores = 1L, level = 0.95) {
   plan <- simulated_search_plan(spec, n, power)

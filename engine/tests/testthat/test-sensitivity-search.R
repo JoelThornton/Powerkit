@@ -356,7 +356,7 @@ test_that("ordinal, survival, growth-curve and reliability searches agree with t
   expect_true(abs(needed - 150) <= 1)
 })
 
-test_that("simulated searches for paired variances, a trend in proportions and d' land where a fresh simulation has the target power", {
+test_that("simulated searches for paired variances, trends and d' land where a fresh simulation has the target power", {
   skip_on_cran()
   set_found <- list(
     paired_variances = function(spec, s) { spec$population$var1 <- spec$population$var2 * s$effect; spec },
@@ -365,11 +365,24 @@ test_that("simulated searches for paired variances, a trend in proportions and d
       spec$population$proportions <- as.list(mean(p) + s$scale * (p - mean(p)))
       spec
     },
-    dprime = function(spec, s) { spec$population$dprime[[2]] <- spec$population$dprime[[1]] + s$effect; spec }
+    dprime = function(spec, s) { spec$population$dprime[[2]] <- spec$population$dprime[[1]] + s$effect; spec },
+    jonckheere = function(spec, s) {
+      m <- unlist(spec$population$means)
+      spec$population$means <- as.list(mean(m) + s$scale * (m - mean(m)))
+      spec
+    }
   )
+  jonckheere <- function() {
+    spec <- example_spec("anova_oneway_between")
+    spec$target_test$method <- "jonckheere_terpstra"
+    spec$target_test$alternative <- "greater"
+    spec$population$score_shape <- "normal"
+    spec
+  }
   for (name in names(set_found)) {
-    spec <- example_spec(name)
-    spec$goal <- list(type = "sensitivity", n = 100L, power = 0.8)
+    spec <- if (name == "jonckheere") jonckheere() else example_spec(name)
+    n <- if (name == "jonckheere") 99L else 100L
+    spec$goal <- list(type = "sensitivity", n = n, power = 0.8)
     spec$options$nrep <- 500L
     result <- suppressWarnings(run_quietly(spec))
     s <- result$sensitivity
@@ -377,7 +390,7 @@ test_that("simulated searches for paired variances, a trend in proportions and d
     # Power simulated afresh at the effect found, with more replications
     # and another seed.
     at <- set_found[[name]](spec, s)
-    at$goal <- list(type = "power", n = 100L)
+    at$goal <- list(type = "power", n = n)
     at$options$nrep <- 4000L
     at$options$seed <- 99L
     expect_equal(suppressWarnings(run_quietly(at))$curve$power, 0.8, tolerance = 0.04, label = name)

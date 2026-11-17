@@ -178,7 +178,7 @@ simulated_times:
   E22: {power: 20, sample_size: 175}
   E61: {power: 8, sample_size: 65, sensitivity: 40}
   E47: {power: 6, sample_size: 50}
-  E64: {power: 5, sample_size: 40}
+  E64: {power: 5, sample_size: 40, sensitivity: 50}
   E70: {power: 5, sample_size: 40}
   E30: {power: 4, sample_size: 35}
   # E32: moderation takes about 4 seconds for power; mediation with a
@@ -4769,6 +4769,7 @@ forms:
   E64:
     methods_name: "a Jonckheere-Terpstra test of a trend across groups in order"
     tool: Spower
+    sensitivity: true
     directional: true
     base: {spec_version: "0.1", design: factorial_anova, template: oneway_between,
            variables: {A: {type: between_factor}, "Y": {type: continuous}},

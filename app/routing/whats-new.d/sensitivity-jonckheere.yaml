@@ -1,0 +1,4 @@
+entries:
+  - date: "2026-11-17"
+    title: "The smallest effect you could detect, for a trend across ordered groups"
+    text: "The Jonckheere-Terpstra test, for scores that rise or fall across ordered groups, now offers \"the smallest effect I'd have a good chance of finding\". Powerkit keeps the shape of the pattern of means you enter and finds how far apart the largest and smallest means need to be, with an interval for the simulation's uncertainty."

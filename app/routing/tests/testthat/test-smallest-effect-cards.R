@@ -211,12 +211,14 @@ test_that("ordinal two groups, survival, growth curves and reliability give the 
   expect_false(field_applies(list(shown_if = goal$choices_shown_if$sensitivity), list(question = "bland_altman")))
 })
 
-test_that("paired variances, a trend in proportions and d' find the smallest effect by a simulated search", {
+test_that("paired variances, the trend tests and d' find the smallest effect by a simulated search", {
   cases <- list(
     list(ep = "E57", extra = list(var1 = ""), label = "the smallest variance ratio you could detect", name = "variance ratio = "),
     list(ep = "E66", extra = list(), label = "the smallest difference between the highest and lowest proportions you could detect",
       name = "difference between the highest and lowest proportions = "),
-    list(ep = "E72", extra = list(d2 = ""), label = "the smallest difference in d' you could detect", name = "difference in d' = ")
+    list(ep = "E72", extra = list(d2 = ""), label = "the smallest difference in d' you could detect", name = "difference in d' = "),
+    list(ep = "E64", extra = list(), label = "the smallest difference between the largest and smallest mean you could detect",
+      name = "difference between the largest and smallest mean = ")
   )
   for (case in cases) {
     run <- smallest_effect_run(case$ep, c(case$extra, list(n = "100", simulation_accuracy = "quick")))
