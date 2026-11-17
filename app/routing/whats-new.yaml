@@ -8,6 +8,9 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Cochran's Q has a card of its own"
+    text: "Searching for Cochran's Q now finds a card with that name, under yes/no and categories, for the same people giving a yes/no answer in three or more conditions. You give each condition's chance of yes and how much people differ; power and the number of people you need both run here."
+  - date: "2026-11-17"
     title: "A fairer warning for moderated mediation with a yes/no X"
     text: "The result's note now gives the false-positive rate from Powerkit's largest check, 5.38% at a 5% significance level, instead of an earlier, smaller check's 6.7%. The test is still slightly liberal, so the power shown may be a little high."
   - date: "2026-11-17"
