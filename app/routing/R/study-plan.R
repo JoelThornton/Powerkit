@@ -325,20 +325,21 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
       actionButton("plan_name_save", "Save name", class = "btn btn-sm btn-outline-secondary")),
     # Kept as soon as the box is left, like every other box (P-10); the
     # plan's id goes with the text, so it can only reach this plan.
-    div(class = "plan-description form-field",
-      tags$label(class = "form-label", `for` = "plan_description", "About this study (optional)"),
+    # Folded until it has text, so the plan's work starts higher up the
+    # page (18 November 2026).
+    tags$details(class = "plan-description-fold", open = if (nzchar(plan$description %||% "")) NA,
+      tags$summary(class = "small", "About this study (optional)"),
+      div(class = "plan-description form-field",
+      tags$label(class = "form-label visually-hidden", `for` = "plan_description", "About this study (optional)"),
       tags$textarea(id = "plan_description", class = "form-control", rows = 2, maxlength = plan_description_max,
         placeholder = "For example the question, the population and the design.",
         onchange = sprintf("Shiny.setInputValue('plan_description_edit', {id: %s, text: this.value}, {priority: 'event'})", js_string(plan$id)),
-        plan$description %||% "")),
+        plan$description %||% ""))),
     # Its own output (filled by the server), so that saving or copying a
     # link doesn't redraw the page under the share button.
     p(class = "plan-status-line", uiOutput("plan_status", inline = TRUE)),
     if (is.list(plan$guided)) plan_guided_ui(plan$guided),
     plan_running_ui(running),
-    if (k == 0 && plan_is_replication(plan)) div(class = "plan-empty result-card",
-      p(tags$strong("The original's analysis isn't planned yet.")),
-      p("Work through the sections below in any order. Under The original study, find its design: its card plans the replication's sample size, and the result is kept here.")),
     if (k == 0 && !length(running) && !is.list(plan$guided) && !plan_is_replication(plan)) div(class = "plan-empty result-card",
       p(tags$strong("This plan has no analyses yet.")),
       tags$ol(
@@ -369,7 +370,7 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
       if (!plan_is_replication(plan)) actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
       if (saveable) share_link_ui("study_plan"),
       if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
-    if (saveable) p(class = "small", "Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top, puts the same inside a link. Download everything adds a report for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
+    if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top, puts the same inside a link. Download everything adds a report for the whole study, the references, and each analysis's own documents and R script; the zip opens again as the plan."),
     p(class = "small plan-delete",
       plan_delete_button(plan, input = "plan_delete", class = "btn btn-link btn-sm p-0", label = "Delete this plan"))
   )

@@ -375,17 +375,17 @@ replication_notes_ui <- function(tree) {
   tagList(
     p("Before you replicate a finding, think through three questions in your own words: what you want to learn, whether the original study is strong enough to be worth it, and whether a replication is the best way to learn it. Write as much or as little as you like; nothing here is scored or required. The questions are from Karhulahti, Martončik and Adamkovič (2025): each part's help gives their own words, and the reference is at the foot of the plan."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "1. The finding"),
-      p(class = "group-note", "Name the finding you want to test again, not only the study it came from. A replication can test the same finding with a better design."),
+      rep_note("Name the finding you want to test again, not only the study it came from. A replication can test the same finding with a better design."),
       labs_boxes("finding")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "2. What you want to learn"),
-      p(class = "group-note", "What the replication is meant to tell you, for theory or for practice."),
+      rep_note("What the replication is meant to tell you, for theory or for practice."),
       labs_boxes("goals")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "3. The original study's quality"),
-      p(class = "group-note", "Was the original design strong enough for its finding to be worth attention, and what should the replication do better? Statistics alone can't answer this. Think about whether the measures and setting fit the finding, who the sample was and who it leaves out, and whether the original data and analysis can be checked."),
+      rep_note("Was the original design strong enough for its finding to be worth attention, and what should the replication do better? Statistics alone can't answer this. Think about whether the measures and setting fit the finding, who the sample was and who it leaves out, and whether the original data and analysis can be checked."),
       labs_boxes("quality"),
       tags$details(class = "labs-sde",
         tags$summary("Optional: the smallest effect the original study could detect"),
-        p(class = "small", "Enter the original study's test and sample size. Powerkit finds the smallest effect that design would detect at the power you choose. Compare it with the smallest effect that matters, from step 2. This is one part of quality, not a verdict on it."),
+        rep_note("Enter the original study's test and sample size. Powerkit finds the smallest effect that design would detect at the power you choose. Compare it with the smallest effect that matters, from step 2. This is one part of quality, not a verdict on it."),
         selectInput("labs_test", "The original study's test", choices = test_choices, selectize = FALSE, width = "100%"),
         textInput("labs_n", "Participants analysed in the original study (in total, all groups together)", width = "100%"),
         conditionalPanel("input.labs_test == 'E5'",
@@ -398,10 +398,10 @@ replication_notes_ui <- function(tree) {
         actionButton("labs_sde_run", "Show the smallest detectable effect", class = "btn btn-primary"),
         uiOutput("labs_sde_result"))),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "4. Why a replication"),
-      p(class = "group-note", "Why a replication, rather than another way of reaching the same goal."),
+      rep_note("Why a replication, rather than another way of reaching the same goal."),
       labs_boxes("value")),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "5. Where you landed"),
-      p(class = "group-note", "All three are good outcomes. Deciding that a finding isn't worth replicating, before spending time and participants on it, is a useful result."),
+      rep_note("All three are good outcomes. Deciding that a finding isn't worth replicating, before spending time and participants on it, is a useful result."),
       radioButtons("labs_outcome", NULL, choices = stats::setNames(names(labs_outcomes), unname(labs_outcomes)), selected = character(0), width = "100%")),
     uiOutput("labs_next"))
 }
@@ -439,7 +439,10 @@ labs_next_ui <- function(outcome, has_test = FALSE) {
     change = tagList(p(labs_notes_heading("change")), next_step,
       p(class = "small", "For a redesigned replication, find the new design's analysis under The original study, and say what changes under How the replication differs.")),
     not_worth = tagList(p(labs_notes_heading("not_worth")),
-      p(class = "small", "The write-up gives your notes as a negative pre-replication report. Save the plan to keep them.")),
+      p(class = "small", "The planning steps aren't needed: the write-up gives your notes as a negative pre-replication report. Save the plan to keep them."),
+      tags$button(type = "button", class = "btn btn-primary",
+        onclick = "var r = document.querySelector('input[name=rep_section][value=writeup]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }",
+        "Next: the write-up")),
     p(class = "small", "Choose where you landed to see what comes next. The write-up includes these notes at any stage.")
   )
 }

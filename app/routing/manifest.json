@@ -63,6 +63,37 @@
         "Built": "R 4.5.0; ; 2026-08-12 19:40:35 UTC; unix"
       }
     },
+    "BUCSS": {
+      "Source": "RSPM",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "BUCSS",
+        "Type": "Package",
+        "Title": "Bias and Uncertainty Corrected Sample Size",
+        "Version": "2.0.0",
+        "Date": "2026-10-13",
+        "Authors@R": "c(\n    person(\"Ken\", \"Kelley\", role = c(\"aut\", \"cre\"),\n           email = \"kkelley@nd.edu\",\n           comment = c(ORCID = \"0000-0002-4756-8360\")),\n    person(\"Samantha F.\", \"Anderson\", role = \"aut\",\n           email = \"samantha.f.anderson@asu.edu\",\n           comment = c(ORCID = \"0000-0003-4451-5295\")),\n    person(\"Scott E.\", \"Maxwell\", role = \"aut\",\n           comment = c(ORCID = \"0000-0001-8067-7027\")))",
+        "Description": "Implements sample size planning for a future study from the summary\n    statistics of a prior study, correcting the prior effect for publication bias\n    and uncertainty so the planned study attains its target statistical power more\n    reliably than methods that take a sample effect size at face value. Planners\n    cover the one-sample, paired, independent, and Welch t tests; between-subjects\n    analysis of variance and covariance; within-subjects and split-plot analysis\n    of variance; a regression coefficient, the squared multiple correlation, and a\n    subset of predictors; the Pearson correlation; a two-group multivariate\n    comparison; and the chi square difference between nested models. The\n    regression planners can treat the predictors as fixed or as sampled, the\n    within-subjects and split-plot planners accept a sphericity correction, and\n    each plan reports the effect size it is built on. A simulation function\n    audits how often a plan attains its target power. The method is described in\n    Anderson, Kelley, and Maxwell (2017) <doi:10.1177/0956797617723724>\n    and extended to replication studies in Anderson and Kelley (2024)\n    <doi:10.1037/met0000520>.",
+        "License": "GPL (>= 3)",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "Depends": "R (>= 3.6.0)",
+        "Imports": "generics, graphics, stats, withr (>= 3.0.3)",
+        "Suggests": "testthat (>= 3.1.7), knitr, rmarkdown",
+        "VignetteBuilder": "knitr",
+        "URL": "https://github.com/yelleKneK/BUCSS,\nhttps://yelleKneK.github.io/BUCSS/,\nhttps://designingexperiments.com",
+        "BugReports": "https://github.com/yelleKneK/BUCSS/issues",
+        "Config/testthat/edition": "3",
+        "Config/roxygen2/version": "8.1.0",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-10-13 14:22:57 UTC; kkelley",
+        "Author": "Ken Kelley [aut, cre] (ORCID: <https://orcid.org/0000-0002-4756-8360>),\n  Samantha F. Anderson [aut] (ORCID:\n    <https://orcid.org/0000-0003-4451-5295>),\n  Scott E. Maxwell [aut] (ORCID: <https://orcid.org/0000-0001-8067-7027>)",
+        "Maintainer": "Ken Kelley <kkelley@nd.edu>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-10-13 23:00:30 UTC",
+        "Built": "R 4.5.0; ; 2026-10-14 04:08:39 UTC; unix"
+      }
+    },
     "BWStest": {
       "Source": "RSPM",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -6430,7 +6461,7 @@
       "description": {
         "Package": "powerkit",
         "Title": "Unified Power Analysis for Common Research Designs",
-        "Version": "0.78.20",
+        "Version": "0.78.26",
         "Authors@R": "\n    person(\"Joel\", \"Thornton\", , \"joelthornton53@gmail.com\",\n           role = c(\"aut\", \"cre\"))",
         "Description": "Reads a single design specification (JSON) for common\n    research designs, checks that it describes a possible population, and\n    routes it to established backend packages to estimate power, required\n    sample size and sensitivity. It covers t-tests,\n    correlations, proportions and chi-square tests (via 'pwr', 'pwrss' and\n    'Spower', with Bayes factor t-tests via 'bfpwr'), one-way, factorial\n    and mixed ANOVA, ANCOVA and planned contrasts (via 'Superpower' and\n    'pwrss'), multiple, logistic and Poisson regression (via 'pwrss'),\n    two-way regression interactions (via 'InteractionPoweR'), simple,\n    parallel and serial mediation and first- and second-stage moderated\n    mediation (PROCESS models 4, 6, 7 and 14, via 'power4mome'),\n    cluster-randomised and multisite trials (via 'powertools'), equivalence\n    and non-inferiority tests (via 'TOSTER' and 'pwrss') and structural equation models: model fit,\n    measurement invariance, factor correlations and latent regression (via\n    'semPower'), and planned meta-analyses (via 'metapower' and 'POMADE').",
         "License": "GPL (>= 3)",
@@ -6440,7 +6471,7 @@
         "Roxygen": "list(markdown = TRUE)",
         "Depends": "R (>= 4.1.0)",
         "Imports": "afex, BayesFactor, bayestestR, bfpwr, car, digest, effectsize,\nHmisc, InteractionPoweR, jsonlite, jsonvalidate (>= 1.3.0),\nlme4, lmerTest, manymome, parallel, nlme, psych, power4mome,\npwr, powertools, pwrss, simr, SimDesign, Spower (>= 0.7),\nstats, SuppDists, Superpower, utils",
-        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, boot, GPArotation,\ngsl, hypergeo, ICC.Sample.Size, irtpwr, JustifyAlpha,\nkappaSize, lavaan, longpower, lmhelprs (>= 0.4.2), MASS,\nMatrix, MBESS, mclust, metafor, metapower, mirt, nnet, ordinal,\npbkrtest, PITS, pmsampsize, pmvalsampsize, PMCMRplus, POMADE,\npowerSurvEpi, powRICLPM, presize, pscl, PUMP, quantreg,\nregmedint, semPower, simsem, SimplyAgree, statpsych, survival,\ntestthat (>= 3.0.0), TOSTER, vegan, WebPower, withr, WRS2",
+        "Suggests": "ARTool, BayesRepDesign, brunnermunzel, BUCSS, boot,\nGPArotation, gsl, hypergeo, ICC.Sample.Size, irtpwr,\nJustifyAlpha, kappaSize, lavaan, longpower, lmhelprs (>=\n0.4.2), MASS, Matrix, MBESS, mclust, metafor, metapower, mirt,\nnnet, ordinal, pbkrtest, PITS, pmsampsize, pmvalsampsize,\nPMCMRplus, POMADE, powerSurvEpi, powRICLPM, presize, pscl,\nPUMP, quantreg, regmedint, semPower, simsem, SimplyAgree,\nstatpsych, survival, testthat (>= 3.0.0), TOSTER, vegan,\nWebPower, withr, WRS2",
         "Config/testthat/edition": "3",
         "Config/testthat/parallel": "true",
         "Config/testthat/start-first": "export-script, whole-study,\nbackend-modmed-parallel, backend-mixed-model",
@@ -6449,19 +6480,19 @@
         "RemoteHost": "api.github.com",
         "RemoteRepo": "Powerkit",
         "RemoteUsername": "JoelThornton",
-        "RemoteRef": "8ea5d3a498d78c4f854516fcc0d33a2326220c2b",
-        "RemoteSha": "8ea5d3a498d78c4f854516fcc0d33a2326220c2b",
+        "RemoteRef": "a0f764718fbfc6017df1a54dd89ac766071dd6e5",
+        "RemoteSha": "a0f764718fbfc6017df1a54dd89ac766071dd6e5",
         "RemoteSubdir": "engine",
         "GithubRepo": "Powerkit",
         "GithubUsername": "JoelThornton",
-        "GithubRef": "8ea5d3a498d78c4f854516fcc0d33a2326220c2b",
-        "GithubSHA1": "8ea5d3a498d78c4f854516fcc0d33a2326220c2b",
+        "GithubRef": "a0f764718fbfc6017df1a54dd89ac766071dd6e5",
+        "GithubSHA1": "a0f764718fbfc6017df1a54dd89ac766071dd6e5",
         "GithubSubdir": "engine",
         "NeedsCompilation": "no",
-        "Packaged": "2026-11-18 07:53:57 UTC; runner",
+        "Packaged": "2026-11-18 13:16:26 UTC; runner",
         "Author": "Joel Thornton [aut, cre]",
         "Maintainer": "Joel Thornton <joelthornton53@gmail.com>",
-        "Built": "R 4.5.3; ; 2026-11-18 07:54:37 UTC; unix"
+        "Built": "R 4.5.3; ; 2026-11-18 13:17:13 UTC; unix"
       }
     },
     "powertools": {
@@ -8829,10 +8860,10 @@
   },
   "files": {
     "app.R": {
-      "checksum": "19b7d96f5fa96543f6f8470f0c9b58a4"
+      "checksum": "0b746257394212fc34d90b2aa9208d53"
     },
     "forms.yaml": {
-      "checksum": "ac870f339d69590091dd82ce3bb58430"
+      "checksum": "27ea208bee70c3dd7eb60a6a4c1cd480"
     },
     "grid2.png": {
       "checksum": "7b5c3adf88d794645d3017b233ea6d29"
@@ -8841,7 +8872,7 @@
       "checksum": "0f6a5d5e37ce494b0c11e5f726932128"
     },
     "optional-packages.R": {
-      "checksum": "b9e2ae446b3463af89a23fa4562e7ec6"
+      "checksum": "5b2a00b18937d1cc462ab370661e1317"
     },
     "R/about.R": {
       "checksum": "56cc46528a9dd68965910f68df88b539"
@@ -8865,7 +8896,7 @@
       "checksum": "db861625e04de884bc20919d526ef555"
     },
     "R/documents.R": {
-      "checksum": "f2c9ae7ba2bd2cfad2d87b33ee158f6f"
+      "checksum": "b5af1c7e35f89534e5e94b64385d0ac9"
     },
     "R/drafts.R": {
       "checksum": "d311cb2aabc2237bb7c6f5642e39fcc4"
@@ -8886,7 +8917,7 @@
       "checksum": "55386e11ce8261968262d58c112a3492"
     },
     "R/labs.R": {
-      "checksum": "01bfafa4b3be719353fb0e0e6ffcaa68"
+      "checksum": "1f835e99fbc2de49514b94959569bf51"
     },
     "R/map.R": {
       "checksum": "1aadfe6aae6f153c423889f953298cab"
@@ -8904,13 +8935,13 @@
       "checksum": "410f3022b7ab3271e07678258c4c05e5"
     },
     "R/replication.R": {
-      "checksum": "f4855a840ab6b38a7c1ae1536946be71"
+      "checksum": "5a6eec834d37afd8a251174d68ee29e4"
     },
     "R/results-prediction.R": {
       "checksum": "6bdf3c3a2867d49dd95f28f65a685de5"
     },
     "R/results.R": {
-      "checksum": "8cdf7a2baa6ff963c973a57145aa4b89"
+      "checksum": "a2eab088ec843ce0941d1f4914fcaf19"
     },
     "R/route-fit.R": {
       "checksum": "7677d2778d5a1e875368c3820b5bcf4f"
@@ -8931,10 +8962,10 @@
       "checksum": "a2df1beb27de917827ff1dd9dfb7b578"
     },
     "R/study-plan-replication.R": {
-      "checksum": "8a02fe1979493dfd8e72b3ca92ffa9b4"
+      "checksum": "c49143e1eda5c3ef128dd161b292cb26"
     },
     "R/study-plan.R": {
-      "checksum": "5c3652453c33429bcf10a192c87c9e08"
+      "checksum": "c0fdd335bf5ebecc1b51314361349e88"
     },
     "R/study-plans.R": {
       "checksum": "74ab3387be273470fbf5e351676c3a0c"
@@ -8958,7 +8989,7 @@
       "checksum": "ab8ee132f47e0f384f06119ec08b5c0a"
     },
     "tree.yaml": {
-      "checksum": "a0aae261337761141c6876632bfa99f2"
+      "checksum": "8247038f029b2ed6162641d75b399702"
     },
     "whats-new-archive.yaml": {
       "checksum": "893fb8174c8467c5a092cd9eac219a4c"
@@ -8967,7 +8998,7 @@
       "checksum": "3deb002bbaa98f06844fb88d56047327"
     },
     "whats-new.yaml": {
-      "checksum": "000829d02dd31ff63799fa3b90200ebd"
+      "checksum": "f83128c628f7f1534f7bd0c9eeb54882"
     },
     "www/google47b320cdc6781b0a.html": {
       "checksum": "ee2d089e98e0da68d63ebebc64dc147b"

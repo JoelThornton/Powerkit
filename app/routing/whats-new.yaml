@@ -7,9 +7,43 @@
 # sentence or two of text; newest first; no internal codes such as E5 or
 # "Departure 6"; name the analysis instead.
 entries:
-  - date: "2026-11-17"
-    title: "The smallest indirect effect you could detect, for mediation"
-    text: "Simple, parallel and serial mediation, and moderated mediation, now offer \"the smallest effect I'd have a good chance of finding\". The answer is the smallest indirect effect, or index of moderated mediation, with the paths you entered kept in proportion. Like the required sample size on these cards, it comes as an R script to run on your own computer, since it takes 15 minutes to a couple of hours."
+  - date: "2026-11-18"
+    title: "Replication plans look like the rest of powerkit"
+    text: >-
+      The replication plan now looks and works like the input screens: each step has a numbered title, questions are
+      grouped in small cards, choices are tiles you click, number boxes are number-sized, finished steps get a tick, and
+      a bar at the bottom says what is still needed beside "Show the sample size". The answer sits in its own card, and
+      the tables fit on a phone. The write-up step now previews the document as it will read, and every study plan's
+      header is shorter, with the description folded until you write one.
+  - date: "2026-11-18"
+    title: "Replication plans: Registered Reports, and other ways to a sample size"
+    text: >-
+      The replication plan now asks whether the original study was published because its result was significant. If it
+      would have been published whatever it found, such as a Registered Report, the bias-corrected sample size allows
+      for its uncertainty only, which is often far smaller. When the corrected numbers are very large, the plan says
+      why, and that they describe the original rather than a sample you must reach, and it sets out the other ways to
+      a sample size beside them: the smallest effect that would matter, what your resources allow, a sequential design,
+      or several originals. Results from earlier answers are now marked as out of date, sample sizes say
+      "participants", and the list of other criteria is folded.
+  - date: "2026-11-18"
+    title: "Two variances start with the Brown-Forsythe test, and tests are found by name"
+    text: "The test of two variances now starts with the Brown-Forsythe test, which keeps false positives at the level you set whatever the shape of the scores; the F test that G*Power uses is still one choice away. Searching for Levene's test, the Brown-Forsythe test, homogeneity of variance or McNemar's chi-square test now opens the right input screen with that test chosen."
+  - date: "2026-11-18"
+    title: "Replication plans: shorter pages, both kinds of analysis, and a quicker way out"
+    text: >-
+      The replication plan's guidance now shows one sentence at a time, with the rest under "More", and with "Show
+      explanations" off it folds behind info buttons like the other screens. You can say the original study reported
+      both a significance test and a Bayes factor: the plan takes the effect from the test and keeps the Bayes factor in
+      the write-up. If you decide a finding isn't worth replicating, the plan takes you straight to the write-up, a
+      negative pre-replication report, instead of the planning steps.
+  - date: "2026-11-18"
+    title: "Replication plans: ANOVA originals, and allowing for publication bias"
+    text: >-
+      A replication plan can now start from an original reported as an F or a partial eta-squared from an ANOVA with
+      different people, the same people measured several times, or both. Its sample size comes from BUCSS, which corrects
+      the original's effect for publication bias and for the uncertainty in its estimate; you choose how sure you want to
+      be that the replication reaches its power. For a t-test or correlation original, the plan shows BUCSS's corrected
+      sample sizes beside its goals. A plan opened from an ANOVA card starts on the new design.
   - date: "2026-11-18"
     title: "Replication plans: replications that change something"
     text: >-
@@ -18,6 +52,9 @@ entries:
       variation between studies, at the press of a button. A study that doesn't test the original comparison is sent to an
       ordinary study plan. The plan also asks for the checks that show a changed study still tests the same thing, and explains
       why the original's card and the Goals can give different sample sizes.
+  - date: "2026-11-17"
+    title: "The smallest indirect effect you could detect, for mediation"
+    text: "Simple, parallel and serial mediation, and moderated mediation, now offer \"the smallest effect I'd have a good chance of finding\". The answer is the smallest indirect effect, or index of moderated mediation, with the paths you entered kept in proportion. Like the required sample size on these cards, it comes as an R script to run on your own computer, since it takes 15 minutes to a couple of hours."
   - date: "2026-11-17"
     title: "Replication plans: numbered steps, and the original's card filled in from the plan"
     text: >-

@@ -36,19 +36,24 @@ code_unescape <- function(html) {
   html
 }
 
-# The page for one document. `markdown`: its lines, the first a "# " title.
-printable_document <- function(markdown, version = NULL) {
+# A document's body as HTML, for the printable page and the on-screen
+# preview. Every "<" is escaped first, so the page shows what was typed
+# ("p < .05", or "<b>") as text and nothing typed can become markup;
+# only Markdown's own links, <https://...>, are left to become links.
+document_body_html <- function(markdown) {
   text <- paste(markdown, collapse = "\n")
-  headings <- markdown[grepl("^#\\s+", markdown)]
-  title <- if (length(headings)) sub("^#\\s+", "", headings[1]) else "Powerkit document"
-  # Every "<" is escaped first, so the page shows what was typed
-  # ("p < .05", or "<b>") as text and nothing typed can become markup;
-  # only Markdown's own links, <https://...>, are left to become links.
   body <- commonmark::markdown_html(gsub("<(?!https?://[^<>[:space:]]+>)", "&lt;", text, perl = TRUE),
     extensions = TRUE, smart = TRUE)
   # In code, commonmark escapes the "&" of that "&lt;" again; undo that
   # there, so an R script's "<-" reads as written. It stays escaped.
-  body <- code_unescape(body)
+  code_unescape(body)
+}
+
+# The page for one document. `markdown`: its lines, the first a "# " title.
+printable_document <- function(markdown, version = NULL) {
+  headings <- markdown[grepl("^#\\s+", markdown)]
+  title <- if (length(headings)) sub("^#\\s+", "", headings[1]) else "Powerkit document"
+  body <- document_body_html(markdown)
   footer <- sprintf("Made with Powerkit%s.", if (is.null(version)) "" else paste0(" ", version))
   paste0(
     "<!DOCTYPE html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">",

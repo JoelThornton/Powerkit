@@ -76,3 +76,17 @@ test_that("the R script reproduces the run", {
   out <- run_exported_script(spec, run_quietly(spec))
   expect_equal(out$reproduced, out$powerkit)
 })
+
+test_that("Departure 32's size: with normal scores the Brown-Forsythe test has a little less power than the F test", {
+  # Variances 1.5 and 1, 200 people: the F test's exact power 0.518 against
+  # the Brown-Forsythe test's 0.466 (10,000 simulated studies, validation
+  # chunk variances); here 2,000.
+  bf <- run_quietly(levene_spec("brown_forsythe", n = 200L, nrep = 2000L, shape = "normal"))
+  f_test <- levene_spec("f_var", n = 200L)
+  f_test$population$score_shape <- NULL
+  f_test$options$nrep <- NULL
+  f_power <- run_quietly(f_test)$curve$power
+  expect_equal(f_power, 0.518, tolerance = 0.002)
+  expect_lt(abs(bf$curve$power - 0.466), 4 * bf$curve$mcse)
+  expect_gt(f_power - bf$curve$power, 0)
+})

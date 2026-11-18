@@ -25,7 +25,7 @@ the package it wraps, and the method choices each card makes for the
 researcher (so far E18, E23, E26, E33 and the other mixed models, E53
 and E54 offer the alternatives researchers commonly run; McNemar's card
 offers the chi-square test with or without the continuity correction,
-and the two-variance card Levene's and the Brown-Forsythe test). The input screen's headings and labels are the
+and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
 size goes in (17 November 2026).
 
@@ -296,8 +296,32 @@ each area, is at the end of
   extension's analyses join it as extensions, never as the original's; a
   conceptual replication is planned from the shrunk belief with more
   variation between studies; and a new study is offered an ordinary
-  study plan. Still to come: BUCSS for originals reported as an F (item
-  28) and study plans' shared settings (29).
+  study plan. An original reported as an F or a partial eta-squared from
+  a between, within or mixed ANOVA is planned with BUCSS, corrected for
+  publication bias and uncertainty at a chosen assurance, and t-test and
+  correlation originals show BUCSS's corrected sample sizes beside their
+  goals (validation in progress: a published example is still to be
+  transcribed); a conceptual replication of an ANOVA original changes no
+  setting. An original can be entered as analysed with both a
+  significance test and a Bayes factor (the effect from the test, the
+  Bayes factor's prior for repeating its test). "Not worth replicating"
+  goes straight to the write-up, a negative pre-replication report, and
+  the planning steps say they aren't needed. The pages' guidance follows
+  the "Show explanations" switch: one sentence in view and the rest under
+  "More", folded behind info buttons with explanations off. The plan
+  asks whether the original was published because it was significant
+  (if not, as for a Registered Report, BUCSS corrects for uncertainty
+  only, `alpha_prior = 1`), explains BUCSS's large numbers as a finding
+  about the original, and offers the other routes beside them (the
+  smallest effect that matters, what resources allow, a sequential
+  design, several originals); results from earlier answers are marked
+  out of date. The planner looks like the input screens: numbered step
+  titles, titled cards, tile choices, number-sized boxes, ticked steps
+  and one "Still needed" bar beside the button. Still to come: ANOVA
+  originals' full goals and smallest effect, then the rest
+  of item 28 (several originals,
+  attrition, unequal allocation, reliability, claims resting on several
+  tests) and study plans' shared settings (29).
 
 - **Experimental: Labs.** The methods map, the effect-size converter,
   the power visualiser, the repeated-studies tool and Bayesian planning

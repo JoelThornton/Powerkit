@@ -46,7 +46,7 @@ test_that("the methods paragraph states the goal, the belief and its calculation
   expect_match(sig, "standard deviation of 0.05", fixed = TRUE)
   expect_match(sig, "BayesRepDesign", fixed = TRUE)
   st <- replication_methods_paragraph(plan, "small_telescopes", "uncertain")
-  expect_match(st, "102 (51 per group)", fixed = TRUE)
+  expect_match(st, "102 participants (51 per group)", fixed = TRUE)
   expect_match(st, "Simonsohn, 2015", fixed = TRUE)
   expect_match(replication_methods_paragraph(plan, "negligible", "as_reported"), "equivalence test", fixed = TRUE)
   expect_match(replication_methods_paragraph(plan, "agreement", "as_reported"), "cannot reach", fixed = TRUE)
@@ -186,7 +186,7 @@ test_that("the simple answer comes first, from the table's own first row (C-14)"
     regexpr("rep-table", as.character(replication_result_ui(plan)))[1])
   # Section 1 has its own button, so no goals or beliefs come before a number.
   ui <- as.character(replication_planner_sections())
-  expect_lt(regexpr("rep_run_quick", ui)[1], regexpr(">Goals and sample size</legend>", ui, fixed = TRUE)[1])
+  expect_lt(regexpr("rep_run_quick", ui)[1], regexpr(">3. Goals and sample size</h3>", ui, fixed = TRUE)[1])
 })
 
 # Another design whose focal effect is one number (queue item 21).
@@ -325,7 +325,7 @@ test_that("a Bayes factor original's table, headline, methods and write-up", {
   expect_match(replication_methods_paragraph(plan, "bf_null", "uncertain"), "planned for a true effect of zero", fixed = TRUE)
   expect_match(replication_methods_paragraph(plan, "significance", "uncertain"), "read from its Bayes factor", fixed = TRUE)
   report <- paste(replication_report(bf_filled, plan), collapse = "\n")
-  expect_match(report, "How it was analysed: a bayes factor", fixed = TRUE)
+  expect_match(report, "How it was analysed: a Bayes factor", fixed = TRUE)
   expect_match(report, "Its Bayes factor (BF10): 3.38", fixed = TRUE)
   expect_no_match(report, "Significance level:", fixed = TRUE)
   expect_match(report, "Verhagen", fixed = TRUE)
@@ -373,7 +373,9 @@ test_that("the planner's wording matches the cards' (P-04, P-07, P-08, P-09)", {
   expect_match(html, "a quarter of Cohen's 0.2, 0.5 and 0.8", fixed = TRUE)
   expect_match(html, "Laboratories, samples", fixed = TRUE)
   # Alpha and power empty, with one-click buttons.
-  expect_match(html, 'id="rep_alpha" type="text" class="shiny-input-text form-control" value=""', fixed = TRUE)
+  alpha <- regmatches(html, regexpr('<input[^>]*id="rep_alpha"[^>]*>', html))
+  expect_match(alpha, 'value=""', fixed = TRUE)
+  expect_match(alpha, "rep-num", fixed = TRUE)
   expect_match(html, 'id="rep_alpha_usual"', fixed = TRUE)
   expect_match(html, "Use 0.05, the usual level", fixed = TRUE)
   expect_match(html, 'id="rep_power_usual_3"[^>]*>95%', perl = TRUE)
@@ -602,7 +604,7 @@ test_that("a one-sided replication is planned, written up and restored as one", 
   expect_identical(replication_field_defaults$rep_sided, "two.sided")
   expect_true("rep_sided" %in% replication_field_ids)
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(code, "\"rep_purpose\", \"rep_prior\", \"rep_sided\")) updateRadioButtons", fixed = TRUE)
+  expect_match(code, "\"rep_purpose\", \"rep_prior\", \"rep_sided\", \"rep_anova_kind\", \"rep_f_from\", \"rep_assurance\")) updateRadioButtons", fixed = TRUE)
 })
 
 test_that("the write-up has a study design table, and the script runs the chosen criteria only", {

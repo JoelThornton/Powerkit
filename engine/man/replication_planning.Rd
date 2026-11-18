@@ -31,7 +31,8 @@ replication_planning(
   original_effect_type = "d",
   original_r = NULL,
   original_f = NULL,
-  alternative = "two.sided"
+  alternative = "two.sided",
+  publication_filter = TRUE
 )
 }
 \arguments{
@@ -131,6 +132,12 @@ the original's direction) or, one-sided, at \code{alpha}; the pooled goal
 is at that level squared. Agreement, too small to matter (TOST at
 \code{alpha}), small telescopes (one-sided at \code{alpha}) and the Bayes factor
 goals are the same either way.}
+
+\item{publication_filter}{Whether the original was published because
+it was significant, for \code{bias_corrected}: \code{FALSE} (an original that
+would have been published whatever it found, such as a Registered
+Report) corrects BUCSS's sample sizes for uncertainty only; see
+\code{\link[=replication_bucss]{replication_bucss()}}. The other goals are the same either way.}
 }
 \value{
 A list: \code{inputs}; \code{original} (estimate and standard error on the
@@ -143,7 +150,10 @@ for \code{reason} \code{"any_size"}, the chance with the smallest replication,
 which already exceeds \code{power}) and \code{reason} (\code{"not_reachable"},
 \code{"over_max"}, \code{"not_found"} or \code{"any_size"}); \code{at_n} (the chance of each goal at \code{n}); \code{telescope} (d33
 and its calculation, \code{NULL} for a generic design or a Bayesian
-original); \code{sequential} (for a Bayesian t-test original, each belief as
+original); \code{bias_corrected} (for a t-test or correlation original
+analysed with a test, \code{\link[=replication_bucss]{replication_bucss()}}'s sample sizes for a
+significant result at 50\% and 80\% assurance, corrected for
+publication bias and uncertainty; \code{NULL} without BUCSS); \code{sequential} (for a Bayesian t-test original, each belief as
 a design prior for \code{\link[=bayes_sequential]{bayes_sequential()}}); \code{functions_used}; and
 \code{packages}.
 }

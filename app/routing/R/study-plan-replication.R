@@ -19,9 +19,10 @@ replication_plan_field_ids <- c(replication_notes_ids, replication_field_ids)
 # The planner's starting values, as its screen had them.
 replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "test", rep_original_prior = "default",
   rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
-  rep_original_alpha = "0.05", rep_tau = "0.05", rep_tau_r = "0.025", rep_effect_type = "d",
+  rep_original_alpha = "0.05", rep_published = "significant", rep_tau = "0.05", rep_tau_r = "0.025", rep_effect_type = "d",
   rep_alpha = "", rep_power = "", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05",
-  rep_purpose = "confirm", rep_goal = "auto", rep_prior = "uncertain", rep_also = "absence", rep_sided = "two.sided")
+  rep_purpose = "confirm", rep_goal = "auto", rep_prior = "uncertain", rep_also = "absence", rep_sided = "two.sided",
+  rep_anova_kind = "between", rep_anova_effect = "factor_a", rep_f_from = "f", rep_epsilon = "1", rep_assurance = "0.8")
 
 # Fields as the record keeps them: known ids only, each one string, blanks
 # left out.
@@ -122,7 +123,16 @@ replication_workspace_ui <- function(tree) {
     p(class = "small", "Work through the steps in order, or open any step and come back to it later. Everything is kept in this plan: save the plan to keep it."),
     div(class = "replication-steps", role = "group", `aria-label` = "Steps of the replication plan",
       radioButtons("rep_section", NULL, choices = replication_sections, selected = "whether", inline = TRUE, width = "100%")),
-    conditionalPanel("input.rep_section == 'whether'", replication_notes_ui(tree)),
+    # Finished steps get a tick, as the input screens' step bar has.
+    tags$script(HTML("Shiny.addCustomMessageHandler('rep-steps-done', function(m) { var done = m.done || []; document.querySelectorAll('.replication-steps input[name=rep_section]').forEach(function(r) { var l = r.closest('label'); if (l) { l.classList.toggle('rep-step-done', done.indexOf(r.value) >= 0); } }); });")),
+    conditionalPanel("input.rep_section == 'whether'", class = "form-section", rep_section_title("whether"), replication_notes_ui(tree)),
+    # Not worth replicating: the planning steps don't apply, and say so.
+    conditionalPanel("input.labs_outcome == 'not_worth' && ['original', 'goals', 'differences'].indexOf(input.rep_section) >= 0",
+      div(class = "alert alert-info rep-skip-note", role = "note",
+        "You decided this finding isn't worth replicating, so this step isn't needed: the write-up is your negative pre-replication report. ",
+        tags$button(type = "button", class = "btn btn-link p-0 align-baseline",
+          onclick = "var r = document.querySelector('input[name=rep_section][value=writeup]'); if (r) r.click();", "Go to the write-up"),
+        " You can still fill these steps in if you change your mind.")),
     replication_planner_sections(),
     replication_next_step_ui(),
     replication_references_ui())
@@ -133,7 +143,9 @@ replication_workspace_ui <- function(tree) {
 replication_next_step_ui <- function() {
   ids <- unname(replication_sections)
   tagList(lapply(seq_len(length(ids) - 1L), function(i) {
-    conditionalPanel(sprintf("input.rep_section == '%s'", ids[[i]]),
+    # After "Not worth replicating", the notes' own button goes to the
+    # write-up instead.
+    conditionalPanel(sprintf("input.rep_section == '%s'%s", ids[[i]], if (i == 1L) " && input.labs_outcome != 'not_worth'" else ""),
       div(class = "nav-buttons rep-next-step",
         tags$button(type = "button", class = "btn btn-outline-primary",
           onclick = sprintf("var r = document.querySelector('input[name=rep_section][value=%s]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }", ids[[i + 1L]]),
@@ -151,6 +163,10 @@ replication_fields_for_card <- function(fields, forms, ep) {
       nzchar(trimws(as.character(fields$rep_bf %||% "")))) return(fields)
   if (!is.null(e$exact)) {
     fields$rep_design <- e$exact
+  } else if (!is.null(e$anova) && !nzchar(trimws(as.character(fields$rep_anova_f %||% ""))) &&
+      !nzchar(trimws(as.character(fields$rep_eta %||% "")))) {
+    fields$rep_design <- "anova"
+    fields$rep_anova_kind <- e$anova
   } else if (!is.null(e$effect) || !is.null(e$multi_df)) {
     fields$rep_design <- "generic"
     fields$rep_effect_name <- e$effect %||% ""
@@ -174,15 +190,16 @@ replication_original_index <- function(plan) {
   if (all(ext)) NA_integer_ else which(!ext)[[1]]
 }
 
-# The planner's design that a card's original effect is entered as
-# (forms.yaml's replication_effects): one of the four exact designs,
-# "generic" for any other one-number effect, NULL when the card has none.
+# The planner's designs that a card's original effect can be entered as
+# (forms.yaml's replication_effects): one of the four exact designs;
+# "anova" for an ANOVA card, which can also go as "generic" (its one
+# contrast as a number); "generic" for any other one-number effect; NULL
+# when the card has none.
 replication_card_planner_design <- function(forms, ep) {
   e <- replication_card_effect(forms, ep)
   if (is.null(e)) return(NULL)
   if (!is.null(e$exact)) return(e$exact)
-  if (!is.null(e$effect) || !is.null(e$multi_df)) return("generic")
-  NULL
+  c(if (!is.null(e$anova)) "anova", if (!is.null(e$effect) || !is.null(e$multi_df)) "generic")
 }
 
 # When the design chosen under "The original study" and the original's
@@ -192,8 +209,8 @@ replication_design_mismatch <- function(plan, forms) {
   if (is.null(ep) || is.null(forms)) return(NULL)
   want <- replication_card_planner_design(forms, ep)
   have <- replication_values(plan$replication)$rep_design
-  if (is.null(want) || identical(want, have)) return(NULL)
-  label <- function(x) names(replication_designs_ui)[replication_designs_ui == x]
+  if (is.null(want) || isTRUE(have %in% want)) return(NULL)
+  label <- function(x) names(replication_designs_ui)[replication_designs_ui == x[[1]]]
   sprintf("These describe different studies: the design chosen above is \u201c%s\u201d, but the original's card is for \u201c%s\u201d. Change the design above, or choose the card for the original's design, so the goals and the card plan the same analysis.",
     label(have), label(want))
 }
@@ -212,7 +229,7 @@ replication_card_status_ui <- function(tree, plan, forms = NULL) {
   div(class = "rep-card-status form-group-box",
     h4(class = "h6", "Its analysis, on its own card"),
     if (is.null(ep)) tagList(
-      p("Choose the analysis the original study used: its paper usually names it. Its card plans the replication's sample size for that design, starting from this plan's significance level, chance of success and the original's effect, and the result is kept in this plan."),
+      rep_note("Choose the analysis the original study used: its paper usually names it. Its card plans the replication's sample size for that design, starting from this plan's significance level, chance of success and the original's effect, and the result is kept in this plan."),
       div(class = "nav-buttons",
         actionButton("rep_pick_design", "Choose it from the list of analyses", class = "btn btn-primary"),
         actionButton("rep_find_design", "Not sure? Answer questions about the study", class = "btn btn-outline-secondary")))
@@ -295,7 +312,7 @@ replication_effect_labels <- function(groups) {
 replication_plan_report <- function(plan, tree, forms, engine = engine_function) {
   values <- replication_values(plan$replication)
   table <- if (!length(replication_missing(values))) {
-    planner <- engine("replication_planning")
+    planner <- engine(replication_engine_name(values))
     if (!is.null(planner)) tryCatch(do.call(planner, replication_args(values)), error = function(e) NULL)
   }
   notes <- values[vapply(labs_fields, `[[`, "", "id")]

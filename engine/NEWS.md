@@ -1,3 +1,96 @@
+# powerkit 0.78.26
+
+* App: the replication planner in the input screens' style. Each step
+  has a numbered title (`rep_section_title()`) and its questions are in
+  titled cards (`rep_card()`); every choice is shown as the input
+  screens' tiles, by CSS on the same radio buttons; number boxes are
+  sized for a number (`rep-num`, with a number keyboard on phones where
+  the value can't be negative); "Show the sample size" sits in one
+  action bar with what is still needed (`replication_still_needed()`),
+  as the input screens' bar does; the answer is in its own card; finished
+  steps are ticked in the step bar (`replication_steps_done()`); and the
+  result tables scroll sideways on phones.
+  The write-up step previews the document as it will read
+  (`document_body_html()`, shared with the printable page, so typed text
+  stays text). Every study plan's header is shorter: "About this study"
+  is folded until it has text, beside "Rename", and the save explanation
+  shows one sentence with the rest under "More".
+
+# powerkit 0.78.25
+
+* `replication_bucss()` and `replication_planning()` gain
+  `publication_filter` (default `TRUE`). `FALSE`, for an original that
+  would have been published whatever it found, passes BUCSS
+  `alpha_prior = 1`, correcting for uncertainty only; the scripts say
+  so. App: the replication plan asks whether the original was published
+  because it was significant (`rep_published`); explains BUCSS's large
+  numbers and offers the other routes to a sample size beside them;
+  shows 50% assurance beside the chosen one for ANOVA originals; marks
+  results calculated from earlier answers as out of date instead of
+  jumping the page; shows the pairs-only effect type for pairs only;
+  names the unit in every sample size; folds "Also report"; and states
+  d33 once.
+
+# powerkit 0.78.24
+
+* Two variances: the input screen preselects the Brown-Forsythe test
+  (Departure 32), with Levene's test and the F test in the same dropdown;
+  the direction question is shown for the F test only, and for McNemar's
+  exact test only on the McNemar card. A spec naming `f_var` is unchanged.
+  `test-backend-levene.R` measures the departure's size (with normal
+  scores, 0.466 against the F test's 0.518 at 200 people).
+* The analysis search finds Levene's test, the Brown-Forsythe test of
+  equal variances, the F test of two variances and McNemar's three tests
+  by name (tree.yaml `test_versions`), opening the input screen with that
+  test chosen.
+
+# powerkit 0.78.23
+
+* App: replication plan review fixes. The planner's guidance goes
+  through `rep_note()` (one sentence in view, the rest under "More";
+  folded behind an info button with explanations off, except caveats
+  and prompts) and its text fields through `rep_field()`, as the input
+  screens' fields are laid out. `replication_analyses_ui` gains "both"
+  (a significance test and a Bayes factor): the engine is called as for
+  a test, with the Bayes factor's prior scale (`original_prior_scale`),
+  and the Bayes factor (`rep_bf_both`, optional) is recorded in the
+  write-up. With the notes' outcome "Not worth replicating",
+  `replication_report()` returns the negative pre-replication report,
+  the downloads are named for it, the R script is not offered and the
+  planning steps say they aren't needed.
+
+# powerkit 0.78.22
+
+* New `replication_bucss()`: the replication's sample size for a
+  significant result, with the original's effect corrected for
+  publication bias and uncertainty by BUCSS (Anderson, Kelley & Maxwell,
+  2017), at each level of assurance. It covers t-test and correlation
+  originals and ANOVA originals from between-subjects, within-subjects
+  and mixed designs, reported as an F or as a partial eta-squared with
+  its error degrees of freedom (moved to F by Lakens, 2013). An original
+  that BUCSS can't plan from is reported (`reason`), not an error. BUCSS
+  joins Suggests and `renv.lock`; its two method papers join `refs.bib`
+  from its own `citation()`.
+* `replication_planning()` gains `bias_corrected` for t-test and
+  correlation originals analysed with a test (BUCSS at 50% and 80%
+  assurance), and its full script repeats it.
+* App: the replication plan's design "An ANOVA effect" (`rep_anova_*`,
+  `rep_f_from`, `rep_eta`, `rep_df_error`, `rep_epsilon`,
+  `rep_assurance`) plans with `replication_bucss()`. Its Goals show only
+  the settings BUCSS uses, and its write-up, references and script come
+  from it. Forms.yaml's `replication_effects` mark the ANOVA cards (E7,
+  E8, E18, E20, E21, E22, E54, E55), so a plan opened from one starts on
+  the new design. Queue item 28.
+
+# powerkit 0.78.21
+
+* `scripts/close-batch.R` keeps `whats-new.yaml` newest first when it
+  files the waiting Updates entries: a note dated earlier than one already
+  on the list (its pull request merged later) now goes below it rather
+  than on top, which had put the list out of date order and failed
+  `test-whats-new.R` on main. The list was re-sorted once with the same
+  function.
+
 # powerkit 0.78.20
 
 * The smallest detectable indirect effect for simple, parallel and serial
