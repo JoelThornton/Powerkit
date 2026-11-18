@@ -1,0 +1,11 @@
+# Older Updates entries, moved here from whats-new.yaml by
+# scripts/close-batch.R once they are more than a month older than the
+# newest entry. Same format and rules as whats-new.yaml; the Updates tab
+# shows these with the rest.
+entries:
+  - date: "2026-10-17"
+    title: "The first working prototype"
+    text: >-
+      The design finder, the cards and the input screens for the t-tests, the
+      correlation, two proportions, the chi-square test, 2 x 2 designs and
+      interactions in regression.

@@ -1,3 +1,43 @@
+# powerkit 0.78.18
+
+* Versions are given after each merge rather than by each pull request:
+  `.github/workflows/after-merge.yaml` runs the new `scripts/after-merge.R`
+  on main, which numbers the waiting change notes with
+  `scripts/close-batch.R` (minor when a merged pull request has the
+  "minor" label), adds the decision entries waiting in the new
+  `docs/decisions.d/` to `docs/decisions.md`, dates `docs/status.md` and
+  regenerates `docs/release-support-inventory.json`, then tags the
+  release. Pull requests no longer conflict over the version, NEWS.md,
+  whats-new.yaml or those shared lines. `scripts/tag-releases.sh` now tags
+  the version main is on as well, since it no longer changes.
+  `test-release-support.R` checks the inventory a pull request's code
+  produces rather than the committed file. `docs/status.md` was cut to
+  its current state; its history moved to `docs/archive/status-history.md`.
+
+* App: a replication plan's original analysis is chosen from the
+  searchable list of every analysis first (`rep_pick_design`), with a
+  note naming the plan, and the design finder's questions second
+  (`rep_find_design`). The card's input screen starts on the
+  sample-size question at the plan's significance level and chance of
+  success, and on E1 to E4 with the original's d, d_z or r as the plan
+  holds it (`replication_form_values()`, `replication_card_effect_field()`);
+  values already chosen are kept. The plan's five sections are drawn as
+  numbered steps (still radio buttons) with a "Next" button under each
+  (`replication_next_step_ui()`). Queue item 28.
+
+* App: a replication plan asks what the replication keeps (`rep_keeps`:
+  close, extension, conceptual, new). "Add an extension analysis" opens
+  the list of analyses as an ordinary route and marks the card's result
+  `extension = TRUE` when it is added, kept when the result is replaced,
+  so `replication_original_index()` never takes it for the original's.
+  A conceptual replication's button applies
+  `replication_conceptual_settings()` (the shrunk belief and more
+  variation between studies); a new study is offered a study plan. The
+  extension and conceptual answers ask for the checks that the study
+  still tests the same thing (`rep_diff_checks`), which the write-up
+  reports; Goals note the written changes, and the card status explains
+  why the card and the Goals can differ. Queue item 28.
+
 # powerkit 0.78.17
 
 * Mediation with a mediator in three or more ordered categories (E39,
