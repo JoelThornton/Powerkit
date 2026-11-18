@@ -384,3 +384,24 @@ test_that("closing a batch gives the waiting notes their version and removes the
   expect_identical(script$next_version("0.45.0", "1.0.0"), "1.0.0")
   expect_error(script$next_version("0.45.0", "0.44.9"), "not later")
 })
+
+test_that("closing a batch keeps the Updates entries newest first", {
+  # A note dated earlier can be numbered after a later one, when its pull
+  # request merges second; it goes below the later entry, not on top.
+  root <- withr::local_tempdir()
+  dir.create(file.path(root, "engine", "news.d"), recursive = TRUE)
+  dir.create(file.path(root, "app", "routing", "whats-new.d"), recursive = TRUE)
+  writeLines(c("Package: powerkit", "Version: 0.44.0"), file.path(root, "engine", "DESCRIPTION"))
+  writeLines("version: 0.44.0", file.path(root, "CITATION.cff"))
+  writeLines(c("# powerkit 0.44.0", "", "* Older."), file.path(root, "engine", "NEWS.md"))
+  writeLines(c("entries:", "  - date: \"2026-11-18\"", "    title: \"Later\"", "    text: >-", "      Two.",
+    "  - date: \"2026-11-17\"", "    title: \"Same day, first\"", "    text: >-", "      One."),
+    file.path(root, "app", "routing", "whats-new.yaml"))
+  writeLines(c("entries:", "  - date: \"2026-11-17\"", "    title: \"Earlier, numbered last\"", "    text: >-", "      Three."),
+    file.path(root, "app", "routing", "whats-new.d", "earlier.yaml"))
+  script <- new.env()
+  sys.source(file.path(repo_dir, "scripts", "close-batch.R"), envir = script)
+  script$close_batch("patch", root = root)
+  updates <- yaml::read_yaml(file.path(root, "app", "routing", "whats-new.yaml"))$entries
+  expect_identical(vapply(updates, `[[`, "", "title"), c("Later", "Earlier, numbered last", "Same day, first"))
+})
