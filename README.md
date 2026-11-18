@@ -59,9 +59,12 @@ four-screen design (decided 18 October 2026, `docs/decisions.md`):
 > yet.** Most published-value checks are still to come, and the interface
 > may change.
 
-The app lists every analysis it knows: 70 that run and a few that are
-not in powerkit yet (those cards point to the tools that do the job). An
-analysis that runs is marked either **validated** or **validation in
+The app's About page lists the supported analyses and explains which goals
+run in the app and which use a local R script. The
+[release support inventory](docs/release-support-inventory.json) records
+the routes for the current release. The remaining cards offer guidance
+and point to suitable tools. An analysis that runs is marked either
+**validated** or **validation in
 progress**. Validated has one meaning, the one defined at the top of the
 [validation log](docs/validation-log.md): a recorded full run of its checks
 agrees with the package that computes it and with analytic results, and

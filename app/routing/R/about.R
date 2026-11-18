@@ -91,10 +91,10 @@ about_endpoint_how <- function(forms) {
 about_how_words <- c(
   now = "Calculates here",
   background = "Calculates here, in the background, with a progress bar",
-  full = "A preview here, then the full analysis here (several minutes); sample size by an R script",
+  full = "Power can run here after a preview. For sample size, run the R script on your computer",
   script = "A preview here, then an R script to run the full analysis on your computer"
 )
-about_how_tag <- c(now = NA, background = "In the background", full = "Simulated", script = "Preview + R script")
+about_how_tag <- c(now = NA, background = "In the background", full = "Power here · sample size in R", script = "Preview + R script")
 
 # powerkit's version, from the engine package, so the About page, the
 # exported scripts and every result's provenance all quote the same number
@@ -136,7 +136,7 @@ about_plans_ui <- function(tree, forms) {
     div(class = "about-key",
       tags$span(class = "about-key-item how-now", "Calculates in a second or two"),
       tags$span(class = "about-key-item how-background", "In the background, with a progress bar"),
-      tags$span(class = "about-key-item how-full", "Simulated: a preview, then the full run here"),
+      tags$span(class = "about-key-item how-full", "Power here after a preview. Sample size in R"),
       tags$span(class = "about-key-item how-script", "A preview, then an R script for your computer")),
     div(class = "about-families", groups)
   )
@@ -155,7 +155,7 @@ about_ui <- function(tree, forms) {
       tags$h2("About powerkit"),
       p(class = "about-lead",
         "Powerkit plans the sample size for a study. You describe your study, it finds the power analysis ",
-        "that fits and asks for the numbers it needs, and an established R package does the calculation."),
+        "that fits and asks for the numbers it needs."),
       div(class = "about-status",
         tags$span(class = "about-status-pill", paste(c("Prototype", if (!is.null(version)) paste0("v", version)), collapse = " \u00b7 ")),
         tags$span(tags$strong("This is a prototype. "),
@@ -177,7 +177,8 @@ about_ui <- function(tree, forms) {
         tags$li(tags$strong("Give the numbers."),
           tags$span("The analysis asks only what it needs, and helps you say where your effect size comes from.")),
         tags$li(tags$strong("Get the answer."),
-          tags$span("An established R package calculates it. You get a write-up, the citations, and an R script that reruns it without Powerkit."))),
+          tags$span("For a finished calculation, the results include a write-up, citations and a script to reproduce the supported calculation. ",
+            "For goals that run on your computer, the app gives you an R script that uses Powerkit to finish the calculation."))),
       p(class = "about-note", "Most calculations call the packages under Credits. Documented formulas and simulations implemented in Powerkit are identified in the method notes and reproduction scripts. ",
         "A longer guide is on ", tags$a(href = paste0(site_address, "/guide.html"), "Powerkit's website", .noWS = "after"), "."),
       tags$button(type = "button", class = "btn btn-primary about-start", onclick = "pkAboutTab('Plan a power analysis')",
@@ -186,12 +187,16 @@ about_ui <- function(tree, forms) {
     about_section("about-plans", "What it can plan",
       # Counted as the methods map counts them: the analyses in the
       # families, without the "not sure" card.
-      p(sprintf("%d of the %d analyses calculate in the app. ", length(how), length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))),
-        "The other cards say which analysis fits a study and point to a tool that does it."),
+      p(sprintf("Powerkit supports %d of the %d listed analyses. ", length(how), length(unique(unlist(lapply(tree$analysis_families, `[[`, "endpoints"))))),
+        "Other cards offer guidance and point to a suitable tool."),
+      tags$ul(
+        tags$li(sprintf("%d can calculate in the app, immediately or in the background.", sum(how %in% c("now", "background")))),
+        tags$li(sprintf("%d can run power in the app after a preview. Sample size calculation uses an R script.", sum(how == "full"))),
+        tags$li(sprintf("%d provide a preview here and an R script for the full calculation.", sum(how == "script")))),
       # Folded, so About stays short; opened, every analysis that
       # calculates, by family and coloured by how it runs.
       tags$details(class = "about-plans-fold",
-        tags$summary(sprintf("Show every analysis it calculates (%d)", length(how))),
+        tags$summary(sprintf("Show supported analyses and how they run (%d)", length(how))),
         about_plans_ui(tree, forms))),
 
     about_section("about-trust", "Can you trust it?",

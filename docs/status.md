@@ -102,16 +102,13 @@ each area, is at the end of
   Bayes factor together (8 November). Next: the queue in `next.md`; the rest of
   Bayes mode (item 17) waits on a decision.
 
-- **What calculates:** 77 of the 78 analyses run in the app (80 cards,
-  counting the "none of these fit" and Bayes factor guide cards;
-  `tree.yaml`'s statuses); the other dyadic designs card is a guide to the
-  pair cards. 59 calculate in the app directly (`forms.yaml`'s
-  `calculates`), by a package's formula where one exists, otherwise by
-  simulation with Spower, Superpower, simr, power4mome, metafor or PITS.
-  The rest are simulations too slow for the app: a preview in the app,
-  then a full run or an R script the researcher runs themselves
-  (mediation and moderated mediation, participants and items, multilevel
-  models, Bayes factors of repeated-measures effects). Every design but the
+- **What calculates:** About groups supported analyses by the route in
+  `forms.yaml`. Some finish in the app, immediately or in the background.
+  Others give a preview, then run power in the app or hand off the
+  selected goal to an R script. The
+  [release support inventory](release-support-inventory.json) records
+  the available routes by card. The other dyadic designs card guides
+  researchers to the pair cards. Every design but the
   generic tests is reached from the design finder, and "I know my
   analysis" lists all of them by family with a search. No answer leads to
   "No matching design" unless the user chooses it, apart from a short list

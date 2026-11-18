@@ -1646,6 +1646,8 @@ test_that("changing the effect size after writing the reasoning flags it, withou
   calc <- run_calculation(build_spec(forms, "E2", fields, stale), seed = forms$default_seed)
   html <- as.character(result_panel_ui(tree, forms, "E2", fields, stale, calc))
   expect_match(html, "Does your reasoning still apply?", fixed = TRUE)
+  expect_match(html, "keep the form answers and your reasoning as a draft", fixed = TRUE)
+  expect_match(html, "save the finished result or export its write-up", fixed = TRUE)
   expect_match(html, "(it was Cohen's d = 0.4; it is now Cohen's d = 0.6)", fixed = TRUE)
   expect_match(html, "Smallest difference our clinic would act on.", fixed = TRUE)
   expect_match(html, "source_still_applies", fixed = TRUE)

@@ -72,7 +72,7 @@ export_run_script <- function(spec, file = NULL, run_time = NULL, route = NULL) 
     "#",
     sprintf("# The spec below is the one you checked, with its seed (%s). The script", seed),
     "# gives the same result as powerkit's run_spec() on this spec and seed. It",
-    "# writes three files to R's working directory (getwd()):",
+    "# writes four files to R's working directory (getwd()):",
     "# * powerkit-result.rds: the result (readRDS() reads it back);",
     sprintf("# * powerkit-reproduce.R: a script that reproduces it with %s alone;", package),
     "# * powerkit-citations.txt: what to cite;",
