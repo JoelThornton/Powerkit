@@ -267,6 +267,18 @@ app_css <- "
   .replication-steps .shiny-options-group label.rep-step-done::before { content: '\\2713'; background: #ddf2e3; border-color: #2e7d4f; color: #1d5434; }
   .replication-steps .shiny-options-group label.rep-step-done:has(input:checked)::before { background: #0a5a8c; border-color: #0a5a8c; color: #fff; }
   .rep-run-bar { flex-wrap: wrap; margin-top: 0.5rem; }
+  .rep-preview > summary { cursor: pointer; font-weight: 600; color: var(--pk-navy); min-height: 44px; display: flex; align-items: center; }
+  .rep-preview-doc { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); box-shadow: var(--pk-shadow);
+    padding: 1.5rem 2rem; max-height: 70vh; overflow-y: auto; font: 1rem/1.55 Georgia, 'Times New Roman', serif; color: #1b1b1b; }
+  .rep-preview-doc h1 { font: 600 1.4rem/1.25 system-ui, sans-serif; margin: 0 0 1rem; }
+  .rep-preview-doc h2 { font: 600 1.1rem/1.3 system-ui, sans-serif; margin: 1.4rem 0 0.5rem; }
+  .rep-preview-doc h3 { font: 600 1rem/1.3 system-ui, sans-serif; margin: 1.1rem 0 0.4rem; }
+  .rep-preview-doc table { border-collapse: collapse; margin: 0.75rem 0; font-size: 0.92em; display: block; overflow-x: auto; }
+  .rep-preview-doc th, .rep-preview-doc td { border: 1px solid #c8c8c8; padding: 0.3rem 0.5rem; text-align: left; vertical-align: top; }
+  @media (max-width: 600px) { .rep-preview-doc { padding: 1rem; } }
+  .plan-rename, .plan-description-fold { display: inline-block; margin: 0 1.25rem 0.5rem 0; vertical-align: top; }
+  .plan-rename[open], .plan-description-fold[open] { display: block; }
+  .plan-rename > summary, .plan-description-fold > summary { cursor: pointer; color: var(--pk-blue); min-height: 32px; }
   .rep-card-status > h4.h6 { font-size: 1rem; font-weight: 650; color: var(--pk-navy); margin: 0 0 0.6rem 0; }
   .rep-answer:has(.result-panel, table, .alert) { background: #fff; border: 1px solid var(--pk-line); border-radius: var(--pk-radius); padding: 1rem 1.25rem; margin-top: 1rem; box-shadow: var(--pk-shadow); }
   @media (max-width: 600px) { .replication-workspace table.result-table { display: block; overflow-x: auto; white-space: nowrap; } }

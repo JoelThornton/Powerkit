@@ -51,3 +51,16 @@ test_that("finished steps are ticked", {
   expect_identical(replication_steps_done(modifyList(filled, list(rep_keeps = "close")), TRUE, ""),
     c("original", "goals", "differences"))
 })
+
+test_that("the write-up step previews the document, with typed text kept as text", {
+  html <- as.character(replication_workspace_ui(tree))
+  expect_match(html, "<details class=\"rep-preview\" open>", fixed = TRUE)
+  expect_match(html, "Preview the write-up", fixed = TRUE)
+  expect_match(html, "id=\"rep_preview\"", fixed = TRUE)
+  body <- document_body_html(c("# Pre-replication of: Smith", "", "p < .05 and <b>bold</b>"))
+  expect_match(body, "<h1>Pre-replication of: Smith</h1>", fixed = TRUE)
+  expect_match(body, "p &lt; .05 and &lt;b&gt;bold&lt;/b&gt;", fixed = TRUE)
+  expect_no_match(body, "<b>", fixed = TRUE)
+  # The printable page uses the same body.
+  expect_match(printable_document(c("# T", "", "Text")), document_body_html(c("# T", "", "Text")), fixed = TRUE)
+})

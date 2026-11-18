@@ -665,7 +665,11 @@ replication_planner_sections <- function() {
           document_menu("rep_document", "rep_docx", "rep_markdown", "Save as PDF or print", "the replication plan", class = "btn btn-primary"),
           conditionalPanel("input.labs_outcome != 'not_worth'", inline = TRUE,
             download_button("rep_script", "Download the R script", class = "btn btn-outline-primary"))),
-        uiOutput("rep_writeup_note"))))
+        uiOutput("rep_writeup_note")),
+      # The document as it will read, updated as the plan is filled in.
+      tags$details(class = "rep-preview", open = NA,
+        tags$summary("Preview the write-up"),
+        uiOutput("rep_preview"))))
 }
 
 # A text box with buttons that fill in conventional values, as the input
@@ -1830,6 +1834,10 @@ replication_server <- function(input, output, session, notes = function() list()
   report <- function() replication_report(values(), plan(), notes(), notes_outcome(), powerkit_version(),
     analyses = analyses(), title = title())
   stem <- function() sprintf("%s-%s", if (identical(notes_outcome(), "not_worth")) labs_file_stem("not_worth") else "replication-plan", format(Sys.Date()))
+  output$rep_preview <- renderUI({
+    req(identical(input$rep_section, "writeup"))
+    div(class = "rep-preview-doc", HTML(document_body_html(report())))
+  })
   output$rep_markdown <- downloadHandler(filename = function() paste0(stem(), ".md"),
     content = function(file) writeLines(report(), file, useBytes = TRUE))
   output$rep_docx <- downloadHandler(filename = function() paste0(stem(), ".docx"),

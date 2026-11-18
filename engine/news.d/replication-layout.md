@@ -8,3 +8,8 @@
   as the input screens' bar does; the answer is in its own card; finished
   steps are ticked in the step bar (`replication_steps_done()`); and the
   result tables scroll sideways on phones.
+  The write-up step previews the document as it will read
+  (`document_body_html()`, shared with the printable page, so typed text
+  stays text). Every study plan's header is shorter: "About this study"
+  is folded until it has text, beside "Rename", and the save explanation
+  shows one sentence with the rest under "More".
