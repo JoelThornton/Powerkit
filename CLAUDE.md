@@ -76,14 +76,14 @@ engine-side change alone will fail the app suite.
   many PRs it holds (0.9 is followed by 0.10). Major (first): a big shift,
   such as leaving prototype (1.0.0) or changing what the site runs on; the
   maintainer's call. Every change that reaches main gets a number of its
-  own (decided 13 November 2026): each PR writes its change notes as files
-  of its own (engine/news.d/<topic>.md, app/routing/whats-new.d/<topic>.yaml)
-  and, as its last commit before merging, runs scripts/close-batch.R
-  (`minor` for the first PR of a batch of features, `patch` otherwise),
-  which sets the version and keeps CITATION.cff and engine/NEWS.md in
-  step. Main never holds notes without a number; test-repo-consistency.R
-  refuses them. Rules: docs/adding-a-test.md, "Change notes and version
-  numbers".
+  own (decided 13 November 2026), given after it merges (decided 18
+  November 2026): each PR writes its change notes as files of its own
+  (engine/news.d/<topic>.md, app/routing/whats-new.d/<topic>.yaml), and
+  the after-merge workflow numbers them on main (patch, or minor when the
+  PR has the "minor" label: the first PR of a batch of features) and tags
+  the release. A PR never sets the version or edits engine/NEWS.md,
+  CITATION.cff, whats-new.yaml or docs/release-support-inventory.json.
+  Rules: docs/adding-a-test.md, "Change notes and version numbers".
 
 ## Conventions
 - R package in engine/ with roxygen2 docs, testthat 3rd edition, renv for versions.
@@ -113,8 +113,9 @@ The maintainer is the only reviewer and decider, so keep what they have
 to read small.
 - Judgement calls: give a recommendation and a one-line reason, not only
   neutral options. The maintainer accepts or overrules it. When a call is decided, move
-  its entry to docs/archive/judgement-calls-decided.md and record it in
-  docs/decisions.md.
+  its entry to docs/archive/judgement-calls-decided.md and record it as
+  a new file in docs/decisions.d/ (added to the end of docs/decisions.md
+  after the merge; its README says how).
 - A statistician reviews powerkit's methods at the end, not along the
   way. Until then, make the best method decision the literature supports,
   as if no later review were coming: never defer, simplify or skip a
@@ -129,7 +130,9 @@ to read small.
   rather than a small first version; split it into several PRs by
   design only when one would be too big to review.
 - docs/status.md is current state only: replace old entries, don't append
-  history (git, NEWS.md and docs/archive/ hold that).
+  history (git, NEWS.md and docs/archive/ hold that). Edit only the
+  paragraphs your change is about; its "Last updated" line is a date the
+  after-merge workflow sets.
 - Prefer updating an existing doc to adding a new one.
 - Read docs/next.md and docs/status.md in full. docs/decisions.md,
   docs/conventions.md, engine/NEWS.md and the YAML files are long records
@@ -179,8 +182,9 @@ to read small.
   by hand.
 - Write the change notes as new files: engine/news.d/<topic>.md for the
   developer notes, and app/routing/whats-new.d/<topic>.yaml (the app's
-  Updates tab, in plain words) for any change users see, then give them
-  their version with scripts/close-batch.R as the PR's last commit. Don't
-  edit engine/NEWS.md, whats-new.yaml or the version except through
-  that script.
+  Updates tab, in plain words) for any change users see, and decisions
+  in docs/decisions.d/<topic>.md. Don't run scripts/close-batch.R or
+  edit the version, engine/NEWS.md, whats-new.yaml or the release
+  inventory: the after-merge workflow does all of that once the PR is on
+  main. Add the "minor" label to the first PR of a batch of features.
 - Update docs/status.md (where the project is and what's next) in every PR.

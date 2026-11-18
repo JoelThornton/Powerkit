@@ -1,0 +1,8 @@
+Decision entries waiting for the decisions log: one Markdown file per
+pull request (for example docs/decisions.d/welch-default.md), holding one
+entry exactly as it will read in docs/decisions.md, starting with its
+heading: "## 2026-11-18 · Title". After each merge, scripts/after-merge.R
+adds the waiting entries to the end of decisions.md, oldest first, and
+deletes the files, so parallel pull requests never edit the same lines.
+To change an entry already in decisions.md, edit it there.
+docs/adding-a-test.md, "Change notes and version numbers", has the rules.

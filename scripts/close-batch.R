@@ -7,8 +7,9 @@
 #   engine/news.d/<topic>.md            developer notes, Markdown bullets
 #   app/routing/whats-new.d/<topic>.yaml  Updates entries, as in whats-new.yaml
 #
-# Every pull request that writes a note runs this script as its last commit
-# (decided 13 November 2026: every change on main has a number), which
+# Every change on main has a number (decided 13 November 2026). Since 18
+# November 2026 scripts/after-merge.R runs this on main after each merge
+# (.github/workflows/after-merge.yaml); a pull request doesn't. It
 #   - sets the new version in engine/DESCRIPTION and CITATION.cff,
 #   - puts every engine/news.d note under one "# powerkit <version>" heading
 #     at the top of engine/NEWS.md,
@@ -21,8 +22,8 @@
 #
 #   Rscript scripts/close-batch.R minor     # 0.44.0 -> 0.45.0 (first PR of a batch of features)
 #   Rscript scripts/close-batch.R patch     # 0.44.0 -> 0.44.1 (anything else)
-#   Rscript scripts/close-batch.R amend     # add to the current unmerged batch
-#   Rscript scripts/close-batch.R 1.0.0     # a number the maintainer chose
+#   Rscript scripts/close-batch.R amend     # add to the current version
+#   Rscript scripts/close-batch.R 1.0.0     # a number the maintainer chose, in a PR of its own
 #
 # Run it from the repository root. It refuses to run with no notes waiting.
 

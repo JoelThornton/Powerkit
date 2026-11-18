@@ -1,6 +1,7 @@
 Change notes waiting for a version: one Markdown file per pull request
 (for example engine/news.d/welch-default.md), holding the bullets that
 will go under the next "# powerkit X.Y.Z" heading of engine/NEWS.md.
-scripts/close-batch.R, run as each pull request's last commit, joins them
-under the new version and deletes them; none may reach main unnumbered.
+After each merge, .github/workflows/after-merge.yaml (scripts/after-merge.R)
+joins them under the new version and deletes them; a pull request never
+runs scripts/close-batch.R itself.
 docs/adding-a-test.md, "Change notes and version numbers", has the rules.

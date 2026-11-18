@@ -24,6 +24,8 @@ listed here (a test checks).
 
 ## For the statistician
 
+- [`decisions.d/`](decisions.d/README): decision entries waiting to be
+  added to the end of `decisions.md` after their pull request merges.
 - [`v1-support-plan.md`](v1-support-plan.md): first-release scope, representative
   coverage benchmark, complex-design briefs and variant-level release gates.
 - [`release-support-inventory.json`](release-support-inventory.json): generated
