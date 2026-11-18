@@ -1,6 +1,8 @@
 # Decisions log
 
 Short records of decisions that are not obvious from the code. Newest last.
+A pull request adds a new entry as a file in [`decisions.d/`](decisions.d/README),
+which is added to the end of this page after it merges.
 Full validation runs are recorded in `docs/validation-log.md`.
 
 ## Before 1 November 2026
@@ -3828,6 +3830,32 @@ method chosen first. All follow JASP's default priors.
   definition of the indirect effect on K - 1 log-odds scales, and no
   package checked so far provides one (docs/next.md, item 1).
 
+## 2026-11-17 · Mediation through a mediator in ordered categories
+
+- **Decided by the maintainer (17 November 2026):** plan it with the
+  latent-response model fitted by lavaan, the structural equation
+  modelling programs' usual analysis of an ordered variable, rather than
+  an ordered logistic regression for the mediator combined with
+  regression-based causal mediation analysis.
+- **What it covers.** E39 now asks whether the mediator is yes or no or
+  in three or more ordered categories. For ordered categories, X is two
+  groups or a score, and the outcome a score or yes/no.
+- **Method.** The mediator's categories are cut from an underlying normal
+  score; a and b are on that score, and the indirect effect a*b is tested
+  by lavaan's delta method (`lavaan::sem()`, WLSMV, theta
+  parameterisation, so the paths are on the scales the researcher gives).
+  No package computes this test's power, so it is simulated with Spower.
+- **Inputs.** The share of people in each category in the first group,
+  a as X's shift of the underlying score in its SD (the ordered probit
+  coefficient), b as the outcome's change per SD of that score, X's
+  direct effect, and for a yes/no outcome its chance of "yes" in the first
+  group at the middle of the mediator's score.
+- **Runs in the app.** About 0.1 s per simulated study, so power (about
+  20 s at 200 studies) and the sample size (a few minutes) run in the
+  background, as the yes/no mediator does.
+- **Still uncovered:** a mediator in unordered categories, which needs
+  one indirect effect per category (docs/next.md, item 1).
+
 ## 2026-11-17 · Which assumption the answer depends on most
 
 - **What it does.** On the result screen's "How sure can you be?" card,
@@ -4025,3 +4053,244 @@ to 32).
 - **Still to decide:** the package for group-sequential designs with
   interim analyses (rpact or gsDesign), which replications and other
   expensive studies need (`next.md` item 15).
+
+## 2026-11-17 · The ANCOVA asks whether the covariates are measured or fixed (E23)
+
+- **What changes.** E23 asks how the covariates come about: measured on
+  each person (a before score, age) or set by the design (doses or times
+  chosen in advance). Neither answer is preselected. Until now the card
+  always used Shieh's (2020) method, for measured covariates, and named
+  G*Power's fixed-covariate answer only as a known difference; a
+  researcher whose covariate is fixed by the design couldn't plan for it.
+  This is the first fix of `next.md` item 27's audit of decisions made for
+  the researcher.
+- **Measured** (`target_test > covariate_model` "random", the engine's
+  default for older specs): Shieh's method, pwrss's
+  `power.f.ancova.shieh()`, unchanged.
+- **Fixed** ("fixed"): the F test's noncentrality is N gamma^2, as
+  G*Power takes it, where gamma^2 is the standardised effect of Shieh's
+  equations, (C mu)' (C Q C')^-1 (C mu) / (SD^2 (1 - R-squared)), computed
+  in the engine as pwrss computes it internally (unexported), then pwrss's
+  `power.f.ancova()` from the partial eta-squared gamma^2 / (1 + gamma^2).
+  For one factor it equals pwrss's `power.f.ancova.keppel()` (checked to
+  1e-10); for two factors it equals each effect's sum of squares of the
+  adjusted cell means, and agrees with lm()'s F test on simulated studies
+  with fixed covariate values (validation chunk ancova).
+- **Partial eta-squared.** An effect given as partial eta-squared was
+  already planned with fixed covariates (power.f.ancova()), but its
+  methods paragraph named Shieh's method and showed Known difference 15.
+  It now names the fixed-covariate F test and drops that note; giving
+  partial eta-squared with "random" is refused with a plain message.
+- **Size.** Adjusted means 20, 18 and 16, SD 6, one covariate explaining
+  36%, 90 people: 81.8% fixed against 81.3% measured.
+
+## 2026-11-17 · The mixed-model cards offer Kenward and Roger's degrees of freedom (E33, E41, E62, E63, E67, E68)
+
+- **What changes.** The six cards simulated with simr and a score outcome
+  ask which degrees of freedom the t or F test uses: Satterthwaite's
+  (lmerTest), preselected as decided on 30 October 2026 (Departure 16), or
+  Kenward and Roger's (pbkrtest). Both are small-sample corrections that
+  researchers report from lme4 models; until now a researcher who would
+  report Kenward-Roger had no way to plan for it. The second fix of
+  `next.md` item 27's audit of decisions made for the researcher.
+- **How.** `target_test > df_method` ("satterthwaite" or "kenward_roger").
+  With Kenward-Roger, simr's `fixed(term, "kr")` replaces `"sa"`; with
+  three or more conditions (E63), lmerTest's `anova()` and `contest()`
+  take `ddf = "Kenward-Roger"`. pbkrtest's version joins the result's
+  record, and the exported script loads it. A yes/no outcome, tested by
+  glmer's Wald or likelihood-ratio test, refuses the choice.
+- **Why Satterthwaite stays preselected.** It is the maintainer's earlier
+  decision and the p-value lmerTest prints by default; Kenward-Roger is
+  slower to simulate (each simulated study refits pbkrtest's adjusted
+  covariance matrix). The form says both usually give similar p-values
+  and to plan with the one that will be reported.
+- **Size.** E33's example at 20 participants, the same 500 simulated
+  data sets: 27.0% with Kenward-Roger against 27.4% with Satterthwaite
+  (29.2% with simr's z test); the two reach the same decision in 99.6% of
+  them. A validation test in the mixed_model chunk compares the
+  Kenward-Roger route with `pbkrtest::KRmodcomp()` on independently
+  simulated studies.
+
+## 2026-11-17 · McNemar's chi-square test (E26) and Levene's and the Brown-Forsythe test (E53)
+
+The second round of `next.md` item 27's audit of method choices made for
+the researcher: two cards offered one test where researchers commonly
+run another.
+
+- **E26, McNemar's test.** The card computed McNemar's exact test only
+  (pwrss's exact power, as G\*Power's exact option). R's
+  `mcnemar.test()` runs the chi-square test with the continuity
+  correction by default, and jamovi reports the uncorrected chi-square
+  test, so the input screen now asks which test will be run
+  (`target_test > method`: "mcnemar_exact", the default and unchanged;
+  "mcnemar_chisq"; "mcnemar_chisq_corrected"). No package gives the
+  corrected test's power, so both chi-square versions are simulated with
+  Spower's own `p_mcnemar.test()` (`backend-mcnemar-chisq.R`). Only the
+  discordant proportions enter the test; the concordant pairs are split
+  equally between the two concordant cells, and a study with no
+  discordant pairs counts as not significant. The chi-square tests are
+  two-sided; a one-sided plan is refused with a pointer to the exact test.
+  Known difference 2 (the exact tests' smallest N) is shown for the exact
+  test only.
+- **E53, two variances.** The card computed the F test only, which
+  assumes normal scores and whose false-positive rate is far from alpha
+  when they aren't. It now also offers Levene's test (deviations from the
+  means; SPSS's) and the Brown-Forsythe test (deviations from the medians;
+  `car::leveneTest()`'s default), with the shape of the scores (normal,
+  skewed or heavy-tailed) asked for those two, since their power depends
+  on it. Spower's `p_var.test()` always runs the F test for two groups,
+  so powerkit's experiment `p_levene()` draws the scores and calls
+  `car::leveneTest()` (`backend-levene.R`). Unequal groups are simulated;
+  both tests are two-sided.
+- **Defaults.** The exact test and the F test stay preselected: they are
+  G\*Power's, and changing a default is the maintainer's call. For E53
+  the literature favours a test that doesn't assume normality whenever
+  normality is in doubt, so the Brown-Forsythe test is a candidate for
+  the default (recommendation in the pull request).
+- **Sizes.** At 120 pairs, discordant proportions 0.10 and 0.25: exact
+  0.769, uncorrected chi-square 0.812, corrected 0.764. At 200 people,
+  variances 1.5 and 1, normal scores: F test 0.518, Levene 0.467,
+  Brown-Forsythe 0.466; Brown-Forsythe with heavy-tailed scores 0.25.
+- **Validation.** Both routes agree with independent simulations written
+  without their packages (McNemar's statistic from multinomial counts; an
+  ANOVA of the absolute deviations) and keep the Type I error at alpha
+  (the corrected McNemar test at or below it): validation chunk
+  `variances`, run 17 November 2026, all passing; a published example for
+  McNemar's chi-square test is left as a placeholder.
+
+## 2026-11-17 · The input screen's headings and labels with explanations on or off
+
+The 10 November decision (conventional names in compact mode) also
+swapped the input screen's box headings and some field labels for short
+names with explanations off. That gave two boxes the same heading
+("Effect size" for both the group means and the SD of a one-way ANOVA)
+and made the screen read differently in the two modes, while with
+explanations on no box said it took the effect size and the screen never
+gave the analysis's standard name. Now:
+
+- Box headings and field labels are the same in both modes; the short
+  field names are used only in the "still needed" line.
+- A line under the effect section's title names the boxes the effect
+  size goes in, by their headings in quotes ("For this analysis, the
+  effect size and the values it depends on go in the boxes headed "The
+  expected group means" and "The SD"."). Prefixing each such box with
+  "Effect size:", tried first, was wrong for boxes of SDs, correlations
+  between conditions or variance components, which the calculation needs
+  but which are not the effect.
+- The input screen shows the card's "Standard name:" line under its
+  plain title when explanations are on; with them off the screen's
+  heading is that name, as before. Analysis names elsewhere still follow
+  the 10 November decision.
+
+## 2026-11-17 · Replication plans start from the question
+
+Queue item 29, part 1 (the page and its criteria). A replication plan's
+Goals section now asks the researcher's purpose first: to confirm the
+original's effect, to settle whether it is there either way, or to test
+whether it is absent. Each purpose has a usual main criterion (the
+original's own test repeated where it was a Bayes factor, else
+significance; the default Bayes factor t-test, else the replication
+Bayes factor; the equivalence test), which the researcher can replace
+with any criterion the original allows. The sample size is the main
+criterion's, under one chosen belief about the true effect (with its
+uncertainty by default), and every criterion under "Also report" is
+given as its chance at that sample size, computed by the engine at that
+N. The table of every criterion under every belief stays, folded under
+the answer.
+
+- **A default Bayes factor t-test for p-value originals.** bfpwr's
+  goals for the Bayes factor t-test, for an effect and for no effect,
+  are offered for every t-test original (two groups, one sample, pairs),
+  at the default prior scale 0.707 (JASP's default; the card's), not
+  only when the original reported a Bayes factor. A researcher who
+  replicates a frequentist study can then plan a Bayes factor without
+  entering one the paper never reported.
+- **The criterion that can show absence** (Departure 30). With a Bayes
+  factor main criterion it is the Bayes factor for no effect where the
+  original was a t-test, otherwise the replication Bayes factor; with
+  any other main criterion, the equivalence test, whose bound is the
+  smallest effect that matters or, left blank, d33 (Simonsohn, 2015)
+  where the original was a t-test. Where neither is available, the plan
+  says what to enter.
+- **The smallest effect that matters and the evidence threshold** are
+  asked only when a chosen criterion uses them, and the quick answer
+  uses alpha .05 and power .80 when none are entered.
+- **References** follow the criteria chosen, not every criterion the
+  engine computed.
+- **Still to come (part 2):** a write-up with one sample size and a
+  registered-report design table, an R script that runs only the chosen
+  criteria, a one-sided option, alpha and power passed to the card, the
+  card opened in replication mode, and a step bar for the page.
+
+## 2026-11-17 · Replication plans: a study design table, a script for the chosen criteria, and a one-sided option
+
+Queue item 29, part 2a. Researchers preregistering a replication, or
+submitting it as a Registered Report, need its criteria written up as
+they will be tested.
+
+- **Study design table.** The write-up adds the table Registered Report
+  journals ask for: one row for each criterion in the plan, the main one
+  first, with the question (from the plan's purpose), the hypothesis,
+  the sampling plan (the main criterion's sample size, and the others'
+  chances at it), the analysis plan, what sets the test's sensitivity
+  (the belief about the true effect, the bound, the evidence threshold),
+  how each outcome will be read, and a cell for the theory, left for the
+  researcher.
+- **The script runs the chosen criteria only.**
+  `replication_planning_script()` takes the main criterion, the others
+  and the belief: it plans the main criterion's sample size under that
+  belief and gives each other criterion's chance at it, with the same
+  functions and levels as `replication_planning()` (tested to give its
+  numbers). Without them it gives every goal under every belief, as
+  before.
+- **One-sided.** `replication_planning(alternative = "one.sided")` tests
+  the significance goal at alpha, one-sided in the original's direction,
+  and the pooled goal at alpha squared; the default stays BayesRepDesign's
+  two-trials rule at alpha / 2 (a two-sided test at alpha that also needs
+  the original's direction). The other goals do not depend on it. The
+  plan asks only when significance or pooling is used, and the methods
+  paragraph and settings line say which was chosen. Checked against the
+  simulation of the method's model (`validation-log.md`).
+
+## 2026-11-17 · A replication Bayes factor in the opposite direction is not a success
+
+The maintainer's decision (queue item 28). BayesRepDesign's replication
+and sceptical Bayes factors default to `paradox = TRUE`, which counts a
+replication whose Bayes factor passes the threshold on either side of
+zero as a success (Pawel, Consonni & Held, 2026, the "replication
+paradox"). A replication plan describes success as evidence for the
+original's effect, which an estimate on the other side of zero is not,
+so `replication_planning()` sets `paradox = FALSE`, recorded as
+Departure 31 in `conventions.md` with its size: little under the
+as-reported belief, but for an original d = 0.3 with 90 per group and
+tau = 0.1 the shrunk belief needs 26,086 people against the default's
+7,393. The result screen says so whenever these Bayes factors are in a
+plan, and the methods paragraph states it.
+
+## 2026-11-17 · Designs nobody had decided on: which to offer, and in what order
+
+The maintainer accepted the recommendation in `next.md` item 15.
+powerkit is for research studies generally (5 November 2026), and
+several of these designs are common outside psychology's usual ones.
+
+- **First: prevalence and diagnostic accuracy.** The E46
+  one-proportion precision route is audited first (its interval,
+  denominator and sampling assumptions), because prevalence estimation
+  extends it (roadmap B66; presize). Diagnostic accuracy follows:
+  sensitivity and specificity, and the area under the ROC curve (B63;
+  pROC, MKpower, presize).
+- **Group-sequential designs with interim analyses use rpact** (B57;
+  `getDesignGroupSequential()`, `getSampleSizeMeans()`,
+  `getPowerMeans()`), the package the recommendation named; replications
+  and other expensive studies need these designs, and replication plans
+  will offer them.
+- **Assurance as an option beside power** (B60): power averaged over a
+  prior on the effect (Spower's expected power) on the cards that can
+  take it, named so it is not confused with the precision cards' width
+  assurance.
+- **Later: single-case designs** (B65, scan) **and network models**
+  (B53, powerly), kept off the queue until the designs above are in.
+
+Each package's methods are checked against its help files before its
+card is built; departures from the package or G\*Power are recorded in
+`conventions.md`.

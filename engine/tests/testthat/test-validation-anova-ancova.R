@@ -5,8 +5,11 @@
 #      check powerkit against pwrss called directly; below, against
 #      Superpower's ANCOVA_analytic(), which also uses Shieh's method
 #   2. published examples (placeholders for the maintainer)
-#   3. direct-call agreement with a simulation: not yet (no simulation
-#      option)
+#   3. agreement with a simulation written out separately: with
+#      covariates fixed by the design (target_test > covariate_model
+#      "fixed", pwrss's power.f.ancova()), studies drawn here with the same
+#      covariate values in every cell and every study, tested with lm()'s
+#      F test; Shieh's method (measured covariates) has no simulation yet
 #   4. Type I error: an effect of 0 gives alpha by construction (unit
 #      tests)
 # Expected values below are owned by the maintainer: do not edit them.
@@ -14,7 +17,7 @@
 
 # `means` is a matrix of adjusted cell means (rows = levels of A, columns =
 # levels of B); `n` is the total number of participants (equal cells).
-ancova_spec <- function(means, sd, r2, covariates, effect, alpha, seed, n = NULL, target_power = NULL) {
+ancova_spec <- function(means, sd, r2, covariates, effect, alpha, seed, n = NULL, target_power = NULL, covariate_model = NULL) {
   v <- validation_variable
   validation_spec(
     design = "factorial_anova",
@@ -29,7 +32,7 @@ ancova_spec <- function(means, sd, r2, covariates, effect, alpha, seed, n = NULL
       means = lapply(seq_len(nrow(means)), function(i) as.list(means[i, ])),
       sd = sd, r2_covariates = r2, covariates = covariates
     ),
-    target_test = list(effect = effect, method = "ancova_f", alpha = alpha),
+    target_test = c(list(effect = effect, method = "ancova_f", alpha = alpha), if (!is.null(covariate_model)) list(covariate_model = covariate_model)),
     seed = seed,
     n = n,
     target_power = target_power
@@ -51,6 +54,35 @@ for (effect in c("main_effect_A", "main_effect_B", "interaction")) {
     expect_power_exact(engine_power(spec), reference$power[reference$factor == row] / 100)
   })
 }
+
+# 3. Fixed covariates: agreement with a simulation written out separately ---------
+
+test_that("ANCOVA 3 x 2 with a fixed covariate: powerkit matches lm()'s F test on simulated studies", {
+  skip_unless_full_validation()
+  means <- matrix(c(0, 0.2, 0.1, 0.4, 0.2, 0.7), nrow = 3, byrow = TRUE)
+  per_cell <- 20
+  # One covariate whose values are fixed: the same evenly spread values in
+  # every cell and every study, explaining 30% of the outcome's variance.
+  x <- stats::qnorm(stats::ppoints(per_cell))
+  x <- (x - mean(x)) / sqrt(mean((x - mean(x))^2))
+  for (effect in c("main_effect_A", "interaction")) {
+    fixed_by_hand <- function(n) {
+      cells <- expand.grid(b = seq_len(ncol(means)), a = seq_len(nrow(means)))
+      d <- data.frame(
+        a = factor(rep(cells$a, each = per_cell)), b = factor(rep(cells$b, each = per_cell)),
+        x = rep(x, nrow(cells))
+      )
+      d$y <- means[cbind(as.integer(d$a), as.integer(d$b))] + sqrt(0.3) * d$x + stats::rnorm(nrow(d), sd = sqrt(0.7))
+      table <- stats::anova(stats::lm(y ~ x + a * b, data = d))
+      table[if (effect == "main_effect_A") "a" else "a:b", "Pr(>F)"]
+    }
+    direct <- run_spower(quote(fixed_by_hand(n = 120)), 0.05, validation_nrep(), 301,
+      data = list(fixed_by_hand = fixed_by_hand, means = means, per_cell = per_cell, x = x, effect = effect))
+    spec <- ancova_spec(means, sd = 1, r2 = 0.3, covariates = 1, effect = effect, alpha = 0.05, seed = 302,
+                        n = 120, covariate_model = "fixed")
+    expect_power_agrees(engine_power(spec), direct)
+  }
+})
 
 # 2. Published examples ------------------------------------------------------------
 

@@ -31,12 +31,12 @@ form_examples <- list(
               r_X_Y = "-0.3", r_W_Y = "0.2", r_XW_Y = "0.1", r_X_W = "-0.1", rel_X = "0.8", rel_W = "0.85"), closing_ok),
   E10 = c(list(X_label = "Workload", M_label = "Exhaustion", Y_label = "Turnover intention",
                p_X_M = "0.3", p_M_Y = "0.3", p_X_Y = "0.1"), closing_ok),
-  E33 = c(list(X_label = "Word type", X_levels = "Neutral, Emotional", Y_label = "Response time (ms)", plan_unit = "participants", crossed_participants = "within_factor", outcome_type = "continuous", difference = "20",
+  E33 = c(list(X_label = "Word type", X_levels = "Neutral, Emotional", Y_label = "Response time (ms)", plan_unit = "participants", crossed_participants = "within_factor", outcome_type = "continuous", df_method = "satterthwaite", difference = "20",
                sd_participant = "60", sd_participant_slope = "25", r_participant = "0.2", sd_item = "30", sd_residual = "120",
                items = "40", item_design = "between"), closing_ok),
   E16 = c(list(X_label = "Condition", X_levels = "Control, Self-affirmation", x_prob = "0.5", M_label = "Defensiveness", Y_label = "Intention to change",
                x_effects = "paths", p_X_M = "-0.25", p_M_Y = "-0.3", p_X_Y = "0.1"), closing_ok),
-  E39 = c(list(binm_x = "binary", X_label = "Condition", X_levels = "Usual information, Reminder letter", M_label = "Booked an appointment",
+  E39 = c(list(binm_x = "binary", binm_m = "binary_mediator", X_label = "Condition", X_levels = "Usual information, Reminder letter", M_label = "Booked an appointment",
                M_levels = "No, Yes", Y_label = "Health knowledge", binm_y = "continuous", binm_m_baseline = "0.3", binm_m_or = "2.5",
                binm_b = "0.5", binm_direct = "0.1"), closing_ok),
   E42 = c(list(X_label = "Message", X_levels = "No message, Gain framed, Loss framed", M_label = "Perceived risk", Y_label = "Intention to be screened",
@@ -68,12 +68,12 @@ form_examples <- list(
   E19 = c(list(A_label = "Training dose", A_levels = "None, One session, Four sessions, Eight sessions", Y_label = "Reading score",
                metric = "raw", means = "1.5, 2, 3, 4", sd = "2", weights = "-3, -1, 1, 3"), closing_ok),
   E23 = c(list(factors = "oneway_ancova", A_label = "Intervention", A_levels = "Control, Brief, Full", Y_label = "Anxiety after",
-               metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1", test_version = "ancova_f"), closing_ok),
+               metric = "raw", means = "20, 18, 16", sd = "6", r2_covariates = "0.36", covariates = "1", test_version = "ancova_f", covariate_model = "random"), closing_ok),
   E24 = c(list(Y_label = "Wellbeing score", question = "r2_increase", r2c_test = "f_test", r2_full = "0.15", r2_reduced = "0.1",
                predictors_total = "5", predictors_tested = "2"), closing_ok),
   E25 = c(list(Y_label = "Correct guess", p = "0.65", p0 = "0.5", alternative = "two_sided", method = "exact_binomial"), closing_ok),
   E26 = c(list(X_label = "Session", X_level1 = "Before training", X_level2 = "After training", Y_label = "Passed",
-               p_first_only = "0.1", p_second_only = "0.25", alternative = "two_sided"), closing_ok),
+               p_first_only = "0.1", p_second_only = "0.25", alternative = "two_sided", method = "mcnemar_exact"), closing_ok),
   E36 = c(list(comparison = "tost_independent", X_label = "Condition", X_level1 = "Paper", X_level2 = "Screen", Y_label = "Reading comprehension",
                effect_units = "standardised", bound = "0.5", d = "0", allocation_ratio = "1"), closing_ok),
   E35 = c(list(G_label = "Condition", G_level1 = "Waiting list", G_level2 = "Mindfulness course", Y_label = "Stress score", times = "0, 1, 2, 3",
@@ -121,7 +121,7 @@ form_examples <- list(
                r_X_Y = "0.4", r_X_Z = "0.2", r_Y_Z = "0.5", alternative = "two_sided"), closing_ok),
   E52 = c(list(Y_label = "Reaction time", var = "1", var0 = "1.5", alternative = "less"), closing_ok),
   E53 = c(list(G_label = "Group", G_level1 = "Trained", G_level2 = "Untrained", Y_label = "Reaction time",
-               var1 = "1.5", var2 = "1", alternative = "two_sided"), closing_ok),
+               var1 = "1.5", var2 = "1", alternative = "two_sided", method = "f_var"), closing_ok),
   E64 = c(list(A_label = "Dose", A_levels = "None, Low, High", Y_label = "Wellbeing",
                metric = "raw", means = "10, 11, 13", sd = "6", score_shape = "normal", group_ratio = "1, 1, 2",
                alternative = "greater"), closing_ok),
@@ -140,6 +140,12 @@ form_examples <- list(
 
 # The rank tests: a test version on E1, E2, E3 and E18, with the shape of
 # the scores.
+# Mediation with a mediator in ordered categories, from E39's screen.
+form_example_ordinal_mediator <- c(list(binm_x = "binary", X_label = "Condition", X_levels = "Usual information, Reminder letter",
+  binm_m = "ordinal_mediator", M_label = "Intention to book", ordm_levels = "Unlikely, Unsure, Likely, Certain",
+  Y_label = "Health knowledge", binm_y = "continuous", ordm_m_probabilities = "0.3, 0.3, 0.25, 0.15",
+  ordm_a = "0.4", ordm_b = "0.3", ordm_direct = "0.1"), closing_ok)
+
 form_examples_rank <- list(
   E1 = modifyList(form_examples$E1, list(method = "wilcoxon_signed_rank", score_shape = "heavy_tailed")),
   E2 = modifyList(form_examples$E2, list(method = "mann_whitney", score_shape = "skewed")),
@@ -207,18 +213,18 @@ form_examples$E61 <- c(list(Y_label = "Depressive symptoms", meta_question = "me
                             i2 = "0.5", meta_model = "random", meta_test = "hartung_knapp", alternative = "two_sided"), closing_ok)
 
 # E62: pupils in classes; a cross-level interaction.
-form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", W_label = "Teacher experience", two_outcome = "continuous", in_sites = "no",
+form_examples$E62 <- c(list(Y_label = "Maths score", X_label = "Homework time", W_label = "Teacher experience", two_outcome = "continuous", df_method = "satterthwaite", in_sites = "no",
                             b_X = "0.3", b_W = "0.2", b_XW = "0.1", sd_group = "0.4", sd_group_slope = "0.15",
                             sd_residual = "1", cluster_size = "20", two_level_effect = "cross_level_interaction"), closing_ok)
 
 # E41: a diary study; whether the day's stress affects evening mood more
 # for people higher in neuroticism.
-form_examples$E41 <- c(list(Y_label = "Evening mood", X_label = "The day's stress", W_label = "Neuroticism", two_outcome = "continuous",
+form_examples$E41 <- c(list(Y_label = "Evening mood", X_label = "The day's stress", W_label = "Neuroticism", two_outcome = "continuous", df_method = "satterthwaite",
                             b_X = "-0.3", b_W = "-0.2", b_XW = "-0.1", sd_group = "0.7", sd_group_slope = "0.15",
                             sd_residual = "1", cluster_size = "14", two_level_effect = "cross_level_interaction"), closing_ok)
 
 # E63: three face expressions; the pair Neutral-Happy, Holm-adjusted.
-form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Happy, Angry", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous",
+form_examples$E63 <- c(list(X_label = "Face expression", X_levels = "Neutral, Happy, Angry", Y_label = "Response time (ms)", crossed_participants = "within_factor", outcome_type = "continuous", df_method = "satterthwaite",
                             means = "600, 580, 590", sd_participant = "60", sd_participant_condition = "15", sd_item = "30",
                             sd_residual = "120", items = "60", item_design = "between", conditions_test = "pairwise",
                             comparison = "Neutral, Happy", p_adjust = "holm"), closing_ok)
@@ -236,12 +242,12 @@ form_examples$E78 <- c(list(X_label = "Reminder", X_levels = "None, Text, Call",
                             glmm_probabilities = "0.5, 0.6, 0.65", glmm_sd_person = "1"), closing_ok)
 
 # E68: pupils in classes in schools, whole schools assigned.
-form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score", three_outcome = "continuous",
+form_examples$E68 <- c(list(X_label = "Programme", X_levels = "Usual lessons, Reading programme", Y_label = "Reading score", three_outcome = "continuous", df_method = "satterthwaite",
                             three_assignment = "site", d = "0.25", icc_site = "0.1", icc_group = "0.05",
                             group_size = "20", groups_per_site = "4"), closing_ok)
 
 # E67: word frequency and response times.
-form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time (ms)", outcome_type = "continuous", x_level = "item",
+form_examples$E67 <- c(list(X_label = "Word frequency", Y_label = "Response time (ms)", outcome_type = "continuous", df_method = "satterthwaite", x_level = "item",
                             slope = "-15", sd_participant = "60", sd_participant_slope = "10", sd_item = "30",
                             sd_residual = "120", items = "60"), closing_ok)
 

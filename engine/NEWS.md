@@ -1,22 +1,144 @@
+# powerkit 0.78.17
+
+* Mediation with a mediator in three or more ordered categories (E39,
+  template `ordinal_mediator`): the latent-response model, simulated by
+  Spower and analysed by `lavaan::sem()` with the mediator (and a yes/no
+  outcome) declared ordered, WLSMV and the theta parameterisation; the
+  indirect effect a*b is tested by the delta method. X two groups or a
+  score, Y a score or yes/no. New `backend-mediation-ordm.R`, schema
+  definition `template_mediation_ordinal_mediator` (population metric
+  `latent_response`: `m_probabilities`, `a`, `b`, `direct`, `y_baseline`),
+  example spec, check run, simulated-data code and exported R script, and
+  the validation chunk `mediation_ordm` (an independent simulation in
+  lavaan's delta parameterisation with its own delta-method test, and the
+  Type I error).
+
+# powerkit 0.78.16
+
+- McNemar's test (template `mcnemar`) takes `target_test > method`:
+  `"mcnemar_exact"` (the default, pwrss's exact power, unchanged),
+  `"mcnemar_chisq"` or `"mcnemar_chisq_corrected"`. The chi-square
+  versions are simulated with Spower's `p_mcnemar.test()`
+  (`stats::mcnemar.test()`, with or without the continuity correction) in
+  powerkit's experiment `p_mcnemar_chisq()` (`backend-mcnemar-chisq.R`),
+  with a check run, an exported script and the smallest detectable change
+  by simulation. They are two-sided; a one-sided plan is refused.
+- Two variances (template `two_variances`) take `target_test > method`
+  `"levene"` or `"brown_forsythe"` beside `"f_var"`, with
+  `population > score_shape` (normal, skewed or heavy-tailed). They are
+  simulated with Spower in powerkit's experiment `p_levene()`, which runs
+  `car::leveneTest()` (center = mean or median), with unequal groups
+  allowed, a check run, simulated data, an exported script and the
+  smallest detectable variance ratio by simulation (`backend-levene.R`).
+  Two-sided only.
+- New validation: `test-validation-mcnemar-chisq.R` and section 4 of
+  `test-validation-variance-tests.R` compare both routes with simulations
+  written without their packages and check their Type I error (chunk
+  `variances`).
+
+# powerkit 0.78.15
+
+* App: field labels on the input screen are the same with explanations on
+  or off (`field_ui()` no longer swaps in `compact_field_label()`, which
+  now names fields only in the "still needed" line). The "Effect size:"
+  prefix on box headings (0.78.10) is replaced by one line under the
+  effect section's title, `effect_boxes_ui()`, naming in quotes the boxes
+  with an effect field that show with the default answers.
+
+# powerkit 0.78.14
+
+* Planning (no code change): the designs that had no decision are
+  decided and queued as `next.md` item 15, in order: an audit of the
+  E46 one-proportion route, then prevalence estimation; diagnostic
+  accuracy (sensitivity, specificity, ROC); group-sequential designs with
+  rpact; and assurance as an option beside power. Single-case designs and
+  network models come later. `coverage-roadmap.md` rows B53, B57, B60,
+  B63, B65 and B66 say so.
+
+# powerkit 0.78.13
+
+* `replication_planning()` counts a replication or sceptical Bayes factor
+  as a success only in the original's direction: BayesRepDesign's
+  `ssdBFr()`, `porsBFr()`, `ssdBFs()` and `porsBFs()` are called with
+  `paradox = FALSE`, where the package defaults to `TRUE` (Departure 31,
+  `docs/conventions.md`). Sample sizes for those goals can rise sharply
+  under the shrunk belief (26,086 against 7,393 for an original d = 0.3
+  with 90 per group and tau = 0.1). The scripts, the validation chunk's
+  simulation and the app's result and methods paragraph follow.
+
+# powerkit 0.78.12
+
+* `replication_planning_script()` takes `goal`, `also` and `prior`: the
+  script then plans the main criterion's sample size under that belief
+  and gives each other criterion's chance at it, with the functions and
+  levels `replication_planning()` uses (tested to reproduce its numbers).
+  Without them it gives every goal under every belief, as before.
+* `replication_planning()` gains `alternative = "one.sided"`: the
+  significance goal at alpha, one-sided in the original's direction, and
+  the pooled goal at alpha squared. The default is unchanged
+  (BayesRepDesign's two-trials rule at alpha / 2). The scripts name the
+  level as `level`. The replication validation chunk checks the
+  one-sided rules against its simulation of the method's model.
+* Replication plans (app): the write-up adds a study design table for
+  Registered Reports, one row per chosen criterion; the R script runs the
+  chosen criteria only; a one-sided significance test can be chosen.
+
+# powerkit 0.78.11
+
+* `replication_planning()` offers bfpwr's Bayes factor t-test goals
+  (`bf_repeat`, `bf_null`) for every t-test original (two groups, one
+  sample, pairs), at the default prior scale 0.707 when the original
+  reported no Bayes factor, so a replication of a frequentist study can
+  plan a default Bayes factor. The script names the test as "a default
+  Bayes factor t-test" or "the original's Bayes factor test repeated".
+* Replication plans (app) ask the researcher's purpose first and give one
+  sample size, from one main criterion under one chosen belief; each
+  criterion under "Also report" is given as its chance at that sample
+  size, from a second engine call at that n. A criterion that can show
+  absence starts ticked (Departure 30, `docs/conventions.md`): the Bayes
+  factor for no effect, else the replication Bayes factor, with a Bayes
+  factor main criterion, and the equivalence test otherwise, bounded by
+  d33 (Simonsohn, 2015) when no smallest effect is entered. The
+  smallest effect and the evidence threshold are asked only when a chosen
+  criterion uses them; references and the write-up's table follow the
+  chosen criteria. The table of every criterion under every belief is
+  folded under the answer.
+
+# powerkit 0.78.10
+
+* App: the input screen's group headings are the same with explanations
+  on or off (`group_heading()` in `forms_ui.R`): a group with an effect
+  field is headed "Effect size: <its title>" instead of swapping to a bare
+  "Effect size", which gave two groups one heading, and the screen shows
+  the card's "Standard name:" line. A field inside Shiny's conditional
+  wrapper (`display: contents`) no longer rises beside its group's floated
+  heading: the wrapper's children clear the float.
+
 # powerkit 0.78.9
 
-* The smallest detectable indirect effect for simple, parallel and serial
-  mediation (E10, E11, E12, E16), and the smallest index of moderated
-  mediation for PROCESS models 7 and 14 (E13, E14, E17, E40), by the
-  simulated search (`simulated_effect_sensitivity()`, with a 95% interval).
-  The paths whose product is the effect tested are each multiplied by
-  x^(1/k) for k paths, so the effect is x times the one entered and keeps
-  its sign; every other path, correlation and residual correlation is kept.
-  The search stops where an equation's R-squared would reach 0.99
-  (`mediation_scale_limit()`). The difference between conditional indirect
-  effects (E38) is not searched: its residual variances are given
-  explicitly and change with every path. The exported script's
-  `set_effect()` rebuilds power4mome's `pop_es` with the same arithmetic
-  (`mediation_pop_es_script()`), including parallel mediators' residual
-  covariances. Tests (`test-sensitivity-mediation.R`): the script's
-  population values equal `power4mome_inputs()` at three sizes of the
-  effect for every model, and simple mediation's answer is checked against
-  a fresh simulation of 2,000 studies and reproduced by its script.
+* New: `target_test > covariate_model` for the ANCOVAs (`oneway_ancova`,
+  `factorial_ancova`). "random", the default, is Shieh's (2020) method for
+  covariates measured on each person (`power.f.ancova.shieh()`), as
+  before; "fixed" plans covariates set by the design as G*Power does:
+  pwrss's `power.f.ancova()` from the partial eta-squared of the adjusted
+  means, with noncentrality N gamma^2. For one factor this equals pwrss's
+  `power.f.ancova.keppel()`; the exported script reproduces it, and the
+  ancova validation chunk checks it against lm()'s F test on simulated
+  studies with fixed covariate values. An effect given as partial
+  eta-squared is planned this way and refuses "random".
+
+* New: `target_test > df_method` for the simr mixed models with a score
+  (`crossed_two_condition`, `crossed_conditions`, `two_level`,
+  `three_level`, `item_predictor`; cards E33, E41, E62, E63, E67, E68).
+  "satterthwaite", the default, is lmerTest's Satterthwaite test, as
+  before (Departure 16); "kenward_roger" tests each simulated study with
+  Kenward and Roger's degrees of freedom: simr's `fixed(term, "kr")`
+  (pbkrtest), or lmerTest's `anova()` and `contest()` with
+  `ddf = "Kenward-Roger"` for three or more conditions. pbkrtest's version
+  is recorded with the result, the exported script reproduces it, and a
+  validation test in the mixed_model chunk checks it against
+  `pbkrtest::KRmodcomp()` on independently simulated studies. A yes/no
+  outcome refuses it.
 
 # powerkit 0.78.8
 

@@ -168,6 +168,18 @@ app_css <- "
   .progress-steps .done .step-num { background: #ddf2e3; border-color: #2e7d4f; color: #1d5434; }
   .progress-steps .current { color: #14284b; font-weight: 600; }
   .progress-steps .current .step-num { background: #0a5a8c; border-color: #0a5a8c; color: #fff; }
+  /* The replication plan's sections as numbered steps (queue item 28):
+     still radio buttons, so the keyboard and screen readers work as before. */
+  .replication-steps .shiny-options-group { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; counter-reset: rep-step; margin-bottom: 1rem; }
+  .replication-steps .shiny-options-group label { counter-increment: rep-step; margin: 0; padding: 0; }
+  .replication-steps .shiny-input-container > .control-label:empty { display: none; }
+  .replication-steps input[type=radio] { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .replication-steps .shiny-options-group label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; color: #545b62; min-height: 44px; }
+  .replication-steps .shiny-options-group label::before { content: counter(rep-step); display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem;
+                                     border-radius: 50%; border: 1.5px solid #8a929a; font-weight: 600; font-size: 0.8rem; background: #fff; color: #333; }
+  .replication-steps .shiny-options-group label:has(input:checked) { color: #14284b; font-weight: 600; }
+  .replication-steps .shiny-options-group label:has(input:checked)::before { background: #0a5a8c; border-color: #0a5a8c; color: #fff; }
+  .replication-steps .shiny-options-group label:has(input:focus-visible) { outline: 2px solid #0a5a8c; outline-offset: 2px; border-radius: 0.3rem; }
   .card-more { margin-top: 0.75rem; }
   .card-more > summary { cursor: pointer; color: #0a5a8c; text-decoration: underline; min-height: 44px; display: flex; align-items: center; }
   .field-help { font-size: 0.85rem; color: #4a4a4a; margin-top: 0.2rem; }
@@ -211,6 +223,12 @@ app_css <- "
      its heading (the legend floats so the button can follow it). */
   fieldset.form-group-box > legend.h6 { float: left; width: auto; margin: 0 0.35rem 0.5rem 0; padding: 0; line-height: 32px; }
   fieldset.form-group-box > legend.h6 ~ * { clear: both; }
+  /* A field shown only for some choices sits in Shiny's conditional
+     wrapper, which has no box of its own (display: contents), so clearing
+     the wrapper does nothing and the field rose beside the floated
+     heading (17 November 2026). Its contents clear instead. */
+  fieldset.form-group-box > legend.h6 ~ .shiny-panel-conditional > *,
+  fieldset.form-group-box .shiny-panel-conditional .shiny-panel-conditional > * { clear: both; }
   fieldset.form-group-box > legend.h6 ~ .group-more { clear: none; }
   .explanation-help.group-more, .explanation-help.inline-more { display: block; margin: 0 0 0.5rem; }
   .explanation-help.group-more > .explanation-content, .explanation-help.inline-more > .explanation-content { clear: left; }
@@ -1144,6 +1162,7 @@ server <- function(input, output, session) {
     guided_plan = NULL,      # the study plan the guided route ("Plan a whole study") fills
     plan_more_target = NULL, # the plan whose "Add an analysis" was pressed last
     rep_plan = NULL,         # the replication plan the replicate aim's card fills (R/study-plan-replication.R)
+    rep_extension_plan = NULL, # the replication plan an extension analysis is being chosen for
     ws_result = NULL         # whole-study simulation: the last finished run, summarised for its study plan
   )
   # A link to a card (?card=E8; card_from_query(), R/ui.R) opens it as the
@@ -1326,6 +1345,7 @@ server <- function(input, output, session) {
       open_in_app(project, restore_from_project(project$route, tree, forms))
       return()
     }
+    if (pick == "home" || kind == "route" || kind == "aim") state$rep_extension_plan <- NULL
     if (pick == "home") {
       state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list(); state$start <- list()
       state$skip_screening <- FALSE
@@ -1416,9 +1436,12 @@ server <- function(input, output, session) {
         state$form_values <- version_form_values(state$preset_version, state$form_values)
       }
       if (replicating(state$start)) {
-        state$form_values <- replication_form_values(state$form_values)
-        # The replication plan's notes, in the user's own words, as the reasoning.
+        # The replication plan's settings, entered once: its significance
+        # level, chance of success and the original's effect.
         rep <- plan_get(state$rep_plan)
+        state$form_values <- replication_form_values(state$form_values, state$endpoint,
+          if (plan_is_replication(rep)) replication_values(rep$replication))
+        # The replication plan's notes, in the user's own words, as the reasoning.
         seed <- if (plan_is_replication(rep)) labs_seed_reasoning(replication_values(rep$replication))
         if (!is.null(seed) && is.null(state$form_values$just_source)) state$form_values$just_source <- seed
       }
@@ -2245,7 +2268,11 @@ server <- function(input, output, session) {
     plan <- plan_for_adding(input$plan_target)
     hash <- calc$result$provenance$spec_hash
     if (plan_has_result(plan, hash)) return()
-    plan <- plan_add_entry(plan, plan_entry(tree, state$endpoint, calc, calc$route))
+    entry <- plan_entry(tree, state$endpoint, calc, calc$route)
+    # An extension chosen for a replication plan is kept as one, so it is
+    # never reported as the original's analysis (queue item 28).
+    if (identical(plan$id, state$rep_extension_plan)) entry$extension <- TRUE
+    plan <- plan_add_entry(plan, entry)
     plans_put(plan)
     state$current_plan <- plan$id
     state$plan_just_added <- list(plan = plan$id, hash = hash)
@@ -3000,10 +3027,12 @@ server <- function(input, output, session) {
     values <- replication_values(plan$replication)
     for (id in names(values)) {
       v <- values[[id]]
-      if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test")) updateSelectInput(session, id, selected = v)
-      else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type")) updateRadioButtons(session, id, selected = v)
-      else if (identical(id, "labs_outcome")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
-      else if (!id %in% c("rep_goal", "rep_prior")) updateTextInput(session, id, value = v)
+      if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test", "rep_goal")) updateSelectInput(session, id, selected = v)
+      else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type",
+        "rep_purpose", "rep_prior", "rep_sided")) updateRadioButtons(session, id, selected = v)
+      else if (identical(id, "rep_also")) updateCheckboxGroupInput(session, id, selected = replication_also_selected(v))
+      else if (id %in% c("labs_outcome", "rep_keeps")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
+      else updateTextInput(session, id, value = v)
     }
     rep_loaded(list(id = plan$id, values = values, synced = FALSE))
     rep_server$reset()
@@ -3013,7 +3042,11 @@ server <- function(input, output, session) {
     if (plan_is_replication(plan) && !identical(isolate(rep_loaded())$id, plan$id)) rep_fill(plan)
   }, ignoreNULL = FALSE)
   rep_inputs <- debounce(reactive(stats::setNames(lapply(replication_plan_field_ids, function(id) {
-    v <- input[[id]]; if (is.null(v) || !length(v)) "" else paste(as.character(v), collapse = "\n")
+    v <- input[[id]]
+    # No "Also report" ticked is a choice the plan keeps ("none"); a blank
+    # would restore the starting tick.
+    if (identical(id, "rep_also")) return(replication_also_value(v))
+    if (is.null(v) || !length(v)) "" else paste(as.character(v), collapse = "\n")
   }), replication_plan_field_ids)), 600)
   observe({
     values <- rep_inputs()
@@ -3024,12 +3057,12 @@ server <- function(input, output, session) {
     loaded <- rep_loaded()
     if (!plan_is_replication(plan) || is.null(loaded) || !identical(loaded$id, id)) return()
     if (!isTRUE(loaded$synced)) {
-      same <- setdiff(names(values), c("labs_outcome", "rep_goal", "rep_prior"))
+      same <- setdiff(names(values), "labs_outcome")
       if (!identical(values[same], loaded$values[same])) return()
       loaded$synced <- TRUE
       rep_loaded(loaded)
       # The choices the screen can't set before they are drawn keep the plan's.
-      values[c("labs_outcome", "rep_goal", "rep_prior")] <- loaded$values[c("labs_outcome", "rep_goal", "rep_prior")]
+      values["labs_outcome"] <- loaded$values["labs_outcome"]
     }
     updated <- plan_set_replication(plan, fields = values)
     if (!identical(updated$changed, plan$changed)) plans_put(updated)
@@ -3055,28 +3088,70 @@ server <- function(input, output, session) {
   })
   # From the workspace to the main route: the finder's replicate aim, or
   # the original's card, filling this plan.
-  start_replication_route <- function(id, endpoint = NULL) {
+  # The original's analysis is usually named in its paper, so the
+  # searchable list of every analysis comes first and the design finder's
+  # questions second (queue item 28); either keeps the replicate aim, so
+  # the card chosen is kept in this plan.
+  start_replication_route <- function(id, endpoint = NULL, via = "list") {
     plan <- plan_get(id)
     req(plan_is_replication(plan))
     cancel_job()
+    state$rep_extension_plan <- NULL
     state$start <- list(aim = "replicate")
     state$rep_plan <- id; state$current_plan <- id
-    state$history <- list(); state$node <- NULL; state$calc <- NULL; state$route <- "choose"
+    state$history <- list(); state$node <- NULL; state$calc <- NULL
     state$ctx <- aim_context(tree, state$start)
     if (!is.null(endpoint)) {
+      state$route <- "known"; state$skip_screening <- TRUE
       state$endpoint <- endpoint; state$came_from <- "known"; state$screen <- "card"
+    } else if (identical(via, "list")) {
+      state$route <- "known"; state$skip_screening <- TRUE
+      state$screen <- "known"
     } else {
+      state$route <- "choose"; state$skip_screening <- FALSE
       go_to(resolve_target(tree, start_node(tree), state$ctx, state$route))
     }
     updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
   }
-  observeEvent(input$rep_find_design, start_replication_route(isolate(state$plans_view)))
+  observeEvent(input$rep_pick_design, start_replication_route(isolate(state$plans_view)))
+  observeEvent(input$rep_find_design, start_replication_route(isolate(state$plans_view), via = "finder"))
   observeEvent(input$rep_open_card, {
     plan <- plan_get(isolate(state$plans_view))
     req(plan_is_replication(plan), plan$replication$endpoint)
     start_replication_route(plan$id, plan$replication$endpoint)
   })
   observeEvent(input$rep_view_plan, open_plans_page(isolate(state$rep_plan)))
+  # What the replication keeps (queue item 28). An extension: the list of
+  # every analysis, as an ordinary analysis (not the original's), whose
+  # "Add to plan" keeps it in this plan under its own heading.
+  observeEvent(input$rep_add_extension, {
+    plan <- plan_get(isolate(state$plans_view))
+    req(plan_is_replication(plan))
+    cancel_job()
+    state$start <- list(); state$rep_plan <- NULL
+    state$rep_extension_plan <- plan$id; state$current_plan <- plan$id
+    state$history <- list(); state$node <- NULL; state$calc <- NULL; state$ctx <- list()
+    state$route <- "known"; state$skip_screening <- TRUE; state$screen <- "known"
+    updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
+  })
+  # A conceptual replication: the shrunk belief and more variation between
+  # studies, set when the researcher asks (never on loading a plan).
+  observeEvent(input$rep_use_conceptual, {
+    s <- replication_conceptual_settings(list(rep_design = input$rep_design, rep_tau = input$rep_tau, rep_tau_r = input$rep_tau_r))
+    updateRadioButtons(session, "rep_prior", selected = s$rep_prior)
+    if (!is.null(s$rep_tau)) updateSelectInput(session, "rep_tau", selected = s$rep_tau)
+    if (!is.null(s$rep_tau_r)) updateSelectInput(session, "rep_tau_r", selected = s$rep_tau_r)
+    output$rep_conceptual_done <- renderUI(p(class = "small text-success", role = "status",
+      if (identical(input$rep_design, "generic")) "Done: the shrunk belief. For this effect, raise the variation between studies under Goals yourself, on its own scale."
+      else "Done: the shrunk belief and more variation between studies, under Goals. You can change either there."))
+  })
+  # A new study: an ordinary study plan instead.
+  observeEvent(input$rep_start_study_plan, {
+    plan <- new_plan()
+    plans_put(plan)
+    state$current_plan <- plan$id
+    open_plans_page(plan$id)
+  })
   # The replicate aim's card is kept in a replication plan: the one it was
   # started from, or a new one.
   observeEvent(list(state$screen, state$endpoint), {
@@ -3228,7 +3303,9 @@ server <- function(input, output, session) {
       start = start_ui(tree, isolate(state$start),
         saved_projects = div(class = "saved-projects-grid", open_project_ui(), check_project_ui())),
       check = plan_check_ui(tree, forms, state$checked_project),
-      known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode),
+      known = known_ui(tree, state$history, if (isTRUE(state$skip_screening)) NULL else state$ctx, state$bayes_mode,
+        note = if (replicating(state$start)) replication_known_note(plan_get(state$rep_plan))
+          else if (!is.null(state$rep_extension_plan)) replication_extension_note(plan_get(state$rep_extension_plan))),
       node = node_ui(tree, state$node, state$history, state$ctx, state$route, isolate(state$bayes_mode)),
       card = tagList(
         screen_nav_ui(),
@@ -3239,7 +3316,8 @@ server <- function(input, output, session) {
         route_fit_ui(tree, state$endpoint, state$ctx),
         bayes_mode_card_note(tree, state$endpoint, state$bayes_mode),
         version_card_note(state$preset_version, state$endpoint),
-        if (replicating(state$start)) replication_card_note(forms, state$endpoint, plan_get(state$rep_plan)),
+        if (replicating(state$start)) replication_card_note(forms, state$endpoint, plan_get(state$rep_plan))
+        else if (!is.null(state$rep_extension_plan)) replication_extension_note(plan_get(state$rep_extension_plan), card = TRUE),
         card_ui(tree, state$endpoint, history = state$history,
           fits = !length(route_fit_messages(tree, state$endpoint, state$ctx))),
         card_nav_ui(forms, state$endpoint),

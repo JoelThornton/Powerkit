@@ -1146,3 +1146,40 @@ test_that("a missing backend's install advice is replaced on the online app", {
   expect_match(online_package_message(two, local = FALSE), "packages it needs ('a' and 'b') aren't installed there", fixed = TRUE)
   expect_identical(online_package_message("Some other problem.", local = FALSE), "Some other problem.")
 })
+
+test_that("headings and labels are the same with explanations on or off, and the effect's boxes are named", {
+  # With explanations off, boxes and fields were renamed, so two effect
+  # boxes shared the heading "Effect size" and labels differed between
+  # modes; labelling every box with an effect field "Effect size: ..."
+  # was wrong for SDs and variance components (17 November 2026).
+  html <- as.character(form_ui(tree, forms, "E54", form_groups(forms, "E54")))
+  # (The screen's title still swaps to the analysis's standard name.)
+  boxes <- c(regmatches(html, gregexpr("<legend[^>]*>.*?</legend>", html))[[1]],
+             regmatches(html, gregexpr("<label[^>]*>.*?</label>", html))[[1]])
+  expect_false(any(grepl("name-tech|name-plain", boxes)))
+  legends <- gsub("<[^>]+>", "", regmatches(html, gregexpr("<legend[^>]*>.*?</legend>", html))[[1]])
+  expect_true("The expected mean in each condition" %in% legends)
+  expect_false(any(grepl("^Effect size:", legends)))
+  expect_false(anyDuplicated(legends[nzchar(legends)]) > 0)
+  expect_match(html, "the effect size and the values it depends on go in the boxes headed \u201cThe expected mean in each condition\u201d, \u201cThe SD\u201d and \u201cThe correlation between any two conditions\u201d.", fixed = TRUE)
+  # A box whose fields each depend on the test still counts when they
+  # show with the default answers (the one-way ANOVA's SD).
+  expect_match(as.character(form_ui(tree, forms, "E18", form_groups(forms, "E18"))),
+    "boxes headed \u201cThe expected group means\u201d and \u201cThe SD\u201d.", fixed = TRUE)
+  one <- as.character(form_ui(tree, forms, "E25", form_groups(forms, "E25")))
+  expect_match(one, "the effect size goes in the box headed \u201cThe expected proportion\u201d.", fixed = TRUE)
+  # Field labels are the full ones in both modes; the short ones name
+  # fields only in the "still needed" line.
+  e2 <- as.character(form_ui(tree, forms, "E2", form_groups(forms, "E2")))
+  expect_no_match(e2, "Effect-size source", fixed = TRUE)
+  # The screen names the analysis by its standard name too.
+  e18 <- as.character(form_ui(tree, forms, "E18", form_groups(forms, "E18")))
+  expect_match(e18, "Standard name:\\s*<strong>One-way between-subjects ANOVA</strong>")
+})
+
+test_that("a field shown only for some choices clears its box's floated heading", {
+  # Shiny's conditional wrapper has display: contents, so clearing the
+  # wrapper alone left such a field beside the heading (17 November 2026).
+  css <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
+  expect_match(css, "fieldset.form-group-box > legend.h6 ~ .shiny-panel-conditional > *", fixed = TRUE)
+})

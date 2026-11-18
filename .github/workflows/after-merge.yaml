@@ -1,0 +1,125 @@
+# Numbers each merge to main, then tags it (decided 18 November 2026;
+# docs/adding-a-test.md, "Change notes and version numbers").
+#
+# Pull requests no longer set the version or rewrite the lines every merge
+# would touch, so parallel pull requests don't conflict over them. After
+# each merge this job runs scripts/after-merge.R on main: the waiting
+# change notes get the next version (minor if a merged pull request has
+# the "minor" label, otherwise patch), waiting decision entries join
+# docs/decisions.md, docs/status.md gets the date, and the release
+# inventory is regenerated. It commits that to main as one commit marked
+# [skip ci] (it changes no code the checks test), then tags the version.
+#
+# GitHub skips every workflow for a commit whose message contains that
+# marker anywhere, title or body. So a pull request's commit messages, and
+# the squash message when it merges, must not quote it, or its checks and
+# this job won't run.
+#
+# The push uses the RELEASE_TOKEN secret (see release-tags.yaml). main's
+# "Require checked pull requests" ruleset must list the repository admin
+# role as a bypass actor, or the push is refused; nothing else may push to
+# main directly (docs/repository-protection.md, "Observed configuration").
+name: after-merge
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "patch or minor"
+        default: patch
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: after-merge
+  cancel-in-progress: false
+
+jobs:
+  number:
+    # The job's own commit says [skip ci], so it doesn't start this again.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Check the token
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::The RELEASE_TOKEN secret is not set (see release-tags.yaml)."
+            exit 1
+          fi
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      # The release inventory reads the app's routing code, which needs these.
+      - name: Install R packages
+        run: Rscript -e 'install.packages(c("yaml", "jsonlite", "shiny", "htmltools"))'
+
+      - name: Patch or minor
+        id: bump
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          ASKED: ${{ inputs.bump }}
+        run: |
+          bump=${ASKED:-patch}
+          if [ "${{ github.event_name }}" = push ] && git cat-file -e "$BEFORE" 2>/dev/null; then
+            for commit in $(git rev-list "$BEFORE..$AFTER"); do
+              labels=$(gh api "repos/${{ github.repository }}/commits/$commit/pulls" --jq '.[].labels[].name' || true)
+              if printf '%s\n' "$labels" | grep -qx minor; then bump=minor; fi
+            done
+          fi
+          echo "bump=$bump" >> "$GITHUB_OUTPUT"
+
+      - name: Number, commit and push
+        env:
+          BUMP: ${{ steps.bump.outputs.bump }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # A merge that lands while this runs moves main on: start again
+          # from the new main (its notes are numbered here too).
+          for attempt in 1 2 3 4; do
+            git fetch -q origin main
+            git reset -q --hard origin/main
+            version=$(Rscript scripts/after-merge.R "$BUMP")
+            git add -A
+            if git diff --cached --quiet; then
+              echo "Nothing to number."
+              exit 0
+            fi
+            message="Number main${version:+ as powerkit $version} [skip ci]"
+            git commit -q -m "$message" -m "Written by scripts/after-merge.R after a merge (docs/adding-a-test.md, \"Change notes and version numbers\")."
+            if git push -q origin HEAD:main; then
+              echo "Pushed: $message"
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          echo "::error::main kept moving, or refused the push: check that the ruleset lets the admin role bypass (docs/repository-protection.md)."
+          exit 1
+
+      - name: Tag the version and publish its release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          git fetch -q origin main --tags
+          git reset -q --hard origin/main
+          bash scripts/tag-releases.sh

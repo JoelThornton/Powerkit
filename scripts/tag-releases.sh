@@ -9,9 +9,10 @@
 # engine/DESCRIPTION says X.Y.Z: the commit that closed it. Before 0.45.0
 # the first pull request of a batch set the number and the rest kept it,
 # so those versions are tagged at the last commit that still says X.Y.Z.
-# A version is finished once main has moved on to the next one; the
-# version main is on now stays untagged until then. The release notes are
-# that version's section of engine/NEWS.md at the tagged commit.
+# Since 18 November 2026 a version is set after its merge, on main, by
+# scripts/after-merge.R, and never changes, so the version main is on now
+# is tagged too (before, it waited until main moved on). The release notes
+# are that version's section of engine/NEWS.md at the tagged commit.
 #
 # Run from a full clone of main (fetch-depth 0). Safe to run again: a
 # version that already has its tag and release is left alone, and release
@@ -34,7 +35,6 @@ version_at() {
 set_at_close=0.45.0
 closes_batch() { [[ "$(printf '%s\n%s\n' "$set_at_close" "$1" | sort -V | head -n 1)" == "$set_at_close" ]]; }
 
-current=$(version_at HEAD)
 declare -A last_commit=()
 while read -r commit; do
   v=$(version_at "$commit")
@@ -46,8 +46,8 @@ while read -r commit; do
   fi
 done < <(git rev-list --first-parent --reverse HEAD)
 
-# Finished versions, oldest first.
-finished=$(printf '%s\n' "${!last_commit[@]}" | grep -vxF "$current" | sort -V || true)
+# Every version, oldest first: each is final once on main.
+finished=$(printf '%s\n' "${!last_commit[@]}" | sort -V || true)
 
 for v in $finished; do
   tag="v$v"

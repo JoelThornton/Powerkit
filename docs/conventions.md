@@ -169,6 +169,7 @@ power while matching G\*Power) is folded there instead
 | Spower | `p_var.test()`: one variance plus `sigma2` goes to `EnvStats::varTest()` (the chi-square test); two variances go to `stats::var.test()` (the F test), whatever `test` says, unless `test = "Fligner"`. `test` (Levene, Bartlett, Fligner) is for three groups or more [Spower-src] | `vars` (one variance, or one per group), `sigma2` (the value tested against) [Spower-src] | `alternative`, or `two.tailed`; `two.tailed = FALSE` means `"greater"` whichever way the variances point, so a test of a **smaller** variance needs `alternative = "less"` (`docs/upstream-questions.md`). `n` is one group's size and `n.ratios` the group sizes' ratios, but unequal ratios fail in `gen_var.test()` (`docs/upstream-questions.md`) [Spower-src] |
 | pwr, pwrss, Superpower, InteractionPoweR, power4mome | Not covered: none of them exports a power function for a variance (their exported functions, checked 25 October 2026) | | |
 | **powerkit** | Since 31 October 2026, the exact distributions above, as G\*Power computes them, with base R's `stats::pchisq()` and `stats::pf()` (`backend-variance.R`; CLAUDE.md allows a published closed-form result where no package has one). Spower's `p_var.test()` simulates the same tests with `options > method` "simulation". Known difference 4 is retired [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), `goal.n` is the total. The formula takes an allocation ratio for the two-group test, rounding the groups at each total (G\*Power's own example with N2/N1 = 2 gives 148 and 295, N = 443, and so does powerkit; it gave 148 and 296, N = 444, while it kept the ratio exact); the simulation is refused one while Spower can't draw unequal groups |
+| **powerkit**, Levene's and the Brown-Forsythe test (from 17 November 2026) | E53 also offers the tests that don't assume normal scores: Levene's test (`target_test > method` "levene", deviations from each group's mean) and the Brown-Forsythe test ("brown_forsythe", deviations from the medians), both `car::leveneTest()` (center = mean or median; median is car's default; SPSS reports Levene's). No package gives their power, and Spower's `p_var.test()` runs the F test for two groups whatever `test` says, so powerkit's own Spower experiment `p_levene()` draws the scores in the chosen shape (`population > score_shape`: normal, skewed or heavy-tailed) and runs `car::leveneTest()` (`backend-levene.R`). The F test stays the default, as in G\*Power [powerkit] | As above | Two-sided only (a one-sided test of which variance is larger is the F test's); unequal groups are simulated (rounded as the formula rounds them). At 200 people, variances 1.5 and 1: the F test 0.518, Levene's test 0.467 and the Brown-Forsythe test 0.466 with normal scores, and the Brown-Forsythe test 0.25 with heavy-tailed scores. `test-validation-variance-tests.R` checks them against an ANOVA of the absolute deviations written out without car |
 
 ## Factorial ANOVA
 
@@ -657,6 +658,23 @@ approximates a risk ratio only when the outcome is rare; the test of
 whether it is 0 doesn't depend on that approximation. An X-by-M
 interaction, covariates and a bootstrap interval are not offered yet.
 
+## Mediation with a mediator in ordered categories (E39, ordinal_mediator)
+
+| Tool | Test | Effect size | Settings |
+| --- | --- | --- | --- |
+| G\*Power | No mediation | — | — |
+| PROCESS | Not offered for an ordered mediator: PROCESS estimates every mediator's equation by OLS, so the categories are treated as equally spaced scores | — | — |
+| lavaan, Mplus | A structural equation model with the mediator declared ordered (`ordered =`): each category is the range of an underlying normal score between two thresholds, the paths into and out of the mediator are on that score, and the indirect effect a*b is tested with a delta-method standard error (lavaan's `:=`), the default output of both (Rosseel, 2012, lavaan's citation()) | a and b on the underlying score | lavaan's default estimator for ordered variables is WLSMV; its default parameterisation is "delta" (the underlying score's total variance is 1) |
+| power4mome | Not offered: the mediator is drawn as a score | — | — |
+| **powerkit** | Spower running `p_mediation_ordm()`: X two equal groups (0, 1) or a standard normal score, the mediator's underlying score M* = aX + e (e standard normal) cut at `qnorm(cumsum(shares))`, Y = bM* + c'X + e for a score Y, or a yes/no Y from the same model's underlying score cut so that the chance of "yes" at X = 0 and M* = 0 is the input; analysed by `lavaan::sem()` with M (and a yes/no Y) declared ordered, WLSMV, `parameterization = "theta"`; significant when a*b's two-sided delta-method p value is below alpha (E39, from 17 November 2026) [powerkit] | The share of people in each category in the first group (or at X's mean), X's effect on the underlying score in its residual SD (a, the ordered probit coefficient), the outcome's change per SD of that score (b), and X's direct effect | The theta parameterisation is chosen so that a and b are on the scales the researcher gives (the residual SD of the underlying score is 1); a*b's test is the same in either parameterisation, up to simulation error (`test-validation-mediation-ordm.R`). A study whose model can't be fitted counts as not significant |
+
+powerkit follows the structural equation modelling programs' usual
+analysis of an ordered mediator here, and no departure is recorded. PROCESS
+users who treat the categories as a score will see a different model; that
+model is still available on the mediation cards for a score mediator. The
+delta-method test of a*b is somewhat conservative in small samples, as on
+the yes/no mediator card.
+
 ## Meta-analysis with several effects per study (E61, POMADE)
 
 | Tool | Test | Effect size | Settings |
@@ -795,7 +813,7 @@ factors; both are offered.
 | --- | --- | --- | --- |
 | G\*Power | No replication planning; a replication is planned as an ordinary test with the original's effect | — | — |
 | BayesRepDesign (Pawel, Consonni & Held, 2026) | `ssdSig()`, `ssdMeta()`, `ssdEqu()`, `ssdTOST()`, `ssdBFr()`, `ssdBFs()` and their `pors*()` chances, on the normal-normal hierarchical model: the effect estimate is normal with a known standard error | The original estimate and its standard error; a design prior (`designPrior()`, conditional, predictive or empirical Bayes) with a heterogeneity SD `tau` | Levels as the user passes them; `se2n(se, unitSD = 2)` turns a standard error into a total sample size for a standardised mean difference |
-| **powerkit** | `replication_planning()` (Labs, from 8 November 2026): every goal judged against the original's effect is BayesRepDesign's, under all three design priors; small telescopes is the card's own pwr and pwrss calculation (above), so the two agree [powerkit] | d (two groups, one sample), d_z (pairs) or r (on Fisher's z); the original's standard error from the paper's equation 9 for two groups, 1/sqrt(n) for one sample or pairs, 1/sqrt(n - 3) for r | The paper's worked levels: the two-trials rule at one-sided alpha/2, the pooled estimate at (alpha/2)^2, agreement by a (1 - 2 alpha) interval for the difference, Bayes factors at 1/threshold (10 by default), and TOST at alpha (BayesRepDesign's `level` set to 2 alpha, because `porsTOST()` uses `qnorm(1 - level/2)`; `upstream-questions.md`). `tau` applies to the uncertain and shrunk priors only: the conditional prior is a point mass. Two equal groups in the replication |
+| **powerkit** | `replication_planning()` (Labs, from 8 November 2026): every goal judged against the original's effect is BayesRepDesign's, under all three design priors; small telescopes is the card's own pwr and pwrss calculation (above), so the two agree [powerkit] | d (two groups, one sample), d_z (pairs) or r (on Fisher's z); the original's standard error from the paper's equation 9 for two groups, 1/sqrt(n) for one sample or pairs, 1/sqrt(n - 3) for r | The paper's worked levels: the two-trials rule at one-sided alpha/2, the pooled estimate at (alpha/2)^2, agreement by a (1 - 2 alpha) interval for the difference, Bayes factors at 1/threshold (10 by default), and TOST at alpha (BayesRepDesign's `level` set to 2 alpha, because `porsTOST()` uses `qnorm(1 - level/2)`; `upstream-questions.md`). `tau` applies to the uncertain and shrunk priors only: the conditional prior is a point mass. Two equal groups in the replication. A one-sided option (17 November 2026) puts the two-trials rule at alpha and the pooled estimate at alpha squared, BayesRepDesign's levels for a one-sided test in the original's direction; two-sided is the default |
 
 **The normal approximation against the t-test cards.** With the "as
 reported" prior and no heterogeneity, the significance goal is a classical
@@ -1560,6 +1578,16 @@ Decided by the maintainer on 30 October 2026 (`docs/decisions.md`).
   powerkit's example, `inst/specs/item_predictor.json`: 60 items, a
   slope of -15 ms per SD of word frequency), 48.9% against 54.1% at 10
   participants and 80.1% against 81.6% at 30 (1,000 simulated data sets).
+- **Kenward-Roger as a choice (from 17 November 2026):** with a score,
+  each of these cards also offers Kenward and Roger's degrees of freedom
+  (`target_test > df_method` "kenward_roger"; simr's method "kr", or
+  lmerTest's `ddf = "Kenward-Roger"` for three or more conditions), the
+  same departure from simr's z test. With E33's example at 20
+  participants, on the same 500 simulated data sets: 27.0% with
+  Kenward-Roger, 27.4% with Satterthwaite and 29.2% with z, the two
+  corrections reaching the same decision in 99.6% of them (simr 1.0.11,
+  pbkrtest 0.5.5). `test-backend-mixed-kr.R` checks it replication for
+  replication against simr's `fixed("cond", "kr")`.
 - **Test:** `test-backend-mixed-model.R`, "powerkit's simulation is simr's
   powerSim() with the Satterthwaite test, replication for replication";
   the size above is from `powerSim()` with each method on the same seed.
@@ -2015,6 +2043,69 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   used (`app/routing/R/results.R`, `departures_for()`), and in the methods
   paragraph.
 
+### 30. Replication plans: a criterion that can show absence is reported by default
+
+- **Established convention:** a replication is planned for one criterion,
+  usually a significant result in the original's direction (G\*Power, or
+  BayesRepDesign's `ssdSig()` with the paper's other criteria as
+  alternatives); a non-significant replication then says nothing about
+  whether the effect is absent.
+- **powerkit:** the replication plan asks the researcher's purpose, plans
+  the sample size for one main criterion, and starts with "Also report:
+  whether the effect is absent" ticked (from 17 November 2026). With a
+  Bayes factor main criterion this is the default Bayes factor for no
+  effect (bfpwr, the original's test run the other way) where the
+  original was a t-test, and the replication Bayes factor (no effect
+  against the original's) for another design; with any other main
+  criterion it is the equivalence test (TOST)
+  against the smallest effect that matters, d33 (Simonsohn, 2015) when
+  none is entered. Its chance at the main criterion's sample size is
+  shown beside the main one. Unticking it gives the single-criterion
+  plan.
+- **Why:** a replication that fails to reach significance is commonly
+  misread as evidence of absence; reporting a criterion that can show
+  absence, with its chance planned in advance, lets either result be
+  interpreted (Simonsohn, 2015, `Simonsohn2015_telescopes`; Pawel,
+  Consonni and Held, 2026, `Pawel2026_replication`, whose equivalence
+  criterion this is).
+- **Size:** the sample size is unchanged, because it comes from the main
+  criterion alone: for an original d = 0.5 with 40 per group, the shrunk
+  belief and variation 0.05, the significance criterion asks for the same
+  number with and without the absence criterion; the plan adds one line,
+  the equivalence test's chance at that number
+  (`app/routing/tests/testthat/test-replication.R`, "the purpose picks
+  the main criterion").
+- **Shown to users:** on the replication plan's result (the table of
+  chances at the main sample size, and a note when no bound is available)
+  and in the methods paragraph, which names each criterion also reported
+  and its chance.
+
+### 31. Replication and sceptical Bayes factors: a success only in the original's direction (BayesRepDesign counts either side)
+
+- **Established convention:** BayesRepDesign's `ssdBFr()`, `porsBFr()`,
+  `ssdBFs()` and `porsBFs()` default to `paradox = TRUE`, which counts a
+  replication whose Bayes factor passes the threshold on either side of
+  zero, including an estimate opposite to the original's (Pawel,
+  Consonni & Held, 2026, discuss this "replication paradox").
+- **powerkit:** `paradox = FALSE` in `replication_planning()` and its
+  scripts (from 17 November 2026): only a replication in the original's
+  direction counts.
+- **Why:** the plan describes success as evidence for the original's
+  effect, which a replication on the other side of zero is not, however
+  large its Bayes factor. Under a belief shrunk towards zero, much of the
+  chance counted by the default comes from such replications.
+- **Size:** little under the as-reported belief. For an original d = 0.3
+  with 90 per group and tau = 0.1, at 80% and a threshold of 10, the
+  replication Bayes factor under the shrunk belief needs 26,086 people,
+  against the package default's 7,393; under the uncertain belief, 2,252
+  against 1,944 (`engine/tests/testthat/test-replication-planning.R`,
+  "the replication Bayes factors count a success in the original's
+  direction only"). The validation chunk's simulation applies the same
+  rule (`validation-log.md`).
+- **Shown to users:** on the replication plan's result whenever a
+  replication or sceptical Bayes factor is in the plan
+  (`replication_direction_note()`), and in the methods paragraph.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool
@@ -2094,6 +2185,17 @@ Wired into the app on 18 October 2026 (E25, E26).*
   smallest n that reaches the target", "known difference: pwrss's own
   sample-size answer for exact tests of counts (Known difference 2)", and
   the G\*Power checks for one proportion and McNemar.
+- **McNemar's chi-square test** (E26's options from 17 November 2026,
+  `target_test > method` "mcnemar_chisq" or "mcnemar_chisq_corrected") is
+  not an exact test: its power is simulated with Spower's
+  `p_mcnemar.test()` (`stats::mcnemar.test()`, the correction applied
+  unless the researcher chooses the uncorrected test, as jamovi reports
+  it), and this note is not shown for it. At 120 pairs with 0.10 and 0.25
+  discordant: the exact test 0.769, the uncorrected chi-square test 0.812
+  and the corrected one 0.764 (10,000 simulated studies each;
+  `test-validation-mcnemar-chisq.R`). pwrss's
+  `power.exact.mcnemar(method = "approximate")`, a normal approximation to
+  the uncorrected test, gives 0.801.
 - **Fisher's exact test** (E5's option, 18 October 2026) is an exact test
   of counts too, and powerkit reports its smallest N in the same way. It
   hasn't been compared with G\*Power yet, and the size of the difference
@@ -2935,8 +3037,11 @@ every PROCESS option is not established.
   means (Shieh's method) and from the same partial eta-squared (G*Power's)
   differ a little"). A pre-release comparison found 90 against
   G\*Power's 87 for a three-group example.
-- **Shown to users:** on every E23 result (`app/routing/forms.yaml`,
-  `known_differences`, key "15").
+- **Shown to users:** on every E23 result planned with measured covariates
+  (`app/routing/forms.yaml`, `known_differences`, key "15"). Since 17
+  November 2026 the card asks whether the covariates are measured or set
+  by the design; with fixed covariates, or an effect given as partial
+  eta-squared, powerkit plans as G*Power does and the note is not shown.
 - **Methods paragraph:** `known_differences_methods`, key "15".
 
 ## All-tests sufficient power target under unknown dependence

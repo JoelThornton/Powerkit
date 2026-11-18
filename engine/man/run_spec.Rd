@@ -122,7 +122,10 @@ Wave 2 (engine only, not yet in the app): one-way between-participants
 ANOVA on Superpower's \code{ANOVA_exact()}; multiple regression R-squared
 (against 0, or an increase) on \code{pwrss::power.f.regression()}; one
 proportion and McNemar's test on pwrss's exact tests
-(\code{power.exact.oneprop()}, \code{power.exact.mcnemar()}); and Welch's t-test
+(\code{power.exact.oneprop()}, \code{power.exact.mcnemar()}; McNemar's chi-square
+test, \code{target_test > method = "mcnemar_chisq"} or
+\code{"mcnemar_chisq_corrected"}, is simulated with Spower's
+\code{p_mcnemar.test()}); and Welch's t-test
 by formula (\code{pwrss::power.t.welch()}, unless
 \code{options > method = "simulation"} asks for Spower's simulation). Welch's
 one-way ANOVA (\code{target_test > method = "welch_f"}) is worked out by
@@ -169,7 +172,17 @@ scores drawn as for the Kruskal-Wallis and Friedman tests.
 Two-way ANCOVA (template \code{factorial_ancova}): two between factors, either
 main effect or the interaction, by pwrss's \code{power.f.ancova.shieh()}
 (Shieh's method) with the effect's rows of \code{factorial.contrasts()};
-adjusted cell means laid out as for \code{mixed}, equal cells.
+adjusted cell means laid out as for \code{mixed}, equal cells. For either
+ANCOVA, \code{target_test > covariate_model = "fixed"} plans covariates fixed
+by the design, as G\emph{Power does: pwrss's \code{power.f.ancova()} from the
+partial eta-squared of the adjusted means (noncentrality N gamma^2,
+Shieh, 2020); \code{"random"}, the default, is Shieh's method for covariates
+measured on each person.
+The mixed models with a score (templates \code{crossed_two_condition},
+\code{crossed_conditions}, \code{two_level}, \code{three_level}, \code{item_predictor}) take
+\code{target_test > df_method}: \code{"satterthwaite"} (the default, lmerTest) or
+\code{"kenward_roger"} (pbkrtest; simr's method \code{"kr"}, lmerTest's
+\code{ddf = "Kenward-Roger"} for three or more conditions).
 Two-factor ANOVA with both factors between participants, beyond 2 x 2
 (template \code{factorial_between}, design \code{"kb*mb"}), or both within
 participants, 2 x 2 or larger (template \code{factorial_within}, design
@@ -193,7 +206,7 @@ of a participant's cells; any main effect or interaction on
 Superpower's \code{ANOVA_exact()}. \code{goal > n} is the total number of
 participants, split equally across the between factors' combinations.
 Two dependent correlations in one group (engine only), by Steiger's z
-test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G*Power):
+test with pwrss's \code{power.z.twocors.steiger()} (unpooled, as G}Power):
 templates \code{overlapping_correlations} (X with Y against X with Z) and
 \code{nonoverlapping_correlations} (X1 with Y1 against X2 with Y2).
 Logistic regression (design \code{logistic_regression}, engine only): the Wald z

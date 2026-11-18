@@ -1398,15 +1398,15 @@ endpoints:
     doc_name: "ANCOVA (incl. pre–post with a baseline covariate)"
     technical_name: "ANCOVA"
     plain_name: "Compare groups adjusting for a covariate (e.g. the before score)"
-    search_words: "ancova analysis of covariance baseline adjusted pre post randomised trial bayesian ancova bayes factor"
+    search_words: "ancova analysis of covariance baseline adjusted pre post randomised trial bayesian ancova bayes factor fixed covariate shieh keppel"
     template: "factorial_anova / oneway_ancova, factorial_ancova"
-    backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula); BayesFactor's generalTestBF() with bayestestR's bayesfactor_inclusion() for the Bayes factor of the effect (simulated with Spower)"
+    backend: "pwrss: power.f.ancova.shieh() (Shieh's method, by formula) for measured covariates, power.f.ancova() for covariates fixed by the design; BayesFactor's generalTestBF() with bayestestR's bayesfactor_inclusion() for the Bayes factor of the effect (simulated with Spower)"
     method: "Formula (no simulation); the Bayes factor version is simulated"
     status: runs_validation_in_progress
     validation: {file: test-backend-formula-tests.R, note: "Matches pwrss called directly and Superpower's power_oneway_ancova() (one factor) and ANCOVA_analytic() (two factors) in the engine's tests. The Bayes factor version agrees with an independently written simulation of the same Bayes factor, for evidence at the threshold for an effect and for none. Not yet checked against G*Power or a published example."}
     card_points:
       - "Powerkit calculates the overall test of a one-way ANCOVA, or either main effect or the interaction of a two-way ANCOVA: different people in each group, equal group sizes, and the same SD in every group."
-      - "It uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses; Superpower names Keppel's approach as the approximate one."
+      - "You say how the covariates come about. Measured on each person, such as a before score, uses Shieh's (2020) method, which Superpower's exact ANCOVA also uses. Set by the design, such as doses chosen in advance, plans them as fixed, as G*Power does, which gives a little more power."
       - "Will you analyse it with a Bayes factor, as in JASP's Bayesian ANCOVA? Choose it as the test version: Powerkit simulates the chance that the effect's inclusion Bayes factor reaches your threshold, with JASP's default priors."
     inputs: ["Names of the groups and the outcome", "The expected (adjusted) group means and SD", "How much the covariate explains (R-squared), or its correlation with the outcome", "The ANCOVA's F test or a Bayes factor"]
     tier: v2
@@ -1449,13 +1449,14 @@ endpoints:
     plain_name: "The same people, a yes/no outcome in each of two conditions"
     search_words: "paired proportions matched pairs"
     template: "basic_test / mcnemar"
-    backend: "pwrss: power.exact.mcnemar(method = \"exact\") (McNemar's exact test, as G*Power's exact option)"
-    method: "Formula (no simulation)"
+    backend: "pwrss: power.exact.mcnemar(method = \"exact\") (McNemar's exact test, as G*Power's exact option); McNemar's chi-square test, with or without the continuity correction, simulated with Spower's p_mcnemar.test()"
+    method: "Formula (no simulation) for the exact test; simulation for the chi-square tests"
     status: runs_validation_in_progress
-    validation: {file: test-backend-wave2.R, note: "Matches G*Power to seven decimal places in the engine's tests. Not yet in the full validation run, and not yet checked against a published example."}
+    validation: {file: test-backend-wave2.R, note: "The exact test matches G*Power to seven decimal places in the engine's tests. The chi-square tests agree with a simulation written separately (the pairs drawn as counts and McNemar's statistic computed from its formula) and keep the Type I error at alpha without the correction (17 November 2026). Not yet checked against a published example."}
     card_points:
+      - "Choose the test you will run: McNemar's exact test (SPSS, G*Power), or the chi-square test with the continuity correction (R's mcnemar.test()) or without it (jamovi)."
       - "Three or more conditions, a yes/no answer from each person in each: Cochran's Q, which has its own card."
-    inputs: ["Names of the two conditions and the outcome", "The expected discordant proportions"]
+    inputs: ["Names of the two conditions and the outcome", "The expected discordant proportions", "McNemar's exact test or the chi-square test"]
     tier: v2
     alternatives: ["McNemar's exact test", "McNemar's chi-square approximation"]
   E78:
@@ -1613,7 +1614,7 @@ endpoints:
     plain_name: "Each person responds to many items or stimuli"
     search_words: "mixed model mixed effects random effects stimuli items linear mixed model lmm lme4 lmer crossed random effects"
     template: "mixed_model / crossed_two_condition"
-    backend: "simr: powerSim() on a model built by makeLmer(), with lmerTest's Satterthwaite t test (simulation)"
+    backend: "simr: powerSim() on a model built by makeLmer(), with lmerTest's Satterthwaite t test or pbkrtest's Kenward-Roger test (simulation)"
     method: Simulation
     status: runs_validation_in_progress
     validation: {file: test-validation-mixed-model.R, note: "Matches simr called directly, replication for replication, recovers every population value in its check run, and agrees with an independent simulation and keeps the Type I error at alpha in the engine's tests. Not yet checked against a published example."}
@@ -1622,7 +1623,7 @@ endpoints:
       - "You give the difference between conditions and how much participants and items vary, in the outcome's own units; the number of items is fixed and Powerkit finds the number of participants."
       - "The model has random intercepts for participants and items, a random condition effect for participants when everyone responds in both conditions, and one for items when every item appears in both; items can be in one condition each or in both."
       - "With a yes/no answer on each trial (correct or not), you give each condition's chance of 'yes' for a typical participant and item, with the SDs on the log-odds scale; Powerkit fits a logistic mixed model (glmer) and tests with the Wald test glmer reports or, if you choose, the likelihood-ratio test."
-      - "Simulated with simr, testing the condition with Satterthwaite's t test rather than simr's default z test, an approximation that treats the t statistic as normal. Power at a given number of participants runs here; the number you need comes as an R script, because each sample size takes minutes."
+      - "Simulated with simr, testing the condition with Satterthwaite's t test (or Kenward and Roger's, if you choose it) rather than simr's default z test, an approximation that treats the t statistic as normal. Power at a given number of participants runs here; the number you need comes as an R script, because each sample size takes minutes."
     inputs: ["The two conditions and the outcome", "The difference between conditions (the fixed effect) in the outcome's units, or each condition's chance of 'yes'", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or both"]
     refs: "decisions, 30 October 2026 (docs/decisions.md); Departure 16"
     tier: v2
@@ -1724,21 +1725,22 @@ endpoints:
     doc_name: "Mediation with a yes/no or categorical mediator"
     technical_name: "Mediation: categorical mediator"
     plain_name: "Mediation when a mediator isn't a score"
-    search_words: "mediation binary dichotomous yes/no mediator logistic natural indirect effect causal mediation counterfactual vanderweele valeri regmedint"
-    template: "mediation / binary_mediator (a yes/no mediator; X two groups or a score; Y a score or yes/no)"
-    backend: "Spower: powerkit's experiment around regmedint::regmedint() (regression-based causal mediation analysis: the natural indirect effect and its delta-method test), simulated"
+    search_words: "mediation binary dichotomous yes/no mediator logistic natural indirect effect causal mediation counterfactual vanderweele valeri regmedint ordinal ordered categories likert rating latent response probit lavaan sem"
+    template: "mediation / binary_mediator (a yes/no mediator), ordinal_mediator (a mediator in three or more ordered categories); X two groups or a score; Y a score or yes/no"
+    backend: "Spower: powerkit's experiment around regmedint::regmedint() for a yes/no mediator (regression-based causal mediation analysis: the natural indirect effect and its delta-method test), and around lavaan::sem() with the mediator declared ordered for ordered categories (the latent-response model; a*b by the delta method), simulated"
     method: Simulation
     status: runs_validation_in_progress
-    validation: {file: test-validation-mediation-binm.R, note: "Agrees with a simulation written separately (the published formulas for the natural indirect effect, with their own delta-method standard errors) for each kind of X and outcome, recovers every path in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
+    validation: {file: test-validation-mediation-binm.R, note: "Yes/no mediator: agrees with a simulation written separately (the published formulas for the natural indirect effect, with their own delta-method standard errors) for each kind of X and outcome, recovers every path in its check run, and keeps the Type I error at alpha. Ordered categories: agrees with a simulation written separately (lavaan's other parameterisation, with its own delta-method test) and keeps the Type I error at alpha. Neither is yet checked against a published example."}
     card_points:
       - "One mediator that is yes or no, such as whether someone booked an appointment, between X (two conditions or a score) and an outcome that is a score or yes or no."
       - "The analysis is regression-based causal mediation analysis (Valeri and VanderWeele): a logistic regression for the mediator, a linear or logistic regression for the outcome, and the natural indirect effect, the part of X's effect that runs through the mediator."
       - "You give the chance of the mediator in the first group, the odds ratio by which X changes it, and how much the mediator changes the outcome; the test is the natural indirect effect's delta-method test, as regmedint, the R version of the authors' macro, reports it."
-      - "PROCESS fits a linear regression to the mediator even when it is yes or no; this card models the mediator as yes or no, as Valeri and VanderWeele's method does. An interaction between X and the mediator isn't covered yet."
+      - "For a mediator in ordered categories, such as a rating from 'unlikely' to 'certain', the card uses the usual structural equation model for an ordered variable: the categories are cut from an underlying score, and the indirect effect runs through that score. You give the share of people in each category and the paths on the underlying score."
+      - "PROCESS fits a linear regression to the mediator even when it is yes or no or a few categories; this card models the mediator as it is measured. An interaction between X and the mediator, and a mediator in unordered categories, aren't covered yet."
       - "Simulated with Spower, in under a minute for power."
-    inputs: ["What X, the mediator and the outcome are", "How X changes the chance of the mediator, and how the mediator changes the outcome"]
+    inputs: ["What X, the mediator and the outcome are", "How X changes the mediator, and how the mediator changes the outcome"]
     tier: v2
-    alternatives: ["a bootstrap confidence interval of the natural indirect effect, which the authors' macro also offers", "with a mediator in ordered categories, a model for ordered categories (not yet in Powerkit)"]
+    alternatives: ["a bootstrap confidence interval of the natural indirect effect, which the authors' macro also offers", "with a mediator in unordered categories, a model for each category (not yet in Powerkit)"]
   E40:
     doc_name: "Moderated mediation with two or more mediators"
     technical_name: "Multiple-mediator moderated mediation"
@@ -1762,7 +1764,7 @@ endpoints:
     plain_name: "Relationships measured within people, or in nested data"
     search_words: "mixed model multilevel hlm repeated measures within-person moderation cross-level interaction diary study experience sampling esm ecological momentary assessment ema daily diary intensive longitudinal random slope"
     template: "mixed_model / two_level"
-    backend: "simr: powerSim() on y ~ X + W + X:W + (1 + X | person), X centred within each person, each effect tested with lmerTest's Satterthwaite t test, or for yes/no glmer's Wald or likelihood-ratio test (simulation)"
+    backend: "simr: powerSim() on y ~ X + W + X:W + (1 + X | person), X centred within each person, each effect tested with lmerTest's Satterthwaite t test (or Kenward-Roger's), or for yes/no glmer's Wald or likelihood-ratio test (simulation)"
     method: "Simulation"
     status: runs_validation_in_progress
     no_ready_made_tool: "Within-person mediation (an occasion-level X affecting an occasion-level mediator and outcome)"
@@ -1829,7 +1831,7 @@ endpoints:
     search_words: "multilevel model hlm hierarchical linear model linear mixed model lmm lme4 lmer random slopes cross-level interaction"
     plain_name: "People in groups: how something measured on each person, or on each group, relates to the outcome"
     template: "mixed_model / two_level"
-    backend: "simr: powerSim() on y ~ X + W + X:W + (1 + X | group), each effect tested with lmerTest's Satterthwaite t test (simulation)"
+    backend: "simr: powerSim() on y ~ X + W + X:W + (1 + X | group), each effect tested with lmerTest's Satterthwaite t test or pbkrtest's Kenward-Roger test (simulation)"
     method: "Simulation"
     status: runs_validation_in_progress
     validation: {file: test-validation-two-level.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for each effect, recovers every effect and SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
@@ -1849,14 +1851,14 @@ endpoints:
     plain_name: "Each person responds to many items or stimuli in three or more conditions"
     search_words: "mixed model mixed effects random effects stimuli items three conditions pairwise linear mixed model lmm lme4 lmer crossed random effects"
     template: "mixed_model / crossed_conditions"
-    backend: "simr: powerSim() on y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item), with lmerTest's Satterthwaite F test or a pair's Satterthwaite t test adjusted for all the pairs (simulation)"
+    backend: "simr: powerSim() on y ~ cond + (1 | participant) + (1 | participant:cond) + (1 | item), with lmerTest's Satterthwaite (or Kenward-Roger) F test or a pair's t test adjusted for all the pairs (simulation)"
     method: "Simulation"
     status: runs_validation_in_progress
     validation: {file: test-validation-crossed-conditions.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for the F test and for a pair, recovers every mean difference and SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
       - "Each participant responds to many items (words, faces, trials) in three or more conditions: for example, response times to happy, angry and neutral faces. Every participant can be in every condition, or each in one of them."
       - "You give each condition's mean and how much participants and items vary, in the outcome's own units; the number of items is fixed and Powerkit finds the number of participants."
-      - "Tests whether the conditions differ at all (Satterthwaite's F test), or one pair of conditions, adjusted for all the pairs (Holm's method unless you choose otherwise)."
+      - "Tests whether the conditions differ at all (an F test with Satterthwaite's or Kenward and Roger's degrees of freedom), or one pair of conditions, adjusted for all the pairs (Holm's method unless you choose otherwise)."
       - "With a yes/no answer on each trial (correct or not), you give each condition's chance of 'yes' for a typical participant and item, with the SDs on the log-odds scale; Powerkit fits a logistic mixed model (glmer) and tests with the Wald test glmer reports or, if you choose, the likelihood-ratio test."
       - "Simulated with simr, as for two conditions, so the answer carries a little random error. Power at a given number of participants runs here; the number you need comes as an R script."
     inputs: ["The conditions and the outcome", "Each condition's mean, in the outcome's units, or its chance of 'yes'", "How much participants and items vary (the variance components)", "The items: how many, and whether each appears in one condition or all", "The test: any difference between the conditions, or one pair"]
@@ -1868,14 +1870,14 @@ endpoints:
     plain_name: "Each person responds to many items that differ on a score (such as word frequency)"
     search_words: "mixed model random effects items stimuli item predictor word frequency continuous predictor trials linear mixed model lmm lme4 lmer generalised linear mixed model generalized glmm glmer logistic mixed model"
     template: "mixed_model / item_predictor"
-    backend: "simr: powerSim() on y ~ x + (1 + x | participant) + (1 | item), testing x with lmerTest's Satterthwaite t test, or glmer's tests for a yes/no outcome (simulation)"
+    backend: "simr: powerSim() on y ~ x + (1 + x | participant) + (1 | item), testing x with lmerTest's Satterthwaite t test (or Kenward-Roger's), or glmer's tests for a yes/no outcome (simulation)"
     method: "Simulation"
     status: runs_validation_in_progress
     validation: {file: test-validation-item-predictor.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest or glmer without simr) for a score and a yes/no outcome, recovers the slope and every SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
       - "Each participant responds to many items that differ on something measured on each item, such as a word's frequency or a face's rated attractiveness: does the response depend on it?"
       - "You give the effect of one SD more of that score, how much participants differ in their average and in the effect, how much items differ beyond the score, and the number of items; Powerkit finds the number of participants."
-      - "A score on each trial is tested with Satterthwaite's t test; a yes/no answer (correct or not) with the Wald test glmer reports or the likelihood-ratio test. Simulated with simr, so the answer carries a little random error."
+      - "A score on each trial is tested with Satterthwaite's t test or, if you choose it, Kenward and Roger's; a yes/no answer (correct or not) with the Wald test glmer reports or the likelihood-ratio test. Simulated with simr, so the answer carries a little random error."
       - "The predictor can instead be measured on each trial (such as how long the stimulus is shown), so it varies within items too and its effect can differ between items."
     inputs: ["The item score and the outcome", "The effect, and how participants and items vary", "The items"]
     tier: v2
@@ -1886,14 +1888,14 @@ endpoints:
     plain_name: "People in groups within larger groups (pupils in classes in schools)"
     search_words: "three level multilevel nested cluster randomised schools classes hierarchical linear mixed model lmm lme4 lmer hlm generalised linear mixed model generalized glmm glmer"
     template: "mixed_model / three_level"
-    backend: "simr: powerSim() on y ~ cond + (1 | site) + (1 | site:group), with random effects of the condition where it varies, tested with lmerTest's Satterthwaite t test (simulation)"
+    backend: "simr: powerSim() on y ~ cond + (1 | site) + (1 | site:group), with random effects of the condition where it varies, tested with lmerTest's Satterthwaite t test or pbkrtest's Kenward-Roger test (simulation)"
     method: "Simulation"
     status: runs_validation_in_progress
     validation: {file: test-validation-three-level.R, note: "Agrees with a simulation written separately (random effects drawn directly, lmerTest without simr) for each assignment, recovers the effect and every SD in its check run, and keeps the Type I error at alpha. Not yet checked against a published example."}
     card_points:
       - "People in groups within larger groups, such as pupils in classes in schools, with two conditions assigned to whole schools, to classes within each school, or to pupils within each class."
       - "You give Cohen's d over the outcome's total SD, the share of the variance between schools and between classes (intraclass correlations), how much the effect varies between schools or classes where it can, the class size and the classes per school."
-      - "Simulated with simr and tested with Satterthwaite's t test, as for the other multilevel cards, so the answer carries a little random error."
+      - "Simulated with simr and tested with Satterthwaite's t test (or Kenward and Roger's, if you choose it), as for the other multilevel cards, so the answer carries a little random error."
       - "The outcome can be a score or yes or no (passed or not): with yes or no, each condition's chance of yes and how much schools and classes differ on the log-odds scale, tested by the Wald or the likelihood-ratio test."
     inputs: ["The conditions, what is assigned to them, and the outcome", "The effect, and how alike people in the same group and site are", "The sizes of the groups and sites"]
     tier: v2
@@ -2234,15 +2236,15 @@ endpoints:
     technical_name: "Two independent variances"
     plain_name: "Do two groups differ in how spread out their scores are?"
     template: "basic_test / two_variances"
-    backend: "powerkit's formula with base R's stats::pf() (the F test of two variances, as the G*Power 3.1 manual gives it, section 15); Spower's p_var.test() simulates it on request"
-    method: "Formula (no simulation)"
+    backend: "powerkit's formula with base R's stats::pf() (the F test of two variances, as the G*Power 3.1 manual gives it, section 15); Spower's p_var.test() simulates it on request; Levene's and the Brown-Forsythe test (car::leveneTest()) are simulated with Spower, on normal, skewed or heavy-tailed scores"
+    method: "Formula (no simulation) for the F test; simulation for Levene's and the Brown-Forsythe test"
     status: runs_validated
-    validation: {file: test-backend-variance.R, note: "Gives the G*Power 3.1 manual's example exactly (193 per group, actual power 0.800105, and its critical values), and agrees with Spower's simulation of the same test (31 October 2026)."}
+    validation: {file: test-backend-variance.R, note: "The F test gives the G*Power 3.1 manual's example exactly (193 per group, actual power 0.800105, and its critical values), and agrees with Spower's simulation of the same test (31 October 2026). Levene's and the Brown-Forsythe test agree with a simulation written separately (an ANOVA of the absolute deviations, without car) and keep the Type I error at alpha (17 November 2026); no published example yet."}
     card_points:
       - "Compares how spread out scores are (their variance, the SD squared) in two groups of different people."
       - "Groups of equal size only, for now."
-      - "Calculated exactly, as G*Power does."
-    inputs: ["Names of the two groups and the outcome", "The expected variance in each group"]
+      - "The F test is calculated exactly, as G*Power does, and assumes normal scores; Levene's and the Brown-Forsythe test, which don't, are simulated on the score shape you choose."
+    inputs: ["Names of the two groups and the outcome", "The expected variance in each group", "The F test, Levene's test or the Brown-Forsythe test"]
     tier: v2
     alternatives: ["the independent-samples t-test, if your hypothesis is about the average rather than the spread"]
   E57:

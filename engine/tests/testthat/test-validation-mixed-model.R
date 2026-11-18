@@ -66,6 +66,41 @@ test_that("crossed design: agrees with an independent simulation (analytic)", {
   expect_power_near(engine_power(spec), mean(rejected), reference_nrep = mixed_reps)
 })
 
+# Kenward and Roger's degrees of freedom (17 November 2026,
+# target_test.df_method): the same independent simulation, each data set
+# tested with pbkrtest's Kenward-Roger F test of the condition (KRmodcomp()
+# against the model without it). pbkrtest is slower than lmerTest, so 500
+# replications on each side.
+test_that("crossed design with Kenward-Roger's test: agrees with an independent simulation (analytic)", {
+  skip_unless_full_validation()
+  kr_reps <- 500L
+  n <- 30
+  spec <- mixed_validation_spec(pop_crossed, seed = 3311, n = n)
+  spec$target_test$df_method <- "kenward_roger"
+  spec$options$nrep <- kr_reps
+  p <- pop_crossed
+  design <- expand.grid(participant = seq_len(n), item = seq_len(p$items))
+  design$cond <- ifelse(design$item <= p$items / 2, -0.5, 0.5)
+  sigma_p <- matrix(c(p$sd_participant^2, p$r_participant * p$sd_participant * p$sd_participant_slope,
+    p$r_participant * p$sd_participant * p$sd_participant_slope, p$sd_participant_slope^2), 2)
+  rejected <- with_seed(3312, vapply(seq_len(kr_reps), function(i) {
+    u <- MASS::mvrnorm(n, c(0, 0), sigma_p)
+    w <- stats::rnorm(p$items, sd = p$sd_item)
+    d <- design
+    d$y <- p$difference * d$cond + u[d$participant, 1] + u[d$participant, 2] * d$cond + w[d$item] +
+      stats::rnorm(nrow(d), sd = p$sd_residual)
+    d$participant <- factor(d$participant)
+    d$item <- factor(d$item)
+    test <- tryCatch(suppressMessages(suppressWarnings({
+      full <- lme4::lmer(y ~ cond + (1 + cond | participant) + (1 | item), data = d)
+      small <- lme4::lmer(y ~ 1 + (1 + cond | participant) + (1 | item), data = d)
+      pbkrtest::KRmodcomp(full, small)
+    })), error = function(e) NULL)
+    !is.null(test) && test$test["Ftest", "p.value"] < 0.05
+  }, logical(1)))
+  expect_power_near(engine_power(spec), mean(rejected), reference_nrep = kr_reps)
+})
+
 # The number of items as the sample size (1 November 2026): 30
 # participants fixed, power at 20 items, against the same independent
 # simulation with those 20 items.

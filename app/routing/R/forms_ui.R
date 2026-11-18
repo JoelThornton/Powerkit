@@ -43,9 +43,8 @@ field_ui <- function(f, value, described_by = character()) {
   # One convention (22 October 2026): everything is needed unless marked
   # optional. Effect sizes start empty; the box itself shows that.
   label <- if (field_is_optional(f) || !is.null(f$name_default)) paste0(f$label, " (optional)") else f$label
-  short <- compact_field_label(f)
-  if (!is.null(short)) label <- name_swap(label,
-    if (field_is_optional(f) || !is.null(f$name_default)) paste0(short, " (optional)") else short)
+  # The label is the same with explanations on or off (17 November 2026);
+  # compact_field_label() names the field only in the "still needed" line.
   # A table's label names what goes in it; the line-by-line layout it
   # also describes is shown only when typing it as text (R/table-grid.R).
   if (identical(f$type, "table")) label <- table_grid_label(label)
@@ -288,10 +287,7 @@ group_ui_build <- function(tree, g, values, index) {
   box <- tags$fieldset(
     class = paste("form-group-box", if (names_only) "form-group-names"),
     tags$legend(class = if (identical(legend, "What you want to find out")) "visually-hidden" else "h6",
-      if (length(g$fields) && identical(g$fields[[1]]$label, "Test version")) name_swap(legend, "Test")
-      else if (any(vapply(g$fields, function(f) isTRUE(f$effect), logical(1)))) name_swap(legend, "Effect size")
-      else if (any(vapply(g$fields, function(f) identical(f$id, "just_type"), logical(1)))) name_swap(legend, "Effect-size source")
-      else if (identical(legend, "Your hypothesis")) name_swap(legend, "Hypothesis") else legend),
+      legend),
     # The group's info button sits beside its heading, as a field's does
     # beside its label, rather than repeating the heading as a link.
     if (!is.null(g$note) || !is.null(g$note_more)) explanation_ui(sprintf("group-%d-info", index), legend, class = "group-more",
@@ -322,6 +318,28 @@ group_ui_build <- function(tree, g, values, index) {
   if (is.null(shown)) box else conditionalPanel(shown, box)
 }
 
+# Which boxes take the effect size, in one line under the effect
+# section's title (17 November 2026): a box with an effect field, named by its heading in quotes, so the line stays true
+# whatever the heading says. Labelling each such box "Effect size: ..."
+# was wrong for boxes of SDs, correlations between conditions or variance
+# components, which feed the calculation but aren't the effect.
+effect_boxes_ui <- function(groups) {
+  # A box counts when an effect field in it shows with the screen's
+  # default answers (the one-way ANOVA's SD box shows for every test,
+  # through fields that each depend on the test chosen).
+  defaults <- list()
+  for (f in form_fields(groups)) if (!is.null(f[["default"]])) defaults[[f$id]] <- f[["default"]]
+  boxes <- Filter(function(g) identical(form_section(g), "effect") && is.null(g$shown_if) &&
+    any(vapply(g$fields, function(f) isTRUE(f$effect) && field_applies(f, defaults), logical(1))), groups)
+  names <- unique(vapply(boxes, function(g) g$input %||% g$title %||% "", character(1)))
+  names <- names[nzchar(names)]
+  if (!length(names)) return(NULL)
+  quoted <- paste0("\u201c", names, "\u201d")
+  list_text <- if (length(quoted) == 1) quoted else paste(paste(quoted[-length(quoted)], collapse = ", "), "and", quoted[length(quoted)])
+  p(class = "effect-boxes", if (length(quoted) == 1) sprintf("For this analysis, the effect size goes in the box headed %s.", list_text)
+    else sprintf("For this analysis, the effect size and the values it depends on go in the boxes headed %s.", list_text))
+}
+
 # The browser condition under which at least one of a group's fields is
 # shown; NULL when some field is always shown.
 group_shown_js <- function(g) {
@@ -345,6 +363,10 @@ form_ui <- function(tree, forms, ep_id, groups, values = list(), history = list(
     trail_ui(history, tree),
     div(class = "card-eid", hidden = NA, `aria-hidden` = "true", ep_id),
     h2(name_swap(paste0("Your values: ", ep$plain_name), technical_name(ep))),
+    # The analysis's standard name, as on its card, so that with
+    # explanations on the screen still says which analysis it plans
+    # (17 November 2026); with them off the heading is that name.
+    if (!identical(ep$plain_name, technical_name(ep))) p(class = "standard-name", "Standard name: ", tags$strong(technical_name(ep))),
     p(class = "lead", "Fields marked optional can be left empty."),
     # The label alone: how far the checks have got is on the card and
     # under the result's "Checks for this analysis in general" (15
@@ -516,6 +538,7 @@ form_sections_ui <- function(tree, groups, values, form = list()) {
       effect_unsure_ui(form),
       effect_waits_ui(form, groups),
       effect_help_ui(form, groups),
+      effect_boxes_ui(groups),
       part("effect")),
     if (any(section == "accuracy")) div(class = "form-section", part("accuracy")),
     if (any(section == "scenarios")) tags$details(tags$summary("Assumptions, sources and named alternatives (optional)"), part("scenarios")),

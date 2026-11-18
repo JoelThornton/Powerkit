@@ -680,16 +680,35 @@ planning (queue item 23; `decisions.md`, 12 and 14 November 2026).
   "Replication plan, <date>". Labs, and the input screen's signpost
   when the effect comes from an earlier study, start one too.
 - Its page has the plan's name, description, saving and Download
-  everything, and a workspace with five sections, filled in any order:
-  whether to replicate (the pre-replication notes; Karhulahti,
+  everything, and a workspace with five numbered steps (17 November
+  2026: the section switcher drawn as a step bar, still radio buttons
+  underneath, with a "Next:" button under each step), open in any
+  order: whether to replicate (the pre-replication notes; Karhulahti,
   Martončik & Adamkovič, 2025), the original study, goals and sample
   size, how the replication differs, and the write-up.
-- Under "The original study", "Find the original's design" asks the
-  design finder's questions. The card that answers them plans the
+- Under "The original study", "Choose it from the list of analyses"
+  opens the searchable list of every analysis (a paper usually names
+  its analysis), with a note naming the plan; "Not sure? Answer
+  questions about the study" asks the design finder's questions
+  instead (17 November 2026). The card chosen either way plans the
   replication: each effect field is labelled ", as the original study
   reported it", the note on the card names the plan and links back, and
-  the reasoning box starts from the notes' own words. "Add to plan" keeps
-  the result as the plan's analysis.
+  the reasoning box starts from the notes' own words. Its input screen
+  starts on the sample-size question, at the plan's significance level
+  and chance of success, and on the four exact designs with the
+  original's d, d_z or r as the plan holds it (`replication_form_values()`;
+  not a t statistic or d_rm, which the card would need converted);
+  anything the researcher has already chosen is kept. "Add to plan"
+  keeps the result as the plan's analysis.
+- "How the replication differs" opens with what the replication keeps
+  (18 November 2026): close, an extension, conceptual or a new study. An
+  extension's "Add an extension analysis" opens the list of analyses as
+  an ordinary route; its card's "Add to plan" keeps the result in the
+  plan marked `extension = TRUE`, reported under "Other analyses in this
+  plan" and never as the original's. A conceptual replication's button
+  sets the shrunk belief and more variation between studies; a new study
+  is offered an ordinary study plan. The extension and conceptual answers
+  add a box for the checks that the study still tests the same thing.
 - Choosing the card also sets the goals table's route (15 November
   2026): the four exact designs keep their own fields; any other card
   with one focal effect asks for that effect (named from `forms.yaml`'s
