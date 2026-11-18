@@ -1,0 +1,9 @@
+entries:
+  - date: "2026-11-18"
+    title: "Replication plans look like the rest of powerkit"
+    text: >-
+      The replication plan now looks and works like the input screens: each step has a numbered title, questions are
+      grouped in small cards, choices are tiles you click, number boxes are number-sized, finished steps get a tick, and
+      a bar at the bottom says what is still needed beside "Show the sample size". The answer sits in its own card, and
+      the tables fit on a phone. The write-up step now previews the document as it will read, and every study plan's
+      header is shorter, with the description folded until you write one.
