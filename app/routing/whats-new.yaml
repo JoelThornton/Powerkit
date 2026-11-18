@@ -8,11 +8,8 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
-    title: "Plan mediation through a mediator in ordered categories"
-    text: "The card for mediation when a mediator isn't a score now also takes a mediator answered in three or more ordered categories, such as a rating from \"unlikely\" to \"certain\". Powerkit treats the categories as cut from an underlying score, the usual structural equation model for an ordered variable, and tests the indirect effect through that score. You give the share of people in each category and how X and the outcome relate to the underlying score."
-  - date: "2026-11-17"
-    title: "Plan mediation through a mediator in ordered categories"
-    text: "The card for mediation when a mediator isn't a score now also takes a mediator answered in three or more ordered categories, such as a rating from \"unlikely\" to \"certain\". Powerkit treats the categories as cut from an underlying score, the usual structural equation model for an ordered variable, and tests the indirect effect through that score. You give the share of people in each category and how X and the outcome relate to the underlying score."
+    title: "The values screen reads the same with explanations on or off"
+    text: "Questions and box headings now have the same wording whether explanations are on or off; turning explanations off only folds the help text away. A line under \"Your effect size, and where it comes from\" says which boxes the effect size goes in, for example \"The expected group means\" and \"The SD\" for a one-way ANOVA. Box headings no longer start with \"Effect size:\", which was wrong for boxes such as an SD."
   - date: "2026-11-17"
     title: "Replication plans: Bayes factors count only in the original's direction"
     text: "In a replication plan, the replication Bayes factor and the sceptical Bayes factor now count as a success only when the replication's estimate is in the same direction as the original's. Before, a strong result on the other side of zero also counted, which is not evidence for the original effect. Plans that use these Bayes factors may now ask for more people, especially when you believe the original effect is overestimated, and the result says so."

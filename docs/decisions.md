@@ -4109,19 +4109,29 @@ to 32).
   Kenward-Roger route with `pbkrtest::KRmodcomp()` on independently
   simulated studies.
 
-## 2026-11-17 · The input screen's headings with explanations on or off
+## 2026-11-17 · The input screen's headings and labels with explanations on or off
 
 The 10 November decision (conventional names in compact mode) also
-swapped each box heading on the input screen for a short name with
-explanations off. That gave two boxes the same heading ("Effect size"
-for both the group means and the SD of a one-way ANOVA), while with
-explanations on no box said it took the effect size, and the screen
-never gave the analysis's standard name. Box headings are now the same
-in both modes, and a box with an effect field is headed "Effect size:"
-followed by its own title ("Effect size: the expected group means"). The
-input screen shows the card's "Standard name:" line under its plain
-title when explanations are on; with them off the heading is that name,
-as before. Field labels keep their compact versions.
+swapped the input screen's box headings and some field labels for short
+names with explanations off. That gave two boxes the same heading
+("Effect size" for both the group means and the SD of a one-way ANOVA)
+and made the screen read differently in the two modes, while with
+explanations on no box said it took the effect size and the screen never
+gave the analysis's standard name. Now:
+
+- Box headings and field labels are the same in both modes; the short
+  field names are used only in the "still needed" line.
+- A line under the effect section's title names the boxes the effect
+  size goes in, by their headings in quotes ("For this analysis, the
+  effect size and the values it depends on go in the boxes headed "The
+  expected group means" and "The SD"."). Prefixing each such box with
+  "Effect size:", tried first, was wrong for boxes of SDs, correlations
+  between conditions or variance components, which the calculation needs
+  but which are not the effect.
+- The input screen shows the card's "Standard name:" line under its
+  plain title when explanations are on; with them off the screen's
+  heading is that name, as before. Analysis names elsewhere still follow
+  the 10 November decision.
 
 ## 2026-11-17 · Replication plans start from the question
 
