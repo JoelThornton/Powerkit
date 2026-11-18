@@ -182,6 +182,39 @@ scale_from_curve <- function(points, target, level = 0.95) {
 simulated_search_plan <- function(spec, n, power) {
   pop <- spec$population
   guess_from <- function(entered, otherwise) if (isTRUE(abs(entered) > 1e-8)) abs(entered) else otherwise
+  # Levene's and the Brown-Forsythe tests of two variances: group 1's
+  # variance moved away from group 2's, as for the paired variances.
+  if (levene_test(spec)) {
+    entered <- log(pop$var1 / pop$var2)
+    direction <- pwrss_search_direction(spec, entered)
+    return(list(
+      guess = guess_from(entered, 0.5),
+      set = function(s, x) { s$population$var1 <- pop$var2 * exp(direction * x); s },
+      effect = function(x) exp(direction * x),
+      effect_name = "variance_ratio",
+      what = sprintf("ratio of group 1's variance to group 2's, with group 2's kept at %s", format(pop$var2)),
+      script_set = sprintf("  var1 <<- var2 * exp(%s * x)", r_code(direction)),
+      effect_script = sprintf("exp(%s * x)", r_code(direction))
+    ))
+  }
+  # McNemar's chi-square tests: the proportion who say yes in the second
+  # condition only moved away from those who do in the first only, which is
+  # kept, as pwrss's search does for the exact test. Above it, the two can't
+  # add up to more than 1.
+  if (mcnemar_chisq_test(spec)) {
+    entered <- log(pop$p_second_only / pop$p_first_only)
+    direction <- pwrss_search_direction(spec, entered)
+    return(list(
+      guess = guess_from(entered, 0.5),
+      limit = if (direction > 0) 0.999 * log((1 - pop$p_first_only) / pop$p_first_only),
+      set = function(s, x) { s$population$p_second_only <- pop$p_first_only * exp(direction * x); s },
+      effect = function(x) pop$p_first_only * exp(direction * x),
+      effect_name = "p_second_only",
+      what = sprintf("proportion who change only in the second condition, with %s changing only in the first", format(pop$p_first_only)),
+      script_set = sprintf("  p_second_only <<- p_first_only * exp(%s * x)", r_code(direction)),
+      effect_script = sprintf("p_first_only * exp(%s * x)", r_code(direction))
+    ))
+  }
   if (identical(spec$template, "paired_variances")) {
     entered <- log(pop$var1 / pop$var2)
     direction <- pwrss_search_direction(spec, entered)
@@ -440,6 +473,7 @@ simulated_search_plan <- function(spec, n, power) {
 simulated_search_available <- function(spec) {
   (identical(spec$design, "meta_analysis") && identical(spec$template, "mean_effect") && hartung_knapp_test(spec)) ||
     (identical(spec$design, "basic_test") && isTRUE(spec$template %in% c("paired_variances", "proportion_trend"))) ||
+    levene_test(spec) || mcnemar_chisq_test(spec) ||
     (identical(spec$design, "signal_detection") && identical(spec$template, "dprime")) ||
     jonckheere_search(spec) || logistic_factorial_search(spec) ||
     (identical(spec$design, "regression_interaction") && identical(spec$template, "group_moderator")) ||

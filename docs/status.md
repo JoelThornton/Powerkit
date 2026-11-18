@@ -21,7 +21,11 @@ what the 15 November reviews left for later (the whole-study step bar,
 the reliability-left-empty wording on the moderation cards and the
 smaller items), is `next.md` item 25 and comes first while testing runs;
 with it, item 27 audits every card that runs for a check independent of
-the package it wraps. The input screen's headings and labels are the
+the package it wraps, and the method choices each card makes for the
+researcher (so far E18, E23, E26, E33 and the other mixed models, E53
+and E54 offer the alternatives researchers commonly run; McNemar's card
+offers the chi-square test with or without the continuity correction,
+and the two-variance card Levene's and the Brown-Forsythe test). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
 size goes in (17 November 2026).
 
