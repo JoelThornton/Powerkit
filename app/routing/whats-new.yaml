@@ -8,6 +8,14 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
+    title: "Replication plans: numbered steps, and the original's card filled in from the plan"
+    text: >-
+      A replication plan's sections are now numbered steps, with a button to the next one under each.
+      You choose the original study's analysis from the searchable list (its paper usually names it), or answer
+      questions about the study if you're not sure. Its card then starts on the sample size, with the plan's
+      significance level and chance of success, and, for the t-tests and the correlation, the original's effect,
+      so you enter them once.
+  - date: "2026-11-17"
     title: "Replication plans: Bayes factors count only in the original's direction"
     text: "In a replication plan, the replication Bayes factor and the sceptical Bayes factor now count as a success only when the replication's estimate is in the same direction as the original's. Before, a strong result on the other side of zero also counted, which is not evidence for the original effect. Plans that use these Bayes factors may now ask for more people, especially when you believe the original effect is overestimated, and the result says so."
   - date: "2026-11-17"
