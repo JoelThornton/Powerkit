@@ -40,6 +40,20 @@ test_that("the first analysis is primary, later ones secondary, and a result is 
   expect_length(plan_add_entry(p, entry_with_hash("A again", 128, "h1"), now = t0)$entries, 2)
 })
 
+test_that("plan defaults prefill new fields and preserve existing answers", {
+  p <- new_plan(now = t0)
+  expect_identical(plan_setting_values(list(), p, c("alpha", "power")), list())
+  p$settings <- list(alpha = "0.01", power = "0.90")
+  expect_identical(plan_setting_values(list(), p, c("alpha", "power")), p$settings)
+  expect_identical(plan_setting_values(list(alpha = ""), p, c("alpha", "power")), list(alpha = "", power = "0.90"))
+  expect_identical(plan_setting_values(list(), p, "power"), list(power = "0.90"))
+  expect_null(plan_settings(list(alpha = "0.51", power = "1", other = "0.5")))
+  expect_false(plan_setting_valid("NaN", "alpha"))
+  only_browser <- plan_from_browser_record(tree, plan_browser_record(p, write = NULL), read = NULL, now = t0)
+  expect_identical(only_browser$settings, p$settings)
+  expect_false(identical(plan_content(only_browser), plan_content(new_plan(now = t0))))
+})
+
 test_that("updating keeps the analysis's key, role and note; removing goes by key", {
   p <- plan_add_entry(new_plan(now = t0), entry_with_hash("A", 128, "h1"), now = t0)
   key <- p$entries[[1]]$key
@@ -103,6 +117,7 @@ test_that("a plan round-trips through its file text, names untouched", {
   calc <- run_calculation(spec, run, seed = 5L)
   p <- new_plan("<b>O'Brien's</b> study", now = t0)
   p <- plan_edit(p, description = "Line one", now = t0)
+  p$settings <- list(alpha = "0.01", power = "0.90")
   p <- plan_add_entry(p, plan_entry(tree, "E2", calc, list(app = "routing-prototype", endpoint = "E2")), now = t0)
   p <- plan_edit_entry(p, p$entries[[1]]$key, role = "check", note = "Note", now = t0)
   text <- plan_to_text(p)
@@ -111,6 +126,7 @@ test_that("a plan round-trips through its file text, names untouched", {
   expect_identical(back$id, p$id)
   expect_identical(back$name, "<b>O'Brien's</b> study")
   expect_identical(back$description, "Line one")
+  expect_identical(back$settings, p$settings)
   expect_identical(back$entries[[1]]$role, "check")
   expect_identical(back$entries[[1]]$note, "Note")
   expect_equal(back$entries[[1]]$n, p$entries[[1]]$n)
@@ -122,6 +138,7 @@ test_that("a plan round-trips through its file text, names untouched", {
   old_plan <- plan_from_text(tree, old, now = t0)
   expect_match(old_plan$id, "^[0-9a-f]{16}$")
   expect_match(old_plan$name, "^Study plan, [0-9]{1,2} [A-Z][a-z]{2} [0-9]{4}$")
+  expect_null(old_plan$settings)
   expect_identical(vapply(old_plan$entries, `[[`, "", "role"), c("primary", "secondary"))
   # The old single browser plan becomes "My study plan", not yet saved to a file.
   migrated <- plans_migrate_legacy(tree, old, now = t0)

@@ -309,6 +309,25 @@ plan_running_ui <- function(runs) {
     })))
 }
 
+plan_settings_ui <- function(plan) {
+  field <- function(id, label, example) {
+    input <- paste0("plan_setting_", id)
+    div(class = "form-field",
+      tags$label(class = "form-label", `for` = input, label),
+      tags$input(id = input, type = "text", inputmode = "decimal", class = "form-control",
+        value = plan$settings[[id]] %||% "", placeholder = example,
+        onchange = sprintf("Shiny.setInputValue('plan_setting_edit', {id: %s, field: %s, value: this.value}, {priority: 'event'})",
+          js_string(plan$id), js_string(id))))
+  }
+  tags$details(class = "mb-3", open = if (length(plan$settings)) NA,
+    tags$summary("Defaults for new analyses (optional)"),
+    p(class = "hint mt-2", "New analyses start with these values where they apply. You can edit them on each analysis. To clear a default, empty its box."),
+    div(class = "row g-3",
+      div(class = "col-12 col-sm-6", field("alpha", "Significance level (alpha)", "e.g. 0.05")),
+      div(class = "col-12 col-sm-6", field("power", "Target power", "e.g. 0.90"))),
+    uiOutput("plan_settings_problem"))
+}
+
 plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
   entries <- plan$entries
   k <- length(entries)
@@ -338,14 +357,12 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
     # Its own output (filled by the server), so that saving or copying a
     # link doesn't redraw the page under the share button.
     p(class = "plan-status-line", uiOutput("plan_status", inline = TRUE)),
+    if (!plan_is_replication(plan)) plan_settings_ui(plan),
     if (is.list(plan$guided)) plan_guided_ui(plan$guided),
     plan_running_ui(running),
     if (k == 0 && !length(running) && !is.list(plan$guided) && !plan_is_replication(plan)) div(class = "plan-empty result-card",
       p(tags$strong("This plan has no analyses yet.")),
-      tags$ol(
-        tags$li("Press “Add an analysis” to find one with “Help me choose”, or use “I know my analysis”, and calculate its sample size."),
-        tags$li("Under the result, press “Add this to my study plan”."),
-        tags$li("Do the same for every analysis your conclusions rest on, then save the plan."))),
+      p("Choose an analysis below, run it, then add the result to this plan.")),
     if (k > 0) div(class = "plan-overview",
       h3(class = "h5", "Overview"),
       p(class = "plan-role-counts", plan_role_counts_text(entries))),
@@ -364,10 +381,14 @@ plan_page_ui <- function(plan, plans_n = 1L, running = list()) {
     else if (joint_power_needs_student(entries)) p(class = "study-plan-joint plan-note",
       "Each analysis has the power its card shows. The chance that all of them are significant in the same study is calculated for Student's t-test only (PUMP's test), and these analyses use Welch's: choose Student's test on each card to see it. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each.")
     else if (k >= 2) p(class = "study-plan-joint plan-note",
-      "Each analysis has the power its card shows. The chance that all of them are significant in the same study is lower, and Powerkit doesn't calculate it for these designs yet. If your conclusion needs every one of them, say so in your plan and consider a higher target power for each."),
+      "The chance that all analyses are significant in the same study is at most the smallest power shown on their cards. Powerkit doesn't calculate that joint chance for these designs yet. If your conclusion needs every analysis to be significant, consider a higher target power for each."),
     div(class = "nav-buttons",
       if (saveable) download_button("download_study_plan", "Save plan", class = "btn btn-primary"),
-      if (!plan_is_replication(plan)) actionButton("plan_more", "Add an analysis", class = "btn btn-outline-primary"),
+      if (!plan_is_replication(plan)) tags$details(class = "plan-add-analysis",
+        tags$summary(class = "btn btn-outline-primary", "Add an analysis"),
+        div(class = "nav-buttons mt-2",
+          actionButton("plan_search", "Search analyses", class = "btn btn-outline-primary"),
+          actionButton("plan_more", "Help me choose", class = "btn btn-outline-primary"))),
       if (saveable) share_link_ui("study_plan"),
       if (k || plan_is_replication(plan)) download_button("download_plan_bundle", "Download plan and files (.zip)", class = "btn btn-outline-primary")),
     if (saveable) rep_note("Save plan keeps every analysis, with this plan's name, description, roles and notes, in one file: open it on the Study plans page or the start screen, on any computer. Share, at the top, puts the same inside a link. The ZIP adds editable reports, references and R scripts. Open it in Powerkit to return to the whole plan."),

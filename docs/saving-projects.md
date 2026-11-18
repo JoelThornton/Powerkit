@@ -309,6 +309,11 @@ Part 1 (named plans, their page, and reopening) is built:
   or refused by the browser is not written, and the plan's page says to
   save it.
 - The Study plans page is the tab "Study plans", hidden from the tab row.
+- **Add an analysis** opens either the searchable list or the design finder.
+  The optional plan-wide significance level and target power prefill new
+  analyses where applicable. Changing a default leaves saved calculations
+  and their inputs intact. The defaults travel with the plan file or link
+  and are kept in the browser as soon as they are entered.
 
 Part 2 (the overview and Download everything) is built too, in
 `R/plan-bundle.R`: the overview line counting analyses by role

@@ -11,7 +11,8 @@ write_study_plan(
   name = NULL,
   description = NULL,
   guided = NULL,
-  replication = NULL
+  replication = NULL,
+  settings = NULL
 )
 }
 \arguments{
@@ -34,6 +35,9 @@ given; \code{NULL} is not written.}
 (the pre-replication notes, the original study, the goals and how the
 replication differs) that the study plan holds. Kept as given; \code{NULL}
 is not written.}
+
+\item{settings}{Optional list of plan-wide starting values for new
+analyses. It is kept as given. \code{NULL} is not written.}
 }
 \value{
 The JSON text, invisibly when written to \code{file}.

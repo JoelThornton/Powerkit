@@ -1280,6 +1280,12 @@ server <- function(input, output, session) {
   }
   current_form_groups <- function() bayes_mode_groups(form_groups(forms, state$endpoint, state$form_k, form_start()), state$bayes_mode)
   current_form_fields <- function() form_fields(current_form_groups())
+  apply_plan_settings <- function(values, id, endpoint) {
+    plan <- plan_get(id)
+    if (is.null(plan$settings)) return(values)
+    groups <- form_groups(forms, endpoint, 2L, form_start())
+    plan_setting_values(values, plan, vapply(form_fields(groups), `[[`, "", "id"))
+  }
   current_form_values <- function() {
     fields <- current_form_fields()
     values <- lapply(fields, function(f) input[[field_input_id(f)]])
@@ -1401,7 +1407,9 @@ server <- function(input, output, session) {
       state$screen <- "start"; state$history <- list(); state$node <- NULL; state$ctx <- list(); state$start <- list()
       state$skip_screening <- FALSE
       state$from_labs <- FALSE; state$labs_seed <- NULL
+      state$plan_more_target <- NULL
     } else if (kind == "route") {
+      if (!identical(state$screen, "known") || !identical(value, "choose")) state$plan_more_target <- NULL
       state$start <- list()
       state$route <- value; state$history <- list(); state$ctx <- list()
       # A new start: a guided route from here fills a plan of its own.
@@ -1424,6 +1432,7 @@ server <- function(input, output, session) {
       # in the same place.
       plan <- new_replication()
       state$rep_plan <- plan$id; state$current_plan <- plan$id
+      state$plan_more_target <- NULL
       state$screen <- "start"; state$start <- list(); state$history <- list(); state$ctx <- list()
       open_plans_page(plan$id)
       session$onFlushed(function() updateRadioButtons(session, "rep_section", selected = "original"), once = TRUE)
@@ -1495,6 +1504,8 @@ server <- function(input, output, session) {
         # The replication plan's notes, in the user's own words, as the reasoning.
         seed <- if (plan_is_replication(rep)) labs_seed_reasoning(replication_values(rep$replication))
         if (!is.null(seed) && is.null(state$form_values$just_source)) state$form_values$just_source <- seed
+      } else {
+        state$form_values <- apply_plan_settings(state$form_values, state$plan_more_target, state$endpoint)
       }
       state$form_k <- 2L; state$calc <- NULL
       state$screen <- "form"
@@ -1511,7 +1522,7 @@ server <- function(input, output, session) {
         start <- plan_form_values(tree, res$endpoint, state$plan_values[[value]], state$plan_shared)
         n <- plan_form_start(state$start, value, state$primary, state$rule)$n_tests
         if (!is.null(n)) start$values$n_tests <- as.character(n)
-        state$form_values <- start$values
+        state$form_values <- apply_plan_settings(start$values, state$guided_plan, res$endpoint)
         state$plan_filled <- start$filled
         state$form_k <- 2L; state$calc <- NULL
         state$screen <- "form"
@@ -2293,7 +2304,7 @@ server <- function(input, output, session) {
   # The plan a result is added to: the current plan, or a new one.
   plan_for_adding <- function(target = NULL) {
     if (identical(target, "new")) return(new_plan())
-    plan_get(target) %||% plan_get(isolate(state$current_plan)) %||% new_plan()
+    plan_get(target) %||% plan_get(isolate(state$plan_more_target)) %||% plan_get(isolate(state$current_plan)) %||% new_plan()
   }
   output$study_plan_bar <- renderUI({
     calc <- state$calc
@@ -2302,7 +2313,8 @@ server <- function(input, output, session) {
     hash <- calc$result$provenance$spec_hash
     origin <- state$plan_origin
     from_plan <- !is.null(origin) && identical(origin$endpoint, state$endpoint) && !is.null(state$plans[[origin$plan]])
-    study_plan_bar_ui(state$plans, state$current_plan, hash,
+    target <- if (!is.null(plan_get(state$plan_more_target))) state$plan_more_target else state$current_plan
+    study_plan_bar_ui(state$plans, target, hash,
       origin = if (from_plan) origin, from_guided = identical(state$came_from, "plan") && !is.null(state$plan_id),
       just_added = state$plan_just_added)
   })
@@ -2406,6 +2418,7 @@ server <- function(input, output, session) {
     cancel_job()
     updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
     state$from_labs <- FALSE; state$labs_seed <- NULL
+    state$plan_more_target <- NULL
     for (name in names(restored)) state[[name]] <- restored[[name]]
     # The record as the screens now hold it, without counting as a change.
     plan$guided <- guided_normalise(guided_plan_record(isolate(reactiveValuesToList(state))))
@@ -2442,7 +2455,7 @@ server <- function(input, output, session) {
     # Nor does the description, kept as its box is left: the box already
     # shows it (`changed` drives only the status line, which has its own
     # output).
-    strip <- function(p) { p$saved_at <- NULL; p$saved_how <- NULL; p$too_large <- NULL; p$description <- NULL; p$changed <- NULL
+    strip <- function(p) { p$saved_at <- NULL; p$saved_how <- NULL; p$too_large <- NULL; p$description <- NULL; p$settings <- NULL; p$changed <- NULL
       if (plan_is_replication(p)) { p$replication$fields <- NULL; p$changed <- NULL }; p }
     view <- state$plans_view %||% ""
     running <- kept_runs()
@@ -2479,6 +2492,35 @@ server <- function(input, output, session) {
     if (is.null(plan)) return()
     text <- plan_clean_text(edit$text %||% "", plan_description_max)
     if (!identical(text, plan$description %||% "")) plans_put(plan_edit(plan, description = text))
+  })
+  plan_settings_problem <- reactiveVal(NULL)
+  output$plan_settings_problem <- renderUI({
+    problem <- plan_settings_problem()
+    if (!is.null(problem) && identical(problem$id, state$plans_view))
+      p(class = "text-danger mt-2", role = "alert", problem$text)
+  })
+  observeEvent(input$plan_setting_edit, {
+    edit <- input$plan_setting_edit
+    plan <- plan_get(edit$id)
+    if (is.null(plan) || plan_is_replication(plan) || !is.character(edit$field) ||
+        !isTRUE(edit$field %in% c("alpha", "power")) ||
+        !is.character(edit$value) || length(edit$value) != 1L || is.na(edit$value)) return()
+    value <- trimws(edit$value)
+    if (nzchar(value) && !plan_setting_valid(value, edit$field)) {
+      text <- if (edit$field == "alpha") {
+        "Enter a significance level greater than 0 and at most 0.5."
+      } else "Enter a target power between 0 and 1, for example 0.90 for 90%."
+      plan_settings_problem(list(id = plan$id, text = paste(text, "Your previous default is still in use if you set one.")))
+      return()
+    }
+    plan_settings_problem(NULL)
+    settings <- plan$settings
+    settings[[edit$field]] <- if (nzchar(value)) value
+    settings <- plan_settings(settings)
+    if (!identical(settings, plan$settings)) {
+      plan$settings <- settings
+      plans_put(plan_touch(plan, Sys.time()))
+    }
   })
   observeEvent(input$plan_entry_role, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_role$key, role = input$plan_entry_role$role)))
   observeEvent(input$plan_entry_note, edit_viewed(function(p) plan_edit_entry(p, input$plan_entry_note$key, note = input$plan_entry_note$note)))
@@ -2598,18 +2640,22 @@ server <- function(input, output, session) {
       div(class = "result-panel mt-2", role = "status", p(tags$strong(words[["headline"]])), p(class = "small", words[["detail"]]))
     })
   })
-  observeEvent(input$plan_more, {
-    # The next analysis, found by "Help me choose" from the start, added
-    # to this plan.
-    if (!is.null(plan_get(isolate(state$plans_view)))) {
-      state$current_plan <- isolate(state$plans_view)
-      state$plan_more_target <- isolate(state$plans_view)
-    }
+  open_plan_analysis <- function(search = FALSE) {
+    plan <- plan_get(isolate(state$plans_view))
+    if (is.null(plan) || plan_is_replication(plan)) return()
+    state$current_plan <- plan$id
+    state$plan_more_target <- plan$id
+    state$guided_plan <- NULL
+    state$rep_extension_plan <- NULL
+    state$from_labs <- FALSE; state$labs_seed <- NULL
     updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
-    state$start <- list(); state$route <- "choose"; state$history <- list(); state$ctx <- list()
-    state$skip_screening <- FALSE; state$calc <- NULL
-    state$screen <- "aim"
-  })
+    state$start <- list(); state$history <- list(); state$ctx <- list(); state$node <- NULL
+    state$route <- if (search) "known" else "choose"
+    state$skip_screening <- search; state$calc <- NULL; state$plan_origin <- NULL
+    state$screen <- if (search) "known" else "aim"
+  }
+  observeEvent(input$plan_more, open_plan_analysis())
+  observeEvent(input$plan_search, open_plan_analysis(search = TRUE))
   output$download_study_plan <- downloadHandler(
     filename = function() plan_file_name(plan_get(isolate(state$plans_view))),
     content = function(file) {
@@ -2847,6 +2893,7 @@ server <- function(input, output, session) {
     cancel_job()
     updateTabsetPanel(session, "tabs", selected = "Plan a power analysis")
     state$from_labs <- FALSE; state$labs_seed <- NULL
+    state$plan_more_target <- NULL
     state$calc <- NULL
     state$long_spec <- NULL
     for (name in names(restored)) state[[name]] <- restored[[name]]
@@ -3151,6 +3198,7 @@ server <- function(input, output, session) {
     req(plan_is_replication(plan))
     cancel_job()
     state$rep_extension_plan <- NULL
+    state$plan_more_target <- NULL
     state$start <- list(aim = "replicate")
     state$rep_plan <- id; state$current_plan <- id
     state$history <- list(); state$node <- NULL; state$calc <- NULL
@@ -3183,6 +3231,7 @@ server <- function(input, output, session) {
     req(plan_is_replication(plan))
     cancel_job()
     state$start <- list(); state$rep_plan <- NULL
+    state$plan_more_target <- NULL
     state$rep_extension_plan <- plan$id; state$current_plan <- plan$id
     state$history <- list(); state$node <- NULL; state$calc <- NULL; state$ctx <- list()
     state$route <- "known"; state$skip_screening <- TRUE; state$screen <- "known"

@@ -152,7 +152,8 @@ progress_ui <- function(current) {
 nav_fields <- c("screen", "from_labs", "labs_seed", "start", "route", "node", "ctx", "history",
   "skip_screening",
   "endpoint", "came_from", "form_values", "form_k", "answers", "ticked", "primary", "asks", "rule",
-  "plan_id", "plan_results", "plan_values", "plan_shared", "plan_filled", "checked_project", "plans_view")
+  "plan_id", "plan_results", "plan_values", "plan_shared", "plan_filled", "checked_project", "plans_view",
+  "plan_more_target", "guided_plan")
 
 # What makes one entry differ from the last: the screen, the question or
 # card on it, how many answers were given, and the tab.

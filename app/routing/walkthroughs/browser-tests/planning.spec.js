@@ -316,6 +316,36 @@ async function planWithOneAnalysis(page) {
 const planKeys = page => page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('powerkit-study-plan') && k !== 'powerkit-study-plans'));
 const storedKeys = page => page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('powerkit-study-plan')));
 
+test('search from a study plan prefills the settings saved in that plan', async ({ page }) => {
+  await page.locator('.study-plans-tab').click();
+  await page.locator('#plans_new').click();
+  await page.getByText('Defaults for new analyses (optional)', { exact: true }).click();
+  await page.locator('#plan_setting_alpha').fill('0.01');
+  await page.locator('#plan_setting_power').fill('0.90');
+  await page.locator('#plan_setting_power').blur();
+  await expect.poll(async () => page.evaluate(() => Object.keys(localStorage)
+    .filter(key => key.startsWith('powerkit-study-plan:'))
+    .map(key => JSON.parse(localStorage.getItem(key)).settings)))
+    .toEqual([{ alpha: '0.01', power: '0.90' }]);
+
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.study-plans-tab')).toHaveText('Study plans (1)');
+  await page.locator('.study-plans-tab').click();
+  await page.locator('.plans-row-name').click();
+  await expect(page.locator('#plan_setting_alpha')).toHaveValue('0.01');
+  await expect(page.locator('#plan_setting_power')).toHaveValue('0.90');
+
+  await page.getByText('Add an analysis', { exact: true }).click();
+  await expect(page.locator('#plan_more')).toHaveText('Help me choose');
+  await page.locator('#plan_search').click();
+  await page.locator('#known_search').fill('two separate groups');
+  await page.locator('button[data-ep="E2"]:visible').first().click();
+  await page.getByRole('button', { name: 'Enter your values', exact: false }).click();
+  await setValue(page, 'goal', 'sample_size');
+  await expect(page.locator('#f_alpha')).toHaveValue('0.01');
+  await expect(page.locator('#f_power')).toHaveValue('0.90');
+});
+
 test('a plan that no longer fits in the browser keeps its last copy and says so', async ({ page }) => {
   await planWithOneAnalysis(page);
   await expect.poll(async () => (await planKeys(page)).length).toBe(1);

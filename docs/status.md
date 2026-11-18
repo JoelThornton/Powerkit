@@ -28,6 +28,9 @@ offers the chi-square test with or without the continuity correction,
 and the two-variance card Levene's and the Brown-Forsythe test, the Brown-Forsythe test preselected; both cards' tests are found by name in the search). The input screen's headings and labels are the
 same with explanations on or off, and a line names the boxes the effect
 size goes in (17 November 2026).
+Study plans can start an analysis from the searchable list or the design
+finder and can prefill new analyses with the plan's significance level
+and target power (18 November 2026).
 
 Added since 13 November 2026, each with validation in progress (its
 simulation chunk passes; published examples await transcription): the

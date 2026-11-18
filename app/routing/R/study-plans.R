@@ -44,6 +44,31 @@ plan_touch <- function(plan, now) {
   plan
 }
 
+plan_setting_valid <- function(value, field) {
+  if (!is.character(value) || length(value) != 1L || is.na(value)) return(FALSE)
+  number <- suppressWarnings(as.numeric(value))
+  if (!is.finite(number) || number <= 0) return(FALSE)
+  if (identical(field, "alpha")) number <= 0.5 else number < 1
+}
+
+plan_settings <- function(settings) {
+  if (!is.list(settings)) return(NULL)
+  fields <- intersect(c("alpha", "power"), names(settings))
+  for (field in fields) if (!plan_setting_valid(settings[[field]], field)) settings[[field]] <- NULL
+  out <- settings[intersect(fields, names(settings))]
+  if (length(out)) out
+}
+
+# These values start a new form. An existing form, even one with a field
+# deliberately cleared, retains its answers.
+plan_setting_values <- function(values, plan, fields) {
+  settings <- plan_settings(plan$settings)
+  for (field in intersect(names(settings), fields)) {
+    if (is.null(values[[field]])) values[[field]] <- settings[[field]]
+  }
+  values
+}
+
 plan_entry_hash <- function(entry) {
   entry$result$provenance$spec_hash %||% entry$project$result$provenance$spec_hash %||% NA_character_
 }
@@ -122,7 +147,8 @@ plan_to_text <- function(plan, write = engine_function("write_study_plan")) {
   analyses <- plan_analyses(plan$entries)
   tryCatch(write(analyses, id = plan$id, name = plan$name,
     description = if (nzchar(plan$description %||% "")) plan$description, guided = plan$guided,
-    replication = if (plan_is_replication(plan)) replication_record(plan$replication$fields, plan$replication$endpoint)),
+    replication = if (plan_is_replication(plan)) replication_record(plan$replication$fields, plan$replication$endpoint),
+    settings = plan_settings(plan$settings)),
     error = function(e) "")
 }
 
@@ -132,7 +158,8 @@ plan_to_text <- function(plan, write = engine_function("write_study_plan")) {
 # this one opens it as a guided plan; this one opens it as the study plan.
 plan_guided_only_text <- function(plan) {
   record <- plan$guided
-  record$study_plan <- list(id = plan$id, name = plan$name, description = plan$description %||% "")
+  record$study_plan <- list(id = plan$id, name = plan$name, description = plan$description %||% "",
+    settings = plan_settings(plan$settings))
   as.character(jsonlite::toJSON(record, auto_unbox = TRUE, pretty = TRUE, null = "null", digits = NA))
 }
 
@@ -153,6 +180,7 @@ plan_from_text <- function(tree, text, read = engine_function("read_study_plan")
   plan <- new_plan(file$name %||% plan_default_name(if (is.na(saved_date)) as.Date(now) else saved_date), now = now)
   if (is.character(file$id) && grepl("^[0-9a-f]{16}$", file$id)) plan$id <- file$id
   plan$description <- plan_clean_text(file$description %||% "", plan_description_max)
+  plan$settings <- plan_settings(file$settings)
   if (is.list(file$guided) && identical(file$guided$format, "powerkit-guided-plan")) plan$guided <- file$guided
   if (!is.null(replication_normalise(file$replication))) plan$replication <- replication_normalise(file$replication)
   for (i in seq_along(file$analyses)) {
@@ -180,7 +208,10 @@ plan_from_guided_text <- function(text, now = Sys.time()) {
   if (is.na(saved_date)) saved_date <- as.Date(now)
   plan <- new_plan(if (is.list(meta)) meta$name else plan_default_name(saved_date, "Study plan"), now = now)
   if (is.list(meta) && is.character(meta$id) && grepl("^[0-9a-f]{16}$", meta$id)) plan$id <- meta$id
-  if (is.list(meta)) plan$description <- plan_clean_text(meta$description %||% "", plan_description_max)
+  if (is.list(meta)) {
+    plan$description <- plan_clean_text(meta$description %||% "", plan_description_max)
+    plan$settings <- plan_settings(meta$settings)
+  }
   plan$guided <- record
   plan_mark_saved(plan, "file", now = now)
 }
@@ -234,7 +265,7 @@ plans_migrate_legacy <- function(tree, text, read = engine_function("read_study_
 plan_content <- function(plan) {
   list(plan$name, plan$description %||% "",
     lapply(plan$entries, function(e) list(plan_entry_hash(e), e$role, e$note %||% "")),
-    guided_content(plan$guided), replication_content(plan$replication))
+    guided_content(plan$guided), replication_content(plan$replication), plan_settings(plan$settings))
 }
 
 # Adds an opened plan to the browser's plans without overwriting any:
@@ -268,11 +299,11 @@ plans_open <- function(plans, incoming, now = Sys.time()) {
 plan_browser_record <- function(plan, write = engine_function("write_study_plan")) {
   text <- plan_to_text(plan, write = write)
   # A plan with no analyses has no file yet (a plan file needs one), so
-  # its name and description are kept on their own.
+  # its name, description and settings are kept on their own.
   if (!nzchar(text) && plan_has_content(plan)) return("")
   num <- function(t) if (is.null(t)) NULL else as.numeric(t)
   as.character(jsonlite::toJSON(list(format = "powerkit-plan-in-browser", version = 1L,
-    id = plan$id, name = plan$name, description = plan$description %||% "",
+    id = plan$id, name = plan$name, description = plan$description %||% "", settings = plan_settings(plan$settings),
     changed = num(plan$changed), saved_at = num(plan$saved_at), saved_how = plan$saved_how,
     file = if (nzchar(text)) text),
     auto_unbox = TRUE, digits = NA, null = "null"))
@@ -289,6 +320,7 @@ plan_from_browser_record <- function(tree, record, read, now) {
     plan <- new_plan(rec$name, now = now)
     plan$id <- rec$id
     plan$description <- plan_clean_text(rec$description %||% "", plan_description_max)
+    plan$settings <- plan_settings(rec$settings)
   }
   time <- function(x) if (is.numeric(x) && length(x) == 1L) as.POSIXct(x, origin = "1970-01-01", tz = "UTC")
   plan$changed <- time(rec$changed) %||% now
