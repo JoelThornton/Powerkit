@@ -2920,6 +2920,9 @@ departures_for <- function(forms, ep_id, spec) {
   # Departure 22 (Welch's F by default) applies when Welch's F is planned
   # for.
   if (!identical(spec$target_test$method, "welch_f")) keys <- setdiff(keys, "22")
+  # Departure 32 (the Brown-Forsythe test by default for two variances)
+  # applies when it is the test planned for.
+  if (!identical(spec$target_test$method, "brown_forsythe")) keys <- setdiff(keys, "32")
   # Departures 23 and 24 (variation between studies, 0.05 or 0.025 to start with) apply
   # when the plan allows for it.
   if (!(is.numeric(spec$population$tau) && isTRUE(spec$population$tau > 0) && identical(spec$design, "basic_test"))) keys <- setdiff(keys, c("23", "24"))

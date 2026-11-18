@@ -2243,7 +2243,8 @@ endpoints:
     card_points:
       - "Compares how spread out scores are (their variance, the SD squared) in two groups of different people."
       - "Groups of equal size only, for now."
-      - "The F test is calculated exactly, as G*Power does, and assumes normal scores; Levene's and the Brown-Forsythe test, which don't, are simulated on the score shape you choose."
+      - "Three tests: the Brown-Forsythe test (chosen to start with), Levene's test, or the F test G*Power uses. You choose on the input screen."
+      - "The F test is calculated exactly and assumes normal scores; with skewed or heavy-tailed scores it finds differences that aren't there. The Brown-Forsythe and Levene tests don't assume normal scores, and are simulated on the score shape you choose."
     inputs: ["Names of the two groups and the outcome", "The expected variance in each group", "The F test, Levene's test or the Brown-Forsythe test"]
     tier: v2
     alternatives: ["the independent-samples t-test, if your hypothesis is about the average rather than the spread"]
@@ -2652,6 +2653,12 @@ test_versions:
   - {endpoint: E4, value: spearman, name: "Spearman's rho", search_words: "spearman spearmans rho rank correlation nonparametric non-parametric rank based"}
   - {endpoint: E4, value: kendall, name: "Kendall's tau", search_words: "kendall kendalls tau rank correlation nonparametric non-parametric rank based"}
   - {endpoint: E5, value: fisher_exact, name: "Fisher's exact test", search_words: "fisher fishers exact test"}
+  - {endpoint: E26, value: mcnemar_exact, name: "McNemar's exact test", search_words: "mcnemar mcnemars exact test binomial paired proportions"}
+  - {endpoint: E26, value: mcnemar_chisq, name: "McNemar's chi-square test (uncorrected)", search_words: "mcnemar mcnemars chi square chi-square test uncorrected without continuity correction jamovi"}
+  - {endpoint: E26, value: mcnemar_chisq_corrected, name: "McNemar's chi-square test (continuity-corrected)", search_words: "mcnemar mcnemars chi square chi-square test continuity correction corrected yates mcnemar.test"}
+  - {endpoint: E53, value: brown_forsythe, name: "Brown-Forsythe test of equal variances", search_words: "brown forsythe test equality of variances equal variances homogeneity of variance homoscedasticity median levene spread"}
+  - {endpoint: E53, value: levene, name: "Levene's test", search_words: "levene levenes test equality of variances equal variances homogeneity of variance homoscedasticity spread spss"}
+  - {endpoint: E53, value: f_var, name: "F test of two variances", search_words: "f test of two variances variance ratio test equality of variances fisher f test var.test spread"}
   - {endpoint: E18, value: kruskal_wallis, name: "Kruskal-Wallis test", search_words: "kruskal wallis h test nonparametric non-parametric rank based"}
   - {endpoint: E18, value: mann_whitney, name: "Pairwise Mann-Whitney tests", search_words: "pairwise mann whitney u tests wilcoxon rank sum post hoc after kruskal wallis nonparametric non-parametric rank based"}
   - {endpoint: E18, value: dunn, name: "Dunn's test", search_words: "dunn dunns test post hoc after kruskal wallis pairwise nonparametric non-parametric rank based"}

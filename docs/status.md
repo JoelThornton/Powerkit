@@ -1,10 +1,6 @@
 # Project status
 
-*Last updated: 18 November 2026.*
-
-*Where the project is
-now, one short paragraph per area; replace a paragraph rather than adding
-to it. What to do next is [`next.md`](next.md). History is in git,
+*Last updated: 18 November 2026 (the two-variances card preselects the Brown-Forsythe test, and the search finds Levene's, Brown-Forsythe, the F test of two variances and McNemar's tests by name; next.md). History is in git,
 [`engine/NEWS.md`](../engine/NEWS.md) and
 [`archive/status-history.md`](archive/status-history.md), which holds this
 page as it stood before each rewrite.*

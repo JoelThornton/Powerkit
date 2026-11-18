@@ -169,7 +169,7 @@ power while matching G\*Power) is folded there instead
 | Spower | `p_var.test()`: one variance plus `sigma2` goes to `EnvStats::varTest()` (the chi-square test); two variances go to `stats::var.test()` (the F test), whatever `test` says, unless `test = "Fligner"`. `test` (Levene, Bartlett, Fligner) is for three groups or more [Spower-src] | `vars` (one variance, or one per group), `sigma2` (the value tested against) [Spower-src] | `alternative`, or `two.tailed`; `two.tailed = FALSE` means `"greater"` whichever way the variances point, so a test of a **smaller** variance needs `alternative = "less"` (`docs/upstream-questions.md`). `n` is one group's size and `n.ratios` the group sizes' ratios, but unequal ratios fail in `gen_var.test()` (`docs/upstream-questions.md`) [Spower-src] |
 | pwr, pwrss, Superpower, InteractionPoweR, power4mome | Not covered: none of them exports a power function for a variance (their exported functions, checked 25 October 2026) | | |
 | **powerkit** | Since 31 October 2026, the exact distributions above, as G\*Power computes them, with base R's `stats::pchisq()` and `stats::pf()` (`backend-variance.R`; CLAUDE.md allows a published closed-form result where no package has one). Spower's `p_var.test()` simulates the same tests with `options > method` "simulation". Known difference 4 is retired [powerkit] | `var` and `var0` (one group: the expected variance and the fixed value it is compared with); `var1` and `var2` (two groups, in the order the groups are listed). Power depends on the ratio alone | `alternative`: two-sided by default, or `greater` / `less` ("greater" = the variance, or group 1's variance, is the larger one), `goal.n` is the total. The formula takes an allocation ratio for the two-group test, rounding the groups at each total (G\*Power's own example with N2/N1 = 2 gives 148 and 295, N = 443, and so does powerkit; it gave 148 and 296, N = 444, while it kept the ratio exact); the simulation is refused one while Spower can't draw unequal groups |
-| **powerkit**, Levene's and the Brown-Forsythe test (from 17 November 2026) | E53 also offers the tests that don't assume normal scores: Levene's test (`target_test > method` "levene", deviations from each group's mean) and the Brown-Forsythe test ("brown_forsythe", deviations from the medians), both `car::leveneTest()` (center = mean or median; median is car's default; SPSS reports Levene's). No package gives their power, and Spower's `p_var.test()` runs the F test for two groups whatever `test` says, so powerkit's own Spower experiment `p_levene()` draws the scores in the chosen shape (`population > score_shape`: normal, skewed or heavy-tailed) and runs `car::leveneTest()` (`backend-levene.R`). The F test stays the default, as in G\*Power [powerkit] | As above | Two-sided only (a one-sided test of which variance is larger is the F test's); unequal groups are simulated (rounded as the formula rounds them). At 200 people, variances 1.5 and 1: the F test 0.518, Levene's test 0.467 and the Brown-Forsythe test 0.466 with normal scores, and the Brown-Forsythe test 0.25 with heavy-tailed scores. `test-validation-variance-tests.R` checks them against an ANOVA of the absolute deviations written out without car |
+| **powerkit**, Levene's and the Brown-Forsythe test (from 17 November 2026) | E53 also offers the tests that don't assume normal scores: Levene's test (`target_test > method` "levene", deviations from each group's mean) and the Brown-Forsythe test ("brown_forsythe", deviations from the medians), both `car::leveneTest()` (center = mean or median; median is car's default; SPSS reports Levene's). No package gives their power, and Spower's `p_var.test()` runs the F test for two groups whatever `test` says, so powerkit's own Spower experiment `p_levene()` draws the scores in the chosen shape (`population > score_shape`: normal, skewed or heavy-tailed) and runs `car::leveneTest()` (`backend-levene.R`). Since 18 November 2026 the Brown-Forsythe test is preselected (Departure 32) [powerkit] | As above | Two-sided only (a one-sided test of which variance is larger is the F test's); unequal groups are simulated (rounded as the formula rounds them). At 200 people, variances 1.5 and 1: the F test 0.518, Levene's test 0.467 and the Brown-Forsythe test 0.466 with normal scores, and the Brown-Forsythe test 0.25 with heavy-tailed scores. `test-validation-variance-tests.R` checks them against an ANOVA of the absolute deviations written out without car |
 
 ## Factorial ANOVA
 
@@ -2105,6 +2105,35 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
 - **Shown to users:** on the replication plan's result whenever a
   replication or sceptical Bayes factor is in the plan
   (`replication_direction_note()`), and in the methods paragraph.
+
+### 32. Two variances: the Brown-Forsythe test by default, not the F test (G\*Power)
+
+- **Established convention:** G\*Power plans the test of two variances as
+  the F test (section 15), which assumes normal scores; base R's
+  `var.test()` runs it, and Spower's `p_var.test()` with two groups.
+- **powerkit:** since 18 November 2026 the two-variances card (E53)
+  preselects the Brown-Forsythe test (Levene's test with deviations from
+  the medians, `car::leveneTest()`'s default), simulated with Spower
+  (`backend-levene.R`, on the score shape the researcher chooses, normal
+  to start with). Levene's test and the F test stay one choice away in the
+  same dropdown. A spec that names `f_var` still gets the F test.
+- **Why** (the maintainer's decision, 18 November 2026): the F test's
+  false-positive rate depends heavily on the scores' shape. With 100 per
+  group and equal variances, at alpha .05, it rejected 4.9% of normal,
+  12.0% of skewed (standardised chi-square, 10 df) and 42.9% of
+  heavy-tailed (t, 3 df) samples, against 5.1%, 4.8% and 4.7% for the
+  Brown-Forsythe test (4,000 studies each, 18 November 2026). A plan for
+  the F test with non-normal scores counts those false positives as power.
+- **Size:** with normal scores, variances 1.5 and 1 and 200 people, the F
+  test's exact power is 0.518 and the Brown-Forsythe test's 0.466 (10,000
+  simulated studies, validation chunk `variances`), so a plan for the
+  Brown-Forsythe test needs somewhat more people.
+- **Test:** `engine/tests/testthat/test-backend-levene.R`, "Departure 32's
+  size".
+- **Shown to users:** on the E53 result whenever the Brown-Forsythe test is
+  planned for (`app/routing/R/results.R`, `departures_for()`), and in the
+  methods paragraph. Only the F test is one-sided, so the direction
+  question is shown with it alone.
 
 ## Known differences
 
