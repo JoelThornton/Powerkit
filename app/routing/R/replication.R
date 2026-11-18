@@ -1741,10 +1741,10 @@ replication_still_needed <- function(values) {
 # once the study's kind is chosen. The write-up is never "done".
 replication_steps_done <- function(values, current_plan, outcome) {
   has <- function(id) nzchar(trimws(as.character(values[[id]] %||% "")))
-  c(if (nzchar(outcome %||% "")) "whether",
+  as.character(c(if (nzchar(outcome %||% "")) "whether",
     if (!length(replication_missing(values))) "original",
     if (isTRUE(current_plan)) "goals",
-    if (has("rep_keeps")) "differences")
+    if (has("rep_keeps")) "differences"))
 }
 
 # The planner's file: its fields, with what wrote them.
