@@ -87,7 +87,8 @@ does not justify bypassing scientific validation or weakening main's checks.
 ## Observed configuration
 
 Checked through the GitHub API on 7 November 2026. Three rulesets are
-active, none with bypass actors:
+active, none with bypass actors at that date (but see "Numbering after
+a merge" below):
 
 - **Protect main history** (26634634, 5 November 2026): blocks deletion
   and force pushes on main.
@@ -113,3 +114,18 @@ The feedback database (Supabase) was checked in its dashboard on
 7 November 2026: the `powerkit_feedback` table has row-level security on,
 no policies and its Data API access off, so the app's public key can call
 `send_powerkit_feedback()` but can't read messages.
+
+## Numbering after a merge
+
+Since 18 November 2026 `.github/workflows/after-merge.yaml` commits each
+merge's version, change notes, decision entries, status date and release
+inventory straight to main (`adding-a-test.md`, "Change notes and
+version numbers"), pushing with `RELEASE_TOKEN`. For that push to be
+accepted, the **Require checked pull requests** ruleset needs one bypass
+actor: Settings → Rules → Rulesets → Require checked pull requests →
+Bypass list → Add bypass → **Repository admin**, set to **Always allow**.
+The token belongs to the maintainer, who is the repository's admin.
+"Protect main history" keeps its empty bypass list, so force pushes and
+deletion stay blocked for everyone, the job included. The job's commit
+says `[skip ci]` and changes no tested code; if it is refused, it fails
+with a message and the notes wait on main for the next merge.
