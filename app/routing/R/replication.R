@@ -712,7 +712,7 @@ replication_planner_sections <- function() {
       tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "Write-up"),
         conditionalPanel("input.labs_outcome != 'not_worth'", rep_note("One plan built from everything here, the notes, the original study, the goals, how the replication differs and the original's analysis on its card, for a preregistration or a registered report. Sections not filled in yet are marked, so it can be downloaded at any stage.")),
         div(class = "nav-buttons",
-          document_menu("rep_document", "rep_docx", "rep_markdown", "Save as PDF or print", "the replication plan", class = "btn btn-primary"),
+          document_menu("rep_document", "rep_docx", "rep_markdown", "Print or save PDF", "the replication plan", class = "btn btn-primary"),
           conditionalPanel("input.labs_outcome != 'not_worth'", inline = TRUE,
             download_button("rep_script", "Download the R script", class = "btn btn-outline-primary"))),
         uiOutput("rep_writeup_note")),

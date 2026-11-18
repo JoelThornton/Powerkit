@@ -3493,7 +3493,7 @@ result_panel_core <- function(tree, forms, ep_id, fields, values, calc, check_ad
     # The documents made from the result; keeping the result itself is
     # under the answer (keep_result_ui(), R/keep-result.R).
     documents_ui(can_export, p_$backend, document_menu("planning_document", "download_planning_docx", "download_planning_document",
-      "Report (PDF)", "the report")),
+      "Print or save PDF", "the report")),
     simulated_data_ui(spec, result)),
     div(class = "result-card result-how", id = "result-how-card",
     h4(class = "h5", "How it was calculated"),
@@ -4461,7 +4461,7 @@ precision_panel_ui <- function(tree, forms, ep_id, fields, values, calc) {
         tags$strong("No reason for the effect size is recorded yet. "),
         "The write-up and saved files say so. To add one, write it under \u201cWhere your effect size comes from\u201d and press \u201cCalculate\u201d again."),
       documents_ui(can_export, p_$backend, document_menu("planning_document", "download_planning_docx", "download_planning_document",
-        "Report (PDF)", "the report")),
+        "Print or save PDF", "the report")),
       simulated_data_ui(spec, result)),
     div(class = "result-card result-how", id = "result-how-card",
       h4(class = "h5", "How it was calculated"),

@@ -17,8 +17,10 @@ One noun per thing, so that "plan" only ever means a study plan:
 - **Plan a whole study**: the start option that asks for the study's
   variables and analyses and keeps them, and each analysis calculated
   from them, in a study plan.
-- **Report (PDF)**: the document for one analysis; a study plan has a
-  **study plan report**.
+- **Print or save PDF** opens the browser’s print dialog. Its format menu
+  offers the report as Word or Markdown. The **Download analysis and files
+  (.zip)** bundle contains both editable reports and the analysis file.
+  **Download plan and files (.zip)** bundles the whole study plan.
 - The first tab is **Power and sample size**; "Open a saved file" opens
   any of these files on the start screen and on the Study plans page.
 - The top row is **Power and sample size**, **Study plans** (with the
@@ -53,8 +55,9 @@ was saved, and lose it.
 
 - **Keep this result**, at the foot of the answer card: Save project file
   (the screen's primary button), Copy a link and Add to my study plan.
-  A status reads "Not saved yet" and changes once one of them is used;
-  a result reopened from a file starts as kept.
+  A result reopened from a file starts as kept. A download click displays
+  "Download requested. Check your downloads." until the result is known
+  to be kept by another action.
 - **Documents for your study**, in "Write it up and save it": the
   planning document, R script, citations and **Download everything
   (.zip)**, said plainly not to reopen in powerkit. The zip holds the

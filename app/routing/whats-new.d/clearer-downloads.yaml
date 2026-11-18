@@ -1,0 +1,7 @@
+entries:
+  - date: "2026-11-18"
+    title: Clearer save and export messages
+    text: >
+      The result screen asks you to check your downloads after requesting
+      a file. Print or save PDF opens the browser’s print dialog. ZIPs are
+      labelled by what they contain and include editable report formats.

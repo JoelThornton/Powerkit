@@ -10,7 +10,7 @@
 #   (first), Save analysis, and the top bar's Share, the ways to come back
 #   to it, with a line that says whether the result has been kept yet.
 # * "Documents to download", in "Write it up": the report, the R script,
-#   citations and "Download everything (.zip)". The zip holds the analysis
+#   citations and "Download analysis and files (.zip)". The zip holds the analysis
 #   file too, and "Open a saved file" opens the zip itself
 #   (zip_project_file()). Since 16 November 2026 every way to come back
 #   is in "Keep this result", so the documents need no note saying they
@@ -47,12 +47,12 @@ documents_ui <- function(can_export, backend, planning_menu) {
       if (can_export) planning_menu,
       if (can_export) download_button("download_script", "R script", class = "btn btn-outline-primary"),
       download_button("download_citations", "Citations", class = "btn btn-outline-primary"),
-      if (can_export) download_button("download_bundle", "Download everything (.zip)", class = "btn btn-outline-primary")),
+      if (can_export) download_button("download_bundle", "Download analysis and files (.zip)", class = "btn btn-outline-primary")),
     tags$ul(class = "result-downloads-notes small",
-      if (can_export) tags$li(tags$strong("Report: "), "the reasoning, the methods paragraph and the result, for an ethics application, a preregistration or a supervisor."),
+      if (can_export) tags$li(tags$strong("Print or save PDF: "), "opens your browser’s print dialog for the report. The arrow beside it offers Word and Markdown."),
       if (can_export) tags$li(tags$strong("R script: "), "reproduces this result with ", backend, " alone; Powerkit isn't needed."),
       tags$li(tags$strong("Citations: "), "the package's own citation(), its method paper and the software used."),
-      if (can_export) tags$li(tags$strong("Download everything: "), "all of these with the analysis file and, where there is one, the simulated data set, in one zip. Open the zip itself from the start screen to carry on.")))
+      if (can_export) tags$li(tags$strong("Analysis ZIP: "), "the analysis file, Word and Markdown reports, R script, citations and simulated data where available. Open the ZIP in Powerkit to carry on.")))
 }
 
 keep_result_css <- "
@@ -80,10 +80,15 @@ keep_result_js <- sprintf("
     setTimeout(function() { var s = document.getElementById('keep-status'); unkept = !!s && s.getAttribute('data-kept') === 'no'; }, 0);
   });
   document.addEventListener('click', function(e) {
-    var t = e.target && e.target.closest ? e.target.closest('#download_project, #download_bundle, #plan_add') : null;
-    if (!t || t.classList.contains('disabled')) return;
-    mark(t.id === 'plan_add' ? 'In your study plan' : 'Saved as a file');
+    var t = e.target && e.target.closest ? e.target.closest('#download_project, #download_bundle') : null;
+    if (!t || t.classList.contains('disabled') || t.getAttribute('aria-disabled') === 'true') return;
+    var status = document.getElementById('keep-status');
+    // A regular browser download does not tell the page whether the file was saved.
+    if (status && status.getAttribute('data-kept') === 'no') {
+      status.textContent = 'Download requested. Check your downloads.';
+    }
   }, true);
+  Shiny.addCustomMessageHandler('pk_result_added_to_plan', function() { mark('In your study plan'); });
   // A link copied for this result counts as kept.
   $(document).on('pk:share-link', function(e, kind) { if (kind === 'project') mark('Link made'); });
   // An answer changed after calculating: the result on screen is no longer
@@ -168,7 +173,7 @@ bundle_readme <- function(endpoint, files) {
     data = "SIMULATED, NOT REAL DATA: a made-up data set of the planned size for checking analysis code.")
   lines <- vapply(names(files), function(k) sprintf("%s\n  %s", basename(files[[k]]), about[[k]]), character(1))
   c(sprintf("powerkit: everything for %s, saved %s", endpoint, format(Sys.time(), "%d %B %Y at %H:%M UTC", tz = "UTC")), "",
-    lines, "", "The report as a PDF is made from the result screen (Report), using your browser's print dialog.")
+    lines, "", "The report as a PDF is made from the result screen (Report), using your browser's print dialog. Choose Print or save PDF.")
 }
 
 # "Download everything": the zip. The project file is written first and

@@ -34,7 +34,7 @@ test_that("the plan page offers Download everything once the plan has an analysi
   expect_no_match(as.character(plan_page_ui(new_plan("Empty"))), "download_plan_bundle", fixed = TRUE)
   html <- as.character(plan_page_ui(plan_with(list(list(label = "An analysis", n = 10)))))
   expect_match(html, "download_plan_bundle", fixed = TRUE)
-  expect_match(html, "Download everything (.zip)", fixed = TRUE)
+  expect_match(html, "Download plan and files (.zip)", fixed = TRUE)
 })
 
 test_that("the zip's name comes from the plan's name", {

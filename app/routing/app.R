@@ -2318,6 +2318,7 @@ server <- function(input, output, session) {
     plans_put(plan)
     state$current_plan <- plan$id
     state$plan_just_added <- list(plan = plan$id, hash = hash)
+    session$sendCustomMessage("pk_result_added_to_plan", list())
   })
   # A result changed after opening it from a plan: replace the plan's
   # analysis, or add it beside the old one.
@@ -2330,6 +2331,7 @@ server <- function(input, output, session) {
     hash <- calc$result$provenance$spec_hash
     state$plan_origin$hash <- hash
     state$plan_just_added <- list(plan = plan$id, hash = hash, updated = TRUE)
+    session$sendCustomMessage("pk_result_added_to_plan", list())
   })
   observeEvent(input$plan_entry_add_new, {
     calc <- state$calc; origin <- state$plan_origin
@@ -2341,6 +2343,7 @@ server <- function(input, output, session) {
     hash <- calc$result$provenance$spec_hash
     state$plan_origin <- NULL
     state$plan_just_added <- list(plan = plan$id, hash = hash)
+    session$sendCustomMessage("pk_result_added_to_plan", list())
   })
   # The top bar, and every "See the study plan" link.
   observeEvent(input$plans_open_page, open_plans_page(NULL))
