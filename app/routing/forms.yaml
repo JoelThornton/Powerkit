@@ -387,6 +387,7 @@ whole_study:
 # Departures from the wrapped tool's conventions, shown on the result screen
 # (CLAUDE.md). Each condenses its entry in docs/conventions.md, "Departures".
 departures:
+  "32": "Two variances: Powerkit plans for the Brown-Forsythe test unless you choose Levene's test or the F test. G*Power plans for the F test, which assumes normal scores: with skewed or heavy-tailed scores its chance of a false positive is far above alpha (12% and 43% at alpha .05 with 100 per group), while the Brown-Forsythe test keeps it near 5%. With normal scores the Brown-Forsythe test has a little less power: 46.6% against the F test's 51.8% for variances of 1.5 and 1 and 200 people."
   "29": "The ICC: Powerkit works out the F test's power from its exact distribution (Donner and Eliasziw, 1987), unless you choose ICC.Sample.Size's approximation (Walter, Eliasziw and Donner), which asks for a few more people than needed: for an ICC of 0.8 against 0.6 with 3 raters, one-sided, 80% power needs 26 subjects by the exact power and 27 by the approximation."
   "26": "Repeated measures with SDs or correlations that differ: Powerkit plans for the Greenhouse-Geisser corrected F test unless you choose otherwise; Superpower applies no correction by default. Without sphericity the uncorrected F test gives false positives more often than alpha (6.7% rather than 5% in 40,000 simulated studies with three conditions, SD 100, correlations .8, .5 and .2 and 40 people), so its higher power is not a fair figure. With means 600, 620 and 650 in that example, 40 people give 68.4% power with the correction against 80.5% without, and 80% power needs 52 people rather than 40. That corrected figure comes from Superpower's exact dataset, an approximation; simulated studies of the corrected test, powerkit's default here (Departure 28), gave 71.5%."
   "27": "Bland-Altman limits of agreement: Powerkit simulates the analysis you will run, SimplyAgree's agreement_limit() with MOVER confidence intervals, unless you choose Lu et al.'s (2016) formula, the one SimplyAgree's blandPowerCurve() gives. The formula approximates Bland and Altman's analysis and can be several points off in either direction, and Bland and Altman's intervals are too narrow in small samples (at 30 subjects about 5% of studies wrongly show agreement where 2.5% should), which the MOVER intervals avoid. With a bias of 0.5, an SD of the differences of 2.5 and a margin of 8, the formula gives 80% power at 26 subjects; the MOVER analysis has about 69% there and needs 33."
@@ -3287,6 +3288,8 @@ forms:
     known_differences_if_method: {"2": mcnemar_exact}
     known_differences: ["2"]
     directional: true
+    # Only the exact test has a one-sided version.
+    direction_shown_if: [{field: method, is: mcnemar_exact}]
     base: {spec_version: "0.1", design: basic_test, template: mcnemar,
            variables: {X: {type: within_factor}, "Y": {type: binary, levels: ["No", "Yes"]}}, population: {metric: proportion},
            target_test: {effect: paired_proportion_difference, method: mcnemar_exact}}
@@ -3570,10 +3573,13 @@ forms:
 
   E53:
     methods_name: "an F test of two variances"
+    departures: ["32"]
     sensitivity: true
     sensitivity_without_effect: true
     tool: formula
     directional: true
+    # Only the F test has a one-sided version.
+    direction_shown_if: [{field: method, is: f_var}]
     base: {spec_version: "0.1", design: basic_test, template: two_variances,
            variables: {G: {type: binary}, "Y": {type: continuous}}, population: {metric: variance},
            target_test: {effect: variance_ratio, method: f_var}}
@@ -3593,8 +3599,8 @@ forms:
         fields:
           - {id: method, label: "Test version", type: select, path: target_test.method, required: true,
              choices: {f_var: "F test of two variances", levene: "Levene's test (deviations from the means)", brown_forsythe: "Brown-Forsythe test (deviations from the medians)"},
-             default: f_var, default_source: "the F test G*Power computes for two variances (section 15)",
-             help: "Choose the test you will actually use to analyse your study. The F test assumes normal scores, and its false-positive rate is wrong when they aren't. Levene's test is what SPSS reports; the Brown-Forsythe version is the default of R's car::leveneTest() and is the safer of the two with skewed or heavy-tailed scores. Both are two-sided.",
+             default: brown_forsythe, default_source: "the Brown-Forsythe test, car::leveneTest()'s default, because it keeps the false-positive rate at alpha whatever the scores' shape (Departure 32); G*Power plans for the F test",
+             help: "Choose the test you will actually use to analyse your study. The F test assumes normal scores, and with skewed or heavy-tailed scores it finds differences that aren't there. Levene's test is what SPSS reports; the Brown-Forsythe version is the default of R's car::leveneTest() and is the safer of the two with skewed or heavy-tailed scores. Only the F test can be one-sided.",
              choice_notes: {f_var: "Powerkit works out its power exactly, as G*Power does, for normal scores.", levene: "An ANOVA of each person's distance from their group's mean (car::leveneTest(center = mean)). Powerkit simulates its power with Spower, on scores of the shape you choose.", brown_forsythe: "As Levene's test, with distances from each group's median (car::leveneTest(center = median), car's default). Powerkit simulates its power with Spower, on scores of the shape you choose."}}
           - {id: score_shape, label: "The shape of the scores in each group", type: select, path: population.score_shape, required: true,
              shown_if: {field: method, is_one_of: [levene, brown_forsythe]},

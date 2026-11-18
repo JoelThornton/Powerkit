@@ -55,3 +55,31 @@ test_that("E53 asks which variance test, and the score shape only for Levene's a
   skip_without_run()
   expect_match(quick_writeup("E53", fields, values), "the Brown-Forsythe test of two variances", fixed = TRUE)
 })
+
+test_that("two variances start with the Brown-Forsythe test, and its departure is shown with it only (Departure 32)", {
+  method <- field_named("E53", "method")
+  expect_identical(method$default, "brown_forsythe")
+  fields <- form_fields(form_groups(forms, "E53"))
+  values <- modifyList(form_examples$E53, list(goal = "power", n = "200", method = "brown_forsythe", score_shape = "normal", alternative = NULL))
+  spec <- build_spec(forms, "E53", fields, values)
+  expect_true("32" %in% names(departures_for(forms, "E53", spec)))
+  f_test <- build_spec(forms, "E53", fields, modifyList(values, list(method = "f_var", alternative = "two_sided")))
+  expect_false("32" %in% names(departures_for(forms, "E53", f_test)))
+})
+
+test_that("the one-sided question is asked only for the tests that have one", {
+  for (case in list(c("E53", "f_var", "brown_forsythe"), c("E26", "mcnemar_exact", "mcnemar_chisq"))) {
+    alternative <- field_named(case[1], "alternative")
+    expect_true(field_applies(alternative, list(method = case[2])))
+    expect_false(field_applies(alternative, list(method = case[3])))
+  }
+})
+
+test_that("the search finds each test by its own name", {
+  names <- vapply(tree$test_versions, `[[`, "", "name")
+  expect_true(all(c("Levene's test", "Brown-Forsythe test of equal variances", "F test of two variances",
+    "McNemar's chi-square test (continuity-corrected)") %in% names))
+  levene <- Filter(function(v) identical(v$value, "levene"), tree$test_versions)[[1]]
+  expect_identical(levene$endpoint, "E53")
+  expect_identical(version_form_values(levene)[[levene$field]], "levene")
+})
