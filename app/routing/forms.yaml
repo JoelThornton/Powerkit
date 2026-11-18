@@ -479,6 +479,10 @@ known_differences_methods:
 #   multi_df   a test of several degrees of freedom, with no one-number
 #              effect; the text names the focal contrast to plan instead
 #   none       why a replication's goals table doesn't fit the card
+#   anova      (beside one of the above) an ANOVA card: between, within or
+#              mixed. Its F or partial eta-squared is planned with BUCSS
+#              under the plan's "An ANOVA effect" design, which a plan
+#              opened on the card starts with (queue item 28).
 # A replication plan opened on the card starts with it; the researcher can
 # change it on the plan's page.
 replication_effects:
@@ -490,9 +494,9 @@ replication_effects:
   E41: {effect: "the cross-level interaction (how much the within-person slope changes with the moderator)", scale: none}
   E5: {effect: "odds ratio between the two groups", scale: log}
   E6: {multi_df: "for a 2 x 2 table, the odds ratio (card E5 or E27); for a larger table, the one comparison the hypothesis is about"}
-  E7: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
-  E22: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none}
-  E8: {effect: "the group by condition interaction (the difference in change between the groups)", scale: none}
+  E7: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none, anova: between}
+  E22: {effect: "the interaction contrast (or the one effect the hypothesis is about), as an estimate with its standard error", scale: none, anova: between}
+  E8: {effect: "the group by condition interaction (the difference in change between the groups)", scale: none, anova: mixed}
   E9: {effect: "the interaction coefficient (b for X times W)", scale: none}
   E15: {effect: "the interaction coefficient (b for X times W)", scale: none}
   E31: {effect: "the three-way interaction coefficient", scale: none}
@@ -518,12 +522,12 @@ replication_effects:
   E17: {effect: "the index of moderated mediation", scale: none}
   E38: {effect: "the index of moderated mediation", scale: none}
   E40: {effect: "the index of moderated mediation for the mediator the hypothesis is about", scale: none}
-  E18: {multi_df: "the difference between the two groups the hypothesis is about (card E19, a specific comparison)"}
-  E54: {multi_df: "the difference between the two conditions the hypothesis is about (card E3 for two conditions)"}
-  E55: {multi_df: "the one contrast the hypothesis is about, such as the difference in change between two groups (card E8)"}
+  E18: {multi_df: "the difference between the two groups the hypothesis is about (card E19, a specific comparison)", anova: between}
+  E54: {multi_df: "the difference between the two conditions the hypothesis is about (card E3 for two conditions)", anova: within}
+  E55: {multi_df: "the one contrast the hypothesis is about, such as the difference in change between two groups (card E8)", anova: mixed}
   E56: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design"}
-  E20: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design"}
-  E21: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design (card E7)"}
+  E20: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design", anova: within}
+  E21: {multi_df: "the one contrast the hypothesis is about, such as a 2 x 2 interaction within the design (card E7)", anova: between}
   E23: {effect: "the adjusted difference between the two groups (with three or more groups, the one comparison the hypothesis is about)", scale: none}
   E24: {effect: "the coefficient of the predictor the hypothesis is about", scale: none}
   E25: {effect: "the difference between the proportion and the fixed value", scale: none}

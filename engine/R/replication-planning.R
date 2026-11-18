@@ -180,7 +180,10 @@ replication_goal_ids <- c("significance", "pooled", "agreement", "bf_replication
 #'   which already exceeds `power`) and `reason` (`"not_reachable"`,
 #'   `"over_max"`, `"not_found"` or `"any_size"`); `at_n` (the chance of each goal at `n`); `telescope` (d33
 #'   and its calculation, `NULL` for a generic design or a Bayesian
-#'   original); `sequential` (for a Bayesian t-test original, each belief as
+#'   original); `bias_corrected` (for a t-test or correlation original
+#'   analysed with a test, [replication_bucss()]'s sample sizes for a
+#'   significant result at 50% and 80% assurance, corrected for
+#'   publication bias and uncertainty; `NULL` without BUCSS); `sequential` (for a Bayesian t-test original, each belief as
 #'   a design prior for [bayes_sequential()]); `functions_used`; and
 #'   `packages`.
 #' @export
@@ -553,6 +556,20 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
     do.call(rbind, chance)
   }
 
+  # Corrected for publication bias and uncertainty (BUCSS; Anderson,
+  # Kelley & Maxwell, 2017): the sample size for a significant result at
+  # 50% and 80% assurance, from the original's t statistic (d moved to t
+  # by Lakens, 2013, as above) or r. For an original analysed with a test,
+  # whose significance was what got it published; NULL without BUCSS.
+  bias_corrected <- if (!generic && !bayes && requireNamespace("BUCSS", quietly = TRUE)) {
+    stat <- switch(design,
+      two_groups = original_effect / sqrt(1 / original_n1 + 1 / original_n2),
+      correlation = original_effect,
+      original_effect * sqrt(original_n))
+    replication_bucss(design, stat, original$n, original_alpha = original_alpha, alpha = alpha, power = power,
+      assurance = c(0.5, 0.8), alternative = alternative)
+  }
+
   list(
     inputs = list(design = design, original_effect = original_effect, original_n = original_n,
       original_n1 = original_n1, original_n2 = original_n2, original_alpha = original_alpha, alpha = alpha,
@@ -580,6 +597,7 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       effect_sd = vapply(priors, function(dp) sqrt(dp$dpVar), numeric(1)),
       prior_scale = original_prior_scale, row.names = NULL),
     telescope = if (telescopes) telescope[c("effect", "effect_name", "function_used", "n")],
+    bias_corrected = bias_corrected,
     functions_used = c(
       vapply(rules, function(r) paste0("BayesRepDesign::", r$call), character(1)),
       if (!is.null(margin)) c(negligible = sprintf("BayesRepDesign::ssdTOST(level = %s, margin = %s), design prior at 0",
@@ -599,7 +617,8 @@ replication_planning <- function(design, original_effect, original_n = NULL, ori
       if (length(bf_tests)) list(
         list(name = "bfpwr", version = as.character(utils::packageVersion("bfpwr")))),
       if (from_bf) list(
-        list(name = "BayesFactor", version = as.character(utils::packageVersion("BayesFactor"))))
+        list(name = "BayesFactor", version = as.character(utils::packageVersion("BayesFactor")))),
+      if (!is.null(bias_corrected)) bias_corrected$packages
     )
   )
 }
@@ -864,6 +883,10 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     return(replication_generic_script(plan, num, tf_call, margin, focus))
   }
   analysis <- i$original_analysis %||% "test"
+  bucss_lines <- if (!is.null(plan$bias_corrected)) c("",
+    "# Corrected for publication bias and uncertainty (BUCSS; Anderson, Kelley & Maxwell, 2017):",
+    "# the sample size (in total) for a significant result, at each level of assurance",
+    replication_bucss_script(plan$bias_corrected, header = FALSE))
   from_bf <- identical(analysis, "bayes_factor")
   post <- identical(analysis, "posterior")
   bayes <- from_bf || post
@@ -973,7 +996,8 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
       bf_size_line,
       sprintf("sapply(priors, function(dp) bf_size(k = 1/%s, power = power, dpm = dp$dpMean, dpsd = sqrt(dp$dpVar)))", num(i$threshold)),
       sprintf("# Evidence for no effect (BF01 of at least %s) if there is none", num(i$threshold)),
-      sprintf("bf_size(k = %s, power = power, dpm = 0, dpsd = 0, lower.tail = FALSE)", num(i$threshold)))
+      sprintf("bf_size(k = %s, power = power, dpm = 0, dpsd = 0, lower.tail = FALSE)", num(i$threshold))),
+    bucss_lines
   ) |> paste(collapse = "\n")
 }
 

@@ -13,6 +13,7 @@ if (FALSE) {
   library(ARTool)
   library(BayesRepDesign)
   library(brunnermunzel)
+  library(BUCSS)
   library(WRS2)
   library(SimplyAgree)
   library(boot)

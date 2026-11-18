@@ -153,7 +153,8 @@ test_that("inputs that can't be planned get plain words", {
 
 test_that("the result records what calculated it", {
   plan <- two_groups()
-  expect_setequal(vapply(plan$packages, `[[`, "", "name"), c("BayesRepDesign", "pwr", "pwrss", "bfpwr"))
+  expect_setequal(vapply(plan$packages, `[[`, "", "name"),
+    c("BayesRepDesign", "pwr", "pwrss", "bfpwr", if (requireNamespace("BUCSS", quietly = TRUE)) "BUCSS"))
   expect_match(plan$functions_used[["significance"]], "ssdSig\\(level = 0.025\\)")
   expect_match(plan$functions_used[["negligible"]], "level = 0.1")
   expect_match(plan$functions_used[["small_telescopes"]], "pwr.t2n.test")

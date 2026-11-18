@@ -1,6 +1,6 @@
 Package: powerkit
 Title: Unified Power Analysis for Common Research Designs
-Version: 0.78.21
+Version: 0.78.22
 Authors@R:
     person("Joel", "Thornton", , "joelthornton53@gmail.com",
            role = c("aut", "cre"))
@@ -60,6 +60,7 @@ Suggests:
     ARTool,
     BayesRepDesign,
     brunnermunzel,
+    BUCSS,
     boot,
     GPArotation,
     gsl,

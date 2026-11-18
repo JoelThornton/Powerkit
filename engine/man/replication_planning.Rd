@@ -143,7 +143,10 @@ for \code{reason} \code{"any_size"}, the chance with the smallest replication,
 which already exceeds \code{power}) and \code{reason} (\code{"not_reachable"},
 \code{"over_max"}, \code{"not_found"} or \code{"any_size"}); \code{at_n} (the chance of each goal at \code{n}); \code{telescope} (d33
 and its calculation, \code{NULL} for a generic design or a Bayesian
-original); \code{sequential} (for a Bayesian t-test original, each belief as
+original); \code{bias_corrected} (for a t-test or correlation original
+analysed with a test, \code{\link[=replication_bucss]{replication_bucss()}}'s sample sizes for a
+significant result at 50\% and 80\% assurance, corrected for
+publication bias and uncertainty; \code{NULL} without BUCSS); \code{sequential} (for a Bayesian t-test original, each belief as
 a design prior for \code{\link[=bayes_sequential]{bayes_sequential()}}); \code{functions_used}; and
 \code{packages}.
 }
