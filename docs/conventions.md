@@ -2079,6 +2079,32 @@ Decided by the maintainer on 14 November 2026 (`docs/decisions.md`,
   and in the methods paragraph, which names each criterion also reported
   and its chance.
 
+### 31. Replication and sceptical Bayes factors: a success only in the original's direction (BayesRepDesign counts either side)
+
+- **Established convention:** BayesRepDesign's `ssdBFr()`, `porsBFr()`,
+  `ssdBFs()` and `porsBFs()` default to `paradox = TRUE`, which counts a
+  replication whose Bayes factor passes the threshold on either side of
+  zero, including an estimate opposite to the original's (Pawel,
+  Consonni & Held, 2026, discuss this "replication paradox").
+- **powerkit:** `paradox = FALSE` in `replication_planning()` and its
+  scripts (from 17 November 2026): only a replication in the original's
+  direction counts.
+- **Why:** the plan describes success as evidence for the original's
+  effect, which a replication on the other side of zero is not, however
+  large its Bayes factor. Under a belief shrunk towards zero, much of the
+  chance counted by the default comes from such replications.
+- **Size:** little under the as-reported belief. For an original d = 0.3
+  with 90 per group and tau = 0.1, at 80% and a threshold of 10, the
+  replication Bayes factor under the shrunk belief needs 26,086 people,
+  against the package default's 7,393; under the uncertain belief, 2,252
+  against 1,944 (`engine/tests/testthat/test-replication-planning.R`,
+  "the replication Bayes factors count a success in the original's
+  direction only"). The validation chunk's simulation applies the same
+  rule (`validation-log.md`).
+- **Shown to users:** on the replication plan's result whenever a
+  replication or sceptical Bayes factor is in the plan
+  (`replication_direction_note()`), and in the methods paragraph.
+
 ## Known differences
 
 powerkit follows an established tool here, but another established tool

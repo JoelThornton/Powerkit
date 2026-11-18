@@ -4192,3 +4192,18 @@ they will be tested.
   plan asks only when significance or pooling is used, and the methods
   paragraph and settings line say which was chosen. Checked against the
   simulation of the method's model (`validation-log.md`).
+
+## 2026-11-17 · A replication Bayes factor in the opposite direction is not a success
+
+The maintainer's decision (queue item 28). BayesRepDesign's replication
+and sceptical Bayes factors default to `paradox = TRUE`, which counts a
+replication whose Bayes factor passes the threshold on either side of
+zero as a success (Pawel, Consonni & Held, 2026, the "replication
+paradox"). A replication plan describes success as evidence for the
+original's effect, which an estimate on the other side of zero is not,
+so `replication_planning()` sets `paradox = FALSE`, recorded as
+Departure 31 in `conventions.md` with its size: little under the
+as-reported belief, but for an original d = 0.3 with 90 per group and
+tau = 0.1 the shrunk belief needs 26,086 people against the default's
+7,393. The result screen says so whenever these Bayes factors are in a
+plan, and the methods paragraph states it.

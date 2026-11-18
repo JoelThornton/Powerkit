@@ -29,7 +29,7 @@ test_that("each goal's sample size is BayesRepDesign's, converted from its stand
     dp <- BayesRepDesign::designPrior(to = 0.7, so = so, tau = if (type == "conditional") 0 else 0.1, type = type)
     sig <- BayesRepDesign::ssdSig(level = 0.025, dprior = dp, power = 0.8)
     expect_equal(goal_n(plan, "significance", prior), 2 * ceiling(4 / sig$sr^2 / 2))
-    bfr <- BayesRepDesign::ssdBFr(level = 1 / 10, dprior = dp, power = 0.8)
+    bfr <- BayesRepDesign::ssdBFr(level = 1 / 10, dprior = dp, power = 0.8, paradox = FALSE)
     expect_equal(goal_n(plan, "bf_replication", prior), 2 * ceiling(4 / bfr$sr^2 / 2))
     meta <- BayesRepDesign::ssdMeta(level = 0.025^2, dprior = dp, power = 0.8, searchInt = c(1e-6, 10))
     expect_equal(goal_n(plan, "pooled", prior), 2 * ceiling(4 / meta$sr^2 / 2))
@@ -478,4 +478,20 @@ test_that("an F with one numerator df gives another design's test statistic", {
   expect_equal(from_f$goals$n, from_t$goals$n)
   expect_error(replication_planning("generic", 0.74, original_n = 120, original_f = -1), "above 0")
   expect_error(replication_planning("paired", 0.5, original_n = 30, original_f = 4), "another design")
+})
+
+test_that("the replication Bayes factors count a success in the original's direction only (Departure 31)", {
+  plan <- replication_planning("two_groups", 0.3, original_n1 = 90, original_n2 = 90, tau = 0.1)
+  dp <- BayesRepDesign::designPrior(to = plan$original$estimate, so = plan$original$se, tau = 0.1, type = "EB")
+  n_of <- function(found) 2 * ceiling(BayesRepDesign::se2n(found$sr, unitSD = 2) / 2 - 1e-9)
+  # The package's default, paradox = TRUE, counts a large Bayes factor on
+  # either side of zero; the planner's needs over three times as many people.
+  either <- n_of(BayesRepDesign::ssdBFr(level = 1 / 10, dprior = dp, power = 0.8))
+  expect_equal(either, 7393, tolerance = 2)
+  expect_equal(goal_n(plan, "bf_replication", "shrunk"), 26086, tolerance = 2)
+  expect_equal(goal_n(plan, "bf_replication", "shrunk"),
+    n_of(BayesRepDesign::ssdBFr(level = 1 / 10, dprior = dp, power = 0.8, paradox = FALSE)))
+  expect_match(plan$functions_used[["bf_replication"]], "paradox = FALSE", fixed = TRUE)
+  expect_match(plan$functions_used[["bf_sceptical"]], "paradox = FALSE", fixed = TRUE)
+  expect_match(replication_planning_script(plan), "paradox = FALSE", fixed = TRUE)
 })

@@ -1,17 +1,13 @@
 # powerkit 0.78.13
 
-* Mediation with a mediator in three or more ordered categories (E39,
-  template `ordinal_mediator`): the latent-response model, simulated by
-  Spower and analysed by `lavaan::sem()` with the mediator (and a yes/no
-  outcome) declared ordered, WLSMV and the theta parameterisation; the
-  indirect effect a*b is tested by the delta method. X two groups or a
-  score, Y a score or yes/no. New `backend-mediation-ordm.R`, schema
-  definition `template_mediation_ordinal_mediator` (population metric
-  `latent_response`: `m_probabilities`, `a`, `b`, `direct`, `y_baseline`),
-  example spec, check run, simulated-data code and exported R script, and
-  the validation chunk `mediation_ordm` (an independent simulation in
-  lavaan's delta parameterisation with its own delta-method test, and the
-  Type I error).
+* `replication_planning()` counts a replication or sceptical Bayes factor
+  as a success only in the original's direction: BayesRepDesign's
+  `ssdBFr()`, `porsBFr()`, `ssdBFs()` and `porsBFs()` are called with
+  `paradox = FALSE`, where the package defaults to `TRUE` (Departure 31,
+  `docs/conventions.md`). Sample sizes for those goals can rise sharply
+  under the shrunk belief (26,086 against 7,393 for an original d = 0.3
+  with 90 per group and tau = 0.1). The scripts, the validation chunk's
+  simulation and the app's result and methods paragraph follow.
 
 # powerkit 0.78.12
 

@@ -602,3 +602,16 @@ test_that("the write-up has a study design table, and the script runs the chosen
   plan$choice <- NULL
   expect_match(replication_script_text(plan, engine_function("replication_planning_script")), "sapply(priors", fixed = TRUE)
 })
+
+test_that("the replication Bayes factors' direction is shown and written up when they are used", {
+  planner <- engine_function("replication_planning")
+  base <- list(rep_design = "two_groups", rep_effect = "0.5", rep_n1 = "40", rep_n2 = "40", rep_tau = "0.05",
+    rep_alpha = "0.05", rep_power = "0.8", rep_purpose = "confirm")
+  plan <- replication_run(c(base, rep_also = "bf_replication"), planner)
+  expect_match(as.character(replication_result_ui(plan)), "rep-direction-note", fixed = TRUE)
+  expect_match(paste(replication_report(c(base, rep_also = "bf_replication"), plan), collapse = "\n"),
+    "only with the replication's estimate in the original's direction (BayesRepDesign's paradox = FALSE)", fixed = TRUE)
+  plain <- replication_run(c(base, rep_also = "none"), planner)
+  expect_no_match(as.character(replication_result_ui(plain)), "rep-direction-note", fixed = TRUE)
+  expect_no_match(paste(replication_report(c(base, rep_also = "none"), plain), collapse = "\n"), "paradox", fixed = TRUE)
+})

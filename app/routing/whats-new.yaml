@@ -8,8 +8,8 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-17"
-    title: "Plan mediation through a mediator in ordered categories"
-    text: "The card for mediation when a mediator isn't a score now also takes a mediator answered in three or more ordered categories, such as a rating from \"unlikely\" to \"certain\". Powerkit treats the categories as cut from an underlying score, the usual structural equation model for an ordered variable, and tests the indirect effect through that score. You give the share of people in each category and how X and the outcome relate to the underlying score."
+    title: "Replication plans: Bayes factors count only in the original's direction"
+    text: "In a replication plan, the replication Bayes factor and the sceptical Bayes factor now count as a success only when the replication's estimate is in the same direction as the original's. Before, a strong result on the other side of zero also counted, which is not evidence for the original effect. Plans that use these Bayes factors may now ask for more people, especially when you believe the original effect is overestimated, and the result says so."
   - date: "2026-11-17"
     title: "Replication plans: a study design table, a shorter script and one-sided tests"
     text: "A replication plan's write-up now includes the study design table that Registered Report journals ask for: for each criterion, the question, hypothesis, sampling plan, analysis plan, what sets the test's sensitivity and how each outcome will be read, with a column for your theory to fill in. The R script now runs only the criteria you chose: it finds the main criterion's sample size under your belief about the true effect, then the chance of each other criterion at that size. The significance test can now be one-sided, in the original's direction, if your preregistration says so."
