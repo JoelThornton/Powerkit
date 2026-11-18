@@ -325,7 +325,7 @@ test_that("a Bayes factor original's table, headline, methods and write-up", {
   expect_match(replication_methods_paragraph(plan, "bf_null", "uncertain"), "planned for a true effect of zero", fixed = TRUE)
   expect_match(replication_methods_paragraph(plan, "significance", "uncertain"), "read from its Bayes factor", fixed = TRUE)
   report <- paste(replication_report(bf_filled, plan), collapse = "\n")
-  expect_match(report, "How it was analysed: a bayes factor", fixed = TRUE)
+  expect_match(report, "How it was analysed: a Bayes factor", fixed = TRUE)
   expect_match(report, "Its Bayes factor (BF10): 3.38", fixed = TRUE)
   expect_no_match(report, "Significance level:", fixed = TRUE)
   expect_match(report, "Verhagen", fixed = TRUE)

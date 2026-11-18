@@ -1,0 +1,9 @@
+entries:
+  - date: "2026-11-18"
+    title: "Replication plans: shorter pages, both kinds of analysis, and a quicker way out"
+    text: >-
+      The replication plan's guidance now shows one sentence at a time, with the rest under "More", and with "Show
+      explanations" off it folds behind info buttons like the other screens. You can say the original study reported
+      both a significance test and a Bayes factor: the plan takes the effect from the test and keeps the Bayes factor in
+      the write-up. If you decide a finding isn't worth replicating, the plan takes you straight to the write-up, a
+      negative pre-replication report, instead of the planning steps.
