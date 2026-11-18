@@ -297,12 +297,16 @@ each area, is at the end of
   conceptual replication is planned from the shrunk belief with more
   variation between studies; and a new study is offered an ordinary
   study plan. An original reported as an F or a partial eta-squared from
-  a between, within or mixed ANOVA is planned with BUCSS, corrected for
-  publication bias and uncertainty at a chosen assurance, and t-test and
-  correlation originals show BUCSS's corrected sample sizes beside their
-  goals (validation in progress: a published example is still to be
-  transcribed); a conceptual replication of an ANOVA original changes no
-  setting. An original can be entered as analysed with both a
+  a between, within or mixed ANOVA goes through every goal when its
+  effect has one degree of freedom (a factor with two levels or a 2 x 2
+  interaction: F = t², planned as the two-mean comparison it is), with
+  BUCSS's corrected sample size beside them; an effect with several
+  degrees of freedom is planned with BUCSS at a chosen assurance and,
+  beside it, from the researcher's smallest partial eta-squared by the
+  ANOVA card's own F test. t-test and correlation originals also show
+  BUCSS's corrected sample sizes beside their goals (validation in
+  progress: a published example is still to be transcribed). The design
+  list says where ANCOVA and MANOVA originals go. An original can be entered as analysed with both a
   significance test and a Bayes factor (the effect from the test, the
   Bayes factor's prior for repeating its test). "Not worth replicating"
   goes straight to the write-up, a negative pre-replication report, and
@@ -317,9 +321,8 @@ each area, is at the end of
   design, several originals); results from earlier answers are marked
   out of date. The planner looks like the input screens: numbered step
   titles, titled cards, tile choices, number-sized boxes, ticked steps
-  and one "Still needed" bar beside the button. Still to come: ANOVA
-  originals' full goals and smallest effect, then the rest
-  of item 28 (several originals,
+  and one "Still needed" bar beside the button. Still to come: the rest
+  of item 28 (the three-factor ANOVA, several originals,
   attrition, unequal allocation, reliability, claims resting on several
   tests) and study plans' shared settings (29).
 

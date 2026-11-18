@@ -80,7 +80,8 @@ replication_bucss_df_effect <- function(design, levels_a, levels_b, effect) {
 #' @param power The power the replication aims for.
 #' @param assurance The levels of assurance: the chance the planned power
 #'   is reached, from 0.5 (BUCSS's recommended floor) to below 1.
-#' @param alternative `"two.sided"` or, for a t-test or correlation,
+#' @param alternative `"two.sided"` or, for a t-test, a correlation or
+#'   an ANOVA effect with one degree of freedom (F = t^2),
 #'   `"one.sided"` in the original's direction, planned as BUCSS's
 #'   two-sided test at `2 * alpha`.
 #' @return A list: `inputs`; `design_label` and `unit` (BUCSS's names for
@@ -119,9 +120,6 @@ replication_bucss <- function(design, original_statistic = NULL, original_n, lev
   if (!is.logical(publication_filter) || length(publication_filter) != 1 || is.na(publication_filter)) {
     abort_run("'publication_filter' should be TRUE (published because it was significant) or FALSE (published whatever it found).")
   }
-  if (anova && identical(alternative, "one.sided")) {
-    abort_run("An ANOVA's F test has no direction, so the replication's test is planned as the F test at its significance level.")
-  }
   for (level in list(list(original_alpha, "original study's"), list(alpha, "replication's"))) {
     if (!one_number(level[[1]]) || level[[1]] <= 0 || level[[1]] >= 0.5) {
       abort_run(sprintf("The %s significance level should be between 0 and 0.5, for example 0.05.", level[[2]]))
@@ -148,6 +146,11 @@ replication_bucss <- function(design, original_statistic = NULL, original_n, lev
       abort_run("The sphericity correction (epsilon) should be above 0 and at most 1; 1 assumes sphericity.")
     }
     df_effect <- replication_bucss_df_effect(design, levels_a, levels_b, effect)
+    # One degree of freedom: F = t^2, so a one-sided test in the original's
+    # direction is planned as for a t-test, the two-sided test at 2 alpha.
+    if (df_effect > 1 && identical(alternative, "one.sided")) {
+      abort_run("An F test with several degrees of freedom has no direction, so the replication's test is planned as the F test at its significance level.")
+    }
     cells <- if (identical(design, "anova_between")) levels_a * (levels_b %||% 1) else if (mixed) levels_a else 1
     if (!whole(original_n, cells + 1)) {
       abort_run(sprintf("The original study's total sample size should be a whole number, more than %s.",

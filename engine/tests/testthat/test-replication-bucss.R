@@ -76,7 +76,7 @@ test_that("the script repeats BUCSS's calculation", {
 })
 
 test_that("plain refusals", {
-  expect_error(replication_bucss("anova_mixed", 5, 60, levels_a = 2, levels_b = 2, effect = "interaction",
+  expect_error(replication_bucss("anova_mixed", 5, 60, levels_a = 2, levels_b = 3, effect = "interaction",
     alternative = "one.sided"), "no direction", class = "powerkit_error")
   expect_error(replication_bucss("anova_mixed", 5, 60, levels_a = 2), "between-subjects and its within", class = "powerkit_error")
   expect_error(replication_bucss("anova_between", 5, 60, levels_a = 1), "at least 2", class = "powerkit_error")
