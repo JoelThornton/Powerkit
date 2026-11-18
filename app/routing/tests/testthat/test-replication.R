@@ -46,7 +46,7 @@ test_that("the methods paragraph states the goal, the belief and its calculation
   expect_match(sig, "standard deviation of 0.05", fixed = TRUE)
   expect_match(sig, "BayesRepDesign", fixed = TRUE)
   st <- replication_methods_paragraph(plan, "small_telescopes", "uncertain")
-  expect_match(st, "102 (51 per group)", fixed = TRUE)
+  expect_match(st, "102 participants (51 per group)", fixed = TRUE)
   expect_match(st, "Simonsohn, 2015", fixed = TRUE)
   expect_match(replication_methods_paragraph(plan, "negligible", "as_reported"), "equivalence test", fixed = TRUE)
   expect_match(replication_methods_paragraph(plan, "agreement", "as_reported"), "cannot reach", fixed = TRUE)

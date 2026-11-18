@@ -245,6 +245,9 @@ app_css <- "
   .rep-note { margin: 0 0 0.5rem; }
   .rep-more > summary { display: inline; cursor: pointer; color: #0a5a8c; text-decoration: underline; font-size: 0.85rem; }
   .rep-more[open] > p { margin-top: 0.25rem; }
+  .rep-also-fold { margin-bottom: 0.75rem; }
+  .rep-also-fold > summary { cursor: pointer; font-weight: 500; }
+  .rep-also-fold[open] > summary { margin-bottom: 0.5rem; }
   .validation-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.25rem; margin: 0.25rem 0 0.75rem; }
   .validation-line .badge-progress { margin-right: 0; }
   .validation-line > .inline-more { margin: 0; flex: 1 1 auto; }

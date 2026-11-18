@@ -19,7 +19,8 @@ replication_bucss(
   alpha = 0.05,
   power = 0.8,
   assurance = c(0.5, 0.8),
-  alternative = "two.sided"
+  alternative = "two.sided",
+  publication_filter = TRUE
 )
 }
 \arguments{
@@ -64,6 +65,13 @@ is reached, from 0.5 (BUCSS's recommended floor) to below 1.}
 \item{alternative}{\code{"two.sided"} or, for a t-test or correlation,
 \code{"one.sided"} in the original's direction, planned as BUCSS's
 two-sided test at \code{2 * alpha}.}
+
+\item{publication_filter}{Whether the original was published because
+it was significant. \code{TRUE} (BUCSS's default) corrects for publication
+bias at \code{original_alpha}; \code{FALSE}, for an original that would have
+been published whatever it found (a Registered Report, say), passes
+BUCSS \code{alpha_prior = 1}, which leaves only the correction for
+uncertainty (Anderson, Kelley & Maxwell, 2017, p. 1552).}
 }
 \value{
 A list: \code{inputs}; \code{design_label} and \code{unit} (BUCSS's names for
