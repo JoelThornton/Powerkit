@@ -8,6 +8,15 @@
 # "Departure 6"; name the analysis instead.
 entries:
   - date: "2026-11-18"
+    title: "Replication plans: every goal for an ANOVA effect with one degree of freedom"
+    text: >-
+      An ANOVA original whose effect compares two means (a factor with two levels, or a 2 x 2 interaction) now gets
+      everything a t-test original gets: every goal, the three beliefs about the true effect, variation between studies
+      and your smallest effect, with the publication-bias-corrected sample size beside them. An effect with more
+      degrees of freedom can now be planned from the smallest effect that would matter to you, as a partial
+      eta-squared, by the ANOVA card's own calculation, beside the corrected number. The design list also says where
+      an ANCOVA or a MANOVA original goes.
+  - date: "2026-11-18"
     title: "Replication plans look like the rest of powerkit"
     text: >-
       The replication plan now looks and works like the input screens: each step has a numbered title, questions are
