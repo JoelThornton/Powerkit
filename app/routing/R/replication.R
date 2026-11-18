@@ -1844,7 +1844,8 @@ replication_script_text <- function(plan, script) {
   if (isTRUE(plan$anova) || !is.null(plan$sizes)) return(paste(c(plan$script, if (!is.null(plan$smallest$n)) {
     si <- plan$smallest$inputs
     c("", "# From the smallest effect that would matter: the ANOVA card's own F test, through powerkit's engine",
-      sprintf("powerkit::replication_anova_smallest(\"%s\", levels_a = %s%s, effect = \"%s\", smallest_effect = %s, alpha = %s, power = %s)$n",
+      "library(powerkit)",
+      sprintf("replication_anova_smallest(\"%s\", levels_a = %s%s, effect = \"%s\", smallest_effect = %s, alpha = %s, power = %s)$n",
         si$design, si$levels_a, if (is.null(si$levels_b)) "" else sprintf(", levels_b = %s", si$levels_b), si$effect,
         format(si$smallest_effect), format(si$alpha), format(si$power)))
   }), collapse = "\n"))

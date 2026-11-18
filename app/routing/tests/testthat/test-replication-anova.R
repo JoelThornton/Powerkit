@@ -76,7 +76,7 @@ test_that("an effect with several df shows BUCSS and, when given, the smallest e
   expect_match(t, sprintf("a partial eta-squared of 0.06, the smallest that would matter to you, a significant F test for the interaction (alpha = .05) with 80%% power needs %s participants",
     direct$n), fixed = TRUE)
   expect_match(paste(replication_report(several, plan), collapse = "\n"), "From the smallest effect that would matter to us, a partial eta-squared of 0.06", fixed = TRUE)
-  expect_match(replication_script_text(plan, NULL), "powerkit::replication_anova_smallest(\"anova_mixed\", levels_a = 2, levels_b = 3", fixed = TRUE)
+  expect_match(replication_script_text(plan, NULL), "library(powerkit)\nreplication_anova_smallest(\"anova_mixed\", levels_a = 2, levels_b = 3", fixed = TRUE)
   # A two-factor within design has no card that takes a partial eta-squared: said in plain words.
   within <- run_anova(modifyList(several, list(rep_anova_kind = "within", rep_anova_effect = "interaction", rep_n = "40",
     rep_anova_smallest = "0.06")))
