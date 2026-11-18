@@ -2,33 +2,16 @@
 # "Show explanations" switch, an original analysed with both a test and a
 # Bayes factor, and "Not worth replicating" skipping the planning steps.
 
-test_that("the replication pages' guidance shows one sentence, with the rest under More", {
-  note <- as.character(rep_note("First sentence here. Second sentence follows. A third one."))
-  expect_match(note, "explanation-help inline-more rep-note", fixed = TRUE)
-  expect_match(note, "<p class=\"small mb-1\">First sentence here.</p>", fixed = TRUE)
-  expect_match(note, "<details class=\"input-guide rep-more small\">", fixed = TRUE)
-  expect_match(note, "<summary>More</summary>", fixed = TRUE)
-  expect_match(note, "Second sentence follows. A third one.", fixed = TRUE)
-  # A caveat stays in view with explanations off: no info-button fold.
-  kept <- as.character(rep_note("A caveat. Its detail.", keep = TRUE))
-  expect_no_match(kept, "explanation-help", fixed = TRUE)
-  expect_match(kept, "<details class=\"rep-more small\">", fixed = TRUE)
-  # One sentence: nothing under More.
-  expect_no_match(as.character(rep_note("Only one sentence.")), "<summary>More</summary>", fixed = TRUE)
-  # A field's help: its first sentence under the box, the whole help
-  # behind the info button beside the label, as on the input screens.
-  field <- as.character(rep_field("x_id", "A label", help = "Lead sentence. More detail."))
-  expect_match(field, "form-field has-field-more", fixed = TRUE)
-  expect_match(field, "explanation-help field-more", fixed = TRUE)
-  expect_match(field, "field-help field-lead small text-muted\">Lead sentence.</div>", fixed = TRUE)
-  expect_match(field, "field-help field-lead-copy\">Lead sentence.</div>", fixed = TRUE)
-  # The workspace has no long paragraph left outside a fold: every
-  # guidance paragraph of the planner is a rep_note().
+test_that("replication help is labelled or attached to its input", {
+  note <- as.character(rep_note("First sentence here. Second sentence follows.", label = "What this setting does"))
+  expect_match(note, "<summary>What this setting does</summary>", fixed = TRUE)
+  expect_no_match(note, "explanation-help", fixed = TRUE)
+  field <- as.character(rep_field("x_id", "A label", help = "This explains the field."))
+  expect_match(field, 'aria-describedby="x_id_help"', fixed = TRUE)
+  expect_match(field, 'id="x_id_help">This explains the field.', fixed = TRUE)
   html <- as.character(replication_workspace_ui(tree))
-  expect_gt(length(gregexpr("rep-note", html, fixed = TRUE)[[1]]), 20)
-  expect_no_match(html, "<p class=\"group-note\">Start with what the replication should show.", fixed = TRUE)
-  ids <- regmatches(html, gregexpr("id=\"rep-note-[^\"]+\"", html))[[1]]
-  expect_equal(anyDuplicated(ids), 0)
+  expect_length(regmatches(html, gregexpr("How to interpret the between-study SD", html, fixed = TRUE))[[1]], 1)
+  expect_match(html, 'name="rep_threshold" value="10" checked="checked"', fixed = TRUE)
 })
 
 both <- list(rep_design = "two_groups", rep_analysis = "both", rep_effect = "0.5", rep_n1 = "40", rep_n2 = "40",
