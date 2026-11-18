@@ -240,6 +240,11 @@ app_css <- "
   .terms-mode .explanation-help.group-more > summary:hover, .terms-mode .explanation-help.inline-more > summary:hover { background: #eef4fb; border-radius: 50%; }
   .terms-mode .explanation-help.group-more[open] > .explanation-content, .terms-mode .explanation-help.inline-more[open] > .explanation-content {
     margin: 0.3rem 0 0.5rem; padding: 0.6rem 0.8rem; background: #f6f8fb; border-radius: 0.5rem; }
+  /* Replication guidance (rep_note()): one sentence in view, the rest
+     under a small More control, closed to start with. */
+  .rep-note { margin: 0 0 0.5rem; }
+  .rep-more > summary { display: inline; cursor: pointer; color: #0a5a8c; text-decoration: underline; font-size: 0.85rem; }
+  .rep-more[open] > p { margin-top: 0.25rem; }
   .validation-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.25rem; margin: 0.25rem 0 0.75rem; }
   .validation-line .badge-progress { margin-right: 0; }
   .validation-line > .inline-more { margin: 0; flex: 1 1 auto; }

@@ -124,6 +124,13 @@ replication_workspace_ui <- function(tree) {
     div(class = "replication-steps", role = "group", `aria-label` = "Steps of the replication plan",
       radioButtons("rep_section", NULL, choices = replication_sections, selected = "whether", inline = TRUE, width = "100%")),
     conditionalPanel("input.rep_section == 'whether'", replication_notes_ui(tree)),
+    # Not worth replicating: the planning steps don't apply, and say so.
+    conditionalPanel("input.labs_outcome == 'not_worth' && ['original', 'goals', 'differences'].indexOf(input.rep_section) >= 0",
+      div(class = "alert alert-info rep-skip-note", role = "note",
+        "You decided this finding isn't worth replicating, so this step isn't needed: the write-up is your negative pre-replication report. ",
+        tags$button(type = "button", class = "btn btn-link p-0 align-baseline",
+          onclick = "var r = document.querySelector('input[name=rep_section][value=writeup]'); if (r) r.click();", "Go to the write-up"),
+        " You can still fill these steps in if you change your mind.")),
     replication_planner_sections(),
     replication_next_step_ui(),
     replication_references_ui())
@@ -134,7 +141,9 @@ replication_workspace_ui <- function(tree) {
 replication_next_step_ui <- function() {
   ids <- unname(replication_sections)
   tagList(lapply(seq_len(length(ids) - 1L), function(i) {
-    conditionalPanel(sprintf("input.rep_section == '%s'", ids[[i]]),
+    # After "Not worth replicating", the notes' own button goes to the
+    # write-up instead.
+    conditionalPanel(sprintf("input.rep_section == '%s'%s", ids[[i]], if (i == 1L) " && input.labs_outcome != 'not_worth'" else ""),
       div(class = "nav-buttons rep-next-step",
         tags$button(type = "button", class = "btn btn-outline-primary",
           onclick = sprintf("var r = document.querySelector('input[name=rep_section][value=%s]'); if (r) { r.click(); r.closest('.replication-workspace').scrollIntoView(); }", ids[[i + 1L]]),
@@ -218,7 +227,7 @@ replication_card_status_ui <- function(tree, plan, forms = NULL) {
   div(class = "rep-card-status form-group-box",
     h4(class = "h6", "Its analysis, on its own card"),
     if (is.null(ep)) tagList(
-      p("Choose the analysis the original study used: its paper usually names it. Its card plans the replication's sample size for that design, starting from this plan's significance level, chance of success and the original's effect, and the result is kept in this plan."),
+      rep_note("Choose the analysis the original study used: its paper usually names it. Its card plans the replication's sample size for that design, starting from this plan's significance level, chance of success and the original's effect, and the result is kept in this plan."),
       div(class = "nav-buttons",
         actionButton("rep_pick_design", "Choose it from the list of analyses", class = "btn btn-primary"),
         actionButton("rep_find_design", "Not sure? Answer questions about the study", class = "btn btn-outline-secondary")))
