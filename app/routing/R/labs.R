@@ -529,6 +529,10 @@ published_from_choices <- function(design) {
   own <- stats::setNames(list("as_is"), sprintf("%s itself", d$effect))
   from <- conversion_choices[[design]]
   labels <- conversion_labels[from]
+  if (identical(design, "independent_t")) {
+    labels$t <- "A pooled-variance (Student's) t statistic"
+    if ("F" %in% from) labels$F <- "An F statistic equivalent to a pooled-variance t-test"
+  }
   if (identical(design, "oneway_between")) labels$F <- "An F statistic, with its two degrees of freedom"
   c(own, stats::setNames(as.list(from), unname(unlist(labels))))
 }
@@ -536,30 +540,60 @@ published_from_choices <- function(design) {
 # What the tool shows, from its inputs: list(lines, problems). `convert`
 # and `safeguard` are the engine's convert_effect() and safeguard_effect().
 published_result <- function(values, convert, safeguard) {
+  entered <- function(x) nzchar(trimws(as.character(x %||% "")))
   num <- function(x) suppressWarnings(as.numeric(trimws(as.character(x %||% ""))))
-  whole <- function(x) { v <- num(x); if (is.na(v) || v != round(v)) NA else as.integer(v) }
+  whole <- function(x) {
+    v <- num(x)
+    if (!is.finite(v) || v != round(v) || abs(v) > .Machine$integer.max) NA_integer_ else as.integer(v)
+  }
   design <- values$pub_design %||% ""
   from <- values$pub_from %||% "as_is"
   value <- num(values$pub_value)
   problems <- character()
-  if (!design %in% names(published_designs)) problems <- c(problems, "Choose the kind of study first.")
-  if (is.na(value)) problems <- c(problems, "Enter the published value as a number.")
-  if (from %in% c("t", "F") && is.na(whole(values$pub_df))) {
-    problems <- c(problems, "Enter its error degrees of freedom as a whole number (the df of t, or the second df of F).")
+  if (!design %in% names(published_designs)) {
+    return(list(lines = character(), problems = "Choose the kind of study first."))
   }
-  if (identical(from, "F") && identical(design, "oneway_between") && is.na(whole(values$pub_df1))) {
-    problems <- c(problems, "Enter the F statistic's first degrees of freedom (the effect's df) as a whole number.")
+  if (!from %in% unlist(published_from_choices(design))) {
+    return(list(lines = character(), problems = "Choose what the paper reported for this kind of study."))
   }
+  if (!is.finite(value)) problems <- c(problems, "Enter the published value as a number.")
+  df <- whole(values$pub_df)
+  df1 <- whole(values$pub_df1)
+  if (from %in% c("t", "F") && (is.na(df) || df < 1L)) {
+    message <- if (identical(design, "independent_t") && entered(values$pub_df))
+      "This conversion needs the positive whole-number degrees of freedom from a pooled-variance test. For Welch's test, use a reported Cohen's d or calculate pooled Cohen's d from the group means, SDs and sample sizes."
+    else "Enter its error degrees of freedom as a positive whole number (the df of t, or the second df of F)."
+    problems <- c(problems, message)
+  }
+  if (identical(from, "F") && identical(design, "oneway_between") && (is.na(df1) || df1 < 1L)) {
+    problems <- c(problems, "Enter the F statistic's first degrees of freedom (the effect's df) as a positive whole number.")
+  }
+  size_fields <- switch(design, independent_t = c("pub_n1", "pub_n2"), oneway_between = character(), "pub_n")
+  min_size <- if (identical(design, "correlation")) 4L else 2L
+  invalid_size <- vapply(size_fields, function(id) {
+    x <- whole(values[[id]])
+    entered(values[[id]]) && (is.na(x) || x < min_size)
+  }, logical(1))
+  if (any(invalid_size)) {
+    label <- if (identical(design, "independent_t")) sprintf("group %s's sample size", which(invalid_size)) else "the sample size"
+    problems <- c(problems, sprintf("Enter %s as a whole number of at least %s.", label, min_size))
+  }
+  if (length(problems)) return(list(lines = character(), problems = problems))
   # Values no study can report: a typo (15 for .15) is refused rather than
   # explained.
-  if (!is.na(value) && design %in% names(published_designs)) {
+  if (is.finite(value)) {
     kind <- if (identical(from, "as_is")) design else from
     if (kind %in% c("correlation", "r") && abs(value) >= 1) problems <- c(problems, "A correlation must be between -1 and 1 (for example 0.15, not 15).")
     if (identical(kind, "oneway_between") && (value < 0 || value >= 1)) problems <- c(problems, "Partial eta-squared must be at least 0 and less than 1 (for example 0.06).")
     if (identical(kind, "F") && value <= 0) problems <- c(problems, "An F statistic must be more than 0.")
     if (identical(kind, "odds_ratio") && value <= 0) problems <- c(problems, "An odds ratio must be more than 0.")
   }
-  problems <- c(problems, published_df_problems(design, from, whole(values$pub_df), whole(values$pub_n), whole(values$pub_n1), whole(values$pub_n2)))
+  n1 <- whole(values$pub_n1)
+  n2 <- whole(values$pub_n2)
+  if (identical(design, "independent_t") && from %in% c("t", "F") && xor(is.na(n1), is.na(n2))) {
+    problems <- c(problems, "Enter both group sizes for the pooled-variance conversion.")
+  }
+  problems <- c(problems, published_df_problems(design, from, df, whole(values$pub_n), n1, n2))
   if (length(problems)) return(list(lines = character(), problems = problems))
   d <- published_designs[[design]]
   lines <- character()
@@ -567,13 +601,11 @@ published_result <- function(values, convert, safeguard) {
   if (!identical(from, "as_is")) {
     # Two groups of unequal size: the group sizes, when both are given,
     # enter the conversion as well as the safeguard value.
-    n1 <- whole(values$pub_n1)
-    n2 <- whole(values$pub_n2)
     sized <- identical(design, "independent_t") && !is.na(n1) && !is.na(n2)
     out <- tryCatch(
-      convert(from, value, design, df_error = if (from %in% c("t", "F")) whole(values$pub_df),
+      convert(from, value, design, df_error = if (from %in% c("t", "F")) df,
               n1 = if (sized) n1, n2 = if (sized) n2,
-              df = if (identical(from, "F") && identical(design, "oneway_between")) whole(values$pub_df1)),
+              df = if (identical(from, "F") && identical(design, "oneway_between")) df1),
       error = function(e) e)
     if (inherits(out, "error")) {
       problem <- if (inherits(out, "powerkit_error")) sub("^This design spec has an? problems?:\n\\* ", "", conditionMessage(out)) else
@@ -586,7 +618,7 @@ published_result <- function(values, convert, safeguard) {
   }
   sizes <- safeguard_sizes[[design]]
   if (is.null(sizes)) {
-    lines <- c(lines, sprintf("Safeguard power isn't available for %s yet: use the value above, adjusted down for publication bias.", d$effect))
+    lines <- c(lines, sprintf("Safeguard power isn't available for %s here. You can compare sample sizes at different plausible effects on the ANOVA card.", d$effect))
   } else {
     n <- if (identical(sizes, "n")) list(n = whole(values$pub_n)) else list(n1 = whole(values$pub_n1), n2 = whole(values$pub_n2))
     protection <- num(values$pub_protection %||% "0.8")
@@ -594,9 +626,12 @@ published_result <- function(values, convert, safeguard) {
       lines <- c(lines, "For a safeguard value, enter how many people the published study had.")
     } else {
       sg <- tryCatch(do.call(safeguard, c(list(estimate = estimate, template = design), n, list(protection = protection))), error = function(e) e)
-      if (inherits(sg, "error") || is.na(sg$lower) || sign(sg$lower) != sign(estimate) || sg$lower == 0) {
-        lines <- c(lines, sprintf(paste0("Safeguard: the %d%% confidence interval around this estimate includes zero, so this study ",
-          "can't tell you how large the effect is. Plan from the smallest effect that would matter instead."), round(100 * (2 * protection - 1))))
+      if (inherits(sg, "error") || length(sg$lower) != 1L || !is.finite(sg$lower) ||
+          length(sg$conf_level) != 1L || !is.finite(sg$conf_level)) {
+        lines <- c(lines, "Powerkit couldn't calculate a safeguard interval for these inputs. Check the reported effect and sample sizes.")
+      } else if (sign(sg$lower) != sign(estimate) || sg$lower == 0) {
+        lines <- c(lines, sprintf(paste0("Safeguard: the %d%% confidence interval includes zero, so there is no positive safeguard magnitude. ",
+          "You can plan from the smallest effect that would matter."), round(100 * sg$conf_level)))
       } else {
         # The cards' own sentence (safeguard_sentence()), read as repeated
         # sampling, as Perugini, Gallucci and Costantini motivate it.
@@ -611,14 +646,40 @@ published_result <- function(values, convert, safeguard) {
   list(lines = lines, problems = character())
 }
 
+published_server <- function(input, output, convert = engine_function("convert_effect"), safeguard = engine_function("safeguard_effect")) {
+  output$pub_from_ui <- renderUI({
+    if (!(input$pub_design %||% "") %in% names(published_designs)) return(NULL)
+    selectInput("pub_from", "What did the paper report?", choices = published_from_choices(input$pub_design), selectize = FALSE, width = "100%")
+  })
+  values <- reactive(lapply(stats::setNames(nm = c("pub_design", "pub_from", "pub_value", "pub_df1",
+    "pub_df", "pub_n", "pub_n1", "pub_n2", "pub_protection")), function(id) input[[id]]))
+  calculation <- eventReactive(input$pub_run, {
+    snapshot <- values()
+    list(values = snapshot, result = published_result(snapshot, convert, safeguard))
+  })
+  output$pub_result <- renderUI({
+    calculated <- calculation()
+    if (!identical(calculated$values, values())) {
+      return(div(class = "alert alert-info mt-2", role = "status",
+        "Inputs changed. Select Show the result to calculate again."))
+    }
+    out <- calculated$result
+    if (length(out$problems)) {
+      div(class = "form-problems", role = "alert", tags$ul(lapply(out$problems, tags$li)))
+    } else {
+      div(class = "result-panel mt-2", role = "status", lapply(out$lines, p))
+    }
+  })
+}
+
 # The degrees of freedom and the published study's size must agree, since
 # the conversion uses one and the safeguard value the other: n = df + 1
 # for one group or pairs, n1 + n2 = df + 2 for two groups and n = df + 2
 # for a correlation from its t.
 published_df_problems <- function(design, from, df, n, n1, n2) {
-  if (!identical(from, "t") || is.na(df)) return(character())
+  if ((!identical(from, "t") && !(identical(from, "F") && identical(design, "independent_t"))) || is.na(df)) return(character())
   implied <- switch(design, one_sample_t = , paired_t = df + 1, correlation = df + 2, independent_t = df + 2, NA)
-  given <- if (identical(design, "independent_t")) { if (is.na(n1) || is.na(n2)) NA else n1 + n2 } else n
+  given <- if (identical(design, "independent_t")) { if (is.na(n1) || is.na(n2)) NA else as.double(n1) + n2 } else n
   if (is.na(implied) || is.na(given) || implied == given) return(character())
   sprintf("The degrees of freedom (%d) mean the published study had %d %s, but you entered %d. Check both numbers: the conversion uses the degrees of freedom and the safeguard value uses the study's size.",
     df, implied, if (identical(design, "paired_t")) "pairs" else "people", given)
@@ -812,6 +873,10 @@ picture_numbers <- function(picture) {
   t_crit_text <- function() if (identical(picture$sides, 1)) sprintf("%.3f", picture$t_crit) else sprintf("±%.3f", picture$t_crit)
   sides_text <- function() if (identical(picture$sides, 1)) "a one-sided test (an effect in the expected direction)" else "a two-sided test"
   source_line <- function(curves) p(class = "small text-muted", sprintf("Power from %s; curves from R's %s.", picture$function_used, curves))
+  reaches <- function(effect) {
+    if (identical(picture$sides, 1)) sprintf("An observed %s must reach this threshold in the positive direction.", effect)
+    else sprintf("An observed %s reaches this threshold when its absolute value is at least this large, in either direction.", effect)
+  }
   switch(picture_design(picture),
     r = tagList(
       tags$ul(class = "picture-numbers",
@@ -820,7 +885,7 @@ picture_numbers <- function(picture) {
         tags$li(tags$strong("Centre of the blue curve: "), sprintf("%.3f", picture$z_r), sprintf(" = Fisher's z of r = %s, with pwr's small bias correction.", format(picture$r))),
         tags$li(tags$strong("Critical value: "), sprintf("±%.3f", picture$z_crit), sprintf(" on the z scale, from the critical t of ±%.3f with %s degrees of freedom (n - 2) at alpha = %s.", picture$t_crit, picture$df, format(picture$alpha))),
         tags$li(tags$strong("Smallest significant r: "), sprintf("%.3f", picture$r_crit),
-          " = critical t / √(critical t² + n - 2). Any observed correlation smaller than this isn't significant, whatever the true correlation.")),
+          " = critical t / √(critical t² + n - 2). ", reaches("correlation"))),
       source_line("dnorm()")),
     paired = tagList(
       tags$ul(class = "picture-numbers",
@@ -829,7 +894,7 @@ picture_numbers <- function(picture) {
         tags$li(tags$strong("Noncentrality: "), sprintf("%.3f", picture$ncp), " = d_z × √n, where the blue curve is centred."),
         tags$li(tags$strong("Critical t: "), t_crit_text(), sprintf(" for %s at alpha = %s.", sides_text(), format(picture$alpha))),
         tags$li(tags$strong("Smallest significant d_z: "), sprintf("%.3f", picture$dz_crit),
-          " = critical t / √n, since the paired t is d_z × √n. Any observed d_z smaller than this isn't significant, whatever the true effect.")),
+          " = critical t / √n, since the paired t is d_z × √n. ", reaches("d_z"))),
       source_line("dt()")),
     anova = tagList(
       tags$ul(class = "picture-numbers",
@@ -868,7 +933,7 @@ picture_numbers <- function(picture) {
         tags$li(tags$strong("Centre of the blue curve: "), sprintf("%.3f", picture$centre), sprintf(" = |h| × √(n per group / 2), with %s in each group.", format(picture$n / 2))),
         tags$li(tags$strong("Critical z: "), sprintf("±%.3f", picture$z_crit), sprintf(" for a two-sided test at alpha = %s.", format(picture$alpha))),
         tags$li(tags$strong("Smallest significant h: "), sprintf("%.3f", picture$h_crit),
-          " = critical z × √(2 / n per group). Any observed difference smaller than this isn't significant, whatever the true one.")),
+          " = critical z × √(2 / n per group). ", reaches("Cohen's h on the arcsine scale"))),
       source_line("dnorm()")),
     tagList(
       tags$ul(class = "picture-numbers",
@@ -877,7 +942,7 @@ picture_numbers <- function(picture) {
         tags$li(tags$strong("Noncentrality: "), sprintf("%.3f", picture$ncp), " = d × √(n per group / 2), where the blue curve is centred."),
         tags$li(tags$strong("Critical t: "), t_crit_text(), sprintf(" for %s at alpha = %s.", sides_text(), format(picture$alpha))),
         tags$li(tags$strong("Smallest significant d: "), sprintf("%.3f", picture$d_crit),
-          " = critical t × √(1/n1 + 1/n2) (Lakens, 2013). Any observed d smaller than this isn't significant, whatever the true effect.")),
+          " = critical t × √(1/n1 + 1/n2) (Lakens, 2013). ", reaches("Cohen's d"))),
       source_line("dt()")))
 }
 
@@ -885,11 +950,13 @@ published_ui <- function() {
   designs <- stats::setNames(names(published_designs), vapply(published_designs, `[[`, "", "label"))
   conditionalPanel("input.labs_tool == 'published'",
     labs_tool_head("published"),
-    p("Enter an effect as a paper reported it. Powerkit shows it as the effect size a power analysis uses and, for the t-tests and correlations, a safeguard value to plan with instead."),
+    p("Convert a published result to an effect size. For t-tests and correlations, you can also calculate a safeguard effect from the study's sample size."),
     tags$fieldset(class = "form-group-box", tags$legend(class = "h6", "The published result"),
       selectInput("pub_design", "What kind of study was it?", choices = c("Choose one" = "", designs), selectize = FALSE, width = "100%"),
       uiOutput("pub_from_ui"),
       textInput("pub_value", "The published value", width = "100%"),
+      conditionalPanel("input.pub_design == 'independent_t' && (input.pub_from == 't' || input.pub_from == 'F')",
+        p(class = "small text-muted", "For Welch's test, use a reported pooled Cohen's d or calculate it from the group means, SDs and sample sizes. Welch's t and degrees of freedom alone do not identify pooled Cohen's d. For a pooled-variance test, enter both group sizes if the groups were unequal.")),
       conditionalPanel("input.pub_from == 'F' && input.pub_design == 'oneway_between'",
         textInput("pub_df1", "Its first degrees of freedom (the effect's df, the first number in F(df1, df2))", width = "100%")),
       conditionalPanel("input.pub_from == 't' || input.pub_from == 'F'",

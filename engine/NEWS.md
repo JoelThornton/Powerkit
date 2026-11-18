@@ -1,3 +1,7 @@
+# powerkit 0.78.29
+
+* Validate converter inputs, identify pooled-variance t conversions, and distinguish unavailable safeguard intervals from intervals including zero. Clarify signed significance thresholds in the power visualiser.
+
 # powerkit 0.78.28
 
 * Clarify analysis save status and distinguish print actions from file downloads in the app.
