@@ -1,11 +1,12 @@
 # powerkit 0.78.14
 
-* App: field labels on the input screen are the same with explanations on
-  or off (`field_ui()` no longer swaps in `compact_field_label()`, which
-  now names fields only in the "still needed" line). The "Effect size:"
-  prefix on box headings (0.78.10) is replaced by one line under the
-  effect section's title, `effect_boxes_ui()`, naming in quotes the boxes
-  with an effect field that show with the default answers.
+* Planning (no code change): the designs that had no decision are
+  decided and queued as `next.md` item 15, in order: an audit of the
+  E46 one-proportion route, then prevalence estimation; diagnostic
+  accuracy (sensitivity, specificity, ROC); group-sequential designs with
+  rpact; and assurance as an option beside power. Single-case designs and
+  network models come later. `coverage-roadmap.md` rows B53, B57, B60,
+  B63, B65 and B66 say so.
 
 # powerkit 0.78.13
 
