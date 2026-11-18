@@ -123,6 +123,31 @@ power while matching G\*Power) is folded there instead
 | rmcorr | `rmcorr()`: the analysis of covariance with a separate intercept for each person and one common slope; its t test has N(k - 1) - 1 degrees of freedom for N people measured k times (Bakdash and Marusich, 2017, `Bakdash2017_rmcorr`). Its documentation plans power by giving G\*Power or pwr's `pwr.r.test()` the "effective sample size" N(k - 1) + 1, the Pearson sample size with the same degrees of freedom; its own example uses `pwr.r.test()` (Fisher's z) | r_rm, the within-person correlation | — |
 | G\*Power | No repeated-measures correlation; used as rmcorr's documentation says, its exact correlation test at n = N(k - 1) + 1 [GP-man, 3] | ρ | tails; alpha |
 | **powerkit** | The exact distribution of r at the effective sample size, by pwrss's `power.exact.onecor()`, as the correlation card (E4) does; template `repeated_measures_correlation`, card E76 [powerkit] | `r` and `measurements` (k, at least 2); the sample size is the number of people | One-sided tests run in the direction of r. **Not a departure**: G\*Power's exact test at rmcorr's effective n. pwr's Fisher's z, in rmcorr's example, differs by about 0.0002 in power (rmcorr's 0.8157 against 0.8159 at N = 100, k = 3, r = .2; `test-backend-rmcorr.R`). Assumes one slope shared by everyone; a slope that varies between people needs a multilevel model with random slopes (the card says so) |
+### Publication-bias-corrected replication sample sizes (BUCSS, from 18 November 2026)
+
+- **What it is:** Anderson, Kelley and Maxwell's (2017,
+  `Anderson2017_bucss`) correction of an original study's effect for
+  publication bias (the likelihood of its test statistic truncated at its
+  significance threshold) and uncertainty (a lower quantile of the
+  corrected noncentrality parameter, whose complement is the assurance),
+  then the replication's sample size for the power aimed for. Used for
+  ANOVA originals (between, within and mixed; Anderson & Kelley, 2024,
+  `AndersonKelley2024_replication_design`) and beside t-test and
+  correlation originals' goals in replication plans.
+- **powerkit:** BUCSS's `ss_buc_*()` functions with their defaults: the
+  original's significance level as `alpha_prior` (0.05 unless the user
+  says otherwise), 80% assurance to start (50%, 90% and 95% shown
+  beside it), sphericity assumed (`epsilon = 1`) unless the user gives
+  epsilon. A partial eta-squared is moved to its F by Lakens's (2013)
+  identity with the error degrees of freedom the user enters.
+- **Not a departure:** G\*Power has no correction for publication bias.
+  BUCSS's test is two-sided; a one-sided replication is planned as its
+  two-sided test at twice the level, which has the same critical value
+  in the original's direction (`test-replication-bucss.R` shows the two
+  give the same sample size). BUCSS assumes two equal groups for a
+  two-group original, so an unequal original is planned from its total
+  sample size, as the result says.
+
 ### Small telescopes for replications (from 8 November 2026, 0.47.0)
 
 - **What it is:** Simonsohn's (2015, `Simonsohn2015_telescopes`) plan for

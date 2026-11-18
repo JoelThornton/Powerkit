@@ -602,7 +602,7 @@ test_that("a one-sided replication is planned, written up and restored as one", 
   expect_identical(replication_field_defaults$rep_sided, "two.sided")
   expect_true("rep_sided" %in% replication_field_ids)
   code <- paste(readLines(file.path(routing_dir, "app.R")), collapse = "\n")
-  expect_match(code, "\"rep_purpose\", \"rep_prior\", \"rep_sided\")) updateRadioButtons", fixed = TRUE)
+  expect_match(code, "\"rep_purpose\", \"rep_prior\", \"rep_sided\", \"rep_anova_kind\", \"rep_f_from\", \"rep_assurance\")) updateRadioButtons", fixed = TRUE)
 })
 
 test_that("the write-up has a study design table, and the script runs the chosen criteria only", {

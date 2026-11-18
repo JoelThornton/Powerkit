@@ -1,0 +1,9 @@
+entries:
+  - date: "2026-11-18"
+    title: "Replication plans: ANOVA originals, and allowing for publication bias"
+    text: >-
+      A replication plan can now start from an original reported as an F or a partial eta-squared from an ANOVA with
+      different people, the same people measured several times, or both. Its sample size comes from BUCSS, which corrects
+      the original's effect for publication bias and for the uncertainty in its estimate; you choose how sure you want to
+      be that the replication reaches its power. For a t-test or correlation original, the plan shows BUCSS's corrected
+      sample sizes beside its goals. A plan opened from an ANOVA card starts on the new design.

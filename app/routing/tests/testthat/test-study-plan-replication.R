@@ -144,8 +144,9 @@ test_that("choosing the original's card starts the planner on its design and eff
   expect_identical(fields$rep_scale, "log")
   expect_match(fields$rep_effect_name, "odds ratio", fixed = TRUE)
   expect_identical(replication_fields_for_card(list(), forms, "E3")$rep_design, "paired")
-  # A test of several degrees of freedom: another design, its effect to be named.
-  multi <- replication_fields_for_card(list(), forms, "E18")
+  # A test of several degrees of freedom: another design, its effect to be
+  # named (an ANOVA card starts on An ANOVA effect instead: test-replication-bucss.R).
+  multi <- replication_fields_for_card(list(), forms, "E6")
   expect_identical(multi$rep_design, "generic")
   expect_identical(multi$rep_effect_name, "")
   # A card with no replication goals leaves the fields alone.
@@ -172,7 +173,11 @@ test_that("the plan warns when the design entered and the original's card disagr
   expect_null(replication_design_mismatch(same, forms))
   generic <- plan_set_replication(new_replication_plan(), fields = list(rep_design = "generic"), endpoint = "E8")
   expect_null(replication_design_mismatch(generic, forms))
-  expect_identical(replication_card_planner_design(forms, "E8"), "generic")
+  # An ANOVA card goes under An ANOVA effect (BUCSS) or as its one contrast under Another design.
+  expect_identical(replication_card_planner_design(forms, "E8"), c("anova", "generic"))
+  anova <- plan_set_replication(new_replication_plan(), fields = list(rep_design = "anova"), endpoint = "E8")
+  expect_null(replication_design_mismatch(anova, forms))
+  expect_identical(replication_card_planner_design(forms, "E27"), "generic")
 })
 
 test_that("an extension added to a replication plan isn't reported as the original's analysis", {

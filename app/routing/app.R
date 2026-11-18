@@ -3027,9 +3027,9 @@ server <- function(input, output, session) {
     values <- replication_values(plan$replication)
     for (id in names(values)) {
       v <- values[[id]]
-      if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test", "rep_goal")) updateSelectInput(session, id, selected = v)
+      if (id %in% c("rep_design", "rep_tau", "rep_tau_r", "rep_scale", "labs_test", "rep_goal", "rep_anova_effect")) updateSelectInput(session, id, selected = v)
       else if (id %in% c("rep_threshold", "rep_se_from", "rep_analysis", "rep_original_prior", "rep_post_from", "rep_effect_type",
-        "rep_purpose", "rep_prior", "rep_sided")) updateRadioButtons(session, id, selected = v)
+        "rep_purpose", "rep_prior", "rep_sided", "rep_anova_kind", "rep_f_from", "rep_assurance")) updateRadioButtons(session, id, selected = v)
       else if (identical(id, "rep_also")) updateCheckboxGroupInput(session, id, selected = replication_also_selected(v))
       else if (id %in% c("labs_outcome", "rep_keeps")) updateRadioButtons(session, id, selected = if (nzchar(v)) v else character(0))
       else updateTextInput(session, id, value = v)
@@ -3137,8 +3137,9 @@ server <- function(input, output, session) {
   # A conceptual replication: the shrunk belief and more variation between
   # studies, set when the researcher asks (never on loading a plan).
   observeEvent(input$rep_use_conceptual, {
-    s <- replication_conceptual_settings(list(rep_design = input$rep_design, rep_tau = input$rep_tau, rep_tau_r = input$rep_tau_r))
-    updateRadioButtons(session, "rep_prior", selected = s$rep_prior)
+    s <- replication_conceptual_settings(list(rep_design = input$rep_design, rep_tau = input$rep_tau, rep_tau_r = input$rep_tau_r,
+      rep_assurance = input$rep_assurance))
+    if (!is.null(s$rep_prior)) updateRadioButtons(session, "rep_prior", selected = s$rep_prior)
     if (!is.null(s$rep_tau)) updateSelectInput(session, "rep_tau", selected = s$rep_tau)
     if (!is.null(s$rep_tau_r)) updateSelectInput(session, "rep_tau_r", selected = s$rep_tau_r)
     output$rep_conceptual_done <- renderUI(p(class = "small text-success", role = "status",

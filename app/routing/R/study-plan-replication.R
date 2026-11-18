@@ -21,7 +21,8 @@ replication_field_defaults <- list(rep_design = "two_groups", rep_analysis = "te
   rep_prior_scale = "0.707", rep_post_from = "sd", rep_cri_level = "95", rep_scale = "none", rep_se_from = "se", rep_ci_level = "95",
   rep_original_alpha = "0.05", rep_tau = "0.05", rep_tau_r = "0.025", rep_effect_type = "d",
   rep_alpha = "", rep_power = "", rep_threshold = "10", labs_power = "0.8", labs_alpha = "0.05",
-  rep_purpose = "confirm", rep_goal = "auto", rep_prior = "uncertain", rep_also = "absence", rep_sided = "two.sided")
+  rep_purpose = "confirm", rep_goal = "auto", rep_prior = "uncertain", rep_also = "absence", rep_sided = "two.sided",
+  rep_anova_kind = "between", rep_anova_effect = "factor_a", rep_f_from = "f", rep_epsilon = "1", rep_assurance = "0.8")
 
 # Fields as the record keeps them: known ids only, each one string, blanks
 # left out.
@@ -151,6 +152,10 @@ replication_fields_for_card <- function(fields, forms, ep) {
       nzchar(trimws(as.character(fields$rep_bf %||% "")))) return(fields)
   if (!is.null(e$exact)) {
     fields$rep_design <- e$exact
+  } else if (!is.null(e$anova) && !nzchar(trimws(as.character(fields$rep_anova_f %||% ""))) &&
+      !nzchar(trimws(as.character(fields$rep_eta %||% "")))) {
+    fields$rep_design <- "anova"
+    fields$rep_anova_kind <- e$anova
   } else if (!is.null(e$effect) || !is.null(e$multi_df)) {
     fields$rep_design <- "generic"
     fields$rep_effect_name <- e$effect %||% ""
@@ -174,15 +179,16 @@ replication_original_index <- function(plan) {
   if (all(ext)) NA_integer_ else which(!ext)[[1]]
 }
 
-# The planner's design that a card's original effect is entered as
-# (forms.yaml's replication_effects): one of the four exact designs,
-# "generic" for any other one-number effect, NULL when the card has none.
+# The planner's designs that a card's original effect can be entered as
+# (forms.yaml's replication_effects): one of the four exact designs;
+# "anova" for an ANOVA card, which can also go as "generic" (its one
+# contrast as a number); "generic" for any other one-number effect; NULL
+# when the card has none.
 replication_card_planner_design <- function(forms, ep) {
   e <- replication_card_effect(forms, ep)
   if (is.null(e)) return(NULL)
   if (!is.null(e$exact)) return(e$exact)
-  if (!is.null(e$effect) || !is.null(e$multi_df)) return("generic")
-  NULL
+  c(if (!is.null(e$anova)) "anova", if (!is.null(e$effect) || !is.null(e$multi_df)) "generic")
 }
 
 # When the design chosen under "The original study" and the original's
@@ -192,8 +198,8 @@ replication_design_mismatch <- function(plan, forms) {
   if (is.null(ep) || is.null(forms)) return(NULL)
   want <- replication_card_planner_design(forms, ep)
   have <- replication_values(plan$replication)$rep_design
-  if (is.null(want) || identical(want, have)) return(NULL)
-  label <- function(x) names(replication_designs_ui)[replication_designs_ui == x]
+  if (is.null(want) || isTRUE(have %in% want)) return(NULL)
+  label <- function(x) names(replication_designs_ui)[replication_designs_ui == x[[1]]]
   sprintf("These describe different studies: the design chosen above is \u201c%s\u201d, but the original's card is for \u201c%s\u201d. Change the design above, or choose the card for the original's design, so the goals and the card plan the same analysis.",
     label(have), label(want))
 }
@@ -295,7 +301,7 @@ replication_effect_labels <- function(groups) {
 replication_plan_report <- function(plan, tree, forms, engine = engine_function) {
   values <- replication_values(plan$replication)
   table <- if (!length(replication_missing(values))) {
-    planner <- engine("replication_planning")
+    planner <- engine(replication_engine_name(values))
     if (!is.null(planner)) tryCatch(do.call(planner, replication_args(values)), error = function(e) NULL)
   }
   notes <- values[vapply(labs_fields, `[[`, "", "id")]

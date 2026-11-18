@@ -60,6 +60,7 @@ Suggests:
     ARTool,
     BayesRepDesign,
     brunnermunzel,
+    BUCSS,
     boot,
     GPArotation,
     gsl,

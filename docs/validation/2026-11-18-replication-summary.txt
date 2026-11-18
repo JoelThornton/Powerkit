@@ -1,0 +1,104 @@
+===== powerkit validation summary (copy from here) =====
+Date: 2026-11-18 04:39   Commit: dd68ec2   Cores: 2
+R: R version 4.5.3 (2026-03-11)   Platform: x86_64-pc-linux-gnu
+Selected chunks: replication
+Partition: 1 of 1; totals cover only this selected partition.
+Packages: powerkit 0.78.17, Superpower 0.2.4.1, Spower 0.7, InteractionPoweR 0.2.4, power4mome 0.2.1, manymome 0.3.7, lavaan 0.7.3, testthat 3.3.2
+Totals: 3 PASS, 0 FAIL, 0 ERROR, 4 SKIP, 0 NOT RUN (of 7)
+
+SKIP    replication / each goal's relative sample size matches the paper's worked example (published) (4s)
+SKIP    replication / small telescopes' d33 and replication size match Simonsohn's example (published) (4s)
+SKIP    replication / the sceptical Bayes factor's chance matches a published example (published) (4s)
+SKIP    replication / BUCSS's corrected sample size matches a published example (published) (4s)
+PASS    replication / every goal's chance at a sample size agrees with a simulation of the paper's model (19s)
+          success: success
+          success: two groups, d = 0.5, 40 per group: significance, as_reported: simulated 0.8857, powerkit 0.8854; the tolerance is 0.0028.
+          success: two groups, d = 0.5, 40 per group: pooled, as_reported: simulated 0.7777, powerkit 0.7773; the tolerance is 0.0036.
+          success: two groups, d = 0.5, 40 per group: agreement, as_reported: simulated 0.6411, powerkit 0.6405; the tolerance is 0.0040.
+          success: two groups, d = 0.5, 40 per group: bf_replication, as_reported: simulated 0.7686, powerkit 0.7683; the tolerance is 0.0036.
+          success: two groups, d = 0.5, 40 per group: significance, as_reported, one-sided: simulated 0.9356, powerkit 0.9354; the tolerance is 0.0023.
+          success: two groups, d = 0.5, 40 per group: pooled, as_reported, one-sided: simulated 0.8992, powerkit 0.8988; the tolerance is 0.0027.
+          success: two groups, d = 0.5, 40 per group: significance, uncertain: simulated 0.7307, powerkit 0.7297; the tolerance is 0.0038.
+          success: two groups, d = 0.5, 40 per group: pooled, uncertain: simulated 0.6510, powerkit 0.6511; the tolerance is 0.0040.
+          success: two groups, d = 0.5, 40 per group: agreement, uncertain: simulated 0.3590, powerkit 0.3589; the tolerance is 0.0040.
+          success: two groups, d = 0.5, 40 per group: bf_replication, uncertain: simulated 0.6454, powerkit 0.6455; the tolerance is 0.0040.
+          success: two groups, d = 0.5, 40 per group: significance, uncertain, one-sided: simulated 0.7812, powerkit 0.78; the tolerance is 0.0035.
+          success: two groups, d = 0.5, 40 per group: pooled, uncertain, one-sided: simulated 0.7432, powerkit 0.7418; the tolerance is 0.0037.
+          success: two groups, d = 0.5, 40 per group: significance, shrunk: simulated 0.5926, powerkit 0.5928; the tolerance is 0.0041.
+          success: two groups, d = 0.5, 40 per group: pooled, shrunk: simulated 0.4955, powerkit 0.4965; the tolerance is 0.0042.
+          success: two groups, d = 0.5, 40 per group: agreement, shrunk: simulated 0.3566, powerkit 0.3566; the tolerance is 0.0040.
+          success: two groups, d = 0.5, 40 per group: bf_replication, shrunk: simulated 0.4891, powerkit 0.49; the tolerance is 0.0042.
+          success: two groups, d = 0.5, 40 per group: significance, shrunk, one-sided: simulated 0.6593, powerkit 0.6589; the tolerance is 0.0040.
+          success: two groups, d = 0.5, 40 per group: pooled, shrunk, one-sided: simulated 0.6085, powerkit 0.6084; the tolerance is 0.0041.
+          success: two groups, d = 0.5, 40 per group: negligible: simulated 0.9689, powerkit 0.9684; the tolerance is 0.0018.
+          success: success
+          success: pairs, d_z = 0.35, 50 pairs: significance, as_reported: simulated 0.9688, powerkit 0.9695; the tolerance is 0.0018.
+          success: pairs, d_z = 0.35, 50 pairs: pooled, as_reported: simulated 0.9432, powerkit 0.9441; the tolerance is 0.0022.
+          success: pairs, d_z = 0.35, 50 pairs: agreement, as_reported: simulated 0.5768, powerkit 0.5769; the tolerance is 0.0041.
+          success: pairs, d_z = 0.35, 50 pairs: bf_replication, as_reported: simulated 0.9045, powerkit 0.906; the tolerance is 0.0027.
+          success: pairs, d_z = 0.35, 50 pairs: significance, as_reported, one-sided: simulated 0.9853, powerkit 0.9857; the tolerance is 0.0014.
+          success: pairs, d_z = 0.35, 50 pairs: pooled, as_reported, one-sided: simulated 0.9813, powerkit 0.9817; the tolerance is 0.0015.
+          success: pairs, d_z = 0.35, 50 pairs: significance, uncertain: simulated 0.8268, powerkit 0.8256; the tolerance is 0.0033.
+          success: pairs, d_z = 0.35, 50 pairs: pooled, uncertain: simulated 0.7876, powerkit 0.7868; the tolerance is 0.0035.
+          success: pairs, d_z = 0.35, 50 pairs: agreement, uncertain: simulated 0.3113, powerkit 0.3112; the tolerance is 0.0039.
+          success: pairs, d_z = 0.35, 50 pairs: bf_replication, uncertain: simulated 0.7458, powerkit 0.7448; the tolerance is 0.0037.
+          success: pairs, d_z = 0.35, 50 pairs: significance, uncertain, one-sided: simulated 0.8645, powerkit 0.8632; the tolerance is 0.0030.
+          success: pairs, d_z = 0.35, 50 pairs: pooled, uncertain, one-sided: simulated 0.8534, powerkit 0.8521; the tolerance is 0.0031.
+          success: pairs, d_z = 0.35, 50 pairs: significance, shrunk: simulated 0.7339, powerkit 0.734; the tolerance is 0.0038.
+          success: pairs, d_z = 0.35, 50 pairs: pooled, shrunk: simulated 0.6829, powerkit 0.682; the tolerance is 0.0039.
+          success: pairs, d_z = 0.35, 50 pairs: agreement, shrunk: simulated 0.3124, powerkit 0.31; the tolerance is 0.0039.
+          success: pairs, d_z = 0.35, 50 pairs: bf_replication, shrunk: simulated 0.6300, powerkit 0.6282; the tolerance is 0.0041.
+          success: pairs, d_z = 0.35, 50 pairs: significance, shrunk, one-sided: simulated 0.7865, powerkit 0.7862; the tolerance is 0.0035.
+          success: pairs, d_z = 0.35, 50 pairs: pooled, shrunk, one-sided: simulated 0.7710, powerkit 0.7705; the tolerance is 0.0036.
+          success: pairs, d_z = 0.35, 50 pairs: negligible: simulated 0.9718, powerkit 0.9714; the tolerance is 0.0017.
+          success: success
+          success: correlation, r = .3, n = 90: significance, as_reported: simulated 0.9982, powerkit 0.9982; the tolerance is 0.0008.
+          success: correlation, r = .3, n = 90: pooled, as_reported: simulated 0.9976, powerkit 0.9976; the tolerance is 0.0009.
+          success: correlation, r = .3, n = 90: agreement, as_reported: simulated 0.5706, powerkit 0.5712; the tolerance is 0.0041.
+          success: correlation, r = .3, n = 90: bf_replication, as_reported: simulated 0.9855, powerkit 0.9855; the tolerance is 0.0014.
+          success: correlation, r = .3, n = 90: significance, as_reported, one-sided: simulated 0.9994, powerkit 0.9994; the tolerance is 0.0007.
+          success: correlation, r = .3, n = 90: pooled, as_reported, one-sided: simulated 0.9995, powerkit 0.9995; the tolerance is 0.0007.
+          success: correlation, r = .3, n = 90: significance, uncertain: simulated 0.8714, powerkit 0.8706; the tolerance is 0.0030.
+          success: correlation, r = .3, n = 90: pooled, uncertain: simulated 0.8649, powerkit 0.8639; the tolerance is 0.0030.
+          success: correlation, r = .3, n = 90: agreement, uncertain: simulated 0.2408, powerkit 0.2416; the tolerance is 0.0036.
+          success: correlation, r = .3, n = 90: bf_replication, uncertain: simulated 0.8026, powerkit 0.8019; the tolerance is 0.0034.
+          success: correlation, r = .3, n = 90: significance, uncertain, one-sided: simulated 0.8957, powerkit 0.8946; the tolerance is 0.0027.
+          success: correlation, r = .3, n = 90: pooled, uncertain, one-sided: simulated 0.9022, powerkit 0.9011; the tolerance is 0.0027.
+          success: correlation, r = .3, n = 90: significance, shrunk: simulated 0.7993, powerkit 0.7997; the tolerance is 0.0034.
+          success: correlation, r = .3, n = 90: pooled, shrunk: simulated 0.7900, powerkit 0.7904; the tolerance is 0.0035.
+          success: correlation, r = .3, n = 90: agreement, shrunk: simulated 0.2403, powerkit 0.2407; the tolerance is 0.0036.
+          success: correlation, r = .3, n = 90: bf_replication, shrunk: simulated 0.7063, powerkit 0.7063; the tolerance is 0.0039.
+          success: correlation, r = .3, n = 90: significance, shrunk, one-sided: simulated 0.8337, powerkit 0.8342; the tolerance is 0.0032.
+          success: correlation, r = .3, n = 90: pooled, shrunk, one-sided: simulated 0.8434, powerkit 0.8437; the tolerance is 0.0032.
+          success: correlation, r = .3, n = 90: negligible: simulated 0.9821, powerkit 0.9822; the tolerance is 0.0015.
+          success: success
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: significance, as_reported: simulated 0.9599, powerkit 0.9606; the tolerance is 0.0019.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: pooled, as_reported: simulated 0.9172, powerkit 0.9171; the tolerance is 0.0025.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: agreement, as_reported: simulated 0.4784, powerkit 0.478; the tolerance is 0.0042.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: bf_replication, as_reported: simulated 0.8876, powerkit 0.8872; the tolerance is 0.0028.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: significance, as_reported, one-sided: simulated 0.9806, powerkit 0.9809; the tolerance is 0.0015.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: pooled, as_reported, one-sided: simulated 0.9698, powerkit 0.9702; the tolerance is 0.0018.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: significance, uncertain: simulated 0.8005, powerkit 0.8017; the tolerance is 0.0034.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: pooled, uncertain: simulated 0.7465, powerkit 0.7481; the tolerance is 0.0037.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: agreement, uncertain: simulated 0.2407, powerkit 0.2425; the tolerance is 0.0036.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: bf_replication, uncertain: simulated 0.7190, powerkit 0.7205; the tolerance is 0.0038.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: significance, uncertain, one-sided: simulated 0.8406, powerkit 0.8412; the tolerance is 0.0032.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: pooled, uncertain, one-sided: simulated 0.8170, powerkit 0.8181; the tolerance is 0.0033.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: significance, shrunk: simulated 0.6956, powerkit 0.6945; the tolerance is 0.0039.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: pooled, shrunk: simulated 0.6246, powerkit 0.6238; the tolerance is 0.0041.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: agreement, shrunk: simulated 0.2420, powerkit 0.2411; the tolerance is 0.0037.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: bf_replication, shrunk: simulated 0.5898, powerkit 0.5889; the tolerance is 0.0041.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: significance, shrunk, one-sided: simulated 0.7508, powerkit 0.7494; the tolerance is 0.0037.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: pooled, shrunk, one-sided: simulated 0.7184, powerkit 0.7171; the tolerance is 0.0038.
+          success: another design, odds ratio 1.8 (SE of the log 0.25), n = 200: negligible: simulated 0.9613, powerkit 0.9618; the tolerance is 0.0019.
+PASS    replication / the as-reported significance chance is the t-test's, up to the normal approximation (15s)
+          success: two groups (the simulation against the exact t-test power): simulated 0.8097, powerkit 0.8076; the tolerance is 0.0134.
+          success: two groups: the planner's chance 0.8134 exceeds the t-test's 0.8076 by 0.0058; at most 0.02 is recorded.
+          success: pairs (the simulation against the exact t-test power): simulated 0.8673, powerkit 0.8712; the tolerance is 0.0117.
+          success: pairs: the planner's chance 0.8791 exceeds the t-test's 0.8712 by 0.0079; at most 0.02 is recorded.
+PASS    replication / small telescopes' chance at a sample size agrees with t-tests on simulated people (15s)
+          success: success
+          success: Reference power 0.7968; must lie in [0.7805, 0.8071] around powerkit's estimate 0.7938 (MCSE 0.0040, 99.9% Monte Carlo interval plus rounding of the reference).
+          success: success
+          success: Reference power 0.7923; must lie in [0.7818, 0.8084] around powerkit's estimate 0.7951 (MCSE 0.0040, 99.9% Monte Carlo interval plus rounding of the reference).
+===== end of summary =====
