@@ -103,7 +103,9 @@ test_that("an ANOVA original's write-up, references and script come from BUCSS",
   expect_match(script, "ss_buc_mixed_anova(F_observed = 15.38", fixed = TRUE)
   # A plan's write-up from its record alone uses the same engine function.
   rec <- plan_set_replication(new_replication_plan(), fields = several)
-  expect_match(paste(replication_plan_report(rec, tree, forms), collapse = "\n"), "with BUCSS", fixed = TRUE)
+  reopened_report <- paste(replication_plan_report(rec, tree, forms), collapse = "\n")
+  expect_match(reopened_report, "We used BUCSS", fixed = TRUE)
+  expect_match(reopened_report, "Publication regardless of result", fixed = TRUE)
 })
 
 test_that("a t-test original's plan shows BUCSS's corrected sample sizes beside its goals", {

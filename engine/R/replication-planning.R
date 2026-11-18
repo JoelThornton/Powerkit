@@ -1024,7 +1024,7 @@ replication_planning_script <- function(plan, goal = NULL, also = character(), p
     return(paste(c(head, replication_focused_lines(plan, focus, num, margin, se_line = se_line,
       telescope_lines = if (!bayes) telescope_lines, telescope_search = telescope_search,
       bf = if (!is.na(bf_type)) list(size_line = bf_size_line, type = bf_type, per_unit = if (two) 2 else 1,
-        scale = num(i$original_prior_scale)))), collapse = "\n"))
+        scale = num(i$original_prior_scale))), bucss_lines), collapse = "\n"))
   }
   c(head,
     "",

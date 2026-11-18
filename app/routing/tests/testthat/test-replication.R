@@ -75,9 +75,10 @@ test_that("the planner's file keeps its own fields and nothing else", {
   path <- tempfile(fileext = ".json")
   jsonlite::write_json(replication_file(c(filled, list(other = "x")), "0.0.0"), path, auto_unbox = TRUE)
   back <- plan_from_replication_text(paste(readLines(path), collapse = "\n"))$replication$fields
-  expect_true(all(names(back) %in% names(filled)))
+  expect_setequal(names(back), union(names(replication_clean_fields(filled)), "rep_published"))
   expect_false("other" %in% names(back))
   expect_identical(back$rep_effect, "0.7")
+  expect_identical(back$rep_published, "significant")
   expect_null(plan_from_replication_text(jsonlite::toJSON(list(app = "something-else", fields = filled), auto_unbox = TRUE)))
   expect_null(plan_from_replication_text("not json"))
 })
@@ -113,7 +114,7 @@ test_that("replicating from the finder asks the original's design, and its card 
   # With the plan (queue item 28): the sample-size question, the plan's
   # level and chance of success, and the original's effect where the card
   # takes it as the plan holds it.
-  pv <- replication_values(list(fields = list(rep_design = "two_groups", rep_effect = "0.45",
+  pv <- replication_values(replication_record(list(rep_design = "two_groups", rep_effect = "0.45",
     rep_alpha = "0.01", rep_power = "0.9")))
   fv <- replication_form_values(list(), "E2", pv)
   expect_identical(fv[c("goal", "alpha", "power", "effect_units", "d")],
@@ -121,16 +122,16 @@ test_that("replicating from the finder asks the original's design, and its card 
   # What the user already chose is kept.
   expect_identical(replication_form_values(list(goal = "power", d = "0.3"), "E2", pv)[c("goal", "d")], list(goal = "power", d = "0.3"))
   # Empty plan settings stay empty: the card asks for them.
-  empty <- replication_form_values(list(), "E2", replication_values(list(fields = list())))
+  empty <- replication_form_values(list(), "E2", replication_values(replication_record()))
   expect_null(empty$alpha); expect_null(empty$power); expect_null(empty$d)
   # A t statistic, d_rm, another design or a card that takes another effect: no effect copied.
-  t_given <- replication_values(list(fields = list(rep_design = "paired", rep_effect_type = "t", rep_effect = "3.1")))
+  t_given <- replication_values(replication_record(list(rep_design = "paired", rep_effect_type = "t", rep_effect = "3.1")))
   expect_null(replication_form_values(list(), "E3", t_given)$dz)
-  dz <- replication_values(list(fields = list(rep_design = "paired", rep_effect = "0.4")))
+  dz <- replication_values(replication_record(list(rep_design = "paired", rep_effect = "0.4")))
   expect_identical(replication_form_values(list(), "E3", dz)$dz, "0.4")
   expect_null(replication_card_effect_field("E2", dz))
   expect_null(replication_card_effect_field("E7", pv))
-  r <- replication_values(list(fields = list(rep_design = "correlation", rep_effect = "0.3")))
+  r <- replication_values(replication_record(list(rep_design = "correlation", rep_effect = "0.3")))
   expect_identical(replication_form_values(list(), "E4", r)$r, "0.3")
   expect_null(replication_form_values(list(), "E4", r)$effect_units)
   # They reach the input screen.
