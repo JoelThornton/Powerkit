@@ -18,6 +18,18 @@ sample_allocation <- function(spec) {
   }
   if (identical(template, "growth_curve")) return(ratio_weights(spec))
   if (identical(spec$design, "irt")) return(weights(c(1, 1)))
+  if (identical(template, "multicategorical")) {
+    return(weights(rep(1, length(spec$variables$X$levels))))
+  }
+  if (template %in% c("binary_mediator", "ordinal_mediator", "binary_or_count_outcome") &&
+      identical(spec$variables$X$type, "binary")) {
+    return(weights(c(1, 1)))
+  }
+  if (identical(template, "repeated_glmm")) {
+    groups <- spec$variables$W
+    if (is.null(groups) && identical(spec$variables$X$type, "between_factor")) groups <- spec$variables$X
+    return(if (is.null(groups)) single else weights(rep(1, length(groups$levels))))
+  }
   if (identical(template, "invariance")) {
     if (identical(spec$population$over, "occasions")) return(single)
     k <- spec$population$n_groups %||% 2
@@ -87,6 +99,14 @@ analysed_groups <- function(spec, n) {
 }
 
 group_unit <- function(spec) sample_allocation(spec)$unit
+
+# Some older results applied attrition to the total even though the
+# planned design allocated participants to whole groups.
+saved_with_ungrouped_recruitment <- function(spec, recruitment) {
+  if (!is.list(recruitment) || length(recruitment$groups_analysed) != 1L) return(FALSE)
+  allocation <- sample_allocation(spec)
+  identical(allocation$kind, "weights") && length(allocation$weights) > 1L
+}
 
 # Convert relative shares to the smallest whole allocation. Continued
 # fractions recover simple integer ratios without scanning candidate totals

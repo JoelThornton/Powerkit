@@ -107,11 +107,11 @@ project_opened_ui <- function(project, shown = FALSE, from_browser = FALSE) {
       sprintf(" Saved %s with Powerkit %s.", project$saved, project$powerkit_version)),
     if (shown) {
       tagList(
-        " Below is the saved result, as it was saved: it hasn't been run again. Running it again should give the same numbers. ",
+        " The saved result is below. You can calculate it again with this version of Powerkit. ",
         actionButton("rerun_saved", "Run it again to check", class = "btn btn-outline-primary btn-sm")
       )
     } else if (!is.null(saved)) {
-      " Press \u201cCalculate\u201d to reproduce the saved result; it should match exactly."
+      " Press \u201cCalculate\u201d to run it with this version of Powerkit."
     } else {
       " Press \u201cCalculate\u201d to run it."
     },

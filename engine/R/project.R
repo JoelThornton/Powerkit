@@ -144,6 +144,9 @@ read_project <- function(x) {
     }
   }
   if (!is.null(result)) {
+    if (saved_with_ungrouped_recruitment(spec, result$recruitment)) {
+      notes <- c(notes, "This saved result applied attrition to the total. Recalculate to apply it within each group.")
+    }
     saved <- unlist(result$provenance$packages)
     for (pkg in setdiff(names(saved), "powerkit")) {
       now <- tryCatch(as.character(utils::packageVersion(pkg)), error = function(e) "not installed")

@@ -108,6 +108,33 @@ test_that("invariance, MANOVA and nested recruitment retain their group structur
   expect_equal(recruitment_target(spec, 4 * m)$groups_recruit, rep(ceiling(m / 0.8), 4))
 })
 
+test_that("mediation and repeated outcomes recruit for the actual between-person groups", {
+  for (name in c("mediation_binary_mediator", "mediation_ordinal_mediator", "mediation_binary_or_count_outcome")) {
+    spec <- example_spec(name)
+    spec$variables$X <- list(type = "binary", levels = c("First", "Second"))
+    spec$options$attrition <- 0.1
+    expect_equal(recruitment_target(spec, 80)$groups_recruit, c(45, 45), info = name)
+    expect_equal(valid_n_step(spec), 2, info = name)
+    spec$variables$X <- list(type = "continuous")
+    expect_equal(recruitment_target(spec, 80)$groups_analysed, 80, info = name)
+  }
+
+  spec <- example_spec("repeated_glmm_interaction")
+  spec$options$attrition <- 0.1
+  groups <- length(spec$variables$W$levels)
+  expect_equal(valid_n_step(spec), groups)
+  expect_equal(recruitment_target(spec, 40 * groups)$groups_recruit, rep(45, groups))
+
+  spec <- example_spec("repeated_glmm")
+  spec$variables$X$type <- "between_factor"
+  spec$options$attrition <- 0.1
+  groups <- length(spec$variables$X$levels)
+  expect_equal(valid_n_step(spec), groups)
+  expect_equal(recruitment_target(spec, 40 * groups)$groups_recruit, rep(45, groups))
+  spec$variables$X$type <- "within_factor"
+  expect_equal(recruitment_target(spec, 40 * groups)$groups_analysed, 40 * groups)
+})
+
 test_that("portable recruitment code and the shared allocation agree for all example designs", {
   files <- list.files(system.file("specs", package = "powerkit"), pattern = "\\.json$", full.names = TRUE)
   for (file in files) {
