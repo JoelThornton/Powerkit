@@ -166,3 +166,44 @@ test_that("an ANOVA card opens the plan on the ANOVA design, and says so", {
   }
   expect_true(all(c("rep_anova_kind", "rep_anova_f", "rep_eta", "rep_df_error", "rep_assurance") %in% replication_field_ids))
 })
+
+test_that("unknown publication compares both assumptions throughout the replication plan", {
+  values <- list(rep_design = "two_groups", rep_analysis = "test", rep_goal = "significance",
+    rep_effect = "0.6", rep_n1 = "40", rep_n2 = "40", rep_alpha = "0.05", rep_power = "0.8", rep_published = "unknown")
+  engine <- engine_function("replication_planning")
+  bucss <- engine_function("replication_bucss")
+  plan <- replication_run(values, engine, bucss)
+  expect_equal(plan$bias_corrected$sizes$n[2], 6336)
+  expect_equal(plan$without_publication_filter$sizes$n[2], 194)
+  html <- as.character(replication_result_ui(plan))
+  report <- paste(replication_report(values, plan), collapse = "\n")
+  for (output in c(html, report)) {
+    expect_match(output, "Significance required", fixed = TRUE)
+    expect_match(output, "Publication regardless of result", fixed = TRUE)
+    expect_match(output, "6,336 participants", fixed = TRUE)
+    expect_match(output, "194 participants", fixed = TRUE)
+  }
+  script <- replication_script_text(plan, engine_function("replication_planning_script"))
+  expect_match(script, "alpha_prior = 0.05", fixed = TRUE)
+  expect_match(script, "alpha_prior = 1", fixed = TRUE)
+  expect_no_error(parse(text = script))
+  weak <- replication_run(modifyList(values, list(rep_effect = "0.43")), engine, bucss)
+  expect_true(all(is.na(weak$bias_corrected$sizes$n)))
+  expect_true(any(is.finite(weak$without_publication_filter$sizes$n)))
+  expect_match(as.character(replication_result_ui(weak)), "Original did not meet the significance requirement", fixed = TRUE)
+})
+
+test_that("an omnibus ANOVA from partial eta-squared compares publication assumptions", {
+  values <- list(rep_design = "anova", rep_anova_kind = "between", rep_levels_a = "3", rep_n = "90",
+    rep_f_from = "eta", rep_eta = "0.15", rep_df_error = "87", rep_anova_smallest = "0.08", rep_assurance = "0.9",
+    rep_alpha = "0.05", rep_power = "0.8", rep_published = "unknown")
+  bucss <- engine_function("replication_bucss")
+  plan <- replication_run(values, NULL, bucss, engine_function("replication_anova_smallest"))
+  expect_true(replication_bucss_filtered(plan))
+  expect_false(replication_bucss_filtered(plan$without_publication_filter))
+  expect_gt(plan$smallest$n, 0)
+  expect_match(as.character(replication_result_ui(plan)), "90% (chosen)", fixed = TRUE)
+  report <- paste(replication_report(values, plan), collapse = "\n")
+  expect_match(report, "Publication regardless of result", fixed = TRUE)
+  expect_match(report, "the same F test with 80% power needs", fixed = TRUE)
+})

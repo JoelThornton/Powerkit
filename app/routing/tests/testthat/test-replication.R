@@ -273,7 +273,7 @@ bf_filled <- list(rep_design = "two_groups", rep_analysis = "bayes_factor", rep_
   rep_n1 = "30", rep_n2 = "30", rep_effect = "", rep_original_alpha = "0.05", rep_tau = "0", rep_alpha = "0.05",
   rep_power = "0.8", rep_threshold = "10", rep_n_at = "120", rep_goal = "bf_repeat", rep_prior = "uncertain")
 post_filled <- list(rep_design = "one_sample", rep_analysis = "posterior", rep_original_prior = "default",
-  rep_effect = "0.4", rep_post_from = "ci", rep_cri_lower = "0.12", rep_cri_upper = "0.67", rep_cri_level = "95",
+  rep_post_mean = "0.4", rep_post_from = "ci", rep_cri_lower = "0.12", rep_cri_upper = "0.67", rep_cri_level = "95",
   rep_prior_scale = "0.707", rep_n = "50", rep_tau = "0", rep_alpha = "0.05", rep_power = "0.8", rep_threshold = "10")
 
 test_that("an original's Bayes factor or posterior becomes the engine's arguments", {
@@ -291,7 +291,7 @@ test_that("an original's Bayes factor or posterior becomes the engine's argument
   expect_equal(replication_args(modifyList(post_filled, list(rep_post_from = "sd", rep_post_sd = "0.14")))$original_se, 0.14)
   # A generic posterior takes the posterior's SD, not the standard error fields.
   generic_post <- replication_args(modifyList(generic_filled, list(rep_analysis = "posterior", rep_original_prior = "vague",
-    rep_post_from = "sd", rep_post_sd = "0.25")))
+    rep_post_from = "sd", rep_post_mean = "0.6", rep_post_sd = "0.25")))
   expect_equal(generic_post$original_se, 0.25)
   expect_null(generic_post$original_ci)
   expect_null(replication_args(filled)$original_analysis)
@@ -299,7 +299,7 @@ test_that("an original's Bayes factor or posterior becomes the engine's argument
   expect_length(replication_missing(post_filled), 0)
   expect_match(replication_missing(modifyList(bf_filled, list(rep_bf = ""))), "Bayes factor")
   expect_match(replication_missing(modifyList(post_filled, list(rep_cri_upper = ""))), "credible interval")
-  expect_match(replication_missing(modifyList(post_filled, list(rep_effect = "")))[1], "posterior's mean")
+  expect_match(replication_missing(modifyList(post_filled, list(rep_post_mean = "")))[1], "posterior's mean")
 })
 
 test_that("a Bayes factor original's table, headline, methods and write-up", {
@@ -354,7 +354,7 @@ test_that("a posterior original is planned, refused for an informative prior", {
     expect_match(as.character(output$rep_result$html), "only for a t-test", fixed = TRUE)
   })
   ui <- as.character(replication_planner_sections())
-  for (id in c("rep_analysis", "rep_bf", "rep_original_prior", "rep_prior_scale", "rep_post_from", "rep_post_sd",
+  for (id in c("rep_analysis", "rep_bf", "rep_original_prior", "rep_prior_scale", "rep_post_from", "rep_post_mean", "rep_post_sd",
                "rep_cri_lower", "rep_cri_upper", "rep_cri_level")) {
     expect_match(ui, sprintf("id=\"%s\"", id), fixed = TRUE)
     expect_true(id %in% replication_field_ids)
@@ -672,4 +672,26 @@ test_that("replication criteria control their own settings", {
   mixed <- modifyList(bayesian, list(rep_also = "significance"))
   expect_true(replication_criteria_settings(mixed)$alpha)
   expect_true(replication_criteria_settings(mixed)$bf)
+})
+
+test_that("tests and Bayesian posteriors each supply their own effect for both replication methods", {
+  values <- list(rep_design = "two_groups", rep_effect_type = "t", rep_effect = "3.2",
+    rep_post_mean = "0.55", rep_post_sd = "0.12", rep_n1 = "40", rep_n2 = "40",
+    rep_original_alpha = "0.05", rep_alpha = "0.05", rep_power = "0.8", rep_also = "none")
+  for (source in c("test", "posterior")) {
+    for (goal in c("significance", "bf_repeat")) {
+      fields <- modifyList(values, list(rep_analysis = source, rep_goal = goal))
+      args <- replication_args(fields)
+      expect_equal(args$original_effect, if (source == "test") 3.2 else 0.55)
+      plan <- replication_run(fields, engine_function("replication_planning"))
+      expect_identical(plan$choice$goal, goal)
+      expect_true(is.finite(plan$at_main$n))
+      if (goal == "bf_repeat") expect_true(all(plan$goals$goal %in% replication_bf_goals))
+    }
+  }
+  # A hidden F from a previously selected test must not override the posterior.
+  generic <- modifyList(values, list(rep_design = "generic", rep_analysis = "posterior",
+    rep_n = "80", rep_se_from = "f", rep_f = "10"))
+  expect_null(replication_args(generic)$original_f)
+  expect_equal(replication_args(generic)$original_effect, 0.55)
 })

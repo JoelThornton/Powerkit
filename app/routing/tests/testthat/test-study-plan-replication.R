@@ -27,6 +27,7 @@ test_that("the record keeps known fields only, as text, and blanks are left out"
   expect_identical(v$rep_alpha, "")
   expect_identical(v$rep_power, "")
   expect_identical(v$rep_tau, "0.05")
+  expect_identical(v$rep_published, "unknown")
   expect_identical(v$labs_goals, "")
   expect_setequal(names(v), replication_plan_field_ids)
 })
@@ -271,4 +272,29 @@ test_that("the list and the card say when an extension is being chosen, and the 
   expect_match(as.character(replication_extension_note(plan, card = TRUE)), "no original estimate", fixed = TRUE)
   status <- as.character(replication_card_status_ui(tree, plan_set_replication(plan, endpoint = "E2"), forms))
   expect_match(status, "The card and the Goals can give different sample sizes", fixed = TRUE)
+})
+
+test_that("legacy replication plans keep their filter and migrate the posterior mean", {
+  legacy <- list(format = replication_plan_format, version = 1L,
+    fields = list(rep_analysis = "posterior", rep_effect = "-0.15", rep_post_sd = "0.2"))
+  restored <- replication_values(legacy)
+  expect_identical(restored$rep_post_mean, "-0.15")
+  expect_identical(restored$rep_effect, "")
+  expect_identical(restored$rep_published, "significant")
+  expect_identical(replication_values(replication_record(list(rep_published = "any")))$rep_published, "any")
+
+  plan <- plan_set_replication(new_replication_plan(), fields = list(rep_analysis = "posterior",
+    rep_effect = "0.5", rep_post_mean = "-0.15", rep_published = "unknown"))
+  back <- plan_from_replication_text(plan_replication_only_text(plan))
+  expect_identical(replication_values(back$replication), replication_values(plan$replication))
+})
+
+test_that("conceptual sensitivity reports the precise change and when a setting is already at its maximum", {
+  before <- list(rep_design = "two_groups", rep_tau = "0.05", rep_prior = "uncertain")
+  message <- replication_conceptual_summary(before, replication_conceptual_settings(before))
+  expect_match(message, "Belief changed from With its uncertainty to Shrunk towards zero.", fixed = TRUE)
+  expect_match(message, "Between-study SD changed from 0.05 to 0.125.", fixed = TRUE)
+  before$rep_tau <- "0.2"
+  expect_match(replication_conceptual_summary(before, replication_conceptual_settings(before)),
+    "Between-study SD stays at 0.2.", fixed = TRUE)
 })

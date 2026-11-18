@@ -122,7 +122,7 @@ plan_to_text <- function(plan, write = engine_function("write_study_plan")) {
   analyses <- plan_analyses(plan$entries)
   tryCatch(write(analyses, id = plan$id, name = plan$name,
     description = if (nzchar(plan$description %||% "")) plan$description, guided = plan$guided,
-    replication = if (plan_is_replication(plan)) replication_record(plan$replication$fields, plan$replication$endpoint)),
+    replication = if (plan_is_replication(plan)) replication_normalise(plan$replication)),
     error = function(e) "")
 }
 
