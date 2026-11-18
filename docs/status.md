@@ -301,7 +301,16 @@ each area, is at the end of
   publication bias and uncertainty at a chosen assurance, and t-test and
   correlation originals show BUCSS's corrected sample sizes beside their
   goals (validation in progress: a published example is still to be
-  transcribed). Still to come: the rest of item 28 (several originals,
+  transcribed); a conceptual replication of an ANOVA original changes no
+  setting. An original can be entered as analysed with both a
+  significance test and a Bayes factor (the effect from the test, the
+  Bayes factor's prior for repeating its test). "Not worth replicating"
+  goes straight to the write-up, a negative pre-replication report, and
+  the planning steps say they aren't needed. The pages' guidance follows
+  the "Show explanations" switch: one sentence in view and the rest under
+  "More", folded behind info buttons with explanations off. Still to
+  come: ANOVA originals' full goals and smallest effect, then the rest
+  of item 28 (several originals,
   attrition, unequal allocation, reliability, claims resting on several
   tests) and study plans' shared settings (29).
 
